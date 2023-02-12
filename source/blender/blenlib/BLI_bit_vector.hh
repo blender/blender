@@ -16,13 +16,13 @@
  *
  * The compact nature of storing bools in individual bits has some downsides that have to be kept
  * in mind:
- * - Writing to separate bits in the same byte is not thread-safe. Therefore, an existing vector of
+ * - Writing to separate bits in the same int is not thread-safe. Therefore, an existing vector of
  *   bool can't easily be replaced with a bit vector, if it is written to from multiple threads.
  *   Read-only access from multiple threads is fine though.
  * - Writing individual elements is more expensive when the array is in cache already. That is
- *   because changing a bit is always a read-modify-write operation on the byte the bit resides in.
+ *   because changing a bit is always a read-modify-write operation on the int the bit resides in.
  * - Reading individual elements is more expensive when the array is in cache already. That is
- *   because additional bit-wise operations have to be applied after the corresponding byte is
+ *   because additional bit-wise operations have to be applied after the corresponding int is
  *   read.
  *
  * Comparison to `std::vector<bool>`:
@@ -42,18 +42,27 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
 
-namespace blender {
+namespace blender::bits {
 
 /**
- * This is a read-only pointer to a specific bit. The value of the bit can be retrieved, but not
- * changed.
+ * Using a large integer type is better because then it's easier to process many bits at once.
+ */
+using IntType = uint64_t;
+static constexpr int64_t BitsPerInt = int64_t(sizeof(IntType) * 8);
+static constexpr int64_t BitToIntIndexShift = 3 + (sizeof(IntType) >= 2) + (sizeof(IntType) >= 4) +
+                                              (sizeof(IntType) >= 8);
+static constexpr IntType BitIndexMask = (IntType(1) << BitToIntIndexShift) - 1;
+
+/**
+ * This is a read-only pointer to a specific bit. The value of the bit can be retrieved, but
+ * not changed.
  */
 class BitRef {
  private:
-  /** Points to the exact byte that the bit is in. */
-  const uint8_t *byte_ptr_;
+  /** Points to the integer that the bit is in. */
+  const IntType *ptr_;
   /** All zeros except for a single one at the bit that is referenced. */
-  uint8_t mask_;
+  IntType mask_;
 
   friend class MutableBitRef;
 
@@ -61,13 +70,13 @@ class BitRef {
   BitRef() = default;
 
   /**
-   * Reference a specific bit in a byte array. Note that #byte_ptr does *not* have to point to the
-   * exact byte the bit is in.
+   * Reference a specific bit in an array. Note that #ptr does *not* have to point to the
+   * exact integer the bit is in.
    */
-  BitRef(const uint8_t *byte_ptr, const int64_t bit_index)
+  BitRef(const IntType *ptr, const int64_t bit_index)
   {
-    byte_ptr_ = byte_ptr + (bit_index >> 3);
-    mask_ = 1 << (bit_index & 7);
+    ptr_ = ptr + (bit_index >> BitToIntIndexShift);
+    mask_ = IntType(1) << (bit_index & BitIndexMask);
   }
 
   /**
@@ -75,9 +84,9 @@ class BitRef {
    */
   bool test() const
   {
-    const uint8_t byte = *byte_ptr_;
-    const uint8_t masked_byte = byte & mask_;
-    return masked_byte != 0;
+    const IntType value = *ptr_;
+    const IntType masked_value = value & mask_;
+    return masked_value != 0;
   }
 
   operator bool() const
@@ -91,22 +100,22 @@ class BitRef {
  */
 class MutableBitRef {
  private:
-  /** Points to the exact byte that the bit is in. */
-  uint8_t *byte_ptr_;
+  /** Points to the integer that the bit is in. */
+  IntType *ptr_;
   /** All zeros except for a single one at the bit that is referenced. */
-  uint8_t mask_;
+  IntType mask_;
 
  public:
   MutableBitRef() = default;
 
   /**
-   * Reference a specific bit in a byte array. Note that #byte_ptr does *not* have to point to the
-   * exact byte the bit is in.
+   * Reference a specific bit in an array. Note that #ptr does *not* have to point to the
+   * exact int the bit is in.
    */
-  MutableBitRef(uint8_t *byte_ptr, const int64_t bit_index)
+  MutableBitRef(IntType *ptr, const int64_t bit_index)
   {
-    byte_ptr_ = byte_ptr + (bit_index >> 3);
-    mask_ = 1 << uint8_t(bit_index & 7);
+    ptr_ = ptr + (bit_index >> BitToIntIndexShift);
+    mask_ = IntType(1) << IntType(bit_index & BitIndexMask);
   }
 
   /**
@@ -115,7 +124,7 @@ class MutableBitRef {
   operator BitRef() const
   {
     BitRef bit_ref;
-    bit_ref.byte_ptr_ = byte_ptr_;
+    bit_ref.ptr_ = ptr_;
     bit_ref.mask_ = mask_;
     return bit_ref;
   }
@@ -125,9 +134,9 @@ class MutableBitRef {
    */
   bool test() const
   {
-    const uint8_t byte = *byte_ptr_;
-    const uint8_t masked_byte = byte & mask_;
-    return masked_byte != 0;
+    const IntType value = *ptr_;
+    const IntType masked_value = value & mask_;
+    return masked_value != 0;
   }
 
   operator bool() const
@@ -140,7 +149,7 @@ class MutableBitRef {
    */
   void set()
   {
-    *byte_ptr_ |= mask_;
+    *ptr_ |= mask_;
   }
 
   /**
@@ -148,7 +157,7 @@ class MutableBitRef {
    */
   void reset()
   {
-    *byte_ptr_ &= ~mask_;
+    *ptr_ &= ~mask_;
   }
 
   /**
@@ -177,21 +186,20 @@ template<
     typename Allocator = GuardedAllocator>
 class BitVector {
  private:
-  static constexpr int64_t required_bytes_for_bits(const int64_t number_of_bits)
+  static constexpr int64_t required_ints_for_bits(const int64_t number_of_bits)
   {
-    return (number_of_bits + BitsPerByte - 1) / BitsPerByte;
+    return (number_of_bits + BitsPerInt - 1) / BitsPerInt;
   }
 
-  static constexpr int64_t BitsPerByte = 8;
-  static constexpr int64_t BytesInInlineBuffer = required_bytes_for_bits(InlineBufferCapacity);
-  static constexpr int64_t BitsInInlineBuffer = BytesInInlineBuffer * BitsPerByte;
-  static constexpr int64_t AllocationAlignment = 8;
+  static constexpr int64_t IntsInInlineBuffer = required_ints_for_bits(InlineBufferCapacity);
+  static constexpr int64_t BitsInInlineBuffer = IntsInInlineBuffer * BitsPerInt;
+  static constexpr int64_t AllocationAlignment = alignof(IntType);
 
   /**
-   * Points to the first byte used by the vector. It might point to the memory in the inline
+   * Points to the first integer used by the vector. It might point to the memory in the inline
    * buffer.
    */
-  uint8_t *data_;
+  IntType *data_;
 
   /** Current size of the vector in bits. */
   int64_t size_in_bits_;
@@ -203,7 +211,7 @@ class BitVector {
   BLI_NO_UNIQUE_ADDRESS Allocator allocator_;
 
   /** Contains the bits as long as the vector is small enough. */
-  BLI_NO_UNIQUE_ADDRESS TypedBuffer<uint8_t, BytesInInlineBuffer> inline_buffer_;
+  BLI_NO_UNIQUE_ADDRESS TypedBuffer<IntType, IntsInInlineBuffer> inline_buffer_;
 
  public:
   BitVector(Allocator allocator = {}) noexcept : allocator_(allocator)
@@ -211,7 +219,7 @@ class BitVector {
     data_ = inline_buffer_;
     size_in_bits_ = 0;
     capacity_in_bits_ = BitsInInlineBuffer;
-    uninitialized_fill_n(data_, BytesInInlineBuffer, uint8_t(0));
+    uninitialized_fill_n(data_, IntsInInlineBuffer, IntType(0));
   }
 
   BitVector(NoExceptConstructor, Allocator allocator = {}) noexcept : BitVector(allocator)
@@ -220,29 +228,29 @@ class BitVector {
 
   BitVector(const BitVector &other) : BitVector(NoExceptConstructor(), other.allocator_)
   {
-    const int64_t bytes_to_copy = other.used_bytes_amount();
+    const int64_t ints_to_copy = other.used_ints_amount();
     if (other.size_in_bits_ <= BitsInInlineBuffer) {
       /* The data is copied into the owned inline buffer. */
       data_ = inline_buffer_;
       capacity_in_bits_ = BitsInInlineBuffer;
     }
     else {
-      /* Allocate a new byte array because the inline buffer is too small. */
-      data_ = static_cast<uint8_t *>(
-          allocator_.allocate(bytes_to_copy, AllocationAlignment, __func__));
-      capacity_in_bits_ = bytes_to_copy * BitsPerByte;
+      /* Allocate a new array because the inline buffer is too small. */
+      data_ = static_cast<IntType *>(
+          allocator_.allocate(ints_to_copy * sizeof(IntType), AllocationAlignment, __func__));
+      capacity_in_bits_ = ints_to_copy * BitsPerInt;
     }
     size_in_bits_ = other.size_in_bits_;
-    uninitialized_copy_n(other.data_, bytes_to_copy, data_);
+    uninitialized_copy_n(other.data_, ints_to_copy, data_);
   }
 
   BitVector(BitVector &&other) noexcept : BitVector(NoExceptConstructor(), other.allocator_)
   {
     if (other.is_inline()) {
       /* Copy the data into the inline buffer. */
-      const int64_t bytes_to_copy = other.used_bytes_amount();
+      const int64_t ints_to_copy = other.used_ints_amount();
       data_ = inline_buffer_;
-      uninitialized_copy_n(other.data_, bytes_to_copy, data_);
+      uninitialized_copy_n(other.data_, ints_to_copy, data_);
     }
     else {
       /* Steal the pointer. */
@@ -305,7 +313,7 @@ class BitVector {
 
   bool is_empty() const
   {
-    return this->size() == 0;
+    return size_in_bits_ == 0;
   }
 
   /**
@@ -442,20 +450,20 @@ class BitVector {
    */
   void fill_range(const IndexRange range, const bool value)
   {
-    const AlignedIndexRanges aligned_ranges = split_index_range_by_alignment(range, BitsPerByte);
+    const AlignedIndexRanges aligned_ranges = split_index_range_by_alignment(range, BitsPerInt);
 
     /* Fill first few bits. */
     for (const int64_t i : aligned_ranges.prefix) {
       (*this)[i].set(value);
     }
 
-    /* Fill entire bytes at once. */
-    const int64_t start_fill_byte_index = aligned_ranges.aligned.start() / BitsPerByte;
-    const int64_t bytes_to_fill = aligned_ranges.aligned.size() / BitsPerByte;
-    const uint8_t fill_value = value ? uint8_t(0xff) : uint8_t(0x00);
-    initialized_fill_n(data_ + start_fill_byte_index, bytes_to_fill, fill_value);
+    /* Fill entire ints at once. */
+    const int64_t start_fill_int_index = aligned_ranges.aligned.start() / BitsPerInt;
+    const int64_t ints_to_fill = aligned_ranges.aligned.size() / BitsPerInt;
+    const IntType fill_value = value ? IntType(-1) : IntType(0);
+    initialized_fill_n(data_ + start_fill_int_index, ints_to_fill, fill_value);
 
-    /* Fill bits in the end that don't cover a full byte. */
+    /* Fill bits in the end that don't cover a full int. */
     for (const int64_t i : aligned_ranges.suffix) {
       (*this)[i].set(value);
     }
@@ -509,37 +517,35 @@ class BitVector {
   }
 
   BLI_NOINLINE void realloc_to_at_least(const int64_t min_capacity_in_bits,
-                                        const uint8_t initial_value_for_new_bytes = 0x00)
+                                        const IntType initial_value_for_new_ints = 0x00)
   {
     if (capacity_in_bits_ >= min_capacity_in_bits) {
       return;
     }
 
-    const int64_t min_capacity_in_bytes = this->required_bytes_for_bits(min_capacity_in_bits);
+    const int64_t min_capacity_in_ints = this->required_ints_for_bits(min_capacity_in_bits);
 
     /* At least double the size of the previous allocation. */
-    const int64_t min_new_capacity_in_bytes = capacity_in_bits_ * 2;
+    const int64_t min_new_capacity_in_ints = 2 * this->required_ints_for_bits(capacity_in_bits_);
 
-    const int64_t new_capacity_in_bytes = std::max(min_capacity_in_bytes,
-                                                   min_new_capacity_in_bytes);
-    const int64_t bytes_to_copy = this->used_bytes_amount();
+    const int64_t new_capacity_in_ints = std::max(min_capacity_in_ints, min_new_capacity_in_ints);
+    const int64_t ints_to_copy = this->used_ints_amount();
 
-    uint8_t *new_data = static_cast<uint8_t *>(
-        allocator_.allocate(new_capacity_in_bytes, AllocationAlignment, __func__));
-    uninitialized_copy_n(data_, bytes_to_copy, new_data);
+    IntType *new_data = static_cast<IntType *>(allocator_.allocate(
+        new_capacity_in_ints * sizeof(IntType), AllocationAlignment, __func__));
+    uninitialized_copy_n(data_, ints_to_copy, new_data);
     /* Always initialize new capacity even if it isn't used yet. That's necessary to avoid warnings
      * caused by using uninitialized memory. This happens when e.g. setting a clearing a bit in an
-     * uninitialized byte. */
-    uninitialized_fill_n(new_data + bytes_to_copy,
-                         new_capacity_in_bytes - bytes_to_copy,
-                         uint8_t(initial_value_for_new_bytes));
+     * uninitialized int. */
+    uninitialized_fill_n(
+        new_data + ints_to_copy, new_capacity_in_ints - ints_to_copy, initial_value_for_new_ints);
 
     if (!this->is_inline()) {
       allocator_.deallocate(data_);
     }
 
     data_ = new_data;
-    capacity_in_bits_ = new_capacity_in_bytes * BitsPerByte;
+    capacity_in_bits_ = new_capacity_in_ints * BitsPerInt;
   }
 
   bool is_inline() const
@@ -547,10 +553,16 @@ class BitVector {
     return data_ == inline_buffer_;
   }
 
-  int64_t used_bytes_amount() const
+  int64_t used_ints_amount() const
   {
-    return this->required_bytes_for_bits(size_in_bits_);
+    return this->required_ints_for_bits(size_in_bits_);
   }
 };
 
+}  // namespace blender::bits
+
+namespace blender {
+using bits::BitRef;
+using bits::BitVector;
+using bits::MutableBitRef;
 }  // namespace blender
