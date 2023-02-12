@@ -100,7 +100,7 @@ enum {
   /**
    * Used to mark a space as active but "overlapped" by temporary full-screen spaces. Without this
    * we wouldn't be able to restore the correct active space after closing temp full-screens
-   * reliably if the same space type is opened twice in a full-screen stack (see T19296). We don't
+   * reliably if the same space type is opened twice in a full-screen stack (see #19296). We don't
    * actually open the same space twice, we have to pretend it is by managing area order carefully.
    */
   SPACE_FLAG_TYPE_WAS_ACTIVE = (1 << 1),

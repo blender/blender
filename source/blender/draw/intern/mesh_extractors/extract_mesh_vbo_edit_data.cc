@@ -44,7 +44,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData *mr,
   }
 
   /* Use active edge color for active face edges because
-   * specular highlights make it hard to see T55456#510873.
+   * specular highlights make it hard to see #55456#510873.
    *
    * This isn't ideal since it can't be used when mixing edge/face modes
    * but it's still better than not being able to see the active face. */

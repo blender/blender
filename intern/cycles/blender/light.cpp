@@ -24,7 +24,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   Light *light = light_map.find(key);
 
   /* Check if the transform was modified, in case a linked collection is moved we do not get a
-   * specific depsgraph update (T88515). This also mimics the behavior for Objects. */
+   * specific depsgraph update (#88515). This also mimics the behavior for Objects. */
   const bool tfm_updated = (light && light->get_tfm() != tfm);
 
   /* Update if either object or light data changed. */

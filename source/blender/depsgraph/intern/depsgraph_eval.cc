@@ -61,7 +61,7 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
      * since the undo state is stored before updates from the frame change have been applied.
      * In this case reading back the undo state will behave as if no updates on frame change
      * is needed as the #Depsgraph.ctime & frame will match the values in the input scene.
-     * Use #ID_RECALC_FRAME_CHANGE to detect that recalculation is necessary. see: T66913. */
+     * Use #ID_RECALC_FRAME_CHANGE to detect that recalculation is necessary. see: #66913. */
     deg_graph->tag_time_source();
   }
 

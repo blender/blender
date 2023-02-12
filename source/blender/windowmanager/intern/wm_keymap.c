@@ -102,7 +102,7 @@ static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
 
 /**
  * Similar to #wm_keymap_item_properties_set
- * but checks for the #wmOperatorType having changed, see T38042.
+ * but checks for the #wmOperatorType having changed, see #38042.
  */
 static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
 {
@@ -652,13 +652,13 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 
     /* add item */
     if (kmdi->add_item) {
-      /* Do not re-add an already existing keymap item! See T42088. */
-      /* We seek only for exact copy here! See T42137. */
+      /* Do not re-add an already existing keymap item! See #42088. */
+      /* We seek only for exact copy here! See #42137. */
       wmKeyMapItem *kmi_add = wm_keymap_find_item_equals(km, kmdi->add_item);
 
       /** If kmi_add is same as kmi_remove (can happen in some cases,
        * typically when we got kmi_remove from #wm_keymap_find_item_equals_result()),
-       * no need to add or remove anything, see T45579. */
+       * no need to add or remove anything, see #45579. */
 
       /**
        * \note This typically happens when we apply user-defined keymap diff to a base one that
@@ -1313,7 +1313,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const struct wmKeyMapItemFind_Params *params)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-    /* skip disabled keymap items [T38447] */
+    /* skip disabled keymap items [#38447] */
     if (kmi->flag & KMI_INACTIVE) {
       continue;
     }
@@ -1566,7 +1566,7 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
    * Otherwise:
    *     * If non-strict, unset properties always match set ones in IDP_EqualsProperties_ex.
    *     * If strict, unset properties never match set ones in IDP_EqualsProperties_ex,
-   *       and we do not want that to change (else we get things like T41757)!
+   *       and we do not want that to change (else we get things like #41757)!
    * ...so in either case, re-running a comparison with unset props set to default is useless.
    */
   if (!found && properties) {

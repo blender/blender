@@ -305,7 +305,7 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
     f->head.hflag = lf->hflag;
     bm_log_face_id_set(log, f, POINTER_AS_UINT(key));
 
-    /* Ensure face sets have valid values.  Fixes T80174. */
+    /* Ensure face sets have valid values.  Fixes #80174. */
     if (cd_face_sets != -1) {
       BM_ELEM_CD_SET_INT(f, cd_face_sets, 1);
     }

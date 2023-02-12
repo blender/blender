@@ -61,7 +61,7 @@ struct BMeshToMeshParams {
    *
    * This is needed when flushing changes from edit-mode into object mode,
    * so a second flush or edit-mode exit doesn't run with indices
-   * that have become invalid from updating the shape-key, see T71865.
+   * that have become invalid from updating the shape-key, see #71865.
    */
   bool update_shapekey_indices;
   /**

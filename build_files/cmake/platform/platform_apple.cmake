@@ -440,7 +440,7 @@ string(APPEND PLATFORM_LINKFLAGS " -stdlib=libc++")
 # Make stack size more similar to Embree, required for Embree.
 string(APPEND PLATFORM_LINKFLAGS_EXECUTABLE " -Wl,-stack_size,0x100000")
 
-# Suppress ranlib "has no symbols" warnings (workaround for T48250)
+# Suppress ranlib "has no symbols" warnings (workaround for #48250).
 set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
 # llvm-ranlib doesn't support this flag. Xcode's libtool does.

@@ -109,7 +109,7 @@ vec3 sqr(vec3 a) { return a * a; }
 vec4 sqr(vec4 a) { return a * a; }
 
 /* Use manual powers for fixed powers. pow() can have unpredictable results on some implementations.
- * (see T87369, T87541) */
+ * (see #87369, #87541) */
 float pow6(float x) { return sqr(sqr(x) * x); }
 float pow8(float x) { return sqr(sqr(sqr(x))); }
 

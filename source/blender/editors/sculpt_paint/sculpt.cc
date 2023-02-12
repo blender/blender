@@ -1620,7 +1620,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   /**
    * Disable multi-threading when dynamic-topology is enabled. Otherwise,
    * new entries might be inserted by #SCULPT_undo_push_node() into the #GHash
-   * used internally by #BM_log_original_vert_co() by a different thread. See T33787.
+   * used internally by #BM_log_original_vert_co() by a different thread. See #33787.
    */
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -5405,7 +5405,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
       /* Update the object's bounding box too so that the object
        * doesn't get incorrectly clipped during drawing in
-       * draw_mesh_object(). T33790. */
+       * draw_mesh_object(). #33790. */
       SCULPT_update_object_bounding_box(ob);
     }
 
@@ -5586,7 +5586,7 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
   /* Don't start the stroke until `mval` goes over the mesh.
    * NOTE: `mval` will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set `mval`,
-   * only 'location', see: T52195. */
+   * only 'location', see: #52195. */
   if (((op->flag & OP_IS_INVOKE) == 0) || (mval == nullptr) || over_mesh(C, op, mval)) {
     Object *ob = CTX_data_active_object(C);
     SculptSession *ss = ob->sculpt;
@@ -5865,7 +5865,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   const Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* XXX Canceling strokes that way does not work with dynamic topology,
-   *     user will have to do real undo for now. See T46456. */
+   *     user will have to do real undo for now. See #46456. */
   if (ss->cache && !SCULPT_stroke_is_dynamic_topology(ss, brush)) {
     paint_mesh_restore_co(sd, ob);
   }
@@ -5893,7 +5893,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
      *
      * Having blank global undo steps interleaved with sculpt steps
      * corrupts the DynTopo undo stack.
-     * See T101430.
+     * See #101430.
      *
      * NOTE: simply returning #OPERATOR_CANCELLED was not
      * sufficient to prevent this. */

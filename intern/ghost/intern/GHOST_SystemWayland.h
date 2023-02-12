@@ -208,7 +208,7 @@ class GHOST_SystemWayland : public GHOST_System {
    * Clear all references to this output.
    *
    * \note The compositor should have already called the `wl_surface_listener.leave` callback,
-   * however some compositors may not (see T103586).
+   * however some compositors may not (see #103586).
    * So remove references to the output before it's destroyed to avoid crashing.
    *
    * \return true when any references were removed.

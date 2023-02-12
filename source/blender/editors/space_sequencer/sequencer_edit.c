@@ -1220,7 +1220,7 @@ int seq_effect_find_selected(Scene *scene,
   *r_selseq2 = seq2;
   *r_selseq3 = seq3;
 
-  /* TODO(Richard): This function needs some refactoring, this is just quick hack for T73828. */
+  /* TODO(Richard): This function needs some refactoring, this is just quick hack for #73828. */
   if (SEQ_effect_get_num_inputs(type) < 3) {
     *r_selseq3 = NULL;
   }

@@ -2458,7 +2458,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
     if ((!use_mesh) || use_mesh->edit_mesh) {
       /* If the object is being edited, then the mesh is not evaluated fully into the final
        * result, do not load them. This could be caused by incorrect evaluation order due to
-       * the way line art uses depsgraph.See T102612 for explanation of this workaround. */
+       * the way line art uses depsgraph.See #102612 for explanation of this workaround. */
       return;
     }
   }

@@ -1666,7 +1666,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
                 if (dot > best_nor_dot - 1e-6f) {
                   /* We need something as fallback decision in case dest normal matches several
-                   * source normals (see T44522), using distance between polys' centers here. */
+                   * source normals (see #44522), using distance between polys' centers here. */
                   float *pcent_src;
                   float sqdist;
 

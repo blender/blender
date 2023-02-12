@@ -5295,7 +5295,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
     }
     else {
       /* Cannot get property/cannot or rename for some reason, so clear rename index
-       * so that this doesn't hang around, and the name can be drawn normally - T47492
+       * so that this doesn't hang around, and the name can be drawn normally - #47492
        */
       ac->ads->renameIndex = 0;
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);

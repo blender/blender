@@ -269,7 +269,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
 
   limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
   /* previous behavior here is without accounting for winding, however this causes stretching in
-   * UV map in really simple cases with mirror + subsurf, see second part of T44530.
+   * UV map in really simple cases with mirror + subsurf, see second part of #44530.
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(
@@ -1885,7 +1885,7 @@ DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
   CCGDerivedMesh *result;
 
   /* NOTE: editmode calculation can only run once per
-   * modifier stack evaluation (uses freed cache) T36299. */
+   * modifier stack evaluation (uses freed cache) #36299. */
   if (flags & SUBSURF_FOR_EDIT_MODE) {
     int levels = (scene != nullptr && !ignore_simplify) ?
                      get_render_subsurf_level(&scene->r, smd->levels, false) :

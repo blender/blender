@@ -2009,8 +2009,7 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
 
   /* copy current "action blending" settings from adt to the strip,
    * as it was keyframed with these settings, so omitting them will
-   * change the effect  [T54233]
-   */
+   * change the effect [#54233]. */
   strip->blendmode = adt->act_blendmode;
   strip->influence = adt->act_influence;
   strip->extendmode = adt->act_extendmode;
@@ -2058,7 +2057,7 @@ static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
   /* There are situations where we may have multiple strips selected and we want to enter
    * tweak-mode on all of those at once. Usually in those cases,
    * it will usually just be a single strip per AnimData.
-   * In such cases, compromise and take the last selected track and/or last selected strip, T28468.
+   * In such cases, compromise and take the last selected track and/or last selected strip, #28468.
    */
   if (activeTrack == NULL) {
     /* try last selected track for active strip */
@@ -2178,7 +2177,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 
   /* sync the length of the user-strip with the new state of the action
    * but only if the user has explicitly asked for this to happen
-   * (see T34645 for things to be careful about)
+   * (see #34645 for things to be careful about)
    */
   if ((adt->actstrip) && (adt->actstrip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
     strip = adt->actstrip;

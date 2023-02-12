@@ -1354,7 +1354,7 @@ static void uv_image_outset(const ProjPaintState *ps,
       len_fact = cosf(tri_ang);
       len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
 
-      /* Clamp the length factor, see: T62236. */
+      /* Clamp the length factor, see: #62236. */
       len_fact = MIN2(len_fact, 10.0f);
 
       mul_v2_fl(no, ps->seam_bleed_px * len_fact);
@@ -3939,7 +3939,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   ps->thread_tot = BKE_scene_num_threads(ps->scene);
 
-  /* workaround for T35057, disable threading if diameter is less than is possible for
+  /* workaround for #35057, disable threading if diameter is less than is possible for
    * optimum bucket number generation */
   if (reset_threads) {
     ps->thread_tot = 1;
@@ -5150,7 +5150,7 @@ static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)
   /* Use the original alpha channel data instead of the modified one */
   if (is_floatbuf) {
     /* slightly more involved case since floats are in premultiplied space we need
-     * to make sure alpha is consistent, see T44627 */
+     * to make sure alpha is consistent, see #44627 */
     float rgb_straight[4];
     premul_to_straight_v4_v4(rgb_straight, pixel->pixel.f_pt);
     rgb_straight[3] = pixel->origColor.f_pt[3];

@@ -694,7 +694,7 @@ void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
       bmain, drop->ptr, static_cast<ID_Type>(asset_drag->id_type));
   if (id != nullptr) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
-     * cause T95636. Note that we need first to add the user that we want to remove in
+     * cause #95636. Note that we need first to add the user that we want to remove in
      * #BKE_id_free_us. */
     id_us_plus(id);
     BKE_id_free_us(bmain, id);

@@ -907,7 +907,7 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  *
  * - Edit-Mesh (#Mesh.edit_mesh)
  *   Since edit-mesh is tied to the objects mode,
- *   which crashes when called in edit-mode, see: T90972.
+ *   which crashes when called in edit-mode, see: #90972.
  */
 static void mesh_clear_geometry(Mesh *mesh)
 {

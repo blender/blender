@@ -540,7 +540,7 @@ static bool vertex_needs_dissolving(const int vertex,
  * used in the data-structures derived from the mesh. For each pair of polygons which has such a
  * vertex, an edge is created for the dual mesh between the centers of those two polygons. All
  * edges in the input mesh which contain such a vertex are marked as 'done' to prevent duplicate
- * edges being created. (See T94144)
+ * edges being created. (See #94144)
  */
 static void dissolve_redundant_verts(const Span<MEdge> edges,
                                      const Span<MPoly> polys,

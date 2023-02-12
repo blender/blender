@@ -878,7 +878,7 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p)
   BLO_read_packed_address(reader, &pf->data);
   if (pf->data == NULL) {
     /* We cannot allow a PackedFile with a NULL data field,
-     * the whole code assumes this is not possible. See T70315. */
+     * the whole code assumes this is not possible. See #70315. */
     printf("%s: NULL packedfile data, cleaning up...\n", __func__);
     MEM_SAFE_FREE(pf);
   }

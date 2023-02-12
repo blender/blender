@@ -421,7 +421,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Clear any run-time data.
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
+   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
   BKE_mesh_runtime_clear_geometry(me);
 
   /* new material indices and material array */
@@ -601,7 +601,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible
    * (i.e. data from active mesh will remain first ones in new result of the merge,
-   * in same order for CD layers, etc). See also T50084.
+   * in same order for CD layers, etc). See also #50084.
    */
   join_mesh_single(depsgraph,
                    bmain,

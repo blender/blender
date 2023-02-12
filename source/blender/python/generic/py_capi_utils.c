@@ -839,7 +839,7 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
    * So print the error and exit now. This is necessary as the call to #PyErr_Print exits,
    * the temporary `sys.stderr` assignment causes the output to be suppressed, failing silently.
    * Instead, restore the error and print it. If Python changes it's behavior and doesn't exit in
-   * the future - continue to create the exception buffer, see: T99966.
+   * the future - continue to create the exception buffer, see: #99966.
    *
    * Arguably accessing a `SystemExit` exception as a buffer should be supported without exiting.
    * (by temporarily enabling inspection for example) however - it's not obvious exactly when this

@@ -95,7 +95,7 @@ static void generate_vert_coordinates(Mesh *mesh,
 
     /* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
     /* Get ob_center (world) coordinates in ob local coordinates.
-     * No need to take into account ob_center's space here, see T44027. */
+     * No need to take into account ob_center's space here, see #44027. */
     invert_m4_m4(inv_obmat, ob->object_to_world);
     mul_v3_m4v3(diff, inv_obmat, ob_center->object_to_world[3]);
     negate_v3(diff);
@@ -532,7 +532,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (BKE_mesh_edges(mesh) == BKE_mesh_edges((Mesh *)ob->data)) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
-     * modify original mesh, see T43671. */
+     * modify original mesh, see #43671. */
     result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {

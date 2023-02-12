@@ -2264,7 +2264,7 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
       }
     }
     /* It's important to end the iterator after `result` has been created
-     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+     * so iterators may optionally invalidate items that were iterated over, see: #100286. */
     RNA_property_collection_end(&iter);
     if (found) {
       if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
@@ -2384,7 +2384,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
       }
     }
     /* It's important to end the iterator after `result` has been created
-     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+     * so iterators may optionally invalidate items that were iterated over, see: #100286. */
     RNA_property_collection_end(&iter);
     if (found) {
       if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
@@ -8495,7 +8495,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       }
 
 #ifdef USE_PEDANTIC_WRITE
-      /* Handle nested draw calls, see: T89253. */
+      /* Handle nested draw calls, see: #89253. */
       const bool rna_disallow_writes_prev = rna_disallow_writes;
       rna_disallow_writes = is_readonly ? true : false;
 #endif

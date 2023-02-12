@@ -2064,7 +2064,7 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain),
                                                PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  /* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
+  /* XXX BCONTEXT_DATA is ugly, but required for lights... See #51318. */
   if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
     sbuts->preview = 1;
   }

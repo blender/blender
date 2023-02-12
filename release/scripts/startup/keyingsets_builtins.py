@@ -639,7 +639,7 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
 
 # Note that this controls order of options in `insert keyframe` menu.
 # Better try to keep some logical order here beyond mere alphabetical one, also because of menu entries shortcut.
-# See also T51867.
+# See also #51867.
 classes = (
     BUILTIN_KSI_Available,
     BUILTIN_KSI_Location,

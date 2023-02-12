@@ -67,7 +67,7 @@ typedef struct TransDataNla {
 static void applyTransformNLA_translation(PointerRNA *strip_rna_ptr, const TransDataNla *transdata)
 {
   /* NOTE: we write these twice to avoid truncation errors which can arise when
-   * moving the strips a large distance using numeric input T33852.
+   * moving the strips a large distance using numeric input #33852.
    */
   RNA_float_set(strip_rna_ptr, "frame_start", transdata->h1[0]);
   RNA_float_set(strip_rna_ptr, "frame_end", transdata->h2[0]);

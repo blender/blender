@@ -1725,7 +1725,7 @@ class WM_OT_properties_edit(Operator):
                     for nt in adt.nla_tracks:
                         _update_strips(nt.strips)
 
-        # Otherwise existing buttons which reference freed memory may crash Blender (T26510).
+        # Otherwise existing buttons which reference freed memory may crash Blender (#26510).
         for win in context.window_manager.windows:
             for area in win.screen.areas:
                 area.tag_redraw()

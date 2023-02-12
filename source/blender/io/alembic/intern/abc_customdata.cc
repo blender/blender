@@ -420,7 +420,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
 
   /* The colors can go through two layers of indexing. Often the 'indices'
    * array doesn't do anything (i.e. indices[n] = n), but when it does, it's
-   * important. Blender 2.79 writes indices incorrectly (see T53745), which
+   * important. Blender 2.79 writes indices incorrectly (see #53745), which
    * is why we have to check for indices->size() > 0 */
   bool use_dual_indexing = is_facevarying && indices->size() > 0;
 

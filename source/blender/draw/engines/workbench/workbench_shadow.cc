@@ -439,7 +439,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 #endif
 
   /* Shadow pass technique needs object to be have all its surface opaque. */
-  /* We cannot use the PASS technique on non-manifold object (see T76168). */
+  /* We cannot use the PASS technique on non-manifold object (see #76168). */
   bool force_fail_pass = has_transp_mat || (!is_manifold && (scene_state.cull_state != 0));
 
   PassType fail_type = force_fail_pass ? FORCED_FAIL : FAIL;

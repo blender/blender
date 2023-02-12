@@ -932,7 +932,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   /* Ensure leaf limit is at least 4 so there's room
    * to split at original face boundaries.
-   * Fixes T102209.
+   * Fixes #102209.
    */
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), max_grids);
 

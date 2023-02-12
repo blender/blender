@@ -353,7 +353,7 @@ void GLTexture::generate_mipmap()
     return;
   }
 
-  /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see T56789).
+  /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see #56789).
    * In this case we just create a complete texture with mipmaps manually without
    * down-sampling. You must initialize the texture levels using other methods like
    * #GPU_framebuffer_recursive_downsample(). */
@@ -448,7 +448,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
   size_t texture_size = sample_len * sample_size;
 
   /* AMD Pro driver have a bug that write 8 bytes past buffer size
-   * if the texture is big. (see T66573) */
+   * if the texture is big. (see #66573) */
   void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
 
   GLenum gl_format = to_gl_data_format(format_);
@@ -677,17 +677,17 @@ bool GLTexture::proxy_check(int mip)
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
-     * (see T55888, T56185, T59351).
+     * (see #55888, #56185, #59351).
      * Checking with `GL_PROXY_TEXTURE_..` doesn't prevent `Out Of Memory` issue,
      * it just states that the OGL implementation can support the texture.
      * So we already manually check the maximum size and maximum number of layers.
-     * Same thing happens on Nvidia/macOS 10.15 (T78175). */
+     * Same thing happens on Nvidia/macOS 10.15 (#78175). */
     return true;
   }
 
   if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
       GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
-    /* Special fix for T79703. */
+    /* Special fix for #79703. */
     return true;
   }
 

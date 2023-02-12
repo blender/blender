@@ -249,7 +249,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   BLT_lang_init();
   /* Must call first before doing any `.blend` file reading,
-   * since versioning code may create new IDs. See T57066. */
+   * since versioning code may create new IDs. See #57066. */
   BLT_lang_set(nullptr);
 
   /* Init icons before reading .blend files for preview icons, which can
@@ -278,7 +278,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * - Some sub-systems depend on the preferences (initializing icons depend on the theme).
    * - Add-ons depends on the preferences to know what has been enabled.
    * - Add-ons depends on the window-manger to register their key-maps.
-   * - Evaluating the startup file depends on Python for animation-drivers (see T89046).
+   * - Evaluating the startup file depends on Python for animation-drivers (see #89046).
    * - Starting Python depends on the startup file so key-maps can be added in the window-manger.
    *
    * Loading preferences early, then application subsystems and finally the startup data would
@@ -485,12 +485,12 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
 #if defined(WITH_PYTHON) && !defined(WITH_PYTHON_MODULE)
   /* Without this, we there isn't a good way to manage false-positive resource leaks
-   * where a #PyObject references memory allocated with guarded-alloc, T71362.
+   * where a #PyObject references memory allocated with guarded-alloc, #71362.
    *
    * This allows add-ons to free resources when unregistered (which is good practice anyway).
    *
    * Don't run this code when built as a Python module as this runs when Python is in the
-   * process of shutting down, where running a snippet like this will crash, see T82675.
+   * process of shutting down, where running a snippet like this will crash, see #82675.
    * Instead use the `atexit` module, installed by #BPY_python_start */
   const char *imports[2] = {"addon_utils", nullptr};
   BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
@@ -631,7 +631,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BLI_task_scheduler_exit();
 
   /* No need to call this early, rather do it late so that other
-   * pieces of Blender using sound may exit cleanly, see also T50676. */
+   * pieces of Blender using sound may exit cleanly, see also #50676. */
   BKE_sound_exit();
 
   BKE_appdir_exit();

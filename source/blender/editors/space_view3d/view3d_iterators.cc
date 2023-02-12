@@ -96,7 +96,7 @@ static int content_planes_from_clip_flag(const ARegion *region,
  * Edge projection is more involved since part of the edge may be behind the view
  * or extend beyond the far limits. In the case of single points, these can be ignored.
  * However it just may still be visible on screen, so constrained the edge to planes
- * defined by the port to ensure both ends of the edge can be projected, see T32214.
+ * defined by the port to ensure both ends of the edge can be projected, see #32214.
  *
  * \note This is unrelated to #V3D_PROJ_TEST_CLIP_BB which must be checked separately.
  */

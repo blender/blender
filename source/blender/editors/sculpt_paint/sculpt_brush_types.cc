@@ -1052,7 +1052,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
-    /* The normal from the vertices is ignored, it causes glitch with planes, see: T44390. */
+    /* The normal from the vertices is ignored, it causes glitch with planes, see: #44390. */
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
                                                                 vd.co,

@@ -168,7 +168,7 @@ static void simpleDeform_bend(const float factor,
   cost = cosf(theta);
 
   /* NOTE: the operations below a susceptible to float precision errors
-   * regarding the order of operations, take care when changing, see: T85470 */
+   * regarding the order of operations, take care when changing, see: #85470 */
   switch (axis) {
     case 0:
       r_co[0] = x;

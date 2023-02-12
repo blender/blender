@@ -128,7 +128,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool
     return;
   }
 
-  /* Do not call if no WM available, see T42688. */
+  /* Do not call if no WM available, see #42688. */
   if (BLI_listbase_is_empty(&bmain->wm)) {
     return;
   }

@@ -2007,7 +2007,7 @@ static int selectbuffer_ret_hits_5(GPUSelectResult *buffer,
  *
  * \param do_nearest_xray_if_supported: When set, read in hits that don't stop
  * at the nearest surface. The hits must still be ordered by depth.
- * Needed so we can step to the next, non-active object when it's already selected, see: T76445.
+ * Needed so we can step to the next, non-active object when it's already selected, see: #76445.
  */
 static int mixed_bones_object_selectbuffer(ViewContext *vc,
                                            GPUSelectResult *buffer,
@@ -2614,7 +2614,7 @@ static bool ed_object_select_pick(bContext *C,
 
   ViewLayer *view_layer = vc.view_layer;
   BKE_view_layer_synced_ensure(scene, view_layer);
-  /* Don't set when the context has no active object (hidden), see: T60807. */
+  /* Don't set when the context has no active object (hidden), see: #60807. */
   const Base *oldbasact = vc.obact ? BKE_view_layer_active_base_get(view_layer) : nullptr;
   /* Always start list from `basact` when cycling the selection. */
   Base *startbase = (oldbasact && oldbasact->next) ?
@@ -2628,7 +2628,7 @@ static bool ed_object_select_pick(bContext *C,
   /* For the most part this is equivalent to `(object_mode & OB_MODE_POSE) != 0`
    * however this logic should also run with weight-paint + pose selection.
    * Without this, selection in weight-paint mode can de-select armatures which isn't useful,
-   * see: T101686. */
+   * see: #101686. */
   const bool has_pose_old = (oldbasact &&
                              BKE_object_pose_armature_get_with_wpaint_check(oldbasact->object));
 
@@ -3028,7 +3028,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && enumerate) {
     /* Enumerate makes no sense in edit-mode unless also explicitly picking objects or bones.
-     * Pass the event through so the event may be handled by loop-select for e.g. see: T100204. */
+     * Pass the event through so the event may be handled by loop-select for e.g. see: #100204. */
     if (obedit->type != OB_ARMATURE) {
       return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
     }
@@ -3153,8 +3153,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
       ot->srna, "object", false, "Object", "Use object selection (edit mode only)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  /* Needed for select-through to usefully drag handles, see: T98254.
-   * NOTE: this option may be removed and become default behavior, see design task: T98552. */
+  /* Needed for select-through to usefully drag handles, see: #98254.
+   * NOTE: this option may be removed and become default behavior, see design task: #98552. */
   prop = RNA_def_boolean(ot->srna,
                          "vert_without_handles",
                          false,
@@ -3796,7 +3796,7 @@ static bool do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const
     }
   }
 
-  /* The draw order doesn't always match the order we populate the engine, see: T51695. */
+  /* The draw order doesn't always match the order we populate the engine, see: #51695. */
   qsort(buffer, hits, sizeof(GPUSelectResult), opengl_bone_select_buffer_cmp);
 
   for (const GPUSelectResult *buf_iter = buffer, *buf_end = buf_iter + hits; buf_iter < buf_end;
@@ -3857,7 +3857,7 @@ static bool do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const e
   if (hits > 0) {
     /* no need to loop if there's no hit */
 
-    /* The draw order doesn't always match the order we populate the engine, see: T51695. */
+    /* The draw order doesn't always match the order we populate the engine, see: #51695. */
     qsort(buffer, hits, sizeof(GPUSelectResult), opengl_bone_select_buffer_cmp);
 
     for (const GPUSelectResult *buf_iter = buffer, *buf_end = buf_iter + hits; buf_iter < buf_end;

@@ -668,7 +668,7 @@ typedef struct wmTabletData {
  * - The reason to differentiate between "press" and the previous event state is
  *   the previous event may be set by key-release events. In the case of a single key click
  *   this isn't a problem however releasing other keys such as modifiers prevents click/click-drag
- *   events from being detected, see: T89989.
+ *   events from being detected, see: #89989.
  *
  * - Mouse-wheel events are excluded even though they generate #KM_PRESS
  *   as clicking and dragging don't make sense for mouse wheel events.

@@ -163,7 +163,7 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
   immUniform1f("lineWidth", line_width);
 
   if (GPU_blend_get() == GPU_BLEND_NONE) {
-    /* Disable line smoothing when blending is disabled (see T81827). */
+    /* Disable line smoothing when blending is disabled (see #81827). */
     immUniform1i("lineSmooth", 0);
   }
 

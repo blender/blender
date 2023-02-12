@@ -162,7 +162,7 @@
  * which keeps large arrays in memory from data-blocks we may not even use.
  *
  * \note This is disabled when using compression,
- * while ZLIB supports seek it's unusably slow, see: T61880.
+ * while ZLIB supports seek it's unusably slow, see: #61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
@@ -2038,7 +2038,7 @@ static void direct_link_id_common(
 
   /* No-main and other types of special IDs should never be written in .blend files. */
   /* NOTE: `NO_MAIN` is commented for now as some code paths may still generate embedded IDs with
-   * this tag, see T103389. Related to T88555. */
+   * this tag, see #103389. Related to #88555. */
   BLI_assert(
       (id->tag & (/*LIB_TAG_NO_MAIN |*/ LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
@@ -2111,7 +2111,7 @@ static void direct_link_id_common(
   /* Link direct data of overrides. */
   if (id->override_library) {
     BLO_read_data_address(reader, &id->override_library);
-    /* Work around file corruption on writing, see T86853. */
+    /* Work around file corruption on writing, see #86853. */
     if (id->override_library != nullptr) {
       BLO_read_list_cb(
           reader, &id->override_library->properties, direct_link_id_override_property_cb);
@@ -2471,7 +2471,7 @@ static void lib_link_workspace_layout_restore(IDNameLib_Map *id_map,
               sbuts->flag &= ~SB_PIN_CONTEXT;
             }
 
-            /* TODO: restore path pointers: T40046
+            /* TODO: restore path pointers: #40046
              * (complicated because this contains data pointers too, not just ID). */
             MEM_SAFE_FREE(sbuts->path);
             break;
@@ -2496,7 +2496,7 @@ static void lib_link_workspace_layout_restore(IDNameLib_Map *id_map,
             }
 
             /* force recalc of list of channels, potentially updating the active action
-             * while we're at it (as it can only be updated that way) T28962.
+             * while we're at it (as it can only be updated that way) #28962.
              */
             saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
             break;
@@ -2731,7 +2731,7 @@ void blo_lib_link_restore(Main *oldmain,
 
   /* Restore all ID pointers in Main database itself
    * (especially IDProperties might point to some word-space of other 'weirdly unchanged' ID
-   * pointers, see T69146).
+   * pointers, see #69146).
    * Note that this will re-apply again a few pointers in workspaces or so,
    * but since we are remapping final ones already set above,
    * that is just some minor harmless double-processing. */
@@ -2774,7 +2774,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
          * where to add all non-library data-blocks found in file next, we have to switch that
          * 'dupli' found Main to latest position in the list!
          * Otherwise, you get weird disappearing linked data on a rather inconsistent basis.
-         * See also T53977 for reproducible case. */
+         * See also #53977 for reproducible case. */
         BLI_remlink(fd->mainlist, newmain);
         BLI_addtail(fd->mainlist, newmain);
 
@@ -2817,7 +2817,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
       /* when loading a linked lib into a file which has not been saved,
        * there is nothing we can be relative to, so instead we need to make
        * it absolute. This can happen when appending an object with a relative
-       * link into an unsaved blend file. See T27405.
+       * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
         BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
@@ -3078,7 +3078,7 @@ static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const I
    * (see BLO_read_from_memfile).
    * However, some needed by the snapshot being read may have been removed in previous one,
    * and would go missing.
-   * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
+   * This leads e.g. to disappearing objects in some undo/redo case, see #34446.
    * That means we have to carefully check whether current lib or
    * libdata already exits in old main, if it does we merely copy it over into new main area,
    * otherwise we have to do a full read of that bhead... */
@@ -3982,8 +3982,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_lib_override_library_main_update(bfd->main);
 
       /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
-       * `BKE_lib_override_library_main_update`, see T103062.
-       * Proper fix involves first addressing T90610. */
+       * `BKE_lib_override_library_main_update`, see #103062.
+       * Proper fix involves first addressing #90610. */
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
@@ -4612,8 +4612,8 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
   /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
-   * `BKE_lib_override_library_main_update`, see T103062.
-   * Proper fix involves first addressing T90610. */
+   * `BKE_lib_override_library_main_update`, see #103062.
+   * Proper fix involves first addressing #90610. */
   BKE_main_collections_parent_relations_rebuild(mainvar);
 
   /* Make all relative paths, relative to the open blend file. */

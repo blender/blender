@@ -530,7 +530,7 @@ static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex
     }
 
     /* FIXME: We can't save more than what 32bit systems can handle.
-     * The solution would be to split the texture but it is too late for 2.90. (see T78529) */
+     * The solution would be to split the texture but it is too late for 2.90. (see #78529) */
     if (data_size < INT_MAX) {
       BLO_write_raw(writer, data_size, tex->data);
     }

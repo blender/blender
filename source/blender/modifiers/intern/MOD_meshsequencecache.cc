@@ -213,7 +213,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
     if ((me_positions.data() == mesh_positions.data()) || (me_edges.data() == mesh_edges.data()) ||
         (me_polys.data() == mesh_polys.data())) {
-      /* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
+      /* We need to duplicate data here, otherwise we'll modify org mesh, see #51701. */
       mesh = reinterpret_cast<Mesh *>(
           BKE_id_copy_ex(nullptr,
                          &mesh->id,

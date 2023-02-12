@@ -3128,7 +3128,7 @@ static void rna_def_gaussian_blur(StructRNA *srna)
 
 static void rna_def_text(StructRNA *srna)
 {
-  /* Avoid text icons because they imply this aligns within a frame, see: T71082 */
+  /* Avoid text icons because they imply this aligns within a frame, see: #71082 */
   static const EnumPropertyItem text_align_x_items[] = {
       {SEQ_TEXT_ALIGN_X_LEFT, "LEFT", ICON_ANCHOR_LEFT, "Left", ""},
       {SEQ_TEXT_ALIGN_X_CENTER, "CENTER", ICON_ANCHOR_CENTER, "Center", ""},

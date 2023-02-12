@@ -132,7 +132,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
        * deltas without it escaping from the window. In this case we never want to show the actual
        * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
        * wrapping in a region since this is the case when it would otherwise attempt to draw the
-       * cursor outside the view/window. See: T102792. */
+       * cursor outside the view/window. See: #102792. */
       if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
           wm_window_grab_warp_region_is_set(win)) {
         int x = 0, y = 0;
@@ -1214,7 +1214,7 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
    * not to initialize at all.
    * Confusingly there are some cases where this *does* work, depending on the state of the window
    * and prior calls to swap-buffers, however ensuring the state exactly as needed to satisfy a
-   * particular GPU back-end is fragile, see T98462.
+   * particular GPU back-end is fragile, see #98462.
    *
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
@@ -1362,8 +1362,8 @@ void wm_draw_update(bContext *C)
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 
     if (state == GHOST_kWindowStateMinimized) {
-      /* do not update minimized windows, gives issues on Intel (see T33223)
-       * and AMD (see T50856). it seems logical to skip update for invisible
+      /* do not update minimized windows, gives issues on Intel (see #33223)
+       * and AMD (see #50856). it seems logical to skip update for invisible
        * window anyway.
        */
       continue;

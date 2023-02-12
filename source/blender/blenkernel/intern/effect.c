@@ -683,7 +683,7 @@ bool get_effector_data(EffectorCache *eff,
   bool ret = false;
 
   /* In case surface object is in Edit mode when loading the .blend,
-   * surface modifier is never executed and bvhtree never built, see T48415. */
+   * surface modifier is never executed and bvhtree never built, see #48415. */
   if (eff->pd && eff->pd->shape == PFIELD_SHAPE_SURFACE && eff->surmd &&
       eff->surmd->runtime.bvhtree) {
     /* closest point in the object surface is an effector */

@@ -650,7 +650,7 @@ static void build_pict_list_ex(
   }
   else {
     /* Load images into cache until the cache is full,
-     * this resolves choppiness for images that are slow to load, see: T81751. */
+     * this resolves choppiness for images that are slow to load, see: #81751. */
 #ifdef USE_FRAME_CACHE_LIMIT
     bool fill_cache = true;
 #else

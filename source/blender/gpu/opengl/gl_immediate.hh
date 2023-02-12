@@ -21,7 +21,7 @@ namespace blender::gpu {
 class GLImmediate : public Immediate {
  private:
   /* Use two buffers for strict and non-strict vertex count to
-   * avoid some huge driver slowdown (see T70922).
+   * avoid some huge driver slowdown (see #70922).
    * Use accessor functions to get / modify. */
   struct {
     /** Opengl Handle for this buffer. */

@@ -911,7 +911,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
       /* set the Mesh to only copy needed data */
       CustomData_MeshMasks mask = md_datamask->mask;
-      /* needMapping check here fixes bug T28112, otherwise it's
+      /* needMapping check here fixes bug #28112, otherwise it's
        * possible that it won't be copied */
       CustomData_MeshMasks_update(&mask, &append_mask);
       if (need_mapping) {
@@ -1678,7 +1678,7 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
   BLI_assert(ob->type == OB_MESH);
 
   /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+   * they aren't cleaned up properly on mode switch, causing crashes, e.g #58150. */
   BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   BKE_object_free_derived_caches(ob);
@@ -1715,7 +1715,7 @@ Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
   BLI_assert(DEG_is_evaluating(depsgraph) == false);
 
   /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+   * they aren't cleaned up properly on mode switch, causing crashes, e.g #58150. */
   BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   /* if there's no evaluated mesh or the last data mask used doesn't include
@@ -1757,7 +1757,7 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
   BLI_assert(DEG_is_evaluating(depsgraph) == false);
 
   /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+   * they aren't cleaned up properly on mode switch, causing crashes, e.g #58150. */
   BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   /* if there's no derived mesh or the last data mask used doesn't include

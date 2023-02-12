@@ -295,7 +295,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);
   if (gpu_material) {
     /* NOTE: This needs to happen before the drawcall to allow correct attribute extraction.
-     * (see T101896) */
+     * (see #101896) */
     DRW_shgroup_add_material_resources(shgrp, gpu_material);
   }
   /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass
@@ -311,7 +311,7 @@ void DRW_hair_update()
   if (!GPU_transform_feedback_support()) {
     /**
      * Workaround to transform feedback not working on mac.
-     * On some system it crashes (see T58489) and on some other it renders garbage (see T60171).
+     * On some system it crashes (see #58489) and on some other it renders garbage (see #60171).
      *
      * So instead of using transform feedback we render to a texture,
      * read back the result to system memory and re-upload as VBO data.

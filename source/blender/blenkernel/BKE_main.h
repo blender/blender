@@ -134,7 +134,7 @@ typedef struct Main {
 
   /**
    * When linking, disallow creation of new data-blocks.
-   * Make sure we don't do this by accident, see T76738.
+   * Make sure we don't do this by accident, see #76738.
    */
   bool is_locked_for_linking;
 

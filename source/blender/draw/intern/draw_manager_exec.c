@@ -1218,7 +1218,7 @@ static void drw_draw_pass_ex(DRWPass *pass,
     DST.batch = NULL;
   }
 
-  /* Fix T67342 for some reason. AMD Pro driver bug. */
+  /* Fix #67342 for some reason. AMD Pro driver bug. */
   if ((DST.state & DRW_STATE_BLEND_CUSTOM) != 0 &&
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     drw_state_set(DST.state & ~DRW_STATE_BLEND_CUSTOM);

@@ -123,7 +123,7 @@ bool gpencil_is_stroke_vertex()
  *
  *
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
- * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536)
+ * considers gl_VertexID and gl_InstanceID as vertex attribute. (see #74536)
  */
 vec4 gpencil_vertex(vec4 viewport_size,
                     gpMaterialFlag material_flags,

@@ -85,7 +85,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 
       but->flag |= UI_BUT_ANIMATED;
 
-      /* T41525 - When the active action is a NLA strip being edited,
+      /* #41525 - When the active action is a NLA strip being edited,
        * we need to correct the frame number to "look inside" the
        * remapped action
        */

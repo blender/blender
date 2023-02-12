@@ -849,7 +849,7 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
            (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
            (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
 
-#  if 1 /* better support mixed cases T37203. */
+#  if 1 /* better support mixed cases #37203. */
           ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_wire) ==
             1) &&
            (edbm_add_edge_face_exec__vert_edge_lookup(
@@ -5184,7 +5184,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
       int offset;
 
       /* Only reuse on redo because these settings need to match the current selection.
-       * We never want to use them on other geometry, repeat last for eg, see: T60777. */
+       * We never want to use them on other geometry, repeat last for eg, see: #60777. */
       if (((op->flag & OP_IS_INVOKE) || (op->flag & OP_IS_REPEAT_LAST) == 0) &&
           RNA_property_is_set(op->ptr, prop_span)) {
         span = RNA_property_int_get(op->ptr, prop_span);
@@ -8774,7 +8774,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   /* If we allow other tools to run, we can't be sure if they will re-allocate
-   * the data this operator uses, see: T68159.
+   * the data this operator uses, see: #68159.
    * Free the data here, then use #point_normals_ensure to add it back on demand. */
   if (ret == OPERATOR_PASS_THROUGH) {
     /* Don't free on mouse-move, causes creation/freeing of the loop data in an inefficient way. */
@@ -9055,7 +9055,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
     BKE_editmesh_lnorspace_update(em, obedit->data);
 
     /* Note that we need temp lnor editing data for all loops of all affected vertices, since by
-     * setting some faces/edges as smooth we are going to change clnors spaces... See also T65809.
+     * setting some faces/edges as smooth we are going to change clnors spaces... See also #65809.
      */
     BMLoopNorEditDataArray *lnors_ed_arr = do_merge ?
                                                BM_loop_normal_editdata_array_init(bm, true) :

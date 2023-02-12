@@ -995,7 +995,7 @@ void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwid
 void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size);
 /**
  * \warning Nodes defining a storage type _must_ allocate this for new nodes.
- * Otherwise nodes will reload as undefined (T46619).
+ * Otherwise nodes will reload as undefined (#46619).
  */
 void node_type_storage(struct bNodeType *ntype,
                        const char *storagename,

@@ -272,7 +272,7 @@ void quat_to_mat4(float m[4][4], const float q[4])
 void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
 {
   BLI_ASSERT_UNIT_M3(mat);
-  /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
+  /* Caller must ensure matrices aren't negative for valid results, see: #24291, #94231. */
   BLI_assert(!is_negative_m3(mat));
 
   /* Method outlined by Mike Day, ref: https://math.stackexchange.com/a/3183435/220949
@@ -335,7 +335,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
     }
     else {
       /* NOTE(@ideasman42): A zero matrix will fall through to this block,
-       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848. */
+       * needed so a zero scaled matrices to return a quaternion without rotation, see: #101848. */
       const float trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       float s = 2.0f * sqrtf(trace);
       q[0] = 0.25f * s;
@@ -964,7 +964,7 @@ void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *
   /* By default, creating a circle from an integer: calling #sinf & #cosf on the fraction doesn't
    * create symmetrical values (because floats can't represent Pi exactly).
    * Resolve this when the rotation is calculated from a fraction by mapping the `numerator`
-   * to lower values so X/Y values for points around a circle are exactly symmetrical, see T87779.
+   * to lower values so X/Y values for points around a circle are exactly symmetrical, see #87779.
    *
    * Multiply both the `numerator` and `denominator` by eight to ensure we can divide the circle
    * into 8 octants. For each octant, we then use symmetry and negation to bring the `numerator`

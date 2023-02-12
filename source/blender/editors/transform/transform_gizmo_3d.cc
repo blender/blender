@@ -1376,7 +1376,7 @@ static void gizmo_3d_setup_draw_default(wmGizmo *axis, const int axis_idx)
       WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_MODAL, true);
       WM_gizmo_set_scale(axis, 0.2f);
 
-      /* Prevent axis gizmos overlapping the center point, see: T63744. */
+      /* Prevent axis gizmos overlapping the center point, see: #63744. */
       axis->select_bias = 2.0f;
       break;
     case MAN_AXIS_SCALE_C:
@@ -1386,7 +1386,7 @@ static void gizmo_3d_setup_draw_default(wmGizmo *axis, const int axis_idx)
       RNA_float_set(axis->ptr, "arc_inner_factor", 1.0 / 6.0);
       WM_gizmo_set_scale(axis, 1.2f);
 
-      /* Prevent axis gizmos overlapping the center point, see: T63744. */
+      /* Prevent axis gizmos overlapping the center point, see: #63744. */
       axis->select_bias = -2.0f;
       break;
 
@@ -1577,7 +1577,7 @@ static int gizmo_modal(bContext *C,
                        const wmEvent *event,
                        eWM_GizmoFlagTweak /*tweak_flag*/)
 {
-  /* Avoid unnecessary updates, partially address: T55458. */
+  /* Avoid unnecessary updates, partially address: #55458. */
   if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {
     return OPERATOR_RUNNING_MODAL;
   }

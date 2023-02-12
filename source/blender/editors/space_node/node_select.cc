@@ -55,7 +55,7 @@ static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event
 
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
- * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
+ * This function is for fixing #76970 for Blender 2.83. The actual fix should add a mechanism in
  * the depsgraph that can be used by the draw engines to check if they need to be redrawn.
  *
  * We don't want to add these risky changes this close before releasing 2.83 without good testing

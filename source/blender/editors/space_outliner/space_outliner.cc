@@ -432,7 +432,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
     if (unassigned) {
       /* Redraw is needed when removing data for multiple outlines show the same data.
        * without this, the stale data won't get fully flushed when this outliner
-       * is not the active outliner the user is interacting with. See T85976. */
+       * is not the active outliner the user is interacting with. See #85976. */
       ED_area_tag_redraw(area);
     }
   }

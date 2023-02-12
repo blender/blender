@@ -308,7 +308,7 @@ float ceil_power_of_10(float f);
  * check the vector is unit length, or zero length (which can't be helped in some cases). */
 
 #ifndef NDEBUG
-/** \note 0.0001 is too small because normals may be converted from short's: see T34322. */
+/** \note 0.0001 is too small because normals may be converted from short's: see #34322. */
 #  define BLI_ASSERT_UNIT_EPSILON 0.0002f
 #  define BLI_ASSERT_UNIT_EPSILON_DB 0.0002
 /**

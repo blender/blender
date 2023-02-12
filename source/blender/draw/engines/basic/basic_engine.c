@@ -180,7 +180,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
                                             DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
     if (is_flat_object_viewed_from_side) {
-      /* Avoid losing flat objects when in ortho views (see T56549) */
+      /* Avoid losing flat objects when in ortho views (see #56549) */
       struct GPUBatch *geom = DRW_cache_object_all_edges_get(ob);
       if (geom) {
         DRW_shgroup_call(stl->g_data->depth_shgrp[do_in_front], geom, ob);

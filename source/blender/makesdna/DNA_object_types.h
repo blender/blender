@@ -497,7 +497,7 @@ typedef struct ObHook {
 enum {
   OB_EMPTY = 0,
   OB_MESH = 1,
-  /** Curve object is still used but replaced by "Curves" for the future (see T95355). */
+  /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
   OB_CURVES_LEGACY = 2,
   OB_SURF = 3,
   OB_FONT = 4,

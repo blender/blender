@@ -237,7 +237,7 @@ static BMesh *BMD_mesh_bm_create(
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
   /* Keep `mesh` first, needed so active layers are set based on `mesh` not `mesh_operand_ob`,
-   * otherwise the wrong active render layer is used, see T92384.
+   * otherwise the wrong active render layer is used, see #92384.
    *
    * NOTE: while initializing customer data layers the is not essential,
    * it avoids the overhead of having to re-allocate #BMHeader.data when the 2nd mesh is added

@@ -619,7 +619,7 @@ void wm_close_and_free_all(bContext *C, ListBase *wmlist)
     BLI_remlink(wmlist, wm);
     /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
      * #BKE_main_free so any ID's referenced by the window-manager (from ID properties) will crash.
-     * See: T100703. */
+     * See: #100703. */
     BKE_libblock_free_data(&wm->id, false);
     BKE_libblock_free_data_py(&wm->id);
     MEM_freeN(wm);

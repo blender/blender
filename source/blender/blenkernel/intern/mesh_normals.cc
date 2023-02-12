@@ -1749,7 +1749,7 @@ static void mesh_normals_loop_custom_set(const float (*positions)[3],
       /* We also have to check between last and first loops,
        * otherwise we may miss some sharp edges here!
        * This is just a simplified version of above while loop.
-       * See T45984. */
+       * See #45984. */
       loops = lnors_spacearr.lspacearr[i]->loops;
       if (loops && org_nor) {
         const int lidx = POINTER_AS_INT(loops->link);

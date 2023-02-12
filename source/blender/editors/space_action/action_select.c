@@ -1784,7 +1784,7 @@ static int mouse_action_keys(bAnimContext *ac,
       /* apply selection to keyframes */
       if (column) {
         /* select all keyframes in the same frame as the one we hit on the active channel
-         * [T41077]: "frame" not "selx" here (i.e. no NLA corrections yet) as the code here
+         * [#41077]: "frame" not "selx" here (i.e. no NLA corrections yet) as the code here
          *            does that itself again as it needs to work on multiple data-blocks.
          */
         actkeys_mselect_column(ac, select_mode, frame);

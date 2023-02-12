@@ -49,7 +49,7 @@ vec3 solve_cubic(vec4 coefs)
   /* Discriminant */
   float discr = dot(vec2(4.0 * delta.x, -delta.y), delta.zy);
 
-  /* Clamping avoid NaN output on some platform. (see T67060) */
+  /* Clamping avoid NaN output on some platform. (see #67060) */
   float sqrt_discr = sqrt(clamp(discr, 0.0, FLT_MAX));
 
   vec2 xlc, xsc;

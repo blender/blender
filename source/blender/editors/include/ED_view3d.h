@@ -245,7 +245,7 @@ typedef enum {
    * Clamp the edge within the viewport limits defined by
    * #V3D_PROJ_TEST_CLIP_WIN, #V3D_PROJ_TEST_CLIP_NEAR & #V3D_PROJ_TEST_CLIP_FAR.
    * This resolves the problem of a visible edge having one of it's vertices
-   * behind the viewport. See: T32214.
+   * behind the viewport. See: #32214.
    *
    * This is not default behavior as it may be important for the screen-space location
    * of an edges vertex to represent that vertices location (instead of a location along the edge).
@@ -760,7 +760,7 @@ bool ED_view3d_viewplane_get(struct Depsgraph *depsgraph,
                              float *r_pixsize);
 
 /**
- * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug T37727.
+ * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug #37727.
  */
 void ED_view3d_polygon_offset(const struct RegionView3D *rv3d, float dist);
 

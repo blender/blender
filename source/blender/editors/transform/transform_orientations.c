@@ -526,7 +526,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       if (ob) {
         if (ob->mode & OB_MODE_POSE) {
           /* Each bone moves on its own local axis, but to avoid confusion,
-           * use the active pones axis for display T33575, this works as expected on a single
+           * use the active pones axis for display #33575, this works as expected on a single
            * bone and users who select many bones will understand what's going on and what local
            * means when they start transforming. */
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
@@ -889,7 +889,7 @@ int getTransformOrientation_ex(const Scene *scene,
              * - Point the Z axis outwards (the same direction as the normals).
              *
              * \note Z points outwards - along the normal.
-             * take care making changes here, see: T38592, T43708
+             * take care making changes here, see: #38592, #43708
              */
 
             /* be deterministic where possible and ensure v_pair[0] is active */
@@ -1197,7 +1197,7 @@ int getTransformOrientation_ex(const Scene *scene,
 
       /* align normal to edge direction (so normal is perpendicular to the plane).
        * 'ORIENTATION_EDGE' will do the other way around.
-       * This has to be done **after** applying obmat, see T45775! */
+       * This has to be done **after** applying obmat, see #45775! */
       project_v3_v3v3(tvec, normal, plane);
       sub_v3_v3(normal, tvec);
     }

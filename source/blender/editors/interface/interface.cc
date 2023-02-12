@@ -572,7 +572,7 @@ static void ui_block_bounds_calc_popup(
 
   /* If given, adjust input coordinates such that they would generate real final popup position.
    * Needed to handle correctly floating panels once they have been dragged around,
-   * see T52999. */
+   * see #52999. */
   if (r_xy) {
     r_xy[0] = xy[0] + block->rect.xmin - raw_x;
     r_xy[1] = xy[1] + block->rect.ymin - raw_y;
@@ -685,7 +685,7 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
   int prec = int(ui_but_get_float_precision(but));
 
   /* first check for various special cases:
-   * * If button is radians, we want additional precision (see T39861).
+   * * If button is radians, we want additional precision (see #39861).
    * * If prec is not set, we fallback to a simple default */
   if (ui_but_is_unit_radians(but) && prec < 5) {
     prec = 5;
@@ -886,7 +886,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   }
 
   /* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
-   * when scrolling without moving mouse (see T28432) */
+   * when scrolling without moving mouse (see #28432) */
   if (ELEM(oldbut->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {
     oldbut->hardmax = but->hardmax;
   }
@@ -1063,7 +1063,7 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
   /* Running this command before end-block has run, means buttons that open menus
-   * won't have those menus correctly positioned, see T83539. */
+   * won't have those menus correctly positioned, see #83539. */
   BLI_assert(block->endblock);
 
   bool done = false;
@@ -2130,7 +2130,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
     }
 
     /* XXX: figure out why invalid coordinates happen when closing render window */
-    /* and material preview is redrawn in main window (temp fix for bug T23848) */
+    /* and material preview is redrawn in main window (temp fix for bug #23848) */
     if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
       ui_draw_but(C, region, &style, but, &rect);
     }
@@ -4690,7 +4690,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   }
   else if (type == UI_BTYPE_SEARCH_MENU) {
     if (proptype == PROP_POINTER) {
-      /* Search buttons normally don't get undo, see: T54580. */
+      /* Search buttons normally don't get undo, see: #54580. */
       but->flag |= UI_BUT_UNDO;
     }
   }
@@ -6272,7 +6272,7 @@ void UI_but_func_search_set(uiBut *but,
   if (search_exec_fn) {
 #ifdef DEBUG
     if (but->func) {
-      /* watch this, can be cause of much confusion, see: T47691 */
+      /* watch this, can be cause of much confusion, see: #47691 */
       printf("%s: warning, overwriting button callback with search function callback!\n",
              __func__);
     }

@@ -145,7 +145,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
           }
         }
 
-        /* change active object - regardless of whether it is now selected [T37883] */
+        /* change active object - regardless of whether it is now selected [#37883] */
         ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
         if ((adt) && (adt->flag & ADT_UI_SELECTED)) {

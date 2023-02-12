@@ -222,7 +222,7 @@ static void geom_add_polygon(Geometry *geom,
     else {
       geom->track_vertex_index(corner.vert_index);
     }
-    /* Ignore UV index, if the geometry does not have any UVs (T103212). */
+    /* Ignore UV index, if the geometry does not have any UVs (#103212). */
     if (got_uv && !global_vertices.uv_vertices.is_empty()) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
@@ -235,7 +235,7 @@ static void geom_add_polygon(Geometry *geom,
     }
     /* Ignore corner normal index, if the geometry does not have any normals.
      * Some obj files out there do have face definitions that refer to normal indices,
-     * without any normals being present (T98782). */
+     * without any normals being present (#98782). */
     if (got_normal && !global_vertices.vertex_normals.is_empty()) {
       corner.vertex_normal_index += corner.vertex_normal_index < 0 ?
                                         global_vertices.vertex_normals.size() :
@@ -252,7 +252,7 @@ static void geom_add_polygon(Geometry *geom,
     geom->face_corners_.append(corner);
     curr_face.corner_count_++;
 
-    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (T103441). */
+    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (#103441). */
     p = drop_non_whitespace(p, end);
     /* Skip whitespace to get to the next face corner. */
     p = drop_whitespace(p, end);
@@ -767,7 +767,7 @@ Span<std::string> OBJParser::mtl_libraries() const
 
 void OBJParser::add_mtl_library(StringRef path)
 {
-  /* Remove any quotes from start and end (T67266, T97794). */
+  /* Remove any quotes from start and end (#67266, #97794). */
   if (path.size() > 2 && path.startswith("\"") && path.endswith("\"")) {
     path = path.drop_prefix(1).drop_suffix(1);
   }
@@ -783,7 +783,7 @@ void OBJParser::add_default_mtl_library()
    * into candidate .mtl files to search through. This is not technically following the
    * spec, but the old python importer was doing it, and there are user files out there
    * that contain "mtllib bar.mtl" for a foo.obj, and depend on finding materials
-   * from foo.mtl (see T97757). */
+   * from foo.mtl (see #97757). */
   char mtl_file_path[FILE_MAX];
   BLI_strncpy(mtl_file_path, import_params_.filepath, sizeof(mtl_file_path));
   BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
@@ -855,7 +855,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
         parse_float(p, end, 1.0f, material->alpha);
       }
       else if (parse_keyword(p, end, "illum")) {
-        /* Some files incorrectly use a float (T60135). */
+        /* Some files incorrectly use a float (#60135). */
         float val;
         parse_float(p, end, 1.0f, val);
         material->illum_mode = val;

@@ -812,12 +812,12 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * when the `window_->scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
-  /* This value is expected to match the base name of the `.desktop` file. see T101805.
+  /* This value is expected to match the base name of the `.desktop` file. see #101805.
    *
    * NOTE: the XDG desktop-entry-spec defines that this should follow the "reverse DNS" convention.
    * For e.g. `org.blender.Blender` - however the `.desktop` file distributed with Blender is
    * simply called `blender.desktop`, so the it's important to follow that name.
-   * Other distributions such as SNAP & FLATPAK may need to change this value T101779.
+   * Other distributions such as SNAP & FLATPAK may need to change this value #101779.
    * Currently there isn't a way to configure this, we may want to support that. */
   const char *xdg_app_id = (
 #ifdef WITH_GHOST_WAYLAND_APP_ID
@@ -1080,7 +1080,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
   /* NOTE(@ideasman42): Flushing will often run the appropriate handlers event
    * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
-   * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
+   * This is not fool-proof though, hence the call to #window_surface_unref, see: #99078. */
   wl_display_flush(system_->wl_display());
 
   delete window_;

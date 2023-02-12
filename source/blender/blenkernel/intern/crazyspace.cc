@@ -398,7 +398,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
       }
       else {
         /* More complex handling will continue in BKE_crazyspace_build_sculpt.
-         * Exiting the loop on a non-deform modifier causes issues - T71213. */
+         * Exiting the loop on a non-deform modifier causes issues - #71213. */
         BLI_assert(crazyspace_modifier_supports_deform(md));
         break;
       }

@@ -1548,7 +1548,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
@@ -1702,7 +1702,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */

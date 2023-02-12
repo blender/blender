@@ -468,7 +468,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     /* Exclude context menus because:
      * - The menu items are available elsewhere (and will show up multiple times).
      * - Menu items depend on exact context, making search results unpredictable
-     *   (exact number of items selected for example). See design doc T74158.
+     *   (exact number of items selected for example). See design doc #74158.
      * There is one exception,
      * as the outliner only exposes functionality via the context menu. */
     GHashIterator iter;
@@ -897,7 +897,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
    * unless searching for something that isn't already in a menu (or scroll down).
    *
    * Keep this behind a developer only check:
-   * - Many operators need options to be set to give useful results, see: T74157.
+   * - Many operators need options to be set to give useful results, see: #74157.
    * - User who really prefer to list all operators can use #WM_OT_search_operator.
    */
   if (U.flag & USER_DEVELOPER_UI) {

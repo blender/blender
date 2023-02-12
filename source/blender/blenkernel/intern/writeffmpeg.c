@@ -477,7 +477,7 @@ static const AVCodec *get_av1_encoder(
   switch (context->ffmpeg_preset) {
     case FFM_PRESET_BEST:
       /* `libaom-av1` may produce better VMAF-scoring videos in several cases, but there are cases
-       * where using a different encoder is desirable, such as in T103849. */
+       * where using a different encoder is desirable, such as in #103849. */
       codec = avcodec_find_encoder_by_name("librav1e");
       if (!codec) {
         /* Fallback to `libaom-av1` if librav1e is not found. */
@@ -1666,7 +1666,7 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
       rd->ffcodecdata.type = FFMPEG_MPEG2;
       rd->ffcodecdata.video_bitrate = 6000;
 
-#  if 0 /* Don't set resolution, see T21351. */
+#  if 0 /* Don't set resolution, see #21351. */
       rd->xsch = 720;
       rd->ysch = isntsc ? 480 : 576;
 #  endif

@@ -622,7 +622,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   const bool is_undo = BLO_read_data_is_undo(reader);
   if (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT)) {
     /* Do not allow any non-object mode for linked data.
-     * See T34776, T42780, T81027 for more information. */
+     * See #34776, #42780, #81027 for more information. */
     ob->mode &= ~OB_MODE_ALL_MODE_DATA;
   }
   else if (is_undo) {
@@ -939,7 +939,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   /* When the object is local and the data is library its possible
-   * the material list size gets out of sync. T22663. */
+   * the material list size gets out of sync. #22663. */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
     BKE_object_materials_test(bmain, ob, (ID *)ob->data);
   }
@@ -3151,7 +3151,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
    * dependency cycles. We can't correct anything from here, since that would
    * cause threading conflicts.
    *
-   * TODO(sergey): Some of the legit looking cases like T56619 need to be
+   * TODO(sergey): Some of the legit looking cases like #56619 need to be
    * looked into, and maybe curve cache (and other dependencies) are to be
    * evaluated prior to conversion. */
   if (par->runtime.curve_cache == nullptr) {
@@ -3556,7 +3556,7 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
    * are supposed to be applied after the object's local loc/rot/scale. If the (inverted) effect of
    * constraints would be included in the parent inverse matrix, these would be applied before the
    * object's local loc/rot/scale instead of after. For example, a "Copy Rotation" constraint would
-   * rotate the object's local translation as well. See T82156. */
+   * rotate the object's local translation as well. See #82156. */
 
   BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 

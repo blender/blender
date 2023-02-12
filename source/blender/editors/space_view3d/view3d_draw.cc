@@ -153,7 +153,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
   /* Calculate pixel-size factor once, this is used for lights and object-centers. */
   {
     /* NOTE:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
-     * because of float point precision problems at large values T23908. */
+     * because of float point precision problems at large values #23908. */
     float v1[3], v2[3];
     float len_px, len_sc;
 
@@ -2266,7 +2266,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
   }
 }
 
-/* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. T24339. */
+/* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. #24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_cnew<ViewDepths>("ViewDepths");

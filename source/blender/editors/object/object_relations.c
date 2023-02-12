@@ -414,7 +414,7 @@ void ED_object_parent_clear(Object *ob, const int type)
     }
   }
 
-  /* Always clear parentinv matrix for sake of consistency, see T41950. */
+  /* Always clear parentinv matrix for sake of consistency, see #41950. */
   unit_m4(ob->parentinv);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -462,7 +462,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 
 void ED_object_parent(Object *ob, Object *par, const int type, const char *substr)
 {
-  /* Always clear parentinv matrix for sake of consistency, see T41950. */
+  /* Always clear parentinv matrix for sake of consistency, see #41950. */
   unit_m4(ob->parentinv);
 
   if (!par || BKE_object_parent_loop_check(par, ob)) {
@@ -584,15 +584,15 @@ bool ED_object_parent_set(ReportList *reports,
 
   /* Apply transformation of previous parenting. */
   if (keep_transform) {
-    /* Was removed because of bug T23577,
-     * but this can be handy in some cases too T32616, so make optional. */
+    /* Was removed because of bug #23577,
+     * but this can be handy in some cases too #32616, so make optional. */
     BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
   }
 
   /* Set the parent (except for follow-path constraint option). */
   if (partype != PAR_PATH_CONST) {
     ob->parent = par;
-    /* Always clear parentinv matrix for sake of consistency, see T41950. */
+    /* Always clear parentinv matrix for sake of consistency, see #41950. */
     unit_m4(ob->parentinv);
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
@@ -1754,7 +1754,7 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Since master collection has already be duplicated as part of scene copy,
    * we do not duplicate it here.
    * However, this means its children need to be re-added manually here,
-   * otherwise their parent lists are empty (which will lead to crashes, see T63101). */
+   * otherwise their parent lists are empty (which will lead to crashes, see #63101). */
   CollectionChild *child_next, *child = collection->children.first;
   CollectionChild *orig_child_last = collection->children.last;
   for (; child != NULL; child = child_next) {
@@ -2074,7 +2074,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
 
 /**
  * Instance indirectly referenced zero user objects,
- * otherwise they're lost on reload, see T40595.
+ * otherwise they're lost on reload, see #40595.
  */
 static bool make_local_all__instance_indirect_unused(Main *bmain,
                                                      const Scene *scene,
@@ -2727,7 +2727,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "obdata")) {
     single_obdata_users(bmain, scene, view_layer, v3d, flag);
 
-    /* Needed since some IDs were remapped? (incl. me->texcomesh, see T73797). */
+    /* Needed since some IDs were remapped? (incl. me->texcomesh, see #73797). */
     update_deps = true;
   }
 

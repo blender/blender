@@ -661,7 +661,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
     rv = RE_RenderViewGetById(&rres, 0);
   }
   else {
-    /* possible the job clears the views but we're still drawing T45496 */
+    /* possible the job clears the views but we're still drawing #45496 */
     rv = nullptr;
   }
 
@@ -1372,7 +1372,7 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     scaledy = float(h);
   }
 
-  /* Scaling down must never assign zero width/height, see: T89868. */
+  /* Scaling down must never assign zero width/height, see: #89868. */
   ex = MAX2(1, short(scaledx));
   ey = MAX2(1, short(scaledy));
 

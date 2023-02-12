@@ -413,7 +413,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   int offset = 0;
   int sequence_len = 1;
 
-  /* Switch out of edit mode to avoid being stuck in it (T54326). */
+  /* Switch out of edit mode to avoid being stuck in it (#54326). */
   Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
     ED_object_mode_set(C, OB_MODE_EDIT);

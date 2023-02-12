@@ -316,7 +316,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     PyPreConfig preconfig;
     PyStatus status;
 
-    /* To narrow down reports where the systems Python is inexplicably used, see: T98131. */
+    /* To narrow down reports where the systems Python is inexplicably used, see: #98131. */
     CLOG_INFO(
         BPY_LOG_INTERFACE,
         2,
@@ -329,7 +329,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
     else {
       /* Only use the systems environment variables and site when explicitly requested.
-       * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: T72807.
+       * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: #72807.
        * An alternative to setting `preconfig.use_environment = 0` */
       PyPreConfig_InitIsolatedConfig(&preconfig);
     }
@@ -372,7 +372,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     config.pathconfig_warnings = 0;
 
     /* Allow the user site directory because this is used
-     * when PIP installing packages from Blender, see: T104000.
+     * when PIP installing packages from Blender, see: #104000.
      *
      * NOTE(@ideasman42): While an argument can be made for isolating Blender's Python
      * from the users home directory entirely, an alternative directory should be used in that
@@ -507,7 +507,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 #endif
 
 #ifdef WITH_PYTHON_MODULE
-  /* Disable all add-ons at exit, not essential, it just avoids resource leaks, see T71362. */
+  /* Disable all add-ons at exit, not essential, it just avoids resource leaks, see #71362. */
   BPY_run_string_eval(C,
                       (const char *[]){"atexit", "addon_utils", NULL},
                       "atexit.register(addon_utils.disable_all)");

@@ -48,7 +48,7 @@ typedef struct RNA_DepsgraphIterator {
 #  ifdef WITH_PYTHON
   /**
    * Store the Python instance so the #BPy_StructRNA can be set as invalid iteration is completed.
-   * Otherwise accessing from Python (console auto-complete for e.g.) crashes, see: T100286. */
+   * Otherwise accessing from Python (console auto-complete for e.g.) crashes, see: #100286. */
   void *py_instance;
 #  endif
 } RNA_DepsgraphIterator;
@@ -348,7 +348,7 @@ static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
  * Contains extra information about duplicator and persistent ID.
  */
 
-/* XXX Ugly python seems to query next item of an iterator before using current one (see T57558).
+/* XXX Ugly python seems to query next item of an iterator before using current one (see #57558).
  * This forces us to use that nasty ping-pong game between two sets of iterator data,
  * so that previous one remains valid memory for python to access to. Yuck.
  */

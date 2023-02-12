@@ -91,7 +91,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) !=
                           0;
 
-  /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
+  /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
 
   /* Create triangles-only BMesh. */
@@ -188,7 +188,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
-  /* Typically valid but with global-undo they can be nullptr, see: T36234. */
+  /* Typically valid but with global-undo they can be nullptr, see: #36234. */
   if (ss->bm) {
     BM_mesh_free(ss->bm);
     ss->bm = nullptr;

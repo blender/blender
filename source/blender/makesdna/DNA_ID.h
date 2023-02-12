@@ -818,7 +818,7 @@ enum {
    * RESET_NEVER
    *
    * \warning This should not be cleared on existing data.
-   * If support for this is needed, see T88026 as this flag controls memory ownership
+   * If support for this is needed, see #88026 as this flag controls memory ownership
    * of physics *shared* pointers.
    */
   LIB_TAG_COPIED_ON_WRITE = 1 << 12,

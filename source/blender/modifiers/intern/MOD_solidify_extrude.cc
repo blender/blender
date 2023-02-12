@@ -32,7 +32,7 @@
 /** \name High Quality Normal Calculation Function
  * \{ */
 
-/* skip shell thickness for non-manifold edges, see T35710. */
+/* skip shell thickness for non-manifold edges, see #35710. */
 #define USE_NONMANIFOLD_WORKAROUND
 
 /* *** derived mesh high quality normal calculation function  *** */
@@ -974,7 +974,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     MEM_freeN(vert_nors);
   }
 
-  /* must recalculate normals with vgroups since they can displace unevenly T26888. */
+  /* must recalculate normals with vgroups since they can displace unevenly #26888. */
   if (BKE_mesh_vertex_normals_are_dirty(mesh) || do_rim || dvert) {
     BKE_mesh_normals_tag_dirty(result);
   }

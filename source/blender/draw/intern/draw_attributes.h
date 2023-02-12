@@ -47,7 +47,7 @@ typedef struct DRW_MeshCDMask {
   uint32_t tan_orco : 1;
   uint32_t sculpt_overlays : 1;
   /**
-   * Edit uv layer is from the base edit mesh as modifiers could remove it. (see T68857)
+   * Edit uv layer is from the base edit mesh as modifiers could remove it. (see #68857)
    */
   uint32_t edit_uv : 1;
 } DRW_MeshCDMask;

@@ -46,7 +46,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
 
   int tan_len = 0;
 
-  /* FIXME(T91838): This is to avoid a crash when orco tangent was requested but there are valid
+  /* FIXME(#91838): This is to avoid a crash when orco tangent was requested but there are valid
    * uv layers. It would be better to fix the root cause. */
   if (tan_layers == 0 && use_orco_tan &&
       CustomData_get_layer_index(cd_ldata, CD_PROP_FLOAT2) != -1) {

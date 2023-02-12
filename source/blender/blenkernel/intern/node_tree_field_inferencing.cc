@@ -119,7 +119,7 @@ static const FieldInferencingInterface &get_node_field_inferencing_interface(con
       return empty_interface;
     }
     if (!ntreeIsRegistered(group)) {
-      /* This can happen when there is a linked node group that was not found (see T92799). */
+      /* This can happen when there is a linked node group that was not found (see #92799). */
       return get_dummy_field_inferencing_interface(node, scope);
     }
     if (!group->runtime->field_inferencing_interface) {

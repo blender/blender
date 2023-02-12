@@ -147,7 +147,7 @@ struct LayerTypeInfo {
    * \note in some cases \a dest pointer is in \a sources
    *       so all functions have to take this into account and delay
    *       applying changes while reading from sources.
-   *       See bug T32395 - Campbell.
+   *       See bug #32395 - Campbell.
    */
   cd_interp interp;
 
@@ -4356,7 +4356,7 @@ bool CustomData_verify_versions(CustomData *data, const int index)
     }
     /* This is a preemptive fix for cases that should not happen
      * (layers that should not be written in .blend files),
-     * but can happen due to bugs (see e.g. T62318).
+     * but can happen due to bugs (see e.g. #62318).
      * Also for forward compatibility, in future,
      * we may put into `.blend` file some currently un-written data types,
      * this should cover that case as well.
@@ -4397,9 +4397,9 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
 
   switch (layer->type) {
     /* When more instances of corrupt files are found, add them here. */
-    case CD_PROP_BOOL:   /* See T84935. */
-    case CD_MLOOPUV:     /* See T90620. */
-    case CD_PROP_FLOAT2: /* See T90620. */
+    case CD_PROP_BOOL:   /* See #84935. */
+    case CD_MLOOPUV:     /* See #90620. */
+    case CD_PROP_FLOAT2: /* See #90620. */
       layer->data = MEM_calloc_arrayN(count, typeInfo->size, layerType_getName(layer->type));
       BLI_assert(layer->data);
       if (typeInfo->set_default_value) {
@@ -5150,7 +5150,7 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 {
   BLO_read_data_address(reader, &data->layers);
 
-  /* Annoying workaround for bug T31079 loading legacy files with
+  /* Annoying workaround for bug #31079 loading legacy files with
    * no polygons _but_ have stale custom-data. */
   if (UNLIKELY(count == 0 && data->layers == nullptr && data->totlayer != 0)) {
     CustomData_reset(data);
@@ -5173,8 +5173,8 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
       BLO_read_data_address(reader, &layer->data);
       if (CustomData_layer_ensure_data_exists(layer, count)) {
         /* Under normal operations, this shouldn't happen, but...
-         * For a CD_PROP_BOOL example, see T84935.
-         * For a CD_MLOOPUV example, see T90620. */
+         * For a CD_PROP_BOOL example, see #84935.
+         * For a CD_MLOOPUV example, see #90620. */
         CLOG_WARN(&LOG,
                   "Allocated custom data layer that was not saved correctly for layer->type = %d.",
                   layer->type);

@@ -400,7 +400,7 @@ enum {
 /*#define RV3D_IS_GAME_ENGINE       (1 << 5) */ /* UNUSED */
 /**
  * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
- * Use when precise surface depth is needed and picking bias isn't, see T45434).
+ * Use when precise surface depth is needed and picking bias isn't, see #45434).
  */
 #define RV3D_ZOFFSET_DISABLED 64
 

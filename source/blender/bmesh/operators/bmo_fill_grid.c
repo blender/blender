@@ -602,7 +602,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   if (count != 2) {
     /* Note that this error message has been adjusted to make sense when called
      * from the operator 'MESH_OT_fill_grid' which has a 'prepare' pass which can
-     * extract two 'rail' loops from a single edge loop, see T72075. */
+     * extract two 'rail' loops from a single edge loop, see #72075. */
     BMO_error_raise(bm,
                     op,
                     BMO_ERROR_CANCEL,

@@ -16,7 +16,7 @@ from view_layer_common import *
 # ############################################################
 
 class UnitTesting(ViewLayerTesting):
-    @unittest.skip("Uses the clay engine, that is removed T55454")
+    @unittest.skip("Uses the clay engine, that is removed #55454")
     def test_render_settings(self):
         """
         See if the depsgraph evaluation is correct

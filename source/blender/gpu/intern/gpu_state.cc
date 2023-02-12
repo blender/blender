@@ -322,7 +322,7 @@ void GPU_bgl_start()
   }
   StateManager &state_manager = *(Context::get()->state_manager);
   if (state_manager.use_bgl == false) {
-    /* Expected by many addons (see T80169, T81289).
+    /* Expected by many addons (see #80169, #81289).
      * This will reset the blend function. */
     GPU_blend(GPU_BLEND_NONE);
 

@@ -765,7 +765,7 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  *       regarding this resync process.
  *       Proper fix would be to make resync itself lazy, i.e. only happen
  *       when actually needed.
- *       See also T73411.
+ *       See also #73411.
  * \{ */
 
 static bool no_resync = false;

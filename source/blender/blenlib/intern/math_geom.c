@@ -1225,7 +1225,7 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
 
       /* When 'd' approaches zero, float precision lets non-overlapping co-linear segments
        * detect as an intersection. So re-calculate 'v' to ensure the point overlaps both.
-       * see T45123 */
+       * see #45123 */
 
       /* inline since we have most vars already */
 #if 0
@@ -2887,7 +2887,7 @@ int isect_line_line_epsilon_v3(const float v1[3],
   d = dot_v3v3(c, ab);
   div = dot_v3v3(ab, ab);
 
-  /* important not to use an epsilon here, see: T45919 */
+  /* important not to use an epsilon here, see: #45919 */
   /* test zero length line */
   if (UNLIKELY(div == 0.0f)) {
     return 0;
@@ -2962,7 +2962,7 @@ bool isect_line_line_strict_v3(const float v1[3],
   d = dot_v3v3(c, ab);
   div = dot_v3v3(ab, ab);
 
-  /* important not to use an epsilon here, see: T45919 */
+  /* important not to use an epsilon here, see: #45919 */
   /* test zero length line */
   if (UNLIKELY(div == 0.0f)) {
     return false;
@@ -4034,7 +4034,7 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
   float cross[3];
   cross_v3_v3v3(cross, d_curr->dir, d_next->dir);
   const float area = len_v3(cross);
-  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
   if (LIKELY(area != 0.0f)) {
     const float dot = dot_v3v3(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
@@ -4060,7 +4060,7 @@ static double mean_value_half_tan_v2_db(const struct Double2_Len *d_curr,
 {
   /* Different from the 3d version but still correct. */
   const double area = cross_v2v2_db(d_curr->dir, d_next->dir);
-  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
   if (LIKELY(area != 0.0)) {
     const double dot = dot_v2v2_db(d_curr->dir, d_next->dir);
     const double len = d_curr->len * d_next->len;

@@ -165,7 +165,7 @@ void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
   }
   else if (flag & IDWALK_RECURSE) {
     /* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in
-     * IDWALK_RECURSE case is troublesome, see T49553. */
+     * IDWALK_RECURSE case is troublesome, see #49553. */
     /* XXX note that this breaks the 'owner id' thing now, we likely want to handle that
      * differently at some point, but for now it should not be a problem in practice. */
     if (BLI_gset_add(data->ids_handled, id)) {

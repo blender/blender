@@ -847,7 +847,7 @@ void psys_find_group_weights(ParticleSettings *part)
 {
   /* Find object pointers based on index. If the collection is linked from
    * another library linking may not have the object pointers available on
-   * file load, so we have to retrieve them later. See T49273. */
+   * file load, so we have to retrieve them later. See #49273. */
   ListBase instance_collection_objects = {nullptr, nullptr};
 
   if (part->instance_collection) {
@@ -3035,7 +3035,7 @@ static void psys_thread_create_path(ParticleTask *task,
      */
     cpa_num = ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa->num : pa->num_dmcache;
 
-    /* XXX hack to avoid messed up particle num and subsequent crash (T40733) */
+    /* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
     if (cpa_num > ctx->sim.psmd->mesh_final->totface) {
       cpa_num = 0;
     }
@@ -5099,7 +5099,7 @@ void psys_get_dupli_texture(ParticleSystem *psys,
    * the entire scenes dupli's are scanned, which also looks into uncalculated data.
    *
    * For now just include this workaround as an alternative to crashing,
-   * but longer term meta-balls should behave in a more manageable way, see: T46622. */
+   * but longer term meta-balls should behave in a more manageable way, see: #46622. */
 
   uv[0] = uv[1] = 0.0f;
 

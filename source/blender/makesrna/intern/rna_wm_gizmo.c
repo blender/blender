@@ -517,7 +517,7 @@ static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
 
   WM_gizmotype_remove_ptr(NULL, bmain, gzt);
 
-  /* Free extension after removing instances so `__del__` doesn't crash, see: T85567. */
+  /* Free extension after removing instances so `__del__` doesn't crash, see: #85567. */
   RNA_struct_free_extension(type, &gzt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
@@ -916,7 +916,7 @@ static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
 
   WM_gizmo_group_type_remove_ptr(bmain, gzgt);
 
-  /* Free extension after removing instances so `__del__` doesn't crash, see: T85567. */
+  /* Free extension after removing instances so `__del__` doesn't crash, see: #85567. */
   RNA_struct_free_extension(type, &gzgt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 

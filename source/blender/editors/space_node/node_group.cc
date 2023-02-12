@@ -235,7 +235,7 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
      * This also removes remaining links to and from interface nodes.
      */
     if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
-      /* We must delay removal since sockets will reference this node. see: T52092 */
+      /* We must delay removal since sockets will reference this node. see: #52092 */
       nodes_delayed_free.append(node);
     }
 

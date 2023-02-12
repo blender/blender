@@ -14,7 +14,7 @@
 
 /**
  * Check for cyclic set-scene.
- * Libraries can cause this case which is normally prevented, see (T42009).
+ * Libraries can cause this case which is normally prevented, see (#42009).
  */
 #define USE_SETSCENE_CHECK
 
@@ -2161,7 +2161,7 @@ extern const char *RE_engine_id_CYCLES;
 /** \name Scene Defines
  * \{ */
 
-/* Note that much higher max-frames give imprecise sub-frames, see: T46859. */
+/* Note that much higher max-frames give imprecise sub-frames, see: #46859. */
 /* Current precision is 16 for the sub-frames closer to MAXFRAME. */
 
 /* For general use. */

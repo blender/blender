@@ -170,7 +170,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
           [](int min_value, int max_value, int id, int seed) -> int {
             const float value = noise::hash_to_float(id, seed);
             /* Add one to the maximum and use floor to produce an even
-             * distribution for the first and last values (See T93591). */
+             * distribution for the first and last values (See #93591). */
             return floor(value * (max_value + 1 - min_value) + min_value);
           },
           mf::build::exec_presets::SomeSpanOrSingle<2>());

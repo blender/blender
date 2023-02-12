@@ -645,7 +645,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
   else if (la->type == LA_SPOT) {
     /* Previous implementation was using the clip-end distance as cone size.
-     * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
+     * We cannot do this anymore so we use a fixed size of 10. (see #72871) */
     const float3 scale_vec = {10.0f, 10.0f, 10.0f};
     rescale_m4(instdata.mat, scale_vec);
     /* For cycles and EEVEE the spot attenuation is:

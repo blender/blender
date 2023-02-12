@@ -512,7 +512,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else {
-    /* Release confirms preference should not affect node editor (T69288, T70504). */
+    /* Release confirms preference should not affect node editor (#69288, #70504). */
     if (ISMOUSE_BUTTON(t->launch_event) &&
         ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE))) {
       /* Global "release confirm" on mouse bindings */
@@ -1422,7 +1422,7 @@ Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob
   if (!(ob->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
     return NULL;
   }
-  /* Important that ob_armature can be set even when its not selected T23412.
+  /* Important that ob_armature can be set even when its not selected #23412.
    * Lines below just check is also visible. */
   Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
   if (ob_armature && ob_armature->mode & OB_MODE_POSE) {

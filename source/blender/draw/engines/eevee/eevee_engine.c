@@ -399,7 +399,7 @@ static void eevee_id_world_update(void *vedata, World *wo)
   LightCache *lcache = stl->g_data->light_cache;
 
   if (ELEM(lcache, NULL, stl->lookdev_lightcache)) {
-    /* Avoid Lookdev viewport clearing the update flag (see T67741). */
+    /* Avoid Lookdev viewport clearing the update flag (see #67741). */
     return;
   }
 

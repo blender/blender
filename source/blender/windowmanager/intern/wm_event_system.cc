@@ -92,7 +92,7 @@
  * Without tools using press events which would prevent click/drag events getting to the gizmos.
  *
  * This is not a fool proof solution since it's possible the gizmo operators would pass
- * through these events when called, see: T65479.
+ * through these events when called, see: #65479.
  */
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
@@ -434,7 +434,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   if (wm->is_interface_locked) {
     return;
   }
-  /* Combine data-masks so one window doesn't disable UVs in another T26448. */
+  /* Combine data-masks so one window doesn't disable UVs in another #26448. */
   CustomData_MeshMasks win_combine_v3d_datamask = {0};
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const Scene *scene = WM_window_get_active_scene(win);
@@ -450,7 +450,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
     Main *bmain = CTX_data_main(C);
     /* Copied to set's in scene_update_tagged_recursive() */
     scene->customdata_mask = win_combine_v3d_datamask;
-    /* XXX, hack so operators can enforce data-masks T26482, GPU render. */
+    /* XXX, hack so operators can enforce data-masks #26482, GPU render. */
     CustomData_MeshMasks_update(&scene->customdata_mask, &scene->customdata_mask_modal);
     /* TODO(sergey): For now all dependency graphs which are evaluated from
      * workspace are considered active. This will work all fine with "locked"
@@ -509,7 +509,7 @@ void wm_event_do_notifiers(bContext *C)
   /* Ensure inside render boundary. */
   GPU_render_begin();
 
-  /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see T80028. */
+  /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see #80028. */
   wm_event_execute_timers(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -566,7 +566,7 @@ void wm_event_do_notifiers(bContext *C)
             bScreen *ref_screen = BKE_workspace_layout_screen_get(
                 static_cast<WorkSpaceLayout *>(note->reference));
 
-            /* Free popup handlers only T35434. */
+            /* Free popup handlers only #35434. */
             UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
             ED_screen_change(C, ref_screen); /* XXX: hum, think this over! */
@@ -789,7 +789,7 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
   }
 
   /* Don't block file-select events. Those are triggered by a separate file browser window.
-   * See T75292. */
+   * See #75292. */
   if (event->type == EVT_FILESELECT) {
     return WM_HANDLER_CONTINUE;
   }
@@ -1144,8 +1144,8 @@ static void wm_operator_finished(bContext *C,
     else if (has_undo_step) {
       /* An undo step was added but the operator wasn't registered (and won't register it's self),
        * therefor a redo panel wouldn't redo this action but the previous registered action,
-       * causing the "redo" to remove/loose this operator. See: T101743.
-       * Register check is needed so nested operator calls don't clear the HUD. See: T103587. */
+       * causing the "redo" to remove/loose this operator. See: #101743.
+       * Register check is needed so nested operator calls don't clear the HUD. See: #103587. */
       if (!(has_register || do_register)) {
         if (repeat == 0) {
           hud_status = CLEAR;
@@ -1228,7 +1228,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
     }
   }
 
-  /* XXX(@mont29): Disabled the repeat check to address part 2 of T31840.
+  /* XXX(@mont29): Disabled the repeat check to address part 2 of #31840.
    * Carefully checked all calls to wm_operator_exec and WM_operator_repeat, don't see any reason
    * why this was needed, but worth to note it in case something turns bad. */
   if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED) /* && repeat == 0 */) {
@@ -2572,7 +2572,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
                   wmGizmoGroup *gzgroup = WM_gizmomaptype_group_init_runtime_with_region(
                       gzmap_type, gzgt, region);
                   /* We can't rely on drawing to initialize gizmo's since disabling
-                   * overlays/gizmos will prevent pre-drawing setup calls. (see T60905) */
+                   * overlays/gizmos will prevent pre-drawing setup calls. (see #60905) */
                   WM_gizmogroup_ensure_init(C, gzgroup);
                 }
               }
@@ -3059,7 +3059,7 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
   wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
 
   /* Needed so UI blocks over gizmos don't let events fall through to the gizmos,
-   * noticeable for the node editor - where dragging on a node should move it, see: T73212.
+   * noticeable for the node editor - where dragging on a node should move it, see: #73212.
    * note we still allow for starting the gizmo drag outside, then travel 'inside' the node. */
   if (region->type->clip_gizmo_events_by_ui) {
     if (UI_region_block_find_mouse_over(region, event->xy, true)) {
@@ -3245,7 +3245,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
    * NOTE: check 'handlers->first' because in rare cases the handlers can be cleared
    * by the event that's called, for eg:
    *
-   * Calling a python script which changes the area.type, see T32232. */
+   * Calling a python script which changes the area.type, see #32232. */
   for (wmEventHandler *handler_base = static_cast<wmEventHandler *>(handlers->first),
                       *handler_base_next;
        handler_base && handlers->first;
@@ -3495,7 +3495,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
         if (win->event_queue_check_drag) {
           if ((event->prev_press_type != event->type) &&
               (ISKEYMODIFIER(event->type) || (event->type == event->prev_press_keymodifier))) {
-            /* Support releasing modifier keys without canceling the drag event, see T89989. */
+            /* Support releasing modifier keys without canceling the drag event, see #89989. */
           }
           else {
             CLOG_INFO(
@@ -3562,7 +3562,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
   }
   else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
     /* Modifiers which can trigger click event's,
-     * however we don't want this if the mouse wheel has been used, see T74607. */
+     * however we don't want this if the mouse wheel has been used, see #74607. */
     if (wm_action_not_handled(action)) {
       /* Pass. */
     }
@@ -3725,7 +3725,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
  * In this case event handling exits early, however when "Load UI" is disabled
  * the even will still be in #wmWindow.event_queue.
  *
- * Without this it's possible to continuously handle the same event, see: T76484.
+ * Without this it's possible to continuously handle the same event, see: #76484.
  */
 static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 {
@@ -4063,7 +4063,7 @@ void wm_event_do_handlers(bContext *C)
 
             action |= wm_event_do_handlers_area_regions(C, event, area);
 
-            /* File-read case (Python), T29489. */
+            /* File-read case (Python), #29489. */
             if (CTX_wm_window(C) == nullptr) {
               wm_event_free_and_remove_from_queue_if_valid(event);
               GPU_render_end();
@@ -4109,7 +4109,7 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* If the drag even was handled, don't attempt to keep re-handing the same
-       * drag event on every cursor motion, see: T87511. */
+       * drag event on every cursor motion, see: #87511. */
       if (win->event_queue_check_drag_handled) {
         win->event_queue_check_drag = false;
         win->event_queue_check_drag_handled = false;
@@ -4405,7 +4405,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
  * allowing both the fallback-tool and active-tool to be activated
  * providing the key-map is configured so the keys don't conflict.
  * For example one mouse button can run the active-tool, another button for the fallback-tool.
- * See T72567.
+ * See #72567.
  *
  * Follow #wmEventHandler_KeymapDynamicFn signature.
  */
@@ -5247,7 +5247,7 @@ static void wm_event_state_update_and_click_set_ex(wmEvent *event,
   event_state->type = event->type;
   /* It's important only to write into the `event_state` modifier for keyboard
    * events because emulate MMB clears one of the modifiers in `event->modifier`,
-   * making the second press not behave as if the modifier is pressed, see T96279. */
+   * making the second press not behave as if the modifier is pressed, see #96279. */
   if (is_keyboard) {
     event_state->modifier = event->modifier;
   }
@@ -5359,7 +5359,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
   event.prev_val = event.val;
 
   /* Always use modifiers from the active window since
-   * changes to modifiers aren't sent to inactive windows, see: T66088. */
+   * changes to modifiers aren't sent to inactive windows, see: #66088. */
   if ((wm->winactive != win) && (wm->winactive && wm->winactive->eventstate)) {
     event.modifier = wm->winactive->eventstate->modifier;
     event.keymodifier = wm->winactive->eventstate->keymodifier;

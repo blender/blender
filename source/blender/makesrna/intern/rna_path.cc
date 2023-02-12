@@ -832,7 +832,7 @@ static char *rna_idp_path(PointerRNA *ptr,
      * That case must be ignored here, we only want to deal with runtime RNA properties stored in
      * IDProps.
      *
-     * See T84091. */
+     * See #84091. */
     PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
     if (prop == nullptr || (prop->flag & PROP_IDPROPERTY) == 0) {
       continue;
@@ -906,7 +906,7 @@ static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
   BLI_assert(ptr->owner_id != nullptr);
 
   /* TODO: Support Bones/PoseBones. no pointers stored to the bones from here, only the ID.
-   *       See example in T25746.
+   *       See example in #25746.
    *       Unless this is added only way to find this is to also search
    *       all bones and pose bones of an armature or object.
    */
@@ -1227,7 +1227,7 @@ char *RNA_path_full_struct_py(const PointerRNA *ptr)
 
   data_path = RNA_path_from_ID_to_struct(ptr);
 
-  /* XXX data_path may be NULL (see T36788),
+  /* XXX data_path may be NULL (see #36788),
    * do we want to get the 'bpy.data.foo["bar"].(null)' stuff? */
   ret = BLI_sprintfN("%s.%s", id_path, data_path);
 

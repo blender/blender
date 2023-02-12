@@ -71,7 +71,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 
     if (ntree->type != NTREE_GEOMETRY) {
       /* This can probably be removed for all node tree types. It mainly exists because it was not
-       * possible to store id references in custom properties. Also see T36024. I don't want to
+       * possible to store id references in custom properties. Also see #36024. I don't want to
        * remove it for all tree types in bcon3 though. */
       id_us_ensure_real(&ntree->id);
     }

@@ -731,7 +731,7 @@ static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
     mul_m4_v3(ob->object_to_world, cull->bsphere.center);
     cull->bsphere.radius = len_v3v3(cull->bsphere.center, corner);
 
-    /* Bypass test for very large objects (see T67319). */
+    /* Bypass test for very large objects (see #67319). */
     if (UNLIKELY(cull->bsphere.radius > 1e12)) {
       cull->bsphere.radius = -1.0f;
     }
@@ -2511,7 +2511,7 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass)
     /* To be sorted a shgroup needs to have at least one draw command. */
     /* FIXME(fclem): In some case, we can still have empty shading group to sort. However their
      * final order is not well defined.
-     * (see T76730 & D7729). */
+     * (see #76730 & D7729). */
     // BLI_assert(handle != 0);
 
     DRWObjectMatrix *obmats = static_cast<DRWObjectMatrix *>(

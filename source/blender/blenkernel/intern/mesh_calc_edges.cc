@@ -176,7 +176,7 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
         else {
           /* This is an invalid edge; normally this does not happen in Blender,
            * but it can be part of an imported mesh with invalid geometry. See
-           * T76514. */
+           * #76514. */
           edge_index = 0;
         }
         prev_loop->e = edge_index;

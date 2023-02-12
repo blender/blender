@@ -1350,7 +1350,7 @@ static int ed_marker_select(
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
 
-  /* allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails, see T25987. */
+  /* allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails, see #25987. */
   return ret_val | OPERATOR_PASS_THROUGH;
 }
 

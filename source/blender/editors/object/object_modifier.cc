@@ -155,7 +155,7 @@ ModifierData *ED_object_modifier_add(
   ModifierData *md = nullptr, *new_md = nullptr;
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)type);
 
-  /* Check compatibility of modifier [T25291, T50373]. */
+  /* Check compatibility of modifier [#25291, #50373]. */
   if (!BKE_object_support_modifier_type_check(ob, type)) {
     BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
     return nullptr;
@@ -742,7 +742,7 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
 /**
  * \param use_virtual_modifiers: When enabled, calculate virtual-modifiers before applying
  * `md_eval`. This is supported because virtual-modifiers are not modifiers from a user
- * perspective, allowing shape keys to be included with the modifier being applied, see: T91923.
+ * perspective, allowing shape keys to be included with the modifier being applied, see: #91923.
  */
 static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
                                               Scene *scene,
@@ -983,7 +983,7 @@ static bool modifier_apply_obdata(
           DEG_get_evaluated_object(depsgraph, ob),
           md_eval,
           /* It's important not to apply virtual modifiers (e.g. shape-keys) because they're kept,
-           * causing them to be applied twice, see: T97758. */
+           * causing them to be applied twice, see: #97758. */
           false,
           true,
           reports);

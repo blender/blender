@@ -2054,7 +2054,7 @@ void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer,
   if (STREQ(from_colorspace, to_colorspace)) {
     /* Because this function always takes a byte buffer and returns a float buffer, it must
      * always do byte-to-float conversion of some kind. To avoid threading overhead
-     * IMB_buffer_float_from_byte is used when color spaces are identical. See T51002.
+     * IMB_buffer_float_from_byte is used when color spaces are identical. See #51002.
      */
     IMB_buffer_float_from_byte(float_buffer,
                                byte_buffer,

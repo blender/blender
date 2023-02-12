@@ -769,7 +769,7 @@ static void draw_seq_outline(Scene *scene,
   immUniformColor3ubv(col);
 
   /* 2px wide outline for selected strips. */
-  /* XXX: some platforms don't support OpenGL lines wider than 1px (see T57570),
+  /* XXX: some platforms don't support OpenGL lines wider than 1px (see #57570),
    * draw outline as four boxes instead. */
   if (seq->flag & SELECT) {
     /* Left */

@@ -90,7 +90,7 @@ PyObject *BPY_app_ocio_struct(void)
   BlenderAppOCIOType.tp_init = NULL;
   BlenderAppOCIOType.tp_new = NULL;
   BlenderAppOCIOType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
+      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
 
   return ret;
 }

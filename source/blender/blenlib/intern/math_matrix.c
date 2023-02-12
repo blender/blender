@@ -1663,7 +1663,7 @@ void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
  *
  * \note If an object has a zero scaled axis, this function can be used to "clean" the matrix
  * to behave as if the scale on that axis was `unit_length`. So it can be inverted
- * or used in matrix multiply without creating degenerate matrices, see: T50103
+ * or used in matrix multiply without creating degenerate matrices, see: #50103
  * \{ */
 
 /**
@@ -2412,7 +2412,7 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
 
   /* Quaternions cannot represent an axis flip. If such a singularity is detected, choose a
    * different decomposition of the matrix that still satisfies A = U_A * P_A but which has a
-   * positive determinant and thus no axis flips. This resolves T77154.
+   * positive determinant and thus no axis flips. This resolves #77154.
    *
    * Note that a flip of two axes is just a rotation of 180 degrees around the third axis, and
    * three flipped axes are just an 180 degree rotation + a single axis flip. It is thus sufficient

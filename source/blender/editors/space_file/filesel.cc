@@ -85,7 +85,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
   folder_history_list_ensure_for_active_browse_mode(sfile);
   folderlist_pushdir(sfile->folders_prev, params->dir);
 
-  /* Switching thumbnails needs to recalc layout T28809. */
+  /* Switching thumbnails needs to recalc layout #28809. */
   if (sfile->layout) {
     sfile->layout->dirty = true;
   }
@@ -1144,7 +1144,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
    */
   for (int i = 0; i < n; i++) {
     FileDirEntry *file = filelist_file(sfile->files, i);
-    /* Do not check whether file is a file or dir here! Causes: T44243
+    /* Do not check whether file is a file or dir here! Causes: #44243
      * (we do accept directories at this stage). */
     if (fnmatch(pattern, file->relpath, 0) == 0) {
       filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
@@ -1228,7 +1228,7 @@ int autocomplete_file(struct bContext *C, char *str, void * /*arg_v*/)
 
 void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
 {
-  /* Only null in rare cases, see: T29734. */
+  /* Only null in rare cases, see: #29734. */
   if (sfile->files) {
     filelist_readjob_stop(sfile->files, wm);
     filelist_freelib(sfile->files);

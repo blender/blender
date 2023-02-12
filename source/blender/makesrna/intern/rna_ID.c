@@ -577,7 +577,7 @@ IDProperty **rna_ID_idprops(PointerRNA *ptr)
 int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
 {
   ID *id = (ID *)ptr->data;
-  /* TODO: This should be abstracted in a BKE function or define, somewhat related to T88555. */
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
                  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
     *r_info =
@@ -592,7 +592,7 @@ int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
 bool rna_ID_is_runtime_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
-  /* TODO: This should be abstracted in a BKE function or define, somewhat related to T88555. */
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
                  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
     return true;

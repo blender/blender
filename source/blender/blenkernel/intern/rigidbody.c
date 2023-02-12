@@ -1728,7 +1728,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
 {
   /* update world */
   /* Note physics_world can get NULL when undoing the deletion of the last object in it (see
-   * T70667). */
+   * #70667). */
   if (rebuild || rbw->shared->physics_world == NULL) {
     BKE_rigidbody_validate_sim_world(scene, rbw, rebuild);
     /* We have rebuilt the world so we need to make sure the rest is rebuilt as well. */

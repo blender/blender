@@ -216,7 +216,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
 static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, bAnimListElem *ale)
 {
   /* Armatures-Specific Feature:
-   * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (T38737)
+   * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (#38737)
    */
   if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
     if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
@@ -667,7 +667,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
       action_groups_remove_channel(act, fcu);
 
       /* if group has no more channels, remove it too,
-       * otherwise can have many dangling groups T33541.
+       * otherwise can have many dangling groups #33541.
        */
       if (BLI_listbase_is_empty(&agrp->channels)) {
         BLI_freelinkN(&act->groups, agrp);
@@ -2068,7 +2068,7 @@ static void setflag_anim_channels(bAnimContext *ac,
    *   since we only want to apply this to channels we can "see",
    *   and have these affect their relatives
    * - but for Graph Editor, this gets used also from main region
-   *   where hierarchy doesn't apply T21276.
+   *   where hierarchy doesn't apply #21276.
    */
   if ((ac->spacetype == SPACE_GRAPH) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
     /* graph editor (case 2) */
@@ -3067,10 +3067,10 @@ static int click_select_channel_object(bContext *C,
     }
   }
 
-  /* Change active object - regardless of whether it is now selected, see: T37883.
+  /* Change active object - regardless of whether it is now selected, see: #37883.
    *
    * Ensure we exit edit-mode on whatever object was active before
-   * to avoid getting stuck there, see: T48747. */
+   * to avoid getting stuck there, see: #48747. */
   ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
   if ((adt) && (adt->flag & ADT_UI_SELECTED)) {

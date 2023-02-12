@@ -601,7 +601,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  * =====================
  *
  * Key blocks locations must *not* be used. This was done from v2.67 to 3.0,
- * causing bugs T35170 & T44415.
+ * causing bugs #35170 & #44415.
  *
  * Shape key synchronizing could work under the assumption that the key-block is
  * fixed-in-place when entering edit-mode allowing them to be used as a reference when exiting.
@@ -776,7 +776,7 @@ static void bm_to_mesh_shape(BMesh *bm,
 
   /* Without this, the real mesh coordinates (uneditable) as soon as you create the Basis shape.
    * while users might not notice since the shape-key is applied in the viewport,
-   * exporters for example may still use the underlying coordinates, see: T30771 & T96135.
+   * exporters for example may still use the underlying coordinates, see: #30771 & #96135.
    *
    * Needed when editing any shape that isn't the (`key->refkey`), the vertices in mesh positions
    * currently have vertex coordinates set from the current-shape (initialized from #BMVert.co).
@@ -846,7 +846,7 @@ static void bm_to_mesh_shape(BMesh *bm,
         /* Apply back new coordinates shape-keys that have offset into #BMesh.
          * Otherwise, in case we call again #BM_mesh_bm_to_me on same #BMesh,
          * we'll apply diff from previous call to #BM_mesh_bm_to_me,
-         * to shape-key values from original creation of the #BMesh. See T50524. */
+         * to shape-key values from original creation of the #BMesh. See #50524. */
         copy_v3_v3(co_orig, currkey_data[i]);
       }
     }
@@ -1026,7 +1026,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
   /* Will be overwritten with a valid value if 'dotess' is set, otherwise we
-   * end up with 'me->totface' and `me->mface == nullptr` which can crash T28625. */
+   * end up with 'me->totface' and `me->mface == nullptr` which can crash #28625. */
   me->totface = 0;
   me->act_face = -1;
 

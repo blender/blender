@@ -185,7 +185,7 @@ struct FileListEntryPreview {
 };
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
- * tasks' data (see T74609). */
+ * tasks' data (see #74609). */
 struct FileListEntryPreviewTaskData {
   FileListEntryPreview *preview;
 };
@@ -633,7 +633,7 @@ static bool is_hidden_dot_filename(const char *filename, const FileListInternEnt
     while (sep) {
       /* This happens when a path contains 'ALTSEP', '\' on Unix for e.g.
        * Supporting alternate slashes in paths is a bigger task involving changes
-       * in many parts of the code, for now just prevent an assert, see T74579. */
+       * in many parts of the code, for now just prevent an assert, see #74579. */
 #if 0
       BLI_assert(sep[1] != '\0');
 #endif
@@ -3587,7 +3587,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     /* ARRRG! We have to be very careful *not to use* common BLI_path_util helpers over
      * entry->relpath itself (nor any path containing it), since it may actually be a datablock
-     * name inside .blend file, which can have slashes and backslashes! See T46827.
+     * name inside .blend file, which can have slashes and backslashes! See #46827.
      * Note that in the end, this means we 'cache' valid relative subdir once here,
      * this is actually better. */
     BLI_strncpy(rel_subdir, subdir, sizeof(rel_subdir));
@@ -4062,7 +4062,7 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   /* The file list type may not support threading so execute immediately. Same when only rereading
    * #Main data (which we do quite often on changes to #Main, since it's the easiest and safest way
    * to ensure the displayed data is up to date), because some operations executing right after
-   * main data changed may need access to the ID files (see T93691). */
+   * main data changed may need access to the ID files (see #93691). */
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
   if (no_threads) {

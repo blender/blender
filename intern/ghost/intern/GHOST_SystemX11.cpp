@@ -46,7 +46,7 @@
 
 #ifdef WITH_X11_XFIXES
 #  include <X11/extensions/Xfixes.h>
-/* Workaround for XWayland grab glitch: T53004. */
+/* Workaround for XWayland grab glitch: #53004. */
 #  define WITH_XWAYLAND_HACK
 #endif
 
@@ -71,11 +71,11 @@
 #  define USE_XINPUT_HOTPLUG
 #endif
 
-/* see T34039 Fix Alt key glitch on Unity desktop */
+/* see #34039 Fix Alt key glitch on Unity desktop */
 #define USE_UNITY_WORKAROUND
 
 /* Fix 'shortcut' part of keyboard reading code only ever using first defined key-map
- * instead of active one. See T47228 and D1746 */
+ * instead of active one. See #47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
 static uchar bit_is_on(const uchar *ptr, int bit)
@@ -928,7 +928,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             window->getClientBounds(bounds);
 
             /* TODO(@ideasman42): warp the cursor to `window->getCursorGrabInitPos`,
-             * on every motion event, see: D16557 (alternative fix for T102346). */
+             * on every motion event, see: D16557 (alternative fix for #102346). */
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
             const int32_t center[2] = {
@@ -964,7 +964,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         if (x_new != xme.x_root || y_new != xme.y_root) {
           /* Use time of last event to avoid wrapping several times on the 'same' actual wrap.
            * Note that we need to deal with X and Y separately as those might wrap at the same time
-           * but still in two different events (corner case, see T74918).
+           * but still in two different events (corner case, see #74918).
            * We also have to add a few extra milliseconds of 'padding', as sometimes we get two
            * close events that will generate extra wrap on the same axis within those few
            * milliseconds. */
@@ -1028,7 +1028,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* XXX: Code below is kinda awfully convoluted... Issues are:
        * - In keyboards like Latin ones, numbers need a 'Shift' to be accessed but key_sym
        *   is unmodified (or anyone swapping the keys with `xmodmap`).
-       * - #XLookupKeysym seems to always use first defined key-map (see T47228), which generates
+       * - #XLookupKeysym seems to always use first defined key-map (see #47228), which generates
        *   key-codes unusable by ghost_key_from_keysym for non-Latin-compatible key-maps.
        *
        * To address this, we:
@@ -1715,7 +1715,7 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 
 #if defined(WITH_X11_XINPUT) && defined(USE_X11_XINPUT_WARP)
   if ((m_xinput_version.present) && (m_xinput_version.major_version >= 2)) {
-    /* Needed to account for XInput "Coordinate Transformation Matrix", see T48901 */
+    /* Needed to account for XInput "Coordinate Transformation Matrix", see #48901 */
     int device_id;
     if (XIGetClientPointer(m_display, None, &device_id) != False) {
       XIWarpPointer(m_display, device_id, None, None, 0, 0, 0, 0, relx, rely);

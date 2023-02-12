@@ -121,7 +121,7 @@ void ED_undo_push(bContext *C, const char *str)
   }
   if (G.background) {
     /* Python developers may have explicitly created the undo stack in background mode,
-     * otherwise allow it to be nullptr, see: T60934.
+     * otherwise allow it to be nullptr, see: #60934.
      * Otherwise it must never be nullptr, even when undo is disabled. */
     if (wm->undo_stack == nullptr) {
       return;
@@ -428,7 +428,7 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 
 bool ED_undo_is_memfile_compatible(const bContext *C)
 {
-  /* Some modes don't co-exist with memfile undo, disable their use: T60593
+  /* Some modes don't co-exist with memfile undo, disable their use: #60593
    * (this matches 2.7x behavior). */
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -511,7 +511,7 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
 static int ed_undo_push_exec(bContext *C, wmOperator *op)
 {
   if (G.background) {
-    /* Exception for background mode, see: T60934.
+    /* Exception for background mode, see: #60934.
      * NOTE: since the undo stack isn't initialized on startup, background mode behavior
      * won't match regular usage, this is just for scripts to do explicit undo pushes. */
     wmWindowManager *wm = CTX_wm_manager(C);
@@ -546,7 +546,7 @@ static int ed_undo_redo_exec(bContext *C, wmOperator * /*op*/)
   return ret;
 }
 
-/* Disable in background mode, we could support if it's useful, T60934. */
+/* Disable in background mode, we could support if it's useful, #60934. */
 
 static bool ed_undo_is_init_poll(bContext *C)
 {
@@ -680,7 +680,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     if (WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type) &&
         /* NOTE: undo/redo can't run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
-         * (which copy their data), won't stop redo, see T29579],
+         * (which copy their data), won't stop redo, see #29579.
          *
          * NOTE: WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this. */
         (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0)) {

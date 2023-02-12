@@ -421,7 +421,7 @@ ccl_device_inline float fast_expf(float x)
 
 #if !defined(__KERNEL_GPU__) && !defined(_MSC_VER)
 /* MSVC seems to have a code-gen bug here in at least SSE41/AVX, see
- * T78047 and T78869 for details. Just disable for now, it only makes
+ * #78047 and #78869 for details. Just disable for now, it only makes
  * a small difference in denoising performance. */
 ccl_device float4 fast_exp2f4(float4 x)
 {

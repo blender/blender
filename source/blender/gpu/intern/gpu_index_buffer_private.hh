@@ -72,7 +72,7 @@ class IndexBuf {
   uint32_t index_len_get() const
   {
     /* Return 0 to bypass drawing for index buffers full of restart indices.
-     * They can lead to graphical glitches on some systems. (See T96892) */
+     * They can lead to graphical glitches on some systems. (See #96892) */
     return is_empty_ ? 0 : index_len_;
   }
   uint32_t index_start_get() const

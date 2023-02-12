@@ -2097,10 +2097,10 @@ static void bevel_list_calc_bisect(BevList *bl)
   }
 
   /* In the unlikely situation that handles define a zeroed direction,
-   * calculate it from the adjacent points, see T80742.
+   * calculate it from the adjacent points, see #80742.
    *
    * Only do this as a fallback since we typically want the end-point directions
-   * to be exactly aligned with the handles at the end-point, see T83117. */
+   * to be exactly aligned with the handles at the end-point, see #83117. */
   if (is_cyclic == false) {
     bevp0 = &bl->bevpoints[0];
     bevp1 = &bl->bevpoints[1];
@@ -2252,7 +2252,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   float q[4];
   const bool is_cyclic = bl->poly != -1;
   /* NOTE(@ideasman42): For non-cyclic curves only initialize the first direction
-   * (via `vec_to_quat`), necessary for symmetry, see T71137.
+   * (via `vec_to_quat`), necessary for symmetry, see #71137.
    * Otherwise initialize the first and second points before propagating rotation forward.
    * This is historical as changing this can cause significantly different output.
    * Specifically: `deform_modifiers` test: (`CurveMeshDeform`).
@@ -2906,7 +2906,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
       continue;
     }
 
-    /* Scale the threshold so high resolution shapes don't get over reduced, see: T49850. */
+    /* Scale the threshold so high resolution shapes don't get over reduced, see: #49850. */
     const float threshold_resolu = 0.00001f / resolu;
     const bool is_cyclic = bl->poly != -1;
     nr = bl->nr;
@@ -3284,7 +3284,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
   }
 
   if (skip_align ||
-      /* When one handle is free, aligning makes no sense, see: T35952 */
+      /* When one handle is free, aligning makes no sense, see: #35952 */
       ELEM(HD_FREE, bezt->h1, bezt->h2) ||
       /* Also when no handles are aligned, skip this step. */
       (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
