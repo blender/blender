@@ -260,7 +260,7 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
     GPU_shader_uniform_1b(shader, "force_fail_method", force_fail_method_);
     GPU_shader_uniform_3fv(shader, "shadow_direction", light_direction_);
     GPU_uniformbuf_bind(extruded_frustum_,
-                        GPU_shader_get_uniform_block(shader, "extruded_frustum"));
+                        GPU_shader_get_uniform_block_binding(shader, "extruded_frustum"));
     GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo(shader, "bounds_buf"));
     if (current_pass_type_ == ShadowPass::FORCED_FAIL) {
       GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo(shader, "visibility_buf"));
