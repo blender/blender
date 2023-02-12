@@ -29,8 +29,7 @@ void main()
                                   bounds.bounding_corners[2].xyz,
                                   bounds.bounding_corners[3].xyz);
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL(light_cull_buf, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
 
     float local_min = FLT_MAX;

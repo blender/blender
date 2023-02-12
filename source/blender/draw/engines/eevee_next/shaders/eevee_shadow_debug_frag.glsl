@@ -82,8 +82,7 @@ LightData debug_light_get()
   }
   LIGHT_FOREACH_END
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL(light_cull_buf, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
     if (light.tilemap_index == debug_tilemap_index) {
       return light;
