@@ -276,10 +276,6 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                           ccl_private float2 *roughness,
                                           ccl_private float *eta)
 {
-#ifdef __SVM__
-  bool refractive = false;
-  float alpha = 1.0f;
-#endif
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
       *roughness = one_float2();
@@ -291,11 +287,13 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *eta = 1.0f;
       break;
 #  ifdef __OSL__
-    case CLOSURE_BSDF_PHONG_RAMP_ID:
-      alpha = phong_ramp_exponent_to_roughness(((ccl_private const PhongRampBsdf *)sc)->exponent);
+    case CLOSURE_BSDF_PHONG_RAMP_ID: {
+      ccl_private const PhongRampBsdf *bsdf = (ccl_private const PhongRampBsdf *)sc;
+      float alpha = phong_ramp_exponent_to_roughness(bsdf->exponent);
       *roughness = make_float2(alpha, alpha);
       *eta = 1.0f;
       break;
+    }
     case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
       *roughness = one_float2();
       *eta = 1.0f;
@@ -328,7 +326,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
       *roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
-      refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+      const bool refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
       *eta = refractive ? 1.0f / bsdf->ior : bsdf->ior;
       break;
     }
@@ -350,7 +348,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID: {
       ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
       *roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
-      refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
+      const bool refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
       *eta = refractive ? 1.0f / bsdf->ior : bsdf->ior;
     } break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
@@ -382,11 +380,12 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                ((ccl_private HairBsdf *)sc)->roughness2);
       *eta = 1.0f;
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      alpha = ((ccl_private PrincipledHairBSDF *)sc)->m0_roughness;
-      *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private PrincipledHairBSDF *)sc)->eta;
+    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID: {
+      ccl_private const PrincipledHairBSDF *bsdf = (ccl_private const PrincipledHairBSDF *)sc;
+      *roughness = make_float2(bsdf->v_R, bsdf->v_R);
+      *eta = bsdf->eta;
       break;
+    }
     case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
       *roughness = one_float2();
       *eta = 1.0f;

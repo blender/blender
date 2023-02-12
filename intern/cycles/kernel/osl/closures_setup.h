@@ -1078,15 +1078,13 @@ ccl_device void osl_closure_principled_hair_setup(KernelGlobals kg,
 
   bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
   bsdf->sigma = closure->sigma;
-  bsdf->v = closure->v;
-  bsdf->s = closure->s;
   bsdf->alpha = closure->alpha;
   bsdf->eta = closure->eta;
-  bsdf->m0_roughness = closure->m0_roughness;
 
   bsdf->extra = extra;
 
-  sd->flag |= bsdf_principled_hair_setup(sd, bsdf);
+  sd->flag |= bsdf_principled_hair_setup(
+      sd, bsdf, closure->u_roughness, closure->coat_roughness, closure->v_roughness);
 #endif
 }
 

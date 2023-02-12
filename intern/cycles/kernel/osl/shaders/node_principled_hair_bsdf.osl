@@ -53,7 +53,7 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
 
   /* Compute roughness. */
   float factor_random_roughness = 1.0 + 2.0 * (random_value - 0.5) * RandomRoughness;
-  float m0_roughness = 1.0 - clamp(Coat, 0.0, 1.0);
+  float coat_roughness = 1.0 - clamp(Coat, 0.0, 1.0);
   float roughness = Roughness * factor_random_roughness;
   float radial_roughness = RadialRoughness * factor_random_roughness;
 
@@ -88,5 +88,5 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
     sigma = sigma_from_concentration(0.0, 0.8054375);
   }
 
-  BSDF = principled_hair(Normal, sigma, roughness, radial_roughness, m0_roughness, Offset, IOR);
+  BSDF = principled_hair(Normal, sigma, roughness, radial_roughness, coat_roughness, Offset, IOR);
 }

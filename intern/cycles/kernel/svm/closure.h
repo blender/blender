@@ -802,12 +802,9 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
         /* Remap Coat value to [0, 100]% of Roughness. */
         float coat = stack_load_float_default(stack, coat_ofs, data_node2.y);
-        float m0_roughness = 1.0f - clamp(coat, 0.0f, 1.0f);
+        float coat_roughness = 1.0f - clamp(coat, 0.0f, 1.0f);
 
         bsdf->N = N;
-        bsdf->v = roughness;
-        bsdf->s = radial_roughness;
-        bsdf->m0_roughness = m0_roughness;
         bsdf->alpha = alpha;
         bsdf->eta = ior;
         bsdf->extra = extra;
@@ -860,7 +857,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           }
         }
 
-        sd->flag |= bsdf_principled_hair_setup(sd, bsdf);
+        sd->flag |= bsdf_principled_hair_setup(
+            sd, bsdf, roughness, coat_roughness, radial_roughness);
       }
       break;
     }
