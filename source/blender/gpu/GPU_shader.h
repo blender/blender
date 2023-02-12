@@ -3,6 +3,8 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * A #GPUShader is a container for backend specific shader program.
  */
 
 #pragma once
@@ -19,6 +21,162 @@ struct GPUVertBuf;
 typedef struct GPUShaderCreateInfo GPUShaderCreateInfo;
 /** Opaque type hiding #blender::gpu::Shader */
 typedef struct GPUShader GPUShader;
+
+/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
+ * This makes sure the GPUVertexFormat name buffer does not overflow. */
+#define GPU_MAX_ATTR 15
+
+/* Determined by the maximum uniform buffer size divided by chunk size. */
+#define GPU_MAX_UNIFORM_ATTR 8
+
+/* -------------------------------------------------------------------- */
+/** \name Creation
+ * \{ */
+
+/**
+ * Create a shader using the given #GPUShaderCreateInfo.
+ * Can return a NULL pointer if compilation fails.
+ */
+GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
+
+/**
+ * Create a shader using a named #GPUShaderCreateInfo registered at startup.
+ * These are declared inside `*_info.hh` files using the `GPU_SHADER_CREATE_INFO()` macro.
+ * They are also expected to have been flagged using `do_static_compilation`.
+ * Can return a NULL pointer if compilation fails.
+ */
+GPUShader *GPU_shader_create_from_info_name(const char *info_name);
+
+/**
+ * Fetch a named #GPUShaderCreateInfo registered at startup.
+ * These are declared inside `*_info.hh` files using the `GPU_SHADER_CREATE_INFO()` macro.
+ * Can return a NULL pointer if no match is found.
+ */
+const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
+
+/**
+ * Error checking for user created shaders.
+ * \return true is create info is valid.
+ */
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free
+ * \{ */
+
+void GPU_shader_free(GPUShader *shader);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Binding
+ * \{ */
+
+/**
+ * Set the given shader as active shader for the active GPU context.
+ * It replaces any already bound shader.
+ * All following draw-calls and dispatches will use this shader.
+ * Uniform functions need to have the shader bound in order to work. (TODO: until we use
+ * glProgramUniform)
+ */
+void GPU_shader_bind(GPUShader *shader);
+
+/**
+ * Unbind the active shader.
+ * \note this is a no-op in release builds. But it make sense to actually do it in user land code
+ * to detect incorrect API usage.
+ */
+void GPU_shader_unbind(void);
+
+/**
+ * Return the currently bound shader to the active GPU context.
+ * \return NULL pointer if no shader is bound of if no context is active.
+ */
+GPUShader *GPU_shader_get_bound(void);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debugging introspection API.
+ * \{ */
+
+const char *GPU_shader_get_name(GPUShader *shader);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform API.
+ * \{ */
+
+/**
+ * Returns binding point location.
+ * Binding location are given to be set at compile time and immutable.
+ */
+/* TODO(fclem): Make naming consistent. ubo_binding, ssbo_binding */
+int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_texture_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_ssbo(GPUShader *shader, const char *name);
+
+/**
+ * Returns uniform location.
+ * If cached, it is faster than querying the interface for each uniform assignment.
+ */
+int GPU_shader_get_uniform(GPUShader *shader, const char *name);
+
+/**
+ * Sets a generic push constant (a.k.a. uniform).
+ * \a length and \a array_size should match the create info push_constant declaration.
+ */
+void GPU_shader_uniform_vector(
+    GPUShader *shader, int location, int length, int array_size, const float *value);
+void GPU_shader_uniform_vector_int(
+    GPUShader *shader, int location, int length, int array_size, const int *value);
+
+/**
+ * Sets a generic push constant (a.k.a. uniform).
+ * \a length and \a array_size should match the create info push_constant declaration.
+ * These functions need to have the shader bound in order to work. (TODO: until we use
+ * glProgramUniform)
+ */
+void GPU_shader_uniform_1i(GPUShader *sh, const char *name, int value);
+void GPU_shader_uniform_1b(GPUShader *sh, const char *name, bool value);
+void GPU_shader_uniform_1f(GPUShader *sh, const char *name, float value);
+void GPU_shader_uniform_2f(GPUShader *sh, const char *name, float x, float y);
+void GPU_shader_uniform_3f(GPUShader *sh, const char *name, float x, float y, float z);
+void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, float z, float w);
+void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2]);
+void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3]);
+void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]);
+void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2]);
+void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4]);
+void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3]);
+void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
+void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Attribute API.
+ *
+ * Used to create #GPUVertexFormat from the shader's vertex input layout.
+ * \{ */
+
+unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
+int GPU_shader_get_attribute(const GPUShader *shader, const char *name);
+bool GPU_shader_get_attribute_info(const GPUShader *shader,
+                                   int attr_location,
+                                   char r_name[256],
+                                   int *r_type);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Legacy API
+ *
+ * All of this section is deprecated and should be ported to use the API described above.
+ * \{ */
 
 typedef enum eGPUShaderTFBType {
   GPU_SHADER_TFB_NONE = 0, /* Transform feedback unsupported. */
@@ -53,54 +211,6 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
                                 const char **tf_names,
                                 int tf_count,
                                 const char *shname);
-GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
-GPUShader *GPU_shader_create_from_info_name(const char *info_name);
-
-const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
-bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
-
-struct GPU_ShaderCreateFromArray_Params {
-  const char **vert, **geom, **frag, **defs;
-};
-/**
- * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
- *
- * Similar to #DRW_shader_create_with_lib with the ability to include libraries for each type of
- * shader.
- *
- * It has the advantage that each item can be conditionally included
- * without having to build the string inline, then free it.
- *
- * \param params: NULL terminated arrays of strings.
- *
- * Example:
- * \code{.c}
- * sh = GPU_shader_create_from_arrays({
- *     .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
- *     .geom = (const char *[]){shader_geom_glsl, NULL},
- *     .frag = (const char *[]){shader_frag_glsl, NULL},
- *     .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
- * });
- * \endcode
- */
-struct GPUShader *GPU_shader_create_from_arrays_impl(
-    const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line);
-
-#define GPU_shader_create_from_arrays(...) \
-  GPU_shader_create_from_arrays_impl( \
-      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, __func__, __LINE__)
-
-#define GPU_shader_create_from_arrays_named(name, ...) \
-  GPU_shader_create_from_arrays_impl( \
-      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, name, 0)
-
-void GPU_shader_free(GPUShader *shader);
-
-void GPU_shader_bind(GPUShader *shader);
-void GPU_shader_unbind(void);
-GPUShader *GPU_shader_get_bound(void);
-
-const char *GPU_shader_get_name(GPUShader *shader);
 
 /**
  * Returns true if transform feedback was successfully enabled.
@@ -111,6 +221,9 @@ void GPU_shader_transform_feedback_disable(GPUShader *shader);
 /** DEPRECATED: Kept only because of BGL API. */
 int GPU_shader_get_program(GPUShader *shader);
 
+/**
+ * Indexed commonly used uniform name for faster lookup into the uniform cache.
+ */
 typedef enum {
   GPU_UNIFORM_MODEL = 0,      /* mat4 ModelMatrix */
   GPU_UNIFORM_VIEW,           /* mat4 ViewMatrix */
@@ -134,16 +247,19 @@ typedef enum {
   GPU_UNIFORM_RESOURCE_CHUNK, /* int resourceChunk */
   GPU_UNIFORM_RESOURCE_ID,    /* int resourceId */
   GPU_UNIFORM_SRGB_TRANSFORM, /* bool srgbTarget */
-
-  GPU_NUM_UNIFORMS, /* Special value, denotes number of builtin uniforms. */
 } GPUUniformBuiltin;
+#define GPU_NUM_UNIFORMS (GPU_UNIFORM_SRGB_TRANSFORM + 1)
 
+/** TODO: To be moved as private API. Not really used outside of gpu_matrix.cc and doesn't really
+ * offer a noticeable perf boost. */
+int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
+
+/** DEPRECATED: Use hardcoded buffer location instead. */
 typedef enum {
-  /** Deprecated */
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
   GPU_UNIFORM_BLOCK_MODEL,    /* modelBlock */
   GPU_UNIFORM_BLOCK_INFO,     /* infoBlock */
-  /** New ones */
+
   GPU_UNIFORM_BLOCK_DRW_VIEW,
   GPU_UNIFORM_BLOCK_DRW_MODEL,
   GPU_UNIFORM_BLOCK_DRW_INFOS,
@@ -152,6 +268,10 @@ typedef enum {
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;
 
+/** DEPRECATED: Use hardcoded buffer location instead. */
+int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
+
+/** DEPRECATED: Use hardcoded buffer location instead. */
 typedef enum {
   GPU_STORAGE_BUFFER_DEBUG_VERTS = 0, /* drw_debug_verts_buf */
   GPU_STORAGE_BUFFER_DEBUG_PRINT,     /* drw_debug_print_buf */
@@ -159,60 +279,19 @@ typedef enum {
   GPU_NUM_STORAGE_BUFFERS, /* Special value, denotes number of builtin buffer blocks. */
 } GPUStorageBufferBuiltin;
 
-void GPU_shader_set_srgb_uniform(GPUShader *shader);
-
-int GPU_shader_get_uniform(GPUShader *shader, const char *name);
-int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
-int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
+/** DEPRECATED: Use hardcoded buffer location instead. */
 int GPU_shader_get_builtin_ssbo(GPUShader *shader, int builtin);
+
 /** DEPRECATED: Kept only because of Python GPU API. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
-int GPU_shader_get_ssbo(GPUShader *shader, const char *name);
 
-int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name);
-int GPU_shader_get_texture_binding(GPUShader *shader, const char *name);
-
-void GPU_shader_uniform_vector(
-    GPUShader *shader, int location, int length, int arraysize, const float *value);
-void GPU_shader_uniform_vector_int(
-    GPUShader *shader, int location, int length, int arraysize, const int *value);
-
+/** DEPRECATED: To be replaced by GPU_shader_uniform_vector. */
 void GPU_shader_uniform_float(GPUShader *shader, int location, float value);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 
-void GPU_shader_uniform_1i(GPUShader *sh, const char *name, int value);
-void GPU_shader_uniform_1b(GPUShader *sh, const char *name, bool value);
-void GPU_shader_uniform_1f(GPUShader *sh, const char *name, float value);
-void GPU_shader_uniform_2f(GPUShader *sh, const char *name, float x, float y);
-void GPU_shader_uniform_3f(GPUShader *sh, const char *name, float x, float y, float z);
-void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, float z, float w);
-void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2]);
-void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3]);
-void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]);
-void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2]);
-void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4]);
-void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3]);
-void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
-void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
+/** \} */
 
-unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
-int GPU_shader_get_attribute(GPUShader *shader, const char *name);
-bool GPU_shader_get_attribute_info(const GPUShader *shader,
-                                   int attr_location,
-                                   char r_name[256],
-                                   int *r_type);
-
-void GPU_shader_set_framebuffer_srgb_target(int use_srgb_to_linear);
-
-/* Vertex attributes for shaders */
-
-/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
- * This makes sure the GPUVertexFormat name buffer does not overflow. */
-#define GPU_MAX_ATTR 15
-
-/* Determined by the maximum uniform buffer size divided by chunk size. */
-#define GPU_MAX_UNIFORM_ATTR 8
-
+/* TODO: Move to shader shared. */
 typedef enum eGPUKeyframeShapes {
   GPU_KEYFRAME_SHAPE_DIAMOND = (1 << 0),
   GPU_KEYFRAME_SHAPE_CIRCLE = (1 << 1),
