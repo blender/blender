@@ -291,20 +291,6 @@ void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 
 /** \} */
 
-/* TODO: Move to shader shared. */
-typedef enum eGPUKeyframeShapes {
-  GPU_KEYFRAME_SHAPE_DIAMOND = (1 << 0),
-  GPU_KEYFRAME_SHAPE_CIRCLE = (1 << 1),
-  GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1 << 2),
-  GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL = (1 << 3),
-  GPU_KEYFRAME_SHAPE_INNER_DOT = (1 << 4),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MAX = (1 << 8),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MIN = (1 << 9),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MIXED = (1 << 10),
-} eGPUKeyframeShapes;
-#define GPU_KEYFRAME_SHAPE_SQUARE \
-  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
-
 #ifdef __cplusplus
 }
 #endif

@@ -22,6 +22,7 @@
 #include "DNA_scene_types.h"
 
 #include "GPU_immediate.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
 
 #include "UI_interface.h"

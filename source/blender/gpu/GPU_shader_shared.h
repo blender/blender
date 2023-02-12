@@ -11,6 +11,19 @@
 typedef struct TestOutputRawData TestOutputRawData;
 #endif
 
+enum eGPUKeyframeShapes {
+  GPU_KEYFRAME_SHAPE_DIAMOND = (1u << 0u),
+  GPU_KEYFRAME_SHAPE_CIRCLE = (1u << 1u),
+  GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1u << 2u),
+  GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL = (1u << 3u),
+  GPU_KEYFRAME_SHAPE_INNER_DOT = (1u << 4u),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MAX = (1u << 8u),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MIN = (1u << 9u),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MIXED = (1u << 10u),
+  GPU_KEYFRAME_SHAPE_SQUARE = (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL |
+                               GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL),
+};
+
 struct NodeLinkData {
   float4 colors[3];
   /* bezierPts Is actually a float2, but due to std140 each element needs to be aligned to 16
