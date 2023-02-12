@@ -687,10 +687,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           state->vlattrs_loc = uni->location;
           GPU_uniformbuf_bind(drw_ensure_layer_attribute_buffer(), uni->location);
           break;
-        case DRW_UNIFORM_RESOURCE_CHUNK:
+        case DRW_UNIFORM_RESOURCE_CHUNK: {
           state->chunkid_loc = uni->location;
-          GPU_shader_uniform_int(shgroup->shader, uni->location, 0);
+          int zero = 0;
+          GPU_shader_uniform_vector_int(shgroup->shader, uni->location, 1, 1, &zero);
           break;
+        }
         case DRW_UNIFORM_RESOURCE_ID:
           state->resourceid_loc = uni->location;
           break;
@@ -807,7 +809,7 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   int chunk = DRW_handle_chunk_get(handle);
   if (state->resource_chunk != chunk) {
     if (state->chunkid_loc != -1) {
-      GPU_shader_uniform_int(DST.shader, state->chunkid_loc, chunk);
+      GPU_shader_uniform_vector_int(DST.shader, state->chunkid_loc, 1, 1, &chunk);
     }
     if (state->obmats_loc != -1) {
       GPU_uniformbuf_unbind(DST.vmempool->matrices_ubo[state->resource_chunk]);
@@ -827,7 +829,7 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   if (state->resourceid_loc != -1) {
     int id = DRW_handle_id_get(handle);
     if (state->resource_id != id) {
-      GPU_shader_uniform_int(DST.shader, state->resourceid_loc, id);
+      GPU_shader_uniform_vector_int(DST.shader, state->resourceid_loc, 1, 1, &id);
       state->resource_id = id;
     }
   }

@@ -273,10 +273,6 @@ int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
 /** DEPRECATED: Kept only because of Python GPU API. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
 
-/** DEPRECATED: To be replaced by GPU_shader_uniform_vector. */
-void GPU_shader_uniform_float(GPUShader *shader, int location, float value);
-void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
-
 /** \} */
 
 #ifdef __cplusplus
