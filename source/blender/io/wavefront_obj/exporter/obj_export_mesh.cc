@@ -186,7 +186,7 @@ int OBJMesh::ith_smooth_group(const int poly_index) const
 
 void OBJMesh::ensure_mesh_normals() const
 {
-  /* Const cast can be removed when calculating face corner normals lazily is possible. */
+  /* Constant cast can be removed when calculating face corner normals lazily is possible. */
   BKE_mesh_calc_normals_split(const_cast<Mesh *>(export_mesh_));
 }
 
