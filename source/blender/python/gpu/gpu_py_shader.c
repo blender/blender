@@ -533,7 +533,7 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
   }
 
   GPU_shader_bind(self->shader);
-  int slot = GPU_shader_get_texture_binding(self->shader, name);
+  int slot = GPU_shader_get_sampler_binding(self->shader, name);
   GPU_texture_bind(py_texture->tex, slot);
   GPU_shader_uniform_1i(self->shader, name, slot);
 
@@ -559,7 +559,7 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
-  int binding = GPU_shader_get_uniform_block_binding(self->shader, name);
+  int binding = GPU_shader_get_ubo_binding(self->shader, name);
   if (binding == -1) {
     PyErr_SetString(
         PyExc_BufferError,

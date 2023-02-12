@@ -549,7 +549,7 @@ int GPU_shader_get_builtin_ssbo(GPUShader *shader, int builtin)
   return interface->ssbo_builtin((GPUStorageBufferBuiltin)builtin);
 }
 
-int GPU_shader_get_ssbo(GPUShader *shader, const char *name)
+int GPU_shader_get_ssbo_binding(GPUShader *shader, const char *name)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *ssbo = interface->ssbo_get(name);
@@ -563,14 +563,14 @@ int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
   return ubo ? ubo->location : -1;
 }
 
-int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name)
+int GPU_shader_get_ubo_binding(GPUShader *shader, const char *name)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *ubo = interface->ubo_get(name);
   return ubo ? ubo->binding : -1;
 }
 
-int GPU_shader_get_texture_binding(GPUShader *shader, const char *name)
+int GPU_shader_get_sampler_binding(GPUShader *shader, const char *name)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *tex = interface->uniform_get(name);

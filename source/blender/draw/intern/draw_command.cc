@@ -646,10 +646,10 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
     GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
-    GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo(shader, "group_buf"));
-    GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo(shader, "visibility_buf"));
-    GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo(shader, "prototype_buf"));
-    GPU_storagebuf_bind(command_buf_, GPU_shader_get_ssbo(shader, "command_buf"));
+    GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo_binding(shader, "group_buf"));
+    GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
+    GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo_binding(shader, "prototype_buf"));
+    GPU_storagebuf_bind(command_buf_, GPU_shader_get_ssbo_binding(shader, "command_buf"));
     GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(prototype_count_, DRW_COMMAND_GROUP_SIZE), 1, 1);
     if (GPU_shader_draw_parameters_support() == false) {

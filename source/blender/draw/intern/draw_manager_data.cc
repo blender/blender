@@ -256,7 +256,7 @@ void DRW_shgroup_uniform_texture_ex(DRWShadingGroup *shgroup,
                                     eGPUSamplerState sampler_state)
 {
   BLI_assert(tex != nullptr);
-  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_sampler_binding(shgroup->shader, name);
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_TEXTURE, tex, sampler_state, 0, 1);
 }
 
@@ -271,7 +271,7 @@ void DRW_shgroup_uniform_texture_ref_ex(DRWShadingGroup *shgroup,
                                         eGPUSamplerState sampler_state)
 {
   BLI_assert(tex != nullptr);
-  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_sampler_binding(shgroup->shader, name);
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_TEXTURE_REF, tex, sampler_state, 0, 1);
 }
 
@@ -283,14 +283,14 @@ void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name,
 void DRW_shgroup_uniform_image(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
   BLI_assert(tex != nullptr);
-  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_sampler_binding(shgroup->shader, name);
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_IMAGE, tex, GPU_SAMPLER_DEFAULT, 0, 1);
 }
 
 void DRW_shgroup_uniform_image_ref(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
   BLI_assert(tex != nullptr);
-  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_sampler_binding(shgroup->shader, name);
   drw_shgroup_uniform_create_ex(
       shgroup, loc, DRW_UNIFORM_IMAGE_REF, tex, GPU_SAMPLER_DEFAULT, 0, 1);
 }
@@ -300,7 +300,7 @@ void DRW_shgroup_uniform_block_ex(DRWShadingGroup *shgroup,
                                   const GPUUniformBuf *ubo DRW_DEBUG_FILE_LINE_ARGS)
 {
   BLI_assert(ubo != nullptr);
-  int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_ubo_binding(shgroup->shader, name);
   if (loc == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader uniform buffer object: %s.\n",
@@ -321,7 +321,7 @@ void DRW_shgroup_uniform_block_ref_ex(DRWShadingGroup *shgroup,
                                       GPUUniformBuf **ubo DRW_DEBUG_FILE_LINE_ARGS)
 {
   BLI_assert(ubo != nullptr);
-  int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
+  int loc = GPU_shader_get_ubo_binding(shgroup->shader, name);
   if (loc == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader uniform buffer object: %s.\n",
@@ -344,7 +344,7 @@ void DRW_shgroup_storage_block_ex(DRWShadingGroup *shgroup,
 {
   BLI_assert(ssbo != nullptr);
   /* TODO(@fclem): Fix naming inconsistency. */
-  int loc = GPU_shader_get_ssbo(shgroup->shader, name);
+  int loc = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (loc == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
@@ -367,7 +367,7 @@ void DRW_shgroup_storage_block_ref_ex(DRWShadingGroup *shgroup,
 {
   BLI_assert(ssbo != nullptr);
   /* TODO(@fclem): Fix naming inconsistency. */
-  int loc = GPU_shader_get_ssbo(shgroup->shader, name);
+  int loc = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (loc == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
@@ -539,7 +539,7 @@ void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
                                   const char *name,
                                   GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
-  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
@@ -564,7 +564,7 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
                                       GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
-  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
     printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
@@ -589,7 +589,7 @@ void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
                                 const char *name,
                                 GPUVertBuf *vertex_buffer)
 {
-  int location = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
     return;
   }
@@ -606,7 +606,7 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
                                     const char *name,
                                     GPUVertBuf **vertex_buffer)
 {
-  int location = GPU_shader_get_texture_binding(shgroup->shader, name);
+  int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
     return;
   }
@@ -698,7 +698,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -1850,15 +1850,14 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
 
   const GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
   if (uattrs != nullptr) {
-    int loc = GPU_shader_get_uniform_block_binding(grp->shader, GPU_ATTRIBUTE_UBO_BLOCK_NAME);
+    int loc = GPU_shader_get_ubo_binding(grp->shader, GPU_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(
         grp, loc, DRW_UNIFORM_BLOCK_OBATTRS, uattrs, GPU_SAMPLER_DEFAULT, 0, 1);
     grp->uniform_attrs = uattrs;
   }
 
   if (GPU_material_layer_attributes(material) != nullptr) {
-    int loc = GPU_shader_get_uniform_block_binding(grp->shader,
-                                                   GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME);
+    int loc = GPU_shader_get_ubo_binding(grp->shader, GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(
         grp, loc, DRW_UNIFORM_BLOCK_VLATTRS, nullptr, GPU_SAMPLER_DEFAULT, 0, 1);
   }

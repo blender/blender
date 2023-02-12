@@ -842,7 +842,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
   int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   int rect_geo_loc = GPU_shader_get_uniform(shader, "rect_geom");
-  int texture_bind_loc = GPU_shader_get_texture_binding(shader, "image");
+  int texture_bind_loc = GPU_shader_get_sampler_binding(shader, "image");
 
   GPU_texture_bind(texture, texture_bind_loc);
 

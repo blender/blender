@@ -112,12 +112,11 @@ const char *GPU_shader_get_name(GPUShader *shader);
 
 /**
  * Returns binding point location.
- * Binding location are given to be set at compile time and immutable.
+ * Binding location are given to be set at shader compile time and immutable.
  */
-/* TODO(fclem): Make naming consistent. ubo_binding, ssbo_binding */
-int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name);
-int GPU_shader_get_texture_binding(GPUShader *shader, const char *name);
-int GPU_shader_get_ssbo(GPUShader *shader, const char *name);
+int GPU_shader_get_ubo_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_ssbo_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_sampler_binding(GPUShader *shader, const char *name);
 
 /**
  * Returns uniform location.

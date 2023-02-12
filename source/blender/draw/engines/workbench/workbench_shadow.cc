@@ -259,17 +259,16 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", word_per_draw);
     GPU_shader_uniform_1b(shader, "force_fail_method", force_fail_method_);
     GPU_shader_uniform_3fv(shader, "shadow_direction", light_direction_);
-    GPU_uniformbuf_bind(extruded_frustum_,
-                        GPU_shader_get_uniform_block_binding(shader, "extruded_frustum"));
-    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo(shader, "bounds_buf"));
+    GPU_uniformbuf_bind(extruded_frustum_, GPU_shader_get_ubo_binding(shader, "extruded_frustum"));
+    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
     if (current_pass_type_ == ShadowPass::FORCED_FAIL) {
-      GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo(shader, "visibility_buf"));
+      GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
     }
     else {
       GPU_storagebuf_bind(pass_visibility_buf_,
-                          GPU_shader_get_ssbo(shader, "pass_visibility_buf"));
+                          GPU_shader_get_ssbo_binding(shader, "pass_visibility_buf"));
       GPU_storagebuf_bind(fail_visibility_buf_,
-                          GPU_shader_get_ssbo(shader, "fail_visibility_buf"));
+                          GPU_shader_get_ssbo_binding(shader, "fail_visibility_buf"));
     }
     GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(resource_len, DRW_VISIBILITY_GROUP_SIZE), 1, 1);

@@ -1350,7 +1350,7 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
 
   GPU_uniformbuf_update(cache->ubo, &storage);
 
-  const int binding = GPU_shader_get_uniform_block_binding(shader, "shader_data");
+  const int binding = GPU_shader_get_ubo_binding(shader, "shader_data");
   GPU_uniformbuf_bind(cache->ubo, binding);
 }
 

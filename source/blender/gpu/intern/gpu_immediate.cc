@@ -602,19 +602,19 @@ void immUniform1i(const char *name, int x)
 
 void immBindTexture(const char *name, GPUTexture *tex)
 {
-  int binding = GPU_shader_get_texture_binding(imm->shader, name);
+  int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind(tex, binding);
 }
 
 void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state)
 {
-  int binding = GPU_shader_get_texture_binding(imm->shader, name);
+  int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind_ex(tex, state, binding, true);
 }
 
 void immBindUniformBuf(const char *name, GPUUniformBuf *ubo)
 {
-  int binding = GPU_shader_get_uniform_block_binding(imm->shader, name);
+  int binding = GPU_shader_get_ubo_binding(imm->shader, name);
   GPU_uniformbuf_bind(ubo, binding);
 }
 

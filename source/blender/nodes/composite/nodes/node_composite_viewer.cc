@@ -123,7 +123,7 @@ class ViewerOperation : public NodeOperation {
     image.bind_as_texture(shader, "input_tx");
 
     GPUTexture *output_texture = context().get_output_texture();
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
     const int2 compositing_region_size = context().get_compositing_region_size();
@@ -151,7 +151,7 @@ class ViewerOperation : public NodeOperation {
     image.bind_as_texture(shader, "input_tx");
 
     GPUTexture *output_texture = context().get_output_texture();
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
     const int2 compositing_region_size = context().get_compositing_region_size();
@@ -181,7 +181,7 @@ class ViewerOperation : public NodeOperation {
     alpha.bind_as_texture(shader, "alpha_tx");
 
     GPUTexture *output_texture = context().get_output_texture();
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
     const int2 compositing_region_size = context().get_compositing_region_size();

@@ -114,9 +114,9 @@ void Manager::end_sync()
   GPUShader *shader = DRW_shader_draw_resource_finalize_get();
   GPU_shader_bind(shader);
   GPU_shader_uniform_1i(shader, "resource_len", resource_len_);
-  GPU_storagebuf_bind(matrix_buf.current(), GPU_shader_get_ssbo(shader, "matrix_buf"));
-  GPU_storagebuf_bind(bounds_buf.current(), GPU_shader_get_ssbo(shader, "bounds_buf"));
-  GPU_storagebuf_bind(infos_buf.current(), GPU_shader_get_ssbo(shader, "infos_buf"));
+  GPU_storagebuf_bind(matrix_buf.current(), GPU_shader_get_ssbo_binding(shader, "matrix_buf"));
+  GPU_storagebuf_bind(bounds_buf.current(), GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
+  GPU_storagebuf_bind(infos_buf.current(), GPU_shader_get_ssbo_binding(shader, "infos_buf"));
   GPU_compute_dispatch(shader, thread_groups, 1, 1);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 
