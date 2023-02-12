@@ -625,7 +625,7 @@ void immUniformColor4f(float r, float g, float b, float a)
   int32_t uniform_loc = GPU_shader_get_builtin_uniform(imm->shader, GPU_UNIFORM_COLOR);
   BLI_assert(uniform_loc != -1);
   float data[4] = {r, g, b, a};
-  GPU_shader_uniform_vector(imm->shader, uniform_loc, 4, 1, data);
+  GPU_shader_uniform_float_ex(imm->shader, uniform_loc, 4, 1, data);
   /* For wide Line workaround. */
   copy_v4_v4(imm->uniform_color, data);
 }

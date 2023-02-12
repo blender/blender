@@ -76,16 +76,16 @@ void PushConstant::execute(RecordingState &state) const
   }
   switch (type) {
     case PushConstant::Type::IntValue:
-      GPU_shader_uniform_vector_int(state.shader, location, comp_len, array_len, int4_value);
+      GPU_shader_uniform_int_ex(state.shader, location, comp_len, array_len, int4_value);
       break;
     case PushConstant::Type::IntReference:
-      GPU_shader_uniform_vector_int(state.shader, location, comp_len, array_len, int_ref);
+      GPU_shader_uniform_int_ex(state.shader, location, comp_len, array_len, int_ref);
       break;
     case PushConstant::Type::FloatValue:
-      GPU_shader_uniform_vector(state.shader, location, comp_len, array_len, float4_value);
+      GPU_shader_uniform_float_ex(state.shader, location, comp_len, array_len, float4_value);
       break;
     case PushConstant::Type::FloatReference:
-      GPU_shader_uniform_vector(state.shader, location, comp_len, array_len, float_ref);
+      GPU_shader_uniform_float_ex(state.shader, location, comp_len, array_len, float_ref);
       break;
   }
 }

@@ -1804,18 +1804,18 @@ static void icon_draw_texture(float x,
 
   if (rgb) {
     const float color[4] = {rgb[0], rgb[1], rgb[2], alpha};
-    GPU_shader_uniform_vector(shader, color_loc, 4, 1, color);
+    GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, color);
   }
   else {
     const float color[4] = {alpha, alpha, alpha, alpha};
-    GPU_shader_uniform_vector(shader, color_loc, 4, 1, color);
+    GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, color);
   }
 
   const float tex_color[4] = {x1, y1, x2, y2};
   const float geom_color[4] = {x, y, x + w, y + h};
 
-  GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, tex_color);
-  GPU_shader_uniform_vector(shader, rect_geom_loc, 4, 1, geom_color);
+  GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, tex_color);
+  GPU_shader_uniform_float_ex(shader, rect_geom_loc, 4, 1, geom_color);
   GPU_shader_uniform_1f(shader, "text_width", text_width);
 
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);

@@ -128,9 +128,9 @@ int GPU_shader_get_uniform(GPUShader *shader, const char *name);
  * Sets a generic push constant (a.k.a. uniform).
  * \a length and \a array_size should match the create info push_constant declaration.
  */
-void GPU_shader_uniform_vector(
+void GPU_shader_uniform_float_ex(
     GPUShader *shader, int location, int length, int array_size, const float *value);
-void GPU_shader_uniform_vector_int(
+void GPU_shader_uniform_int_ex(
     GPUShader *shader, int location, int length, int array_size, const int *value);
 
 /**
