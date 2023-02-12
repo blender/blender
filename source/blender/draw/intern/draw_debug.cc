@@ -523,19 +523,18 @@ void DebugDraw::display_lines()
   GPUBatch *batch = drw_cache_procedural_lines_get();
   GPUShader *shader = DRW_shader_debug_draw_display_get();
   GPU_batch_set_shader(batch, shader);
-  int slot = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
   GPU_shader_uniform_mat4(shader, "persmat", persmat.ptr());
 
   if (gpu_draw_buf_used) {
     GPU_debug_group_begin("GPU");
-    GPU_storagebuf_bind(gpu_draw_buf_, slot);
+    GPU_storagebuf_bind(gpu_draw_buf_, DRW_DEBUG_DRAW_SLOT);
     GPU_batch_draw_indirect(batch, gpu_draw_buf_, 0);
     GPU_storagebuf_unbind(gpu_draw_buf_);
     GPU_debug_group_end();
   }
 
   GPU_debug_group_begin("CPU");
-  GPU_storagebuf_bind(cpu_draw_buf_, slot);
+  GPU_storagebuf_bind(cpu_draw_buf_, DRW_DEBUG_DRAW_SLOT);
   GPU_batch_draw_indirect(batch, cpu_draw_buf_, 0);
   GPU_storagebuf_unbind(cpu_draw_buf_);
   GPU_debug_group_end();
@@ -556,21 +555,20 @@ void DebugDraw::display_prints()
   GPUBatch *batch = drw_cache_procedural_points_get();
   GPUShader *shader = DRW_shader_debug_print_display_get();
   GPU_batch_set_shader(batch, shader);
-  int slot = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
   float f_viewport[4];
   GPU_viewport_size_get_f(f_viewport);
   GPU_shader_uniform_2fv(shader, "viewport_size", &f_viewport[2]);
 
   if (gpu_print_buf_used) {
     GPU_debug_group_begin("GPU");
-    GPU_storagebuf_bind(gpu_print_buf_, slot);
+    GPU_storagebuf_bind(gpu_print_buf_, DRW_DEBUG_PRINT_SLOT);
     GPU_batch_draw_indirect(batch, gpu_print_buf_, 0);
     GPU_storagebuf_unbind(gpu_print_buf_);
     GPU_debug_group_end();
   }
 
   GPU_debug_group_begin("CPU");
-  GPU_storagebuf_bind(cpu_print_buf_, slot);
+  GPU_storagebuf_bind(cpu_print_buf_, DRW_DEBUG_PRINT_SLOT);
   GPU_batch_draw_indirect(batch, cpu_print_buf_, 0);
   GPU_storagebuf_unbind(cpu_print_buf_);
   GPU_debug_group_end();
