@@ -889,7 +889,6 @@ void gpu_codegen_init(void)
 
 void gpu_codegen_exit(void)
 {
-  // BKE_world_defaults_free_gpu();
   BKE_material_defaults_free_gpu();
   GPU_shader_free_builtin_shaders();
 }

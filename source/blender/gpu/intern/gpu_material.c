@@ -835,7 +835,6 @@ void GPU_materials_free(Main *bmain)
     GPU_material_free(&wo->gpumaterial);
   }
 
-  // BKE_world_defaults_free_gpu();
   BKE_material_defaults_free_gpu();
 }
 
