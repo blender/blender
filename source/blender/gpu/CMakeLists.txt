@@ -377,7 +377,6 @@ set(GLSL_SRC
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_frag.glsl
-  shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
   shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl

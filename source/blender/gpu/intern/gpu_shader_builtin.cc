@@ -161,11 +161,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .name = "GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA",
             .create_info = "gpu_shader_2D_point_uniform_size_uniform_color_outline_aa",
         },
-    [GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR] =
-        {
-            .name = "GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR",
-            .create_info = "gpu_shader_3D_point_fixed_size_varying_color",
-        },
     [GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR] =
         {
             .name = "GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR",

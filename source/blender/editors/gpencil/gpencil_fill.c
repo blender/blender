@@ -1003,8 +1003,8 @@ static void draw_mouse_position(tGPDfill *tgpf)
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   /* Draw mouse click position in Blue. */
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
-  GPU_point_size(point_size);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immUniform1f("size", point_size * M_SQRT2);
   immBegin(GPU_PRIM_POINTS, 1);
   immAttr4ubv(col, mouse_color);
   immVertex3fv(pos, &pt->x);
