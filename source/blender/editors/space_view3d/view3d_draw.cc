@@ -585,7 +585,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
         alpha = ca->passepartalpha;
       }
 
-      immUniformColor4f(0.0f, 0.0f, 0.0f, alpha);
+      immUniformThemeColorAlpha(TH_CAMERA_PASSEPARTOUT, alpha);
 
       if (x1i > 0.0f) {
         immRectf(shdr_pos, 0.0f, winy, x1i, 0.0f);

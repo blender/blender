@@ -803,6 +803,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_CAMERA_PATH:
           cp = ts->camera_path;
           break;
+        case TH_CAMERA_PASSEPARTOUT:
+          cp = ts->camera_passepartout;
+          break;
         case TH_LOCK_MARKER:
           cp = ts->lock_marker;
           break;
