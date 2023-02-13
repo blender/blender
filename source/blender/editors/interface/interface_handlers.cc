@@ -9039,7 +9039,7 @@ static void ui_handle_button_activate(bContext *C,
  */
 static bool ui_handle_button_activate_by_type(bContext *C, ARegion *region, uiBut *but)
 {
-  if (but->type == UI_BTYPE_BUT_MENU) {
+  if (ELEM(but->type, UI_BTYPE_BUT_MENU, UI_BTYPE_ROW)) {
     /* mainly for operator buttons */
     ui_handle_button_activate(C, region, but, BUTTON_ACTIVATE_APPLY);
   }
