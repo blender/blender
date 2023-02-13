@@ -573,7 +573,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->is_rec709 = is_rec709;
 }
 
-void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
+void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene * /*scene*/)
 {
   dscene->shaders.free();
 }
