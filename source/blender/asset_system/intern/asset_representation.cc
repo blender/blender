@@ -17,15 +17,24 @@ namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          StringRef name,
-                                         std::unique_ptr<AssetMetaData> metadata)
-    : identifier_(identifier), is_local_id_(false), external_asset_()
+                                         std::unique_ptr<AssetMetaData> metadata,
+                                         const AssetLibrary &owner_asset_library)
+    : identifier_(identifier),
+      is_local_id_(false),
+      owner_asset_library_(&owner_asset_library),
+      external_asset_()
 {
   external_asset_.name = name;
   external_asset_.metadata_ = std::move(metadata);
 }
 
-AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier, ID &id)
-    : identifier_(identifier), is_local_id_(true), local_asset_id_(&id)
+AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
+                                         ID &id,
+                                         const AssetLibrary &owner_asset_library)
+    : identifier_(identifier),
+      is_local_id_(true),
+      owner_asset_library_(&owner_asset_library),
+      local_asset_id_(&id)
 {
   if (!id.asset_data) {
     throw std::invalid_argument("Passed ID is not an asset");
@@ -73,6 +82,11 @@ AssetMetaData &AssetRepresentation::get_metadata() const
 bool AssetRepresentation::is_local_id() const
 {
   return is_local_id_;
+}
+
+const AssetLibrary &AssetRepresentation::owner_asset_library() const
+{
+  return *owner_asset_library_;
 }
 
 }  // namespace blender::asset_system

@@ -23,11 +23,15 @@ struct ID;
 
 namespace blender::asset_system {
 
+class AssetLibrary;
+
 class AssetRepresentation {
   AssetIdentifier identifier_;
   /** Indicate if this is a local or external asset, and as such, which of the union members below
    * should be used. */
   const bool is_local_id_ = false;
+  /** Asset library that owns this asset representation. */
+  const AssetLibrary *owner_asset_library_;
 
   struct ExternalAsset {
     std::string name;
@@ -44,10 +48,13 @@ class AssetRepresentation {
   /** Constructs an asset representation for an external ID. The asset will not be editable. */
   AssetRepresentation(AssetIdentifier &&identifier,
                       StringRef name,
-                      std::unique_ptr<AssetMetaData> metadata);
+                      std::unique_ptr<AssetMetaData> metadata,
+                      const AssetLibrary &owner_asset_library);
   /** Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable. */
-  AssetRepresentation(AssetIdentifier &&identifier, ID &id);
+  AssetRepresentation(AssetIdentifier &&identifier,
+                      ID &id,
+                      const AssetLibrary &owner_asset_library);
   AssetRepresentation(AssetRepresentation &&other);
   /* Non-copyable type. */
   AssetRepresentation(const AssetRepresentation &other) = delete;
@@ -65,6 +72,7 @@ class AssetRepresentation {
   AssetMetaData &get_metadata() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
+  const AssetLibrary &owner_asset_library() const;
 };
 
 }  // namespace blender::asset_system
