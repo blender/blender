@@ -357,9 +357,9 @@ static void apply_selection_operation_at_index(GMutableSpan selection,
 }
 
 /**
- * Helper struct for `find_closest_point_to_screen_co`.
+ * Helper struct for `select_pick`.
  */
-struct FindClosestPointData {
+struct FindClosestData {
   int index = -1;
   float distance = FLT_MAX;
 };
@@ -371,7 +371,7 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
                                             const bke::CurvesGeometry &curves,
                                             float2 mouse_pos,
                                             float radius,
-                                            FindClosestPointData &closest_data)
+                                            FindClosestData &closest_data)
 {
   float4x4 projection;
   ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
@@ -380,12 +380,12 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
       bke::crazyspace::get_evaluated_curves_deformation(depsgraph, object);
 
   const float radius_sq = pow2f(radius);
-  auto [min_point_index, min_distance] = threading::parallel_reduce(
+  closest_data = threading::parallel_reduce(
       curves.points_range(),
       1024,
-      FindClosestPointData(),
-      [&](const IndexRange point_range, const FindClosestPointData &init) {
-        FindClosestPointData best_match = init;
+      FindClosestData(),
+      [&](const IndexRange point_range, const FindClosestData &init) {
+        FindClosestData best_match = init;
         for (const int point_i : point_range) {
           const float3 pos = deformation.positions[point_i];
 
@@ -400,7 +400,7 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
             continue;
           }
 
-          FindClosestPointData better_candidate;
+          FindClosestData better_candidate;
           better_candidate.index = point_i;
           better_candidate.distance = std::sqrt(distance_proj_sq);
 
@@ -408,18 +408,104 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
         }
         return best_match;
       },
-      [](const FindClosestPointData &a, const FindClosestPointData &b) {
+      [](const FindClosestData &a, const FindClosestData &b) {
+        if (a.distance < b.distance) {
+          return a;
+        }
+        return b;
+      });
+  if (closest_data.index > 0) {
+    return true;
+  }
+
+  return false;
+}
+
+static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
+                                            const ARegion *region,
+                                            const RegionView3D *rv3d,
+                                            const Object &object,
+                                            const bke::CurvesGeometry &curves,
+                                            float2 mouse_pos,
+                                            float radius,
+                                            FindClosestData &closest_data)
+{
+  float4x4 projection;
+  ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
+
+  const bke::crazyspace::GeometryDeformation deformation =
+      bke::crazyspace::get_evaluated_curves_deformation(depsgraph, object);
+
+  const float radius_sq = pow2f(radius);
+
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  closest_data = threading::parallel_reduce(
+      curves.curves_range(),
+      256,
+      FindClosestData(),
+      [&](const IndexRange curves_range, const FindClosestData &init) {
+        FindClosestData best_match = init;
+        for (const int curve_i : curves_range) {
+          if (points_by_curve.size(curve_i) == 1) {
+            const float3 pos = deformation.positions[points_by_curve[curve_i].first()];
+
+            /* Find the position of the point in screen space. */
+            float2 pos_proj;
+            ED_view3d_project_float_v2_m4(region, pos, pos_proj, projection.ptr());
+
+            const float distance_proj_sq = math::distance_squared(pos_proj, mouse_pos);
+            if (distance_proj_sq > radius_sq ||
+                distance_proj_sq > best_match.distance * best_match.distance) {
+              /* Ignore the point because it's too far away or there is already a better point.
+               */
+              continue;
+            }
+
+            FindClosestData better_candidate;
+            better_candidate.index = curve_i;
+            better_candidate.distance = std::sqrt(distance_proj_sq);
+
+            best_match = better_candidate;
+            continue;
+          }
+
+          for (const int segment_i : points_by_curve[curve_i].drop_back(1)) {
+            const float3 pos1 = deformation.positions[segment_i];
+            const float3 pos2 = deformation.positions[segment_i + 1];
+
+            float2 pos1_proj, pos2_proj;
+            ED_view3d_project_float_v2_m4(region, pos1, pos1_proj, projection.ptr());
+            ED_view3d_project_float_v2_m4(region, pos2, pos2_proj, projection.ptr());
+
+            const float distance_proj_sq = dist_squared_to_line_segment_v2(
+                mouse_pos, pos1_proj, pos2_proj);
+            if (distance_proj_sq > radius_sq ||
+                distance_proj_sq > best_match.distance * best_match.distance) {
+              /* Ignore the segment because it's too far away or there is already a better point.
+               */
+              continue;
+            }
+
+            FindClosestData better_candidate;
+            better_candidate.index = curve_i;
+            better_candidate.distance = std::sqrt(distance_proj_sq);
+
+            best_match = better_candidate;
+          }
+        }
+        return best_match;
+      },
+      [](const FindClosestData &a, const FindClosestData &b) {
         if (a.distance < b.distance) {
           return a;
         }
         return b;
       });
 
-  if (min_point_index > 0) {
-    closest_data.index = min_point_index;
-    closest_data.distance = min_distance;
+  if (closest_data.index > 0) {
     return true;
   }
+
   return false;
 }
 
@@ -429,15 +515,28 @@ bool select_pick(const ViewContext &vc,
                  const SelectPick_Params &params,
                  const int2 coord)
 {
-  FindClosestPointData closest_point;
-  bool found = find_closest_point_to_screen_co(*vc.depsgraph,
-                                               vc.region,
-                                               vc.rv3d,
-                                               *vc.obact,
-                                               curves,
-                                               float2(coord),
-                                               ED_view3d_select_dist_px(),
-                                               closest_point);
+  FindClosestData closest;
+  bool found = false;
+  if (selection_domain == ATTR_DOMAIN_POINT) {
+    found = find_closest_point_to_screen_co(*vc.depsgraph,
+                                            vc.region,
+                                            vc.rv3d,
+                                            *vc.obact,
+                                            curves,
+                                            float2(coord),
+                                            ED_view3d_select_dist_px(),
+                                            closest);
+  }
+  else if (selection_domain == ATTR_DOMAIN_CURVE) {
+    found = find_closest_curve_to_screen_co(*vc.depsgraph,
+                                            vc.region,
+                                            vc.rv3d,
+                                            *vc.obact,
+                                            curves,
+                                            float2(coord),
+                                            ED_view3d_select_dist_px(),
+                                            closest);
+  }
 
   bool changed = false;
   if (params.sel_op == SEL_OP_SET) {
@@ -453,17 +552,7 @@ bool select_pick(const ViewContext &vc,
   if (found) {
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
         curves, selection_domain, CD_PROP_BOOL);
-
-    int elem_index = closest_point.index;
-    if (selection_domain == ATTR_DOMAIN_CURVE) {
-      /* Find the curve index for the found point. */
-      auto it = std::upper_bound(
-          curves.offsets().begin(), curves.offsets().end(), closest_point.index);
-      BLI_assert(it != curves.offsets().end());
-      elem_index = std::distance(curves.offsets().begin(), it) - 1;
-    }
-
-    apply_selection_operation_at_index(selection.span, elem_index, params.sel_op);
+    apply_selection_operation_at_index(selection.span, closest.index, params.sel_op);
     selection.finish();
   }
 
@@ -507,11 +596,27 @@ bool select_box(const ViewContext &vc,
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
     threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
-        for (const int point_i : points_by_curve[curve_i]) {
+        if (points_by_curve.size(curve_i) == 1) {
           float2 pos_proj;
-          ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region,
+                                        deformation.positions[points_by_curve[curve_i].first()],
+                                        pos_proj,
+                                        projection.ptr());
           if (BLI_rcti_isect_pt_v(&rect, int2(pos_proj))) {
+            apply_selection_operation_at_index(selection.span, curve_i, sel_op);
+            changed = true;
+          }
+          continue;
+        }
+        for (const int segment_i : points_by_curve[curve_i].drop_back(1)) {
+          const float3 pos1 = deformation.positions[segment_i];
+          const float3 pos2 = deformation.positions[segment_i + 1];
+
+          float2 pos1_proj, pos2_proj;
+          ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region, pos2, pos2_proj, projection.ptr());
+
+          if (BLI_rcti_isect_segment(&rect, int2(pos1_proj), int2(pos2_proj))) {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
             break;
@@ -569,14 +674,38 @@ bool select_lasso(const ViewContext &vc,
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
     threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
-        for (const int point_i : points_by_curve[curve_i]) {
+        if (points_by_curve.size(curve_i) == 1) {
           float2 pos_proj;
-          ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region,
+                                        deformation.positions[points_by_curve[curve_i].first()],
+                                        pos_proj,
+                                        projection.ptr());
           /* Check the lasso bounding box first as an optimization. */
           if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
               BLI_lasso_is_point_inside(
                   coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED)) {
+            apply_selection_operation_at_index(selection.span, curve_i, sel_op);
+            changed = true;
+          }
+          continue;
+        }
+        for (const int segment_i : points_by_curve[curve_i].drop_back(1)) {
+          const float3 pos1 = deformation.positions[segment_i];
+          const float3 pos2 = deformation.positions[segment_i + 1];
+
+          float2 pos1_proj, pos2_proj;
+          ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region, pos2, pos2_proj, projection.ptr());
+
+          /* Check the lasso bounding box first as an optimization. */
+          if (BLI_rcti_isect_segment(&bbox, int2(pos1_proj), int2(pos2_proj)) &&
+              BLI_lasso_is_edge_inside(coord_array,
+                                       coords.size(),
+                                       int(pos1_proj.x),
+                                       int(pos1_proj.y),
+                                       int(pos2_proj.x),
+                                       int(pos2_proj.y),
+                                       IS_CLIPPED)) {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
             break;
@@ -629,11 +758,29 @@ bool select_circle(const ViewContext &vc,
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
     threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
-        for (const int point_i : points_by_curve[curve_i]) {
+        if (points_by_curve.size(curve_i) == 1) {
           float2 pos_proj;
-          ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region,
+                                        deformation.positions[points_by_curve[curve_i].first()],
+                                        pos_proj,
+                                        projection.ptr());
           if (math::distance_squared(pos_proj, float2(coord)) <= radius_sq) {
+            apply_selection_operation_at_index(selection.span, curve_i, sel_op);
+            changed = true;
+          }
+          continue;
+        }
+        for (const int segment_i : points_by_curve[curve_i].drop_back(1)) {
+          const float3 pos1 = deformation.positions[segment_i];
+          const float3 pos2 = deformation.positions[segment_i + 1];
+
+          float2 pos1_proj, pos2_proj;
+          ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());
+          ED_view3d_project_float_v2_m4(vc.region, pos2, pos2_proj, projection.ptr());
+
+          const float distance_proj_sq = dist_squared_to_line_segment_v2(
+              float2(coord), pos1_proj, pos2_proj);
+          if (distance_proj_sq <= radius_sq) {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
             break;
