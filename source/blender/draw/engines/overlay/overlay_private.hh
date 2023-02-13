@@ -362,6 +362,7 @@ typedef struct OVERLAY_PrivateData {
     int flag; /** Copy of #v3d->overlay.edit_flag. */
   } edit_mesh;
   struct {
+    bool do_points;
     bool do_zbufclip;
   } edit_curves;
   struct {
