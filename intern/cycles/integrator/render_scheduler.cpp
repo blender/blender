@@ -899,8 +899,8 @@ int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) c
   /* Schedule samples equal to the resolution divider up to a maximum of 4.
    * The idea is to have enough information on the screen by increasing the sample count as the
    * resolution is decreased. */
-  /* NOTE: Changeing this formula will change the formula in
-   * "RenderScheduler::calculate_resolution_divider_for_time()"*/
+  /* NOTE: Changing this formula will change the formula in
+   * `RenderScheduler::calculate_resolution_divider_for_time()`. */
   return min(max(1, resolution_divider / pixel_size_), 4);
 }
 
@@ -1177,18 +1177,18 @@ int RenderScheduler::calculate_resolution_divider_for_time(double desired_time, 
 {
   const double ratio_between_times = actual_time / desired_time;
 
-  /* We can pass "ratio_between_times" to "get_num_samples_during_navigation()" to get our
+  /* We can pass `ratio_between_times` to `get_num_samples_during_navigation()` to get our
    * navigation samples because the equation for calculating the resolution divider is as follows:
-   * "actual_time / desired_time = sqr(resolution_divider) / sample_count".
-   * While "resolution_divider" is less than or equal to 4, "resolution_divider = sample_count"
-   * (This relationship is determined in "get_num_samples_during_navigation()"). With some
-   * substitution we end up with "actual_time / desired_time = resolution_divider" while the
+   * `actual_time / desired_time = sqr(resolution_divider) / sample_count`.
+   * While `resolution_divider` is less than or equal to 4, `resolution_divider = sample_count`
+   * (This relationship is determined in `get_num_samples_during_navigation()`). With some
+   * substitution we end up with `actual_time / desired_time = resolution_divider` while the
    * resolution divider is less than or equal to 4. Once the resolution divider increases above 4,
-   * the relationsip of "actual_time / desired_time = resolution_divider" is no longer true,
-   * however the sample count retrieved from "get_num_samples_during_navigation()" is still
+   * the relationship of `actual_time / desired_time = resolution_divider` is no longer true,
+   * however the sample count retrieved from `get_num_samples_during_navigation()` is still
    * accurate if we continue using this assumption. It should be noted that the interaction between
-   * pixel_size, sample count, and resolution divider are automatically accounted for and that's
-   * why pixel_size isn't included in any of the equations. */
+   * `pixel_size`, sample count, and resolution divider are automatically accounted for and that's
+   * why `pixel_size` isn't included in any of the equations. */
   const int navigation_samples = get_num_samples_during_navigation(
       ceil_to_int(ratio_between_times));
 

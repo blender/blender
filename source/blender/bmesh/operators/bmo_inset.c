@@ -1183,7 +1183,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
     BMO_face_flag_enable(bm, f, ELE_NEW);
 
-    /* Copy for loop data, otherwise UVs and vcols are no good.
+    /* Copy for loop data, otherwise UVs and vertex-colors are no good.
      * tiny speedup here we could be more clever and copy from known adjacent data
      * also - we could attempt to interpolate the loop data,
      * this would be much slower but more useful too. */

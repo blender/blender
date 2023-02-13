@@ -1166,7 +1166,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(layer_name, sub_layer_name));
 
     /* If ever the uv map associated bool layers become optional in BMesh as well (like in Mesh)
-     * this assert needs to be removed. For now it is a bug if they doin't exist. */
+     * this assert needs to be removed. For now it is a bug if they don't exist. */
     BLI_assert(vertsel_layer_index >= 0 && edgesel_layer_index >= 0 && pin_layer_index >= 0);
 
     int vertsel_offset = vertsel_layer_index >= 0 ? bm->ldata.layers[vertsel_layer_index].offset :

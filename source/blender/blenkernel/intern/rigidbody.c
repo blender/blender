@@ -1704,7 +1704,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     }
   }
 
-  /* Make transformed objects temporarily kinmatic
+  /* Make transformed objects temporarily kinematic
    * so that they can be moved by the user during simulation. */
   if (is_selected && (G.moving & G_TRANSFORM_OBJ)) {
     RB_body_set_kinematic_state(rbo->shared->physics_object, true);

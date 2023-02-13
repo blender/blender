@@ -764,7 +764,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* #44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -780,7 +780,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* #44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -3685,7 +3685,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* We don't pass on key events, GP is used with key-modifiers -
-   * prevents Dkey to insert drivers. */
+   * prevents D-key to insert drivers. */
   if (ISKEYBOARD(event->type)) {
     if (ELEM(event->type, EVT_LEFTARROWKEY, EVT_DOWNARROWKEY, EVT_RIGHTARROWKEY, EVT_UPARROWKEY)) {
       /* allow some keys:

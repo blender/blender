@@ -249,8 +249,10 @@ typedef enum {
 } GPUUniformBuiltin;
 #define GPU_NUM_UNIFORMS (GPU_UNIFORM_SRGB_TRANSFORM + 1)
 
-/** TODO: To be moved as private API. Not really used outside of gpu_matrix.cc and doesn't really
- * offer a noticeable perf boost. */
+/**
+ * TODO: To be moved as private API. Not really used outside of gpu_matrix.cc and doesn't really
+ * offer a noticeable performance boost.
+ */
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 
 /** DEPRECATED: Use hardcoded buffer location instead. */

@@ -18,17 +18,17 @@ namespace blender::gpu {
 /**
  * `VK_ALLOCATION_CALLBACKS` initializes allocation callbacks for host allocations.
  * The macro creates a local static variable with the name `vk_allocation_callbacks`
- * that can be passed to vulkan API functions that expect
+ * that can be passed to VULKAN API functions that expect
  * `const VkAllocationCallbacks *pAllocator`.
  *
  * When Blender is compiled with `WITH_VULKAN_GUARDEDALLOC` this will use
  * `MEM_guardedalloc` for host allocations that the driver does on behalf
  * of blender. More internal allocations are still being allocated via the
- * implemention inside the vulkan device driver.
+ * implementation inside the VULKAN device driver.
  *
  * When `WITH_VULKAN_GUARDEDALLOC=Off` the memory allocation implemented
  * in the vulkan device driver is used for both internal and application
- * focussed memory operations.
+ * focused memory operations.
  */
 
 #ifdef WITH_VULKAN_GUARDEDALLOC

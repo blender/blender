@@ -528,7 +528,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* #44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -544,7 +544,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* #44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -620,7 +620,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
     /* store settings */
     copy_v2_v2(pt->m_xy, mval);
-    /* #44932 - Pressure vals are unreliable, so ignore for now */
+    /* Pressure values are unreliable, so ignore for now, see #44932. */
     pt->pressure = 1.0f;
     pt->strength = 1.0f;
     pt->time = (float)(curtime - p->inittime);

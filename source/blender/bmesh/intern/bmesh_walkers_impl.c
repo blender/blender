@@ -1197,8 +1197,8 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 {
   BMwFaceLoopWalker *lwalk, owalk, *owalk_pt;
   BMEdge *e = data;
-  /* BMesh *bm = walker->bm; */             /* UNUSED */
-  /* int fcount = BM_edge_face_count(e); */ /* UNUSED */
+  // BMesh *bm = walker->bm;              /* UNUSED */
+  // int fcount = BM_edge_face_count(e);  /* UNUSED */
 
   if (!bmw_FaceLoopWalker_edge_begins_loop(walker, e)) {
     return;
