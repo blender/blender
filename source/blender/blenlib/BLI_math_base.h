@@ -97,8 +97,9 @@ MINLINE float saacos(float fac);
 MINLINE float saasin(float fac);
 MINLINE float sasqrt(float fac);
 
-MINLINE float interpf(float a, float b, float t);
-MINLINE double interpd(double a, double b, double t);
+/* Compute linear interpolation (lerp) between origin and target. */
+MINLINE float interpf(float target, float origin, float t);
+MINLINE double interpd(double target, double origin, double t);
 
 MINLINE float ratiof(float min, float max, float pos);
 MINLINE double ratiod(double min, double max, double pos);
