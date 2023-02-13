@@ -59,6 +59,7 @@
 #    define bool2 bvec2
 #    define bool3 bvec3
 #    define bool4 bvec4
+#    define packed_float3 vec3
 #  endif
 
 #else /* C / C++ */
@@ -83,6 +84,7 @@ using bool1 = int;
 using bool2 = blender::int2;
 using bool3 = blender::int3;
 using bool4 = blender::int4;
+using packed_float3 = blender::float3;
 
 #  else /* C */
 typedef float float2[2];
@@ -99,6 +101,7 @@ typedef int bool1;
 typedef int bool2[2];
 typedef int bool3[2];
 typedef int bool4[4];
+typedef float3 packed_float3;
 #  endif
 
 #endif

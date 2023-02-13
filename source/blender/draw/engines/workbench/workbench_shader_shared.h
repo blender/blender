@@ -59,6 +59,6 @@ struct ExtrudedFrustum {
 
 struct ShadowPassData {
   float4 far_plane;
-  float3 light_direction_ws;
+  packed_float3 light_direction_ws;
   int _padding;
 };

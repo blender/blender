@@ -11,6 +11,11 @@
 typedef struct TestOutputRawData TestOutputRawData;
 #endif
 
+/* NOTE: float3 has differing stride and alignment rules across different GPU backends. If 12 byte
+ * stride and alignment is essential, use `packed_float3` to avoid data read issues. This is
+ * required in the common use-case where a float3 and an int/float are paired together for optimal
+ * data transfer. */
+
 enum eGPUKeyframeShapes {
   GPU_KEYFRAME_SHAPE_DIAMOND = (1u << 0u),
   GPU_KEYFRAME_SHAPE_CIRCLE = (1u << 1u),
@@ -70,7 +75,7 @@ BLI_STATIC_ASSERT_ALIGN(struct GPUClipPlanes, 16)
 
 struct SimpleLightingData {
   float4 l_color;
-  float3 light;
+  packed_float3 light;
   float _pad;
 };
 BLI_STATIC_ASSERT_ALIGN(struct SimpleLightingData, 16)
