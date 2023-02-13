@@ -46,12 +46,12 @@ void GLIndexBuf::bind_as_ssbo(uint binding)
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, ibo_id_);
 }
 
-const uint32_t *GLIndexBuf::read() const
+void GLIndexBuf::read(uint32_t *data) const
 {
   BLI_assert(is_active());
-  void *data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
-  uint32_t *result = static_cast<uint32_t *>(data);
-  return result;
+  void *buffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
+  memcpy(data, buffer, size_get());
+  glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 }
 
 bool GLIndexBuf::is_active() const

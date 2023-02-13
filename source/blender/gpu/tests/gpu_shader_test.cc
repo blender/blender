@@ -151,8 +151,8 @@ static void test_gpu_shader_compute_vbo()
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 
   /* Download the vertex buffer. */
-  const float *data = static_cast<const float *>(GPU_vertbuf_read(vbo));
-  ASSERT_NE(data, nullptr);
+  float data[SIZE * 4];
+  GPU_vertbuf_read(vbo, data);
   for (int index = 0; index < SIZE; index++) {
     float expected_value = index;
     EXPECT_FLOAT_EQ(data[index * 4 + 0], expected_value);
@@ -195,8 +195,8 @@ static void test_gpu_shader_compute_ibo()
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 
   /* Download the index buffer. */
-  const uint32_t *data = GPU_indexbuf_read(ibo);
-  ASSERT_NE(data, nullptr);
+  uint32_t data[SIZE];
+  GPU_indexbuf_read(ibo, data);
   for (int index = 0; index < SIZE; index++) {
     uint32_t expected = index;
     EXPECT_EQ(data[index], expected);

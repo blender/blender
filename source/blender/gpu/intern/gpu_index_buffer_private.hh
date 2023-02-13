@@ -98,8 +98,7 @@ class IndexBuf {
 
   virtual void bind_as_ssbo(uint binding) = 0;
 
-  virtual const uint32_t *read() const = 0;
-  uint32_t *unmap(const uint32_t *mapped_memory) const;
+  virtual void read(uint32_t *data) const = 0;
 
   virtual void update_sub(uint start, uint len, const void *data) = 0;
 
