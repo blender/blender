@@ -233,11 +233,15 @@ struct FileList {
 
   FileListEntryCache filelist_cache;
 
-  /* We need to keep those info outside of actual filelist items,
+  /**
+   * We need to keep those info outside of actual file-list items,
    * because those are no more persistent
    * (only generated on demand, and freed as soon as possible).
    * Persistent part (mere list of paths + stat info)
    * is kept as small as possible, and file-browser agnostic.
+   *
+   * - The key is a #FileDirEntry::uid
+   * - The value is an #eDirEntry_SelectFlag.
    */
   GHash *selection_state;
 
@@ -2737,13 +2741,13 @@ int filelist_needs_reading(FileList *filelist)
 uint filelist_entry_select_set(const FileList *filelist,
                                const FileDirEntry *entry,
                                FileSelType select,
-                               uint flag,
+                               const eDirEntry_SelectFlag flag,
                                FileCheckType check)
 {
   /* Default nullptr pointer if not found is fine here! */
   void **es_p = BLI_ghash_lookup_p(filelist->selection_state, POINTER_FROM_UINT(entry->uid));
-  uint entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
-  const uint org_entry_flag = entry_flag;
+  eDirEntry_SelectFlag entry_flag = eDirEntry_SelectFlag(es_p ? POINTER_AS_UINT(*es_p) : 0);
+  const eDirEntry_SelectFlag org_entry_flag = entry_flag;
 
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2782,8 +2786,11 @@ uint filelist_entry_select_set(const FileList *filelist,
   return entry_flag;
 }
 
-void filelist_entry_select_index_set(
-    FileList *filelist, const int index, FileSelType select, uint flag, FileCheckType check)
+void filelist_entry_select_index_set(FileList *filelist,
+                                     const int index,
+                                     FileSelType select,
+                                     const eDirEntry_SelectFlag flag,
+                                     FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2792,8 +2799,11 @@ void filelist_entry_select_index_set(
   }
 }
 
-void filelist_entries_select_index_range_set(
-    FileList *filelist, FileSelection *sel, FileSelType select, uint flag, FileCheckType check)
+void filelist_entries_select_index_range_set(FileList *filelist,
+                                             FileSelection *sel,
+                                             FileSelType select,
+                                             const eDirEntry_SelectFlag flag,
+                                             FileCheckType check)
 {
   /* select all valid files between first and last indicated */
   if ((sel->first >= 0) && (sel->first < filelist->filelist.entries_filtered_num) &&
@@ -2805,7 +2815,9 @@ void filelist_entries_select_index_range_set(
   }
 }
 
-uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileCheckType check)
+eDirEntry_SelectFlag filelist_entry_select_get(FileList *filelist,
+                                               FileDirEntry *entry,
+                                               FileCheckType check)
 {
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2813,14 +2825,16 @@ uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileChec
   if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
       ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
     /* Default nullptr pointer if not found is fine here! */
-    return POINTER_AS_UINT(
-        BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid)));
+    return eDirEntry_SelectFlag(POINTER_AS_UINT(
+        BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid))));
   }
 
-  return 0;
+  return eDirEntry_SelectFlag(0);
 }
 
-uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCheckType check)
+eDirEntry_SelectFlag filelist_entry_select_index_get(FileList *filelist,
+                                                     const int index,
+                                                     FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2828,7 +2842,7 @@ uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCh
     return filelist_entry_select_get(filelist, entry, check);
   }
 
-  return 0;
+  return eDirEntry_SelectFlag(0);
 }
 
 bool filelist_entry_is_selected(FileList *filelist, const int index)
@@ -2838,15 +2852,15 @@ bool filelist_entry_is_selected(FileList *filelist, const int index)
 
   /* BLI_ghash_lookup returns nullptr if not found, which gets mapped to 0, which gets mapped to
    * "not selected". */
-  const uint selection_state = POINTER_AS_UINT(
-      BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(intern_entry->uid)));
+  const eDirEntry_SelectFlag selection_state = eDirEntry_SelectFlag(POINTER_AS_UINT(
+      BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(intern_entry->uid))));
 
   return selection_state != 0;
 }
 
 void filelist_entry_parent_select_set(FileList *filelist,
                                       FileSelType select,
-                                      uint flag,
+                                      const eDirEntry_SelectFlag flag,
                                       FileCheckType check)
 {
   if ((filelist->filter_data.flags & FLF_HIDE_PARENT) == 0) {

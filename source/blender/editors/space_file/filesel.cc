@@ -1124,7 +1124,7 @@ void ED_file_change_dir(bContext *C)
   ED_file_change_dir_ex(C, area);
 }
 
-void file_select_deselect_all(SpaceFile *sfile, uint flag)
+void file_select_deselect_all(SpaceFile *sfile, const eDirEntry_SelectFlag flag)
 {
   FileSelection sel;
   sel.first = 0;

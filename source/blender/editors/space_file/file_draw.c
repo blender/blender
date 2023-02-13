@@ -986,7 +986,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
-    uint file_selflag;
+    eDirEntry_SelectFlag file_selflag;
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
