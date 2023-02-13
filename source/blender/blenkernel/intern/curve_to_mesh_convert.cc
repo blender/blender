@@ -120,7 +120,7 @@ static void fill_mesh_topology(const int vert_offset,
     }
   }
 
-  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
+  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
   if (has_caps) {
     const int poly_num = main_segment_num * profile_segment_num;
     const int cap_loop_offset = loop_offset + poly_num * 4;
@@ -271,7 +271,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
       const int profile_point_num = profile_offsets.size(i_profile);
       const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
-      const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
+      const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
       const int tube_face_num = main_segment_num * profile_segment_num;
 
       vert_offset += main_point_num * profile_point_num;
