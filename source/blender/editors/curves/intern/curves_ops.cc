@@ -793,21 +793,19 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
     if (curves.points_num() == 0) {
       continue;
     }
-    const GVArray src = attributes.lookup(".selection", domain);
-    if (src.is_empty()) {
-      continue;
-    }
 
-    const CPPType &type = src.type();
-    void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
-    src.materialize(dst);
+    if (const GVArray src = attributes.lookup(".selection", domain)) {
+      const CPPType &type = src.type();
+      void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
+      src.materialize(dst);
 
-    attributes.remove(".selection");
-    if (!attributes.add(".selection",
-                        domain,
-                        bke::cpp_type_to_custom_data_type(type),
-                        bke::AttributeInitMoveArray(dst))) {
-      MEM_freeN(dst);
+      attributes.remove(".selection");
+      if (!attributes.add(".selection",
+                          domain,
+                          bke::cpp_type_to_custom_data_type(type),
+                          bke::AttributeInitMoveArray(dst))) {
+        MEM_freeN(dst);
+      }
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
