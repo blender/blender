@@ -8,6 +8,7 @@
 #include "vk_shader.hh"
 
 #include "vk_backend.hh"
+#include "vk_memory.hh"
 #include "vk_shader_log.hh"
 
 #include "BLI_string_utils.h"
@@ -559,6 +560,8 @@ Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
 
 void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module)
 {
+  VK_ALLOCATION_CALLBACKS;
+
   VkShaderModuleCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   create_info.codeSize = spirv_module.size() * sizeof(uint32_t);
@@ -567,7 +570,7 @@ void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *
   VKContext &context = *static_cast<VKContext *>(VKContext::get());
 
   VkResult result = vkCreateShaderModule(
-      context.device_get(), &create_info, nullptr, r_shader_module);
+      context.device_get(), &create_info, vk_allocation_callbacks, r_shader_module);
   if (result != VK_SUCCESS) {
     compilation_failed_ = true;
     *r_shader_module = VK_NULL_HANDLE;
@@ -581,21 +584,23 @@ VKShader::VKShader(const char *name) : Shader(name)
 
 VKShader::~VKShader()
 {
+  VK_ALLOCATION_CALLBACKS
+
   VkDevice device = context_->device_get();
   if (vertex_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, vertex_module_, nullptr);
+    vkDestroyShaderModule(device, vertex_module_, vk_allocation_callbacks);
     vertex_module_ = VK_NULL_HANDLE;
   }
   if (geometry_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, geometry_module_, nullptr);
+    vkDestroyShaderModule(device, geometry_module_, vk_allocation_callbacks);
     geometry_module_ = VK_NULL_HANDLE;
   }
   if (fragment_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, fragment_module_, nullptr);
+    vkDestroyShaderModule(device, fragment_module_, vk_allocation_callbacks);
     fragment_module_ = VK_NULL_HANDLE;
   }
   if (compute_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, compute_module_, nullptr);
+    vkDestroyShaderModule(device, compute_module_, vk_allocation_callbacks);
     compute_module_ = VK_NULL_HANDLE;
   }
 }
