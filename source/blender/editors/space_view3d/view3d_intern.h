@@ -212,6 +212,7 @@ extern const char *view3d_context_dir[]; /* doc access */
 /* view3d_widgets.c */
 
 void VIEW3D_GGT_light_spot(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_point(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_light_area(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_light_target(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_camera(struct wmGizmoGroupType *gzgt);
