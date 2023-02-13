@@ -137,6 +137,7 @@ bool CustomData_has_referenced(const struct CustomData *data);
  * implemented for mloopuv/mloopcol, for now.
  */
 void CustomData_data_copy_value(int type, const void *source, void *dest);
+void CustomData_data_set_default_value(int type, void *elem);
 
 /**
  * Mixes the "value" (e.g. mloopuv uv or mloopcol colors) from one block into
@@ -506,6 +507,8 @@ void CustomData_clear_layer_flag(struct CustomData *data, int type, int flag);
 
 void CustomData_bmesh_set_default(struct CustomData *data, void **block);
 void CustomData_bmesh_free_block(struct CustomData *data, void **block);
+void CustomData_bmesh_alloc_block(struct CustomData *data, void **block);
+
 /**
  * Same as #CustomData_bmesh_free_block but zero the memory rather than freeing.
  */
@@ -517,23 +520,6 @@ void CustomData_bmesh_free_block_data_exclude_by_type(struct CustomData *data,
                                                       void *block,
                                                       eCustomDataMask mask_exclude);
 
-/**
- * Copy custom data to/from layers as in mesh/derived-mesh, to edit-mesh
- * blocks of data. the CustomData's must not be compatible.
- *
- * \param use_default_init: initializes data which can't be copied,
- * typically you'll want to use this if the BM_xxx create function
- * is called with BM_CREATE_SKIP_CD flag
- */
-void CustomData_to_bmesh_block(const struct CustomData *source,
-                               struct CustomData *dest,
-                               int src_index,
-                               void **dest_block,
-                               bool use_default_init);
-void CustomData_from_bmesh_block(const struct CustomData *source,
-                                 struct CustomData *dest,
-                                 void *src_block,
-                                 int dest_index);
 
 /**
  * Query info over types.
