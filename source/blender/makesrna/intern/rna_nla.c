@@ -544,7 +544,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
         reports,
         RPT_ERROR,
         "Unable to add strip (the track does not have any space to accommodate this new strip)");
-    BKE_nlastrip_free(NULL, strip, true);
+    BKE_nlastrip_free(strip, true);
     return NULL;
   }
 
@@ -595,7 +595,7 @@ static void rna_NlaStrip_remove(
     return;
   }
 
-  BKE_nlastrip_free(&track->strips, strip, true);
+  BKE_nlastrip_remove_and_free(&track->strips, strip, true);
   RNA_POINTER_INVALIDATE(strip_ptr);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);

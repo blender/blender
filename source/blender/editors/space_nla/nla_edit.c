@@ -1305,15 +1305,15 @@ static int nlaedit_delete_exec(bContext *C, wmOperator *UNUSED(op))
       if (strip->flag & NLASTRIP_FLAG_SELECT) {
         /* if a strip either side of this was a transition, delete those too */
         if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION)) {
-          BKE_nlastrip_free(&nlt->strips, strip->prev, true);
+          BKE_nlastrip_remove_and_free(&nlt->strips, strip->prev, true);
         }
         if ((nstrip) && (nstrip->type == NLASTRIP_TYPE_TRANSITION)) {
           nstrip = nstrip->next;
-          BKE_nlastrip_free(&nlt->strips, strip->next, true);
+          BKE_nlastrip_remove_and_free(&nlt->strips, strip->next, true);
         }
 
         /* finally, delete this strip */
-        BKE_nlastrip_free(&nlt->strips, strip, true);
+        BKE_nlastrip_remove_and_free(&nlt->strips, strip, true);
       }
     }
   }
@@ -1824,7 +1824,7 @@ static int nlaedit_move_up_exec(bContext *C, wmOperator *UNUSED(op))
         if (BKE_nlatrack_has_space(nltn, strip->start, strip->end)) {
           /* remove from its current track, and add to the one above
            * (it 'should' work, so no need to worry) */
-          BLI_remlink(&nlt->strips, strip);
+          BKE_nlatrack_remove_strip(nlt, strip);
           BKE_nlatrack_add_strip(nltn, strip, is_liboverride);
         }
       }
@@ -1916,7 +1916,7 @@ static int nlaedit_move_down_exec(bContext *C, wmOperator *UNUSED(op))
         if (BKE_nlatrack_has_space(nltp, strip->start, strip->end)) {
           /* remove from its current track, and add to the one above
            * (it 'should' work, so no need to worry) */
-          BLI_remlink(&nlt->strips, strip);
+          BKE_nlatrack_remove_strip(nlt, strip);
           BKE_nlatrack_add_strip(nltp, strip, is_liboverride);
         }
       }

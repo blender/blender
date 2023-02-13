@@ -36,10 +36,10 @@ struct PropertyRNA;
 /* Data Management */
 
 /**
- * Remove the given NLA strip from the NLA track it occupies, free the strip's data,
- * and the strip itself.
+ * Frees the given NLA strip, and calls #BKE_nlastrip_remove_and_free to
+ * remove and free all children strips.
  */
-void BKE_nlastrip_free(ListBase *strips, struct NlaStrip *strip, bool do_id_user);
+void BKE_nlastrip_free(struct NlaStrip *strip, bool do_id_user);
 /**
  * Remove the given NLA track from the set of NLA tracks, free the track's data,
  * and the track itself.
@@ -94,10 +94,22 @@ void BKE_nla_tracks_copy_from_adt(struct Main *bmain,
 struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt,
                                   struct NlaTrack *prev,
                                   bool is_liboverride);
+
 /**
  * Create a NLA Strip referencing the given Action.
  */
 struct NlaStrip *BKE_nlastrip_new(struct bAction *act);
+
+/*
+ * Removes the given NLA strip from the list of strips provided.
+ */
+void BKE_nlastrip_remove(ListBase *strips, struct NlaStrip *strip);
+
+/*
+ * Removes the given NLA strip from the list of strips provided, and frees it's memory.
+ */
+void BKE_nlastrip_remove_and_free(ListBase *strips, struct NlaStrip *strip, const bool do_id_user);
+
 /**
  * Add new NLA-strip to the top of the NLA stack - i.e.
  * into the last track if space, or a new one otherwise.
@@ -139,13 +151,9 @@ void BKE_nlastrips_sort_strips(ListBase *strips);
 void BKE_nlastrips_add_strip_unsafe(ListBase *strips, struct NlaStrip *strip);
 
 /**
- * \brief NULL checks incoming strip and verifies no overlap / invalid
- * configuration against other strips in NLA Track.
- *
- * \param strips:
- * \param strip:
- * \return true
- * \return false
+ *  NULL checks incoming strip and verifies no overlap / invalid
+ *  configuration against other strips in NLA Track before calling
+ *  #BKE_nlastrips_add_strip_unsafe.
  */
 bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
@@ -215,10 +223,15 @@ bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
 void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
 /**
- * Add the given NLA-Strip to the given NLA-Track, assuming that it
- * isn't currently attached to another one.
+ * Add the given NLA-Strip to the given NLA-Track.
+ * Calls #BKE_nlastrips_add_strip to check if strip can be added.
  */
 bool BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip, bool is_liboverride);
+
+/**
+ * Remove the NLA-Strip from the given NLA-Track.
+ */
+void BKE_nlatrack_remove_strip(struct NlaTrack *track, struct NlaStrip *strip);
 
 /**
  * Get the extents of the given NLA-Track including gaps between strips,
