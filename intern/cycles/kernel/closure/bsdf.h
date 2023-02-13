@@ -686,7 +686,7 @@ ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
       albedo *= ((ccl_private const PrincipledSheenBsdf *)sc)->avg_value;
       break;
     case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      albedo *= bsdf_principled_hair_albedo(sc);
+      albedo *= bsdf_principled_hair_albedo(sd, sc);
       break;
     default:
       break;
