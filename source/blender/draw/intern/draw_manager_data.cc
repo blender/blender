@@ -7,7 +7,7 @@
 
 #include "DRW_pbvh.hh"
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 #include "draw_manager.h"
 #include "draw_pbvh.h"
 

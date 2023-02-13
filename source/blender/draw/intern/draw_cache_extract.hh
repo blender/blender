@@ -22,7 +22,7 @@
 #include "GPU_index_buffer.h"
 #include "GPU_vertex_buffer.h"
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 
 struct DRWSubdivCache;
 struct MeshRenderData;

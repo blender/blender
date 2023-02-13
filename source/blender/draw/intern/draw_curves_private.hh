@@ -10,26 +10,23 @@
 #include "BKE_attribute.h"
 #include "GPU_shader.h"
 
-#include "draw_attributes.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "draw_attributes.hh"
 
 struct Curves;
 struct GPUVertBuf;
 struct GPUBatch;
+struct GPUMaterial;
 
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 
-typedef enum CurvesEvalShader {
+enum CurvesEvalShader {
   CURVES_EVAL_CATMULL_ROM = 0,
   CURVES_EVAL_BEZIER = 1,
-} CurvesEvalShader;
+};
 #define CURVES_EVAL_SHADER_NUM 3
 
-typedef struct CurvesEvalFinalCache {
+struct CurvesEvalFinalCache {
   /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
   GPUVertBuf *proc_buf;
 
@@ -58,10 +55,10 @@ typedef struct CurvesEvalFinalCache {
   /* Output of the subdivision stage: vertex buffers sized to subdiv level. This is only attributes
    * on point domain. */
   GPUVertBuf *attributes_buf[GPU_MAX_ATTR];
-} CurvesEvalFinalCache;
+};
 
 /* Curves procedural display: Evaluation is done on the GPU. */
-typedef struct CurvesEvalCache {
+struct CurvesEvalCache {
   /* Control point positions on evaluated data-block combined with parameter data. */
   GPUVertBuf *proc_point_buf;
 
@@ -82,19 +79,15 @@ typedef struct CurvesEvalCache {
   int strands_len;
   int elems_len;
   int point_len;
-} CurvesEvalCache;
+};
 
 /**
  * Ensure all necessary textures and buffers exist for GPU accelerated drawing.
  */
-bool curves_ensure_procedural_data(struct Curves *curves,
-                                   struct CurvesEvalCache **r_hair_cache,
-                                   struct GPUMaterial *gpu_material,
+bool curves_ensure_procedural_data(Curves *curves,
+                                   CurvesEvalCache **r_hair_cache,
+                                   GPUMaterial *gpu_material,
                                    int subdiv,
                                    int thickness_res);
 
 void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32]);
-
-#ifdef __cplusplus
-}
-#endif

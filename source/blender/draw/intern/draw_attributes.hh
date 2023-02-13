@@ -9,9 +9,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-#  include <mutex>
-#endif
+#include <mutex>
 
 #include "DNA_customdata_types.h"
 
@@ -24,23 +22,19 @@
 #include "GPU_shader.h"
 #include "GPU_vertex_format.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct DRW_AttributeRequest {
+struct DRW_AttributeRequest {
   eCustomDataType cd_type;
   int layer_index;
   eAttrDomain domain;
   char attribute_name[64];
-} DRW_AttributeRequest;
+};
 
-typedef struct DRW_Attributes {
+struct DRW_Attributes {
   DRW_AttributeRequest requests[GPU_MAX_ATTR];
   int num_requests;
-} DRW_Attributes;
+};
 
-typedef struct DRW_MeshCDMask {
+struct DRW_MeshCDMask {
   uint32_t uv : 8;
   uint32_t tan : 8;
   uint32_t orco : 1;
@@ -50,7 +44,7 @@ typedef struct DRW_MeshCDMask {
    * Edit uv layer is from the base edit mesh as modifiers could remove it. (see #68857)
    */
   uint32_t edit_uv : 1;
-} DRW_MeshCDMask;
+};
 
 /* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
  * bit-wise and atomic operations are used to compare and update the struct.
@@ -59,11 +53,9 @@ BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask ex
 
 void drw_attributes_clear(DRW_Attributes *attributes);
 
-#ifdef __cplusplus
 void drw_attributes_merge(DRW_Attributes *dst,
                           const DRW_Attributes *src,
                           std::mutex &render_mutex);
-#endif
 
 /* Return true if all requests in b are in a. */
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
@@ -78,7 +70,3 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
                                      eCustomDataType *r_type);
-
-#ifdef __cplusplus
-}
-#endif
