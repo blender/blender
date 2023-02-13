@@ -55,7 +55,8 @@ constexpr VkAllocationCallbacks vk_allocation_callbacks_init(const char *name)
 #  define VK_ALLOCATION_CALLBACKS \
     static constexpr const VkAllocationCallbacks vk_allocation_callbacks_ = \
         vk_allocation_callbacks_init(__func__); \
-    static constexpr const VkAllocationCallbacks *vk_allocation_callbacks = &vk_allocation_callbacks_;
+    static constexpr const VkAllocationCallbacks *vk_allocation_callbacks = \
+        &vk_allocation_callbacks_;
 #else
 #  define VK_ALLOCATION_CALLBACKS \
     static constexpr const VkAllocationCallbacks *vk_allocation_callbacks = nullptr;

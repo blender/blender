@@ -92,4 +92,3 @@ TEST(nla_track, BKE_nlatrack_remove_strip)
 }
 
 }  // namespace blender::bke::tests
-

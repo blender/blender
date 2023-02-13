@@ -520,7 +520,6 @@ void CustomData_bmesh_free_block_data_exclude_by_type(struct CustomData *data,
                                                       void *block,
                                                       eCustomDataMask mask_exclude);
 
-
 /**
  * Query info over types.
  */

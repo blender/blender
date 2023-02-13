@@ -4059,12 +4059,11 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", reproject_type, GP_REPROJECT_VIEW, "Projection Type", "");
 
-  prop = RNA_def_boolean(
-      ot->srna,
-      "keep_original",
-      0,
-      "Keep Original",
-      "Keep original strokes and create a copy before reprojecting");
+  prop = RNA_def_boolean(ot->srna,
+                         "keep_original",
+                         0,
+                         "Keep Original",
+                         "Keep original strokes and create a copy before reprojecting");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
 
   RNA_def_float(ot->srna, "offset", 0.0f, 0.0f, 10.0f, "Surface Offset", "", 0.0f, 10.0f);
