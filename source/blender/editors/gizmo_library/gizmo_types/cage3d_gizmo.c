@@ -539,12 +539,9 @@ static int gizmo_cage3d_modal(bContext *C,
           }
         }
 
-        if (delta_orig < 0) {
-          scale[i] = -delta_curr / (pivot[i] + 0.5f);
-        }
-        else {
-          scale[i] = delta_curr / (0.5f - pivot[i]);
-        }
+        /* Original cursor position does not exactly lie on the cage boundary due to margin. */
+        const float delta_boundary = signf(delta_orig) * 0.5f - pivot[i];
+        scale[i] = delta_curr / delta_boundary;
       }
     }
 
