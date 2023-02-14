@@ -1104,7 +1104,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   immUnbindProgram();
 
   /* -- draw rotation center -- */
-  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
   immUniform1f("size", 7.0f);
   immBegin(GPU_PRIM_POINTS, 1);
   immAttr4ubv(col, color);
