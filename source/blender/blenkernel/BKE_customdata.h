@@ -305,8 +305,8 @@ void CustomData_copy_data(const struct CustomData *source,
                           int source_index,
                           int dest_index,
                           int count);
-void CustomData_copy_data_layer(const CustomData *source,
-                                CustomData *dest,
+void CustomData_copy_data_layer(const struct CustomData *source,
+                                struct CustomData *dest,
                                 int src_layer_index,
                                 int dst_layer_index,
                                 int src_index,
@@ -445,7 +445,7 @@ void *CustomData_get_layer_named_for_write(CustomData *data,
                                            int totelem);
 
 int CustomData_get_offset(const struct CustomData *data, int type);
-int CustomData_get_offset_named(const CustomData *data, int type, const char *name);
+int CustomData_get_offset_named(const struct CustomData *data, int type, const char *name);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
@@ -728,7 +728,7 @@ void CustomData_blend_write(BlendWriter *writer,
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
-size_t CustomData_get_elem_size(struct CustomDataLayer *layer);
+size_t CustomData_get_elem_size(const struct CustomDataLayer *layer);
 
 #ifndef NDEBUG
 struct DynStr;

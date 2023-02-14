@@ -186,7 +186,7 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const CustomData &
   std::array<int, CD_NUMTYPES> per_type_index;
   per_type_index.fill(0);
   for (const int i : IndexRange(bm_data.totlayer)) {
-    CustomDataLayer &bm_layer = bm_data.layers[i];
+    const CustomDataLayer &bm_layer = bm_data.layers[i];
     const eCustomDataType type = eCustomDataType(bm_layer.type);
     const int mesh_layer_index =
         bm_layer.name[0] == '\0' ?
@@ -1079,7 +1079,7 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
   std::array<int, CD_NUMTYPES> per_type_index;
   per_type_index.fill(0);
   for (const int i : IndexRange(mesh_data.totlayer)) {
-    CustomDataLayer &mesh_layer = mesh_data.layers[i];
+    const CustomDataLayer &mesh_layer = mesh_data.layers[i];
     const eCustomDataType type = eCustomDataType(mesh_layer.type);
     const int bm_layer_index =
         mesh_layer.name[0] == '\0' ?
