@@ -3926,6 +3926,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag |= V3D_OVERLAY_SCULPT_CURVES_CAGE;
+            v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
+          }
+        }
+      }
+    }
+
     /* Keep this block, even when empty. */
   }
 }

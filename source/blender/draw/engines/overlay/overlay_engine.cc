@@ -632,6 +632,10 @@ static void OVERLAY_draw_scene(void *vedata)
     GPU_framebuffer_bind(fbl->overlay_line_fb);
   }
 
+  if (pd->ctx_mode == CTX_MODE_SCULPT_CURVES) {
+    OVERLAY_sculpt_curves_draw_wires(data);
+  }
+
   OVERLAY_wireframe_draw(data);
   OVERLAY_armature_draw(data);
   OVERLAY_particle_draw(data);
