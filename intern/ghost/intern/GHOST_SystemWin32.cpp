@@ -217,7 +217,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
                                                uint32_t height,
                                                GHOST_TWindowState state,
                                                GHOST_GLSettings glSettings,
-                                               const bool exclusive,
+                                               const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
 {
@@ -568,7 +568,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
  * This function was added in response to bug #25715.
  * This is going to be a long list #42426.
  */
-GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short /*scanCode*/) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
   if (vKey == 0xFF) {
@@ -1148,7 +1148,9 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
                                GHOST_TABLET_DATA_NONE);
 }
 
-void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
+void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window,
+                                          WPARAM wParam,
+                                          LPARAM /*lParam*/)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -2213,7 +2215,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
   return lResult;
 }
 
-char *GHOST_SystemWin32::getClipboard(bool selection) const
+char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 {
   if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
     wchar_t *buffer;

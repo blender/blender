@@ -261,6 +261,8 @@ static bool bm_face_split_edgenet_find_loop_walk(BMVert *v_init,
                                                  const uint edge_order_len,
                                                  BMEdge *e_pair[2])
 {
+  UNUSED_VARS_NDEBUG(edge_order_len);
+
   /* fast-path for the common case (avoid push-pop).
    * Also avoids tagging as visited since we know we
    * can't reach these verts some other way */

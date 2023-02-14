@@ -55,6 +55,11 @@ BOOL LaunchedFromSteam()
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+  /* Silence unreferenced formal parameter warning. */
+  (void)hInstance;
+  (void)hPrevInstance;
+  (void)nCmdShow;
+
   STARTUPINFO siStartInfo = {0};
   PROCESS_INFORMATION procInfo;
   wchar_t path[MAX_PATH];
