@@ -29,18 +29,18 @@ if [[ -z "${MY_MAKE_CALL_LEVEL}" ]]; then
   for i in "$@"; do
     case $i in
       -j*)
-        MY_JOBS_ARG=$i
+        export MY_JOBS_ARG=$i
         if [ "$MY_JOBS_ARG" = "-j" ]; then
             add_next=1
         fi
         ;;
       --jobs=*)
         shift # past argument=value
-        MY_JOBS_ARG=$i
+        export MY_JOBS_ARG=$i
         ;;
       *)
         if (( $add_next == 1 )); then
-            MY_JOBS_ARG="$MY_JOBS_ARG $i"
+            export MY_JOBS_ARG="$MY_JOBS_ARG $i"
             add_next=0
         fi
         ;;
