@@ -3,6 +3,7 @@
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
+#include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
@@ -247,6 +248,15 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   if (usd_export_context_.export_params.export_materials) {
     assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
   }
+
+  /* Blender grows its bounds cache to cover animated meshes, so only author once. */
+  float bound_min[3];
+  float bound_max[3];
+  INIT_MINMAX(bound_min, bound_max);
+  BKE_mesh_minmax(mesh, bound_min, bound_max);
+  pxr::VtArray<pxr::GfVec3f> extent{pxr::GfVec3f{bound_min[0], bound_min[1], bound_min[2]},
+                                    pxr::GfVec3f{bound_max[0], bound_max[1], bound_max[2]}};
+  usd_mesh.CreateExtentAttr().Set(extent);
 }
 
 static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)

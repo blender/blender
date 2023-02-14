@@ -5,11 +5,14 @@
 #include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
+#include <pxr/usd/usdGeom/bboxCache.h>
 
 #include "BKE_customdata.h"
 #include "BLI_assert.h"
 
 #include "DNA_mesh_types.h"
+
+#include "WM_api.h"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -147,6 +150,27 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
   }
 
   return true;
+}
+
+void USDAbstractWriter::author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim)
+{
+  /* Do not use any existing `extentsHint` that may be authored, instead recompute the extent when
+   * authoring it. */
+  const bool useExtentsHint = false;
+  const pxr::TfTokenVector includedPurposes{pxr::UsdGeomTokens->default_};
+  pxr::UsdGeomBBoxCache bboxCache(timecode, includedPurposes, useExtentsHint);
+  pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(prim.GetPrim());
+  if (pxr::GfBBox3d() == bounds) {
+    /* This will occur, for example, if a mesh does not have any vertices. */
+    WM_reportf(RPT_WARNING,
+               "USD Export: no bounds could be computed for %s",
+               prim.GetPrim().GetName().GetText());
+    return;
+  }
+
+  pxr::VtArray<pxr::GfVec3f> extent{(pxr::GfVec3f)bounds.GetRange().GetMin(),
+                                    (pxr::GfVec3f)bounds.GetRange().GetMax()};
+  prim.CreateExtentAttr().Set(extent);
 }
 
 }  // namespace blender::io::usd
