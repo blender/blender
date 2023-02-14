@@ -152,21 +152,67 @@ static void geom_add_uv_vertex(const char *p, const char *end, GlobalVertices &r
   r_global_vertices.uv_vertices.append(uv);
 }
 
-static void geom_add_edge(Geometry *geom,
-                          const char *p,
-                          const char *end,
-                          GlobalVertices &r_global_vertices)
+/**
+ * Parse vertex index and transform to non-negative, zero-based.
+ * Sets r_index to the index or INT32_MAX on error.
+ * Index is transformed and bounds-checked using n_vertices,
+ * which specifies the number of vertices that have been read before.
+ * Returns updated p.
+ */
+static const char *parse_vertex_index(const char *p, const char *end, size_t n_elems, int &r_index)
 {
-  int edge_v1, edge_v2;
-  p = parse_int(p, end, -1, edge_v1);
-  p = parse_int(p, end, -1, edge_v2);
-  /* Always keep stored indices non-negative and zero-based. */
-  edge_v1 += edge_v1 < 0 ? r_global_vertices.vertices.size() : -1;
-  edge_v2 += edge_v2 < 0 ? r_global_vertices.vertices.size() : -1;
-  BLI_assert(edge_v1 >= 0 && edge_v2 >= 0);
-  geom->edges_.append({uint(edge_v1), uint(edge_v2)});
-  geom->track_vertex_index(edge_v1);
-  geom->track_vertex_index(edge_v2);
+  p = parse_int(p, end, INT32_MAX, r_index, false);
+  if (r_index != INT32_MAX) {
+    r_index += r_index < 0 ? n_elems : -1;
+    if (r_index < 0 || r_index >= n_elems) {
+      fprintf(stderr, "Invalid vertex index %i (valid range [0, %zu))\n", r_index, n_elems);
+      r_index = INT32_MAX;
+    }
+  }
+  return p;
+}
+
+/**
+ * Parse a polyline and add its line segments as loose edges.
+ * We support the following polyline specifications:
+ *  - "l v1/vt1 v2/vt2 ..."
+ *  - "l v1 v2 ..."
+ *  If a line only has one vertex (technically not allowed by the spec),
+ *  no line is created, but the vertex will be added to
+ *  the mesh even if it is unconnected.
+ */
+static void geom_add_polyline(Geometry *geom,
+                              const char *p,
+                              const char *end,
+                              GlobalVertices &r_global_vertices)
+{
+  int last_vertex_index;
+  p = drop_whitespace(p, end);
+  p = parse_vertex_index(p, end, r_global_vertices.vertices.size(), last_vertex_index);
+
+  if (last_vertex_index == INT32_MAX) {
+    fprintf(stderr, "Skipping invalid OBJ polyline.\n");
+    return;
+  }
+  geom->track_vertex_index(last_vertex_index);
+
+  while (p < end) {
+    int vertex_index;
+
+    /* Lines can contain texture coordinate indices, just ignore them. */
+    p = drop_non_whitespace(p, end);
+    /* Skip whitespace to get to the next vertex. */
+    p = drop_whitespace(p, end);
+
+    p = parse_vertex_index(p, end, r_global_vertices.vertices.size(), vertex_index);
+    if (vertex_index == INT32_MAX) {
+      break;
+    }
+
+    geom->edges_.append({uint(last_vertex_index), uint(vertex_index)});
+    geom->track_vertex_index(vertex_index);
+    last_vertex_index = vertex_index;
+  }
 }
 
 static void geom_add_polygon(Geometry *geom,
@@ -548,7 +594,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       }
       /* Faces. */
       else if (parse_keyword(p, end, "l")) {
-        geom_add_edge(curr_geom, p, end, r_global_vertices);
+        geom_add_polyline(curr_geom, p, end, r_global_vertices);
       }
       /* Objects. */
       else if (parse_keyword(p, end, "o")) {

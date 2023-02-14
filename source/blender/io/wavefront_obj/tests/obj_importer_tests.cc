@@ -869,4 +869,13 @@ TEST_F(obj_importer_test, import_split_options_none)
   import_and_check("split_options.obj", expect, std::size(expect), 0);
 }
 
+TEST_F(obj_importer_test, import_polylines)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBpolylines", OB_MESH, 13, 8, 0, 0, float3(1, 0, 0), float3(.7, .7, 2)},
+  };
+  import_and_check("polylines.obj", expect, std::size(expect), 0);
+}
+
 }  // namespace blender::io::obj
