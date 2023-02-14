@@ -295,7 +295,7 @@ unset(MATERIALX_LIB_FOLDER_EXISTS)
 if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
    NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
    NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
-  add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
+  add_compile_options(/experimental:external /external:I "${LIBDIR}" /external:W0)
 endif()
 
 # Add each of our libraries to our cmake_prefix_path so find_package() could work
