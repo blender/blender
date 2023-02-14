@@ -127,7 +127,7 @@ TEST_F(PlyExportTest, WriteHeaderAscii)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
-  write_header(buffer, plyData, _params);
+  write_header(*buffer.get(), *plyData.get(), _params);
 
   buffer->close_file();
 
@@ -165,7 +165,7 @@ TEST_F(PlyExportTest, WriteHeaderBinary)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
-  write_header(buffer, plyData, _params);
+  write_header(*buffer.get(), *plyData.get(), _params);
 
   buffer->close_file();
 
@@ -203,7 +203,7 @@ TEST_F(PlyExportTest, WriteVerticesAscii)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
-  write_vertices(buffer, plyData);
+  write_vertices(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
@@ -235,7 +235,7 @@ TEST_F(PlyExportTest, WriteVerticesBinary)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
-  write_vertices(buffer, plyData);
+  write_vertices(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
@@ -277,7 +277,7 @@ TEST_F(PlyExportTest, WriteFacesAscii)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
-  write_faces(buffer, plyData);
+  write_faces(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
@@ -309,7 +309,7 @@ TEST_F(PlyExportTest, WriteFacesBinary)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
-  write_faces(buffer, plyData);
+  write_faces(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
@@ -352,7 +352,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsAscii)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
-  write_vertices(buffer, plyData);
+  write_vertices(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
@@ -384,7 +384,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsBinary)
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
-  write_vertices(buffer, plyData);
+  write_vertices(*buffer.get(), *plyData.get());
 
   buffer->close_file();
 
