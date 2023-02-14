@@ -702,7 +702,6 @@ macro(remove_strict_flags)
   endif()
 
   if(MSVC)
-    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
     remove_cc_flag(/w34189) # Restore warn C4189 (unused variable) back to w4
   endif()
 
@@ -722,7 +721,7 @@ macro(remove_extra_strict_flags)
   endif()
 
   if(MSVC)
-    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
+    # TODO
   endif()
 endmacro()
 
