@@ -148,7 +148,7 @@ static bool node_under_mouse_tweak(const bNodeTree &ntree, const float2 &mouse)
     switch (node->type) {
       case NODE_REROUTE: {
         const float2 location = node_to_view(*node, {node->locx, node->locy});
-        if (math::distance(mouse, location) < 24.0f) {
+        if (math::distance_squared(mouse, location) < square_f(24.0f)) {
           return true;
         }
         break;
