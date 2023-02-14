@@ -398,7 +398,7 @@ endif
 
 deps: .FORCE
 	@echo
-	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\"
+	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
 	@cmake -H"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
