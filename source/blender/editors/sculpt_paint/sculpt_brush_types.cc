@@ -265,18 +265,35 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     /* Offset vertex. */
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vd.co,
-                                                    sqrtf(test.dist),
-                                                    vd.no,
-                                                    vd.fno,
-                                                    vd.mask ? *vd.mask : 0.0f,
-                                                    vd.vertex,
-                                                    thread_id,
-                                                    &automask_data);
-
-    mul_v3_v3fl(proxy[vd.i], offset, fade);
+    if (ss->cache->brush->flag2 & BRUSH_USE_COLOR_AS_DISPLACEMENT &&
+        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)) {
+      float r_rgba[4];
+      SCULPT_brush_strength_color(ss,
+                                  brush,
+                                  vd.co,
+                                  sqrtf(test.dist),
+                                  vd.no,
+                                  vd.fno,
+                                  vd.mask ? *vd.mask : 0.0f,
+                                  vd.vertex,
+                                  thread_id,
+                                  &automask_data,
+                                  r_rgba);
+      SCULPT_calc_vertex_displacement(ss, brush, r_rgba, proxy[vd.i]);
+    }
+    else {
+      float fade = SCULPT_brush_strength_factor(ss,
+                                                brush,
+                                                vd.co,
+                                                sqrtf(test.dist),
+                                                vd.no,
+                                                vd.fno,
+                                                vd.mask ? *vd.mask : 0.0f,
+                                                vd.vertex,
+                                                thread_id,
+                                                &automask_data);
+      mul_v3_v3fl(proxy[vd.i], offset, fade);
+    }
 
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);

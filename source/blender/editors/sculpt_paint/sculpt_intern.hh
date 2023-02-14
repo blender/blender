@@ -586,8 +586,13 @@ struct StrokeCache {
   float sculpt_normal_symm[3];
 
   /* Used for area texture mode, local_mat gets calculated by
-   * calc_brush_local_mat() and used in tex_strength(). */
+   * calc_brush_local_mat() and used in sculpt_apply_texture().
+   * Transforms from model-space coords to local area coords.
+   */
   float brush_local_mat[4][4];
+  /* The matrix from local area coords to model-space coords is used to calculate the vector
+   * displacement in area plane mode. */
+  float brush_local_mat_inv[4][4];
 
   float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */
   int tile_pass;
@@ -1240,6 +1245,30 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
                                    const PBVHVertRef vertex,
                                    int thread_id,
                                    AutomaskingNodeData *automask_data);
+
+/**
+ * Return a color of a brush texture on a particular vertex multiplied by active masks.
+ */
+void SCULPT_brush_strength_color(SculptSession *ss,
+                                 const Brush *brush,
+                                 const float brush_point[3],
+                                 float len,
+                                 const float vno[3],
+                                 const float fno[3],
+                                 float mask,
+                                 const PBVHVertRef vertex,
+                                 int thread_id,
+                                 AutomaskingNodeData *automask_data,
+                                 float r_rgba[4]);
+
+/**
+ * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector
+ * displacement.
+ */
+void SCULPT_calc_vertex_displacement(SculptSession *ss,
+                                     const Brush *brush,
+                                     float rgba[3],
+                                     float out_offset[3]);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.

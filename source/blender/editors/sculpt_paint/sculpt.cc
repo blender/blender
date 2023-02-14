@@ -54,6 +54,7 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
+#include "BLI_math_vector.hh"
 
 #include "NOD_texture.h"
 
@@ -2555,80 +2556,12 @@ static float brush_strength(const Sculpt *sd,
   }
 }
 
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *br,
-                                   const float brush_point[3],
-                                   float len,
-                                   const float vno[3],
-                                   const float fno[3],
-                                   float mask,
-                                   const PBVHVertRef vertex,
-                                   const int thread_id,
-                                   AutomaskingNodeData *automask_data)
+static float sculpt_apply_hardness(const SculptSession *ss, const float input_len)
 {
-  StrokeCache *cache = ss->cache;
-  const Scene *scene = cache->vc->scene;
-  const MTex *mtex = BKE_brush_mask_texture_get(br, OB_MODE_SCULPT);
-  float avg = 1.0f;
-  float rgba[4];
-  float point[3];
-
-  sub_v3_v3v3(point, brush_point, cache->plane_offset);
-
-  if (!mtex->tex) {
-    avg = 1.0f;
-  }
-  else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-    /* Get strength by feeding the vertex location directly into a texture. */
-    avg = BKE_brush_sample_tex_3d(scene, br, mtex, point, rgba, 0, ss->tex_pool);
-  }
-  else {
-    float symm_point[3], point_2d[2];
-    /* Quite warnings. */
-    float x = 0.0f, y = 0.0f;
-
-    /* If the active area is being applied for symmetry, flip it
-     * across the symmetry axis and rotate it back to the original
-     * position in order to project it. This insures that the
-     * brush texture will be oriented correctly. */
-    if (cache->radial_symmetry_pass) {
-      mul_m4_v3(cache->symm_rot_mat_inv, point);
-    }
-    flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
-
-    ED_view3d_project_float_v2_m4(cache->vc->region, symm_point, point_2d, cache->projection_mat);
-
-    /* Still no symmetry supported for other paint modes.
-     * Sculpt does it DIY. */
-    if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
-      /* Similar to fixed mode, but projects from brush angle
-       * rather than view direction. */
-
-      mul_m4_v3(cache->brush_local_mat, symm_point);
-
-      x = symm_point[0];
-      y = symm_point[1];
-
-      x *= mtex->size[0];
-      y *= mtex->size[1];
-
-      x += mtex->ofs[0];
-      y += mtex->ofs[1];
-
-      avg = paint_get_tex_pixel(mtex, x, y, ss->tex_pool, thread_id);
-
-      avg += br->texture_sample_bias;
-    }
-    else {
-      const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
-      avg = BKE_brush_sample_tex_3d(scene, br, mtex, point_3d, rgba, 0, ss->tex_pool);
-    }
-  }
-
-  /* Hardness. */
-  float final_len = len;
+  const StrokeCache *cache = ss->cache;
+  float final_len = input_len;
   const float hardness = cache->paint_brush.hardness;
-  float p = len / cache->radius;
+  float p = input_len / cache->radius;
   if (p < hardness) {
     final_len = 0.0f;
   }
@@ -2640,9 +2573,100 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
     final_len = p * cache->radius;
   }
 
+  return final_len;
+}
+
+static void sculpt_apply_texture(const SculptSession *ss,
+                                 const Brush *brush,
+                                 const float brush_point[3],
+                                 const int thread_id,
+                                 float *r_value,
+                                 float r_rgba[4])
+{
+  StrokeCache *cache = ss->cache;
+  const Scene *scene = cache->vc->scene;
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
+
+  if (!mtex->tex) {
+    *r_value = 1.0f;
+    copy_v4_fl(r_rgba, 1.0f);
+    return;
+  }
+
+  float point[3];
+  sub_v3_v3v3(point, brush_point, cache->plane_offset);
+
+  if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+    /* Get strength by feeding the vertex location directly into a texture. */
+    *r_value = BKE_brush_sample_tex_3d(scene, brush, mtex, point, r_rgba, 0, ss->tex_pool);
+  }
+  else {
+    float symm_point[3];
+
+    /* If the active area is being applied for symmetry, flip it
+     * across the symmetry axis and rotate it back to the original
+     * position in order to project it. This insures that the
+     * brush texture will be oriented correctly. */
+    if (cache->radial_symmetry_pass) {
+      mul_m4_v3(cache->symm_rot_mat_inv, point);
+    }
+    flip_v3_v3(symm_point, point, cache->mirror_symmetry_pass);
+
+    /* Still no symmetry supported for other paint modes.
+     * Sculpt does it DIY. */
+    if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
+      /* Similar to fixed mode, but projects from brush angle
+       * rather than view direction. */
+
+      mul_m4_v3(cache->brush_local_mat, symm_point);
+
+      float x = symm_point[0];
+      float y = symm_point[1];
+
+      x *= mtex->size[0];
+      y *= mtex->size[1];
+
+      x += mtex->ofs[0];
+      y += mtex->ofs[1];
+
+      paint_get_tex_pixel(mtex, x, y, ss->tex_pool, thread_id, r_value, r_rgba);
+
+      add_v3_fl(r_rgba, brush->texture_sample_bias);  // v3 -> Ignore alpha
+      *r_value -= brush->texture_sample_bias;
+    }
+    else {
+      float point_2d[2];
+      ED_view3d_project_float_v2_m4(
+          cache->vc->region, symm_point, point_2d, cache->projection_mat);
+      const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
+      *r_value = BKE_brush_sample_tex_3d(scene, brush, mtex, point_3d, r_rgba, 0, ss->tex_pool);
+    }
+  }
+}
+
+float SCULPT_brush_strength_factor(SculptSession *ss,
+                                   const Brush *brush,
+                                   const float brush_point[3],
+                                   float len,
+                                   const float vno[3],
+                                   const float fno[3],
+                                   float mask,
+                                   const PBVHVertRef vertex,
+                                   int thread_id,
+                                   AutomaskingNodeData *automask_data)
+{
+  StrokeCache *cache = ss->cache;
+
+  float avg = 1.0f;
+  float rgba[4];
+  sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, rgba);
+
+  /* Hardness. */
+  const float final_len = sculpt_apply_hardness(ss, len);
+
   /* Falloff curve. */
-  avg *= BKE_brush_curve_strength(br, final_len, cache->radius);
-  avg *= frontface(br, cache->view_normal, vno, fno);
+  avg *= BKE_brush_curve_strength(brush, final_len, cache->radius);
+  avg *= frontface(brush, cache->view_normal, vno, fno);
 
   /* Paint mask. */
   avg *= 1.0f - mask;
@@ -2651,6 +2675,69 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   avg *= SCULPT_automasking_factor_get(cache->automasking, ss, vertex, automask_data);
 
   return avg;
+}
+
+void SCULPT_brush_strength_color(SculptSession *ss,
+                                 const Brush *brush,
+                                 const float brush_point[3],
+                                 float len,
+                                 const float vno[3],
+                                 const float fno[3],
+                                 float mask,
+                                 const PBVHVertRef vertex,
+                                 int thread_id,
+                                 AutomaskingNodeData *automask_data,
+                                 float r_rgba[4])
+{
+  StrokeCache *cache = ss->cache;
+
+  float avg = 1.0f;
+  sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, r_rgba);
+
+  /* Hardness. */
+  const float final_len = sculpt_apply_hardness(ss, len);
+
+  /* Falloff curve. */
+  const float falloff = BKE_brush_curve_strength(brush, final_len, cache->radius) *
+                        frontface(brush, cache->view_normal, vno, fno);
+
+  /* Paint mask. */
+  const float paint_mask = 1.0f - mask;
+
+  /* Auto-masking. */
+  const float automasking_factor = SCULPT_automasking_factor_get(
+      cache->automasking, ss, vertex, automask_data);
+
+  const float masks_combined = falloff * paint_mask * automasking_factor;
+
+  mul_v4_fl(r_rgba, masks_combined);
+}
+
+void SCULPT_calc_vertex_displacement(SculptSession *ss,
+                                     const Brush *brush,
+                                     float rgba[4],
+                                     float out_offset[3])
+{
+  mul_v3_fl(rgba, ss->cache->bstrength);
+  /* Handle brush inversion */
+  if (ss->cache->bstrength < 0) {
+    rgba[0] *= -1;
+    rgba[1] *= -1;
+  }
+
+  /* Apply texture size */
+  for (int i = 0; i < 3; ++i) {
+    rgba[i] *= blender::math::safe_divide(1.0f, pow2f(brush->mtex.size[i]));
+  }
+
+  /* Transform vector to object space */
+  mul_mat3_m4_v3(ss->cache->brush_local_mat_inv, rgba);
+
+  /* Handle symmetry */
+  if (ss->cache->radial_symmetry_pass) {
+    mul_m4_v3(ss->cache->symm_rot_mat, rgba);
+  }
+  flip_v3_v3(out_offset, rgba, ss->cache->mirror_symmetry_pass);
 }
 
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
@@ -2920,7 +3007,10 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
   mul_m4_v3(ob->world_to_object, y);
 }
 
-static void calc_brush_local_mat(const MTex *mtex, Object *ob, float local_mat[4][4])
+static void calc_brush_local_mat(const MTex *mtex,
+                                 Object *ob,
+                                 float local_mat[4][4],
+                                 float local_mat_inv[4][4])
 {
   const StrokeCache *cache = ob->sculpt->cache;
   float tmat[4][4];
@@ -2966,6 +3056,8 @@ static void calc_brush_local_mat(const MTex *mtex, Object *ob, float local_mat[4
   scale_m4_fl(scale, radius);
   mul_m4_m4m4(tmat, mat, scale);
 
+  /* Return tmat as is (for converting from local area coords to model-space coords). */
+  copy_m4_m4(local_mat_inv, tmat);
   /* Return inverse (for converting from model-space coords to local area coords). */
   invert_m4_m4(local_mat, tmat);
 }
@@ -3000,7 +3092,7 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush(&sd->paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
-    calc_brush_local_mat(mask_tex, ob, cache->brush_local_mat);
+    calc_brush_local_mat(mask_tex, ob, cache->brush_local_mat, cache->brush_local_mat_inv);
   }
 }
 

@@ -146,45 +146,29 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(const MTex *mtex, float u, float v, struct ImagePool *pool, int thread)
-{
-  float intensity;
-  float rgba_dummy[4];
-  const float co[3] = {u, v, 0.0f};
-
-  RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba_dummy);
-
-  return intensity;
-}
-
-void paint_get_tex_pixel_col(const MTex *mtex,
-                             float u,
-                             float v,
-                             float rgba[4],
-                             struct ImagePool *pool,
-                             int thread,
-                             bool convert_to_linear,
-                             struct ColorSpace *colorspace)
+bool paint_get_tex_pixel(const MTex *mtex,
+                         float u,
+                         float v,
+                         struct ImagePool *pool,
+                         int thread,
+                         /* Return arguments. */
+                         float *r_intensity,
+                         float r_rgba[4])
 {
   const float co[3] = {u, v, 0.0f};
   float intensity;
+  const bool has_rgb = RE_texture_evaluate(
+      mtex, co, thread, pool, false, false, &intensity, r_rgba);
+  *r_intensity = intensity;
 
-  const bool hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
-
-  if (!hasrgb) {
-    rgba[0] = intensity;
-    rgba[1] = intensity;
-    rgba[2] = intensity;
-    rgba[3] = 1.0f;
+  if (!has_rgb) {
+    r_rgba[0] = intensity;
+    r_rgba[1] = intensity;
+    r_rgba[2] = intensity;
+    r_rgba[3] = 1.0f;
   }
 
-  if (convert_to_linear) {
-    IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, colorspace);
-  }
-
-  linearrgb_to_srgb_v3_v3(rgba, rgba);
-
-  clamp_v4(rgba, 0.0f, 1.0f);
+  return has_rgb;
 }
 
 void paint_stroke_operator_properties(wmOperatorType *ot)
