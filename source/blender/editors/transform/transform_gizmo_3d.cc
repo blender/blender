@@ -30,7 +30,9 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -47,6 +49,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_curves.h"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil.h"
@@ -623,6 +626,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                   const TransformCalcParams *params,
                                   TransformBounds *tbounds)
 {
+  using namespace blender;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -925,6 +929,28 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
             totsel++;
           }
           bp++;
+        }
+      }
+      FOREACH_EDIT_OBJECT_END();
+    }
+    else if (obedit->type == OB_CURVES) {
+      FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
+        const Curves &curves_id = *static_cast<Curves *>(ob_iter->data);
+        const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+        const bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *ob);
+
+        float4x4 mat_local;
+        if (use_mat_local) {
+          mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
+        }
+
+        Vector<int64_t> indices;
+        const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, indices);
+        const Span<float3> positions = deformation.positions;
+        totsel += selected_points.size();
+        for (const int point_i : selected_points) {
+          calc_tw_center_with_matrix(tbounds, positions[point_i], use_mat_local, mat_local.ptr());
         }
       }
       FOREACH_EDIT_OBJECT_END();
