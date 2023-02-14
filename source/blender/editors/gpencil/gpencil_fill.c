@@ -993,23 +993,25 @@ static void draw_mouse_position(tGPDfill *tgpf)
   if (tgpf->gps_mouse == NULL) {
     return;
   }
-  uchar mouse_color[4] = {0, 0, 255, 255};
 
   bGPDspoint *pt = &tgpf->gps_mouse->points[0];
   float point_size = (tgpf->zoom == 1.0f) ? 4.0f * tgpf->fill_factor :
                                             (0.5f * tgpf->zoom) + tgpf->fill_factor;
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  uint size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   /* Draw mouse click position in Blue. */
-  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
-  immUniform1f("size", point_size * M_SQRT2);
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
   immBegin(GPU_PRIM_POINTS, 1);
-  immAttr4ubv(col, mouse_color);
+  immAttr1f(size, point_size * M_SQRT2);
+  immAttr4f(color, 0.0f, 0.0f, 1.0f, 1.0f);
   immVertex3fv(pos, &pt->x);
   immEnd();
   immUnbindProgram();
+  GPU_program_point_size(false);
 }
 
 /* Helper: Check if must skip the layer */
