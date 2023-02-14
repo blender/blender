@@ -810,6 +810,8 @@ struct GPUSource {
       }
       dependencies.append_non_duplicates(dependency_source);
     }
+    /* Precedes an eternal loop (quiet CLANG's `unreachable-code` warning). */
+    BLI_assert_unreachable();
     return 0;
   }
 
