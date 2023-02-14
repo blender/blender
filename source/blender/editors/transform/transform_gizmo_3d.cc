@@ -1320,11 +1320,10 @@ static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
                                            const float mval_init[2],
                                            float r_mat_basis[4][4])
 {
-  copy_v3_v3(r_mat_basis[2], axis);
+  plane_from_point_normal_v3(r_mat_basis[2], center_global, axis);
   copy_v3_v3(r_mat_basis[3], center_global);
-  r_mat_basis[2][3] = -dot_v3v3(axis, center_global);
 
-  if (ED_view3d_win_to_3d_on_plane(region, axis, mval_init, false, r_mat_basis[1])) {
+  if (ED_view3d_win_to_3d_on_plane(region, r_mat_basis[2], mval_init, false, r_mat_basis[1])) {
     sub_v3_v3(r_mat_basis[1], center_global);
     normalize_v3(r_mat_basis[1]);
     cross_v3_v3v3(r_mat_basis[0], r_mat_basis[1], r_mat_basis[2]);
