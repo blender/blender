@@ -217,6 +217,47 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
+/**
+ * Shader cache warming.
+ * For each shader, rendering APIs perform a two-step compilation:
+ *
+ *  * The first stage is Front-End compilation which only needs to be performed once, and generates
+ * a portable intermediate representation. This happens during `gpu::Shader::finalize()`.
+ *
+ *  * The second is Back-End compilation which compiles a device-specific executable shader
+ * program. This compilation requires some contextual pipeline state which is baked into the
+ * executable shader source, producing a Pipeline State Object (PSO). In OpenGL, backend
+ * compilation happens in the background, within the driver, but can still incur runtime stutters.
+ * In Metal/Vulkan, PSOs are compiled explicitly. These are currently resolved within the backend
+ * based on the current pipeline state and can incur runtime stalls when they occur.
+ *
+ * Shader Cache warming uses the specified parent shader set using `GPU_shader_set_parent(..)` as a
+ * template reference for pre-compiling Render Pipeline State Objects (PSOs) outside of the main
+ * render pipeline.
+ *
+ * PSOs require descriptors containing information on the render state for a given shader, which
+ * includes input vertex data layout and output pixel formats, along with some state such as
+ * blend mode and colour output masks. As this state information is usually consistent between
+ * similar draws, we can assign a parent shader and use this shader's cached pipeline state's to
+ * prime compilations.
+ *
+ * Shaders do not necessarily have to be similar in functionality to be used as a parent, so long
+ * as the GPUVertFormt and GPUFrameBuffer which they are used with remain the same. Other bindings
+ * such as textures, uniforms and UBOs are all assigned independently as dynamic state.
+ *
+ * This function should be called asynchronously, mitigating the impact of run-time stuttering from
+ * dynamic compilation of PSOs during normal rendering.
+ *
+ * \param: shader: The shader whose cache to warm.
+ * \param limit: The maximum number of PSOs to compile within a call. Specifying
+ * a limit <= 0 will compile a PSO for all cached PSOs in the parent shader. */
+void GPU_shader_warm_cache(GPUShader *shader, int limit);
+
+/* We expect the parent shader to be compiled and already have some cached PSOs when being assigned
+ * as a reference. Ensure the parent shader still exists when `GPU_shader_cache_warm(..)` is
+ * called. */
+void GPU_shader_set_parent(GPUShader *shader, GPUShader *parent);
+
 /** DEPRECATED: Kept only because of BGL API. */
 int GPU_shader_get_program(GPUShader *shader);
 

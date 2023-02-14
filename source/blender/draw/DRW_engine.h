@@ -197,6 +197,7 @@ void DRW_gpu_render_context_enable(void *re_gpu_context);
 void DRW_gpu_render_context_disable(void *re_gpu_context);
 
 void DRW_deferred_shader_remove(struct GPUMaterial *mat);
+void DRW_deferred_shader_optimize_remove(struct GPUMaterial *mat);
 
 /**
  * Get DrawData from the given ID-block. In order for this to work, we assume that

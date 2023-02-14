@@ -6,6 +6,8 @@
 
 #include "BKE_global.h"
 
+#include "PIL_time.h"
+
 #include "BLI_string.h"
 #include <algorithm>
 #include <fstream>
@@ -110,6 +112,7 @@ MTLShader::~MTLShader()
     }
 
     /* Free Pipeline Cache. */
+    pso_cache_lock_.lock();
     for (const MTLRenderPipelineStateInstance *pso_inst : pso_cache_.values()) {
       if (pso_inst->vert) {
         [pso_inst->vert release];
@@ -123,6 +126,7 @@ MTLShader::~MTLShader()
       delete pso_inst;
     }
     pso_cache_.clear();
+    pso_cache_lock_.unlock();
 
     /* Free Compute pipeline state object. */
     if (compute_pso_instance_.compute) {
@@ -616,6 +620,36 @@ void MTLShader::push_constant_bindstate_mark_dirty(bool is_dirty)
   push_constant_modified_ = is_dirty;
 }
 
+void MTLShader::warm_cache(int limit)
+{
+  if (parent_shader_ != nullptr) {
+    MTLContext *ctx = MTLContext::get();
+    MTLShader *parent_mtl = reinterpret_cast<MTLShader *>(parent_shader_);
+
+    /* Extract PSO descriptors from parent shader. */
+    blender::Vector<MTLRenderPipelineStateDescriptor> descriptors;
+    blender::Vector<MTLPrimitiveTopologyClass> prim_classes;
+
+    parent_mtl->pso_cache_lock_.lock();
+    for (const auto &pso_entry : parent_mtl->pso_cache_.items()) {
+      const MTLRenderPipelineStateDescriptor &pso_descriptor = pso_entry.key;
+      const MTLRenderPipelineStateInstance *pso_inst = pso_entry.value;
+      descriptors.append(pso_descriptor);
+      prim_classes.append(pso_inst->prim_type);
+    }
+    parent_mtl->pso_cache_lock_.unlock();
+
+    /* Warm shader cache with applied limit.
+     * If limit is <= 0, compile all PSO permutations. */
+    limit = (limit > 0) ? limit : descriptors.size();
+    for (int i : IndexRange(min_ii(descriptors.size(), limit))) {
+      const MTLRenderPipelineStateDescriptor &pso_descriptor = descriptors[i];
+      const MTLPrimitiveTopologyClass &prim_class = prim_classes[i];
+      bake_pipeline_state(ctx, prim_class, pso_descriptor);
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -681,12 +715,10 @@ void MTLShader::set_interface(MTLShaderInterface *interface)
 MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     MTLContext *ctx, MTLPrimitiveTopologyClass prim_type)
 {
+  /** Populate global pipeline descriptor and use this to prepare new PSO. */
   /* NOTE(Metal): PSO cache can be accessed from multiple threads, though these operations should
    * be thread-safe due to organization of high-level renderer. If there are any issues, then
    * access can be guarded as appropriate. */
-  BLI_assert(this);
-  MTLShaderInterface *mtl_interface = this->get_interface();
-  BLI_assert(mtl_interface);
   BLI_assert(this->is_valid());
 
   /* NOTE(Metal): Vertex input assembly description will have been populated externally
@@ -756,14 +788,31 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   pipeline_descriptor.vertex_descriptor.prim_topology_class =
       (requires_specific_topology_class) ? prim_type : MTLPrimitiveTopologyClassUnspecified;
 
+  /* Bake pipeline state using global descriptor. */
+  return bake_pipeline_state(ctx, prim_type, pipeline_descriptor);
+}
+
+/* Variant which bakes a pipeline state based on an an existing MTLRenderPipelineStateDescriptor.
+ * This function should be callable from a secondary compilatiom thread. */
+MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
+    MTLContext *ctx,
+    MTLPrimitiveTopologyClass prim_type,
+    const MTLRenderPipelineStateDescriptor &pipeline_descriptor)
+{
+  /* Fetch shader interface. */
+  MTLShaderInterface *mtl_interface = this->get_interface();
+  BLI_assert(mtl_interface);
+  BLI_assert(this->is_valid());
+
   /* Check if current PSO exists in the cache. */
+  pso_cache_lock_.lock();
   MTLRenderPipelineStateInstance **pso_lookup = pso_cache_.lookup_ptr(pipeline_descriptor);
   MTLRenderPipelineStateInstance *pipeline_state = (pso_lookup) ? *pso_lookup : nullptr;
+  pso_cache_lock_.unlock();
+
   if (pipeline_state != nullptr) {
     return pipeline_state;
   }
-
-  shader_debug_printf("Baking new pipeline variant for shader: %s\n", this->name);
 
   /* Generate new Render Pipeline State Object (PSO). */
   @autoreleasepool {
@@ -774,7 +823,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     MTLFunctionConstantValues *values = [[MTLFunctionConstantValues new] autorelease];
 
     /* Prepare Vertex descriptor based on current pipeline vertex binding state. */
-    MTLRenderPipelineStateDescriptor &current_state = pipeline_descriptor;
     MTLRenderPipelineDescriptor *desc = pso_descriptor_;
     [desc reset];
     pso_descriptor_.label = [NSString stringWithUTF8String:this->name];
@@ -784,7 +832,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
      * specialization constant, customized per unique pipeline state permutation.
      *
      * NOTE: For binding point compaction, we could use the number of VBOs present
-     * in the current PSO configuration `current_state.vertex_descriptor.num_vert_buffers`).
+     * in the current PSO configuration `pipeline_descriptors.vertex_descriptor.num_vert_buffers`).
      * However, it is more efficient to simply offset the uniform buffer base index to the
      * maximal number of VBO bind-points, as then UBO bind-points for similar draw calls
      * will align and avoid the requirement for additional binding. */
@@ -792,7 +840,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
 
     /* Null buffer index is used if an attribute is not found in the
      * bound VBOs #VertexFormat. */
-    int null_buffer_index = current_state.vertex_descriptor.num_vert_buffers;
+    int null_buffer_index = pipeline_descriptor.vertex_descriptor.num_vert_buffers;
     bool using_null_buffer = false;
 
     if (this->get_uses_ssbo_vertex_fetch()) {
@@ -806,11 +854,12 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       MTL_uniform_buffer_base_index = MTL_SSBO_VERTEX_FETCH_IBO_INDEX + 1;
     }
     else {
-      for (const uint i : IndexRange(current_state.vertex_descriptor.max_attribute_value + 1)) {
+      for (const uint i :
+           IndexRange(pipeline_descriptor.vertex_descriptor.max_attribute_value + 1)) {
 
         /* Metal back-end attribute descriptor state. */
-        MTLVertexAttributeDescriptorPSO &attribute_desc =
-            current_state.vertex_descriptor.attributes[i];
+        const MTLVertexAttributeDescriptorPSO &attribute_desc =
+            pipeline_descriptor.vertex_descriptor.attributes[i];
 
         /* Flag format conversion */
         /* In some cases, Metal cannot implicitly convert between data types.
@@ -860,10 +909,10 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
         mtl_attribute.bufferIndex = attribute_desc.buffer_index;
       }
 
-      for (const uint i : IndexRange(current_state.vertex_descriptor.num_vert_buffers)) {
+      for (const uint i : IndexRange(pipeline_descriptor.vertex_descriptor.num_vert_buffers)) {
         /* Metal back-end state buffer layout. */
         const MTLVertexBufferLayoutDescriptorPSO &buf_layout =
-            current_state.vertex_descriptor.buffer_layouts[i];
+            pipeline_descriptor.vertex_descriptor.buffer_layouts[i];
         /* Copy metal back-end buffer layout state into PSO descriptor.
          * NOTE: need to copy each element due to copying from internal
          * back-end descriptor to Metal API descriptor. */
@@ -875,7 +924,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       }
 
       /* Mark empty attribute conversion. */
-      for (int i = current_state.vertex_descriptor.max_attribute_value + 1;
+      for (int i = pipeline_descriptor.vertex_descriptor.max_attribute_value + 1;
            i < GPU_VERT_ATTR_MAX_LEN;
            i++) {
         int MTL_attribute_conversion_mode = 0;
@@ -1039,7 +1088,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     for (int color_attachment = 0; color_attachment < GPU_FB_MAX_COLOR_ATTACHMENT;
          color_attachment++) {
       /* Fetch color attachment pixel format in back-end pipeline state. */
-      MTLPixelFormat pixel_format = current_state.color_attachment_format[color_attachment];
+      MTLPixelFormat pixel_format = pipeline_descriptor.color_attachment_format[color_attachment];
       /* Populate MTL API PSO attachment descriptor. */
       MTLRenderPipelineColorAttachmentDescriptor *col_attachment =
           desc.colorAttachments[color_attachment];
@@ -1048,19 +1097,19 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       if (pixel_format != MTLPixelFormatInvalid) {
         bool format_supports_blending = mtl_format_supports_blending(pixel_format);
 
-        col_attachment.writeMask = current_state.color_write_mask;
-        col_attachment.blendingEnabled = current_state.blending_enabled &&
+        col_attachment.writeMask = pipeline_descriptor.color_write_mask;
+        col_attachment.blendingEnabled = pipeline_descriptor.blending_enabled &&
                                          format_supports_blending;
-        if (format_supports_blending && current_state.blending_enabled) {
-          col_attachment.alphaBlendOperation = current_state.alpha_blend_op;
-          col_attachment.rgbBlendOperation = current_state.rgb_blend_op;
-          col_attachment.destinationAlphaBlendFactor = current_state.dest_alpha_blend_factor;
-          col_attachment.destinationRGBBlendFactor = current_state.dest_rgb_blend_factor;
-          col_attachment.sourceAlphaBlendFactor = current_state.src_alpha_blend_factor;
-          col_attachment.sourceRGBBlendFactor = current_state.src_rgb_blend_factor;
+        if (format_supports_blending && pipeline_descriptor.blending_enabled) {
+          col_attachment.alphaBlendOperation = pipeline_descriptor.alpha_blend_op;
+          col_attachment.rgbBlendOperation = pipeline_descriptor.rgb_blend_op;
+          col_attachment.destinationAlphaBlendFactor = pipeline_descriptor.dest_alpha_blend_factor;
+          col_attachment.destinationRGBBlendFactor = pipeline_descriptor.dest_rgb_blend_factor;
+          col_attachment.sourceAlphaBlendFactor = pipeline_descriptor.src_alpha_blend_factor;
+          col_attachment.sourceRGBBlendFactor = pipeline_descriptor.src_rgb_blend_factor;
         }
         else {
-          if (current_state.blending_enabled && !format_supports_blending) {
+          if (pipeline_descriptor.blending_enabled && !format_supports_blending) {
             shader_debug_printf(
                 "[Warning] Attempting to Bake PSO, but MTLPixelFormat %d does not support "
                 "blending\n",
@@ -1069,8 +1118,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
         }
       }
     }
-    desc.depthAttachmentPixelFormat = current_state.depth_attachment_format;
-    desc.stencilAttachmentPixelFormat = current_state.stencil_attachment_format;
+    desc.depthAttachmentPixelFormat = pipeline_descriptor.depth_attachment_format;
+    desc.stencilAttachmentPixelFormat = pipeline_descriptor.stencil_attachment_format;
 
     /* Compile PSO */
     MTLAutoreleasedRenderPipelineReflection reflection_data;
@@ -1090,7 +1139,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       return nullptr;
     }
     else {
-#ifndef NDEBUG
+#if 0
       NSLog(@"Successfully compiled PSO for shader: %s (Metal Context: %p)\n", this->name, ctx);
 #endif
     }
@@ -1103,7 +1152,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     pso_inst->base_uniform_buffer_index = MTL_uniform_buffer_base_index;
     pso_inst->null_attribute_buffer_index = (using_null_buffer) ? null_buffer_index : -1;
     pso_inst->transform_feedback_buffer_index = MTL_transform_feedback_buffer_index;
-    pso_inst->shader_pso_index = pso_cache_.size();
+    pso_inst->prim_type = prim_type;
 
     pso_inst->reflection_data_available = (reflection_data != nil);
     if (reflection_data != nil) {
@@ -1189,9 +1238,14 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     [pso_inst->pso retain];
 
     /* Insert into pso cache. */
+    pso_cache_lock_.lock();
+    pso_inst->shader_pso_index = pso_cache_.size();
     pso_cache_.add(pipeline_descriptor, pso_inst);
-    shader_debug_printf("PSO CACHE: Stored new variant in PSO cache for shader '%s'\n",
-                        this->name);
+    pso_cache_lock_.unlock();
+    shader_debug_printf(
+        "PSO CACHE: Stored new variant in PSO cache for shader '%s' Hash: '%llu'\n",
+        this->name,
+        pipeline_descriptor.hash());
     return pso_inst;
   }
 }
@@ -1256,7 +1310,7 @@ bool MTLShader::bake_compute_pipeline_state(MTLContext *ctx)
       return false;
     }
     else {
-#ifndef NDEBUG
+#if 0
       NSLog(@"Successfully compiled compute PSO for shader: %s (Metal Context: %p)\n",
             this->name,
             ctx);

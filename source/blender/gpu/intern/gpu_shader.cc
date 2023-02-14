@@ -500,6 +500,26 @@ const char *GPU_shader_get_name(GPUShader *shader)
   return unwrap(shader)->name_get();
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Shader cache warming
+ * \{ */
+
+void GPU_shader_set_parent(GPUShader *shader, GPUShader *parent)
+{
+  BLI_assert(shader != nullptr);
+  BLI_assert(shader != parent);
+  if (shader != parent) {
+    Shader *shd_child = unwrap(shader);
+    Shader *shd_parent = unwrap(parent);
+    shd_child->parent_set(shd_parent);
+  }
+}
+
+void GPU_shader_warm_cache(GPUShader *shader, int limit)
+{
+  unwrap(shader)->warm_cache(limit);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
