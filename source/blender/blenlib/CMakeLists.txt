@@ -281,10 +281,10 @@ set(SRC
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
-  BLI_math_vector_mpq_types.hh
-  BLI_math_vector_types.hh
   BLI_math_vector.h
   BLI_math_vector.hh
+  BLI_math_vector_mpq_types.hh
+  BLI_math_vector_types.hh
   BLI_memarena.h
   BLI_memblock.h
   BLI_memiter.h
@@ -490,13 +490,13 @@ if(WITH_GTESTS)
     tests/BLI_math_bits_test.cc
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
-    tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_matrix_test.cc
+    tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_rotation_test.cc
     tests/BLI_math_solvers_test.cc
     tests/BLI_math_time_test.cc
-    tests/BLI_math_vector_types_test.cc
     tests/BLI_math_vector_test.cc
+    tests/BLI_math_vector_types_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc
     tests/BLI_mesh_boolean_test.cc

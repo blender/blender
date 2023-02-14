@@ -104,6 +104,7 @@ set(SRC
   GPU_primitive.h
   GPU_select.h
   GPU_shader.h
+  GPU_shader_builtin.h
   GPU_shader_shared.h
   GPU_state.h
   GPU_storage_buffer.h
