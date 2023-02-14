@@ -3077,7 +3077,6 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
          * generic attribute for now. */
         DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
-        return true;
       }
     }
   }
