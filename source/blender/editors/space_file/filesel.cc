@@ -58,6 +58,8 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
+#include "AS_essentials_library.hh"
+
 #include "file_intern.h"
 #include "filelist.h"
 
@@ -424,7 +426,13 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
     }
   }
 
-  switch (library->type) {
+  switch (eAssetLibraryType(library->type)) {
+    case ASSET_LIBRARY_ESSENTIALS:
+      BLI_strncpy(base_params->dir,
+                  blender::asset_system::essentials_directory_path().c_str(),
+                  sizeof(base_params->dir));
+      base_params->type = FILE_ASSET_LIBRARY;
+      break;
     case ASSET_LIBRARY_ALL:
       base_params->dir[0] = '\0';
       base_params->type = FILE_ASSET_LIBRARY_ALL;

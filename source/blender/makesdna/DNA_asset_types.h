@@ -85,11 +85,11 @@ typedef struct AssetMetaData {
 } AssetMetaData;
 
 typedef enum eAssetLibraryType {
-  /* For the future. Display assets bundled with Blender by default. */
-  // ASSET_LIBRARY_BUNDLED = 0,
   /** Display assets from the current session (current "Main"). */
   ASSET_LIBRARY_LOCAL = 1,
   ASSET_LIBRARY_ALL = 2,
+  /** Display assets bundled with Blender by default. */
+  ASSET_LIBRARY_ESSENTIALS = 3,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname

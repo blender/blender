@@ -10,6 +10,7 @@
 #include "DNA_asset_types.h"
 
 #include "AS_asset_identifier.hh"
+#include "AS_asset_library.hh"
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
@@ -124,6 +125,13 @@ bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->is_local_id();
+}
+
+bool AS_asset_representation_is_never_link(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->owner_asset_library().never_link;
 }
 
 /** \} */

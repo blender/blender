@@ -55,6 +55,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
+#include "AS_asset_representation.h"
+
 #include "filelist.h"
 
 #include "file_intern.h" /* own include */
@@ -126,6 +128,19 @@ static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
   UI_draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
 }
 
+static eFileAssetImportType get_asset_import_type(const SpaceFile *sfile, const FileDirEntry *file)
+{
+  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+  BLI_assert(asset_params != NULL);
+  if (asset_params->import_type != FILE_ASSET_IMPORT_LINK) {
+    return asset_params->import_type;
+  }
+  if (AS_asset_representation_is_never_link(file->asset)) {
+    return FILE_ASSET_IMPORT_APPEND_REUSE;
+  }
+  return FILE_ASSET_IMPORT_LINK;
+}
+
 static void file_draw_icon(const SpaceFile *sfile,
                            uiBlock *block,
                            const FileDirEntry *file,
@@ -165,13 +180,10 @@ static void file_draw_icon(const SpaceFile *sfile,
       ImBuf *preview_image = filelist_file_getimage(file);
       char blend_path[FILE_MAX_LIBEXTRA];
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
-        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-        BLI_assert(asset_params != NULL);
-
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              asset_params->import_type,
+                              get_asset_import_type(sfile, file),
                               icon,
                               preview_image,
                               UI_DPI_FAC);
@@ -558,13 +570,10 @@ static void file_draw_preview(const SpaceFile *sfile,
       char blend_path[FILE_MAX_LIBEXTRA];
 
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
-        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-        BLI_assert(asset_params != NULL);
-
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              asset_params->import_type,
+                              get_asset_import_type(sfile, file),
                               icon,
                               imb,
                               scale);

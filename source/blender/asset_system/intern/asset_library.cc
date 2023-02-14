@@ -260,6 +260,12 @@ StringRefNull AssetLibrary::root_path() const
 Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
+  {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = -1;
+    library_ref.type = ASSET_LIBRARY_ESSENTIALS;
+    result.append(library_ref);
+  }
   int i;
   LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
     if (!BLI_is_dir(asset_library->path)) {

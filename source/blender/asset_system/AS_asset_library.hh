@@ -67,6 +67,9 @@ class AssetLibrary {
 
   std::unique_ptr<AssetCatalogService> catalog_service;
 
+  /** Assets owned by this library should never be linked. */
+  bool never_link = false;
+
   friend class AssetLibraryService;
 
  public:
