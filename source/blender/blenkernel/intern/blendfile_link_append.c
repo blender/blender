@@ -41,6 +41,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -76,6 +77,10 @@ typedef struct BlendfileLinkAppendContextItem {
   /** Library ID from which the #new_id has been linked (NULL until it has been successfully
    * linked). */
   Library *source_library;
+  /** Liboverride of the linked ID (NULL until it has been successfully created or an existing one
+   * has been found). */
+  ID *liboverride_id;
+
   /** Opaque user data pointer. */
   void *userdata;
 } BlendfileLinkAppendContextItem;
@@ -349,6 +354,12 @@ ID *BKE_blendfile_link_append_context_item_newid_get(
     BlendfileLinkAppendContext *UNUSED(lapp_context), BlendfileLinkAppendContextItem *item)
 {
   return item->new_id;
+}
+
+ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
+    BlendfileLinkAppendContext *UNUSED(lapp_context), BlendfileLinkAppendContextItem *item)
+{
+  return item->liboverride_id;
 }
 
 short BKE_blendfile_link_append_context_item_idcode_get(
@@ -1316,6 +1327,92 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
   if ((lapp_context->params->flag & FILE_LINK) != 0) {
     blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
   }
+
+  BKE_main_namemap_clear(lapp_context->params->bmain);
+}
+
+void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
+                            const eBKELibLinkOverride flags,
+                            ReportList *UNUSED(reports))
+{
+  if (lapp_context->num_items == 0) {
+    /* Nothing to override. */
+    return;
+  }
+
+  Main *bmain = lapp_context->params->bmain;
+
+  /* Liboverride only makes sense if data was linked, not appended. */
+  BLI_assert((lapp_context->params->flag & FILE_LINK) != 0);
+
+  const bool set_runtime = (flags & BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME) != 0;
+  const bool do_use_exisiting_liboverrides = (flags &
+                                              BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES) != 0;
+
+  GHash *linked_ids_to_local_liboverrides = NULL;
+  if (do_use_exisiting_liboverrides) {
+    linked_ids_to_local_liboverrides = BLI_ghash_ptr_new(__func__);
+
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (ID_IS_LINKED(id_iter)) {
+        continue;
+      }
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+        continue;
+      }
+      /* Do not consider regular liboverrides if runtime ones are requested, and vice-versa. */
+      if ((set_runtime && (id_iter->tag & LIB_TAG_RUNTIME) == 0) ||
+          (!set_runtime && (id_iter->tag & LIB_TAG_RUNTIME) != 0)) {
+        continue;
+      }
+
+      /* In case several liboverrides exist of the same data, only consider the first found one. */
+      ID **id_ptr;
+      if (BLI_ghash_ensure_p(linked_ids_to_local_liboverrides,
+                             id_iter->override_library->reference,
+                             (void ***)&id_ptr)) {
+        continue;
+      }
+      *id_ptr = id_iter;
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  for (LinkNode *itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
+    BlendfileLinkAppendContextItem *item = itemlink->link;
+    ID *id = item->new_id;
+    if (id == NULL) {
+      continue;
+    }
+    BLI_assert(item->userdata == NULL);
+
+    if (do_use_exisiting_liboverrides) {
+      item->liboverride_id = BLI_ghash_lookup(linked_ids_to_local_liboverrides, id);
+    }
+    if (item->liboverride_id == NULL) {
+      item->liboverride_id = BKE_lib_override_library_create_from_id(bmain, id, false);
+      if (set_runtime) {
+        item->liboverride_id->tag |= LIB_TAG_RUNTIME;
+        if ((id->tag & LIB_TAG_PRE_EXISTING) == 0) {
+          /* If the linked ID is newly linked, in case its override is runtime-only, assume its
+           * reference to be indirectly linked.
+           *
+           * This is more of an heuristic for 'as best as possible' user feedback in the UI
+           * (Outliner), which is expected to be valid in almost all practical usecases. Direct or
+           * indirect linked status is properly checked before saving .blend file. */
+          id->tag &= ~LIB_TAG_EXTERN;
+          id->tag |= LIB_TAG_INDIRECT;
+        }
+      }
+    }
+  }
+
+  if (do_use_exisiting_liboverrides) {
+    BLI_ghash_free(linked_ids_to_local_liboverrides, NULL, NULL);
+  }
+
+  BKE_main_namemap_clear(bmain);
 }
 
 /** \} */
