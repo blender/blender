@@ -180,6 +180,9 @@ class MTLTexture : public Texture {
   uint blit_fb_slice_ = 0;
   uint blit_fb_mip_ = 0;
 
+  /* Non-SRGB texture view, used for when a framebuffer is bound with SRGB disabled. */
+  id<MTLTexture> texture_no_srgb_ = nil;
+
   /* Texture view properties */
   /* In Metal, we use texture views to either limit mipmap ranges,
    * , apply a swizzle mask, or both.
@@ -251,6 +254,7 @@ class MTLTexture : public Texture {
   /* Remove once no longer required -- will just return 0 for now in MTL path. */
   uint gl_bindcode_get() const override;
 
+  bool is_format_srgb();
   bool texture_is_baked();
   const char *get_name()
   {
@@ -305,6 +309,7 @@ class MTLTexture : public Texture {
 
   id<MTLTexture> get_metal_handle();
   id<MTLTexture> get_metal_handle_base();
+  id<MTLTexture> get_non_srgb_handle();
   MTLSamplerState get_sampler_state();
   void blit(id<MTLBlitCommandEncoder> blit_encoder,
             uint src_x_offset,

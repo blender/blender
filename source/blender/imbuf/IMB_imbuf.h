@@ -846,6 +846,8 @@ typedef enum eIMBTransformMode {
  * - Only one data type buffer will be used (rect_float has priority over rect)
  * \param mode: Cropping/Wrap repeat effect to apply during transformation.
  * \param filter: Interpolation to use during sampling.
+ * \param num_subsamples: Number of subsamples to use. Increasing this would improve the quality,
+ * but reduces the performance.
  * \param transform_matrix: Transformation matrix to use.
  * The given matrix should transform between dst pixel space to src pixel space.
  * One unit is one pixel.
@@ -860,6 +862,7 @@ void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
                    eIMBTransformMode mode,
                    eIMBInterpolationFilterMode filter,
+                   const int num_subsamples,
                    const float transform_matrix[4][4],
                    const struct rctf *src_crop);
 

@@ -13,7 +13,6 @@ struct Lattice;
 struct ListBase;
 struct Main;
 struct Mesh;
-struct MVert;
 struct Object;
 
 /* Kernel prototypes */
@@ -132,22 +131,24 @@ void BKE_keyblock_update_from_mesh(const struct Mesh *me, struct KeyBlock *kb);
 void BKE_keyblock_convert_from_mesh(const struct Mesh *me,
                                     const struct Key *key,
                                     struct KeyBlock *kb);
-void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb, struct MVert *mvert, int totvert);
+void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb,
+                                  float (*vert_positions)[3],
+                                  int totvert);
 
 /**
  * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
  *
  * \param kb: the KeyBlock to use to compute normals.
  * \param mesh: the Mesh to apply key-block to.
- * \param r_vertnors: if non-NULL, an array of vectors, same length as number of vertices.
- * \param r_polynors: if non-NULL, an array of vectors, same length as number of polygons.
- * \param r_loopnors: if non-NULL, an array of vectors, same length as number of loops.
+ * \param r_vert_normals: if non-NULL, an array of vectors, same length as number of vertices.
+ * \param r_poly_normals: if non-NULL, an array of vectors, same length as number of polygons.
+ * \param r_loop_normals: if non-NULL, an array of vectors, same length as number of loops.
  */
 void BKE_keyblock_mesh_calc_normals(const struct KeyBlock *kb,
-                                    const struct Mesh *mesh,
-                                    float (*r_vertnors)[3],
-                                    float (*r_polynors)[3],
-                                    float (*r_loopnors)[3]);
+                                    struct Mesh *mesh,
+                                    float (*r_vert_normals)[3],
+                                    float (*r_poly_normals)[3],
+                                    float (*r_loop_normals)[3]);
 
 void BKE_keyblock_update_from_vertcos(const struct Object *ob,
                                       struct KeyBlock *kb,
@@ -157,6 +158,7 @@ void BKE_keyblock_convert_from_vertcos(const struct Object *ob,
                                        const float (*vertCos)[3]);
 float (*BKE_keyblock_convert_to_vertcos(const struct Object *ob, const struct KeyBlock *kb))[3];
 
+/** RAW coordinates offsets. */
 void BKE_keyblock_update_from_offset(const struct Object *ob,
                                      struct KeyBlock *kb,
                                      const float (*ofs)[3]);

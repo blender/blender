@@ -590,7 +590,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
-  /* Grid distributionsets UNEXIST flag, need to take care of
+  /* Grid distribution-sets UNEXIST flag, need to take care of
    * it here because later this flag is being reset.
    *
    * We can't do it for any distribution, because it'll then
@@ -967,7 +967,7 @@ void psys_get_birth_coords(
           float tmat[3][3];
 
           /* NOTE: utan_local is not taken from 'utan', we calculate from rot_vec/vtan. */
-          /* NOTE(@campbellbarton): it looks like rotation phase may be applied twice
+          /* NOTE(@ideasman42): it looks like rotation phase may be applied twice
            * (once with vtan, again below) however this isn't the case. */
           float *rot_vec_local = tmat[0];
           float *vtan_local = tmat[1];
@@ -1931,7 +1931,7 @@ static void sphclassical_density_accum_cb(void *userdata,
     return;
   }
 
-  /* Smoothing factor. Utilize the Wendland kernel. gnuplot:
+  /* Smoothing factor. Utilize the Wendland kernel. `gnuplot`:
    *     q1(x) = (2.0 - x)**4 * ( 1.0 + 2.0 * x)
    *     plot [0:2] q1(x) */
   q = qfac / pow3f(pfr->h) * pow4f(2.0f - rij_h) * (1.0f + 2.0f * rij_h);
@@ -2021,7 +2021,7 @@ static void sphclassical_force_cb(void *sphdata_v,
       NULL, psys, state->co, &pfr, interaction_radius, sphclassical_neighbor_accum_cb);
   pressure = stiffness * (pow7f(pa->sphdensity / rest_density) - 1.0f);
 
-  /* multiply by mass so that we return a force, not accel */
+  /* Multiply by mass so that we return a force, not acceleration. */
   qfac2 *= sphdata->mass / pow3f(pfr.h);
 
   pfn = pfr.neighbors;
@@ -2047,7 +2047,7 @@ static void sphclassical_force_cb(void *sphdata_v,
     npressure = stiffness * (pow7f(npa->sphdensity / rest_density) - 1.0f);
 
     /* First derivative of smoothing factor. Utilize the Wendland kernel.
-     * gnuplot:
+     * `gnuplot`:
      *     q2(x) = 2.0 * (2.0 - x)**4 - 4.0 * (2.0 - x)**3 * (1.0 + 2.0 * x)
      *     plot [0:2] q2(x)
      * Particles > 2h away are excluded above. */
@@ -2438,15 +2438,17 @@ static float nr_distance_to_vert(float *p,
 {
   return len_v3v3(p, pce->x0) - radius;
 }
+/**
+ * \param t: is the current time for newton rhapson.
+ * \param fac: is the starting factor for current collision iteration.
+ * \param col: The particle collision, `col->fac's` are factors for the
+ * particle sub-frame step start and end during collision modifier step.
+ */
 static void collision_interpolate_element(ParticleCollisionElement *pce,
                                           float t,
                                           float fac,
                                           ParticleCollision *col)
 {
-  /* t is the current time for newton rhapson */
-  /* fac is the starting factor for current collision iteration */
-  /* The col->fac's are factors for the particle subframe step start
-   * and end during collision modifier step. */
   float f = fac + t * (1.0f - fac);
   float mul = col->fac1 + f * (col->fac2 - col->fac1);
   if (pce->tot > 0) {
@@ -2779,18 +2781,18 @@ void BKE_psys_collision_neartest_cb(void *userdata,
   ParticleCollision *col = (ParticleCollision *)userdata;
   ParticleCollisionElement pce;
   const MVertTri *vt = &col->md->tri[index];
-  MVert *x = col->md->x;
-  MVert *v = col->md->current_v;
+  float(*x)[3] = col->md->x;
+  float(*v)[3] = col->md->current_v;
   float t = hit->dist / col->original_ray_length;
   int collision = 0;
 
-  pce.x[0] = x[vt->tri[0]].co;
-  pce.x[1] = x[vt->tri[1]].co;
-  pce.x[2] = x[vt->tri[2]].co;
+  pce.x[0] = x[vt->tri[0]];
+  pce.x[1] = x[vt->tri[1]];
+  pce.x[2] = x[vt->tri[2]];
 
-  pce.v[0] = v[vt->tri[0]].co;
-  pce.v[1] = v[vt->tri[1]].co;
-  pce.v[2] = v[vt->tri[2]].co;
+  pce.v[0] = v[vt->tri[0]];
+  pce.v[1] = v[vt->tri[1]];
+  pce.v[2] = v[vt->tri[2]];
 
   pce.tot = 3;
   pce.inside = 0;
@@ -3307,7 +3309,6 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
   Mesh *mesh;
-  MVert *mvert;
   MEdge *medge;
   MDeformVert *dvert;
   HairKey *key;
@@ -3321,7 +3322,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   if (!mesh) {
     *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
   }
-  mvert = BKE_mesh_verts_for_write(mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
   medge = BKE_mesh_edges_for_write(mesh);
   dvert = BKE_mesh_deform_verts_for_write(mesh);
 
@@ -3344,6 +3345,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   }
 
   psys->clmd->sim_parms->vgroup_mass = 1;
+
+  int vert_index = 0;
 
   /* XXX placeholder for more flexible future hair settings */
   hair_radius = part->size;
@@ -3383,16 +3386,16 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
           hair->radius = hair_radius;
           hair->bending_stiffness = bending_stiffness;
 
-          add_v3_v3v3(mvert->co, co, co);
-          sub_v3_v3(mvert->co, co_next);
-          mul_m4_v3(hairmat, mvert->co);
+          add_v3_v3v3(positions[vert_index], co, co);
+          sub_v3_v3(positions[vert_index], co_next);
+          mul_m4_v3(hairmat, positions[vert_index]);
 
           medge->v1 = pa->hair_index - 1;
           medge->v2 = pa->hair_index;
 
           dvert = hair_set_pinning(dvert, 1.0f);
 
-          mvert++;
+          vert_index++;
           medge++;
         }
 
@@ -3404,8 +3407,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
         hair->radius = hair_radius;
         hair->bending_stiffness = bending_stiffness;
 
-        copy_v3_v3(mvert->co, co);
-        mul_m4_v3(hairmat, mvert->co);
+        copy_v3_v3(positions[vert_index], co);
+        mul_m4_v3(hairmat, positions[vert_index]);
 
         if (k) {
           medge->v1 = pa->hair_index + k - 1;
@@ -3420,7 +3423,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
           dvert = hair_set_pinning(dvert, 1.0f);
         }
 
-        mvert++;
+        vert_index++;
         if (k) {
           medge++;
         }
@@ -3533,12 +3536,12 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
     }
   }
 
-  /* dynamics with cloth simulation, psys->particles can be NULL with 0 particles T25519. */
+  /* dynamics with cloth simulation, psys->particles can be NULL with 0 particles #25519. */
   if (psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS && psys->particles) {
     do_hair_dynamics(sim);
   }
 
-  /* following lines were removed r29079 but cause bug T22811, see report for details */
+  /* following lines were removed r29079 but cause bug #22811, see report for details */
   psys_update_effectors(sim);
   psys_update_path_cache(sim, cfra, use_render_params);
 
@@ -3597,19 +3600,21 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
   psys_sim_data_free(sim);
 }
 
-/* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
- * condition. */
+/** Code for an adaptive time step based on the Courant-Friedrichs-Lewy condition. */
 static const float MIN_TIMESTEP = 1.0f / 101.0f;
-/* Tolerance of 1.5 means the last subframe neither favors growing nor
- * shrinking (e.g if it were 1.3, the last subframe would tend to be too
- * small). */
+/**
+ * Tolerance of 1.5 means the last sub-frame neither favors growing nor shrinking
+ * (e.g if it were 1.3, the last sub-frame would tend to be too small).
+ */
 static const float TIMESTEP_EXPANSION_FACTOR = 0.1f;
 static const float TIMESTEP_EXPANSION_TOLERANCE = 1.5f;
 
-/* Calculate the speed of the particle relative to the local scale of the
+/**
+ * Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
- * the simulation, and is typically the distance to neighboring particles. */
+ * the simulation, and is typically the distance to neighboring particles.
+ */
 static void update_courant_num(
     ParticleSimulationData *sim, ParticleData *pa, float dtime, SPHData *sphdata, SpinLock *spin)
 {

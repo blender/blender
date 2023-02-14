@@ -125,18 +125,12 @@ void GLVertBuf::bind_as_texture(uint binding)
   GPU_texture_bind(buffer_texture_, binding);
 }
 
-const void *GLVertBuf::read() const
+void GLVertBuf::read(void *data) const
 {
   BLI_assert(is_active());
   void *result = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-  return result;
-}
-
-void *GLVertBuf::unmap(const void *mapped_data) const
-{
-  void *result = MEM_mallocN(vbo_size_, __func__);
-  memcpy(result, mapped_data, vbo_size_);
-  return result;
+  memcpy(data, result, size_used_get());
+  glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
 void GLVertBuf::wrap_handle(uint64_t handle)

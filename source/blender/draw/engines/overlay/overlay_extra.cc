@@ -460,14 +460,14 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob_data;
       BKE_curve_texspace_ensure(cu);
-      texcoloc = cu->loc;
-      texcosize = cu->size;
+      texcoloc = cu->texspace_location;
+      texcosize = cu->texspace_size;
       break;
     }
     case ID_MB: {
       MetaBall *mb = (MetaBall *)ob_data;
-      texcoloc = mb->loc;
-      texcosize = mb->size;
+      texcoloc = mb->texspace_location;
+      texcosize = mb->texspace_size;
       break;
     }
     case ID_CV:
@@ -637,31 +637,34 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   DRW_buffer_add_entry(cb->groundline, instdata.pos);
 
   if (la->type == LA_LOCAL) {
-    instdata.area_size_x = instdata.area_size_y = la->area_size;
+    instdata.area_size_x = instdata.area_size_y = la->radius;
     DRW_buffer_add_entry(cb->light_point, color, &instdata);
   }
   else if (la->type == LA_SUN) {
     DRW_buffer_add_entry(cb->light_sun, color, &instdata);
   }
   else if (la->type == LA_SPOT) {
-    /* Previous implementation was using the clipend distance as cone size.
-     * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
+    /* Previous implementation was using the clip-end distance as cone size.
+     * We cannot do this anymore so we use a fixed size of 10. (see #72871) */
     const float3 scale_vec = {10.0f, 10.0f, 10.0f};
     rescale_m4(instdata.mat, scale_vec);
-    /* For cycles and eevee the spot attenuation is
-     * y = (1/(1 + x^2) - a)/((1 - a) b)
+    /* For cycles and EEVEE the spot attenuation is:
+     * `y = (1/sqrt(1 + x^2) - a)/((1 - a) b)`
+     * x being the tangent of the angle between the light direction and the generatrix of the cone.
      * We solve the case where spot attenuation y = 1 and y = 0
-     * root for y = 1 is  (-1 - c) / c
-     * root for y = 0 is  (1 - a) / a
+     * root for y = 1 is sqrt(1/c^2 - 1)
+     * root for y = 0 is sqrt(1/a^2 - 1)
      * and use that to position the blend circle. */
     float a = cosf(la->spotsize * 0.5f);
     float b = la->spotblend;
     float c = a * b - a - b;
+    float a2 = a * a;
+    float c2 = c * c;
     /* Optimized version or root1 / root0 */
-    instdata.spot_blend = sqrtf((-a - c * a) / (c - c * a));
+    instdata.spot_blend = sqrtf((a2 - a2 * c2) / (c2 - a2 * c2));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
-    color[3] = -max_ff(la->area_size, FLT_MIN);
+    color[3] = -max_ff(la->radius, FLT_MIN);
     DRW_buffer_add_entry(cb->light_spot, color, &instdata);
 
     if ((la->mode & LA_SHOW_CONE) && !DRW_state_is_select()) {
@@ -1552,7 +1555,8 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   const bool is_select_mode = DRW_state_is_select();
   const bool is_paint_mode = (draw_ctx->object_mode &
-                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) != 0;
+                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
+                               OB_MODE_SCULPT_CURVES)) != 0;
   const bool from_dupli = (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) != 0;
   const bool has_bounds = !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE);
   const bool has_texspace = has_bounds &&

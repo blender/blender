@@ -85,7 +85,7 @@ struct ImBuf *IMB_thumb_load_blend(const char *blen_path,
 /**
  * Special function for previewing fonts.
  */
-struct ImBuf *IMB_thumb_load_font(const char *filepath, unsigned int x, unsigned int y);
+struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
 
 /* Threading */

@@ -121,7 +121,7 @@ if(WITH_WINDOWS_BUNDLE_CRT)
   include(InstallRequiredSystemLibraries)
 
   # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
-  # redirects for this dll, for details see T88813.
+  # redirects for this dll, for details see #88813.
   foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
     string(FIND ${lib} "ucrtbase" pos)
     if(NOT pos EQUAL -1)
@@ -140,8 +140,8 @@ if(WITH_WINDOWS_BUNDLE_CRT)
 
   install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
   set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
-  set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
+set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
 
 
@@ -295,14 +295,14 @@ unset(MATERIALX_LIB_FOLDER_EXISTS)
 if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
    NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
    NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
-  add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
+  add_compile_options(/experimental:external /external:I "${LIBDIR}" /external:W0)
 endif()
 
 # Add each of our libraries to our cmake_prefix_path so find_package() could work
 file(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
 foreach(child ${children})
   if(IS_DIRECTORY ${LIBDIR}/${child})
-    list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+    list(APPEND CMAKE_PREFIX_PATH ${LIBDIR}/${child})
   endif()
 endforeach()
 
@@ -555,7 +555,7 @@ if(WITH_BOOST)
     set(BOOST_PREFIX "")
     # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
     set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib)
-    if (NOT EXISTS ${BOOST_34_TRIGGER_FILE})
+    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()
@@ -573,7 +573,7 @@ if(WITH_BOOST)
       debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_DEBUG_POSTFIX}.lib
       debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_DEBUG_POSTFIX}.lib
     )
-    if (EXISTS ${BOOST_34_TRIGGER_FILE})
+    if(EXISTS ${BOOST_34_TRIGGER_FILE})
       if(WITH_USD)
         set(BOOST_PYTHON_LIBRARIES
           debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib
@@ -624,7 +624,7 @@ endif()
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
-  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH  "Path to the LLVM include directory")
+  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH "Path to the LLVM include directory")
   file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_ROOT_DIR}/lib/*.lib)
 
   if(EXISTS ${LLVM_ROOT_DIR}/debug/lib)
@@ -1030,7 +1030,7 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
     ${SYCL_ROOT_DIR}/bin/pi_*.dll
   )
   list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
-  list (APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
+  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
   unset(_sycl_pi_runtime_libraries_glob)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})

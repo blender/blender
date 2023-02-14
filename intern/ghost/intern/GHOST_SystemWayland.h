@@ -165,6 +165,16 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode);
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  /**
+   * Return a separate WAYLAND local timer manager to #GHOST_System::getTimerManager
+   * Manipulation & access must lock with #GHOST_WaylandSystem::server_mutex.
+   *
+   * See #GWL_Display::ghost_timer_manager doc-string for details on why this is needed.
+   */
+  GHOST_TimerManager *ghost_timer_manager();
+#endif
+
   /* WAYLAND direct-data access. */
 
   struct wl_display *wl_display();
@@ -194,8 +204,25 @@ class GHOST_SystemWayland : public GHOST_System {
   /** Set this seat to be active. */
   void seat_active_set(const struct GWL_Seat *seat);
 
-  /** Clear all references to this surface to prevent accessing NULL pointers. */
-  void window_surface_unref(const wl_surface *wl_surface);
+  /**
+   * Clear all references to this output.
+   *
+   * \note The compositor should have already called the `wl_surface_listener.leave` callback,
+   * however some compositors may not (see #103586).
+   * So remove references to the output before it's destroyed to avoid crashing.
+   *
+   * \return true when any references were removed.
+   */
+  bool output_unref(struct wl_output *wl_output);
+
+  void output_scale_update(GWL_Output *output);
+
+  /**
+   * Clear all references to this surface to prevent accessing NULL pointers.
+   *
+   * \return true when any references were removed.
+   */
+  bool window_surface_unref(const wl_surface *wl_surface);
 
   bool window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
                               const GHOST_TGrabCursorMode mode_current,
@@ -216,7 +243,14 @@ class GHOST_SystemWayland : public GHOST_System {
    * from running at the same time. */
   std::mutex *server_mutex = nullptr;
 
-  /** Threads must lock this before manipulating timers. */
+  /**
+   * Threads must lock this before manipulating #GWL_Display::ghost_timer_manager.
+   *
+   * \note Using a separate lock to `server_mutex` is necessary because the
+   * server lock is already held when calling `ghost_wl_display_event_pump`.
+   * If manipulating the timer used the `server_mutex`, event pump can indirectly
+   * handle key up/down events which would lock `server_mutex` causing a dead-lock.
+   */
   std::mutex *timer_mutex = nullptr;
 
   std::thread::id main_thread_id;
@@ -225,5 +259,11 @@ class GHOST_SystemWayland : public GHOST_System {
 #endif
 
  private:
+  /**
+   * Support freeing the internal data separately from the destructor
+   * so it can be called when WAYLAND isn't running (immediately before raising an exception).
+   */
+  void display_destroy_and_free_all();
+
   struct GWL_Display *display_;
 };

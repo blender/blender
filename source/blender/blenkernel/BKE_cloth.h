@@ -72,7 +72,7 @@ typedef struct Cloth {
   unsigned char pad2;
   short pad3;
   struct BVHTree *bvhtree;     /* collision tree for this cloth object */
-  struct BVHTree *bvhselftree; /* collision tree for this cloth object */
+  struct BVHTree *bvhselftree; /* collision tree for this cloth object (may be same as bvhtree) */
   struct MVertTri *tri;
   struct Implicit_Data *implicit; /* our implicit solver connects to this pointer */
   struct EdgeSet *edgeset;        /* used for selfcollisions */

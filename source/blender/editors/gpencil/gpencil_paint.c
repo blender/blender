@@ -764,7 +764,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* T44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -780,7 +780,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
-      /* T44932 - Pressure vals are unreliable, so ignore for now */
+      /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
       pt->time = (float)(curtime - p->inittime);
@@ -962,11 +962,15 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
 
   /* Set pressure constant. */
   gps_perimeter->thickness = max_ii((int)outline_thickness, 1);
+  /* Apply Fill Vertex Color data. */
+  ED_gpencil_fill_vertex_color_set(p->scene->toolsettings, brush, gps_perimeter);
 
   bGPDspoint *pt;
   for (int i = 0; i < gps_perimeter->totpoints; i++) {
     pt = &gps_perimeter->points[i];
     pt->pressure = 1.0f;
+    /* Apply Point Vertex Color data. */
+    ED_gpencil_point_vertex_color_set(p->scene->toolsettings, brush, pt, NULL);
   }
 
   /* Remove original stroke. */
@@ -2931,7 +2935,7 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* Hack for pressure sensitive eraser on D+RMB when using a tablet:
    * The pen has to float over the tablet surface, resulting in
-   * zero pressure (T47101). Ignore pressure values if floating
+   * zero pressure (#47101). Ignore pressure values if floating
    * (i.e. "effectively zero" pressure), and only when the "active"
    * end is the stylus (i.e. the default when not eraser)
    */
@@ -3339,7 +3343,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
   tGPsdata *p = op->customdata;
 
   /* we must check that we're still within the area that we're set up to work from
-   * otherwise we could crash (see bug T20586)
+   * otherwise we could crash (see bug #20586)
    */
   if (CTX_wm_area(C) != p->area) {
     printf("\t\t\tGP - wrong area execution abort!\n");
@@ -3681,11 +3685,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* We don't pass on key events, GP is used with key-modifiers -
-   * prevents Dkey to insert drivers. */
+   * prevents D-key to insert drivers. */
   if (ISKEYBOARD(event->type)) {
     if (ELEM(event->type, EVT_LEFTARROWKEY, EVT_DOWNARROWKEY, EVT_RIGHTARROWKEY, EVT_UPARROWKEY)) {
       /* allow some keys:
-       *   - For frame changing T33412.
+       *   - For frame changing #33412.
        *   - For undo (during sketching sessions).
        */
     }
@@ -3731,7 +3735,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* toggle painting mode upon mouse-button movement
    * - LEFTMOUSE  = standard drawing (all) / straight line drawing (all)
    * - RIGHTMOUSE = eraser (all)
-   *   (Disabling RIGHTMOUSE case here results in bugs like T32647)
+   *   (Disabling RIGHTMOUSE case here results in bugs like #32647)
    * also making sure we have a valid event value, to not exit too early
    */
   if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE) && ELEM(event->val, KM_PRESS, KM_RELEASE)) {

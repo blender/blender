@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
+/* Paint a color made from hash of node pointer. */
+//#define DEBUG_PIXEL_NODES
+
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 
@@ -9,6 +12,9 @@
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
+#ifdef DEBUG_PIXEL_NODES
+#  include "BLI_hash.h"
+#endif
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -20,7 +26,7 @@
 
 #include "bmesh.h"
 
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::paint::image {
 
@@ -124,7 +130,7 @@ template<typename ImageBuffer> class PaintingKernel {
   SculptSession *ss;
   const Brush *brush;
   const int thread_id;
-  const MVert *mvert;
+  const float3 *vert_positions_;
 
   float4 brush_color;
   float brush_strength;
@@ -139,8 +145,11 @@ template<typename ImageBuffer> class PaintingKernel {
   explicit PaintingKernel(SculptSession *ss,
                           const Brush *brush,
                           const int thread_id,
-                          const MVert *mvert)
-      : ss(ss), brush(brush), thread_id(thread_id), mvert(mvert)
+                          const float (*positions)[3])
+      : ss(ss),
+        brush(brush),
+        thread_id(thread_id),
+        vert_positions_(reinterpret_cast<const float3 *>(positions))
   {
     init_brush_strength();
     init_brush_test();
@@ -184,6 +193,15 @@ template<typename ImageBuffer> class PaintingKernel {
           automask_data);
       float4 paint_color = brush_color * falloff_strength * brush_strength;
       float4 buffer_color;
+
+#ifdef DEBUG_PIXEL_NODES
+      if ((pixel_row.start_image_coordinate.y >> 3) & 1) {
+        paint_color[0] *= 0.5f;
+        paint_color[1] *= 0.5f;
+        paint_color[2] *= 0.5f;
+      }
+#endif
+
       blend_color_mix_float(buffer_color, color, paint_color);
       buffer_color *= brush->alpha;
       IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush->blend));
@@ -196,20 +214,18 @@ template<typename ImageBuffer> class PaintingKernel {
     return pixels_painted;
   }
 
-  void init_brush_color(ImBuf *image_buffer)
+  void init_brush_color(ImBuf *image_buffer, float in_brush_color[3])
   {
     const char *to_colorspace = image_accessor.get_colorspace_name(image_buffer);
     if (last_used_color_space == to_colorspace) {
       return;
     }
-    copy_v3_v3(brush_color,
-               ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
-                                   BKE_brush_color_get(ss->scene, brush));
+
     /* NOTE: Brush colors are stored in sRGB. We use math color to follow other areas that
      * use brush colors. From there on we use IMB_colormanagement to convert the brush color to the
      * colorspace of the texture. This isn't ideal, but would need more refactoring to make sure
      * that brush colors are stored in scene linear by default. */
-    srgb_to_linearrgb_v3_v3(brush_color, brush_color);
+    srgb_to_linearrgb_v3_v3(brush_color, in_brush_color);
     brush_color[3] = 1.0f;
 
     const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -268,9 +284,9 @@ template<typename ImageBuffer> class PaintingKernel {
                              barycentric_weights.y,
                              1.0f - barycentric_weights.x - barycentric_weights.y);
     interp_v3_v3v3v3(result,
-                     mvert[vert_indices[0]].co,
-                     mvert[vert_indices[1]].co,
-                     mvert[vert_indices[2]].co,
+                     vert_positions_[vert_indices[0]],
+                     vert_positions_[vert_indices[1]],
+                     vert_positions_[vert_indices[2]],
                      barycentric);
     return result;
   }
@@ -279,7 +295,7 @@ template<typename ImageBuffer> class PaintingKernel {
 static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
                                                        PaintGeometryPrimitives &geom_primitives,
                                                        PaintUVPrimitives &uv_primitives,
-                                                       const MVert *mvert)
+                                                       const float (*positions)[3])
 {
   std::vector<bool> brush_test(uv_primitives.size());
   SculptBrushTest test;
@@ -295,10 +311,10 @@ static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
     const int3 &vert_indices = geom_primitives.get_vert_indices(
         paint_input.geometry_primitive_index);
 
-    float3 triangle_min_bounds(mvert[vert_indices[0]].co);
+    float3 triangle_min_bounds(positions[vert_indices[0]]);
     float3 triangle_max_bounds(triangle_min_bounds);
     for (int i = 1; i < 3; i++) {
-      const float3 &pos = mvert[vert_indices[i]].co;
+      const float3 &pos = positions[vert_indices[i]];
       triangle_min_bounds.x = min_ff(triangle_min_bounds.x, pos.x);
       triangle_min_bounds.y = min_ff(triangle_min_bounds.y, pos.y);
       triangle_min_bounds.z = min_ff(triangle_min_bounds.z, pos.z);
@@ -325,13 +341,29 @@ static void do_paint_pixels(void *__restrict userdata,
   PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
   NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
   const int thread_id = BLI_task_parallel_thread_id(tls);
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  const float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
 
   std::vector<bool> brush_test = init_uv_primitives_brush_test(
-      ss, pbvh_data.geom_primitives, node_data.uv_primitives, mvert);
+      ss, pbvh_data.geom_primitives, node_data.uv_primitives, positions);
 
-  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, mvert);
-  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, mvert);
+  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, positions);
+  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, positions);
+
+  float brush_color[4];
+
+#ifdef DEBUG_PIXEL_NODES
+  uint hash = BLI_hash_int(POINTER_AS_UINT(node));
+
+  brush_color[0] = (float)(hash & 255) / 255.0f;
+  brush_color[1] = (float)((hash >> 8) & 255) / 255.0f;
+  brush_color[2] = (float)((hash >> 16) & 255) / 255.0f;
+#else
+  copy_v3_v3(brush_color,
+             ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
+                                 BKE_brush_color_get(ss->scene, brush));
+#endif
+
+  brush_color[3] = 1.0f;
 
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
@@ -350,10 +382,10 @@ static void do_paint_pixels(void *__restrict userdata,
         }
 
         if (image_buffer->rect_float != nullptr) {
-          kernel_float4.init_brush_color(image_buffer);
+          kernel_float4.init_brush_color(image_buffer, brush_color);
         }
         else {
-          kernel_byte4.init_brush_color(image_buffer);
+          kernel_byte4.init_brush_color(image_buffer, brush_color);
         }
 
         for (const PackedPixelRow &pixel_row : tile_data.pixel_rows) {
@@ -482,8 +514,6 @@ static void do_mark_dirty_regions(void *__restrict userdata,
 
 }  // namespace blender::ed::sculpt_paint::paint::image
 
-extern "C" {
-
 using namespace blender::ed::sculpt_paint::paint::image;
 
 bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
@@ -517,27 +547,30 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob)
   return BKE_paint_canvas_image_get(settings, ob, &image, &image_user);
 }
 
-void SCULPT_do_paint_brush_image(
-    PaintModeSettings *paint_mode_settings, Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
+                                 Sculpt *sd,
+                                 Object *ob,
+                                 PBVHNode **texnodes,
+                                 int texnodes_num)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   TexturePaintingUserData data = {nullptr};
   data.ob = ob;
   data.brush = brush;
-  data.nodes = nodes;
+  data.nodes = texnodes;
 
   if (!ImageData::init_active_image(ob, &data.image_data, paint_mode_settings)) {
     return;
   }
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_push_undo_tile, &settings);
-  BLI_task_parallel_range(0, totnode, &data, do_paint_pixels, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, texnodes_num);
+  BLI_task_parallel_range(0, texnodes_num, &data, do_push_undo_tile, &settings);
+  BLI_task_parallel_range(0, texnodes_num, &data, do_paint_pixels, &settings);
 
   TaskParallelSettings settings_flush;
-  BKE_pbvh_parallel_range_settings(&settings_flush, false, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_mark_dirty_regions, &settings_flush);
-}
+
+  BKE_pbvh_parallel_range_settings(&settings_flush, false, texnodes_num);
+  BLI_task_parallel_range(0, texnodes_num, &data, do_mark_dirty_regions, &settings_flush);
 }

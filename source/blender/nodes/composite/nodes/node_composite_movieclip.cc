@@ -5,7 +5,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
@@ -128,7 +128,7 @@ class MovieClipOperation : public NodeOperation {
     GPUShader *shader = shader_manager().get("compositor_convert_color_to_half_color");
     GPU_shader_bind(shader);
 
-    const int input_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(movie_clip_texture, input_unit);
 
     result.bind_as_image(shader, "output_img");
@@ -162,7 +162,7 @@ class MovieClipOperation : public NodeOperation {
     GPUShader *shader = shader_manager().get("compositor_extract_alpha_from_color");
     GPU_shader_bind(shader);
 
-    const int input_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(movie_clip_texture, input_unit);
 
     result.bind_as_image(shader, "output_img");

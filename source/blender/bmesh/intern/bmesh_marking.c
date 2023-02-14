@@ -604,7 +604,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
      *
      * Rely on #BM_mesh_select_mode_flush to correct these cases.
      *
-     * \note flushing based on mode, see T46494
+     * \note flushing based on mode, see #46494
      */
     if (bm->selectmode & SCE_SELECT_VERTEX) {
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);

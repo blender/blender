@@ -340,7 +340,7 @@ void RE_SwapResult(Render *re, RenderResult **rr)
 {
   /* for keeping render buffers */
   if (re) {
-    SWAP(RenderResult *, re->result, *rr);
+    std::swap(re->result, *rr);
   }
 }
 
@@ -2520,7 +2520,6 @@ bool RE_layers_have_name(struct RenderResult *result)
     default:
       return true;
   }
-  return false;
 }
 
 bool RE_passes_have_name(struct RenderLayer *rl)

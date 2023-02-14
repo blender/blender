@@ -468,7 +468,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     /* Exclude context menus because:
      * - The menu items are available elsewhere (and will show up multiple times).
      * - Menu items depend on exact context, making search results unpredictable
-     *   (exact number of items selected for example). See design doc T74158.
+     *   (exact number of items selected for example). See design doc #74158.
      * There is one exception,
      * as the outliner only exposes functionality via the context menu. */
     GHashIterator iter;
@@ -897,7 +897,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
    * unless searching for something that isn't already in a menu (or scroll down).
    *
    * Keep this behind a developer only check:
-   * - Many operators need options to be set to give useful results, see: T74157.
+   * - Many operators need options to be set to give useful results, see: #74157.
    * - User who really prefer to list all operators can use #WM_OT_search_operator.
    */
   if (U.flag & USER_DEVELOPER_UI) {
@@ -1040,7 +1040,8 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
   MenuSearch_Item *item = (MenuSearch_Item *)active;
   bool has_menu = false;
 
-  memset(&data->context_menu_data, 0x0, sizeof(data->context_menu_data));
+  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.block) uiBlock();
   uiBut *but = &data->context_menu_data.but;
   uiBlock *block = &data->context_menu_data.block;
 
@@ -1083,7 +1084,8 @@ static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
   MenuSearch_Item *item = (MenuSearch_Item *)active;
 
-  memset(&data->context_menu_data, 0x0, sizeof(data->context_menu_data));
+  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.block) uiBlock();
   uiBut *but = &data->context_menu_data.but;
   uiBlock *block = &data->context_menu_data.block;
   unit_m4(block->winmat);

@@ -12,7 +12,7 @@ namespace blender::nodes::node_geo_realize_instances_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -34,9 +34,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = legacy_behavior;
   options.realize_instance_attributes = !legacy_behavior;
+  options.propagation_info = params.get_output_propagation_info("Geometry");
   geometry_set = geometry::realize_instances(geometry_set, options);
   params.set_output("Geometry", std::move(geometry_set));
 }

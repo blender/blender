@@ -387,7 +387,7 @@ void BKE_bpath_missing_files_find(Main *bmain,
 {
   struct BPathFind_Data data = {NULL};
   const int flag = BKE_BPATH_FOREACH_PATH_ABSOLUTE | BKE_BPATH_FOREACH_PATH_RELOAD_EDITED |
-                   BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN;
+                   BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES;
 
   data.basedir = BKE_main_blendfile_path(bmain);
   data.reports = reports;

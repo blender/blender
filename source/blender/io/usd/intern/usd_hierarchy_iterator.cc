@@ -186,9 +186,14 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     case OB_LIGHTPROBE:
     case OB_LATTICE:
     case OB_GPENCIL:
+    case OB_POINTCLOUD:
+    case OB_CURVES:
       return nullptr;
     case OB_TYPE_MAX:
       BLI_assert_msg(0, "OB_TYPE_MAX should not be used");
+      return nullptr;
+    default:
+      BLI_assert_unreachable();
       return nullptr;
   }
 

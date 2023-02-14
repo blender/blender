@@ -25,11 +25,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
+  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
 
   b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>(N_("Ray Direction"))
@@ -100,9 +100,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(4));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(4));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -202,7 +202,7 @@ static void raycast_to_mesh(IndexMask mask,
   }
 }
 
-class RaycastFunction : public fn::MultiFunction {
+class RaycastFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
   GeometryNodeRaycastMapMode mapping_;
@@ -217,7 +217,7 @@ class RaycastFunction : public fn::MultiFunction {
    * the field inputs for better performance. */
   const eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
  public:
   RaycastFunction(GeometrySet target, GField src_field, GeometryNodeRaycastMapMode mapping)
@@ -225,34 +225,29 @@ class RaycastFunction : public fn::MultiFunction {
   {
     target_.ensure_owns_direct_data();
     this->evaluate_target_field(std::move(src_field));
-    signature_ = create_signature();
+
+    mf::SignatureBuilder builder{"Geometry Proximity", signature_};
+    builder.single_input<float3>("Source Position");
+    builder.single_input<float3>("Ray Direction");
+    builder.single_input<float>("Ray Length");
+    builder.single_output<bool>("Is Hit", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Hit Position");
+    builder.single_output<float3>("Hit Normal", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    if (target_data_) {
+      builder.single_output(
+          "Attribute", target_data_->type(), mf::ParamFlag::SupportsUnusedOutput);
+    }
     this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_input<float3>("Ray Direction");
-    signature.single_input<float>("Ray Length");
-    signature.single_output<bool>("Is Hit");
-    signature.single_output<float3>("Hit Position");
-    signature.single_output<float3>("Hit Normal");
-    signature.single_output<float>("Distance");
-    if (target_data_) {
-      signature.single_output("Attribute", target_data_->type());
-    }
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     /* Hit positions are always necessary for retrieving the attribute from the target if that
      * output is required, so always retrieve a span from the evaluator in that case (it's
      * expected that the evaluator is more likely to have a spare buffer that could be used). */
-    MutableSpan<float3> hit_positions =
-        (target_data_) ? params.uninitialized_single_output<float3>(4, "Hit Position") :
-                         params.uninitialized_single_output_if_required<float3>(4, "Hit Position");
+    MutableSpan<float3> hit_positions = params.uninitialized_single_output<float3>(4,
+                                                                                   "Hit Position");
 
     Array<int> hit_indices;
     if (target_data_) {

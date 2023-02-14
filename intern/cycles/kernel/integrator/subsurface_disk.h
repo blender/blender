@@ -120,7 +120,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
     if (path_flag & PATH_RAY_SUBSURFACE_BACKFACING) {
       hit_Ng = -hit_Ng;
     }
-    if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+    if (object_negative_scale_applied(object_flag)) {
       hit_Ng = -hit_Ng;
     }
 

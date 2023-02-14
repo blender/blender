@@ -14,12 +14,12 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
-#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -564,8 +564,8 @@ static void volume_foreach_cache(ID *id,
 {
   Volume *volume = (Volume *)id;
   IDCacheKey key = {
-      /* id_session_uuid */ id->session_uuid,
-      /* offset_in_ID */ offsetof(Volume, runtime.grids),
+      /*id_session_uuid*/ id->session_uuid,
+      /*offset_in_ID*/ offsetof(Volume, runtime.grids),
   };
 
   function_callback(id, &key, (void **)&volume->runtime.grids, 0, user_data);
@@ -644,33 +644,33 @@ static void volume_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_VO = {
-    /* id_code */ ID_VO,
-    /* id_filter */ FILTER_ID_VO,
-    /* main_listbase_index */ INDEX_ID_VO,
-    /* struct_size */ sizeof(Volume),
-    /* name */ "Volume",
-    /* name_plural */ "volumes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_VOLUME,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_VO,
+    /*id_filter*/ FILTER_ID_VO,
+    /*main_listbase_index*/ INDEX_ID_VO,
+    /*struct_size*/ sizeof(Volume),
+    /*name*/ "Volume",
+    /*name_plural*/ "volumes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_VOLUME,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ volume_init_data,
-    /* copy_data */ volume_copy_data,
-    /* free_data */ volume_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ volume_foreach_id,
-    /* foreach_cache */ volume_foreach_cache,
-    /* foreach_path */ volume_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ volume_init_data,
+    /*copy_data*/ volume_copy_data,
+    /*free_data*/ volume_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ volume_foreach_id,
+    /*foreach_cache*/ volume_foreach_cache,
+    /*foreach_path*/ volume_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ volume_blend_write,
-    /* blend_read_data */ volume_blend_read_data,
-    /* blend_read_lib */ volume_blend_read_lib,
-    /* blend_read_expand */ volume_blend_read_expand,
+    /*blend_write*/ volume_blend_write,
+    /*blend_read_data*/ volume_blend_read_data,
+    /*blend_read_lib*/ volume_blend_read_lib,
+    /*blend_read_expand*/ volume_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)
@@ -1108,6 +1108,8 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (mti->modifyGeometrySet) {
       mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
@@ -1474,7 +1476,9 @@ void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4
 #endif
 }
 
-void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4])
+void BKE_volume_grid_transform_matrix_set(const Volume *volume,
+                                          VolumeGrid *volume_grid,
+                                          const float mat[4][4])
 {
 #ifdef WITH_OPENVDB
   openvdb::math::Mat4f mat_openvdb;
@@ -1483,11 +1487,11 @@ void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const 
       mat_openvdb(col, row) = mat[col][row];
     }
   }
-  openvdb::GridBase::Ptr grid = volume_grid->grid();
+  openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(volume, volume_grid, false);
   grid->setTransform(std::make_shared<openvdb::math::Transform>(
       std::make_shared<openvdb::math::AffineMap>(mat_openvdb)));
 #else
-  UNUSED_VARS(volume_grid, mat);
+  UNUSED_VARS(volume, volume_grid, mat);
 #endif
 }
 
@@ -1504,7 +1508,6 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   volume_dst->totcol = volume_src->totcol;
   volume_dst->render = volume_src->render;
   volume_dst->display = volume_src->display;
-  BKE_volume_init_grids(volume_dst);
 
   return volume_dst;
 }
@@ -1649,7 +1652,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
                                                               const blender::float4x4 &transform)
 {
   openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
-  grid_transform->postMult(openvdb::Mat4d((float *)transform.values));
+  grid_transform->postMult(openvdb::Mat4d((float *)transform.ptr()));
 
   /* Create a transformed grid. The underlying tree is shared. */
   return grid->copyGridReplacingTransform(grid_transform);

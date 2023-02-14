@@ -1,16 +1,4 @@
 
-/* Values in GPU_shader.h. */
-#define GPU_KEYFRAME_SHAPE_DIAMOND (1u << 0)
-#define GPU_KEYFRAME_SHAPE_CIRCLE (1u << 1)
-#define GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL (1u << 2)
-#define GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL (1u << 3)
-#define GPU_KEYFRAME_SHAPE_INNER_DOT (1u << 4)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MAX (1u << 8)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MIN (1u << 9)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MIXED (1u << 10)
-#define GPU_KEYFRAME_SHAPE_SQUARE \
-  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
-
 const float line_falloff = 1.0;
 const float circle_scale = sqrt(2.0 / 3.1416);
 const float square_scale = sqrt(0.5);

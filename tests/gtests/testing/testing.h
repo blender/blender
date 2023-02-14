@@ -42,6 +42,12 @@ const std::string &flags_test_release_dir(); /* bin/{blender version} in the bui
   } \
   (void)0
 
+#define EXPECT_M2_NEAR(a, b, eps) \
+  do { \
+    EXPECT_V2_NEAR(a[0], b[0], eps); \
+    EXPECT_V2_NEAR(a[1], b[1], eps); \
+  } while (false);
+
 #define EXPECT_M3_NEAR(a, b, eps) \
   do { \
     EXPECT_V3_NEAR(a[0], b[0], eps); \

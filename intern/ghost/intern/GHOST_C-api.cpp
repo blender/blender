@@ -1203,10 +1203,10 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
                             void *r_instance,
                             void *r_physical_device,
                             void *r_device,
-                            uint32_t *r_graphic_queue_familly)
+                            uint32_t *r_graphic_queue_family)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-  context->getVulkanHandles(r_instance, r_physical_device, r_device, r_graphic_queue_familly);
+  context->getVulkanHandles(r_instance, r_physical_device, r_device, r_graphic_queue_family);
 }
 
 void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,

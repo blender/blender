@@ -16,8 +16,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static fn::CustomMF_SI_SO<std::string, int> str_len_fn{
-      "String Length", [](const std::string &a) { return BLI_strlen_utf8(a.c_str()); }};
+  static auto str_len_fn = mf::build::SI1_SO<std::string, int>(
+      "String Length", [](const std::string &a) { return BLI_strlen_utf8(a.c_str()); });
   builder.set_matching_fn(&str_len_fn);
 }
 

@@ -24,6 +24,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   asset_catalog_tree_view.cc
   file_draw.c
@@ -32,7 +35,7 @@ set(SRC
   file_panels.c
   file_utils.c
   filelist.cc
-  filesel.c
+  filesel.cc
   folder_history.cc
   fsmenu.c
   space_file.c

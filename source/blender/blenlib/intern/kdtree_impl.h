@@ -46,7 +46,7 @@ struct KDTree {
 
 /**
  * When set we know all values are unbalanced,
- * otherwise clear them when re-balancing: see T62210.
+ * otherwise clear them when re-balancing: see #62210.
  */
 #define KD_NODE_ROOT_IS_INIT ((uint)-2)
 

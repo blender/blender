@@ -25,6 +25,7 @@ void MTLBufferPool::init(id<MTLDevice> mtl_device)
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
     /* Debug statistics. */
+    total_allocation_bytes_ = 0;
     per_frame_allocation_count_ = 0;
     allocations_in_pool_ = 0;
     buffers_in_pool_ = 0;
@@ -43,7 +44,7 @@ MTLBufferPool::~MTLBufferPool()
 
 void MTLBufferPool::free()
 {
-
+  buffer_pool_lock_.lock();
   for (auto buffer : allocations_) {
     BLI_assert(buffer);
     delete buffer;
@@ -55,6 +56,7 @@ void MTLBufferPool::free()
     delete buffer_pool;
   }
   buffer_pools_.clear();
+  buffer_pool_lock_.unlock();
 }
 
 gpu::MTLBuffer *MTLBufferPool::allocate(uint64_t size, bool cpu_visible)
@@ -96,6 +98,8 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 
   /* Check if we have a suitable buffer */
   gpu::MTLBuffer *new_buffer = nullptr;
+  buffer_pool_lock_.lock();
+
   std::multiset<MTLBufferHandle, CompareMTLBuffer> **pool_search = buffer_pools_.lookup_ptr(
       (uint64_t)options);
 
@@ -142,7 +146,9 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 
     /* Track allocation in context. */
     allocations_.append(new_buffer);
+#if MTL_DEBUG_MEMORY_STATISTICS == 1
     total_allocation_bytes_ += aligned_alloc_size;
+#endif
   }
   else {
     /* Re-use suitable buffer. */
@@ -164,6 +170,9 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   per_frame_allocation_count_++;
 #endif
+
+  /* Release lock. */
+  buffer_pool_lock_.unlock();
 
   return new_buffer;
 }
@@ -209,8 +218,11 @@ void MTLBufferPool::update_memory_pools()
 {
   /* Ensure thread-safe access to `completed_safelist_queue_`, which contains
    * the list of MTLSafeFreeList's whose buffers are ready to be
-   * re-inserted into the Memory Manager pools. */
+   * re-inserted into the Memory Manager pools.
+   * we also need to lock access to general buffer pools, to ensure allocations
+   * are not simultaneously happening on background threads. */
   safelist_lock_.lock();
+  buffer_pool_lock_.lock();
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   int num_buffers_added = 0;
@@ -302,6 +314,7 @@ void MTLBufferPool::update_memory_pools()
 
   /* Clear safe pools list */
   completed_safelist_queue_.clear();
+  buffer_pool_lock_.unlock();
   safelist_lock_.unlock();
 }
 
@@ -420,6 +433,7 @@ void MTLSafeFreeList::increment_reference()
   lock_.lock();
   BLI_assert(in_free_queue_ == false);
   reference_count_++;
+  referenced_by_workload_ = true;
   lock_.unlock();
 }
 
@@ -435,6 +449,17 @@ void MTLSafeFreeList::decrement_reference()
     MTLContext::get_global_memory_manager()->push_completed_safe_list(this);
   }
   lock_.unlock();
+}
+
+bool MTLSafeFreeList::should_flush()
+{
+  /* We should only consider refreshing a list if it has been referenced by active workloads, and
+   * contains a sufficient buffer count to avoid overheads associated with flushing the list. If
+   * the reference count is only equal to 1, buffers may have been added, but no command
+   * submissions will have been issued, hence buffers could be returned to the pool prematurely if
+   * associated workload submission occurs later. */
+  return ((reference_count_ > 1 || referenced_by_workload_) &&
+          current_list_index_ > MIN_BUFFER_FLUSH_COUNT);
 }
 
 /** \} */

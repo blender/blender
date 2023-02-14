@@ -169,7 +169,7 @@ static bool gpu_pass_is_valid(GPUPass *pass)
 /** \name Type > string conversion
  * \{ */
 
-#ifdef DEBUG
+#if 0
 #  define SRC_NAME(io, link, list, type) \
     link->node->name << "_" << io << BLI_findindex(&link->node->list, (const void *)link) << "_" \
                      << type
@@ -369,7 +369,7 @@ void GPUCodegen::generate_resources()
 {
   GPUCodegenCreateInfo &info = *create_info;
 
-  /* Ref. T98190: Defines are optimizations for old compilers.
+  /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
   if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_CLEARCOAT)) {
     info.define("PRINCIPLED_CLEARCOAT");
@@ -889,7 +889,6 @@ void gpu_codegen_init(void)
 
 void gpu_codegen_exit(void)
 {
-  // BKE_world_defaults_free_gpu();
   BKE_material_defaults_free_gpu();
   GPU_shader_free_builtin_shaders();
 }

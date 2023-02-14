@@ -361,7 +361,6 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
 {
   float *data_color;
   int i;
-  const MVert *mvert = NULL, *mv;
   Mesh *mesh = ob->data;
 
 #if 0 /* UNUSED */
@@ -377,7 +376,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   }
 #endif
 
-  mvert = BKE_mesh_verts(mesh); /* local object space */
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh); /* local object space */
   pd->totpoints = mesh->totvert;
   if (pd->totpoints == 0) {
     return;
@@ -387,10 +386,10 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   alloc_point_data(pd);
   point_data_pointers(pd, NULL, NULL, &data_color);
 
-  for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++) {
+  for (i = 0; i < pd->totpoints; i++) {
     float co[3];
 
-    copy_v3_v3(co, mv->co);
+    copy_v3_v3(co, positions[i]);
 
     switch (pd->ob_cache_space) {
       case TEX_PD_OBJECTSPACE:

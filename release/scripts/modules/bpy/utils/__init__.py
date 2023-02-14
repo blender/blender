@@ -26,6 +26,7 @@ __all__ = (
     "register_tool",
     "make_rna_paths",
     "manual_map",
+    "manual_language_code",
     "previews",
     "resource_path",
     "script_path_user",
@@ -1002,11 +1003,11 @@ def unregister_tool(tool_cls):
 
 # we start with the built-in default mapping
 def _blender_default_map():
-    import rna_manual_reference as ref_mod
-    ret = (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
-    # avoid storing in memory
-    del _sys.modules["rna_manual_reference"]
-    return ret
+    # NOTE(@ideasman42): Avoid importing this as there is no need to keep the lookup table in memory.
+    # As this runs when the user accesses the "Online Manual", the overhead loading the file is acceptable.
+    # In my tests it's under 1/100th of a second loading from a `pyc`.
+    ref_mod = execfile(_os.path.join(_script_base_dir, "modules", "rna_manual_reference.py"))
+    return (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
 
 
 # hooks for doc lookups
@@ -1033,6 +1034,53 @@ def manual_map():
             continue
 
         yield prefix, url_manual_mapping
+
+
+# Languages which are supported by the user manual (commented when there is no translation).
+_manual_language_codes = {
+    "ar_EG": "ar",  # Arabic
+    # "bg_BG": "bg",  # Bulgarian
+    # "ca_AD": "ca",  # Catalan
+    # "cs_CZ": "cz",  # Czech
+    "de_DE": "de",  # German
+    # "el_GR": "el",  # Greek
+    "es": "es",  # Spanish
+    "fi_FI": "fi",  # Finnish
+    "fr_FR": "fr",  # French
+    "id_ID": "id",  # Indonesian
+    "it_IT": "it",  # Italian
+    "ja_JP": "ja",  # Japanese
+    "ko_KR": "ko",  # Korean
+    # "nb": "nb",  # Norwegian
+    # "nl_NL": "nl",  # Dutch
+    # "pl_PL": "pl",  # Polish
+    "pt_PT": "pt",  # Portuguese
+    # Portuguese - Brazil, for until we have a pt_BR version.
+    "pt_BR": "pt",
+    "ru_RU": "ru",  # Russian
+    "sk_SK": "sk",  # Slovak
+    # "sl": "sl",  # Slovenian
+    "sr_RS": "sr",  # Serbian
+    # "sv_SE": "sv",  # Swedish
+    # "tr_TR": "th",  # Thai
+    "uk_UA": "uk",  # Ukrainian
+    "vi_VN": "vi",  # Vietnamese
+    "zh_CN": "zh-hans",  # Simplified Chinese
+    "zh_TW": "zh-hant",  # Traditional Chinese
+}
+
+
+def manual_language_code(default="en"):
+    """
+    :return:
+       The language code used for user manual URL component based on the current language user-preference,
+       falling back to the ``default`` when unavailable.
+    :rtype: str
+    """
+    language = _bpy.context.preferences.view.language
+    if language == 'DEFAULT':
+        language = _os.getenv("LANG", "").split(".")[0]
+    return _manual_language_codes.get(language, default)
 
 
 # Build an RNA path from struct/property/enum names.

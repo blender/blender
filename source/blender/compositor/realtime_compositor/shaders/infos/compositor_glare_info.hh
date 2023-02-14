@@ -82,3 +82,25 @@ GPU_SHADER_CREATE_INFO(compositor_glare_simple_star_anti_diagonal_pass)
     .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "anti_diagonal_img")
     .compute_source("compositor_glare_simple_star_anti_diagonal_pass.glsl")
     .do_static_compilation(true);
+
+/* -------
+ * Streaks
+ * ------- */
+
+GPU_SHADER_CREATE_INFO(compositor_glare_streaks_filter)
+    .local_group_size(16, 16)
+    .push_constant(Type::FLOAT, "color_modulator")
+    .push_constant(Type::VEC3, "fade_factors")
+    .push_constant(Type::VEC2, "streak_vector")
+    .sampler(0, ImageType::FLOAT_2D, "input_streak_tx")
+    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_streak_img")
+    .compute_source("compositor_glare_streaks_filter.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_streaks_accumulate)
+    .local_group_size(16, 16)
+    .push_constant(Type::FLOAT, "attenuation_factor")
+    .sampler(0, ImageType::FLOAT_2D, "streak_tx")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "accumulated_streaks_img")
+    .compute_source("compositor_glare_streaks_accumulate.glsl")
+    .do_static_compilation(true);

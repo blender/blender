@@ -322,8 +322,8 @@ void id_us_min(ID *id)
 
     if (id->us <= limit) {
       if (!ID_TYPE_IS_DEPRECATED(GS(id->name))) {
-        /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
-         * is valid... */
+        /* Do not assert on deprecated ID types, we cannot really ensure that their ID
+         * reference-counting is valid. */
         CLOG_ERROR(&LOG,
                    "ID user decrement error: %s (from '%s'): %d <= %d",
                    id->name,
@@ -1810,7 +1810,7 @@ void BKE_library_make_local(Main *bmain,
   /* Step 4: We have to remap local usages of old (linked) ID to new (local)
    * ID in a separated loop,
    * as lbarray ordering is not enough to ensure us we did catch all dependencies
-   * (e.g. if making local a parent object before its child...). See T48907. */
+   * (e.g. if making local a parent object before its child...). See #48907. */
   /* TODO: This is now the biggest step by far (in term of processing time).
    * We may be able to gain here by using again main->relations mapping, but...
    * this implies BKE_libblock_remap & co to be able to update main->relations on the fly.
@@ -1828,7 +1828,7 @@ void BKE_library_make_local(Main *bmain,
 
     /* Special hack for groups... Thing is, since we can't instantiate them here, we need to
      * ensure they remain 'alive' (only instantiation is a real group 'user'... *sigh* See
-     * T49722. */
+     * #49722. */
     if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
       id_us_ensure_real(id->newid);
     }

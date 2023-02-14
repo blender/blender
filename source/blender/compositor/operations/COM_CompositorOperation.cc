@@ -219,7 +219,7 @@ void CompositorOperation::determine_canvas(const rcti & /*preferred_area*/, rcti
   BKE_render_resolution(rd_, false, &width, &height);
 
   /* Check actual render resolution with cropping it may differ with cropped border.rendering
-   * Fix for T31777 Border Crop gives black (easy). */
+   * Fix for #31777 Border Crop gives black (easy). */
   Render *re = RE_GetSceneRender(scene_);
   if (re) {
     RenderResult *rr = RE_AcquireResultRead(re);

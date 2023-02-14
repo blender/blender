@@ -228,7 +228,7 @@ def do_versions(self):
                     cscene.use_preview_denoising = False
                 if not cscene.is_property_set("sampling_pattern") or \
                    cscene.get('sampling_pattern') >= 2:
-                    cscene.sampling_pattern = 'PROGRESSIVE_MULTI_JITTER'
+                    cscene.sampling_pattern = 'TABULATED_SOBOL'
 
                 # Removal of square samples.
                 cscene = scene.cycles
@@ -240,6 +240,12 @@ def do_versions(self):
                     for layer in scene.view_layers:
                         layer.samples *= layer.samples
                     cscene["use_square_samples"] = False
+
+            # Disable light tree for existing scenes.
+            if version <= (3, 5, 3):
+                cscene = scene.cycles
+                if not cscene.is_property_set("use_light_tree"):
+                    cscene.use_light_tree = False
 
         # Lamps
         for light in bpy.data.lights:

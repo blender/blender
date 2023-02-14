@@ -602,7 +602,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
        * for unicode support ghost has to be modified. */
 
-      /* TODO(@campbellbarton): support full unicode, SDL supports this but it needs to be
+      /* TODO(@ideasman42): support full unicode, SDL supports this but it needs to be
        * explicitly enabled via #SDL_StartTextInput which GHOST would have to wrap. */
       char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
       if (type == GHOST_kEventKeyDown) {

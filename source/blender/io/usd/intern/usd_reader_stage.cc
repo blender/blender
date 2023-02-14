@@ -6,6 +6,7 @@
 #include "usd_reader_curve.h"
 #include "usd_reader_instance.h"
 #include "usd_reader_light.h"
+#include "usd_reader_material.h"
 #include "usd_reader_mesh.h"
 #include "usd_reader_nurbs.h"
 #include "usd_reader_prim.h"
@@ -15,13 +16,21 @@
 #include "usd_reader_xform.h"
 
 #include <pxr/pxr.h>
+#include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/camera.h>
+#include <pxr/usd/usdGeom/capsule.h>
+#include <pxr/usd/usdGeom/cone.h>
+#include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/curves.h>
+#include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/scope.h>
+#include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdLux/domeLight.h>
+#include <pxr/usd/usdShade/material.h>
+
 #if PXR_VERSION >= 2111
 #  include <pxr/usd/usdLux/boundableLightBase.h>
 #  include <pxr/usd/usdLux/nonboundableLightBase.h>
@@ -38,9 +47,12 @@
 
 #include <iostream>
 
+#include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BLI_sort.hh"
 #include "BLI_string.h"
+
+#include "DNA_material_types.h"
 
 struct Object;
 
@@ -123,6 +135,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
 USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
                                              pxr::UsdGeomXformCache *xf_cache)
 {
+  if (is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
+  }
   if (prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
   }
@@ -327,6 +342,15 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     return nullptr;
   }
 
+  if (prim.IsA<pxr::UsdShadeMaterial>()) {
+    /* Record material path for later processing, if needed,
+     * e.g., when importing all materials.  */
+    material_paths_.push_back(prim.GetPath().GetAsString());
+
+    /* We don't create readers for materials, so return early. */
+    return nullptr;
+  }
+
   USDPrimReader *reader = create_reader_if_allowed(prim, xf_cache);
 
   if (!reader) {
@@ -405,6 +429,68 @@ void USDStageReader::process_armature_modifiers() const
         std::cout << "WARNING: couldn't find armature object for armature modifier for USD prim "
                   << reader->prim_path() << " bound to skeleton " << skel_path << std::endl;
       }
+    }
+  }
+}
+
+void USDStageReader::import_all_materials(Main *bmain)
+{
+  BLI_assert(valid());
+
+  /* Build the material name map if it's not built yet. */
+  if (settings_.mat_name_to_mat.empty()) {
+    build_material_map(bmain, &settings_.mat_name_to_mat);
+  }
+
+  USDMaterialReader mtl_reader(params_, bmain);
+
+  for (const std::string &mtl_path : material_paths_) {
+    pxr::UsdPrim prim = stage_->GetPrimAtPath(pxr::SdfPath(mtl_path));
+
+    pxr::UsdShadeMaterial usd_mtl(prim);
+    if (!usd_mtl) {
+      continue;
+    }
+
+    if (blender::io::usd::find_existing_material(
+            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name)) {
+      /* The material already exists. */
+      continue;
+    }
+
+    /* Add the material now. */
+    Material *new_mtl = mtl_reader.add_material(usd_mtl);
+    BLI_assert_msg(new_mtl, "Failed to create material");
+
+    const std::string mtl_name = pxr::TfMakeValidIdentifier(new_mtl->id.name + 2);
+    settings_.mat_name_to_mat[mtl_name] = new_mtl;
+
+    if (params_.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+      /* Record the unique name of the Blender material we created for the USD material
+       * with the given path, so we don't import the material again when assigning
+       * materials to objects elsewhere in the code. */
+      settings_.usd_path_to_mat_name[prim.GetPath().GetAsString()] = mtl_name;
+    }
+  }
+}
+
+void USDStageReader::fake_users_for_unused_materials()
+{
+  /* Iterate over the imported materials and set a fake user for any unused
+   * materials. */
+  for (const std::pair<const std::string, std::string> &path_mat_pair :
+       settings_.usd_path_to_mat_name) {
+
+    std::map<std::string, Material *>::iterator mat_it = settings_.mat_name_to_mat.find(
+        path_mat_pair.second);
+
+    if (mat_it == settings_.mat_name_to_mat.end()) {
+      continue;
+    }
+
+    Material *mat = mat_it->second;
+    if (mat->id.us == 0) {
+      id_fake_user_set(&mat->id);
     }
   }
 }

@@ -79,7 +79,7 @@ static int count_outputs(bNode *node)
 
 #define ProcNoInputs(name) \
   static void name##_map_inputs( \
-      Tex *UNUSED(tex), bNodeStack **UNUSED(in), TexParams *UNUSED(p), short UNUSED(thread)) \
+      Tex * /*tex*/, bNodeStack ** /*in*/, TexParams * /*p*/, short /*thread*/) \
   { \
   }
 
@@ -90,7 +90,7 @@ static int count_outputs(bNode *node)
     texfn(result, p, node, in, &name##_map_inputs, thread); \
   } \
   static void name##_exec(void *data, \
-                          int UNUSED(thread), \
+                          int /*thread*/, \
                           bNode *node, \
                           bNodeExecData *execdata, \
                           bNodeStack **in, \
@@ -232,7 +232,7 @@ ProcDef(stucci);
 
 /* --- */
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   Tex *tex = static_cast<Tex *>(MEM_callocN(sizeof(Tex), "Tex"));
   node->storage = tex;

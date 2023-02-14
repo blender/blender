@@ -21,6 +21,9 @@
 
 namespace blender::eevee {
 
+class ShadowDirectional;
+class ShadowPunctual;
+
 using namespace draw;
 
 constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
@@ -46,36 +49,21 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_HIZ_VALIDATION = 2u,
   /**
-   * Tile-maps to screen. Is also present in other modes.
-   * - Black pixels, no pages allocated.
-   * - Green pixels, pages cached.
-   * - Red pixels, pages allocated.
+   * Show tiles depending on their status.
    */
   DEBUG_SHADOW_TILEMAPS = 10u,
   /**
-   * Random color per pages. Validates page density allocation and sampling.
+   * Show content of shadow map. Used to verify projection code.
    */
-  DEBUG_SHADOW_PAGES = 11u,
+  DEBUG_SHADOW_VALUES = 11u,
   /**
-   * Outputs random color per tile-map (or tile-map level). Validates tile-maps coverage.
-   * Black means not covered by any tile-maps LOD of the shadow.
+   * Show random color for each tile. Verify allocation and LOD assignment.
    */
-  DEBUG_SHADOW_LOD = 12u,
+  DEBUG_SHADOW_TILE_RANDOM_COLOR = 12u,
   /**
-   * Outputs white pixels for pages allocated and black pixels for unused pages.
-   * This needs DEBUG_SHADOW_PAGE_ALLOCATION_ENABLED defined in order to work.
+   * Show random color for each tile. Verify distribution and LOD transitions.
    */
-  DEBUG_SHADOW_PAGE_ALLOCATION = 13u,
-  /**
-   * Outputs the tile-map atlas. Default tile-map is too big for the usual screen resolution.
-   * Try lowering SHADOW_TILEMAP_PER_ROW and SHADOW_MAX_TILEMAP before using this option.
-   */
-  DEBUG_SHADOW_TILE_ALLOCATION = 14u,
-  /**
-   * Visualize linear depth stored in the atlas regions of the active light.
-   * This way, one can check if the rendering, the copying and the shadow sampling functions works.
-   */
-  DEBUG_SHADOW_SHADOW_DEPTH = 15u
+  DEBUG_SHADOW_TILEMAP_RANDOM_COLOR = 13u,
 };
 
 /** \} */
@@ -120,9 +108,9 @@ struct SamplingData {
 BLI_STATIC_ASSERT_ALIGN(SamplingData, 16)
 
 /* Returns total sample count in a web pattern of the given size. */
-static inline int sampling_web_sample_count_get(int web_density, int ring_count)
+static inline int sampling_web_sample_count_get(int web_density, int in_ring_count)
 {
-  return ((ring_count * ring_count + ring_count) / 2) * web_density + 1;
+  return ((in_ring_count * in_ring_count + in_ring_count) / 2) * web_density + 1;
 }
 
 /* Returns lowest possible ring count that contains at least sample_count samples. */
@@ -176,6 +164,11 @@ struct CameraData {
   float clip_near;
   float clip_far;
   eCameraType type;
+  /** World space distance between view corners at unit distance from camera. */
+  float screen_diagonal_length;
+  float _pad0;
+  float _pad1;
+  float _pad2;
 
   bool1 initialized;
 
@@ -501,8 +494,7 @@ static inline float regular_polygon_side_length(float sides_count)
  * Start first corners at theta == 0. */
 static inline float circle_to_polygon_radius(float sides_count, float theta)
 {
-  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide
-   * 36). */
+  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide 36). */
   float side_angle = (2.0f * M_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
@@ -582,15 +574,21 @@ BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
 
 enum eLightType : uint32_t {
   LIGHT_SUN = 0u,
-  LIGHT_POINT = 1u,
-  LIGHT_SPOT = 2u,
-  LIGHT_RECT = 3u,
-  LIGHT_ELLIPSE = 4u
+  LIGHT_SUN_ORTHO = 1u,
+  LIGHT_POINT = 10u,
+  LIGHT_SPOT = 11u,
+  LIGHT_RECT = 20u,
+  LIGHT_ELLIPSE = 21u
 };
 
 static inline bool is_area_light(eLightType type)
 {
   return type >= LIGHT_RECT;
+}
+
+static inline bool is_sun_light(eLightType type)
+{
+  return type < LIGHT_POINT;
 }
 
 struct LightData {
@@ -602,45 +600,224 @@ struct LightData {
 #define _radius _area_size_x
 #define _spot_mul object_mat[2][3]
 #define _spot_bias object_mat[3][3]
+  /** Scale to convert from world units to tile space of the clipmap_lod_max. */
+#define _clipmap_origin_x object_mat[2][3]
+#define _clipmap_origin_y object_mat[3][3]
   /** Aliases for axes. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  define _right object_mat[0]
-#  define _up object_mat[1]
-#  define _back object_mat[2]
-#  define _position object_mat[3]
+#  define _right object_mat[0].xyz()
+#  define _up object_mat[1].xyz()
+#  define _back object_mat[2].xyz()
+#  define _position object_mat[3].xyz()
 #else
 #  define _right object_mat[0].xyz
 #  define _up object_mat[1].xyz
 #  define _back object_mat[2].xyz
 #  define _position object_mat[3].xyz
 #endif
-  /** Influence radius (inverted and squared) adjusted for Surface / Volume power. */
+  /** Punctual : Influence radius (inverted and squared) adjusted for Surface / Volume power. */
   float influence_radius_invsqr_surface;
   float influence_radius_invsqr_volume;
-  /** Maximum influence radius. Used for culling. */
+  /** Punctual : Maximum influence radius. Used for culling. Equal to clip far distance. */
   float influence_radius_max;
-  /** Index of the shadow struct on CPU. -1 means no shadow. */
-  int shadow_id;
+  /** Special radius factor for point lighting. */
+  float radius_squared;
   /** NOTE: It is ok to use float3 here. A float is declared right after it.
    * float3 is also aligned to 16 bytes. */
   float3 color;
+  /** Light Type. */
+  eLightType type;
+  /** Spot size. Aligned to size of float2. */
+  float2 spot_size_inv;
+  /** Spot angle tangent. */
+  float spot_tan;
+  /** Reuse for directional LOD bias. */
+#define _clipmap_lod_bias spot_tan
   /** Power depending on shader type. */
   float diffuse_power;
   float specular_power;
   float volume_power;
   float transmit_power;
-  /** Special radius factor for point lighting. */
-  float radius_squared;
-  /** Light Type. */
-  eLightType type;
-  /** Spot angle tangent. */
-  float spot_tan;
-  /** Spot size. Aligned to size of float2. */
-  float2 spot_size_inv;
-  /** Associated shadow data. Only valid if shadow_id is not LIGHT_NO_SHADOW. */
-  // ShadowData shadow_data;
+
+  /** --- Shadow Data --- */
+  /** Directional : Near clip distance. Float stored as int for atomic operations. */
+  int clip_near;
+  int clip_far;
+  /** Directional : Clip-map LOD range to avoid sampling outside of valid range. */
+  int clipmap_lod_min;
+  int clipmap_lod_max;
+  /** Index of the first tile-map. */
+  int tilemap_index;
+  /** Directional : Offset of the LOD min in LOD min tile units. */
+  int2 clipmap_base_offset;
+  /** Punctual & Directional : Normal matrix packed for automatic bias. */
+  float2 normal_mat_packed;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
+
+static inline int light_tilemap_max_get(LightData light)
+{
+  /* This is not something we need in performance critical code. */
+  return light.tilemap_index + (light.clipmap_lod_max - light.clipmap_lod_min);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shadows
+ *
+ * Shadow data for either a directional shadow or a punctual shadow.
+ *
+ * A punctual shadow is composed of 1, 5 or 6 shadow regions.
+ * Regions are sorted in this order -Z, +X, -X, +Y, -Y, +Z.
+ * Face index is computed from light's object space coordinates.
+ *
+ * A directional light shadow is composed of multiple clip-maps with each level
+ * covering twice as much area as the previous one.
+ * \{ */
+
+enum eShadowProjectionType : uint32_t {
+  SHADOW_PROJECTION_CUBEFACE = 0u,
+  SHADOW_PROJECTION_CLIPMAP = 1u,
+  SHADOW_PROJECTION_CASCADE = 2u,
+};
+
+static inline int2 shadow_cascade_grid_offset(int2 base_offset, int level_relative)
+{
+  return (base_offset * level_relative) / (1 << 16);
+}
+
+/**
+ * Small descriptor used for the tile update phase. Updated by CPU & uploaded to GPU each redraw.
+ */
+struct ShadowTileMapData {
+  /** Cached, used for rendering. */
+  float4x4 viewmat, winmat;
+  /** Punctual : Corners of the frustum. (vec3 padded to vec4) */
+  float4 corners[4];
+  /** Integer offset of the center of the 16x16 tiles from the origin of the tile space. */
+  int2 grid_offset;
+  /** Shift between previous and current grid_offset. Allows update tagging. */
+  int2 grid_shift;
+  /** True for punctual lights. */
+  eShadowProjectionType projection_type;
+  /** Multiple of SHADOW_TILEDATA_PER_TILEMAP. Offset inside the tile buffer. */
+  int tiles_index;
+  /** Index of persistent data in the persistent data buffer. */
+  int clip_data_index;
+  /** Bias LOD to tag for usage to lower the amount of tile used. */
+  float lod_bias;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowTileMapData, 16)
+
+/**
+ * Per tilemap data persistent on GPU.
+ */
+struct ShadowTileMapClip {
+  /** Clip distances that were used to render the pages. */
+  float clip_near_stored;
+  float clip_far_stored;
+  /** Near and far clip distances for directional. Float stored as int for atomic operations. */
+  int clip_near;
+  int clip_far;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowTileMapClip, 16)
+
+struct ShadowPagesInfoData {
+  /** Number of free pages in the free page buffer. */
+  int page_free_count;
+  /** Number of page allocations needed for this cycle. */
+  int page_alloc_count;
+  /** Index of the next cache page in the cached page buffer. */
+  uint page_cached_next;
+  /** Index of the first page in the buffer since the last defrag. */
+  uint page_cached_start;
+  /** Index of the last page in the buffer since the last defrag. */
+  uint page_cached_end;
+  /** Number of views to be rendered during the shadow update pass. */
+  int view_count;
+  /** Physical page size in pixel. Pages are all squares. */
+  int page_size;
+
+  int _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowPagesInfoData, 16)
+
+struct ShadowStatistics {
+  /** Statistics that are read back to CPU after a few frame (to avoid stall). */
+  int page_used_count;
+  int page_update_count;
+  int page_allocated_count;
+  int page_rendered_count;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowStatistics, 16)
+
+/** Decoded tile data structure. */
+struct ShadowTileData {
+  /** Page inside the virtual shadow map atlas. */
+  uint2 page;
+  /** Page index inside pages_cached_buf. Only valid if `is_cached` is true. */
+  uint cache_index;
+  /** LOD pointed to LOD 0 tile page. (cube-map only). */
+  uint lod;
+  /** If the tile is needed for rendering. */
+  bool is_used;
+  /** True if an update is needed. This persists even if the tile gets unused. */
+  bool do_update;
+  /** True if the tile owns the page (mutually exclusive with `is_cached`). */
+  bool is_allocated;
+  /** True if the tile has been staged for rendering. This will remove the `do_update` flag. */
+  bool is_rendered;
+  /** True if the tile is inside the pages_cached_buf (mutually exclusive with `is_allocated`). */
+  bool is_cached;
+};
+/** \note Stored packed as a uint. */
+#define ShadowTileDataPacked uint
+
+enum eShadowFlag : uint32_t {
+  SHADOW_NO_DATA = 0u,
+  SHADOW_IS_CACHED = (1u << 27u),
+  SHADOW_IS_ALLOCATED = (1u << 28u),
+  SHADOW_DO_UPDATE = (1u << 29u),
+  SHADOW_IS_RENDERED = (1u << 30u),
+  SHADOW_IS_USED = (1u << 31u)
+};
+
+static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
+{
+  ShadowTileData tile;
+  /* Tweaked for SHADOW_PAGE_PER_ROW = 64. */
+  tile.page.x = data & 63u;
+  tile.page.y = (data >> 6u) & 63u;
+  /* -- 12 bits -- */
+  /* Tweaked for SHADOW_TILEMAP_LOD < 8. */
+  tile.lod = (data >> 12u) & 7u;
+  /* -- 15 bits -- */
+  /* Tweaked for SHADOW_MAX_TILEMAP = 4096. */
+  tile.cache_index = (data >> 15u) & 4095u;
+  /* -- 27 bits -- */
+  tile.is_used = (data & SHADOW_IS_USED) != 0;
+  tile.is_cached = (data & SHADOW_IS_CACHED) != 0;
+  tile.is_allocated = (data & SHADOW_IS_ALLOCATED) != 0;
+  tile.is_rendered = (data & SHADOW_IS_RENDERED) != 0;
+  tile.do_update = (data & SHADOW_DO_UPDATE) != 0;
+  return tile;
+}
+
+static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
+{
+  uint data;
+  data = (tile.page.x & 63u);
+  data |= (tile.page.y & 63u) << 6u;
+  data |= (tile.lod & 7u) << 12u;
+  data |= (tile.cache_index & 4095u) << 15u;
+  data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
+  data |= (tile.is_allocated ? uint(SHADOW_IS_ALLOCATED) : 0);
+  data |= (tile.is_cached ? uint(SHADOW_IS_CACHED) : 0);
+  data |= (tile.is_rendered ? uint(SHADOW_IS_RENDERED) : 0);
+  data |= (tile.do_update ? uint(SHADOW_DO_UPDATE) : 0);
+  return data;
+}
 
 /** \} */
 
@@ -761,6 +938,13 @@ using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
 using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
+using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
+using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;
+using ShadowPageHeapBuf = draw::StorageVectorBuffer<uint, SHADOW_MAX_PAGE>;
+using ShadowPageCacheBuf = draw::StorageArrayBuffer<uint2, SHADOW_MAX_PAGE, true>;
+using ShadowTileMapDataBuf = draw::StorageVectorBuffer<ShadowTileMapData, SHADOW_MAX_TILEMAP>;
+using ShadowTileMapClipBuf = draw::StorageArrayBuffer<ShadowTileMapClip, SHADOW_MAX_TILEMAP, true>;
+using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_MAX_TILE, true>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;

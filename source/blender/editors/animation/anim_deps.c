@@ -241,7 +241,7 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
    * The selection flags are used in the Dopesheet only, whereas
    * the active flag is used everywhere else. Hence, we try to
    * sync these here so that it all seems to be have as the user
-   * expects - T50184
+   * expects - #50184
    *
    * Assume that we only really do this when the active status changes.
    * (NOTE: This may prove annoying if it means selection is always lost)

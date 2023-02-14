@@ -353,7 +353,7 @@ static void p_triangle_angles(
   *r_a2 = angle_v3v3v3(v1, v2, v3);
   *r_a3 = angle_v3v3v3(v2, v3, v1);
 
-  /* Fix for degenerate geometry e.g. v1 = sum(v2 + v3). See T100874 */
+  /* Fix for degenerate geometry e.g. v1 = sum(v2 + v3). See #100874 */
   fix_large_angle(v1, v2, v3, r_a1, r_a2, r_a3);
   fix_large_angle(v2, v3, v1, r_a2, r_a3, r_a1);
   fix_large_angle(v3, v1, v2, r_a3, r_a1, r_a2);
@@ -1168,7 +1168,6 @@ static float p_edge_boundary_angle(PEdge *e)
   PEdge *we;
   PVert *v, *v1, *v2;
   float angle;
-  int n = 0;
 
   v = e->vert;
 
@@ -1182,7 +1181,6 @@ static float p_edge_boundary_angle(PEdge *e)
     angle -= angle_v3v3v3(v1->co, v->co, v2->co);
 
     we = we->next->next->pair;
-    n++;
   } while (we && (we != v->edge));
 
   return angle;
@@ -2168,7 +2166,7 @@ static void p_chart_simplify_compute(PChart *chart)
     if (edge->vert->u.heaplink != link) {
       edge->flag |= (PEDGE_COLLAPSE_EDGE | PEDGE_COLLAPSE_PAIR);
       edge->next->vert->u.heaplink = nullptr;
-      SWAP(PEdge *, edge, pair);
+     std::swap( edge, pair);
     }
     else {
       edge->flag |= PEDGE_COLLAPSE_EDGE;
@@ -2237,7 +2235,7 @@ static void p_chart_complexify(PChart *chart)
     pair = e->pair;
 
     if (edge->flag & PEDGE_COLLAPSE_PAIR) {
-      SWAP(PEdge *, edge, pair);
+     std::swap( edge, pair);
     }
 
     p_split_vertex(edge, pair);
@@ -3142,9 +3140,9 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     }
 
     if (flip_faces) {
-      SWAP(float, a2, a3);
-      SWAP(PEdge *, e2, e3);
-      SWAP(PVert *, v2, v3);
+      std::swap(a2, a3);
+      std::swap(e2, e3);
+      std::swap(v2, v3);
     }
 
     float sina1 = sinf(a1);
@@ -3261,7 +3259,7 @@ static float p_face_stretch(PFace *f)
 
   if (area <= 0.0f) {
     /* When a face is flipped, provide a large penalty.
-     * Add on a slight gradient to unflip the face, see also: T99781. */
+     * Add on a slight gradient to unflip the face, see also: #99781. */
     return 1e8f * (1.0f + p_edge_uv_length(e1) + p_edge_uv_length(e2) + p_edge_uv_length(e3));
   }
 
@@ -3873,7 +3871,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
 
   if (nverts > 3) {
     /* Protect against (manifold) geometry which has a non-manifold triangulation.
-     * See T102543. */
+     * See #102543. */
 
     blender::Vector<int, 32> permute;
     permute.reserve(nverts);
@@ -3893,13 +3891,14 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
       int i1 = permute[(i + 1) % pm];
       int i2 = permute[(i + 2) % pm];
       if (!p_face_exists(phandle, vkeys, i0, i1, i2)) {
-        i--; /* ...All good...*/
+        i--; /* All good. */
         continue;
       }
 
-      /* An existing triangle has already been inserted. As a heuristic, attempt to add the
-       * *previous* triangle. \note: Should probably call `GEO_uv_parametrizer_face_add` instead of
-       * `p_face_add_construct`. */
+      /* An existing triangle has already been inserted.
+       * As a heuristic, attempt to add the *previous* triangle.
+       * NOTE: Should probably call `GEO_uv_parametrizer_face_add`
+       * instead of `p_face_add_construct`. */
       int iprev = permute[(i + pm - 1) % pm];
       p_face_add_construct(phandle, key, vkeys, co, uv, iprev, i0, i1, pin, select);
 

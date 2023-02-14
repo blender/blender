@@ -35,7 +35,8 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_CLAMP_BORDER = (1 << 5), /* Clamp to border color instead of border texel. */
   GPU_SAMPLER_COMPARE = (1 << 6),
   GPU_SAMPLER_ANISO = (1 << 7),
-  GPU_SAMPLER_ICON = (1 << 8),
+  GPU_SAMPLER_MIRROR_REPEAT = (1 << 8), /* Requires any REPEAT flag to be set. */
+  GPU_SAMPLER_ICON = (1 << 9),
 
   GPU_SAMPLER_REPEAT = (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R),
 } eGPUSamplerState;
@@ -238,21 +239,21 @@ GPUTexture *GPU_texture_create_1d_ex(const char *name,
                                      int w,
                                      int mip_len,
                                      eGPUTextureFormat format,
-                                     eGPUTextureUsage usage_flags,
+                                     eGPUTextureUsage usage,
                                      const float *data);
 GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
                                            int w,
                                            int h,
                                            int mip_len,
                                            eGPUTextureFormat format,
-                                           eGPUTextureUsage usage_flags,
+                                           eGPUTextureUsage usage,
                                            const float *data);
 GPUTexture *GPU_texture_create_2d_ex(const char *name,
                                      int w,
                                      int h,
                                      int mips,
                                      eGPUTextureFormat format,
-                                     eGPUTextureUsage usage_flags,
+                                     eGPUTextureUsage usage,
                                      const float *data);
 GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
                                            int w,
@@ -260,7 +261,7 @@ GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
                                            int d,
                                            int mip_len,
                                            eGPUTextureFormat format,
-                                           eGPUTextureUsage usage_flags,
+                                           eGPUTextureUsage usage,
                                            const float *data);
 GPUTexture *GPU_texture_create_3d_ex(const char *name,
                                      int w,
@@ -269,20 +270,20 @@ GPUTexture *GPU_texture_create_3d_ex(const char *name,
                                      int mip_len,
                                      eGPUTextureFormat texture_format,
                                      eGPUDataFormat data_format,
-                                     eGPUTextureUsage usage_flags,
+                                     eGPUTextureUsage usage,
                                      const void *data);
 GPUTexture *GPU_texture_create_cube_ex(const char *name,
                                        int w,
                                        int mip_len,
                                        eGPUTextureFormat format,
-                                       eGPUTextureUsage usage_flags,
+                                       eGPUTextureUsage usage,
                                        const float *data);
 GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
                                              int w,
                                              int d,
                                              int mip_len,
                                              eGPUTextureFormat format,
-                                             eGPUTextureUsage usage_flags,
+                                             eGPUTextureUsage usage,
                                              const float *data);
 
 /* Standard texture functions. */

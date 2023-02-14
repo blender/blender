@@ -95,7 +95,7 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
   BLI_addtail(&stack->states, stack->current);
 }
 
-uiUndoStack_Text *ui_textedit_undo_stack_create(void)
+uiUndoStack_Text *ui_textedit_undo_stack_create()
 {
   uiUndoStack_Text *stack = MEM_new<uiUndoStack_Text>(__func__);
   stack->current = nullptr;

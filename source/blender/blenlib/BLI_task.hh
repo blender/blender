@@ -37,7 +37,7 @@
 namespace blender::threading {
 
 template<typename Range, typename Function>
-void parallel_for_each(Range &range, const Function &function)
+void parallel_for_each(Range &&range, const Function &function)
 {
 #ifdef WITH_TBB
   tbb::parallel_for_each(range, function);
@@ -69,6 +69,36 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
   UNUSED_VARS(grain_size);
 #endif
   function(range);
+}
+
+/**
+ * Same as #parallel_for but tries to make the sub-range sizes multiples of the given alignment.
+ * This can improve performance when the range is processed using vectorized and/or unrolled loops,
+ * because the fallback loop that processes remaining values is used less often. A disadvantage of
+ * using this instead of #parallel_for is that the size differences between sub-ranges can be
+ * larger, which means that work is distributed less evenly.
+ */
+template<typename Function>
+void parallel_for_aligned(const IndexRange range,
+                          const int64_t grain_size,
+                          const int64_t alignment,
+                          const Function &function)
+{
+  const int64_t global_begin = range.start();
+  const int64_t global_end = range.one_after_last();
+  const int64_t alignment_mask = ~(alignment - 1);
+  parallel_for(range, grain_size, [&](const IndexRange unaligned_range) {
+    /* Move the sub-range boundaries down to the next aligned index. The "global" begin and end
+     * remain fixed though. */
+    const int64_t unaligned_begin = unaligned_range.start();
+    const int64_t unaligned_end = unaligned_range.one_after_last();
+    const int64_t aligned_begin = std::max(global_begin, unaligned_begin & alignment_mask);
+    const int64_t aligned_end = unaligned_end == global_end ?
+                                    unaligned_end :
+                                    std::max(global_begin, unaligned_end & alignment_mask);
+    const IndexRange aligned_range{aligned_begin, aligned_end - aligned_begin};
+    function(aligned_range);
+  });
 }
 
 template<typename Value, typename Function, typename Reduction>

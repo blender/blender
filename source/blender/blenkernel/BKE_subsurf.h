@@ -24,7 +24,6 @@ struct CCGVert;
 struct DMFlagMat;
 struct DerivedMesh;
 struct EdgeHash;
-struct MPoly;
 struct Mesh;
 struct MeshElemMap;
 struct Object;

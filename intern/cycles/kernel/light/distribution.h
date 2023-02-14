@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 /* Simple CDF based sampling over all lights in the scene, without taking into
  * account shading position or normal. */
 
-ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *randu)
+ccl_device int light_distribution_sample(KernelGlobals kg, const float randn)
 {
   /* This is basically std::upper_bound as used by PBRT, to find a point light or
    * triangle to emit from, proportional to area. a good improvement would be to
@@ -19,7 +19,7 @@ ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *ra
    * arbitrary shaders. */
   int first = 0;
   int len = kernel_data.integrator.num_distribution + 1;
-  float r = *randu;
+  float r = randn;
 
   do {
     int half_len = len >> 1;
@@ -38,18 +38,13 @@ ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *ra
    * make this fail on rare occasions. */
   int index = clamp(first - 1, 0, kernel_data.integrator.num_distribution - 1);
 
-  /* Rescale to reuse random number. this helps the 2D samples within
-   * each area light be stratified as well. */
-  float distr_min = kernel_data_fetch(light_distribution, index).totarea;
-  float distr_max = kernel_data_fetch(light_distribution, index + 1).totarea;
-  *randu = (r - distr_min) / (distr_max - distr_min);
-
   return index;
 }
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
-                                                   float randu,
+                                                   const float randn,
+                                                   const float randu,
                                                    const float randv,
                                                    const float time,
                                                    const float3 P,
@@ -58,7 +53,7 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
                                                    ccl_private LightSample *ls)
 {
   /* Sample light index from distribution. */
-  const int index = light_distribution_sample(kg, &randu);
+  const int index = light_distribution_sample(kg, randn);
   const float pdf_selection = kernel_data.integrator.distribution_pdf_lights;
   return light_sample<in_volume_segment>(
       kg, randu, randv, time, P, bounce, path_flag, index, pdf_selection, ls);

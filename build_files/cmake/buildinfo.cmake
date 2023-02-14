@@ -23,19 +23,19 @@ if(EXISTS ${SOURCE_DIR}/.git)
 
   if(MY_WC_BRANCH STREQUAL "HEAD")
     # Detached HEAD, check whether commit hash is reachable
-    # in the master branch
+    # in the main branch
     execute_process(COMMAND git rev-parse --short=12 HEAD
                     WORKING_DIRECTORY ${SOURCE_DIR}
                     OUTPUT_VARIABLE MY_WC_HASH
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    execute_process(COMMAND git branch --list master blender-v* --contains ${MY_WC_HASH}
+    execute_process(COMMAND git branch --list main blender-v* --contains ${MY_WC_HASH}
                     WORKING_DIRECTORY ${SOURCE_DIR}
                     OUTPUT_VARIABLE _git_contains_check
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     if(NOT _git_contains_check STREQUAL "")
-      set(MY_WC_BRANCH "master")
+      set(MY_WC_BRANCH "main")
     else()
       execute_process(COMMAND git show-ref --tags -d
                       WORKING_DIRECTORY ${SOURCE_DIR}
@@ -48,7 +48,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
                       OUTPUT_STRIP_TRAILING_WHITESPACE)
 
       if(_git_tag_hashes MATCHES "${_git_head_hash}")
-        set(MY_WC_BRANCH "master")
+        set(MY_WC_BRANCH "main")
       else()
         execute_process(COMMAND git branch --contains ${MY_WC_HASH}
                         WORKING_DIRECTORY ${SOURCE_DIR}

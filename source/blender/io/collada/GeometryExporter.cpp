@@ -15,6 +15,7 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
@@ -27,6 +28,7 @@
 #include "collada_internal.h"
 #include "collada_utils.h"
 
+using blender::float3;
 using blender::Span;
 
 void GeometryExporter::exportGeom()
@@ -77,7 +79,7 @@ void GeometryExporter::operator()(Object *ob)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
+  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -99,7 +101,7 @@ void GeometryExporter::operator()(Object *ob)
 
   createLooseEdgeList(ob, me, geom_id);
 
-  /* Only create Polylists if number of faces > 0 */
+  /* Only create poly-lists if number of faces > 0. */
   if (me->totface > 0) {
     /* XXX slow */
     if (ob->totcol) {
@@ -119,12 +121,13 @@ void GeometryExporter::operator()(Object *ob)
   if (this->export_settings.get_include_shapekeys()) {
     Key *key = BKE_key_from_object(ob);
     if (key) {
-      blender::MutableSpan<MVert> verts = me->verts_for_write();
+      blender::MutableSpan<float3> positions = me->vert_positions_for_write();
       KeyBlock *kb = (KeyBlock *)key->block.first;
       /* skip the basis */
       kb = kb->next;
       for (; kb; kb = kb->next) {
-        BKE_keyblock_convert_to_mesh(kb, verts.data(), me->totvert);
+        BKE_keyblock_convert_to_mesh(
+            kb, reinterpret_cast<float(*)[3]>(positions.data()), me->totvert);
         export_key_mesh(ob, me, kb);
       }
     }
@@ -160,7 +163,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
+  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -309,7 +312,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
   return is_triangulated;
 }
 
-std::string GeometryExporter::makeVertexColorSourceId(std::string &geom_id, char *layer_name)
+std::string GeometryExporter::makeVertexColorSourceId(std::string &geom_id, const char *layer_name)
 {
   std::string result = getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + "-" +
                        layer_name;
@@ -365,13 +368,13 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   til.push_back(normals_input);
 
   /* if mesh has uv coords writes <input> for TEXCOORD */
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
   for (int i = 0; i < num_layers; i++) {
-    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, i);
+    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
     if (!this->export_settings.get_active_uv_only() || layer_index == active_uv_index) {
 
-      // char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, i);
+      // char *name = CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, i);
       COLLADASW::Input texcoord_input(
           COLLADASW::InputSemantic::TEXCOORD,
           makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings.get_active_uv_only())),
@@ -387,7 +390,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     int map_index = 0;
 
     for (int a = 0; a < totlayer_mcol; a++) {
-      char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+      const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
                               (has_uvs) ? 3 : 2, /* all color layers have same index order */
@@ -436,13 +439,13 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
 void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 {
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
 
   COLLADASW::FloatSourceF source(mSW);
   source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
   source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION) +
                     ARRAY_ID_SUFFIX);
-  source.setAccessorCount(verts.size());
+  source.setAccessorCount(positions.size());
   source.setAccessorStride(3);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -453,13 +456,15 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
    * count = ""> */
   source.prepareToAppendValues();
   /* appends data to <float_array> */
-  for (const int i : verts.index_range()) {
+  for (const int i : positions.index_range()) {
     Vector co;
     if (export_settings.get_apply_global_orientation()) {
-      bc_add_global_transform(co, verts[i].co, export_settings.get_global_transform());
+      float co_c[3];
+      copy_v3_v3(co_c, positions[i]);
+      bc_add_global_transform(co, co_c, export_settings.get_global_transform());
     }
     else {
-      copy_v3_v3(co, verts[i].co);
+      copy_v3_v3(co, positions[i]);
     }
     source.appendValues(co[0], co[1], co[2]);
   }
@@ -484,7 +489,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
     COLLADASW::FloatSourceF source(mSW);
 
-    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+    const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
     std::string layer_id = makeVertexColorSourceId(geom_id, layer_name);
     source.setId(layer_id);
 
@@ -534,15 +539,16 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
   int totuv = me->totloop;
   const Span<MPoly> polys = me->polys();
 
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
 
   /* write <source> for each layer
    * each <source> will get id like meshName + "map-channel-1" */
-  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
   for (int a = 0; a < num_layers; a++) {
-    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, a);
+    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, a);
     if (!this->export_settings.get_active_uv_only() || layer_index == active_uv_index) {
-      MLoopUV *mloops = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a);
+      const blender::float2 *uv_map = static_cast<const blender::float2 *>(
+          CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, a));
 
       COLLADASW::FloatSourceF source(mSW);
       std::string layer_id = makeTexcoordSourceId(
@@ -560,9 +566,9 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
       for (const int i : polys.index_range()) {
         const MPoly *mpoly = &polys[i];
-        MLoopUV *mloop = mloops + mpoly->loopstart;
+        const blender::float2 *mloop = uv_map + mpoly->loopstart;
         for (int j = 0; j < mpoly->totloop; j++) {
-          source.appendValues(mloop[j].uv[0], mloop[j].uv[1]);
+          source.appendValues(mloop[j][0], mloop[j][1]);
         }
       }
 
@@ -579,11 +585,6 @@ bool operator<(const Normal &a, const Normal &b)
 
 void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor)
 {
-#if 0
-  int totverts = dm->getNumVerts(dm);
-  MVert *verts = dm->getVertArray(dm);
-#endif
-
   COLLADASW::FloatSourceF source(mSW);
   source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL));
   source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL) + ARRAY_ID_SUFFIX);
@@ -617,7 +618,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   std::map<Normal, uint> shared_normal_indices;
   int last_normal_index = -1;
 
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
@@ -638,7 +639,10 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
       /* For flat faces use face normal as vertex normal: */
 
       float vector[3];
-      BKE_mesh_calc_poly_normal(mpoly, &loops[mpoly->loopstart], verts.data(), vector);
+      BKE_mesh_calc_poly_normal(mpoly,
+                                &loops[mpoly->loopstart],
+                                reinterpret_cast<const float(*)[3]>(positions.data()),
+                                vector);
 
       Normal n = {vector[0], vector[1], vector[2]};
       normals.push_back(n);

@@ -397,7 +397,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 
       if (img->x > tsize || img->y > tsize) {
         float scale = MIN2((float)tsize / (float)img->x, (float)tsize / (float)img->y);
-        /* Scaling down must never assign zero width/height, see: T89868. */
+        /* Scaling down must never assign zero width/height, see: #89868. */
         short ex = MAX2(1, (short)(img->x * scale));
         short ey = MAX2(1, (short)(img->y * scale));
         /* Save some time by only scaling byte buf */

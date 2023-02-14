@@ -174,19 +174,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
       ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0) {
-    /* in case of sculpting use last average stroke position as a rotation
-     * center, in other cases it's not clear what rotation center shall be
-     * so just rotate around object origin
-     */
-    if (ob_act->mode &
-        (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-      float stroke[3];
-      BKE_paint_stroke_get_average(scene, ob_act_eval, stroke);
-      copy_v3_v3(lastofs, stroke);
-    }
-    else {
-      copy_v3_v3(lastofs, ob_act_eval->object_to_world[3]);
-    }
+    BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
@@ -831,7 +819,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
      * object, but in this case there is no change in the scene,
      * only the cursor so I choice a ED_region_tag like
      * view3d_smooth_view do for the center_cursor.
-     * See bug T22640.
+     * See bug #22640.
      */
     return OPERATOR_FINISHED;
   }

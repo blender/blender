@@ -6,10 +6,10 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-const float tile_to_fullres_factor = float(DOF_TILE_DIVISOR);
+#define tile_to_fullres_factor float(DOF_TILE_DIVISOR)
 
 /* Error introduced by the random offset of the gathering kernel's center. */
-const float bluring_radius_error = 1.0 + 1.0 / (gather_ring_count + 0.5);
+#define bluring_radius_error (1.0 + 1.0 / (gather_ring_count + 0.5))
 
 void main()
 {

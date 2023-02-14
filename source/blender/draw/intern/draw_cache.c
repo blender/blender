@@ -386,7 +386,7 @@ GPUBatch *DRW_cache_fullscreen_quad_get(void)
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       attr_id.uvs = GPU_vertformat_attr_add(&format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       GPU_vertformat_alias_add(&format, "texCoord");
-      GPU_vertformat_alias_add(&format, "orco"); /* Fix driver bug (see T70004) */
+      GPU_vertformat_alias_add(&format, "orco"); /* Fix driver bug (see #70004) */
     }
 
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
@@ -3371,7 +3371,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, cl->type == CD_MLOOPUV ? "a" : base_name);
+    GPU_vertformat_alias_add(format, cl->type == CD_PROP_FLOAT2 ? "a" : base_name);
   }
 
   /* Active display layer name. */

@@ -5,6 +5,12 @@
 /*  From The Alchemy screen-space ambient obscurance algorithm
  * http://graphics.cs.williams.edu/papers/AlchemyHPG11/VV11AlchemyAO.pdf */
 
+#ifdef WORKBENCH_CAVITY
+#  define USE_CAVITY
+#  define cavityJitter jitter_tx
+#  define samples_coords cavity_samples
+#endif
+
 #ifdef USE_CAVITY
 
 void cavity_compute(vec2 screenco,

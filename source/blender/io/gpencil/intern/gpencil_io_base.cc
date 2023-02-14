@@ -5,8 +5,7 @@
  * \ingroup bgpencil
  */
 
-#include "BLI_float4x4.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
 
@@ -78,13 +77,12 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
     BKE_camera_params_compute_viewplane(&params, rd->xsch, rd->ysch, rd->xasp, rd->yasp);
     BKE_camera_params_compute_matrix(&params);
 
-    float viewmat[4][4];
-    invert_m4_m4(viewmat, cam_ob->object_to_world);
+    float4x4 viewmat = math::invert(float4x4(cam_ob->object_to_world));
 
-    mul_m4_m4m4(persmat_, params.winmat, viewmat);
+    persmat_ = float4x4(params.winmat) * viewmat;
   }
   else {
-    unit_m4(persmat_);
+    persmat_ = float4x4::identity();
   }
 
   winx_ = params_.region->winx;
@@ -131,8 +129,7 @@ void GpencilIO::create_object_list()
   Scene *scene = CTX_data_scene(params_.C);
   ViewLayer *view_layer = CTX_data_view_layer(params_.C);
 
-  float3 camera_z_axis;
-  copy_v3_v3(camera_z_axis, rv3d_->viewinv[2]);
+  float3 camera_z_axis = float3(rv3d_->viewinv[2]);
   ob_list_.clear();
 
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -150,9 +147,11 @@ void GpencilIO::create_object_list()
       continue;
     }
 
+    float3 object_position = float3(object->object_to_world[3]);
+
     /* Save z-depth from view to sort from back to front. */
     if (is_camera_) {
-      float camera_z = dot_v3v3(camera_z_axis, object->object_to_world[3]);
+      float camera_z = math::dot(camera_z_axis, object_position);
       ObjectZ obz = {camera_z, object};
       ob_list_.append(obz);
     }
@@ -160,10 +159,10 @@ void GpencilIO::create_object_list()
       float zdepth = 0;
       if (rv3d_) {
         if (rv3d_->is_persp) {
-          zdepth = ED_view3d_calc_zfac(rv3d_, object->object_to_world[3]);
+          zdepth = ED_view3d_calc_zfac(rv3d_, object_position);
         }
         else {
-          zdepth = -dot_v3v3(rv3d_->viewinv[2], object->object_to_world[3]);
+          zdepth = -math::dot(camera_z_axis, object_position);
         }
         ObjectZ obz = {zdepth * -1.0f, object};
         ob_list_.append(obz);
@@ -184,13 +183,13 @@ void GpencilIO::filepath_set(const char *filepath)
 
 bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
 {
-  float3 parent_co = diff_mat_ * co;
+  float3 parent_co = math::transform_point(diff_mat_, co);
   float2 screen_co;
   eV3DProjTest test = (eV3DProjTest)(V3D_PROJ_RET_OK);
   if (ED_view3d_project_float_global(params_.region, parent_co, screen_co, test) ==
       V3D_PROJ_RET_OK) {
     if (!ELEM(V2D_IS_CLIPPED, screen_co[0], screen_co[1])) {
-      copy_v2_v2(r_co, screen_co);
+      r_co = screen_co;
       /* Invert X axis. */
       if (invert_axis_[0]) {
         r_co[0] = winx_ - r_co[0];
@@ -200,8 +199,8 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
         r_co[1] = winy_ - r_co[1];
       }
       /* Apply offset and scale. */
-      sub_v2_v2(r_co, &offset_.x);
-      mul_v2_fl(r_co, camera_ratio_);
+      r_co -= offset_;
+      r_co *= camera_ratio_;
 
       return true;
     }
@@ -223,12 +222,10 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
 
 float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 {
-  float3 parent_co = diff_mat_ * co;
+  float3 parent_co = math::transform_point(diff_mat_, co);
 
-  float2 r_co;
-  mul_v2_project_m4_v3(&r_co.x, persmat_, &parent_co.x);
-  r_co.x = (r_co.x + 1.0f) / 2.0f * float(render_x_);
-  r_co.y = (r_co.y + 1.0f) / 2.0f * float(render_y_);
+  float2 r_co = float2(math::project_point(persmat_, parent_co));
+  r_co = ((r_co + 1.0f) / 2.0f) * float2(render_x_, render_y_);
 
   /* Invert X axis. */
   if (invert_axis_[0]) {
@@ -260,7 +257,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 
   /* Radius. */
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d_->viewmat, gpd_, gpl, gps, 3, diff_mat_.values, 0.0f);
+      rv3d_->viewmat, gpd_, gpl, gps, 3, diff_mat_.ptr(), 0.0f);
 
   pt = &gps_perimeter->points[0];
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);
@@ -274,7 +271,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 
 void GpencilIO::prepare_layer_export_matrix(Object *ob, bGPDlayer *gpl)
 {
-  BKE_gpencil_layer_transform_matrix_get(depsgraph_, ob, gpl, diff_mat_.values);
+  BKE_gpencil_layer_transform_matrix_get(depsgraph_, ob, gpl, diff_mat_.ptr());
   diff_mat_ = diff_mat_ * float4x4(gpl->layer_invmat);
 }
 
@@ -283,23 +280,21 @@ void GpencilIO::prepare_stroke_export_colors(Object *ob, bGPDstroke *gps)
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
 
   /* Stroke color. */
-  copy_v4_v4(stroke_color_, gp_style->stroke_rgba);
   avg_opacity_ = 0.0f;
   /* Get average vertex color and apply. */
-  float avg_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float4 avg_color = {0.0f, 0.0f, 0.0f, 0.0f};
   for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
-    add_v4_v4(avg_color, pt.vert_color);
+    avg_color += pt.vert_color;
     avg_opacity_ += pt.strength;
   }
 
-  mul_v4_v4fl(avg_color, avg_color, 1.0f / float(gps->totpoints));
-  interp_v3_v3v3(stroke_color_, stroke_color_, avg_color, avg_color[3]);
+  avg_color /= float(gps->totpoints);
   avg_opacity_ /= float(gps->totpoints);
+  stroke_color_ = math::interpolate(float4(gp_style->stroke_rgba), avg_color, avg_color[3]);
 
-  /* Fill color. */
-  copy_v4_v4(fill_color_, gp_style->fill_rgba);
   /* Apply vertex color for fill. */
-  interp_v3_v3v3(fill_color_, fill_color_, gps->vert_color_fill, gps->vert_color_fill[3]);
+  fill_color_ = math::interpolate(
+      float4(gp_style->fill_rgba), float4(gps->vert_color_fill), gps->vert_color_fill[3]);
 }
 
 float GpencilIO::stroke_average_opacity_get()
@@ -329,7 +324,7 @@ void GpencilIO::selected_objects_boundbox_calc()
       if (gpl->flag & GP_LAYER_HIDE) {
         continue;
       }
-      BKE_gpencil_layer_transform_matrix_get(depsgraph_, ob_eval, gpl, diff_mat_.values);
+      BKE_gpencil_layer_transform_matrix_get(depsgraph_, ob_eval, gpl, diff_mat_.ptr());
 
       bGPDframe *gpf = gpl->actframe;
       if (gpf == nullptr) {
@@ -341,15 +336,14 @@ void GpencilIO::selected_objects_boundbox_calc()
           continue;
         }
         for (const bGPDspoint &pt : MutableSpan(gps->points, gps->totpoints)) {
-          const float2 screen_co = gpencil_3D_point_to_2D(&pt.x);
-          minmax_v2v2_v2(min, max, screen_co);
+          math::min_max(gpencil_3D_point_to_2D(&pt.x), min, max);
         }
       }
     }
   }
   /* Add small gap. */
-  add_v2_fl(min, gap * -1.0f);
-  add_v2_fl(max, gap);
+  min -= gap;
+  max += gap;
 
   select_boundbox_.xmin = min[0];
   select_boundbox_.ymin = min[1];

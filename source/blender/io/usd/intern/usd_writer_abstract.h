@@ -7,6 +7,7 @@
 
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usdGeom/boundable.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdUtils/sparseValueWriter.h>
 
@@ -77,6 +78,24 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
    * Reference the original data instead of writing a copy.
    */
   virtual bool mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim);
+
+  /**
+   * Compute the bounds for a boundable prim, and author the result as the `extent` attribute.
+   *
+   * Although this method works for any boundable prim, it is preferred to use Blender's own
+   * cached bounds when possible.
+   *
+   * This method does not author the `extentsHint` attribute, which is also important to provide.
+   * Whereas the `extent` attribute can only be authored on prims inheriting from
+   * `UsdGeomBoundable`, an `extentsHint` can be provided on any prim, including scopes.  This
+   * `extentsHint` should be authored on every prim in a hierarchy being exported.
+   *
+   * Note that this hint is only useful when importing or inspecting layers, and should not be
+   * taken into account when computing extents during export.
+   *
+   * TODO: also provide method for authoring extentsHint on every prim in a hierarchy.
+   */
+  virtual void author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim);
 };
 
 }  // namespace blender::io::usd

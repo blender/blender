@@ -19,8 +19,6 @@
 #include "UI_view2d.h"
 
 struct ARegion;
-struct ARegionType;
-struct Main;
 struct NodeInsertOfsData;
 struct View2D;
 struct bContext;
@@ -43,21 +41,26 @@ struct AssetItemTree;
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
-  Vector<bNodeLink *> links;
-  bool from_multi_input_socket;
+  Vector<bNodeLink> links;
   eNodeSocketInOut in_out;
 
-  /** Draw handler for the "+" icon when dragging a link in empty space. */
+  /** Draw handler for the tooltip icon when dragging a link in empty space. */
   void *draw_handle;
 
   /** Temporarily stores the last picked link from multi-input socket operator. */
   bNodeLink *last_picked_multi_input_socket_link;
 
   /**
-   * Temporarily stores the last hovered socket for multi-input socket operator.
+   * Temporarily stores the last hovered node for multi-input socket operator.
    * Store it to recalculate sorting after it is no longer hovered.
    */
   bNode *last_node_hovered_while_dragging_a_link;
+
+  /**
+   * Temporarily stores the currently hovered socket for link swapping to allow reliably swap links
+   * even when dragging multiple links at once. `nullptr`, when no socket is hovered.
+   */
+  bNodeSocket *hovered_socket;
 
   /* The cursor position, used for drawing a + icon when dragging a node link. */
   std::array<int, 2> cursor;
@@ -69,11 +72,19 @@ struct bNodeLinkDrag {
   /** The number of links connected to the #start_socket when the drag started. */
   int start_link_count;
 
+  bool swap_links = false;
+
   /* Data for edge panning */
   View2DEdgePanData pan_data;
 };
 
 struct SpaceNode_Runtime {
+  /**
+   * The location of all sockets in the tree, calculated while drawing the nodes.
+   * To be indexed with #bNodeSocket::index_in_tree().
+   */
+  Vector<float2> all_socket_locations;
+
   float aspect;
 
   /** Mouse position for drawing socket-less links and adding nodes. */
@@ -156,10 +167,7 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
-void node_socket_add_tooltip(const bNodeTree &ntree,
-                             const bNode &node,
-                             const bNodeSocket &sock,
-                             uiLayout &layout);
+void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout);
 
 /**
  * Sort nodes by selection: unselected nodes first, then selected,
@@ -183,11 +191,11 @@ void node_keymap(wmKeyConfig *keyconf);
 rctf node_frame_rect_inside(const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
-void node_deselect_all(SpaceNode &snode);
+void node_deselect_all(bNodeTree &node_tree);
 void node_socket_select(bNode *node, bNodeSocket &sock);
 void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);
-void node_deselect_all_input_sockets(SpaceNode &snode, bool deselect_nodes);
-void node_deselect_all_output_sockets(SpaceNode &snode, bool deselect_nodes);
+void node_deselect_all_input_sockets(bNodeTree &node_tree, bool deselect_nodes);
+void node_deselect_all_output_sockets(bNodeTree &node_tree, bool deselect_nodes);
 void node_select_single(bContext &C, bNode &node);
 
 void NODE_OT_select(wmOperatorType *ot);
@@ -245,10 +253,13 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col3,
                            bool selected);
 
-void node_link_bezier_points_evaluated(const bNodeLink &link,
+void node_link_bezier_points_evaluated(Span<float2> all_socket_locations,
+                                       const bNodeLink &link,
                                        std::array<float2, NODE_LINK_RESOL + 1> &coords);
 
-std::optional<float2> link_path_intersection(const bNodeLink &link, Span<float2> path);
+std::optional<float2> link_path_intersection(Span<float2> socket_locations,
+                                             const bNodeLink &link,
+                                             Span<float2> path);
 
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
@@ -298,6 +309,8 @@ void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
 
+struct wmKeyMap *node_link_modal_keymap(struct wmKeyConfig *keyconf);
+
 /* node_edit.cc */
 
 float2 node_link_calculate_multi_input_position(const float2 &socket_position,
@@ -315,14 +328,15 @@ bool composite_node_editable(bContext *C);
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
-/** Type is #SOCK_IN and/or #SOCK_OUT. */
-bool node_find_indicated_socket(SpaceNode &snode,
-                                bNode **nodep,
-                                bNodeSocket **sockp,
-                                const float2 &cursor,
-                                eNodeSocketInOut in_out);
-float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
-bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
+bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
+                                        const float2 &cursor,
+                                        eNodeSocketInOut in_out);
+float node_link_dim_factor(Span<float2> socket_locations,
+                           const View2D &v2d,
+                           const bNodeLink &link);
+bool node_link_is_hidden_or_dimmed(Span<float2> socket_locations,
+                                   const View2D &v2d,
+                                   const bNodeLink &link);
 
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);

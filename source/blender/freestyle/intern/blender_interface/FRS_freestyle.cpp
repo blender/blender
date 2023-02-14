@@ -72,12 +72,11 @@ static void load_post_callback(struct Main * /*main*/,
 }
 
 static bCallbackFuncStore load_post_callback_funcstore = {
-    nullptr,            /* next */
-    nullptr,            /* prev */
-    load_post_callback, /* func */
-    nullptr,            /* arg */
-    0                   /* alloc */
-};
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*func*/ load_post_callback,
+    /*arg*/ nullptr,
+    /*alloc*/ 0};
 
 //=======================================================
 //   Initialization

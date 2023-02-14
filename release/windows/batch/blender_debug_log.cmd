@@ -3,7 +3,7 @@ echo Starting blender with debug logging options, log files will be created
 echo in your temp folder, windows explorer will open after you close blender
 echo to help you find them.
 echo.
-echo If you report a bug on https://developer.blender.org you can attach these files
+echo If you report a bug on https://projects.blender.org you can attach these files
 echo by dragging them into the text area of your bug report, please include both
 echo blender_debug_output.txt and blender_system_info.txt in your report. 
 echo.

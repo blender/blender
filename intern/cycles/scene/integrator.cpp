@@ -8,12 +8,12 @@
 #include "scene/camera.h"
 #include "scene/film.h"
 #include "scene/integrator.h"
-#include "scene/jitter.h"
 #include "scene/light.h"
 #include "scene/object.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/stats.h"
+#include "scene/tabulated_sobol.h"
 
 #include "kernel/types.h"
 
@@ -107,8 +107,11 @@ NODE_DEFINE(Integrator)
 
   static NodeEnum sampling_pattern_enum;
   sampling_pattern_enum.insert("sobol_burley", SAMPLING_PATTERN_SOBOL_BURLEY);
-  sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
-  SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_PMJ);
+  sampling_pattern_enum.insert("tabulated_sobol", SAMPLING_PATTERN_TABULATED_SOBOL);
+  SOCKET_ENUM(sampling_pattern,
+              "Sampling Pattern",
+              sampling_pattern_enum,
+              SAMPLING_PATTERN_TABULATED_SOBOL);
   SOCKET_FLOAT(scrambling_distance, "Scrambling Distance", 1.0f);
 
   static NodeEnum denoiser_type_enum;
@@ -250,6 +253,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   kintegrator->sampling_pattern = sampling_pattern;
   kintegrator->scrambling_distance = scrambling_distance;
+  kintegrator->sobol_index_mask = reverse_integer_bits(next_power_of_two(aa_samples - 1) - 1);
 
   kintegrator->use_light_tree = scene->integrator->use_light_tree;
   if (light_sampling_threshold > 0.0f) {
@@ -259,23 +263,23 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     kintegrator->light_inv_rr_threshold = 0.0f;
   }
 
-  constexpr int num_sequences = NUM_PMJ_PATTERNS;
-  int sequence_size = clamp(next_power_of_two(aa_samples - 1), MIN_PMJ_SAMPLES, MAX_PMJ_SAMPLES);
-  if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ &&
+  /* Build pre-tabulated Sobol samples if needed. */
+  int sequence_size = clamp(
+      next_power_of_two(aa_samples - 1), MIN_TAB_SOBOL_SAMPLES, MAX_TAB_SOBOL_SAMPLES);
+  if (kintegrator->sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL &&
       dscene->sample_pattern_lut.size() !=
-          (sequence_size * NUM_PMJ_DIMENSIONS * NUM_PMJ_PATTERNS)) {
-    kintegrator->pmj_sequence_size = sequence_size;
+          (sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS)) {
+    kintegrator->tabulated_sobol_sequence_size = sequence_size;
 
     if (dscene->sample_pattern_lut.size() != 0) {
       dscene->sample_pattern_lut.free();
     }
-    float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size * num_sequences *
-                                                                    NUM_PMJ_DIMENSIONS);
+    float4 *directions = (float4 *)dscene->sample_pattern_lut.alloc(
+        sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS);
     TaskPool pool;
-    for (int j = 0; j < num_sequences; ++j) {
-      float2 *sequence = directions + j * sequence_size;
-      pool.push(
-          function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
+    for (int j = 0; j < NUM_TAB_SOBOL_PATTERNS; ++j) {
+      float4 *sequence = directions + j * sequence_size;
+      pool.push(function_bind(&tabulated_sobol_generate_4D, sequence, sequence_size, j));
     }
     pool.wait_work();
 

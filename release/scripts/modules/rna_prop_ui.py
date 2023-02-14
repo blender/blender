@@ -81,25 +81,26 @@ def rna_idprop_ui_create(
 ):
     """Create and initialize a custom property with limits, defaults and other settings."""
 
+    # Assign the value
+    item[prop] = default
+
+    rna_idprop_ui_prop_update(item, prop)
+    ui_data = item.id_properties_ui(prop)
     proptype, _ = rna_idprop_value_item_type(default)
 
-    # Sanitize limits
     if proptype is bool:
-        min = soft_min = False
-        max = soft_max = True
+        ui_data = item.id_properties_ui(prop)
+        ui_data.update(
+            description=description,
+            default=default,
+        )
+        return
 
     if soft_min is None:
         soft_min = min
     if soft_max is None:
         soft_max = max
 
-    # Assign the value
-    item[prop] = default
-
-    rna_idprop_ui_prop_update(item, prop)
-
-    # Update the UI settings.
-    ui_data = item.id_properties_ui(prop)
     ui_data.update(
         subtype=subtype,
         min=min,
@@ -180,6 +181,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
             value_column.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
 
         operator_row = value_row.row()
+        operator_row.alignment = 'RIGHT'
 
         # Do not allow editing of overridden properties (we cannot use a poll function
         # of the operators here since they's have no access to the specific property).

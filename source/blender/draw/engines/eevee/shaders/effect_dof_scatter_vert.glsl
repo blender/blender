@@ -37,6 +37,7 @@ void vertex_discard()
 
 void main()
 {
+  DEFINE_DOF_QUAD_OFFSETS
   ivec2 tex_size = textureSize(cocBuffer, 0);
 
   int t_id = gl_VertexID / 3; /* Triangle Id */

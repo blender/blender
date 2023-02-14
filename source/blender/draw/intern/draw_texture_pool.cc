@@ -49,7 +49,7 @@ GPUTexture *DRW_texture_pool_query(DRWTexturePool *pool,
                                    eGPUTextureUsage usage,
                                    void *user)
 {
-  /* Texture pools have an implicit usage as a texture attachment*/
+  /* Texture pools have an implicit usage as a texture attachment. */
   BLI_assert_msg(usage & GPU_TEXTURE_USAGE_ATTACHMENT,
                  "Pool textures must be of usage type attachment.");
   usage = usage | GPU_TEXTURE_USAGE_ATTACHMENT;

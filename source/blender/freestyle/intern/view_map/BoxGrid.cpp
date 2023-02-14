@@ -120,7 +120,7 @@ void BoxGrid::assignCells(OccluderSource & /*source*/,
   // Now allocate the cell table and fill it with default (empty) cells
   _cells.resize(_cellsX * _cellsY);
   for (cellContainer::iterator i = _cells.begin(), end = _cells.end(); i != end; ++i) {
-    (*i) = NULL;
+    (*i) = nullptr;
   }
 
   // Identify cells that will be used, and set the dimensions for each
@@ -182,7 +182,7 @@ void BoxGrid::reorganizeCells()
 {
   // Sort the occluders by shallowest point
   for (vector<Cell *>::iterator i = _cells.begin(), end = _cells.end(); i != end; ++i) {
-    if (*i != NULL) {
+    if (*i != nullptr) {
       (*i)->indexPolygons();
     }
   }

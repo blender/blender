@@ -205,9 +205,11 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
   int len;
   int *zval;
 
-  if (BIG_LONG(1) == 1) {
-    return;
-  }
+  /* `BIG_LONG(1) == 1`, no change needed. */
+#ifdef __BIG_ENDIAN__
+  return;
+#endif
+
   if (ibuf->zbuf == NULL) {
     return;
   }

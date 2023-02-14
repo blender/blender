@@ -22,11 +22,13 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
 
 set(SRC
   ed_draw.c
   ed_transverts.c
-  ed_util.c
+  ed_util.cc
   ed_util_imbuf.c
   ed_util_ops.cc
   ed_viewer_path.cc

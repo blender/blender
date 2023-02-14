@@ -15,9 +15,9 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 /**
- * TODO(@campbellbarton): Many connected edge loops can cause an error attempting
+ * TODO(@ideasman42): Many connected edge loops can cause an error attempting
  * to create faces with duplicate vertices. While this needs to be investigated,
- * it's simple enough to check for this case, see: T102232.
+ * it's simple enough to check for this case, see: #102232.
  */
 #define USE_DUPLICATE_FACE_VERT_CHECK
 
@@ -208,7 +208,7 @@ static void bridge_loop_pair(BMesh *bm,
        * the loops values of 'dir_a/b' is degenerate,
        * in this case compare the original directions
        * (before they were corrected by 'el_dir'),
-       * see: T43013
+       * see: #43013
        */
       test_a = dir_a_orig;
       test_b = dir_b_orig;
@@ -272,7 +272,7 @@ static void bridge_loop_pair(BMesh *bm,
         bool flip[2] = {false, false};
 
         /* for direction aligned loops we can't rely on the directly we have,
-         * use the winding defined by the connected faces (see T48356). */
+         * use the winding defined by the connected faces (see #48356). */
         if (fabsf(dot_a) < eps) {
           if (winding_votes[0] < 0) {
             flip[0] = !flip[0];

@@ -52,8 +52,6 @@ static void test_shader_builtin()
                               GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA,
                               GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR,
-                              GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
                               GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_GPENCIL_STROKE, GPU_SHADER_CFG_DEFAULT);

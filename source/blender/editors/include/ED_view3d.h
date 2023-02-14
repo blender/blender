@@ -30,7 +30,6 @@ struct Depsgraph;
 struct EditBone;
 struct GPUSelectResult;
 struct ID;
-struct MVert;
 struct Main;
 struct MetaElem;
 struct Nurb;
@@ -76,7 +75,8 @@ typedef struct ViewContext {
 
 typedef struct ViewDepths {
   unsigned short w, h;
-  short x, y; /* only for temp use for sub-rects, added to region->winx/y */
+  /* only for temp use for sub-rectangles, added to `region->winx/winy`. */
+  short x, y;
   float *depths;
   double depth_range[2];
 } ViewDepths;
@@ -245,7 +245,7 @@ typedef enum {
    * Clamp the edge within the viewport limits defined by
    * #V3D_PROJ_TEST_CLIP_WIN, #V3D_PROJ_TEST_CLIP_NEAR & #V3D_PROJ_TEST_CLIP_FAR.
    * This resolves the problem of a visible edge having one of it's vertices
-   * behind the viewport. See: T32214.
+   * behind the viewport. See: #32214.
    *
    * This is not default behavior as it may be important for the screen-space location
    * of an edges vertex to represent that vertices location (instead of a location along the edge).
@@ -321,7 +321,6 @@ typedef struct V3DSnapCursorState {
   uchar color_line[4];
   uchar color_point[4];
   uchar color_box[4];
-  struct wmGizmoGroupType *gzgrp_type; /* Force cursor to be drawn only when gizmo is available. */
   float *prevpoint;
   float box_dimensions[3];
   eSnapMode snap_elem_force; /* If SCE_SNAP_MODE_NONE, use scene settings. */
@@ -330,6 +329,9 @@ typedef struct V3DSnapCursorState {
   bool draw_point;
   bool draw_plane;
   bool draw_box;
+
+  bool (*poll)(struct ARegion *region, void *custom_poll_data);
+  void *poll_data;
 } V3DSnapCursorState;
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
@@ -355,11 +357,12 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
 
 /* foreach iterators */
 
-void meshobject_foreachScreenVert(
-    struct ViewContext *vc,
-    void (*func)(void *userData, struct MVert *eve, const float screen_co[2], int index),
-    void *userData,
-    eV3DProjTest clip_flag);
+void meshobject_foreachScreenVert(struct ViewContext *vc,
+                                  void (*func)(void *userData,
+                                               const float screen_co[2],
+                                               int index),
+                                  void *userData,
+                                  eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
     struct ViewContext *vc,
     void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),
@@ -757,7 +760,7 @@ bool ED_view3d_viewplane_get(struct Depsgraph *depsgraph,
                              float *r_pixsize);
 
 /**
- * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug T37727.
+ * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug #37727.
  */
 void ED_view3d_polygon_offset(const struct RegionView3D *rv3d, float dist);
 
@@ -1102,15 +1105,15 @@ char ED_view3d_lock_view_from_index(int index);
 char ED_view3d_axis_view_opposite(char view);
 bool ED_view3d_lock(struct RegionView3D *rv3d);
 
-void ED_view3d_datamask(const struct bContext *C,
-                        const struct Scene *scene,
+void ED_view3d_datamask(const struct Scene *scene,
+                        struct ViewLayer *view_layer,
                         const struct View3D *v3d,
                         struct CustomData_MeshMasks *r_cddata_masks);
 /**
  * Goes over all modes and view3d settings.
  */
-void ED_view3d_screen_datamask(const struct bContext *C,
-                               const struct Scene *scene,
+void ED_view3d_screen_datamask(const struct Scene *scene,
+                               struct ViewLayer *view_layer,
                                const struct bScreen *screen,
                                struct CustomData_MeshMasks *r_cddata_masks);
 
@@ -1294,13 +1297,21 @@ void ED_scene_draw_fps(const struct Scene *scene, int xoffset, int *yoffset);
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *region);
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *area);
 
-#define XRAY_ALPHA(v3d) \
-  (((v3d)->shading.type == OB_WIRE) ? (v3d)->shading.xray_alpha_wire : (v3d)->shading.xray_alpha)
-#define XRAY_FLAG(v3d) \
-  (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
-#define XRAY_FLAG_ENABLED(v3d) (((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0)
-#define XRAY_ENABLED(v3d) (XRAY_FLAG_ENABLED(v3d) && (XRAY_ALPHA(v3d) < 1.0f))
-#define XRAY_ACTIVE(v3d) (XRAY_ENABLED(v3d) && ((v3d)->shading.type < OB_MATERIAL))
+#define SHADING_XRAY_ALPHA(shading) \
+  (((shading).type == OB_WIRE) ? (shading).xray_alpha_wire : (shading).xray_alpha)
+#define SHADING_XRAY_FLAG(shading) \
+  (((shading).type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
+#define SHADING_XRAY_FLAG_ENABLED(shading) (((shading).flag & SHADING_XRAY_FLAG(shading)) != 0)
+#define SHADING_XRAY_ENABLED(shading) \
+  (SHADING_XRAY_FLAG_ENABLED(shading) && (SHADING_XRAY_ALPHA(shading) < 1.0f))
+#define SHADING_XRAY_ACTIVE(shading) \
+  (SHADING_XRAY_ENABLED(shading) && ((shading).type < OB_MATERIAL))
+
+#define XRAY_ALPHA(v3d) SHADING_XRAY_ALPHA((v3d)->shading)
+#define XRAY_FLAG(v3d) SHADING_XRAY_FLAG((v3d)->shading)
+#define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
+#define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
+#define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
 
 /* view3d_draw_legacy.c */
 

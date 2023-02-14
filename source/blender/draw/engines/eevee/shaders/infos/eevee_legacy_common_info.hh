@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
@@ -199,7 +200,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_closure_eval_translucent_lib)
     .additional_info("eevee_legacy_closure_eval_lib")
     .additional_info("eevee_legacy_renderpass_lib");
 
-/* eevee_legacy_closure_eval_surface_lib*/
+/* eevee_legacy_closure_eval_surface_lib */
 GPU_SHADER_CREATE_INFO(eevee_legacy_closure_eval_surface_lib)
     .additional_info("eevee_legacy_closure_eval_diffuse_lib")
     .additional_info("eevee_legacy_closure_eval_glossy_lib")

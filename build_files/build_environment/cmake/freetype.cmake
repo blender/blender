@@ -32,9 +32,10 @@ add_dependencies(
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_freetype after_install
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freetype ${HARVEST_TARGET}/freetype
-	# harfbuzz *NEEDS* to find freetype.lib and will not be conviced to take alternative names so just give it
-	# what it wants. 
-	COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/freetype/lib/freetype2st.lib ${LIBDIR}/freetype/lib/freetype.lib
+	  # harfbuzz *NEEDS* to find freetype.lib and will not be conviced to take alternative names so just give it
+	  # what it wants.
+	  COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/freetype/lib/freetype2st.lib ${LIBDIR}/freetype/lib/freetype.lib
+
     DEPENDEES install
   )
 endif()

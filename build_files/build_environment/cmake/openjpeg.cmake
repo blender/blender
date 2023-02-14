@@ -39,8 +39,10 @@ if(MSVC)
   )
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_openjpeg_msvc after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/lib ${HARVEST_TARGET}/openjpeg/lib &&
-          ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/include ${HARVEST_TARGET}/openjpeg/include
+      COMMAND
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/lib ${HARVEST_TARGET}/openjpeg/lib &&
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/include ${HARVEST_TARGET}/openjpeg/include
+
       DEPENDEES install
     )
   endif()

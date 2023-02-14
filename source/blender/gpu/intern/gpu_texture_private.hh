@@ -41,7 +41,20 @@ typedef enum eGPUTextureType {
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
 } eGPUTextureType;
 
-ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
+ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_BUFFER)
+
+/* Format types for samplers within the shader.
+ * This covers the sampler format type permutations within GLSL/MSL. */
+typedef enum eGPUSamplerFormat {
+  GPU_SAMPLER_TYPE_FLOAT = 0,
+  GPU_SAMPLER_TYPE_INT = 1,
+  GPU_SAMPLER_TYPE_UINT = 2,
+  /* Special case for depth, as these require differing dummy formats. */
+  GPU_SAMPLER_TYPE_DEPTH = 3,
+  GPU_SAMPLER_TYPE_MAX = 4
+} eGPUSamplerFormat;
+
+ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 
 #ifdef DEBUG
 #  define DEBUG_NAME_LEN 64
@@ -464,6 +477,14 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
 
 inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
 {
+  /* Special case for compacted types.
+   * Standard component len calculation does not apply, as the texture formats contain multiple
+   * channels, but associated data format contains several compacted components. */
+  if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
+      (tex_format == GPU_RGB10_A2 && data_format == GPU_DATA_2_10_10_10_REV)) {
+    return 4;
+  }
+
   return to_component_len(tex_format) * to_bytesize(data_format);
 }
 
@@ -478,18 +499,28 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
     case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
       return ELEM(data_format, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
-    case GPU_R8UI:
     case GPU_R16UI:
     case GPU_RG16UI:
+    case GPU_RGBA16UI:
     case GPU_R32UI:
+    case GPU_RG32UI:
+    case GPU_RGBA32UI:
       return data_format == GPU_DATA_UINT;
-    case GPU_R32I:
-    case GPU_RG16I:
+    case GPU_R8I:
+    case GPU_RG8I:
+    case GPU_RGBA8I:
     case GPU_R16I:
+    case GPU_RG16I:
+    case GPU_RGBA16I:
+    case GPU_R32I:
+    case GPU_RG32I:
+    case GPU_RGBA32I:
       return data_format == GPU_DATA_INT;
     case GPU_R8:
     case GPU_RG8:
     case GPU_RGBA8:
+    case GPU_R8UI:
+    case GPU_RG8UI:
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_UBYTE, GPU_DATA_FLOAT);

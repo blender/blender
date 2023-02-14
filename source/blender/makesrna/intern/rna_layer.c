@@ -435,7 +435,8 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "collection->id.name");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Name", "Name of this layer collection (same as its collection one)");
+  RNA_def_property_ui_text(
+      prop, "Name", "Name of this layer collection (same as its collection one)");
   RNA_def_property_string_funcs(
       prop, "rna_LayerCollection_name_get", "rna_LayerCollection_name_length", NULL);
   RNA_def_struct_name_property(srna, prop);

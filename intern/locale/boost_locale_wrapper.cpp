@@ -6,6 +6,7 @@
  */
 
 #include <boost/locale.hpp>
+#include <iostream>
 #include <stdio.h>
 
 #include "boost_locale_wrapper.h"
@@ -107,7 +108,7 @@ void bl_locale_set(const char *locale)
   }
   /* Extra catch on `std::runtime_error` is needed for macOS/Clang as it seems that exceptions
    * like `boost::locale::conv::conversion_error` (which inherit from `std::runtime_error`) are
-   * not caught by their ancestor `std::exception`. See T88877#1177108 */
+   * not caught by their ancestor `std::exception`. See #88877#1177108 */
   catch (std::runtime_error const &e) {
     std::cout << "bl_locale_set(" << locale << "): " << e.what() << " \n";
   }

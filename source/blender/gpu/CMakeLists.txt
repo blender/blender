@@ -12,9 +12,9 @@ endif()
 set(INC
   .
   intern
-  vulkan
   metal
   opengl
+  vulkan
   ../blenkernel
   ../blenlib
   ../bmesh
@@ -29,6 +29,7 @@ set(INC
   # For *_info.hh includes.
   ../compositor/realtime_compositor
   ../draw/engines/eevee_next
+  ../draw/engines/workbench
   ../draw/intern
 
   # For node muting stuff.
@@ -43,7 +44,6 @@ set(INC
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
-  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -70,7 +70,7 @@ set(SRC
   intern/gpu_select_pick.c
   intern/gpu_select_sample_query.cc
   intern/gpu_shader.cc
-  intern/gpu_shader_builtin.c
+  intern/gpu_shader_builtin.cc
   intern/gpu_shader_create_info.cc
   intern/gpu_shader_dependency.cc
   intern/gpu_shader_interface.cc
@@ -104,6 +104,7 @@ set(SRC
   GPU_primitive.h
   GPU_select.h
   GPU_shader.h
+  GPU_shader_builtin.h
   GPU_shader_shared.h
   GPU_state.h
   GPU_storage_buffer.h
@@ -195,6 +196,7 @@ set(VULKAN_SRC
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_memory.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
@@ -211,6 +213,7 @@ set(VULKAN_SRC
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_memory.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
@@ -267,6 +270,10 @@ set(METAL_SRC
   metal/mtl_vertex_buffer.hh
 )
 
+set(LIB
+  ${Epoxy_LIBRARIES}
+)
+
 # Select Backend source based on availability
 if(WITH_OPENGL)
   list(APPEND SRC ${OPENGL_SRC})
@@ -276,27 +283,31 @@ if(WITH_METAL_BACKEND)
   list(APPEND SRC ${METAL_SRC})
 endif()
 
-set(LIB
-  ${Epoxy_LIBRARIES}
-  ${VULKAN_LIBRARIES}
-)
 
 if(WITH_VULKAN_BACKEND)
-  list(APPEND SRC ${VULKAN_SRC})
-
-  add_definitions(-DWITH_VULKAN_BACKEND)
-
-  list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-  )
-
   list(APPEND INC
     ../../../extern/vulkan_memory_allocator/
   )
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+    ${MOLTENVK_INCLUDE_DIRS}
+    ${SHADERC_INCLUDE_DIRS}
+  )
+  list(APPEND SRC
+    ${VULKAN_SRC}
+  )
 
   list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+    ${SHADERC_LIBRARIES}
+    ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
+if(WITH_VULKAN_GUARDEDALLOC)
+  add_definitions(-DWITH_VULKAN_GUARDEDALLOC)
 endif()
 
 set(MSL_SRC
@@ -367,7 +378,6 @@ set(GLSL_SRC
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_frag.glsl
-  shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
   shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl
@@ -388,6 +398,13 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math.glsl
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
+  shaders/common/gpu_shader_math_base_lib.glsl
+  shaders/common/gpu_shader_math_fast_lib.glsl
+  shaders/common/gpu_shader_math_matrix_lib.glsl
+  shaders/common/gpu_shader_math_rotation_lib.glsl
+  shaders/common/gpu_shader_math_vector_lib.glsl
+  shaders/common/gpu_shader_test_lib.glsl
+  shaders/common/gpu_shader_utildefines_lib.glsl
 
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
@@ -484,7 +501,17 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
+
   GPU_shader_shared_utils.h
+)
+
+set(GLSL_SRC_TEST
+  tests/shaders/gpu_math_test.glsl
+  tests/shaders/gpu_compute_1d_test.glsl
+  tests/shaders/gpu_compute_2d_test.glsl
+  tests/shaders/gpu_compute_ibo_test.glsl
+  tests/shaders/gpu_compute_vbo_test.glsl
+  tests/shaders/gpu_compute_dummy_test.glsl
 )
 
 set(MTL_BACKEND_GLSL_SRC
@@ -503,6 +530,12 @@ set(MSL_SRC
   shaders/metal/mtl_shader_common.msl
   metal/mtl_shader_shared.h
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND GLSL_SRC ${GLSL_SRC_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND GLSL_SRC ${MTL_BACKEND_GLSL_SRC})
@@ -550,6 +583,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_shadow_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
@@ -579,15 +613,15 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
 
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
   ../draw/engines/eevee/shaders/infos/eevee_legacy_bloom_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
   ../draw/engines/eevee/shaders/infos/eevee_legacy_dof_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
-  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
   ../draw/engines/eevee/shaders/infos/eevee_legacy_material_info.hh
   ../draw/engines/eevee/shaders/infos/eevee_legacy_motion_blur_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
 
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_debug_info.hh
@@ -629,10 +663,21 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )
 
+set(SRC_SHADER_CREATE_INFOS_TEST
+  shaders/infos/gpu_shader_test_info.hh
+)
+
+
 set(SRC_SHADER_CREATE_INFOS_MTL
   metal/kernels/depth_2d_update_info.hh
   metal/kernels/gpu_shader_fullscreen_blit_info.hh
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})

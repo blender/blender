@@ -45,7 +45,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
                                                 &ob_proxy->proxy->id;
   ID *id_instance_hint = is_override_instancing_object ? &ob_proxy_group->id : &ob_proxy->id;
 
-  /* In some cases the instance collection of a proxy object may be local (see e.g. T83875). Not
+  /* In some cases the instance collection of a proxy object may be local (see e.g. #83875). Not
    * sure this is a valid state, but for now just abort the overriding process. */
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_root)) {
     if (ob_proxy->proxy != NULL) {
@@ -73,7 +73,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
    * overrides. Also do that for the IDs from the same lib as the proxy in case it is linked.
    * While this might not be 100% the desired behavior, it is likely to be the case most of the
-   * time. Ref: T91711. */
+   * time. Ref: #91711. */
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     if (!ID_IS_LINKED(id_iter) || id_iter->lib == ob_proxy->id.lib) {

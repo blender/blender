@@ -49,12 +49,17 @@
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
 
+typedef enum eGP_EyeMode {
+  GP_EYE_MATERIAL = 0,
+  GP_EYE_PALETTE = 1,
+} eGP_EyeMode;
+
 struct EyedropperGPencil {
   struct ColorManagedDisplay *display;
   /** color under cursor RGB */
   float color[3];
   /** Mode */
-  int mode;
+  eGP_EyeMode mode;
 };
 
 /* Helper: Draw status message while the user is running the operator */
@@ -79,7 +84,7 @@ static bool eyedropper_gpencil_init(bContext *C, wmOperator *op)
   display_device = scene->display_settings.display_device;
   eye->display = IMB_colormanagement_display_get_named(display_device);
 
-  eye->mode = RNA_enum_get(op->ptr, "mode");
+  eye->mode = (eGP_EyeMode)RNA_enum_get(op->ptr, "mode");
   return true;
 }
 
@@ -228,10 +233,10 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
 
   float col_conv[4];
 
-  /* Convert from linear rgb space to display space because grease pencil colors are in display
+  /* Convert from linear rgb space to display space because palette colors are in display
    *  space, and this conversion is needed to undo the conversion to linear performed by
    *  eyedropper_color_sample_fl. */
-  if (eye->display) {
+  if ((eye->display) && (eye->mode == GP_EYE_PALETTE)) {
     copy_v3_v3(col_conv, eye->color);
     IMB_colormanagement_scene_linear_to_display_v3(col_conv, eye->display);
   }
@@ -240,7 +245,7 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
   }
 
   /* Add material or Palette color. */
-  if (eye->mode == 0) {
+  if (eye->mode == GP_EYE_MATERIAL) {
     eyedropper_add_material(C, col_conv, only_stroke, only_fill, both);
   }
   else {
@@ -348,8 +353,8 @@ static bool eyedropper_gpencil_poll(bContext *C)
 void UI_OT_eyedropper_gpencil_color(wmOperatorType *ot)
 {
   static const EnumPropertyItem items_mode[] = {
-      {0, "MATERIAL", 0, "Material", ""},
-      {1, "PALETTE", 0, "Palette", ""},
+      {GP_EYE_MATERIAL, "MATERIAL", 0, "Material", ""},
+      {GP_EYE_PALETTE, "PALETTE", 0, "Palette", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -369,5 +374,5 @@ void UI_OT_eyedropper_gpencil_color(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "mode", items_mode, 0, "Mode", "");
+  ot->prop = RNA_def_enum(ot->srna, "mode", items_mode, GP_EYE_MATERIAL, "Mode", "");
 }

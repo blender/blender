@@ -14,7 +14,7 @@ from bl_ui.space_toolsystem_common import (
 )
 from bl_ui.properties_material import (
     EEVEE_MATERIAL_PT_settings,
-    MATERIAL_PT_viewport
+    MATERIAL_PT_viewport,
 )
 from bl_ui.properties_world import (
     WORLD_PT_viewport_display
@@ -41,7 +41,7 @@ class NODE_HT_header(Header):
 
         layout.template_header()
 
-        # Now expanded via the 'ui_type'
+        # Now expanded via the `ui_type`.
         # layout.prop(snode, "tree_type", text="")
 
         if snode.tree_type == 'ShaderNodeTree':
@@ -62,7 +62,7 @@ class NODE_HT_header(Header):
 
                 types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META',
                                                'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD'}
-                # disable material slot buttons when pinned, cannot find correct slot within id_from (T36589)
+                # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 # disable also when the selected object does not support materials
                 has_material_slots = not snode.pin and ob_type in types_that_support_material
 
@@ -318,7 +318,9 @@ class NODE_MT_node(Menu):
 
         layout.separator()
         layout.operator("node.clipboard_copy", text="Copy")
-        layout.operator("node.clipboard_paste", text="Paste")
+        row = layout.row()
+        row.operator_context = 'EXEC_DEFAULT'
+        row.operator("node.clipboard_paste", text="Paste")
         layout.operator("node.duplicate_move")
         layout.operator("node.duplicate_move_linked")
         layout.operator("node.delete")
@@ -496,18 +498,18 @@ class NODE_MT_context_menu(Menu):
         # If no nodes are selected.
         if selected_nodes_len == 0:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.menu("NODE_MT_add", icon="ADD")
-            layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+            layout.menu("NODE_MT_add", icon='ADD')
+            layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
 
             layout.separator()
 
-            layout.operator("node.find_node", text="Find...", icon="VIEWZOOM")
+            layout.operator("node.find_node", text="Find...", icon='VIEWZOOM')
 
             layout.separator()
 
             if is_geometrynodes:
                 layout.operator_context = 'INVOKE_DEFAULT'
-                layout.operator("node.select", text="Clear Viewer", icon="HIDE_ON").clear_viewer = True
+                layout.operator("node.select", text="Clear Viewer", icon='HIDE_ON').clear_viewer = True
 
             layout.operator("node.links_cut")
             layout.operator("node.links_mute")
@@ -521,19 +523,19 @@ class NODE_MT_context_menu(Menu):
 
         if is_geometrynodes:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("node.link_viewer", text="Link to Viewer", icon="HIDE_OFF")
+            layout.operator("node.link_viewer", text="Link to Viewer", icon='HIDE_OFF')
 
             layout.separator()
 
-        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
-        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+        layout.operator("node.clipboard_copy", text="Copy", icon='COPYDOWN')
+        layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("node.duplicate_move", icon="DUPLICATE")
+        layout.operator("node.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
-        layout.operator("node.delete", icon="X")
+        layout.operator("node.delete", icon='X')
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("node.delete_reconnect", text="Dissolve")
 
@@ -546,7 +548,7 @@ class NODE_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("node.group_make", text="Make Group", icon="NODETREE")
+        layout.operator("node.group_make", text="Make Group", icon='NODETREE')
         layout.operator("node.group_insert", text="Insert Into Group")
 
         if active_node and active_node.type == 'GROUP':
@@ -659,7 +661,7 @@ class NODE_PT_active_node_properties(Panel):
                 )
 
     def show_socket_input(self, socket):
-        return hasattr(socket, 'draw') and socket.enabled and not socket.is_linked
+        return hasattr(socket, "draw") and socket.enabled and not socket.is_linked
 
 
 class NODE_PT_texture_mapping(Panel):
@@ -668,7 +670,7 @@ class NODE_PT_texture_mapping(Panel):
     bl_category = "Node"
     bl_label = "Texture Mapping"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -878,7 +880,7 @@ class NodeTreeInterfacePanel(Panel):
             props = property_row.operator_menu_enum(
                 "node.tree_socket_change_type",
                 "socket_type",
-                text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname
+                text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname,
             )
             props.in_out = in_out
 
@@ -959,7 +961,7 @@ def node_panel(cls):
     node_cls.bl_space_type = 'NODE_EDITOR'
     node_cls.bl_region_type = 'UI'
     node_cls.bl_category = "Options"
-    if hasattr(node_cls, 'bl_parent_id'):
+    if hasattr(node_cls, "bl_parent_id"):
         node_cls.bl_parent_id = 'NODE_' + node_cls.bl_parent_id
 
     return node_cls

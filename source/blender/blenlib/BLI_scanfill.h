@@ -82,7 +82,7 @@ struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx,
                                            struct ScanFillVert *v2);
 
 enum {
-  /* NOTE(@campbellbarton): using #BLI_SCANFILL_CALC_REMOVE_DOUBLES
+  /* NOTE(@ideasman42): using #BLI_SCANFILL_CALC_REMOVE_DOUBLES
    * Assumes ordered edges, otherwise we risk an eternal loop
    * removing double verts. */
   BLI_SCANFILL_CALC_REMOVE_DOUBLES = (1 << 1),

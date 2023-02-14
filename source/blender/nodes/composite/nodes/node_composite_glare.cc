@@ -9,8 +9,9 @@
 
 #include "BLI_assert.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_scene_types.h"
 
@@ -30,6 +31,8 @@
 #include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
+
+#define MAX_GLARE_ITERATIONS 5
 
 namespace blender::nodes::node_composite_glare_cc {
 
@@ -128,19 +131,9 @@ class GlareOperation : public NodeOperation {
       return true;
     }
 
-    /* Only the ghost and simple star operations are currently supported. */
-    switch (node_storage(bnode()).type) {
-      case CMP_NODE_GLARE_SIMPLE_STAR:
-        return false;
-      case CMP_NODE_GLARE_FOG_GLOW:
-        return true;
-      case CMP_NODE_GLARE_STREAKS:
-        return true;
-      case CMP_NODE_GLARE_GHOST:
-        return false;
-      default:
-        BLI_assert_unreachable();
-        return true;
+    /* The fog glow mode is currently unsupported. */
+    if (node_storage(bnode()).type == CMP_NODE_GLARE_FOG_GLOW) {
+      return true;
     }
 
     return false;
@@ -334,26 +327,174 @@ class GlareOperation : public NodeOperation {
     return size.x + size.y - 1;
   }
 
-  /* ---------------
-   * Fog Glow Glare.
-   * --------------- */
-
-  /* Not yet implemented. Unreachable code due to the is_identity method. */
-  Result execute_fog_glow(Result & /*highlights_result*/)
-  {
-    BLI_assert_unreachable();
-    return Result(ResultType::Color, texture_pool());
-  }
-
   /* --------------
    * Streaks Glare.
    * -------------- */
 
-  /* Not yet implemented. Unreachable code due to the is_identity method. */
-  Result execute_streaks(Result & /*highlights_result*/)
+  Result execute_streaks(Result &highlights_result)
   {
-    BLI_assert_unreachable();
-    return Result(ResultType::Color, texture_pool());
+    /* Create an initially zero image where streaks will be accumulated. */
+    const float4 zero_color = float4(0.0f);
+    const int2 glare_size = get_glare_size();
+    Result accumulated_streaks_result = Result::Temporary(ResultType::Color, texture_pool());
+    accumulated_streaks_result.allocate_texture(glare_size);
+    GPU_texture_clear(accumulated_streaks_result.texture(), GPU_DATA_FLOAT, zero_color);
+
+    /* For each streak, compute its direction and apply a streak filter in that direction, then
+     * accumulate the result into the accumulated streaks result. */
+    for (const int streak_index : IndexRange(get_number_of_streaks())) {
+      const float2 streak_direction = compute_streak_direction(streak_index);
+      Result streak_result = apply_streak_filter(highlights_result, streak_direction);
+
+      GPUShader *shader = shader_manager().get("compositor_glare_streaks_accumulate");
+      GPU_shader_bind(shader);
+
+      const float attenuation_factor = compute_streak_attenuation_factor();
+      GPU_shader_uniform_1f(shader, "attenuation_factor", attenuation_factor);
+
+      streak_result.bind_as_texture(shader, "streak_tx");
+      accumulated_streaks_result.bind_as_image(shader, "accumulated_streaks_img", true);
+
+      compute_dispatch_threads_at_least(shader, glare_size);
+
+      streak_result.unbind_as_texture();
+      accumulated_streaks_result.unbind_as_image();
+
+      streak_result.release();
+      GPU_shader_unbind();
+    }
+
+    return accumulated_streaks_result;
+  }
+
+  Result apply_streak_filter(Result &highlights_result, const float2 &streak_direction)
+  {
+    GPUShader *shader = shader_manager().get("compositor_glare_streaks_filter");
+    GPU_shader_bind(shader);
+
+    /* Copy the highlights result into a new image because the output will be copied to the input
+     * after each iteration and the highlights result is still needed to compute other streaks. */
+    const int2 glare_size = get_glare_size();
+    Result input_streak_result = Result::Temporary(ResultType::Color, texture_pool());
+    input_streak_result.allocate_texture(glare_size);
+    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+    GPU_texture_copy(input_streak_result.texture(), highlights_result.texture());
+
+    Result output_streak_result = Result::Temporary(ResultType::Color, texture_pool());
+    output_streak_result.allocate_texture(glare_size);
+
+    /* For the given number of iterations, apply the streak filter in the given direction. The
+     * result of the previous iteration is used as the input of the current iteration. */
+    const IndexRange iterations_range = IndexRange(get_number_of_iterations());
+    for (const int iteration : iterations_range) {
+      const float color_modulator = compute_streak_color_modulator(iteration);
+      const float iteration_magnitude = compute_streak_iteration_magnitude(iteration);
+      const float3 fade_factors = compute_streak_fade_factors(iteration_magnitude);
+      const float2 streak_vector = streak_direction * iteration_magnitude;
+
+      GPU_shader_uniform_1f(shader, "color_modulator", color_modulator);
+      GPU_shader_uniform_3fv(shader, "fade_factors", fade_factors);
+      GPU_shader_uniform_2fv(shader, "streak_vector", streak_vector);
+
+      input_streak_result.bind_as_texture(shader, "input_streak_tx");
+      GPU_texture_filter_mode(input_streak_result.texture(), true);
+      GPU_texture_wrap_mode(input_streak_result.texture(), false, false);
+
+      output_streak_result.bind_as_image(shader, "output_streak_img");
+
+      compute_dispatch_threads_at_least(shader, glare_size);
+
+      input_streak_result.unbind_as_texture();
+      output_streak_result.unbind_as_image();
+
+      /* The accumulated result serves as the input for the next iteration, so copy the result to
+       * the input result since it can't be used for reading and writing simultaneously. Skip
+       * copying for the last iteration since it is not needed. */
+      if (iteration != iterations_range.last()) {
+        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+        GPU_texture_copy(input_streak_result.texture(), output_streak_result.texture());
+      }
+    }
+
+    input_streak_result.release();
+    GPU_shader_unbind();
+
+    return output_streak_result;
+  }
+
+  /* As the number of iterations increase, the streaks spread farther and their intensity decrease.
+   * To maintain similar intensities regardless of the number of iterations, streaks with lower
+   * number of iteration are linearly attenuated. When the number of iterations is maximum, we need
+   * not attenuate, so the denominator should be one, and when the number of iterations is one, we
+   * need the attenuation to be maximum. This can be modeled as a simple decreasing linear equation
+   * by substituting the two aforementioned cases. */
+  float compute_streak_attenuation_factor()
+  {
+    return 1.0f / (MAX_GLARE_ITERATIONS + 1 - get_number_of_iterations());
+  }
+
+  /* Given the index of the streak in the [0, Number Of Streaks - 1] range, compute the unit
+   * direction vector defining the streak. The streak directions should make angles with the
+   * x-axis that are equally spaced and covers the whole two pi range, starting with the user
+   * supplied angle. */
+  float2 compute_streak_direction(int streak_index)
+  {
+    const int number_of_streaks = get_number_of_streaks();
+    const float start_angle = get_streaks_start_angle();
+    const float angle = start_angle + (float(streak_index) / number_of_streaks) * (M_PI * 2.0f);
+    return float2(math::cos(angle), math::sin(angle));
+  }
+
+  /* Different color channels of the streaks can be modulated by being multiplied by the color
+   * modulator computed by this method. The color modulation is expected to be maximum when the
+   * modulation factor is 1 and non existent when it is zero. But since the color modulator is
+   * multiplied to the channel and the multiplicative identity is 1, we invert the modulation
+   * factor. Moreover, color modulation should be less visible on higher iterations because they
+   * produce the farther more faded away parts of the streaks. To achieve that, the modulation
+   * factor is raised to the power of the iteration, noting that the modulation value is in the
+   * [0, 1] range so the higher the iteration the lower the resulting modulation factor. The plus
+   * one makes sure the power starts at one. */
+  float compute_streak_color_modulator(int iteration)
+  {
+    return 1.0f - std::pow(get_color_modulation_factor(), iteration + 1);
+  }
+
+  /* Streaks are computed by iteratively applying a filter that samples 3 neighboring pixels in
+   * the direction of the streak. Those neighboring pixels are then combined using a weighted sum.
+   * The weights of the neighbors are the fade factors computed by this method. Farther neighbors
+   * are expected to have lower weights because they contribute less to the combined result. Since
+   * the iteration magnitude represents how far the neighbors are, as noted in the description of
+   * the compute_streak_iteration_magnitude method, the fade factor for the closest neighbor is
+   * computed as the user supplied fade parameter raised to the power of the magnitude, noting that
+   * the fade value is in the [0, 1] range while the magnitude is larger than or equal one, so the
+   * higher the power the lower the resulting fade factor. Furthermore, the other two neighbors
+   * are just squared and cubed versions of the fade factor for the closest neighbor to get even
+   * lower fade factors for those farther neighbors. */
+  float3 compute_streak_fade_factors(float iteration_magnitude)
+  {
+    const float fade_factor = std::pow(node_storage(bnode()).fade, iteration_magnitude);
+    return float3(fade_factor, std::pow(fade_factor, 2.0f), std::pow(fade_factor, 3.0f));
+  }
+
+  /* Streaks are computed by iteratively applying a filter that samples the neighboring pixels in
+   * the direction of the streak. Each higher iteration samples pixels that are farther away, the
+   * magnitude computed by this method describes how farther away the neighbors are sampled. The
+   * magnitude exponentially increase with the iteration. A base of 4, was chosen as compromise
+   * between better quality and performance, since a lower base corresponds to more tightly spaced
+   * neighbors but would require more iterations to produce a streak of the same length. */
+  float compute_streak_iteration_magnitude(int iteration)
+  {
+    return std::pow(4.0f, iteration);
+  }
+
+  float get_streaks_start_angle()
+  {
+    return node_storage(bnode()).angle_ofs;
+  }
+
+  int get_number_of_streaks()
+  {
+    return node_storage(bnode()).streaks;
   }
 
   /* ------------
@@ -377,9 +518,9 @@ class GlareOperation : public NodeOperation {
     /* Create an initially zero image where ghosts will be accumulated. */
     const float4 zero_color = float4(0.0f);
     const int2 glare_size = get_glare_size();
-    Result accumulated_ghost_result = Result::Temporary(ResultType::Color, texture_pool());
-    accumulated_ghost_result.allocate_texture(glare_size);
-    GPU_texture_clear(accumulated_ghost_result.texture(), GPU_DATA_FLOAT, zero_color);
+    Result accumulated_ghosts_result = Result::Temporary(ResultType::Color, texture_pool());
+    accumulated_ghosts_result.allocate_texture(glare_size);
+    GPU_texture_clear(accumulated_ghosts_result.texture(), GPU_DATA_FLOAT, zero_color);
 
     /* For the given number of iterations, accumulate four ghosts with different scales and color
      * modulators. The result of the previous iteration is used as the input of the current
@@ -392,26 +533,26 @@ class GlareOperation : public NodeOperation {
       GPU_shader_uniform_4fv(shader, "scales", scales.data());
 
       input_ghost_result.bind_as_texture(shader, "input_ghost_tx");
-      accumulated_ghost_result.bind_as_image(shader, "accumulated_ghost_img", true);
+      accumulated_ghosts_result.bind_as_image(shader, "accumulated_ghost_img", true);
 
       compute_dispatch_threads_at_least(shader, glare_size);
 
       input_ghost_result.unbind_as_texture();
-      accumulated_ghost_result.unbind_as_image();
+      accumulated_ghosts_result.unbind_as_image();
 
       /* The accumulated result serves as the input for the next iteration, so copy the result to
        * the input result since it can't be used for reading and writing simultaneously. Skip
        * copying for the last iteration since it is not needed. */
       if (i != iterations_range.last()) {
         GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-        GPU_texture_copy(input_ghost_result.texture(), accumulated_ghost_result.texture());
+        GPU_texture_copy(input_ghost_result.texture(), accumulated_ghosts_result.texture());
       }
     }
 
     GPU_shader_unbind();
     input_ghost_result.release();
 
-    return accumulated_ghost_result;
+    return accumulated_ghosts_result;
   }
 
   /* Computes two ghosts by blurring the highlights with two different radii, then adds them into a
@@ -544,7 +685,18 @@ class GlareOperation : public NodeOperation {
    * subtract from one. */
   float get_ghost_color_modulation_factor()
   {
-    return 1.0f - node_storage(bnode()).colmod;
+    return 1.0f - get_color_modulation_factor();
+  }
+
+  /* ---------------
+   * Fog Glow Glare.
+   * --------------- */
+
+  /* Not yet implemented. Unreachable code due to the is_identity method. */
+  Result execute_fog_glow(Result & /*highlights_result*/)
+  {
+    BLI_assert_unreachable();
+    return Result(ResultType::Color, texture_pool());
   }
 
   /* ----------
@@ -593,6 +745,11 @@ class GlareOperation : public NodeOperation {
   int get_number_of_iterations()
   {
     return node_storage(bnode()).iter;
+  }
+
+  float get_color_modulation_factor()
+  {
+    return node_storage(bnode()).colmod;
   }
 
   /* The glare node can compute the glare on a fraction of the input image size to improve

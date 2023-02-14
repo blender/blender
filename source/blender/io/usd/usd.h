@@ -10,10 +10,10 @@ extern "C" {
 #endif
 
 struct bContext;
-struct Object;
 struct CacheArchiveHandle;
 struct CacheReader;
 struct CacheFile;
+struct Object;
 
 typedef enum USD_global_forward_axis {
   USD_GLOBAL_FORWARD_X = 0,
@@ -78,6 +78,21 @@ typedef enum eUSDDefaultPrimKind {
   USD_KIND_ASSEMBLY,
   USD_KIND_CUSTOM
 } eUSDDefaultPrimKind;
+
+/* Behavior when importing textures from a package
+ * (e.g., USDZ archive) or from a URI path. */
+typedef enum eUSDTexImportMode {
+  USD_TEX_IMPORT_NONE = 0,
+  USD_TEX_IMPORT_PACK,
+  USD_TEX_IMPORT_COPY,
+} eUSDTexImportMode;
+
+/* Behavior when the name of an imported texture
+ * file conflicts with an existing file. */
+typedef enum eUSDTexNameCollisionMode {
+  USD_TEX_NAME_COLLISION_USE_EXISTING = 0,
+  USD_TEX_NAME_COLLISION_OVERWRITE = 1,
+} eUSDTexNameCollisionMode;
 
 struct USDExportParams {
   double frame_start;
@@ -188,6 +203,10 @@ struct USDImportParams {
   bool triangulate_meshes;
   bool import_shapes;
   bool import_defined_only;
+  eUSDTexImportMode import_textures_mode;
+  char import_textures_dir[768]; /* FILE_MAXDIR */
+  eUSDTexNameCollisionMode tex_name_collision_mode;
+  bool import_all_materials;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.

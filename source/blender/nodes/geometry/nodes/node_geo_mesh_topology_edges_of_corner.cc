@@ -16,11 +16,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           N_("The corner to retrieve data from. Defaults to the corner from the context"));
   b.add_output<decl::Int>(N_("Next Edge Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(
           N_("The edge after the corner in the face, in the direction of increasing indices"));
   b.add_output<decl::Int>(N_("Previous Edge Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(
           N_("The edge before the corner in the face, in the direction of decreasing indices"));
 }

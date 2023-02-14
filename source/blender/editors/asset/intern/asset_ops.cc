@@ -9,13 +9,12 @@
 
 #include "BKE_bpath.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
@@ -36,8 +35,6 @@
 #include "WM_api.h"
 
 #include "DNA_space_types.h"
-
-#include "BLO_writefile.h"
 
 using namespace blender;
 
@@ -438,7 +435,18 @@ static void ASSET_OT_library_refresh(struct wmOperatorType *ot)
 static bool asset_catalog_operator_poll(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  return sfile && ED_fileselect_active_asset_library_get(sfile);
+  if (!sfile) {
+    return false;
+  }
+  const AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  if (!asset_library) {
+    return false;
+  }
+  if (ED_asset_catalogs_read_only(*asset_library)) {
+    CTX_wm_operator_poll_msg_set(C, "Asset catalogs cannot be edited in this asset library");
+    return false;
+  }
+  return true;
 }
 
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
@@ -900,11 +908,11 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
       | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES); /* Only care about actually used files. */
 
   BPathForeachPathData bpath_data = {
-      /* bmain */ bmain,
-      /* callback_function */ &external_file_check_callback,
-      /* flag */ flag,
-      /* user_data */ &callback_info,
-      /* absolute_base_path */ nullptr,
+      /*bmain*/ bmain,
+      /*callback_function*/ &external_file_check_callback,
+      /*flag*/ flag,
+      /*user_data*/ &callback_info,
+      /*absolute_base_path*/ nullptr,
   };
   BKE_bpath_foreach_path_main(&bpath_data);
 

@@ -24,7 +24,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
                          &instance_,
                          &physical_device_,
                          &device_,
-                         &graphic_queue_familly_);
+                         &graphic_queue_family_);
 
   /* Initialize the memory allocator. */
   VmaAllocatorCreateInfo info = {};

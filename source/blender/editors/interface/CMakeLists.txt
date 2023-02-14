@@ -26,6 +26,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   eyedroppers/eyedropper_color.cc
   eyedroppers/eyedropper_colorband.cc

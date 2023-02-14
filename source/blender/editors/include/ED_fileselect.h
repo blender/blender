@@ -17,7 +17,6 @@ struct ARegion;
 struct FileAssetSelectParams;
 struct FileDirEntry;
 struct FileSelectParams;
-struct Scene;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;
@@ -193,7 +192,7 @@ void ED_file_read_bookmarks(void);
 
 /**
  * Support updating the directory even when this isn't the active space
- * needed so RNA properties update function isn't context sensitive, see T70255.
+ * needed so RNA properties update function isn't context sensitive, see #70255.
  */
 void ED_file_change_dir_ex(struct bContext *C, struct ScrArea *area);
 void ED_file_change_dir(struct bContext *C);

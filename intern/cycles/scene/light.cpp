@@ -721,6 +721,7 @@ void LightManager::device_update_background(Device *device,
   int2 environment_res = make_int2(0, 0);
   Shader *shader = scene->background->get_shader(scene);
   int num_suns = 0;
+  float sun_average_radiance = 0.0f;
   foreach (ShaderNode *node, shader->graph->nodes) {
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
@@ -762,6 +763,7 @@ void LightManager::device_update_background(Device *device,
 
         /* empirical value */
         kbackground->sun_weight = 4.0f;
+        sun_average_radiance = sky->get_sun_average_radiance();
         environment_res.x = max(environment_res.x, 512);
         environment_res.y = max(environment_res.y, 256);
         num_suns++;
@@ -830,7 +832,18 @@ void LightManager::device_update_background(Device *device,
   float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
   marg_cdf[res.y].x = cdf_total;
 
-  background_light->set_average_radiance(cdf_total * M_PI_2_F);
+  float map_average_radiance = cdf_total * M_PI_2_F;
+  if (sun_average_radiance > 0.0f) {
+    /* The weighting here is just a heuristic that was empirically determined.
+     * The sun's average radiance is much higher than the map's average radiance,
+     * but we don't want to weight the background light too much because
+     * visibility is not accounted for anyway. */
+    background_light->set_average_radiance(0.8f * map_average_radiance +
+                                           0.2f * sun_average_radiance);
+  }
+  else {
+    background_light->set_average_radiance(map_average_radiance);
+  }
 
   if (cdf_total > 0.0f)
     for (int i = 1; i < res.y; i++)
@@ -1063,23 +1076,31 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     else if (light->light_type == LIGHT_SPOT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
+      float3 len;
+      float3 axis_u = normalize_len(light->axisu, &len.x);
+      float3 axis_v = normalize_len(light->axisv, &len.y);
+      float3 dir = normalize_len(light->dir, &len.z);
+      if (len.z == 0.0f) {
+        dir = zero_float3();
+      }
+
       float radius = light->size;
       float invarea = (radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) : 1.0f;
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
       float spot_smooth = (1.0f - cos_half_spot_angle) * light->spot_smooth;
-      float3 dir = light->dir;
-
-      dir = safe_normalize(dir);
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
 
       klights[light_index].co = co;
+      klights[light_index].spot.axis_u = axis_u;
       klights[light_index].spot.radius = radius;
+      klights[light_index].spot.axis_v = axis_v;
       klights[light_index].spot.invarea = invarea;
-      klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.spot_smooth = spot_smooth;
       klights[light_index].spot.dir = dir;
+      klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
+      klights[light_index].spot.len = len;
+      klights[light_index].spot.spot_smooth = spot_smooth;
     }
 
     klights[light_index].shader_id = shader_id;

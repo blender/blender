@@ -13,6 +13,8 @@
 #include <pxr/pxr.h>
 #include <pxr/usd/kind/registry.h>
 #include <pxr/usd/usd/modelAPI.h>
+#include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/scope.h>
@@ -366,7 +368,9 @@ static void export_startjob(void *customdata,
   data->start_time = timeit::Clock::now();
 
   G.is_rendering = true;
-  WM_set_locked_interface(data->wm, true);
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, true);
+  }
   G.is_break = false;
 
   if (!validate_params(data->params)) {
@@ -527,6 +531,16 @@ static void export_startjob(void *customdata,
     }
   }
 
+  /* Set the default prim if it doesn't exist */
+  if (!usd_stage->GetDefaultPrim()) {
+    /* Use TraverseAll since it's guaranteed to be depth first and will get the first top level
+     * prim, and is less verbose than getting the PseudoRoot + iterating its children.*/
+    for (auto prim : usd_stage->TraverseAll()) {
+      usd_stage->SetDefaultPrim(prim);
+      break;
+    }
+  }
+
   /* Set unit scale.
    * TODO(makowalsk): Add an option to use scene->unit.scale_length as well? */
   double meters_per_unit = data->params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
@@ -579,7 +593,9 @@ static void export_endjob(void *customdata)
   }
 
   G.is_rendering = false;
-  WM_set_locked_interface(data->wm, false);
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, false);
+  }
   report_job_duration(data);
 }
 

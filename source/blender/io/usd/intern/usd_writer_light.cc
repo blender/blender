@@ -154,18 +154,19 @@ void USDLightWriter::do_write(HierarchyContext &context)
       }
       break;
     case LA_LOCAL: {
+
       pxr::UsdLuxSphereLight sphere_light =
           (usd_export_context_.export_params.export_as_overs) ?
               pxr::UsdLuxSphereLight(
                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
               pxr::UsdLuxSphereLight::Define(usd_export_context_.stage,
                                              usd_export_context_.usd_path);
-      sphere_light.CreateRadiusAttr().Set(light->area_size * radius_scale, timecode);
+      sphere_light.CreateRadiusAttr().Set(light->radius * radius_scale, timecode);
 
       if (usd_export_context_.export_params.backward_compatible) {
         if (pxr::UsdAttribute attr = sphere_light.GetPrim().CreateAttribute(
                 usdtokens::radius, pxr::SdfValueTypeNames->Float, true)) {
-          attr.Set(light->area_size * radius_scale, timecode);
+          attr.Set(light->radius * radius_scale, timecode);
         }
       }
 

@@ -57,7 +57,7 @@ struct IDNameLib_Map {
   struct GSet *valid_id_pointers;
   int idmap_types;
 
-  /* For storage of keys for the TypeMap ghash, avoids many single allocs. */
+  /* For storage of keys for the #TypeMap #GHash, avoids many single allocations. */
   BLI_mempool *type_maps_keys_pool;
 };
 

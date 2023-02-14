@@ -54,7 +54,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -117,6 +117,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
+#include "BKE_pose_backup.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
@@ -621,7 +622,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   const bool is_undo = BLO_read_data_is_undo(reader);
   if (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT)) {
     /* Do not allow any non-object mode for linked data.
-     * See T34776, T42780, T81027 for more information. */
+     * See #34776, #42780, #81027 for more information. */
     ob->mode &= ~OB_MODE_ALL_MODE_DATA;
   }
   else if (is_undo) {
@@ -938,7 +939,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   /* When the object is local and the data is library its possible
-   * the material list size gets out of sync. T22663. */
+   * the material list size gets out of sync. #22663. */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
     BKE_object_materials_test(bmain, ob, (ID *)ob->data);
   }
@@ -1220,37 +1221,37 @@ static void object_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
 }
 
 static AssetTypeInfo AssetType_OB = {
-    /* pre_save_fn */ object_asset_pre_save,
+    /*pre_save_fn*/ object_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_OB = {
-    /* id_code */ ID_OB,
-    /* id_filter */ FILTER_ID_OB,
-    /* main_listbase_index */ INDEX_ID_OB,
-    /* struct_size */ sizeof(Object),
-    /* name */ "Object",
-    /* name_plural */ "objects",
-    /* translation_context */ BLT_I18NCONTEXT_ID_OBJECT,
-    /* flags */ 0,
-    /* asset_type_info */ &AssetType_OB,
+    /*id_code*/ ID_OB,
+    /*id_filter*/ FILTER_ID_OB,
+    /*main_listbase_index*/ INDEX_ID_OB,
+    /*struct_size*/ sizeof(Object),
+    /*name*/ "Object",
+    /*name_plural*/ "objects",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_OBJECT,
+    /*flags*/ 0,
+    /*asset_type_info*/ &AssetType_OB,
 
-    /* init_data */ object_init_data,
-    /* copy_data */ object_copy_data,
-    /* free_data */ object_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ object_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ object_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ object_init_data,
+    /*copy_data*/ object_copy_data,
+    /*free_data*/ object_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ object_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ object_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ object_blend_write,
-    /* blend_read_data */ object_blend_read_data,
-    /* blend_read_lib */ object_blend_read_lib,
-    /* blend_read_expand */ object_blend_read_expand,
+    /*blend_write*/ object_blend_write,
+    /*blend_read_data*/ object_blend_read_data,
+    /*blend_read_lib*/ object_blend_read_lib,
+    /*blend_read_expand*/ object_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ object_lib_override_apply_post,
+    /*lib_override_apply_post*/ object_lib_override_apply_post,
 };
 
 void BKE_object_workob_clear(Object *workob)
@@ -1424,9 +1425,11 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
     return false;
   }
 
-  /* Only geometry objects should be able to get modifiers T25291. */
-  if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME, OB_CURVES)) {
-    return (mti->modifyGeometrySet != nullptr);
+  if (ELEM(ob->type, OB_POINTCLOUD, OB_CURVES)) {
+    return modifier_type == eModifierType_Nodes;
+  }
+  if (ob->type == OB_VOLUME) {
+    return mti->modifyGeometrySet != nullptr;
   }
   if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_LATTICE)) {
     if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {
@@ -1814,6 +1817,7 @@ void BKE_object_free_derived_caches(Object *ob)
   }
 
   BKE_object_to_mesh_clear(ob);
+  BKE_pose_backup_clear(ob);
   BKE_object_to_curve_clear(ob);
   BKE_object_free_curve_cache(ob);
 
@@ -2428,7 +2432,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
     psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
   }
 
-  /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
+  /* XXX(@ideasman42): from reading existing code this seems correct but intended usage of
    * point-cache should with cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
@@ -2889,6 +2893,7 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
     case OB_LAMP: {
       Light *lamp = (Light *)ob->data;
       lamp->dist *= size;
+      lamp->radius *= size;
       lamp->area_size *= size;
       lamp->area_sizey *= size;
       lamp->area_sizez *= size;
@@ -3146,7 +3151,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
    * dependency cycles. We can't correct anything from here, since that would
    * cause threading conflicts.
    *
-   * TODO(sergey): Some of the legit looking cases like T56619 need to be
+   * TODO(sergey): Some of the legit looking cases like #56619 need to be
    * looked into, and maybe curve cache (and other dependencies) are to be
    * evaluated prior to conversion. */
   if (par->runtime.curve_cache == nullptr) {
@@ -3239,7 +3244,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
                            BKE_object_get_evaluated_mesh(par);
 
     if (me_eval) {
-      const MVert *verts = BKE_mesh_verts(me_eval);
+      const Span<float3> positions = me_eval->vert_positions();
       int count = 0;
       int numVerts = me_eval->totvert;
 
@@ -3273,14 +3278,14 @@ static void give_parvert(Object *par, int nr, float vec[3])
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
           if (index[i] == nr) {
-            add_v3_v3(vec, verts[i].co);
+            add_v3_v3(vec, positions[i]);
             count++;
           }
         }
       }
       else {
         if (nr < numVerts) {
-          add_v3_v3(vec, verts[nr].co);
+          add_v3_v3(vec, positions[nr]);
           count++;
         }
       }
@@ -3294,7 +3299,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
       else {
         /* use first index if its out of range */
         if (me_eval->totvert) {
-          copy_v3_v3(vec, verts[0].co);
+          copy_v3_v3(vec, positions[0]);
         }
       }
     }
@@ -3551,7 +3556,7 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
    * are supposed to be applied after the object's local loc/rot/scale. If the (inverted) effect of
    * constraints would be included in the parent inverse matrix, these would be applied before the
    * object's local loc/rot/scale instead of after. For example, a "Copy Rotation" constraint would
-   * rotate the object's local translation as well. See T82156. */
+   * rotate the object's local translation as well. See #82156. */
 
   BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
@@ -4179,10 +4184,9 @@ void BKE_object_foreach_display_point(Object *ob,
   float3 co;
 
   if (mesh_eval != nullptr) {
-    const MVert *verts = BKE_mesh_verts(mesh_eval);
-    const int totvert = mesh_eval->totvert;
-    for (int i = 0; i < totvert; i++) {
-      mul_v3_m4v3(co, obmat, verts[i].co);
+    const Span<float3> positions = mesh_eval->vert_positions();
+    for (const int i : positions.index_range()) {
+      mul_v3_m4v3(co, obmat, positions[i]);
       func_cb(co, user_data);
     }
   }
@@ -4356,42 +4360,45 @@ void BKE_object_sculpt_data_create(Object *ob)
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
 }
 
-bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc, float **r_size)
+bool BKE_object_obdata_texspace_get(Object *ob,
+                                    char **r_texspace_flag,
+                                    float **r_texspace_location,
+                                    float **r_texspace_size)
 {
-
   if (ob->data == nullptr) {
     return false;
   }
 
   switch (GS(((ID *)ob->data)->name)) {
     case ID_ME: {
-      BKE_mesh_texspace_get_reference((Mesh *)ob->data, r_texflag, r_loc, r_size);
+      BKE_mesh_texspace_get_reference(
+          (Mesh *)ob->data, r_texspace_flag, r_texspace_location, r_texspace_size);
       break;
     }
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob->data;
       BKE_curve_texspace_ensure(cu);
-      if (r_texflag) {
-        *r_texflag = &cu->texflag;
+      if (r_texspace_flag) {
+        *r_texspace_flag = &cu->texspace_flag;
       }
-      if (r_loc) {
-        *r_loc = cu->loc;
+      if (r_texspace_location) {
+        *r_texspace_location = cu->texspace_location;
       }
-      if (r_size) {
-        *r_size = cu->size;
+      if (r_texspace_size) {
+        *r_texspace_size = cu->texspace_size;
       }
       break;
     }
     case ID_MB: {
       MetaBall *mb = (MetaBall *)ob->data;
-      if (r_texflag) {
-        *r_texflag = &mb->texflag;
+      if (r_texspace_flag) {
+        *r_texspace_flag = &mb->texspace_flag;
       }
-      if (r_loc) {
-        *r_loc = mb->loc;
+      if (r_texspace_location) {
+        *r_texspace_location = mb->texspace_location;
       }
-      if (r_size) {
-        *r_size = mb->size;
+      if (r_texspace_size) {
+        *r_texspace_size = mb->texspace_size;
       }
       break;
     }
@@ -4807,8 +4814,9 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
       switch (ob->type) {
         case OB_MESH: {
           Mesh *mesh = (Mesh *)ob->data;
-          MutableSpan<MVert> verts = mesh->verts_for_write();
-          BKE_keyblock_convert_to_mesh(key->refkey, verts.data(), mesh->totvert);
+          MutableSpan<float3> positions = mesh->vert_positions_for_write();
+          BKE_keyblock_convert_to_mesh(
+              key->refkey, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
           break;
         }
         case OB_CURVES_LEGACY:
@@ -5132,6 +5140,7 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
   runtime->mesh_deform_eval = nullptr;
   runtime->curve_cache = nullptr;
   runtime->object_as_temp_mesh = nullptr;
+  runtime->pose_backup = nullptr;
   runtime->object_as_temp_curve = nullptr;
   runtime->geometry_set_eval = nullptr;
 
@@ -5306,31 +5315,31 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       const int *index;
 
       if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
-        const Span<MVert> verts = me->verts();
+        const Span<float3> positions = me->vert_positions();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
-        tree = BLI_kdtree_3d_new(verts.size());
+        tree = BLI_kdtree_3d_new(positions.size());
 
         /* We don't how many verts from the DM we can use. */
-        for (i = 0; i < verts.size(); i++) {
+        for (i = 0; i < positions.size(); i++) {
           if (index[i] != ORIGINDEX_NONE) {
             float co[3];
-            mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
+            mul_v3_m4v3(co, ob->object_to_world, positions[i]);
             BLI_kdtree_3d_insert(tree, index[i], co);
             tot++;
           }
         }
       }
       else {
-        const Span<MVert> verts = me->verts();
+        const Span<float3> positions = me->vert_positions();
 
-        tot = verts.size();
+        tot = positions.size();
         tree = BLI_kdtree_3d_new(tot);
 
         for (i = 0; i < tot; i++) {
           float co[3];
-          mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
+          mul_v3_m4v3(co, ob->object_to_world, positions[i]);
           BLI_kdtree_3d_insert(tree, i, co);
         }
       }

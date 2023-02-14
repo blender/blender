@@ -11,8 +11,8 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "BLI_float4x4.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "image_batches.hh"
 #include "image_private.hh"
@@ -62,9 +62,9 @@ template<size_t Divisions> class ScreenTileTextures {
   {
     /* determine uv_area of the region. */
     Vector<TextureInfo *> unassigned_textures;
-    float4x4 mat = float4x4(instance_data->ss_to_texture).inverted();
-    float2 region_uv_min = float2(mat * float3(0.0f, 0.0f, 0.0f));
-    float2 region_uv_max = float2(mat * float3(1.0f, 1.0f, 0.0f));
+    float4x4 mat = math::invert(float4x4(instance_data->ss_to_texture));
+    float2 region_uv_min = math::transform_point(mat, float3(0.0f, 0.0f, 0.0f)).xy();
+    float2 region_uv_max = math::transform_point(mat, float3(1.0f, 1.0f, 0.0f)).xy();
     float2 region_uv_span = region_uv_max - region_uv_min;
 
     /* Calculate uv coordinates of each vert in the grid of textures. */
@@ -516,6 +516,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   &texture_buffer,
                   transform_mode,
                   IMB_FILTER_NEAREST,
+                  1,
                   uv_to_texel.ptr(),
                   crop_rect_ptr);
   }

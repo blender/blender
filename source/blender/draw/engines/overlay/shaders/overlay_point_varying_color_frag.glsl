@@ -8,6 +8,7 @@ void main()
   /* Round point with jaggy edges. */
   if (dist_squared > rad_squared) {
     discard;
+    return;
   }
 
 #if defined(VERT)

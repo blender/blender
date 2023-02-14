@@ -45,8 +45,8 @@ macro(cycles_add_library target library_deps)
   # NOTE: If separated libraries for debug and release ar eneeded every library is the list are
   # to be prefixed explicitly.
   #
-  #  Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
-  #  NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
+  # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
+  # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   #
   # TODO(sergey): This is the same as Blender's side CMake. Find a way to avoid duplication
   # somehow in a way which allows to have Cycles standalone.
@@ -111,8 +111,10 @@ macro(cycles_external_libraries_append libraries)
   endif()
   if(WITH_OPENIMAGEDENOISE)
     list(APPEND ${libraries} ${OPENIMAGEDENOISE_LIBRARIES})
-    if(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-      list(APPEND ${libraries} "-framework Accelerate")
+    if(APPLE)
+      if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+        list(APPEND ${libraries} "-framework Accelerate")
+      endif()
     endif()
   endif()
   if(WITH_ALEMBIC)
@@ -136,7 +138,15 @@ macro(cycles_external_libraries_append libraries)
     ${PYTHON_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${CMAKE_DL_LIBS}
-    ${PTHREADS_LIBRARIES}
+  )
+
+  if(DEFINED PTHREADS_LIBRARIES)
+    list(APPEND ${libraries}
+      ${PTHREADS_LIBRARIES}
+    )
+  endif()
+
+  list(APPEND ${libraries}
     ${PLATFORM_LINKLIBS}
   )
 

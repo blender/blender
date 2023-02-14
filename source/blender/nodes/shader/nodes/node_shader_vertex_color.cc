@@ -5,6 +5,8 @@
 
 #include "BKE_context.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -20,8 +22,11 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
 {
   PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
   if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-    PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+    PointerRNA eval_obptr;
 
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
+    PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
     uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
   }
   else {
@@ -44,7 +49,7 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
   NodeShaderVertexColor *vertexColor = (NodeShaderVertexColor *)node->storage;
   /* NOTE: Using #CD_AUTO_FROM_NAME is necessary because there are multiple color attribute types,
    * and the type may change during evaluation anyway. This will also make EEVEE and Cycles
-   * consistent. See T93179. */
+   * consistent. See #93179. */
 
   GPUNodeLink *vertexColorLink;
 

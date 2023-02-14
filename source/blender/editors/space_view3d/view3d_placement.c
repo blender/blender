@@ -1515,11 +1515,21 @@ static void preview_plane_free_fn(void *customdata)
   ED_view3d_cursor_snap_deactive(snap_state);
 }
 
+static bool snap_cursor_poll(ARegion *region, void *data)
+{
+  if (WM_gizmomap_group_find_ptr(region->gizmo_map, (wmGizmoGroupType *)data) == NULL) {
+    /* Wrong viewport. */
+    return false;
+  }
+  return true;
+}
+
 static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
   if (snap_state) {
-    snap_state->gzgrp_type = gzgroup->type;
+    snap_state->poll = snap_cursor_poll;
+    snap_state->poll_data = gzgroup->type;
     snap_state->draw_plane = true;
 
     gzgroup->customdata = snap_state;

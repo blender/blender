@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -206,7 +207,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 
 /* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
-                              MVert *mverts,
+                              float (*vert_positions)[3],
                               uint totvert,
                               MEdge *medges,
                               uint totedge,
@@ -246,7 +247,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
-  MVert *mv = mverts;
   MEdge *me;
   MLoop *ml;
   MPoly *mp;
@@ -302,15 +302,15 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
-  for (i = 0; i < totvert; i++, mv++) {
+  for (i = 0; i < totvert; i++) {
     bool fix_normal = true;
 
     for (j = 0; j < 3; j++) {
-      if (!isfinite(mv->co[j])) {
+      if (!isfinite(vert_positions[i][j])) {
         PRINT_ERR("\tVertex %u: has invalid coordinate", i);
 
         if (do_fixes) {
-          zero_v3(mv->co);
+          zero_v3(vert_positions[i]);
 
           fix_flag.verts = true;
         }
@@ -332,7 +332,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
        * although it's also possible degenerate/opposite faces accumulate to a zero vector.
        * To detect this a full normal recalculation would be needed, which is out of scope
        * for a basic validity check (see "Vertex Normal" in the doc-string). */
-      if (!is_zero_v3(mv->co)) {
+      if (!is_zero_v3(vert_positions[i])) {
         PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
         if (do_fixes) {
           float *normal = (float *)vert_normals[i];
@@ -1022,7 +1022,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   is_valid &= mesh_validate_customdata(
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
-  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1032,12 +1032,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   }
 
   /* check indices of clone/stencil */
-  if (do_fixes && CustomData_get_clone_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_clone(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_clone(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
-  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_stencil(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_stencil(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
 
@@ -1066,26 +1066,27 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    do_verbose,
                                    true,
                                    &changed);
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
-  BKE_mesh_validate_arrays(me,
-                           verts.data(),
-                           verts.size(),
-                           edges.data(),
-                           edges.size(),
-                           (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                           me->totface,
-                           loops.data(),
-                           loops.size(),
-                           polys.data(),
-                           polys.size(),
-                           me->deform_verts_for_write().data(),
-                           do_verbose,
-                           true,
-                           &changed);
+  BKE_mesh_validate_arrays(
+      me,
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
+      edges.data(),
+      edges.size(),
+      (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
+      me->totface,
+      loops.data(),
+      loops.size(),
+      polys.data(),
+      polys.size(),
+      me->deform_verts_for_write().data(),
+      do_verbose,
+      true,
+      &changed);
 
   if (changed) {
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
@@ -1117,26 +1118,27 @@ bool BKE_mesh_is_valid(Mesh *me)
       do_fixes,
       &changed);
 
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
-  is_valid &= BKE_mesh_validate_arrays(me,
-                                       verts.data(),
-                                       verts.size(),
-                                       edges.data(),
-                                       edges.size(),
-                                       (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                                       me->totface,
-                                       loops.data(),
-                                       loops.size(),
-                                       polys.data(),
-                                       polys.size(),
-                                       me->deform_verts_for_write().data(),
-                                       do_verbose,
-                                       do_fixes,
-                                       &changed);
+  is_valid &= BKE_mesh_validate_arrays(
+      me,
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
+      edges.data(),
+      edges.size(),
+      (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
+      me->totface,
+      loops.data(),
+      loops.size(),
+      polys.data(),
+      polys.size(),
+      me->deform_verts_for_write().data(),
+      do_verbose,
+      do_fixes,
+      &changed);
 
   if (!me->runtime->vert_normals_dirty) {
     BLI_assert(me->runtime->vert_normals || me->totvert == 0);
@@ -1186,7 +1188,7 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
   MFace *f;
   int a, b;
-  MFace *mfaces = (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface);
 
   for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
     if (f->v3) {
@@ -1323,7 +1325,7 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
   const int numFaces = mesh->totface;
   EdgeSet *eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
 
   MFace *mf = mfaces;
   for (int i = 0; i < numFaces; i++, mf++) {
@@ -1347,15 +1349,13 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
 
-  MEdge *med = (MEdge *)CustomData_get_layer(&edgeData, CD_MEDGE);
-  int *index = (int *)CustomData_get_layer(&edgeData, CD_ORIGINDEX);
+  MEdge *med = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
+  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
        BLI_edgesetIterator_step(ehi), i++, med++, index++) {
     BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
-
-    med->flag = ME_EDGEDRAW;
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

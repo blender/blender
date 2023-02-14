@@ -89,11 +89,8 @@ class GArray {
    */
   GArray(const GSpan span, Allocator allocator = {}) : GArray(span.type(), span.size(), allocator)
   {
-    if (span.data() != nullptr) {
-      BLI_assert(span.size() != 0);
-      /* Use copy assign rather than construct since the memory is already initialized. */
-      type_->copy_assign_n(span.data(), data_, size_);
-    }
+    /* Use copy assign rather than construct since the memory is already initialized. */
+    type_->copy_assign_n(span.data(), data_, size_);
   }
 
   /**

@@ -228,6 +228,11 @@ void dF_branch(float fn, out vec2 result)
   result = vec2(0.0);
 }
 
+void dF_branch_incomplete(float fn, out vec2 result)
+{
+  result = vec2(0.0);
+}
+
 #elif 0 /* TODO(@fclem): User Option? */
 /* Fast derivatives */
 vec3 dF_impl(vec3 v)
@@ -266,6 +271,15 @@ vec3 dF_impl(vec3 v)
       result -= vec2((fn)); \
     }
 
+/* Used when the non-offset value is already computed elsewhere */
+#  define dF_branch_incomplete(fn, result) \
+    if (true) { \
+      g_derivative_flag = 1; \
+      result.x = (fn); \
+      g_derivative_flag = -1; \
+      result.y = (fn); \
+      g_derivative_flag = 0; \
+    }
 #endif
 
 /* TODO(fclem): Remove. */

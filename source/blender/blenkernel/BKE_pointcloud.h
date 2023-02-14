@@ -11,7 +11,7 @@
 #  include <mutex>
 
 #  include "BLI_bounds_types.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
 #endif
 
@@ -20,7 +20,6 @@ extern "C" {
 #endif
 
 struct BoundBox;
-struct CustomDataLayer;
 struct Depsgraph;
 struct Main;
 struct Object;

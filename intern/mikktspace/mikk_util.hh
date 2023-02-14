@@ -40,11 +40,11 @@ inline float fast_acosf(float x)
   /* clamp and crush denormals. */
   const float m = (f < 1.0f) ? 1.0f - (1.0f - f) : 1.0f;
   /* Based on http://www.pouet.net/topic.php?which=9132&page=2
-   * 85% accurate (ulp 0)
+   * 85% accurate (ULP 0)
    * Examined 2130706434 values of acos:
-   *   15.2000597 avg ulp diff, 4492 max ulp, 4.51803e-05 max error // without "denormal crush"
+   *   15.2000597 avg ULP diff, 4492 max ULP, 4.51803e-05 max error // without "denormal crush"
    * Examined 2130706434 values of acos:
-   *   15.2007108 avg ulp diff, 4492 max ulp, 4.51803e-05 max error // with "denormal crush"
+   *   15.2007108 avg ULP diff, 4492 max ULP, 4.51803e-05 max error // with "denormal crush"
    */
   const float a = sqrtf(1.0f - m) *
                   (1.5707963267f + m * (-0.213300989f + m * (0.077980478f + m * -0.02164095f)));

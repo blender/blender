@@ -378,7 +378,10 @@ Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_need
   Mesh *temp_mesh = reinterpret_cast<Mesh *>(
       BKE_id_copy_ex(nullptr, &src_mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
-  BKE_keyblock_convert_to_mesh(basis, temp_mesh->mvert, temp_mesh->totvert);
+  BKE_keyblock_convert_to_mesh(
+      basis,
+      reinterpret_cast<float(*)[3]>(temp_mesh->vert_positions_for_write().data()),
+      temp_mesh->totvert);
 
   r_needsfree = true;
 

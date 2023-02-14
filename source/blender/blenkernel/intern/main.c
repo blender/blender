@@ -186,6 +186,7 @@ void BKE_main_free(Main *mainvar)
     BKE_main_idmap_destroy(mainvar->id_map);
   }
 
+  /* NOTE: `name_map` in libraries are freed together with the library IDs above. */
   if (mainvar->name_map) {
     BKE_main_namemap_destroy(&mainvar->name_map);
   }

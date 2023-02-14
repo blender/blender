@@ -113,14 +113,18 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
 
   if (depth <= 1) {
     size_t scanlinesize = width * components * sizeof(StorageType);
-    in->read_image(FileFormat,
+    in->read_image(0,
+                   0,
+                   0,
+                   components,
+                   FileFormat,
                    (uchar *)readpixels + (height - 1) * scanlinesize,
                    AutoStride,
                    -scanlinesize,
                    AutoStride);
   }
   else {
-    in->read_image(FileFormat, (uchar *)readpixels);
+    in->read_image(0, 0, 0, components, FileFormat, (uchar *)readpixels);
   }
 
   if (components > 4) {
@@ -205,6 +209,11 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
       }
       /* OIIO DDS reader never sets UnassociatedAlpha attribute. */
       if (strcmp(in->format_name(), "dds") == 0) {
+        do_associate_alpha = true;
+      }
+      /* Workaround OIIO bug that sets oiio:UnassociatedAlpha on the last layer
+       * but not composite image that we read. */
+      if (strcmp(in->format_name(), "psd") == 0) {
         do_associate_alpha = true;
       }
     }

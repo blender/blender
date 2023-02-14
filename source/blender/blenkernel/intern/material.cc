@@ -5,9 +5,9 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstring>
 
 #include "CLG_log.h"
 
@@ -243,33 +243,33 @@ static void material_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_MA = {
-    /* id_code */ ID_MA,
-    /* id_filter */ FILTER_ID_MA,
-    /* main_listbase_index */ INDEX_ID_MA,
-    /* struct_size */ sizeof(Material),
-    /* name */ "Material",
-    /* name_plural */ "materials",
-    /* translation_context */ BLT_I18NCONTEXT_ID_MATERIAL,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_MA,
+    /*id_filter*/ FILTER_ID_MA,
+    /*main_listbase_index*/ INDEX_ID_MA,
+    /*struct_size*/ sizeof(Material),
+    /*name*/ "Material",
+    /*name_plural*/ "materials",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_MATERIAL,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ material_init_data,
-    /* copy_data */ material_copy_data,
-    /* free_data */ material_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ material_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ material_init_data,
+    /*copy_data*/ material_copy_data,
+    /*free_data*/ material_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ material_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ material_blend_write,
-    /* blend_read_data */ material_blend_read_data,
-    /* blend_read_lib */ material_blend_read_lib,
-    /* blend_read_expand */ material_blend_read_expand,
+    /*blend_write*/ material_blend_write,
+    /*blend_read_data*/ material_blend_read_data,
+    /*blend_read_lib*/ material_blend_read_lib,
+    /*blend_read_expand*/ material_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)
@@ -850,7 +850,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     ob->mat = newmatar;
     ob->matbits = newmatbits;
   }
-  /* XXX(@campbellbarton): why not realloc on shrink? */
+  /* XXX(@ideasman42): why not realloc on shrink? */
 
   ob->totcol = totcol;
   if (ob->totcol && ob->actcol == 0) {
@@ -877,7 +877,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
     /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
      * use object's material slots amount as reference.
      * This avoids losing materials in a local object when its linked obdata goes missing.
-     * See T92780. */
+     * See #92780. */
     BKE_id_material_resize(bmain, id, short(ob->totcol), false);
   }
   else {
@@ -1311,7 +1311,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next)) {
     if (obt->data == ob->data) {
-      /* Can happen when object material lists are used, see: T52953 */
+      /* Can happen when object material lists are used, see: #52953 */
       if (actcol > obt->totcol) {
         continue;
       }
@@ -1374,13 +1374,13 @@ static bNode *nodetree_uv_node_recursive(bNode *node)
 }
 
 /** Bitwise filter for updating paint slots. */
-typedef enum ePaintSlotFilter {
+enum ePaintSlotFilter {
   PAINT_SLOT_IMAGE = 1 << 0,
   PAINT_SLOT_COLOR_ATTRIBUTE = 1 << 1,
-} ePaintSlotFilter;
+};
 ENUM_OPERATORS(ePaintSlotFilter, PAINT_SLOT_COLOR_ATTRIBUTE)
 
-typedef bool (*ForEachTexNodeCallback)(bNode *node, void *userdata);
+using ForEachTexNodeCallback = bool (*)(bNode *node, void *userdata);
 static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
                                             ForEachTexNodeCallback callback,
                                             void *userdata,
@@ -1411,7 +1411,7 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
   return true;
 }
 
-static bool count_texture_nodes_cb(bNode *UNUSED(node), void *userdata)
+static bool count_texture_nodes_cb(bNode * /*node*/, void *userdata)
 {
   (*((int *)userdata))++;
   return true;
@@ -1688,6 +1688,14 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       r_col[0] = facm * (r_col[0]) + fac * fabsf(r_col[0] - col[0]);
       r_col[1] = facm * (r_col[1]) + fac * fabsf(r_col[1] - col[1]);
       r_col[2] = facm * (r_col[2]) + fac * fabsf(r_col[2] - col[2]);
+      break;
+    case MA_RAMP_EXCLUSION:
+      r_col[0] = max_ff(facm * (r_col[0]) + fac * (r_col[0] + col[0] - 2.0f * r_col[0] * col[0]),
+                        0.0f);
+      r_col[1] = max_ff(facm * (r_col[1]) + fac * (r_col[1] + col[1] - 2.0f * r_col[1] * col[1]),
+                        0.0f);
+      r_col[2] = max_ff(facm * (r_col[2]) + fac * (r_col[2] + col[2] - 2.0f * r_col[2] * col[2]),
+                        0.0f);
       break;
     case MA_RAMP_DARK:
       r_col[0] = min_ff(r_col[0], col[0]) * fac + r_col[0] * facm;

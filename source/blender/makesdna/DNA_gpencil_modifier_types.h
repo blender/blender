@@ -388,6 +388,7 @@ typedef struct ArrayGpencilModifierData {
   float rnd_rot[3];
   /** Random Scales. */
   float rnd_scale[3];
+
   char _pad[4];
   /** (first element is the index) random values. */
   int seed;
@@ -451,10 +452,18 @@ typedef struct BuildGpencilModifierData {
   short transition;
 
   /**
-   * (eGpencilBuild_TimeAlignment)
+   * (eBuildGpencil_TimeAlignment)
    * For the "Concurrent" mode, when should "shorter" strips start/end.
    */
   short time_alignment;
+
+  /* Speed factor for GP_BUILD_TIMEMODE_DRAWSPEED. */
+  float speed_fac;
+  /* Maxmium time gap between strokes for GP_BUILD_TIMEMODE_DRAWSPEED. */
+  float speed_maxgap;
+  /* Which time mode should be used. */
+  short time_mode;
+  char _pad[6];
 
   /** Build origin control object. */
   struct Object *object;
@@ -498,6 +507,15 @@ typedef enum eBuildGpencil_TimeAlignment {
   /* TODO: Random Offsets, Stretch-to-Fill */
 } eBuildGpencil_TimeAlignment;
 
+typedef enum eBuildGpencil_TimeMode {
+  /* Use a number of frames build. */
+  GP_BUILD_TIMEMODE_FRAMES = 0,
+  /* Use manual percentage to build. */
+  GP_BUILD_TIMEMODE_PERCENTAGE = 1,
+  /* Use factor of recorded speed to build. */
+  GP_BUILD_TIMEMODE_DRAWSPEED = 2,
+} eBuildGpencil_TimeMode;
+
 typedef enum eBuildGpencil_Flag {
   /* Restrict modifier to particular layer/passes? */
   GP_BUILD_INVERT_LAYER = (1 << 0),
@@ -506,10 +524,7 @@ typedef enum eBuildGpencil_Flag {
   /* Restrict modifier to only operating between the nominated frames */
   GP_BUILD_RESTRICT_TIME = (1 << 2),
   GP_BUILD_INVERT_LAYERPASS = (1 << 3),
-
-  /* Use a percentage instead of frame number to evaluate strokes. */
-  GP_BUILD_PERCENTAGE = (1 << 4),
-  GP_BUILD_USE_FADING = (1 << 5),
+  GP_BUILD_USE_FADING = (1 << 4),
 } eBuildGpencil_Flag;
 
 typedef struct LatticeGpencilModifierData {
@@ -759,6 +774,14 @@ typedef enum eSimplifyGpencil_Mode {
   GP_SIMPLIFY_MERGE = 3,
 } eSimplifyGpencil_Mode;
 
+typedef enum eOffsetGpencil_Mode {
+  GP_OFFSET_RANDOM = 0,
+  GP_OFFSET_LAYER = 1,
+  GP_OFFSET_MATERIAL = 2,
+  GP_OFFSET_STROKE = 3
+
+} eOffsetGpencil_Mode;
+
 typedef struct OffsetGpencilModifierData {
   GpencilModifierData modifier;
   /** Material for filtering. */
@@ -784,8 +807,12 @@ typedef struct OffsetGpencilModifierData {
   float rnd_scale[3];
   /** (first element is the index) random values. */
   int seed;
-  /** Custom index for passes. */
+  int mode;
+  int stroke_step;
+  int stroke_start_offset;
   int layer_pass;
+  char _pad[4];
+
 } OffsetGpencilModifierData;
 
 typedef enum eOffsetGpencil_Flag {

@@ -50,7 +50,7 @@ static void get_uvs(const CDStreamConfig &config,
                     std::vector<uint32_t> &uvidx,
                     const void *cd_data)
 {
-  const MLoopUV *mloopuv_array = static_cast<const MLoopUV *>(cd_data);
+  const float2 *mloopuv_array = static_cast<const float2 *>(cd_data);
 
   if (!mloopuv_array) {
     return;
@@ -68,14 +68,14 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = mpoly[i];
-      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const float2 *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++, count++) {
         loopuv--;
 
         uvidx[count] = count;
-        uvs[count][0] = loopuv->uv[0];
-        uvs[count][1] = loopuv->uv[1];
+        uvs[count][0] = (*loopuv)[0];
+        uvs[count][1] = (*loopuv)[1];
       }
     }
   }
@@ -87,13 +87,13 @@ static void get_uvs(const CDStreamConfig &config,
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = mpoly[i];
       MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
-      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const float2 *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++) {
         looppoly--;
         loopuv--;
 
-        Imath::V2f uv(loopuv->uv[0], loopuv->uv[1]);
+        Imath::V2f uv((*loopuv)[0], (*loopuv)[1]);
         bool found_same = false;
 
         /* Find UV already in uvs array. */
@@ -119,17 +119,17 @@ static void get_uvs(const CDStreamConfig &config,
 
 const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data)
 {
-  const int active_uvlayer = CustomData_get_active_layer(data, CD_MLOOPUV);
+  const int active_uvlayer = CustomData_get_active_layer(data, CD_PROP_FLOAT2);
 
   if (active_uvlayer < 0) {
     return "";
   }
 
-  const void *cd_data = CustomData_get_layer_n(data, CD_MLOOPUV, active_uvlayer);
+  const void *cd_data = CustomData_get_layer_n(data, CD_PROP_FLOAT2, active_uvlayer);
 
   get_uvs(config, sample.uvs, sample.indices, cd_data);
 
-  return CustomData_get_layer_name(data, CD_MLOOPUV, active_uvlayer);
+  return CustomData_get_layer_name(data, CD_PROP_FLOAT2, active_uvlayer);
 }
 
 /* Convention to write UVs:
@@ -283,7 +283,7 @@ void write_custom_data(const OCompoundProperty &prop,
     const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
     const char *name = CustomData_get_layer_name(data, cd_data_type, i);
 
-    if (cd_data_type == CD_MLOOPUV) {
+    if (cd_data_type == CD_PROP_FLOAT2) {
       /* Already exported. */
       if (i == active_layer) {
         continue;
@@ -317,7 +317,7 @@ static void read_uvs(const CDStreamConfig &config,
 {
   MPoly *mpolys = config.mpoly;
   MLoop *mloops = config.mloop;
-  MLoopUV *mloopuvs = static_cast<MLoopUV *>(data);
+  float2 *mloopuvs = static_cast<float2 *>(data);
 
   uint uv_index, loop_index, rev_loop_index;
 
@@ -334,9 +334,9 @@ static void read_uvs(const CDStreamConfig &config,
       uv_index = (*indices)[loop_index];
       const Imath::V2f &uv = (*uvs)[uv_index];
 
-      MLoopUV &loopuv = mloopuvs[rev_loop_index];
-      loopuv.uv[0] = uv[0];
-      loopuv.uv[1] = uv[1];
+      float2 &loopuv = mloopuvs[rev_loop_index];
+      loopuv[0] = uv[0];
+      loopuv[1] = uv[1];
     }
   }
 }
@@ -420,7 +420,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
 
   /* The colors can go through two layers of indexing. Often the 'indices'
    * array doesn't do anything (i.e. indices[n] = n), but when it does, it's
-   * important. Blender 2.79 writes indices incorrectly (see T53745), which
+   * important. Blender 2.79 writes indices incorrectly (see #53745), which
    * is why we have to check for indices->size() > 0 */
   bool use_dual_indexing = is_facevarying && indices->size() > 0;
 
@@ -497,7 +497,8 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
     return;
   }
 
-  void *cd_data = config.add_customdata_cb(config.mesh, prop_header.getName().c_str(), CD_MLOOPUV);
+  void *cd_data = config.add_customdata_cb(
+      config.mesh, prop_header.getName().c_str(), CD_PROP_FLOAT2);
 
   read_uvs(config, cd_data, uv_scope, sample.getVals(), uvs_indices);
 }
@@ -534,7 +535,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
   void *cd_data;
   if (CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
-    cd_data = CustomData_get_layer(&mesh->vdata, CD_ORCO);
+    cd_data = CustomData_get_layer_for_write(&mesh->vdata, CD_ORCO, mesh->totvert);
   }
   else {
     cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CONSTRUCT, nullptr, totvert);
@@ -596,7 +597,7 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
   /* kVaryingScope is sometimes used for vertex scopes as the values vary across the vertices. To
    * be sure, one has to check the size of the data against the number of vertices, as it could
    * also be a varying attribute across the faces (i.e. one value per face). */
-  if ((ELEM(scope, kVaryingScope, kVertexScope)) && indices->size() == config.totvert) {
+  if (ELEM(scope, kVaryingScope, kVertexScope) && indices->size() == config.totvert) {
     return ABC_UV_SCOPE_VERTEX;
   }
 

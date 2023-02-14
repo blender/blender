@@ -16,18 +16,18 @@ NODE_STORAGE_FUNCS(NodeGeometryAttributeCapture)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Vector>(N_("Value")).supports_field();
-  b.add_input<decl::Float>(N_("Value"), "Value_001").supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_002").supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_003").supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_004").supports_field();
+  b.add_input<decl::Vector>(N_("Value")).field_on_all();
+  b.add_input<decl::Float>(N_("Value"), "Value_001").field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_002").field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_003").field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_004").field_on_all();
 
-  b.add_output<decl::Geometry>(N_("Geometry"));
-  b.add_output<decl::Vector>(N_("Attribute")).field_source();
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").field_source();
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").field_source();
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").field_source();
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").field_source();
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_output<decl::Vector>(N_("Attribute")).field_on_all();
+  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").field_on_all();
+  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").field_on_all();
+  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").field_on_all();
+  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -82,8 +82,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(1));
 
   const bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
@@ -142,9 +142,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(storage.domain);
 
   const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
+  AutoAnonymousAttributeID attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+      output_identifier);
 
-  if (!params.output_is_required(output_identifier)) {
+  if (!attribute_id) {
     params.set_output("Geometry", geometry_set);
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -171,7 +174,6 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  WeakAnonymousAttributeID anonymous_id{"Attribute"};
   const CPPType &type = field.cpp_type();
 
   /* Run on the instances component separately to only affect the top level of instances. */
@@ -179,7 +181,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
-      bke::try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+      bke::try_capture_field_on_geometry(component, *attribute_id, domain, field);
     }
   }
   else {
@@ -190,14 +192,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       for (const GeometryComponentType type : types) {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          bke::try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+          bke::try_capture_field_on_geometry(component, *attribute_id, domain, field);
         }
       }
     });
   }
 
   GField output_field{std::make_shared<bke::AnonymousAttributeFieldInput>(
-      std::move(anonymous_id), type, params.attribute_producer_name())};
+      std::move(attribute_id), type, params.attribute_producer_name())};
 
   switch (data_type) {
     case CD_PROP_FLOAT: {

@@ -311,10 +311,9 @@ enum eGWL_PendingWindowActions {
 #  ifdef GHOST_OPENGL_ALPHA
   PENDING_OPAQUE_SET,
 #  endif
-  PENDING_SWAP_BUFFERS,
   PENDING_SCALE_UPDATE,
 };
-#  define PENDING_NUM (PENDING_SWAP_BUFFERS + 1)
+#  define PENDING_NUM (PENDING_SCALE_UPDATE + 1)
 
 static void gwl_window_pending_actions_tag(GWL_Window *win, enum eGWL_PendingWindowActions type)
 {
@@ -338,9 +337,6 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
   if (win->pending_actions[PENDING_SCALE_UPDATE].exchange(false)) {
     win->ghost_window->outputs_changed_update_scale();
   }
-  if (win->pending_actions[PENDING_SWAP_BUFFERS].exchange(false)) {
-    win->ghost_window->swapBuffers();
-  }
 }
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
@@ -356,8 +352,6 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
 
 #endif
 
-  bool do_redraw = false;
-
   if (win->frame_pending.size[0] != 0 && win->frame_pending.size[1] != 0) {
     if ((win->frame.size[0] != win->frame_pending.size[0]) ||
         (win->frame.size[1] != win->frame_pending.size[1])) {
@@ -365,18 +359,11 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
     }
   }
 
-  bool is_active_ghost = (win->ghost_window ==
-                          win->ghost_system->getWindowManager()->getActiveWindow());
-
   if (win->frame_pending.is_active) {
     win->ghost_window->activate();
   }
   else {
     win->ghost_window->deactivate();
-  }
-
-  if (is_active_ghost != win->frame_pending.is_active) {
-    do_redraw = true;
   }
 
   win->frame_pending.size[0] = win->frame.size[0];
@@ -387,15 +374,6 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
   /* Signal not to apply the scale unless it's configured. */
   win->frame_pending.size[0] = 0;
   win->frame_pending.size[1] = 0;
-
-  if (do_redraw) {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    /* Could swap buffers, use pending to a redundant call in some cases. */
-    gwl_window_pending_actions_tag(win, PENDING_SWAP_BUFFERS);
-#else
-    win->ghost_window->swapBuffers();
-#endif
-  }
 }
 
 static void gwl_window_frame_update_from_pending(GWL_Window *win)
@@ -621,12 +599,11 @@ static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
+#  if 0
   GWL_Window *win = static_cast<GWL_Window *>(data);
-
-#  ifdef USE_EVENT_BACKGROUND_THREAD
-  gwl_window_pending_actions_tag(win, PENDING_SWAP_BUFFERS);
+  win->ghost_window->notify_decor_redraw();
 #  else
-  win->ghost_window->swapBuffers();
+  (void)data;
 #  endif
 }
 
@@ -692,7 +669,7 @@ static void xdg_surface_handle_configure(void *data,
   GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
-    /* NOTE(@campbellbarton): this only gets one redraw,
+    /* NOTE(@ideasman42): this only gets one redraw,
      * I could not find a case where this causes problems. */
     gwl_window_pending_actions_tag(win, PENDING_FRAME_CONFIGURE);
   }
@@ -797,12 +774,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->ghost_window = this;
   window_->ghost_system = system;
 
-  window_->frame.size[0] = int32_t(width);
-  window_->frame.size[1] = int32_t(height);
-
-  window_->is_dialog = is_dialog;
-
-  /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
+  /* NOTE(@ideasman42): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
    *
    * When monitors have different scales there may still be a visible window resize on startup.
@@ -812,6 +784,16 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
   window_->scale = outputs_max_scale_or_default(system_->outputs(), 1, &window_->scale_fractional);
+
+  window_->frame.size[0] = int32_t(width);
+  window_->frame.size[1] = int32_t(height);
+
+  /* The window surface must be rounded to the scale,
+   * failing to do so causes the WAYLAND-server to close the window immediately. */
+  window_->frame.size[0] = (window_->frame.size[0] / window_->scale) * window_->scale;
+  window_->frame.size[1] = (window_->frame.size[1] / window_->scale) * window_->scale;
+
+  window_->is_dialog = is_dialog;
 
   /* Window surfaces. */
   window_->wl_surface = wl_compositor_create_surface(system_->wl_compositor());
@@ -830,12 +812,12 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * when the `window_->scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
-  /* This value is expected to match the base name of the `.desktop` file. see T101805.
+  /* This value is expected to match the base name of the `.desktop` file. see #101805.
    *
    * NOTE: the XDG desktop-entry-spec defines that this should follow the "reverse DNS" convention.
    * For e.g. `org.blender.Blender` - however the `.desktop` file distributed with Blender is
    * simply called `blender.desktop`, so the it's important to follow that name.
-   * Other distributions such as SNAP & FLATPAK may need to change this value T101779.
+   * Other distributions such as SNAP & FLATPAK may need to change this value #101779.
    * Currently there isn't a way to configure this, we may want to support that. */
   const char *xdg_app_id = (
 #ifdef WITH_GHOST_WAYLAND_APP_ID
@@ -1096,9 +1078,9 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
   wl_surface_destroy(window_->wl_surface);
 
-  /* NOTE(@campbellbarton): Flushing will often run the appropriate handlers event
+  /* NOTE(@ideasman42): Flushing will often run the appropriate handlers event
    * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
-   * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
+   * This is not fool-proof though, hence the call to #window_surface_unref, see: #99078. */
   wl_display_flush(system_->wl_display());
 
   delete window_;
@@ -1203,10 +1185,6 @@ void GHOST_WindowWayland::setOpaque() const
 }
 #endif
 
-/**
- * \param type: The type of rendering context create.
- * \return Indication of success.
- */
 GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)
 {
   GHOST_Context *context;
@@ -1320,8 +1298,17 @@ GHOST_TSuccess GHOST_WindowWayland::activate()
       return GHOST_kFailure;
     }
   }
-  return system_->pushEvent_maybe_pending(
+  const GHOST_TSuccess success = system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowActivate, this));
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (success == GHOST_kSuccess) {
+    if (use_libdecor) {
+      /* Ensure there is a swap-buffers, needed for the updated window borders to refresh. */
+      notify_decor_redraw();
+    }
+  }
+#endif
+  return success;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::deactivate()
@@ -1334,8 +1321,17 @@ GHOST_TSuccess GHOST_WindowWayland::deactivate()
   {
     system_->getWindowManager()->setWindowInactive(this);
   }
-  return system_->pushEvent_maybe_pending(
+  const GHOST_TSuccess success = system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowDeactivate, this));
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (success == GHOST_kSuccess) {
+    if (use_libdecor) {
+      /* Ensure there is a swap-buffers, needed for the updated window borders to refresh. */
+      notify_decor_redraw();
+    }
+  }
+#endif
+  return success;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::notify_size()
@@ -1357,6 +1353,14 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowSize, this));
 }
 
+GHOST_TSuccess GHOST_WindowWayland::notify_decor_redraw()
+{
+  /* NOTE: we want to `swapBuffers`, however this may run from a thread and
+   * when this windows OpenGL context is not active, so send and update event instead. */
+  return system_->pushEvent_maybe_pending(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowUpdateDecor, this));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1365,9 +1369,6 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
-/**
- * Return true when the windows scale or DPI changes.
- */
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD

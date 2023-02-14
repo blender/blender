@@ -220,7 +220,7 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
   workspace_new->order = workspace_old->order;
   BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);
 
-  /* TODO(@campbellbarton): tools */
+  /* TODO(@ideasman42): tools */
 
   LISTBASE_FOREACH (WorkSpaceLayout *, layout_old, &workspace_old->layouts) {
     WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(

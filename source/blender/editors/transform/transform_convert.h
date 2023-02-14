@@ -17,7 +17,6 @@ extern "C" {
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;
-struct FCurve;
 struct ListBase;
 struct Object;
 struct TransData;
@@ -134,6 +133,10 @@ extern TransConvertTypeInfo TransConvertType_Cursor3D;
 /* transform_convert_curve.c */
 
 extern TransConvertTypeInfo TransConvertType_Curve;
+
+/* transform_convert_curves.cc */
+
+extern TransConvertTypeInfo TransConvertType_Curves;
 
 /* transform_convert_graph.c */
 
@@ -257,7 +260,7 @@ extern TransConvertTypeInfo TransConvertType_PaintCurve;
 
 extern TransConvertTypeInfo TransConvertType_Particle;
 
-/* transform_convert_sculpt.c */
+/* transform_convert_sculpt.cc */
 
 extern TransConvertTypeInfo TransConvertType_Sculpt;
 

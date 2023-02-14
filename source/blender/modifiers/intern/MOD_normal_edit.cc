@@ -21,6 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
@@ -47,15 +48,16 @@ static void generate_vert_coordinates(Mesh *mesh,
                                       float (*r_cos)[3],
                                       float r_size[3])
 {
+  using namespace blender;
   float min_co[3], max_co[3];
   float diff[3];
   bool do_diff = false;
 
   INIT_MINMAX(min_co, max_co);
 
-  const MVert *mv = BKE_mesh_verts(mesh);
-  for (int i = 0; i < mesh->totvert; i++, mv++) {
-    copy_v3_v3(r_cos[i], mv->co);
+  const Span<float3> positions = mesh->vert_positions();
+  for (int i = 0; i < mesh->totvert; i++) {
+    copy_v3_v3(r_cos[i], positions[i]);
     if (r_size != nullptr && ob_center == nullptr) {
       minmax_v3v3_v3(min_co, max_co, r_cos[i]);
     }
@@ -93,7 +95,7 @@ static void generate_vert_coordinates(Mesh *mesh,
 
     /* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
     /* Get ob_center (world) coordinates in ob local coordinates.
-     * No need to take into account ob_center's space here, see T44027. */
+     * No need to take into account ob_center's space here, see #44027. */
     invert_m4_m4(inv_obmat, ob->object_to_world);
     mul_v3_m4v3(diff, inv_obmat, ob_center->object_to_world[3]);
     negate_v3(diff);
@@ -175,12 +177,13 @@ static void mix_normals(const float mix_factor,
 static bool polygons_check_flip(MLoop *mloop,
                                 float (*nos)[3],
                                 CustomData *ldata,
+                                const int totloop,
                                 const MPoly *mpoly,
-                                float (*polynors)[3],
+                                float (*poly_normals)[3],
                                 const int polys_num)
 {
   const MPoly *mp;
-  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer(ldata, CD_MDISPS));
+  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer_for_write(ldata, CD_MDISPS, totloop));
   int i;
   bool flipped = false;
 
@@ -198,9 +201,9 @@ static bool polygons_check_flip(MLoop *mloop,
     }
 
     /* If average of new loop normals is opposed to polygon normal, flip polygon. */
-    if (dot_v3v3(polynors[i], norsum) < 0.0f) {
+    if (dot_v3v3(poly_normals[i], norsum) < 0.0f) {
       BKE_mesh_polygon_flip_ex(mp, mloop, ldata, nos, mdisp, true);
-      negate_v3(polynors[i]);
+      negate_v3(poly_normals[i]);
       flipped = true;
     }
   }
@@ -213,18 +216,19 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          Object *ob,
                                          Mesh *mesh,
                                          short (*clnors)[2],
-                                         float (*loopnors)[3],
-                                         const float (*polynors)[3],
+                                         float (*loop_normals)[3],
+                                         const float (*poly_normals)[3],
                                          const short mix_mode,
                                          const float mix_factor,
                                          const float mix_limit,
                                          const MDeformVert *dvert,
                                          const int defgrp_index,
                                          const bool use_invert_vgroup,
-                                         const MVert *mvert,
+                                         const float (*vert_positions)[3],
                                          const int verts_num,
-                                         MEdge *medge,
+                                         const MEdge *medge,
                                          const int edges_num,
+                                         bool *sharp_edges,
                                          MLoop *mloop,
                                          const int loops_num,
                                          const MPoly *mpoly,
@@ -308,7 +312,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     }
   }
 
-  if (loopnors) {
+  if (loop_normals) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -317,19 +321,23 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 mix_mode,
                 verts_num,
                 mloop,
-                loopnors,
+                loop_normals,
                 nos,
                 loops_num);
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          mloop, nos, &mesh->ldata, mpoly, BKE_mesh_poly_normals_for_write(mesh), polys_num)) {
+  if (do_polynors_fix && polygons_check_flip(mloop,
+                                             nos,
+                                             &mesh->ldata,
+                                             mesh->totloop,
+                                             mpoly,
+                                             BKE_mesh_poly_normals_for_write(mesh),
+                                             polys_num)) {
     /* We need to recompute vertex normals! */
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
-  BKE_mesh_normals_loop_custom_set(mvert,
+  BKE_mesh_normals_loop_custom_set(vert_positions,
                                    BKE_mesh_vertex_normals_ensure(mesh),
                                    verts_num,
                                    medge,
@@ -338,8 +346,9 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                    nos,
                                    loops_num,
                                    mpoly,
-                                   polynors,
+                                   poly_normals,
                                    polys_num,
+                                   sharp_edges,
                                    clnors);
 
   MEM_freeN(cos);
@@ -352,18 +361,19 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               Object *ob,
                                               Mesh *mesh,
                                               short (*clnors)[2],
-                                              float (*loopnors)[3],
-                                              const float (*polynors)[3],
+                                              float (*loop_normals)[3],
+                                              const float (*poly_normals)[3],
                                               const short mix_mode,
                                               const float mix_factor,
                                               const float mix_limit,
                                               const MDeformVert *dvert,
                                               const int defgrp_index,
                                               const bool use_invert_vgroup,
-                                              const MVert *mvert,
+                                              const float (*positions)[3],
                                               const int verts_num,
-                                              MEdge *medge,
+                                              const MEdge *medge,
                                               const int edges_num,
+                                              bool *sharp_edges,
                                               MLoop *mloop,
                                               const int loops_num,
                                               const MPoly *mpoly,
@@ -425,7 +435,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     MEM_freeN(cos);
   }
 
-  if (loopnors) {
+  if (loop_normals) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -434,18 +444,22 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 mix_mode,
                 verts_num,
                 mloop,
-                loopnors,
+                loop_normals,
                 nos,
                 loops_num);
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          mloop, nos, &mesh->ldata, mpoly, BKE_mesh_poly_normals_for_write(mesh), polys_num)) {
+  if (do_polynors_fix && polygons_check_flip(mloop,
+                                             nos,
+                                             &mesh->ldata,
+                                             mesh->totloop,
+                                             mpoly,
+                                             BKE_mesh_poly_normals_for_write(mesh),
+                                             polys_num)) {
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
-  BKE_mesh_normals_loop_custom_set(mvert,
+  BKE_mesh_normals_loop_custom_set(positions,
                                    BKE_mesh_vertex_normals_ensure(mesh),
                                    verts_num,
                                    medge,
@@ -454,8 +468,9 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                    nos,
                                    loops_num,
                                    mpoly,
-                                   polynors,
+                                   poly_normals,
                                    polys_num,
+                                   sharp_edges,
                                    clnors);
 
   MEM_freeN(nos);
@@ -486,6 +501,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                    Object *ob,
                                    Mesh *mesh)
 {
+  using namespace blender;
   const bool use_invert_vgroup = ((enmd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
   const bool use_current_clnors = !((enmd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
                                     (enmd->mix_factor == 1.0f) && (enmd->defgrp_name[0] == '\0') &&
@@ -516,7 +532,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (BKE_mesh_edges(mesh) == BKE_mesh_edges((Mesh *)ob->data)) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
-     * modify original mesh, see T43671. */
+     * modify original mesh, see #43671. */
     result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {
@@ -527,41 +543,47 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   const int edges_num = result->totedge;
   const int loops_num = result->totloop;
   const int polys_num = result->totpoly;
-  const MVert *verts = BKE_mesh_verts(result);
-  MEdge *edges = BKE_mesh_edges_for_write(result);
+  const float(*positions)[3] = BKE_mesh_vert_positions(result);
+  const MEdge *edges = BKE_mesh_edges(result);
   const MPoly *polys = BKE_mesh_polys(result);
   MLoop *loops = BKE_mesh_loops_for_write(result);
 
   int defgrp_index;
   const MDeformVert *dvert;
 
-  float(*loopnors)[3] = nullptr;
+  float(*loop_normals)[3] = nullptr;
 
   CustomData *ldata = &result->ldata;
 
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(result);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(result);
 
-  short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL));
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE);
+
+  short(*clnors)[2] = static_cast<short(*)[2]>(
+      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
   if (use_current_clnors) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
-    loopnors = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loopnors), __func__));
+        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
+    loop_normals = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
 
-    BKE_mesh_normals_loop_split(verts,
+    BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 verts_num,
                                 edges,
                                 edges_num,
                                 loops,
-                                loopnors,
+                                loop_normals,
                                 loops_num,
                                 polys,
                                 poly_normals,
                                 polys_num,
                                 true,
                                 result->smoothresh,
+                                sharp_edges.span.data(),
                                 nullptr,
                                 nullptr,
                                 clnors);
@@ -580,7 +602,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ob,
                                  result,
                                  clnors,
-                                 loopnors,
+                                 loop_normals,
                                  poly_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -588,10 +610,11 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  dvert,
                                  defgrp_index,
                                  use_invert_vgroup,
-                                 verts,
+                                 positions,
                                  verts_num,
                                  edges,
                                  edges_num,
+                                 sharp_edges.span.data(),
                                  loops,
                                  loops_num,
                                  polys,
@@ -603,7 +626,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ob,
                                       result,
                                       clnors,
-                                      loopnors,
+                                      loop_normals,
                                       poly_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,
@@ -611,19 +634,22 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       dvert,
                                       defgrp_index,
                                       use_invert_vgroup,
-                                      verts,
+                                      positions,
                                       verts_num,
                                       edges,
                                       edges_num,
+                                      sharp_edges.span.data(),
                                       loops,
                                       loops_num,
                                       polys,
                                       polys_num);
   }
 
-  MEM_SAFE_FREE(loopnors);
+  MEM_SAFE_FREE(loop_normals);
 
   result->runtime->is_original_bmesh = false;
+
+  sharp_edges.finish();
 
   return result;
 }
@@ -760,35 +786,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
-    /* name */ N_("NormalEdit"),
-    /* structName */ "NormalEditModifierData",
-    /* structSize */ sizeof(NormalEditModifierData),
-    /* srna */ &RNA_NormalEditModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+    /*name*/ N_("NormalEdit"),
+    /*structName*/ "NormalEditModifierData",
+    /*structSize*/ sizeof(NormalEditModifierData),
+    /*srna*/ &RNA_NormalEditModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_NORMALEDIT,
+    /*icon*/ ICON_MOD_NORMALEDIT,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ dependsOnNormals,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ dependsOnNormals,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

@@ -522,10 +522,10 @@ BLI_INLINE void draw_legacy_matrix_update(DRWShadingGroup *shgroup,
   /* Still supported for compatibility with gpu_shader_* but should be forbidden. */
   DRWObjectMatrix *ob_mats = DRW_memblock_elem_from_handle(DST.vmempool->obmats, handle);
   if (obmat_loc != -1) {
-    GPU_shader_uniform_vector(shgroup->shader, obmat_loc, 16, 1, (float *)ob_mats->model);
+    GPU_shader_uniform_float_ex(shgroup->shader, obmat_loc, 16, 1, (float *)ob_mats->model);
   }
   if (obinv_loc != -1) {
-    GPU_shader_uniform_vector(shgroup->shader, obinv_loc, 16, 1, (float *)ob_mats->modelinverse);
+    GPU_shader_uniform_float_ex(shgroup->shader, obinv_loc, 16, 1, (float *)ob_mats->modelinverse);
   }
 }
 
@@ -549,7 +549,7 @@ BLI_INLINE void draw_geometry_execute(DRWShadingGroup *shgroup,
 
   if (baseinst_loc != -1) {
     /* Fallback when ARB_shader_draw_parameters is not supported. */
-    GPU_shader_uniform_vector_int(shgroup->shader, baseinst_loc, 1, 1, (int *)&inst_first);
+    GPU_shader_uniform_int_ex(shgroup->shader, baseinst_loc, 1, 1, (int *)&inst_first);
     /* Avoids VAO reconfiguration on older hardware. (see GPU_batch_draw_advanced) */
     inst_first = 0;
   }
@@ -615,7 +615,7 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
         memcpy(&mat4_stack[array_index], uni->fvalue, sizeof(float) * uni->length);
         /* Flush array data to shader. */
         if (array_index <= 0) {
-          GPU_shader_uniform_vector(shgroup->shader, uni->location, 16, 1, mat4_stack);
+          GPU_shader_uniform_float_ex(shgroup->shader, uni->location, 16, 1, mat4_stack);
           array_uniform_loc = -1;
         }
         continue;
@@ -626,23 +626,23 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
         case DRW_UNIFORM_INT_COPY:
           BLI_assert(uni->arraysize == 1);
           if (uni->arraysize == 1) {
-            GPU_shader_uniform_vector_int(
+            GPU_shader_uniform_int_ex(
                 shgroup->shader, uni->location, uni->length, uni->arraysize, uni->ivalue);
           }
           break;
         case DRW_UNIFORM_INT:
-          GPU_shader_uniform_vector_int(
+          GPU_shader_uniform_int_ex(
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_FLOAT_COPY:
           BLI_assert(uni->arraysize == 1);
           if (uni->arraysize == 1) {
-            GPU_shader_uniform_vector(
+            GPU_shader_uniform_float_ex(
                 shgroup->shader, uni->location, uni->length, uni->arraysize, uni->fvalue);
           }
           break;
         case DRW_UNIFORM_FLOAT:
-          GPU_shader_uniform_vector(
+          GPU_shader_uniform_float_ex(
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_TEXTURE:
@@ -687,10 +687,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           state->vlattrs_loc = uni->location;
           GPU_uniformbuf_bind(drw_ensure_layer_attribute_buffer(), uni->location);
           break;
-        case DRW_UNIFORM_RESOURCE_CHUNK:
+        case DRW_UNIFORM_RESOURCE_CHUNK: {
           state->chunkid_loc = uni->location;
-          GPU_shader_uniform_int(shgroup->shader, uni->location, 0);
+          int zero = 0;
+          GPU_shader_uniform_int_ex(shgroup->shader, uni->location, 1, 1, &zero);
           break;
+        }
         case DRW_UNIFORM_RESOURCE_ID:
           state->resourceid_loc = uni->location;
           break;
@@ -807,7 +809,7 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   int chunk = DRW_handle_chunk_get(handle);
   if (state->resource_chunk != chunk) {
     if (state->chunkid_loc != -1) {
-      GPU_shader_uniform_int(DST.shader, state->chunkid_loc, chunk);
+      GPU_shader_uniform_int_ex(DST.shader, state->chunkid_loc, 1, 1, &chunk);
     }
     if (state->obmats_loc != -1) {
       GPU_uniformbuf_unbind(DST.vmempool->matrices_ubo[state->resource_chunk]);
@@ -827,7 +829,7 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   if (state->resourceid_loc != -1) {
     int id = DRW_handle_id_get(handle);
     if (state->resource_id != id) {
-      GPU_shader_uniform_int(DST.shader, state->resourceid_loc, id);
+      GPU_shader_uniform_int_ex(DST.shader, state->resourceid_loc, 1, 1, &id);
       state->resource_id = id;
     }
   }
@@ -1161,9 +1163,6 @@ static void drw_update_view(void)
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
   GPU_uniformbuf_update(G_draw.clipping_ubo, &DST.view_active->clip_planes);
 
-  /* TODO: get rid of this. */
-  DST.view_storage_cpy = DST.view_active->storage;
-
   draw_compute_culling(DST.view_active);
 }
 
@@ -1221,7 +1220,7 @@ static void drw_draw_pass_ex(DRWPass *pass,
     DST.batch = NULL;
   }
 
-  /* Fix T67342 for some reason. AMD Pro driver bug. */
+  /* Fix #67342 for some reason. AMD Pro driver bug. */
   if ((DST.state & DRW_STATE_BLEND_CUSTOM) != 0 &&
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     drw_state_set(DST.state & ~DRW_STATE_BLEND_CUSTOM);

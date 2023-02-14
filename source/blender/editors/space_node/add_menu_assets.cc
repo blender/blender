@@ -49,13 +49,6 @@ struct LibraryAsset {
   AssetHandle handle;
 };
 
-struct LibraryCatalog {
-  asset_system::AssetLibrary *library;
-  /* Catalog pointers are not save to store. Use the catalog ID instead and lookup the catalog when
-   * needed. */
-  const asset_system::CatalogID catalog_id;
-};
-
 struct AssetItemTree {
   asset_system::AssetCatalogTree catalogs;
   MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
@@ -63,14 +56,18 @@ struct AssetItemTree {
       full_catalog_per_tree_item;
 };
 
+static AssetLibraryReference all_library_reference()
+{
+  AssetLibraryReference all_library_ref{};
+  all_library_ref.custom_library_index = -1;
+  all_library_ref.type = ASSET_LIBRARY_ALL;
+  return all_library_ref;
+}
+
 static bool all_loading_finished()
 {
-  for (const AssetLibraryReference &library : asset_system::all_valid_asset_library_refs()) {
-    if (!ED_assetlist_is_loaded(&library)) {
-      return false;
-    }
-  }
-  return true;
+  AssetLibraryReference all_library_ref = all_library_reference();
+  return ED_assetlist_is_loaded(&all_library_ref);
 }
 
 static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node_tree)
@@ -78,68 +75,59 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   if (!node_tree) {
     return {};
   }
-  const Main &bmain = *CTX_data_main(&C);
-  const Vector<AssetLibraryReference> all_libraries = asset_system::all_valid_asset_library_refs();
-
-  /* Merge catalogs from all libraries to deduplicate menu items. Also store the catalog and
-   * library for each asset ID in order to use them later when retrieving assets and removing
-   * empty catalogs.  */
-  Map<asset_system::CatalogID, LibraryCatalog> id_to_catalog_map;
-  asset_system::AssetCatalogTree catalogs_from_all_libraries;
-  for (const AssetLibraryReference &library_ref : all_libraries) {
-    if (asset_system::AssetLibrary *library = AS_asset_library_load(&bmain, library_ref)) {
-      if (asset_system::AssetCatalogTree *tree = library->catalog_service->get_catalog_tree()) {
-        tree->foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
-          const asset_system::CatalogID &id = item.get_catalog_id();
-          asset_system::AssetCatalog *catalog = library->catalog_service->find_catalog(id);
-          catalogs_from_all_libraries.insert_item(*catalog);
-          id_to_catalog_map.add(item.get_catalog_id(), LibraryCatalog{library, id});
-        });
-      }
-    }
-  }
 
   /* Find all the matching node group assets for every catalog path. */
   MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
-  for (const AssetLibraryReference &library_ref : all_libraries) {
-    AssetFilterSettings type_filter{};
-    type_filter.id_types = FILTER_ID_NT;
 
-    ED_assetlist_storage_fetch(&library_ref, &C);
-    ED_assetlist_ensure_previews_job(&library_ref, &C);
-    ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
-      if (!ED_asset_filter_matches_asset(&type_filter, &asset)) {
-        return true;
-      }
-      const AssetMetaData &meta_data = *ED_asset_handle_get_metadata(&asset);
-      const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-      if (tree_type == nullptr || IDP_Int(tree_type) != node_tree->type) {
-        return true;
-      }
-      if (BLI_uuid_is_nil(meta_data.catalog_id)) {
-        return true;
-      }
-      const LibraryCatalog *library_catalog = id_to_catalog_map.lookup_ptr(meta_data.catalog_id);
-      if (library_catalog == nullptr) {
-        return true;
-      }
-      const asset_system::AssetCatalog *catalog =
-          library_catalog->library->catalog_service->find_catalog(library_catalog->catalog_id);
-      assets_per_path.add(catalog->path, LibraryAsset{library_ref, asset});
-      return true;
-    });
+  AssetFilterSettings type_filter{};
+  type_filter.id_types = FILTER_ID_NT;
+
+  const AssetLibraryReference all_library_ref = all_library_reference();
+
+  ED_assetlist_storage_fetch(&all_library_ref, &C);
+  ED_assetlist_ensure_previews_job(&all_library_ref, &C);
+
+  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+      all_library_ref);
+  if (!all_library) {
+    return {};
   }
 
-  /* Build the final tree without any of the catalogs that don't have proper node group assets. */
-  asset_system::AssetCatalogTree catalogs_with_node_assets;
-  catalogs_from_all_libraries.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
-    if (!assets_per_path.lookup(item.catalog_path()).is_empty()) {
-      const asset_system::CatalogID &id = item.get_catalog_id();
-      const LibraryCatalog &library_catalog = id_to_catalog_map.lookup(id);
-      asset_system::AssetCatalog *catalog = library_catalog.library->catalog_service->find_catalog(
-          id);
-      catalogs_with_node_assets.insert_item(*catalog);
+  ED_assetlist_iterate(all_library_ref, [&](AssetHandle asset) {
+    if (!ED_asset_filter_matches_asset(&type_filter, &asset)) {
+      return true;
     }
+    const AssetMetaData &meta_data = *ED_asset_handle_get_metadata(&asset);
+    const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
+    if (tree_type == nullptr || IDP_Int(tree_type) != node_tree->type) {
+      return true;
+    }
+    if (BLI_uuid_is_nil(meta_data.catalog_id)) {
+      return true;
+    }
+
+    const asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
+        meta_data.catalog_id);
+    if (catalog == nullptr) {
+      return true;
+    }
+    assets_per_path.add(catalog->path, LibraryAsset{all_library_ref, asset});
+    return true;
+  });
+
+  /* Build an own tree without any of the catalogs that don't have proper node group assets. */
+  asset_system::AssetCatalogTree catalogs_with_node_assets;
+  asset_system::AssetCatalogTree &catalog_tree = *all_library->catalog_service->get_catalog_tree();
+  catalog_tree.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
+    if (assets_per_path.lookup(item.catalog_path()).is_empty()) {
+      return;
+    }
+    asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
+        item.get_catalog_id());
+    if (catalog == nullptr) {
+      return;
+    }
+    catalogs_with_node_assets.insert_item(*catalog);
   });
 
   /* Build another map storing full asset paths for each tree item, in order to have stable

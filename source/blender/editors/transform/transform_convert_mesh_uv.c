@@ -90,7 +90,8 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+
   BMIter fiter, liter;
   BMVert *f;
   BMLoop *l;
@@ -105,7 +106,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       float dist;
-      bool uv_vert_sel = uvedit_uv_select_test_ex(ts, l, cd_loop_uv_offset);
+      bool uv_vert_sel = uvedit_uv_select_test_ex(ts, l, offsets);
 
       if (uv_vert_sel) {
         BLI_LINKSTACK_PUSH(queue, l);
@@ -136,10 +137,10 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
       BMLoop *l_other, *l_connected;
       BMIter l_connected_iter;
 
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
       float l_uv[2];
 
-      copy_v2_v2(l_uv, luv->uv);
+      copy_v2_v2(l_uv, luv);
       mul_v2_v2(l_uv, aspect);
 
       BM_ITER_ELEM (l_other, &liter, l->f, BM_LOOPS_OF_FACE) {
@@ -147,9 +148,9 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
           continue;
         }
         float other_uv[2], edge_vec[2];
-        MLoopUV *luv_other = BM_ELEM_CD_GET_VOID_P(l_other, cd_loop_uv_offset);
+        float *luv_other = BM_ELEM_CD_GET_FLOAT_P(l_other, offsets.uv);
 
-        copy_v2_v2(other_uv, luv_other->uv);
+        copy_v2_v2(other_uv, luv_other);
         mul_v2_v2(other_uv, aspect);
 
         sub_v2_v2v2(edge_vec, l_uv, other_uv);
@@ -179,14 +180,14 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
             continue;
           }
 
-          MLoopUV *luv_connected = BM_ELEM_CD_GET_VOID_P(l_connected, cd_loop_uv_offset);
+          float *luv_connected = BM_ELEM_CD_GET_FLOAT_P(l_connected, offsets.uv);
           connected_vert_sel = BM_elem_flag_test_bool(l_connected, TMP_LOOP_SELECT_TAG);
 
           /* Check if this loop is connected in UV space.
            * If the uv loops share the same selection state (if not, they are not connected as
            * they have been ripped or other edit commands have separated them). */
           bool connected = other_vert_sel == connected_vert_sel &&
-                           equals_v2v2(luv_other->uv, luv_connected->uv);
+                           equals_v2v2(luv_other, luv_connected);
           if (!connected) {
             continue;
           }
@@ -261,7 +262,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
       int co_num;
     } *island_center = NULL;
     int count = 0, countsel = 0;
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
     if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
       continue;
@@ -291,15 +292,15 @@ static void createTransUVs(bContext *C, TransInfo *t)
         /* Make sure that the loop element flag is cleared for when we use it in
          * uv_set_connectivity_distance later. */
         BM_elem_flag_disable(l, BM_ELEM_TAG);
-        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        if (uvedit_uv_select_test(scene, l, offsets)) {
           countsel++;
 
           if (island_center) {
             UvElement *element = BM_uv_element_get(elementmap, efa, l);
 
             if (element->flag == false) {
-              MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-              add_v2_v2(island_center[element->island].co, luv->uv);
+              float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+              add_v2_v2(island_center[element->island].co, luv);
               island_center[element->island].co_num++;
               element->flag = true;
             }
@@ -354,8 +355,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
       }
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        const bool selected = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
-        MLoopUV *luv;
+        const bool selected = uvedit_uv_select_test(scene, l, offsets);
+        float(*luv)[2];
         const float *center = NULL;
         float prop_distance = FLT_MAX;
 
@@ -375,8 +376,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
           }
         }
 
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        UVsToTransData(t->aspect, td++, td2d++, luv->uv, center, prop_distance, selected);
+        luv = (float(*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+        UVsToTransData(t->aspect, td++, td2d++, *luv, center, prop_distance, selected);
       }
     }
 
@@ -469,8 +470,8 @@ static void recalcData_uv(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshUV = {
-    /* flags */ (T_EDIT | T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransUVs,
-    /* recalcData */ recalcData_uv,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransUVs,
+    /*recalcData*/ recalcData_uv,
+    /*special_aftertrans_update*/ NULL,
 };

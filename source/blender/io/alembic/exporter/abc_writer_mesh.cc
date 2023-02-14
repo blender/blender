@@ -240,8 +240,10 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       mesh_sample.setUVs(uv_sample);
     }
 
-    write_custom_data(
-        abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+    write_custom_data(abc_poly_mesh_schema_.getArbGeomParams(),
+                      m_custom_data_config,
+                      &mesh->ldata,
+                      CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->normals) {
@@ -307,7 +309,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
     }
 
     write_custom_data(
-        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->orcos) {
@@ -436,9 +438,9 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
   points.clear();
   points.resize(mesh->totvert);
 
-  const Span<MVert> verts = mesh->verts();
+  const Span<float3> positions = mesh->vert_positions();
   for (int i = 0, e = mesh->totvert; i < e; i++) {
-    copy_yup_from_zup(points[i].getValue(), verts[i].co);
+    copy_yup_from_zup(points[i].getValue(), positions[i]);
   }
 }
 
@@ -528,14 +530,15 @@ static void get_loop_normals(struct Mesh *mesh,
   normals.clear();
 
   /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
-   * normals at all. This is also done by other software, see T71246. */
+   * normals at all. This is also done by other software, see #71246. */
   if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL) &&
       (mesh->flag & ME_AUTOSMOOTH) == 0) {
     return;
   }
 
   BKE_mesh_calc_normals_split(mesh);
-  const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+  const float(*lnors)[3] = static_cast<const float(*)[3]>(
+      CustomData_get_layer(&mesh->ldata, CD_NORMAL));
   BLI_assert_msg(lnors != nullptr, "BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
 
   normals.resize(mesh->totloop);

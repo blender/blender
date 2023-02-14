@@ -22,7 +22,7 @@ static bNodeSocketTemplate outputs[] = {
 };
 
 static void do_hue_sat_fac(
-    bNode *UNUSED(node), float *out, float hue, float sat, float val, float *in, float fac)
+    bNode * /*node*/, float *out, float hue, float sat, float val, float *in, float fac)
 {
   if (fac != 0 && (hue != 0.5f || sat != 1 || val != 1)) {
     float col[3], hsv[3], mfac = 1.0f - fac;
@@ -78,7 +78,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -87,7 +87,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_hue_sat(void)
+void register_node_type_tex_hue_sat()
 {
   static bNodeType ntype;
 

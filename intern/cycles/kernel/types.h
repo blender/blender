@@ -34,8 +34,6 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_BOUNDS_MAX 1024
 
-#define BECKMANN_TABLE_SIZE 256
-
 #define SHADER_NONE (~0)
 #define OBJECT_NONE (~0)
 #define PRIM_NONE (~0)
@@ -76,7 +74,8 @@ CCL_NAMESPACE_BEGIN
 #define __VOLUME__
 
 /* TODO: solve internal compiler errors and enable light tree on HIP. */
-#ifdef __KERNEL_HIP__
+/* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
+#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 
@@ -148,8 +147,7 @@ CCL_NAMESPACE_BEGIN
 enum PathTraceDimension {
   /* Init bounce */
   PRNG_FILTER = 0,
-  PRNG_LENS = 1,
-  PRNG_TIME = 2,
+  PRNG_LENS_TIME = 1,
 
   /* Shade bounce */
   PRNG_TERMINATE = 0,
@@ -187,7 +185,7 @@ enum PathTraceDimension {
 
 enum SamplingPattern {
   SAMPLING_PATTERN_SOBOL_BURLEY = 0,
-  SAMPLING_PATTERN_PMJ = 1,
+  SAMPLING_PATTERN_TABULATED_SOBOL = 1,
 
   SAMPLING_NUM_PATTERNS,
 };
@@ -209,23 +207,24 @@ enum PathRayFlag : uint32_t {
   PATH_RAY_SINGULAR = (1U << 5U),
   PATH_RAY_TRANSPARENT = (1U << 6U),
   PATH_RAY_VOLUME_SCATTER = (1U << 7U),
+  PATH_RAY_IMPORTANCE_BAKE = (1U << 8U),
 
   /* Shadow ray visibility. */
-  PATH_RAY_SHADOW_OPAQUE = (1U << 8U),
-  PATH_RAY_SHADOW_TRANSPARENT = (1U << 9U),
+  PATH_RAY_SHADOW_OPAQUE = (1U << 9U),
+  PATH_RAY_SHADOW_TRANSPARENT = (1U << 10U),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1U << 10U) - 1U),
+  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
    * in the node (either it should be intersected as AABB or as OBBU).
    * So this can overlap with path flags. */
-  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
+  PATH_RAY_NODE_UNALIGNED = (1U << 11U),
 
   /* --------------------------------------------------------------------
    * Path flags.
@@ -233,60 +232,59 @@ enum PathRayFlag : uint32_t {
 
   /* Surface had transmission component at previous bounce. Used for light tree
    * traversal and culling to be consistent with MIS PDF at the next bounce. */
-  PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
+  PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 11U),
 
   /* Don't apply multiple importance sampling weights to emission from
    * lamp or surface hits, because they were not direct light sampled. */
-  PATH_RAY_MIS_SKIP = (1U << 11U),
+  PATH_RAY_MIS_SKIP = (1U << 12U),
 
   /* Diffuse bounce earlier in the path, skip SSS to improve performance
    * and avoid branching twice with disk sampling SSS. */
-  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 12U),
+  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 13U),
 
   /* Single pass has been written. */
-  PATH_RAY_SINGLE_PASS_DONE = (1U << 13U),
+  PATH_RAY_SINGLE_PASS_DONE = (1U << 14U),
 
   /* Zero background alpha, for camera or transparent glass rays. */
-  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 14U),
+  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 15U),
 
   /* Terminate ray immediately at next bounce. */
-  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 15U),
-  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 16U),
+  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 16U),
+  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 17U),
 
   /* Ray is to be terminated, but continue with transparent bounces and
    * emission as long as we encounter them. This is required to make the
    * MIS between direct and indirect light rays match, as shadow rays go
    * through transparent surfaces to reach emission too. */
-  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 17U),
+  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 18U),
 
   /* Terminate ray immediately after volume shading. */
-  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 18U),
+  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 19U),
 
   /* Ray is to be terminated. */
   PATH_RAY_TERMINATE = (PATH_RAY_TERMINATE_ON_NEXT_SURFACE | PATH_RAY_TERMINATE_IN_NEXT_VOLUME |
                         PATH_RAY_TERMINATE_AFTER_TRANSPARENT | PATH_RAY_TERMINATE_AFTER_VOLUME),
 
   /* Path and shader is being evaluated for direct lighting emission. */
-  PATH_RAY_EMISSION = (1U << 19U),
+  PATH_RAY_EMISSION = (1U << 20U),
 
   /* Perform subsurface scattering. */
-  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 20U),
-  PATH_RAY_SUBSURFACE_DISK = (1U << 21U),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 22U),
-  PATH_RAY_SUBSURFACE_BACKFACING = (1U << 23U),
+  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 21U),
+  PATH_RAY_SUBSURFACE_DISK = (1U << 22U),
+  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 23U),
+  PATH_RAY_SUBSURFACE_BACKFACING = (1U << 24U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
                          PATH_RAY_SUBSURFACE_USE_FRESNEL | PATH_RAY_SUBSURFACE_BACKFACING),
 
   /* Contribute to denoising features. */
-  PATH_RAY_DENOISING_FEATURES = (1U << 24U),
+  PATH_RAY_DENOISING_FEATURES = (1U << 25U),
 
   /* Render pass categories. */
-  PATH_RAY_SURFACE_PASS = (1U << 25U),
-  PATH_RAY_VOLUME_PASS = (1U << 26U),
+  PATH_RAY_SURFACE_PASS = (1U << 26U),
+  PATH_RAY_VOLUME_PASS = (1U << 27U),
   PATH_RAY_ANY_PASS = (PATH_RAY_SURFACE_PASS | PATH_RAY_VOLUME_PASS),
 
-  /* Shadow ray is for a light or surface, or AO. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
+  /* Shadow ray is for AO. */
   PATH_RAY_SHADOW_FOR_AO = (1U << 28U),
 
   /* A shadow catcher object was hit and the path was split into two. */
@@ -851,8 +849,8 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_MOTION = (1 << 1),
   /* Vertices have transform applied. */
   SD_OBJECT_TRANSFORM_APPLIED = (1 << 2),
-  /* Vertices have negative scale applied. */
-  SD_OBJECT_NEGATIVE_SCALE_APPLIED = (1 << 3),
+  /* The object's transform applies a negative scale. */
+  SD_OBJECT_NEGATIVE_SCALE = (1 << 3),
   /* Object has a volume shader. */
   SD_OBJECT_HAS_VOLUME = (1 << 4),
   /* Object intersects AABB of an object with volume shader. */
@@ -874,7 +872,7 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
 
   SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK | SD_OBJECT_MOTION | SD_OBJECT_TRANSFORM_APPLIED |
-                     SD_OBJECT_NEGATIVE_SCALE_APPLIED | SD_OBJECT_HAS_VOLUME |
+                     SD_OBJECT_NEGATIVE_SCALE | SD_OBJECT_HAS_VOLUME |
                      SD_OBJECT_INTERSECTS_VOLUME | SD_OBJECT_SHADOW_CATCHER |
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS |
                      SD_OBJECT_HAS_VOLUME_MOTION)
@@ -889,7 +887,7 @@ typedef struct ccl_align(16) ShaderData
   /* true geometric normal */
   float3 Ng;
   /* view/incoming direction */
-  float3 I;
+  float3 wi;
   /* shader id */
   int shader;
   /* booleans describing shader, see ShaderDataFlag */
@@ -921,7 +919,7 @@ typedef struct ccl_align(16) ShaderData
 #ifdef __RAY_DIFFERENTIALS__
   /* Radius of differential of P. */
   float dP;
-  /* Radius of differential of I. */
+  /* Radius of differential of wi. */
   float dI;
   /* differential of u, v */
   differential du;
@@ -1032,13 +1030,28 @@ typedef struct LocalIntersection {
 typedef struct KernelCamera {
   /* type */
   int type;
+  int use_dof_or_motion_blur;
+
+  /* depth of field */
+  float aperturesize;
+  float blades;
+  float bladesrotation;
+  float focaldistance;
+
+  /* motion blur */
+  float shuttertime;
+  int num_motion_steps, have_perspective_motion;
+
+  int pad1;
+  int pad2;
+  int pad3;
 
   /* panorama */
   int panorama_type;
   float fisheye_fov;
   float fisheye_lens;
-  float4 equirectangular_range;
   float fisheye_lens_polynomial_bias;
+  float4 equirectangular_range;
   float4 fisheye_lens_polynomial_coefficients;
 
   /* stereo */
@@ -1055,16 +1068,6 @@ typedef struct KernelCamera {
   float4 dx;
   float4 dy;
 
-  /* depth of field */
-  float aperturesize;
-  float blades;
-  float bladesrotation;
-  float focaldistance;
-
-  /* motion blur */
-  float shuttertime;
-  int num_motion_steps, have_perspective_motion;
-
   /* clipping */
   float nearclip;
   float cliplength;
@@ -1075,7 +1078,6 @@ typedef struct KernelCamera {
 
   /* render size */
   float width, height;
-  int pad1;
 
   /* anamorphic lens bokeh */
   float inv_aperture_ratio;
@@ -1184,9 +1186,8 @@ typedef enum KernelBVHLayout {
 #include "kernel/data_template.h"
 
 typedef struct KernelTables {
-  int beckmann_offset;
   int filter_table_offset;
-  int pad1, pad2;
+  int pad1, pad2, pad3;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 
@@ -1290,12 +1291,14 @@ typedef struct KernelCurveSegment {
 static_assert_align(KernelCurveSegment, 8);
 
 typedef struct KernelSpotLight {
+  packed_float3 axis_u;
   float radius;
+  packed_float3 axis_v;
   float invarea;
-  float cos_half_spot_angle;
-  float spot_smooth;
   packed_float3 dir;
-  float pad;
+  float cos_half_spot_angle;
+  packed_float3 len;
+  float spot_smooth;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
@@ -1466,15 +1469,15 @@ typedef struct KernelShaderEvalInput {
 } KernelShaderEvalInput;
 static_assert_align(KernelShaderEvalInput, 16);
 
-/* Pre-computed sample table sizes for PMJ02 sampler.
+/* Pre-computed sample table sizes for the tabulated Sobol sampler.
  *
  * NOTE: min and max samples *must* be a power of two, and patterns
  * ideally should be as well.
  */
-#define MIN_PMJ_SAMPLES 256
-#define MAX_PMJ_SAMPLES 8192
-#define NUM_PMJ_DIMENSIONS 2
-#define NUM_PMJ_PATTERNS 256
+#define MIN_TAB_SOBOL_SAMPLES 256
+#define MAX_TAB_SOBOL_SAMPLES 8192
+#define NUM_TAB_SOBOL_DIMENSIONS 4
+#define NUM_TAB_SOBOL_PATTERNS 256
 
 /* Device kernels.
  *
@@ -1506,6 +1509,8 @@ typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY,
+  DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS,
+  DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS,
   DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES,
   DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY,

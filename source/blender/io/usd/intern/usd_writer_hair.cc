@@ -144,6 +144,8 @@ void USDHairWriter::do_write(HierarchyContext &context)
     auto prim = curves.GetPrim();
     write_id_properties(prim, psys->part->id, timecode);
   }
+
+  this->author_extent(timecode, curves);
 }
 
 bool USDHairWriter::check_is_animated(const HierarchyContext & /*context*/) const

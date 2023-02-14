@@ -10,6 +10,7 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
+  ../../geometry
   ../../gpu
   ../../imbuf
   ../../makesdna
@@ -38,7 +39,7 @@ set(SRC
   editmesh_knife.c
   editmesh_knife_project.c
   editmesh_loopcut.c
-  editmesh_mask_extract.c
+  editmesh_mask_extract.cc
   editmesh_path.c
   editmesh_polybuild.c
   editmesh_preselect_edgering.c
@@ -76,6 +77,17 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${TBB_LIBRARIES}
+  )
+endif()
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

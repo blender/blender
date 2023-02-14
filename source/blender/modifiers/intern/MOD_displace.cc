@@ -78,7 +78,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -108,9 +108,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
   return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
@@ -144,10 +142,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-typedef struct DisplaceUserdata {
+struct DisplaceUserdata {
   /*const*/ DisplaceModifierData *dmd;
-  struct Scene *scene;
-  struct ImagePool *pool;
+  Scene *scene;
+  ImagePool *pool;
   const MDeformVert *dvert;
   float weight;
   int defgrp_index;
@@ -157,14 +155,13 @@ typedef struct DisplaceUserdata {
   float (*tex_co)[3];
   float (*vertexCos)[3];
   float local_mat[4][4];
-  MVert *mvert;
   const float (*vert_normals)[3];
   float (*vert_clnors)[3];
-} DisplaceUserdata;
+};
 
 static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
   DisplaceUserdata *data = (DisplaceUserdata *)userdata;
   DisplaceModifierData *dmd = data->dmd;
@@ -267,7 +264,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const int verts_num)
 {
   Object *ob = ctx->object;
-  MVert *mvert;
   const MDeformVert *dvert;
   int direction = dmd->direction;
   int defgrp_index;
@@ -284,7 +280,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     return;
   }
 
-  mvert = BKE_mesh_verts_for_write(mesh);
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
   if (defgrp_index >= 0 && dvert == nullptr) {
@@ -312,7 +307,8 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
         BKE_mesh_calc_normals_split(mesh);
       }
 
-      float(*clnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(ldata, CD_NORMAL));
+      float(*clnors)[3] = static_cast<float(*)[3]>(
+          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(
@@ -339,7 +335,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.tex_co = tex_co;
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
-  data.mvert = mvert;
   if (direction == MOD_DISP_DIR_NOR) {
     data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
@@ -383,7 +378,7 @@ static void deformVerts(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
@@ -391,7 +386,7 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
       ctx->object, editData, mesh, nullptr, verts_num, false);
 
-  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
+  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -446,7 +441,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "direction", 0, 0, ICON_NONE);
+  uiItemR(col, ptr, "direction", 0, nullptr, ICON_NONE);
   if (ELEM(RNA_enum_get(ptr, "direction"),
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,
@@ -472,34 +467,34 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Displace = {
-    /* name */ N_("Displace"),
-    /* structName */ "DisplaceModifierData",
-    /* structSize */ sizeof(DisplaceModifierData),
-    /* srna */ &RNA_DisplaceModifier,
-    /* type */ eModifierTypeType_OnlyDeform,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
-    /* icon */ ICON_MOD_DISPLACE,
+    /*name*/ N_("Displace"),
+    /*structName*/ "DisplaceModifierData",
+    /*structSize*/ sizeof(DisplaceModifierData),
+    /*srna*/ &RNA_DisplaceModifier,
+    /*type*/ eModifierTypeType_OnlyDeform,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /*icon*/ ICON_MOD_DISPLACE,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ deformVertsEM,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ nullptr,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ deformVerts,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ deformVertsEM,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ dependsOnNormals,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ dependsOnNormals,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ foreachTexLink,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

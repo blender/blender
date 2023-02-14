@@ -2,10 +2,10 @@
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
 
 #ifdef DOUBLE_MANIFOLD
-#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts*/
+#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
 #  define emit_triangle_count 2
 #else
-#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts*/
+#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
 #  define emit_triangle_count 2
 #endif
 
@@ -97,9 +97,10 @@ void main()
 #endif
 
   if (!is_manifold || !backface) {
-    bool do_front = (output_triangle_id==0)?true:false;
-    emit_cap(do_front, invert, output_vertex_id%3);
-  } else {
+    bool do_front = (output_triangle_id == 0) ? true : false;
+    emit_cap(do_front, invert, output_vertex_id % 3);
+  }
+  else {
     DISCARD_VERTEX
   }
 }

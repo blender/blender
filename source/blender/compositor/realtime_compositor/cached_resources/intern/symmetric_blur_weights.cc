@@ -5,8 +5,8 @@
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "RE_pipeline.h"
 
@@ -103,7 +103,7 @@ SymmetricBlurWeights::~SymmetricBlurWeights()
 
 void SymmetricBlurWeights::bind_as_texture(GPUShader *shader, const char *texture_name) const
 {
-  const int texture_image_unit = GPU_shader_get_texture_binding(shader, texture_name);
+  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
   GPU_texture_bind(texture_, texture_image_unit);
 }
 

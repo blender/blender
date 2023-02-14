@@ -602,7 +602,7 @@ void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)
   BLI_assert_msg(
       GPU_texture_usage(tex_) & GPU_TEXTURE_USAGE_HOST_READ,
       "The host-read usage flag must be specified up-front. Only textures which require data "
-      "reads should be flagged, allowing the backend to make certain optimiastions.");
+      "reads should be flagged, allowing the backend to make certain optimisations.");
   return tex->read(miplvl, data_format);
 }
 

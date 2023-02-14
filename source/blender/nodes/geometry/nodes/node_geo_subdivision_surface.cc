@@ -28,15 +28,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Vertex Crease"))
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -69,7 +69,8 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
 {
   float *crease;
   if (CustomData_has_layer(&mesh.vdata, CD_CREASE)) {
-    crease = static_cast<float *>(CustomData_get_layer(&mesh.vdata, CD_CREASE));
+    crease = static_cast<float *>(
+        CustomData_get_layer_for_write(&mesh.vdata, CD_CREASE, mesh.totvert));
   }
   else {
     crease = static_cast<float *>(
@@ -78,11 +79,11 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
   materialize_and_clamp_creases(crease_varray, {crease, mesh.totvert});
 }
 
-static void write_edge_creases(MeshComponent &mesh, const VArray<float> &crease_varray)
+static void write_edge_creases(Mesh &mesh, const VArray<float> &crease_varray)
 {
   bke::SpanAttributeWriter<float> attribute =
-      mesh.attributes_for_write()->lookup_or_add_for_write_only_span<float>("crease",
-                                                                            ATTR_DOMAIN_EDGE);
+      mesh.attributes_for_write().lookup_or_add_for_write_only_span<float>("crease",
+                                                                           ATTR_DOMAIN_EDGE);
   materialize_and_clamp_creases(crease_varray, attribute.span);
   attribute.finish();
 }
@@ -115,23 +116,22 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
+    const Mesh *mesh = geometry_set.get_mesh_for_read();
+    if (!mesh) {
+      return;
+    }
+    if (mesh->totvert == 0 || mesh->totedge == 0) {
       return;
     }
 
-    const Mesh &mesh = *geometry_set.get_mesh_for_read();
-    if (mesh.totvert == 0 || mesh.totedge == 0) {
-      return;
-    }
-
-    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
-    FieldEvaluator point_evaluator(point_context, mesh.totvert);
+    bke::MeshFieldContext point_context{*mesh, ATTR_DOMAIN_POINT};
+    FieldEvaluator point_evaluator(point_context, mesh->totvert);
     point_evaluator.add(vertex_crease_field);
     point_evaluator.evaluate();
     const VArray<float> vertex_creases = point_evaluator.get_evaluated<float>(0);
 
-    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
-    FieldEvaluator edge_evaluator(edge_context, mesh.totedge);
+    bke::MeshFieldContext edge_context{*mesh, ATTR_DOMAIN_EDGE};
+    FieldEvaluator edge_evaluator(edge_context, mesh->totedge);
     edge_evaluator.add(edge_crease_field);
     edge_evaluator.evaluate();
     const VArray<float> edge_creases = edge_evaluator.get_evaluated<float>(0);
@@ -139,8 +139,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     const bool use_creases = varray_is_nonzero(vertex_creases) || varray_is_nonzero(edge_creases);
 
     if (use_creases) {
-      write_vertex_creases(*geometry_set.get_mesh_for_write(), vertex_creases);
-      write_edge_creases(geometry_set.get_component_for_write<MeshComponent>(), edge_creases);
+      /* Due to the "BKE_subdiv" API, the crease layers must be on the input mesh. But in this node
+       * they are provided as separate inputs, not as custom data layers. When needed, retrieve the
+       * mesh with write access and store the new crease values there. */
+      Mesh &mesh_for_write = *geometry_set.get_mesh_for_write();
+      write_vertex_creases(mesh_for_write, vertex_creases);
+      write_edge_creases(mesh_for_write, edge_creases);
+      mesh = &mesh_for_write;
     }
 
     /* Initialize mesh settings. */
@@ -161,25 +166,23 @@ static void node_geo_exec(GeoNodeExecParams params)
         uv_smooth);
 
     /* Apply subdivision to mesh. */
-    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, &mesh);
+    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh);
 
     /* In case of bad topology, skip to input mesh. */
     if (subdiv == nullptr) {
       return;
     }
 
-    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
-
+    Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+    BKE_subdiv_free(subdiv);
     if (use_creases) {
       /* Remove the layer in case it was created by the node from the field input. The fact
        * that this node uses #CD_CREASE to input creases to the subdivision code is meant to be
        * an implementation detail ideally. */
-      CustomData_free_layers(&mesh_out->edata, CD_CREASE, mesh_out->totedge);
+      CustomData_free_layers(&result->edata, CD_CREASE, result->totedge);
     }
 
-    geometry_set.replace_mesh(mesh_out);
-
-    BKE_subdiv_free(subdiv);
+    geometry_set.replace_mesh(result);
   });
 #endif
   params.set_output("Mesh", std::move(geometry_set));

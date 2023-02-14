@@ -106,16 +106,18 @@ bool VelocityModule::step_object_sync(Object *ob,
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
   vel.id = (ID *)ob->data;
-  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->object_to_world;
+  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = float4x4_view(ob->object_to_world);
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
     if (vel.obj.ofs[STEP_PREVIOUS] == -1) {
       vel.obj.ofs[STEP_PREVIOUS] = object_steps_usage[STEP_PREVIOUS]++;
-      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = ob->object_to_world;
+      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = float4x4_view(
+          ob->object_to_world);
     }
     if (vel.obj.ofs[STEP_NEXT] == -1) {
       vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
-      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world;
+      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = float4x4_view(
+          ob->object_to_world);
     }
   }
 
@@ -219,10 +221,10 @@ void VelocityModule::step_swap()
   }
 
   auto swap_steps = [&](eVelocityStep step_a, eVelocityStep step_b) {
-    SWAP(VelocityObjectBuf *, object_steps[step_a], object_steps[step_b]);
-    SWAP(VelocityGeometryBuf *, geometry_steps[step_a], geometry_steps[step_b]);
-    SWAP(CameraDataBuf *, camera_steps[step_a], camera_steps[step_b]);
-    SWAP(float, step_time[step_a], step_time[step_b]);
+    std::swap(object_steps[step_a], object_steps[step_b]);
+    std::swap(geometry_steps[step_a], geometry_steps[step_b]);
+    std::swap(camera_steps[step_a], camera_steps[step_b]);
+    std::swap(step_time[step_a], step_time[step_b]);
 
     for (VelocityObjectData &vel : velocity_map.values()) {
       vel.obj.ofs[step_a] = vel.obj.ofs[step_b];
@@ -259,7 +261,7 @@ void VelocityModule::end_sync()
 {
   Vector<ObjectKey, 0> deleted_obj;
 
-  uint32_t max_resource_id_ = 0u;
+  uint32_t max_resource_id_ = 1u;
 
   for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
     if (item.value.obj.resource_id == uint32_t(-1)) {

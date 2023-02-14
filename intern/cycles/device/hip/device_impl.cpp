@@ -53,8 +53,12 @@ void HIPDevice::set_error(const string &error)
 }
 
 HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : Device(info, stats, profiler), texture_info(this, "texture_info", MEM_GLOBAL)
+    : GPUDevice(info, stats, profiler)
 {
+  /* Verify that base class types can be used with specific backend types */
+  static_assert(sizeof(texMemObject) == sizeof(hipTextureObject_t));
+  static_assert(sizeof(arrayMemObject) == sizeof(hArray));
+
   first_error = true;
 
   hipDevId = info.num;
@@ -65,12 +69,6 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 
   need_texture_info = false;
 
-  device_texture_headroom = 0;
-  device_working_headroom = 0;
-  move_texture_to_host = false;
-  map_host_limit = 0;
-  map_host_used = 0;
-  can_map_host = 0;
   pitch_alignment = 0;
 
   /* Initialize HIP. */
@@ -91,7 +89,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
   /* hipDeviceMapHost for mapping host memory when out of device memory.
    * hipDeviceLmemResizeToMax for reserving local memory ahead of render,
    * so we can predict which memory to map to host. */
-  hip_assert(hipDeviceGetAttribute(&can_map_host, hipDeviceAttributeCanMapHostMemory, hipDevice));
+  int value;
+  hip_assert(hipDeviceGetAttribute(&value, hipDeviceAttributeCanMapHostMemory, hipDevice));
+  can_map_host = value != 0;
 
   hip_assert(
       hipDeviceGetAttribute(&pitch_alignment, hipDeviceAttributeTexturePitchAlignment, hipDevice));
@@ -460,305 +460,58 @@ void HIPDevice::reserve_local_memory(const uint kernel_features)
 #  endif
 }
 
-void HIPDevice::init_host_memory()
-{
-  /* Limit amount of host mapped memory, because allocating too much can
-   * cause system instability. Leave at least half or 4 GB of system
-   * memory free, whichever is smaller. */
-  size_t default_limit = 4 * 1024 * 1024 * 1024LL;
-  size_t system_ram = system_physical_ram();
-
-  if (system_ram > 0) {
-    if (system_ram / 2 > default_limit) {
-      map_host_limit = system_ram - default_limit;
-    }
-    else {
-      map_host_limit = system_ram / 2;
-    }
-  }
-  else {
-    VLOG_WARNING << "Mapped host memory disabled, failed to get system RAM";
-    map_host_limit = 0;
-  }
-
-  /* Amount of device memory to keep is free after texture memory
-   * and working memory allocations respectively. We set the working
-   * memory limit headroom lower so that some space is left after all
-   * texture memory allocations. */
-  device_working_headroom = 32 * 1024 * 1024LL;   // 32MB
-  device_texture_headroom = 128 * 1024 * 1024LL;  // 128MB
-
-  VLOG_INFO << "Mapped host memory limit set to " << string_human_readable_number(map_host_limit)
-            << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
-}
-
-void HIPDevice::load_texture_info()
-{
-  if (need_texture_info) {
-    /* Unset flag before copying, so this does not loop indefinitely if the copy below calls
-     * into 'move_textures_to_host' (which calls 'load_texture_info' again). */
-    need_texture_info = false;
-    texture_info.copy_to_device();
-  }
-}
-
-void HIPDevice::move_textures_to_host(size_t size, bool for_texture)
-{
-  /* Break out of recursive call, which can happen when moving memory on a multi device. */
-  static bool any_device_moving_textures_to_host = false;
-  if (any_device_moving_textures_to_host) {
-    return;
-  }
-
-  /* Signal to reallocate textures in host memory only. */
-  move_texture_to_host = true;
-
-  while (size > 0) {
-    /* Find suitable memory allocation to move. */
-    device_memory *max_mem = NULL;
-    size_t max_size = 0;
-    bool max_is_image = false;
-
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    foreach (HIPMemMap::value_type &pair, hip_mem_map) {
-      device_memory &mem = *pair.first;
-      HIPMem *cmem = &pair.second;
-
-      /* Can only move textures allocated on this device (and not those from peer devices).
-       * And need to ignore memory that is already on the host. */
-      if (!mem.is_resident(this) || cmem->use_mapped_host) {
-        continue;
-      }
-
-      bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
-                        (&mem != &texture_info);
-      bool is_image = is_texture && (mem.data_height > 1);
-
-      /* Can't move this type of memory. */
-      if (!is_texture || cmem->array) {
-        continue;
-      }
-
-      /* For other textures, only move image textures. */
-      if (for_texture && !is_image) {
-        continue;
-      }
-
-      /* Try to move largest allocation, prefer moving images. */
-      if (is_image > max_is_image || (is_image == max_is_image && mem.device_size > max_size)) {
-        max_is_image = is_image;
-        max_size = mem.device_size;
-        max_mem = &mem;
-      }
-    }
-    lock.unlock();
-
-    /* Move to host memory. This part is mutex protected since
-     * multiple HIP devices could be moving the memory. The
-     * first one will do it, and the rest will adopt the pointer. */
-    if (max_mem) {
-      VLOG_WORK << "Move memory from device to host: " << max_mem->name;
-
-      static thread_mutex move_mutex;
-      thread_scoped_lock lock(move_mutex);
-
-      any_device_moving_textures_to_host = true;
-
-      /* Potentially need to call back into multi device, so pointer mapping
-       * and peer devices are updated. This is also necessary since the device
-       * pointer may just be a key here, so cannot be accessed and freed directly.
-       * Unfortunately it does mean that memory is reallocated on all other
-       * devices as well, which is potentially dangerous when still in use (since
-       * a thread rendering on another devices would only be caught in this mutex
-       * if it so happens to do an allocation at the same time as well. */
-      max_mem->device_copy_to();
-      size = (max_size >= size) ? 0 : size - max_size;
-
-      any_device_moving_textures_to_host = false;
-    }
-    else {
-      break;
-    }
-  }
-
-  /* Unset flag before texture info is reloaded, since it should stay in device memory. */
-  move_texture_to_host = false;
-
-  /* Update texture info array with new pointers. */
-  load_texture_info();
-}
-
-HIPDevice::HIPMem *HIPDevice::generic_alloc(device_memory &mem, size_t pitch_padding)
+void HIPDevice::get_device_memory_info(size_t &total, size_t &free)
 {
   HIPContextScope scope(this);
 
-  hipDeviceptr_t device_pointer = 0;
-  size_t size = mem.memory_size() + pitch_padding;
-
-  hipError_t mem_alloc_result = hipErrorOutOfMemory;
-  const char *status = "";
-
-  /* First try allocating in device memory, respecting headroom. We make
-   * an exception for texture info. It is small and frequently accessed,
-   * so treat it as working memory.
-   *
-   * If there is not enough room for working memory, we will try to move
-   * textures to host memory, assuming the performance impact would have
-   * been worse for working memory. */
-  bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) && (&mem != &texture_info);
-  bool is_image = is_texture && (mem.data_height > 1);
-
-  size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
-
-  size_t total = 0, free = 0;
   hipMemGetInfo(&free, &total);
-
-  /* Move textures to host memory if needed. */
-  if (!move_texture_to_host && !is_image && (size + headroom) >= free && can_map_host) {
-    move_textures_to_host(size + headroom - free, is_texture);
-    hipMemGetInfo(&free, &total);
-  }
-
-  /* Allocate in device memory. */
-  if (!move_texture_to_host && (size + headroom) < free) {
-    mem_alloc_result = hipMalloc(&device_pointer, size);
-    if (mem_alloc_result == hipSuccess) {
-      status = " in device memory";
-    }
-  }
-
-  /* Fall back to mapped host memory if needed and possible. */
-
-  void *shared_pointer = 0;
-
-  if (mem_alloc_result != hipSuccess && can_map_host) {
-    if (mem.shared_pointer) {
-      /* Another device already allocated host memory. */
-      mem_alloc_result = hipSuccess;
-      shared_pointer = mem.shared_pointer;
-    }
-    else if (map_host_used + size < map_host_limit) {
-      /* Allocate host memory ourselves. */
-      mem_alloc_result = hipHostMalloc(
-          &shared_pointer, size, hipHostMallocMapped | hipHostMallocWriteCombined);
-
-      assert((mem_alloc_result == hipSuccess && shared_pointer != 0) ||
-             (mem_alloc_result != hipSuccess && shared_pointer == 0));
-    }
-
-    if (mem_alloc_result == hipSuccess) {
-      hip_assert(hipHostGetDevicePointer(&device_pointer, shared_pointer, 0));
-      map_host_used += size;
-      status = " in host memory";
-    }
-  }
-
-  if (mem_alloc_result != hipSuccess) {
-    status = " failed, out of device and host memory";
-    set_error("System is out of GPU and shared host memory");
-  }
-
-  if (mem.name) {
-    VLOG_WORK << "Buffer allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")" << status;
-  }
-
-  mem.device_pointer = (device_ptr)device_pointer;
-  mem.device_size = size;
-  stats.mem_alloc(size);
-
-  if (!mem.device_pointer) {
-    return NULL;
-  }
-
-  /* Insert into map of allocations. */
-  thread_scoped_lock lock(hip_mem_map_mutex);
-  HIPMem *cmem = &hip_mem_map[&mem];
-  if (shared_pointer != 0) {
-    /* Replace host pointer with our host allocation. Only works if
-     * HIP memory layout is the same and has no pitch padding. Also
-     * does not work if we move textures to host during a render,
-     * since other devices might be using the memory. */
-
-    if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
-        mem.host_pointer != shared_pointer) {
-      memcpy(shared_pointer, mem.host_pointer, size);
-
-      /* A Call to device_memory::host_free() should be preceded by
-       * a call to device_memory::device_free() for host memory
-       * allocated by a device to be handled properly. Two exceptions
-       * are here and a call in OptiXDevice::generic_alloc(), where
-       * the current host memory can be assumed to be allocated by
-       * device_memory::host_alloc(), not by a device */
-
-      mem.host_free();
-      mem.host_pointer = shared_pointer;
-    }
-    mem.shared_pointer = shared_pointer;
-    mem.shared_counter++;
-    cmem->use_mapped_host = true;
-  }
-  else {
-    cmem->use_mapped_host = false;
-  }
-
-  return cmem;
 }
 
-void HIPDevice::generic_copy_to(device_memory &mem)
+bool HIPDevice::alloc_device(void *&device_pointer, size_t size)
 {
-  if (!mem.host_pointer || !mem.device_pointer) {
-    return;
-  }
+  HIPContextScope scope(this);
 
-  /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
-   * hipMalloc regardless of mem.host_pointer and mem.shared_pointer, and should copy data from
-   * mem.host_pointer. */
-  thread_scoped_lock lock(hip_mem_map_mutex);
-  if (!hip_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
-    const HIPContextScope scope(this);
-    hip_assert(
-        hipMemcpyHtoD((hipDeviceptr_t)mem.device_pointer, mem.host_pointer, mem.memory_size()));
-  }
+  hipError_t mem_alloc_result = hipMalloc((hipDeviceptr_t *)&device_pointer, size);
+  return mem_alloc_result == hipSuccess;
 }
 
-void HIPDevice::generic_free(device_memory &mem)
+void HIPDevice::free_device(void *device_pointer)
 {
-  if (mem.device_pointer) {
-    HIPContextScope scope(this);
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    DCHECK(hip_mem_map.find(&mem) != hip_mem_map.end());
-    const HIPMem &cmem = hip_mem_map[&mem];
+  HIPContextScope scope(this);
 
-    /* If cmem.use_mapped_host is true, reference counting is used
-     * to safely free a mapped host memory. */
+  hip_assert(hipFree((hipDeviceptr_t)device_pointer));
+}
 
-    if (cmem.use_mapped_host) {
-      assert(mem.shared_pointer);
-      if (mem.shared_pointer) {
-        assert(mem.shared_counter > 0);
-        if (--mem.shared_counter == 0) {
-          if (mem.host_pointer == mem.shared_pointer) {
-            mem.host_pointer = 0;
-          }
-          hipHostFree(mem.shared_pointer);
-          mem.shared_pointer = 0;
-        }
-      }
-      map_host_used -= mem.device_size;
-    }
-    else {
-      /* Free device memory. */
-      hip_assert(hipFree(mem.device_pointer));
-    }
+bool HIPDevice::alloc_host(void *&shared_pointer, size_t size)
+{
+  HIPContextScope scope(this);
 
-    stats.mem_free(mem.device_size);
-    mem.device_pointer = 0;
-    mem.device_size = 0;
+  hipError_t mem_alloc_result = hipHostMalloc(
+      &shared_pointer, size, hipHostMallocMapped | hipHostMallocWriteCombined);
 
-    hip_mem_map.erase(hip_mem_map.find(&mem));
-  }
+  return mem_alloc_result == hipSuccess;
+}
+
+void HIPDevice::free_host(void *shared_pointer)
+{
+  HIPContextScope scope(this);
+
+  hipHostFree(shared_pointer);
+}
+
+bool HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+{
+  HIPContextScope scope(this);
+
+  hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
+  return true;
+}
+
+void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+{
+  const HIPContextScope scope(this);
+
+  hip_assert(hipMemcpyHtoD((hipDeviceptr_t)device_pointer, host_pointer, size));
 }
 
 void HIPDevice::mem_alloc(device_memory &mem)
@@ -823,8 +576,8 @@ void HIPDevice::mem_zero(device_memory &mem)
 
   /* If use_mapped_host of mem is false, mem.device_pointer currently refers to device memory
    * regardless of mem.host_pointer and mem.shared_pointer. */
-  thread_scoped_lock lock(hip_mem_map_mutex);
-  if (!hip_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+  thread_scoped_lock lock(device_mem_map_mutex);
+  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
     const HIPContextScope scope(this);
     hip_assert(hipMemsetD8((hipDeviceptr_t)mem.device_pointer, 0, mem.memory_size()));
   }
@@ -909,6 +662,9 @@ void HIPDevice::tex_alloc(device_texture &mem)
        * because it's unsupported in HIP. */
       address_mode = hipAddressModeClamp;
       break;
+    case EXTENSION_MIRROR:
+      address_mode = hipAddressModeMirror;
+      break;
     default:
       assert(0);
       break;
@@ -948,19 +704,19 @@ void HIPDevice::tex_alloc(device_texture &mem)
       return;
   }
 
-  HIPMem *cmem = NULL;
+  Mem *cmem = NULL;
   hArray array_3d = NULL;
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
   if (!mem.is_resident(this)) {
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    cmem = &hip_mem_map[&mem];
+    thread_scoped_lock lock(device_mem_map_mutex);
+    cmem = &device_mem_map[&mem];
     cmem->texobject = 0;
 
     if (mem.data_depth > 1) {
       array_3d = (hArray)mem.device_pointer;
-      cmem->array = array_3d;
+      cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
     }
     else if (mem.data_height > 0) {
       dst_pitch = align_up(src_pitch, pitch_alignment);
@@ -1004,10 +760,10 @@ void HIPDevice::tex_alloc(device_texture &mem)
     mem.device_size = size;
     stats.mem_alloc(size);
 
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    cmem = &hip_mem_map[&mem];
+    thread_scoped_lock lock(device_mem_map_mutex);
+    cmem = &device_mem_map[&mem];
     cmem->texobject = 0;
-    cmem->array = array_3d;
+    cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
@@ -1092,8 +848,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
     texDesc.filterMode = filter_mode;
     texDesc.flags = HIP_TRSF_NORMALIZED_COORDINATES;
 
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    cmem = &hip_mem_map[&mem];
+    thread_scoped_lock lock(device_mem_map_mutex);
+    cmem = &device_mem_map[&mem];
 
     hip_assert(hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
 
@@ -1108,9 +864,9 @@ void HIPDevice::tex_free(device_texture &mem)
 {
   if (mem.device_pointer) {
     HIPContextScope scope(this);
-    thread_scoped_lock lock(hip_mem_map_mutex);
-    DCHECK(hip_mem_map.find(&mem) != hip_mem_map.end());
-    const HIPMem &cmem = hip_mem_map[&mem];
+    thread_scoped_lock lock(device_mem_map_mutex);
+    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
+    const Mem &cmem = device_mem_map[&mem];
 
     if (cmem.texobject) {
       /* Free bindless texture. */
@@ -1119,16 +875,16 @@ void HIPDevice::tex_free(device_texture &mem)
 
     if (!mem.is_resident(this)) {
       /* Do not free memory here, since it was allocated on a different device. */
-      hip_mem_map.erase(hip_mem_map.find(&mem));
+      device_mem_map.erase(device_mem_map.find(&mem));
     }
     else if (cmem.array) {
       /* Free array. */
-      hipArrayDestroy(cmem.array);
+      hipArrayDestroy(reinterpret_cast<hArray>(cmem.array));
       stats.mem_free(mem.device_size);
       mem.device_pointer = 0;
       mem.device_size = 0;
 
-      hip_mem_map.erase(hip_mem_map.find(&mem));
+      device_mem_map.erase(device_mem_map.find(&mem));
     }
     else {
       lock.unlock();
@@ -1150,7 +906,7 @@ bool HIPDevice::should_use_graphics_interop()
    * possible, but from the empiric measurements it can be considerably slower than using naive
    * pixels copy. */
 
-  /* Disable graphics interop for now, because of driver bug in 21.40. See T92972 */
+  /* Disable graphics interop for now, because of driver bug in 21.40. See #92972 */
 #  if 0
   HIPContextScope scope(this);
 

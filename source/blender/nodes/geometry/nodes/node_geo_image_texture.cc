@@ -5,7 +5,7 @@
 
 #include "BKE_image.h"
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"
 
@@ -27,8 +27,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .implicit_field(implicit_field_inputs::position)
       .description("Texture coordinates from 0 to 1");
   b.add_input<decl::Int>(N_("Frame")).min(0).max(MAXFRAMEF);
-  b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field();
-  b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
+  b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field().reference_pass_all();
+  b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -45,7 +45,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = tex;
 }
 
-class ImageFieldsFunction : public fn::MultiFunction {
+class ImageFieldsFunction : public mf::MultiFunction {
  private:
   const int8_t interpolation_;
   const int8_t extension_;
@@ -64,7 +64,14 @@ class ImageFieldsFunction : public fn::MultiFunction {
         image_(image),
         image_user_(image_user)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"ImageFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
     this->set_signature(&signature);
 
     image_buffer_ = BKE_image_acquire_ibuf(&image_, &image_user_, &image_lock_);
@@ -91,15 +98,6 @@ class ImageFieldsFunction : public fn::MultiFunction {
     BKE_image_release_ibuf(&image_, image_buffer_, image_lock_);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"ImageFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Alpha");
-    return signature.build();
-  }
-
   static int wrap_periodic(int x, const int width)
   {
     x %= width;
@@ -112,6 +110,15 @@ class ImageFieldsFunction : public fn::MultiFunction {
   static int wrap_clamp(const int x, const int width)
   {
     return std::clamp(x, 0, width - 1);
+  }
+
+  static int wrap_mirror(const int x, const int width)
+  {
+    const int m = std::abs(x + (x < 0)) % (2 * width);
+    if (m >= width) {
+      return 2 * width - m - 1;
+    }
+    return m;
   }
 
   static float4 image_pixel_lookup(const ImBuf &ibuf, const int px, const int py)
@@ -171,6 +178,17 @@ class ImageFieldsFunction : public fn::MultiFunction {
         nniy = wrap_clamp(piy + 2, height);
         pix = wrap_clamp(pix, width);
         piy = wrap_clamp(piy, height);
+        break;
+      }
+      case SHD_IMAGE_EXTENSION_MIRROR: {
+        ppix = wrap_mirror(pix - 1, width);
+        ppiy = wrap_mirror(piy - 1, height);
+        nix = wrap_mirror(pix + 1, width);
+        niy = wrap_mirror(piy + 1, height);
+        nnix = wrap_mirror(pix + 2, width);
+        nniy = wrap_mirror(piy + 2, height);
+        pix = wrap_mirror(pix, width);
+        piy = wrap_mirror(piy, height);
         break;
       }
       default:
@@ -233,6 +251,12 @@ class ImageFieldsFunction : public fn::MultiFunction {
         piy = wrap_clamp(piy, height);
         break;
       }
+      case SHD_IMAGE_EXTENSION_MIRROR:
+        nix = wrap_mirror(pix + 1, width);
+        niy = wrap_mirror(piy + 1, height);
+        pix = wrap_mirror(pix, width);
+        piy = wrap_mirror(piy, height);
+        break;
       default:
       case SHD_IMAGE_EXTENSION_REPEAT:
         pix = wrap_periodic(pix, width);
@@ -282,12 +306,17 @@ class ImageFieldsFunction : public fn::MultiFunction {
         iy = wrap_clamp(iy, height);
         return image_pixel_lookup(ibuf, ix, iy);
       }
+      case SHD_IMAGE_EXTENSION_MIRROR: {
+        ix = wrap_mirror(ix, width);
+        iy = wrap_mirror(iy, height);
+        return image_pixel_lookup(ibuf, ix, iy);
+      }
       default:
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
     MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(

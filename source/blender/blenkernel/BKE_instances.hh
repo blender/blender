@@ -19,7 +19,7 @@
 
 #include <mutex>
 
-#include "BLI_float4x4.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -155,7 +155,8 @@ class Instances {
    * Remove the indices that are not contained in the mask input, and remove unused instance
    * references afterwards.
    */
-  void remove(const blender::IndexMask mask);
+  void remove(const blender::IndexMask mask,
+              const blender::bke::AnonymousAttributePropagationInfo &propagation_info);
   /**
    * Get an id for every instance. These can be used for e.g. motion blur.
    */

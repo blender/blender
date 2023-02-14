@@ -330,7 +330,7 @@ DrawEngineType draw_engine_select_type = {
     &select_data_size,
     &select_engine_init,
     &select_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &select_cache_init,
     &select_cache_populate,
     NULL,

@@ -326,7 +326,7 @@ class TOPBAR_MT_file_new(Menu):
         # Expand template paths.
 
         # Use a set to avoid duplicate user/system templates.
-        # This is a corner case, but users managed to do it! T76849.
+        # This is a corner case, but users managed to do it! #76849.
         app_templates = set()
         for path in template_paths:
             for d in os.listdir(path):

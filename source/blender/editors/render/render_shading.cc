@@ -216,7 +216,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Removing material slots in edit mode screws things up, see bug T21822. */
+  /* Removing material slots in edit mode screws things up, see bug #21822. */
   if (ob == CTX_data_edit_object(C)) {
     BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
     return OPERATOR_CANCELLED;
@@ -663,7 +663,7 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
 
 static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
 {
-  /* Removing material slots in edit mode screws things up, see bug T21822. */
+  /* Removing material slots in edit mode screws things up, see bug #21822. */
   Object *ob_active = CTX_data_active_object(C);
   if (ob_active && BKE_object_is_in_editmode(ob_active)) {
     BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
@@ -771,7 +771,7 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
   if (prop) {
     if (ob != nullptr) {
       /* Add slot follows user-preferences for creating new slots,
-       * RNA pointer assignment doesn't, see: T60014. */
+       * RNA pointer assignment doesn't, see: #60014. */
       if (BKE_object_material_get_p(ob, ob->actcol) == nullptr) {
         BKE_object_material_slot_add(bmain, ob);
       }
@@ -1434,7 +1434,7 @@ static int light_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * 
 
   /* store actual owner of job, so modal operator could check for it,
    * the reason of this is that active scene could change when rendering
-   * several layers from compositor T31800. */
+   * several layers from compositor #31800. */
   op->customdata = scene;
 
   WM_jobs_start(wm, wm_job);
@@ -1509,7 +1509,7 @@ static int light_cache_free_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
-  /* kill potential bake job first (see T57011) */
+  /* kill potential bake job first (see #57011) */
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
 
@@ -2603,10 +2603,10 @@ static void copy_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
+      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
       break;
     default:
       break;
@@ -2631,10 +2631,10 @@ static void paste_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
+      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
       break;
     default:
       BLI_assert_msg(0, "invalid id type");

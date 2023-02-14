@@ -137,7 +137,7 @@ static Curves *create_point_circle_curve(
   }
 
   Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.cyclic_for_write().first() = true;
 
   MutableSpan<float3> positions = curves.positions_for_write();
@@ -163,7 +163,7 @@ static Curves *create_point_circle_curve(
 static Curves *create_radius_circle_curve(const int resolution, const float radius)
 {
   Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.cyclic_for_write().first() = true;
 
   MutableSpan<float3> positions = curves.positions_for_write();

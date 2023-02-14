@@ -70,7 +70,7 @@ int g_curves_attr_id = 0;
 int curves_attribute_element_id()
 {
   int id = hairStrandID;
-  if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0) {
+  if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0u) {
     id = hair_get_base_id();
   }
 

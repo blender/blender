@@ -118,7 +118,6 @@ static CLG_LogRef LOG = {"bke.node"};
 static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo);
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag);
 static void free_localized_node_groups(bNodeTree *ntree);
-static void node_free_node(bNodeTree *ntree, bNode *node);
 static void node_socket_interface_free(bNodeTree * /*ntree*/,
                                        bNodeSocket *sock,
                                        const bool do_id_user);
@@ -208,6 +207,11 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
+  if (ntree_src->runtime->anonymous_attribute_relations) {
+    dst_runtime.anonymous_attribute_relations =
+        std::make_unique<blender::nodes::anonymous_attribute_lifetime::RelationsInNode>(
+            *ntree_src->runtime->anonymous_attribute_relations);
+  }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
     ntree_dst->preview = nullptr;
@@ -243,7 +247,7 @@ static void ntree_free_data(ID *id)
   BLI_freelistN(&ntree->links);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-    node_free_node(ntree, node);
+    blender::bke::node_free_node(ntree, node);
   }
 
   /* free interface sockets */
@@ -402,7 +406,7 @@ static ID **node_owner_pointer_get(ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
-  /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
+  /* TODO: Sort this NO_MAIN or not for embedded node trees. See #86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -538,7 +542,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         /* pass */
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
-        /* Simple forward compatibility for fix for T50736.
+        /* Simple forward compatibility for fix for #50736.
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = (NodeGlare *)node->storage;
         /* Not in undo case. */
@@ -834,7 +838,7 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
   IDP_BlendReadLib(reader, lib, sock->prop);
 
   /* This can happen for all socket types when a file is saved in an older version of Blender than
-   * it was originally created in (T86298). Some socket types still require a default value. The
+   * it was originally created in (#86298). Some socket types still require a default value. The
    * default value of those sockets will be created in `ntreeSetTypes`. */
   if (sock->default_value == nullptr) {
     return;
@@ -918,7 +922,11 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
    * to match the static layout. */
   if (!BLO_read_lib_is_undo(reader)) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      node_verify_sockets(ntree, node, false);
+      /* Don't update node groups here because they may depend on other node groups which are not
+       * fully versioned yet and don't have `typeinfo` pointers set. */
+      if (node->type != NODE_GROUP) {
+        node_verify_sockets(ntree, node, false);
+      }
     }
   }
 }
@@ -1036,42 +1044,42 @@ static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 }  // namespace blender::bke
 
 static AssetTypeInfo AssetType_NT = {
-    /* pre_save_fn */ blender::bke::node_tree_asset_pre_save,
+    /*pre_save_fn*/ blender::bke::node_tree_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_NT = {
-    /* id_code */ ID_NT,
-    /* id_filter */ FILTER_ID_NT,
-    /* main_listbase_index */ INDEX_ID_NT,
-    /* struct_size */ sizeof(bNodeTree),
-    /* name */ "NodeTree",
-    /* name_plural */ "node_groups",
-    /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ &AssetType_NT,
+    /*id_code*/ ID_NT,
+    /*id_filter*/ FILTER_ID_NT,
+    /*main_listbase_index*/ INDEX_ID_NT,
+    /*struct_size*/ sizeof(bNodeTree),
+    /*name*/ "NodeTree",
+    /*name_plural*/ "node_groups",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ &AssetType_NT,
 
-    /* init_data */ ntree_init_data,
-    /* copy_data */ ntree_copy_data,
-    /* free_data */ ntree_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ node_foreach_id,
-    /* foreach_cache */ node_foreach_cache,
-    /* foreach_path */ node_foreach_path,
-    /* owner_pointer_get */ node_owner_pointer_get,
+    /*init_data*/ ntree_init_data,
+    /*copy_data*/ ntree_copy_data,
+    /*free_data*/ ntree_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ node_foreach_id,
+    /*foreach_cache*/ node_foreach_cache,
+    /*foreach_path*/ node_foreach_path,
+    /*owner_pointer_get*/ node_owner_pointer_get,
 
-    /* blend_write */ ntree_blend_write,
-    /* blend_read_data */ ntree_blend_read_data,
-    /* blend_read_lib */ ntree_blend_read_lib,
-    /* blend_read_expand */ ntree_blend_read_expand,
+    /*blend_write*/ ntree_blend_write,
+    /*blend_read_data*/ ntree_blend_read_data,
+    /*blend_read_lib*/ ntree_blend_read_lib,
+    /*blend_read_expand*/ ntree_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
-  if (ntype->declare != nullptr) {
+  if (ntype->declare || ntype->declare_dynamic) {
     node_verify_sockets(ntree, node, true);
     return;
   }
@@ -1130,7 +1138,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
     ntype->initfunc(ntree, node);
   }
 
-  if (ntree->typeinfo->node_add_init != nullptr) {
+  if (ntree->typeinfo && ntree->typeinfo->node_add_init) {
     ntree->typeinfo->node_add_init(ntree, node);
   }
 
@@ -1374,7 +1382,7 @@ void nodeRegisterType(bNodeType *nt)
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
 
-  if (nt->declare && !nt->declaration_is_dynamic) {
+  if (nt->declare && !nt->declare_dynamic) {
     if (nt->fixed_declaration == nullptr) {
       nt->fixed_declaration = new blender::nodes::NodeDeclaration();
       blender::nodes::build_node_declaration(*nt, *nt->fixed_declaration);
@@ -1955,10 +1963,10 @@ void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool d
     }
   }
 
-  for (bNodeLink *link : node->runtime->internal_links) {
-    if (link->fromsock == sock || link->tosock == sock) {
-      node->runtime->internal_links.remove_first_occurrence_and_reorder(link);
-      MEM_freeN(link);
+  for (const int64_t i : node->runtime->internal_links.index_range()) {
+    const bNodeLink &link = node->runtime->internal_links[i];
+    if (link.fromsock == sock || link.tosock == sock) {
+      node->runtime->internal_links.remove_and_reorder(i);
       BKE_ntree_update_tag_node_internal_link(ntree, node);
       break;
     }
@@ -1982,9 +1990,6 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
     }
   }
 
-  for (bNodeLink *link : node->runtime->internal_links) {
-    MEM_freeN(link);
-  }
   node->runtime->internal_links.clear();
 
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
@@ -2010,7 +2015,7 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 void nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
 {
   *r_node = nullptr;
-  if (!ntree->runtime->topology_cache_is_dirty) {
+  if (ntree->runtime->topology_cache_mutex.is_cached()) {
     bNode *node = &sock->owner_node();
     *r_node = node;
     if (r_sockindex) {
@@ -2308,14 +2313,12 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_dst->prop = IDP_CopyProperty_ex(node_src.prop, flag);
   }
 
-  node_dst->runtime->internal_links.clear();
-  for (const bNodeLink *src_link : node_src.runtime->internal_links) {
-    bNodeLink *dst_link = (bNodeLink *)MEM_dupallocN(src_link);
-    dst_link->fromnode = node_dst;
-    dst_link->tonode = node_dst;
-    dst_link->fromsock = socket_map.lookup(src_link->fromsock);
-    dst_link->tosock = socket_map.lookup(src_link->tosock);
-    node_dst->runtime->internal_links.append(dst_link);
+  node_dst->runtime->internal_links = node_src.runtime->internal_links;
+  for (bNodeLink &dst_link : node_dst->runtime->internal_links) {
+    dst_link.fromnode = node_dst;
+    dst_link.tonode = node_dst;
+    dst_link.fromsock = socket_map.lookup(dst_link.fromsock);
+    dst_link.tosock = socket_map.lookup(dst_link.tosock);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -2324,6 +2327,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 
   if (node_src.typeinfo->copyfunc) {
     node_src.typeinfo->copyfunc(dst_tree, node_dst, &node_src);
+  }
+
+  if (dst_tree) {
+    BKE_ntree_update_tag_node_new(dst_tree, node_dst);
   }
 
   /* Only call copy function when a copy is made for the main database, not
@@ -2335,12 +2342,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
   }
 
-  if (dst_tree) {
-    BKE_ntree_update_tag_node_new(dst_tree, node_dst);
+  /* Reset the declaration of the new node in real tree. */
+  if (dst_tree != nullptr) {
+    nodeDeclarationEnsure(dst_tree, node_dst);
   }
-
-  /* Reset the declaration of the new node. */
-  nodeDeclarationEnsure(dst_tree, node_dst);
 
   return node_dst;
 }
@@ -2369,6 +2374,8 @@ bNodeLink *nodeAddLink(
 {
   BLI_assert(fromnode);
   BLI_assert(tonode);
+  BLI_assert(ntree->all_nodes().contains(fromnode));
+  BLI_assert(ntree->all_nodes().contains(tonode));
 
   bNodeLink *link = nullptr;
   if (fromsock->in_out == SOCK_OUT && tosock->in_out == SOCK_IN) {
@@ -2441,7 +2448,7 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 
 bool nodeLinkIsHidden(const bNodeLink *link)
 {
-  return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
+  return !(link->fromsock->is_visible() && link->tosock->is_visible());
 }
 
 bool nodeLinkIsSelected(const bNodeLink *link)
@@ -2468,8 +2475,8 @@ static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
 void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
   /* store link pointers in output sockets, for efficient lookup */
-  for (bNodeLink *link : node->runtime->internal_links) {
-    link->tosock->link = link;
+  for (bNodeLink &link : node->runtime->internal_links) {
+    link.tosock->link = &link;
   }
 
   /* redirect downstream links */
@@ -2949,12 +2956,9 @@ void nodeRebuildIDVector(bNodeTree *node_tree)
   }
 }
 
-/**
- * Free the node itself.
- *
- * \note: ID user refcounting and changing the `nodes_by_id` vector are up to the caller.
- */
-static void node_free_node(bNodeTree *ntree, bNode *node)
+namespace blender::bke {
+
+void node_free_node(bNodeTree *ntree, bNode *node)
 {
   /* since it is called while free database, node->id is undefined */
 
@@ -2986,18 +2990,13 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(sock);
   }
 
-  for (bNodeLink *link : node->runtime->internal_links) {
-    MEM_freeN(link);
-  }
-  node->runtime->internal_links.clear();
-
   if (node->prop) {
     /* Remember, no ID user refcount management here! */
     IDP_FreePropertyContent_ex(node->prop, false);
     MEM_freeN(node->prop);
   }
 
-  if (node->typeinfo->declaration_is_dynamic) {
+  if (node->typeinfo->declare_dynamic) {
     delete node->runtime->declaration;
   }
 
@@ -3009,6 +3008,8 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::bke
+
 void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
 {
   /* For removing nodes while editing localized node trees. */
@@ -3019,14 +3020,14 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
   nodeUnlinkNode(ntree, node);
   node_unlink_attached(ntree, node);
 
-  node_free_node(ntree, node);
+  blender::bke::node_free_node(ntree, node);
   nodeRebuildIDVector(ntree);
 }
 
 void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 {
   /* This function is not for localized node trees, we do not want
-   * do to ID user refcounting and removal of animdation data then. */
+   * do to ID user reference-counting and removal of animdation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
   bool node_has_id = false;
@@ -3079,7 +3080,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   node_unlink_attached(ntree, node);
 
   /* Free node itself. */
-  node_free_node(ntree, node);
+  blender::bke::node_free_node(ntree, node);
   nodeRebuildIDVector(ntree);
 }
 
@@ -3108,7 +3109,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
    * since it is a localized copy itself (no risk of accessing free'd
-   * data in main, see T37939). */
+   * data in main, see #37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;
   }
@@ -3388,16 +3389,16 @@ bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree,
 }
 
 bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
-                                               bNode *from_node,
-                                               bNodeSocket *from_sock)
+                                               const bNode *from_node,
+                                               const bNodeSocket *from_sock)
 {
   return ntreeAddSocketInterfaceFromSocketWithName(
       ntree, from_node, from_sock, from_sock->idname, from_sock->name);
 }
 
 bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
-                                                       bNode *from_node,
-                                                       bNodeSocket *from_sock,
+                                                       const bNode *from_node,
+                                                       const bNodeSocket *from_sock,
                                                        const char *idname,
                                                        const char *name)
 {
@@ -3413,8 +3414,8 @@ bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
 
 bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
                                                   bNodeSocket *next_sock,
-                                                  bNode *from_node,
-                                                  bNodeSocket *from_sock)
+                                                  const bNode *from_node,
+                                                  const bNodeSocket *from_sock)
 {
   bNodeSocket *iosock = ntreeInsertSocketInterface(
       ntree,
@@ -3456,19 +3457,39 @@ bNode *ntreeFindType(bNodeTree *ntree, int type)
   return nullptr;
 }
 
-bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
+static bool ntree_contains_tree_exec(const bNodeTree *tree_to_search_in,
+                                     const bNodeTree *tree_to_search_for,
+                                     Set<const bNodeTree *> &already_passed)
 {
-  if (ntree == lookup) {
+  if (tree_to_search_in == tree_to_search_for) {
     return true;
   }
-  for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
-      if (ntreeHasTree((bNodeTree *)node->id, lookup)) {
-        return true;
-      }
+
+  tree_to_search_in->ensure_topology_cache();
+  for (const bNode *node_group : tree_to_search_in->group_nodes()) {
+    const bNodeTree *sub_tree_search_in = reinterpret_cast<const bNodeTree *>(node_group->id);
+    if (!sub_tree_search_in) {
+      continue;
+    }
+    if (!already_passed.add(sub_tree_search_in)) {
+      continue;
+    }
+    if (ntree_contains_tree_exec(sub_tree_search_in, tree_to_search_for, already_passed)) {
+      return true;
     }
   }
+
   return false;
+}
+
+bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree_to_search_for)
+{
+  if (tree_to_search_in == tree_to_search_for) {
+    return true;
+  }
+
+  Set<const bNodeTree *> already_passed;
+  return ntree_contains_tree_exec(tree_to_search_in, tree_to_search_for, already_passed);
 }
 
 bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to)
@@ -3553,24 +3574,19 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   node->flag |= flags_to_set;
 }
 
-int nodeSocketIsHidden(const bNodeSocket *sock)
-{
-  return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
-}
-
 void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, bool is_available)
 {
   const bool was_available = (sock->flag & SOCK_UNAVAIL) == 0;
-  if (is_available != was_available) {
-    BKE_ntree_update_tag_socket_availability(ntree, sock);
+  if (is_available == was_available) {
+    return;
   }
-
   if (is_available) {
     sock->flag &= ~SOCK_UNAVAIL;
   }
   else {
     sock->flag |= SOCK_UNAVAIL;
   }
+  BKE_ntree_update_tag_socket_availability(ntree, sock);
 }
 
 int nodeSocketLinkLimit(const bNodeSocket *sock)
@@ -3597,31 +3613,45 @@ static void update_socket_declarations(ListBase *sockets,
   }
 }
 
+static void reset_socket_declarations(ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    socket->runtime->declaration = nullptr;
+  }
+}
+
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
   BLI_assert(node->runtime->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs());
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs());
+  if (node->runtime->declaration->skip_updating_sockets) {
+    reset_socket_declarations(&node->inputs);
+    reset_socket_declarations(&node->outputs);
+  }
+  else {
+    update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+    update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  }
 }
 
-bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
 {
   if (node->runtime->declaration != nullptr) {
     return false;
   }
-  if (node->typeinfo->declare == nullptr) {
-    return false;
-  }
-  if (node->typeinfo->declaration_is_dynamic) {
+  if (node->typeinfo->declare_dynamic) {
+    BLI_assert(ntree != nullptr);
+    BLI_assert(node != nullptr);
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::build_node_declaration(*node->typeinfo, *node->runtime->declaration);
+    blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
+    return true;
   }
-  else {
+  if (node->typeinfo->declare) {
     /* Declaration should have been created in #nodeRegisterType. */
     BLI_assert(node->typeinfo->fixed_declaration != nullptr);
     node->runtime->declaration = node->typeinfo->fixed_declaration;
+    return true;
   }
-  return true;
+  return false;
 }
 
 bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)
@@ -3644,153 +3674,10 @@ void nodeTagUpdateID(bNode *node)
   node->runtime->update |= NODE_UPDATE_ID;
 }
 
-void nodeInternalLinks(bNode *node, bNodeLink ***r_links, int *r_len)
+void nodeInternalLinks(bNode *node, bNodeLink **r_links, int *r_len)
 {
   *r_links = node->runtime->internal_links.data();
   *r_len = node->runtime->internal_links.size();
-}
-
-/* ************** Node Clipboard *********** */
-
-#define USE_NODE_CB_VALIDATE
-
-#ifdef USE_NODE_CB_VALIDATE
-/**
- * This data structure is to validate the node on creation,
- * otherwise we may reference missing data.
- *
- * Currently its only used for ID's, but nodes may one day
- * reference other pointers which need validation.
- */
-struct bNodeClipboardExtraInfo {
-  struct bNodeClipboardExtraInfo *next, *prev;
-  ID *id;
-  char id_name[MAX_ID_NAME];
-  char library_name[FILE_MAX];
-};
-#endif /* USE_NODE_CB_VALIDATE */
-
-struct bNodeClipboard {
-  ListBase nodes;
-
-#ifdef USE_NODE_CB_VALIDATE
-  ListBase nodes_extra_info;
-#endif
-
-  ListBase links;
-};
-
-static bNodeClipboard node_clipboard = {{nullptr}};
-
-void BKE_node_clipboard_clear()
-{
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node_clipboard.links) {
-    nodeRemLink(nullptr, link);
-  }
-  BLI_listbase_clear(&node_clipboard.links);
-
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_clipboard.nodes) {
-    node_free_node(nullptr, node);
-  }
-  BLI_listbase_clear(&node_clipboard.nodes);
-
-#ifdef USE_NODE_CB_VALIDATE
-  BLI_freelistN(&node_clipboard.nodes_extra_info);
-#endif
-}
-
-bool BKE_node_clipboard_validate()
-{
-  bool ok = true;
-
-#ifdef USE_NODE_CB_VALIDATE
-  bNodeClipboardExtraInfo *node_info;
-  bNode *node;
-
-  /* lists must be aligned */
-  BLI_assert(BLI_listbase_count(&node_clipboard.nodes) ==
-             BLI_listbase_count(&node_clipboard.nodes_extra_info));
-
-  for (node = (bNode *)node_clipboard.nodes.first,
-      node_info = (bNodeClipboardExtraInfo *)node_clipboard.nodes_extra_info.first;
-       node;
-       node = (bNode *)node->next, node_info = (bNodeClipboardExtraInfo *)node_info->next) {
-    /* validate the node against the stored node info */
-
-    /* re-assign each loop since we may clear,
-     * open a new file where the ID is valid, and paste again */
-    node->id = node_info->id;
-
-    /* currently only validate the ID */
-    if (node->id) {
-      /* We want to search into current blend file, so using G_MAIN is valid here too. */
-      ListBase *lb = which_libbase(G_MAIN, GS(node_info->id_name));
-      BLI_assert(lb != nullptr);
-
-      if (BLI_findindex(lb, node_info->id) == -1) {
-        /* May assign null. */
-        node->id = (ID *)BLI_findstring(lb, node_info->id_name + 2, offsetof(ID, name) + 2);
-
-        if (node->id == nullptr) {
-          ok = false;
-        }
-      }
-    }
-  }
-#endif /* USE_NODE_CB_VALIDATE */
-
-  return ok;
-}
-
-void BKE_node_clipboard_add_node(bNode *node)
-{
-#ifdef USE_NODE_CB_VALIDATE
-  /* add extra info */
-  bNodeClipboardExtraInfo *node_info = (bNodeClipboardExtraInfo *)MEM_mallocN(
-      sizeof(bNodeClipboardExtraInfo), __func__);
-
-  node_info->id = node->id;
-  if (node->id) {
-    BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
-    if (ID_IS_LINKED(node->id)) {
-      BLI_strncpy(
-          node_info->library_name, node->id->lib->filepath_abs, sizeof(node_info->library_name));
-    }
-    else {
-      node_info->library_name[0] = '\0';
-    }
-  }
-  else {
-    node_info->id_name[0] = '\0';
-    node_info->library_name[0] = '\0';
-  }
-  BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
-  /* end extra info */
-#endif /* USE_NODE_CB_VALIDATE */
-
-  /* add node */
-  BLI_addtail(&node_clipboard.nodes, node);
-}
-
-void BKE_node_clipboard_add_link(bNodeLink *link)
-{
-  BLI_addtail(&node_clipboard.links, link);
-}
-
-const ListBase *BKE_node_clipboard_get_nodes()
-{
-  return &node_clipboard.nodes;
-}
-
-const ListBase *BKE_node_clipboard_get_links()
-{
-  return &node_clipboard.links;
-}
-
-void BKE_node_clipboard_free()
-{
-  BKE_node_clipboard_validate();
-  BKE_node_clipboard_clear();
 }
 
 /* Node Instance Hash */
@@ -3956,8 +3843,6 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
 
 void ntreeUpdateAllNew(Main *main)
 {
-  Vector<bNodeTree *> new_ntrees;
-
   /* Update all new node trees on file read or append, to add/remove sockets
    * in groups nodes if the group changed, and handle any update flags that
    * might have been set in file reading or versioning. */
@@ -4032,14 +3917,16 @@ static void node_type_base_defaults(bNodeType *ntype)
 }
 
 /* allow this node for any tree type */
-static bool node_poll_default(bNodeType * /*ntype*/,
-                              bNodeTree * /*ntree*/,
+static bool node_poll_default(const bNodeType * /*ntype*/,
+                              const bNodeTree * /*ntree*/,
                               const char ** /*disabled_hint*/)
 {
   return true;
 }
 
-static bool node_poll_instance_default(bNode *node, bNodeTree *ntree, const char **disabled_hint)
+static bool node_poll_instance_default(const bNode *node,
+                                       const bNodeTree *ntree,
+                                       const char **disabled_hint)
 {
   return node->typeinfo->poll(node->typeinfo, ntree, disabled_hint);
 }

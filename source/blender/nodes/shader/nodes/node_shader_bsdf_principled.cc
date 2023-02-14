@@ -173,7 +173,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_CLEARCOAT;
   }
 
-  /* Ref. T98190: Defines are optimizations for old compilers.
+  /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
   if (use_diffuse == false && use_refract == false && use_clear == true) {
     flag |= GPU_MATFLAG_PRINCIPLED_CLEARCOAT;

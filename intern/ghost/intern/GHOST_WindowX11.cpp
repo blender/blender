@@ -418,7 +418,7 @@ void GHOST_WindowX11::refreshXInputDevices()
     for (GHOST_SystemX11::GHOST_TabletX11 &xtablet : m_system->GetXTablets()) {
       /* With modern XInput (XLIB 1.6.2 at least and/or EVDEV 2.9.0) and some 'no-name' tablets
        * like 'UC-LOGIC Tablet WP5540U', we also need to 'select' ButtonPress for motion event,
-       * otherwise we do not get any tablet motion event once pen is pressed... See T43367.
+       * otherwise we do not get any tablet motion event once pen is pressed... See #43367.
        */
       XEventClass ev;
 
@@ -1112,11 +1112,6 @@ void GHOST_WindowX11::validate()
   m_invalid_window = false;
 }
 
-/**
- * Destructor.
- * Closes the window and disposes resources allocated.
- */
-
 GHOST_WindowX11::~GHOST_WindowX11()
 {
   std::map<uint, Cursor>::iterator it = m_standard_cursors.begin();
@@ -1472,7 +1467,7 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
       }
     }
 
-    /* Perform this last so to workaround XWayland bug, see: T53004. */
+    /* Perform this last so to workaround XWayland bug, see: #53004. */
     if (m_cursorGrab == GHOST_kGrabHide) {
       setWindowCursorVisibility(true);
     }

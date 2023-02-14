@@ -23,11 +23,11 @@ static void node_declare(NodeDeclarationBuilder &b)
                        GEO_COMPONENT_TYPE_CURVE,
                        GEO_COMPONENT_TYPE_INSTANCES});
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
   b.add_input<decl::Int>(N_("Index"))
       .supports_field()
       .description(N_("Which element to retrieve a value from on the geometry"));
@@ -88,8 +88,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(1));
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -176,13 +176,13 @@ void copy_with_clamped_indices(const VArray<T> &src,
  * instance geometry set in the source. A future optimization could be removing that limitation
  * internally.
  */
-class SampleIndexFunction : public fn::MultiFunction {
+class SampleIndexFunction : public mf::MultiFunction {
   GeometrySet src_geometry_;
   GField src_field_;
   eAttrDomain domain_;
   bool clamp_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::GeometryFieldContext> geometry_context_;
   std::unique_ptr<FieldEvaluator> evaluator_;
@@ -200,18 +200,12 @@ class SampleIndexFunction : public fn::MultiFunction {
   {
     src_geometry_.ensure_owns_direct_data();
 
-    signature_ = this->create_signature();
+    mf::SignatureBuilder builder{"Sample Index", signature_};
+    builder.single_input<int>("Index");
+    builder.single_output("Value", src_field_.cpp_type());
     this->set_signature(&signature_);
 
     this->evaluate_field();
-  }
-
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Index"};
-    signature.single_input<int>("Index");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
   }
 
   void evaluate_field()
@@ -228,7 +222,7 @@ class SampleIndexFunction : public fn::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
@@ -304,13 +298,50 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySampleIndex &storage = node_storage(params.node());
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const eAttrDomain domain = eAttrDomain(storage.domain);
+  const bool use_clamp = bool(storage.clamp);
 
-  auto fn = std::make_shared<SampleIndexFunction>(std::move(geometry),
-                                                  get_input_attribute_field(params, data_type),
-                                                  domain,
-                                                  bool(storage.clamp));
-  auto op = FieldOperation::Create(std::move(fn), {params.extract_input<Field<int>>("Index")});
-  output_attribute_field(params, GField(std::move(op)));
+  GField value_field = get_input_attribute_field(params, data_type);
+  ValueOrField<int> index_value_or_field = params.extract_input<ValueOrField<int>>("Index");
+  const CPPType &cpp_type = value_field.cpp_type();
+
+  GField output_field;
+  if (index_value_or_field.is_field()) {
+    /* If the index is a field, the output has to be a field that still depends on the input. */
+    auto fn = std::make_shared<SampleIndexFunction>(
+        std::move(geometry), std::move(value_field), domain, use_clamp);
+    auto op = FieldOperation::Create(std::move(fn), {index_value_or_field.as_field()});
+    output_field = GField(std::move(op));
+  }
+  else if (const GeometryComponent *component = find_source_component(geometry, domain)) {
+    /* Optimization for the case when the index is a single value. Here only that one index has to
+     * be evaluated. */
+    const int domain_size = component->attribute_domain_size(domain);
+    int index = index_value_or_field.as_value();
+    if (use_clamp) {
+      index = std::clamp(index, 0, domain_size - 1);
+    }
+    if (index >= 0 && index < domain_size) {
+      const IndexMask mask = IndexRange(index, 1);
+      bke::GeometryFieldContext geometry_context(*component, domain);
+      FieldEvaluator evaluator(geometry_context, &mask);
+      evaluator.add(value_field);
+      evaluator.evaluate();
+      const GVArray &data = evaluator.get_evaluated(0);
+      BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, buffer);
+      data.get_to_uninitialized(index, buffer);
+      output_field = fn::make_constant_field(cpp_type, buffer);
+      cpp_type.destruct(buffer);
+    }
+    else {
+      output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+    }
+  }
+  else {
+    /* Output default value if there is no geometry. */
+    output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+  }
+
+  output_attribute_field(params, std::move(output_field));
 }
 
 }  // namespace blender::nodes::node_geo_sample_index_cc

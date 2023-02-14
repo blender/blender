@@ -404,7 +404,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
      * point we know that we've got everything to render current view layer.
      */
     /* At the moment we only free if we are not doing multi-view
-     * (or if we are rendering the last view). See T58142/D4239 for discussion.
+     * (or if we are rendering the last view). See #58142/D4239 for discussion.
      */
     if (view_index == num_views - 1) {
       free_blender_memory_if_possible();

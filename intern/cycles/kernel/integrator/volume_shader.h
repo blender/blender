@@ -202,7 +202,7 @@ ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pic
 
 ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderData *sd,
                                                       ccl_private const ShaderVolumePhases *phases,
-                                                      const float3 omega_in,
+                                                      const float3 wo,
                                                       int skip_phase,
                                                       ccl_private BsdfEval *result_eval,
                                                       float sum_pdf,
@@ -214,7 +214,7 @@ ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderDa
 
     ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
     float phase_pdf = 0.0f;
-    Spectrum eval = volume_phase_eval(sd, svc, omega_in, &phase_pdf);
+    Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
     if (phase_pdf != 0.0f) {
       bsdf_eval_accum(result_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
@@ -230,11 +230,11 @@ ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderDa
 ccl_device float volume_shader_phase_eval(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
                                           ccl_private const ShaderVolumeClosure *svc,
-                                          const float3 omega_in,
+                                          const float3 wo,
                                           ccl_private BsdfEval *phase_eval)
 {
   float phase_pdf = 0.0f;
-  Spectrum eval = volume_phase_eval(sd, svc, omega_in, &phase_pdf);
+  Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
   if (phase_pdf != 0.0f) {
     bsdf_eval_accum(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
@@ -247,17 +247,17 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
                                           IntegratorState state,
                                           ccl_private const ShaderData *sd,
                                           ccl_private const ShaderVolumePhases *phases,
-                                          const float3 omega_in,
+                                          const float3 wo,
                                           ccl_private BsdfEval *phase_eval)
 {
   bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, zero_spectrum());
 
-  float pdf = _volume_shader_phase_eval_mis(sd, phases, omega_in, -1, phase_eval, 0.0f, 0.0f);
+  float pdf = _volume_shader_phase_eval_mis(sd, phases, wo, -1, phase_eval, 0.0f, 0.0f);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (state->guiding.use_volume_guiding) {
     const float guiding_sampling_prob = state->guiding.volume_guiding_sampling_prob;
-    const float guide_pdf = guiding_phase_pdf(kg, state, omega_in);
+    const float guide_pdf = guiding_phase_pdf(kg, state, wo);
     pdf = (guiding_sampling_prob * guide_pdf) + (1.0f - guiding_sampling_prob) * pdf;
   }
 #  endif
@@ -272,7 +272,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
                                                  ccl_private const ShaderVolumeClosure *svc,
                                                  const float2 rand_phase,
                                                  ccl_private BsdfEval *phase_eval,
-                                                 ccl_private float3 *omega_in,
+                                                 ccl_private float3 *wo,
                                                  ccl_private float *phase_pdf,
                                                  ccl_private float *unguided_phase_pdf,
                                                  ccl_private float *sampled_roughness)
@@ -304,11 +304,11 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
 
   if (sample_guiding) {
     /* Sample guiding distribution. */
-    guide_pdf = guiding_phase_sample(kg, state, rand_phase, omega_in);
+    guide_pdf = guiding_phase_sample(kg, state, rand_phase, wo);
     *phase_pdf = 0.0f;
 
     if (guide_pdf != 0.0f) {
-      *unguided_phase_pdf = volume_shader_phase_eval(kg, sd, svc, *omega_in, phase_eval);
+      *unguided_phase_pdf = volume_shader_phase_eval(kg, sd, svc, *wo, phase_eval);
       *phase_pdf = (guiding_sampling_prob * guide_pdf) +
                    ((1.0f - guiding_sampling_prob) * (*unguided_phase_pdf));
       label = LABEL_VOLUME_SCATTER;
@@ -318,14 +318,14 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
     /* Sample phase. */
     *phase_pdf = 0.0f;
     label = volume_phase_sample(
-        sd, svc, rand_phase.x, rand_phase.y, &eval, omega_in, unguided_phase_pdf);
+        sd, svc, rand_phase.x, rand_phase.y, &eval, wo, unguided_phase_pdf);
 
     if (*unguided_phase_pdf != 0.0f) {
       bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
 
       *phase_pdf = *unguided_phase_pdf;
       if (use_volume_guiding) {
-        guide_pdf = guiding_phase_pdf(kg, state, *omega_in);
+        guide_pdf = guiding_phase_pdf(kg, state, *wo);
         *phase_pdf *= 1.0f - guiding_sampling_prob;
         *phase_pdf += guiding_sampling_prob * guide_pdf;
       }
@@ -349,7 +349,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
                                           ccl_private const ShaderVolumeClosure *svc,
                                           float2 rand_phase,
                                           ccl_private BsdfEval *phase_eval,
-                                          ccl_private float3 *omega_in,
+                                          ccl_private float3 *wo,
                                           ccl_private float *pdf,
                                           ccl_private float *sampled_roughness)
 {
@@ -357,7 +357,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  int label = volume_phase_sample(sd, svc, rand_phase.x, rand_phase.y, &eval, omega_in, pdf);
+  int label = volume_phase_sample(sd, svc, rand_phase.x, rand_phase.y, &eval, wo, pdf);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);

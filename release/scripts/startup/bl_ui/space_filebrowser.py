@@ -8,6 +8,8 @@ from bpy_extras import (
     asset_utils,
 )
 
+from bpy.app.translations import contexts as i18n_contexts
+
 
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
@@ -41,14 +43,14 @@ class FILEBROWSER_HT_header(Header):
         layout.popover(
             panel="ASSETBROWSER_PT_filter",
             text="",
-            icon='FILTER'
+            icon='FILTER',
         )
 
         layout.operator(
             "screen.region_toggle",
             text="",
             icon='PREFERENCES',
-            depress=is_option_region_visible(context, space_data)
+            depress=is_option_region_visible(context, space_data),
         ).region_type = 'TOOL_PROPS'
 
     def draw(self, context):
@@ -229,6 +231,7 @@ class FILEBROWSER_PT_bookmarks_volumes(Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
     bl_label = "Volumes"
+    bl_translation_context = i18n_contexts.editor_filebrowser
 
     @classmethod
     def poll(cls, context):
@@ -464,7 +467,7 @@ class FILEBROWSER_PT_directory_path(Panel):
                 "screen.region_toggle",
                 text="",
                 icon='PREFERENCES',
-                depress=is_option_region_visible(context, space)
+                depress=is_option_region_visible(context, space),
             ).region_type = 'TOOL_PROPS'
 
 
@@ -644,7 +647,7 @@ class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
 
         layout.menu("ASSETBROWSER_MT_view")
         layout.menu("ASSETBROWSER_MT_select")
-        layout.menu("ASSETBROWSER_MT_edit")
+        layout.menu("ASSETBROWSER_MT_catalog")
 
 
 class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
@@ -683,14 +686,18 @@ class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
-class ASSETBROWSER_MT_edit(AssetBrowserMenu, Menu):
-    bl_label = "Edit"
+class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
+    bl_label = "Catalog"
 
     def draw(self, _context):
         layout = self.layout
 
         layout.operator("asset.catalog_undo", text="Undo")
         layout.operator("asset.catalog_redo", text="Redo")
+
+        layout.separator()
+        layout.operator("asset.catalogs_save")
+        layout.operator("asset.catalog_new").parent_path = ""
 
 
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
@@ -844,7 +851,7 @@ classes = (
     ASSETBROWSER_MT_editor_menus,
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
-    ASSETBROWSER_MT_edit,
+    ASSETBROWSER_MT_catalog,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,

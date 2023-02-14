@@ -179,7 +179,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
 
   /* note on UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
    * with the OS when the splash shows, window clipping in this case gives
-   * ugly results and clipping the splash isn't useful anyway, just disable it T32938. */
+   * ugly results and clipping the splash isn't useful anyway, just disable it #32938. */
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 

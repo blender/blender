@@ -150,7 +150,7 @@ shaderc::Compiler &VKBackend::get_shaderc_compiler()
   return shaderc_compiler_;
 }
 
-void VKBackend::capabilities_init(VKContext &context)
+void VKBackend::capabilities_init(VKContext & /*context*/)
 {
   /* Reset all capabilities from previous context. */
   GCaps = {};

@@ -10,6 +10,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -33,15 +34,15 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
   if (uv_a[0] == uv_b[0] && uv_a[1] == uv_b[1]) {
     return CMP_EQUAL;
   }
-  /* NOTE(@campbellbarton): that the ULP value is the primary value used to compare relative
+  /* NOTE(@ideasman42): that the ULP value is the primary value used to compare relative
    * values as the absolute value doesn't account for float precision at difference scales.
    * - For subdivision-surface ULP of 3 is sufficient,
    *   although this value is extremely small.
-   * - For bevel the ULP of 12 is sufficient to merge UV's that appear to be connected
+   * - For bevel the ULP of 12 is sufficient to merge UVs that appear to be connected
    *   with bevel on Suzanne beveled 15% with 6 segments.
    *
    * These values could be tweaked but should be kept on the small side to prevent
-   * unintentional joining of intentionally dis-connected UV's.
+   * unintentional joining of intentionally disconnected UVs.
    *
    * Before v2.91 the threshold was either (`1e-4` or `0.05 / image_size` for selection picking).
    * So picking used a threshold of `1e-4` for a 500x500 image and `1e-5` for a 5000x5000 image.
@@ -57,22 +58,22 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
   return CMP_APART;
 }
 
-static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<MLoopUV *> mloopuv_layers)
+static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<float2 *> mloopuv_layers)
 {
   if (loops_for_vert.size() <= 1) {
     return;
   }
-  /* Manipulate a copy of the loop indices, de-duplicating UV's per layer.  */
+  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer.  */
   Vector<int, 32> loops_merge;
   loops_merge.reserve(loops_for_vert.size());
-  for (MLoopUV *mloopuv : mloopuv_layers) {
+  for (float2 *mloopuv : mloopuv_layers) {
     BLI_assert(loops_merge.is_empty());
     loops_merge.extend_unchecked(loops_for_vert);
     while (loops_merge.size() > 1) {
       uint i_last = uint(loops_merge.size()) - 1;
-      const float *uv_src = mloopuv[loops_merge[0]].uv;
+      const float *uv_src = mloopuv[loops_merge[0]];
       for (uint i = 1; i <= i_last;) {
-        float *uv_dst = mloopuv[loops_merge[i]].uv;
+        float *uv_dst = mloopuv[loops_merge[i]];
         switch (compare_v2_classify(uv_src, uv_dst)) {
           case CMP_CLOSE: {
             uv_dst[0] = uv_src[0];
@@ -106,7 +107,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
   if (me->totloop == 0) {
     return;
   }
-  const int mloopuv_layers_num = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  const int mloopuv_layers_num = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (mloopuv_layers_num == 0) {
     return;
   }
@@ -121,14 +122,16 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
                                 me->totpoly,
                                 me->totloop);
 
-  Vector<MLoopUV *> mloopuv_layers;
+  Vector<float2 *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);
   for (int a = 0; a < mloopuv_layers_num; a++) {
-    MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, a));
+    float2 *mloopuv = static_cast<float2 *>(
+        CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, a, me->totloop));
     mloopuv_layers.append_unchecked(mloopuv);
   }
 
-  Span<MLoopUV *> mloopuv_layers_as_span = mloopuv_layers.as_span();
+  Span<float2 *> mloopuv_layers_as_span = mloopuv_layers.as_span();
+
   threading::parallel_for(IndexRange(me->totvert), 1024, [&](IndexRange range) {
     for (const int64_t v_index : range) {
       MeshElemMap &loops_for_vert = vert_to_loop[v_index];

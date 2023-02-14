@@ -18,16 +18,15 @@
 
 #include "BLI_rect.h"
 
+#include "BKE_image_wrappers.hh"
+
 #include "DNA_image_types.h"
 
 extern "C" {
-struct PartialUpdateRegister;
 struct PartialUpdateUser;
 }
 
 namespace blender::bke::image {
-
-using TileNumber = int;
 
 namespace partial_update {
 

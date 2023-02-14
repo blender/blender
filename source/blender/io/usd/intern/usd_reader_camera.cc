@@ -49,13 +49,22 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
 
   bcam->type = usd_cam.GetProjection() == pxr::GfCamera::Perspective ? CAM_PERSP : CAM_ORTHO;
 
-  bcam->lens = usd_cam.GetFocalLength();
+  /*
+   * For USD, these camera properties are in tenths of a world unit.
+   * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
+   * tenth_of_unit      = stage_meters_per_unit / 10
+   * val_in_meters      = val.Get<float>() * tenth_of_unit
+   * val_in_millimeters = val_in_meters * 1000
+   */
+  const double scale_to_mm = 100.0 * settings_->stage_meters_per_unit;
 
-  bcam->sensor_x = apperture_x;
-  bcam->sensor_y = apperture_y;
+  bcam->lens = usd_cam.GetFocalLength() * scale_to_mm;
 
-  bcam->shiftx = h_film_offset / apperture_x;
-  bcam->shifty = v_film_offset / apperture_y / film_aspect;
+  bcam->sensor_x = apperture_x * scale_to_mm;
+  bcam->sensor_y = apperture_y * scale_to_mm;
+
+  bcam->shiftx = h_film_offset * scale_to_mm / apperture_x;
+  bcam->shifty = v_film_offset * scale_to_mm / apperture_y / film_aspect;
 
   pxr::GfRange1f usd_clip_range = usd_cam.GetClippingRange();
   bcam->clip_start = usd_clip_range.GetMin() * settings_->scale;

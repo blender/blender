@@ -11,7 +11,9 @@
 
 #include "node_composite_util.hh"
 
-bool cmp_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **r_disabled_hint)
+bool cmp_node_poll_default(const bNodeType * /*ntype*/,
+                           const bNodeTree *ntree,
+                           const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
     *r_disabled_hint = TIP_("Not a compositor node tree");

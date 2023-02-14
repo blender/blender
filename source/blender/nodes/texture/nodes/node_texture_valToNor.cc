@@ -19,7 +19,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void normalfn(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   float new_co[3];
   const float *co = p->co;
@@ -51,7 +51,7 @@ static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack *
   out[2] = val - nor[2];
 }
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,

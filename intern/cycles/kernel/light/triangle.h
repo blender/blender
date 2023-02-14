@@ -63,7 +63,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
   const float3 e2 = V[2] - V[1];
   const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
   const float3 N = cross(e0, e1);
-  const float distance_to_plane = fabsf(dot(N, sd->I * t)) / dot(N, N);
+  const float distance_to_plane = fabsf(dot(N, sd->wi * t)) / dot(N, N);
   const float area = 0.5f * len(N);
 
   float pdf;
@@ -71,7 +71,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
   if (longest_edge_squared > distance_to_plane * distance_to_plane) {
     /* sd contains the point on the light source
      * calculate Px, the point that we're shading */
-    const float3 Px = sd->P + sd->I * t;
+    const float3 Px = sd->P + sd->wi * t;
     const float3 v0_p = V[0] - Px;
     const float3 v1_p = V[1] - Px;
     const float3 v2_p = V[2] - Px;
@@ -99,7 +99,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
       return 0.0f;
     }
 
-    pdf = triangle_light_pdf_area_sampling(sd->Ng, sd->I, t) / area;
+    pdf = triangle_light_pdf_area_sampling(sd->Ng, sd->wi, t) / area;
   }
 
   /* Belongs in distribution.h but can reuse computations here. */
@@ -146,7 +146,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
   /* flip normal if necessary */
   const int object_flag = kernel_data_fetch(object_flag, object);
-  if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
     ls->Ng = -ls->Ng;
   }
   ls->eval_fac = 1.0f;
@@ -218,7 +218,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     /* Finally, select a random point along the edge of the new triangle
      * That point on the spherical triangle is the sampled ray direction */
     const float z = 1.0f - randv * (1.0f - dot(C_, B));
-    ls->D = z * B + safe_sqrtf(1.0f - z * z) * safe_normalize(C_ - dot(C_, B) * B);
+    ls->D = z * B + sin_from_cos(z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
     if (!ray_triangle_intersect(

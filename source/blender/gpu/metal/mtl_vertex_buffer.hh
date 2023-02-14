@@ -42,6 +42,7 @@ class MTLVertBuf : public VertBuf {
    * Access limited to friend classes. */
   id<MTLBuffer> get_metal_buffer()
   {
+    BLI_assert(vbo_ != nullptr);
     vbo_->debug_ensure_used();
     return vbo_->get_metal_buffer();
   }
@@ -55,8 +56,7 @@ class MTLVertBuf : public VertBuf {
 
   void update_sub(uint start, uint len, const void *data) override;
 
-  const void *read() const override;
-  void *unmap(const void *mapped_data) const override;
+  void read(void *data) const override;
 
   void wrap_handle(uint64_t handle) override;
 

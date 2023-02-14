@@ -20,6 +20,7 @@ set(SRC
   ./intern/mallocn.c
   ./intern/mallocn_guarded_impl.c
   ./intern/mallocn_lockfree_impl.c
+  ./intern/memory_usage.cc
 
   MEM_guardedalloc.h
   ./intern/mallocn_inline.h
@@ -40,10 +41,11 @@ if(WIN32 AND NOT UNIX)
   list(APPEND INC_SYS
     ${PTHREADS_INC}
   )
-
-  list(APPEND LIB
-    ${PTHREADS_LIBRARIES}
-  )
+  if(DEFINED PTHREADS_LIBRARIES)
+    list(APPEND LIB
+      ${PTHREADS_LIBRARIES}
+    )
+  endif()
 endif()
 
 # Jemalloc 5.0.0+ needs extra configuration.

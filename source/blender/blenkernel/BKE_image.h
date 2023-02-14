@@ -566,7 +566,6 @@ struct PartialUpdateUser *BKE_image_partial_update_create(const struct Image *im
 void BKE_image_partial_update_free(struct PartialUpdateUser *user);
 
 /* --- partial updater (image side) --- */
-struct PartialUpdateRegister;
 
 void BKE_image_partial_update_register_free(struct Image *image);
 /** \brief Mark a region of the image to update. */

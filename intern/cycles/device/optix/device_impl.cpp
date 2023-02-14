@@ -579,7 +579,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   link_options.maxTraceDepth = 1;
   link_options.debugLevel = module_options.debugLevel;
 
-  if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE) && !use_osl) {
+  if (use_osl) {
+    /* Re-create OSL pipeline in case kernels are reloaded after it has been created before. */
+    load_osl_kernels();
+  }
+  else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
     /* Create shader raytracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
@@ -743,6 +747,11 @@ bool OptiXDevice::load_osl_kernels()
     }
   }
 
+  if (osl_kernels.empty()) {
+    /* No OSL shader groups, so no need to create a pipeline. */
+    return true;
+  }
+
   OptixProgramGroupOptions group_options = {}; /* There are no options currently. */
   OptixModuleCompileOptions module_options = {};
   module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
@@ -845,17 +854,24 @@ bool OptiXDevice::load_osl_kernels()
         context, group_descs, 2, &group_options, nullptr, 0, &osl_groups[i * 2]));
   }
 
+  OptixStackSizes stack_size[NUM_PROGRAM_GROUPS] = {};
   vector<OptixStackSizes> osl_stack_size(osl_groups.size());
 
   /* Update SBT with new entries. */
   sbt_data.alloc(NUM_PROGRAM_GROUPS + osl_groups.size());
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
   }
   for (size_t i = 0; i < osl_groups.size(); ++i) {
     if (osl_groups[i] != NULL) {
       optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
       optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
+    }
+    else {
+      /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
+       * materials has direct callables to call and does not crash. */
+      optix_assert(optixSbtRecordPackHeader(osl_groups.back(), &sbt_data[NUM_PROGRAM_GROUPS + i]));
     }
   }
   sbt_data.copy_to_device(); /* Upload updated SBT to device. */
@@ -893,13 +909,15 @@ bool OptiXDevice::load_osl_kernels()
                                      0,
                                      &pipelines[PIP_SHADE]));
 
+    const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
+                                      stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG);
     unsigned int dss = 0;
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
       dss = std::max(dss, osl_stack_size[i].dssDC);
     }
 
     optix_assert(optixPipelineSetStackSize(
-        pipelines[PIP_SHADE], 0, dss, 0, pipeline_options.usesMotionBlur ? 3 : 2));
+        pipelines[PIP_SHADE], 0, dss, css, pipeline_options.usesMotionBlur ? 3 : 2));
   }
 
   return !have_error();

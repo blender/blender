@@ -188,7 +188,7 @@ void GPENCIL_OT_stroke_editcurve_set_handle_type(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set handle type";
   ot->idname = "GPENCIL_OT_stroke_editcurve_set_handle_type";
-  ot->description = "Set the type of a edit curve handle";
+  ot->description = "Set the type of an edit curve handle";
 
   /* api callbacks */
   ot->invoke = WM_menu_invoke;

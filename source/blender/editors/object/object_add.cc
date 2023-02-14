@@ -49,6 +49,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
@@ -2047,7 +2048,7 @@ static int object_curves_random_add_exec(bContext *C, wmOperator *op)
   Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
 
   Curves *curves_id = static_cast<Curves *>(object->data);
-  bke::CurvesGeometry::wrap(curves_id->geometry) = ed::curves::primitive_random_sphere(500, 8);
+  curves_id->geometry.wrap() = ed::curves::primitive_random_sphere(500, 8);
 
   return OPERATOR_FINISHED;
 }
@@ -2096,7 +2097,7 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   /* Decide which UV map to use for attachment. */
   Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
-  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_MLOOPUV);
+  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_PROP_FLOAT2);
   if (uv_name != nullptr) {
     curves_id->surface_uv_map = BLI_strdup(uv_name);
   }
@@ -2845,7 +2846,7 @@ static Base *duplibase_for_convert(
    * having same 'family name' as orig ones, they will affect end result of meta-ball computation.
    * For until we get rid of that name-based thingy in meta-balls, that should do the trick
    * (this is weak, but other solution (to change name of `obn`) is even worse IMHO).
-   * See T65996. */
+   * See #65996. */
   const bool is_meta_ball = (obn->type == OB_MBALL);
   void *obdata = obn->data;
   if (is_meta_ball) {
@@ -2877,6 +2878,7 @@ static Base *duplibase_for_convert(
 
 static int object_convert_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -2928,7 +2930,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
   /* Ensure we get all meshes calculated with a sufficient data-mask,
    * needed since re-evaluating single modifiers causes bugs if they depend
-   * on other objects data masks too, see: T50950. */
+   * on other objects data masks too, see: #50950. */
   {
     LISTBASE_FOREACH (CollectionPointerLink *, link, &selected_editable_bases) {
       Base *base = static_cast<Base *>(link->ptr.data);
@@ -2973,7 +2975,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* obdata already modified */
       if (!IS_TAGGED(ob->data)) {
         /* When 2 objects with linked data are selected, converting both
-         * would keep modifiers on all but the converted object T26003. */
+         * would keep modifiers on all but the converted object #26003. */
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
@@ -3089,8 +3091,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob->data = new_curves;
         newob->type = OB_CURVES;
 
-        blender::bke::CurvesGeometry::wrap(
-            new_curves->geometry) = blender::bke::CurvesGeometry::wrap(curves_eval->geometry);
+        new_curves->geometry.wrap() = curves_eval->geometry.wrap();
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
 
         BKE_object_free_derived_caches(newob);
@@ -3153,8 +3154,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
       me_eval = BKE_mesh_copy_for_eval(me_eval, false);
-      /* Full (edge-angle based) draw calculation should ideally be performed. */
-      BKE_mesh_edges_set_draw_render(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
@@ -3359,6 +3358,54 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         ED_rigidbody_object_remove(bmain, scene, newob);
       }
     }
+    else if (ob->type == OB_CURVES && target == OB_MESH) {
+      ob->flag |= OB_DONE;
+
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      GeometrySet geometry;
+      if (ob_eval->runtime.geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime.geometry_set_eval;
+      }
+
+      if (keep_original) {
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, nullptr);
+        newob = basen->object;
+
+        Curves *curves = static_cast<Curves *>(newob->data);
+        id_us_min(&curves->id);
+
+        newob->data = BKE_id_copy(bmain, &curves->id);
+      }
+      else {
+        newob = ob;
+      }
+
+      Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, newob->id.name + 2));
+      if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
+        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
+        BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
+        new_mesh->attributes_for_write().remove_anonymous();
+      }
+      else if (const Curves *curves_eval = geometry.get_curves_for_read()) {
+        bke::AnonymousAttributePropagationInfo propagation_info;
+        propagation_info.propagate_all = false;
+        Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
+        BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
+        BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
+      }
+      else {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Object '%s' has no evaluated mesh or curves data",
+                    ob->id.name + 2);
+      }
+
+      newob->data = new_mesh;
+      newob->type = OB_MESH;
+
+      BKE_object_free_derived_caches(newob);
+      BKE_object_free_modifiers(newob, 0);
+    }
     else {
       continue;
     }
@@ -3521,7 +3568,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
       ot->srna,
       "merge_customdata",
       true,
-      "Merge UV's",
+      "Merge UVs",
       "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
 
   prop = RNA_def_float_rotation(ot->srna,
@@ -3661,7 +3708,7 @@ Base *ED_object_add_duplicate(
 
   ob = basen->object;
 
-  /* Link own references to the newly duplicated data T26816.
+  /* Link own references to the newly duplicated data #26816.
    * Note that this function can be called from edit-mode code, in which case we may have to
    * enforce remapping obdata (by default this is forbidden in edit mode). */
   const int remap_flag = BKE_object_is_in_editmode(ob) ? ID_REMAP_FORCE_OBDATA_IN_EDITMODE : 0;
@@ -4109,7 +4156,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
 
   if (ret & OPERATOR_FINISHED) {
     /* Even though internally failure to invert is accounted for with a fallback,
-     * show a warning since the result may not be what the user expects. See T80077.
+     * show a warning since the result may not be what the user expects. See #80077.
      *
      * Failure to invert the matrix is typically caused by zero scaled axes
      * (which can be caused by constraints, even if the input scale isn't zero).

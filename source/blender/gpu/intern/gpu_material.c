@@ -647,21 +647,6 @@ char *GPU_material_split_sub_function(GPUMaterial *material,
   SNPRINTF(func_link->name, "ntree_fn%d", material->generated_function_len++);
   BLI_addtail(&material->graph.material_functions, func_link);
 
-  /* Set value to break the link with the main graph. */
-  switch (return_type) {
-    case GPU_FLOAT:
-      GPU_link(material, "set_value_one", link);
-      break;
-    case GPU_VEC3:
-      GPU_link(material, "set_rgb_one", link);
-      break;
-    case GPU_VEC4:
-      GPU_link(material, "set_rgba_one", link);
-      break;
-    default:
-      BLI_assert(0);
-      break;
-  }
   return func_link->name;
 }
 
@@ -850,7 +835,6 @@ void GPU_materials_free(Main *bmain)
     GPU_material_free(&wo->gpumaterial);
   }
 
-  // BKE_world_defaults_free_gpu();
   BKE_material_defaults_free_gpu();
 }
 

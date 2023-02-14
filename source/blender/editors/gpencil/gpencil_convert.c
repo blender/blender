@@ -1208,7 +1208,7 @@ static void gpencil_stroke_norm_curve_weights(Curve *cu, const float minmax_weig
 {
   const float delta = minmax_weights[0];
 
-  /* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero T35686. */
+  /* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero #35686. */
   float fac;
   if (IS_EQF(delta, minmax_weights[1])) {
     fac = 1.0f;

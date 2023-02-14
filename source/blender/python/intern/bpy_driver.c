@@ -211,7 +211,7 @@ static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
 
 /**
  * Adds a variable `depsgraph` to the name-space. This can then be used to obtain evaluated
- * data-blocks, and the current view layer and scene. See T75553.
+ * data-blocks, and the current view layer and scene. See #75553.
  */
 static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
 {
@@ -346,7 +346,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(RESUME),
     OK_OP(LIST_EXTEND),
     OK_OP(SET_UPDATE),
-/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+/* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
  * can be used to manipulate the name-space (potentially allowing malicious code). */
 #    if 0
     OK_OP(DICT_MERGE),
@@ -430,7 +430,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(STORE_DEREF),
     OK_OP(LIST_EXTEND),
     OK_OP(SET_UPDATE),
-/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+/* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
  * can be used to manipulate the name-space (potentially allowing malicious code). */
 #    if 0
     OK_OP(DICT_MERGE),
@@ -560,9 +560,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   /* (old) NOTE: PyGILState_Ensure() isn't always called because python can call
    * the bake operator which intern starts a thread which calls scene update
    * which does a driver update. to avoid a deadlock check #PyC_IsInterpreterActive()
-   * if #PyGILState_Ensure() is needed, see T27683.
+   * if #PyGILState_Ensure() is needed, see #27683.
    *
-   * (new) NOTE: checking if python is running is not thread-safe T28114
+   * (new) NOTE: checking if python is running is not thread-safe #28114
    * now release the GIL on python operator execution instead, using
    * #PyEval_SaveThread() / #PyEval_RestoreThread() so we don't lock up blender.
    *
@@ -612,7 +612,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     gilstate = PyGILState_Ensure();
   }
 
-  /* Needed since drivers are updated directly after undo where `main` is re-allocated T28807. */
+  /* Needed since drivers are updated directly after undo where `main` is re-allocated #28807. */
   BPY_update_rna_module();
 
   /* Initialize global dictionary for Python driver evaluation settings. */

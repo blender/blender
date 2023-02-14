@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER_EEVEE_LEGACY_DEFINES
 #define GPU_SHADER_EEVEE_LEGACY_DEFINES
@@ -20,7 +21,7 @@
 /* Motion Blur. */
 #define EEVEE_VELOCITY_TILE_SIZE 32
 
-/* Depth of Field*/
+/* Depth of Field. */
 #define DOF_TILE_DIVISOR 16
 #define DOF_BOKEH_LUT_SIZE 32
 #define DOF_GATHER_RING_COUNT 5

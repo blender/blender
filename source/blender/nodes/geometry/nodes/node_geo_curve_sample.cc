@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_length_parameterize.hh"
 
@@ -23,24 +22,24 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_CURVE);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
 
   b.add_input<decl::Float>(N_("Factor"))
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .supports_field()
+      .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; });
   b.add_input<decl::Float>(N_("Length"))
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .supports_field()
+      .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; });
-  b.add_input<decl::Int>(N_("Curve Index")).supports_field().make_available([](bNode &node) {
+  b.add_input<decl::Int>(N_("Curve Index")).field_on_all().make_available([](bNode &node) {
     node_storage(node).use_all_curves = false;
   });
 
@@ -113,8 +112,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(4));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(3));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(4));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(3));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
@@ -202,7 +201,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
  * Given an array of accumulated lengths, find the segment indices that
  * sample lengths lie on, and how far along the segment they are.
  */
-class SampleFloatSegmentsFunction : public fn::MultiFunction {
+class SampleFloatSegmentsFunction : public mf::MultiFunction {
  private:
   Array<float> accumulated_lengths_;
   GeometryNodeCurveSampleMode length_mode_;
@@ -212,21 +211,19 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
                               const GeometryNodeCurveSampleMode length_mode)
       : accumulated_lengths_(std::move(accumulated_lengths)), length_mode_(length_mode)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample Curve Index", signature};
+      builder.single_input<float>("Length");
+
+      builder.single_output<int>("Curve Index");
+      builder.single_output<float>("Length in Curve");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Curve Index"};
-    signature.single_input<float>("Length");
-
-    signature.single_output<int>("Curve Index");
-    signature.single_output<float>("Length in Curve");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -238,7 +235,7 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
   }
 };
 
-class SampleCurveFunction : public fn::MultiFunction {
+class SampleCurveFunction : public mf::MultiFunction {
  private:
   /**
    * The function holds a geometry set instead of curves or a curve component reference in order
@@ -249,7 +246,7 @@ class SampleCurveFunction : public fn::MultiFunction {
   GField src_field_;
   GeometryNodeCurveSampleMode length_mode_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::CurvesFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -261,24 +258,19 @@ class SampleCurveFunction : public fn::MultiFunction {
                       const GField &src_field)
       : geometry_set_(std::move(geometry_set)), src_field_(src_field), length_mode_(length_mode)
   {
-    signature_ = create_signature();
+    mf::SignatureBuilder builder{"Sample Curve", signature_};
+    builder.single_input<int>("Curve Index");
+    builder.single_input<float>("Length");
+    builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Tangent", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Normal", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
     this->set_signature(&signature_);
+
     this->evaluate_source();
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Curve"};
-    signature.single_input<int>("Curve Index");
-    signature.single_input<float>("Length");
-    signature.single_output<float3>("Position");
-    signature.single_output<float3>("Tangent");
-    signature.single_output<float3>("Normal");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");
@@ -305,7 +297,7 @@ class SampleCurveFunction : public fn::MultiFunction {
     }
 
     const Curves &curves_id = *geometry_set_.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     if (curves.points_num() == 0) {
       return return_default();
     }
@@ -320,6 +312,8 @@ class SampleCurveFunction : public fn::MultiFunction {
       evaluated_normals = curves.evaluated_normals();
     }
 
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
     const VArray<int> curve_indices = params.readonly_single_input<int>(0, "Curve Index");
     const VArraySpan<float> lengths = params.readonly_single_input<float>(1, "Length");
     const VArray<bool> cyclic = curves.cyclic();
@@ -361,7 +355,7 @@ class SampleCurveFunction : public fn::MultiFunction {
       sample_indices_and_factors_to_compressed(
           accumulated_lengths, lengths, length_mode_, mask, indices, factors);
 
-      const IndexRange evaluated_points = curves.evaluated_points_for_curve(curve_i);
+      const IndexRange evaluated_points = evaluated_points_by_curve[curve_i];
       if (!sampled_positions.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_positions.slice(evaluated_points),
@@ -385,10 +379,10 @@ class SampleCurveFunction : public fn::MultiFunction {
         }
       }
       if (!sampled_values.is_empty()) {
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         src_original_values.reinitialize(points.size());
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
-        src_evaluated_values.reinitialize(curves.evaluated_points_for_curve(curve_i).size());
+        src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
         attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);
@@ -434,7 +428,7 @@ class SampleCurveFunction : public fn::MultiFunction {
   void evaluate_source()
   {
     const Curves &curves_id = *geometry_set_.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     source_context_.emplace(bke::CurvesFieldContext{curves, ATTR_DOMAIN_POINT});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
     source_evaluator_->add(src_field_);
@@ -512,7 +506,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.points_num() == 0) {
     params.set_default_remaining_outputs();
     return;

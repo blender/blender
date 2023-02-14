@@ -123,7 +123,7 @@ PyObject *BPY_app_sdl_struct(void)
   BlenderAppSDLType.tp_init = NULL;
   BlenderAppSDLType.tp_new = NULL;
   BlenderAppSDLType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
+      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
 
   return ret;
 }

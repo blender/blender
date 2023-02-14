@@ -17,7 +17,6 @@ class ValueOrFieldCPPType {
  private:
   void (*construct_from_value_)(void *dst, const void *value);
   void (*construct_from_field_)(void *dst, GField field);
-  const void *(*get_value_ptr_)(const void *value_or_field);
   const GField *(*get_field_ptr_)(const void *value_or_field);
   bool (*is_field_)(const void *value_or_field);
   GField (*as_field_)(const void *value_or_field);
@@ -42,13 +41,14 @@ class ValueOrFieldCPPType {
 
   const void *get_value_ptr(const void *value_or_field) const
   {
-    return get_value_ptr_(value_or_field);
+    static_assert(offsetof(ValueOrField<int>, value) == 0);
+    return value_or_field;
   }
 
   void *get_value_ptr(void *value_or_field) const
   {
-    /* Use `const_cast` to avoid duplicating the callback for the non-const case. */
-    return const_cast<void *>(get_value_ptr_(value_or_field));
+    static_assert(offsetof(ValueOrField<int>, value) == 0);
+    return value_or_field;
   }
 
   const GField *get_field_ptr(const void *value_or_field) const

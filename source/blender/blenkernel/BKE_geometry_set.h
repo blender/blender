@@ -10,7 +10,6 @@
 extern "C" {
 #endif
 
-struct Collection;
 struct GeometrySet;
 struct Object;
 

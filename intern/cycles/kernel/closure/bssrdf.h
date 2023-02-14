@@ -293,7 +293,7 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
       /* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
        * samples from BSSRDF. */
-      bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->I);
+      bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->wi);
     }
   }
 

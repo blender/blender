@@ -218,6 +218,52 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Object Index Lookup/Creation
+ * \{ */
+
+int ED_object_in_mode_to_index(const Scene *scene,
+                               ViewLayer *view_layer,
+                               const eObjectMode mode,
+                               const Object *ob)
+{
+  BLI_assert(ob != NULL);
+  /* NOTE: the `v3d` is always NULL because the purpose of this function is to return
+   * a reusable index, using the `v3d` only increases the chance the index may become invalid. */
+  int index = -1;
+  int i = 0;
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+    if (base_iter->object == ob) {
+      index = i;
+      break;
+    }
+    i++;
+  }
+  FOREACH_BASE_IN_MODE_END;
+  return index;
+}
+
+Object *ED_object_in_mode_from_index(const Scene *scene,
+                                     ViewLayer *view_layer,
+                                     const eObjectMode mode,
+                                     int index)
+{
+  BLI_assert(index >= 0);
+  Object *ob = NULL;
+  int i = 0;
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+    if (index == i) {
+      ob = base_iter->object;
+      break;
+    }
+    i++;
+  }
+  FOREACH_BASE_IN_MODE_END;
+  return ob;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hide Operator
  * \{ */
 
@@ -562,7 +608,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
 
       if (load_data == false) {
         /* Don't keep unused pose channels created by duplicating bones
-         * which may have been deleted/undone, see: T87631. */
+         * which may have been deleted/undone, see: #87631. */
         if (obedit->pose != NULL) {
           BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
         }
@@ -655,10 +701,10 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 
   if (ED_object_editmode_load_free_ex(bmain, obedit, true, free_data) == false) {
     /* in rare cases (background mode) its possible active object
-     * is flagged for editmode, without 'obedit' being set T35489. */
+     * is flagged for editmode, without 'obedit' being set #35489. */
     if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
       obedit->mode &= ~OB_MODE_EDIT;
-      /* Also happens when mesh is shared across multiple objects. [#T69834] */
+      /* Also happens when mesh is shared across multiple objects. #69834. */
       DEG_id_tag_update(&obedit->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
     return true;
@@ -743,7 +789,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
   /* This checks actual `ob->data`, for cases when other scenes have it in edit-mode context.
    * Currently multiple objects sharing a mesh being in edit-mode at once isn't supported,
-   * see: T86767. */
+   * see: #86767. */
   if (BKE_object_is_in_editmode(ob)) {
     return true;
   }
@@ -1439,13 +1485,15 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* operator callback/wrapper */
-static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static char *object_clear_paths_description(struct bContext *UNUSED(C),
+                                            struct wmOperatorType *UNUSED(ot),
+                                            struct PointerRNA *ptr)
 {
-  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
-    RNA_boolean_set(op->ptr, "only_selected", true);
+  const bool only_selected = RNA_boolean_get(ptr, "only_selected");
+  if (only_selected) {
+    return BLI_strdup(TIP_("Clear motion paths of selected objects"));
   }
-  return object_clear_paths_exec(C, op);
+  return BLI_strdup(TIP_("Clear motion paths of all objects"));
 }
 
 void OBJECT_OT_paths_clear(wmOperatorType *ot)
@@ -1453,19 +1501,21 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Paths";
   ot->idname = "OBJECT_OT_paths_clear";
-  ot->description = "Clear path caches for all objects, hold Shift key for selected objects only";
 
   /* api callbacks */
-  ot->invoke = object_clear_paths_invoke;
   ot->exec = object_clear_paths_exec;
   ot->poll = ED_operator_object_active_editable;
+  ot->get_description = object_clear_paths_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_boolean(
-      ot->srna, "only_selected", false, "Only Selected", "Only clear paths from selected objects");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "only_selected",
+                             false,
+                             "Only Selected",
+                             "Only clear motion paths of selected objects");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
@@ -1872,13 +1922,12 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   Object *single_object = BLI_listbase_is_single(&objects) ? ((LinkData *)objects.first)->data :
                                                              NULL;
 
-  if ((single_object != NULL) && is_link &&
-      BLI_findptr(&collection->gobject, single_object, offsetof(CollectionObject, ob))) {
+  if ((single_object != NULL) && is_link && BKE_collection_has_object(collection, single_object)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "%s already in %s",
                 single_object->id.name + 2,
-                collection->id.name + 2);
+                BKE_collection_ui_name_get(collection));
     BLI_freelistN(&objects);
     return OPERATOR_CANCELLED;
   }
@@ -1895,12 +1944,32 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   }
   BLI_freelistN(&objects);
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              "%s %s to %s",
-              (single_object != NULL) ? single_object->id.name + 2 : "Objects",
-              is_link ? "linked" : "moved",
-              collection->id.name + 2);
+  if (is_link) {
+    if (single_object != NULL) {
+      BKE_reportf(op->reports,
+                  RPT_INFO,
+                  "%s linked to %s",
+                  single_object->id.name + 2,
+                  BKE_collection_ui_name_get(collection));
+    }
+    else {
+      BKE_reportf(
+          op->reports, RPT_INFO, "Objects linked to %s", BKE_collection_ui_name_get(collection));
+    }
+  }
+  else {
+    if (single_object != NULL) {
+      BKE_reportf(op->reports,
+                  RPT_INFO,
+                  "%s moved to %s",
+                  single_object->id.name + 2,
+                  BKE_collection_ui_name_get(collection));
+    }
+    else {
+      BKE_reportf(
+          op->reports, RPT_INFO, "Objects moved to %s", BKE_collection_ui_name_get(collection));
+    }
+  }
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);

@@ -222,6 +222,11 @@ VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
   return NULL;
 }
 
+ImageManager *ImageHandle::get_manager() const
+{
+  return manager;
+}
+
 bool ImageHandle::operator==(const ImageHandle &other) const
 {
   return manager == other.manager && tile_slots == other.tile_slots;

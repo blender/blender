@@ -154,7 +154,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   }
 
   if (parentwindow) {
-    /* Release any parent capture to allow immediate interaction (T90110). */
+    /* Release any parent capture to allow immediate interaction (#90110). */
     ::ReleaseCapture();
     parentwindow->lostMouseCapture();
   }

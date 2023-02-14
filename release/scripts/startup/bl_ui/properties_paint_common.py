@@ -1141,6 +1141,11 @@ def brush_texture_settings(layout, brush, sculpt):
         # texture_sample_bias
         layout.prop(brush, "texture_sample_bias", slider=True, text="Sample Bias")
 
+        if brush.sculpt_tool == 'DRAW':
+            col = layout.column()
+            col.active = tex_slot.map_mode == 'AREA_PLANE'
+            col.prop(brush, "use_color_as_displacement", text="Vector Displacement")
+
 
 def brush_mask_texture_settings(layout, brush):
     mask_tex_slot = brush.mask_texture_slot
@@ -1196,7 +1201,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         unified_name="use_unified_size",
         slider=True,
         text="Radius",
-        header=True
+        header=True,
     )
     UnifiedPaintPanel.prop_unified(
         layout,
@@ -1205,7 +1210,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         "strength",
         pressure_name="use_pressure_strength",
         unified_name="use_unified_strength",
-        header=True
+        header=True,
     )
 
 
@@ -1287,9 +1292,6 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             row = layout.row(align=True)
             row.prop(gp_settings, "eraser_thickness_factor")
 
-        row = layout.row(align=True)
-        row.prop(settings, "show_brush", text="Display Cursor")
-
     # FIXME: tools must use their own UI drawing!
     elif brush.gpencil_tool == 'FILL':
         use_property_split_prev = layout.use_property_split
@@ -1345,7 +1347,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             "builtin.line",
             "builtin.box",
             "builtin.circle",
-            "builtin.polyline"
+            "builtin.polyline",
     }:
         settings = context.tool_settings.gpencil_sculpt
         if compact:

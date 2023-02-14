@@ -71,6 +71,10 @@ class Shader {
     return name;
   };
 
+  static bool srgb_uniform_dirty_get();
+  static void set_srgb_uniform(GPUShader *shader);
+  static void set_framebuffer_srgb_target(int use_srgb_to_linear);
+
  protected:
   void print_log(
       Span<const char *> sources, char *log, const char *stage, bool error, GPULogParser *parser);

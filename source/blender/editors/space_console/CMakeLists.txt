@@ -16,6 +16,9 @@ set(INC
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
+set(INC_SYS
+)
+
 set(SRC
   console_draw.c
   console_ops.c

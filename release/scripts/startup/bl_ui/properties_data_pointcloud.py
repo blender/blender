@@ -12,13 +12,18 @@ class DataButtonsPanel:
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return hasattr(context, 'pointcloud') and context.pointcloud and (engine in cls.COMPAT_ENGINES)
+        return hasattr(context, "pointcloud") and context.pointcloud and (engine in cls.COMPAT_ENGINES)
 
 
 class DATA_PT_context_pointcloud(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -53,10 +58,10 @@ class POINTCLOUD_MT_add_attribute(Menu):
         layout = self.layout
         pointcloud = context.pointcloud
 
-        self.add_standard_attribute(layout, pointcloud, 'radius', 'FLOAT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'color', 'FLOAT_COLOR', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'id', 'INT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'velocity', 'FLOAT_VECTOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "radius", 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "color", 'FLOAT_COLOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "id", 'INT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "velocity", 'FLOAT_VECTOR', 'POINT')
 
         layout.separator()
 
@@ -84,7 +89,7 @@ class POINTCLOUD_UL_attributes(UIList):
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         split = layout.split(factor=0.75)
         split.emboss = 'NONE'
@@ -97,7 +102,12 @@ class POINTCLOUD_UL_attributes(UIList):
 
 class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
     bl_label = "Attributes"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
         pointcloud = context.pointcloud
@@ -122,7 +132,12 @@ class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
     _context_path = "object.data"
     _property_type = bpy.types.PointCloud if hasattr(bpy.types, "PointCloud") else None
 

@@ -55,7 +55,7 @@ typedef struct ULData {
   /** When the specified UV edge is selected. */
   uint is_select_edge : 1;
   /**
-   * When only this UV is selected and none of the other UV's
+   * When only this UV is selected and none of the other UVs
    * around the connected fan are attached to an edge.
    *
    * In this case there is no need to detect contiguous loops,
@@ -106,7 +106,7 @@ static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) && UL(l_iter)->is_select_edge &&
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
-        /* Check UV's are contiguous. */
+        /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
         }
@@ -132,7 +132,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) &&
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
-        /* Check UV's are contiguous. */
+        /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
         }
@@ -162,7 +162,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
 }
 
 /**
- * A version of #BM_vert_step_fan_loop that checks UV's.
+ * A version of #BM_vert_step_fan_loop that checks UVs.
  */
 static BMLoop *bm_vert_step_fan_loop_uv(BMLoop *l, BMEdge **e_step, const int cd_loop_uv_offset)
 {
@@ -186,13 +186,13 @@ static BMLoop *bm_vert_step_fan_loop_uv(BMLoop *l, BMEdge **e_step, const int cd
 
 static void bm_loop_uv_select_single_vert_validate(BMLoop *l_init, const int cd_loop_uv_offset)
 {
-  const MLoopUV *luv_init = BM_ELEM_CD_GET_VOID_P(l_init, cd_loop_uv_offset);
+  const float *luv_init = BM_ELEM_CD_GET_FLOAT_P(l_init, cd_loop_uv_offset);
   BMIter liter;
   BMLoop *l;
   bool is_single_vert = true;
   BM_ITER_ELEM (l, &liter, l_init->v, BM_LOOPS_OF_VERT) {
-    const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-    if (equals_v2v2(luv_init->uv, luv->uv)) {
+    const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+    if (equals_v2v2(luv_init, luv)) {
       if (UL(l->prev)->is_select_edge || UL(l)->is_select_edge) {
         is_single_vert = false;
         break;
@@ -202,8 +202,8 @@ static void bm_loop_uv_select_single_vert_validate(BMLoop *l_init, const int cd_
   if (is_single_vert == false) {
     BM_ITER_ELEM (l, &liter, l_init->v, BM_LOOPS_OF_VERT) {
       if (UL(l)->is_select_vert_single) {
-        const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (equals_v2v2(luv_init->uv, luv->uv)) {
+        const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        if (equals_v2v2(luv_init, luv)) {
           UL(l)->is_select_vert_single = false;
         }
       }
@@ -227,12 +227,12 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
 {
   /* Calculate 3 directions, return the shortest angle. */
   float dir_test[3][2];
-  const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-  const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-  const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+  const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+  const float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l->prev, cd_loop_uv_offset);
+  const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, cd_loop_uv_offset);
 
-  sub_v2_v2v2(dir_test[0], luv->uv, luv_prev->uv);
-  sub_v2_v2v2(dir_test[2], luv->uv, luv_next->uv);
+  sub_v2_v2v2(dir_test[0], luv, luv_prev);
+  sub_v2_v2v2(dir_test[2], luv, luv_next);
   dir_test[0][1] /= aspect_y;
   dir_test[2][1] /= aspect_y;
 
@@ -302,8 +302,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
                                             const int cd_loop_uv_offset)
 {
   UVRipSingle *rip = MEM_callocN(sizeof(*rip), __func__);
-  const float *co_center =
-      (((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_init_orig, cd_loop_uv_offset))->uv);
+  const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
   rip->loops = BLI_gset_ptr_new(__func__);
 
   /* Track the closest loop, start walking from this so in the event we have multiple
@@ -328,8 +327,8 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
     BMLoop *l;
     BM_ITER_ELEM (l, &liter, l_init_orig->v, BM_LOOPS_OF_VERT) {
       if (BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-        const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (equals_v2v2(co_center, luv->uv)) {
+        const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        if (equals_v2v2(co_center, luv)) {
           uv_fan_count_all += 1;
           /* Clear at the same time. */
           UL(l)->is_select_vert_single = true;
@@ -462,19 +461,19 @@ static float uv_rip_pairs_calc_uv_angle(BMLoop *l_init,
                                         const int cd_loop_uv_offset)
 {
   BMIter liter;
-  const MLoopUV *luv_init = BM_ELEM_CD_GET_VOID_P(l_init, cd_loop_uv_offset);
+  const float *luv_init = BM_ELEM_CD_GET_FLOAT_P(l_init, cd_loop_uv_offset);
   float angle_of_side = 0.0f;
   BMLoop *l;
   BM_ITER_ELEM (l, &liter, l_init->v, BM_LOOPS_OF_VERT) {
     if (UL(l)->in_rip_pairs) {
       if (UL(l)->side == side) {
-        const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (equals_v2v2(luv_init->uv, luv->uv)) {
-          const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-          const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+        const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        if (equals_v2v2(luv_init, luv)) {
+          const float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l->prev, cd_loop_uv_offset);
+          const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, cd_loop_uv_offset);
           float dir_prev[2], dir_next[2];
-          sub_v2_v2v2(dir_prev, luv_prev->uv, luv->uv);
-          sub_v2_v2v2(dir_next, luv_next->uv, luv->uv);
+          sub_v2_v2v2(dir_prev, luv_prev, luv);
+          sub_v2_v2v2(dir_next, luv_next, luv);
           dir_prev[1] /= aspect_y;
           dir_next[1] /= aspect_y;
           const float luv_angle = angle_v2v2(dir_prev, dir_next);
@@ -490,15 +489,15 @@ static float uv_rip_pairs_calc_uv_angle(BMLoop *l_init,
 
 static int uv_rip_pairs_loop_count_on_side(BMLoop *l_init, uint side, const int cd_loop_uv_offset)
 {
-  const MLoopUV *luv_init = BM_ELEM_CD_GET_VOID_P(l_init, cd_loop_uv_offset);
+  const float *luv_init = BM_ELEM_CD_GET_FLOAT_P(l_init, cd_loop_uv_offset);
   int count = 0;
   BMIter liter;
   BMLoop *l;
   BM_ITER_ELEM (l, &liter, l_init->v, BM_LOOPS_OF_VERT) {
     if (UL(l)->in_rip_pairs) {
       if (UL(l)->side == side) {
-        const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (equals_v2v2(luv_init->uv, luv->uv)) {
+        const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        if (equals_v2v2(luv_init, luv)) {
           count += 1;
         }
       }
@@ -694,18 +693,18 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
   GSET_ITER (gs_iter, rip->loops) {
     BMLoop *l = BLI_gsetIterator_getKey(&gs_iter);
     int side = UL(l)->side;
-    const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-    add_v2_v2(r_center, luv->uv);
+    const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+    add_v2_v2(r_center, luv);
 
     float dir[2];
     if (!UL(l)->is_select_edge) {
-      const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
-      sub_v2_v2v2(dir, luv_next->uv, luv->uv);
+      const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, cd_loop_uv_offset);
+      sub_v2_v2v2(dir, luv_next, luv);
       add_v2_v2(r_dir_side[side], dir);
     }
     if (!UL(l->prev)->is_select_edge) {
-      const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-      sub_v2_v2v2(dir, luv_prev->uv, luv->uv);
+      const float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l->prev, cd_loop_uv_offset);
+      sub_v2_v2v2(dir, luv_prev, luv);
       add_v2_v2(r_dir_side[side], dir);
     }
     side_total[side] += 1;
@@ -735,7 +734,10 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
   Mesh *me = (Mesh *)obedit->data;
   BMEditMesh *em = me->edit_mesh;
   BMesh *bm = em->bm;
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
+  BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);
+  BM_uv_map_ensure_edge_select_attr(bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
 
   BMFace *efa;
   BMIter iter, liter;
@@ -759,13 +761,11 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       bool is_all = true;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        if (luv->flag & MLOOPUV_VERTSEL) {
-          const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-          if (luv->flag & MLOOPUV_EDGESEL) {
+        if (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) {
+          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
             UL(l)->is_select_edge = true;
           }
-          else if ((luv_prev->flag & MLOOPUV_EDGESEL) == 0) {
+          else if (!BM_ELEM_CD_GET_BOOL(l->prev, offsets.select_edge)) {
             /* #bm_loop_uv_select_single_vert_validate validates below. */
             UL(l)->is_select_vert_single = true;
             is_all = false;
@@ -793,7 +793,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (UL(l)->is_select_vert_single) {
-          bm_loop_uv_select_single_vert_validate(l, cd_loop_uv_offset);
+          bm_loop_uv_select_single_vert_validate(l, offsets.uv);
         }
       }
     }
@@ -804,18 +804,17 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
    * to detach the selection.
    *
    * We could also extract an edge loop from the boundary
-   * however in practice it's not that useful, see T78751. */
+   * however in practice it's not that useful, see #78751. */
   if (is_select_all_any) {
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (!UL(l)->is_select_all) {
-          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          if (luv->flag & MLOOPUV_VERTSEL) {
-            luv->flag &= ~MLOOPUV_VERTSEL;
+          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) {
+            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
             changed = true;
           }
-          if (luv->flag & MLOOPUV_EDGESEL) {
-            luv->flag &= ~MLOOPUV_EDGESEL;
+          if (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
+            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
             changed = true;
           }
         }
@@ -830,12 +829,12 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (UL(l)->is_select_edge) {
           if (!UL(l)->in_rip_pairs) {
-            UVRipPairs *rip = uv_rip_pairs_from_loop(l, aspect_y, cd_loop_uv_offset);
+            UVRipPairs *rip = uv_rip_pairs_from_loop(l, aspect_y, offsets.uv);
             float center[2];
             float dir_cursor[2];
             float dir_side[2][2];
             int side_from_cursor = -1;
-            if (uv_rip_pairs_calc_center_and_direction(rip, cd_loop_uv_offset, center, dir_side)) {
+            if (uv_rip_pairs_calc_center_and_direction(rip, offsets.uv, center, dir_side)) {
               for (int i = 0; i < 2; i++) {
                 sub_v2_v2v2(dir_cursor, center, co);
                 normalize_v2(dir_cursor);
@@ -848,7 +847,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
               BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
-                uvedit_uv_select_disable(scene, em->bm, l_iter, cd_loop_uv_offset);
+                uvedit_uv_select_disable(scene, bm, l_iter, offsets);
                 changed = true;
               }
               /* Ensure we don't operate on these again. */
@@ -858,7 +857,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
           }
         }
         else if (UL(l)->is_select_vert_single) {
-          UVRipSingle *rip = uv_rip_single_from_loop(l, co, aspect_y, cd_loop_uv_offset);
+          UVRipSingle *rip = uv_rip_single_from_loop(l, co, aspect_y, offsets.uv);
           /* We only ever use one side. */
           const int side_from_cursor = 0;
           GSetIterator gs_iter;
@@ -866,7 +865,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
             BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
-              uvedit_uv_select_disable(scene, em->bm, l_iter, cd_loop_uv_offset);
+              uvedit_uv_select_disable(scene, bm, l_iter, offsets);
               changed = true;
             }
             /* Ensure we don't operate on these again. */

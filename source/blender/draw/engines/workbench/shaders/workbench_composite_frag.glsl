@@ -16,18 +16,18 @@ void main()
   float roughness, metallic;
   workbench_float_pair_decode(mat_data.a, roughness, metallic);
 
-#ifdef V3D_LIGHTING_MATCAP
+#ifdef WORKBENCH_LIGHTING_MATCAP
   /* When using matcaps, mat_data.a is the back-face sign. */
   N = (mat_data.a > 0.0) ? N : -N;
 
   fragColor.rgb = get_matcap_lighting(matcap_diffuse_tx, matcap_specular_tx, base_color, N, I);
 #endif
 
-#ifdef V3D_LIGHTING_STUDIO
+#ifdef WORKBENCH_LIGHTING_STUDIO
   fragColor.rgb = get_world_lighting(base_color, roughness, metallic, N, I);
 #endif
 
-#ifdef V3D_LIGHTING_FLAT
+#ifdef WORKBENCH_LIGHTING_FLAT
   fragColor.rgb = base_color;
 #endif
 

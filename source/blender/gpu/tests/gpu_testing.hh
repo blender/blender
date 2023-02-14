@@ -63,8 +63,25 @@ class GPUMetalTest : public GPUTest {
 #  define GPU_METAL_TEST(test_name)
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+class GPUVulkanTest : public GPUTest {
+ public:
+  GPUVulkanTest() : GPUTest(GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN)
+  {
+  }
+};
+#  define GPU_VULKAN_TEST(test_name) \
+    TEST_F(GPUVulkanTest, test_name) \
+    { \
+      test_##test_name(); \
+    }
+#else
+#  define GPU_VULKAN_TEST(test_name)
+#endif
+
 #define GPU_TEST(test_name) \
   GPU_OPENGL_TEST(test_name) \
-  GPU_METAL_TEST(test_name)
+  GPU_METAL_TEST(test_name) \
+  GPU_VULKAN_TEST(test_name)
 
 }  // namespace blender::gpu

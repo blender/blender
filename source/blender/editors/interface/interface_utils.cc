@@ -25,8 +25,10 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -976,7 +978,7 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
    * which then can't use the previous buttons state
    * ('ui_but_update_from_old_block' fails to find a match),
    * keeping the active button in the old block holding a reference
-   * to the button-state in the new block: see T49034.
+   * to the button-state in the new block: see #49034.
    *
    * Ideally we would manage moving the 'uiButStore', keeping a correct state.
    * All things considered this is the most straightforward fix - Campbell.
@@ -1091,6 +1093,110 @@ void UI_butstore_update(uiBlock *block)
       }
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Key Event from UI
+ * \{ */
+
+/**
+ * Follow the logic from #wm_keymap_item_find_in_keymap.
+ */
+static bool ui_key_event_property_match(const char *opname,
+                                        IDProperty *properties,
+                                        const bool is_strict,
+                                        wmOperatorType *ui_optype,
+                                        PointerRNA *ui_opptr)
+{
+  if (!STREQ(ui_optype->idname, opname)) {
+    return false;
+  }
+
+  bool match = false;
+  if (properties) {
+    if (ui_opptr && IDP_EqualsProperties_ex(
+                        properties, static_cast<IDProperty *>(ui_opptr->data), is_strict)) {
+      match = true;
+    }
+  }
+  else {
+    match = true;
+  }
+  return match;
+}
+
+const char *UI_key_event_operator_string(const bContext *C,
+                                         const char *opname,
+                                         IDProperty *properties,
+                                         const bool is_strict,
+                                         char *result,
+                                         const int result_len)
+{
+  /* NOTE: currently only actions on UI Lists are supported (for the asset manager).
+   * Other kinds of events can be supported as needed. */
+
+  ARegion *region = CTX_wm_region(C);
+  if (region == nullptr) {
+    return nullptr;
+  }
+
+  /* Early exit regions which don't have UI-Lists. */
+  if ((region->type->keymapflag & ED_KEYMAP_UI) == 0) {
+    return nullptr;
+  }
+
+  uiBut *but = UI_region_active_but_get(region);
+  if (but == nullptr) {
+    return nullptr;
+  }
+
+  if (but->type != UI_BTYPE_PREVIEW_TILE) {
+    return nullptr;
+  }
+
+  short event_val = KM_NOTHING;
+  short event_type = KM_NOTHING;
+
+  uiBut *listbox = nullptr;
+  LISTBASE_FOREACH_BACKWARD (uiBut *, but_iter, &but->block->buttons) {
+    if ((but_iter->type == UI_BTYPE_LISTBOX) && ui_but_contains_rect(but_iter, &but->rect)) {
+      listbox = but_iter;
+      break;
+    }
+  }
+
+  if (listbox && listbox->custom_data) {
+    uiList *list = static_cast<uiList *>(listbox->custom_data);
+    uiListDyn *dyn_data = list->dyn_data;
+    if ((dyn_data->custom_activate_optype != nullptr) &&
+        ui_key_event_property_match(opname,
+                                    properties,
+                                    is_strict,
+                                    dyn_data->custom_activate_optype,
+                                    dyn_data->custom_activate_opptr)) {
+      event_val = KM_CLICK;
+      event_type = LEFTMOUSE;
+    }
+    else if ((dyn_data->custom_activate_optype != nullptr) &&
+             ui_key_event_property_match(opname,
+                                         properties,
+                                         is_strict,
+                                         dyn_data->custom_drag_optype,
+                                         dyn_data->custom_drag_opptr)) {
+      event_val = KM_CLICK_DRAG;
+      event_type = LEFTMOUSE;
+    }
+  }
+
+  if ((event_val != KM_NOTHING) && (event_type != KM_NOTHING)) {
+    WM_keymap_item_raw_to_string(
+        false, false, false, false, 0, event_val, event_type, false, result, result_len);
+    return result;
+  }
+
+  return nullptr;
 }
 
 /** \} */

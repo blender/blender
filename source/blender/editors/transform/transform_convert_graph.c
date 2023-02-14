@@ -1035,8 +1035,8 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Graph = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransGraphEditData,
-    /* recalcData */ recalcData_graphedit,
-    /* special_aftertrans_update */ special_aftertrans_update__graph,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransGraphEditData,
+    /*recalcData*/ recalcData_graphedit,
+    /*special_aftertrans_update*/ special_aftertrans_update__graph,
 };

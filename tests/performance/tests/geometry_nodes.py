@@ -11,18 +11,33 @@ def _run(args):
     # Evaluate objects once first, to avoid any possible lazy evaluation later.
     bpy.context.view_layer.update()
 
-    # Tag all objects with geometry nodes modifiers to be recalculated.
-    for ob in bpy.context.view_layer.objects:
-        for modifier in ob.modifiers:
-            if modifier.type == 'NODES':
-                ob.update_tag()
-                break
+    test_time_start = time.time()
+    measured_times = []
 
-    start_time = time.time()
-    bpy.context.view_layer.update()
-    elapsed_time = time.time() - start_time
+    min_measurements = 5
+    max_measurements = 100
+    timeout = 5
 
-    result = {'time': elapsed_time}
+    while True:
+        # Tag all objects with geometry nodes modifiers to be recalculated.
+        for ob in bpy.context.view_layer.objects:
+            for modifier in ob.modifiers:
+                if modifier.type == 'NODES':
+                    ob.update_tag()
+                    break
+
+        start_time = time.time()
+        bpy.context.view_layer.update()
+        elapsed_time = time.time() - start_time
+        measured_times.append(elapsed_time)
+
+        if len(measured_times) >= min_measurements and test_time_start + timeout < time.time():
+            break
+        if len(measured_times) >= max_measurements:
+            break
+
+    average_time = sum(measured_times) / len(measured_times)
+    result = {'time': average_time}
     return result
 
 

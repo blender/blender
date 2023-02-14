@@ -8,7 +8,7 @@
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
 
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Bricks 1"), 0.596f, 0.282f, 0.0f, 1.0f},
@@ -25,7 +25,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom3 = 0.5; /* offset */
   node->custom4 = 1.0; /* squash */
@@ -64,14 +64,14 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
   tex_input_rgba(bricks2, in[1], p, thread);
   tex_input_rgba(mortar, in[2], p, thread);
 
-  rownum = (int)floor(y / row_height);
+  rownum = int(floor(y / row_height));
 
   if (node->custom1 && node->custom2) {
-    brick_width *= ((int)(rownum) % node->custom2) ? 1.0f : node->custom4;        /* squash */
-    offset = ((int)(rownum) % node->custom1) ? 0 : (brick_width * node->custom3); /* offset */
+    brick_width *= (int(rownum) % node->custom2) ? 1.0f : node->custom4;        /* squash */
+    offset = (int(rownum) % node->custom1) ? 0 : (brick_width * node->custom3); /* offset */
   }
 
-  bricknum = (int)floor((x + offset) / brick_width);
+  bricknum = int(floor((x + offset) / brick_width));
 
   ins_x = (x + offset) - brick_width * bricknum;
   ins_y = y - row_height * rownum;
@@ -90,7 +90,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -99,7 +99,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_bricks(void)
+void register_node_type_tex_bricks()
 {
   static bNodeType ntype;
 

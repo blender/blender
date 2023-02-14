@@ -43,7 +43,7 @@ ccl_device_forceinline float2 mf_sampleP22_11(const float cosI,
     return make_float2(r * cosf(phi), r * sinf(phi));
   }
 
-  const float sinI = safe_sqrtf(1.0f - cosI * cosI);
+  const float sinI = sin_from_cos(cosI);
   const float tanI = sinI / cosI;
   const float projA = 0.5f * (cosI + 1.0f);
   if (projA < 0.0001f)
@@ -401,7 +401,7 @@ ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(ccl_private MicrofacetBsd
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
@@ -416,14 +416,16 @@ ccl_device int bsdf_microfacet_multi_ggx_refraction_setup(ccl_private Microfacet
 }
 
 ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
+                                                   const float3 Ng,
+                                                   const float3 wi,
+                                                   const float3 wo,
                                                    ccl_private float *pdf,
                                                    ccl_private uint *lcg_state)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const float cosNgO = dot(Ng, wo);
 
-  if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+  if ((cosNgO < 0.0f) || bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
@@ -432,7 +434,7 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosu
   Z = bsdf->N;
 
   /* Ensure that the both directions are on the outside w.r.t. the shading normal. */
-  if (dot(Z, I) <= 0.0f || dot(Z, omega_in) <= 0.0f) {
+  if (dot(Z, wi) <= 0.0f || dot(Z, wo) <= 0.0f) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
@@ -445,21 +447,21 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosu
   else
     make_orthonormals(Z, &X, &Y);
 
-  float3 localI = make_float3(dot(I, X), dot(I, Y), dot(I, Z));
-  float3 localO = make_float3(dot(omega_in, X), dot(omega_in, Y), dot(omega_in, Z));
+  float3 local_I = make_float3(dot(wi, X), dot(wi, Y), dot(wi, Z));
+  float3 local_O = make_float3(dot(wo, X), dot(wo, Y), dot(wo, Z));
 
   if (is_aniso)
-    *pdf = mf_ggx_aniso_pdf(localI, localO, make_float2(bsdf->alpha_x, bsdf->alpha_y));
+    *pdf = mf_ggx_aniso_pdf(local_I, local_O, make_float2(bsdf->alpha_x, bsdf->alpha_y));
   else
-    *pdf = mf_ggx_pdf(localI, localO, bsdf->alpha_x);
+    *pdf = mf_ggx_pdf(local_I, local_O, bsdf->alpha_x);
 
   if (*pdf <= 0.f) {
     *pdf = 0.f;
     return make_float3(0.f, 0.f, 0.f);
   }
 
-  return mf_eval_glossy(localI,
-                        localO,
+  return mf_eval_glossy(local_I,
+                        local_O,
                         true,
                         bsdf->extra->color,
                         bsdf->alpha_x,
@@ -473,11 +475,11 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosu
 ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
                                                 ccl_private const ShaderClosure *sc,
                                                 float3 Ng,
-                                                float3 I,
+                                                float3 wi,
                                                 float randu,
                                                 float randv,
                                                 ccl_private Spectrum *eval,
-                                                ccl_private float3 *omega_in,
+                                                ccl_private float3 *wo,
                                                 ccl_private float *pdf,
                                                 ccl_private uint *lcg_state,
                                                 ccl_private float2 *sampled_roughness,
@@ -489,7 +491,7 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
   Z = bsdf->N;
 
   /* Ensure that the view direction is on the outside w.r.t. the shading normal. */
-  if (dot(Z, I) <= 0.0f) {
+  if (dot(Z, wi) <= 0.0f) {
     *pdf = 0.0f;
     return LABEL_NONE;
   }
@@ -497,8 +499,8 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
   /* Special case: Extremely low roughness.
    * Don't bother with microfacets, just do specular reflection. */
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
-    *omega_in = 2 * dot(Z, I) * Z - I;
-    if (dot(Ng, *omega_in) <= 0.0f) {
+    *wo = 2 * dot(Z, wi) * Z - wi;
+    if (dot(Ng, *wo) <= 0.0f) {
       *pdf = 0.0f;
       return LABEL_NONE;
     }
@@ -518,11 +520,11 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
   else
     make_orthonormals(Z, &X, &Y);
 
-  float3 localI = make_float3(dot(I, X), dot(I, Y), dot(I, Z));
-  float3 localO;
+  float3 local_I = make_float3(dot(wi, X), dot(wi, Y), dot(wi, Z));
+  float3 local_O;
 
-  *eval = mf_sample_glossy(localI,
-                           &localO,
+  *eval = mf_sample_glossy(local_I,
+                           &local_O,
                            bsdf->extra->color,
                            bsdf->alpha_x,
                            bsdf->alpha_y,
@@ -530,18 +532,18 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
                            bsdf->ior,
                            use_fresnel,
                            bsdf->extra->cspec0);
-  *omega_in = X * localO.x + Y * localO.y + Z * localO.z;
+  *wo = X * local_O.x + Y * local_O.y + Z * local_O.z;
 
   /* Ensure that the light direction is on the outside w.r.t. the geometry normal. */
-  if (dot(Ng, *omega_in) <= 0.0f) {
+  if (dot(Ng, *wo) <= 0.0f) {
     *pdf = 0.0f;
     return LABEL_NONE;
   }
 
   if (is_aniso)
-    *pdf = mf_ggx_aniso_pdf(localI, localO, make_float2(bsdf->alpha_x, bsdf->alpha_y));
+    *pdf = mf_ggx_aniso_pdf(local_I, local_O, make_float2(bsdf->alpha_x, bsdf->alpha_y));
   else
-    *pdf = mf_ggx_pdf(localI, localO, bsdf->alpha_x);
+    *pdf = mf_ggx_pdf(local_I, local_O, bsdf->alpha_x);
   *pdf = fmaxf(0.f, *pdf);
   *eval *= *pdf;
 
@@ -573,14 +575,14 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private Microfa
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
 
 ccl_device Spectrum bsdf_microfacet_multi_ggx_glass_eval(ccl_private const ShaderClosure *sc,
-                                                         const float3 I,
-                                                         const float3 omega_in,
+                                                         const float3 wi,
+                                                         const float3 wo,
                                                          ccl_private float *pdf,
                                                          ccl_private uint *lcg_state)
 {
@@ -595,17 +597,17 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_glass_eval(ccl_private const Shade
   Z = bsdf->N;
   make_orthonormals(Z, &X, &Y);
 
-  float3 localI = make_float3(dot(I, X), dot(I, Y), dot(I, Z));
-  float3 localO = make_float3(dot(omega_in, X), dot(omega_in, Y), dot(omega_in, Z));
+  float3 local_I = make_float3(dot(wi, X), dot(wi, Y), dot(wi, Z));
+  float3 local_O = make_float3(dot(wo, X), dot(wo, Y), dot(wo, Z));
 
-  const bool is_transmission = localO.z < 0.0f;
+  const bool is_transmission = local_O.z < 0.0f;
   const bool use_fresnel = !is_transmission &&
                            (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID);
 
-  *pdf = mf_glass_pdf(localI, localO, bsdf->alpha_x, bsdf->ior);
+  *pdf = mf_glass_pdf(local_I, local_O, bsdf->alpha_x, bsdf->ior);
   kernel_assert(*pdf >= 0.f);
-  return mf_eval_glass(localI,
-                       localO,
+  return mf_eval_glass(local_I,
+                       local_O,
                        !is_transmission,
                        bsdf->extra->color,
                        bsdf->alpha_x,
@@ -619,11 +621,11 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_glass_eval(ccl_private const Shade
 ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
                                                       ccl_private const ShaderClosure *sc,
                                                       float3 Ng,
-                                                      float3 I,
+                                                      float3 wi,
                                                       float randu,
                                                       float randv,
                                                       ccl_private Spectrum *eval,
-                                                      ccl_private float3 *omega_in,
+                                                      ccl_private float3 *wo,
                                                       ccl_private float *pdf,
                                                       ccl_private uint *lcg_state,
                                                       ccl_private float2 *sampled_roughness,
@@ -640,16 +642,16 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
     float3 R, T;
     bool inside;
-    float fresnel = fresnel_dielectric(bsdf->ior, Z, I, &R, &T, &inside);
+    float fresnel = fresnel_dielectric(bsdf->ior, Z, wi, &R, &T, &inside);
 
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
     if (randu < fresnel) {
-      *omega_in = R;
+      *wo = R;
       return LABEL_REFLECT | LABEL_SINGULAR;
     }
     else {
-      *omega_in = T;
+      *wo = T;
       return LABEL_TRANSMIT | LABEL_SINGULAR;
     }
   }
@@ -658,11 +660,11 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
 
   make_orthonormals(Z, &X, &Y);
 
-  float3 localI = make_float3(dot(I, X), dot(I, Y), dot(I, Z));
-  float3 localO;
+  float3 local_I = make_float3(dot(wi, X), dot(wi, Y), dot(wi, Z));
+  float3 local_O;
 
-  *eval = mf_sample_glass(localI,
-                          &localO,
+  *eval = mf_sample_glass(local_I,
+                          &local_O,
                           bsdf->extra->color,
                           bsdf->alpha_x,
                           bsdf->alpha_y,
@@ -670,12 +672,12 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
                           bsdf->ior,
                           use_fresnel,
                           bsdf->extra->cspec0);
-  *pdf = mf_glass_pdf(localI, localO, bsdf->alpha_x, bsdf->ior);
+  *pdf = mf_glass_pdf(local_I, local_O, bsdf->alpha_x, bsdf->ior);
   kernel_assert(*pdf >= 0.f);
   *eval *= *pdf;
 
-  *omega_in = X * localO.x + Y * localO.y + Z * localO.z;
-  if (localO.z * localI.z > 0.0f) {
+  *wo = X * local_O.x + Y * local_O.y + Z * local_O.z;
+  if (local_O.z * local_I.z > 0.0f) {
     return LABEL_REFLECT | LABEL_GLOSSY;
   }
   else {

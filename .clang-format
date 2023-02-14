@@ -61,17 +61,17 @@ ContinuationIndentWidth: 4
 # This tries to match Blender's style as much as possible. One
 BreakBeforeBraces: Custom
 BraceWrapping: {
-    AfterClass: 'false'
-    AfterControlStatement: 'false'
-    AfterEnum : 'false'
-    AfterFunction : 'true'
-    AfterNamespace : 'false'
-    AfterStruct : 'false'
-    AfterUnion : 'false'
-    BeforeCatch : 'true'
-    BeforeElse : 'true'
-    IndentBraces : 'false'
-    AfterObjCDeclaration: 'true'
+    AfterClass: 'false',
+    AfterControlStatement: 'false',
+    AfterEnum : 'false',
+    AfterFunction : 'true',
+    AfterNamespace : 'false',
+    AfterStruct : 'false',
+    AfterUnion : 'false',
+    BeforeCatch : 'true',
+    BeforeElse : 'true',
+    IndentBraces : 'false',
+    AfterObjCDeclaration: 'true',
 }
 
 # For switch statements, indent the cases.
@@ -236,6 +236,8 @@ ForEachMacros:
   - LOOP_UNSELECTED_POINTS
   - LOOP_VISIBLE_KEYS
   - LOOP_VISIBLE_POINTS
+  - LIGHT_FOREACH_BEGIN_DIRECTIONAL
+  - LIGHT_FOREACH_BEGIN_LOCAL
   - LISTBASE_CIRCULAR_BACKWARD_BEGIN
   - LISTBASE_CIRCULAR_FORWARD_BEGIN
   - LISTBASE_FOREACH

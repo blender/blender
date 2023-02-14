@@ -23,8 +23,8 @@
 
 #include "node_texture_util.hh"
 
-bool tex_node_poll_default(bNodeType *UNUSED(ntype),
-                           bNodeTree *ntree,
+bool tex_node_poll_default(const bNodeType * /*ntype*/,
+                           const bNodeTree *ntree,
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "TextureNodeTree")) {

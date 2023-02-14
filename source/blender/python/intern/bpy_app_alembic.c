@@ -84,7 +84,7 @@ PyObject *BPY_app_alembic_struct(void)
   BlenderAppABCType.tp_init = NULL;
   BlenderAppABCType.tp_new = NULL;
   BlenderAppABCType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
+      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
 
   return ret;
 }

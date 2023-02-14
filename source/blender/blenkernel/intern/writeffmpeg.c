@@ -469,18 +469,19 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
 static const AVCodec *get_av1_encoder(
     FFMpegContext *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
 {
-  /* There are three possible encoders for AV1: libaom-av1, librav1e, and libsvtav1. librav1e tends
-   * to give the best compression quality while libsvtav1 tends to be the fastest encoder. One of
-   * each will be picked based on the preset setting, and if a particular encoder is not available,
-   * then use the default returned by FFMpeg. */
+  /* There are three possible encoders for AV1: `libaom-av1`, librav1e, and `libsvtav1`. librav1e
+   * tends to give the best compression quality while `libsvtav1` tends to be the fastest encoder.
+   * One of each will be picked based on the preset setting, and if a particular encoder is not
+   * available, then use the default returned by FFMpeg. */
   const AVCodec *codec = NULL;
   switch (context->ffmpeg_preset) {
     case FFM_PRESET_BEST:
-      /* Default to libaom-av1 for BEST preset due to it performing better than rav1e in terms of
-       * video quality (VMAF scores). Fallback to rav1e if libaom-av1 isn't available. */
-      codec = avcodec_find_encoder_by_name("libaom-av1");
+      /* `libaom-av1` may produce better VMAF-scoring videos in several cases, but there are cases
+       * where using a different encoder is desirable, such as in #103849. */
+      codec = avcodec_find_encoder_by_name("librav1e");
       if (!codec) {
-        codec = avcodec_find_encoder_by_name("librav1e");
+        /* Fallback to `libaom-av1` if librav1e is not found. */
+        codec = avcodec_find_encoder_by_name("libaom-av1");
       }
       break;
     case FFM_PRESET_REALTIME:
@@ -524,9 +525,9 @@ static const AVCodec *get_av1_encoder(
           break;
       }
       if (context->ffmpeg_crf >= 0) {
-        /* librav1e does not use -crf, but uses -qp in the range of 0-255. Calculates the roughly
-         * equivalent float, and truncates it to an integer. */
-        unsigned int qp_value = ((float)context->ffmpeg_crf) * 255.0F / 51.0F;
+        /* librav1e does not use `-crf`, but uses `-qp` in the range of 0-255.
+         * Calculates the roughly equivalent float, and truncates it to an integer. */
+        uint qp_value = ((float)context->ffmpeg_crf) * 255.0f / 51.0f;
         if (qp_value > 255) {
           qp_value = 255;
         }
@@ -539,7 +540,7 @@ static const AVCodec *get_av1_encoder(
     }
     else if (STREQ(codec->name, "libsvtav1")) {
       /* Set preset value based on ffmpeg_preset.
-       * Must check context->ffmpeg_preset again in case this encoder was selected due to the
+       * Must check `context->ffmpeg_preset` again in case this encoder was selected due to the
        * absence of another. */
       switch (context->ffmpeg_preset) {
         case FFM_PRESET_REALTIME:
@@ -554,13 +555,13 @@ static const AVCodec *get_av1_encoder(
           break;
       }
       if (context->ffmpeg_crf >= 0) {
-        /* libsvtav1 does not support crf until FFmpeg builds since 2022-02-24, use qp as fallback.
-         */
+        /* `libsvtav1` does not support `crf` until FFmpeg builds since 2022-02-24,
+         * use `qp` as fallback. */
         ffmpeg_dict_set_int(opts, "qp", context->ffmpeg_crf);
       }
     }
     else if (STREQ(codec->name, "libaom-av1")) {
-      /* Speed up libaom-av1 encoding by enabling multithreading and setting tiles. */
+      /* Speed up libaom-av1 encoding by enabling multi-threading and setting tiles. */
       ffmpeg_dict_set_int(opts, "row-mt", 1);
       const char *tiles_string = NULL;
       bool tiles_string_is_dynamic = false;
@@ -1665,7 +1666,7 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
       rd->ffcodecdata.type = FFMPEG_MPEG2;
       rd->ffcodecdata.video_bitrate = 6000;
 
-#  if 0 /* Don't set resolution, see T21351. */
+#  if 0 /* Don't set resolution, see #21351. */
       rd->xsch = 720;
       rd->ysch = isntsc ? 480 : 576;
 #  endif

@@ -301,10 +301,13 @@ static void ruler_state_set(RulerInfo *ruler_info, int state)
   }
 
   if (state == RULER_STATE_NORMAL) {
-    /* pass */
+    WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, false);
   }
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
+
+    /* Force the snap cursor to appear even though it is not highlighted. */
+    WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, true);
   }
   else {
     BLI_assert(0);
@@ -464,7 +467,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
  * in 3.0 this happened because left-click drag would both select and add a new ruler,
  * significantly increasing the likelihood of this happening.
  * Workaround this crash by checking the gizmo's custom-data has not been cleared.
- * The key-map has also been modified not to trigger this bug, see T95591.
+ * The key-map has also been modified not to trigger this bug, see #95591.
  */
 static bool gizmo_ruler_check_for_operator(const wmGizmoGroup *gzgroup)
 {

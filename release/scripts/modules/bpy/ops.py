@@ -32,7 +32,7 @@ class _BPyOpsSubModOp:
         # XXX You never quite know what you get from bpy.types,
         # with operators... Operator and OperatorProperties
         # are shadowing each other, and not in the same way for
-        # native ops and py ones! See T39158.
+        # native ops and py ones! See #39158.
         # op_class = getattr(bpy.types, idname)
         op_class = _op_get_rna_type(idname)
         descr = op_class.description

@@ -2,6 +2,8 @@
 
 #include "BLI_task.hh"
 
+#include "BLI_math_matrix.hh"
+
 #include "BKE_instances.hh"
 
 #include "node_geometry_util.hh"
@@ -11,10 +13,10 @@ namespace blender::nodes::node_geo_translate_instances_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Instances")).only_instances();
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION).supports_field();
-  b.add_input<decl::Bool>(N_("Local Space")).default_value(true).supports_field();
-  b.add_output<decl::Geometry>(N_("Instances"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION).field_on_all();
+  b.add_input<decl::Bool>(N_("Local Space")).default_value(true).field_on_all();
+  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
 }
 
 static void translate_instances(GeoNodeExecParams &params, bke::Instances &instances)
@@ -36,10 +38,10 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
     for (const int i_selection : range) {
       const int i = selection[i_selection];
       if (local_spaces[i]) {
-        transforms[i] *= float4x4::from_location(translations[i]);
+        transforms[i] *= math::from_location<float4x4>(translations[i]);
       }
       else {
-        add_v3_v3(transforms[i].values[3], translations[i]);
+        transforms[i].location() += translations[i];
       }
     }
   });

@@ -285,7 +285,7 @@ void DepthOfField::stabilize_pass_sync()
   stabilize_ps_.bind_texture("in_history_tx", &stabilize_input_, with_filter);
   stabilize_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
   stabilize_ps_.bind_ubo("dof_buf", data_);
-  stabilize_ps_.push_constant("use_history", &stabilize_valid_history_, 1);
+  stabilize_ps_.push_constant("u_use_history", &stabilize_valid_history_, 1);
   stabilize_ps_.bind_image("out_coc_img", reduced_coc_tx_.mip_view(0));
   stabilize_ps_.bind_image("out_color_img", reduced_color_tx_.mip_view(0));
   stabilize_ps_.bind_image("out_history_img", &stabilize_output_tx_);
@@ -754,7 +754,7 @@ void DepthOfField::render(View &view,
   DRW_stats_group_end();
 
   /* Swap buffers so that next effect has the right input. */
-  SWAP(GPUTexture *, *input_tx, *output_tx);
+  std::swap(*input_tx, *output_tx);
 }
 
 /** \} */

@@ -211,7 +211,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_m4_m4(ob->object_to_world, object_eval->object_to_world);
   /* Only copy negative scale flag, this is the only flag which is modified by
    * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
-   * otherwise we might lose dupli flags  (see T61787). */
+   * otherwise we might lose dupli flags  (see #61787). */
   ob->transflag &= ~OB_NEG_SCALE;
   ob->transflag |= (object_eval->transflag & OB_NEG_SCALE);
 
@@ -274,7 +274,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     copy_m3_m4(totmat, ob->object_to_world);
 
     /* If the object scale is zero on any axis, this might result in a zero matrix.
-     * In this case, the transformation would not do anything, see: T50103. */
+     * In this case, the transformation would not do anything, see: #50103. */
     orthogonalize_m3_zero_axes(obmtx, 1.0f);
     orthogonalize_m3_zero_axes(totmat, 1.0f);
 
@@ -857,7 +857,7 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 {
   /* XXX: there's potential here for problems with unkeyed rotations/scale,
    *      but for now (until proper data-locality for baking operations),
-   *      this should be a better fix for T24451 and T37755
+   *      this should be a better fix for #24451 and #37755
    */
 
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
@@ -878,7 +878,7 @@ static void recalcData_objects(TransInfo *t)
   bool motionpath_update = false;
 
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -1006,8 +1006,8 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Object = {
-    /* flags */ 0,
-    /* createTransData */ createTransObject,
-    /* recalcData */ recalcData_objects,
-    /* special_aftertrans_update */ special_aftertrans_update__object,
+    /*flags*/ 0,
+    /*createTransData*/ createTransObject,
+    /*recalcData*/ recalcData_objects,
+    /*special_aftertrans_update*/ special_aftertrans_update__object,
 };

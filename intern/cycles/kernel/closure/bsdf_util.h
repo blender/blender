@@ -89,19 +89,21 @@ ccl_device float schlick_fresnel(float u)
   return m2 * m2 * m;  // pow(m, 5)
 }
 
-/* Calculate the fresnel color which is a blend between white and the F0 color (cspec0) */
-ccl_device_forceinline Spectrum
-interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, Spectrum cspec0)
+/* Calculate the fresnel color, which is a blend between white and the F0 color */
+ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
+                                                          float3 H,
+                                                          float ior,
+                                                          Spectrum F0)
 {
-  /* Calculate the fresnel interpolation factor
-   * The value from fresnel_dielectric_cos(...) has to be normalized because
-   * the cspec0 keeps the F0 color
-   */
-  float F0_norm = 1.0f / (1.0f - F0);
-  float FH = (fresnel_dielectric_cos(dot(L, H), ior) - F0) * F0_norm;
+  /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
+   * The reason why we use this remapping instead of directly doing the
+   * Schlick approximation lerp(F0, 1.0, (1.0-cosLH)^5) is that for cases
+   * with similar IORs (e.g. ice in water), the relative IOR can be close
+   * enough to 1.0 that the Schlick approximation becomes inaccurate. */
+  float real_F = fresnel_dielectric_cos(dot(L, H), ior);
+  float real_F0 = fresnel_dielectric_cos(1.0f, ior);
 
-  /* Blend between white and a specular color with respect to the fresnel */
-  return cspec0 * (1.0f - FH) + make_spectrum(FH);
+  return mix(F0, one_spectrum(), inverse_lerp(real_F0, 1.0f, real_F));
 }
 
 ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)

@@ -3,8 +3,12 @@
 
 #include "usd_reader_material.h"
 
+
 #include "usd_umm.h"
 
+#include "usd_asset_utils.h"
+
+#include "BKE_appdir.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -24,6 +28,8 @@
 
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/resolver.h>
+#include <pxr/usd/ar/packageUtils.h>
+
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
 
@@ -75,6 +81,23 @@ static const pxr::TfToken UsdPrimvarReader_float2("UsdPrimvarReader_float2",
 static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
+/* Temporary folder for saving imported textures prior to packing.
+ * CAUTION: this directory is recursively deleted after material
+ * import. */
+static const char *temp_textures_dir()
+{
+  static bool inited = false;
+
+  static char temp_dir[FILE_MAXDIR] = {'\0'};
+
+  if (!inited) {
+    BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
+    inited = true;
+  }
+
+  return temp_dir;
+}
+
 /* Add a node of the given type at the given location coordinates. */
 static bNode *add_node(
     const bContext *C, bNodeTree *ntree, const int type, const float locx, const float locy)
@@ -122,11 +145,6 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
   }
 
   return pxr::SdfLayerHandle();
-}
-
-static bool is_udim_path(const std::string &path)
-{
-  return path.find("<UDIM>") != std::string::npos;
 }
 
 /* For the given UDIM path (assumed to contain the UDIM token), returns an array
@@ -793,6 +811,26 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
+  /* Optionally copy the asset if it's inside a USDZ package. */
+
+  const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE &&
+                               pxr::ArIsPackageRelativePath(file_path);
+
+  if (import_textures) {
+    /* If we are packing the imported textures, we first write them
+     * to a temporary directory. */
+    const char *textures_dir = params_.import_textures_mode == USD_TEX_IMPORT_PACK ?
+                                   temp_textures_dir() :
+                                   params_.import_textures_dir;
+
+    const eUSDTexNameCollisionMode name_collision_mode = params_.import_textures_mode ==
+                                                                 USD_TEX_IMPORT_PACK ?
+                                                             USD_TEX_NAME_COLLISION_OVERWRITE :
+                                                             params_.tex_name_collision_mode;
+
+    file_path = import_asset(file_path.c_str(), textures_dir, name_collision_mode);
+  }
+
   /* If this is a UDIM texture, this will store the
    * UDIM tile indices. */
   blender::Vector<int> udim_tiles;
@@ -837,6 +875,13 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);
   storage->extension = get_image_extension(usd_shader, storage->extension);
+  if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
+      !BKE_image_has_packedfile(image)) {
+    BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain_, &image->id));
+    if (BLI_is_dir(temp_textures_dir())) {
+      BLI_delete(temp_textures_dir(), true, true);
+    }
+  }
 }
 
 void USDMaterialReader::convert_usd_primvar_reader_float2(
@@ -880,6 +925,47 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
 
   /* Connect to destination node input. */
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
+}
+
+void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map)
+{
+  BLI_assert_msg(r_mat_map, "...");
+
+  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+    std::string usd_name = pxr::TfMakeValidIdentifier(material->id.name + 2);
+    (*r_mat_map)[usd_name] = material;
+  }
+}
+
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const std::map<std::string, Material *> &mat_map,
+                                 const std::map<std::string, std::string> &usd_path_to_mat_name)
+{
+  if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+    /* Check if we've already created the Blender material with a modified name. */
+    std::map<std::string, std::string>::const_iterator path_to_name_iter =
+        usd_path_to_mat_name.find(usd_mat_path.GetAsString());
+
+    if (path_to_name_iter == usd_path_to_mat_name.end()) {
+      return nullptr;
+    }
+
+    std::string mat_name = path_to_name_iter->second;
+    std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+    BLI_assert_msg(mat_iter != mat_map.end(),
+                   "Previously created material cannot be found any more");
+    return mat_iter->second;
+  }
+
+  std::string mat_name = usd_mat_path.GetName();
+  std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+
+  if (mat_iter == mat_map.end()) {
+    return nullptr;
+  }
+
+  return mat_iter->second;
 }
 
 }  // namespace blender::io::usd

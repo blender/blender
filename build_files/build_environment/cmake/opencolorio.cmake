@@ -105,10 +105,10 @@ if(WIN32)
     )
   endif()
 else()
-    ExternalProject_Add_Step(external_opencolorio after_install
-      COMMAND cp ${LIBDIR}/yamlcpp/lib/libyaml-cpp.a ${LIBDIR}/opencolorio/lib/
-      COMMAND cp ${LIBDIR}/expat/lib/libexpat.a ${LIBDIR}/opencolorio/lib/
-      COMMAND cp ${LIBDIR}/pystring/lib/libpystring.a ${LIBDIR}/opencolorio/lib/
-      DEPENDEES install
-    )
+  ExternalProject_Add_Step(external_opencolorio after_install
+    COMMAND cp ${LIBDIR}/yamlcpp/lib/libyaml-cpp.a ${LIBDIR}/opencolorio/lib/
+    COMMAND cp ${LIBDIR}/expat/lib/libexpat.a ${LIBDIR}/opencolorio/lib/
+    COMMAND cp ${LIBDIR}/pystring/lib/libpystring.a ${LIBDIR}/opencolorio/lib/
+    DEPENDEES install
+  )
 endif()

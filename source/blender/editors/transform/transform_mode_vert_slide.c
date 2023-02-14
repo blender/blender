@@ -466,11 +466,40 @@ void drawVertSlide(TransInfo *t)
   }
 }
 
+static void vert_slide_apply_elem(const TransDataVertSlideVert *sv,
+                                  const float perc,
+                                  const bool use_even,
+                                  const bool use_flip,
+                                  float r_co[3])
+{
+  if (use_even == false) {
+    interp_v3_v3v3(r_co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
+  }
+  else {
+    float dir[3];
+    sub_v3_v3v3(dir, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
+    float edge_len = normalize_v3(dir);
+    if (edge_len > FLT_EPSILON) {
+      if (use_flip) {
+        madd_v3_v3v3fl(r_co, sv->co_link_orig_3d[sv->co_link_curr], dir, -perc);
+      }
+      else {
+        madd_v3_v3v3fl(r_co, sv->co_orig_3d, dir, perc);
+      }
+    }
+    else {
+      copy_v3_v3(r_co, sv->co_orig_3d);
+    }
+  }
+}
+
 static void doVertSlide(TransInfo *t, float perc)
 {
   VertSlideParams *slp = t->custom.mode.data;
 
   slp->perc = perc;
+
+  const bool use_even = slp->use_even;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     VertSlideData *sld = tc->custom.mode.data;
@@ -478,41 +507,17 @@ static void doVertSlide(TransInfo *t, float perc)
       continue;
     }
 
-    TransDataVertSlideVert *svlist = sld->sv, *sv;
-    int i;
-
-    sv = svlist;
-
-    if (slp->use_even == false) {
-      for (i = 0; i < sld->totsv; i++, sv++) {
-        interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
-      }
-    }
-    else {
+    float tperc = perc;
+    if (use_even) {
       TransDataVertSlideVert *sv_curr = &sld->sv[sld->curr_sv_index];
       const float edge_len_curr = len_v3v3(sv_curr->co_orig_3d,
                                            sv_curr->co_link_orig_3d[sv_curr->co_link_curr]);
-      const float tperc = perc * edge_len_curr;
+      tperc *= edge_len_curr;
+    }
 
-      for (i = 0; i < sld->totsv; i++, sv++) {
-        float edge_len;
-        float dir[3];
-
-        sub_v3_v3v3(dir, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
-        edge_len = normalize_v3(dir);
-
-        if (edge_len > FLT_EPSILON) {
-          if (slp->flipped) {
-            madd_v3_v3v3fl(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], dir, -tperc);
-          }
-          else {
-            madd_v3_v3v3fl(sv->v->co, sv->co_orig_3d, dir, tperc);
-          }
-        }
-        else {
-          copy_v3_v3(sv->v->co, sv->co_orig_3d);
-        }
-      }
+    TransDataVertSlideVert *sv = sld->sv;
+    for (int i = 0; i < sld->totsv; i++, sv++) {
+      vert_slide_apply_elem(sv, tperc, use_even, slp->flipped, sv->v->co);
     }
   }
 }
@@ -532,7 +537,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
   }
 
   getSnapPoint(t, dvec);
-  sub_v3_v3(dvec, t->tsnap.snapTarget);
+  sub_v3_v3(dvec, t->tsnap.snap_source);
   if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_curr_3d, co_orig_3d);
@@ -562,7 +567,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnappingAsGroup(t, &final);
+  transform_snap_mixed_apply(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }
@@ -610,8 +615,9 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
   t->mode = TFM_VERT_SLIDE;
   t->transform = applyVertSlide;
   t->handleEvent = handleEventVertSlide;
-  t->tsnap.applySnap = vert_slide_snap_apply;
-  t->tsnap.distance = transform_snap_distance_len_squared_fn;
+  t->transform_matrix = NULL;
+  t->tsnap.snap_mode_apply_fn = vert_slide_snap_apply;
+  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   {
     VertSlideParams *slp = MEM_callocN(sizeof(*slp), __func__);

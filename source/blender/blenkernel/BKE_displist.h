@@ -43,7 +43,6 @@ enum {
 
 struct Depsgraph;
 struct ListBase;
-struct Mesh;
 struct Object;
 struct Scene;
 

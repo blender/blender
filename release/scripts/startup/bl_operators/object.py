@@ -776,7 +776,7 @@ class TransformsToDeltasAnim(Operator):
             "rotation_euler": "delta_rotation_euler",
             "rotation_quaternion": "delta_rotation_quaternion",
             # "rotation_axis_angle" : "delta_rotation_axis_angle",
-            "scale": "delta_scale"
+            "scale": "delta_scale",
         }
         DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
 
@@ -790,7 +790,7 @@ class TransformsToDeltasAnim(Operator):
                 continue
 
             # first pass over F-Curves: ensure that we don't have conflicting
-            # transforms already (e.g. if this was applied already) T29110.
+            # transforms already (e.g. if this was applied already) #29110.
             existingFCurves = {}
             for fcu in adt.action.fcurves:
                 # get "delta" path - i.e. the final paths which may clash

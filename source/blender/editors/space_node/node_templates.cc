@@ -362,8 +362,8 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
 
     r_node_decl.emplace(NodeDeclaration());
     blender::nodes::build_node_declaration(*arg->node_type, *r_node_decl);
-    Span<SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs() :
-                                                                    r_node_decl->outputs();
+    Span<SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs :
+                                                                    r_node_decl->outputs;
     int index = 0;
     for (const SocketDeclarationPtr &socket_decl_ptr : socket_decls) {
       const SocketDeclaration &socket_decl = *socket_decl_ptr;
@@ -408,7 +408,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       else {
         item.socket_type = SOCK_CUSTOM;
       }
-      item.socket_name = socket_decl.name().c_str();
+      item.socket_name = socket_decl.name.c_str();
       item.node_name = arg->node_type->ui_name;
       items.append(item);
     }
@@ -897,7 +897,7 @@ static void ui_node_draw_input(
     uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
   }
 
-  node_socket_add_tooltip(ntree, node, input, *row);
+  node_socket_add_tooltip(ntree, input, *row);
 
   /* clear */
   node.flag &= ~NODE_TEST;

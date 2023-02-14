@@ -13,7 +13,8 @@ struct LightData {
 };
 
 struct WorldData {
-  float4 viewport_size;
+  float2 viewport_size;
+  float2 viewport_size_inv;
   float4 object_outline_color;
   float4 shadow_direction_vs;
   float shadow_focus;
@@ -41,8 +42,23 @@ struct WorldData {
 
   int matcap_orientation;
   bool use_specular;
+  float xray_alpha;
   int _pad1;
-  int _pad2;
+
+  float4 background_color;
 };
 
-#define viewport_size_inv viewport_size.zw
+struct ExtrudedFrustum {
+  /** \note vec3 array padded to vec4. */
+  float4 corners[16];
+  float4 planes[12];
+  int corners_count;
+  int planes_count;
+  int _padding[2];
+};
+
+struct ShadowPassData {
+  float4 far_plane;
+  packed_float3 light_direction_ws;
+  int _padding;
+};

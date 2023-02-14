@@ -334,6 +334,8 @@ void gpu_shader_create_info_init()
     overlay_edit_mesh_edge_flat = overlay_edit_mesh_edge_flat_no_geom;
     overlay_edit_mesh_edge_clipped = overlay_edit_mesh_edge_clipped_no_geom;
     overlay_edit_mesh_edge_flat_clipped = overlay_edit_mesh_edge_flat_clipped_no_geom;
+    overlay_edit_curve_handle = overlay_edit_curve_handle_no_geom;
+    overlay_edit_curve_handle_clipped = overlay_edit_curve_handle_clipped_no_geom;
 
     /* Overlay Armature Shape outline. */
     overlay_armature_shape_outline = overlay_armature_shape_outline_no_geom;

@@ -137,7 +137,7 @@ static int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop
       estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 3);
 }
 
-static int template_search_textbut_height(void)
+static int template_search_textbut_height()
 {
   return TEMPLATE_SEARCH_TEXTBUT_HEIGHT;
 }
@@ -609,7 +609,7 @@ static void template_id_liboverride_hierarchy_collection_root_find_recursive(
       *r_collection_parent_best = collection;
     }
   }
-  for (CollectionParent *iter = static_cast<CollectionParent *>(collection->parents.first);
+  for (CollectionParent *iter = static_cast<CollectionParent *>(collection->runtime.parents.first);
        iter != nullptr;
        iter = iter->next) {
     if (iter->collection->id.lib != collection->id.lib && ID_IS_LINKED(iter->collection)) {
@@ -628,7 +628,8 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
   /* Tag all local parents of the root collection, so that usages of the root collection and other
    * linked ones can be replaced by the local overrides in those parents too. */
   if (do_parents) {
-    for (CollectionParent *iter = static_cast<CollectionParent *>(root_collection->parents.first);
+    for (CollectionParent *iter =
+             static_cast<CollectionParent *>(root_collection->runtime.parents.first);
          iter != nullptr;
          iter = iter->next) {
       if (ID_IS_LINKED(iter->collection)) {
@@ -1676,12 +1677,12 @@ static void template_ID_tabs(const bContext *C,
                                                0.0f,
                                                0.0f,
                                                "");
-    UI_but_funcN_set(&tab->but, template_ID_set_property_exec_fn, MEM_dupallocN(template_id), id);
-    UI_but_drag_set_id(&tab->but, id);
-    tab->but.custom_data = (void *)id;
+    UI_but_funcN_set(tab, template_ID_set_property_exec_fn, MEM_dupallocN(template_id), id);
+    UI_but_drag_set_id(tab, id);
+    tab->custom_data = (void *)id;
     tab->menu = mt;
 
-    UI_but_drawflag_enable(&tab->but, but_align);
+    UI_but_drawflag_enable(tab, but_align);
   }
 
   BLI_freelistN(&ordered);
@@ -2290,8 +2291,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    ModifierData *md = static_cast<ModifierData *>(modifiers->first);
-    for (int i = 0; md; i++, md = md->next) {
+    for (ModifierData *md = static_cast<ModifierData *>(modifiers->first); md; md = md->next) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
       if (mti->panelRegister == nullptr) {
         continue;
@@ -2450,9 +2450,10 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    bConstraint *con = (constraints == nullptr) ? nullptr :
-                                                  static_cast<bConstraint *>(constraints->first);
-    for (int i = 0; con; i++, con = con->next) {
+    for (bConstraint *con =
+             (constraints == nullptr) ? nullptr : static_cast<bConstraint *>(constraints->first);
+         con;
+         con = con->next) {
       /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
@@ -2542,8 +2543,8 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    GpencilModifierData *md = static_cast<GpencilModifierData *>(modifiers->first);
-    for (int i = 0; md; i++, md = md->next) {
+    for (GpencilModifierData *md = static_cast<GpencilModifierData *>(modifiers->first); md;
+         md = md->next) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           GpencilModifierType(md->type));
       if (mti->panelRegister == nullptr) {
@@ -2616,8 +2617,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    ShaderFxData *fx = static_cast<ShaderFxData *>(shaderfx->first);
-    for (int i = 0; fx; i++, fx = fx->next) {
+    for (ShaderFxData *fx = static_cast<ShaderFxData *>(shaderfx->first); fx; fx = fx->next) {
       char panel_idname[MAX_NAME];
       shaderfx_panel_id(fx, panel_idname);
 
@@ -2813,7 +2813,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
       /* no undo for buttons for operator redo panels */
       UI_but_flag_disable(but, UI_BUT_UNDO);
 
-      /* only for popups, see T36109. */
+      /* only for popups, see #36109. */
 
       /* if button is operator's default property, and a text-field, enable focus for it
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
@@ -3183,7 +3183,7 @@ void uiTemplatePreview(uiLayout *layout,
   if (!ui_preview) {
     ui_preview = MEM_cnew<uiPreview>(__func__);
     BLI_strncpy(ui_preview->preview_id, preview_id, sizeof(ui_preview->preview_id));
-    ui_preview->height = (short)(UI_UNIT_Y * 7.6f);
+    ui_preview->height = short(UI_UNIT_Y * 7.6f);
     BLI_addtail(&region->ui_previews, ui_preview);
   }
 
@@ -3225,7 +3225,7 @@ void uiTemplatePreview(uiLayout *layout,
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &ui_preview->height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 50.0f,
@@ -4028,7 +4028,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &hist->height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -4090,7 +4090,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &scopes->wavefrm_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -4152,7 +4152,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &scopes->vecscope_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -5639,7 +5639,7 @@ void uiTemplateColorPicker(uiLayout *layout,
           hsv_but->gradient_type = UI_GRAD_HV;
           break;
       }
-      but = &hsv_but->but;
+      but = hsv_but;
       break;
 
     /* user default */
@@ -5785,11 +5785,11 @@ void uiTemplateColorPicker(uiLayout *layout,
         break;
     }
 
-    hsv_but->but.custom_data = cpicker;
+    hsv_but->custom_data = cpicker;
   }
 }
 
-static void ui_template_palette_menu(bContext * /* C*/, uiLayout *layout, void * /*but_p*/)
+static void ui_template_palette_menu(bContext * /*C*/, uiLayout *layout, void * /*but_p*/)
 {
   uiLayout *row;
 
@@ -6286,7 +6286,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                                                             nullptr);
 
       but_progress->progress = progress;
-      UI_but_func_tooltip_set(&but_progress->but, progress_tooltip_func, tip_arg, MEM_freeN);
+      UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
     if (!wm->is_interface_locked) {
@@ -6553,12 +6553,12 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
     /* attach callbacks to compensate for missing properties update,
      * we don't know which keymap (item) is being modified there */
     for (; but; but = but->next) {
-      /* operator buttons may store props for use (file selector, T36492) */
+      /* operator buttons may store props for use (file selector, #36492) */
       if (but->rnaprop) {
         UI_but_func_set(but, keymap_item_modified, ptr->data, nullptr);
 
         /* Otherwise the keymap will be re-generated which we're trying to edit,
-         * see: T47685 */
+         * see: #47685 */
         UI_but_flag_enable(but, UI_BUT_UPDATE_DELAY);
       }
     }
@@ -6681,7 +6681,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
                                                     UI_UNIT_Y,
                                                     0,
                                                     UI_style_get()),
-                                    0);
+                                    false);
 
   uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 

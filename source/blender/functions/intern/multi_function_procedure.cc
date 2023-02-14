@@ -5,9 +5,9 @@
 #include "BLI_dot_export.hh"
 #include "BLI_stack.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-void MFInstructionCursor::set_next(MFProcedure &procedure, MFInstruction *new_instruction) const
+void InstructionCursor::set_next(Procedure &procedure, Instruction *new_instruction) const
 {
   switch (type_) {
     case Type::None: {
@@ -18,11 +18,11 @@ void MFInstructionCursor::set_next(MFProcedure &procedure, MFInstruction *new_in
       break;
     }
     case Type::Call: {
-      static_cast<MFCallInstruction *>(instruction_)->set_next(new_instruction);
+      static_cast<CallInstruction *>(instruction_)->set_next(new_instruction);
       break;
     }
     case Type::Branch: {
-      MFBranchInstruction &branch_instruction = *static_cast<MFBranchInstruction *>(instruction_);
+      BranchInstruction &branch_instruction = *static_cast<BranchInstruction *>(instruction_);
       if (branch_output_) {
         branch_instruction.set_branch_true(new_instruction);
       }
@@ -32,17 +32,17 @@ void MFInstructionCursor::set_next(MFProcedure &procedure, MFInstruction *new_in
       break;
     }
     case Type::Destruct: {
-      static_cast<MFDestructInstruction *>(instruction_)->set_next(new_instruction);
+      static_cast<DestructInstruction *>(instruction_)->set_next(new_instruction);
       break;
     }
     case Type::Dummy: {
-      static_cast<MFDummyInstruction *>(instruction_)->set_next(new_instruction);
+      static_cast<DummyInstruction *>(instruction_)->set_next(new_instruction);
       break;
     }
   }
 }
 
-MFInstruction *MFInstructionCursor::next(MFProcedure &procedure) const
+Instruction *InstructionCursor::next(Procedure &procedure) const
 {
   switch (type_) {
     case Type::None:
@@ -50,28 +50,28 @@ MFInstruction *MFInstructionCursor::next(MFProcedure &procedure) const
     case Type::Entry:
       return procedure.entry();
     case Type::Call:
-      return static_cast<MFCallInstruction *>(instruction_)->next();
+      return static_cast<CallInstruction *>(instruction_)->next();
     case Type::Branch: {
-      MFBranchInstruction &branch_instruction = *static_cast<MFBranchInstruction *>(instruction_);
+      BranchInstruction &branch_instruction = *static_cast<BranchInstruction *>(instruction_);
       if (branch_output_) {
         return branch_instruction.branch_true();
       }
       return branch_instruction.branch_false();
     }
     case Type::Destruct:
-      return static_cast<MFDestructInstruction *>(instruction_)->next();
+      return static_cast<DestructInstruction *>(instruction_)->next();
     case Type::Dummy:
-      return static_cast<MFDummyInstruction *>(instruction_)->next();
+      return static_cast<DummyInstruction *>(instruction_)->next();
   }
   return nullptr;
 }
 
-void MFVariable::set_name(std::string name)
+void Variable::set_name(std::string name)
 {
   name_ = std::move(name);
 }
 
-void MFCallInstruction::set_next(MFInstruction *instruction)
+void CallInstruction::set_next(Instruction *instruction)
 {
   if (next_ != nullptr) {
     next_->prev_.remove_first_occurrence_and_reorder(*this);
@@ -82,7 +82,7 @@ void MFCallInstruction::set_next(MFInstruction *instruction)
   next_ = instruction;
 }
 
-void MFCallInstruction::set_param_variable(int param_index, MFVariable *variable)
+void CallInstruction::set_param_variable(int param_index, Variable *variable)
 {
   if (params_[param_index] != nullptr) {
     params_[param_index]->users_.remove_first_occurrence_and_reorder(this);
@@ -94,7 +94,7 @@ void MFCallInstruction::set_param_variable(int param_index, MFVariable *variable
   params_[param_index] = variable;
 }
 
-void MFCallInstruction::set_params(Span<MFVariable *> variables)
+void CallInstruction::set_params(Span<Variable *> variables)
 {
   BLI_assert(variables.size() == params_.size());
   for (const int i : variables.index_range()) {
@@ -102,7 +102,7 @@ void MFCallInstruction::set_params(Span<MFVariable *> variables)
   }
 }
 
-void MFBranchInstruction::set_condition(MFVariable *variable)
+void BranchInstruction::set_condition(Variable *variable)
 {
   if (condition_ != nullptr) {
     condition_->users_.remove_first_occurrence_and_reorder(this);
@@ -113,7 +113,7 @@ void MFBranchInstruction::set_condition(MFVariable *variable)
   condition_ = variable;
 }
 
-void MFBranchInstruction::set_branch_true(MFInstruction *instruction)
+void BranchInstruction::set_branch_true(Instruction *instruction)
 {
   if (branch_true_ != nullptr) {
     branch_true_->prev_.remove_first_occurrence_and_reorder({*this, true});
@@ -124,7 +124,7 @@ void MFBranchInstruction::set_branch_true(MFInstruction *instruction)
   branch_true_ = instruction;
 }
 
-void MFBranchInstruction::set_branch_false(MFInstruction *instruction)
+void BranchInstruction::set_branch_false(Instruction *instruction)
 {
   if (branch_false_ != nullptr) {
     branch_false_->prev_.remove_first_occurrence_and_reorder({*this, false});
@@ -135,7 +135,7 @@ void MFBranchInstruction::set_branch_false(MFInstruction *instruction)
   branch_false_ = instruction;
 }
 
-void MFDestructInstruction::set_variable(MFVariable *variable)
+void DestructInstruction::set_variable(Variable *variable)
 {
   if (variable_ != nullptr) {
     variable_->users_.remove_first_occurrence_and_reorder(this);
@@ -146,7 +146,7 @@ void MFDestructInstruction::set_variable(MFVariable *variable)
   variable_ = variable;
 }
 
-void MFDestructInstruction::set_next(MFInstruction *instruction)
+void DestructInstruction::set_next(Instruction *instruction)
 {
   if (next_ != nullptr) {
     next_->prev_.remove_first_occurrence_and_reorder(*this);
@@ -157,7 +157,7 @@ void MFDestructInstruction::set_next(MFInstruction *instruction)
   next_ = instruction;
 }
 
-void MFDummyInstruction::set_next(MFInstruction *instruction)
+void DummyInstruction::set_next(Instruction *instruction)
 {
   if (next_ != nullptr) {
     next_->prev_.remove_first_occurrence_and_reorder(*this);
@@ -168,9 +168,9 @@ void MFDummyInstruction::set_next(MFInstruction *instruction)
   next_ = instruction;
 }
 
-MFVariable &MFProcedure::new_variable(MFDataType data_type, std::string name)
+Variable &Procedure::new_variable(DataType data_type, std::string name)
 {
-  MFVariable &variable = *allocator_.construct<MFVariable>().release();
+  Variable &variable = *allocator_.construct<Variable>().release();
   variable.name_ = std::move(name);
   variable.data_type_ = data_type;
   variable.index_in_graph_ = variables_.size();
@@ -178,86 +178,86 @@ MFVariable &MFProcedure::new_variable(MFDataType data_type, std::string name)
   return variable;
 }
 
-MFCallInstruction &MFProcedure::new_call_instruction(const MultiFunction &fn)
+CallInstruction &Procedure::new_call_instruction(const MultiFunction &fn)
 {
-  MFCallInstruction &instruction = *allocator_.construct<MFCallInstruction>().release();
-  instruction.type_ = MFInstructionType::Call;
+  CallInstruction &instruction = *allocator_.construct<CallInstruction>().release();
+  instruction.type_ = InstructionType::Call;
   instruction.fn_ = &fn;
-  instruction.params_ = allocator_.allocate_array<MFVariable *>(fn.param_amount());
+  instruction.params_ = allocator_.allocate_array<Variable *>(fn.param_amount());
   instruction.params_.fill(nullptr);
   call_instructions_.append(&instruction);
   return instruction;
 }
 
-MFBranchInstruction &MFProcedure::new_branch_instruction()
+BranchInstruction &Procedure::new_branch_instruction()
 {
-  MFBranchInstruction &instruction = *allocator_.construct<MFBranchInstruction>().release();
-  instruction.type_ = MFInstructionType::Branch;
+  BranchInstruction &instruction = *allocator_.construct<BranchInstruction>().release();
+  instruction.type_ = InstructionType::Branch;
   branch_instructions_.append(&instruction);
   return instruction;
 }
 
-MFDestructInstruction &MFProcedure::new_destruct_instruction()
+DestructInstruction &Procedure::new_destruct_instruction()
 {
-  MFDestructInstruction &instruction = *allocator_.construct<MFDestructInstruction>().release();
-  instruction.type_ = MFInstructionType::Destruct;
+  DestructInstruction &instruction = *allocator_.construct<DestructInstruction>().release();
+  instruction.type_ = InstructionType::Destruct;
   destruct_instructions_.append(&instruction);
   return instruction;
 }
 
-MFDummyInstruction &MFProcedure::new_dummy_instruction()
+DummyInstruction &Procedure::new_dummy_instruction()
 {
-  MFDummyInstruction &instruction = *allocator_.construct<MFDummyInstruction>().release();
-  instruction.type_ = MFInstructionType::Dummy;
+  DummyInstruction &instruction = *allocator_.construct<DummyInstruction>().release();
+  instruction.type_ = InstructionType::Dummy;
   dummy_instructions_.append(&instruction);
   return instruction;
 }
 
-MFReturnInstruction &MFProcedure::new_return_instruction()
+ReturnInstruction &Procedure::new_return_instruction()
 {
-  MFReturnInstruction &instruction = *allocator_.construct<MFReturnInstruction>().release();
-  instruction.type_ = MFInstructionType::Return;
+  ReturnInstruction &instruction = *allocator_.construct<ReturnInstruction>().release();
+  instruction.type_ = InstructionType::Return;
   return_instructions_.append(&instruction);
   return instruction;
 }
 
-void MFProcedure::add_parameter(MFParamType::InterfaceType interface_type, MFVariable &variable)
+void Procedure::add_parameter(ParamType::InterfaceType interface_type, Variable &variable)
 {
   params_.append({interface_type, &variable});
 }
 
-void MFProcedure::set_entry(MFInstruction &entry)
+void Procedure::set_entry(Instruction &entry)
 {
   if (entry_ != nullptr) {
-    entry_->prev_.remove_first_occurrence_and_reorder(MFInstructionCursor::ForEntry());
+    entry_->prev_.remove_first_occurrence_and_reorder(InstructionCursor::ForEntry());
   }
   entry_ = &entry;
-  entry_->prev_.append(MFInstructionCursor::ForEntry());
+  entry_->prev_.append(InstructionCursor::ForEntry());
 }
 
-MFProcedure::~MFProcedure()
+Procedure::~Procedure()
 {
-  for (MFCallInstruction *instruction : call_instructions_) {
-    instruction->~MFCallInstruction();
+  for (CallInstruction *instruction : call_instructions_) {
+    instruction->~CallInstruction();
   }
-  for (MFBranchInstruction *instruction : branch_instructions_) {
-    instruction->~MFBranchInstruction();
+  for (BranchInstruction *instruction : branch_instructions_) {
+    instruction->~BranchInstruction();
   }
-  for (MFDestructInstruction *instruction : destruct_instructions_) {
-    instruction->~MFDestructInstruction();
+  for (DestructInstruction *instruction : destruct_instructions_) {
+    instruction->~DestructInstruction();
   }
-  for (MFDummyInstruction *instruction : dummy_instructions_) {
-    instruction->~MFDummyInstruction();
+  for (DummyInstruction *instruction : dummy_instructions_) {
+    instruction->~DummyInstruction();
   }
-  for (MFReturnInstruction *instruction : return_instructions_) {
-    instruction->~MFReturnInstruction();
+  for (ReturnInstruction *instruction : return_instructions_) {
+    instruction->~ReturnInstruction();
   }
-  for (MFVariable *variable : variables_) {
-    variable->~MFVariable();
+  for (Variable *variable : variables_) {
+    variable->~Variable();
   }
 }
 
-bool MFProcedure::validate() const
+bool Procedure::validate() const
 {
   if (entry_ == nullptr) {
     return false;
@@ -280,19 +280,19 @@ bool MFProcedure::validate() const
   return true;
 }
 
-bool MFProcedure::validate_all_instruction_pointers_set() const
+bool Procedure::validate_all_instruction_pointers_set() const
 {
-  for (const MFCallInstruction *instruction : call_instructions_) {
+  for (const CallInstruction *instruction : call_instructions_) {
     if (instruction->next_ == nullptr) {
       return false;
     }
   }
-  for (const MFDestructInstruction *instruction : destruct_instructions_) {
+  for (const DestructInstruction *instruction : destruct_instructions_) {
     if (instruction->next_ == nullptr) {
       return false;
     }
   }
-  for (const MFBranchInstruction *instruction : branch_instructions_) {
+  for (const BranchInstruction *instruction : branch_instructions_) {
     if (instruction->branch_true_ == nullptr) {
       return false;
     }
@@ -300,7 +300,7 @@ bool MFProcedure::validate_all_instruction_pointers_set() const
       return false;
     }
   }
-  for (const MFDummyInstruction *instruction : dummy_instructions_) {
+  for (const DummyInstruction *instruction : dummy_instructions_) {
     if (instruction->next_ == nullptr) {
       return false;
     }
@@ -308,28 +308,28 @@ bool MFProcedure::validate_all_instruction_pointers_set() const
   return true;
 }
 
-bool MFProcedure::validate_all_params_provided() const
+bool Procedure::validate_all_params_provided() const
 {
-  for (const MFCallInstruction *instruction : call_instructions_) {
+  for (const CallInstruction *instruction : call_instructions_) {
     const MultiFunction &fn = instruction->fn();
     for (const int param_index : fn.param_indices()) {
-      const MFParamType param_type = fn.param_type(param_index);
-      if (param_type.category() == MFParamCategory::SingleOutput) {
+      const ParamType param_type = fn.param_type(param_index);
+      if (param_type.category() == ParamCategory::SingleOutput) {
         /* Single outputs are optional. */
         continue;
       }
-      const MFVariable *variable = instruction->params_[param_index];
+      const Variable *variable = instruction->params_[param_index];
       if (variable == nullptr) {
         return false;
       }
     }
   }
-  for (const MFBranchInstruction *instruction : branch_instructions_) {
+  for (const BranchInstruction *instruction : branch_instructions_) {
     if (instruction->condition_ == nullptr) {
       return false;
     }
   }
-  for (const MFDestructInstruction *instruction : destruct_instructions_) {
+  for (const DestructInstruction *instruction : destruct_instructions_) {
     if (instruction->variable_ == nullptr) {
       return false;
     }
@@ -337,13 +337,13 @@ bool MFProcedure::validate_all_params_provided() const
   return true;
 }
 
-bool MFProcedure::validate_same_variables_in_one_call() const
+bool Procedure::validate_same_variables_in_one_call() const
 {
-  for (const MFCallInstruction *instruction : call_instructions_) {
+  for (const CallInstruction *instruction : call_instructions_) {
     const MultiFunction &fn = *instruction->fn_;
     for (const int param_index : fn.param_indices()) {
-      const MFParamType param_type = fn.param_type(param_index);
-      const MFVariable *variable = instruction->params_[param_index];
+      const ParamType param_type = fn.param_type(param_index);
+      const Variable *variable = instruction->params_[param_index];
       if (variable == nullptr) {
         continue;
       }
@@ -351,17 +351,17 @@ bool MFProcedure::validate_same_variables_in_one_call() const
         if (other_param_index == param_index) {
           continue;
         }
-        const MFVariable *other_variable = instruction->params_[other_param_index];
+        const Variable *other_variable = instruction->params_[other_param_index];
         if (other_variable != variable) {
           continue;
         }
-        if (ELEM(param_type.interface_type(), MFParamType::Mutable, MFParamType::Output)) {
+        if (ELEM(param_type.interface_type(), ParamType::Mutable, ParamType::Output)) {
           /* When a variable is used as mutable or output parameter, it can only be used once. */
           return false;
         }
-        const MFParamType other_param_type = fn.param_type(other_param_index);
+        const ParamType other_param_type = fn.param_type(other_param_index);
         /* A variable is allowed to be used as input more than once. */
-        if (other_param_type.interface_type() != MFParamType::Input) {
+        if (other_param_type.interface_type() != ParamType::Input) {
           return false;
         }
       }
@@ -370,10 +370,10 @@ bool MFProcedure::validate_same_variables_in_one_call() const
   return true;
 }
 
-bool MFProcedure::validate_parameters() const
+bool Procedure::validate_parameters() const
 {
-  Set<const MFVariable *> variables;
-  for (const MFParameter &param : params_) {
+  Set<const Variable *> variables;
+  for (const Parameter &param : params_) {
     /* One variable cannot be used as multiple parameters. */
     if (!variables.add(param.variable)) {
       return false;
@@ -382,45 +382,45 @@ bool MFProcedure::validate_parameters() const
   return true;
 }
 
-bool MFProcedure::validate_initialization() const
+bool Procedure::validate_initialization() const
 {
   /* TODO: Issue warning when it maybe wrongly initialized. */
-  for (const MFDestructInstruction *instruction : destruct_instructions_) {
-    const MFVariable &variable = *instruction->variable_;
+  for (const DestructInstruction *instruction : destruct_instructions_) {
+    const Variable &variable = *instruction->variable_;
     const InitState state = this->find_initialization_state_before_instruction(*instruction,
                                                                                variable);
     if (!state.can_be_initialized) {
       return false;
     }
   }
-  for (const MFBranchInstruction *instruction : branch_instructions_) {
-    const MFVariable &variable = *instruction->condition_;
+  for (const BranchInstruction *instruction : branch_instructions_) {
+    const Variable &variable = *instruction->condition_;
     const InitState state = this->find_initialization_state_before_instruction(*instruction,
                                                                                variable);
     if (!state.can_be_initialized) {
       return false;
     }
   }
-  for (const MFCallInstruction *instruction : call_instructions_) {
+  for (const CallInstruction *instruction : call_instructions_) {
     const MultiFunction &fn = *instruction->fn_;
     for (const int param_index : fn.param_indices()) {
-      const MFParamType param_type = fn.param_type(param_index);
+      const ParamType param_type = fn.param_type(param_index);
       /* If the parameter was an unneeded output, it could be null. */
       if (!instruction->params_[param_index]) {
         continue;
       }
-      const MFVariable &variable = *instruction->params_[param_index];
+      const Variable &variable = *instruction->params_[param_index];
       const InitState state = this->find_initialization_state_before_instruction(*instruction,
                                                                                  variable);
       switch (param_type.interface_type()) {
-        case MFParamType::Input:
-        case MFParamType::Mutable: {
+        case ParamType::Input:
+        case ParamType::Mutable: {
           if (!state.can_be_initialized) {
             return false;
           }
           break;
         }
-        case MFParamType::Output: {
+        case ParamType::Output: {
           if (!state.can_be_uninitialized) {
             return false;
           }
@@ -429,14 +429,14 @@ bool MFProcedure::validate_initialization() const
       }
     }
   }
-  Set<const MFVariable *> variables_that_should_be_initialized_on_return;
-  for (const MFParameter &param : params_) {
-    if (ELEM(param.type, MFParamType::Mutable, MFParamType::Output)) {
+  Set<const Variable *> variables_that_should_be_initialized_on_return;
+  for (const Parameter &param : params_) {
+    if (ELEM(param.type, ParamType::Mutable, ParamType::Output)) {
       variables_that_should_be_initialized_on_return.add_new(param.variable);
     }
   }
-  for (const MFReturnInstruction *instruction : return_instructions_) {
-    for (const MFVariable *variable : variables_) {
+  for (const ReturnInstruction *instruction : return_instructions_) {
+    for (const Variable *variable : variables_) {
       const InitState init_state = this->find_initialization_state_before_instruction(*instruction,
                                                                                       *variable);
       if (variables_that_should_be_initialized_on_return.contains(variable)) {
@@ -454,16 +454,16 @@ bool MFProcedure::validate_initialization() const
   return true;
 }
 
-MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction(
-    const MFInstruction &target_instruction, const MFVariable &target_variable) const
+Procedure::InitState Procedure::find_initialization_state_before_instruction(
+    const Instruction &target_instruction, const Variable &target_variable) const
 {
   InitState state;
 
   auto check_entry_instruction = [&]() {
     bool caller_initialized_variable = false;
-    for (const MFParameter &param : params_) {
+    for (const Parameter &param : params_) {
       if (param.variable == &target_variable) {
-        if (ELEM(param.type, MFParamType::Input, MFParamType::Mutable)) {
+        if (ELEM(param.type, ParamType::Input, ParamType::Mutable)) {
           caller_initialized_variable = true;
           break;
         }
@@ -481,30 +481,30 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
     check_entry_instruction();
   }
 
-  Set<const MFInstruction *> checked_instructions;
-  Stack<const MFInstruction *> instructions_to_check;
-  for (const MFInstructionCursor &cursor : target_instruction.prev_) {
+  Set<const Instruction *> checked_instructions;
+  Stack<const Instruction *> instructions_to_check;
+  for (const InstructionCursor &cursor : target_instruction.prev_) {
     if (cursor.instruction() != nullptr) {
       instructions_to_check.push(cursor.instruction());
     }
   }
 
   while (!instructions_to_check.is_empty()) {
-    const MFInstruction &instruction = *instructions_to_check.pop();
+    const Instruction &instruction = *instructions_to_check.pop();
     if (!checked_instructions.add(&instruction)) {
       /* Skip if the instruction has been checked already. */
       continue;
     }
     bool state_modified = false;
     switch (instruction.type_) {
-      case MFInstructionType::Call: {
-        const MFCallInstruction &call_instruction = static_cast<const MFCallInstruction &>(
+      case InstructionType::Call: {
+        const CallInstruction &call_instruction = static_cast<const CallInstruction &>(
             instruction);
         const MultiFunction &fn = *call_instruction.fn_;
         for (const int param_index : fn.param_indices()) {
           if (call_instruction.params_[param_index] == &target_variable) {
-            const MFParamType param_type = fn.param_type(param_index);
-            if (param_type.interface_type() == MFParamType::Output) {
+            const ParamType param_type = fn.param_type(param_index);
+            if (param_type.interface_type() == ParamType::Output) {
               state.can_be_initialized = true;
               state_modified = true;
               break;
@@ -513,18 +513,18 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
         }
         break;
       }
-      case MFInstructionType::Destruct: {
-        const MFDestructInstruction &destruct_instruction =
-            static_cast<const MFDestructInstruction &>(instruction);
+      case InstructionType::Destruct: {
+        const DestructInstruction &destruct_instruction = static_cast<const DestructInstruction &>(
+            instruction);
         if (destruct_instruction.variable_ == &target_variable) {
           state.can_be_uninitialized = true;
           state_modified = true;
         }
         break;
       }
-      case MFInstructionType::Branch:
-      case MFInstructionType::Dummy:
-      case MFInstructionType::Return: {
+      case InstructionType::Branch:
+      case InstructionType::Dummy:
+      case InstructionType::Return: {
         /* These instruction types don't change the initialization state of variables. */
         break;
       }
@@ -534,7 +534,7 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
       if (&instruction == entry_) {
         check_entry_instruction();
       }
-      for (const MFInstructionCursor &cursor : instruction.prev_) {
+      for (const InstructionCursor &cursor : instruction.prev_) {
         if (cursor.instruction() != nullptr) {
           instructions_to_check.push(cursor.instruction());
         }
@@ -545,15 +545,15 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
   return state;
 }
 
-class MFProcedureDotExport {
+class ProcedureDotExport {
  private:
-  const MFProcedure &procedure_;
+  const Procedure &procedure_;
   dot::DirectedGraph digraph_;
-  Map<const MFInstruction *, dot::Node *> dot_nodes_by_begin_;
-  Map<const MFInstruction *, dot::Node *> dot_nodes_by_end_;
+  Map<const Instruction *, dot::Node *> dot_nodes_by_begin_;
+  Map<const Instruction *, dot::Node *> dot_nodes_by_end_;
 
  public:
-  MFProcedureDotExport(const MFProcedure &procedure) : procedure_(procedure)
+  ProcedureDotExport(const Procedure &procedure) : procedure_(procedure)
   {
   }
 
@@ -566,7 +566,7 @@ class MFProcedureDotExport {
 
   void create_nodes()
   {
-    Vector<const MFInstruction *> all_instructions;
+    Vector<const Instruction *> all_instructions;
     auto add_instructions = [&](auto instructions) {
       all_instructions.extend(instructions.begin(), instructions.end());
     };
@@ -576,38 +576,38 @@ class MFProcedureDotExport {
     add_instructions(procedure_.dummy_instructions_);
     add_instructions(procedure_.return_instructions_);
 
-    Set<const MFInstruction *> handled_instructions;
+    Set<const Instruction *> handled_instructions;
 
-    for (const MFInstruction *representative : all_instructions) {
+    for (const Instruction *representative : all_instructions) {
       if (handled_instructions.contains(representative)) {
         continue;
       }
-      Vector<const MFInstruction *> block_instructions = this->get_instructions_in_block(
+      Vector<const Instruction *> block_instructions = this->get_instructions_in_block(
           *representative);
       std::stringstream ss;
       ss << "<";
 
-      for (const MFInstruction *current : block_instructions) {
+      for (const Instruction *current : block_instructions) {
         handled_instructions.add_new(current);
         switch (current->type()) {
-          case MFInstructionType::Call: {
-            this->instruction_to_string(*static_cast<const MFCallInstruction *>(current), ss);
+          case InstructionType::Call: {
+            this->instruction_to_string(*static_cast<const CallInstruction *>(current), ss);
             break;
           }
-          case MFInstructionType::Destruct: {
-            this->instruction_to_string(*static_cast<const MFDestructInstruction *>(current), ss);
+          case InstructionType::Destruct: {
+            this->instruction_to_string(*static_cast<const DestructInstruction *>(current), ss);
             break;
           }
-          case MFInstructionType::Dummy: {
-            this->instruction_to_string(*static_cast<const MFDummyInstruction *>(current), ss);
+          case InstructionType::Dummy: {
+            this->instruction_to_string(*static_cast<const DummyInstruction *>(current), ss);
             break;
           }
-          case MFInstructionType::Return: {
-            this->instruction_to_string(*static_cast<const MFReturnInstruction *>(current), ss);
+          case InstructionType::Return: {
+            this->instruction_to_string(*static_cast<const ReturnInstruction *>(current), ss);
             break;
           }
-          case MFInstructionType::Branch: {
-            this->instruction_to_string(*static_cast<const MFBranchInstruction *>(current), ss);
+          case InstructionType::Branch: {
+            this->instruction_to_string(*static_cast<const BranchInstruction *>(current), ss);
             break;
           }
         }
@@ -625,7 +625,7 @@ class MFProcedureDotExport {
   void create_edges()
   {
     auto create_edge = [&](dot::Node &from_node,
-                           const MFInstruction *to_instruction) -> dot::DirectedEdge & {
+                           const Instruction *to_instruction) -> dot::DirectedEdge & {
       if (to_instruction == nullptr) {
         dot::Node &to_node = digraph_.new_node("missing");
         to_node.set_shape(dot::Attr_shape::Diamond);
@@ -636,35 +636,35 @@ class MFProcedureDotExport {
     };
 
     for (auto item : dot_nodes_by_end_.items()) {
-      const MFInstruction &from_instruction = *item.key;
+      const Instruction &from_instruction = *item.key;
       dot::Node &from_node = *item.value;
       switch (from_instruction.type()) {
-        case MFInstructionType::Call: {
-          const MFInstruction *to_instruction =
-              static_cast<const MFCallInstruction &>(from_instruction).next();
+        case InstructionType::Call: {
+          const Instruction *to_instruction =
+              static_cast<const CallInstruction &>(from_instruction).next();
           create_edge(from_node, to_instruction);
           break;
         }
-        case MFInstructionType::Destruct: {
-          const MFInstruction *to_instruction =
-              static_cast<const MFDestructInstruction &>(from_instruction).next();
+        case InstructionType::Destruct: {
+          const Instruction *to_instruction =
+              static_cast<const DestructInstruction &>(from_instruction).next();
           create_edge(from_node, to_instruction);
           break;
         }
-        case MFInstructionType::Dummy: {
-          const MFInstruction *to_instruction =
-              static_cast<const MFDummyInstruction &>(from_instruction).next();
+        case InstructionType::Dummy: {
+          const Instruction *to_instruction =
+              static_cast<const DummyInstruction &>(from_instruction).next();
           create_edge(from_node, to_instruction);
           break;
         }
-        case MFInstructionType::Return: {
+        case InstructionType::Return: {
           break;
         }
-        case MFInstructionType::Branch: {
-          const MFBranchInstruction &branch_instruction = static_cast<const MFBranchInstruction &>(
+        case InstructionType::Branch: {
+          const BranchInstruction &branch_instruction = static_cast<const BranchInstruction &>(
               from_instruction);
-          const MFInstruction *to_true_instruction = branch_instruction.branch_true();
-          const MFInstruction *to_false_instruction = branch_instruction.branch_false();
+          const Instruction *to_true_instruction = branch_instruction.branch_true();
+          const Instruction *to_false_instruction = branch_instruction.branch_false();
           create_edge(from_node, to_true_instruction).attributes.set("color", "#118811");
           create_edge(from_node, to_false_instruction).attributes.set("color", "#881111");
           break;
@@ -676,22 +676,22 @@ class MFProcedureDotExport {
     create_edge(entry_node, procedure_.entry());
   }
 
-  bool has_to_be_block_begin(const MFInstruction &instruction)
+  bool has_to_be_block_begin(const Instruction &instruction)
   {
     if (instruction.prev().size() != 1) {
       return true;
     }
     if (ELEM(instruction.prev()[0].type(),
-             MFInstructionCursor::Type::Branch,
-             MFInstructionCursor::Type::Entry)) {
+             InstructionCursor::Type::Branch,
+             InstructionCursor::Type::Entry)) {
       return true;
     }
     return false;
   }
 
-  const MFInstruction &get_first_instruction_in_block(const MFInstruction &representative)
+  const Instruction &get_first_instruction_in_block(const Instruction &representative)
   {
-    const MFInstruction *current = &representative;
+    const Instruction *current = &representative;
     while (!this->has_to_be_block_begin(*current)) {
       current = current->prev()[0].instruction();
       if (current == &representative) {
@@ -702,25 +702,25 @@ class MFProcedureDotExport {
     return *current;
   }
 
-  const MFInstruction *get_next_instruction_in_block(const MFInstruction &instruction,
-                                                     const MFInstruction &block_begin)
+  const Instruction *get_next_instruction_in_block(const Instruction &instruction,
+                                                   const Instruction &block_begin)
   {
-    const MFInstruction *next = nullptr;
+    const Instruction *next = nullptr;
     switch (instruction.type()) {
-      case MFInstructionType::Call: {
-        next = static_cast<const MFCallInstruction &>(instruction).next();
+      case InstructionType::Call: {
+        next = static_cast<const CallInstruction &>(instruction).next();
         break;
       }
-      case MFInstructionType::Destruct: {
-        next = static_cast<const MFDestructInstruction &>(instruction).next();
+      case InstructionType::Destruct: {
+        next = static_cast<const DestructInstruction &>(instruction).next();
         break;
       }
-      case MFInstructionType::Dummy: {
-        next = static_cast<const MFDummyInstruction &>(instruction).next();
+      case InstructionType::Dummy: {
+        next = static_cast<const DummyInstruction &>(instruction).next();
         break;
       }
-      case MFInstructionType::Return:
-      case MFInstructionType::Branch: {
+      case InstructionType::Return:
+      case InstructionType::Branch: {
         break;
       }
     }
@@ -736,18 +736,18 @@ class MFProcedureDotExport {
     return next;
   }
 
-  Vector<const MFInstruction *> get_instructions_in_block(const MFInstruction &representative)
+  Vector<const Instruction *> get_instructions_in_block(const Instruction &representative)
   {
-    Vector<const MFInstruction *> instructions;
-    const MFInstruction &begin = this->get_first_instruction_in_block(representative);
-    for (const MFInstruction *current = &begin; current != nullptr;
+    Vector<const Instruction *> instructions;
+    const Instruction &begin = this->get_first_instruction_in_block(representative);
+    for (const Instruction *current = &begin; current != nullptr;
          current = this->get_next_instruction_in_block(*current, begin)) {
       instructions.append(current);
     }
     return instructions;
   }
 
-  void variable_to_string(const MFVariable *variable, std::stringstream &ss)
+  void variable_to_string(const Variable *variable, std::stringstream &ss)
   {
     if (variable == nullptr) {
       ss << "null";
@@ -765,24 +765,24 @@ class MFProcedureDotExport {
     ss << name;
   }
 
-  void instruction_to_string(const MFCallInstruction &instruction, std::stringstream &ss)
+  void instruction_to_string(const CallInstruction &instruction, std::stringstream &ss)
   {
     const MultiFunction &fn = instruction.fn();
     this->instruction_name_format(fn.debug_name() + ": ", ss);
     for (const int param_index : fn.param_indices()) {
-      const MFParamType param_type = fn.param_type(param_index);
-      const MFVariable *variable = instruction.params()[param_index];
+      const ParamType param_type = fn.param_type(param_index);
+      const Variable *variable = instruction.params()[param_index];
       ss << R"(<font color="grey30">)";
       switch (param_type.interface_type()) {
-        case MFParamType::Input: {
+        case ParamType::Input: {
           ss << "in";
           break;
         }
-        case MFParamType::Mutable: {
+        case ParamType::Mutable: {
           ss << "mut";
           break;
         }
-        case MFParamType::Output: {
+        case ParamType::Output: {
           ss << "out";
           break;
         }
@@ -795,29 +795,29 @@ class MFProcedureDotExport {
     }
   }
 
-  void instruction_to_string(const MFDestructInstruction &instruction, std::stringstream &ss)
+  void instruction_to_string(const DestructInstruction &instruction, std::stringstream &ss)
   {
     instruction_name_format("Destruct ", ss);
     variable_to_string(instruction.variable(), ss);
   }
 
-  void instruction_to_string(const MFDummyInstruction & /*instruction*/, std::stringstream &ss)
+  void instruction_to_string(const DummyInstruction & /*instruction*/, std::stringstream &ss)
   {
     instruction_name_format("Dummy ", ss);
   }
 
-  void instruction_to_string(const MFReturnInstruction & /*instruction*/, std::stringstream &ss)
+  void instruction_to_string(const ReturnInstruction & /*instruction*/, std::stringstream &ss)
   {
     instruction_name_format("Return ", ss);
 
-    Vector<ConstMFParameter> outgoing_parameters;
-    for (const ConstMFParameter &param : procedure_.params()) {
-      if (ELEM(param.type, MFParamType::Mutable, MFParamType::Output)) {
+    Vector<ConstParameter> outgoing_parameters;
+    for (const ConstParameter &param : procedure_.params()) {
+      if (ELEM(param.type, ParamType::Mutable, ParamType::Output)) {
         outgoing_parameters.append(param);
       }
     }
     for (const int param_index : outgoing_parameters.index_range()) {
-      const ConstMFParameter &param = outgoing_parameters[param_index];
+      const ConstParameter &param = outgoing_parameters[param_index];
       variable_to_string(param.variable, ss);
       if (param_index < outgoing_parameters.size() - 1) {
         ss << ", ";
@@ -825,7 +825,7 @@ class MFProcedureDotExport {
     }
   }
 
-  void instruction_to_string(const MFBranchInstruction &instruction, std::stringstream &ss)
+  void instruction_to_string(const BranchInstruction &instruction, std::stringstream &ss)
   {
     instruction_name_format("Branch ", ss);
     variable_to_string(instruction.condition(), ss);
@@ -835,14 +835,14 @@ class MFProcedureDotExport {
   {
     std::stringstream ss;
     ss << "Entry: ";
-    Vector<ConstMFParameter> incoming_parameters;
-    for (const ConstMFParameter &param : procedure_.params()) {
-      if (ELEM(param.type, MFParamType::Input, MFParamType::Mutable)) {
+    Vector<ConstParameter> incoming_parameters;
+    for (const ConstParameter &param : procedure_.params()) {
+      if (ELEM(param.type, ParamType::Input, ParamType::Mutable)) {
         incoming_parameters.append(param);
       }
     }
     for (const int param_index : incoming_parameters.index_range()) {
-      const ConstMFParameter &param = incoming_parameters[param_index];
+      const ConstParameter &param = incoming_parameters[param_index];
       variable_to_string(param.variable, ss);
       if (param_index < incoming_parameters.size() - 1) {
         ss << ", ";
@@ -855,10 +855,10 @@ class MFProcedureDotExport {
   }
 };
 
-std::string MFProcedure::to_dot() const
+std::string Procedure::to_dot() const
 {
-  MFProcedureDotExport dot_export{*this};
+  ProcedureDotExport dot_export{*this};
   return dot_export.generate();
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

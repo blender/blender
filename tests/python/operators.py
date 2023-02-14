@@ -549,7 +549,7 @@ def main():
         ),
 
 
-        # T87259 - test cases
+        # #87259 - test cases
         SpecMeshTest(
             "CubeEdgeUnsubdivide", "testCubeEdgeUnsubdivide", "expectedCubeEdgeUnsubdivide",
             [OperatorSpecEditMode("unsubdivide", {}, "EDGE", {i for i in range(6)})],

@@ -7,10 +7,13 @@
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/usd/kind/registry.h>
 #include <pxr/usd/usd/modelAPI.h>
+#include <pxr/usd/usdGeom/bboxCache.h>
 
 #include "BKE_customdata.h"
 #include "BLI_assert.h"
 #include "DNA_mesh_types.h"
+
+#include "WM_api.h"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -62,7 +65,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
 
   const Mesh *me = static_cast<Mesh *>(ob->data);
 
-  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV);
+  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
 
   return name ? name : "";
 }
@@ -357,8 +360,9 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
   IDProperty *prop;
   for (prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
     if (kind_identifier == prop->name) {
-      if (prop->type == IDP_STRING && usd_export_context_.export_params.export_usd_kind && prop->data.pointer) {
-        write_kind(prim, pxr::TfToken(static_cast<char*>(prop->data.pointer)));
+      if (prop->type == IDP_STRING && usd_export_context_.export_params.export_usd_kind &&
+          prop->data.pointer) {
+        write_kind(prim, pxr::TfToken(static_cast<char *>(prop->data.pointer)));
       }
       continue;
     }
@@ -409,6 +413,27 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
         break;
     }
   }
+}
+
+void USDAbstractWriter::author_extent(const pxr::UsdTimeCode timecode, pxr::UsdGeomBoundable &prim)
+{
+  /* Do not use any existing `extentsHint` that may be authored, instead recompute the extent when
+   * authoring it. */
+  const bool useExtentsHint = false;
+  const pxr::TfTokenVector includedPurposes{pxr::UsdGeomTokens->default_};
+  pxr::UsdGeomBBoxCache bboxCache(timecode, includedPurposes, useExtentsHint);
+  pxr::GfBBox3d bounds = bboxCache.ComputeLocalBound(prim.GetPrim());
+  if (pxr::GfBBox3d() == bounds) {
+    /* This will occur, for example, if a mesh does not have any vertices. */
+    WM_reportf(RPT_WARNING,
+               "USD Export: no bounds could be computed for %s",
+               prim.GetPrim().GetName().GetText());
+    return;
+  }
+
+  pxr::VtArray<pxr::GfVec3f> extent{(pxr::GfVec3f)bounds.GetRange().GetMin(),
+                                    (pxr::GfVec3f)bounds.GetRange().GetMax()};
+  prim.CreateExtentAttr().Set(extent);
 }
 
 }  // namespace blender::io::usd

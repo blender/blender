@@ -13,6 +13,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
+#include "NOD_socket.h"
 #include "NOD_socket_search_link.hh"
 
 #include "BLT_translation.h"
@@ -198,7 +199,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
            DEG_relations_tag_update(&bmain);
 
            /* Create the inputs and outputs on the new node. */
-           node.typeinfo->group_update_func(&params.node_tree, &node);
+           nodes::update_node_declaration_and_sockets(params.node_tree, node);
 
            bNodeSocket *new_node_socket = bke::node_find_enabled_socket(
                node, in_out, socket_property->name);
@@ -349,17 +350,18 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &node_tree = *snode.edittree;
   LinkDragSearchStorage &storage = *static_cast<LinkDragSearchStorage *>(arg1);
   SocketLinkOperation *item = static_cast<SocketLinkOperation *>(arg2);
   if (item == nullptr) {
     return;
   }
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
 
   Vector<bNode *> new_nodes;
   nodes::LinkSearchOpParams params{
-      *C, *snode.edittree, storage.from_node, storage.from_socket, new_nodes};
+      *C, node_tree, storage.from_node, storage.from_socket, new_nodes};
   item->fn(params);
   if (new_nodes.is_empty()) {
     return;
@@ -376,11 +378,11 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
   }
 
   nodeSetSelected(new_node, true);
-  nodeSetActive(snode.edittree, new_node);
+  nodeSetActive(&node_tree, new_node);
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
-  ED_node_tree_propagate_change(C, &bmain, snode.edittree);
+  ED_node_tree_propagate_change(C, &bmain, &node_tree);
 
   /* Start translation operator with the new node. */
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_translate_attach_remove_on_cancel", true);

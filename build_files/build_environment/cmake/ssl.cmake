@@ -10,9 +10,9 @@ if(WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${SSL_HASH_TYPE}=${SSL_HASH}
     PREFIX ${BUILD_DIR}/ssl
-    CONFIGURE_COMMAND echo "." 
-    BUILD_COMMAND echo "." 
-    INSTALL_COMMAND echo "." 
+    CONFIGURE_COMMAND echo "."
+    BUILD_COMMAND echo "."
+    INSTALL_COMMAND echo "."
     INSTALL_DIR ${LIBDIR}/ssl
   )
 else()

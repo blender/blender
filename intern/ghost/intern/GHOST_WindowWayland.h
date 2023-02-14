@@ -15,7 +15,7 @@
 #include <wayland-util.h> /* For #wl_fixed_t */
 
 /**
- * Define to workaround for a bug/limitation in WAYLAND, see: T100855 & upstream report:
+ * Define to workaround for a bug/limitation in WAYLAND, see: #100855 & upstream report:
  * https://gitlab.freedesktop.org/wayland/wayland/-/issues/159
  *
  * Consume events from WAYLAND in a thread, this is needed because overflowing the event queue
@@ -150,12 +150,16 @@ class GHOST_WindowWayland : public GHOST_Window {
   GHOST_TSuccess activate();
   GHOST_TSuccess deactivate();
   GHOST_TSuccess notify_size();
+  GHOST_TSuccess notify_decor_redraw();
 
   /* WAYLAND utility functions. */
 
   bool outputs_enter(GWL_Output *output);
   bool outputs_leave(GWL_Output *output);
 
+  /**
+   * Return true when the windows scale or DPI changes.
+   */
   bool outputs_changed_update_scale();
 
 #ifdef USE_EVENT_BACKGROUND_THREAD

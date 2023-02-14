@@ -2,6 +2,7 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
@@ -286,6 +287,7 @@ static void curves_sculptmode_enter(bContext *C)
   ob->mode = OB_MODE_SCULPT_CURVES;
 
   ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
+  paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -361,19 +363,22 @@ static int select_random_exec(bContext *C, wmOperator *op)
   const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
 
   for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-    const bool was_anything_selected = curves::has_anything_selected(*curves_id);
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    const bool was_anything_selected = curves::has_anything_selected(curves);
+
+    bke::SpanAttributeWriter<float> attribute = float_selection_ensure(*curves_id);
+    MutableSpan<float> selection = attribute.span;
+    if (!was_anything_selected) {
+      selection.fill(1.0f);
+    }
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     switch (curves_id->selection_domain) {
       case ATTR_DOMAIN_POINT: {
-        MutableSpan<float> selection = curves.selection_point_float_for_write();
-        if (!was_anything_selected) {
-          selection.fill(1.0f);
-        }
         if (partial) {
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
               const float random_value = next_partial_random_value();
-              const IndexRange points = curves.points_for_curve(curve_i);
+              const IndexRange points = points_by_curve[curve_i];
               for (const int point_i : points) {
                 selection[point_i] *= random_value;
               }
@@ -390,7 +395,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
               const bool random_value = next_bool_random_value();
-              const IndexRange points = curves.points_for_curve(curve_i);
+              const IndexRange points = points_by_curve[curve_i];
               if (!random_value) {
                 selection.slice(points).fill(0.0f);
               }
@@ -408,10 +413,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
         break;
       }
       case ATTR_DOMAIN_CURVE: {
-        MutableSpan<float> selection = curves.selection_curve_float_for_write();
-        if (!was_anything_selected) {
-          selection.fill(1.0f);
-        }
         if (partial) {
           for (const int curve_i : curves.curves_range()) {
             const float random_value = next_partial_random_value();
@@ -429,9 +430,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
         break;
       }
     }
-    MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
-                                       curves.selection_point_float_for_write() :
-                                       curves.selection_curve_float_for_write();
     const bool was_any_selected = std::any_of(
         selection.begin(), selection.end(), [](const float v) { return v > 0.0f; });
     if (was_any_selected) {
@@ -444,6 +442,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
         v = rng.get_float();
       }
     }
+
+    attribute.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -518,86 +518,18 @@ static void SCULPT_CURVES_OT_select_random(wmOperatorType *ot)
                   "Constant per Curve",
                   "The generated random number is the same for every control point of a curve");
 }
-
-namespace select_end {
-static bool select_end_poll(bContext *C)
-{
-  if (!curves::editable_curves_poll(C)) {
-    return false;
-  }
-  const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
-  if (curves_id->selection_domain != ATTR_DOMAIN_POINT) {
-    CTX_wm_operator_poll_msg_set(C, "Only available in point selection mode");
-    return false;
-  }
-  return true;
-}
-
-static int select_end_exec(bContext *C, wmOperator *op)
-{
-  VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
-  const bool end_points = RNA_boolean_get(op->ptr, "end_points");
-  const int amount = RNA_int_get(op->ptr, "amount");
-
-  for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-    const bool was_anything_selected = curves::has_anything_selected(*curves_id);
-    MutableSpan<float> selection = curves.selection_point_float_for_write();
-    if (!was_anything_selected) {
-      selection.fill(1.0f);
-    }
-    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
-      for (const int curve_i : range) {
-        const IndexRange points = curves.points_for_curve(curve_i);
-        if (end_points) {
-          selection.slice(points.drop_back(amount)).fill(0.0f);
-        }
-        else {
-          selection.slice(points.drop_front(amount)).fill(0.0f);
-        }
-      }
-    });
-
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
-  }
-
-  return OPERATOR_FINISHED;
-}
-}  // namespace select_end
-
-static void SCULPT_CURVES_OT_select_end(wmOperatorType *ot)
-{
-  ot->name = "Select End";
-  ot->idname = __func__;
-  ot->description = "Select end points of curves";
-
-  ot->exec = select_end::select_end_exec;
-  ot->poll = select_end::select_end_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(ot->srna,
-                  "end_points",
-                  true,
-                  "End Points",
-                  "Select points at the end of the curve as opposed to the beginning");
-  RNA_def_int(
-      ot->srna, "amount", 1, 0, INT32_MAX, "Amount", "Number of points to select", 0, INT32_MAX);
-}
-
 namespace select_grow {
 
 struct GrowOperatorDataPerCurve : NonCopyable, NonMovable {
   Curves *curves_id;
-  Vector<int> selected_points;
-  Vector<int> unselected_points;
+  Vector<int64_t> selected_point_indices;
+  Vector<int64_t> unselected_point_indices;
+  IndexMask selected_points;
+  IndexMask unselected_points;
   Array<float> distances_to_selected;
   Array<float> distances_to_unselected;
 
-  Array<float> original_selection;
+  GArray<> original_selection;
   float pixel_to_distance_factor;
 };
 
@@ -621,7 +553,7 @@ static void update_points_selection(const GrowOperatorDataPerCurve &data,
           }
         });
     threading::parallel_for(data.selected_points.index_range(), 512, [&](const IndexRange range) {
-      for (const int point_i : data.selected_points.as_span().slice(range)) {
+      for (const int point_i : data.selected_points.slice(range)) {
         points_selection[point_i] = 1.0f;
       }
     });
@@ -637,7 +569,7 @@ static void update_points_selection(const GrowOperatorDataPerCurve &data,
     });
     threading::parallel_for(
         data.unselected_points.index_range(), 512, [&](const IndexRange range) {
-          for (const int point_i : data.unselected_points.as_span().slice(range)) {
+          for (const int point_i : data.unselected_points.slice(range)) {
             points_selection[point_i] = 0.0f;
           }
         });
@@ -650,23 +582,25 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
 
   for (std::unique_ptr<GrowOperatorDataPerCurve> &curve_op_data : op_data.per_curve) {
     Curves &curves_id = *curve_op_data->curves_id;
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+    CurvesGeometry &curves = curves_id.geometry.wrap();
     const float distance = curve_op_data->pixel_to_distance_factor * mouse_diff_x;
 
+    bke::SpanAttributeWriter<float> selection = float_selection_ensure(curves_id);
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+
     /* Grow or shrink selection based on precomputed distances. */
-    switch (curves_id.selection_domain) {
+    switch (selection.domain) {
       case ATTR_DOMAIN_POINT: {
-        MutableSpan<float> points_selection = curves.selection_point_float_for_write();
-        update_points_selection(*curve_op_data, distance, points_selection);
+        update_points_selection(*curve_op_data, distance, selection.span);
         break;
       }
       case ATTR_DOMAIN_CURVE: {
         Array<float> new_points_selection(curves.points_num());
         update_points_selection(*curve_op_data, distance, new_points_selection);
         /* Propagate grown point selection to the curve selection. */
-        MutableSpan<float> curves_selection = curves.selection_curve_float_for_write();
+        MutableSpan<float> curves_selection = selection.span;
         for (const int curve_i : curves.curves_range()) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           const Span<float> points_selection = new_points_selection.as_span().slice(points);
           const float max_selection = *std::max_element(points_selection.begin(),
                                                         points_selection.end());
@@ -674,7 +608,11 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
         }
         break;
       }
+      default:
+        BLI_assert_unreachable();
     }
+
+    selection.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -685,56 +623,27 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
   return OPERATOR_FINISHED;
 }
 
-static void select_grow_invoke_per_curve(Curves &curves_id,
-                                         Object &curves_ob,
+static void select_grow_invoke_per_curve(const Curves &curves_id,
+                                         const Object &curves_ob,
                                          const ARegion &region,
                                          const View3D &v3d,
                                          const RegionView3D &rv3d,
                                          GrowOperatorDataPerCurve &curve_op_data)
 {
-  curve_op_data.curves_id = &curves_id;
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  const CurvesGeometry &curves = curves_id.geometry.wrap();
   const Span<float3> positions = curves.positions();
 
-  /* Find indices of selected and unselected points. */
-  switch (curves_id.selection_domain) {
-    case ATTR_DOMAIN_POINT: {
-      const VArray<float> points_selection = curves.selection_point_float();
-      curve_op_data.original_selection.reinitialize(points_selection.size());
-      points_selection.materialize(curve_op_data.original_selection);
-      for (const int point_i : points_selection.index_range()) {
-        const float point_selection = points_selection[point_i];
-        if (point_selection > 0.0f) {
-          curve_op_data.selected_points.append(point_i);
-        }
-        else {
-          curve_op_data.unselected_points.append(point_i);
-        }
-      }
-
-      break;
-    }
-    case ATTR_DOMAIN_CURVE: {
-      const VArray<float> curves_selection = curves.selection_curve_float();
-      curve_op_data.original_selection.reinitialize(curves_selection.size());
-      curves_selection.materialize(curve_op_data.original_selection);
-      for (const int curve_i : curves_selection.index_range()) {
-        const float curve_selection = curves_selection[curve_i];
-        const IndexRange points = curves.points_for_curve(curve_i);
-        if (curve_selection > 0.0f) {
-          for (const int point_i : points) {
-            curve_op_data.selected_points.append(point_i);
-          }
-        }
-        else {
-          for (const int point_i : points) {
-            curve_op_data.unselected_points.append(point_i);
-          }
-        }
-      }
-      break;
-    }
+  if (const bke::GAttributeReader original_selection = curves.attributes().lookup(".selection")) {
+    curve_op_data.original_selection = GArray<>(original_selection.varray.type(),
+                                                original_selection.varray.size());
+    original_selection.varray.materialize(curve_op_data.original_selection.data());
   }
+
+  /* Find indices of selected and unselected points. */
+  curve_op_data.selected_points = curves::retrieve_selected_points(
+      curves_id, curve_op_data.selected_point_indices);
+  curve_op_data.unselected_points = curve_op_data.selected_points.invert(
+      curves.points_range(), curve_op_data.unselected_point_indices);
 
   threading::parallel_invoke(
       1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
@@ -785,11 +694,11 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.object_to_world;
-  float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
+  float4x4 curves_to_world_mat = float4x4(curves_ob.object_to_world);
+  float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.values);
+  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.ptr());
 
   /* Compute how mouse movements in screen space are converted into grow/shrink distances in
    * object space. */
@@ -803,7 +712,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
           const float3 &pos_cu = positions[point_i];
 
           float2 pos_re;
-          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.values);
+          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
           if (pos_re.x < 0 || pos_re.y < 0 || pos_re.x > region.winx || pos_re.y > region.winy) {
             continue;
           }
@@ -811,9 +720,12 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
            * space. */
           const float2 pos_offset_re = pos_re + float2(1, 0);
           float3 pos_offset_wo;
-          ED_view3d_win_to_3d(
-              &v3d, &region, curves_to_world_mat * pos_cu, pos_offset_re, pos_offset_wo);
-          const float3 pos_offset_cu = world_to_curves_mat * pos_offset_wo;
+          ED_view3d_win_to_3d(&v3d,
+                              &region,
+                              math::transform_point(curves_to_world_mat, pos_cu),
+                              pos_offset_re,
+                              pos_offset_wo);
+          const float3 pos_offset_cu = math::transform_point(world_to_curves_mat, pos_offset_wo);
           const float dist_cu = math::distance(pos_cu, pos_offset_cu);
           const float dist_re = math::distance(pos_re, pos_offset_re);
           const float factor = dist_cu / dist_re;
@@ -838,6 +750,7 @@ static int select_grow_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   Curves &curves_id = *static_cast<Curves *>(active_ob->data);
   auto curve_op_data = std::make_unique<GrowOperatorDataPerCurve>();
+  curve_op_data->curves_id = &curves_id;
   select_grow_invoke_per_curve(curves_id, *active_ob, *region, *v3d, *rv3d, *curve_op_data);
   op_data->per_curve.append(std::move(curve_op_data));
 
@@ -864,18 +777,16 @@ static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Undo operator by resetting the selection to the original value. */
       for (std::unique_ptr<GrowOperatorDataPerCurve> &curve_op_data : op_data.per_curve) {
         Curves &curves_id = *curve_op_data->curves_id;
-        CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-        switch (curves_id.selection_domain) {
-          case ATTR_DOMAIN_POINT: {
-            MutableSpan<float> points_selection = curves.selection_point_float_for_write();
-            points_selection.copy_from(curve_op_data->original_selection);
-            break;
-          }
-          case ATTR_DOMAIN_CURVE: {
-            MutableSpan<float> curves_seletion = curves.selection_curve_float_for_write();
-            curves_seletion.copy_from(curve_op_data->original_selection);
-            break;
-          }
+        CurvesGeometry &curves = curves_id.geometry.wrap();
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+        attributes.remove(".selection");
+        if (!curve_op_data->original_selection.is_empty()) {
+          attributes.add(
+              ".selection",
+              eAttrDomain(curves_id.selection_domain),
+              bke::cpp_type_to_custom_data_type(curve_op_data->original_selection.type()),
+              bke::AttributeInitVArray(GVArray::ForSpan(curve_op_data->original_selection)));
         }
 
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -1027,7 +938,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
 
       const float3 point_pos_cu = op_data.pos_cu + op_data.normal_cu * 0.0001f +
                                   x_iter * tangent_x_cu + y_iter * tangent_y_cu;
-      const float3 point_pos_wo = op_data.curves_to_world_mat * point_pos_cu;
+      const float3 point_pos_wo = math::transform_point(op_data.curves_to_world_mat, point_pos_cu);
       points_wo.append(point_pos_wo);
     }
   }
@@ -1055,12 +966,11 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
   const uint pos3d = GPU_vertformat_attr_add(format3d, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   const uint col3d = GPU_vertformat_attr_add(format3d, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
-
-  GPU_point_size(3.0f);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immUniform1f("size", 4.0f);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
-  float3 brush_origin_wo = op_data.curves_to_world_mat * op_data.pos_cu;
+  float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
   float2 brush_origin_re;
   ED_view3d_project_v2(region, brush_origin_wo, brush_origin_re);
 
@@ -1138,8 +1048,8 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   const CurvesSurfaceTransforms transforms{curves_ob_orig, &surface_ob_orig};
 
-  const float3 ray_start_su = transforms.world_to_surface * ray_start_wo;
-  const float3 ray_end_su = transforms.world_to_surface * ray_end_wo;
+  const float3 ray_start_su = math::transform_point(transforms.world_to_surface, ray_start_wo);
+  const float3 ray_end_su = math::transform_point(transforms.world_to_surface, ray_end_wo);
   const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
   BVHTreeRayHit ray_hit;
@@ -1160,9 +1070,9 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   const float3 hit_pos_su = ray_hit.co;
   const float3 hit_normal_su = ray_hit.no;
 
-  const float3 hit_pos_cu = transforms.surface_to_curves * hit_pos_su;
-  const float3 hit_normal_cu = math::normalize(transforms.surface_to_curves_normal *
-                                               hit_normal_su);
+  const float3 hit_pos_cu = math::transform_point(transforms.surface_to_curves, hit_pos_su);
+  const float3 hit_normal_cu = math::normalize(
+      math::transform_direction(transforms.surface_to_curves_normal, hit_normal_su));
 
   MinDistanceEditData *op_data = MEM_new<MinDistanceEditData>(__func__);
   op_data->curves_to_world_mat = transforms.curves_to_world;
@@ -1272,7 +1182,6 @@ void ED_operatortypes_sculpt_curves()
   WM_operatortype_append(SCULPT_CURVES_OT_brush_stroke);
   WM_operatortype_append(CURVES_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_CURVES_OT_select_random);
-  WM_operatortype_append(SCULPT_CURVES_OT_select_end);
   WM_operatortype_append(SCULPT_CURVES_OT_select_grow);
   WM_operatortype_append(SCULPT_CURVES_OT_min_distance_edit);
 }

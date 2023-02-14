@@ -80,7 +80,7 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
                         GPU_constant(&wave_profile));
 }
 
-class WaveFunction : public fn::MultiFunction {
+class WaveFunction : public mf::MultiFunction {
  private:
   int wave_type_;
   int bands_direction_;
@@ -94,26 +94,24 @@ class WaveFunction : public fn::MultiFunction {
         rings_direction_(rings_direction),
         wave_profile_(wave_profile)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MagicFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Distortion");
+      builder.single_input<float>("Detail");
+      builder.single_input<float>("Detail Scale");
+      builder.single_input<float>("Detail Roughness");
+      builder.single_input<float>("Phase Offset");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"MagicFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Distortion");
-    signature.single_input<float>("Detail");
-    signature.single_input<float>("Detail Scale");
-    signature.single_input<float>("Detail Roughness");
-    signature.single_input<float>("Phase Offset");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");

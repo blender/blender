@@ -702,10 +702,11 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
   /* Sample position on a light. */
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-  const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
+  const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
   LightSample ls ccl_optional_struct_init;
   if (!light_sample_from_volume_segment(kg,
+                                        rand_light.z,
                                         rand_light.x,
                                         rand_light.y,
                                         sd->time,
@@ -765,10 +766,11 @@ ccl_device_forceinline void integrate_volume_direct_light(
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
+    const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_sample_from_position(kg,
                                     rng_state,
+                                    rand_light.z,
                                     rand_light.x,
                                     rand_light.y,
                                     sd->time,
@@ -819,7 +821,6 @@ ccl_device_forceinline void integrate_volume_direct_light(
   /* Create shadow ray. */
   Ray ray ccl_optional_struct_init;
   light_sample_to_volume_shadow_ray(kg, sd, &ls, P, &ray);
-  const bool is_light = light_sample_is_light(&ls);
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
@@ -836,7 +837,6 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
-  shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const Spectrum throughput_phase = throughput * bsdf_eval_sum(&phase_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
@@ -910,7 +910,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   /* Phase closure, sample direction. */
   float phase_pdf = 0.0f, unguided_phase_pdf = 0.0f;
   BsdfEval phase_eval ccl_optional_struct_init;
-  float3 phase_omega_in ccl_optional_struct_init;
+  float3 phase_wo ccl_optional_struct_init;
   float sampled_roughness = 1.0f;
   int label;
 
@@ -922,7 +922,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
                                               svc,
                                               rand_phase,
                                               &phase_eval,
-                                              &phase_omega_in,
+                                              &phase_wo,
                                               &phase_pdf,
                                               &unguided_phase_pdf,
                                               &sampled_roughness);
@@ -936,15 +936,8 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   else
 #  endif
   {
-    label = volume_shader_phase_sample(kg,
-                                       sd,
-                                       phases,
-                                       svc,
-                                       rand_phase,
-                                       &phase_eval,
-                                       &phase_omega_in,
-                                       &phase_pdf,
-                                       &sampled_roughness);
+    label = volume_shader_phase_sample(
+        kg, sd, phases, svc, rand_phase, &phase_eval, &phase_wo, &phase_pdf, &sampled_roughness);
 
     if (phase_pdf == 0.0f || bsdf_eval_is_zero(&phase_eval)) {
       return false;
@@ -955,7 +948,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 
   /* Setup ray. */
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
-  INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(phase_omega_in);
+  INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(phase_wo);
   INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #  ifdef __RAY_DIFFERENTIALS__
@@ -969,7 +962,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 
   /* Add phase function sampling data to the path segment. */
   guiding_record_volume_bounce(
-      kg, state, sd, phase_weight, phase_pdf, normalize(phase_omega_in), sampled_roughness);
+      kg, state, sd, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
 
   /* Update throughput. */
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
@@ -977,8 +970,10 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput_phase;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
-    INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
+    if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
+    }
   }
 
   /* Update path state */
@@ -1028,7 +1023,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
   /* The path throughput used to calculate the throughput for direct light. */
   float3 unlit_throughput = initial_throughput;
-  /* If a new path segment is generated at the direct scatter position.*/
+  /* If a new path segment is generated at the direct scatter position. */
   bool guiding_generated_new_segment = false;
   float rand_phase_guiding = 0.5f;
 #  endif
@@ -1072,7 +1067,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
-        guiding_record_volume_segment(kg, state, direct_P, sd.I);
+        guiding_record_volume_segment(kg, state, direct_P, sd.wi);
         guiding_generated_new_segment = true;
         unlit_throughput = result.indirect_throughput / continuation_probability;
         rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
@@ -1135,7 +1130,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
 #  if defined(__PATH_GUIDING__)
 #    if PATH_GUIDING_LEVEL >= 1
     if (!guiding_generated_new_segment) {
-      guiding_record_volume_segment(kg, state, sd.P, sd.I);
+      guiding_record_volume_segment(kg, state, sd.P, sd.wi);
     }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4

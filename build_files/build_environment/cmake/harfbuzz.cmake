@@ -5,7 +5,12 @@ if(WIN32)
   set(HARFBUZZ_PKG_ENV FREETYPE_DIR=${LIBDIR}/freetype)
 else()
   set(HARFBUZZ_CONFIGURE_ENV ${CONFIGURE_ENV})
-  set(HARFBUZZ_PKG_ENV PKG_CONFIG_PATH=${LIBDIR}/freetype/lib/pkgconfig:${LIBDIR}/brotli/lib/pkgconfig:${LIBDIR}/lib/python3.10/pkgconfig:$PKG_CONFIG_PATH)
+  set(HARFBUZZ_PKG_ENV "PKG_CONFIG_PATH=\
+${LIBDIR}/freetype/lib/pkgconfig:\
+${LIBDIR}/brotli/lib/pkgconfig:\
+${LIBDIR}/lib/python3.10/pkgconfig:\
+$PKG_CONFIG_PATH"
+  )
 endif()
 
 set(HARFBUZZ_EXTRA_OPTIONS
@@ -23,8 +28,16 @@ ExternalProject_Add(external_harfbuzz
   URL_HASH ${HARFBUZZ_HASH_TYPE}=${HARFBUZZ_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/harfbuzz
+
   CONFIGURE_COMMAND ${HARFBUZZ_CONFIGURE_ENV} &&
-    ${CMAKE_COMMAND} -E env ${HARFBUZZ_PKG_ENV} ${MESON} setup --prefix ${LIBDIR}/harfbuzz ${HARFBUZZ_EXTRA_OPTIONS} --default-library static --libdir lib ${BUILD_DIR}/harfbuzz/src/external_harfbuzz-build ${BUILD_DIR}/harfbuzz/src/external_harfbuzz
+  ${CMAKE_COMMAND} -E env ${HARFBUZZ_PKG_ENV}
+  ${MESON} setup
+  --prefix ${LIBDIR}/harfbuzz ${HARFBUZZ_EXTRA_OPTIONS}
+  --default-library static
+  --libdir lib
+  ${BUILD_DIR}/harfbuzz/src/external_harfbuzz-build
+  ${BUILD_DIR}/harfbuzz/src/external_harfbuzz
+
   BUILD_COMMAND ninja
   INSTALL_COMMAND ninja install
   INSTALL_DIR ${LIBDIR}/harfbuzz
@@ -33,6 +46,7 @@ ExternalProject_Add(external_harfbuzz
 add_dependencies(
   external_harfbuzz
   external_python
+  external_freetype
   # Needed for `MESON`.
   external_python_site_packages
 )
@@ -45,4 +59,3 @@ if(BUILD_MODE STREQUAL Release AND WIN32)
     DEPENDEES install
   )
 endif()
-

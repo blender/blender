@@ -574,7 +574,8 @@ static void loose_data_instantiate_obdata_preprocess(
  * (return false). */
 static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
 {
-  for (CollectionParent *parent_collection = collection->parents.first; parent_collection != NULL;
+  for (CollectionParent *parent_collection = collection->runtime.parents.first;
+       parent_collection != NULL;
        parent_collection = parent_collection->next) {
     if ((parent_collection->collection->id.tag & LIB_TAG_DOIT) != 0) {
       return true;
@@ -612,10 +613,10 @@ static void loose_data_instantiate_collection_process(
     }
 
     /* Forced instantiation of indirectly appended collections is not wanted. Users can now
-     * easily instantiate collections (and their objects) as needed by themselves. See T67032. */
+     * easily instantiate collections (and their objects) as needed by themselves. See #67032. */
     /* We need to check that objects in that collections are already instantiated in a scene.
      * Otherwise, it's better to add the collection to the scene's active collection, than to
-     * instantiate its objects in active scene's collection directly. See T61141.
+     * instantiate its objects in active scene's collection directly. See #61141.
      *
      * NOTE: We only check object directly into that collection, not recursively into its
      * children.
@@ -624,7 +625,7 @@ static void loose_data_instantiate_collection_process(
     /* The collection could be linked/appended together with an Empty object instantiating it,
      * better not instantiate the collection in the view-layer in that case.
      *
-     * Can easily happen when copy/pasting such instantiating empty, see T93839. */
+     * Can easily happen when copy/pasting such instantiating empty, see #93839. */
     const bool collection_is_instantiated = collection_instantiated_by_any_object(bmain,
                                                                                   collection);
     /* Always consider adding collections directly selected by the user. */
@@ -750,7 +751,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
      * While this is not ideal (in theory no object should remain un-owned), in case of indirectly
      * linked objects, the other solution would be to add them to a local collection, which would
      * make them directly linked. Think for now keeping them indirectly linked is more important.
-     * Ref. T93757.
+     * Ref. #93757.
      */
     if (is_linking && (item->tag & LINK_APPEND_TAG_INDIRECT) != 0) {
       continue;
@@ -934,7 +935,7 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
      * the dependency here. Indeed, either they are both linked in another way (through their own
      * meshes for shape keys e.g.), or this is an unsupported case (two shape-keys depending on
      * each-other need to be also 'linked' in by their respective meshes, independent shape-keys
-     * are not allowed). ref T96048. */
+     * are not allowed). ref #96048. */
     if (id != cb_data->id_self && BKE_idtype_idcode_is_linkable(GS(cb_data->id_self->name))) {
       BKE_library_foreach_ID_link(
           cb_data->bmain, id, foreach_libblock_link_append_callback, data, IDWALK_NOP);
@@ -996,14 +997,13 @@ static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *repor
 
   if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
       bf_reports.count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(
-        bf_reports.reports,
-        RPT_WARNING,
-        "Proxies have been removed from Blender (%d proxies were automatically converted "
-        "to library overrides, %d proxies could not be converted and were cleared). "
-        "Consider re-saving any library .blend file with the newest Blender version",
-        bf_reports.count.proxies_to_lib_overrides_success,
-        bf_reports.count.proxies_to_lib_overrides_failures);
+    BKE_reportf(bf_reports.reports,
+                RPT_WARNING,
+                "Proxies have been removed from Blender (%d proxies were automatically converted "
+                "to library overrides, %d proxies could not be converted and were cleared). "
+                "Consider re-saving any library .blend file with the newest Blender version",
+                bf_reports.count.proxies_to_lib_overrides_success,
+                bf_reports.count.proxies_to_lib_overrides_failures);
   }
 }
 
@@ -1244,7 +1244,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
     lib = mainl->curlib;
     BLI_assert(lib != NULL);
-    /* In case lib was already existing but not found originally, see T99820. */
+    /* In case lib was already existing but not found originally, see #99820. */
     lib->id.tag &= ~LIB_TAG_MISSING;
 
     if (mainl->versionfile < 250) {
@@ -1424,8 +1424,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   /* All override rules need to be up to date, since there will be no do_version here, otherwise
    * older, now-invalid rules might be applied and likely fail, or some changes might be missing,
-   * etc. See T93353. */
-  BKE_lib_override_library_main_operations_create(bmain, true);
+   * etc. See #93353. */
+  BKE_lib_override_library_main_operations_create(bmain, true, NULL);
 
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
@@ -1635,7 +1635,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                              .reports = reports,
                                          });
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
-    BKE_lib_override_library_main_operations_create(bmain, true);
+    BKE_lib_override_library_main_operations_create(bmain, true, NULL);
   }
 
   BKE_main_collection_sync(bmain);

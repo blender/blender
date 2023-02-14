@@ -94,7 +94,7 @@
 
 /**
  * Check to avoid very small mouse-moves from jumping away from keyboard navigation,
- * while larger mouse motion will override keyboard input, see: T34936.
+ * while larger mouse motion will override keyboard input, see: #34936.
  */
 #define USE_KEYNAV_LIMIT
 
@@ -140,7 +140,7 @@
  * Instead of mapping cursor motion to the min/max, map the motion to the click-step.
  *
  * This value is multiplied by the click step to calculate a range to clamp the soft-range by.
- * See: T68130
+ * See: #68130
  */
 #define UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX 1000
 
@@ -149,6 +149,8 @@
 /* -------------------------------------------------------------------- */
 /** \name Local Prototypes
  * \{ */
+
+struct uiBlockInteraction_Handle;
 
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event);
 static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but_b);
@@ -382,7 +384,7 @@ struct uiHandleButtonData {
   /**
    * Behave as if #UI_BUT_DISABLED is set (without drawing grayed out).
    * Needed so non-interactive labels can be activated for the purpose of showing tool-tips,
-   * without them blocking interaction with nodes, see: T97386.
+   * without them blocking interaction with nodes, see: #97386.
    */
   bool disable_force;
 
@@ -547,7 +549,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
   const int dy = WM_event_absolute_delta_y(event);
 
   /* This event should be originally from event->type,
-   * converting wrong event into wheel is bad, see T33803. */
+   * converting wrong event into wheel is bad, see #33803. */
   BLI_assert(*type == MOUSEPAN);
 
   /* sign differs, reset */
@@ -739,7 +741,7 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 
 static ListBase UIAfterFuncs = {nullptr, nullptr};
 
-static uiAfterFunc *ui_afterfunc_new(void)
+static uiAfterFunc *ui_afterfunc_new()
 {
   uiAfterFunc *after = MEM_cnew<uiAfterFunc>(__func__);
 
@@ -750,7 +752,7 @@ static uiAfterFunc *ui_afterfunc_new(void)
 
 /**
  * For executing operators after the button is pressed.
- * (some non operator buttons need to trigger operators), see: T37795.
+ * (some non operator buttons need to trigger operators), see: #37795.
  *
  * \param context_but: A button from which to get the context from (`uiBut.context`) for the
  *                     operator execution.
@@ -930,7 +932,7 @@ static void ui_apply_but_undo(uiBut *but)
   /* Optionally override undo when undo system doesn't support storing properties. */
   if (but->rnapoin.owner_id) {
     /* Exception for renaming ID data, we always need undo pushes in this case,
-     * because undo systems track data by their ID, see: T67002. */
+     * because undo systems track data by their ID, see: #67002. */
     /* Exception for active shape-key, since changing this in edit-mode updates
      * the shape key from object mode data. */
     if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
@@ -947,7 +949,7 @@ static void ui_apply_but_undo(uiBut *but)
 
   if (skip_undo == false) {
     /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
-     * steps to be written which cause lag: T71434. */
+     * steps to be written which cause lag: #71434. */
     if (BKE_paintmode_get_active_from_context(static_cast<bContext *>(but->block->evil_C)) ==
         PAINT_MODE_SCULPT) {
       skip_undo = true;
@@ -1259,8 +1261,8 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
   if (data->str) {
     /* This is intended to avoid unnecessary updates when the value stays the same, however there
      * are issues with the current implementation. It does not work with multi-button editing
-     * (T89996) or operator popups where a number button requires an update even if the value is
-     * unchanged (T89996).
+     * (#89996) or operator popups where a number button requires an update even if the value is
+     * unchanged (#89996).
      *
      * Trying to detect changes at this level is not reliable. Instead it could be done at the
      * level of RNA update/set, skipping RNA update if RNA set did not change anything, instead
@@ -1515,7 +1517,7 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
       /* Highly unlikely. */
       printf("%s: Can't find button\n", __func__);
       /* While this avoids crashing, multi-button dragging will fail,
-       * which is still a bug from the user perspective. See T83651. */
+       * which is still a bug from the user perspective. See #83651. */
       continue;
     }
 
@@ -1555,7 +1557,7 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
         but->active->value = mbut_state->origvalue + value_delta;
       }
 
-      /* Clamp based on soft limits, see T40154. */
+      /* Clamp based on soft limits, see #40154. */
       CLAMP(but->active->value, double(but->softmin), double(but->softmax));
     }
 
@@ -2795,7 +2797,7 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
   }
 
   if (is_buf_set) {
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
   }
 }
 
@@ -2864,7 +2866,7 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   MEM_freeN((void *)buf_paste);
 }
 
-void ui_but_clipboard_free(void)
+void ui_but_clipboard_free()
 {
   BKE_curvemapping_free_data(&but_copypaste_curve);
   BKE_curveprofile_free_data(&but_copypaste_profile);
@@ -3087,7 +3089,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
   but->selsta = but->pos;
   but->selend = data->sel_pos_init;
   if (but->selend < but->selsta) {
-    SWAP(short, but->selsta, but->selend);
+    std::swap(but->selsta, but->selend);
   }
 
   ui_but_update(but);
@@ -3190,7 +3192,7 @@ static void ui_textedit_move(uiBut *but,
       but->selend = data->sel_pos_init;
     }
     if (but->selend < but->selsta) {
-      SWAP(short, but->selsta, but->selend);
+      std::swap(but->selsta, but->selend);
     }
   }
 }
@@ -3301,7 +3303,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
         MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste"));
 
     BLI_strncpy(buf, data->str + but->selsta, sellen + 1);
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
     MEM_freeN(buf);
 
     /* for cut only, delete the selection afterwards */
@@ -3368,7 +3370,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 #ifdef USE_DRAG_MULTINUM
   /* this can happen from multi-drag */
   if (data->applied_interactive) {
-    /* remove any small changes so canceling edit doesn't restore invalid value: T40538 */
+    /* remove any small changes so canceling edit doesn't restore invalid value: #40538 */
     data->cancel = true;
     ui_apply_but(C, but->block, but, data, true);
     data->cancel = false;
@@ -3693,7 +3695,7 @@ static void ui_do_but_textedit(
       }
       else if (inbox) {
         /* if we allow activation on key press,
-         * it gives problems launching operators T35713. */
+         * it gives problems launching operators #35713. */
         if (event->val == KM_RELEASE) {
           button_activate_state(C, but, BUTTON_STATE_EXIT);
           retval = WM_UI_HANDLER_BREAK;
@@ -4687,7 +4689,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
         do_activate = (event->val == KM_RELEASE);
       }
       else if (!ui_do_but_extra_operator_icon(C, but, data, event)) {
-        /* Also use double-clicks to prevent fast clicks to leak to other handlers (T76481). */
+        /* Also use double-clicks to prevent fast clicks to leak to other handlers (#76481). */
         do_activate = ELEM(event->val, KM_PRESS, KM_DBL_CLICK);
       }
     }
@@ -4750,7 +4752,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
                                const wmEvent *event)
 {
   uiButViewItem *view_item_but = (uiButViewItem *)but;
-  BLI_assert(view_item_but->but.type == UI_BTYPE_VIEW_ITEM);
+  BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE) {
@@ -4959,14 +4961,13 @@ static float ui_numedit_apply_snap(int temp,
   return temp;
 }
 
-static bool ui_numedit_but_NUM(uiButNumber *number_but,
+static bool ui_numedit_but_NUM(uiButNumber *but,
                                uiHandleButtonData *data,
                                int mx,
                                const bool is_motion,
                                const enum eSnapType snap,
                                float fac)
 {
-  uiBut *but = &number_but->but;
   float deler, tempf;
   int lvalue, temp;
   bool changed = false;
@@ -4988,13 +4989,13 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
 
     const float log_min = (scale_type == PROP_SCALE_LOG) ?
                               max_ff(max_ff(softmin, UI_PROP_SCALE_LOG_MIN),
-                                     powf(10, -number_but->precision) * 0.5f) :
+                                     powf(10, -but->precision) * 0.5f) :
                               0;
 
     /* Mouse location isn't screen clamped to the screen so use a linear mapping
      * 2px == 1-int, or 1px == 1-ClickStep */
     if (is_float) {
-      fac *= 0.01f * number_but->step_size;
+      fac *= 0.01f * but->step_size;
       switch (scale_type) {
         case PROP_SCALE_LINEAR: {
           tempf = float(data->startvalue) + float(mx - data->dragstartx) * fac;
@@ -5168,7 +5169,7 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
       }
       case PROP_SCALE_LOG: {
         const float log_min = max_ff(max_ff(softmin, UI_PROP_SCALE_LOG_MIN),
-                                     powf(10.0f, -number_but->precision) * 0.5f);
+                                     powf(10.0f, -but->precision) * 0.5f);
         const float base = softmax / log_min;
         tempf = powf(base, data->dragf) * log_min;
         if (tempf <= log_min) {
@@ -5902,7 +5903,7 @@ static int ui_do_but_GRIP(
   /* NOTE: Having to store org point in window space and recompute it to block "space" each time
    *       is not ideal, but this is a way to hack around behavior of ui_window_to_block(), which
    *       returns different results when the block is inside a panel or not...
-   *       See T37739.
+   *       See #37739.
    */
 
   int mx = event->xy[0];
@@ -6146,8 +6147,8 @@ static bool ui_numedit_but_UNITVEC(
 static void ui_palette_set_active(uiButColor *color_but)
 {
   if (color_but->is_pallete_color) {
-    Palette *palette = (Palette *)color_but->but.rnapoin.owner_id;
-    PaletteColor *color = static_cast<PaletteColor *>(color_but->but.rnapoin.data);
+    Palette *palette = (Palette *)color_but->rnapoin.owner_id;
+    PaletteColor *color = static_cast<PaletteColor *>(color_but->rnapoin.data);
     palette->active_color = BLI_findindex(&palette->colors, color);
   }
 }
@@ -6510,7 +6511,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
   ui_perceptual_to_scene_linear_space(but, rgb);
 
-  /* clamp because with color conversion we can exceed range T34295. */
+  /* clamp because with color conversion we can exceed range #34295. */
   if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
     clamp_axis_max_v3(rgb, but->softmax);
   }
@@ -6530,14 +6531,14 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
                                     const enum eSnapType snap,
                                     const bool shift)
 {
-  ColorPicker *cpicker = static_cast<ColorPicker *>(hsv_but->but.custom_data);
+  ColorPicker *cpicker = static_cast<ColorPicker *>(hsv_but->custom_data);
   float *hsv = cpicker->hsv_perceptual;
-  const float hsv_v_max = max_ff(hsv[2], hsv_but->but.softmax);
+  const float hsv_v_max = max_ff(hsv[2], hsv_but->softmax);
   float rgb[3];
   const float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 
-  ui_but_v3_get(&hsv_but->but, rgb);
-  ui_scene_linear_to_perceptual_space(&hsv_but->but, rgb);
+  ui_but_v3_get(hsv_but, rgb);
+  ui_scene_linear_to_perceptual_space(hsv_but, rgb);
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
   switch (hsv_but->gradient_type) {
@@ -6569,7 +6570,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
       /* exception only for value strip - use the range set in but->min/max */
       hsv[2] += ndof->rvec[0] * sensitivity;
 
-      CLAMP(hsv[2], hsv_but->but.softmin, hsv_but->but.softmax);
+      CLAMP(hsv[2], hsv_but->softmin, hsv_but->softmax);
       break;
     default:
       BLI_assert_msg(0, "invalid hsv type");
@@ -6586,10 +6587,10 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
   hsv_clamp_v(hsv, hsv_v_max);
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_perceptual_to_scene_linear_space(&hsv_but->but, rgb);
+  ui_perceptual_to_scene_linear_space(hsv_but, rgb);
 
   copy_v3_v3(data->vec, rgb);
-  ui_but_v3_set(&hsv_but->but, data->vec);
+  ui_but_v3_set(hsv_but, data->vec);
 }
 #endif /* WITH_INPUT_NDOF */
 
@@ -7953,10 +7954,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
      *
      * An example of where this is needed is dragging node-sockets, where dragging a node-socket
      * could exit the button before the drag threshold was reached, disable the button then break
-     * handling of the #MOUSEMOVE event preventing the socket being dragged entirely, see: T96255.
+     * handling of the #MOUSEMOVE event preventing the socket being dragged entirely, see: #96255.
      *
      * Region level event handling is responsible for preventing events being passed
-     * through to parts of the UI that are logically behind this button, see: T92364. */
+     * through to parts of the UI that are logically behind this button, see: #92364. */
     return WM_UI_HANDLER_CONTINUE;
   }
 
@@ -8260,7 +8261,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
     /* Automatic open pull-down block timer. */
     if (ELEM(but->type, UI_BTYPE_BLOCK, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER) ||
         /* Menu button types may draw as popovers, check for this case
-         * ignoring other kinds of menus (mainly enums). (see T66538). */
+         * ignoring other kinds of menus (mainly enums). (see #66538). */
         ((but->type == UI_BTYPE_MENU) &&
          (UI_but_paneltype_get(but) || ui_but_menu_draw_as_popover(but)))) {
       if (data->used_mouse && !data->autoopentimer) {
@@ -8306,7 +8307,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
   /* number editing */
   if (state == BUTTON_STATE_NUM_EDITING) {
     if (ui_but_is_cursor_warp(but)) {
-      WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, true, nullptr);
+      WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
     }
     ui_numedit_begin(but, data);
   }
@@ -8792,7 +8793,7 @@ void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
   uiBut *activebut = ui_context_rna_button_active(C);
   if (activebut) {
-    /* TODO(@campbellbarton): look into a better way to handle the button change
+    /* TODO(@ideasman42): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the
      * operator redo panel. */
     uiBlock *block = activebut->block;
@@ -9038,7 +9039,7 @@ static void ui_handle_button_activate(bContext *C,
  */
 static bool ui_handle_button_activate_by_type(bContext *C, ARegion *region, uiBut *but)
 {
-  if (but->type == UI_BTYPE_BUT_MENU) {
+  if (ELEM(but->type, UI_BTYPE_BUT_MENU, UI_BTYPE_ROW)) {
     /* mainly for operator buttons */
     ui_handle_button_activate(C, region, but, BUTTON_ACTIVATE_APPLY);
   }
@@ -9362,7 +9363,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
        *
        * This is needed to make sure if a button was active,
        * it stays active while the mouse is over it.
-       * This avoids adding mouse-moves, see: T33466. */
+       * This avoids adding mouse-moves, see: #33466. */
       if (ELEM(state_orig, BUTTON_STATE_INIT, BUTTON_STATE_HIGHLIGHT, BUTTON_STATE_WAIT_DRAG)) {
         if (ui_but_find_mouse_over(region, event) == but) {
           button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
@@ -9448,10 +9449,10 @@ static int ui_list_handle_click_drag(bContext *C,
                                      const wmEvent *event)
 {
   if (event->type != LEFTMOUSE) {
-    return WM_HANDLER_CONTINUE;
+    return WM_UI_HANDLER_CONTINUE;
   }
 
-  int retval = WM_HANDLER_CONTINUE;
+  int retval = WM_UI_HANDLER_CONTINUE;
 
   const bool is_draggable = ui_list_is_hovering_draggable_but(C, ui_list, region, event);
   bool activate = false;
@@ -9684,14 +9685,20 @@ static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *regio
 
 static int ui_handle_view_item_event(bContext *C,
                                      const wmEvent *event,
-                                     ARegion *region,
-                                     uiBut *view_but)
+                                     uiBut *active_but,
+                                     ARegion *region)
 {
-  BLI_assert(view_but->type == UI_BTYPE_VIEW_ITEM);
   if (event->type == LEFTMOUSE) {
+    /* Only bother finding the active view item button if the active button isn't already a view
+     * item. */
+    uiBut *view_but = (active_but && active_but->type == UI_BTYPE_VIEW_ITEM) ?
+                          active_but :
+                          ui_view_item_find_mouse_over(region, event->xy);
     /* Will free active button if there already is one. */
-    ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
-    return ui_do_button(C, view_but->block, view_but, event);
+    if (view_but) {
+      ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
+      return ui_do_button(C, view_but->block, view_but, event);
+    }
   }
 
   return WM_UI_HANDLER_CONTINUE;
@@ -9803,7 +9810,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
 {
   BLI_assert(block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER));
 
-  /* annoying fix for T36269, this is a bit odd but in fact works quite well
+  /* annoying fix for #36269, this is a bit odd but in fact works quite well
    * don't mouse-out of a menu if another menu has been created after it.
    * if this causes problems we could remove it and check on a different fix - campbell */
   if (menu->region->next) {
@@ -10599,7 +10606,7 @@ static int ui_handle_menu_event(bContext *C,
        * popups which you can click again to close.
        *
        * Events handled above may have already set the return value,
-       * don't overwrite them, see: T61015.
+       * don't overwrite them, see: #61015.
        */
       if ((inside == false) && (menu->menuretval == 0)) {
         uiSafetyRct *saferct = static_cast<uiSafetyRct *>(block->saferct.first);
@@ -11203,7 +11210,7 @@ static int ui_handle_menus_recursive(bContext *C,
 
       if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
         /* when there is a active search button and we close it,
-         * we need to reinit the mouse coords T35346. */
+         * we need to reinit the mouse coords #35346. */
         if (ui_region_find_active_but(menu->region) != but) {
           do_towards_reinit = true;
         }
@@ -11302,10 +11309,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
    * nested in the item (it's an overlapping layout). */
   ui_handle_view_items_hover(event, region);
   if (retval == WM_UI_HANDLER_CONTINUE) {
-    uiBut *view_item = ui_view_item_find_mouse_over(region, event->xy);
-    if (view_item) {
-      retval = ui_handle_view_item_event(C, event, region, view_item);
-    }
+    retval = ui_handle_view_item_event(C, event, but, region);
   }
 
   /* delayed apply callbacks */
@@ -11354,15 +11358,15 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void * /*us
 
     if ((data->state == BUTTON_STATE_MENU_OPEN) &&
         /* Make sure this popup isn't dragging a button.
-         * can happen with popovers (see T67882). */
+         * can happen with popovers (see #67882). */
         (ui_region_find_active_but(data->menu->region) == nullptr) &&
-        /* make sure mouse isn't inside another menu (see T43247) */
+        /* make sure mouse isn't inside another menu (see #43247) */
         (ui_screen_region_find_mouse_over(screen, event) == nullptr) &&
         ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU) &&
         (but_other = ui_but_find_mouse_over(region, event)) && (but != but_other) &&
         ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU) &&
         /* Hover-opening menu's doesn't work well for buttons over one another
-         * along the same axis the menu is opening on (see T71719). */
+         * along the same axis the menu is opening on (see #71719). */
         (((data->menu->direction & (UI_DIR_LEFT | UI_DIR_RIGHT)) &&
           BLI_rctf_isect_rect_x(&but->rect, &but_other->rect, nullptr)) ||
          ((data->menu->direction & (UI_DIR_DOWN | UI_DIR_UP)) &&
@@ -11448,7 +11452,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
      *   them into blender, even if there's opened popup like splash screen (sergey).
      * KM_DBL_CLICK:
      *   Continue in case of double click so wm_handlers_do calls handler again with KM_PRESS
-     *   event. This is needed to ensure correct button handling for fast clicking (T47532).
+     *   event. This is needed to ensure correct button handling for fast clicking (#47532).
      */
 
     retval = WM_UI_HANDLER_CONTINUE;

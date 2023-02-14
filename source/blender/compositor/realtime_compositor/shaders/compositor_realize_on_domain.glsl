@@ -19,11 +19,11 @@ void main()
    * case the difference in sizes was odd. */
   ivec2 domain_size = imageSize(domain_img);
   ivec2 input_size = texture_size(input_tx);
-  vec2 offset = floor((domain_size - input_size) / 2.0);
+  vec2 offset = floor(vec2(domain_size - input_size) / 2.0);
 
   /* Subtract the offset and divide by the input image size to get the relevant coordinates into
    * the sampler's expected [0, 1] range. */
-  vec2 normalized_coordinates = (coordinates - offset) / input_size;
+  vec2 normalized_coordinates = (coordinates - offset) / vec2(input_size);
 
   imageStore(domain_img, texel, texture(input_tx, normalized_coordinates));
 }

@@ -184,7 +184,8 @@ static GPUTexture *create_volume_texture(const int dim[3],
                                    1,
                                    texture_format,
                                    data_format,
-                                   GPU_TEXTURE_USAGE_SHADER_READ,
+                                   GPU_TEXTURE_USAGE_SHADER_READ |
+                                       GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                                    NULL);
 
     if (tex != NULL) {

@@ -54,6 +54,7 @@
 #ifdef WITH_CONVOLUTION
 #include "fx/BinauralSound.h"
 #include "fx/ConvolverSound.h"
+#include "fx/Equalizer.h"
 #endif
 
 #include <cassert>
@@ -766,6 +767,16 @@ AUD_API AUD_Sound* AUD_Sound_Binaural(AUD_Sound* sound, AUD_HRTF* hrtfs, AUD_Sou
 	{
 		return nullptr;
 	}
+}
+
+AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int size, float maxFreqEq, int sizeConversion)
+{
+	assert(sound);
+
+	std::shared_ptr<Buffer> buf = std::shared_ptr<Buffer>(new Buffer(sizeof(float)*size));
+	std::memcpy(buf->getBuffer(), definition, sizeof(float)*size);
+	AUD_Sound *equalizer=new AUD_Sound(new Equalizer(*sound, buf, size, maxFreqEq, sizeConversion));
+	return equalizer;
 }
 
 #endif

@@ -389,10 +389,7 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
       (fcu->flag & FCURVE_INT_VALUES) ||
 #endif
       /* group that curve belongs to is not editable */
-      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-      /* Do not show handles if there is only 1 keyframe,
-       * otherwise they all clump together in an ugly ball. */
-      (fcu->totvert <= 1)) {
+      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED))) {
     return false;
   }
   return true;
@@ -609,7 +606,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
      *
      * Although the "Beauty Draw" flag was originally for AA'd
      * line drawing, the sampling rate here has a much greater
-     * impact on performance (e.g. for T40372)!
+     * impact on performance (e.g. for #40372)!
      *
      * This one still amounts to 10 sample-frames for each 1-frame interval
      * which should be quite a decent approximation in many situations.
@@ -619,7 +616,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
     }
   }
   else {
-    /* "Higher Precision" but slower - especially on larger windows (e.g. T40372) */
+    /* "Higher Precision" but slower - especially on larger windows (e.g. #40372) */
     if (samplefreq < 0.00001f) {
       samplefreq = 0.00001f;
     }
@@ -707,7 +704,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
                                       const uint shdr_pos,
                                       const bool draw_extrapolation)
 {
-  if (!draw_extrapolation && fcu->totvert == 1) {
+  if (!draw_extrapolation) {
     return;
   }
 
@@ -820,7 +817,7 @@ static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 static void draw_fcurve_curve_bezts(
     bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
 {
-  if (!draw_extrapolation && fcu->totvert == 1) {
+  if (!draw_extrapolation) {
     return;
   }
 
@@ -852,7 +849,7 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo == BEZT_IPO_CONST) ||
-        (fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
       /* just extend across the first keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }
@@ -971,7 +968,8 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) ||
-        (prevbezt->ipo == BEZT_IPO_CONST) || (fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_CONST) ||
+        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
       /* based on last keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }
@@ -1400,16 +1398,17 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   /* Update max-extent of channels here (taking into account scrollers):
    * - this is done to allow the channel list to be scrollable, but must be done here
    *   to avoid regenerating the list again and/or also because channels list is drawn first */
-  height = ACHANNEL_TOT_HEIGHT(ac, items);
+  height = ANIM_UI_get_channels_total_height(v2d, items);
   v2d->tot.ymin = -height;
+  const float channel_step = ANIM_UI_get_channel_step();
 
   /* Loop through channels, and set up drawing depending on their type. */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
-    float ymax = ACHANNEL_FIRST_TOP(ac);
+    float ymax = ANIM_UI_get_first_channel_top(v2d);
 
-    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
-      float ymin = ymax - ACHANNEL_HEIGHT(ac);
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step, channel_index++) {
+      const float ymin = ymax - ANIM_UI_get_channel_height();
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -1422,13 +1421,13 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   { /* second pass: widgets */
     uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
     size_t channel_index = 0;
-    float ymax = ACHANNEL_FIRST_TOP(ac);
+    float ymax = ANIM_UI_get_first_channel_top(v2d);
 
     /* set blending again, as may not be set in previous step */
     GPU_blend(GPU_BLEND_ALPHA);
 
-    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
-      float ymin = ymax - ACHANNEL_HEIGHT(ac);
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step, channel_index++) {
+      const float ymin = ymax - ANIM_UI_get_channel_height();
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||

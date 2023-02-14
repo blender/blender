@@ -167,7 +167,7 @@ static Curves *create_arc_curve_from_points(const int resolution,
 {
   const int size = connect_center ? resolution + 1 : resolution;
   Curves *curves_id = bke::curves_new_nomain_single(size, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
@@ -285,7 +285,7 @@ static Curves *create_arc_curve_from_radius(const int resolution,
 {
   const int size = connect_center ? resolution + 1 : resolution;
   Curves *curves_id = bke::curves_new_nomain_single(size, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;

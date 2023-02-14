@@ -2601,7 +2601,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
   }
   else {
     /* #BKE_image_add_generated creates one user by default, remove it if image is not linked to
-     * anything. ref. T94599. */
+     * anything. ref. #94599. */
     id_us_min(&ima->id);
   }
 

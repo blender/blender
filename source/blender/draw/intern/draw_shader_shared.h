@@ -27,7 +27,6 @@ typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 /* C++ only forward declarations. */
 struct Object;
 struct ViewLayer;
-struct ID;
 struct GPUUniformAttr;
 struct GPULayerAttr;
 
@@ -71,6 +70,7 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 #  define drw_view_id 0
 #  define DRW_VIEW_LEN 1
 #  define DRW_VIEW_SHIFT 0
+#  define DRW_VIEW_FROM_RESOURCE_ID
 #else
 
 /* Multi-view case. */
@@ -91,7 +91,7 @@ uint drw_view_id = 0;
      (DRW_VIEW_LEN > 2)  ? 2 : \
                            1)
 #  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
-#  define DRW_VIEW_FROM_RESOURCE_ID (drw_ResourceID & DRW_VIEW_MASK)
+#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
 #endif
 
 struct ViewCullingData {
@@ -327,13 +327,13 @@ struct DRWDebugVert {
   uint pos0;
   uint pos1;
   uint pos2;
-  /* Named vert_color to avoid global namespace collision with uniform color.*/
+  /* Named vert_color to avoid global namespace collision with uniform color. */
   uint vert_color;
 };
 BLI_STATIC_ASSERT_ALIGN(DRWDebugVert, 16)
 
 /* Take the header (DrawCommand) into account. */
-#define DRW_DEBUG_DRAW_VERT_MAX (64 * 1024) - 1
+#define DRW_DEBUG_DRAW_VERT_MAX (64 * 8192) - 1
 
 /* The debug draw buffer is laid-out as the following struct.
  * But we use plain array in shader code instead because of driver issues. */

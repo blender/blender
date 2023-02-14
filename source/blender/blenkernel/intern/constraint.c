@@ -124,7 +124,7 @@ bConstraintOb *BKE_constraints_make_evalob(
   /* create regardless of whether we have any data! */
   cob = MEM_callocN(sizeof(bConstraintOb), "bConstraintOb");
 
-  /* for system time, part of deglobalization, code nicer later with local time (ton) */
+  /* NOTE(@ton): For system time, part of de-globalization, code nicer later with local time. */
   cob->scene = scene;
   cob->depsgraph = depsgraph;
 
@@ -141,7 +141,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           /* NOTE: Versions <= 2.76 assumed that "default" order
            *       would always get used, so we may seem some rig
            *       breakage as a result. However, this change here
-           *       is needed to fix T46599
+           *       is needed to fix #46599
            */
           cob->rotOrder = ob->rotmode;
         }
@@ -236,7 +236,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
     }
   }
 
-  /* free tempolary struct */
+  /* Free temporary struct. */
   MEM_freeN(cob);
 }
 
@@ -548,7 +548,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   else if (me_eval) {
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
-    const MVert *verts = BKE_mesh_verts(me_eval);
+    const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
     int numVerts = me_eval->totvert;
 
     /* check that dvert is a valid pointers (just in case) */
@@ -557,11 +557,10 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
       /* get the average of all verts with that are in the vertex-group */
       for (int i = 0; i < numVerts; i++) {
         const MDeformVert *dv = &dvert[i];
-        const MVert *mv = &verts[i];
         const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
-          madd_v3_v3fl(vec, mv->co, dw->weight);
+          madd_v3_v3fl(vec, positions[i], dw->weight);
           madd_v3_v3fl(normal, vert_normals[i], dw->weight);
           weightsum += dw->weight;
         }
@@ -788,18 +787,18 @@ static void constraint_target_to_mat4(Object *ob,
  */
 #if 0
 static bConstraintTypeInfo CTI_CONSTRNAME = {
-    CONSTRAINT_TYPE_CONSTRNAME,    /* type */
-    sizeof(bConstrNameConstraint), /* size */
-    "ConstrName",                  /* name */
-    "bConstrNameConstraint",       /* struct name */
-    constrname_free,               /* free data */
-    constrname_id_looper,          /* id looper */
-    constrname_copy,               /* copy data */
-    constrname_new_data,           /* new data */
-    constrname_get_tars,           /* get constraint targets */
-    constrname_flush_tars,         /* flush constraint targets */
-    constrname_get_tarmat,         /* get target matrix */
-    constrname_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_CONSTRNAME,
+    /*size*/ sizeof(bConstrNameConstraint),
+    /*name*/ "ConstrName",
+    /*structName*/ "bConstrNameConstraint",
+    /*free_data*/ constrname_free,
+    /*id_looper*/ constrname_id_looper,
+    /*copy_data*/ constrname_copy,
+    /*new_data*/ constrname_new_data,
+    /*get_constraint_targets*/ constrname_get_tars,
+    /*flush_constraint_targets*/ constrname_flush_tars,
+    /*get_target_matrix*/ constrname_get_tarmat,
+    /*evaluate_constraint*/ constrname_evaluate,
 };
 #endif
 
@@ -1110,18 +1109,18 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
 /* XXX NOTE: con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in `readfile.c`. */
 static bConstraintTypeInfo CTI_CHILDOF = {
-    CONSTRAINT_TYPE_CHILDOF,    /* type */
-    sizeof(bChildOfConstraint), /* size */
-    N_("Child Of"),             /* name */
-    "bChildOfConstraint",       /* struct name */
-    NULL,                       /* free data */
-    childof_id_looper,          /* id looper */
-    NULL,                       /* copy data */
-    childof_new_data,           /* new data */
-    childof_get_tars,           /* get constraint targets */
-    childof_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,         /* get a target matrix */
-    childof_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_CHILDOF,
+    /*size*/ sizeof(bChildOfConstraint),
+    /*name*/ N_("Child Of"),
+    /*structName*/ "bChildOfConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ childof_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ childof_new_data,
+    /*get_constraint_targets*/ childof_get_tars,
+    /*flush_constraint_targets*/ childof_flush_tars,
+    /* get a target matrix */ default_get_tarmat,
+    /*evaluate_constraint*/ childof_evaluate,
 };
 
 /* -------- TrackTo Constraint ------- */
@@ -1223,7 +1222,7 @@ static void vectomat(const float vec[3],
   }
 
   /* NOTE: even though 'n' is normalized, don't use 'project_v3_v3v3_normalized' below
-   * because precision issues cause a problem in near degenerate states, see: T53455. */
+   * because precision issues cause a problem in near degenerate states, see: #53455. */
 
   /* project the up vector onto the plane specified by n */
   project_v3_v3v3(proj, u, n); /* first u onto n... */
@@ -1294,18 +1293,18 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 }
 
 static bConstraintTypeInfo CTI_TRACKTO = {
-    CONSTRAINT_TYPE_TRACKTO,    /* type */
-    sizeof(bTrackToConstraint), /* size */
-    N_("Track To"),             /* name */
-    "bTrackToConstraint",       /* struct name */
-    NULL,                       /* free data */
-    trackto_id_looper,          /* id looper */
-    NULL,                       /* copy data */
-    trackto_new_data,           /* new data */
-    trackto_get_tars,           /* get constraint targets */
-    trackto_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,         /* get target matrix */
-    trackto_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_TRACKTO,
+    /*size*/ sizeof(bTrackToConstraint),
+    /*name*/ N_("Track To"),
+    /*structName*/ "bTrackToConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ trackto_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ trackto_new_data,
+    /*get_constraint_targets*/ trackto_get_tars,
+    /*flush_constraint_targets*/ trackto_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ trackto_evaluate,
 };
 
 /* --------- Inverse-Kinematics --------- */
@@ -1400,18 +1399,18 @@ static void kinematic_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 }
 
 static bConstraintTypeInfo CTI_KINEMATIC = {
-    CONSTRAINT_TYPE_KINEMATIC,    /* type */
-    sizeof(bKinematicConstraint), /* size */
-    N_("IK"),                     /* name */
-    "bKinematicConstraint",       /* struct name */
-    NULL,                         /* free data */
-    kinematic_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    kinematic_new_data,           /* new data */
-    kinematic_get_tars,           /* get constraint targets */
-    kinematic_flush_tars,         /* flush constraint targets */
-    kinematic_get_tarmat,         /* get target matrix */
-    NULL,                         /* evaluate - solved as separate loop */
+    /*type*/ CONSTRAINT_TYPE_KINEMATIC,
+    /*size*/ sizeof(bKinematicConstraint),
+    /*name*/ N_("IK"),
+    /*structName*/ "bKinematicConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ kinematic_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ kinematic_new_data,
+    /*get_constraint_targets*/ kinematic_get_tars,
+    /*flush_constraint_targets*/ kinematic_flush_tars,
+    /*get_target_matrix*/ kinematic_get_tarmat,
+    /* evaluate - solved as separate loop */ NULL,
 };
 
 /* -------- Follow-Path Constraint ---------- */
@@ -1559,7 +1558,7 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 
     /* un-apply scaling caused by path */
     if ((data->followflag & FOLLOWPATH_RADIUS) == 0) {
-      /* XXX(@campbellbarton): Assume that scale correction means that radius
+      /* XXX(@ideasman42): Assume that scale correction means that radius
        * will have some scale error in it. */
       float obsize[3];
 
@@ -1578,18 +1577,18 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 }
 
 static bConstraintTypeInfo CTI_FOLLOWPATH = {
-    CONSTRAINT_TYPE_FOLLOWPATH,    /* type */
-    sizeof(bFollowPathConstraint), /* size */
-    N_("Follow Path"),             /* name */
-    "bFollowPathConstraint",       /* struct name */
-    NULL,                          /* free data */
-    followpath_id_looper,          /* id looper */
-    NULL,                          /* copy data */
-    followpath_new_data,           /* new data */
-    followpath_get_tars,           /* get constraint targets */
-    followpath_flush_tars,         /* flush constraint targets */
-    followpath_get_tarmat,         /* get target matrix */
-    followpath_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_FOLLOWPATH,
+    /*size*/ sizeof(bFollowPathConstraint),
+    /*name*/ N_("Follow Path"),
+    /*structName*/ "bFollowPathConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ followpath_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ followpath_new_data,
+    /*get_constraint_targets*/ followpath_get_tars,
+    /*flush_constraint_targets*/ followpath_flush_tars,
+    /*get_target_matrix*/ followpath_get_tarmat,
+    /*evaluate_constraint*/ followpath_evaluate,
 };
 
 /* --------- Limit Location --------- */
@@ -1631,18 +1630,18 @@ static void loclimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UN
 }
 
 static bConstraintTypeInfo CTI_LOCLIMIT = {
-    CONSTRAINT_TYPE_LOCLIMIT,    /* type */
-    sizeof(bLocLimitConstraint), /* size */
-    N_("Limit Location"),        /* name */
-    "bLocLimitConstraint",       /* struct name */
-    NULL,                        /* free data */
-    NULL,                        /* id looper */
-    NULL,                        /* copy data */
-    NULL,                        /* new data */
-    NULL,                        /* get constraint targets */
-    NULL,                        /* flush constraint targets */
-    NULL,                        /* get target matrix */
-    loclimit_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_LOCLIMIT,
+    /*size*/ sizeof(bLocLimitConstraint),
+    /*name*/ N_("Limit Location"),
+    /*structName*/ "bLocLimitConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ NULL,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ loclimit_evaluate,
 };
 
 /* -------- Limit Rotation --------- */
@@ -1712,18 +1711,18 @@ static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UN
 }
 
 static bConstraintTypeInfo CTI_ROTLIMIT = {
-    CONSTRAINT_TYPE_ROTLIMIT,    /* type */
-    sizeof(bRotLimitConstraint), /* size */
-    N_("Limit Rotation"),        /* name */
-    "bRotLimitConstraint",       /* struct name */
-    NULL,                        /* free data */
-    NULL,                        /* id looper */
-    NULL,                        /* copy data */
-    NULL,                        /* new data */
-    NULL,                        /* get constraint targets */
-    NULL,                        /* flush constraint targets */
-    NULL,                        /* get target matrix */
-    rotlimit_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_ROTLIMIT,
+    /*size*/ sizeof(bRotLimitConstraint),
+    /*name*/ N_("Limit Rotation"),
+    /*structName*/ "bRotLimitConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ NULL,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ rotlimit_evaluate,
 };
 
 /* --------- Limit Scale --------- */
@@ -1779,18 +1778,18 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 }
 
 static bConstraintTypeInfo CTI_SIZELIMIT = {
-    CONSTRAINT_TYPE_SIZELIMIT,    /* type */
-    sizeof(bSizeLimitConstraint), /* size */
-    N_("Limit Scale"),            /* name */
-    "bSizeLimitConstraint",       /* struct name */
-    NULL,                         /* free data */
-    NULL,                         /* id looper */
-    NULL,                         /* copy data */
-    NULL,                         /* new data */
-    NULL,                         /* get constraint targets */
-    NULL,                         /* flush constraint targets */
-    NULL,                         /* get target matrix */
-    sizelimit_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_SIZELIMIT,
+    /*size*/ sizeof(bSizeLimitConstraint),
+    /*name*/ N_("Limit Scale"),
+    /*structName*/ "bSizeLimitConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ NULL,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ sizelimit_evaluate,
 };
 
 /* ----------- Copy Location ------------- */
@@ -1876,18 +1875,18 @@ static void loclike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 }
 
 static bConstraintTypeInfo CTI_LOCLIKE = {
-    CONSTRAINT_TYPE_LOCLIKE,       /* type */
-    sizeof(bLocateLikeConstraint), /* size */
-    N_("Copy Location"),           /* name */
-    "bLocateLikeConstraint",       /* struct name */
-    NULL,                          /* free data */
-    loclike_id_looper,             /* id looper */
-    NULL,                          /* copy data */
-    loclike_new_data,              /* new data */
-    loclike_get_tars,              /* get constraint targets */
-    loclike_flush_tars,            /* flush constraint targets */
-    default_get_tarmat,            /* get target matrix */
-    loclike_evaluate,              /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_LOCLIKE,
+    /*size*/ sizeof(bLocateLikeConstraint),
+    /*name*/ N_("Copy Location"),
+    /*structName*/ "bLocateLikeConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ loclike_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ loclike_new_data,
+    /*get_constraint_targets*/ loclike_get_tars,
+    /*flush_constraint_targets*/ loclike_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ loclike_evaluate,
 };
 
 /* ----------- Copy Rotation ------------- */
@@ -1954,7 +1953,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* To allow compatible rotations, must get both rotations in the order of the owner... */
     mat4_to_eulO(obeul, rot_order, cob->matrix);
     /* We must get compatible eulers from the beginning because
-     * some of them can be modified below (see bug T21875).
+     * some of them can be modified below (see bug #21875).
      * Additionally, since this constraint is based on euler rotation math, it doesn't work well
      * with shear. The Y axis is chosen as the main axis when we orthogonalize the matrix because
      * constraints are used most commonly on bones. */
@@ -2053,18 +2052,18 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 }
 
 static bConstraintTypeInfo CTI_ROTLIKE = {
-    CONSTRAINT_TYPE_ROTLIKE,       /* type */
-    sizeof(bRotateLikeConstraint), /* size */
-    N_("Copy Rotation"),           /* name */
-    "bRotateLikeConstraint",       /* struct name */
-    NULL,                          /* free data */
-    rotlike_id_looper,             /* id looper */
-    NULL,                          /* copy data */
-    rotlike_new_data,              /* new data */
-    rotlike_get_tars,              /* get constraint targets */
-    rotlike_flush_tars,            /* flush constraint targets */
-    default_get_tarmat,            /* get target matrix */
-    rotlike_evaluate,              /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_ROTLIKE,
+    /*size*/ sizeof(bRotateLikeConstraint),
+    /*name*/ N_("Copy Rotation"),
+    /*structName*/ "bRotateLikeConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ rotlike_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ rotlike_new_data,
+    /*get_constraint_targets*/ rotlike_get_tars,
+    /*flush_constraint_targets*/ rotlike_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ rotlike_evaluate,
 };
 
 /* ---------- Copy Scale ---------- */
@@ -2183,18 +2182,18 @@ static void sizelike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
 }
 
 static bConstraintTypeInfo CTI_SIZELIKE = {
-    CONSTRAINT_TYPE_SIZELIKE,    /* type */
-    sizeof(bSizeLikeConstraint), /* size */
-    N_("Copy Scale"),            /* name */
-    "bSizeLikeConstraint",       /* struct name */
-    NULL,                        /* free data */
-    sizelike_id_looper,          /* id looper */
-    NULL,                        /* copy data */
-    sizelike_new_data,           /* new data */
-    sizelike_get_tars,           /* get constraint targets */
-    sizelike_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,          /* get target matrix */
-    sizelike_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_SIZELIKE,
+    /*size*/ sizeof(bSizeLikeConstraint),
+    /*name*/ N_("Copy Scale"),
+    /*structName*/ "bSizeLikeConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ sizelike_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ sizelike_new_data,
+    /*get_constraint_targets*/ sizelike_get_tars,
+    /*flush_constraint_targets*/ sizelike_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ sizelike_evaluate,
 };
 
 /* ----------- Copy Transforms ------------- */
@@ -2289,18 +2288,18 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 }
 
 static bConstraintTypeInfo CTI_TRANSLIKE = {
-    CONSTRAINT_TYPE_TRANSLIKE,     /* type */
-    sizeof(bTransLikeConstraint),  /* size */
-    N_("Copy Transforms"),         /* name */
-    "bTransLikeConstraint",        /* struct name */
-    NULL,                          /* free data */
-    translike_id_looper,           /* id looper */
-    NULL,                          /* copy data */
-    NULL,                          /* new data */
-    translike_get_tars,            /* get constraint targets */
-    translike_flush_tars,          /* flush constraint targets */
-    default_get_tarmat_full_bbone, /* get target matrix */
-    translike_evaluate,            /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_TRANSLIKE,
+    /*size*/ sizeof(bTransLikeConstraint),
+    /*name*/ N_("Copy Transforms"),
+    /*structName*/ "bTransLikeConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ translike_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ translike_get_tars,
+    /*flush_constraint_targets*/ translike_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat_full_bbone,
+    /*evaluate_constraint*/ translike_evaluate,
 };
 
 /* ---------- Maintain Volume ---------- */
@@ -2358,18 +2357,18 @@ static void samevolume_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 }
 
 static bConstraintTypeInfo CTI_SAMEVOL = {
-    CONSTRAINT_TYPE_SAMEVOL,       /* type */
-    sizeof(bSameVolumeConstraint), /* size */
-    N_("Maintain Volume"),         /* name */
-    "bSameVolumeConstraint",       /* struct name */
-    NULL,                          /* free data */
-    NULL,                          /* id looper */
-    NULL,                          /* copy data */
-    samevolume_new_data,           /* new data */
-    NULL,                          /* get constraint targets */
-    NULL,                          /* flush constraint targets */
-    NULL,                          /* get target matrix */
-    samevolume_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_SAMEVOL,
+    /*size*/ sizeof(bSameVolumeConstraint),
+    /*name*/ N_("Maintain Volume"),
+    /*structName*/ "bSameVolumeConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ NULL,
+    /*copy_data*/ NULL,
+    /*new_data*/ samevolume_new_data,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ samevolume_evaluate,
 };
 
 /* ----------- Python Constraint -------------- */
@@ -2490,18 +2489,18 @@ static void pycon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targe
 }
 
 static bConstraintTypeInfo CTI_PYTHON = {
-    CONSTRAINT_TYPE_PYTHON,    /* type */
-    sizeof(bPythonConstraint), /* size */
-    N_("Script"),              /* name */
-    "bPythonConstraint",       /* struct name */
-    pycon_free,                /* free data */
-    pycon_id_looper,           /* id looper */
-    pycon_copy,                /* copy data */
-    pycon_new_data,            /* new data */
-    pycon_get_tars,            /* get constraint targets */
-    NULL,                      /* flush constraint targets */
-    pycon_get_tarmat,          /* get target matrix */
-    pycon_evaluate,            /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_PYTHON,
+    /*size*/ sizeof(bPythonConstraint),
+    /*name*/ N_("Script"),
+    /*structName*/ "bPythonConstraint",
+    /*free_data*/ pycon_free,
+    /*id_looper*/ pycon_id_looper,
+    /*copy_data*/ pycon_copy,
+    /*new_data*/ pycon_new_data,
+    /*get_constraint_targets*/ pycon_get_tars,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ pycon_get_tarmat,
+    /*evaluate_constraint*/ pycon_evaluate,
 };
 
 /* ----------- Armature Constraint -------------- */
@@ -2742,18 +2741,18 @@ static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 }
 
 static bConstraintTypeInfo CTI_ARMATURE = {
-    CONSTRAINT_TYPE_ARMATURE,    /* type */
-    sizeof(bArmatureConstraint), /* size */
-    N_("Armature"),              /* name */
-    "bArmatureConstraint",       /* struct name */
-    armdef_free,                 /* free data */
-    armdef_id_looper,            /* id looper */
-    armdef_copy,                 /* copy data */
-    NULL,                        /* new data */
-    armdef_get_tars,             /* get constraint targets */
-    NULL,                        /* flush constraint targets */
-    armdef_get_tarmat,           /* get target matrix */
-    armdef_evaluate,             /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_ARMATURE,
+    /*size*/ sizeof(bArmatureConstraint),
+    /*name*/ N_("Armature"),
+    /*structName*/ "bArmatureConstraint",
+    /*free_data*/ armdef_free,
+    /*id_looper*/ armdef_id_looper,
+    /*copy_data*/ armdef_copy,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ armdef_get_tars,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ armdef_get_tarmat,
+    /*evaluate_constraint*/ armdef_evaluate,
 };
 
 /* -------- Action Constraint ----------- */
@@ -2958,18 +2957,18 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 }
 
 static bConstraintTypeInfo CTI_ACTION = {
-    CONSTRAINT_TYPE_ACTION,    /* type */
-    sizeof(bActionConstraint), /* size */
-    N_("Action"),              /* name */
-    "bActionConstraint",       /* struct name */
-    NULL,                      /* free data */
-    actcon_id_looper,          /* id looper */
-    NULL,                      /* copy data */
-    actcon_new_data,           /* new data */
-    actcon_get_tars,           /* get constraint targets */
-    actcon_flush_tars,         /* flush constraint targets */
-    actcon_get_tarmat,         /* get target matrix */
-    actcon_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_ACTION,
+    /*size*/ sizeof(bActionConstraint),
+    /*name*/ N_("Action"),
+    /*structName*/ "bActionConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ actcon_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ actcon_new_data,
+    /*get_constraint_targets*/ actcon_get_tars,
+    /*flush_constraint_targets*/ actcon_flush_tars,
+    /*get_target_matrix*/ actcon_get_tarmat,
+    /*evaluate_constraint*/ actcon_evaluate,
 };
 
 /* --------- Locked Track ---------- */
@@ -3274,18 +3273,18 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 }
 
 static bConstraintTypeInfo CTI_LOCKTRACK = {
-    CONSTRAINT_TYPE_LOCKTRACK,    /* type */
-    sizeof(bLockTrackConstraint), /* size */
-    N_("Locked Track"),           /* name */
-    "bLockTrackConstraint",       /* struct name */
-    NULL,                         /* free data */
-    locktrack_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    locktrack_new_data,           /* new data */
-    locktrack_get_tars,           /* get constraint targets */
-    locktrack_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,           /* get target matrix */
-    locktrack_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_LOCKTRACK,
+    /*size*/ sizeof(bLockTrackConstraint),
+    /*name*/ N_("Locked Track"),
+    /*structName*/ "bLockTrackConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ locktrack_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ locktrack_new_data,
+    /*get_constraint_targets*/ locktrack_get_tars,
+    /*flush_constraint_targets*/ locktrack_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ locktrack_evaluate,
 };
 
 /* ---------- Limit Distance Constraint ----------- */
@@ -3417,18 +3416,18 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 }
 
 static bConstraintTypeInfo CTI_DISTLIMIT = {
-    CONSTRAINT_TYPE_DISTLIMIT,    /* type */
-    sizeof(bDistLimitConstraint), /* size */
-    N_("Limit Distance"),         /* name */
-    "bDistLimitConstraint",       /* struct name */
-    NULL,                         /* free data */
-    distlimit_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    distlimit_new_data,           /* new data */
-    distlimit_get_tars,           /* get constraint targets */
-    distlimit_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,           /* get a target matrix */
-    distlimit_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_DISTLIMIT,
+    /*size*/ sizeof(bDistLimitConstraint),
+    /*name*/ N_("Limit Distance"),
+    /*structName*/ "bDistLimitConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ distlimit_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ distlimit_new_data,
+    /*get_constraint_targets*/ distlimit_get_tars,
+    /*flush_constraint_targets*/ distlimit_flush_tars,
+    /* get a target matrix */ default_get_tarmat,
+    /*evaluate_constraint*/ distlimit_evaluate,
 };
 
 /* ---------- Stretch To ------------ */
@@ -3625,18 +3624,18 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 }
 
 static bConstraintTypeInfo CTI_STRETCHTO = {
-    CONSTRAINT_TYPE_STRETCHTO,    /* type */
-    sizeof(bStretchToConstraint), /* size */
-    N_("Stretch To"),             /* name */
-    "bStretchToConstraint",       /* struct name */
-    NULL,                         /* free data */
-    stretchto_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    stretchto_new_data,           /* new data */
-    stretchto_get_tars,           /* get constraint targets */
-    stretchto_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,           /* get target matrix */
-    stretchto_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_STRETCHTO,
+    /*size*/ sizeof(bStretchToConstraint),
+    /*name*/ N_("Stretch To"),
+    /*structName*/ "bStretchToConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ stretchto_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ stretchto_new_data,
+    /*get_constraint_targets*/ stretchto_get_tars,
+    /*flush_constraint_targets*/ stretchto_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ stretchto_evaluate,
 };
 
 /* ---------- Floor ------------ */
@@ -3756,18 +3755,18 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 }
 
 static bConstraintTypeInfo CTI_MINMAX = {
-    CONSTRAINT_TYPE_MINMAX,    /* type */
-    sizeof(bMinMaxConstraint), /* size */
-    N_("Floor"),               /* name */
-    "bMinMaxConstraint",       /* struct name */
-    NULL,                      /* free data */
-    minmax_id_looper,          /* id looper */
-    NULL,                      /* copy data */
-    minmax_new_data,           /* new data */
-    minmax_get_tars,           /* get constraint targets */
-    minmax_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,        /* get target matrix */
-    minmax_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_MINMAX,
+    /*size*/ sizeof(bMinMaxConstraint),
+    /*name*/ N_("Floor"),
+    /*structName*/ "bMinMaxConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ minmax_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ minmax_new_data,
+    /*get_constraint_targets*/ minmax_get_tars,
+    /*flush_constraint_targets*/ minmax_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ minmax_evaluate,
 };
 
 /* -------- Clamp To ---------- */
@@ -3836,14 +3835,14 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     unit_m4(targetMatrix);
     INIT_MINMAX(curveMin, curveMax);
-    /* XXX(@campbellbarton): don't think this is good calling this here because
+    /* XXX(@ideasman42): don't think this is good calling this here because
      * the other object's data is lazily initializing bounding-box information.
      * This could cause issues when evaluating from a thread.
      * If the depsgraph ensures the bound-box is always available, a code-path could
      * be used that doesn't lazy initialize to avoid thread safety issues in the future. */
     BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 
-    /* get targetmatrix */
+    /* Get target-matrix. */
     if (data->tar->runtime.curve_cache && data->tar->runtime.curve_cache->anim_path_accum_length) {
       float vec[4], totmat[4][4];
       float curvetime;
@@ -3942,18 +3941,18 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 }
 
 static bConstraintTypeInfo CTI_CLAMPTO = {
-    CONSTRAINT_TYPE_CLAMPTO,    /* type */
-    sizeof(bClampToConstraint), /* size */
-    N_("Clamp To"),             /* name */
-    "bClampToConstraint",       /* struct name */
-    NULL,                       /* free data */
-    clampto_id_looper,          /* id looper */
-    NULL,                       /* copy data */
-    NULL,                       /* new data */
-    clampto_get_tars,           /* get constraint targets */
-    clampto_flush_tars,         /* flush constraint targets */
-    clampto_get_tarmat,         /* get target matrix */
-    clampto_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_CLAMPTO,
+    /*size*/ sizeof(bClampToConstraint),
+    /*name*/ N_("Clamp To"),
+    /*structName*/ "bClampToConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ clampto_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /*get_constraint_targets*/ clampto_get_tars,
+    /*flush_constraint_targets*/ clampto_flush_tars,
+    /*get_target_matrix*/ clampto_get_tarmat,
+    /*evaluate_constraint*/ clampto_evaluate,
 };
 
 /* ---------- Transform Constraint ----------- */
@@ -4025,7 +4024,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         mat4_to_size(dvec, ct->matrix);
 
         if (is_negative_m4(ct->matrix)) {
-          /* Bugfix T27886: (this is a limitation that riggers will have to live with for now).
+          /* Bugfix #27886: (this is a limitation that riggers will have to live with for now).
            * We can't be sure which axis/axes are negative,
            * though we know that something is negative.
            * Assume we don't care about negativity of separate axes. */
@@ -4151,18 +4150,18 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 }
 
 static bConstraintTypeInfo CTI_TRANSFORM = {
-    CONSTRAINT_TYPE_TRANSFORM,    /* type */
-    sizeof(bTransformConstraint), /* size */
-    N_("Transformation"),         /* name */
-    "bTransformConstraint",       /* struct name */
-    NULL,                         /* free data */
-    transform_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    transform_new_data,           /* new data */
-    transform_get_tars,           /* get constraint targets */
-    transform_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,           /* get a target matrix */
-    transform_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_TRANSFORM,
+    /*size*/ sizeof(bTransformConstraint),
+    /*name*/ N_("Transformation"),
+    /*structName*/ "bTransformConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ transform_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ transform_new_data,
+    /*get_constraint_targets*/ transform_get_tars,
+    /*flush_constraint_targets*/ transform_flush_tars,
+    /* get a target matrix */ default_get_tarmat,
+    /*evaluate_constraint*/ transform_evaluate,
 };
 
 /* ---------- Shrinkwrap Constraint ----------- */
@@ -4308,7 +4307,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
           /* Transform normal into requested space */
           /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
            * object case, because SpaceTransform also takes it into account when handling normals.
-           * See T42447. */
+           * See #42447. */
           unit_m4(mat);
           BKE_constraint_mat_convertspace(
               cob->ob, cob->pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
@@ -4382,18 +4381,18 @@ static void shrinkwrap_evaluate(bConstraint *UNUSED(con), bConstraintOb *cob, Li
 }
 
 static bConstraintTypeInfo CTI_SHRINKWRAP = {
-    CONSTRAINT_TYPE_SHRINKWRAP,    /* type */
-    sizeof(bShrinkwrapConstraint), /* size */
-    N_("Shrinkwrap"),              /* name */
-    "bShrinkwrapConstraint",       /* struct name */
-    NULL,                          /* free data */
-    shrinkwrap_id_looper,          /* id looper */
-    NULL,                          /* copy data */
-    shrinkwrap_new_data,           /* new data */
-    shrinkwrap_get_tars,           /* get constraint targets */
-    shrinkwrap_flush_tars,         /* flush constraint targets */
-    shrinkwrap_get_tarmat,         /* get a target matrix */
-    shrinkwrap_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_SHRINKWRAP,
+    /*size*/ sizeof(bShrinkwrapConstraint),
+    /*name*/ N_("Shrinkwrap"),
+    /*structName*/ "bShrinkwrapConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ shrinkwrap_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ shrinkwrap_new_data,
+    /*get_constraint_targets*/ shrinkwrap_get_tars,
+    /*flush_constraint_targets*/ shrinkwrap_flush_tars,
+    /* get a target matrix */ shrinkwrap_get_tarmat,
+    /*evaluate_constraint*/ shrinkwrap_evaluate,
 };
 
 /* --------- Damped Track ---------- */
@@ -4529,7 +4528,7 @@ static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3],
       }
     }
     else if (norm < 0.1f) {
-      /* near 0 and Pi arcsin has way better precision than arccos */
+      /* Near 0 and Pi `arcsin` has way better precision than `arccos`. */
       rangle = (rangle > M_PI_2) ? M_PI - asinf(norm) : asinf(norm);
     }
 
@@ -4547,18 +4546,18 @@ static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3],
 }
 
 static bConstraintTypeInfo CTI_DAMPTRACK = {
-    CONSTRAINT_TYPE_DAMPTRACK,    /* type */
-    sizeof(bDampTrackConstraint), /* size */
-    N_("Damped Track"),           /* name */
-    "bDampTrackConstraint",       /* struct name */
-    NULL,                         /* free data */
-    damptrack_id_looper,          /* id looper */
-    NULL,                         /* copy data */
-    damptrack_new_data,           /* new data */
-    damptrack_get_tars,           /* get constraint targets */
-    damptrack_flush_tars,         /* flush constraint targets */
-    default_get_tarmat,           /* get target matrix */
-    damptrack_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_DAMPTRACK,
+    /*size*/ sizeof(bDampTrackConstraint),
+    /*name*/ N_("Damped Track"),
+    /*structName*/ "bDampTrackConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ damptrack_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ damptrack_new_data,
+    /*get_constraint_targets*/ damptrack_get_tars,
+    /*flush_constraint_targets*/ damptrack_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ damptrack_evaluate,
 };
 
 /* ----------- Spline IK ------------ */
@@ -4642,18 +4641,18 @@ static void splineik_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 }
 
 static bConstraintTypeInfo CTI_SPLINEIK = {
-    CONSTRAINT_TYPE_SPLINEIK,    /* type */
-    sizeof(bSplineIKConstraint), /* size */
-    N_("Spline IK"),             /* name */
-    "bSplineIKConstraint",       /* struct name */
-    splineik_free,               /* free data */
-    splineik_id_looper,          /* id looper */
-    splineik_copy,               /* copy data */
-    splineik_new_data,           /* new data */
-    splineik_get_tars,           /* get constraint targets */
-    splineik_flush_tars,         /* flush constraint targets */
-    splineik_get_tarmat,         /* get target matrix */
-    NULL,                        /* evaluate - solved as separate loop */
+    /*type*/ CONSTRAINT_TYPE_SPLINEIK,
+    /*size*/ sizeof(bSplineIKConstraint),
+    /*name*/ N_("Spline IK"),
+    /*structName*/ "bSplineIKConstraint",
+    /*free_data*/ splineik_free,
+    /*id_looper*/ splineik_id_looper,
+    /*copy_data*/ splineik_copy,
+    /*new_data*/ splineik_new_data,
+    /*get_constraint_targets*/ splineik_get_tars,
+    /*flush_constraint_targets*/ splineik_flush_tars,
+    /*get_target_matrix*/ splineik_get_tarmat,
+    /* evaluate - solved as separate loop */ NULL,
 };
 
 /* ----------- Pivot ------------- */
@@ -4766,19 +4765,19 @@ static void pivotcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
 }
 
 static bConstraintTypeInfo CTI_PIVOT = {
-    CONSTRAINT_TYPE_PIVOT,    /* type */
-    sizeof(bPivotConstraint), /* size */
-    N_("Pivot"),              /* name */
-    "bPivotConstraint",       /* struct name */
-    NULL,                     /* free data */
-    pivotcon_id_looper,       /* id looper */
-    NULL,                     /* copy data */
-    NULL,
-    /* new data */       /* XXX: might be needed to get 'normal' pivot behavior... */
-    pivotcon_get_tars,   /* get constraint targets */
-    pivotcon_flush_tars, /* flush constraint targets */
-    default_get_tarmat,  /* get target matrix */
-    pivotcon_evaluate,   /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_PIVOT,
+    /*size*/ sizeof(bPivotConstraint),
+    /*name*/ N_("Pivot"),
+    /*structName*/ "bPivotConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ pivotcon_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ NULL,
+    /* XXX: might be needed to get 'normal' pivot behavior. */
+    /*get_constraint_targets*/ pivotcon_get_tars,
+    /*flush_constraint_targets*/ pivotcon_flush_tars,
+    /*get_target_matrix*/ default_get_tarmat,
+    /*evaluate_constraint*/ pivotcon_evaluate,
 };
 
 /* ----------- Follow Track ------------- */
@@ -5186,18 +5185,18 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 }
 
 static bConstraintTypeInfo CTI_FOLLOWTRACK = {
-    CONSTRAINT_TYPE_FOLLOWTRACK,    /* type */
-    sizeof(bFollowTrackConstraint), /* size */
-    N_("Follow Track"),             /* name */
-    "bFollowTrackConstraint",       /* struct name */
-    NULL,                           /* free data */
-    followtrack_id_looper,          /* id looper */
-    NULL,                           /* copy data */
-    followtrack_new_data,           /* new data */
-    NULL,                           /* get constraint targets */
-    NULL,                           /* flush constraint targets */
-    NULL,                           /* get target matrix */
-    followtrack_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_FOLLOWTRACK,
+    /*size*/ sizeof(bFollowTrackConstraint),
+    /*name*/ N_("Follow Track"),
+    /*structName*/ "bFollowTrackConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ followtrack_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ followtrack_new_data,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ followtrack_evaluate,
 };
 
 /* ----------- Camera Solver ------------- */
@@ -5244,18 +5243,18 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 }
 
 static bConstraintTypeInfo CTI_CAMERASOLVER = {
-    CONSTRAINT_TYPE_CAMERASOLVER,    /* type */
-    sizeof(bCameraSolverConstraint), /* size */
-    N_("Camera Solver"),             /* name */
-    "bCameraSolverConstraint",       /* struct name */
-    NULL,                            /* free data */
-    camerasolver_id_looper,          /* id looper */
-    NULL,                            /* copy data */
-    camerasolver_new_data,           /* new data */
-    NULL,                            /* get constraint targets */
-    NULL,                            /* flush constraint targets */
-    NULL,                            /* get target matrix */
-    camerasolver_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_CAMERASOLVER,
+    /*size*/ sizeof(bCameraSolverConstraint),
+    /*name*/ N_("Camera Solver"),
+    /*structName*/ "bCameraSolverConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ camerasolver_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ camerasolver_new_data,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ camerasolver_evaluate,
 };
 
 /* ----------- Object Solver ------------- */
@@ -5330,18 +5329,18 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 }
 
 static bConstraintTypeInfo CTI_OBJECTSOLVER = {
-    CONSTRAINT_TYPE_OBJECTSOLVER,    /* type */
-    sizeof(bObjectSolverConstraint), /* size */
-    N_("Object Solver"),             /* name */
-    "bObjectSolverConstraint",       /* struct name */
-    NULL,                            /* free data */
-    objectsolver_id_looper,          /* id looper */
-    NULL,                            /* copy data */
-    objectsolver_new_data,           /* new data */
-    NULL,                            /* get constraint targets */
-    NULL,                            /* flush constraint targets */
-    NULL,                            /* get target matrix */
-    objectsolver_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_OBJECTSOLVER,
+    /*size*/ sizeof(bObjectSolverConstraint),
+    /*name*/ N_("Object Solver"),
+    /*structName*/ "bObjectSolverConstraint",
+    /*free_data*/ NULL,
+    /*id_looper*/ objectsolver_id_looper,
+    /*copy_data*/ NULL,
+    /*new_data*/ objectsolver_new_data,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ objectsolver_evaluate,
 };
 
 /* ----------- Transform Cache ------------- */
@@ -5427,18 +5426,18 @@ static void transformcache_new_data(void *cdata)
 }
 
 static bConstraintTypeInfo CTI_TRANSFORM_CACHE = {
-    CONSTRAINT_TYPE_TRANSFORM_CACHE,   /* type */
-    sizeof(bTransformCacheConstraint), /* size */
-    N_("Transform Cache"),             /* name */
-    "bTransformCacheConstraint",       /* struct name */
-    transformcache_free,               /* free data */
-    transformcache_id_looper,          /* id looper */
-    transformcache_copy,               /* copy data */
-    transformcache_new_data,           /* new data */
-    NULL,                              /* get constraint targets */
-    NULL,                              /* flush constraint targets */
-    NULL,                              /* get target matrix */
-    transformcache_evaluate,           /* evaluate */
+    /*type*/ CONSTRAINT_TYPE_TRANSFORM_CACHE,
+    /*size*/ sizeof(bTransformCacheConstraint),
+    /*name*/ N_("Transform Cache"),
+    /*structName*/ "bTransformCacheConstraint",
+    /*free_data*/ transformcache_free,
+    /*id_looper*/ transformcache_id_looper,
+    /*copy_data*/ transformcache_copy,
+    /*new_data*/ transformcache_new_data,
+    /*get_constraint_targets*/ NULL,
+    /*flush_constraint_targets*/ NULL,
+    /*get_target_matrix*/ NULL,
+    /*evaluate_constraint*/ transformcache_evaluate,
 };
 
 /* ************************* Constraints Type-Info *************************** */
@@ -5606,7 +5605,7 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
 {
   const short type = con->type;
   if (BKE_constraint_remove(list, con)) {
-    /* ITASC needs to be rebuilt once a constraint is removed T26920. */
+    /* ITASC needs to be rebuilt once a constraint is removed #26920. */
     if (clear_dep && ELEM(type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
       BIK_clear_data(ob->pose);
     }
@@ -5832,7 +5831,7 @@ static bConstraint *add_new_constraint(Object *ob,
     }
     case CONSTRAINT_TYPE_ACTION: {
       /* The Before or Split modes require computing in local space, but
-       * for objects the Local space doesn't make sense (T78462, D6095 etc).
+       * for objects the Local space doesn't make sense (#78462, D6095 etc).
        * So only default to Before (Split) if the constraint is on a bone. */
       if (pchan) {
         bActionConstraint *data = con->data;
@@ -6423,7 +6422,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
      * - all this happens in world-space to prevent any weirdness creeping in
-     *   (T26014 and T25725), since some constraints may not convert the solution back to the input
+     *   (#26014 and #25725), since some constraints may not convert the solution back to the input
      *   space before blending but all are guaranteed to end up in good "world-space" result.
      */
     /* NOTE: all kind of stuff here before (caused trouble), much easier to just interpolate,

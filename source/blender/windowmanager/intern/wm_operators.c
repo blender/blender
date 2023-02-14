@@ -73,6 +73,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
+#include "ED_gpencil.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -503,7 +504,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
       }
       case ID_MA: {
 #  define ID_CAST_OBMATACT(id_pt) \
-    (BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol))
+    BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol)
         CTX_TEST_PTR_ID_CAST(
             C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->owner_id);
         break;
@@ -1436,7 +1437,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 
   uiBlock *block = arg2;
   /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
-   * in case WM_operator_call_ex exits/reloads the current file (T49199). */
+   * in case WM_operator_call_ex exits/reloads the current file (#49199). */
 
   UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
 
@@ -1472,7 +1473,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
   /* clear so the OK button is left alone */
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  /* new column so as not to interfere with custom layouts T26436. */
+  /* new column so as not to interfere with custom layouts #26436. */
   {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiBlock *col_block = uiLayoutGetBlock(col);
@@ -2191,6 +2192,7 @@ typedef struct {
   int initial_co[2];
   int slow_mouse[2];
   bool slow_mode;
+  float scale_fac;
   Dial *dial;
   GPUTexture *texture;
   ListBase orig_paintcursors;
@@ -2244,7 +2246,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   ED_area_status_text(area, msg);
 }
 
-static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
+static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, const wmEvent *event)
 {
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
@@ -2279,6 +2281,15 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
     d[0] *= zoom[0];
     d[1] *= zoom[1];
   }
+  /* Grease pencil draw tool needs to rescale the cursor size. If we don't do that
+   * the size of the radial is not equals to the actual stroke size. */
+  if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
+    rc->scale_fac = ED_gpencil_radial_control_scale(
+        C, (Brush *)rc->ptr.owner_id, rc->initial_value, event->mval);
+  }
+  else {
+    rc->scale_fac = 1.0f;
+  }
 
   rc->initial_mouse[0] -= d[0];
   rc->initial_mouse[1] -= d[1];
@@ -2300,7 +2311,8 @@ static void radial_control_set_tex(RadialControl *rc)
                                                ibuf->y,
                                                1,
                                                GPU_R8,
-                                               GPU_TEXTURE_USAGE_SHADER_READ,
+                                               GPU_TEXTURE_USAGE_SHADER_READ |
+                                                   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                                                ibuf->rect_float);
 
         GPU_texture_filter_mode(rc->texture, true);
@@ -2481,6 +2493,9 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     GPU_matrix_scale_2fv(zoom);
   }
+
+  /* Apply scale correction (used by grease pencil brushes). */
+  GPU_matrix_scale_2f(rc->scale_fac, rc->scale_fac);
 
   /* draw rotated texture */
   radial_control_paint_tex(rc, tex_radius, alpha);
@@ -2815,7 +2830,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   rc->current_value = rc->initial_value;
-  radial_control_set_initial_mouse(rc, event);
+  radial_control_set_initial_mouse(C, rc, event);
   radial_control_set_tex(rc);
 
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
@@ -3312,7 +3327,7 @@ static void redraw_timer_step(bContext *C,
 static bool redraw_timer_poll(bContext *C)
 {
   /* Check background mode as many of these actions use redrawing.
-   * NOTE(@campbellbarton): if it's useful to support undo or animation step this could
+   * NOTE(@ideasman42): if it's useful to support undo or animation step this could
    * be allowed at the moment this seems like a corner case that isn't needed. */
   return !G.background && WM_operator_winactive(C);
 }
@@ -3330,7 +3345,8 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   const int cfra = scene->r.cfra;
   const char *infostr = "";
 
-  /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation here.
+  /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation
+   * here.
    */
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 

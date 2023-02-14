@@ -13,6 +13,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 

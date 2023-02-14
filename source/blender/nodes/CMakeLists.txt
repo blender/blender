@@ -64,8 +64,8 @@ set(SRC
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
-  NOD_shader.h
   NOD_register.hh
+  NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
   NOD_socket_declarations_geometry.hh
@@ -92,12 +92,6 @@ if(WITH_BULLET)
     ${BULLET_INCLUDE_DIRS}
     ../../../intern/rigidbody
   )
-  if(NOT WITH_SYSTEM_BULLET)
-  list(APPEND LIB
-    extern_bullet
-  )
-  endif()
-
   list(APPEND LIB
     ${BULLET_LIBRARIES}
   )

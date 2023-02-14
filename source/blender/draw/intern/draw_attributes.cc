@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 
 /* Return true if the given DRW_AttributeRequest is already in the requests. */
 static bool drw_attributes_has_request(const DRW_Attributes *requests, DRW_AttributeRequest req)

@@ -63,6 +63,11 @@ void OBJECT_OT_clear_override_library(struct wmOperatorType *ot);
  */
 void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
 /**
+ * Used for drop-box.
+ * Assigns to object under cursor, creates a new geometry nodes modifier.
+ */
+void OBJECT_OT_drop_geometry_nodes(struct wmOperatorType *ot);
+/**
  * \note Only for empty-image objects, this operator is needed
  */
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);

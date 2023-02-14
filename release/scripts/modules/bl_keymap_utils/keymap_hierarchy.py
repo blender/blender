@@ -55,6 +55,7 @@ _km_hierarchy = [
         ('Curve', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_CURVE'),
         ]),
+        ('Curves', 'EMPTY', 'WINDOW', []),
         ('Armature', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_ARMATURE'),
         ]),

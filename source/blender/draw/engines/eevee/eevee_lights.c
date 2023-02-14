@@ -45,7 +45,7 @@ static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, const
     evli->sizey = scale[1] / scale[2];
     evli->spotsize = cosf(la->spotsize * 0.5f);
     evli->spotblend = (1.0f - evli->spotsize) * la->spotblend;
-    evli->radius = max_ff(0.001f, la->area_size);
+    evli->radius = max_ff(0.001f, la->radius);
   }
   else if (la->type == LA_AREA) {
     evli->sizex = max_ff(0.003f, la->area_size * scale[0] * 0.5f);
@@ -62,62 +62,83 @@ static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, const
     evli->radius = max_ff(0.001f, tanf(min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f));
   }
   else {
-    evli->radius = max_ff(0.001f, la->area_size);
+    evli->radius = max_ff(0.001f, la->radius);
   }
 }
 
-static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
+static float light_shape_radiance_get(const Light *la, const EEVEE_Light *evli)
 {
-  float power;
-  /* Make illumination power constant */
-  if (la->type == LA_AREA) {
-    power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
-            0.8f; /* XXX: Empirical, Fit cycles power. */
-    if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
-      /* Scale power to account for the lower area of the ellipse compared to the surrounding
-       * rectangle. */
-      power *= 4.0f / M_PI;
+  /* Make illumination power constant. */
+  switch (la->type) {
+    case LA_AREA: {
+      /* Rectangle area. */
+      float area = (evli->sizex * 2.0f) * (evli->sizey * 2.0f);
+      /* Scale for the lower area of the ellipse compared to the surrounding rectangle. */
+      if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
+        area *= M_PI / 4.0f;
+      }
+      /* NOTE: The 4 factor is from Cycles definition of power. */
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return 1.0f / (4.0f * area);
+    }
+    case LA_SPOT:
+    case LA_LOCAL: {
+      /* Sphere area. */
+      float area = 4.0f * (float)M_PI * square_f(evli->radius);
+      /* NOTE: Presence of a factor of PI here to match Cycles. But it should be missing to be
+       * consistent with the other cases. */
+      return 1.0f / (area * (float)M_PI);
+    }
+    default:
+    case LA_SUN: {
+      /* Disk area. */
+      float area = (float)M_PI * square_f(evli->radius);
+      /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
+       * we cannot reproduce so we account for that by scaling the light power. This function is
+       * the result of a rough manual fitting. */
+      float sun_scaling = 1.0f + square_f(evli->radius) / 2.0f;
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return sun_scaling / area;
     }
   }
-  else if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
-    power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI); /* `1/(4*(r^2)*(Pi^2))` */
-
-    /* for point lights (a.k.a radius == 0.0) */
-    // power = M_PI * M_PI * 0.78; /* XXX: Empirical, Fit cycles power. */
-  }
-  else { /* LA_SUN */
-    power = 1.0f / (evli->radius * evli->radius * M_PI);
-    /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
-     * cannot reproduce so we account for that by scaling the light power. This function is the
-     * result of a rough manual fitting. */
-    power += 1.0f / (2.0f * M_PI); /* `power *= 1 + (r^2)/2` */
-  }
-  return power;
 }
 
-static float light_shape_power_volume_get(const Light *la,
-                                          const EEVEE_Light *evli,
-                                          float area_power)
+/* Returns a factor to apply to light power to get a point light radiance instead of a shape
+ * radiance. */
+static float light_volume_radiance_factor_get(const Light *la,
+                                              const EEVEE_Light *evli,
+                                              float area_power)
 {
   /* Volume light is evaluated as point lights. Remove the shape power. */
   float power = 1.0f / area_power;
 
-  if (la->type == LA_AREA) {
-    /* Match cycles. Empirical fit... must correspond to some constant. */
-    power *= 0.0792f * M_PI;
-    /* This corrects for area light most representative point trick. The fit was found by
-     * reducing the average error compared to cycles. */
-    float area = evli->sizex * evli->sizey;
-    float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
-    /* Lerp between 1.0 and the limit (1 / pi). */
-    power *= tmp + (1.0f - tmp) * M_1_PI;
-  }
-  else if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
-    /* Match cycles. Empirical fit... must correspond to some constant. */
-    power *= 0.0792f;
-  }
-  else { /* LA_SUN */
-    /* Nothing to do. */
+  switch (la->type) {
+    case LA_AREA: {
+      /* This corrects for area light most representative point trick. The fit was found by
+       * reducing the average error compared to cycles. */
+      float area = (evli->sizex * 2.0f) * (evli->sizey * 2.0f);
+      float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
+      /* Lerp between 1.0 and the limit (1 / pi). */
+      float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
+      /* NOTE: The 4 factor is from Cycles definition of power. */
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      power *= mrp_scaling / 4.0f;
+      break;
+    }
+    case LA_SPOT:
+    case LA_LOCAL: {
+      /* Sphere solid angle. */
+      float area = 4.0f * (float)M_PI;
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      power *= 1.0f / area;
+      break;
+    }
+    default:
+    case LA_SUN: {
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      /* Do nothing. */
+      break;
+    }
   }
   return power;
 }
@@ -180,10 +201,10 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
     evli->light_type = LAMPTYPE_AREA_ELLIPSE;
   }
 
-  float shape_power = light_shape_power_get(la, evli);
+  float shape_power = light_shape_radiance_get(la, evli);
   mul_v3_fl(evli->color, shape_power * la->energy);
 
-  evli->volume *= light_shape_power_volume_get(la, evli, shape_power);
+  evli->volume *= light_volume_radiance_factor_get(la, evli, shape_power);
 
   /* No shadow by default */
   evli->shadow_id = -1.0f;

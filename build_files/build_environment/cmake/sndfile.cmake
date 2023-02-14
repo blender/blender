@@ -4,22 +4,17 @@ set(SNDFILE_EXTRA_ARGS)
 set(SNDFILE_ENV)
 
 if(WIN32)
-  set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR})
+  set(SNDFILE_ENV "PKG_CONFIG_PATH=\
+${mingw_LIBDIR}/ogg/lib/pkgconfig:\
+${mingw_LIBDIR}/vorbis/lib/pkgconfig:\
+${mingw_LIBDIR}/flac/lib/pkgconfig:\
+${mingw_LIBDIR}/opus/lib/pkgconfig"
+)
   set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
   # Shared for windows because static libs will drag in a libgcc dependency.
   set(SNDFILE_OPTIONS --disable-static --enable-shared )
 else()
   set(SNDFILE_OPTIONS --enable-static --disable-shared )
-endif()
-
-if(UNIX AND NOT APPLE)
-  # NOTE(@campbellbarton): For some reason OPUS is alone in referencing the sub-directory,
-  # manipulate the package-config file to prevent this from happening.
-  # There is no problem with applying this change multiple times.
-  #
-  # Replace: Cflags: -I${includedir}/opus
-  # With:    Cflags: -I${includedir}
-  set(SNDFILE_ENV sed -i s/{includedir}\\/opus/{includedir}/g ${LIBDIR}/opus/lib/pkgconfig/opus.pc && ${SNDFILE_ENV})
 endif()
 
 ExternalProject_Add(external_sndfile
@@ -52,10 +47,10 @@ endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_sndfile after_install
-      COMMAND  lib /def:${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.def /machine:x64 /out:${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.lib
-      COMMAND  ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/bin/libsndfile-1.dll ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.dll
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.lib ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.lib
-      COMMAND  ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/include/sndfile.h ${HARVEST_TARGET}/sndfile/include/sndfile.h
+    COMMAND lib /def:${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.def /machine:x64 /out:${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/bin/libsndfile-1.dll ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/sndfile/src/external_sndfile/src/libsndfile-1.lib ${HARVEST_TARGET}/sndfile/lib/libsndfile-1.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/include/sndfile.h ${HARVEST_TARGET}/sndfile/include/sndfile.h
 
     DEPENDEES install
   )

@@ -4,7 +4,6 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 
-#include "BKE_appdir.h"
 #include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
@@ -12,8 +11,6 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
-
-#include "CLG_log.h"
 
 #include "testing/testing.h"
 

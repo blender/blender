@@ -22,24 +22,11 @@ void preprocess_geometry_node_tree_for_evaluation(bNodeTree &tree_cow)
   blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree_cow);
 }
 
-static void double_checked_lock(std::mutex &mutex, bool &data_is_dirty, FunctionRef<void()> fn)
+static void update_interface_sockets(const bNodeTree &ntree)
 {
-  if (!data_is_dirty) {
-    return;
-  }
-  std::lock_guard lock{mutex};
-  if (!data_is_dirty) {
-    return;
-  }
-  fn();
-  data_is_dirty = false;
-}
-
-static void double_checked_lock_with_task_isolation(std::mutex &mutex,
-                                                    bool &data_is_dirty,
-                                                    FunctionRef<void()> fn)
-{
-  double_checked_lock(mutex, data_is_dirty, [&]() { threading::isolate_task(fn); });
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  tree_runtime.interface_inputs = ntree.inputs;
+  tree_runtime.interface_outputs = ntree.outputs;
 }
 
 static void update_node_vector(const bNodeTree &ntree)
@@ -64,6 +51,10 @@ static void update_link_vector(const bNodeTree &ntree)
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.links.clear();
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    /* Check that the link connects nodes within this tree. */
+    BLI_assert(tree_runtime.nodes_by_id.contains(link->fromnode));
+    BLI_assert(tree_runtime.nodes_by_id.contains(link->tonode));
+
     tree_runtime.links.append(link);
   }
 }
@@ -104,8 +95,8 @@ static void update_internal_link_inputs(const bNodeTree &ntree)
     for (bNodeSocket *socket : node->runtime->outputs) {
       socket->runtime->internal_link_input = nullptr;
     }
-    for (bNodeLink *link : node->runtime->internal_links) {
-      link->tosock->runtime->internal_link_input = link->fromsock;
+    for (bNodeLink &link : node->runtime->internal_links) {
+      link.tosock->runtime->internal_link_input = link.fromsock;
     }
   }
 }
@@ -427,36 +418,34 @@ static void update_group_output_node(const bNodeTree &ntree)
 static void ensure_topology_cache(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  double_checked_lock_with_task_isolation(
-      tree_runtime.topology_cache_mutex, tree_runtime.topology_cache_is_dirty, [&]() {
-        update_node_vector(ntree);
-        update_link_vector(ntree);
-        update_socket_vectors_and_owner_node(ntree);
-        update_internal_link_inputs(ntree);
-        update_directly_linked_links_and_sockets(ntree);
-        threading::parallel_invoke(
-            tree_runtime.nodes_by_id.size() > 32,
-            [&]() { update_logical_origins(ntree); },
-            [&]() { update_nodes_by_type(ntree); },
-            [&]() { update_sockets_by_identifier(ntree); },
-            [&]() {
-              update_toposort(ntree,
-                              ToposortDirection::LeftToRight,
-                              tree_runtime.toposort_left_to_right,
-                              tree_runtime.has_available_link_cycle);
-            },
-            [&]() {
-              bool dummy;
-              update_toposort(ntree,
-                              ToposortDirection::RightToLeft,
-                              tree_runtime.toposort_right_to_left,
-                              dummy);
-            },
-            [&]() { update_root_frames(ntree); },
-            [&]() { update_direct_frames_childrens(ntree); });
-        update_group_output_node(ntree);
-        tree_runtime.topology_cache_exists = true;
-      });
+  tree_runtime.topology_cache_mutex.ensure([&]() {
+    update_interface_sockets(ntree);
+    update_node_vector(ntree);
+    update_link_vector(ntree);
+    update_socket_vectors_and_owner_node(ntree);
+    update_internal_link_inputs(ntree);
+    update_directly_linked_links_and_sockets(ntree);
+    threading::parallel_invoke(
+        tree_runtime.nodes_by_id.size() > 32,
+        [&]() { update_logical_origins(ntree); },
+        [&]() { update_nodes_by_type(ntree); },
+        [&]() { update_sockets_by_identifier(ntree); },
+        [&]() {
+          update_toposort(ntree,
+                          ToposortDirection::LeftToRight,
+                          tree_runtime.toposort_left_to_right,
+                          tree_runtime.has_available_link_cycle);
+        },
+        [&]() {
+          bool dummy;
+          update_toposort(
+              ntree, ToposortDirection::RightToLeft, tree_runtime.toposort_right_to_left, dummy);
+        },
+        [&]() { update_root_frames(ntree); },
+        [&]() { update_direct_frames_childrens(ntree); });
+    update_group_output_node(ntree);
+    tree_runtime.topology_cache_exists = true;
+  });
 }
 
 }  // namespace blender::bke::node_tree_runtime

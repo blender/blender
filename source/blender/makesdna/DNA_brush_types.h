@@ -10,6 +10,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_enums.h"
 #include "DNA_curve_types.h"
+#include "DNA_defs.h"
 #include "DNA_texture_types.h" /* for MTex */
 
 #ifdef __cplusplus
@@ -165,6 +166,8 @@ typedef struct BrushCurvesSculptSettings {
 } BrushCurvesSculptSettings;
 
 typedef struct Brush {
+  DNA_DEFINE_CXX_METHODS(Brush)
+
   ID id;
 
   struct BrushClone clone;

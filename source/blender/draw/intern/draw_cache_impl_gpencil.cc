@@ -23,7 +23,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 
 #include "draw_cache.h"
@@ -39,7 +39,7 @@
 /** \name Internal Types
  * \{ */
 
-typedef struct GpencilBatchCache {
+struct GpencilBatchCache {
   /** Instancing Data */
   GPUVertBuf *vbo;
   GPUVertBuf *vbo_col;
@@ -65,7 +65,7 @@ typedef struct GpencilBatchCache {
   bool is_dirty;
   /** Last cache frame */
   int cache_frame;
-} GpencilBatchCache;
+};
 
 /** \} */
 
@@ -175,16 +175,16 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
  * \{ */
 
 /* MUST match the format below. */
-typedef struct gpStrokeVert {
+struct gpStrokeVert {
   /** Position and thickness packed in the same attribute. */
   float pos[3], thickness;
   /** Material Index, Stroke Index, Point Index, Packed aspect + hardness + rotation. */
   int32_t mat, stroke_id, point_id, packed_asp_hard_rot;
   /** UV and strength packed in the same attribute. */
   float uv_fill[2], u_stroke, strength;
-} gpStrokeVert;
+};
 
-static GPUVertFormat *gpencil_stroke_format(void)
+static GPUVertFormat *gpencil_stroke_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -196,12 +196,12 @@ static GPUVertFormat *gpencil_stroke_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpEditVert {
+struct gpEditVert {
   uint vflag;
   float weight;
-} gpEditVert;
+};
 
-static GPUVertFormat *gpencil_edit_stroke_format(void)
+static GPUVertFormat *gpencil_edit_stroke_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -212,12 +212,12 @@ static GPUVertFormat *gpencil_edit_stroke_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpEditCurveVert {
+struct gpEditCurveVert {
   float pos[3];
   uint32_t data;
-} gpEditCurveVert;
+};
 
-static GPUVertFormat *gpencil_edit_curve_format(void)
+static GPUVertFormat *gpencil_edit_curve_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -229,12 +229,12 @@ static GPUVertFormat *gpencil_edit_curve_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpColorVert {
+struct gpColorVert {
   float vcol[4]; /* Vertex color */
   float fcol[4]; /* Fill color */
-} gpColorVert;
+};
 
-static GPUVertFormat *gpencil_color_format(void)
+static GPUVertFormat *gpencil_color_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -250,7 +250,7 @@ static GPUVertFormat *gpencil_color_format(void)
 /** \name Vertex Buffers
  * \{ */
 
-typedef struct gpIterData {
+struct gpIterData {
   bGPdata *gpd;
   gpStrokeVert *verts;
   gpColorVert *cols;
@@ -258,9 +258,9 @@ typedef struct gpIterData {
   int vert_len;
   int tri_len;
   int curve_len;
-} gpIterData;
+};
 
-static GPUVertBuf *gpencil_dummy_buffer_get(void)
+static GPUVertBuf *gpencil_dummy_buffer_get()
 {
   GPUBatch *batch = DRW_gpencil_dummy_buffer_get();
   return batch->verts[0];
@@ -276,7 +276,7 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   int32_t packed = 0;
   /* Aspect uses 9 bits */
   float asp_normalized = (asp > 1.0f) ? (1.0f / asp) : asp;
-  packed |= (int32_t)unit_float_to_uchar_clamp(asp_normalized);
+  packed |= int32_t(unit_float_to_uchar_clamp(asp_normalized));
   /* Store if inversed in the 9th bit. */
   if (asp > 1.0f) {
     packed |= 1 << 8;
@@ -284,13 +284,13 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   /* Rotation uses 9 bits */
   /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
    * because the cosine will always be positive. */
-  packed |= (int32_t)unit_float_to_uchar_clamp(cosf(rot)) << 9;
+  packed |= int32_t(unit_float_to_uchar_clamp(cosf(rot))) << 9;
   /* Store sine sign in 9th bit. */
   if (rot < 0.0f) {
     packed |= 1 << 17;
   }
   /* Hardness uses 8 bits */
-  packed |= (int32_t)unit_float_to_uchar_clamp(hard) << 18;
+  packed |= int32_t(unit_float_to_uchar_clamp(hard)) << 18;
   return packed;
 }
 
@@ -315,7 +315,7 @@ static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
   /* Encode fill opacity defined by opacity modifier in vertex color alpha. If
    * no opacity modifier, the value will be always 1.0f. The opacity factor can be any
    * value between 0.0f and 2.0f */
-  col->fcol[3] = ((int)(col->fcol[3] * 10000.0f) * 10.0f) + gps->fill_opacity_fac;
+  col->fcol[3] = (int(col->fcol[3] * 10000.0f) * 10.0f) + gps->fill_opacity_fac;
 
   vert->strength = (round_cap0) ? pt->strength : -pt->strength;
   vert->u_stroke = pt->uv_fac;
@@ -386,8 +386,8 @@ static void gpencil_buffer_add_fill(GPUIndexBufBuilder *ibo, const bGPDstroke *g
   }
 }
 
-static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
-                                   bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_iter_cb(bGPDlayer * /*gpl*/,
+                                   bGPDframe * /*gpf*/,
                                    bGPDstroke *gps,
                                    void *thunk)
 {
@@ -398,8 +398,8 @@ static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
   gpencil_buffer_add_stroke(&iter->ibo, iter->verts, iter->cols, gps);
 }
 
-static void gpencil_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
-                                          bGPDframe *UNUSED(gpf),
+static void gpencil_object_verts_count_cb(bGPDlayer * /*gpl*/,
+                                          bGPDframe * /*gpf*/,
                                           bGPDstroke *gps,
                                           void *thunk)
 {
@@ -503,8 +503,8 @@ GPUVertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra)
   return cache->vbo_col;
 }
 
-static void gpencil_lines_indices_cb(bGPDlayer *UNUSED(gpl),
-                                     bGPDframe *UNUSED(gpf),
+static void gpencil_lines_indices_cb(bGPDlayer * /*gpl*/,
+                                     bGPDframe * /*gpf*/,
                                      bGPDstroke *gps,
                                      void *thunk)
 {
@@ -579,7 +579,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
     gps->runtime.stroke_start = 0;
     copy_v4_v4(gps->vert_color_fill, gpd->runtime.vert_color_fill);
     /* Caps. */
-    gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
+    gps->caps[0] = gps->caps[1] = short(brush->gpencil_settings->caps_type);
 
     gpd->runtime.sbuffer_gps = gps;
   }
@@ -726,15 +726,15 @@ void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 #define GP_EDIT_STROKE_END (1 << 4)
 #define GP_EDIT_POINT_DIMMED (1 << 5)
 
-typedef struct gpEditIterData {
+struct gpEditIterData {
   gpEditVert *verts;
   int vgindex;
-} gpEditIterData;
+};
 
-typedef struct gpEditCurveIterData {
+struct gpEditCurveIterData {
   gpEditCurveVert *verts;
   int vgindex;
-} gpEditCurveIterData;
+};
 
 static uint32_t gpencil_point_edit_flag(const bool layer_lock,
                                         const bGPDspoint *pt,
@@ -785,7 +785,7 @@ static void gpencil_edit_stroke_iter_cb(bGPDlayer *gpl,
 }
 
 static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
-                                               bGPDframe *UNUSED(gpf),
+                                               bGPDframe * /*gpf*/,
                                                bGPDstroke *gps,
                                                void *thunk)
 {
@@ -821,7 +821,7 @@ static uint32_t gpencil_beztriple_vflag_get(char flag,
 }
 
 static void gpencil_edit_curve_stroke_iter_cb(bGPDlayer *gpl,
-                                              bGPDframe *UNUSED(gpf),
+                                              bGPDframe * /*gpf*/,
                                               bGPDstroke *gps,
                                               void *thunk)
 {
@@ -904,10 +904,10 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
     /* Create the batches */
     cache->edit_points_batch = GPU_batch_create(GPU_PRIM_POINTS, cache->vbo, nullptr);
-    GPU_batch_vertbuf_add(cache->edit_points_batch, cache->edit_vbo);
+    GPU_batch_vertbuf_add(cache->edit_points_batch, cache->edit_vbo, false);
 
     cache->edit_lines_batch = GPU_batch_create(GPU_PRIM_LINE_STRIP, cache->vbo, nullptr);
-    GPU_batch_vertbuf_add(cache->edit_lines_batch, cache->edit_vbo);
+    GPU_batch_vertbuf_add(cache->edit_lines_batch, cache->edit_vbo, false);
   }
 
   /* Curve Handles and Points for Editing. */
@@ -941,11 +941,11 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
       cache->edit_curve_handles_batch = GPU_batch_create(
           GPU_PRIM_LINES, cache->edit_curve_vbo, nullptr);
-      GPU_batch_vertbuf_add(cache->edit_curve_handles_batch, cache->edit_curve_vbo);
+      GPU_batch_vertbuf_add(cache->edit_curve_handles_batch, cache->edit_curve_vbo, false);
 
       cache->edit_curve_points_batch = GPU_batch_create(
           GPU_PRIM_POINTS, cache->edit_curve_vbo, nullptr);
-      GPU_batch_vertbuf_add(cache->edit_curve_points_batch, cache->edit_curve_vbo);
+      GPU_batch_vertbuf_add(cache->edit_curve_points_batch, cache->edit_curve_vbo, false);
     }
 
     gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;

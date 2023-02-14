@@ -69,7 +69,7 @@
 #define KMAXDIST (10 * U.dpi_fac) /* Max mouse distance from edge before not detecting it. */
 
 /* WARNING: Knife float precision is fragile:
- * Be careful before making changes here see: (T43229, T42864, T42459, T41164).
+ * Be careful before making changes here see: (#43229, #42864, #42459, #41164).
  */
 #define KNIFE_FLT_EPS 0.00001f
 #define KNIFE_FLT_EPS_SQUARED (KNIFE_FLT_EPS * KNIFE_FLT_EPS)
@@ -198,7 +198,7 @@ typedef struct KnifeObjectInfo {
    * Optionally allocate triangle indices, these are needed for non-interactive knife
    * projection as multiple cuts are made without the BVH being updated.
    * Using these indices the it's possible to access `cagecos` even if the face has been cut
-   * and the loops in `em->looptris` no longer refer to the original triangles, see: T97153.
+   * and the loops in `em->looptris` no longer refer to the original triangles, see: #97153.
    */
   const int (*tri_indices)[3];
 
@@ -2684,7 +2684,7 @@ static bool coinciding_edges(BMEdge *e1, BMEdge *e2)
 
 /* Callback used in point_is_visible to exclude hits on the faces that are the same
  * as or contain the hitting element (which is in user_data).
- * Also (see T44492) want to exclude hits on faces that butt up to the hitting element
+ * Also (see #44492) want to exclude hits on faces that butt up to the hitting element
  * (e.g., when you double an edge by an edge split).
  */
 static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
@@ -2975,10 +2975,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     face_tol = KNIFE_FLT_EPS_PX_FACE;
   }
   else {
-    /* Use 1/100th of a pixel, see T43896 (too big), T47910 (too small).
+    /* Use 1/100th of a pixel, see #43896 (too big), #47910 (too small).
      *
      * Update, leave this as is until we investigate not using pixel coords
-     * for geometry calculations: T48023. */
+     * for geometry calculations: #48023. */
     vert_tol = line_tol = face_tol = 0.5f;
   }
 
@@ -3017,7 +3017,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
       /* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
        * Knowing if the hit comes from an edge is important for edge-in-face checks later on.
-       * See: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611. */
+       * See: #knife_add_single_cut -> #knife_verts_edge_in_face, #42611. */
       if (kfe_hit) {
         hit.kfe = kfe_hit;
       }
@@ -4082,7 +4082,7 @@ static void knifetool_init(ViewContext *vc,
                            const bool is_interactive)
 {
   /* Needed so multiple non-interactive cuts (also called knife-project)
-   * doesn't access indices of loops that were created by cutting, see: T97153. */
+   * doesn't access indices of loops that were created by cutting, see: #97153. */
   bool use_tri_indices = !is_interactive;
 
   kcd->vc = *vc;
@@ -4303,7 +4303,7 @@ static void knifetool_finish_single_pre(KnifeTool_OpData *kcd, Object *ob)
 
 /**
  * A post version is needed to delay recalculating tessellation after making cuts.
- * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: T98349.
+ * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: #98349.
  */
 static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *ob)
 {
@@ -4321,8 +4321,8 @@ static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *
 static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 {
   /* Separate pre/post passes are needed because `em->looptris` recalculation from the 'post' pass
-   * causes causes triangle indices in #KnifeTool_OpData.bvh to get out of sync.
-   * So perform all the cuts before doing any mesh recalculation, see: T101721. */
+   * causes triangle indices in #KnifeTool_OpData.bvh to get out of sync.
+   * So perform all the cuts before doing any mesh recalculation, see: #101721. */
   for (uint ob_index = 0; ob_index < kcd->objects_len; ob_index++) {
     Object *ob = kcd->objects[ob_index];
     knifetool_finish_single_pre(kcd, ob);

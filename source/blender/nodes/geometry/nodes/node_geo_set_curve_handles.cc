@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include "BLI_task.hh"
+
 #include "BKE_curves.hh"
 
 #include "UI_interface.h"
@@ -16,14 +18,16 @@ NODE_STORAGE_FUNCS(NodeGeometrySetCurveHandlePositions)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field([](const bNode &node, void *r_value) {
-    const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ? "handle_left" :
-                                                                                   "handle_right";
-    new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
-  });
-  b.add_input<decl::Vector>(N_("Offset")).default_value(float3(0.0f, 0.0f, 0.0f)).supports_field();
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Position"))
+      .implicit_field_on_all([](const bNode &node, void *r_value) {
+        const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ?
+                                   "handle_left" :
+                                   "handle_right";
+        new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
+      });
+  b.add_input<decl::Vector>(N_("Offset")).default_value(float3(0.0f, 0.0f, 0.0f)).field_on_all();
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -142,7 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       has_curves = true;
       const AttributeAccessor attributes = curves.attributes();
       if (!attributes.contains("handle_left") || !attributes.contains("handle_right")) {

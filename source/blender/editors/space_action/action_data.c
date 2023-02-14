@@ -586,7 +586,7 @@ void ED_animedit_unlink_action(
 
             if (strip->act == act) {
               /* Remove this strip, and the track too if it doesn't have anything else */
-              BKE_nlastrip_free(&nlt->strips, strip, true);
+              BKE_nlastrip_remove_and_free(&nlt->strips, strip, true);
 
               if (nlt->strips.first == NULL) {
                 BLI_assert(nstrip == NULL);

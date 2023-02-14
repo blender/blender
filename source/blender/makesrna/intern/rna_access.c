@@ -369,6 +369,9 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
       if (idprop->subtype == IDP_FLOAT && prop->type != PROP_FLOAT) {
         return false;
       }
+      if (idprop->subtype == IDP_BOOLEAN && prop->type != PROP_BOOLEAN) {
+        return false;
+      }
       if (idprop->subtype == IDP_INT && !ELEM(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM)) {
         return false;
       }
@@ -376,6 +379,11 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
       break;
     case IDP_INT:
       if (!ELEM(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM)) {
+        return false;
+      }
+      break;
+    case IDP_BOOLEAN:
+      if (prop->type != PROP_BOOLEAN) {
         return false;
       }
       break;
@@ -414,6 +422,7 @@ static PropertyRNA *typemap[IDP_NUMTYPES] = {
     &rna_PropertyGroupItem_id,
     &rna_PropertyGroupItem_double,
     &rna_PropertyGroupItem_idp_array,
+    &rna_PropertyGroupItem_bool,
 };
 
 static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
@@ -426,6 +435,8 @@ static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
     &rna_PropertyGroupItem_collection,
     NULL,
     &rna_PropertyGroupItem_double_array,
+    NULL,
+    (PropertyRNA *)&rna_PropertyGroupItem_bool_array,
 };
 
 void rna_property_rna_or_id_get(PropertyRNA *prop,
@@ -1404,6 +1415,16 @@ int RNA_property_string_maxlength(PropertyRNA *prop)
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 {
+  if (prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = (IDProperty *)prop;
+    if (idprop->type == IDP_ID) {
+      const IDPropertyUIDataID *ui_data = (const IDPropertyUIDataID *)idprop->ui_data;
+      if (ui_data) {
+        return ID_code_to_RNA_type(ui_data->id_type);
+      }
+    }
+  }
+
   prop = rna_ensure_property(prop);
 
   if (prop->type == PROP_POINTER) {
@@ -2073,7 +2094,7 @@ static void rna_property_update(
     }
 
 #if 1
-    /* TODO(@campbellbarton): Should eventually be replaced entirely by message bus (below)
+    /* TODO(@ideasman42): Should eventually be replaced entirely by message bus (below)
      * for now keep since COW, bugs are hard to track when we have other missing updates. */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);
@@ -2109,7 +2130,7 @@ static void rna_property_update(
      *
      * So editing custom properties only causes updates in the UI,
      * keep this exception because it happens to be useful for driving settings.
-     * Python developers on the other hand will need to manually 'update_tag', see: T74000. */
+     * Python developers on the other hand will need to manually 'update_tag', see: #74000. */
     DEG_id_tag_update(ptr->owner_id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
 
@@ -2160,7 +2181,7 @@ bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
   BLI_assert(RNA_property_array_check(prop) == false);
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    value = IDP_Int(idprop) != 0;
+    value = IDP_Bool(idprop);
   }
   else if (bprop->get) {
     value = bprop->get(ptr);
@@ -2190,7 +2211,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
   BLI_assert(ELEM(value, true, false));
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    IDP_Int(idprop) = (int)value;
+    IDP_Bool(idprop) = value;
     rna_idproperty_touch(idprop);
   }
   else if (bprop->set) {
@@ -2207,7 +2228,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 
     group = RNA_struct_idprops(ptr, 1);
     if (group) {
-      IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
+      IDP_AddToGroup(group, IDP_New(IDP_BOOLEAN, &val, prop->identifier));
     }
   }
 }
@@ -2251,10 +2272,18 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
     if (prop->arraydimension == 0) {
       values[0] = RNA_property_boolean_get(ptr, prop);
     }
-    else {
+    else if (idprop->subtype == IDP_INT) {
+      /* Some boolean IDProperty arrays might be saved in files as an integer
+       * array property, since the boolean IDProperty type was added later. */
       int *values_src = IDP_Array(idprop);
       for (uint i = 0; i < idprop->len; i++) {
         values[i] = (bool)values_src[i];
+      }
+    }
+    else if (idprop->subtype == IDP_BOOLEAN) {
+      bool *values_src = IDP_Array(idprop);
+      for (int i = 0; i < idprop->len; i++) {
+        values[i] = values_src[i];
       }
     }
   }
@@ -2314,9 +2343,17 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
       IDP_Int(idprop) = values[0];
     }
     else {
-      int *values_dst = IDP_Array(idprop);
-      for (uint i = 0; i < idprop->len; i++) {
-        values_dst[i] = (int)values[i];
+      BLI_assert(idprop->type = IDP_ARRAY);
+      if (idprop->subtype == IDP_BOOLEAN) {
+        memcpy(IDP_Array(idprop), values, sizeof(int8_t) * idprop->len);
+      }
+      else if (idprop->subtype == IDP_INT) {
+        /* Support writing to integer and boolean IDProperties, since boolean
+        RNA properties used to be stored with integer IDProperties. */
+        int *values_dst = IDP_Array(idprop);
+        for (uint i = 0; i < idprop->len; i++) {
+          values_dst[i] = (int)values[i];
+        }
       }
     }
     rna_idproperty_touch(idprop);
@@ -2335,15 +2372,15 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
     IDProperty *group;
 
     val.array.len = prop->totarraylength;
-    val.array.type = IDP_INT;
+    val.array.type = IDP_BOOLEAN;
 
     group = RNA_struct_idprops(ptr, 1);
     if (group) {
       idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
       IDP_AddToGroup(group, idprop);
-      int *values_dst = IDP_Array(idprop);
+      bool *values_dst = IDP_Array(idprop);
       for (uint i = 0; i < idprop->len; i++) {
-        values_dst[i] = (int)values[i];
+        values_dst[i] = values[i];
       }
     }
   }
@@ -2378,11 +2415,22 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 
 bool RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
+  /* TODO: Make defaults work for IDProperties. */
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)rna_ensure_property(prop);
 
   BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
   BLI_assert(RNA_property_array_check(prop) == false);
   BLI_assert(ELEM(bprop->defaultvalue, false, true));
+
+  if (prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = (const IDProperty *)prop;
+    BLI_assert(idprop->type == IDP_BOOLEAN);
+    if (idprop->ui_data) {
+      const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
+      return ui_data->default_value;
+    }
+    return false;
+  }
 
   return bprop->defaultvalue;
 }
@@ -2394,7 +2442,26 @@ void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, 
   BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
   BLI_assert(RNA_property_array_check(prop) != false);
 
-  if (prop->arraydimension == 0) {
+  if (prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = (const IDProperty *)prop;
+    if (idprop->ui_data) {
+      BLI_assert(idprop->type == IDP_ARRAY);
+      BLI_assert(idprop->subtype == IDP_BOOLEAN);
+      const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
+      if (ui_data->default_array) {
+        rna_property_boolean_fill_default_array_values((bool *)ui_data->default_array,
+                                                       ui_data->default_array_len,
+                                                       ui_data->default_value,
+                                                       idprop->len,
+                                                       values);
+      }
+      else {
+        rna_property_boolean_fill_default_array_values(
+            NULL, 0, ui_data->default_value, idprop->len, values);
+      }
+    }
+  }
+  else if (prop->arraydimension == 0) {
     values[0] = bprop->defaultvalue;
   }
   else {
@@ -5875,7 +5942,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
         case PROP_STRING: {
           const char *defvalue = ((StringPropertyRNA *)parm)->defaultvalue;
           if (defvalue && defvalue[0]) {
-            /* causes bug T29988, possibly this is only correct for thick wrapped
+            /* Causes bug #29988, possibly this is only correct for thick wrapped
              * need to look further into it - campbell */
 #if 0
             BLI_strncpy(data, defvalue, size);

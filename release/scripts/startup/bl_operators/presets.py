@@ -20,7 +20,7 @@ from bpy.app.translations import (
 WindowManager.preset_name = StringProperty(
     name="Preset Name",
     description="Name for new preset",
-    default=data_("New Preset")
+    default=data_("New Preset"),
 )
 
 
@@ -309,7 +309,7 @@ class AddPresetCamera(AddPresetBase, Operator):
         preset_values = [
             "cam.sensor_width",
             "cam.sensor_height",
-            "cam.sensor_fit"
+            "cam.sensor_fit",
         ]
         if self.use_focal_length:
             preset_values.append("cam.lens")
@@ -317,11 +317,11 @@ class AddPresetCamera(AddPresetBase, Operator):
         return preset_values
 
 
-class AddPresetSafeAreas(AddPresetBase, Operator):
+class AddPresetCameraSafeAreas(AddPresetBase, Operator):
     """Add or remove a Safe Areas Preset"""
-    bl_idname = "safe_areas.preset_add"
+    bl_idname = "camera.safe_areas_preset_add"
     bl_label = "Add Safe Area Preset"
-    preset_menu = "SAFE_AREAS_PT_presets"
+    preset_menu = "CAMERA_PT_safe_areas_presets"
 
     preset_defines = [
         "safe_areas = bpy.context.scene.safe_areas"
@@ -439,7 +439,7 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
             "camera.pixel_aspect",
             "camera.k1",
             "camera.k2",
-            "camera.k3"
+            "camera.k3",
         ]
         if self.use_focal_length:
             preset_values.append("camera.units")
@@ -459,7 +459,7 @@ class AddPresetTrackingTrackColor(AddPresetBase, Operator):
 
     preset_values = [
         "track.color",
-        "track.use_custom_color"
+        "track.use_custom_color",
     ]
 
     preset_subdir = "tracking_track_color"
@@ -489,7 +489,7 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
         "settings.use_default_red_channel",
         "settings.use_default_green_channel",
         "settings.use_default_blue_channel",
-        "settings.default_weight"
+        "settings.default_weight",
     ]
 
     preset_subdir = "tracking_settings"
@@ -507,7 +507,7 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 
     preset_values = [
         "node.color",
-        "node.use_custom_color"
+        "node.use_custom_color",
     ]
 
     preset_subdir = "node_color"
@@ -616,7 +616,7 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
 
     preset_defines = [
         "brush = bpy.context.tool_settings.gpencil_paint.brush",
-        "settings = brush.gpencil_settings"
+        "settings = brush.gpencil_settings",
     ]
 
     preset_values = [
@@ -650,7 +650,7 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
 
     preset_defines = [
         "material = bpy.context.object.active_material",
-        "gpcolor = material.grease_pencil"
+        "gpcolor = material.grease_pencil",
     ]
 
     preset_values = [
@@ -691,7 +691,7 @@ classes = (
     AddPresetNodeColor,
     AddPresetOperator,
     AddPresetRender,
-    AddPresetSafeAreas,
+    AddPresetCameraSafeAreas,
     AddPresetTrackingCamera,
     AddPresetTrackingSettings,
     AddPresetTrackingTrackColor,

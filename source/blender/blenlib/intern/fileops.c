@@ -526,7 +526,7 @@ int BLI_copy(const char *file, const char *to)
 #  if 0
 int BLI_create_symlink(const char *file, const char *to)
 {
-  /* See patch from T30870, should this ever become needed. */
+  /* See patch from #30870, should this ever become needed. */
   callLocalErrorCallBack("Linking files is unsupported on Windows");
   (void)file;
   (void)to;

@@ -16,6 +16,8 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+)
 
 set(SRC
   nodes/node_fn_align_euler_to_vector.cc

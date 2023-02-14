@@ -49,26 +49,26 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static const fn::MultiFunction *get_multi_function(const bNode &bnode)
+static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
   const NodeCombSepColor &storage = node_storage(bnode);
 
-  static fn::CustomMF_SI_SI_SI_SI_SO<float, float, float, float, ColorGeometry4f> rgba_fn{
-      "RGB", [](float r, float g, float b, float a) { return ColorGeometry4f(r, g, b, a); }};
-  static fn::CustomMF_SI_SI_SI_SI_SO<float, float, float, float, ColorGeometry4f> hsva_fn{
+  static auto rgba_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
+      "RGB", [](float r, float g, float b, float a) { return ColorGeometry4f(r, g, b, a); });
+  static auto hsva_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSV", [](float h, float s, float v, float a) {
         ColorGeometry4f r_color;
         hsv_to_rgb(h, s, v, &r_color.r, &r_color.g, &r_color.b);
         r_color.a = a;
         return r_color;
-      }};
-  static fn::CustomMF_SI_SI_SI_SI_SO<float, float, float, float, ColorGeometry4f> hsla_fn{
+      });
+  static auto hsla_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSL", [](float h, float s, float l, float a) {
         ColorGeometry4f color;
         hsl_to_rgb(h, s, l, &color.r, &color.g, &color.b);
         color.a = a;
         return color;
-      }};
+      });
 
   switch (storage.mode) {
     case NODE_COMBSEP_COLOR_RGB:
@@ -85,7 +85,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const fn::MultiFunction *fn = get_multi_function(builder.node());
+  const mf::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 

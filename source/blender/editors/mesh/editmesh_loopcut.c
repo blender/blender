@@ -176,7 +176,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
       /* Enable grid-fill, so that intersecting loop-cut works as one would expect.
        * Note though that it will break edge-slide in this specific case.
-       * See T31939. */
+       * See #31939. */
       BM_mesh_esubdivide(em->bm,
                          BM_ELEM_SELECT,
                          smoothness,
@@ -193,7 +193,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
                          0);
 
       /* when used in a macro the tessfaces will be recalculated anyway,
-       * this is needed here because modifiers depend on updated tessellation, see T45920 */
+       * this is needed here because modifiers depend on updated tessellation, see #45920 */
       EDBM_update(lcd->ob->data,
                   &(const struct EDBMUpdate_Params){
                       .calc_looptri = true,

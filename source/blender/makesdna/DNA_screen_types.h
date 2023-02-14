@@ -54,7 +54,7 @@ typedef struct bScreen {
 
   /** General flags. */
   short flag;
-  /** Winid from WM, starts with 1. */
+  /** Window-ID from WM, starts with 1. */
   short winid;
   /** User-setting for which editors get redrawn during animation playback. */
   short redraws_flag;

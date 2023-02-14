@@ -18,11 +18,11 @@
  * combination of input and output).
  *
  * To call a multi-function, one has to provide three things:
- * - `MFParams`: This references the input and output arrays that the function works with. The
- *      arrays are not owned by MFParams.
+ * - `Params`: This references the input and output arrays that the function works with. The
+ *      arrays are not owned by Params.
  * - `IndexMask`: An array of indices indicating which indices in the provided arrays should be
  *      touched/processed.
- * - `MFContext`: Further information for the called function.
+ * - `Context`: Further information for the called function.
  *
  * A new multi-function is generally implemented as follows:
  * 1. Create a new subclass of MultiFunction.
@@ -35,11 +35,11 @@
 #include "FN_multi_function_context.hh"
 #include "FN_multi_function_params.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
 class MultiFunction {
  private:
-  const MFSignature *signature_ref_ = nullptr;
+  const Signature *signature_ref_ = nullptr;
 
  public:
   virtual ~MultiFunction()
@@ -52,8 +52,8 @@ class MultiFunction {
    * - Automatic index mask offsetting to avoid large temporary intermediate arrays that are mostly
    *   unused.
    */
-  void call_auto(IndexMask mask, MFParams params, MFContext context) const;
-  virtual void call(IndexMask mask, MFParams params, MFContext context) const = 0;
+  void call_auto(IndexMask mask, Params params, Context context) const;
+  virtual void call(IndexMask mask, Params params, Context context) const = 0;
 
   virtual uint64_t hash() const
   {
@@ -67,22 +67,22 @@ class MultiFunction {
 
   int param_amount() const
   {
-    return signature_ref_->param_types.size();
+    return signature_ref_->params.size();
   }
 
   IndexRange param_indices() const
   {
-    return signature_ref_->param_types.index_range();
+    return signature_ref_->params.index_range();
   }
 
-  MFParamType param_type(int param_index) const
+  ParamType param_type(int param_index) const
   {
-    return signature_ref_->param_types[param_index];
+    return signature_ref_->params[param_index].type;
   }
 
   StringRefNull param_name(int param_index) const
   {
-    return signature_ref_->param_names[param_index];
+    return signature_ref_->params[param_index].name;
   }
 
   StringRefNull name() const
@@ -92,12 +92,7 @@ class MultiFunction {
 
   virtual std::string debug_name() const;
 
-  bool depends_on_context() const
-  {
-    return signature_ref_->depends_on_context;
-  }
-
-  const MFSignature &signature() const
+  const Signature &signature() const
   {
     BLI_assert(signature_ref_ != nullptr);
     return *signature_ref_;
@@ -133,7 +128,7 @@ class MultiFunction {
    * child classes. No copy of the signature is made, so the caller has to make sure that the
    * signature lives as long as the multi function. It is ok to embed the signature into the child
    * class. */
-  void set_signature(const MFSignature *signature)
+  void set_signature(const Signature *signature)
   {
     /* Take a pointer as argument, so that it is more obvious that no copy is created. */
     BLI_assert(signature != nullptr);
@@ -143,25 +138,18 @@ class MultiFunction {
   virtual ExecutionHints get_execution_hints() const;
 };
 
-inline MFParamsBuilder::MFParamsBuilder(const MultiFunction &fn, int64_t mask_size)
-    : MFParamsBuilder(fn.signature(), IndexMask(mask_size))
+inline ParamsBuilder::ParamsBuilder(const MultiFunction &fn, int64_t mask_size)
+    : ParamsBuilder(fn.signature(), IndexMask(mask_size))
 {
 }
 
-inline MFParamsBuilder::MFParamsBuilder(const MultiFunction &fn, const IndexMask *mask)
-    : MFParamsBuilder(fn.signature(), *mask)
+inline ParamsBuilder::ParamsBuilder(const MultiFunction &fn, const IndexMask *mask)
+    : ParamsBuilder(fn.signature(), *mask)
 {
 }
 
-namespace multi_function_types {
-using fn::MFContext;
-using fn::MFContextBuilder;
-using fn::MFDataType;
-using fn::MFParamCategory;
-using fn::MFParams;
-using fn::MFParamsBuilder;
-using fn::MFParamType;
-using fn::MultiFunction;
-}  // namespace multi_function_types
+}  // namespace blender::fn::multi_function
 
-}  // namespace blender::fn
+namespace blender {
+namespace mf = fn::multi_function;
+}

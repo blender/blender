@@ -26,33 +26,33 @@ typedef NodeOperation SocketReader;
 class OpenCLDevice : public Device {
  private:
   /**
-   * \brief opencl context
+   * \brief OPENCL context
    */
   cl_context context_;
 
   /**
-   * \brief opencl device
+   * \brief OPENCL device
    */
   cl_device_id device_;
 
   /**
-   * \brief opencl program
+   * \brief OPENCL program
    */
   cl_program program_;
 
   /**
-   * \brief opencl command queue
+   * \brief OPENCL command queue
    */
   cl_command_queue queue_;
 
   /**
-   * \brief opencl vendor ID
+   * \brief OPENCL vendor ID
    */
   cl_int vendor_id_;
 
  public:
   /**
-   * \brief constructor with opencl device
+   * \brief constructor with OPENCL device
    * \param context:
    * \param device:
    * \param program:

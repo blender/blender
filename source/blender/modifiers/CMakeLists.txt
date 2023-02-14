@@ -37,22 +37,22 @@ set(SRC
   intern/MOD_array.cc
   intern/MOD_bevel.c
   intern/MOD_boolean.cc
-  intern/MOD_build.c
+  intern/MOD_build.cc
   intern/MOD_cast.c
   intern/MOD_cloth.c
   intern/MOD_collision.c
-  intern/MOD_correctivesmooth.c
+  intern/MOD_correctivesmooth.cc
   intern/MOD_curve.c
   intern/MOD_datatransfer.cc
   intern/MOD_decimate.c
   intern/MOD_displace.cc
   intern/MOD_dynamicpaint.c
   intern/MOD_edgesplit.c
-  intern/MOD_explode.c
+  intern/MOD_explode.cc
   intern/MOD_fluid.c
   intern/MOD_hook.c
   intern/MOD_laplaciandeform.c
-  intern/MOD_laplaciansmooth.c
+  intern/MOD_laplaciansmooth.cc
   intern/MOD_lattice.c
   intern/MOD_mask.cc
   intern/MOD_mesh_to_volume.cc
@@ -62,15 +62,15 @@ set(SRC
   intern/MOD_meshcache_util.c
   intern/MOD_meshdeform.c
   intern/MOD_meshsequencecache.cc
-  intern/MOD_mirror.c
+  intern/MOD_mirror.cc
   intern/MOD_multires.cc
   intern/MOD_nodes.cc
   intern/MOD_none.c
   intern/MOD_normal_edit.cc
-  intern/MOD_ocean.c
-  intern/MOD_particleinstance.c
+  intern/MOD_ocean.cc
+  intern/MOD_particleinstance.cc
   intern/MOD_particlesystem.cc
-  intern/MOD_remesh.c
+  intern/MOD_remesh.cc
   intern/MOD_screw.cc
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
@@ -78,12 +78,12 @@ set(SRC
   intern/MOD_skin.c
   intern/MOD_smooth.c
   intern/MOD_softbody.c
-  intern/MOD_solidify.c
-  intern/MOD_solidify_extrude.c
-  intern/MOD_solidify_nonmanifold.c
+  intern/MOD_solidify.cc
+  intern/MOD_solidify_extrude.cc
+  intern/MOD_solidify_nonmanifold.cc
   intern/MOD_subsurf.cc
   intern/MOD_surface.c
-  intern/MOD_surfacedeform.c
+  intern/MOD_surfacedeform.cc
   intern/MOD_triangulate.cc
   intern/MOD_ui_common.c
   intern/MOD_util.cc
@@ -104,7 +104,7 @@ set(SRC
   MOD_modifiertypes.h
   MOD_nodes.h
   intern/MOD_meshcache_util.h
-  intern/MOD_solidify_util.h
+  intern/MOD_solidify_util.hh
   intern/MOD_ui_common.h
   intern/MOD_util.h
   intern/MOD_weightvg_util.h
@@ -158,11 +158,9 @@ if(WITH_OPENSUBDIV)
 endif()
 
 if(WITH_BULLET)
-  if(NOT WITH_SYSTEM_BULLET)
-    list(APPEND LIB
-      extern_bullet
-    )
-  endif()
+  list(APPEND LIB
+    ${BULLET_LIBRARIES}
+  )
   add_definitions(-DWITH_BULLET)
 endif()
 

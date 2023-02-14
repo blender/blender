@@ -180,8 +180,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 
       /* Write to render buffer. */
       guiding_record_background(kg, state, light_eval, mis_weight);
-      film_write_surface_emission(
-          kg, state, light_eval, mis_weight, render_buffer, kernel_data.background.lightgroup);
+      film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
     }
   }
 }

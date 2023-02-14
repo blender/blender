@@ -14,6 +14,7 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     StringProperty,
+    BoolVectorProperty,
     IntVectorProperty,
     FloatVectorProperty,
 )
@@ -1055,7 +1056,7 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+        return "https://docs.blender.org/manual/%s/%d.%d/" % (bpy.utils.manual_language_code(), *bpy.app.version[:2])
 
     def _url_from_api(self, _context):
         return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
@@ -1248,7 +1249,31 @@ class WM_OT_doc_view_manual(Operator):
         # XXX, for some reason all RNA ID's are stored lowercase
         # Adding case into all ID's isn't worth the hassle so force lowercase.
         rna_id = rna_id.lower()
+
+        # NOTE: `fnmatch` in Python is slow as it translate the string to a regular-expression
+        # which needs to be compiled (as of Python 3.11), this is slow enough to cause a noticeable
+        # delay when opening manual links (approaching half a second).
+        #
+        # Resolve by matching characters that have a special meaning to `fnmatch`.
+        # The characters that can occur as the first special character are `*?[`.
+        # If any of these are used we must let `fnmatch` run its own matching logic.
+        # However, in most cases a literal prefix is used making it considerably faster
+        # to do a simple `startswith` check before performing a full match.
+        # An alternative solution could be to use `fnmatch` from C which is significantly
+        # faster than Python's, see !104581 for details.
+        import re
+        re_match_non_special = re.compile(r"^[^?\*\[]+").match
+
         for pattern, url_suffix in url_mapping:
+
+            # Simple optimization, makes a big difference (over 50x speedup).
+            # Even when `non_special.end()` is zero (resulting in an empty-string),
+            # the `startswith` check succeeds so there is no need to check for an empty match.
+            non_special = re_match_non_special(pattern)
+            if non_special is None or not rna_id.startswith(pattern[:non_special.end()]):
+                continue
+            # End simple optimization.
+
             if fnmatchcase(rna_id, pattern):
                 if verbose:
                     print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
@@ -1325,6 +1350,8 @@ rna_custom_property_type_items = (
     ('FLOAT_ARRAY', "Float Array", "An array of floating-point values"),
     ('INT', "Integer", "A single integer"),
     ('INT_ARRAY', "Integer Array", "An array of integers"),
+    ('BOOL', "Boolean", "A true or false value"),
+    ('BOOL_ARRAY', "Boolean Array", "An array of true or false values"),
     ('STRING', "String", "A string value"),
     ('PYTHON', "Python", "Edit a python value directly, for unsupported property types"),
 )
@@ -1377,7 +1404,8 @@ class WM_OT_properties_edit(Operator):
         name="Array Length",
         default=3,
         min=1,
-        max=32,  # 32 is the maximum size for RNA array properties.
+        # 32 is the maximum size for RNA array properties.
+        max=32,
     )
 
     # Integer properties.
@@ -1407,6 +1435,14 @@ class WM_OT_properties_edit(Operator):
         name="Step",
         min=1,
         default=1,
+    )
+
+    # Boolean properties.
+
+    # This property stores values for both array and non-array properties.
+    default_bool: BoolVectorProperty(
+        name="Default Value",
+        size=32,
     )
 
     # Float properties.
@@ -1458,7 +1494,7 @@ class WM_OT_properties_edit(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Python value for unsupported custom property types"
+        description="Python value for unsupported custom property types",
     )
 
     type_items = rna_custom_property_type_items
@@ -1519,6 +1555,10 @@ class WM_OT_properties_edit(Operator):
             if is_array:
                 return 'FLOAT_ARRAY'
             return 'FLOAT'
+        elif prop_type == bool:
+            if is_array:
+                return 'BOOL_ARRAY'
+            return 'BOOL'
         elif prop_type == str:
             if is_array:
                 return 'PYTHON'
@@ -1570,8 +1610,10 @@ class WM_OT_properties_edit(Operator):
             self.default_int = self._convert_new_value_array(rna_data["default"], int, 32)
         elif self.property_type == 'STRING':
             self.default_string = rna_data["default"]
+        elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
+            self.default_bool = self._convert_new_value_array(rna_data["default"], bool, 32)
 
-        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY'}:
+        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
             self.array_length = len(item[name])
 
         # The dictionary does not contain the description if it was empty.
@@ -1586,23 +1628,26 @@ class WM_OT_properties_edit(Operator):
     def _get_converted_value(self, item, name_old, prop_type_new):
         if prop_type_new == 'INT':
             return self._convert_new_value_single(item[name_old], int)
-
-        if prop_type_new == 'FLOAT':
+        elif prop_type_new == 'FLOAT':
             return self._convert_new_value_single(item[name_old], float)
-
-        if prop_type_new == 'INT_ARRAY':
+        elif prop_type_new == 'BOOL':
+            return self._convert_new_value_single(item[name_old], bool)
+        elif prop_type_new == 'INT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], int, self.array_length)
-
-        if prop_type_new == 'FLOAT_ARRAY':
+        elif prop_type_new == 'FLOAT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], float, self.array_length)
-
-        if prop_type_new == 'STRING':
+        elif prop_type_new == 'BOOL_ARRAY':
+            prop_type_old = self.get_property_type(item, name_old)
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
+                return self._convert_new_value_array(item[name_old], bool, self.array_length)
+            else:
+                return [False] * self.array_length
+        elif prop_type_new == 'STRING':
             return self.convert_custom_property_to_string(item, name_old)
-
         # If all else fails, create an empty string property. That should avoid errors later on anyway.
         return ""
 
@@ -1621,6 +1666,9 @@ class WM_OT_properties_edit(Operator):
             self.soft_min_float = float(self.soft_min_int)
             self.soft_max_float = float(self.soft_max_int)
             self.default_float = self._convert_new_value_array(self.default_int, float, 32)
+        elif prop_type_new in {'BOOL', 'BOOL_ARRAY'} and prop_type_old in {'INT', 'INT_ARRAY'}:
+            self.default_bool = self._convert_new_value_array(self.default_int, bool, 32)
+
         # Don't convert between string and float/int defaults here, it's not expected like the other conversions.
 
     # Fill the property's UI data with the values chosen in the operator.
@@ -1634,6 +1682,12 @@ class WM_OT_properties_edit(Operator):
                 soft_max=self.soft_max_int if self.use_soft_limits else self.max_int,
                 step=self.step_int,
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
+                description=self.description,
+            )
+        elif prop_type_new in {'BOOL', 'BOOL_ARRAY'}:
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                default=self.default_bool[0] if prop_type_new == 'BOOL' else self.default_bool[:self.array_length],
                 description=self.description,
             )
         elif prop_type_new in {'FLOAT', 'FLOAT_ARRAY'}:
@@ -1695,7 +1749,7 @@ class WM_OT_properties_edit(Operator):
                     for nt in adt.nla_tracks:
                         _update_strips(nt.strips)
 
-        # Otherwise existing buttons which reference freed memory may crash Blender (T26510).
+        # Otherwise existing buttons which reference freed memory may crash Blender (#26510).
         for win in context.window_manager.windows:
             for area in win.screen.areas:
                 area.tag_redraw()
@@ -1878,6 +1932,15 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "soft_max_int", text="Max")
 
             layout.prop(self, "step_int")
+        elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
+            if self.property_type == 'BOOL_ARRAY':
+                layout.prop(self, "array_length")
+                col = layout.column(align=True)
+                col.prop(self, "default_bool", index=0, text="Default")
+                for i in range(1, self.array_length):
+                    col.prop(self, "default_bool", index=i, text=" ")
+            else:
+                layout.prop(self, "default_bool", index=0)
         elif self.property_type == 'STRING':
             layout.prop(self, "default_string")
 
@@ -1904,7 +1967,7 @@ class WM_OT_properties_edit_value(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Value for custom property types that can only be edited as a Python expression"
+        description="Value for custom property types that can only be edited as a Python expression",
     )
 
     def execute(self, context):
@@ -2470,11 +2533,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     replace_match_case: BoolProperty(name="Case Sensitive")
     use_replace_regex_src: BoolProperty(
         name="Regular Expression Find",
-        description="Use regular expressions to match text in the 'Find' field"
+        description="Use regular expressions to match text in the 'Find' field",
     )
     use_replace_regex_dst: BoolProperty(
         name="Regular Expression Replace",
-        description="Use regular expression for the replacement text (supporting groups)"
+        description="Use regular expression for the replacement text (supporting groups)",
     )
 
     # type: 'CASE'.
@@ -2506,7 +2569,7 @@ class WM_OT_batch_rename(Operator):
             ('COLLECTION', "Collections", ""),
             ('MATERIAL', "Materials", ""),
             None,
-            # Enum identifiers are compared with 'object.type'.
+            # Enum identifiers are compared with `object.type`.
             # Follow order in "Add" menu.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),

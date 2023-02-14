@@ -304,7 +304,7 @@ static void graphedit_activekey_handles_cb(bContext *C, void *fcu_ptr, void *bez
 
 /* update callback for editing coordinates of right handle in active keyframe properties
  * NOTE: we cannot just do graphedit_activekey_handles_cb() due to "order of computation"
- *       weirdness (see calchandleNurb_intern() and T39911)
+ *       weirdness (see calchandleNurb_intern() and #39911)
  */
 static void graphedit_activekey_left_handle_coord_cb(bContext *C, void *fcu_ptr, void *bezt_ptr)
 {
@@ -528,7 +528,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
     /* next handle - only if current is Bezier interpolation */
     if (bezt->ipo == BEZT_IPO_BEZ) {
-      /* NOTE: special update callbacks are needed on the coords here due to T39911 */
+      /* NOTE: special update callbacks are needed on the coords here due to #39911 */
 
       col = uiLayoutColumn(layout, true);
       uiItemL_respect_property_split(col, IFACE_("Right Handle Type"), ICON_NONE);

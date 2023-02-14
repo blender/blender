@@ -56,7 +56,7 @@ void main()
   /* Index of the quad primitive. Each quad corresponds to one line in the input primitive. */
   int quad_id = gl_VertexID / 6;
 
-  /* Determine vertex within the quad (A, B, C)(A, C, D).*/
+  /* Determine vertex within the quad (A, B, C)(A, C, D). */
   int quad_vertex_id = gl_VertexID % 6;
 
   uint src_index_a;

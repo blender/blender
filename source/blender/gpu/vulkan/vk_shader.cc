@@ -8,6 +8,7 @@
 #include "vk_shader.hh"
 
 #include "vk_backend.hh"
+#include "vk_memory.hh"
 #include "vk_shader_log.hh"
 
 #include "BLI_string_utils.h"
@@ -521,7 +522,9 @@ static char *glsl_patch_get()
 static std::string combine_sources(Span<const char *> sources)
 {
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
-  return std::string(sources_combined);
+  std::string result(sources_combined);
+  MEM_freeN(sources_combined);
+  return result;
 }
 
 Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
@@ -557,6 +560,8 @@ Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
 
 void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module)
 {
+  VK_ALLOCATION_CALLBACKS;
+
   VkShaderModuleCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   create_info.codeSize = spirv_module.size() * sizeof(uint32_t);
@@ -565,7 +570,7 @@ void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *
   VKContext &context = *static_cast<VKContext *>(VKContext::get());
 
   VkResult result = vkCreateShaderModule(
-      context.device_get(), &create_info, nullptr, r_shader_module);
+      context.device_get(), &create_info, vk_allocation_callbacks, r_shader_module);
   if (result != VK_SUCCESS) {
     compilation_failed_ = true;
     *r_shader_module = VK_NULL_HANDLE;
@@ -579,21 +584,23 @@ VKShader::VKShader(const char *name) : Shader(name)
 
 VKShader::~VKShader()
 {
+  VK_ALLOCATION_CALLBACKS
+
   VkDevice device = context_->device_get();
   if (vertex_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, vertex_module_, nullptr);
+    vkDestroyShaderModule(device, vertex_module_, vk_allocation_callbacks);
     vertex_module_ = VK_NULL_HANDLE;
   }
   if (geometry_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, geometry_module_, nullptr);
+    vkDestroyShaderModule(device, geometry_module_, vk_allocation_callbacks);
     geometry_module_ = VK_NULL_HANDLE;
   }
   if (fragment_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, fragment_module_, nullptr);
+    vkDestroyShaderModule(device, fragment_module_, vk_allocation_callbacks);
     fragment_module_ = VK_NULL_HANDLE;
   }
   if (compute_module_ != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, compute_module_, nullptr);
+    vkDestroyShaderModule(device, compute_module_, vk_allocation_callbacks);
     compute_module_ = VK_NULL_HANDLE;
   }
 }
@@ -610,7 +617,7 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
                  "Only forced ShaderC shader kinds are supported.");
   sources[0] = glsl_patch_get();
   Vector<uint32_t> spirv_module = compile_glsl_to_spirv(sources, stage);
-  build_shader_module(spirv_module, &compute_module_);
+  build_shader_module(spirv_module, r_shader_module);
 }
 
 void VKShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
@@ -633,14 +640,15 @@ void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   build_shader_module(sources, shaderc_compute_shader, &compute_module_);
 }
 
-bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
+bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;
   }
 
   if (vertex_module_ != VK_NULL_HANDLE) {
-    BLI_assert(fragment_module_ != VK_NULL_HANDLE);
+    BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
+               (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
     BLI_assert(compute_module_ == VK_NULL_HANDLE);
 
     VkPipelineShaderStageCreateInfo vertex_stage_info = {};
@@ -658,12 +666,14 @@ bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
       geo_stage_info.pName = "main";
       pipeline_infos_.append(geo_stage_info);
     }
-    VkPipelineShaderStageCreateInfo fragment_stage_info = {};
-    fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragment_stage_info.module = fragment_module_;
-    fragment_stage_info.pName = "main";
-    pipeline_infos_.append(fragment_stage_info);
+    if (fragment_module_ != VK_NULL_HANDLE) {
+      VkPipelineShaderStageCreateInfo fragment_stage_info = {};
+      fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+      fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+      fragment_stage_info.module = fragment_module_;
+      fragment_stage_info.pName = "main";
+      pipeline_infos_.append(fragment_stage_info);
+    }
   }
   else {
     BLI_assert(vertex_module_ == VK_NULL_HANDLE);
@@ -674,10 +684,14 @@ bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
     VkPipelineShaderStageCreateInfo compute_stage_info = {};
     compute_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     compute_stage_info.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-    compute_stage_info.module = geometry_module_;
+    compute_stage_info.module = compute_module_;
     compute_stage_info.pName = "main";
     pipeline_infos_.append(compute_stage_info);
   }
+
+#ifdef NDEBUG
+  UNUSED_VARS(info);
+#endif
 
   return true;
 }

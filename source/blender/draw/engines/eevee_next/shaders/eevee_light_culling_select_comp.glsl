@@ -22,7 +22,7 @@ void main()
   }
 
   /* Sun lights are packed at the end of the array. Perform early copy. */
-  if (light.type == LIGHT_SUN) {
+  if (is_sun_light(light.type)) {
     /* NOTE: We know the index because sun lights are packed at the start of the input buffer. */
     out_light_buf[light_cull_buf.local_lights_len + l_idx] = light;
     return;

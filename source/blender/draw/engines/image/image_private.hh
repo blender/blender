@@ -16,8 +16,6 @@
 
 /* Forward declarations */
 extern "C" {
-struct GPUTexture;
-struct ImBuf;
 struct Image;
 }
 
@@ -33,7 +31,6 @@ struct IMAGE_Data {
   DRWViewportEmptyList *stl;
   IMAGE_InstanceData *instance_data;
 };
-
 
 /**
  * Abstract class for a drawing mode of the image engine.

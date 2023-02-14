@@ -4,9 +4,9 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_float4x4.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
@@ -66,8 +66,8 @@ class CombOperation : public CurvesSculptStrokeOperation {
   /** Only used when a 3D brush is used. */
   CurvesBrush3D brush_3d_;
 
-  /** Length of each segment indexed by the index of the first point in the segment. */
-  Array<float> segment_lengths_cu_;
+  /** Solver for length and collision constraints. */
+  CurvesConstraintSolver constraint_solver_;
 
   friend struct CombOperationExecutor;
 
@@ -117,7 +117,7 @@ struct CombOperationExecutor {
 
     curves_ob_orig_ = CTX_data_active_object(&C);
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
-    curves_orig_ = &CurvesGeometry::wrap(curves_id_orig_->geometry);
+    curves_orig_ = &curves_id_orig_->geometry.wrap();
     if (curves_orig_->curves_num() == 0) {
       return;
     }
@@ -132,8 +132,9 @@ struct CombOperationExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
-    point_factors_ = get_point_selection(*curves_id_orig_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
+    point_factors_ = curves_orig_->attributes().lookup_or_default<float>(
+        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
     brush_pos_prev_re_ = self_->brush_pos_last_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -143,12 +144,13 @@ struct CombOperationExecutor {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
         this->initialize_spherical_brush_reference_point();
       }
-      this->initialize_segment_lengths();
+      self_->constraint_solver_.initialize(
+          *curves_orig_, curve_selection_, curves_id_orig_->flag & CV_SCULPT_COLLISION_ENABLED);
       /* Combing does nothing when there is no mouse movement, so return directly. */
       return;
     }
 
-    EnumerableThreadSpecific<Vector<int>> changed_curves;
+    Array<bool> changed_curves(curves_orig_->curves_num(), false);
 
     if (falloff_shape_ == PAINT_FALLOFF_SHAPE_TUBE) {
       this->comb_projected_with_symmetry(changed_curves);
@@ -160,7 +162,14 @@ struct CombOperationExecutor {
       BLI_assert_unreachable();
     }
 
-    this->restore_segment_lengths(changed_curves);
+    const Mesh *surface = curves_id_orig_->surface && curves_id_orig_->surface->type == OB_MESH ?
+                              static_cast<Mesh *>(curves_id_orig_->surface->data) :
+                              nullptr;
+
+    Vector<int64_t> indices;
+    const IndexMask changed_curves_mask = index_mask_ops::find_indices_from_array(changed_curves,
+                                                                                  indices);
+    self_->constraint_solver_.solve_step(*curves_orig_, changed_curves_mask, surface, transforms_);
 
     curves_orig_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_orig_->id, ID_RECALC_GEOMETRY);
@@ -171,7 +180,7 @@ struct CombOperationExecutor {
   /**
    * Do combing in screen space.
    */
-  void comb_projected_with_symmetry(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
+  void comb_projected_with_symmetry(MutableSpan<bool> r_changed_curves)
   {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_orig_->symmetry));
@@ -180,34 +189,33 @@ struct CombOperationExecutor {
     }
   }
 
-  void comb_projected(EnumerableThreadSpecific<Vector<int>> &r_changed_curves,
-                      const float4x4 &brush_transform)
+  void comb_projected(MutableSpan<bool> r_changed_curves, const float4x4 &brush_transform)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     MutableSpan<float3> positions_cu_orig = curves_orig_->positions_for_write();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *curves_ob_orig_);
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
-      Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = deformation.positions[point_i];
-          const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
+          const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
 
           /* Find the position of the point in screen space. */
           float2 old_symm_pos_re;
           ED_view3d_project_float_v2_m4(
-              ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.values);
+              ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.ptr());
 
           const float distance_to_brush_sq_re = dist_squared_to_line_segment_v2(
               old_symm_pos_re, brush_pos_prev_re_, brush_pos_re_);
@@ -229,11 +237,12 @@ struct CombOperationExecutor {
           float3 new_symm_pos_wo;
           ED_view3d_win_to_3d(ctx_.v3d,
                               ctx_.region,
-                              transforms_.curves_to_world * old_symm_pos_cu,
+                              math::transform_point(transforms_.curves_to_world, old_symm_pos_cu),
                               new_symm_pos_re,
                               new_symm_pos_wo);
-          const float3 new_pos_cu = brush_transform *
-                                    (transforms_.world_to_curves * new_symm_pos_wo);
+          const float3 new_pos_cu = math::transform_point(
+              brush_transform,
+              math::transform_point(transforms_.world_to_curves, new_symm_pos_wo));
 
           const float3 translation_eval = new_pos_cu - old_pos_cu;
           const float3 translation_orig = deformation.translation_from_deformed_to_original(
@@ -243,7 +252,7 @@ struct CombOperationExecutor {
           curve_changed = true;
         }
         if (curve_changed) {
-          local_changed_curves.append(curve_i);
+          r_changed_curves[curve_i] = true;
         }
       }
     });
@@ -252,24 +261,27 @@ struct CombOperationExecutor {
   /**
    * Do combing in 3D space.
    */
-  void comb_spherical_with_symmetry(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
+  void comb_spherical_with_symmetry(MutableSpan<bool> r_changed_curves)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
 
     float3 brush_start_wo, brush_end_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_prev_re_,
-                        brush_start_wo);
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_re_,
-                        brush_end_wo);
-    const float3 brush_start_cu = transforms_.world_to_curves * brush_start_wo;
-    const float3 brush_end_cu = transforms_.world_to_curves * brush_end_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_prev_re_,
+        brush_start_wo);
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_re_,
+        brush_end_wo);
+    const float3 brush_start_cu = math::transform_point(transforms_.world_to_curves,
+                                                        brush_start_wo);
+    const float3 brush_end_cu = math::transform_point(transforms_.world_to_curves, brush_end_wo);
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
 
@@ -277,13 +289,13 @@ struct CombOperationExecutor {
         eCurvesSymmetryType(curves_id_orig_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       this->comb_spherical(r_changed_curves,
-                           brush_transform * brush_start_cu,
-                           brush_transform * brush_end_cu,
+                           math::transform_point(brush_transform, brush_start_cu),
+                           math::transform_point(brush_transform, brush_end_cu),
                            brush_radius_cu);
     }
   }
 
-  void comb_spherical(EnumerableThreadSpecific<Vector<int>> &r_changed_curves,
+  void comb_spherical(MutableSpan<bool> r_changed_curves,
                       const float3 &brush_start_cu,
                       const float3 &brush_end_cu,
                       const float brush_radius_cu)
@@ -294,12 +306,12 @@ struct CombOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *curves_ob_orig_);
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
-      Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 pos_old_cu = deformation.positions[point_i];
 
@@ -328,7 +340,7 @@ struct CombOperationExecutor {
           curve_changed = true;
         }
         if (curve_changed) {
-          local_changed_curves.append(curve_i);
+          r_changed_curves[curve_i] = true;
         }
       }
     });
@@ -349,51 +361,6 @@ struct CombOperationExecutor {
     if (brush_3d.has_value()) {
       self_->brush_3d_ = *brush_3d;
     }
-  }
-
-  /**
-   * Remember the initial length of all curve segments. This allows restoring the length after
-   * combing.
-   */
-  void initialize_segment_lengths()
-  {
-    const Span<float3> positions_cu = curves_orig_->positions();
-    self_->segment_lengths_cu_.reinitialize(curves_orig_->points_num());
-    threading::parallel_for(curves_orig_->curves_range(), 128, [&](const IndexRange range) {
-      for (const int curve_i : range) {
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
-        for (const int point_i : points.drop_back(1)) {
-          const float3 &p1_cu = positions_cu[point_i];
-          const float3 &p2_cu = positions_cu[point_i + 1];
-          const float length_cu = math::distance(p1_cu, p2_cu);
-          self_->segment_lengths_cu_[point_i] = length_cu;
-        }
-      }
-    });
-  }
-
-  /**
-   * Restore previously stored length for each segment in the changed curves.
-   */
-  void restore_segment_lengths(EnumerableThreadSpecific<Vector<int>> &changed_curves)
-  {
-    const Span<float> expected_lengths_cu = self_->segment_lengths_cu_;
-    MutableSpan<float3> positions_cu = curves_orig_->positions_for_write();
-
-    threading::parallel_for_each(changed_curves, [&](const Vector<int> &changed_curves) {
-      threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
-        for (const int curve_i : changed_curves.as_span().slice(range)) {
-          const IndexRange points = curves_orig_->points_for_curve(curve_i);
-          for (const int segment_i : points.drop_back(1)) {
-            const float3 &p1_cu = positions_cu[segment_i];
-            float3 &p2_cu = positions_cu[segment_i + 1];
-            const float3 direction = math::normalize(p2_cu - p1_cu);
-            const float expected_length_cu = expected_lengths_cu[segment_i];
-            p2_cu = p1_cu + direction * expected_length_cu;
-          }
-        }
-      });
-    });
   }
 };
 

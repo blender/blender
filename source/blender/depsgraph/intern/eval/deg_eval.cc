@@ -105,8 +105,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
    * times.
    * This is a thread-safe modification as the node's flags are only read for a non-scheduled nodes
    * and this node has been scheduled. */
-  operation_node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
-                            DEPSOP_FLAG_USER_MODIFIED);
+  operation_node->flag &= ~DEPSOP_FLAG_CLEAR_ON_EVAL;
 }
 
 void deg_task_run_func(TaskPool *pool, void *taskdata)
@@ -270,6 +269,10 @@ void schedule_node(DepsgraphEvalState *state,
   bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t *)&node->scheduled, uint8_t(true));
   if (!is_scheduled) {
     if (node->is_noop()) {
+      /* Clear flags to avoid affecting subsequent update propagation.
+       * For normal nodes these are cleared when it is evaluated. */
+      node->flag &= ~DEPSOP_FLAG_CLEAR_ON_EVAL;
+
       /* skip NOOP node, schedule children right away */
       schedule_children(state, node, schedule_fn);
     }
@@ -385,7 +388,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   graph->debug.begin_graph_evaluation();
 
 #ifdef WITH_PYTHON
-  /* Release the GIL so that Python drivers can be evaluated. See T91046. */
+  /* Release the GIL so that Python drivers can be evaluated. See #91046. */
   BPy_BEGIN_ALLOW_THREADS;
 #endif
 

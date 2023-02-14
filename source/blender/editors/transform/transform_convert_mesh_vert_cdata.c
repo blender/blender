@@ -49,8 +49,8 @@ static void tc_mesh_cdata_transdata_create(TransDataBasic *td,
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
 
-  td->loc = weight;
-  td->iloc[0] = *weight;
+  td->val = weight;
+  td->ival = *weight;
 
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
     td->flag |= TD_SELECTED;
@@ -268,7 +268,7 @@ static void tc_mesh_cdata_apply_to_mirror(TransInfo *t)
     if (tc->use_mirror_axis_any) {
       TransDataMirror *td_mirror = tc->data_mirror;
       for (int i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
-        td_mirror->loc[0] = td_mirror->loc_src[0];
+        *td_mirror->val = td_mirror->loc_src[0];
       }
     }
   }
@@ -294,8 +294,8 @@ static void recalcData_mesh_cdata(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshVertCData = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransMeshVertCData,
-    /* recalcData */ recalcData_mesh_cdata,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransMeshVertCData,
+    /*recalcData*/ recalcData_mesh_cdata,
+    /*special_aftertrans_update*/ NULL,
 };

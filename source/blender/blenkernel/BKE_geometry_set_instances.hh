@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
+
 #include "BKE_geometry_set.hh"
 
 namespace blender::bke {

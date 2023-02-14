@@ -566,7 +566,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
 
         /* constraints that require this only under special conditions */
         if (con->type == CONSTRAINT_TYPE_CHILDOF) {
-          /* ChildOf constraint only works when using all location components, see T42256. */
+          /* ChildOf constraint only works when using all location components, see #42256. */
           bChildOfConstraint *data = (bChildOfConstraint *)con->data;
 
           if ((data->flag & CHILDOF_LOCX) && (data->flag & CHILDOF_LOCY) &&
@@ -609,7 +609,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
         }
         else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
-           * but doing so when translating may also mess things up, see: T36203. */
+           * but doing so when translating may also mess things up, see: #36203. */
           bTransformConstraint *data = (bTransformConstraint *)con->data;
 
           if (data->to == TRANS_ROTATION) {
@@ -709,10 +709,11 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 
 static void init_proportional_edit(TransInfo *t)
 {
-  /* NOTE: Proportional editing is not usable in pose mode yet T32444. */
+  /* NOTE: Proportional editing is not usable in pose mode yet #32444. */
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_Graph,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
@@ -784,6 +785,7 @@ static void init_TransDataContainers(TransInfo *t,
             &TransConvertType_Pose,
             &TransConvertType_EditArmature,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
@@ -833,7 +835,7 @@ static void init_TransDataContainers(TransInfo *t,
 
       if (object_mode & OB_MODE_EDIT) {
         tc->obedit = objects[i];
-        /* Check needed for UV's */
+        /* Check needed for UVs */
         if ((t->flag & T_2D_EDIT) == 0) {
           tc->use_local_mat = true;
         }
@@ -959,6 +961,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     if (t->obedit_type == OB_ARMATURE) {
       return &TransConvertType_EditArmature;
     }
+    if (t->obedit_type == OB_CURVES) {
+      return &TransConvertType_Curves;
+    }
     return NULL;
   }
   if (ob && (ob->mode & OB_MODE_POSE)) {
@@ -1016,7 +1021,7 @@ void createTransData(bContext *C, TransInfo *t)
   if (t->data_type == &TransConvertType_Object) {
     t->options |= CTX_OBJECT;
 
-    /* Needed for correct Object.obmat after duplication, see: T62135. */
+    /* Needed for correct Object.obmat after duplication, see: #62135. */
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
     if ((t->settings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
@@ -1070,87 +1075,75 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
 {
   Object *ob = tc->obedit;
   ModifierData *md = ob->modifiers.first;
-  float tolerance[3] = {0.0f, 0.0f, 0.0f};
-  int axis = 0;
 
   for (; md; md = md->next) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
       MirrorModifierData *mmd = (MirrorModifierData *)md;
 
-      if (mmd->flag & MOD_MIR_CLIPPING) {
-        axis = 0;
-        if (mmd->flag & MOD_MIR_AXIS_X) {
-          axis |= 1;
-          tolerance[0] = mmd->tolerance;
+      if ((mmd->flag & MOD_MIR_CLIPPING) == 0) {
+        continue;
+      }
+
+      if ((mmd->flag & (MOD_MIR_AXIS_X | MOD_MIR_AXIS_Y | MOD_MIR_AXIS_Z)) == 0) {
+        continue;
+      }
+
+      float mtx[4][4], imtx[4][4];
+
+      if (mmd->mirror_ob) {
+        float obinv[4][4];
+
+        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
+        mul_m4_m4m4(mtx, obinv, ob->object_to_world);
+        invert_m4_m4(imtx, mtx);
+      }
+
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        float loc[3], iloc[3];
+
+        if (td->loc == NULL) {
+          break;
         }
+
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+
+        copy_v3_v3(loc, td->loc);
+        copy_v3_v3(iloc, td->iloc);
+
+        if (mmd->mirror_ob) {
+          mul_m4_v3(mtx, loc);
+          mul_m4_v3(mtx, iloc);
+        }
+
+        bool is_clipping = false;
+        if (mmd->flag & MOD_MIR_AXIS_X) {
+          if (fabsf(iloc[0]) <= mmd->tolerance || loc[0] * iloc[0] < 0.0f) {
+            loc[0] = 0.0f;
+            is_clipping = true;
+          }
+        }
+
         if (mmd->flag & MOD_MIR_AXIS_Y) {
-          axis |= 2;
-          tolerance[1] = mmd->tolerance;
+          if (fabsf(iloc[1]) <= mmd->tolerance || loc[1] * iloc[1] < 0.0f) {
+            loc[1] = 0.0f;
+            is_clipping = true;
+          }
         }
         if (mmd->flag & MOD_MIR_AXIS_Z) {
-          axis |= 4;
-          tolerance[2] = mmd->tolerance;
+          if (fabsf(iloc[2]) <= mmd->tolerance || loc[2] * iloc[2] < 0.0f) {
+            loc[2] = 0.0f;
+            is_clipping = true;
+          }
         }
-        if (axis) {
-          float mtx[4][4], imtx[4][4];
-          int i;
 
+        if (is_clipping) {
           if (mmd->mirror_ob) {
-            float obinv[4][4];
-
-            invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
-            mul_m4_m4m4(mtx, obinv, ob->object_to_world);
-            invert_m4_m4(imtx, mtx);
+            mul_m4_v3(imtx, loc);
           }
-
-          TransData *td = tc->data;
-          for (i = 0; i < tc->data_len; i++, td++) {
-            int clip;
-            float loc[3], iloc[3];
-
-            if (td->loc == NULL) {
-              break;
-            }
-
-            if (td->flag & TD_SKIP) {
-              continue;
-            }
-
-            copy_v3_v3(loc, td->loc);
-            copy_v3_v3(iloc, td->iloc);
-
-            if (mmd->mirror_ob) {
-              mul_m4_v3(mtx, loc);
-              mul_m4_v3(mtx, iloc);
-            }
-
-            clip = 0;
-            if (axis & 1) {
-              if (fabsf(iloc[0]) <= tolerance[0] || loc[0] * iloc[0] < 0.0f) {
-                loc[0] = 0.0f;
-                clip = 1;
-              }
-            }
-
-            if (axis & 2) {
-              if (fabsf(iloc[1]) <= tolerance[1] || loc[1] * iloc[1] < 0.0f) {
-                loc[1] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (axis & 4) {
-              if (fabsf(iloc[2]) <= tolerance[2] || loc[2] * iloc[2] < 0.0f) {
-                loc[2] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (clip) {
-              if (mmd->mirror_ob) {
-                mul_m4_v3(imtx, loc);
-              }
-              copy_v3_v3(td->loc, loc);
-            }
-          }
+          copy_v3_v3(td->loc, loc);
         }
       }
     }
@@ -1203,7 +1196,7 @@ void animrecord_check_state(TransInfo *t, struct ID *id)
 
           /* copy current "action blending" settings from adt to the strip,
            * as it was keyframed with these settings, so omitting them will
-           * change the effect  [T54766]
+           * change the effect  [#54766]
            */
           if (is_first == false) {
             strip->blendmode = adt->act_blendmode;

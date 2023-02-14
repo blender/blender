@@ -215,7 +215,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         float radius;
         if (get_authored_value(sphere_light.GetRadiusAttr(), motionSampleTime, &radius) ||
             prim_.GetAttribute(usdtokens::radius).Get(&radius, motionSampleTime)) {
-          blight->area_size = radius;
+          blight->radius = radius;
         }
       }
       break;
@@ -230,7 +230,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         float radius;
         if (get_authored_value(sphere_light.GetRadiusAttr(), motionSampleTime, &radius) ||
             prim_.GetAttribute(usdtokens::radius).Get(&radius, motionSampleTime)) {
-          blight->area_size = radius;
+          blight->radius = radius;
         }
 
         if (!shaping_api) {

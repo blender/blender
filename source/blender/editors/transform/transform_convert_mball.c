@@ -123,7 +123,7 @@ static void createTransMBallVerts(bContext *UNUSED(C), TransInfo *t)
 static void recalcData_mball(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len) {
@@ -135,8 +135,8 @@ static void recalcData_mball(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MBall = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransMBallVerts,
-    /* recalcData */ recalcData_mball,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransMBallVerts,
+    /*recalcData*/ recalcData_mball,
+    /*special_aftertrans_update*/ NULL,
 };

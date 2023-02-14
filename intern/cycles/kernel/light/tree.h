@@ -47,11 +47,6 @@ ccl_device float light_tree_cos_bounding_box_angle(const BoundingBox bbox,
   return cos_theta_u;
 }
 
-ccl_device_forceinline float sin_from_cos(const float c)
-{
-  return safe_sqrtf(1.0f - sqr(c));
-}
-
 /* Compute vector v as in Fig .8. P_v is the corresponding point along the ray. */
 ccl_device float3 compute_v(
     const float3 centroid, const float3 P, const float3 D, const float3 bcone_axis, const float t)
@@ -223,11 +218,16 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
     triangle_world_space_vertices(kg, object, prim_id, -1.0f, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
-    if (kemitter->emission_sampling == EMISSION_SAMPLING_FRONT) {
+    const bool is_front_only = (kemitter->emission_sampling == EMISSION_SAMPLING_FRONT);
+    const bool is_back_only = (kemitter->emission_sampling == EMISSION_SAMPLING_BACK);
+    if (is_front_only || is_back_only) {
       dir = safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
-    }
-    else if (kemitter->emission_sampling == EMISSION_SAMPLING_BACK) {
-      dir = -safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+      if (is_back_only) {
+        dir = -dir;
+      }
+      if (kernel_data_fetch(object_flag, object) & SD_OBJECT_NEGATIVE_SCALE) {
+        dir = -dir;
+      }
     }
     else {
       /* Double-sided: any vector in the plane. */
@@ -551,8 +551,9 @@ ccl_device bool get_left_probability(KernelGlobals kg,
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           float randu,
-                                           float randv,
+                                           float randn,
+                                           const float randu,
+                                           const float randv,
                                            const float time,
                                            const float3 P,
                                            const float3 N_or_D,
@@ -580,7 +581,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     if (knode->child_index <= 0) {
       /* At a leaf node, we pick an emitter. */
       selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
-          kg, randv, P, N_or_D, t, has_transmission, knode, &pdf_selection);
+          kg, randn, P, N_or_D, t, has_transmission, knode, &pdf_selection);
       break;
     }
 
@@ -598,7 +599,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     float discard;
     float total_prob = left_prob;
     node_index = left_index;
-    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randu);
+    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randn);
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 

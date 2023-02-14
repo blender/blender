@@ -75,7 +75,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_cnew(__func__, *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_cnew<BrushGpencilSettings>(__func__,
+                                                                 *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -97,7 +98,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_cnew(__func__, *(brush_src->curves_sculpt_settings));
+    brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
+        __func__, *(brush_src->curves_sculpt_settings));
   }
 
   /* enable fake user by default */
@@ -149,7 +151,8 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
 
   if (brush->clone.image) {
-    /* Special case: ima always local immediately. Clone image should only have one user anyway. */
+    /* Special case: `ima` always local immediately.
+     * Clone image should only have one user anyway. */
     /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
      * in IDType callbacks. Higher-level ID management code usually does not expect such things and
      * does not deal properly with it. */
@@ -407,37 +410,37 @@ static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 
   /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
-  SWAP(IDProperty *, id_new->properties, id_old->properties);
+  std::swap(id_new->properties, id_old->properties);
 }
 
 IDTypeInfo IDType_ID_BR = {
-    /* id_code */ ID_BR,
-    /* id_filter */ FILTER_ID_BR,
-    /* main_listbase_index */ INDEX_ID_BR,
-    /* struct_size */ sizeof(Brush),
-    /* name */ "Brush",
-    /* name_plural */ "brushes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_BRUSH,
-    /* flags */ IDTYPE_FLAGS_NO_ANIMDATA,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_BR,
+    /*id_filter*/ FILTER_ID_BR,
+    /*main_listbase_index*/ INDEX_ID_BR,
+    /*struct_size*/ sizeof(Brush),
+    /*name*/ "Brush",
+    /*name_plural*/ "brushes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
+    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ brush_init_data,
-    /* copy_data */ brush_copy_data,
-    /* free_data */ brush_free_data,
-    /* make_local */ brush_make_local,
-    /* foreach_id */ brush_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ brush_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ brush_init_data,
+    /*copy_data*/ brush_copy_data,
+    /*free_data*/ brush_free_data,
+    /*make_local*/ brush_make_local,
+    /*foreach_id*/ brush_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ brush_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ brush_blend_write,
-    /* blend_read_data */ brush_blend_read_data,
-    /* blend_read_lib */ brush_blend_read_lib,
-    /* blend_read_expand */ brush_blend_read_expand,
+    /*blend_write*/ brush_blend_write,
+    /*blend_read_data*/ brush_blend_read_data,
+    /*blend_read_lib*/ brush_blend_read_lib,
+    /*blend_read_expand*/ brush_blend_read_expand,
 
-    /* blend_read_undo_preserve */ brush_undo_preserve,
+    /*blend_read_undo_preserve*/ brush_undo_preserve,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static RNG *brush_rng;
@@ -1595,7 +1598,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
 void BKE_brush_debug_print_state(Brush *br)
 {
   /* create a fake brush and set it to the defaults */
-  Brush def = {{nullptr}};
+  Brush def = blender::dna::shallow_zero_initialize();
   brush_defaults(&def);
 
 #define BR_TEST(field, t) \

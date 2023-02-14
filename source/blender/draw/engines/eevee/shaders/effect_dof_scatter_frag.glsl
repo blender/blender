@@ -29,6 +29,7 @@ float bokeh_shape(vec2 center)
 
 void main(void)
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec4 shapes;
   for (int i = 0; i < 4; i++) {
     shapes[i] = bokeh_shape(spritepos + quad_offsets[i]);
@@ -40,6 +41,7 @@ void main(void)
   /* Outside of bokeh shape. Try to avoid overloading ROPs. */
   if (max_v4(shapes) == 0.0) {
     discard;
+    return;
   }
 
   if (!no_scatter_occlusion) {
