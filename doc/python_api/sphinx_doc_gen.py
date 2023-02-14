@@ -487,7 +487,7 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
         BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
     )
     BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
@@ -647,7 +647,7 @@ def undocumented_message(module_name, type_name, identifier):
         module_name, type_name, identifier,
     )
 
-    return "Undocumented, consider `contributing <https://developer.blender.org/T51061>`__."
+    return "Undocumented, consider `contributing <https://developer.blender.org/>`__."
 
 
 def range_str(val):
