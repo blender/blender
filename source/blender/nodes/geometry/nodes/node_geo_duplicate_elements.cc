@@ -407,6 +407,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
                                      curve_offsets);
   }
 
+  new_curves.update_curve_types();
   geometry_set.replace_curves(new_curves_id);
 }
 
