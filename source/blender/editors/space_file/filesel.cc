@@ -104,7 +104,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params = sfile->asset_params = static_cast<FileAssetSelectParams *>(
         MEM_callocN(sizeof(*asset_params), "FileAssetSelectParams"));
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
-    asset_params->asset_library_ref.type = ASSET_LIBRARY_LOCAL;
+    asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
     asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
   }
@@ -422,7 +422,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
     user_library = BKE_preferences_asset_library_find_from_index(&U,
                                                                  library->custom_library_index);
     if (!user_library) {
-      library->type = ASSET_LIBRARY_LOCAL;
+      library->type = ASSET_LIBRARY_ALL;
     }
   }
 
