@@ -630,7 +630,7 @@ GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud)
 
 GPU_SHADER_CREATE_INFO(overlay_uniform_color_clipped)
     .do_static_compilation(true)
-    .additional_info("overlay_depth_only", "drw_clipped");
+    .additional_info("overlay_uniform_color", "drw_clipped");
 
 GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud_clipped)
     .do_static_compilation(true)
