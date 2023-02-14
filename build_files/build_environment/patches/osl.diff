@@ -36,15 +36,14 @@ diff -Naur OpenShadingLanguage-1.12.6.2/src/include/OSL/llvm_util.h external_osl
  #ifdef LLVM_NAMESPACE
  namespace llvm = LLVM_NAMESPACE;
  #endif
-@@ -455,7 +457,7 @@
-     llvm::BasicBlock* masked_return_block() const;
- 
-     bool is_masking_required() const { return m_is_masking_required; }
+@@ -101,6 +103,6 @@
+         ScopedJitMemoryUser();
+         ~ScopedJitMemoryUser();
+     };
 -
 +    static void Cleanup ();
-     struct ScopedMasking {
-         ScopedMasking() {}
- 
+     /// Set debug level
+     void debug(int d) { m_debug = d; }
 diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp external_osl/src/liboslcomp/oslcomp.cpp
 --- OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp	2022-09-30 17:43:53 -0600
 +++ external_osl/src/liboslcomp/oslcomp.cpp	2022-10-15 14:49:26 -0600
@@ -65,15 +64,6 @@ diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp external_osl/
 diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslexec/llvm_util.cpp external_osl/src/liboslexec/llvm_util.cpp
 --- OpenShadingLanguage-1.12.6.2/src/liboslexec/llvm_util.cpp	2022-09-30 17:43:53 -0600
 +++ external_osl/src/liboslexec/llvm_util.cpp	2022-10-15 15:53:11 -0600
-@@ -116,8 +116,6 @@
-     return { A.data(), size_t(A.size()) };
- }
- 
--
--
- namespace pvt {
- 
- typedef llvm::SectionMemoryManager LLVMMemoryManager;
 @@ -182,6 +180,13 @@
      ++jit_mem_hold_users;
  }
@@ -88,24 +78,3 @@ diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslexec/llvm_util.cpp external_os
  
  LLVM_Util::ScopedJitMemoryUser::~ScopedJitMemoryUser()
  {
-diff --git a/src/include/OSL/mask.h b/src/include/OSL/mask.h
-index 24197af..b9275f6 100644
---- a/src/include/OSL/mask.h
-+++ b/src/include/OSL/mask.h
-@@ -4,7 +4,6 @@
- 
- #pragma once
- 
--#include <immintrin.h>
- #include <type_traits>
- 
- #include <OSL/oslconfig.h>
-@@ -23,6 +22,8 @@ using std::countr_zero;
- 
- #elif OSL_INTEL_CLASSIC_COMPILER_VERSION
- 
-+#include <immintrin.h>
-+
- OSL_FORCEINLINE int popcount(uint32_t x) noexcept { return _mm_popcnt_u32(x);}
- OSL_FORCEINLINE int popcount(uint64_t x) noexcept { return _mm_popcnt_u64(x); }
- OSL_FORCEINLINE int countr_zero(uint32_t x) noexcept { return _bit_scan_forward(x); }
