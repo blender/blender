@@ -71,16 +71,11 @@ class CurvesGeometryRuntime {
 
   mutable SharedCache<Vector<curves::nurbs::BasisCache>> nurbs_basis_cache;
 
-  /** Cache of evaluated positions. */
-  struct EvaluatedPositions {
-    Vector<float3> vector;
-    /**
-     * The evaluated positions result, using a separate span in case all curves are poly curves,
-     * in which case a separate array of evaluated positions is unnecessary.
-     */
-    Span<float3> span;
-  };
-  mutable SharedCache<EvaluatedPositions> evaluated_position_cache;
+  /**
+   * Cache of evaluated positions for all curves. The positions span will
+   * be used directly rather than the cache when all curves are poly type.
+   */
+  mutable SharedCache<Vector<float3>> evaluated_position_cache;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions and radii.
