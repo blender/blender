@@ -1797,7 +1797,7 @@ void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
 void UI_but_drag_set_asset(uiBut *but,
                            const struct AssetHandle *asset,
                            const char *path,
-                           int import_type, /* eFileAssetImportType */
+                           int import_type, /* eAssetImportType */
                            int icon,
                            struct ImBuf *imb,
                            float scale);

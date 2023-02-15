@@ -6912,6 +6912,12 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_FOLLOW_PREFS,
+       "FOLLOW_PREFS",
+       0,
+       "Follow Preferences",
+       "Use the import method set in the Preferences for this asset library, don't override it "
+       "for this Asset Browser"},
       {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
       {FILE_ASSET_IMPORT_APPEND,
        "APPEND",

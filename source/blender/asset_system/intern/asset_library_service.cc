@@ -63,9 +63,11 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   switch (type) {
     case ASSET_LIBRARY_ESSENTIALS: {
       const StringRefNull root_path = essentials_directory_path();
-      AssetLibrary *asset_library = get_asset_library_on_disk(root_path);
-      asset_library->never_link = true;
-      return asset_library;
+
+      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
+
+      return library;
     }
     case ASSET_LIBRARY_LOCAL: {
       /* For the "Current File" library  we get the asset library root path based on main. */
@@ -81,12 +83,22 @@ AssetLibrary *AssetLibraryService::get_asset_library(
     case ASSET_LIBRARY_ALL:
       return get_asset_library_all(bmain);
     case ASSET_LIBRARY_CUSTOM: {
-      std::string root_path = root_path_from_library_ref(library_reference);
-
-      if (!root_path.empty()) {
-        return get_asset_library_on_disk(root_path);
+      bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
+          library_reference);
+      if (!custom_library) {
+        return nullptr;
       }
-      break;
+
+      std::string root_path = custom_library->path;
+      if (root_path.empty()) {
+        return nullptr;
+      }
+
+      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      library->import_method_ = eAssetImportMethod(custom_library->import_method);
+      library->may_override_import_method_ = true;
+
+      return library;
     }
   }
 
@@ -187,6 +199,15 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   return all_library_.get();
 }
 
+bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
+  BLI_assert(library_reference.custom_library_index >= 0);
+
+  return BKE_preferences_asset_library_find_from_index(&U, library_reference.custom_library_index);
+}
+
 std::string AssetLibraryService::root_path_from_library_ref(
     const AssetLibraryReference &library_reference)
 {
@@ -194,16 +215,13 @@ std::string AssetLibraryService::root_path_from_library_ref(
     return "";
   }
 
-  BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
-  BLI_assert(library_reference.custom_library_index >= 0);
-
-  bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, library_reference.custom_library_index);
-  if (!user_library || !user_library->path[0]) {
+  bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
+      library_reference);
+  if (!custom_library || !custom_library->path[0]) {
     return "";
   }
 
-  return user_library->path;
+  return custom_library->path;
 }
 
 void AssetLibraryService::allocate_service_instance()

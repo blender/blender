@@ -1442,12 +1442,20 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
             row = name_col.row()
             row.alert = not library.name
             row.prop(library, "name", text="")
+            row = name_col.row()
+            # Dummy for spacing
+            row.label(text="")
+            name_col.separator()
 
             row = path_col.row()
             subrow = row.row()
             subrow.alert = not library.path
             subrow.prop(library, "path", text="")
             row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+            row = path_col.row()
+            row.prop(library, "import_method", text="")
+            row.label(text="", icon='BLANK1')
+            path_col.separator()
 
         row = box.row()
         row.alignment = 'RIGHT'

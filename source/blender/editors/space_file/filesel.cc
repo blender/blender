@@ -23,6 +23,8 @@
 #  include <unistd.h>
 #endif
 
+#include "AS_asset_representation.hh"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -58,6 +60,7 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
+#include "AS_asset_representation.h"
 #include "AS_essentials_library.hh"
 
 #include "file_intern.h"
@@ -106,7 +109,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
-    asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
+    asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
   }
 
   FileSelectParams *base_params = &asset_params->base_params;
@@ -501,6 +504,43 @@ void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID ca
   params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
   params->catalog_id = catalog_id;
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+}
+
+int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirEntry *file)
+{
+  if (!ED_fileselect_is_asset_browser(sfile) || !file->asset) {
+    return -1;
+  }
+
+  /* First handle the case where the asset system dictates a certain import method. */
+  if (AS_asset_representation_may_override_import_method(file->asset) == false) {
+    BLI_assert(AS_asset_representation_import_method_get(file->asset).has_value());
+
+    return *AS_asset_representation_import_method_get(file->asset);
+  }
+
+  const FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+
+  if (params->import_type == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
+    std::optional import_method = AS_asset_representation_import_method_get(file->asset);
+    return import_method ? *import_method : -1;
+  }
+
+  switch (eFileAssetImportType(params->import_type)) {
+    case FILE_ASSET_IMPORT_LINK:
+      return ASSET_IMPORT_LINK;
+    case FILE_ASSET_IMPORT_APPEND:
+      return ASSET_IMPORT_APPEND;
+    case FILE_ASSET_IMPORT_APPEND_REUSE:
+      return ASSET_IMPORT_APPEND_REUSE;
+
+      /* Should be handled above already. Break and fail below. */
+    case FILE_ASSET_IMPORT_FOLLOW_PREFS:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return -1;
 }
 
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
