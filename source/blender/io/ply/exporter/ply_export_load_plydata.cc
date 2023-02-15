@@ -4,6 +4,7 @@
  * \ingroup ply
  */
 
+#include "BLI_array.hh"
 #include "BLI_math.h"
 
 #include "BKE_attribute.hh"
@@ -123,7 +124,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     Span<MLoop> loops = mesh->loops();
     for (const MPoly poly : mesh->polys()) {
       Span<MLoop> loopSpan = loops.slice(poly.loopstart, poly.totloop);
-      Vector<uint32_t> polyVector;
+      Array<uint32_t> polyVector(loopSpan.size());
 
       for (int i = 0; i < loopSpan.size(); ++i) {
         float2 uv;
@@ -135,7 +136,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         }
         UV_vertex_key key = UV_vertex_key(uv, loopSpan[i].v);
         int ply_vertex_index = vertex_map.lookup(key);
-        polyVector.append(uint32_t(ply_vertex_index + vertex_offset));
+        polyVector[i] = (uint32_t(ply_vertex_index + vertex_offset));
       }
       loop_offset += loopSpan.size();
 

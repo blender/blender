@@ -3,6 +3,7 @@
 /** \file
  * \ingroup ply
  */
+#include "BLI_array.hh"
 
 #include "ply_import_binary.hh"
 
@@ -113,7 +114,7 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
       for (int j = 0; j < header->elements[i].second; j++) {
         /* Assume vertex_index_count_type is uchar. */
         uint8_t count = read<uint8_t>(file, isBigEndian);
-        Vector<uint> vertex_indices;
+        Array<uint> vertex_indices(count);
 
         /* Loop over the amount of vertex indices in this face. */
         for (uint8_t k = 0; k < count; k++) {
@@ -122,7 +123,7 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
           if (index >= data.vertices.size()) {
             throw std::runtime_error("Vertex index out of bounds");
           }
-          vertex_indices.append(index);
+          vertex_indices[k] = index;
         }
         data.faces.append(vertex_indices);
       }

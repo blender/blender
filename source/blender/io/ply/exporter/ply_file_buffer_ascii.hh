@@ -8,13 +8,12 @@
 
 #include <string>
 #include <type_traits>
-#include <vector>
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
-#include "BLI_vector.hh"
 
 #include "ply_file_buffer.hh"
 
@@ -53,7 +52,7 @@ class FileBufferAscii : public FileBuffer {
     write_fstring("\n");
   }
 
-  void write_face(char count, Vector<uint32_t> const &vertex_indices) override
+  void write_face(char count, Array<uint32_t> const &vertex_indices) override
   {
     write_fstring("{}", int(count));
 

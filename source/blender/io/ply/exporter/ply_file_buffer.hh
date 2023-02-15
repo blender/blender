@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
@@ -101,7 +102,7 @@ class FileBuffer : private NonMovable {
 
   virtual void write_vertex_end() = 0;
 
-  virtual void write_face(char count, Vector<uint32_t> const &vertex_indices) = 0;
+  virtual void write_face(char count, Array<uint32_t> const &vertex_indices) = 0;
 
   virtual void write_edge(int first, int second) = 0;
 

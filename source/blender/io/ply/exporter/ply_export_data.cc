@@ -3,6 +3,7 @@
 /** \file
  * \ingroup ply
  */
+#include "BLI_array.hh"
 
 #include "ply_data.hh"
 #include "ply_file_buffer.hh"
@@ -35,7 +36,7 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
 
 void write_faces(FileBuffer &buffer, const PlyData &ply_data)
 {
-  for (const Vector<uint32_t> &face : ply_data.faces) {
+  for (const Array<uint32_t> &face : ply_data.faces) {
     buffer.write_face(char(face.size()), face);
   }
   buffer.write_to_file();
