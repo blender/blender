@@ -19,7 +19,6 @@
 #include "BKE_callbacks.h"
 
 struct AssetLibrary;
-class bUserAssetLibrary;
 struct IDRemapper;
 struct Main;
 
