@@ -12,9 +12,9 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_sort.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "BLI_sort.hh"
 #include "BLI_vector.hh"
 
 #include "PIL_time.h"
@@ -1889,7 +1889,7 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   edge_nabr->flags = 0;
 }
 
-void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
+static void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
 {
   blender::parallel_sort(
       ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
