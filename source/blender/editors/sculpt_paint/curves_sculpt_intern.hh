@@ -163,6 +163,11 @@ struct CurvesConstraintSolver {
                   const IndexMask curve_selection,
                   const Mesh *surface,
                   const CurvesSurfaceTransforms &transforms);
+
+  Span<float> segment_lengths() const
+  {
+    return segment_lengths_;
+  }
 };
 
 }  // namespace blender::ed::sculpt_paint

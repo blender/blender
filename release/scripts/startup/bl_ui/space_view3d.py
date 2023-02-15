@@ -522,7 +522,8 @@ class _draw_tool_settings_context_mode:
 
         if curves_tool == 'COMB':
             layout.prop(brush, "falloff_shape", expand=True)
-            layout.popover("VIEW3D_PT_tools_brush_falloff")
+            layout.popover("VIEW3D_PT_tools_brush_falloff", text="Brush Falloff")
+            layout.popover("VIEW3D_PT_curves_sculpt_parameter_falloff", text="Curve Falloff")
         elif curves_tool == 'ADD':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
@@ -7944,6 +7945,28 @@ class VIEW3D_PT_curves_sculpt_add_shape(Panel):
         col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
 
+class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Curves Sculpt Parameter Falloff"
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        layout.template_curve_mapping(brush.curves_sculpt_settings, "curve_parameter_falloff")
+        row = layout.row(align=True)
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
 class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
@@ -8221,6 +8244,7 @@ classes = (
     TOPBAR_PT_gpencil_vertexcolor,
     TOPBAR_PT_annotation_layers,
     VIEW3D_PT_curves_sculpt_add_shape,
+    VIEW3D_PT_curves_sculpt_parameter_falloff,
     VIEW3D_PT_curves_sculpt_grow_shrink_scaling,
     VIEW3D_PT_viewport_debug,
 )

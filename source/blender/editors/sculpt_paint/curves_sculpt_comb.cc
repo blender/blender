@@ -18,6 +18,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.h"
 #include "BKE_bvhutils.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
@@ -68,6 +69,8 @@ class CombOperation : public CurvesSculptStrokeOperation {
 
   /** Solver for length and collision constraints. */
   CurvesConstraintSolver constraint_solver_;
+
+  Array<float> curve_lengths_;
 
   friend struct CombOperationExecutor;
 
@@ -146,6 +149,17 @@ struct CombOperationExecutor {
       }
       self_->constraint_solver_.initialize(
           *curves_orig_, curve_selection_, curves_id_orig_->flag & CV_SCULPT_COLLISION_ENABLED);
+
+      self_->curve_lengths_.reinitialize(curves_orig_->curves_num());
+      const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
+      const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
+      threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
+        for (const int curve_i : curve_selection_.slice(range)) {
+          const IndexRange points = points_by_curve[curve_i];
+          const Span<float> lengths = segment_lengths.slice(points.drop_back(1));
+          self_->curve_lengths_[curve_i] = std::accumulate(lengths.begin(), lengths.end(), 0.0f);
+        }
+      });
       /* Combing does nothing when there is no mouse movement, so return directly. */
       return;
     }
@@ -204,11 +218,23 @@ struct CombOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
+    CurveMapping &curve_parameter_falloff_mapping =
+        *brush_->curves_sculpt_settings->curve_parameter_falloff;
+    BKE_curvemapping_init(&curve_parameter_falloff_mapping);
+
+    const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
+
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
         const IndexRange points = points_by_curve[curve_i];
+
+        const float total_length = self_->curve_lengths_[curve_i];
+        const float total_length_inv = safe_divide(1.0f, total_length);
+        float current_length = 0.0f;
         for (const int point_i : points.drop_front(1)) {
+          current_length += segment_lengths[point_i - 1];
+
           const float3 old_pos_cu = deformation.positions[point_i];
           const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
 
@@ -228,8 +254,12 @@ struct CombOperationExecutor {
           /* A falloff that is based on how far away the point is from the stroke. */
           const float radius_falloff = BKE_brush_curve_strength(
               brush_, distance_to_brush_re, brush_radius_re);
+          const float curve_parameter = current_length * total_length_inv;
+          const float curve_falloff = BKE_curvemapping_evaluateF(
+              &curve_parameter_falloff_mapping, 0, curve_parameter);
           /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * radius_falloff * point_factors_[point_i];
+          const float weight = brush_strength_ * curve_falloff * radius_falloff *
+                               point_factors_[point_i];
 
           /* Offset the old point position in screen space and transform it back into 3D space.
            */
@@ -304,15 +334,26 @@ struct CombOperationExecutor {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
 
+    CurveMapping &curve_parameter_falloff_mapping =
+        *brush_->curves_sculpt_settings->curve_parameter_falloff;
+    BKE_curvemapping_init(&curve_parameter_falloff_mapping);
+
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *curves_ob_orig_);
     const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
+    const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
         const IndexRange points = points_by_curve[curve_i];
+
+        const float total_length = self_->curve_lengths_[curve_i];
+        const float total_length_inv = safe_divide(1.0f, total_length);
+        float current_length = 0.0f;
         for (const int point_i : points.drop_front(1)) {
+          current_length += segment_lengths[point_i - 1];
+
           const float3 pos_old_cu = deformation.positions[point_i];
 
           /* Compute distance to the brush. */
@@ -328,8 +369,12 @@ struct CombOperationExecutor {
           /* A falloff that is based on how far away the point is from the stroke. */
           const float radius_falloff = BKE_brush_curve_strength(
               brush_, distance_to_brush_cu, brush_radius_cu);
+          const float curve_parameter = current_length * total_length_inv;
+          const float curve_falloff = BKE_curvemapping_evaluateF(
+              &curve_parameter_falloff_mapping, 0, curve_parameter);
           /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * radius_falloff * point_factors_[point_i];
+          const float weight = brush_strength_ * curve_falloff * radius_falloff *
+                               point_factors_[point_i];
 
           const float3 translation_eval_cu = weight * brush_diff_cu;
           const float3 translation_orig_cu = deformation.translation_from_deformed_to_original(

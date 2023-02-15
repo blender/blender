@@ -25,6 +25,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
@@ -569,19 +570,18 @@ static bool brush_curve_preset_poll(bContext *C)
   return br && br->curve;
 }
 
+static const EnumPropertyItem prop_shape_items[] = {
+    {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+    {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+    {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
+    {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
+    {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
+    {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-  static const EnumPropertyItem prop_shape_items[] = {
-      {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-      {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-      {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
-      {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
-      {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
-      {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   ot->name = "Preset";
   ot->description = "Set brush shape";
   ot->idname = "BRUSH_OT_curve_preset";
@@ -589,6 +589,38 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
   ot->exec = brush_curve_preset_exec;
   ot->poll = brush_curve_preset_poll;
 
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
+}
+
+static bool brush_sculpt_curves_falloff_preset_poll(bContext *C)
+{
+  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  return br && br->curves_sculpt_settings && br->curves_sculpt_settings->curve_parameter_falloff;
+}
+
+static int brush_sculpt_curves_falloff_preset_exec(bContext *C, wmOperator *op)
+{
+  Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  CurveMapping *mapping = brush->curves_sculpt_settings->curve_parameter_falloff;
+  mapping->preset = RNA_enum_get(op->ptr, "shape");
+  CurveMap *map = mapping->cm;
+  BKE_curvemap_reset(map, &mapping->clipr, mapping->preset, CURVEMAP_SLOPE_POSITIVE);
+  return OPERATOR_FINISHED;
+}
+
+void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot)
+{
+  ot->name = "Curve Falloff Preset";
+  ot->description = "Set Curve Falloff Preset";
+  ot->idname = "BRUSH_OT_sculpt_curves_falloff_preset";
+
+  ot->exec = brush_sculpt_curves_falloff_preset_exec;
+  ot->poll = brush_sculpt_curves_falloff_preset_poll;
+
+  PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
   RNA_def_property_translation_context(prop,
                                        BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */

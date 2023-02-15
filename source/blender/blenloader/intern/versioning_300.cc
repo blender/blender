@@ -3952,6 +3952,15 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode == OB_MODE_SCULPT_CURVES) {
+        if (brush->curves_sculpt_settings->curve_parameter_falloff == nullptr) {
+          brush->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_add(
+              1, 0.0f, 0.0f, 1.0f, 1.0f);
+        }
+      }
+    }
+
     /* Keep this block, even when empty. */
   }
 }
