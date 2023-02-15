@@ -1012,7 +1012,7 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
  * In some cases we need to coerce strings, avoid doing this inline.
  * \{ */
 
-const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
 {
   const char *result;
 
@@ -1039,7 +1039,7 @@ const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObjec
   return NULL;
 }
 
-const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
 {
   const char *result;
 
@@ -1064,7 +1064,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
   return NULL;
 }
 
-PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
+PyObject *PyC_UnicodeFromBytesAndSize(const char *str, Py_ssize_t size)
 {
   PyObject *result = PyUnicode_FromStringAndSize(str, size);
   if (result) {
@@ -1079,9 +1079,9 @@ PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
   return result;
 }
 
-PyObject *PyC_UnicodeFromByte(const char *str)
+PyObject *PyC_UnicodeFromBytes(const char *str)
 {
-  return PyC_UnicodeFromByteAndSize(str, strlen(str));
+  return PyC_UnicodeFromBytesAndSize(str, strlen(str));
 }
 
 /** \} */
@@ -1101,7 +1101,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   if (filename) {
     /* __file__ mainly for nice UI'ness
      * NOTE: this won't map to a real file when executing text-blocks and buttons. */
-    PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromByte(filename));
+    PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromBytes(filename));
   }
   PyModule_AddObject(mod_main, "__builtins__", builtins);
   Py_INCREF(builtins); /* AddObject steals a reference */

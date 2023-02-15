@@ -312,7 +312,7 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 PyDoc_STRVAR(bpy_app_tempdir_doc, "String, the temp directory used by blender (read-only)");
 static PyObject *bpy_app_tempdir_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-  return PyC_UnicodeFromByte(BKE_tempdir_session());
+  return PyC_UnicodeFromBytes(BKE_tempdir_session());
 }
 
 PyDoc_STRVAR(
@@ -339,7 +339,7 @@ static PyObject *bpy_app_preview_render_size_get(PyObject *UNUSED(self), void *c
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-  return PyC_UnicodeFromByte(G.autoexec_fail);
+  return PyC_UnicodeFromBytes(G.autoexec_fail);
 }
 
 PyDoc_STRVAR(bpy_app_binary_path_doc,
@@ -348,7 +348,7 @@ PyDoc_STRVAR(bpy_app_binary_path_doc,
              "an empty string which script authors may point to a Blender binary.");
 static PyObject *bpy_app_binary_path_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-  return PyC_UnicodeFromByte(BKE_appdir_program_path());
+  return PyC_UnicodeFromBytes(BKE_appdir_program_path());
 }
 
 static int bpy_app_binary_path_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
@@ -359,7 +359,7 @@ static int bpy_app_binary_path_set(PyObject *UNUSED(self), PyObject *value, void
   return -1;
 #endif
   PyObject *value_coerce = NULL;
-  const char *filepath = PyC_UnicodeAsByte(value, &value_coerce);
+  const char *filepath = PyC_UnicodeAsBytes(value, &value_coerce);
   if (filepath == NULL) {
     PyErr_Format(PyExc_ValueError, "expected a string or bytes, got %s", Py_TYPE(value)->tp_name);
     return -1;

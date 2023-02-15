@@ -112,7 +112,7 @@ static PyObject *pyrna_WindowManager_clipboard_get(PyObject *UNUSED(self), void 
 {
   int text_len = 0;
   char *text = WM_clipboard_text_get(false, &text_len);
-  PyObject *result = PyC_UnicodeFromByteAndSize(text ? text : "", text_len);
+  PyObject *result = PyC_UnicodeFromBytesAndSize(text ? text : "", text_len);
   if (text != NULL) {
     MEM_freeN(text);
   }
@@ -124,7 +124,7 @@ static int pyrna_WindowManager_clipboard_set(PyObject *UNUSED(self),
                                              void *UNUSED(flag))
 {
   PyObject *value_coerce = NULL;
-  const char *text = PyC_UnicodeAsByte(value, &value_coerce);
+  const char *text = PyC_UnicodeAsBytes(value, &value_coerce);
   if (text == NULL) {
     return -1;
   }

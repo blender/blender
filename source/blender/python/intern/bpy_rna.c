@@ -1403,7 +1403,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
         ret = PyBytes_FromStringAndSize(buf, buf_len);
       }
       else if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-        ret = PyC_UnicodeFromByteAndSize(buf, buf_len);
+        ret = PyC_UnicodeFromBytesAndSize(buf, buf_len);
       }
       else {
         ret = PyUnicode_FromStringAndSize(buf, buf_len);
@@ -1712,7 +1712,7 @@ static int pyrna_py_to_prop(
           PyObject *value_coerce = NULL;
           if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
             /* TODO: get size. */
-            param = PyC_UnicodeAsByte(value, &value_coerce);
+            param = PyC_UnicodeAsBytes(value, &value_coerce);
           }
           else {
             param = PyUnicode_AsUTF8(value);
@@ -6057,7 +6057,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
           ret = PyBytes_FromStringAndSize(data_ch, data_ch_len);
         }
         else if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-          ret = PyC_UnicodeFromByteAndSize(data_ch, data_ch_len);
+          ret = PyC_UnicodeFromBytesAndSize(data_ch, data_ch_len);
         }
         else {
           ret = PyUnicode_FromStringAndSize(data_ch, data_ch_len);
