@@ -4596,15 +4596,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
 #endif
       }
 
-      /* #ICON_BLANK1 can be used to add padding of the size of an icon. This is fine to align
-       * multiple items within a menu, but not for the menu button that only shows the label then.
-       */
-      if ((type == UI_BTYPE_MENU) && (item[i].icon == ICON_BLANK1)) {
-        icon = ICON_NONE;
-      }
-      else {
-        icon = item[i].icon;
-      }
+      icon = item[i].icon;
     }
     else {
       if (!str) {
