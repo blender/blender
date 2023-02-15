@@ -181,8 +181,7 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 
   /* Object transform options. */
-  prop = RNA_def_enum(
-      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
+  prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
   RNA_def_property_update_runtime(prop, (void *)up_axis_update);
@@ -205,12 +204,14 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "Export Selected Objects",
                   "Export only selected objects instead of all supported objects");
   RNA_def_boolean(ot->srna, "export_uv", false, "Export UVs", "");
-  RNA_def_boolean(ot->srna,
-                  "export_normals",
-                  false,
-                  "Export Vertex Normals",
-                  "Export specific vertex normals if available, export calculated normals otherwise");
-  RNA_def_boolean(ot->srna, "export_colors", true, "Export Vertex Colors", "Export per-vertex colors");
+  RNA_def_boolean(
+      ot->srna,
+      "export_normals",
+      false,
+      "Export Vertex Normals",
+      "Export specific vertex normals if available, export calculated normals otherwise");
+  RNA_def_boolean(
+      ot->srna, "export_colors", true, "Export Vertex Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
@@ -241,7 +242,6 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   params.up_axis = RNA_enum_get(op->ptr, "up_axis");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
-  params.import_normals_as_attribute = RNA_boolean_get(op->ptr, "import_normals_as_attribute");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
 
   int files_len = RNA_collection_length(op->ptr, "files");
@@ -321,16 +321,7 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   "Apply current scene's unit (as defined by unit scale) to imported data");
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_boolean(ot->srna,
-                  "import_normals_as_attribute",
-                  false,
-                  "Normals As Attribute",
-                  "Sets the vertex normal data as a vertex attribute");
-  RNA_def_boolean(ot->srna,
-                  "merge_verts",
-                  false,
-                  "Merge Vertices",
-                  "Merges vertices by distance");
+  RNA_def_boolean(ot->srna, "merge_verts", false, "Merge Vertices", "Merges vertices by distance");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");
