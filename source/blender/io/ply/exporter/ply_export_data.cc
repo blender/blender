@@ -3,6 +3,7 @@
 /** \file
  * \ingroup ply
  */
+#include "BLI_array.hh"
 
 #include "ply_data.hh"
 #include "ply_file_buffer.hh"

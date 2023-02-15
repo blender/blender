@@ -4,6 +4,7 @@
  * \ingroup ply
  */
 
+#include "BLI_array.hh"
 #include "BLI_math.h"
 
 #include "BKE_attribute.hh"
