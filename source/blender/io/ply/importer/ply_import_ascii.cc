@@ -190,7 +190,7 @@ int get_index(const PlyHeader *header, std::string property, PlyDataTypes dataty
   return (int)(it - header->properties[0].begin());
 }
 
-Vector<std::string> explode(const StringRef &str, const char &ch)
+Vector<std::string> explode(const StringRef str, const char &ch)
 {
   std::string next;
   Vector<std::string> result;
