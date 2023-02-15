@@ -120,6 +120,10 @@ void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 
 void MESH_OT_primitive_cube_add_gizmo(struct wmOperatorType *ot);
 
+/* *** editmesh_attribute.cc *** */
+
+void MESH_OT_attribute_set(struct wmOperatorType *ot);
+
 /* *** editmesh_bevel.c *** */
 
 void MESH_OT_bevel(struct wmOperatorType *ot);
