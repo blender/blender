@@ -905,8 +905,10 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
         BLI_assert(src);
         bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, meta_data.domain, meta_data.data_type);
-        BLI_assert(dst);
-        attributes.append({std::move(src), meta_data, std::move(dst)});
+        if (dst) {
+          /* Writing the the legacy "normal" attribute will fail. */
+          attributes.append({std::move(src), meta_data, std::move(dst)});
+        }
 
         return true;
       });
