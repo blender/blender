@@ -931,8 +931,14 @@ class SEQUENCER_MT_strip(Menu):
 
         if has_sequencer:
 
-            layout.operator("sequencer.split", text="Split").type = 'SOFT'
-            layout.operator("sequencer.split", text="Hold Split").type = 'HARD'
+            props = layout.operator("sequencer.split", text="Split")
+            props.type = 'SOFT'
+            props.side = 'RIGHT'
+
+            props = layout.operator("sequencer.split", text="Hold Split")
+            props.type = 'HARD'
+            props.side = 'RIGHT'
+
             layout.separator()
 
         if has_sequencer:
