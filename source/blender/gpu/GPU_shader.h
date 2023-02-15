@@ -237,13 +237,14 @@ void GPU_shader_transform_feedback_disable(GPUShader *shader);
  *
  * PSOs require descriptors containing information on the render state for a given shader, which
  * includes input vertex data layout and output pixel formats, along with some state such as
- * blend mode and colour output masks. As this state information is usually consistent between
+ * blend mode and color output masks. As this state information is usually consistent between
  * similar draws, we can assign a parent shader and use this shader's cached pipeline state's to
  * prime compilations.
  *
  * Shaders do not necessarily have to be similar in functionality to be used as a parent, so long
- * as the GPUVertFormt and GPUFrameBuffer which they are used with remain the same. Other bindings
- * such as textures, uniforms and UBOs are all assigned independently as dynamic state.
+ * as the #GPUVertFormt and #GPUFrameBuffer which they are used with remain the same.
+ * Other bindings such as textures, uniforms and UBOs are all assigned independently as dynamic
+ * state.
  *
  * This function should be called asynchronously, mitigating the impact of run-time stuttering from
  * dynamic compilation of PSOs during normal rendering.

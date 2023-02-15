@@ -122,7 +122,7 @@ struct GPUMaterial {
 
   /** Default material reference used for PSO cache warming. Default materials may perform
    * different operations, but the permutation will frequently share the same input PSO
-   * descriptors. This enables async PSO compilation as part of the deferred compiltion
+   * descriptors. This enables asynchronous PSO compilation as part of the deferred compilation
    * pass, reducing runtime stuttering and responsiveness while compiling materials. */
   GPUMaterial *default_mat;
 
@@ -951,7 +951,7 @@ void GPU_material_compile(GPUMaterial *mat)
        *
        * As PSOs do not always match for default shaders, we limit warming for PSO
        * configurations to ensure compile time remains fast, as these first
-       * entries will be the most commonly used PSOs. As not all PSOs are necesasrily
+       * entries will be the most commonly used PSOs. As not all PSOs are necessarily
        * required immediately, this limit should remain low (1-3 at most).
        * */
       if (mat->default_mat != NULL && mat->default_mat != mat) {

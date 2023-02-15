@@ -1000,7 +1000,7 @@ typedef struct EEVEE_PrivateData {
   /* Compiling shaders count. This is to track if a shader has finished compiling. */
   int queued_shaders_count;
   int queued_shaders_count_prev;
-  /* Optimising shaders count. */
+  /* Optimizing shaders count. */
   int queued_optimise_shaders_count;
 
   /* LookDev Settings */
