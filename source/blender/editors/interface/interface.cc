@@ -4287,6 +4287,7 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
   int totitems = 0;
   int categories = 0;
   int entries_nosepr_count = 0;
+  bool has_item_with_icon = false;
   for (const EnumPropertyItem *item = item_array; item->identifier; item++, totitems++) {
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
@@ -4297,6 +4298,9 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
       }
       /* We do not want simple separators in `entries_nosepr_count`. */
       continue;
+    }
+    if (item->icon) {
+      has_item_with_icon = true;
     }
     entries_nosepr_count++;
   }
@@ -4402,11 +4406,18 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
       uiItemS(column);
     }
     else {
-      if (item->icon) {
+      int icon = item->icon;
+      /* Use blank icon if there is none for this item (but for some other one) to make sure labels
+       * align. */
+      if (icon == ICON_NONE && has_item_with_icon) {
+        icon = ICON_BLANK1;
+      }
+
+      if (icon) {
         uiDefIconTextButI(block,
                           UI_BTYPE_BUT_MENU,
                           B_NOP,
-                          item->icon,
+                          icon,
                           item->name,
                           0,
                           0,
