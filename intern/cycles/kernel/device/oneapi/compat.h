@@ -196,9 +196,15 @@ ccl_always_inline float3 make_float3(float x)
  * include oneAPI headers, which transitively include math.h headers which will cause redefinitions
  * of the math defines because math.h also uses them and having them defined before math.h include
  * is actually UB. */
-/* Use fast math functions - get them from sycl::native namespace for native math function
- * implementations */
-#define cosf(x) sycl::native::cos(((float)(x)))
+/* sycl::native::cos precision is not sufficient and -ffast-math lets
+ * the current DPC++ compiler overload sycl::cos with it.
+ * We work around this issue by directly calling the spirv implementation which
+ * provides greater precision. */
+#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
+#  define cosf(x) __spirv_ocl_cos(((float)(x)))
+#else
+#  define cosf(x) sycl::cos(((float)(x)))
+#endif
 #define sinf(x) sycl::native::sin(((float)(x)))
 #define powf(x, y) sycl::native::powr(((float)(x)), ((float)(y)))
 #define tanf(x) sycl::native::tan(((float)(x)))
