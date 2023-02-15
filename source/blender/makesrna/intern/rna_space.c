@@ -4714,7 +4714,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_curves_cage", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_sculpt_curves_cage", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_CURVES_CAGE);
   RNA_def_property_ui_text(
       prop, "Sculpt Curves Cage", "Show original curves that are currently being edited");
@@ -4733,12 +4733,12 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_show_mask", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_sculpt_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
   RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_show_face_sets", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
   RNA_def_property_ui_text(prop, "Sculpt Show Face Sets", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);

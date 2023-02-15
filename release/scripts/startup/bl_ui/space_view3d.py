@@ -6720,15 +6720,15 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         overlay = view.overlay
 
         row = layout.row(align=True)
-        row.prop(overlay, "sculpt_show_mask", text="")
+        row.prop(overlay, "show_sculpt_mask", text="")
         sub = row.row()
-        sub.active = overlay.sculpt_show_mask
+        sub.active = overlay.show_sculpt_mask
         sub.prop(overlay, "sculpt_mode_mask_opacity", text="Mask")
 
         row = layout.row(align=True)
-        row.prop(overlay, "sculpt_show_face_sets", text="")
+        row.prop(overlay, "show_sculpt_face_sets", text="")
         sub = row.row()
-        sub.active = overlay.sculpt_show_face_sets
+        sub.active = overlay.show_sculpt_face_sets
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
 
 
@@ -6757,9 +6757,9 @@ class VIEW3D_PT_overlay_sculpt_curves(Panel):
 
         row = layout.row(align=True)
         row.active = overlay.show_overlays
-        row.prop(overlay, "sculpt_curves_cage", text="")
+        row.prop(overlay, "show_sculpt_curves_cage", text="")
         subrow = row.row(align=True)
-        subrow.active = overlay.sculpt_curves_cage
+        subrow.active = overlay.show_sculpt_curves_cage
         subrow.prop(overlay, "sculpt_curves_cage_opacity", text="Cage Opacity")
 
 
