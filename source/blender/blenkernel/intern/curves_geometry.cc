@@ -605,17 +605,15 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 Span<float3> CurvesGeometry::evaluated_positions() const
 {
   const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  if (this->is_single_type(CURVE_TYPE_POLY)) {
+    runtime.evaluated_position_cache.ensure(
+        [&](Vector<float3> &r_data) { r_data.clear_and_shrink(); });
+    return this->positions();
+  }
   this->ensure_nurbs_basis_cache();
-  runtime.evaluated_position_cache.ensure([&](CurvesGeometryRuntime::EvaluatedPositions &r_data) {
-    if (this->is_single_type(CURVE_TYPE_POLY)) {
-      r_data.span = this->positions();
-      r_data.vector.clear_and_shrink();
-      return;
-    }
-
-    r_data.vector.resize(this->evaluated_points_num());
-    r_data.span = r_data.vector;
-    MutableSpan<float3> evaluated_positions = r_data.vector;
+  runtime.evaluated_position_cache.ensure([&](Vector<float3> &r_data) {
+    r_data.resize(this->evaluated_points_num());
+    MutableSpan<float3> evaluated_positions = r_data;
 
     const OffsetIndices<int> points_by_curve = this->points_by_curve();
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
@@ -672,7 +670,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
       }
     });
   });
-  return runtime.evaluated_position_cache.data().span;
+  return runtime.evaluated_position_cache.data();
 }
 
 Span<float3> CurvesGeometry::evaluated_tangents() const
@@ -781,6 +779,7 @@ static void evaluate_generic_data_for_curve(
 Span<float3> CurvesGeometry::evaluated_normals() const
 {
   const bke::CurvesGeometryRuntime &runtime = *this->runtime;
+  this->ensure_nurbs_basis_cache();
   runtime.evaluated_normal_cache.ensure([&](Vector<float3> &r_data) {
     const OffsetIndices<int> points_by_curve = this->points_by_curve();
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
