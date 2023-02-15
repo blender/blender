@@ -1601,6 +1601,12 @@ static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static bool version_fix_delete_flag(Sequence *seq, void * /*user_data*/)
+{
+  seq->flag &= ~SEQ_FLAG_DELETE;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -3935,6 +3941,14 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
           }
         }
+      }
+    }
+
+    /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
       }
     }
 
