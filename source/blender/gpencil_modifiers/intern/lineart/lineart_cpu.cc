@@ -14,6 +14,8 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_sort.hh"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 
@@ -1885,6 +1887,25 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   edge_nabr->v1 = adj_e->v1;
   edge_nabr->v2 = adj_e->v2;
   edge_nabr->flags = 0;
+}
+
+void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
+{
+  blender::parallel_sort(
+      ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
+        int a = p1.v1 - p2.v1;
+        int b = p1.v2 - p2.v2;
+        /* parallel_sort() requires cmp() to return true when the first element needs to appear
+         * before the second element in the sorted array, false otherwise (strict weak ordering),
+         * see https://en.cppreference.com/w/cpp/named_req/Compare. */
+        if (a < 0) {
+          return true;
+        }
+        if (a > 0) {
+          return false;
+        }
+        return b < 0;
+      });
 }
 
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edges)
