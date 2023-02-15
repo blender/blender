@@ -132,7 +132,7 @@ static void gather_search_items_for_node_groups(const bContext &C,
     if (node_group->typeinfo->group_idname != group_node_id) {
       continue;
     }
-    if (local_assets.contains(node_group->id.name)) {
+    if (local_assets.contains(node_group->id.name + 2)) {
       continue;
     }
     if (!nodeGroupPoll(&node_tree, node_group, nullptr)) {
