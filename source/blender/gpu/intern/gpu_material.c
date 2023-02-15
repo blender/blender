@@ -754,7 +754,6 @@ bool GPU_material_optimization_ready(GPUMaterial *mat)
 
 void GPU_material_set_default(GPUMaterial *material, GPUMaterial *default_material)
 {
-  BLI_assert(material != default_material);
   if (material != default_material) {
     material->default_mat = default_material;
   }
