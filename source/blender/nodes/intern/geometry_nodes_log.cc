@@ -330,7 +330,7 @@ void GeoTreeLog::ensure_used_named_attributes()
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
     child_log.ensure_used_named_attributes();
     if (const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id) {
-      for (const auto &item : child_log.used_named_attributes.items()) {
+      for (const auto item : child_log.used_named_attributes.items()) {
         add_attribute(*group_node_id, item.key, item.value);
       }
     }

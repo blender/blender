@@ -118,7 +118,7 @@ static void drw_deferred_shader_compilation_exec(
       BLI_spin_lock(&comp->list_lock);
       /* Pop tail because it will be less likely to lock the main thread
        * if all GPUMaterials are to be freed (see DRW_deferred_shader_remove()). */
-      LinkData *link = (LinkData *)BLI_poptail(&comp->optimize_queue);
+      link = (LinkData *)BLI_poptail(&comp->optimize_queue);
       GPUMaterial *optimize_mat = link ? (GPUMaterial *)link->data : NULL;
       if (optimize_mat) {
         /* Avoid another thread freeing the material during optimization. */

@@ -2715,7 +2715,7 @@ void SCULPT_brush_strength_color(SculptSession *ss,
 
 void SCULPT_calc_vertex_displacement(SculptSession *ss,
                                      const Brush *brush,
-                                     float rgba[4],
+                                     float rgba[3],
                                      float out_offset[3])
 {
   mul_v3_fl(rgba, ss->cache->bstrength);
