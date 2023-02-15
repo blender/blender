@@ -917,6 +917,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
   const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
+  bool circle_contact = false;
 
   if (!gpencil_stroke_is_drawable(tgpf, gps)) {
     return;
@@ -933,7 +934,11 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
     /* If there is contact, hide the circles to avoid noise and keep the focus
      * in the pending gaps. */
-    col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
+    col[3] = 0.5f;
+    if (gps->flag & GP_STROKE_TAG) {
+      circle_contact = true;
+      col[3] = 0.0f;
+    }
   }
   else if ((is_extend) && (!tgpf->is_render)) {
     if (stroke_collide || !use_stroke_collide || !is_line_mode) {
@@ -962,14 +967,16 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
   for (int i = 0; i < totpoints; i++, pt++) {
 
-    /* This flag is inverted in the UI. */
-    if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
-      float alpha = gp_style->stroke_rgba[3] * pt->strength;
-      CLAMP(alpha, 0.0f, 1.0f);
-      col[3] = alpha <= thershold ? 0.0f : 1.0f;
-    }
-    else if (!is_help) {
-      col[3] = 1.0f;
+    if (!circle_contact) {
+      /* This flag is inverted in the UI. */
+      if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
+        float alpha = gp_style->stroke_rgba[3] * pt->strength;
+        CLAMP(alpha, 0.0f, 1.0f);
+        col[3] = alpha <= thershold ? 0.0f : 1.0f;
+      }
+      else if (!is_help) {
+        col[3] = 1.0f;
+      }
     }
     /* set point */
     immAttr4fv(color, col);
