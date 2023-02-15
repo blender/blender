@@ -8,7 +8,6 @@
 
 /* Macros to help reduce code clutter in rna_mesh.c */
 
-
 /* Define the accessors for a basic CustomDataLayer collection, skipping anonymous layers */
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION(collection_name, customdata_type, layer_type) \
   /* check */ \
@@ -38,7 +37,9 @@
   static int rna_Mesh_##collection_name##s_length(PointerRNA *ptr) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
-    return data ? CustomData_number_of_layers(data, layer_type) - CustomData_number_of_anonymous_layers(data, layer_type) : 0; \
+    return data ? CustomData_number_of_layers(data, layer_type) - \
+                      CustomData_number_of_anonymous_layers(data, layer_type) : \
+                  0; \
   } \
   /* index range */ \
   static void rna_Mesh_##collection_name##_index_range( \
@@ -46,10 +47,11 @@
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     *min = 0; \
-    *max = data ? CustomData_number_of_layers(data, layer_type) - CustomData_number_of_anonymous_layers(data, layer_type) - 1 : 0; \
+    *max = data ? CustomData_number_of_layers(data, layer_type) - \
+                      CustomData_number_of_anonymous_layers(data, layer_type) - 1 : \
+                  0; \
     *max = MAX2(0, *max); \
   }
-
 
 /* Define the accessors for special CustomDataLayers in the collection
  * (active, render, clone, stencil, etc) */

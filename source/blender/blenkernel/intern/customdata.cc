@@ -3004,7 +3004,6 @@ int CustomData_number_of_anonymous_layers(const CustomData *data, const int type
   return number;
 }
 
-
 int CustomData_number_of_layers_typemask(const CustomData *data, const eCustomDataMask mask)
 {
   int number = 0;
