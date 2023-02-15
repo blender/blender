@@ -6346,6 +6346,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "asset_libraries", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "UserAssetLibrary");
   RNA_def_property_ui_text(prop, "Asset Libraries", "");
+
+  prop = RNA_def_property(srna, "active_asset_library", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Active Asset Library",
+                           "Index of the asset library being edited in the Preferences UI");
+  /* Tag for UI-only update, meaning preferences will not be tagged as changed. */
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 }
 
 static void rna_def_userdef_apps(BlenderRNA *brna)
