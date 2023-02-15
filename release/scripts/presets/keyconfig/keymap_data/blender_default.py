@@ -5629,6 +5629,8 @@ def km_curves(params):
         ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         *_template_items_select_actions(params, "curves.select_all"),
         ("curves.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("curves.delete", {"type": 'X', "value": 'PRESS'}, None),
+        ("curves.delete", {"type": 'DEL', "value": 'PRESS'}, None),
     ])
 
     return keymap
