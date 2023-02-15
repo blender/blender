@@ -36,67 +36,135 @@ class ObjectModeOperator:
 
 
 class QuickFur(ObjectModeOperator, Operator):
-    """Add fur setup to the selected objects"""
+    """Add a fur setup to the selected objects"""
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
 
     density: EnumProperty(
-        name="Fur Density",
+        name="Density",
         items=(
-            ('LIGHT', "Light", ""),
+            ('LOW', "Low", ""),
             ('MEDIUM', "Medium", ""),
-            ('HEAVY', "Heavy", ""),
+            ('HIGH', "High", ""),
         ),
         default='MEDIUM',
-    )
-    view_percentage: IntProperty(
-        name="View %",
-        min=1, max=100,
-        soft_min=1, soft_max=100,
-        default=10,
     )
     length: FloatProperty(
         name="Length",
         min=0.001, max=100,
         soft_min=0.01, soft_max=10,
         default=0.1,
+        subtype='DISTANCE'
+    )
+    radius: FloatProperty(
+        name="Hair Radius",
+        min=0.0, max=10,
+        soft_min=0.0001, soft_max=0.1,
+        default=0.001,
+        subtype='DISTANCE'
+    )
+    view_percentage: FloatProperty(
+        name="View Percentage",
+        min=0.0, max=1.0,
+        default=1.0,
+        subtype='FACTOR'
+    )
+    apply_hair_guides: BoolProperty(
+        name="Apply Hair Guides",
+        default=True,
+    )
+    use_noise: BoolProperty(
+        name="Noise",
+        default=True,
+    )
+    use_frizz: BoolProperty(
+        name="Frizz",
+        default=True,
     )
 
     def execute(self, context):
-        fake_context = context.copy()
-        mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH']
-
+        import os
+        mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")
             return {'CANCELLED'}
 
-        mat = bpy.data.materials.new("Fur Material")
+        if self.density == 'LOW':
+            count = 1000
+        elif self.density == 'MEDIUM':
+            count = 10000
+        elif self.density == 'HIGH':
+            count = 100000
 
-        for obj in mesh_objects:
-            fake_context["object"] = obj
-            bpy.ops.object.particle_system_add(fake_context)
+        node_groups_to_append = {"Generate Hair Curves", "Set Hair Curve Profile", "Interpolate Hair Curves"}
+        if self.use_noise:
+            node_groups_to_append.add("Hair Curves Noise")
+        if self.use_frizz:
+            node_groups_to_append.add("Frizz Hair Curves")
+        assets_directory = os.path.join(bpy.utils.system_resource('DATAFILES'),
+                                        "assets",
+                                        "geometry_nodes",
+                                        "procedural_hair_node_assets.blend",
+                                        "NodeTree")
+        for name in node_groups_to_append:
+            bpy.ops.wm.append(directory=assets_directory,
+                              filename=name,
+                              use_recursive=True,
+                              do_reuse_local_id=True)
+        generate_group = bpy.data.node_groups["Generate Hair Curves"]
+        interpolate_group = bpy.data.node_groups["Interpolate Hair Curves"]
+        radius_group = bpy.data.node_groups["Set Hair Curve Profile"]
+        noise_group = bpy.data.node_groups["Hair Curves Noise"] if self.use_noise else None
+        frizz_group = bpy.data.node_groups["Frizz Hair Curves"] if self.use_frizz else None
 
-            psys = obj.particle_systems[-1]
-            psys.settings.type = 'HAIR'
+        material = bpy.data.materials.new("Fur Material")
 
-            if self.density == 'LIGHT':
-                psys.settings.count = 100
-            elif self.density == 'MEDIUM':
-                psys.settings.count = 1000
-            elif self.density == 'HEAVY':
-                psys.settings.count = 10000
+        for mesh_object in mesh_objects:
+            mesh = mesh_object.data
+            with context.temp_override(active_object=mesh_object):
+                bpy.ops.object.curves_empty_hair_add()
+            curves_object = context.active_object
+            curves = curves_object.data
+            curves.materials.append(material)
 
-            psys.settings.child_nbr = self.view_percentage
-            psys.settings.hair_length = self.length
-            psys.settings.use_strand_primitive = True
-            psys.settings.use_hair_bspline = True
-            psys.settings.child_type = 'INTERPOLATED'
-            psys.settings.tip_radius = 0.25
+            area = 0.0
+            for poly in mesh.polygons:
+                area += poly.area
+            density = count / area
 
-            obj.data.materials.append(mat)
-            psys.settings.material = len(obj.data.materials)
+            generate_modifier = curves_object.modifiers.new(name="Generate", type='NODES')
+            generate_modifier.node_group = generate_group
+            generate_modifier["Input_2"] = mesh_object
+            generate_modifier["Input_18_attribute_name"] = curves.surface_uv_map
+            generate_modifier["Input_20"] = self.length
+            generate_modifier["Input_22"] = material
+            generate_modifier["Input_15"] = density * 0.01
+            curves_object.modifiers.move(1, 0)
+
+            radius_modifier = curves_object.modifiers.new(name="Set Hair Curve Profile", type='NODES')
+            radius_modifier.node_group = radius_group
+            radius_modifier["Input_3"] = self.radius
+
+            interpolate_modifier = curves_object.modifiers.new(name="Interpolate Hair Curves", type='NODES')
+            interpolate_modifier.node_group = interpolate_group
+            interpolate_modifier["Input_2"] = mesh_object
+            interpolate_modifier["Input_18_attribute_name"] = curves.surface_uv_map
+            interpolate_modifier["Input_15"] = density
+            interpolate_modifier["Input_17"] = self.view_percentage
+            interpolate_modifier["Input_24"] = True
+
+            if noise_group:
+                noise_modifier = curves_object.modifiers.new(name="Hair Curves Noise", type='NODES')
+                noise_modifier.node_group = noise_group
+
+            if frizz_group:
+                frizz_modifier = curves_object.modifiers.new(name="Frizz Hair Curves", type='NODES')
+                frizz_modifier.node_group = frizz_group
+
+            if self.apply_hair_guides:
+                with context.temp_override(object=curves_object):
+                    bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
 
         return {'FINISHED'}
 
