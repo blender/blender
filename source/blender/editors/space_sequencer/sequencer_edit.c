@@ -1262,6 +1262,12 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 
   int old_start = last_seq->start;
 
+  /* Force time position update for reassigned effects.
+   * TODO(Richard): This is because internally startdisp is still used, due to poor performance of
+   * mapping effect range to inputs. This mapping could be cached though. */
+  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+  SEQ_time_left_handle_frame_set(scene, seq1, SEQ_time_left_handle_frame_get(scene, seq1));
+
   SEQ_relations_invalidate_cache_preprocessed(scene, last_seq);
   SEQ_offset_animdata(scene, last_seq, (last_seq->start - old_start));
 
