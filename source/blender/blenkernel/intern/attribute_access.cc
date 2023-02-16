@@ -316,9 +316,6 @@ GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) cons
 
 GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) const
 {
-  if (writable_ != Writable) {
-    return {};
-  }
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
     return {};
@@ -905,10 +902,8 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
         BLI_assert(src);
         bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, meta_data.domain, meta_data.data_type);
-        if (dst) {
-          /* Writing the the legacy "normal" attribute will fail. */
-          attributes.append({std::move(src), meta_data, std::move(dst)});
-        }
+        BLI_assert(dst);
+        attributes.append({std::move(src), meta_data, std::move(dst)});
 
         return true;
       });

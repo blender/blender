@@ -37,10 +37,6 @@ class BuiltinAttributeProvider {
     Creatable,
     NonCreatable,
   };
-  enum WritableEnum {
-    Writable,
-    Readonly,
-  };
   enum DeletableEnum {
     Deletable,
     NonDeletable,
@@ -51,7 +47,6 @@ class BuiltinAttributeProvider {
   const eAttrDomain domain_;
   const eCustomDataType data_type_;
   const CreatableEnum createable_;
-  const WritableEnum writable_;
   const DeletableEnum deletable_;
   const AttributeValidator validator_;
 
@@ -60,14 +55,12 @@ class BuiltinAttributeProvider {
                            const eAttrDomain domain,
                            const eCustomDataType data_type,
                            const CreatableEnum createable,
-                           const WritableEnum writable,
                            const DeletableEnum deletable,
                            AttributeValidator validator = {})
       : name_(std::move(name)),
         domain_(domain),
         data_type_(data_type),
         createable_(createable),
-        writable_(writable),
         deletable_(deletable),
         validator_(validator)
   {
@@ -205,20 +198,14 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const eCustomDataType attribute_type,
                                  const eCustomDataType stored_type,
                                  const CreatableEnum creatable,
-                                 const WritableEnum writable,
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
                                  const AsReadAttribute as_read_attribute,
                                  const AsWriteAttribute as_write_attribute,
                                  const UpdateOnChange update_on_write,
                                  const AttributeValidator validator = {})
-      : BuiltinAttributeProvider(std::move(attribute_name),
-                                 domain,
-                                 attribute_type,
-                                 creatable,
-                                 writable,
-                                 deletable,
-                                 validator),
+      : BuiltinAttributeProvider(
+            std::move(attribute_name), domain, attribute_type, creatable, deletable, validator),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
