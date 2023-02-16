@@ -162,7 +162,7 @@ static void rna_def_point(BlenderRNA *brna)
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_Point_index_get", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Index", "Index of this points");
+  RNA_def_property_ui_text(prop, "Index", "Index of this point");
 }
 
 static void rna_def_pointcloud(BlenderRNA *brna)

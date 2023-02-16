@@ -191,7 +191,7 @@ BLI_INLINE uchar f_to_char(const float val)
 
 /**
  * This is mainly a convenience struct used so we can keep an array of images we use -
- * their imbufs, etc, in 1 array, When using threads this array is copied for each thread
+ * their #ImBuf's, etc, in 1 array, When using threads this array is copied for each thread
  * because 'partRedrawRect' and 'touch' values would not be thread safe.
  */
 struct ProjPaintImage {
@@ -507,11 +507,6 @@ struct VertSeam {
 /* -------------------------------------------------------------------- */
 /** \name MLoopTri accessor functions.
  * \{ */
-
-BLI_INLINE const MPoly *ps_tri_index_to_mpoly(const ProjPaintState *ps, int tri_index)
-{
-  return &ps->mpoly_eval[ps->mlooptri_eval[tri_index].poly];
-}
 
 #define PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt) \
   int(ps->mloop_eval[lt->tri[0]].v), int(ps->mloop_eval[lt->tri[1]].v), \
@@ -1359,7 +1354,7 @@ static void uv_image_outset(const ProjPaintState *ps,
       len_fact = cosf(tri_ang);
       len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
 
-      /* Clamp the length factor, see: T62236. */
+      /* Clamp the length factor, see: #62236. */
       len_fact = MIN2(len_fact, 10.0f);
 
       mul_v2_fl(no, ps->seam_bleed_px * len_fact);
@@ -2887,7 +2882,8 @@ static void project_bucket_clip_face(const bool is_ortho,
 #endif
 }
 
-/*
+/**
+ * \code{.py}
  * # This script creates faces in a blender scene from printed data above.
  *
  * project_ls = [
@@ -2901,7 +2897,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  * V = Mathutils.Vector
  *
  * def main():
- *     sce = bpy.data.scenes.active
+ *     scene = bpy.data.scenes.active
  *
  *     for item in project_ls:
  *         bb = item[0]
@@ -2909,7 +2905,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  *         poly = item[2]
  *
  *         me = bpy.data.meshes.new()
- *         ob = sce.objects.new(me)
+ *         ob = scene.objects.new(me)
  *
  *         me.verts.extend([V(bb[0]).xyz, V(bb[1]).xyz, V(bb[2]).xyz, V(bb[3]).xyz])
  *         me.faces.extend([(0,1,2,3),])
@@ -2931,6 +2927,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  *
  * if __name__ == '__main__':
  *     main()
+ * \endcode
  */
 
 #undef ISECT_1
@@ -3942,7 +3939,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   ps->thread_tot = BKE_scene_num_threads(ps->scene);
 
-  /* workaround for T35057, disable threading if diameter is less than is possible for
+  /* workaround for #35057, disable threading if diameter is less than is possible for
    * optimum bucket number generation */
   if (reset_threads) {
     ps->thread_tot = 1;
@@ -5153,7 +5150,7 @@ static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)
   /* Use the original alpha channel data instead of the modified one */
   if (is_floatbuf) {
     /* slightly more involved case since floats are in premultiplied space we need
-     * to make sure alpha is consistent, see T44627 */
+     * to make sure alpha is consistent, see #44627 */
     float rgb_straight[4];
     premul_to_straight_v4_v4(rgb_straight, pixel->pixel.f_pt);
     rgb_straight[3] = pixel->origColor.f_pt[3];

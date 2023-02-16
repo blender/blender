@@ -142,6 +142,30 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case SHADOW_DEBUG:
+      return "eevee_shadow_debug";
+    case SHADOW_PAGE_ALLOCATE:
+      return "eevee_shadow_page_allocate";
+    case SHADOW_PAGE_CLEAR:
+      return "eevee_shadow_page_clear";
+    case SHADOW_PAGE_DEFRAG:
+      return "eevee_shadow_page_defrag";
+    case SHADOW_PAGE_FREE:
+      return "eevee_shadow_page_free";
+    case SHADOW_PAGE_MASK:
+      return "eevee_shadow_page_mask";
+    case SHADOW_TILEMAP_BOUNDS:
+      return "eevee_shadow_tilemap_bounds";
+    case SHADOW_TILEMAP_FINALIZE:
+      return "eevee_shadow_tilemap_finalize";
+    case SHADOW_TILEMAP_INIT:
+      return "eevee_shadow_tilemap_init";
+    case SHADOW_TILEMAP_TAG_UPDATE:
+      return "eevee_shadow_tag_update";
+    case SHADOW_TILEMAP_TAG_USAGE_OPAQUE:
+      return "eevee_shadow_tag_usage_opaque";
+    case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
+      return "eevee_shadow_tag_usage_transparent";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
@@ -198,8 +222,17 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   /* WORKAROUND: Avoid utility texture merge error. TODO: find a cleaner fix. */
   for (auto &resource : info.batch_resources_) {
     if (resource.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
-      if (resource.slot == RBUFS_UTILITY_TEX_SLOT) {
-        resource.slot = GPU_max_textures_frag() - 1;
+      switch (resource.slot) {
+        case RBUFS_UTILITY_TEX_SLOT:
+          resource.slot = GPU_max_textures_frag() - 1;
+          break;
+        // case SHADOW_RENDER_MAP_SLOT: /* Does not compile because it is a define. */
+        case SHADOW_ATLAS_TEX_SLOT:
+          resource.slot = GPU_max_textures_frag() - 2;
+          break;
+        case SHADOW_TILEMAPS_TEX_SLOT:
+          resource.slot = GPU_max_textures_frag() - 3;
+          break;
       }
     }
   }
@@ -214,9 +247,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false &&
       pipeline_type == MAT_PIPE_FORWARD) {
-    /* Opaque forward do support AOVs and render pass. */
+    /* Opaque forward do support AOVs and render pass if not using transparency. */
     info.additional_info("eevee_aov_out");
     info.additional_info("eevee_render_pass_out");
+    info.additional_info("eevee_cryptomatte_out");
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
@@ -389,8 +423,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
           break;
         case MAT_PIPE_FORWARD_PREPASS:
         case MAT_PIPE_DEFERRED_PREPASS:
-        case MAT_PIPE_SHADOW:
           info.additional_info("eevee_surf_depth");
+          break;
+        case MAT_PIPE_SHADOW:
+          info.additional_info("eevee_surf_shadow");
           break;
         case MAT_PIPE_DEFERRED:
           info.additional_info("eevee_surf_deferred");
@@ -471,6 +507,8 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                    this);
   GPU_material_status_set(gpumat, GPU_MAT_QUEUED);
   GPU_material_compile(gpumat);
+  /* Queue deferred material optimization. */
+  DRW_shader_queue_optimize_material(gpumat);
   return gpumat;
 }
 

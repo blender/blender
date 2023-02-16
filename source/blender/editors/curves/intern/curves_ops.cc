@@ -10,6 +10,7 @@
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -154,6 +155,19 @@ bool editable_curves_poll(bContext *C)
 bool curves_poll(bContext *C)
 {
   return curves_poll_impl(C, false, false, false);
+}
+
+static bool editable_curves_point_domain_poll(bContext *C)
+{
+  if (!curves::editable_curves_poll(C)) {
+    return false;
+  }
+  const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
+  if (curves_id->selection_domain != ATTR_DOMAIN_POINT) {
+    CTX_wm_operator_poll_msg_set(C, "Only available in point selection mode");
+    return false;
+  }
+  return true;
 }
 
 using bke::CurvesGeometry;
@@ -314,7 +328,7 @@ static void try_convert_single_object(Object &curves_ob,
     const IndexRange points = points_by_curve[curve_i];
 
     const float3 &root_pos_cu = positions_cu[points.first()];
-    const float3 root_pos_su = transforms.curves_to_surface * root_pos_cu;
+    const float3 root_pos_su = math::transform_point(transforms.curves_to_surface, root_pos_cu);
 
     BVHTreeNearest nearest;
     nearest.dist_sq = FLT_MAX;
@@ -346,15 +360,15 @@ static void try_convert_single_object(Object &curves_ob,
 
     float4x4 hair_to_surface_mat;
     psys_mat_hair_to_object(
-        &surface_ob, &surface_me, PART_FROM_FACE, &particle, hair_to_surface_mat.values);
+        &surface_ob, &surface_me, PART_FROM_FACE, &particle, hair_to_surface_mat.ptr());
     /* In theory, #psys_mat_hair_to_object should handle this, but it doesn't right now. */
-    copy_v3_v3(hair_to_surface_mat.values[3], root_pos_su);
-    const float4x4 surface_to_hair_mat = hair_to_surface_mat.inverted();
+    hair_to_surface_mat.location() = root_pos_su;
+    const float4x4 surface_to_hair_mat = math::invert(hair_to_surface_mat);
 
     for (const int key_i : hair_keys.index_range()) {
       const float3 &key_pos_cu = positions_cu[points[key_i]];
-      const float3 key_pos_su = transforms.curves_to_surface * key_pos_cu;
-      const float3 key_pos_ha = surface_to_hair_mat * key_pos_su;
+      const float3 key_pos_su = math::transform_point(transforms.curves_to_surface, key_pos_cu);
+      const float3 key_pos_ha = math::transform_point(surface_to_hair_mat, key_pos_su);
 
       HairKey &key = hair_keys[key_i];
       copy_v3_v3(key.co, key_pos_ha);
@@ -457,8 +471,8 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   bke::CurvesGeometry curves(points_num, curves_num);
   curves.offsets_for_write().copy_from(curve_offsets);
 
-  const float4x4 object_to_world_mat = object.object_to_world;
-  const float4x4 world_to_object_mat = object_to_world_mat.inverted();
+  const float4x4 object_to_world_mat(object.object_to_world);
+  const float4x4 world_to_object_mat = math::invert(object_to_world_mat);
 
   MutableSpan<float3> positions = curves.positions_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -474,7 +488,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
         const Span<ParticleCacheKey> keys{hair_cache[hair_i], points.size()};
         for (const int key_i : keys.index_range()) {
           const float3 key_pos_wo = keys[key_i].co;
-          positions[points[key_i]] = world_to_object_mat * key_pos_wo;
+          positions[points[key_i]] = math::transform_point(world_to_object_mat, key_pos_wo);
         }
       }
     });
@@ -593,8 +607,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           const IndexRange points = points_by_curve[curve_i];
           const int first_point_i = points.first();
           const float3 old_first_point_pos_cu = positions_cu[first_point_i];
-          const float3 old_first_point_pos_su = transforms.curves_to_surface *
-                                                old_first_point_pos_cu;
+          const float3 old_first_point_pos_su = math::transform_point(transforms.curves_to_surface,
+                                                                      old_first_point_pos_cu);
 
           BVHTreeNearest nearest;
           nearest.index = -1;
@@ -610,8 +624,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           }
 
           const float3 new_first_point_pos_su = nearest.co;
-          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
-                                                new_first_point_pos_su;
+          const float3 new_first_point_pos_cu = math::transform_point(transforms.surface_to_curves,
+                                                                      new_first_point_pos_su);
           const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
 
           for (float3 &pos_cu : positions_cu.slice(points)) {
@@ -668,8 +682,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
           float3 new_first_point_pos_su;
           interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);
-          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
-                                                new_first_point_pos_su;
+          const float3 new_first_point_pos_cu = math::transform_point(transforms.surface_to_curves,
+                                                                      new_first_point_pos_su);
 
           const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
           for (float3 &pos_cu : positions_cu.slice(points)) {
@@ -779,21 +793,19 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
     if (curves.points_num() == 0) {
       continue;
     }
-    const GVArray src = attributes.lookup(".selection", domain);
-    if (src.is_empty()) {
-      continue;
-    }
 
-    const CPPType &type = src.type();
-    void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
-    src.materialize(dst);
+    if (const GVArray src = attributes.lookup(".selection", domain)) {
+      const CPPType &type = src.type();
+      void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
+      src.materialize(dst);
 
-    attributes.remove(".selection");
-    if (!attributes.add(".selection",
-                        domain,
-                        bke::cpp_type_to_custom_data_type(type),
-                        bke::AttributeInitMoveArray(dst))) {
-      MEM_freeN(dst);
+      attributes.remove(".selection");
+      if (!attributes.add(".selection",
+                          domain,
+                          bke::cpp_type_to_custom_data_type(type),
+                          bke::AttributeInitMoveArray(dst))) {
+        MEM_freeN(dst);
+      }
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -930,19 +942,6 @@ static void CURVES_OT_select_random(wmOperatorType *ot)
                 1.0f);
 }
 
-static bool select_end_poll(bContext *C)
-{
-  if (!curves::editable_curves_poll(C)) {
-    return false;
-  }
-  const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
-  if (curves_id->selection_domain != ATTR_DOMAIN_POINT) {
-    CTX_wm_operator_poll_msg_set(C, "Only available in point selection mode");
-    return false;
-  }
-  return true;
-}
-
 static int select_end_exec(bContext *C, wmOperator *op)
 {
   VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
@@ -951,7 +950,7 @@ static int select_end_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_ends(curves, eAttrDomain(curves_id->selection_domain), amount, end_points);
+    select_ends(curves, amount, end_points);
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -969,7 +968,7 @@ static void CURVES_OT_select_end(wmOperatorType *ot)
   ot->description = "Select end points of curves";
 
   ot->exec = select_end_exec;
-  ot->poll = select_end_poll;
+  ot->poll = editable_curves_point_domain_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -980,6 +979,87 @@ static void CURVES_OT_select_end(wmOperatorType *ot)
                   "Select points at the end of the curve as opposed to the beginning");
   RNA_def_int(
       ot->srna, "amount", 1, 0, INT32_MAX, "Amount", "Number of points to select", 0, INT32_MAX);
+}
+
+static int select_linked_exec(bContext *C, wmOperator * /*op*/)
+{
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+  for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    select_linked(curves);
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void CURVES_OT_select_linked(wmOperatorType *ot)
+{
+  ot->name = "Select Linked";
+  ot->idname = __func__;
+  ot->description = "Select all points in curves with any point selection";
+
+  ot->exec = select_linked_exec;
+  ot->poll = editable_curves_point_domain_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int select_more_exec(bContext *C, wmOperator * /*op*/)
+{
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+  for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    select_adjacent(curves, false);
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void CURVES_OT_select_more(wmOperatorType *ot)
+{
+  ot->name = "Select More";
+  ot->idname = __func__;
+  ot->description = "Grow the selection by one point.";
+
+  ot->exec = select_more_exec;
+  ot->poll = editable_curves_point_domain_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int select_less_exec(bContext *C, wmOperator * /*op*/)
+{
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+  for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    select_adjacent(curves, true);
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void CURVES_OT_select_less(wmOperatorType *ot)
+{
+  ot->name = "Select Less";
+  ot->idname = __func__;
+  ot->description = "Shrink the selection by one point";
+
+  ot->exec = select_less_exec;
+  ot->poll = editable_curves_point_domain_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 namespace surface_set {
@@ -1065,6 +1145,35 @@ static void CURVES_OT_surface_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace curves_delete {
+
+static int delete_exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    if (remove_selection(curves, eAttrDomain(curves_id->selection_domain))) {
+      DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace curves_delete
+
+static void CURVES_OT_delete(wmOperatorType *ot)
+{
+  ot->name = "Delete";
+  ot->idname = __func__;
+  ot->description = "Remove selected control points or curves";
+
+  ot->exec = curves_delete::delete_exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -1077,7 +1186,11 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_all);
   WM_operatortype_append(CURVES_OT_select_random);
   WM_operatortype_append(CURVES_OT_select_end);
+  WM_operatortype_append(CURVES_OT_select_linked);
+  WM_operatortype_append(CURVES_OT_select_more);
+  WM_operatortype_append(CURVES_OT_select_less);
   WM_operatortype_append(CURVES_OT_surface_set);
+  WM_operatortype_append(CURVES_OT_delete);
 }
 
 void ED_keymap_curves(wmKeyConfig *keyconf)

@@ -14,11 +14,11 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
-#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -1108,6 +1108,8 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (mti->modifyGeometrySet) {
       mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
@@ -1506,7 +1508,6 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   volume_dst->totcol = volume_src->totcol;
   volume_dst->render = volume_src->render;
   volume_dst->display = volume_src->display;
-  BKE_volume_init_grids(volume_dst);
 
   return volume_dst;
 }
@@ -1651,7 +1652,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
                                                               const blender::float4x4 &transform)
 {
   openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
-  grid_transform->postMult(openvdb::Mat4d((float *)transform.values));
+  grid_transform->postMult(openvdb::Mat4d((float *)transform.ptr()));
 
   /* Create a transformed grid. The underlying tree is shared. */
   return grid->copyGridReplacingTransform(grid_transform);

@@ -82,7 +82,7 @@ typedef struct BLI_memiter {
 
 BLI_INLINE uint data_offset_from_size(uint size)
 {
-  return (PADUP(size, (uint)sizeof(data_t))) / (uint)sizeof(data_t);
+  return PADUP(size, (uint)sizeof(data_t)) / (uint)sizeof(data_t);
 }
 
 static void memiter_set_rewind_offset(BLI_memiter *mi)

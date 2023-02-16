@@ -811,7 +811,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         const float edge_angle_a = bpoly->point_edgemid_angles[bpoly->dominant_edge];
         const float edge_angle_b = bpoly->point_edgemid_angles[!bpoly->dominant_edge];
         /* Clamp so skinny faces with near zero `edgemid_angle`
-         * won't cause numeric problems. see T81988. */
+         * won't cause numeric problems. see #81988. */
         scale_weight = edge_angle_a / max_ff(edge_angle_a, bpoly->edgemid_angle);
         scale_weight /= scale_weight + (edge_angle_b / max_ff(edge_angle_b, bpoly->edgemid_angle));
       }
@@ -888,7 +888,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
     /* Apply after other kinds of scaling so the faces corner angle is always
      * scaled in a uniform way, preventing heavily sub-divided triangle fans
-     * from having a lop-sided influence on the weighting, see T81988. */
+     * from having a lop-sided influence on the weighting, see #81988. */
     bpoly->weight *= bpoly->edgemid_angle / M_PI;
 
     tot_weight += bpoly->weight;
@@ -1592,7 +1592,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr, verts_num, false);
   }
 
-  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
+  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

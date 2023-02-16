@@ -487,7 +487,7 @@ def disable_all():
 
 
 def _blender_manual_url_prefix():
-    return "https://docs.blender.org/manual/en/%d.%d" % _bpy.app.version[:2]
+    return "https://docs.blender.org/manual/%s/%d.%d" % (_bpy.utils.manual_language_code(), *_bpy.app.version[:2])
 
 
 def module_bl_info(mod, *, info_basis=None):

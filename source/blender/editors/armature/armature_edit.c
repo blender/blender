@@ -912,7 +912,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
     armature_tag_select_mirrored(arm);
 
     /* Clear BONE_TRANSFORM flags
-     * - Used to prevent duplicate/canceling operations from occurring T34123.
+     * - Used to prevent duplicate/canceling operations from occurring #34123.
      * - #BONE_DONE cannot be used here as that's already used for mirroring.
      */
     armature_clear_swap_done_flags(arm);
@@ -929,7 +929,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
          */
         parent = ebo->parent;
 
-        /* skip bone if already handled, see T34123. */
+        /* skip bone if already handled, see #34123. */
         if ((ebo->flag & BONE_TRANSFORM) == 0) {
           /* only if selected and editable */
           if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {

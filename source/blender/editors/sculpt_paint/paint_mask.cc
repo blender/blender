@@ -52,7 +52,7 @@
 #include "paint_intern.h"
 
 /* For undo push. */
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
@@ -1109,7 +1109,7 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
     else {
       /* ss->cursor_radius is only valid if the stroke started
        * over the sculpt mesh.  If it's not we must
-       * compute the radius ourselves.  See T81452.
+       * compute the radius ourselves.  See #81452.
        */
 
       Sculpt *sd = CTX_data_tool_settings(vc->C)->sculpt;

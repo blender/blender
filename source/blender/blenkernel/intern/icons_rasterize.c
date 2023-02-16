@@ -74,7 +74,7 @@ ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, 
   const uchar(*pos)[2] = geom->coords;
   const uint *col = (void *)geom->colors;
 
-  /* TODO(@campbellbarton): Currently rasterizes to fixed size, then scales.
+  /* TODO(@ideasman42): Currently rasterizes to fixed size, then scales.
    * Should rasterize to double size for eg instead. */
   const int rect_size[2] = {max_ii(256, (int)size_x * 2), max_ii(256, (int)size_y * 2)};
 

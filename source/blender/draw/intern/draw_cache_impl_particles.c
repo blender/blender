@@ -89,21 +89,21 @@ typedef struct HairAttributeID {
 
 typedef struct EditStrandData {
   float pos[3];
-  float color;
+  float selection;
 } EditStrandData;
 
-static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_color_id)
+static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_selection_id)
 {
   static GPUVertFormat edit_point_format = {0};
-  static uint pos_id, color_id;
+  static uint pos_id, selection_id;
   if (edit_point_format.attr_len == 0) {
     /* Keep in sync with EditStrandData */
     pos_id = GPU_vertformat_attr_add(&edit_point_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    color_id = GPU_vertformat_attr_add(
-        &edit_point_format, "color", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    selection_id = GPU_vertformat_attr_add(
+        &edit_point_format, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
   *r_pos_id = pos_id;
-  *r_color_id = color_id;
+  *r_selection_id = selection_id;
   return &edit_point_format;
 }
 
@@ -697,11 +697,11 @@ static int particle_batch_cache_fill_segments_edit(
       if (particle) {
         float weight = particle_key_weight(particle, i, strand_t);
         /* NaN or unclamped become 1.0f */
-        seg_data->color = (weight < 1.0f) ? weight : 1.0f;
+        seg_data->selection = (weight < 1.0f) ? weight : 1.0f;
       }
       else {
         /* Computed in psys_cache_edit_paths_iter(). */
-        seg_data->color = path[j].col[0];
+        seg_data->selection = path[j].col[0];
       }
       GPU_indexbuf_add_generic_vert(elb, curr_point);
       curr_point++;
@@ -1530,8 +1530,8 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
 
   GPUVertBufRaw data_step;
   GPUIndexBufBuilder elb;
-  uint pos_id, color_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
+  uint pos_id, selection_id;
+  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   hair_cache->pos = GPU_vertbuf_create_with_format(edit_point_format);
   GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
@@ -1594,8 +1594,8 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
     return;
   }
 
-  uint pos_id, color_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
+  uint pos_id, selection_id;
+  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   cache->edit_inner_pos = GPU_vertbuf_create_with_format(edit_point_format);
   GPU_vertbuf_data_alloc(cache->edit_inner_pos, cache->edit_inner_point_len);
@@ -1608,9 +1608,9 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
     }
     for (int key_index = 0; key_index < point->totkey - 1; key_index++) {
       PTCacheEditKey *key = &point->keys[key_index];
-      float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
+      float selection = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
       GPU_vertbuf_attr_set(cache->edit_inner_pos, pos_id, global_key_index, key->world_co);
-      GPU_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, &color);
+      GPU_vertbuf_attr_set(cache->edit_inner_pos, selection_id, global_key_index, &selection);
       global_key_index++;
     }
   }
@@ -1652,8 +1652,8 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
     return;
   }
 
-  uint pos_id, color_id;
-  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
+  uint pos_id, selection_id;
+  GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &selection_id);
 
   cache->edit_tip_pos = GPU_vertbuf_create_with_format(edit_point_format);
   GPU_vertbuf_data_alloc(cache->edit_tip_pos, cache->edit_tip_point_len);
@@ -1665,10 +1665,10 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
       continue;
     }
     PTCacheEditKey *key = &point->keys[point->totkey - 1];
-    float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
+    float selection = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
 
     GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, global_point_index, key->world_co);
-    GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, global_point_index, &color);
+    GPU_vertbuf_attr_set(cache->edit_tip_pos, selection_id, global_point_index, &selection);
     global_point_index++;
   }
 }

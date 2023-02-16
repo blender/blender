@@ -315,6 +315,11 @@ int MetalDeviceQueue::num_sort_partition_elements() const
   return MetalInfo::optimal_sort_partition_elements(metal_device_->mtlDevice);
 }
 
+bool MetalDeviceQueue::supports_local_atomic_sort() const
+{
+  return metal_device_->use_local_atomic_sort();
+}
+
 void MetalDeviceQueue::init_execution()
 {
   /* Synchronize all textures and memory copies before executing task. */
@@ -477,6 +482,12 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       if (metal_device_->bvhMetalRT) {
         id<MTLAccelerationStructure> accel_struct = metal_device_->bvhMetalRT->accel_struct;
         [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:2];
+        [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
+                                                  offset:0
+                                                 atIndex:7];
+        [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_lookup_buffer
+                                                  offset:0
+                                                 atIndex:8];
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -527,6 +538,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       if (bvhMetalRT) {
         /* Mark all Accelerations resources as used */
         [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct usage:MTLResourceUsageRead];
+        [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
+                                        usage:MTLResourceUsageRead];
+        [mtlComputeCommandEncoder useResource:metal_device_->blas_lookup_buffer
+                                        usage:MTLResourceUsageRead];
         [mtlComputeCommandEncoder useResources:bvhMetalRT->blas_array.data()
                                          count:bvhMetalRT->blas_array.size()
                                          usage:MTLResourceUsageRead];
@@ -553,11 +568,22 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       /* See parallel_active_index.h for why this amount of shared memory is needed.
        * Rounded up to 16 bytes for Metal */
       shared_mem_bytes = (int)round_up((num_threads_per_block + 1) * sizeof(int), 16);
-      [mtlComputeCommandEncoder setThreadgroupMemoryLength:shared_mem_bytes atIndex:0];
       break;
+
+    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
+    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS: {
+      int key_count = metal_device_->launch_params.data.max_shaders;
+      shared_mem_bytes = (int)round_up(key_count * sizeof(int), 16);
+      break;
+    }
 
     default:
       break;
+  }
+
+  if (shared_mem_bytes) {
+    assert(shared_mem_bytes <= 32 * 1024);
+    [mtlComputeCommandEncoder setThreadgroupMemoryLength:shared_mem_bytes atIndex:0];
   }
 
   MTLSize size_threadgroups_per_dispatch = MTLSizeMake(

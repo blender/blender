@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
@@ -61,7 +62,6 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[profile_edge_offset + i_ring];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = next_ring_vert_offset + i_profile;
-      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -77,7 +77,6 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[ring_edge_offset + i_profile];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = ring_vert_offset + i_next_profile;
-      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -121,7 +120,7 @@ static void fill_mesh_topology(const int vert_offset,
     }
   }
 
-  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
+  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
   if (has_caps) {
     const int poly_num = main_segment_num * profile_segment_num;
     const int cap_loop_offset = loop_offset + poly_num * 4;
@@ -183,25 +182,26 @@ static void fill_mesh_positions(const int main_point_num,
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = float4x4::from_normalized_axis_data(
+      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
-        point_matrix.apply_scale(radii[i_ring]);
+        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
       }
-      mesh_positions[i_ring] = point_matrix * profile_positions.first();
+      mesh_positions[i_ring] = math::transform_point(point_matrix, profile_positions.first());
     }
   }
   else {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = float4x4::from_normalized_axis_data(
+      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
-        point_matrix.apply_scale(radii[i_ring]);
+        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
       }
 
       const int ring_vert_start = i_ring * profile_point_num;
       for (const int i_profile : IndexRange(profile_point_num)) {
-        mesh_positions[ring_vert_start + i_profile] = point_matrix * profile_positions[i_profile];
+        mesh_positions[ring_vert_start + i_profile] = math::transform_point(
+            point_matrix, profile_positions[i_profile]);
       }
     }
   }
@@ -271,7 +271,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
       const int profile_point_num = profile_offsets.size(i_profile);
       const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
-      const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
+      const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
       const int tube_face_num = main_segment_num * profile_segment_num;
 
       vert_offset += main_point_num * profile_point_num;

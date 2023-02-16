@@ -573,7 +573,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
                                  const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len)
 {
-  /* TODO(@campbellbarton): store in Mesh.runtime to avoid recalculation. */
+  /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
       BKE_mesh_vert_positions(me_eval),

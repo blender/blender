@@ -85,11 +85,11 @@ typedef struct AssetMetaData {
 } AssetMetaData;
 
 typedef enum eAssetLibraryType {
-  /* For the future. Display assets bundled with Blender by default. */
-  // ASSET_LIBRARY_BUNDLED = 0,
   /** Display assets from the current session (current "Main"). */
   ASSET_LIBRARY_LOCAL = 1,
   ASSET_LIBRARY_ALL = 2,
+  /** Display assets bundled with Blender by default. */
+  ASSET_LIBRARY_ESSENTIALS = 3,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
@@ -98,6 +98,17 @@ typedef enum eAssetLibraryType {
    * this last! */
   ASSET_LIBRARY_CUSTOM = 100,
 } eAssetLibraryType;
+
+typedef enum eAssetImportMethod {
+  /** Regular data-block linking. */
+  ASSET_IMPORT_LINK = 0,
+  /** Regular data-block appending (basically linking + "Make Local"). */
+  ASSET_IMPORT_APPEND = 1,
+  /** Append data-block with the #BLO_LIBLINK_APPEND_LOCAL_ID_REUSE flag enabled. Some typically
+   * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
+   * be reused from an earlier append. */
+  ASSET_IMPORT_APPEND_REUSE = 2,
+} eAssetImportMethod;
 
 /**
  * Information to identify an asset library. May be either one of the predefined types (current

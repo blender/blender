@@ -170,7 +170,7 @@ def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) 
         return "rebase or merge in progress, complete it first"
 
     # Abort if uncommitted changes.
-    changes = check_output([args.git_command, 'status', '--porcelain', '--untracked-files=no'])
+    changes = check_output([args.git_command, 'status', '--porcelain', '--untracked-files=no', '--ignore-submodules'])
     if len(changes) != 0:
         return "you have unstaged changes"
 
@@ -202,8 +202,8 @@ def submodules_update(
         sys.exit(1)
 
     # Update submodules to appropriate given branch,
-    # falling back to master if none is given and/or found in a sub-repository.
-    branch_fallback = "master"
+    # falling back to main if none is given and/or found in a sub-repository.
+    branch_fallback = "main"
     if not branch:
         branch = branch_fallback
 

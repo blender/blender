@@ -1189,7 +1189,7 @@ void AnimationImporter::translate_Animations(
       for (uint j = 0; j < matBinds.getCount(); j++) {
         const COLLADAFW::UniqueId &matuid = matBinds[j].getReferencedMaterial();
         const COLLADAFW::Effect *ef = (COLLADAFW::Effect *)(FW_object_map[matuid]);
-        if (ef != nullptr) { /* can be NULL T28909. */
+        if (ef != nullptr) { /* can be NULL #28909. */
           Material *ma = uid_material_map[matuid];
           if (!ma) {
             fprintf(stderr,
@@ -1445,7 +1445,7 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     for (uint j = 0; j < matBinds.getCount(); j++) {
       const COLLADAFW::UniqueId &matuid = matBinds[j].getReferencedMaterial();
       const COLLADAFW::Effect *ef = (COLLADAFW::Effect *)(FW_object_map[matuid]);
-      if (ef != nullptr) { /* can be NULL T28909. */
+      if (ef != nullptr) { /* can be NULL #28909. */
         const COLLADAFW::CommonEffectPointerArray &commonEffects = ef->getCommonEffects();
         if (!commonEffects.empty()) {
           COLLADAFW::EffectCommon *efc = commonEffects[0];

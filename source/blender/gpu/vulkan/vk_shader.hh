@@ -35,6 +35,7 @@ class VKShader : public Shader {
   void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
   void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
+  void warm_cache(int limit) override{};
 
   void transform_feedback_names_set(Span<const char *> name_list,
                                     eGPUShaderTFBType geom_type) override;

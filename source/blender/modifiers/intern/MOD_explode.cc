@@ -752,7 +752,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   /* override original facepa (original pointer is saved in caller function) */
 
-  /* TODO(@campbellbarton): `(totfsplit * 2)` over allocation is used since the quads are
+  /* TODO(@ideasman42): `(totfsplit * 2)` over allocation is used since the quads are
    * later interpreted as tri's, for this to work right I think we probably
    * have to stop using tessface. */
 
@@ -1125,7 +1125,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, ModifierData *emd)
 {
   ModifierData *md;
-  ParticleSystemModifierData *psmd = NULL;
+  ParticleSystemModifierData *psmd = nullptr;
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {

@@ -147,7 +147,7 @@ void closure_Glossy_eval_end(ClosureInputGlossy cl_in,
 {
   cl_out.radiance = render_pass_glossy_mask(cl_out.radiance);
 #if defined(DEPTH_SHADER) || defined(WORLD_BACKGROUND)
-  /* This makes shader resources become unused and avoid issues with samplers. (see T59747) */
+  /* This makes shader resources become unused and avoid issues with samplers. (see #59747) */
   cl_out.radiance = vec3(0.0);
   return;
 #endif

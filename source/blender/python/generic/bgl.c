@@ -40,6 +40,12 @@ static CLG_LogRef LOG = {"bgl"};
 
 static void report_deprecated_call(const char *function_name)
 {
+  /* Only report first 100 deprecated calls. BGL is typically used inside an handler that is
+   * triggered at refresh. */
+  static int times = 0;
+  while (times >= 100) {
+    return;
+  }
   char message[256];
   SNPRINTF(message,
            "'bgl.gl%s' is deprecated and will be removed in Blender 3.7. Report or update your "
@@ -47,6 +53,7 @@ static void report_deprecated_call(const char *function_name)
            function_name);
   CLOG_WARN(&LOG, "%s", message);
   PyErr_WarnEx(PyExc_DeprecationWarning, message, 1);
+  times++;
 }
 
 static void report_deprecated_call_to_user(void)

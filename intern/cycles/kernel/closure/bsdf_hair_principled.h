@@ -478,10 +478,18 @@ ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
   return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
 }
 
-ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderClosure *sc)
+ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderData *sd,
+                                                ccl_private const ShaderClosure *sc)
 {
   ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
-  return exp(-sqrt(bsdf->sigma) * bsdf_principled_hair_albedo_roughness_scale(bsdf->v));
+
+  const float cos_theta_o = cos_from_sin(dot(sd->wi, safe_normalize(sd->dPdu)));
+  const float cos_gamma_o = cos_from_sin(bsdf->extra->geom.w);
+  const float f = fresnel_dielectric_cos(cos_theta_o * cos_gamma_o, bsdf->eta);
+
+  const float roughness_scale = bsdf_principled_hair_albedo_roughness_scale(bsdf->v);
+  /* TODO(lukas): Adding the Fresnel term here as a workaround until the proper refactor. */
+  return exp(-sqrt(bsdf->sigma) * roughness_scale) + make_spectrum(f);
 }
 
 ccl_device_inline Spectrum

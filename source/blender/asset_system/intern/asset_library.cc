@@ -169,13 +169,14 @@ AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_p
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
   AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
-  return asset_storage_->add_external_asset(std::move(identifier), name, std::move(metadata));
+  return asset_storage_->add_external_asset(
+      std::move(identifier), name, std::move(metadata), *this);
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
 {
   AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
-  return asset_storage_->add_local_id_asset(std::move(identifier), id);
+  return asset_storage_->add_local_id_asset(std::move(identifier), id, *this);
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
@@ -259,6 +260,12 @@ StringRefNull AssetLibrary::root_path() const
 Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
+  {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = -1;
+    library_ref.type = ASSET_LIBRARY_ESSENTIALS;
+    result.append(library_ref);
+  }
   int i;
   LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
     if (!BLI_is_dir(asset_library->path)) {

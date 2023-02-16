@@ -562,7 +562,7 @@ static void uilist_filter_items(uiList *ui_list,
            RNA_parameter_dynamic_length_get(&list, parm),
            "filter_flags",
            len);
-    /* NOTE: we cannot return here, we would let flt_data in inconsistent state... see T38356. */
+    /* NOTE: we cannot return here, we would let flt_data in inconsistent state... see #38356. */
     filter_flags = NULL;
   }
   else {
@@ -578,7 +578,7 @@ static void uilist_filter_items(uiList *ui_list,
            RNA_parameter_dynamic_length_get(&list, parm),
            "filter_neworder",
            len);
-    /* NOTE: we cannot return here, we would let flt_data in inconsistent state... see T38356. */
+    /* NOTE: we cannot return here, we would let flt_data in inconsistent state... see #38356. */
     filter_neworder = NULL;
   }
   else {

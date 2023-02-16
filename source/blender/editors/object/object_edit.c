@@ -608,7 +608,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
 
       if (load_data == false) {
         /* Don't keep unused pose channels created by duplicating bones
-         * which may have been deleted/undone, see: T87631. */
+         * which may have been deleted/undone, see: #87631. */
         if (obedit->pose != NULL) {
           BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
         }
@@ -701,10 +701,10 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 
   if (ED_object_editmode_load_free_ex(bmain, obedit, true, free_data) == false) {
     /* in rare cases (background mode) its possible active object
-     * is flagged for editmode, without 'obedit' being set T35489. */
+     * is flagged for editmode, without 'obedit' being set #35489. */
     if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
       obedit->mode &= ~OB_MODE_EDIT;
-      /* Also happens when mesh is shared across multiple objects. [#T69834] */
+      /* Also happens when mesh is shared across multiple objects. #69834. */
       DEG_id_tag_update(&obedit->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
     return true;
@@ -789,7 +789,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
   /* This checks actual `ob->data`, for cases when other scenes have it in edit-mode context.
    * Currently multiple objects sharing a mesh being in edit-mode at once isn't supported,
-   * see: T86767. */
+   * see: #86767. */
   if (BKE_object_is_in_editmode(ob)) {
     return true;
   }

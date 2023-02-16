@@ -168,7 +168,7 @@ static void simpleDeform_bend(const float factor,
   cost = cosf(theta);
 
   /* NOTE: the operations below a susceptible to float precision errors
-   * regarding the order of operations, take care when changing, see: T85470 */
+   * regarding the order of operations, take care when changing, see: #85470 */
   switch (axis) {
     case 0:
       r_co[0] = x;
@@ -474,7 +474,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
+  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

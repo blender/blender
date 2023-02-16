@@ -37,7 +37,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_widget_base)
     .do_static_compilation(true)
     /* gl_InstanceID is supposed to be 0 if not drawing instances, but this seems
      * to be violated in some drivers. For example, macOS 10.15.4 and Intel Iris
-     * causes T78307 when using gl_InstanceID outside of instance. */
+     * causes #78307 when using gl_InstanceID outside of instance. */
     .define("widgetID", "0")
     .push_constant(Type::VEC4, "parameters", MAX_PARAM)
     .additional_info("gpu_shader_2D_widget_shared");

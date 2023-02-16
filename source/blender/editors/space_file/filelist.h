@@ -148,31 +148,31 @@ bool filelist_is_ready(struct FileList *filelist);
 unsigned int filelist_entry_select_set(const struct FileList *filelist,
                                        const struct FileDirEntry *entry,
                                        FileSelType select,
-                                       unsigned int flag,
+                                       const eDirEntry_SelectFlag flag,
                                        FileCheckType check);
 void filelist_entry_select_index_set(struct FileList *filelist,
                                      int index,
                                      FileSelType select,
-                                     unsigned int flag,
+                                     eDirEntry_SelectFlag flag,
                                      FileCheckType check);
 void filelist_entries_select_index_range_set(struct FileList *filelist,
                                              FileSelection *sel,
                                              FileSelType select,
-                                             unsigned int flag,
+                                             eDirEntry_SelectFlag flag,
                                              FileCheckType check);
-unsigned int filelist_entry_select_get(struct FileList *filelist,
-                                       struct FileDirEntry *entry,
-                                       FileCheckType check);
-unsigned int filelist_entry_select_index_get(struct FileList *filelist,
-                                             int index,
-                                             FileCheckType check);
+eDirEntry_SelectFlag filelist_entry_select_get(struct FileList *filelist,
+                                               struct FileDirEntry *entry,
+                                               FileCheckType check);
+eDirEntry_SelectFlag filelist_entry_select_index_get(struct FileList *filelist,
+                                                     int index,
+                                                     FileCheckType check);
 bool filelist_entry_is_selected(struct FileList *filelist, int index);
 /**
  * Set selection of the '..' parent entry, but only if it's actually visible.
  */
 void filelist_entry_parent_select_set(struct FileList *filelist,
                                       FileSelType select,
-                                      unsigned int flag,
+                                      eDirEntry_SelectFlag flag,
                                       FileCheckType check);
 
 void filelist_setrecursion(struct FileList *filelist, int recursion_level);

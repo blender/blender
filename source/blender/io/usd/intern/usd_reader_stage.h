@@ -100,6 +100,12 @@ class USDStageReader {
    * toggled off.
    */
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
+
+  /*
+   * Returns true if the specified UsdPrim is a UsdGeom primitive,
+   * procedural shape, such as UsdGeomCube.
+   */
+  bool is_primitive_prim(const pxr::UsdPrim &prim) const;
 };
 
 };  // namespace blender::io::usd

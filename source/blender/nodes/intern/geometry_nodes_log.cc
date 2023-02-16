@@ -330,7 +330,7 @@ void GeoTreeLog::ensure_used_named_attributes()
     GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
     child_log.ensure_used_named_attributes();
     if (const std::optional<int32_t> &group_node_id = child_log.tree_loggers_[0]->group_node_id) {
-      for (const auto &item : child_log.used_named_attributes.items()) {
+      for (const auto item : child_log.used_named_attributes.items()) {
         add_attribute(*group_node_id, item.key, item.value);
       }
     }
@@ -526,6 +526,11 @@ std::optional<ComputeContextHash> GeoModifierLog::get_compute_context_hash_for_n
   for (const int i : tree_path.index_range().drop_back(1)) {
     /* The tree path contains the name of the node but not its ID. */
     const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
+    if (node == nullptr) {
+      /* The current tree path is invalid, probably because some parent group node has been
+       * deleted. */
+      return std::nullopt;
+    }
     compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
   }
   return compute_context_builder.hash();

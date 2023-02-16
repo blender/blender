@@ -788,7 +788,7 @@ static void current_screen_compat(Main *mainvar,
 
   if (wm) {
     if (use_active_win) {
-      /* write the active window into the file, needed for multi-window undo T43424 */
+      /* write the active window into the file, needed for multi-window undo #43424 */
       for (window = static_cast<wmWindow *>(wm->windows.first); window; window = window->next) {
         if (window->active) {
           break;
@@ -1472,7 +1472,7 @@ bool BLO_write_file(Main *mainvar,
     if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
       /* Some path processing (e.g. with libraries) may use the current `main->filepath`, if this
        * is not matching the path currently used for saving, unexpected paths corruptions can
-       * happen. See T98201. */
+       * happen. See #98201. */
       char mainvar_filepath_orig[FILE_MAX];
       STRNCPY(mainvar_filepath_orig, mainvar->filepath);
       STRNCPY(mainvar->filepath, filepath);

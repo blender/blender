@@ -342,7 +342,7 @@ void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) 
  * \note Space case ' ' is a bit of an edge case here - in theory it is allowed,
  * but again can be an issue in some cases, so we simply replace it by an underscore too
  * (good practice anyway).
- * REMOVED based on popular demand (see T45900).
+ * REMOVED based on popular demand (see #45900).
  * Percent '%' char is a bit same case - not recommended to use it,
  * but supported by all decent file-systems/operating-systems around.
  *

@@ -486,6 +486,15 @@ TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)
   import_and_check("faces_invalid_or_with_holes.obj", expect, std::size(expect), 0);
 }
 
+TEST_F(obj_importer_test, import_invalid_faces)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBTheMesh", OB_MESH, 5, 3, 1, 3, float3(-2, 0, -2), float3(0, 2, 0)},
+  };
+  import_and_check("invalid_faces.obj", expect, std::size(expect), 0);
+}
+
 TEST_F(obj_importer_test, import_invalid_indices)
 {
   Expectation expect[] = {
@@ -867,6 +876,15 @@ TEST_F(obj_importer_test, import_split_options_none)
       {"OBsplit_options", OB_MESH, 13, 20, 11, 40, float3(1, 1, -1), float3(4, 0, 2)},
   };
   import_and_check("split_options.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_polylines)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBpolylines", OB_MESH, 13, 8, 0, 0, float3(1, 0, 0), float3(.7, .7, 2)},
+  };
+  import_and_check("polylines.obj", expect, std::size(expect), 0);
 }
 
 }  // namespace blender::io::obj

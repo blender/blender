@@ -8,10 +8,9 @@
 #include <array>
 #include <type_traits>
 
-#include "BLI_float4x4.hh"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
-#include "BLI_math_vector.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -61,7 +60,7 @@ struct TransformUserData {
   /**
    * \brief Initialize the start_uv, add_x and add_y fields based on the given transform matrix.
    */
-  void init(const float transform_matrix[4][4],
+  void init(const float4x4 &transform_matrix,
             const int num_subsamples,
             const bool do_crop_destination_region)
   {
@@ -73,35 +72,23 @@ struct TransformUserData {
   }
 
  private:
-  void init_start_uv(const float transform_matrix[4][4])
+  void init_start_uv(const float4x4 &transform_matrix)
   {
-    double3 start_uv_v3;
-    double3 orig(0.0);
-    double transform_matrix_double[4][4];
-    copy_m4d_m4(transform_matrix_double, transform_matrix);
-    mul_v3_m4v3_db(start_uv_v3, transform_matrix_double, orig);
-    start_uv = double2(start_uv_v3);
+    start_uv = double2(transform_matrix.location().xy());
   }
 
-  void init_add_x(const float transform_matrix[4][4])
+  void init_add_x(const float4x4 &transform_matrix)
   {
-    double transform_matrix_double[4][4];
-    copy_m4d_m4(transform_matrix_double, transform_matrix);
     const double width = src->x;
-    double3 add_x_v3;
-    mul_v3_m4v3_db(add_x_v3, transform_matrix_double, double3(width, 0.0, 0.0));
-    add_x = double2((add_x_v3 - double3(start_uv)) * (1.0 / width));
+    add_x = double2(transform_matrix.x_axis()) * width + double2(transform_matrix.location());
+    add_x = (add_x - start_uv) * (1.0 / width);
   }
 
-  void init_add_y(const float transform_matrix[4][4])
+  void init_add_y(const float4x4 &transform_matrix)
   {
-    double transform_matrix_double[4][4];
-    copy_m4d_m4(transform_matrix_double, transform_matrix);
     const double height = src->y;
-    double3 add_y_v3;
-    double3 uv_max_y(0.0, height, 0.0);
-    mul_v3_m4v3_db(add_y_v3, transform_matrix_double, double3(0.0, height, 0.0));
-    add_y = double2((add_y_v3 - double3(start_uv)) * (1.0 / height));
+    add_y = double2(transform_matrix.y_axis()) * height + double2(transform_matrix.location());
+    add_y = (add_y - start_uv) * (1.0 / height);
   }
 
   void init_subsampling(const int num_subsamples)
@@ -134,14 +121,14 @@ struct TransformUserData {
     const int2 margin(2);
     rcti rect;
     BLI_rcti_init_minmax(&rect);
-    float4x4 inverse = transform_matrix.inverted();
+    float4x4 inverse = math::invert(transform_matrix);
     for (const int2 &src_coords : {
              int2(src_crop.xmin, src_crop.ymin),
              int2(src_crop.xmax, src_crop.ymin),
              int2(src_crop.xmin, src_crop.ymax),
              int2(src_crop.xmax, src_crop.ymax),
          }) {
-      float3 dst_co = inverse * float3(src_coords.x, src_coords.y, 0.0f);
+      float3 dst_co = math::transform_point(inverse, float3(src_coords.x, src_coords.y, 0.0f));
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) + margin);
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) - margin);
     }
@@ -746,7 +733,9 @@ void IMB_transform(const struct ImBuf *src,
   if (mode == IMB_TRANSFORM_MODE_CROP_SRC) {
     user_data.src_crop = *src_crop;
   }
-  user_data.init(transform_matrix, num_subsamples, ELEM(mode, IMB_TRANSFORM_MODE_CROP_SRC));
+  user_data.init(blender::float4x4(transform_matrix),
+                 num_subsamples,
+                 ELEM(mode, IMB_TRANSFORM_MODE_CROP_SRC));
 
   if (filter == IMB_FILTER_NEAREST) {
     transform_threaded<IMB_FILTER_NEAREST>(&user_data, mode);

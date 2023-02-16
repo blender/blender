@@ -355,9 +355,9 @@ static void imm_draw_circle_3D(GPUPrimType prim_type,
       if (i) {
         immVertex3f(pos, x + xr, y + yr, 0.0f);
       }
-      /* cos[(n + 1)a] = 2cos(a)cos(na) - cos[(n - 1)a]. */
+      /* `cos[(n + 1)a] = 2cos(a)cos(na) - cos[(n - 1)a]`. */
       const float xnext = alpha * xr - xprev;
-      /* sin[(n + 1)a] = 2cos(a)sin(na) - sin[(n - 1)a]. */
+      /* `sin[(n + 1)a] = 2cos(a)sin(na) - sin[(n - 1)a]`. */
       const float ynext = alpha * yr - yprev;
       xprev = xr;
       yprev = yr;
@@ -396,6 +396,12 @@ void imm_draw_circle_dashed_3d(uint pos, float x, float y, float radius, int nse
 void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments)
 {
   imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius, radius, nsegments);
+}
+
+void imm_draw_circle_fill_aspect_3d(
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments)
+{
+  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius_x, radius_y, nsegments);
 }
 
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)

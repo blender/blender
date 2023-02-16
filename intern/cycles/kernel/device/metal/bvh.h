@@ -172,17 +172,14 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     kernel_assert(!"Invalid ift_local");
     return false;
   }
-#  endif
-
-  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
-  metalrt_intersector_type metalrt_intersect;
-
-  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
-
-  bool triangle_only = !kernel_data.bvh.have_curves && !kernel_data.bvh.have_points;
-  if (triangle_only) {
-    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  if (is_null_intersection_function_table(metal_ancillaries->ift_local_prim)) {
+    if (local_isect) {
+      local_isect->num_hits = 0;
+    }
+    kernel_assert(!"Invalid ift_local_prim");
+    return false;
   }
+#  endif
 
   MetalRTIntersectionLocalPayload payload;
   payload.self = ray->self;
@@ -195,14 +192,48 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
   payload.result = false;
 
-  typename metalrt_intersector_type::result_type intersection;
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
 
 #  if defined(__METALRT_MOTION__)
+  metalrt_intersector_type metalrt_intersect;
+  typename metalrt_intersector_type::result_type intersection;
+
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  bool triangle_only = !kernel_data.bvh.have_curves && !kernel_data.bvh.have_points;
+  if (triangle_only) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
   intersection = metalrt_intersect.intersect(
       r, metal_ancillaries->accel_struct, 0xFF, ray->time, metal_ancillaries->ift_local, payload);
 #  else
+
+  metalrt_blas_intersector_type metalrt_intersect;
+  typename metalrt_blas_intersector_type::result_type intersection;
+
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  bool triangle_only = !kernel_data.bvh.have_curves && !kernel_data.bvh.have_points;
+  if (triangle_only) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
+  // if we know we are going to get max one hit, like for random-sss-walk we can
+  // optimize and accept the first hit
+  if (max_hits == 1) {
+    metalrt_intersect.accept_any_intersection(true);
+  }
+
+  int blas_index = metal_ancillaries->blas_userID_to_index_lookUp[local_object];
+  // transform the ray into object's local space
+  Transform itfm = kernel_data_fetch(objects, local_object).itfm;
+  r.origin = transform_point(&itfm, r.origin);
+  r.direction = transform_direction(&itfm, r.direction);
+
   intersection = metalrt_intersect.intersect(
-      r, metal_ancillaries->accel_struct, 0xFF, metal_ancillaries->ift_local, payload);
+      r,
+      metal_ancillaries->blas_accel_structs[blas_index].blas,
+      metal_ancillaries->ift_local_prim,
+      payload);
 #  endif
 
   if (lcg_state) {

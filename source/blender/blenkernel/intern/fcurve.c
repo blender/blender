@@ -1903,10 +1903,10 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
    *
    * The threshold here has the following constraints:
    * - 0.001 is too coarse:
-   *   We get artifacts with 2cm driver movements at 1BU = 1m (see T40332).
+   *   We get artifacts with 2cm driver movements at 1BU = 1m (see #40332).
    *
    * - 0.00001 is too fine:
-   *   Weird errors, like selecting the wrong keyframe range (see T39207), occur.
+   *   Weird errors, like selecting the wrong keyframe range (see #39207), occur.
    *   This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd.
    */
   a = BKE_fcurve_bezt_binarysearch_index_ex(bezts, evaltime, fcu->totvert, 0.0001, &exact);
@@ -1914,7 +1914,7 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
 
   if (exact) {
     /* Index returned must be interpreted differently when it sits on top of an existing keyframe
-     * - That keyframe is the start of the segment we need (see action_bug_2.blend in T39207).
+     * - That keyframe is the start of the segment we need (see action_bug_2.blend in #39207).
      */
     return bezt->vec[1][1];
   }
@@ -1925,7 +1925,7 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
   const BezTriple *prevbezt = (a > 0) ? (bezt - 1) : bezt;
 
   /* Use if the key is directly on the frame, in rare cases this is needed else we get 0.0 instead.
-   * XXX: consult T39207 for examples of files where failure of these checks can cause issues. */
+   * XXX: consult #39207 for examples of files where failure of these checks can cause issues. */
   if (fabsf(bezt->vec[1][0] - evaltime) < eps) {
     return bezt->vec[1][1];
   }
@@ -1976,7 +1976,7 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
       if (fabsf(v1[1] - v4[1]) < FLT_EPSILON && fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
           fabsf(v3[1] - v4[1]) < FLT_EPSILON) {
         /* Optimization: If all the handles are flat/at the same values,
-         * the value is simply the shared value (see T40372 -> F91346).
+         * the value is simply the shared value (see #40372 -> F91346).
          */
         return v1[1];
       }
@@ -2285,7 +2285,7 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
        * XXX: additive is a bit more dicey; it really depends then if things are in range or not...
        */
       LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
-        /* If there are range-restrictions, we must definitely block T36950. */
+        /* If there are range-restrictions, we must definitely block #36950. */
         if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
             (fcm->sfra <= evaltime && fcm->efra >= evaltime)) {
           /* Within range: here it probably doesn't matter,
@@ -2507,7 +2507,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
     /* group */
     BLO_read_data_address(reader, &fcu->grp);
 
-    /* clear disabled flag - allows disabled drivers to be tried again (T32155),
+    /* clear disabled flag - allows disabled drivers to be tried again (#32155),
      * but also means that another method for "reviving disabled F-Curves" exists
      */
     fcu->flag &= ~FCURVE_DISABLED;
@@ -2523,7 +2523,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
       driver->expr_simple = NULL;
 
       /* Give the driver a fresh chance - the operating environment may be different now
-       * (addons, etc. may be different) so the driver namespace may be sane now T32155. */
+       * (addons, etc. may be different) so the driver namespace may be sane now #32155. */
       driver->flag &= ~DRIVER_FLAG_INVALID;
 
       /* relink variables, targets and their paths */

@@ -27,7 +27,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
 
-  ResourceHandle handle = manager.resource_handle(float4x4::identity().ptr());
+  ResourceHandle handle = manager.resource_handle(float4x4::identity());
 
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
@@ -46,6 +46,8 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_image("rp_emission_img", &rbufs.emission_tx);
   world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
 
+  world_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+
   world_ps_.draw(DRW_cache_fullscreen_quad_get(), handle);
   /* To allow opaque pass rendering over it. */
   world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -54,6 +56,39 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
 void WorldPipeline::render(View &view)
 {
   inst_.manager->submit(world_ps_, view);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shadow Pipeline
+ *
+ * \{ */
+
+void ShadowPipeline::sync()
+{
+  surface_ps_.init();
+  /* TODO(fclem): Add state for rendering to empty framebuffer without depth test.
+   * For now this is only here for avoiding the rasterizer discard state. */
+  surface_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+  surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  surface_ps_.bind_texture(SHADOW_RENDER_MAP_SLOT, &inst_.shadows.render_map_tx_);
+  surface_ps_.bind_image(SHADOW_ATLAS_SLOT, &inst_.shadows.atlas_tx_);
+  surface_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+  surface_ps_.bind_ssbo(SHADOW_PAGE_INFO_SLOT, &inst_.shadows.pages_infos_data_);
+  inst_.sampling.bind_resources(&surface_ps_);
+
+  surface_ps_.framebuffer_set(&inst_.shadows.render_fb_);
+}
+
+PassMain::Sub *ShadowPipeline::surface_material_add(GPUMaterial *gpumat)
+{
+  return &surface_ps_.sub(GPU_material_get_name(gpumat));
+}
+
+void ShadowPipeline::render(View &view)
+{
+  inst_.manager->submit(surface_ps_, view);
 }
 
 /** \} */
@@ -123,6 +158,7 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.lights.bind_resources(&opaque_ps_);
+      inst_.shadows.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
       inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
@@ -145,9 +181,10 @@ void ForwardPipeline::sync()
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     /* Uniform Buf. */
-    opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+    sub.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
     inst_.lights.bind_resources(&sub);
+    inst_.shadows.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);
   }
 }
@@ -225,7 +262,7 @@ void ForwardPipeline::render(View &view,
   //   inst_.hiz_buffer.update();
   // }
 
-  // inst_.shadows.set_view(view, depth_tx);
+  inst_.shadows.set_view(view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(opaque_ps_, view);

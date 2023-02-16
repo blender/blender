@@ -353,7 +353,7 @@ static void p_triangle_angles(
   *r_a2 = angle_v3v3v3(v1, v2, v3);
   *r_a3 = angle_v3v3v3(v2, v3, v1);
 
-  /* Fix for degenerate geometry e.g. v1 = sum(v2 + v3). See T100874 */
+  /* Fix for degenerate geometry e.g. v1 = sum(v2 + v3). See #100874 */
   fix_large_angle(v1, v2, v3, r_a1, r_a2, r_a3);
   fix_large_angle(v2, v3, v1, r_a2, r_a3, r_a1);
   fix_large_angle(v3, v1, v2, r_a3, r_a1, r_a2);
@@ -3259,7 +3259,7 @@ static float p_face_stretch(PFace *f)
 
   if (area <= 0.0f) {
     /* When a face is flipped, provide a large penalty.
-     * Add on a slight gradient to unflip the face, see also: T99781. */
+     * Add on a slight gradient to unflip the face, see also: #99781. */
     return 1e8f * (1.0f + p_edge_uv_length(e1) + p_edge_uv_length(e2) + p_edge_uv_length(e3));
   }
 
@@ -3871,7 +3871,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
 
   if (nverts > 3) {
     /* Protect against (manifold) geometry which has a non-manifold triangulation.
-     * See T102543. */
+     * See #102543. */
 
     blender::Vector<int, 32> permute;
     permute.reserve(nverts);

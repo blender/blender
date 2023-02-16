@@ -44,7 +44,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "paint_intern.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

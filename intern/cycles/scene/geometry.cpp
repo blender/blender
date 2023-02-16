@@ -13,6 +13,7 @@
 #include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/osl.h"
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
@@ -25,7 +26,6 @@
 
 #ifdef WITH_OSL
 #  include "kernel/osl/globals.h"
-#  include "kernel/osl/services.h"
 #endif
 
 #include "util/foreach.h"
@@ -1717,20 +1717,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
   /* If any OSL node is used for displacement, it may reference a texture. But it's
    * unknown which ones, so have to load them all. */
   if (has_osl_node) {
-    set<OSLRenderServices *> services_shared;
-    device->foreach_device([&services_shared](Device *sub_device) {
-      OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
-      services_shared.insert(og->services);
-    });
-
-    for (OSLRenderServices *services : services_shared) {
-      for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
-        if (it->second->handle.get_manager() == image_manager) {
-          const int slot = it->second->handle.svm_slot();
-          bump_images.insert(slot);
-        }
-      }
-    }
+    OSLShaderManager::osl_image_slots(device, image_manager, bump_images);
   }
 #endif
 

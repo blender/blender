@@ -281,6 +281,8 @@ inline T *MEM_new(const char *allocation_name, Args &&...args)
  */
 template<typename T> inline void MEM_delete(const T *ptr)
 {
+  static_assert(!std::is_void_v<T>,
+                "MEM_delete on a void pointer not possible. Cast it to a non-void type?");
   if (ptr == nullptr) {
     /* Support #ptr being null, because C++ `delete` supports that as well. */
     return;

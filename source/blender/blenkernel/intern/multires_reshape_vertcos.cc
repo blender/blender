@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

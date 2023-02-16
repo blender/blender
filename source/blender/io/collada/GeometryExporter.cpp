@@ -101,7 +101,7 @@ void GeometryExporter::operator()(Object *ob)
 
   createLooseEdgeList(ob, me, geom_id);
 
-  /* Only create Polylists if number of faces > 0 */
+  /* Only create poly-lists if number of faces > 0. */
   if (me->totface > 0) {
     /* XXX slow */
     if (ob->totcol) {
@@ -312,7 +312,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
   return is_triangulated;
 }
 
-std::string GeometryExporter::makeVertexColorSourceId(std::string &geom_id, char *layer_name)
+std::string GeometryExporter::makeVertexColorSourceId(std::string &geom_id, const char *layer_name)
 {
   std::string result = getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + "-" +
                        layer_name;
@@ -390,7 +390,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     int map_index = 0;
 
     for (int a = 0; a < totlayer_mcol; a++) {
-      char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+      const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
                               (has_uvs) ? 3 : 2, /* all color layers have same index order */
@@ -489,7 +489,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
     COLLADASW::FloatSourceF source(mSW);
 
-    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+    const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
     std::string layer_id = makeVertexColorSourceId(geom_id, layer_name);
     source.setId(layer_id);
 

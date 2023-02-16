@@ -307,7 +307,10 @@ typedef struct BevelParams {
   GHash *vert_hash;
   /** Records new faces: key BMFace*, value one of {VERT/EDGE/RECON}_POLY. */
   GHash *face_hash;
-  /** Use for all allocs while bevel runs. NOTE: If we need to free we can switch to mempool. */
+  /**
+   * Use for all allocations while bevel runs.
+   * \note If we need to free we can switch to `BLI_mempool`.
+   */
   MemArena *mem_arena;
   /** Profile vertex location and spacings. */
   ProfileSpacing pro_spacing;
@@ -1348,7 +1351,7 @@ static void offset_meet(BevelParams *bp,
     /* Special case: e1 and e2 are parallel; put offset point perp to both, from v.
      * need to find a suitable plane.
      * This code used to just use offset and dir1, but that makes for visible errors
-     * on a circle with > 200 sides, which trips this "nearly perp" code (see T61214).
+     * on a circle with > 200 sides, which trips this "nearly perp" code (see #61214).
      * so use the average of the two, and the offset formula for angle bisector.
      * If offsets are different, we're out of luck:
      * Use the max of the two (so get consistent looking results if the same situation
@@ -1501,9 +1504,9 @@ static void offset_meet(BevelParams *bp,
   }
 }
 
-/* This was changed from 0.25f to fix bug T86768.
- * Original bug T44961 remains fixed with this value.
- * Update: changed again from 0.0001f to fix bug T95335.
+/* This was changed from 0.25f to fix bug #86768.
+ * Original bug #44961 remains fixed with this value.
+ * Update: changed again from 0.0001f to fix bug #95335.
  * Original two bugs remained fixed.
  */
 #define BEVEL_GOOD_ANGLE 0.1f
@@ -2262,7 +2265,7 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
   co[2] = z;
 }
 
-#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
+#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) BM_elem_flag_test(eh->e, flag)
 
 static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {

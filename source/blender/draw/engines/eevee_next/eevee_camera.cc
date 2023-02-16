@@ -104,10 +104,10 @@ void Camera::sync()
   else {
     data.viewmat = float4x4::identity();
     data.viewinv = float4x4::identity();
-    perspective_m4(data.winmat.ptr(), -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
-    data.wininv = data.winmat.inverted();
+    data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+    data.wininv = math::invert(data.winmat);
     data.persmat = data.winmat * data.viewmat;
-    data.persinv = data.persmat.inverted();
+    data.persinv = math::invert(data.persmat);
     data.uv_scale = float2(1.0f);
     data.uv_bias = float2(0.0f);
   }
@@ -135,8 +135,9 @@ void Camera::sync()
 #endif
   }
   else if (inst_.drw_view) {
-    data.clip_near = DRW_view_near_distance_get(inst_.drw_view);
-    data.clip_far = DRW_view_far_distance_get(inst_.drw_view);
+    /* \note: Follow camera parameters where distances are positive in front of the camera. */
+    data.clip_near = -DRW_view_near_distance_get(inst_.drw_view);
+    data.clip_far = -DRW_view_far_distance_get(inst_.drw_view);
     data.fisheye_fov = data.fisheye_lens = -1.0f;
     data.equirect_bias = float2(0.0f);
     data.equirect_scale = float2(0.0f);
@@ -144,6 +145,57 @@ void Camera::sync()
 
   data_.initialized = true;
   data_.push_update();
+
+  update_bounds();
+}
+
+void Camera::update_bounds()
+{
+  float left, right, bottom, top, near, far;
+  projmat_dimensions(data_.winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
+
+  BoundBox bbox;
+  bbox.vec[0][2] = bbox.vec[3][2] = bbox.vec[7][2] = bbox.vec[4][2] = -near;
+  bbox.vec[0][0] = bbox.vec[3][0] = left;
+  bbox.vec[4][0] = bbox.vec[7][0] = right;
+  bbox.vec[0][1] = bbox.vec[4][1] = bottom;
+  bbox.vec[7][1] = bbox.vec[3][1] = top;
+
+  /* Get the coordinates of the far plane. */
+  if (!this->is_orthographic()) {
+    float sca_far = far / near;
+    left *= sca_far;
+    right *= sca_far;
+    bottom *= sca_far;
+    top *= sca_far;
+  }
+
+  bbox.vec[1][2] = bbox.vec[2][2] = bbox.vec[6][2] = bbox.vec[5][2] = -far;
+  bbox.vec[1][0] = bbox.vec[2][0] = left;
+  bbox.vec[6][0] = bbox.vec[5][0] = right;
+  bbox.vec[1][1] = bbox.vec[5][1] = bottom;
+  bbox.vec[2][1] = bbox.vec[6][1] = top;
+
+  bound_sphere.center = {0.0f, 0.0f, 0.0f};
+  bound_sphere.radius = 0.0f;
+
+  for (auto i : IndexRange(8)) {
+    bound_sphere.center += float3(bbox.vec[i]);
+  }
+  bound_sphere.center /= 8.0f;
+  for (auto i : IndexRange(8)) {
+    float dist_sqr = math::distance_squared(bound_sphere.center, float3(bbox.vec[i]));
+    bound_sphere.radius = max_ff(bound_sphere.radius, dist_sqr);
+  }
+  bound_sphere.radius = sqrtf(bound_sphere.radius);
+
+  /* Transform into world space. */
+  bound_sphere.center = math::transform_point(data_.viewinv, bound_sphere.center);
+
+  /* Compute diagonal length. */
+  float2 p0 = float2(bbox.vec[0]) / (this->is_perspective() ? bbox.vec[0][2] : 1.0f);
+  float2 p1 = float2(bbox.vec[7]) / (this->is_perspective() ? bbox.vec[7][2] : 1.0f);
+  data_.screen_diagonal_length = math::distance(p0, p1);
 }
 
 /** \} */

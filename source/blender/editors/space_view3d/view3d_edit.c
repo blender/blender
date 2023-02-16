@@ -957,7 +957,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
 
         /* As the tangent is arbitrary from the users point of view,
          * make the cursor 'roll' on the shortest angle.
-         * otherwise this can cause noticeable 'flipping', see T72419. */
+         * otherwise this can cause noticeable 'flipping', see #72419. */
         for (int axis = 0; axis < 2; axis++) {
           float tan_src[3] = {0, 0, 0};
           tan_src[axis] = 1.0f;
@@ -1032,7 +1032,7 @@ void ED_view3d_cursor3d_update(bContext *C,
     }
     else {
       /* Cursor may be outside of the view,
-       * prevent it getting 'lost', see: T40353 & T45301 */
+       * prevent it getting 'lost', see: #40353 & #45301 */
       zero_v2(rv3d->ofs_lock);
     }
   }

@@ -147,7 +147,7 @@ bool transformModeUseSnap(const TransInfo *t)
 
 static bool doForceIncrementSnap(const TransInfo *t)
 {
-  if (t->tsnap.status & SNAP_FORCED) {
+  if (t->modifiers & MOD_SNAP_FORCED) {
     return false;
   }
 
@@ -699,10 +699,10 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
 
     if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
       /* In "Edit Strokes" mode,
-       * snap tool can perform snap to selected or active objects (see T49632)
+       * snap tool can perform snap to selected or active objects (see #49632)
        * TODO: perform self snap in gpencil_strokes.
        *
-       * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
+       * When we're moving the origins, allow snapping onto our own geometry (see #69132). */
       return ret;
     }
 
@@ -808,7 +808,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
       if ((prop = RNA_struct_find_property(op->ptr, "snap_point")) &&
           RNA_property_is_set(op->ptr, prop)) {
         RNA_property_float_get_array(op->ptr, prop, t->tsnap.snap_target);
-        t->tsnap.status |= SNAP_FORCED | SNAP_TARGET_FOUND;
+        t->modifiers |= MOD_SNAP_FORCED;
+        t->tsnap.status |= SNAP_TARGET_FOUND;
       }
 
       /* snap align only defined in specific cases */

@@ -156,7 +156,13 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
     }
     else if (type == LIGHT_SPOT) {
       bcone.theta_o = 0;
-      bcone.theta_e = lamp->get_spot_angle() * 0.5f;
+
+      const float unscaled_theta_e = lamp->get_spot_angle() * 0.5f;
+      const float len_u = len(lamp->get_axisu());
+      const float len_v = len(lamp->get_axisv());
+      const float len_w = len(lamp->get_dir());
+
+      bcone.theta_e = fast_atanf(fast_tanf(unscaled_theta_e) * fmaxf(len_u, len_v) / len_w);
 
       /* Point and spot lights can emit light from any point within its radius. */
       const float3 radius = make_float3(size);

@@ -12,6 +12,7 @@ from bpy.props import (
     PointerProperty,
     StringProperty,
 )
+from bpy.app.translations import pgettext_iface as iface_
 
 from math import pi
 
@@ -1664,30 +1665,51 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             col.label(text="No compatible GPUs found for Cycles", icon='INFO')
 
             if device_type == 'CUDA':
-                col.label(text="Requires NVIDIA GPU with compute capability 3.0", icon='BLANK1')
+                compute_capability = "3.0"
+                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                          icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
-                col.label(text="Requires NVIDIA GPU with compute capability 5.0", icon='BLANK1')
-                col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
+                compute_capability = "5.0"
+                driver_version = "470"
+                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                          icon='BLANK1', translate=False)
+                col.label(text="and NVIDIA driver version %s or newer" % driver_version,
+                          icon='BLANK1', translate=False)
             elif device_type == 'HIP':
-                import sys
-                if sys.platform[:3] == "win":
-                    col.label(text="Requires AMD GPU with RDNA architecture", icon='BLANK1')
-                    col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
-                elif sys.platform.startswith("linux"):
-                    col.label(text="Requires AMD GPU with RDNA architecture", icon='BLANK1')
-                    col.label(text="and AMD driver version 22.10 or newer", icon='BLANK1')
+                if True:
+                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                else:
+                    import sys
+                    if sys.platform[:3] == "win":
+                        driver_version = "21.Q4"
+                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                                  icon='BLANK1', translate=False)
+                    elif sys.platform.startswith("linux"):
+                        driver_version = "22.10"
+                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                        col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
+                                  translate=False)
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
+                    driver_version = "101.4032"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
-                    col.label(text="and Windows driver version 101.4032 or newer", icon='BLANK1')
+                    col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
+                              icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
+                    driver_version = "1.3.24931"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text="  - intel-level-zero-gpu version 1.3.24931 or newer", icon='BLANK1')
+                    col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
+                              icon='BLANK1', translate=False)
                     col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
             elif device_type == 'METAL':
-                col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
-                col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
+                silicon_mac_version = "12.2"
+                amd_mac_version = "12.3"
+                col.label(text=iface_("Requires Apple Silicon with macOS %s or newer") % silicon_mac_version,
+                          icon='BLANK1', translate=False)
+                col.label(text=iface_("or AMD with macOS %s or newer") % amd_mac_version, icon='BLANK1',
+                          translate=False)
             return
 
         for device in devices:
@@ -1723,12 +1745,21 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if compute_device_type == 'METAL':
             import platform
-            # MetalRT only works on Apple Silicon at present, pending argument encoding fixes on AMD
-            # Kernel specialization is only viable on Apple Silicon at present due to relative compilation speed
-            if platform.machine() == 'arm64':
+            import re
+            is_navi_2 = False
+            for device in devices:
+                if re.search(r"((RX)|(Pro)|(PRO))\s+W?6\d00X", device.name):
+                    is_navi_2 = True
+                    break
+
+            # MetalRT only works on Apple Silicon and Navi2.
+            is_arm64 = platform.machine() == 'arm64'
+            if is_arm64 or is_navi_2:
                 col = layout.column()
                 col.use_property_split = True
-                col.prop(self, "kernel_optimization_level")
+                # Kernel specialization is only supported on Apple Silicon
+                if is_arm64:
+                    col.prop(self, "kernel_optimization_level")
                 col.prop(self, "use_metalrt")
 
     def draw(self, context):

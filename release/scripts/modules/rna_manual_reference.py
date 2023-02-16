@@ -4,38 +4,10 @@
 # autopep8: off
 import bpy
 
-manual_version = '%d.%d' % bpy.app.version[:2]
-
-url_manual_prefix = "https://docs.blender.org/manual/en/" + manual_version + "/"
-
-language = bpy.context.preferences.view.language
-if language == 'DEFAULT':
-    import os
-    language = os.getenv('LANG', '').split('.')[0]
-
-LANG = {
-"ar_EG":        "ar",
-"de_DE":        "de",
-"es":           "es",
-"fi_FI":        "fi",
-"fr_FR":        "fr",
-"id_ID":        "id",
-"it_IT":        "it",
-"ja_JP":        "ja",
-"ko_KR":        "ko",
-"pt_PT":        "pt",
-"pt_BR":        "pt",
-"ru_RU":        "ru",
-"sk_SK":        "sk",
-"sr_RS":        "sr",
-"uk_UA":        "uk",
-"vi_VN":        "vi",
-"zh_CN":        "zh-hans",
-"zh_TW":        "zh-hant",
-}.get(language)
-
-if LANG is not None:
-    url_manual_prefix = url_manual_prefix.replace("manual/en", "manual/" + LANG)
+url_manual_prefix = "https://docs.blender.org/manual/%s/%d.%d/" % (
+    bpy.utils.manual_language_code(),
+    *bpy.app.version[:2],
+)
 
 url_manual_mapping = (
     ("bpy.types.movietrackingsettings.refine_intrinsics_tangential_distortion*", "movie_clip/tracking/clip/toolbar/solve.html#bpy-types-movietrackingsettings-refine-intrinsics-tangential-distortion"),
@@ -641,7 +613,6 @@ url_manual_mapping = (
     ("bpy.types.volumedisplay.interpolation_method*", "modeling/volumes/properties.html#bpy-types-volumedisplay-interpolation-method"),
     ("bpy.ops.geometry.color_attribute_render_set*", "modeling/meshes/properties/object_data.html#bpy-ops-geometry-color-attribute-render-set"),
     ("bpy.ops.mesh.customdata_crease_vertex_clear*", "modeling/meshes/properties/custom_data.html#bpy-ops-mesh-customdata-crease-vertex-clear"),
-    ("bpy.types.brush.html#bpy.types.brush.jitter*", "sculpt_paint/brush/stroke.html#bpy-types-brush-html-bpy-types-brush-jitter"),
     ("bpy.types.brushgpencilsettings.angle_factor*", "grease_pencil/modes/draw/tools/draw.html#bpy-types-brushgpencilsettings-angle-factor"),
     ("bpy.types.brushgpencilsettings.pen_strength*", "grease_pencil/modes/draw/tools/erase.html#bpy-types-brushgpencilsettings-pen-strength"),
     ("bpy.types.clothcollisionsettings.collection*", "physics/cloth/settings/collisions.html#bpy-types-clothcollisionsettings-collection"),
@@ -672,7 +643,7 @@ url_manual_mapping = (
     ("bpy.types.geometrynodeinputmeshedgevertices*", "modeling/geometry_nodes/mesh/read/edge_vertices.html#bpy-types-geometrynodeinputmeshedgevertices"),
     ("bpy.types.geometrynodeinputmeshfaceisplanar*", "modeling/geometry_nodes/mesh/read/face_is_planar.html#bpy-types-geometrynodeinputmeshfaceisplanar"),
     ("bpy.types.geometrynodeinputsplineresolution*", "modeling/geometry_nodes/curve/read/spline_resolution.html#bpy-types-geometrynodeinputsplineresolution"),
-    ("bpy.types.geometrynodemeshfacesetboundaries*", "modeling/geometry_nodes/mesh/read/face_set_boundaries.html#bpy-types-geometrynodemeshfacesetboundaries"),
+    ("bpy.types.geometrynodemeshfacesetboundaries*", "modeling/geometry_nodes/mesh/read/face_group_boundaries.html#bpy-types-geometrynodemeshfacesetboundaries"),
     ("bpy.types.greasepencil.curve_edit_threshold*", "grease_pencil/modes/edit/curve_editing.html#bpy-types-greasepencil-curve-edit-threshold"),
     ("bpy.types.lineartgpencilmodifier.use_crease*", "grease_pencil/modifiers/generate/line_art.html#bpy-types-lineartgpencilmodifier-use-crease"),
     ("bpy.types.lineartgpencilmodifier.use_shadow*", "grease_pencil/modifiers/generate/line_art.html#bpy-types-lineartgpencilmodifier-use-shadow"),
@@ -1020,6 +991,7 @@ url_manual_mapping = (
     ("bpy.types.geometrynodeinputmeshfacearea*", "modeling/geometry_nodes/mesh/read/face_area.html#bpy-types-geometrynodeinputmeshfacearea"),
     ("bpy.types.geometrynodeinputsplinecyclic*", "modeling/geometry_nodes/curve/read/is_spline_cyclic.html#bpy-types-geometrynodeinputsplinecyclic"),
     ("bpy.types.geometrynodeinstancestopoints*", "modeling/geometry_nodes/instances/instances_to_points.html#bpy-types-geometrynodeinstancestopoints"),
+    ("bpy.types.geometrynodematerialselection*", "modeling/geometry_nodes/material/material_selection.html#bpy-types-geometrynodematerialselection"),
     ("bpy.types.gpencillayer.viewlayer_render*", "grease_pencil/properties/layers.html#bpy-types-gpencillayer-viewlayer-render"),
     ("bpy.types.imagepaint.use_normal_falloff*", "sculpt_paint/brush/falloff.html#bpy-types-imagepaint-use-normal-falloff"),
     ("bpy.types.layercollection.hide_viewport*", "editors/outliner/interface.html#bpy-types-layercollection-hide-viewport"),
@@ -1417,6 +1389,7 @@ url_manual_mapping = (
     ("bpy.types.functionnodereplacestring*", "modeling/geometry_nodes/utilities/text/replace_string.html#bpy-types-functionnodereplacestring"),
     ("bpy.types.functionnodeseparatecolor*", "modeling/geometry_nodes/utilities/color/separate_color.html#bpy-types-functionnodeseparatecolor"),
     ("bpy.types.functionnodevaluetostring*", "modeling/geometry_nodes/utilities/text/value_to_string.html#bpy-types-functionnodevaluetostring"),
+    ("bpy.types.geometrynodeblurattribute*", "modeling/geometry_nodes/attribute/blur_attribute.html#bpy-types-geometrynodeblurattribute"),
     ("bpy.types.geometrynodecurvetopoints*", "modeling/geometry_nodes/curve/operations/curve_to_points.html#bpy-types-geometrynodecurvetopoints"),
     ("bpy.types.geometrynodeedgesofcorner*", "modeling/geometry_nodes/mesh/topology/edges_of_corner.html#bpy-types-geometrynodeedgesofcorner"),
     ("bpy.types.geometrynodeedgesofvertex*", "modeling/geometry_nodes/mesh/topology/edges_of_vertex.html#bpy-types-geometrynodeedgesofvertex"),
@@ -2055,7 +2028,7 @@ url_manual_mapping = (
     ("bpy.ops.graph.equalize_handles*", "editors/graph_editor/fcurves/editing.html#bpy-ops-graph-equalize-handles"),
     ("bpy.ops.mball.delete_metaelems*", "modeling/metas/editing.html#bpy-ops-mball-delete-metaelems"),
     ("bpy.ops.mball.reveal_metaelems*", "modeling/metas/properties.html#bpy-ops-mball-reveal-metaelems"),
-    ("bpy.ops.mesh.bridge-edge-loops*", "modeling/meshes/editing/edge/bridge_edge_loops.html#bpy-ops-mesh-bridge-edge-loops"),
+    ("bpy.ops.mesh.bridge_edge_loops*", "modeling/meshes/editing/edge/bridge_edge_loops.html#bpy-ops-mesh-bridge-edge-loops"),
     ("bpy.ops.mesh.intersect_boolean*", "modeling/meshes/editing/face/intersect_boolean.html#bpy-ops-mesh-intersect-boolean"),
     ("bpy.ops.mesh.loop_multi_select*", "modeling/meshes/selecting/loops.html#bpy-ops-mesh-loop-multi-select"),
     ("bpy.ops.mesh.vert_connect_path*", "modeling/meshes/editing/vertex/connect_vertex_path.html#bpy-ops-mesh-vert-connect-path"),
@@ -2111,7 +2084,6 @@ url_manual_mapping = (
     ("bpy.types.geometrynodeboundbox*", "modeling/geometry_nodes/geometry/operations/bounding_box.html#bpy-types-geometrynodeboundbox"),
     ("bpy.types.geometrynodecurvearc*", "modeling/geometry_nodes/curve/primitives/arc.html#bpy-types-geometrynodecurvearc"),
     ("bpy.types.geometrynodedualmesh*", "modeling/geometry_nodes/mesh/operations/dual_mesh.html#bpy-types-geometrynodedualmesh"),
-    ("bpy.types.geometrynodematerial*", "-1"),
     ("bpy.types.geometrynodemeshcone*", "modeling/geometry_nodes/mesh/primitives/cone.html#bpy-types-geometrynodemeshcone"),
     ("bpy.types.geometrynodemeshcube*", "modeling/geometry_nodes/mesh/primitives/cube.html#bpy-types-geometrynodemeshcube"),
     ("bpy.types.geometrynodemeshgrid*", "modeling/geometry_nodes/mesh/primitives/grid.html#bpy-types-geometrynodemeshgrid"),
@@ -3051,6 +3023,7 @@ url_manual_mapping = (
     ("bpy.types.bakesettings*", "render/cycles/baking.html#bpy-types-bakesettings"),
     ("bpy.types.blendtexture*", "render/materials/legacy_textures/types/blend.html#bpy-types-blendtexture"),
     ("bpy.types.brush.height*", "sculpt_paint/sculpting/tools/layer.html#bpy-types-brush-height"),
+    ("bpy.types.brush.jitter*", "sculpt_paint/brush/stroke.html#bpy-types-brush-jitter"),
     ("bpy.types.castmodifier*", "modeling/modifiers/deform/cast.html#bpy-types-castmodifier"),
     ("bpy.types.curve.offset*", "modeling/curves/properties/geometry.html#bpy-types-curve-offset"),
     ("bpy.types.geometrynode*", "modeling/geometry_nodes/index.html#bpy-types-geometrynode"),

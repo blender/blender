@@ -20,8 +20,8 @@
 
 /* Disable XINPUT warp, currently not implemented by Xorg for multi-head display.
  * (see comment in XSERVER `Xi/xiwarppointer.c` -> `FIXME: panoramix stuff is missing` ~ v1.13.4)
- * If this is supported we can add back XINPUT for warping (fixing T48901).
- * For now disable (see T50383). */
+ * If this is supported we can add back XINPUT for warping (fixing #48901).
+ * For now disable (see #50383). */
 // #  define USE_X11_XINPUT_WARP
 #endif
 

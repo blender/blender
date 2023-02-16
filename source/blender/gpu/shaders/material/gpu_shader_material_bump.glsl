@@ -12,8 +12,13 @@ void differentiate_texco(vec4 v, out vec3 df)
   df = v.xyz + dF_impl(v.xyz);
 }
 
-void node_bump(
-    float strength, float dist, float height, vec3 N, vec2 dHd, float invert, out vec3 result)
+void node_bump(float strength,
+               float dist,
+               float height,
+               vec3 N,
+               vec2 height_xy,
+               float invert,
+               out vec3 result)
 {
   N = normalize(N);
   dist *= FrontFacing ? invert : -invert;
@@ -29,6 +34,7 @@ void node_bump(
   /* Compute surface gradient and determinant. */
   float det = dot(dPdx, Rx);
 
+  vec2 dHd = height_xy - vec2(height);
   vec3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
   strength = max(strength, 0.0);

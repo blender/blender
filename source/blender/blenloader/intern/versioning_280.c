@@ -1206,7 +1206,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
           }
           if (collection_hidden == NULL) {
             /* This should never happen (objects are always supposed to be instantiated in a
-             * scene), but it does sometimes, see e.g. T81168.
+             * scene), but it does sometimes, see e.g. #81168.
              * Just put them in first hidden collection in those cases. */
             collection_hidden = &hidden_collection_array[0];
           }
@@ -1739,7 +1739,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 /* NOTE: This version patch is intended for versions < 2.52.2,
  * but was initially introduced in 2.27 already.
  * But in 2.79 another case generating non-unique names was discovered
- * (see T55668, involving Meta strips). */
+ * (see #55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
   for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {

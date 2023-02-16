@@ -309,6 +309,8 @@ void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
 
+struct wmKeyMap *node_link_modal_keymap(struct wmKeyConfig *keyconf);
+
 /* node_edit.cc */
 
 float2 node_link_calculate_multi_input_position(const float2 &socket_position,

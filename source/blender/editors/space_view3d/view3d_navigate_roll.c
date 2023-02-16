@@ -109,7 +109,7 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
     else if (event->type == vod->init.event_type) {
       /* Check `vod->init.event_type` first in case RMB was used to invoke.
-       * in this case confirming takes precedence over canceling, see: T102937. */
+       * in this case confirming takes precedence over canceling, see: #102937. */
       if (event->val == KM_RELEASE) {
         event_code = VIEW_CONFIRM;
       }

@@ -105,10 +105,11 @@ struct kernel_gpu_##name \
 { \
   PARAMS_MAKER(__VA_ARGS__)(__VA_ARGS__) \
   void run(thread MetalKernelContext& context, \
-           threadgroup int *simdgroup_offset, \
+           threadgroup atomic_int *threadgroup_array, \
            const uint metal_global_id, \
            const ushort metal_local_id, \
            const ushort metal_local_size, \
+           const ushort metal_grid_id, \
            uint simdgroup_size, \
            uint simd_lane_index, \
            uint simd_group_index, \
@@ -117,22 +118,24 @@ struct kernel_gpu_##name \
 kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
-                                threadgroup int *simdgroup_offset[[ threadgroup(0) ]], \
+                                threadgroup atomic_int *threadgroup_array[[ threadgroup(0) ]], \
                                 const uint metal_global_id [[thread_position_in_grid]], \
                                 const ushort metal_local_id   [[thread_position_in_threadgroup]], \
                                 const ushort metal_local_size [[threads_per_threadgroup]], \
+                                const ushort metal_grid_id    [[threadgroup_position_in_grid]], \
                                 uint simdgroup_size [[threads_per_simdgroup]], \
                                 uint simd_lane_index [[thread_index_in_simdgroup]], \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
                                 uint num_simd_groups [[simdgroups_per_threadgroup]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
-  params_struct->run(context, simdgroup_offset, metal_global_id, metal_local_id, metal_local_size, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
+  params_struct->run(context, threadgroup_array, metal_global_id, metal_local_id, metal_local_size, metal_grid_id, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
 void kernel_gpu_##name::run(thread MetalKernelContext& context, \
-                  threadgroup int *simdgroup_offset, \
+                  threadgroup atomic_int *threadgroup_array, \
                   const uint metal_global_id, \
                   const ushort metal_local_id, \
                   const ushort metal_local_size, \
+                  const ushort metal_grid_id, \
                   uint simdgroup_size, \
                   uint simd_lane_index, \
                   uint simd_group_index, \
@@ -263,13 +266,25 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 
 #  if defined(__METALRT_MOTION__)
 #    define METALRT_TAGS instancing, instance_motion, primitive_motion
+#    define METALRT_BLAS_TAGS , primitive_motion
 #  else
 #    define METALRT_TAGS instancing
+#    define METALRT_BLAS_TAGS
 #  endif /* __METALRT_MOTION__ */
 
 typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
 typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
 typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+#  if defined(__METALRT_MOTION__)
+typedef acceleration_structure<primitive_motion> metalrt_blas_as_type;
+typedef intersection_function_table<triangle_data, primitive_motion> metalrt_blas_ift_type;
+typedef metal::raytracing::intersector<triangle_data, primitive_motion>
+    metalrt_blas_intersector_type;
+#  else
+typedef acceleration_structure<> metalrt_blas_as_type;
+typedef intersection_function_table<triangle_data> metalrt_blas_ift_type;
+typedef metal::raytracing::intersector<triangle_data> metalrt_blas_intersector_type;
+#  endif
 
 #endif /* __METALRT__ */
 
@@ -282,6 +297,12 @@ struct Texture3DParamsMetal {
   texture3d<float, access::sample> tex;
 };
 
+#ifdef __METALRT__
+struct MetalRTBlasWrapper {
+  metalrt_blas_as_type blas;
+};
+#endif
+
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
@@ -291,6 +312,9 @@ struct MetalAncillaries {
   metalrt_ift_type ift_default;
   metalrt_ift_type ift_shadow;
   metalrt_ift_type ift_local;
+  metalrt_blas_ift_type ift_local_prim;
+  constant MetalRTBlasWrapper *blas_accel_structs;
+  constant int *blas_userID_to_index_lookUp;
 #endif
 };
 

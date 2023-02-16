@@ -504,7 +504,13 @@ struct bNodeTree *ntreeFromID(struct ID *id);
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode *ntreeFindType(struct bNodeTree *ntree, int type);
-bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
+
+/**
+ * Check recursively if a node tree contains another.
+ */
+bool ntreeContainsTree(const struct bNodeTree *tree_to_search_in,
+                       const struct bNodeTree *tree_to_search_for);
+
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
@@ -989,7 +995,7 @@ void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwid
 void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size);
 /**
  * \warning Nodes defining a storage type _must_ allocate this for new nodes.
- * Otherwise nodes will reload as undefined (T46619).
+ * Otherwise nodes will reload as undefined (#46619).
  */
 void node_type_storage(struct bNodeType *ntype,
                        const char *storagename,
@@ -1534,6 +1540,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_BLUR_ATTRIBUTE 1190
 #define GEO_NODE_IMAGE 1191
 #define GEO_NODE_INTERPOLATE_CURVES 1192
+#define GEO_NODE_EDGES_TO_FACE_GROUPS 1193
 
 /** \} */
 

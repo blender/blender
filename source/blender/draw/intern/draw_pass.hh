@@ -861,42 +861,42 @@ template<class T> inline int PassBase<T>::push_constant_offset(const char *name)
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUStorageBuf *buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUUniformBuf *buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUUniformBuf **buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUVertBuf *buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUVertBuf **buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUIndexBuf *buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUIndexBuf **buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(const char *name, GPUUniformBuf *buffer)
 {
-  this->bind_ubo(GPU_shader_get_uniform_block_binding(shader_, name), buffer);
+  this->bind_ubo(GPU_shader_get_ubo_binding(shader_, name), buffer);
 }
 
 template<class T>
@@ -904,22 +904,22 @@ inline void PassBase<T>::bind_texture(const char *name,
                                       GPUTexture *texture,
                                       eGPUSamplerState state)
 {
-  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), texture, state);
+  this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), texture, state);
 }
 
 template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf *buffer)
 {
-  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), buffer);
+  this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf **buffer)
 {
-  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), buffer);
+  this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture *image)
 {
-  this->bind_image(GPU_shader_get_texture_binding(shader_, name), image);
+  this->bind_image(GPU_shader_get_sampler_binding(shader_, name), image);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUStorageBuf *buffer)
@@ -991,12 +991,12 @@ template<class T> inline void PassBase<T>::bind_image(int slot, GPUTexture *imag
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUStorageBuf **buffer)
 {
-  this->bind_ssbo(GPU_shader_get_ssbo(shader_, name), buffer);
+  this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(const char *name, GPUUniformBuf **buffer)
 {
-  this->bind_ubo(GPU_shader_get_uniform_block_binding(shader_, name), buffer);
+  this->bind_ubo(GPU_shader_get_ubo_binding(shader_, name), buffer);
 }
 
 template<class T>
@@ -1004,12 +1004,12 @@ inline void PassBase<T>::bind_texture(const char *name,
                                       GPUTexture **texture,
                                       eGPUSamplerState state)
 {
-  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), texture, state);
+  this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), texture, state);
 }
 
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture **image)
 {
-  this->bind_image(GPU_shader_get_texture_binding(shader_, name), image);
+  this->bind_image(GPU_shader_get_sampler_binding(shader_, name), image);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUStorageBuf **buffer)

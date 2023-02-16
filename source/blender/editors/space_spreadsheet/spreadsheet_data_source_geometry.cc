@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_index_mask_ops.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
@@ -159,13 +160,13 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       if (STREQ(column_id.name, "Rotation")) {
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-              return transforms[index].to_euler();
+              return float3(math::to_euler(transforms[index]));
             }));
       }
       if (STREQ(column_id.name, "Scale")) {
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-              return transforms[index].scale();
+              return math::to_scale(transforms[index]);
             }));
       }
     }

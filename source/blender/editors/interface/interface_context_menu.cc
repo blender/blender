@@ -44,7 +44,7 @@
 #include "WM_types.h"
 
 /* This hack is needed because we don't have a good way to
- * re-reference keymap items once added: T42944 */
+ * re-reference keymap items once added: #42944 */
 #define USE_KEYMAP_ADD_HACK
 
 /* -------------------------------------------------------------------- */

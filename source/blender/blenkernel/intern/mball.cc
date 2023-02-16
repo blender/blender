@@ -277,7 +277,7 @@ bool BKE_mball_is_basis(const Object *ob)
   /* Meta-Ball Basis Notes from Blender-2.5x
    * =======================================
    *
-   * NOTE(@campbellbarton): This is a can of worms.
+   * NOTE(@ideasman42): This is a can of worms.
    *
    * This really needs a rewrite/refactor its totally broken in anything other than basic cases
    * Multiple Scenes + Set Scenes & mixing meta-ball basis _should_ work but fails to update the
@@ -485,7 +485,7 @@ bool BKE_mball_minmax_ex(
         copy_v3_v3(centroid, &ml->x);
       }
 
-      /* TODO(@campbellbarton): non circle shapes cubes etc, probably nobody notices. */
+      /* TODO(@ideasman42): non circle shapes cubes etc, probably nobody notices. */
       for (int i = -1; i != 3; i += 2) {
         copy_v3_v3(vec, centroid);
         add_v3_fl(vec, scale_mb * i);

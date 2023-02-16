@@ -3313,12 +3313,12 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
        "ORCO",
        0,
        "Original Coords",
-       "Use base mesh vertex coords as the rest position"},
+       "Use base mesh vertex coordinates as the rest position"},
       {MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND,
        "BIND",
        0,
        "Bind Coords",
-       "Use bind vertex coords for rest position"},
+       "Use bind vertex coordinates for rest position"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5967,13 +5967,13 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
        "OVERWRITE",
        0,
        "Overwrite",
-       "Replace vertex coords with cached values"},
+       "Replace vertex coordinates with cached values"},
       {MOD_MESHCACHE_DEFORM_INTEGRATE,
        "INTEGRATE",
        0,
        "Integrate",
-       "Integrate deformation from this modifiers input with the mesh-cache coords (useful for "
-       "shape keys)"},
+       "Integrate deformation from this modifier's input with the mesh-cache coordinates "
+       "(useful for shape keys)"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -7354,6 +7354,14 @@ void RNA_def_modifier(BlenderRNA *brna)
       "on filled curve/surface");
   RNA_def_property_ui_icon(prop, ICON_SURFACE_DATA, 0);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "execution_time", PROP_FLOAT, PROP_TIME_ABSOLUTE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Execution Time",
+      "Time in seconds that the modifier took to evaluate. This is only set on evaluated objects. "
+      "If multiple modifiers run in parallel, execution time is not a reliable metric");
 
   /* types */
   rna_def_modifier_subsurf(brna);

@@ -421,7 +421,7 @@ static void applyAxisConstraintVec(const TransInfo *t,
             constraint_snap_plane_to_edge(t, plane, out);
           }
           else if (is_snap_to_face) {
-            /* Disabled, as it has not proven to be really useful. (See T82386). */
+            /* Disabled, as it has not proven to be really useful. (See #82386). */
             // constraint_snap_plane_to_face(t, plane, out);
           }
           else if (!isPlaneProjectionViewAligned(t, plane)) {
@@ -1165,6 +1165,7 @@ void setNearestAxis(TransInfo *t)
 
   if (mode_prev != t->con.mode) {
     projection_matrix_calc(t, t->con.pmtx);
+    transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   }
 }
 

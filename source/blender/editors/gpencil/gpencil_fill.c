@@ -735,7 +735,7 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
     float tan2[3];
     float d1;
     float d2;
-    float total_length = 0.f;
+    float total_length = 0.0f;
     for (int i = 1; i < gps->totpoints; i++) {
       if (i > 1) {
         copy_v3_v3(tan1, tan2);
@@ -751,7 +751,7 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
         sub_v3_v3v3(curvature, tan2, tan1);
         float k = normalize_v3(curvature);
         k /= min_ff(d1, d2);
-        float radius = 1.f / k;
+        float radius = 1.0f / k;
         /*
          * The smaller the radius of curvature, the sharper the corner.
          * The thicker the line, the larger the radius of curvature it
@@ -917,6 +917,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
   const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
+  bool circle_contact = false;
 
   if (!gpencil_stroke_is_drawable(tgpf, gps)) {
     return;
@@ -933,7 +934,11 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
     /* If there is contact, hide the circles to avoid noise and keep the focus
      * in the pending gaps. */
-    col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
+    col[3] = 0.5f;
+    if (gps->flag & GP_STROKE_TAG) {
+      circle_contact = true;
+      col[3] = 0.0f;
+    }
   }
   else if ((is_extend) && (!tgpf->is_render)) {
     if (stroke_collide || !use_stroke_collide || !is_line_mode) {
@@ -962,14 +967,16 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
   for (int i = 0; i < totpoints; i++, pt++) {
 
-    /* This flag is inverted in the UI. */
-    if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
-      float alpha = gp_style->stroke_rgba[3] * pt->strength;
-      CLAMP(alpha, 0.0f, 1.0f);
-      col[3] = alpha <= thershold ? 0.0f : 1.0f;
-    }
-    else if (!is_help) {
-      col[3] = 1.0f;
+    if (!circle_contact) {
+      /* This flag is inverted in the UI. */
+      if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
+        float alpha = gp_style->stroke_rgba[3] * pt->strength;
+        CLAMP(alpha, 0.0f, 1.0f);
+        col[3] = alpha <= thershold ? 0.0f : 1.0f;
+      }
+      else if (!is_help) {
+        col[3] = 1.0f;
+      }
     }
     /* set point */
     immAttr4fv(color, col);
@@ -993,23 +1000,25 @@ static void draw_mouse_position(tGPDfill *tgpf)
   if (tgpf->gps_mouse == NULL) {
     return;
   }
-  uchar mouse_color[4] = {0, 0, 255, 255};
 
   bGPDspoint *pt = &tgpf->gps_mouse->points[0];
   float point_size = (tgpf->zoom == 1.0f) ? 4.0f * tgpf->fill_factor :
                                             (0.5f * tgpf->zoom) + tgpf->fill_factor;
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  uint size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   /* Draw mouse click position in Blue. */
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
-  GPU_point_size(point_size);
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
   immBegin(GPU_PRIM_POINTS, 1);
-  immAttr4ubv(col, mouse_color);
+  immAttr1f(size, point_size * M_SQRT2);
+  immAttr4f(color, 0.0f, 0.0f, 1.0f, 1.0f);
   immVertex3fv(pos, &pt->x);
   immEnd();
   immUnbindProgram();
+  GPU_program_point_size(false);
 }
 
 /* Helper: Check if must skip the layer */

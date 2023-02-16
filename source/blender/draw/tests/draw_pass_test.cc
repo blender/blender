@@ -2,6 +2,8 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_matrix.hh"
+
 #include "draw_manager.hh"
 #include "draw_pass.hh"
 #include "draw_shader.h"
@@ -265,10 +267,8 @@ static void test_draw_resource_id_gen()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();
   ResourceHandle handle1 = drw.resource_handle(obmat_1);
@@ -339,10 +339,8 @@ static void test_draw_visibility()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();                                   /* Default {0} always visible. */
   drw.resource_handle(obmat_1);                       /* No bounds, always visible. */
@@ -372,10 +370,8 @@ DRAW_TEST(draw_visibility)
 
 static void test_draw_manager_sync()
 {
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   /* TODO find a way to create a minimum object to test resource handle creation on it. */
   Manager drw;

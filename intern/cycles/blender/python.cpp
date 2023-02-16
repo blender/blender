@@ -94,7 +94,7 @@ void python_thread_state_restore(void **python_thread_state)
   *python_thread_state = NULL;
 }
 
-static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
+static const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
 {
   const char *result = PyUnicode_AsUTF8(py_str);
   if (result) {
@@ -131,8 +131,8 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
   }
 
   PyObject *path_coerce = nullptr, *user_path_coerce = nullptr;
-  path_init(PyC_UnicodeAsByte(path, &path_coerce),
-            PyC_UnicodeAsByte(user_path, &user_path_coerce));
+  path_init(PyC_UnicodeAsBytes(path, &path_coerce),
+            PyC_UnicodeAsBytes(user_path, &user_path_coerce));
   Py_XDECREF(path_coerce);
   Py_XDECREF(user_path_coerce);
 

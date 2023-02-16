@@ -398,7 +398,7 @@ static void execute_posetree(struct Depsgraph *depsgraph,
      * local transform of the segment itself. */
     copy_m4_m4(rootmat, pchan->parent->pose_mat);
     /* However, we do not want to get (i.e. reverse) parent's scale,
-     * as it generates T31008 kind of nasty bugs. */
+     * as it generates #31008 kind of nasty bugs. */
     normalize_m4(rootmat);
   }
   else {

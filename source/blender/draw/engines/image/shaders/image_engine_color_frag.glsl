@@ -15,6 +15,7 @@ void main()
   float depth = texelFetch(depth_texture, uvs_clamped, 0).r;
   if (depth == 1.0) {
     discard;
+    return;
   }
 
   vec4 tex_color = texelFetch(imageTexture, uvs_clamped - offset, 0);

@@ -236,7 +236,7 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
     }
     else {
       /* If the initial event wasn't a drag event then
-       * ignore #USER_RELEASECONFIRM setting: see T26756. */
+       * ignore #USER_RELEASECONFIRM setting: see #26756. */
       if (init_event_val != KM_CLICK_DRAG) {
         return 1;
       }
@@ -582,7 +582,7 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
  * Most OS's use `Ctrl+Space` / `OsKey+Space` to switch IME,
  * so don't type in the space character.
  *
- * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: T85517.
+ * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: #85517.
  */
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {

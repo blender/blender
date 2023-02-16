@@ -804,7 +804,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
    * to detach the selection.
    *
    * We could also extract an edge loop from the boundary
-   * however in practice it's not that useful, see T78751. */
+   * however in practice it's not that useful, see #78751. */
   if (is_select_all_any) {
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {

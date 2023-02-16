@@ -86,6 +86,7 @@ void MeshFromGeometry::fixup_invalid_faces()
       /* Skip and remove faces that have fewer than 3 corners. */
       mesh_geometry_.total_loops_ -= curr_face.corner_count_;
       mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
+      --face_idx;
       continue;
     }
 
@@ -128,6 +129,7 @@ void MeshFromGeometry::fixup_invalid_faces()
     /* Remove the invalid face. */
     mesh_geometry_.total_loops_ -= curr_face.corner_count_;
     mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
+    --face_idx;
 
     Vector<Vector<int>> new_faces = fixup_invalid_polygon(global_vertices_.vertices, face_verts);
 
@@ -286,7 +288,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
         added_uv = true;
       }
       else {
-        uv_map.span[tot_loop_idx] = {0.f, 0.f};
+        uv_map.span[tot_loop_idx] = {0.0f, 0.0f};
       }
       tot_loop_idx++;
     }

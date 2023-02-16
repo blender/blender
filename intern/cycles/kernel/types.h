@@ -74,7 +74,8 @@ CCL_NAMESPACE_BEGIN
 #define __VOLUME__
 
 /* TODO: solve internal compiler errors and enable light tree on HIP. */
-#ifdef __KERNEL_HIP__
+/* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
+#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 
@@ -1290,12 +1291,14 @@ typedef struct KernelCurveSegment {
 static_assert_align(KernelCurveSegment, 8);
 
 typedef struct KernelSpotLight {
+  packed_float3 axis_u;
   float radius;
+  packed_float3 axis_v;
   float invarea;
-  float cos_half_spot_angle;
-  float spot_smooth;
   packed_float3 dir;
-  float pad;
+  float cos_half_spot_angle;
+  packed_float3 len;
+  float spot_smooth;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
@@ -1506,6 +1509,8 @@ typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY,
+  DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS,
+  DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS,
   DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY,
   DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES,
   DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY,

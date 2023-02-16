@@ -329,7 +329,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  /* See T32272. */
+  /* See #32272. */
   if (G.is_rendering) {
     return;
   }
@@ -715,7 +715,7 @@ void ED_node_set_active(
     if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
       /* If active texture changed, free glsl materials. */
       LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-        if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
+        if (ma->nodetree && ma->use_nodes && ntreeContainsTree(ma->nodetree, ntree)) {
           GPU_material_free(&ma->gpumaterial);
 
           /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
@@ -734,7 +734,7 @@ void ED_node_set_active(
       }
 
       LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-        if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
+        if (wo->nodetree && wo->use_nodes && ntreeContainsTree(wo->nodetree, ntree)) {
           GPU_material_free(&wo->gpumaterial);
         }
       }

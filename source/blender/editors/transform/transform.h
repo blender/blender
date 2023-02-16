@@ -138,6 +138,9 @@ typedef enum {
 
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
+
+  /** Do not display Xform gizmo even though it is available. */
+  T_NO_GIZMO = 1 << 24,
 } eTFlag;
 ENUM_OPERATORS(eTFlag, T_NO_CURSOR_WRAP);
 
@@ -152,18 +155,18 @@ typedef enum {
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
   MOD_NODE_ATTACH = 1 << 5,
+  MOD_SNAP_FORCED = 1 << 6,
 } eTModifier;
 ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
   SNAP_RESETTED = 0,
-  SNAP_FORCED = 1 << 0,
-  SNAP_SOURCE_FOUND = 1 << 1,
+  SNAP_SOURCE_FOUND = 1 << 0,
   /* Special flag for snap to grid. */
-  SNAP_TARGET_GRID_FOUND = 1 << 2,
-  SNAP_TARGET_FOUND = 1 << 3,
-  SNAP_MULTI_POINTS = 1 << 4,
+  SNAP_TARGET_GRID_FOUND = 1 << 1,
+  SNAP_TARGET_FOUND = 1 << 2,
+  SNAP_MULTI_POINTS = 1 << 3,
 } eTSnap;
 ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
 
@@ -207,6 +210,12 @@ typedef enum {
   HLP_CARROW = 5,
   HLP_TRACKBALL = 6,
 } eTHelpline;
+
+typedef enum {
+  O_DEFAULT = 0,
+  O_SCENE,
+  O_SET,
+} eTOType;
 
 /** \} */
 
@@ -604,11 +613,7 @@ typedef struct TransInfo {
     float matrix[3][3];
   } orient[3];
 
-  enum {
-    O_DEFAULT = 0,
-    O_SCENE,
-    O_SET,
-  } orient_curr;
+  eTOType orient_curr;
 
   /**
    * All values from `TransInfo.orient[].type` converted into a flag
@@ -733,6 +738,27 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 
 bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
 bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
+
+/**
+ * Set the #T_NO_GIZMO flag.
+ *
+ * \note This maintains the conventional behavior of not displaying the gizmo if the operator has
+ * been triggered by shortcuts.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t);
+
+/**
+ * Change the gizmo and its orientation to match the transform state.
+ *
+ * \note This used while the modal operator is running so changes to the constraint or mode show
+ * the gizmo associated with that state, as if it had been the initial gizmo dragged.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t);
+
+/**
+ * Restores the non-modal state of the gizmo.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
 
 /** \} */
 

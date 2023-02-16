@@ -537,7 +537,7 @@ void BKE_camera_view_frame_ex(const Scene *scene,
   r_vec[3][2] = depth;
 
   if (do_clip) {
-    /* Ensure the frame isn't behind the near clipping plane, T62814. */
+    /* Ensure the frame isn't behind the near clipping plane, #62814. */
     float fac = ((camera->clip_start + 0.1f) / -r_vec[0][2]) * scale[2];
     for (uint i = 0; i < 4; i++) {
       if (camera->type == CAM_ORTHO) {

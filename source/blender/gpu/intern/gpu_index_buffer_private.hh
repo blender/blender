@@ -72,7 +72,7 @@ class IndexBuf {
   uint32_t index_len_get() const
   {
     /* Return 0 to bypass drawing for index buffers full of restart indices.
-     * They can lead to graphical glitches on some systems. (See T96892) */
+     * They can lead to graphical glitches on some systems. (See #96892) */
     return is_empty_ ? 0 : index_len_;
   }
   uint32_t index_start_get() const
@@ -98,8 +98,7 @@ class IndexBuf {
 
   virtual void bind_as_ssbo(uint binding) = 0;
 
-  virtual const uint32_t *read() const = 0;
-  uint32_t *unmap(const uint32_t *mapped_memory) const;
+  virtual void read(uint32_t *data) const = 0;
 
   virtual void update_sub(uint start, uint len, const void *data) = 0;
 

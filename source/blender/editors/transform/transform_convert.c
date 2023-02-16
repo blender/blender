@@ -566,7 +566,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
 
         /* constraints that require this only under special conditions */
         if (con->type == CONSTRAINT_TYPE_CHILDOF) {
-          /* ChildOf constraint only works when using all location components, see T42256. */
+          /* ChildOf constraint only works when using all location components, see #42256. */
           bChildOfConstraint *data = (bChildOfConstraint *)con->data;
 
           if ((data->flag & CHILDOF_LOCX) && (data->flag & CHILDOF_LOCY) &&
@@ -609,7 +609,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
         }
         else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
-           * but doing so when translating may also mess things up, see: T36203. */
+           * but doing so when translating may also mess things up, see: #36203. */
           bTransformConstraint *data = (bTransformConstraint *)con->data;
 
           if (data->to == TRANS_ROTATION) {
@@ -709,7 +709,7 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 
 static void init_proportional_edit(TransInfo *t)
 {
-  /* NOTE: Proportional editing is not usable in pose mode yet T32444. */
+  /* NOTE: Proportional editing is not usable in pose mode yet #32444. */
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
@@ -1021,7 +1021,7 @@ void createTransData(bContext *C, TransInfo *t)
   if (t->data_type == &TransConvertType_Object) {
     t->options |= CTX_OBJECT;
 
-    /* Needed for correct Object.obmat after duplication, see: T62135. */
+    /* Needed for correct Object.obmat after duplication, see: #62135. */
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
     if ((t->settings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
@@ -1196,7 +1196,7 @@ void animrecord_check_state(TransInfo *t, struct ID *id)
 
           /* copy current "action blending" settings from adt to the strip,
            * as it was keyframed with these settings, so omitting them will
-           * change the effect  [T54766]
+           * change the effect  [#54766]
            */
           if (is_first == false) {
             strip->blendmode = adt->act_blendmode;

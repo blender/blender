@@ -3133,10 +3133,10 @@ static void ptcache_dt_to_str(char *str, double dtime)
   if (dtime > 60.0) {
     if (dtime > 3600.0) {
       BLI_sprintf(
-          str, "%ih %im %is", (int)(dtime / 3600), ((int)(dtime / 60)) % 60, ((int)dtime) % 60);
+          str, "%ih %im %is", (int)(dtime / 3600), (int)(dtime / 60) % 60, ((int)dtime) % 60);
     }
     else {
-      BLI_sprintf(str, "%im %is", ((int)(dtime / 60)) % 60, ((int)dtime) % 60);
+      BLI_sprintf(str, "%im %is", (int)(dtime / 60) % 60, ((int)dtime) % 60);
     }
   }
   else {

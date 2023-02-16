@@ -48,3 +48,9 @@ GPU_SHADER_CREATE_INFO(gpu_compute_ssbo_binding_test)
     .storage_buf(1, Qualifier::WRITE, "int", "data1[]")
     .compute_source("gpu_compute_dummy_test.glsl")
     .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_shadow_test)
+    .fragment_source("eevee_shadow_test.glsl")
+    .additional_info("gpu_shader_test")
+    .additional_info("eevee_shared")
+    .do_static_compilation(true);

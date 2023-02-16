@@ -209,14 +209,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
       closure->distribution == make_string("default", 4430693559278735917ull)) {
     if (!closure->refract) {
-      if (closure->alpha_x == closure->alpha_y) {
-        /* Isotropic */
-        sd->flag |= bsdf_microfacet_ggx_isotropic_setup(bsdf);
-      }
-      else {
-        /* Anisotropic */
-        sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-      }
+      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
     }
     else {
       sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
@@ -225,14 +218,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   /* Beckmann */
   else {
     if (!closure->refract) {
-      if (closure->alpha_x == closure->alpha_y) {
-        /* Isotropic */
-        sd->flag |= bsdf_microfacet_beckmann_isotropic_setup(bsdf);
-      }
-      else {
-        /* Anisotropic */
-        sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
-      }
+      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
     else {
       sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
@@ -258,9 +244,9 @@ ccl_device void osl_closure_microfacet_ggx_setup(
   }
 
   bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
-  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_x = bsdf->alpha_y = closure->alpha_x;
 
-  sd->flag |= bsdf_microfacet_ggx_isotropic_setup(bsdf);
+  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
 }
 
 ccl_device void osl_closure_microfacet_ggx_aniso_setup(
@@ -345,7 +331,6 @@ ccl_device void osl_closure_microfacet_ggx_fresnel_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = zero_float3();
 
@@ -383,7 +368,6 @@ ccl_device void osl_closure_microfacet_ggx_aniso_fresnel_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = closure->T;
 
@@ -426,7 +410,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = zero_spectrum();
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = zero_float3();
 
@@ -467,7 +450,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = zero_spectrum();
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = zero_float3();
 
@@ -508,7 +490,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = zero_spectrum();
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = closure->T;
 
@@ -551,7 +532,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_fresnel_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = zero_float3();
 
@@ -592,7 +572,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_fresnel_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = zero_float3();
 
@@ -633,7 +612,6 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_fresnel_setup(
   bsdf->extra = extra;
   bsdf->extra->color = rgb_to_spectrum(closure->color);
   bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-  bsdf->extra->clearcoat = 0.0f;
 
   bsdf->T = closure->T;
 
@@ -660,9 +638,9 @@ ccl_device void osl_closure_microfacet_beckmann_setup(
   }
 
   bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
-  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_x = bsdf->alpha_y = closure->alpha_x;
 
-  sd->flag |= bsdf_microfacet_beckmann_isotropic_setup(bsdf);
+  sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
 }
 
 ccl_device void osl_closure_microfacet_beckmann_aniso_setup(
@@ -865,14 +843,10 @@ ccl_device void osl_closure_principled_clearcoat_setup(
     float3 weight,
     ccl_private const PrincipledClearcoatClosure *closure)
 {
+  weight *= 0.25f * closure->clearcoat;
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
       sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
   if (!bsdf) {
-    return;
-  }
-
-  MicrofacetExtra *extra = (MicrofacetExtra *)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-  if (!extra) {
     return;
   }
 
@@ -880,11 +854,6 @@ ccl_device void osl_closure_principled_clearcoat_setup(
   bsdf->alpha_x = closure->clearcoat_roughness;
   bsdf->alpha_y = closure->clearcoat_roughness;
   bsdf->ior = 1.5f;
-
-  bsdf->extra = extra;
-  bsdf->extra->color = zero_spectrum();
-  bsdf->extra->cspec0 = make_spectrum(0.04f);
-  bsdf->extra->clearcoat = closure->clearcoat;
 
   bsdf->T = zero_float3();
 

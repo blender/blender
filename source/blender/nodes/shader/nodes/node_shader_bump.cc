@@ -59,6 +59,14 @@ static int gpu_shader_bump(GPUMaterial *mat,
 
   const char *height_function = GPU_material_split_sub_function(mat, GPU_FLOAT, &in[2].link);
 
+  /* TODO (Miguel Pozo):
+   * Currently, this doesn't compute the actual differentials, just the height at dX and dY
+   * offsets. The actual differentials are computed inside the GLSL node_bump function by
+   * subtracting the height input. This avoids redundant computations when the height input is
+   * also needed by regular nodes as part in the main function (See #103903 for context).
+   * A better option would be to add a "value" input socket (in this case the height) to the
+   * differentiate node, but currently this kind of intermediate nodes are pruned in the
+   * code generation process (see #104265), so we need to fix that first. */
   GPUNodeLink *dheight = GPU_differentiate_float_function(height_function);
 
   float invert = (node->custom1) ? -1.0 : 1.0;

@@ -203,7 +203,7 @@ static void setup_app_data(bContext *C,
      * But if they close one of the screens,
      * undo will ensure that the scene being operated on will be activated
      * (otherwise we'd be undoing on an off-screen scene which isn't acceptable).
-     * see: T43424
+     * see: #43424
      */
     wmWindow *win;
     bScreen *curscreen = nullptr;
@@ -214,6 +214,8 @@ static void setup_app_data(bContext *C,
     SWAP(ListBase, bmain->wm, bfd->main->wm);
     SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
     SWAP(ListBase, bmain->screens, bfd->main->screens);
+    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
+     * #BKE_main_namemap_clear here (otherwise, the swapping would fail in many funny ways). */
     if (bmain->name_map != nullptr) {
       BKE_main_namemap_destroy(&bmain->name_map);
     }

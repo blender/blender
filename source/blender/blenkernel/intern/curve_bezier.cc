@@ -6,6 +6,8 @@
 
 #include <algorithm>
 
+#include "BLI_task.hh"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 

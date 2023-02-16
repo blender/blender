@@ -388,6 +388,21 @@ TEST(math_matrix_types, ViewMatrixMultiplyOperator)
   EXPECT_EQ(view[1][1], 46);
 }
 
+TEST(math_matrix_types, ViewVectorMultiplyOperator)
+{
+  float4x4 mat = float4x4({1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16});
+  auto view = mat.view<2, 3, 1, 1>();
+
+  float3 result = view * float2(4, 5);
+  EXPECT_EQ(result[0], 74);
+  EXPECT_EQ(result[1], 83);
+  EXPECT_EQ(result[2], 92);
+
+  float2 result2 = float3(1, 2, 3) * view;
+  EXPECT_EQ(result2[0], 44);
+  EXPECT_EQ(result2[1], 68);
+}
+
 TEST(math_matrix_types, ViewMatrixNormalize)
 {
   float4x4 mat = float4x4({1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16});

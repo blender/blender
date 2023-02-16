@@ -15,9 +15,9 @@
 #include "BLI_string_utf8.h"
 
 #include "BLI_array.hh"
-#include "BLI_float4x4.hh"
 #include "BLI_math.h"
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -117,7 +117,7 @@ struct DupliContext {
    * decisions. However, new code uses geometry instances in places that weren't using the dupli
    * system previously. To fix this, keep track of the last dupli generator type that wasn't a
    * geometry set instance.
-   * */
+   */
   Vector<short> *dupli_gen_type_stack;
 
   int persistent_id[MAX_DUPLI_RECUR];
@@ -265,7 +265,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   /* Store geometry set data for attribute lookup in innermost to outermost
    * order, copying only non-null entries to save space. */
-  const int max_instance = sizeof(dob->instance_data) / sizeof(void *);
+  const int max_instance = ARRAY_SIZE(dob->instance_data);
   int next_instance = 0;
   if (geometry != nullptr) {
     dob->instance_idx[next_instance] = int(instance_index);
@@ -956,11 +956,11 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
       case InstanceReference::Type::Object: {
         Object &object = reference.object();
         float matrix[4][4];
-        mul_m4_m4m4(matrix, parent_transform, instance_offset_matrices[i].values);
+        mul_m4_m4m4(matrix, parent_transform, instance_offset_matrices[i].ptr());
         make_dupli(ctx_for_instance, &object, matrix, id, &geometry_set, i);
 
         float space_matrix[4][4];
-        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.world_to_object);
+        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].ptr(), object.world_to_object);
         mul_m4_m4_pre(space_matrix, parent_transform);
         make_recursive_duplis(ctx_for_instance, &object, space_matrix, id, &geometry_set, i);
         break;
@@ -970,7 +970,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         float collection_matrix[4][4];
         unit_m4(collection_matrix);
         sub_v3_v3(collection_matrix[3], collection.instance_offset);
-        mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i].values);
+        mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i].ptr());
         mul_m4_m4_pre(collection_matrix, parent_transform);
 
         DupliContext sub_ctx;
@@ -1002,7 +1002,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
       }
       case InstanceReference::Type::GeometrySet: {
         float new_transform[4][4];
-        mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].values);
+        mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].ptr());
 
         DupliContext sub_ctx;
         if (copy_dupli_context(&sub_ctx,
@@ -1535,7 +1535,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       }
 
       if (part->ren_as == PART_DRAW_GR) {
-        /* Prevent divide by zero below T28336. */
+        /* Prevent divide by zero below #28336. */
         if (totcollection == 0) {
           continue;
         }
@@ -1821,7 +1821,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
   using namespace blender;
 
   /* Loop over layers from innermost to outermost. */
-  for (const int i : IndexRange(sizeof(dupli->instance_data) / sizeof(void *))) {
+  for (const int i : IndexRange(ARRAY_SIZE(dupli->instance_data))) {
     /* Skip non-geonode layers. */
     if (dupli->instance_data[i] == nullptr) {
       continue;

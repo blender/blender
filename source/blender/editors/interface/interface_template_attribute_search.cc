@@ -92,15 +92,9 @@ void attribute_search_add_items(StringRefNull str,
 
   StringSearch *search = BLI_string_search_new();
   for (const GeometryAttributeInfo *item : infos) {
-
-    /* Don't show the legacy "normal" attribute. */
-    if (item->name == "normal" && item->domain == ATTR_DOMAIN_FACE) {
-      continue;
-    }
     if (!bke::allow_procedural_attribute_access(item->name)) {
       continue;
     }
-
     BLI_string_search_add(search, item->name.c_str(), (void *)item, 0);
   }
 

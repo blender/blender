@@ -786,7 +786,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* add the new edge */
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = ME_EDGEDRAW;
+      med_new->flag = 0;
       med_new++;
     }
   }
@@ -804,7 +804,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (i = 0; i < totvert; i++) {
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
-      med_new->flag = ME_EDGEDRAW;
+      med_new->flag = 0;
       med_new++;
     }
   }

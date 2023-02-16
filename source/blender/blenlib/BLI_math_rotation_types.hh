@@ -24,6 +24,35 @@ namespace detail {
 template<typename T> struct AxisAngle;
 template<typename T> struct Quaternion;
 
+template<typename T> struct AngleRadian {
+  T value;
+
+  AngleRadian() = default;
+
+  AngleRadian(const T &radian) : value(radian){};
+
+  /** Static functions. */
+
+  static AngleRadian identity()
+  {
+    return 0;
+  }
+
+  /** Conversions. */
+
+  explicit operator T() const
+  {
+    return value;
+  }
+
+  /** Operators. */
+
+  friend std::ostream &operator<<(std::ostream &stream, const AngleRadian &rot)
+  {
+    return stream << "AngleRadian(" << rot.value << ")";
+  }
+};
+
 template<typename T> struct EulerXYZ {
   T x, y, z;
 
@@ -234,6 +263,7 @@ template<typename U> struct AssertUnitEpsilon<detail::Quaternion<U>> {
 };
 
 /* Most common used types. */
+using AngleRadian = math::detail::AngleRadian<float>;
 using EulerXYZ = math::detail::EulerXYZ<float>;
 using Quaternion = math::detail::Quaternion<float>;
 using AxisAngle = math::detail::AxisAngle<float>;

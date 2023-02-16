@@ -132,7 +132,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
        * deltas without it escaping from the window. In this case we never want to show the actual
        * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
        * wrapping in a region since this is the case when it would otherwise attempt to draw the
-       * cursor outside the view/window. See: T102792. */
+       * cursor outside the view/window. See: #102792. */
       if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
           wm_window_grab_warp_region_is_set(win)) {
         int x = 0, y = 0;
@@ -824,12 +824,12 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  /* Not the same layout as rectf/recti. */
+  /* Not the same layout as #rctf/#rcti. */
   const float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
   const float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
 
   if (blend) {
-    /* Regions drawn offscreen have premultiplied alpha. */
+    /* Regions drawn off-screen have pre-multiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
@@ -842,13 +842,13 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
   int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   int rect_geo_loc = GPU_shader_get_uniform(shader, "rect_geom");
-  int texture_bind_loc = GPU_shader_get_texture_binding(shader, "image");
+  int texture_bind_loc = GPU_shader_get_sampler_binding(shader, "image");
 
   GPU_texture_bind(texture, texture_bind_loc);
 
-  GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, rectt);
-  GPU_shader_uniform_vector(shader, rect_geo_loc, 4, 1, rectg);
-  GPU_shader_uniform_vector(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
+  GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, rectt);
+  GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
+  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -1206,7 +1206,7 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
 
 uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
 {
-  /* NOTE(@campbellbarton): There is a problem reading the windows front-buffer after redrawing
+  /* NOTE(@ideasman42): There is a problem reading the windows front-buffer after redrawing
    * the window in some cases (typically to clear UI elements such as menus or search popup).
    * With EGL `eglSurfaceAttrib(..)` may support setting the `EGL_SWAP_BEHAVIOR` attribute to
    * `EGL_BUFFER_PRESERVED` however not all implementations support this.
@@ -1214,7 +1214,7 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
    * not to initialize at all.
    * Confusingly there are some cases where this *does* work, depending on the state of the window
    * and prior calls to swap-buffers, however ensuring the state exactly as needed to satisfy a
-   * particular GPU back-end is fragile, see T98462.
+   * particular GPU back-end is fragile, see #98462.
    *
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
@@ -1362,8 +1362,8 @@ void wm_draw_update(bContext *C)
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 
     if (state == GHOST_kWindowStateMinimized) {
-      /* do not update minimized windows, gives issues on Intel (see T33223)
-       * and AMD (see T50856). it seems logical to skip update for invisible
+      /* do not update minimized windows, gives issues on Intel (see #33223)
+       * and AMD (see #50856). it seems logical to skip update for invisible
        * window anyway.
        */
       continue;

@@ -406,7 +406,7 @@ static ID **node_owner_pointer_get(ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
-  /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
+  /* TODO: Sort this NO_MAIN or not for embedded node trees. See #86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -542,7 +542,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         /* pass */
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
-        /* Simple forward compatibility for fix for T50736.
+        /* Simple forward compatibility for fix for #50736.
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = (NodeGlare *)node->storage;
         /* Not in undo case. */
@@ -838,7 +838,7 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
   IDP_BlendReadLib(reader, lib, sock->prop);
 
   /* This can happen for all socket types when a file is saved in an older version of Blender than
-   * it was originally created in (T86298). Some socket types still require a default value. The
+   * it was originally created in (#86298). Some socket types still require a default value. The
    * default value of those sockets will be created in `ntreeSetTypes`. */
   if (sock->default_value == nullptr) {
     return;
@@ -2342,8 +2342,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
   }
 
-  /* Reset the declaration of the new node. */
-  nodeDeclarationEnsure(dst_tree, node_dst);
+  /* Reset the declaration of the new node in real tree. */
+  if (dst_tree != nullptr) {
+    nodeDeclarationEnsure(dst_tree, node_dst);
+  }
 
   return node_dst;
 }
@@ -3107,7 +3109,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
    * since it is a localized copy itself (no risk of accessing free'd
-   * data in main, see T37939). */
+   * data in main, see #37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;
   }
@@ -3455,19 +3457,39 @@ bNode *ntreeFindType(bNodeTree *ntree, int type)
   return nullptr;
 }
 
-bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
+static bool ntree_contains_tree_exec(const bNodeTree *tree_to_search_in,
+                                     const bNodeTree *tree_to_search_for,
+                                     Set<const bNodeTree *> &already_passed)
 {
-  if (ntree == lookup) {
+  if (tree_to_search_in == tree_to_search_for) {
     return true;
   }
-  for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
-      if (ntreeHasTree((bNodeTree *)node->id, lookup)) {
-        return true;
-      }
+
+  tree_to_search_in->ensure_topology_cache();
+  for (const bNode *node_group : tree_to_search_in->group_nodes()) {
+    const bNodeTree *sub_tree_search_in = reinterpret_cast<const bNodeTree *>(node_group->id);
+    if (!sub_tree_search_in) {
+      continue;
+    }
+    if (!already_passed.add(sub_tree_search_in)) {
+      continue;
+    }
+    if (ntree_contains_tree_exec(sub_tree_search_in, tree_to_search_for, already_passed)) {
+      return true;
     }
   }
+
   return false;
+}
+
+bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree_to_search_for)
+{
+  if (tree_to_search_in == tree_to_search_for) {
+    return true;
+  }
+
+  Set<const bNodeTree *> already_passed;
+  return ntree_contains_tree_exec(tree_to_search_in, tree_to_search_for, already_passed);
 }
 
 bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to)
@@ -3617,6 +3639,8 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
     return false;
   }
   if (node->typeinfo->declare_dynamic) {
+    BLI_assert(ntree != nullptr);
+    BLI_assert(node != nullptr);
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
     blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
     return true;

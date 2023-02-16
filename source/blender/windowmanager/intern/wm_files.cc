@@ -194,7 +194,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
     }
 
-    /* NOTE(@campbellbarton): Clear the message bus so it's always cleared on file load.
+    /* NOTE(@ideasman42): Clear the message bus so it's always cleared on file load.
      * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI & #wm_close_and_free).
      * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
      * which can re-register subscribers on file-load. To support this use case,
@@ -207,6 +207,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 
   BLI_listbase_clear(&G_MAIN->wm);
   if (G_MAIN->name_map != nullptr) {
+    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
+     * #BKE_main_namemap_clear here. */
     BKE_main_namemap_destroy(&G_MAIN->name_map);
   }
 
@@ -218,7 +220,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
    * causing use-after-free error in later handling of the button callbacks in UI code
    * (see ui_apply_but_funcs_after()).
    * Tried solving this by always nullptr-ing context's menu when setting wm/win/etc.,
-   * but it broke popups refreshing (see T47632),
+   * but it broke popups refreshing (see #47632),
    * so for now just handling this specific case here. */
   CTX_wm_menu_set(C, nullptr);
 
@@ -327,7 +329,7 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
    * #Main.wm.first memory address in-place, while swapping all of it's contents.
    *
    * This is needed so items such as key-maps can be held by an add-on,
-   * without it pointing to invalid memory, see: T86431 */
+   * without it pointing to invalid memory, see: #86431 */
   {
     /* Referencing the window-manager pointer from elsewhere in the file is highly unlikely
      * however it's possible with ID-properties & animation-drivers.
@@ -385,7 +387,7 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
       }
     }
   }
-  /* make sure at least one window is kept open so we don't lose the context, check T42303 */
+  /* make sure at least one window is kept open so we don't lose the context, check #42303 */
   if (!has_match) {
     wm_window_substitute_old(oldwm,
                              wm,
@@ -471,7 +473,7 @@ static void wm_init_userdef(Main *bmain)
 
   UI_init_userdef();
 
-  /* needed so loading a file from the command line respects user-pref T26156. */
+  /* needed so loading a file from the command line respects user-pref #26156. */
   SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
 
   /* set the python auto-execute setting from user prefs */
@@ -480,7 +482,7 @@ static void wm_init_userdef(Main *bmain)
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
-  MEM_CacheLimiter_set_maximum((size_t(U.memcachelimit)) * 1024 * 1024);
+  MEM_CacheLimiter_set_maximum(size_t(U.memcachelimit) * 1024 * 1024);
   BKE_sound_init(bmain);
 
   /* Update the temporary directory from the preferences or fallback to the system default. */
@@ -1098,7 +1100,7 @@ void wm_homefile_read_ex(bContext *C,
   /* Currently this only impacts preferences as it doesn't make much sense to keep the default
    * startup open in the case the app-template doesn't happen to define it's own startup.
    * Unlike preferences where we might want to only reset the app-template part of the preferences
-   * so as not to reset the preferences for all other Blender instances, see: T96427. */
+   * so as not to reset the preferences for all other Blender instances, see: #96427. */
   const bool use_factory_settings_app_template_only =
       params_homefile->use_factory_settings_app_template_only;
   const bool use_empty_data = params_homefile->use_empty_data;
@@ -1166,7 +1168,7 @@ void wm_homefile_read_ex(bContext *C,
     if (CTX_py_init_get(C)) {
       /* This is restored by 'wm_file_read_post', disable before loading any preferences
        * so an add-on can read their own preferences when un-registering,
-       * and use new preferences if/when re-registering, see T67577.
+       * and use new preferences if/when re-registering, see #67577.
        *
        * Note that this fits into 'wm_file_read_pre' function but gets messy
        * since we need to know if 'reset_app_template' is true. */
@@ -1759,6 +1761,41 @@ bool write_crash_blend(void)
 }
 
 /**
+ * Helper to check if file `filepath` can be written.
+ * \return true if it can, otherwise report an error and return false.
+ */
+static bool wm_file_write_check_with_report_on_failure(Main *bmain,
+                                                       const char *filepath,
+                                                       ReportList *reports)
+{
+  const int filepath_len = strlen(filepath);
+  if (filepath_len == 0) {
+    BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
+    return false;
+  }
+
+  if (filepath_len >= FILE_MAX) {
+    BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
+    return false;
+  }
+
+  /* Check if file write permission is ok */
+  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
+    BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
+    return false;
+  }
+
+  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
+    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
+      BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * \see #wm_homefile_write_exec wraps #BLO_write_file in a similar way.
  */
 static bool wm_file_write(bContext *C,
@@ -1769,39 +1806,16 @@ static bool wm_file_write(bContext *C,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  int len;
   int ok = false;
   BlendThumbnail *thumb = nullptr, *main_thumb = nullptr;
   ImBuf *ibuf_thumb = nullptr;
-
-  len = strlen(filepath);
-
-  if (len == 0) {
-    BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
-    return ok;
-  }
-
-  if (len >= FILE_MAX) {
-    BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
-    return ok;
-  }
-
-  /* Check if file write permission is ok */
-  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
-    BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
-    return ok;
-  }
 
   /* NOTE: used to replace the file extension (to ensure '.blend'),
    * no need to now because the operator ensures,
    * its handy for scripts to save to a predefined name without blender editing it */
 
-  /* send the OnSave event */
-  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
-    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
-      BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
-      return ok;
-    }
+  if (!wm_file_write_check_with_report_on_failure(bmain, filepath, reports)) {
+    return ok;
   }
 
   /* Call pre-save callbacks before writing preview,
@@ -1813,10 +1827,10 @@ static bool wm_file_write(bContext *C,
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
 
   /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
-   * But we can crash if saving from a script, see T92704 & T97627.
+   * But we can crash if saving from a script, see #92704 & #97627.
    * Just checking `!G.background && BLI_thread_is_main()` is not sufficient to fix this.
    * Additionally some EGL configurations don't support reading the front-buffer
-   * immediately after drawing, see: T98462. In that case off-screen drawing is necessary. */
+   * immediately after drawing, see: #98462. In that case off-screen drawing is necessary. */
 
   /* don't forget not to return without! */
   WM_cursor_wait(true);
@@ -1825,7 +1839,7 @@ static bool wm_file_write(bContext *C,
     /* Blend file thumbnail.
      *
      * - Save before exiting edit-mode, otherwise evaluated-mesh for shared data gets corrupted.
-     *   See T27765.
+     *   See #27765.
      * - Main can store a '.blend' thumbnail,
      *   useful for background-mode or thumbnail customization.
      */
@@ -1945,7 +1959,7 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 
   const char *tempdir_base = BKE_tempdir_base();
-  /* NOTE(@campbellbarton): It's strange that this is only used on WIN32.
+  /* NOTE(@ideasman42): It's strange that this is only used on WIN32.
    * From reading commits it seems accessing the temporary directory used to be less reliable.
    * If this is still the case on WIN32 - other features such as copy-paste will also fail.
    * We could support #BLENDER_USER_AUTOSAVE on all platforms or remove it entirely. */
@@ -3160,7 +3174,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* NOTE(@campbellbarton): only check this for file-path properties so saving an already
+  /* NOTE(@ideasman42): only check this for file-path properties so saving an already
    * saved file never fails with an error.
    * Even though this should never happen, there may be some corner case where a malformed
    * path is stored in `G.main->filepath`: when the file path is initialized from recovering
@@ -3286,7 +3300,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
 
   /* if we're saving for the first time and prefer relative paths -
    * any existing paths will be absolute,
-   * enable the option to remap paths to avoid confusion T37240. */
+   * enable the option to remap paths to avoid confusion #37240. */
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   if ((blendfile_path[0] == '\0') && (U.flag & USER_RELPATHS)) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");

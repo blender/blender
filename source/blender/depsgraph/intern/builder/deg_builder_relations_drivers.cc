@@ -197,7 +197,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
         const DriverDescriptor &driver_to = prefix_group[to_index];
         Node *op_to = get_node(driver_to.depsgraph_key());
 
-        /* Duplicate drivers can exist (see T78615), but cannot be distinguished by OperationKey
+        /* Duplicate drivers can exist (see #78615), but cannot be distinguished by OperationKey
          * and thus have the same depsgraph node. Relations between those drivers should not be
          * created. This not something that is expected to happen (both the UI and the Python API
          * prevent duplicate drivers), it did happen in a file and it is easy to deal with here. */

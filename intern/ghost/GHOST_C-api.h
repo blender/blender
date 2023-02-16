@@ -1201,7 +1201,7 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
                             void *r_instance,
                             void *r_physical_device,
                             void *r_device,
-                            uint32_t *r_graphic_queue_familly);
+                            uint32_t *r_graphic_queue_family);
 
 /**
  * Return VULKAN back-buffer resources handles for the given window.

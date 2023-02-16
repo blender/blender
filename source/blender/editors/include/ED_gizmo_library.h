@@ -106,16 +106,18 @@ enum {
 
 /* draw_style */
 enum {
-  /** Display the hover region (edge or corner) of the underlying rectangle. */
+  /* Display the hover region (edge or corner) of the underlying bounding box. */
   ED_GIZMO_CAGE2D_STYLE_BOX = 0,
-  /** Display a rectangular wire plus dots on four corners while hovering. */
-  ED_GIZMO_CAGE2D_STYLE_RECTANGLE,
-  /** Display a circular wire while hovering. */
+  /* Display the bounding box plus dots on four corners while hovering, usually used for
+     transforming a 2D shape. */
+  ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM,
+  /* Display the bounding circle while hovering. */
   ED_GIZMO_CAGE2D_STYLE_CIRCLE,
 };
 
 enum {
   ED_GIZMO_CAGE3D_STYLE_BOX = 0,
+  /* TODO: rename */
   ED_GIZMO_CAGE3D_STYLE_CIRCLE = 1,
 };
 

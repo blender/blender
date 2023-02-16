@@ -564,7 +564,7 @@ class Mesh(bpy_types.ID):
 
         face_lengths = tuple(map(len, faces))
 
-        # NOTE: check non-empty lists by length because of how `numpy` handles truth tests, see: T90268.
+        # NOTE: check non-empty lists by length because of how `numpy` handles truth tests, see: #90268.
         vertices_len = len(vertices)
         edges_len = len(edges)
         faces_len = len(faces)

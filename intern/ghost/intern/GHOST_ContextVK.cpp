@@ -311,12 +311,12 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanBackbuffer(void *image,
 GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(void *r_instance,
                                                  void *r_physical_device,
                                                  void *r_device,
-                                                 uint32_t *r_graphic_queue_familly)
+                                                 uint32_t *r_graphic_queue_family)
 {
   *((VkInstance *)r_instance) = m_instance;
   *((VkPhysicalDevice *)r_physical_device) = m_physical_device;
   *((VkDevice *)r_device) = m_device;
-  *r_graphic_queue_familly = m_queue_family_graphic;
+  *r_graphic_queue_family = m_queue_family_graphic;
 
   return GHOST_kSuccess;
 }
@@ -520,13 +520,14 @@ static GHOST_TSuccess getGraphicQueueFamily(VkPhysicalDevice device, uint32_t *r
 
   *r_queue_index = 0;
   for (const auto &queue_family : queue_families) {
-    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+        (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
       return GHOST_kSuccess;
     }
     (*r_queue_index)++;
   }
 
-  fprintf(stderr, "Couldn't find any Graphic queue familly on selected device\n");
+  fprintf(stderr, "Couldn't find any Graphic queue family on selected device\n");
   return GHOST_kFailure;
 }
 
@@ -551,7 +552,7 @@ static GHOST_TSuccess getPresetQueueFamily(VkPhysicalDevice device,
     (*r_queue_index)++;
   }
 
-  fprintf(stderr, "Couldn't find any Present queue familly on selected device\n");
+  fprintf(stderr, "Couldn't find any Present queue family on selected device\n");
   return GHOST_kFailure;
 }
 

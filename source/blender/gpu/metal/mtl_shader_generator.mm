@@ -869,7 +869,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       #define GPU_ARB_shader_draw_parameters 1\n";
 
   /* NOTE(Metal): textureGather appears to not function correctly on non-Apple-silicon GPUs.
-   * Manifests as selection outlines not showing up (T103412). Disable texture gather if
+   * Manifests as selection outlines not showing up (#103412). Disable texture gather if
    * not suitable for use. */
   if (MTLBackend::get_capabilities().supports_texture_gather) {
     msl_defines_string += "#define GPU_ARB_texture_gather 1\n";

@@ -34,7 +34,7 @@ TEST(evaluate_fcurve, OnKeys)
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f), 13.0f, EPSILON); /* hits 'between' function */
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.0f), 19.0f, EPSILON); /* hits 'on or after last' function */
 
-  /* Also test within a specific time epsilon of the keys, as this was an issue in T39207.
+  /* Also test within a specific time epsilon of the keys, as this was an issue in #39207.
    * This epsilon is just slightly smaller than the epsilon given to
    * BKE_fcurve_bezt_binarysearch_index_ex() in fcurve_eval_between_keyframes(), so it should hit
    * the "exact" code path. */

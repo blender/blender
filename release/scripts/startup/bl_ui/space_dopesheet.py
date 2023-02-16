@@ -708,6 +708,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
             operator = "action.extrapolation_type"
         layout.operator_menu_enum(operator, "type", text="Extrapolation Mode")
 
+        if is_graph_editor:
+            layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
+
         layout.separator()
         layout.operator("anim.channels_expand")
         layout.operator("anim.channels_collapse")

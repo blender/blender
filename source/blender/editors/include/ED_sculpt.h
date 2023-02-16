@@ -28,7 +28,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C,
                                const struct rcti *rect,
                                bool select);
 
-/* sculpt_transform.c */
+/* sculpt_transform.cc */
 
 void ED_sculpt_update_modal_transform(struct bContext *C, struct Object *ob);
 void ED_sculpt_init_transform(struct bContext *C,

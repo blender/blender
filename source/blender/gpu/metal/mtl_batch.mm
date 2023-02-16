@@ -530,16 +530,16 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
     /* Set SSBO-fetch-mode status uniforms. */
     BLI_assert(active_shader_->uni_ssbo_input_prim_type_loc != -1);
     BLI_assert(active_shader_->uni_ssbo_input_vert_count_loc != -1);
-    GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
-                                  active_shader_->uni_ssbo_input_prim_type_loc,
-                                  1,
-                                  1,
-                                  (const int *)(&final_prim_type));
-    GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
-                                  active_shader_->uni_ssbo_input_vert_count_loc,
-                                  1,
-                                  1,
-                                  (const int *)(&v_count));
+    GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
+                              active_shader_->uni_ssbo_input_prim_type_loc,
+                              1,
+                              1,
+                              (const int *)(&final_prim_type));
+    GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
+                              active_shader_->uni_ssbo_input_vert_count_loc,
+                              1,
+                              1,
+                              (const int *)(&v_count));
   }
 
   /* Ensure Context Render Pipeline State is fully setup and ready to execute the draw.

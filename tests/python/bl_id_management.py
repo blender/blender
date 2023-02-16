@@ -173,7 +173,7 @@ class TestIdRename(TestHelper, unittest.TestCase):
                 data = dt
                 break
         data.name = name
-        # This can fail currently, see T71244.
+        # This can fail currently, see #71244.
         # ~ self.assertEqual(data.name, self.default_name + ".001")
         self.ensure_proper_order()
 

@@ -1356,8 +1356,6 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
        BLI_edgesetIterator_step(ehi), i++, med++, index++) {
     BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
-
-    med->flag = ME_EDGEDRAW;
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

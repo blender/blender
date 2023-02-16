@@ -1260,11 +1260,6 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   mesh->totedge = totedge;
 
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-  for (MEdge &edge : edges.take_back(len)) {
-    edge.flag = ME_EDGEDRAW;
-  }
-
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
       ".select_edge", ATTR_DOMAIN_EDGE);

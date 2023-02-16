@@ -153,7 +153,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
   /* Calculate pixel-size factor once, this is used for lights and object-centers. */
   {
     /* NOTE:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
-     * because of float point precision problems at large values T23908. */
+     * because of float point precision problems at large values #23908. */
     float v1[3], v2[3];
     float len_px, len_sc;
 
@@ -585,7 +585,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
         alpha = ca->passepartalpha;
       }
 
-      immUniformColor4f(0.0f, 0.0f, 0.0f, alpha);
+      immUniformThemeColorAlpha(TH_CAMERA_PASSEPARTOUT, alpha);
 
       if (x1i > 0.0f) {
         immRectf(shdr_pos, 0.0f, winy, x1i, 0.0f);
@@ -1104,8 +1104,8 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   immUnbindProgram();
 
   /* -- draw rotation center -- */
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
-  GPU_point_size(5.0f);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immUniform1f("size", 7.0f);
   immBegin(GPU_PRIM_POINTS, 1);
   immAttr4ubv(col, color);
   immVertex3fv(pos, o);
@@ -1690,7 +1690,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
   {
     /* Free images which can have changed on frame-change.
-     * WARNING(@campbellbarton): can be slow so only free animated images. */
+     * WARNING(@ideasman42): can be slow so only free animated images. */
     BKE_image_free_anim_gputextures(G.main);
   }
 
@@ -2266,7 +2266,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
   }
 }
 
-/* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. T24339. */
+/* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. #24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_cnew<ViewDepths>("ViewDepths");
@@ -2412,7 +2412,7 @@ void ED_view3d_datamask(const Scene *scene,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
-  /* NOTE(@campbellbarton): as this function runs continuously while idle
+  /* NOTE(@ideasman42): as this function runs continuously while idle
    * (from #wm_event_do_depsgraph) take care to avoid expensive lookups.
    * While they won't hurt performance noticeably, they will increase CPU usage while idle. */
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {

@@ -27,7 +27,7 @@
  *   - store a heap of paths which are being scanned (#PathContext.states).
  *   - continuously search the shortest path in the heap.
  *   - never step over the same element twice (tag elements as #ELE_TOUCHED).
- *     this avoids going into an eternal loop if there are many possible branches (see T45582).
+ *     this avoids going into an eternal loop if there are many possible branches (see #45582).
  *   - when running into a branch, create a new #PathLinkState state and add to the heap.
  *   - when the target is reached,
  *     finish - since none of the other paths can be shorter than the one just found.
@@ -109,7 +109,7 @@ typedef struct PathLinkState {
 /* -------------------------------------------------------------------- */
 /** \name Min Dist Dir Util
  *
- * Simply getting the closest intersecting vert/edge is _not_ good enough. see T43792
+ * Simply getting the closest intersecting vert/edge is _not_ good enough. see #43792
  * we need to get the closest in both directions since the absolute closest may be a dead-end.
  *
  * Logic is simple:
@@ -504,7 +504,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
     project_plane_normalized_v3_v3v3(basis_nor_b, v_pair[1]->no, basis_dir);
 
     /* Don't normalize before combining so as normals approach the direction,
-     * they have less effect (T46784). */
+     * they have less effect (#46784). */
 
     /* combine the normals */
     /* for flipped faces */

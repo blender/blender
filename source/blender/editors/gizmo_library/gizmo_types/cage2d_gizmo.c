@@ -44,6 +44,8 @@
 /* The same as in `draw_cache.c` */
 #define CIRCLE_RESOL 32
 
+static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz);
+
 static bool gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[2], float scale[2])
 {
   float matrix_final_no_offset[4][4];
@@ -590,6 +592,20 @@ static void cage2d_draw_rect_handles(const rctf *r,
   immUnbindProgram();
 }
 
+static void cage2d_draw_central_handle(const float color[3], const float margin[2])
+{
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  const float rad[2] = {margin[0] * 0.25f, margin[1] * 0.25f};
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor3fv(color);
+
+  imm_draw_circle_fill_aspect_3d(pos, 0.0f, 0.0f, rad[0], rad[1], CIRCLE_RESOL);
+
+  immUnbindProgram();
+}
+
 /** \} */
 
 static void gizmo_cage2d_draw_intern(wmGizmo *gz,
@@ -602,7 +618,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
   RNA_float_get_array(gz->ptr, "dimensions", dims);
   float matrix_final[4][4];
 
-  const int transform_flag = RNA_enum_get(gz->ptr, "transform");
+  const int transform_flag = gizmo_cage2d_transform_flag_get(gz);
   const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 
@@ -636,6 +652,8 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       GPU_select_load_id(select_id | ED_GIZMO_CAGE2D_PART_SCALE);
       cage2d_draw_circle_wire(
           gz->color, size_real, 0.5f * (margin[0] + margin[1]), gz->line_width);
+
+      cage2d_draw_central_handle(gz->color, margin);
     }
     else {
       if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
@@ -725,7 +743,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
 
       float outline_line_width = gz->line_width + 3.0f;
 
-      if (draw_style == ED_GIZMO_CAGE2D_STYLE_RECTANGLE) {
+      if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM) {
         cage2d_draw_rect_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
         cage2d_draw_rect_wire(&r, margin, color, transform_flag, draw_options, gz->line_width);
 
@@ -736,6 +754,8 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
         cage2d_draw_circle_wire(black, size_real, 0.0f, outline_line_width);
         cage2d_draw_circle_wire(color, size_real, 0.0f, gz->line_width);
+
+        cage2d_draw_central_handle(color, margin);
       }
       else {
         BLI_assert(0);
@@ -813,7 +833,7 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   /* Expand for hots-pot. */
   const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
 
-  const int transform_flag = RNA_enum_get(gz->ptr, "transform");
+  const int transform_flag = gizmo_cage2d_transform_flag_get(gz);
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 
   if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
@@ -916,7 +936,20 @@ typedef struct RectTransformInteraction {
   float orig_matrix_offset[4][4];
   float orig_matrix_final_no_offset[4][4];
   Dial *dial;
+  bool use_temp_uniform;
 } RectTransformInteraction;
+
+static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz)
+{
+  RectTransformInteraction *data = gz->interaction_data;
+  int transform_flag = RNA_enum_get(gz->ptr, "transform");
+  if (data) {
+    if (data->use_temp_uniform) {
+      transform_flag |= ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM;
+    }
+  }
+  return transform_flag;
+}
 
 static void gizmo_cage2d_setup(wmGizmo *gz)
 {
@@ -941,55 +974,60 @@ static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_constrain_axis[2])
+static void gizmo_constrain_from_scale_part(int part, bool r_constrain_axis[2])
 {
-  bool x = true, y = true;
+  r_constrain_axis[0] = (part > ED_GIZMO_CAGE2D_PART_SCALE_MAX_X &&
+                         part < ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y) ?
+                            true :
+                            false;
+  r_constrain_axis[1] = (part > ED_GIZMO_CAGE2D_PART_SCALE &&
+                         part < ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y) ?
+                            true :
+                            false;
+}
+
+static void gizmo_pivot_from_scale_part(int part, float r_pt[2])
+{
   switch (part) {
+    case ED_GIZMO_CAGE2D_PART_SCALE: {
+      ARRAY_SET_ITEMS(r_pt, 0.0, 0.0);
+      break;
+    }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X: {
       ARRAY_SET_ITEMS(r_pt, 0.5, 0.0);
-      x = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
       ARRAY_SET_ITEMS(r_pt, -0.5, 0.0);
-      x = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y: {
       ARRAY_SET_ITEMS(r_pt, 0.0, 0.5);
-      y = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
       ARRAY_SET_ITEMS(r_pt, 0.0, -0.5);
-      y = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y: {
       ARRAY_SET_ITEMS(r_pt, 0.5, 0.5);
-      x = y = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y: {
       ARRAY_SET_ITEMS(r_pt, 0.5, -0.5);
-      x = y = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y: {
       ARRAY_SET_ITEMS(r_pt, -0.5, 0.5);
-      x = y = false;
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y: {
       ARRAY_SET_ITEMS(r_pt, -0.5, -0.5);
-      x = y = false;
       break;
     }
     default:
       BLI_assert(0);
   }
-  r_constrain_axis[0] = x;
-  r_constrain_axis[1] = y;
 }
 
 static int gizmo_cage2d_modal(bContext *C,
@@ -997,9 +1035,6 @@ static int gizmo_cage2d_modal(bContext *C,
                               const wmEvent *event,
                               eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
-  if (event->type != MOUSEMOVE) {
-    return OPERATOR_RUNNING_MODAL;
-  }
   /* For transform logic to be manageable we operate in -0.5..0.5 2D space,
    * no matter the size of the rectangle, mouse coords are scaled to unit space.
    * The mouse coords have been projected into the matrix
@@ -1009,6 +1044,25 @@ static int gizmo_cage2d_modal(bContext *C,
    * - Matrix translation is also multiplied by 'dims'.
    */
   RectTransformInteraction *data = gz->interaction_data;
+  int transform_flag = RNA_enum_get(gz->ptr, "transform");
+  if ((transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM) == 0) {
+    /* WARNING: Checking the events modifier only makes sense as long as `tweak_flag`
+     * remains unused (this controls #WM_GIZMO_TWEAK_PRECISE by default). */
+    const bool use_temp_uniform = (event->modifier & KM_SHIFT) != 0;
+    const bool changed = data->use_temp_uniform != use_temp_uniform;
+    data->use_temp_uniform = data->use_temp_uniform;
+    if (use_temp_uniform) {
+      transform_flag |= ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM;
+    }
+
+    if (changed) {
+      /* Always refresh. */
+    }
+    else if (event->type != MOUSEMOVE) {
+      return OPERATOR_RUNNING_MODAL;
+    }
+  }
+
   float point_local[2];
 
   float dims[2];
@@ -1027,7 +1081,6 @@ static int gizmo_cage2d_modal(bContext *C,
     }
   }
 
-  const int transform_flag = RNA_enum_get(gz->ptr, "transform");
   wmGizmoProperty *gz_prop;
 
   gz_prop = WM_gizmo_target_property_find(gz, "matrix");
@@ -1087,46 +1140,52 @@ static int gizmo_cage2d_modal(bContext *C,
   else {
     /* scale */
     copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
-    float pivot[2];
-    bool constrain_axis[2] = {false};
+    const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
 
+    float pivot[2];
     if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
-      gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis);
+      gizmo_pivot_from_scale_part(gz->highlight_part, pivot);
     }
     else {
       zero_v2(pivot);
     }
 
-    /* Cursor deltas scaled to (-0.5..0.5). */
-    float delta_orig[2], delta_curr[2];
-    for (int i = 0; i < 2; i++) {
-      delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) -
-                      pivot[i];
-      delta_curr[i] = ((point_local[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
-    }
+    bool constrain_axis[2] = {false};
+    gizmo_constrain_from_scale_part(gz->highlight_part, constrain_axis);
 
     float scale[2] = {1.0f, 1.0f};
     for (int i = 0; i < 2; i++) {
       if (constrain_axis[i] == false) {
-        if (delta_orig[i] < 0.0f) {
-          delta_orig[i] *= -1.0f;
-          delta_curr[i] *= -1.0f;
-        }
-        const int sign = signum_i(scale[i]);
-
-        scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
+        /* Original cursor position relative to pivot, remapped to [-1, 1] */
+        const float delta_orig = (data->orig_mouse[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
+        const float delta_curr = (point_local[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
 
         if ((transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_SIGNED) == 0) {
-          if (sign != signum_i(scale[i])) {
+          if (signum_i(delta_orig) != signum_i(delta_curr)) {
             scale[i] = 0.0f;
+            continue;
           }
         }
+
+        /* Original cursor position does not exactly lie on the cage boundary due to margin. */
+        const float delta_boundary = signf(delta_orig) * 0.5f - pivot[i];
+        scale[i] = delta_curr / delta_boundary;
       }
     }
 
     if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM) {
       if (constrain_axis[0] == false && constrain_axis[1] == false) {
-        scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
+        if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
+          /* So that the cursor lies on the circle. */
+          scale[1] = scale[0] = len_v2(scale);
+        }
+        else {
+          scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
+        }
       }
       else if (constrain_axis[0] == false) {
         scale[1] = scale[0];
@@ -1223,7 +1282,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   /* rna */
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
-      {ED_GIZMO_CAGE2D_STYLE_RECTANGLE, "RECTANGLE", 0, "Rectangle", ""},
+      {ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM, "BOX_TRANSFORM", 0, "Box Transform", ""},
       {ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -1245,7 +1304,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   RNA_def_enum(gzt->srna,
                "draw_style",
                rna_enum_draw_style,
-               ED_GIZMO_CAGE2D_STYLE_RECTANGLE,
+               ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM,
                "Draw Style",
                "");
   RNA_def_enum_flag(gzt->srna,

@@ -85,7 +85,7 @@
 
 /**
  * When windows are activated, simulate modifier press/release to match the current state of
- * held modifier keys, see T40317.
+ * held modifier keys, see #40317.
  */
 #define USE_WIN_ACTIVATE
 
@@ -98,8 +98,8 @@
  * reported as not being held. Since this is standard behavior for Linux/MS-Window,
  * opt to use this.
  *
- * NOTE(@campbellbarton): Events generated for non-active windows are rare,
- * this happens when using the mouse-wheel over an unfocused window, see: T103722.
+ * NOTE(@ideasman42): Events generated for non-active windows are rare,
+ * this happens when using the mouse-wheel over an unfocused window, see: #103722.
  */
 #define USE_WIN_DEACTIVATE
 
@@ -212,8 +212,8 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
     return;
   }
 
-  /* Prevents non-drawable state of main windows (bugs T22967,
-   * T25071 and possibly T22477 too). Always clear it even if
+  /* Prevents non-drawable state of main windows (bugs #22967,
+   * #25071 and possibly #22477 too). Always clear it even if
    * this window was not the drawable one, because we mess with
    * drawing context to discard the GW context. */
   wm_window_clear_drawable(wm);
@@ -632,7 +632,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
 
     wm_window_swap_buffers(win);
 
-    /* Clear double buffer to avoids flickering of new windows on certain drivers. (See T97600) */
+    /* Clear double buffer to avoids flickering of new windows on certain drivers. (See #97600) */
     GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
     // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
@@ -666,7 +666,7 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
       wm_init_state.override_flag &= ~WIN_OVERRIDE_WINSTATE;
     }
 
-    /* without this, cursor restore may fail, T45456 */
+    /* without this, cursor restore may fail, #45456 */
     if (win->cursor == 0) {
       win->cursor = WM_CURSOR_DEFAULT;
     }
@@ -1150,7 +1150,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
           const uint8_t keymodifier_eventstate = win->eventstate->modifier;
           const uint8_t keymodifier_l = wm_ghost_modifier_query(MOD_SIDE_LEFT);
           const uint8_t keymodifier_r = wm_ghost_modifier_query(MOD_SIDE_RIGHT);
-          /* NOTE(@campbellbarton): when non-zero, there are modifiers held in
+          /* NOTE(@ideasman42): when non-zero, there are modifiers held in
            * `win->eventstate` which are not considered held by the GHOST internal state.
            * While this should not happen, it's important all modifier held in event-state
            * receive release events. Without this, so any events generated while the window
@@ -1286,7 +1286,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         wm_window_make_drawable(wm, win);
 #if 0
-        /* NOTE(@campbellbarton): Ideally we could swap-buffers to avoid a full redraw.
+        /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
          * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
         wm_window_swap_buffers(win);
 #else
@@ -2134,7 +2134,7 @@ uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
 {
   /* WARNING: Reading from the front-buffer immediately after drawing may fail,
    * for a slower but more reliable version of this function #WM_window_pixels_read_offscreen
-   * should be preferred. See it's comments for details on why it's needed, see also T98462. */
+   * should be preferred. See it's comments for details on why it's needed, see also #98462. */
   bool setup_context = wm->windrawable != win;
 
   if (setup_context) {

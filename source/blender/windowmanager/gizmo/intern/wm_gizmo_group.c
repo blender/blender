@@ -514,7 +514,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* handle gizmo */
   wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
   if (modal_fn) {
-    /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see T73727.
+    /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see #73727.
      * note that we could move away from wrapping modal gizmos in a modal operator,
      * since it's causing the need for code like this. */
     wmEvent *evil_event = (wmEvent *)event;
@@ -607,7 +607,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   ot->invoke = gizmo_tweak_invoke;
   ot->modal = gizmo_tweak_modal;
 
-  /* TODO(@campbellbarton): This causes problems tweaking settings for operators,
+  /* TODO(@ideasman42): This causes problems tweaking settings for operators,
    * need to find a way to support this. */
 #if 0
   ot->flag = OPTYPE_UNDO;
@@ -771,7 +771,7 @@ wmKeyMap *WM_gizmogroup_setup_keymap_generic_maybe_drag(const wmGizmoGroupType *
 /**
  * Variation of #WM_gizmogroup_keymap_common but with keymap items for selection
  *
- * TODO(@campbellbarton): move to Python.
+ * TODO(@ideasman42): move to Python.
  *
  * \param name: Typically #wmGizmoGroupType.name
  * \param params: Typically #wmGizmoGroupType.gzmap_params
@@ -784,7 +784,7 @@ static wmKeyMap *WM_gizmogroup_keymap_template_select_ex(
   wmKeyMap *km = WM_keymap_ensure(kc, name, params->spaceid, params->regionid);
   const bool do_init = BLI_listbase_is_empty(&km->items);
 
-  /* FIXME(@campbellbarton): Currently hard coded. */
+  /* FIXME(@ideasman42): Currently hard coded. */
 #if 0
   const int select_mouse = (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
   const int select_tweak = (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_L : EVT_TWEAK_R;
@@ -997,7 +997,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
 
   wmGizmoGroup *gzgroup = wm_gizmogroup_new_from_type(gzmap, gzgt);
 
-  /* Don't allow duplicates when switching modes for e.g. see: T66229. */
+  /* Don't allow duplicates when switching modes for e.g. see: #66229. */
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup_iter, &gzmap->groups) {
     if (gzgroup_iter->type == gzgt) {
       if (gzgroup_iter != gzgroup) {
@@ -1053,7 +1053,7 @@ void WM_gizmomaptype_group_unlink(bContext *C,
     WM_gizmomaptype_group_free(gzgt_ref);
   }
 
-  /* TODO(@campbellbarton): Gizmos may share key-maps, for now don't
+  /* TODO(@ideasman42): Gizmos may share key-maps, for now don't
    * remove however we could flag them as temporary/owned by the gizmo. */
 #if 0
   /* NOTE: we may want to keep this key-map for editing. */

@@ -1076,23 +1076,31 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     else if (light->light_type == LIGHT_SPOT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
+      float3 len;
+      float3 axis_u = normalize_len(light->axisu, &len.x);
+      float3 axis_v = normalize_len(light->axisv, &len.y);
+      float3 dir = normalize_len(light->dir, &len.z);
+      if (len.z == 0.0f) {
+        dir = zero_float3();
+      }
+
       float radius = light->size;
       float invarea = (radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) : 1.0f;
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
       float spot_smooth = (1.0f - cos_half_spot_angle) * light->spot_smooth;
-      float3 dir = light->dir;
-
-      dir = safe_normalize(dir);
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
 
       klights[light_index].co = co;
+      klights[light_index].spot.axis_u = axis_u;
       klights[light_index].spot.radius = radius;
+      klights[light_index].spot.axis_v = axis_v;
       klights[light_index].spot.invarea = invarea;
-      klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.spot_smooth = spot_smooth;
       klights[light_index].spot.dir = dir;
+      klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
+      klights[light_index].spot.len = len;
+      klights[light_index].spot.spot_smooth = spot_smooth;
     }
 
     klights[light_index].shader_id = shader_id;

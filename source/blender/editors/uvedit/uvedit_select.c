@@ -1343,8 +1343,8 @@ void uvedit_deselect_flush(const Scene *scene, BMEditMesh *em)
       continue;
     }
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      if ((!BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) ||
-          (!BM_ELEM_CD_GET_BOOL(l->next, offsets.select_vert))) {
+      if (!BM_ELEM_CD_GET_BOOL(l, offsets.select_vert) ||
+          !BM_ELEM_CD_GET_BOOL(l->next, offsets.select_vert)) {
         BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
       }
     }
@@ -1392,7 +1392,7 @@ static BMLoop *bm_select_edgeloop_single_side_next(const Scene *scene,
       scene, l_step, v_from_next, offsets);
 }
 
-/* TODO(@campbellbarton): support this in the BMesh API, as we have for clearing other types. */
+/* TODO(@ideasman42): support this in the BMesh API, as we have for clearing other types. */
 static void bm_loop_tags_clear(BMesh *bm)
 {
   BMIter iter;
@@ -1800,9 +1800,9 @@ static void uv_select_linked_multi(Scene *scene,
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
-    /* NOTE: we had 'use winding' so we don't consider overlapping islands as connected, see T44320
+    /* NOTE: we had 'use winding' so we don't consider overlapping islands as connected, see #44320
      * this made *every* projection split the island into front/back islands.
-     * Keep 'use_winding' to false, see: T50970.
+     * Keep 'use_winding' to false, see: #50970.
      *
      * Better solve this by having a delimit option for select-linked operator,
      * keeping island-select working as is. */
@@ -2283,14 +2283,14 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
       continue;
     }
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      if ((uv_selectmode == UV_SELECT_EDGE) || (uv_selectmode == UV_SELECT_FACE)) {
+      if (ELEM(uv_selectmode, UV_SELECT_EDGE, UV_SELECT_FACE)) {
         /* Use UV edge selection to find vertices and edges that must be selected. */
         bool es = BM_ELEM_CD_GET_BOOL(l, offsets.select_edge);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, !es);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
       }
       /* Use UV vertex selection to find vertices and edges that must be selected. */
-      else if ((uv_selectmode == UV_SELECT_VERTEX) || (uv_selectmode == UV_SELECT_ISLAND)) {
+      else if (ELEM(uv_selectmode, UV_SELECT_VERTEX, UV_SELECT_ISLAND)) {
         bool vs = BM_ELEM_CD_GET_BOOL(l, offsets.select_vert);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, !vs);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
@@ -4302,7 +4302,7 @@ static bool overlap_tri_tri_uv_test(const float t1[3][2],
    * However, the `endpoint_bias` on segment intersections causes _exact_ overlapping
    * triangles not to be detected.
    *
-   * Resolve this problem at the small cost of calculating the triangle center, see T85508. */
+   * Resolve this problem at the small cost of calculating the triangle center, see #85508. */
   mid_v2_v2v2v2(vi, UNPACK3(t1));
   if (isect_point_tri_v2(vi, UNPACK3(t2)) != 0) {
     return true;
@@ -4402,7 +4402,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
       BLI_polyfill_calc_arena(uv_verts, face_len, coords_sign, indices, arena);
 
       /* A beauty fill is necessary to remove degenerate triangles that may be produced from the
-       * above poly-fill (see T103913), otherwise the overlap tests can fail. */
+       * above poly-fill (see #103913), otherwise the overlap tests can fail. */
       BLI_polyfill_beautify(uv_verts, face_len, indices, arena, heap);
 
       for (int t = 0; t < tri_len; t++) {
@@ -4564,7 +4564,7 @@ static float get_uv_vert_needle(const eUVSelectSimilar type,
       }
     } break;
     case UV_SSIM_PIN:
-      return (BM_ELEM_CD_GET_BOOL(loop, offsets.pin)) ? 1.0f : 0.0f;
+      return BM_ELEM_CD_GET_BOOL(loop, offsets.pin) ? 1.0f : 0.0f;
     default:
       BLI_assert_unreachable();
       return false;

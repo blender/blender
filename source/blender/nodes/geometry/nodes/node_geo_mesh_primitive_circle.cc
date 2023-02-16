@@ -129,7 +129,6 @@ static Mesh *create_circle_mesh(const float radius,
     MEdge &edge = edges[i];
     edge.v1 = i;
     edge.v2 = (i + 1) % verts_num;
-    edge.flag = ME_EDGEDRAW;
   }
 
   /* Create triangle fan edges. */
@@ -138,7 +137,6 @@ static Mesh *create_circle_mesh(const float radius,
       MEdge &edge = edges[verts_num + i];
       edge.v1 = verts_num;
       edge.v2 = i;
-      edge.flag = ME_EDGEDRAW;
     }
   }
 

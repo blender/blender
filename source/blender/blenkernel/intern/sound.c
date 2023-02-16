@@ -854,7 +854,7 @@ static double get_cur_time(Scene *scene)
 {
   /* We divide by the current framelen to take into account time remapping.
    * Otherwise we will get the wrong starting time which will break A/V sync.
-   * See T74111 for further details. */
+   * See #74111 for further details. */
   return FRA2TIME((scene->r.cfra + scene->r.subframe) / (double)scene->r.framelen);
 }
 
@@ -1230,7 +1230,7 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   }
   /* TODO(sergey): Make it fully independent audio handle. */
   /* Don't free waveforms during non-destructive queries.
-   * This causes unnecessary recalculation - see T69921 */
+   * This causes unnecessary recalculation - see #69921 */
   sound_load_audio(main, sound, false);
   const bool result = sound_info_from_playback_handle(sound->playback_handle, sound_info);
   sound_free_audio(sound);

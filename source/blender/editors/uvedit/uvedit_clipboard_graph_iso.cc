@@ -40,7 +40,7 @@ GraphISO::GraphISO(int n)
      * Better still is to use a different algorithm. See for example:
      * https://www.uni-ulm.de/fileadmin/website_uni_ulm/iui.inst.190/Mitarbeiter/toran/beatcs09.pdf
      */
-    adjmat[i] = static_cast<unsigned char *>(MEM_callocN(n * sizeof *adjmat[i], __func__));
+    adjmat[i] = static_cast<uchar *>(MEM_callocN(n * sizeof *adjmat[i], __func__));
   }
   degree = nullptr;
 }
@@ -69,7 +69,7 @@ void GraphISO::calculate_degrees() const
   if (degree) {
     return;
   }
-  degree = static_cast<unsigned int *>(MEM_mallocN(n * sizeof *degree, __func__));
+  degree = static_cast<uint *>(MEM_mallocN(n * sizeof *degree, __func__));
   for (int v = 0; v < n; v++) {
     int row_count = 0;
     for (int w = 0; w < n; w++) {

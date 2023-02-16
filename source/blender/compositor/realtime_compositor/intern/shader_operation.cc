@@ -81,7 +81,7 @@ Map<std::string, DOutputSocket> &ShaderOperation::get_inputs_to_linked_outputs_m
 
 void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
 {
-  for (const auto &item : output_sockets_to_output_identifiers_map_.items()) {
+  for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
     const int reference_count = number_of_inputs_linked_to_output_conditioned(
         item.key, [&](DInputSocket input) { return schedule.contains(input.node()); });
 
@@ -95,14 +95,14 @@ void ShaderOperation::bind_material_resources(GPUShader *shader)
    * no uniforms. */
   GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material_);
   if (ubo) {
-    GPU_uniformbuf_bind(ubo, GPU_shader_get_uniform_block_binding(shader, GPU_UBO_BLOCK_NAME));
+    GPU_uniformbuf_bind(ubo, GPU_shader_get_ubo_binding(shader, GPU_UBO_BLOCK_NAME));
   }
 
   /* Bind color band textures needed by curve and ramp nodes. */
   ListBase textures = GPU_material_textures(material_);
   LISTBASE_FOREACH (GPUMaterialTexture *, texture, &textures) {
     if (texture->colorband) {
-      const int texture_image_unit = GPU_shader_get_texture_binding(shader, texture->sampler_name);
+      const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture->sampler_name);
       GPU_texture_bind(*texture->colorband, texture_image_unit);
     }
   }

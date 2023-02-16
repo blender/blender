@@ -269,7 +269,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
 
   limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
   /* previous behavior here is without accounting for winding, however this causes stretching in
-   * UV map in really simple cases with mirror + subsurf, see second part of T44530.
+   * UV map in really simple cases with mirror + subsurf, see second part of #44530.
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(
@@ -893,7 +893,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
     int x;
 
     for (x = 1; x < edgeSize - 1; x++) {
-      /* NOTE(@campbellbarton): This gives errors with `--debug-fpe` the normals don't seem to be
+      /* NOTE(@ideasman42): This gives errors with `--debug-fpe` the normals don't seem to be
        * unit length. This is most likely caused by edges with no faces which are now zeroed out,
        * see comment in: `ccgSubSurf__calcVertNormals()`. */
       vd = static_cast<CCGElem *>(ccgSubSurf_getEdgeData(ss, e, x));
@@ -928,7 +928,6 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
   uint i = 0;
   short *edgeFlags = ccgdm->edgeFlags;
-  const short ed_interior_flag = ccgdm->drawInteriorEdges ? ME_EDGEDRAW : 0;
 
   totface = ccgSubSurf_getNumFaces(ss);
   for (index = 0; index < totface; index++) {
@@ -940,7 +939,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
         ccgDM_to_MEdge(&medge[i++],
                        getFaceIndex(ss, f, S, x, 0, edgeSize, gridSize),
                        getFaceIndex(ss, f, S, x + 1, 0, edgeSize, gridSize),
-                       ed_interior_flag);
+                       0);
       }
 
       for (x = 1; x < gridSize - 1; x++) {
@@ -948,11 +947,11 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
           ccgDM_to_MEdge(&medge[i++],
                          getFaceIndex(ss, f, S, x, y, edgeSize, gridSize),
                          getFaceIndex(ss, f, S, x, y + 1, edgeSize, gridSize),
-                         ed_interior_flag);
+                         0);
           ccgDM_to_MEdge(&medge[i++],
                          getFaceIndex(ss, f, S, y, x, edgeSize, gridSize),
                          getFaceIndex(ss, f, S, y + 1, x, edgeSize, gridSize),
-                         ed_interior_flag);
+                         0);
         }
       }
     }
@@ -967,11 +966,8 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 
     if (edgeFlags) {
       if (edgeIdx != -1) {
-        ed_flag |= ((edgeFlags[index] & ME_SEAM) | ME_EDGEDRAW);
+        ed_flag |= (edgeFlags[index] & ME_SEAM);
       }
-    }
-    else {
-      ed_flag |= ME_EDGEDRAW;
     }
 
     for (x = 0; x < edgeSize - 1; x++) {
@@ -1367,7 +1363,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   gridFlagMats = static_cast<DMFlagMat *>(
       MEM_mallocN(sizeof(DMFlagMat) * numGrids, "ccgdm.gridFlagMats"));
 
-  ccgdm->gridHidden = static_cast<unsigned int **>(
+  ccgdm->gridHidden = static_cast<uint **>(
       MEM_callocN(sizeof(*ccgdm->gridHidden) * numGrids, "ccgdm.gridHidden"));
 
   for (gIndex = 0, index = 0; index < numFaces; index++) {
@@ -1889,7 +1885,7 @@ DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
   CCGDerivedMesh *result;
 
   /* NOTE: editmode calculation can only run once per
-   * modifier stack evaluation (uses freed cache) T36299. */
+   * modifier stack evaluation (uses freed cache) #36299. */
   if (flags & SUBSURF_FOR_EDIT_MODE) {
     int levels = (scene != nullptr && !ignore_simplify) ?
                      get_render_subsurf_level(&scene->r, smd->levels, false) :

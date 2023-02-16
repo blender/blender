@@ -248,7 +248,7 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
 static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Object *ob)
 {
   if (DRW_object_is_in_edit_mode(ob)) {
-    /* Also check for context mode as the object mode is not 100% reliable. (see T72490) */
+    /* Also check for context mode as the object mode is not 100% reliable. (see #72490) */
     switch (ob->type) {
       case OB_MESH:
         return pd->ctx_mode == CTX_MODE_EDIT_MESH;
@@ -630,6 +630,10 @@ static void OVERLAY_draw_scene(void *vedata)
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
+  }
+
+  if (pd->ctx_mode == CTX_MODE_SCULPT_CURVES) {
+    OVERLAY_sculpt_curves_draw_wires(data);
   }
 
   OVERLAY_wireframe_draw(data);

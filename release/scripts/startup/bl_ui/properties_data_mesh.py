@@ -485,7 +485,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         me = context.mesh
         col = layout.column()
 
@@ -605,7 +604,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         colliding_names = []
         for collection in (
                 # Built-in names.
-                {"shade_smooth": None, "normal": None, "crease": None},
+                {"shade_smooth": None, "crease": None},
                 mesh.attributes,
                 None if ob is None else ob.vertex_groups,
         ):

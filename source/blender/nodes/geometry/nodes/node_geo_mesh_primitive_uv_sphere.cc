@@ -117,7 +117,6 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
     MEdge &edge = edges[edge_index++];
     edge.v1 = 0;
     edge.v2 = first_vert_ring_index_start + segment;
-    edge.flag = ME_EDGEDRAW;
   }
 
   int ring_vert_index_start = 1;
@@ -129,7 +128,6 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
       MEdge &edge = edges[edge_index++];
       edge.v1 = ring_vert_index_start + segment;
       edge.v2 = ring_vert_index_start + ((segment + 1) % segments);
-      edge.flag = ME_EDGEDRAW;
     }
 
     /* Add the edges connecting to the next ring. */
@@ -138,7 +136,6 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
         MEdge &edge = edges[edge_index++];
         edge.v1 = ring_vert_index_start + segment;
         edge.v2 = next_ring_vert_index_start + segment;
-        edge.flag = ME_EDGEDRAW;
       }
     }
     ring_vert_index_start += segments;
@@ -151,7 +148,6 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
     MEdge &edge = edges[edge_index++];
     edge.v1 = last_vert_index;
     edge.v2 = last_vert_ring_start + segment;
-    edge.flag = ME_EDGEDRAW;
   }
 }
 

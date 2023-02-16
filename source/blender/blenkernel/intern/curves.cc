@@ -17,7 +17,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_math_vector.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -93,7 +93,13 @@ static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->evaluated_offsets_cache = src.runtime->evaluated_offsets_cache;
+  dst.runtime->nurbs_basis_cache = src.runtime->nurbs_basis_cache;
+  dst.runtime->evaluated_position_cache = src.runtime->evaluated_position_cache;
   dst.runtime->bounds_cache = src.runtime->bounds_cache;
+  dst.runtime->evaluated_length_cache = src.runtime->evaluated_length_cache;
+  dst.runtime->evaluated_tangent_cache = src.runtime->evaluated_tangent_cache;
+  dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
 
   curves_dst->batch_cache = nullptr;
 }
@@ -308,6 +314,8 @@ static void curves_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (mti->modifyGeometrySet != nullptr) {
       mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
@@ -411,15 +419,15 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
 {
-  this->curves_to_world = curves_ob.object_to_world;
-  this->world_to_curves = this->curves_to_world.inverted();
+  this->curves_to_world = float4x4_view(curves_ob.object_to_world);
+  this->world_to_curves = math::invert(this->curves_to_world);
 
   if (surface_ob != nullptr) {
-    this->surface_to_world = surface_ob->object_to_world;
-    this->world_to_surface = this->surface_to_world.inverted();
+    this->surface_to_world = float4x4_view(surface_ob->object_to_world);
+    this->world_to_surface = math::invert(this->surface_to_world);
     this->surface_to_curves = this->world_to_curves * this->surface_to_world;
     this->curves_to_surface = this->world_to_surface * this->curves_to_world;
-    this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
+    this->surface_to_curves_normal = math::transpose(math::invert(this->surface_to_curves));
   }
 }
 

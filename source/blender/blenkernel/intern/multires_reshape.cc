@@ -24,7 +24,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Reshape from object

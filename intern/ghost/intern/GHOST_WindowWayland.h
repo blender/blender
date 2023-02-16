@@ -15,7 +15,7 @@
 #include <wayland-util.h> /* For #wl_fixed_t */
 
 /**
- * Define to workaround for a bug/limitation in WAYLAND, see: T100855 & upstream report:
+ * Define to workaround for a bug/limitation in WAYLAND, see: #100855 & upstream report:
  * https://gitlab.freedesktop.org/wayland/wayland/-/issues/159
  *
  * Consume events from WAYLAND in a thread, this is needed because overflowing the event queue

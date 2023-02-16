@@ -91,6 +91,7 @@ struct OVERLAY_Shaders {
   GPUShader *particle_shape;
   GPUShader *pointcloud_dot;
   GPUShader *sculpt_mask;
+  GPUShader *sculpt_curves_cage;
   GPUShader *sculpt_curves_selection;
   GPUShader *uniform_color;
   GPUShader *uniform_color_pointcloud;
@@ -854,6 +855,18 @@ GPUShader *OVERLAY_shader_sculpt_curves_selection(void)
                                                        "overlay_sculpt_curves_selection");
   }
   return sh_data->sculpt_curves_selection;
+}
+
+GPUShader *OVERLAY_shader_sculpt_curves_cage(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->sculpt_curves_cage) {
+    sh_data->sculpt_curves_cage = GPU_shader_create_from_info_name(
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_sculpt_curves_cage_clipped" :
+                                                       "overlay_sculpt_curves_cage");
+  }
+  return sh_data->sculpt_curves_cage;
 }
 
 GPUShader *OVERLAY_shader_viewer_attribute_mesh(void)

@@ -1057,7 +1057,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
  * Will use first clnors_data array, and fallback to cd_loop_clnors_offset
  * (use nullptr and -1 to not use clnors).
  *
- * \note This sets #BM_ELEM_TAG which is used in tool code (e.g. T84426).
+ * \note This sets #BM_ELEM_TAG which is used in tool code (e.g. #84426).
  * we could add a low-level API flag for this, see #BM_ELEM_API_FLAG_ENABLE and friends.
  */
 static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
@@ -1449,7 +1449,7 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
       /* We also have to check between last and first loops,
        * otherwise we may miss some sharp edges here!
        * This is just a simplified version of above while loop.
-       * See T45984. */
+       * See #45984. */
       loops = lnors_spacearr->lspacearr[i]->loops;
       if (loops && org_nor) {
         BMLoop *ml = static_cast<BMLoop *>(loops->link);

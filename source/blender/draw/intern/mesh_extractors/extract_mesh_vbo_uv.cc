@@ -28,7 +28,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   GPU_vertformat_deinterleave(format);
 
   uint32_t uv_layers = cache->cd_used.uv;
-  /* HACK to fix T68857 */
+  /* HACK to fix #68857 */
   if (extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
     if (layer != -1) {

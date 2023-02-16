@@ -28,19 +28,23 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 
+#include "BLI_index_range.hh"
+
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_undo.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
+
+using blender::IndexRange;
 
 void SCULPT_dynamic_topology_triangulate(BMesh *bm)
 {
@@ -87,7 +91,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) !=
                           0;
 
-  /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
+  /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
 
   /* Create triangles-only BMesh. */
@@ -184,7 +188,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
-  /* Typically valid but with global-undo they can be nullptr, see: T36234. */
+  /* Typically valid but with global-undo they can be nullptr, see: #36234. */
   if (ss->bm) {
     BM_mesh_free(ss->bm);
     ss->bm = nullptr;
@@ -281,8 +285,8 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   if (flag & (DYNTOPO_WARN_VDATA | DYNTOPO_WARN_EDATA | DYNTOPO_WARN_LDATA)) {
-    const char *msg_error = TIP_("Vertex Data Detected!");
-    const char *msg = TIP_("Dyntopo will not preserve vertex colors, UVs, or other customdata");
+    const char *msg_error = TIP_("Attribute Data Detected");
+    const char *msg = TIP_("Dyntopo will not preserve colors, UVs, or other attributes");
     uiItemL(layout, msg_error, ICON_INFO);
     uiItemL(layout, msg, ICON_NONE);
     uiItemS(layout);
@@ -305,6 +309,39 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
   return OPERATOR_INTERFACE;
 }
 
+static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers,
+                                               int totelem)
+{
+  for (const CustomDataLayer &layer : layers) {
+    if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
+      if (layer.name[0] == '\0') {
+        return false;
+      }
+
+      if (STREQ(layer.name, ".sculpt_face_sets") && totelem > 0) {
+        int *fsets = static_cast<int *>(layer.data);
+        int fset = fsets[0];
+
+        /* Check if only one face set exists. */
+        for (int i : IndexRange(totelem)) {
+          if (fsets[i] != fset) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      /* Some data is stored as generic attributes on #Mesh but in flags or field on #BMesh. */
+      return BM_attribute_stored_in_bmesh_builtin(layer.name);
+    }
+    /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
+    return ELEM(layer.type, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX);
+  }
+
+  return true;
+}
+
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
@@ -315,18 +352,17 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
-  for (int i = 0; i < CD_NUMTYPES; i++) {
-    if (!ELEM(i, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
-      if (CustomData_has_layer(&me->vdata, i)) {
-        flag |= DYNTOPO_WARN_VDATA;
-      }
-      if (CustomData_has_layer(&me->edata, i)) {
-        flag |= DYNTOPO_WARN_EDATA;
-      }
-      if (CustomData_has_layer(&me->ldata, i)) {
-        flag |= DYNTOPO_WARN_LDATA;
-      }
-    }
+  if (!dyntopo_supports_customdata_layers({me->vdata.layers, me->vdata.totlayer}, me->totvert)) {
+    flag |= DYNTOPO_WARN_VDATA;
+  }
+  if (!dyntopo_supports_customdata_layers({me->edata.layers, me->edata.totlayer}, me->totedge)) {
+    flag |= DYNTOPO_WARN_EDATA;
+  }
+  if (!dyntopo_supports_customdata_layers({me->pdata.layers, me->pdata.totlayer}, me->totpoly)) {
+    flag |= DYNTOPO_WARN_LDATA;
+  }
+  if (!dyntopo_supports_customdata_layers({me->ldata.layers, me->ldata.totlayer}, me->totloop)) {
+    flag |= DYNTOPO_WARN_LDATA;
   }
 
   {

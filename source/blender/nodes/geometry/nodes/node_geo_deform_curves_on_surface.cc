@@ -10,7 +10,7 @@
 #include "BKE_modifier.h"
 #include "BKE_type_conversions.hh"
 
-#include "BLI_float3x3.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
 #include "UI_interface.h"
@@ -64,7 +64,7 @@ static void deform_curves(const CurvesGeometry &curves,
       [&]() { reverse_uv_sampler_old.sample_many(curve_attachment_uvs, surface_samples_old); },
       [&]() { reverse_uv_sampler_new.sample_many(curve_attachment_uvs, surface_samples_new); });
 
-  const float4x4 curves_to_surface = surface_to_curves.inverted();
+  const float4x4 curves_to_surface = math::invert(surface_to_curves);
 
   const Span<float3> surface_positions_old = surface_mesh_old.vert_positions();
   const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
@@ -163,36 +163,26 @@ static void deform_curves(const CurvesGeometry &curves,
       const float3 tangent_y_new = math::normalize(math::cross(normal_new, tangent_x_new));
 
       /* Construct rotation matrix that encodes the orientation of the old surface position. */
-      float3x3 rotation_old;
-      copy_v3_v3(rotation_old.values[0], tangent_x_old);
-      copy_v3_v3(rotation_old.values[1], tangent_y_old);
-      copy_v3_v3(rotation_old.values[2], normal_old);
+      float3x3 rotation_old(tangent_x_old, tangent_y_old, normal_old);
 
       /* Construct rotation matrix that encodes the orientation of the new surface position. */
-      float3x3 rotation_new;
-      copy_v3_v3(rotation_new.values[0], tangent_x_new);
-      copy_v3_v3(rotation_new.values[1], tangent_y_new);
-      copy_v3_v3(rotation_new.values[2], normal_new);
+      float3x3 rotation_new(tangent_x_new, tangent_y_new, normal_new);
 
       /* Can use transpose instead of inverse because the matrix is orthonormal. In the case of
        * zero-area triangles, the matrix would not be orthonormal, but in this case, none of this
        * works anyway. */
-      const float3x3 rotation_old_inv = rotation_old.transposed();
+      const float3x3 rotation_old_inv = math::transpose(rotation_old);
 
       /* Compute a rotation matrix that rotates points from the old to the new surface
        * orientation. */
       const float3x3 rotation = rotation_new * rotation_old_inv;
-      float4x4 rotation_4x4;
-      copy_m4_m3(rotation_4x4.values, rotation.values);
 
       /* Construction transformation matrix for this surface position that includes rotation and
        * translation. */
-      float4x4 surface_transform = float4x4::identity();
       /* Subtract and add #pos_old, so that the rotation origin is the position on the surface. */
-      sub_v3_v3(surface_transform.values[3], pos_old);
-      mul_m4_m4_pre(surface_transform.values, rotation_4x4.values);
-      add_v3_v3(surface_transform.values[3], pos_old);
-      add_v3_v3(surface_transform.values[3], translation);
+      float4x4 surface_transform = math::from_origin_transform<float4x4>(float4x4(rotation),
+                                                                         pos_old);
+      surface_transform.location() += translation;
 
       /* Change the basis of the transformation so to that it can be applied in the local space of
        * the curves. */
@@ -202,7 +192,7 @@ static void deform_curves(const CurvesGeometry &curves,
       const IndexRange points = points_by_curve[curve_i];
       for (const int point_i : points) {
         const float3 old_point_pos = r_positions[point_i];
-        const float3 new_point_pos = curve_transform * old_point_pos;
+        const float3 new_point_pos = math::transform_point(curve_transform, old_point_pos);
         r_positions[point_i] = new_point_pos;
       }
 

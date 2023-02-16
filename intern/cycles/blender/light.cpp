@@ -24,7 +24,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   Light *light = light_map.find(key);
 
   /* Check if the transform was modified, in case a linked collection is moved we do not get a
-   * specific depsgraph update (T88515). This also mimics the behavior for Objects. */
+   * specific depsgraph update (#88515). This also mimics the behavior for Objects. */
   const bool tfm_updated = (light && light->get_tfm() != tfm);
 
   /* Update if either object or light data changed. */
@@ -48,6 +48,8 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     case BL::Light::type_SPOT: {
       BL::SpotLight b_spot_light(b_light);
       light->set_size(b_spot_light.shadow_soft_size());
+      light->set_axisu(transform_get_column(&tfm, 0));
+      light->set_axisv(transform_get_column(&tfm, 1));
       light->set_light_type(LIGHT_SPOT);
       light->set_spot_angle(b_spot_light.spot_size());
       light->set_spot_smooth(b_spot_light.spot_blend());

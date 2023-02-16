@@ -85,7 +85,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 
       but->flag |= UI_BUT_ANIMATED;
 
-      /* T41525 - When the active action is a NLA strip being edited,
+      /* #41525 - When the active action is a NLA strip being edited,
        * we need to correct the frame number to "look inside" the
        * remapped action
        */
@@ -118,11 +118,12 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
   uiBut *but_iter = nullptr;
 
   BLI_assert(UI_but_is_decorator(but));
-  BLI_assert(but->rnapoin.data && but->rnaprop);
+  BLI_assert(but->decorated_rnapoin.data && but->decorated_rnaprop);
 
   LISTBASE_CIRCULAR_BACKWARD_BEGIN (uiBut *, &but->block->buttons, but_iter, but->prev) {
     if (but_iter != but &&
-        ui_but_rna_equals_ex(but_iter, &but->rnapoin, but->rnaprop, but->rnaindex)) {
+        ui_but_rna_equals_ex(
+            but_iter, &but->decorated_rnapoin, but->decorated_rnaprop, but->decorated_rnaindex)) {
       return but_iter;
     }
   }
@@ -133,7 +134,7 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
 
 void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
 {
-  if (!but->rnapoin.data || !but->rnaprop) {
+  if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
     /* Nothing to do. */
     return;
   }
@@ -142,8 +143,8 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
 
   if (!but_anim) {
     printf("Could not find button with matching property to decorate (%s.%s)\n",
-           RNA_struct_identifier(but->rnapoin.type),
-           RNA_property_identifier(but->rnaprop));
+           RNA_struct_identifier(but->decorated_rnapoin.type),
+           RNA_property_identifier(but->decorated_rnaprop));
     return;
   }
 
@@ -321,7 +322,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     return;
   }
 
-  /* FIXME(@campbellbarton): swapping active pointer is weak. */
+  /* FIXME(@ideasman42): swapping active pointer is weak. */
   std::swap(but_anim->active, but_decorate->active);
   wm->op_undo_depth++;
 

@@ -109,7 +109,7 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
       this->mark_dirty();
     }
     enabled_srgb_ = enabled_srgb;
-    GPU_shader_set_framebuffer_srgb_target(enabled_srgb && srgb_);
+    Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   }
 
   /* Reset clear state on bind -- Clears and load/store ops are set after binding. */

@@ -7,6 +7,7 @@ void main()
    * If we could get rid of it would be nice because of performance drain of discard. */
   if (edgeStart.r == -1.0) {
     discard;
+    return;
   }
 
 #ifndef SELECT_EDGES

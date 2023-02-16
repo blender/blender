@@ -314,7 +314,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
    * line up with the video frames. Therefore we round this number to the
    * nearest frame as the audio track usually overshoots or undershoots the
    * end frame of the video by a little bit.
-   * See T47135 for under shoot example. */
+   * See #47135 for under shoot example. */
   seq->len = MAX2(1, round((info.length - sound->offset_time) * FPS));
 
   Strip *strip = seq->strip;

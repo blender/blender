@@ -222,6 +222,7 @@ class GRAPH_MT_channel(Menu):
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
         layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
+        layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
 
         layout.separator()
         layout.operator("graph.hide", text="Hide Selected Curves").unselected = False

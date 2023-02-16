@@ -343,7 +343,7 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
         adr[1] = vec[1];
       }
       else if (t->region->regiontype == RGN_TYPE_WINDOW) {
-        /* allow points behind the view T33643. */
+        /* allow points behind the view #33643. */
         if (ED_view3d_project_float_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
           /* XXX, 2.64 and prior did this, weak! */
           adr[0] = t->region->winx / 2.0f;
@@ -862,6 +862,9 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
     else {
       setUserConstraint(t, constraint_new, msg_3d);
     }
+
+    /* Take the opportunity to update the gizmo. */
+    transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   }
   t->redraw |= TREDRAW_HARD;
   return true;
@@ -986,7 +989,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
         }
         else if (transform_mode_is_changeable(t->mode)) {
-          /* Scale isn't normally very useful after extrude along normals, see T39756 */
+          /* Scale isn't normally very useful after extrude along normals, see #39756 */
           if ((t->con.mode & CON_APPLY) && (t->orient[t->orient_curr].type == V3D_ORIENT_NORMAL)) {
             stopConstraint(t);
           }
@@ -1299,7 +1302,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   /* Per transform event, if present */
   if (t->handleEvent && (!handled ||
-                         /* Needed for vertex slide, see T38756. */
+                         /* Needed for vertex slide, see #38756. */
                          (event->type == MOUSEMOVE))) {
     t->redraw |= t->handleEvent(t, event);
   }
@@ -1374,7 +1377,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
 static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *region)
 {
-  /* Don't show overlays when not the active view and when overlay is disabled: T57139 */
+  /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
   bool ok = false;
   if (region == t->region) {
     ok = true;
@@ -1481,6 +1484,12 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
+  if (t->state == TRANS_CANCEL) {
+    /* No need to edit operator properties or tool settings if we are canceling the operation.
+     * These properties must match the original ones. */
+    return;
+  }
+
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop;
 
@@ -1586,7 +1595,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     /* Update `ToolSettings` for properties that change during modal. */
     if (t->flag & T_MODAL) {
       /* Do we check for parameter? */
-      if (transformModeUseSnap(t) && !(t->tsnap.status & SNAP_FORCED)) {
+      if (transformModeUseSnap(t) && !(t->modifiers & MOD_SNAP_FORCED)) {
         if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
           /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
           short *snap_flag_ptr;
@@ -1850,7 +1859,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
      *
      * Do this only for translation/rotation/resize because only these
      * modes are available from gizmo and doing such check could
-     * lead to keymap conflicts for other modes (see T31584)
+     * lead to keymap conflicts for other modes (see #31584)
      */
     if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
       LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
@@ -2057,6 +2066,8 @@ int transformEnd(bContext *C, TransInfo *t)
     viewRedrawPost(C, t);
 
     viewRedrawForce(C, t);
+
+    transform_gizmo_3d_model_from_constraint_and_mode_restore(t);
   }
 
   t->context = NULL;

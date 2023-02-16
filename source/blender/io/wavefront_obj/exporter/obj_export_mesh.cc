@@ -186,7 +186,7 @@ int OBJMesh::ith_smooth_group(const int poly_index) const
 
 void OBJMesh::ensure_mesh_normals() const
 {
-  /* Const cast can be removed when calculating face corner normals lazily is possible. */
+  /* Constant cast can be removed when calculating face corner normals lazily is possible. */
   BKE_mesh_calc_normals_split(const_cast<Mesh *>(export_mesh_));
 }
 
@@ -194,8 +194,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
   const bool *sharp_edges = static_cast<const bool *>(
       CustomData_get_layer_named(&export_mesh_->edata, CD_PROP_BOOL, "sharp_edge"));
-  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.data(),
-                                                   mesh_edges_.size(),
+  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_polys_.data(),
                                                    mesh_polys_.size(),
                                                    mesh_loops_.data(),

@@ -190,7 +190,7 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
 
 #    if defined(OS_MAC) && defined(GPU_OPENGL)
   /* Generate a dummy read to avoid the driver bug with shaders having no
-   * vertex reads on macOS (T60171) */
+   * vertex reads on macOS (#60171) */
   wpos.y += dummy * 0.0;
 #    endif
 

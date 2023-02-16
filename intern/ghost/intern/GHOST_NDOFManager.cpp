@@ -302,7 +302,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
       switch (product_id) {
         case 0xC62E: /* Plugged in. */
         case 0xC62F: /* Wireless. */
-        case 0xC658: /* Wireless (3DConnexion Universal Wireless Receiver in WIN32), see T82412. */
+        case 0xC658: /* Wireless (3DConnexion Universal Wireless Receiver in WIN32), see #82412. */
         {
           device_type_ = NDOF_SpaceMouseWireless;
           hid_map_button_num_ = 2;
@@ -341,7 +341,7 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
     hid_map_button_mask_ = int(~(UINT_MAX << hid_map_button_num_));
   }
 
-  CLOG_INFO(LOG, 2, "%d buttons -> hex:%X", hid_map_button_num_, (uint)hid_map_button_mask_);
+  CLOG_INFO(LOG, 2, "%d buttons -> hex:%X", hid_map_button_num_, uint(hid_map_button_mask_));
 
   return device_type_ != NDOF_UnknownDevice;
 }
@@ -445,14 +445,14 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
               2,
               "button=%d, press=%d (out of range %d, ignoring!)",
               button_number,
-              (int)press,
+              int(press),
               hid_map_button_num_);
     return;
   }
   const NDOF_ButtonT button = hid_map_[button_number];
   if (button == NDOF_BUTTON_NONE) {
     CLOG_INFO(
-        LOG, 2, "button=%d, press=%d (mapped to none, ignoring!)", button_number, (int)press);
+        LOG, 2, "button=%d, press=%d (mapped to none, ignoring!)", button_number, int(press));
     return;
   }
 
@@ -460,7 +460,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
             2,
             "button=%d, press=%d, name=%s",
             button_number,
-            (int)press,
+            int(press),
             ndof_button_names[button]);
 
   GHOST_IWindow *window = system_.getWindowManager()->getActiveWindow();

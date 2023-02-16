@@ -9,12 +9,12 @@
 
 #include "DNA_defs.h"
 
-/* XXX(@campbellbarton): temp feature. */
+/* XXX(@ideasman42): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /**
  * Check for cyclic set-scene.
- * Libraries can cause this case which is normally prevented, see (T42009).
+ * Libraries can cause this case which is normally prevented, see (#42009).
  */
 #define USE_SETSCENE_CHECK
 
@@ -793,6 +793,8 @@ typedef struct RenderData {
   float simplify_particles;
   float simplify_particles_render;
   float simplify_volumes;
+  float simplify_shadows;
+  float simplify_shadows_render;
 
   /** Freestyle line thickness options. */
   int line_thickness_mode;
@@ -1829,6 +1831,8 @@ typedef struct SceneEEVEE {
   int shadow_method DNA_DEPRECATED;
   int shadow_cube_size;
   int shadow_cascade_size;
+  int shadow_pool_size;
+  char _pad[4];
 
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;
@@ -2157,7 +2161,7 @@ extern const char *RE_engine_id_CYCLES;
 /** \name Scene Defines
  * \{ */
 
-/* Note that much higher max-frames give imprecise sub-frames, see: T46859. */
+/* Note that much higher max-frames give imprecise sub-frames, see: #46859. */
 /* Current precision is 16 for the sub-frames closer to MAXFRAME. */
 
 /* For general use. */
@@ -2429,6 +2433,7 @@ typedef enum ePaintFlags {
  * (for now just a duplicate of sculpt symmetry flags).
  */
 typedef enum ePaintSymmetryFlags {
+  PAINT_SYMM_NONE = 0,
   PAINT_SYMM_X = (1 << 0),
   PAINT_SYMM_Y = (1 << 1),
   PAINT_SYMM_Z = (1 << 2),
@@ -2438,6 +2443,13 @@ typedef enum ePaintSymmetryFlags {
   PAINT_TILE_Z = (1 << 6),
 } ePaintSymmetryFlags;
 ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
+#ifdef __cplusplus
+inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
+{
+  flags = ePaintSymmetryFlags(char(flags) + 1);
+  return flags;
+}
+#endif
 
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
 
@@ -2694,6 +2706,7 @@ enum {
   SCE_EEVEE_OVERSCAN = (1 << 21),
   SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS = (1 << 22),
   SCE_EEVEE_DOF_JITTER = (1 << 23),
+  SCE_EEVEE_SHADOW_ENABLED = (1 << 24),
 };
 
 /** #SceneEEVEE.shadow_method */

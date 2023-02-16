@@ -354,7 +354,8 @@ typedef struct ThemeSpace {
   unsigned char path_before[4], path_after[4];
   unsigned char path_keyframe_before[4], path_keyframe_after[4];
   unsigned char camera_path[4];
-  unsigned char _pad1[6];
+  unsigned char camera_passepartout[4];
+  unsigned char _pad1[2];
 
   unsigned char gp_vertex_size;
   unsigned char gp_vertex[4], gp_vertex_select[4];
@@ -576,6 +577,9 @@ typedef struct bUserAssetLibrary {
 
   char name[64];   /* MAX_NAME */
   char path[1024]; /* FILE_MAX */
+
+  short import_method; /* eAssetImportMethod */
+  char _pad0[6];
 } bUserAssetLibrary;
 
 typedef struct SolidLight {
@@ -653,7 +657,8 @@ typedef struct UserDef_Experimental {
   char enable_eevee_next;
   char use_sculpt_texture_paint;
   char enable_workbench_next;
-  char _pad[7];
+  char use_new_volume_nodes;
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -778,8 +783,10 @@ typedef struct UserDef {
 
   char keyconfigstr[64];
 
+  /** Index of the asset library being edited in the Preferences UI. */
+  short active_asset_library;
+
   short undosteps;
-  char _pad1[2];
   int undomemory;
   float gpu_viewport_quality DNA_DEPRECATED;
   short gp_manhattandist, gp_euclideandist, gp_eraser;

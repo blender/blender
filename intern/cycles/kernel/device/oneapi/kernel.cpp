@@ -372,6 +372,16 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sorted_paths_array);
           break;
         }
+        case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS: {
+          oneapi_call(
+              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_bucket_pass);
+          break;
+        }
+        case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS: {
+          oneapi_call(
+              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_write_pass);
+          break;
+        }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY: {
           oneapi_call(kg,
                       cgh,

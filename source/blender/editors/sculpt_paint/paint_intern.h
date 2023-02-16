@@ -46,7 +46,7 @@ typedef struct CoNo {
   float no[3];
 } CoNo;
 
-/* paint_stroke.c */
+/* paint_stroke.cc */
 
 typedef bool (*StrokeGetLocation)(struct bContext *C,
                                   float location[3],
@@ -87,7 +87,7 @@ bool paint_supports_texture(enum ePaintMode mode);
 bool paint_supports_jitter(enum ePaintMode mode);
 
 /**
- * Called in paint_ops.c, on each regeneration of key-maps.
+ * Called in paint_ops.cc, on each regeneration of key-maps.
  */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C,
@@ -352,16 +352,17 @@ void paint_calc_redraw_planes(float planes[4][4],
 float paint_calc_object_space_radius(struct ViewContext *vc,
                                      const float center[3],
                                      float pixel_radius);
-float paint_get_tex_pixel(
-    const struct MTex *mtex, float u, float v, struct ImagePool *pool, int thread);
-void paint_get_tex_pixel_col(const struct MTex *mtex,
-                             float u,
-                             float v,
-                             float rgba[4],
-                             struct ImagePool *pool,
-                             int thread,
-                             bool convert,
-                             struct ColorSpace *colorspace);
+
+/**
+ * Returns true when a color was sampled and false when a value was sampled.
+ */
+bool paint_get_tex_pixel(const struct MTex *mtex,
+                         float u,
+                         float v,
+                         struct ImagePool *pool,
+                         int thread,
+                         float *r_intensity,
+                         float r_rgba[4]);
 
 /**
  * Used for both 3D view and image window.
@@ -372,6 +373,7 @@ void paint_sample_color(
 void paint_stroke_operator_properties(struct wmOperatorType *ot);
 
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
+void BRUSH_OT_sculpt_curves_falloff_preset(struct wmOperatorType *ot);
 
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
@@ -457,7 +459,7 @@ typedef enum BrushStrokeMode {
   BRUSH_STROKE_SMOOTH,
 } BrushStrokeMode;
 
-/* paint_hide.c */
+/* paint_hide.cc */
 
 typedef enum {
   PARTIALVIS_HIDE,
@@ -480,7 +482,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot);
  * We must thus map the modes here to the desired
  * eSelectOp modes.
  *
- * Fixes T102349.
+ * Fixes #102349.
  */
 typedef enum {
   PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,

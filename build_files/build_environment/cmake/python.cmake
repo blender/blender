@@ -88,6 +88,19 @@ else()
     export LDFLAGS=${PYTHON_LDFLAGS} &&
     export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig)
 
+  # NOTE: untested on APPLE so far.
+  if(NOT APPLE)
+    set(PYTHON_CONFIGURE_EXTRA_ARGS
+      ${PYTHON_CONFIGURE_EXTRA_ARGS}
+      # Used on most release Linux builds (Fedora for e.g.),
+      # increases build times noticeably with the benefit of a modest speedup at runtime.
+      --enable-optimizations
+      # While LTO is OK when building on the same system, it's incompatible across GCC versions,
+      # making it impractical for developers to build against, so keep it disabled.
+      # `--with-lto`
+    )
+  endif()
+
   ExternalProject_Add(external_python
     URL file://${PACKAGE_DIR}/${PYTHON_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}

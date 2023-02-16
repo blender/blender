@@ -2996,6 +2996,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_transform.shear,
             _defs_edit_curve.curve_vertex_randomize,
         ],
+        'EDIT_CURVES': [
+            *_tools_default,
+        ],
         'EDIT_SURFACE': [
             *_tools_default,
             None,

@@ -1245,7 +1245,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else if (GS(id->name) == ID_SCE) {
       /* Sequencer's ID is scene :/ */
       /* Try to recursively find an RNA_Sequence ancestor,
-       * to handle situations like T41062... */
+       * to handle situations like #41062... */
       if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) !=
           nullptr) {
         /* Special case when we do this for 'Sequence.lock'.

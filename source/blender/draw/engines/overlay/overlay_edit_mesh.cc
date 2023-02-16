@@ -85,7 +85,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   if ((flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
     if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
       if ((v3d->shading.type < OB_SOLID) || (v3d->shading.flag & V3D_SHADING_XRAY)) {
-        /* Special case, when drawing wire, draw edges, see: T67637. */
+        /* Special case, when drawing wire, draw edges, see: #67637. */
       }
       else {
         pd->edit_mesh.do_edges = false;

@@ -48,7 +48,7 @@ void ui_popup_translate(ARegion *region, const int mdiff[2])
   /* update blocks */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     uiPopupBlockHandle *handle = block->handle;
-    /* Make empty, will be initialized on next use, see T60608. */
+    /* Make empty, will be initialized on next use, see #60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
 
     LISTBASE_FOREACH (uiSafetyRct *, saferct, &block->saferct) {
@@ -214,7 +214,7 @@ static void ui_popup_block_position(wmWindow *window,
   /* Compute offset based on direction. */
   float offset_x = 0, offset_y = 0;
 
-  /* Ensure buttons don't come between the parent button and the popup, see: T63566. */
+  /* Ensure buttons don't come between the parent button and the popup, see: #63566. */
   const float offset_overlap = max_ff(U.pixelsize, 1.0f);
 
   if (dir1 == UI_DIR_LEFT) {

@@ -49,6 +49,8 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
      * was already allocated. */
     if (runtime_data) {
       runtime_data->settings = settings;
+
+      runtime_data->used_cpu = runtime_data->used_gpu = 0;
     }
 
     return false;
@@ -162,15 +164,18 @@ Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtim
                                                       const Mesh *mesh,
                                                       const bool for_draw_code)
 {
-  if (runtime_data->subdiv && runtime_data->set_by_draw_code != for_draw_code) {
-    BKE_subdiv_free(runtime_data->subdiv);
-    runtime_data->subdiv = nullptr;
+  if (for_draw_code) {
+    runtime_data->used_gpu = 2; /* countdown in frames */
+
+    return runtime_data->subdiv_gpu = BKE_subdiv_update_from_mesh(
+               runtime_data->subdiv_gpu, &runtime_data->settings, mesh);
   }
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(
-      runtime_data->subdiv, &runtime_data->settings, mesh);
-  runtime_data->subdiv = subdiv;
-  runtime_data->set_by_draw_code = for_draw_code;
-  return subdiv;
+  else {
+    runtime_data->used_cpu = 2;
+
+    return runtime_data->subdiv_cpu = BKE_subdiv_update_from_mesh(
+               runtime_data->subdiv_cpu, &runtime_data->settings, mesh);
+  }
 }
 
 int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_mode)

@@ -235,7 +235,7 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
      * This also removes remaining links to and from interface nodes.
      */
     if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
-      /* We must delay removal since sockets will reference this node. see: T52092 */
+      /* We must delay removal since sockets will reference this node. see: #52092 */
       nodes_delayed_free.append(node);
     }
 
@@ -1094,24 +1094,6 @@ void NODE_OT_group_make(wmOperatorType *ot)
 /** \name Group Insert Operator
  * \{ */
 
-static bool node_tree_contains_tree_recursive(const bNodeTree &ntree_to_search_in,
-                                              const bNodeTree &ntree_to_search_for)
-{
-  if (&ntree_to_search_in == &ntree_to_search_for) {
-    return true;
-  }
-  ntree_to_search_in.ensure_topology_cache();
-  for (const bNode *node : ntree_to_search_in.group_nodes()) {
-    if (node->id) {
-      if (node_tree_contains_tree_recursive(*reinterpret_cast<bNodeTree *>(node->id),
-                                            ntree_to_search_for)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 static int node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1133,7 +1115,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
     if (!group->is_group() || group->id == nullptr) {
       continue;
     }
-    if (node_tree_contains_tree_recursive(*reinterpret_cast<bNodeTree *>(group->id), *ngroup)) {
+    if (ntreeContainsTree(reinterpret_cast<bNodeTree *>(group->id), ngroup)) {
       BKE_reportf(
           op->reports, RPT_WARNING, "Can not insert group '%s' in '%s'", group->name, gnode->name);
       return OPERATOR_CANCELLED;

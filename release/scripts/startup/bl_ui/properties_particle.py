@@ -62,7 +62,6 @@ class PARTICLE_MT_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
         psys = context.particle_system
-        experimental = context.preferences.experimental
 
         props = layout.operator(
             "particle.copy_particle_systems",
@@ -508,7 +507,7 @@ class PARTICLE_PT_hair_dynamics_structure(ParticleButtonsPanel, Panel):
         sub.prop(psys.settings, "bending_random", text="Random")
         col.prop(cloth, "bending_damping", text="Damping")
         # XXX has no noticeable effect with stiff hair structure springs
-        #col.prop(cloth, "spring_damping", text="Damping")
+        # col.prop(cloth, "spring_damping", text="Damping")
 
 
 class PARTICLE_PT_hair_dynamics_volume(ParticleButtonsPanel, Panel):
@@ -1100,7 +1099,7 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
             if part.physics_type == 'KEYED':
                 col = layout.column()
                 # doesn't work yet
-                #col.alert = key.valid
+                # col.alert = key.valid
                 col.prop(key, "object")
                 col.prop(key, "system", text="System")
                 sub = col.column(align=True)
@@ -1110,7 +1109,7 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
             elif part.physics_type == 'BOIDS':
                 sub = layout.column()
                 # doesn't work yet
-                #sub.alert = key.valid
+                # sub.alert = key.valid
                 sub.prop(key, "object")
                 sub.prop(key, "system", text="System")
                 layout.prop(key, "alliance")
@@ -1157,7 +1156,7 @@ class PARTICLE_PT_physics_fluid_interaction(ParticleButtonsPanel, Panel):
         if key:
             sub = layout.column()
             # doesn't work yet
-            #sub.alert = key.valid
+            # sub.alert = key.valid
             sub.prop(key, "object")
             sub.prop(key, "system", text="System")
 

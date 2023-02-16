@@ -30,6 +30,15 @@ struct UniqueName_Map *BKE_main_namemap_create(void) ATTR_WARN_UNUSED_RESULT;
 void BKE_main_namemap_destroy(struct UniqueName_Map **r_name_map) ATTR_NONNULL();
 
 /**
+ * Destroy all name_maps in given bmain:
+ * - In bmain itself for local IDs.
+ * - In the split bmains in the list is any (for linked IDs in some cases, e.g. if called during
+ *   readfile code).
+ * - In all of the libraries IDs (for linked IDs).
+ */
+void BKE_main_namemap_clear(struct Main *bmain) ATTR_NONNULL();
+
+/**
  * Ensures the given name is unique within the given ID type.
  *
  * In case of name collisions, the name will be adjusted to be unique.

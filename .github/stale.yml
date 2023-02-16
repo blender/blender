@@ -15,8 +15,7 @@ staleLabel: stale
 # Comment to post when closing a stale Issue or Pull Request.
 closeComment: >
   This issue has been automatically closed, because this repository is only
-  used as a mirror of git.blender.org. Blender development happens on
-  developer.blender.org.
+  used as a mirror. Blender development happens on projects.blender.org.
 
   To get started contributing code, please read:
   https://wiki.blender.org/wiki/Process/Contributing_Code

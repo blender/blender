@@ -24,7 +24,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 
 static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 {

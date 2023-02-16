@@ -396,7 +396,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   ID *local_id = lib_override_library_create_from(bmain, nullptr, reference_id, 0);
   /* We cannot allow automatic hierarchy resync on this ID, it is highly likely to generate a giant
    * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
-   * Ref T94650. */
+   * Ref #94650. */
   local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
   local_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   local_id->override_library->hierarchy_root = local_id;
@@ -2105,7 +2105,7 @@ static bool lib_override_library_resync(Main *bmain,
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
           id->override_library->reference->lib->id.tag & LIB_TAG_MISSING) {
         /* Do not delete overrides which reference is missing because the library itself is missing
-         * (ref. T100586). */
+         * (ref. #100586). */
       }
       else if (!BKE_lib_override_library_is_user_edited(id)) {
         /* If user never edited them, we can delete them. */
@@ -2720,7 +2720,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
    * lost when re-syncing the parent override collection.
-   * Ref. T73411. */
+   * Ref. #73411. */
   BKE_layer_collection_resync_forbid();
 
   int library_indirect_level = lib_override_libraries_index_define(bmain);

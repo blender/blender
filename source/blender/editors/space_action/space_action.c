@@ -534,7 +534,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
       }
       /* for simple edits to the curve data though (or just plain selections),
        * a simple redraw should work
-       * (see T39851 for an example of how this can go wrong)
+       * (see #39851 for an example of how this can go wrong)
        */
       else {
         ED_area_tag_redraw(area);
@@ -637,7 +637,7 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_WINDOW:
       if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
-        /* force redraw/refresh after undo/redo, see: T28962. */
+        /* force redraw/refresh after undo/redo, see: #28962. */
         ED_area_tag_refresh(area);
       }
       break;
@@ -781,7 +781,7 @@ static void action_refresh(const bContext *C, ScrArea *area)
 
     /* Tag everything for redraw
      * - Regions (such as header) need to be manually tagged for redraw too
-     *   or else they don't update T28962.
+     *   or else they don't update #28962.
      */
     ED_area_tag_redraw(area);
     for (region = area->regionbase.first; region; region = region->next) {

@@ -161,7 +161,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       copy_v3_v3(plane_co, itmp[3]);
       copy_v3_v3(plane_no, itmp[axis]);
 
-      /* Account for non-uniform scale in `ob`, see: T87592. */
+      /* Account for non-uniform scale in `ob`, see: #87592. */
       float ob_scale[3] = {
           len_squared_v3(ob->object_to_world[0]),
           len_squared_v3(ob->object_to_world[1]),
@@ -204,7 +204,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
    * Now add position/#MEdge/#MPoly layers. */
-  if (BKE_mesh_vert_positions(mesh) != NULL) {
+  if (BKE_mesh_vert_positions(mesh) != nullptr) {
     memcpy(BKE_mesh_vert_positions_for_write(result),
            BKE_mesh_vert_positions(mesh),
            sizeof(float[3]) * mesh->totvert);
@@ -248,7 +248,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
        * generate a 1:1 mapping by scanning vertices from the beginning of the array
        * as is done in #BKE_editmesh_vert_coords_when_deformed. Without this,
        * the coordinates returned will sometimes point to the copied vertex locations, see:
-       * T91444.
+       * #91444.
        *
        * However, such a change also affects non-versionable things like some modifiers binding, so
        * we cannot enforce that behavior on existing modifiers, in which case we keep using the

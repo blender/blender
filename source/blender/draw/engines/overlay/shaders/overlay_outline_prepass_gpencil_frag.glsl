@@ -18,6 +18,7 @@ void main()
                                     gp_interp.thickness.x,
                                     gp_interp.hardness) < 0.001) {
     discard;
+    return;
   }
 
   if (!gpStrokeOrder3d) {

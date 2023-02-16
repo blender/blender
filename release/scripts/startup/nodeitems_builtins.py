@@ -76,21 +76,11 @@ def node_group_items(context):
 
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
-    def contains_group(nodetree, group):
-        if nodetree == group:
-            return True
-        else:
-            for node in nodetree.nodes:
-                if node.bl_idname in node_tree_group_type.values() and node.node_tree is not None:
-                    if contains_group(node.node_tree, group):
-                        return True
-        return False
-
     for group in context.blend_data.node_groups:
         if group.bl_idname != ntree.bl_idname:
             continue
         # filter out recursive groups
-        if contains_group(group, ntree):
+        if group.contains_tree(ntree):
             continue
         # filter out hidden nodetrees
         if group.name.startswith('.'):

@@ -1134,7 +1134,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
 /* ------------------- */
 
 /* Selects all visible keyframes between the specified markers */
-/* TODO(@campbellbarton): this is almost an _exact_ duplicate of a function of the same name in
+/* TODO(@ideasman42): this is almost an _exact_ duplicate of a function of the same name in
  * action_select.c should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {
@@ -1809,7 +1809,7 @@ static int mouse_graph_keys(bAnimContext *ac,
 
   /* Set active F-Curve when something was actually selected (so not on a deselect), except when
    * dragging the selected keys. Needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY),
-   * otherwise the active flag won't be set T26452. */
+   * otherwise the active flag won't be set #26452. */
   if (!run_modal && (nvi->fcu->flag & FCURVE_SELECTED) && something_was_selected) {
     /* NOTE: Sync the filter flags with findnearest_fcurve_vert. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |

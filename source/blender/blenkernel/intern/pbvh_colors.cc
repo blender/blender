@@ -33,7 +33,7 @@
 
 #include "atomic_ops.h"
 
-#include "pbvh_intern.h"
+#include "pbvh_intern.hh"
 
 #include <climits>
 

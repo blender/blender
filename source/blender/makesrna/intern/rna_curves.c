@@ -275,7 +275,7 @@ static void rna_def_curves_point(BlenderRNA *brna)
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_CurvePoint_index_get", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Index", "Index of this points");
+  RNA_def_property_ui_text(prop, "Index", "Index of this point");
 }
 
 /* Defines a read-only vector type since normals can not be modified manually. */
@@ -452,6 +452,13 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Selection Domain", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
+
+  prop = RNA_def_property(srna, "use_sculpt_collision", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CV_SCULPT_COLLISION_ENABLED);
+  RNA_def_property_ui_text(
+      prop, "Use Sculpt Collision", "Enable collision with the surface while sculpting");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
   rna_def_attributes_common(srna);

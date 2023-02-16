@@ -1141,6 +1141,11 @@ def brush_texture_settings(layout, brush, sculpt):
         # texture_sample_bias
         layout.prop(brush, "texture_sample_bias", slider=True, text="Sample Bias")
 
+        if brush.sculpt_tool == 'DRAW':
+            col = layout.column()
+            col.active = tex_slot.map_mode == 'AREA_PLANE'
+            col.prop(brush, "use_color_as_displacement", text="Vector Displacement")
+
 
 def brush_mask_texture_settings(layout, brush):
     mask_tex_slot = brush.mask_texture_slot

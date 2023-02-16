@@ -854,12 +854,14 @@ bool OptiXDevice::load_osl_kernels()
         context, group_descs, 2, &group_options, nullptr, 0, &osl_groups[i * 2]));
   }
 
+  OptixStackSizes stack_size[NUM_PROGRAM_GROUPS] = {};
   vector<OptixStackSizes> osl_stack_size(osl_groups.size());
 
   /* Update SBT with new entries. */
   sbt_data.alloc(NUM_PROGRAM_GROUPS + osl_groups.size());
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
   }
   for (size_t i = 0; i < osl_groups.size(); ++i) {
     if (osl_groups[i] != NULL) {
@@ -907,13 +909,15 @@ bool OptiXDevice::load_osl_kernels()
                                      0,
                                      &pipelines[PIP_SHADE]));
 
+    const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
+                                      stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG);
     unsigned int dss = 0;
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
       dss = std::max(dss, osl_stack_size[i].dssDC);
     }
 
     optix_assert(optixPipelineSetStackSize(
-        pipelines[PIP_SHADE], 0, dss, 0, pipeline_options.usesMotionBlur ? 3 : 2));
+        pipelines[PIP_SHADE], 0, dss, css, pipeline_options.usesMotionBlur ? 3 : 2));
   }
 
   return !have_error();

@@ -930,7 +930,7 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
    */
   if ((lwalk->is_boundary == false) &&
       /* Without checking the face count, the 3 edges could be this edge
-       * plus two boundary edges (which would not be stepped over), see T84906. */
+       * plus two boundary edges (which would not be stepped over), see #84906. */
       ((vert_edge_count[0] == 3 && vert_face_count[0] == 3) ||
        (vert_edge_count[1] == 3 && vert_face_count[1] == 3))) {
     BMIter iter;
@@ -1197,8 +1197,8 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 {
   BMwFaceLoopWalker *lwalk, owalk, *owalk_pt;
   BMEdge *e = data;
-  /* BMesh *bm = walker->bm; */             /* UNUSED */
-  /* int fcount = BM_edge_face_count(e); */ /* UNUSED */
+  // BMesh *bm = walker->bm;              /* UNUSED */
+  // int fcount = BM_edge_face_count(e);  /* UNUSED */
 
   if (!bmw_FaceLoopWalker_edge_begins_loop(walker, e)) {
     return;

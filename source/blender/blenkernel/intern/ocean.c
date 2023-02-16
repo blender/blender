@@ -222,9 +222,9 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float
   j1 = j1 % oc->_N;
 
 #  define BILERP(m) \
-    (interpf(interpf(m[i1 * oc->_N + j1], m[i0 * oc->_N + j1], frac_x), \
-             interpf(m[i1 * oc->_N + j0], m[i0 * oc->_N + j0], frac_x), \
-             frac_z))
+    interpf(interpf(m[i1 * oc->_N + j1], m[i0 * oc->_N + j1], frac_x), \
+            interpf(m[i1 * oc->_N + j0], m[i0 * oc->_N + j0], frac_x), \
+            frac_z)
 
   {
     if (oc->_do_disp_y) {
@@ -1382,7 +1382,7 @@ void BKE_ocean_bake(struct Ocean *o,
                     void (*update_cb)(void *, float progress, int *cancel),
                     void *update_cb_data)
 {
-  /* NOTE(@campbellbarton): some of these values remain uninitialized unless certain options
+  /* NOTE(@ideasman42): some of these values remain uninitialized unless certain options
    * are enabled, take care that #BKE_ocean_eval_ij() initializes a member before use. */
   OceanResult ocr;
 
@@ -1437,7 +1437,7 @@ void BKE_ocean_bake(struct Ocean *o,
         rgb_to_rgba_unit_alpha(&ibuf_disp->rect_float[4 * (res_x * y + x)], ocr.disp);
 
         if (o->_do_jacobian) {
-          /* TODO(@campbellbarton): cleanup unused code. */
+          /* TODO(@ideasman42): cleanup unused code. */
 
           float /* r, */ /* UNUSED */ pr = 0.0f, foam_result;
           float neg_disp, neg_eplus;

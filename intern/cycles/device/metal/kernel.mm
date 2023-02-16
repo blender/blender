@@ -87,6 +87,9 @@ struct ShaderCache {
           break;
       }
     }
+
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS] = {1024, 1024};
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS] = {1024, 1024};
   }
   ~ShaderCache();
 
@@ -521,6 +524,8 @@ void MetalKernelPipeline::compile()
           "__anyhit__cycles_metalrt_shadow_all_hit_box",
           "__anyhit__cycles_metalrt_local_hit_tri",
           "__anyhit__cycles_metalrt_local_hit_box",
+          "__anyhit__cycles_metalrt_local_hit_tri_prim",
+          "__anyhit__cycles_metalrt_local_hit_box_prim",
           "__intersection__curve_ribbon",
           "__intersection__curve_ribbon_shadow",
           "__intersection__curve_all",
@@ -611,11 +616,17 @@ void MetalKernelPipeline::compile()
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
                          nil];
+    table_functions[METALRT_TABLE_LOCAL_PRIM] = [NSArray
+        arrayWithObjects:rt_intersection_function[METALRT_FUNC_LOCAL_TRI_PRIM],
+                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
+                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
+                         nil];
 
     NSMutableSet *unique_functions = [NSMutableSet
         setWithArray:table_functions[METALRT_TABLE_DEFAULT]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_SHADOW]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL]];
+    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL_PRIM]];
 
     if (kernel_has_intersection(device_kernel)) {
       linked_functions = [[NSArray arrayWithArray:[unique_functions allObjects]]

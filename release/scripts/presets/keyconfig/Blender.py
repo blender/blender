@@ -86,7 +86,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    # Experimental: only show with developer extras, see: T96544.
+    # Experimental: only show with developer extras, see: #96544.
     use_tweak_select_passthrough: BoolProperty(
         name="Tweak Select: Mouse Select & Move",
         description=(
@@ -96,7 +96,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
-    # Experimental: only show with developer extras, see: T96544.
+    # Experimental: only show with developer extras, see: #96544.
     use_tweak_tool_lmb_interaction: BoolProperty(
         name="Tweak Tool: Left Mouse Select & Move",
         description=(

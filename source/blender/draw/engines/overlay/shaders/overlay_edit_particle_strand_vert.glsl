@@ -25,10 +25,10 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
 
   if (useWeight) {
-    finalColor = vec4(weight_to_rgb(color), 1.0);
+    finalColor = vec4(weight_to_rgb(selection), 1.0);
   }
   else {
-    finalColor = mix(colorWire, colorVertexSelect, color);
+    finalColor = mix(colorWire, colorVertexSelect, selection);
   }
 
   view_clipping_distances(world_pos);

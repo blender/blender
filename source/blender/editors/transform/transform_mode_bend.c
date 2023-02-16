@@ -262,7 +262,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
                  +values.scale * shell_angle_to_dist((float)M_PI_2 + values.angle));
   }
 
-  /* TODO(@campbellbarton): xform, compensate object center. */
+  /* TODO(@ideasman42): xform, compensate object center. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     float warp_sta_local[3];

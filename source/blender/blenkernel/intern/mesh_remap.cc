@@ -1424,7 +1424,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* Needed for islands (or plain mesh) to AStar graph conversion. */
     BKE_mesh_edge_poly_map_create(&edge_to_poly_map_src,
                                   &edge_to_poly_map_src_buff,
-                                  edges_src,
                                   num_edges_src,
                                   polys_src,
                                   num_polys_src,
@@ -1667,7 +1666,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
                 if (dot > best_nor_dot - 1e-6f) {
                   /* We need something as fallback decision in case dest normal matches several
-                   * source normals (see T44522), using distance between polys' centers here. */
+                   * source normals (see #44522), using distance between polys' centers here. */
                   float *pcent_src;
                   float sqdist;
 

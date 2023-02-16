@@ -1570,7 +1570,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
     te_next = te->next;
     if (outliner_element_visible_get(scene, view_layer, te, exclude_filter) == false) {
       /* Don't free the tree, but extract the children from the parent and add to this tree. */
-      /* This also needs filtering the subtree prior (see T69246). */
+      /* This also needs filtering the subtree prior (see #69246). */
       outliner_filter_subtree(
           space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter);
       te_next = outliner_extract_children_from_subtree(te, lb);

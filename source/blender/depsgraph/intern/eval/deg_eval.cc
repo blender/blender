@@ -388,7 +388,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   graph->debug.begin_graph_evaluation();
 
 #ifdef WITH_PYTHON
-  /* Release the GIL so that Python drivers can be evaluated. See T91046. */
+  /* Release the GIL so that Python drivers can be evaluated. See #91046. */
   BPy_BEGIN_ALLOW_THREADS;
 #endif
 

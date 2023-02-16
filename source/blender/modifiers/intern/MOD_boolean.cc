@@ -10,9 +10,9 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_array.hh"
-#include "BLI_float4x4.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -237,7 +237,7 @@ static BMesh *BMD_mesh_bm_create(
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
   /* Keep `mesh` first, needed so active layers are set based on `mesh` not `mesh_operand_ob`,
-   * otherwise the wrong active render layer is used, see T92384.
+   * otherwise the wrong active render layer is used, see #92384.
    *
    * NOTE: while initializing customer data layers the is not essential,
    * it avoids the overhead of having to re-allocate #BMHeader.data when the 2nd mesh is added

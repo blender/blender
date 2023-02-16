@@ -49,12 +49,15 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
    * away before too long. */
   ED_asset_handle_get_full_library_path(asset_handle, blend_path);
 
+  const eAssetImportMethod import_method =
+      ED_asset_handle_get_import_method(asset_handle).value_or(ASSET_IMPORT_APPEND_REUSE);
+
   if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
     UI_but_drag_set_asset(but,
                           asset_handle,
                           BLI_strdup(blend_path),
-                          FILE_ASSET_IMPORT_APPEND,
+                          import_method,
                           ED_asset_handle_get_preview_icon_id(asset_handle),
                           imbuf,
                           1.0f);

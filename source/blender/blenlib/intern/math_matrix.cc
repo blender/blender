@@ -325,7 +325,7 @@ MatBase<T, 3, 3> interpolate(const MatBase<T, 3, 3> &A, const MatBase<T, 3, 3> &
 
   /* Quaternions cannot represent an axis flip. If such a singularity is detected, choose a
    * different decomposition of the matrix that still satisfies A = U_A * P_A but which has a
-   * positive determinant and thus no axis flips. This resolves T77154.
+   * positive determinant and thus no axis flips. This resolves #77154.
    *
    * Note that a flip of two axes is just a rotation of 180 degrees around the third axis, and
    * three flipped axes are just an 180 degree rotation + a single axis flip. It is thus sufficient
@@ -427,6 +427,8 @@ template void normalized_to_eul2(const double3x3 &mat,
 template detail::Quaternion<float> normalized_to_quat_with_checks(const float3x3 &mat);
 template detail::Quaternion<double> normalized_to_quat_with_checks(const double3x3 &mat);
 
+template MatBase<float, 2, 2> from_rotation(const detail::AngleRadian<float> &rotation);
+template MatBase<float, 3, 3> from_rotation(const detail::AngleRadian<float> &rotation);
 template MatBase<float, 3, 3> from_rotation(const detail::EulerXYZ<float> &rotation);
 template MatBase<float, 4, 4> from_rotation(const detail::EulerXYZ<float> &rotation);
 template MatBase<float, 3, 3> from_rotation(const detail::Quaternion<float> &rotation);

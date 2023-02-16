@@ -612,6 +612,25 @@ TEST(string, StrFormatIntegerUnits)
   EXPECT_STREQ("-2B", size_str);
 }
 
+TEST(string, StringNLen)
+{
+  EXPECT_EQ(0, BLI_strnlen("", 0));
+  EXPECT_EQ(0, BLI_strnlen("", 1));
+  EXPECT_EQ(0, BLI_strnlen("", 100));
+
+  EXPECT_EQ(0, BLI_strnlen("x", 0));
+  EXPECT_EQ(1, BLI_strnlen("x", 1));
+  EXPECT_EQ(1, BLI_strnlen("x", 100));
+
+  // ü is \xc3\xbc
+  EXPECT_EQ(2, BLI_strnlen("ü", 100));
+
+  EXPECT_EQ(0, BLI_strnlen("this is a longer string", 0));
+  EXPECT_EQ(1, BLI_strnlen("this is a longer string", 1));
+  EXPECT_EQ(5, BLI_strnlen("this is a longer string", 5));
+  EXPECT_EQ(47, BLI_strnlen("This string writes about an agent without name.", 100));
+}
+
 struct WordInfo {
   WordInfo() = default;
   WordInfo(int start, int end) : start(start), end(end)

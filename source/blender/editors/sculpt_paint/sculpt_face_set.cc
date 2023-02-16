@@ -46,7 +46,7 @@
 
 #include "ED_sculpt.h"
 
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -410,7 +410,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArraySpan<bool> select_poly = attributes.lookup_or_default<bool>(
         ".select_poly", ATTR_DOMAIN_FACE, false);
-    threading::parallel_for(IndexRange(mesh->totvert), 4096, [&](const IndexRange range) {
+    threading::parallel_for(select_poly.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
         if (select_poly[i]) {
           ss->face_sets[i] = next_face_set;
@@ -548,7 +548,6 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   if (!ss->epmap) {
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
-                                  edges.data(),
                                   edges.size(),
                                   polys.data(),
                                   polys.size(),

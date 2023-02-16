@@ -11,6 +11,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include <cfloat>
+#include <chrono>
 #include <cmath>
 #include <cstdarg>
 #include <cstddef>
@@ -1016,6 +1017,9 @@ void BKE_modifier_deform_verts(ModifierData *md,
     modwrap_dependsOnNormals(me);
   }
   mti->deformVerts(md, ctx, me, vertexCos, numVerts);
+  if (me) {
+    BKE_mesh_tag_coords_changed(me);
+  }
 }
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
@@ -1041,7 +1045,7 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
     /* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
     BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-    /* 'em' might not exist yet in some cases, just after loading a .blend file, see T57878. */
+    /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
       me = BKE_object_get_editmesh_eval_final(ob_eval);
     }
@@ -1514,3 +1518,28 @@ void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
     }
   }
 }
+
+namespace blender::bke {
+
+using Clock = std::chrono::high_resolution_clock;
+
+static double get_current_time_in_seconds()
+{
+  return std::chrono::duration<double, std::chrono::seconds::period>(
+             Clock::now().time_since_epoch())
+      .count();
+}
+
+ScopedModifierTimer::ScopedModifierTimer(ModifierData &md) : md_(md)
+{
+  start_time_ = get_current_time_in_seconds();
+}
+
+ScopedModifierTimer::~ScopedModifierTimer()
+{
+  const double end_time = get_current_time_in_seconds();
+  const double duration = end_time - start_time_;
+  md_.execution_time = duration;
+}
+
+}  // namespace blender::bke

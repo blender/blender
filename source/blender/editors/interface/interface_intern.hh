@@ -88,11 +88,6 @@ enum {
   /* WARNING: rest of #uiBut.flag in UI_interface.h */
 };
 
-/** #uiBut.dragflag */
-enum {
-  UI_BUT_DRAGPOIN_FREE = (1 << 0),
-};
-
 /** #uiBut.pie_dir */
 enum RadialDirection {
   UI_RADIAL_NONE = -1,
@@ -338,11 +333,13 @@ struct uiButSearch : public uiBut {
   bool results_are_suggestions = false;
 };
 
-/** Derived struct for #UI_BTYPE_DECORATOR */
+/** Derived struct for #UI_BTYPE_DECORATOR
+ * Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects.
+ */
 struct uiButDecorator : public uiBut {
-  struct PointerRNA rnapoin = {};
-  struct PropertyRNA *rnaprop = nullptr;
-  int rnaindex = -1;
+  struct PointerRNA decorated_rnapoin = {};
+  struct PropertyRNA *decorated_rnaprop = nullptr;
+  int decorated_rnaindex = -1;
 };
 
 /** Derived struct for #UI_BTYPE_PROGRESS_BAR. */

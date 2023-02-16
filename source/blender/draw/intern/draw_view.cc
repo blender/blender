@@ -6,6 +6,7 @@
  */
 
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.hh"
 #include "GPU_compute.h"
 #include "GPU_debug.h"
 
@@ -18,9 +19,9 @@ namespace blender::draw {
 void View::sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id)
 {
   data_[view_id].viewmat = view_mat;
-  data_[view_id].viewinv = view_mat.inverted();
+  data_[view_id].viewinv = math::invert(view_mat);
   data_[view_id].winmat = win_mat;
-  data_[view_id].wininv = win_mat.inverted();
+  data_[view_id].wininv = math::invert(win_mat);
 
   is_inverted_ = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 
@@ -243,7 +244,7 @@ void View::compute_procedural_bounds()
 
   GPUShader *shader = DRW_shader_draw_view_finalize_get();
   GPU_shader_bind(shader);
-  GPU_uniformbuf_bind_as_ssbo(culling_, GPU_shader_get_ssbo(shader, "view_culling_buf"));
+  GPU_uniformbuf_bind_as_ssbo(culling_, GPU_shader_get_ssbo_binding(shader, "view_culling_buf"));
   GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
   GPU_compute_dispatch(shader, 1, 1, 1);
   GPU_memory_barrier(GPU_BARRIER_UNIFORM);
@@ -262,7 +263,7 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
 #ifdef DEBUG
   if (debug_freeze) {
     float4x4 persmat = data_freeze_[0].winmat * data_freeze_[0].viewmat;
-    drw_debug_matrix_as_bbox(persmat.inverted(), float4(0, 1, 0, 1));
+    drw_debug_matrix_as_bbox(math::invert(persmat), float4(0, 1, 0, 1));
   }
 #endif
   frozen_ = debug_freeze;
@@ -288,8 +289,8 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
     GPU_shader_uniform_1i(shader, "resource_len", resource_len);
     GPU_shader_uniform_1i(shader, "view_len", view_len_);
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", word_per_draw);
-    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo(shader, "bounds_buf"));
-    GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo(shader, "visibility_buf"));
+    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
+    GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
     GPU_uniformbuf_bind(frozen_ ? data_freeze_ : data_, DRW_VIEW_UBO_SLOT);
     GPU_uniformbuf_bind(frozen_ ? culling_freeze_ : culling_, DRW_VIEW_CULLING_UBO_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(resource_len, DRW_VISIBILITY_GROUP_SIZE), 1, 1);

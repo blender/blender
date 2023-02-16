@@ -21,7 +21,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 #include "draw_cache_impl.h"
 #include "draw_common.h"
 #include "draw_manager.h"

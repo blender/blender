@@ -107,10 +107,12 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->wrapper_type_finalize = mesh_src->runtime->wrapper_type_finalize;
   mesh_dst->runtime->subsurf_runtime_data = mesh_src->runtime->subsurf_runtime_data;
   mesh_dst->runtime->cd_mask_extra = mesh_src->runtime->cd_mask_extra;
-  /* Copy face dot tags, since meshes may be duplicated after a subsurf modifier
-   * or node, but we still need to be able to draw face center vertices. */
-  mesh_dst->runtime->subsurf_face_dot_tags = static_cast<uint32_t *>(
-      MEM_dupallocN(mesh_src->runtime->subsurf_face_dot_tags));
+  /* Copy face dot tags and edge tags, since meshes may be duplicated after a subsurf modifier or
+   * node, but we still need to be able to draw face center vertices and "optimal edges"
+   * differently. The tags may be cleared explicitly when the topology is changed. */
+  mesh_dst->runtime->subsurf_face_dot_tags = mesh_src->runtime->subsurf_face_dot_tags;
+  mesh_dst->runtime->subsurf_optimal_display_edges =
+      mesh_src->runtime->subsurf_optimal_display_edges;
   if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime->deformed_only = true;
@@ -270,7 +272,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_convert_selection_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
-      BKE_mesh_legacy_face_set_from_generic(mesh, poly_layers);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
       BKE_mesh_legacy_sharp_edges_to_flags(mesh);
       BKE_mesh_legacy_attribute_strings_to_flags(mesh);
@@ -292,6 +293,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_uvs_to_struct(mesh, temp_arrays_for_legacy_format, loop_layers);
+      BKE_mesh_legacy_face_set_from_generic(poly_layers);
     }
   }
 
@@ -905,7 +907,7 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  *
  * - Edit-Mesh (#Mesh.edit_mesh)
  *   Since edit-mesh is tied to the objects mode,
- *   which crashes when called in edit-mode, see: T90972.
+ *   which crashes when called in edit-mode, see: #90972.
  */
 static void mesh_clear_geometry(Mesh *mesh)
 {

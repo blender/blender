@@ -1184,7 +1184,7 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
     case OB_WIRE:
     case OB_SOLID:
       if (U.experimental.enable_workbench_next &&
-          strcmp(engine_type->idname, "BLENDER_WORKBENCH_NEXT") == 0) {
+          STREQ(engine_type->idname, "BLENDER_WORKBENCH_NEXT")) {
         use_drw_engine(DRW_engine_viewport_workbench_next_type.draw_engine);
         break;
       }
@@ -1763,7 +1763,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-  /* Fix 3D view "lagging" on APPLE and WIN32+NVIDIA. (See T56996, T61474) */
+  /* Fix 3D view "lagging" on APPLE and WIN32+NVIDIA. (See #56996, #61474) */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GPU_flush();
   }
@@ -2138,7 +2138,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   /* The use of custom pipeline in other thread using the same
    * resources as the main thread (viewport) may lead to data
    * races and undefined behavior on certain drivers. Using
-   * GPU_finish to sync seems to fix the issue. (see T62997) */
+   * GPU_finish to sync seems to fix the issue. (see #62997) */
   eGPUBackendType type = GPU_backend_get_type();
   if (type == GPU_BACKEND_OPENGL) {
     GPU_finish();
@@ -2251,7 +2251,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-  /* Fix 3D view being "laggy" on MACOS and MS-Windows+NVIDIA. (See T56996, T61474) */
+  /* Fix 3D view being "laggy" on MACOS and MS-Windows+NVIDIA. (See #56996, #61474) */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GPU_flush();
   }
@@ -2780,7 +2780,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See T69377) */
+#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See #69377) */
     DRW_render_instance_buffer_finish();
 #else
     DST.buffer_finish_called = true;
@@ -3072,7 +3072,7 @@ void DRW_engines_free(void)
   if (DST.gl_context == NULL) {
     /* Nothing has been setup. Nothing to clear.
      * Otherwise, DRW_opengl_context_enable can
-     * create a context in background mode. (see T62355) */
+     * create a context in background mode. (see #62355) */
     return;
   }
 

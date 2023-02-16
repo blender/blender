@@ -2245,13 +2245,13 @@ static void dynamic_paint_create_uv_surface_direct_cb(void *__restrict userdata,
      * A pixel middle sample isn't enough to find very narrow polygons
      * So using 4 samples of each corner too
      */
-    point[1][0] = (float(tx)) / w;
-    point[1][1] = (float(ty)) / h;
+    point[1][0] = float(tx) / w;
+    point[1][1] = float(ty) / h;
 
     point[2][0] = (float(tx) + 1) / w;
-    point[2][1] = (float(ty)) / h;
+    point[2][1] = float(ty) / h;
 
-    point[3][0] = (float(tx)) / w;
+    point[3][0] = float(tx) / w;
     point[3][1] = (float(ty) + 1) / h;
 
     point[4][0] = (float(tx) + 1) / w;
@@ -6386,7 +6386,7 @@ int dynamicPaint_calculateFrame(
     timescale = 1.0f / (surface->substeps + 1);
 
     for (st = 1; st <= surface->substeps; st++) {
-      float subframe = (float(st)) / (surface->substeps + 1);
+      float subframe = float(st) / (surface->substeps + 1);
       if (!dynamicPaint_doStep(depsgraph, scene, cObject, surface, timescale, subframe)) {
         return 0;
       }

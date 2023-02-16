@@ -95,7 +95,7 @@ struct GPUMatrixUnproject_Precalc {
   /**
    * Result of #projmat_dimensions_db.
    * Using double precision here is important as far clipping ranges
-   * can cause divide-by-zero when using float, see: T66937.
+   * can cause divide-by-zero when using float, see: #66937.
    */
   struct {
     double xmin, xmax;

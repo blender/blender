@@ -14,7 +14,7 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 #include "opensubdiv_converter_capi.h"
 #include "subdiv_converter.h"
 

@@ -244,6 +244,16 @@ void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL
  */
 void BLI_movelisttolist_reverse(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
 /**
+ * Split `original_listbase` after given `vlink`, putting the remaining of the list into given
+ * `split_listbase`.
+ *
+ * \note If `vlink` is nullptr, it is considered as 'the item before the first item', so the whole
+ * list is moved from `original_listbase` to `split_listbase`.
+ */
+void BLI_listbase_split_after(struct ListBase *original_listbase,
+                              struct ListBase *split_listbase,
+                              void *vlink) ATTR_NONNULL(1, 2);
+/**
  * Sets dst to a duplicate of the entire contents of src. dst may be the same as src.
  */
 void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);

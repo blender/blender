@@ -43,9 +43,15 @@ void Manager::begin_sync()
 
 #ifdef DEBUG
   /* Detect uninitialized data. */
-  memset(matrix_buf.current().data(), 0xF0, resource_len_ * sizeof(*matrix_buf.current().data()));
-  memset(bounds_buf.current().data(), 0xF0, resource_len_ * sizeof(*bounds_buf.current().data()));
-  memset(infos_buf.current().data(), 0xF0, resource_len_ * sizeof(*infos_buf.current().data()));
+  memset(matrix_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*matrix_buf.current().data()));
+  memset(bounds_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*bounds_buf.current().data()));
+  memset(infos_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*infos_buf.current().data()));
 #endif
   resource_len_ = 0;
   attribute_len_ = 0;
@@ -108,9 +114,9 @@ void Manager::end_sync()
   GPUShader *shader = DRW_shader_draw_resource_finalize_get();
   GPU_shader_bind(shader);
   GPU_shader_uniform_1i(shader, "resource_len", resource_len_);
-  GPU_storagebuf_bind(matrix_buf.current(), GPU_shader_get_ssbo(shader, "matrix_buf"));
-  GPU_storagebuf_bind(bounds_buf.current(), GPU_shader_get_ssbo(shader, "bounds_buf"));
-  GPU_storagebuf_bind(infos_buf.current(), GPU_shader_get_ssbo(shader, "infos_buf"));
+  GPU_storagebuf_bind(matrix_buf.current(), GPU_shader_get_ssbo_binding(shader, "matrix_buf"));
+  GPU_storagebuf_bind(bounds_buf.current(), GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
+  GPU_storagebuf_bind(infos_buf.current(), GPU_shader_get_ssbo_binding(shader, "infos_buf"));
   GPU_compute_dispatch(shader, thread_groups, 1, 1);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 

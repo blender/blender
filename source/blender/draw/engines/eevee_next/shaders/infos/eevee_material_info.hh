@@ -40,7 +40,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_GPENCIL")
     .vertex_source("eevee_geom_gpencil_vert.glsl")
-    .additional_info("draw_gpencil", "draw_resource_id_varying", "draw_resource_handle");
+    .additional_info("draw_gpencil", "draw_resource_id_varying", "draw_resource_id_new");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .additional_info("eevee_shared")
@@ -49,7 +49,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .additional_info("draw_hair",
                      "draw_curves_infos",
                      "draw_resource_id_varying",
-                     "draw_resource_handle");
+                     "draw_resource_id_new");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_world)
     .additional_info("eevee_shared")
@@ -95,8 +95,8 @@ GPU_SHADER_CREATE_INFO(eevee_render_pass_out)
     .image_out(RBUFS_EMISSION_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img");
 
 GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
-    .storage_buf(7, Qualifier::READ, "vec2", "cryptomatte_object_buf[]", Frequency::PASS)
-    .image_out(7, Qualifier::WRITE, GPU_RGBA32F, "rp_cryptomatte_img");
+    .storage_buf(CRYPTOMATTE_BUF_SLOT, Qualifier::READ, "vec2", "cryptomatte_object_buf[]")
+    .image_out(RBUFS_CRYPTOMATTE_SLOT, Qualifier::WRITE, GPU_RGBA32F, "rp_cryptomatte_img");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
@@ -128,14 +128,13 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
     .fragment_source("eevee_surf_forward_frag.glsl")
-    .additional_info("eevee_cryptomatte_out",
-                     "eevee_light_data",
+    .additional_info("eevee_light_data",
                      "eevee_camera",
                      "eevee_utility_texture",
-                     "eevee_sampling_data"
-                     // "eevee_lightprobe_data",
-                     // "eevee_shadow_data"
+                     "eevee_sampling_data",
+                     "eevee_shadow_data"
                      /* Optionally added depending on the material. */
+                     // "eevee_cryptomatte_out",
                      // "eevee_raytrace_data",
                      // "eevee_transmittance_data",
                      // "eevee_aov_out",
@@ -157,6 +156,23 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
                      "eevee_render_pass_out",
                      "eevee_camera",
                      "eevee_utility_texture");
+
+GPU_SHADER_INTERFACE_INFO(eevee_shadow_iface, "shadow_interp").flat(Type::UINT, "view_id");
+
+GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
+    .define("DRW_VIEW_LEN", "64")
+    .define("MAT_SHADOW")
+    .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_shadow_iface)
+    .sampler(SHADOW_RENDER_MAP_SLOT, ImageType::UINT_2D_ARRAY, "shadow_render_map_tx")
+    .image(SHADOW_ATLAS_SLOT,
+           GPU_R32UI,
+           Qualifier::READ_WRITE,
+           ImageType::UINT_2D,
+           "shadow_atlas_img")
+    .storage_buf(SHADOW_PAGE_INFO_SLOT, Qualifier::READ, "ShadowPagesInfoData", "pages_infos_buf")
+    .fragment_source("eevee_surf_shadow_frag.glsl")
+    .additional_info("eevee_camera", "eevee_utility_texture", "eevee_sampling_data");
 
 #undef image_out
 #undef image_array_out
@@ -210,7 +226,8 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub).define("EEVEE_MATERIAL_STUBS");
     EEVEE_MAT_GEOM_VARIATIONS(name##_world, "eevee_surf_world", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_depth, "eevee_surf_depth", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_deferred, "eevee_surf_deferred", __VA_ARGS__) \
-    EEVEE_MAT_GEOM_VARIATIONS(name##_forward, "eevee_surf_forward", __VA_ARGS__)
+    EEVEE_MAT_GEOM_VARIATIONS(name##_forward, "eevee_surf_forward", __VA_ARGS__) \
+    EEVEE_MAT_GEOM_VARIATIONS(name##_shadow, "eevee_surf_shadow", __VA_ARGS__)
 
 EEVEE_MAT_PIPE_VARIATIONS(eevee_surface, "eevee_material_stub")
 

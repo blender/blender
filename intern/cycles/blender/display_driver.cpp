@@ -105,11 +105,12 @@ GPUShader *BlenderFallbackDisplayShader::bind(int width, int height)
 
   /* Bind shader now to enable uniform assignment. */
   GPU_shader_bind(shader_program_);
-  GPU_shader_uniform_int(shader_program_, image_texture_location_, 0);
+  int slot = 0;
+  GPU_shader_uniform_int_ex(shader_program_, image_texture_location_, 1, 1, &slot);
   float size[2];
   size[0] = width;
   size[1] = height;
-  GPU_shader_uniform_vector(shader_program_, fullscreen_location_, 2, 1, size);
+  GPU_shader_uniform_float_ex(shader_program_, fullscreen_location_, 2, 1, size);
   return shader_program_;
 }
 

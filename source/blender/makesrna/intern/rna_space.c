@@ -2064,7 +2064,7 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain),
                                                PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  /* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
+  /* XXX BCONTEXT_DATA is ugly, but required for lights... See #51318. */
   if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
     sbuts->preview = 1;
   }
@@ -4714,18 +4714,31 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_sculpt_curves_cage", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_CURVES_CAGE);
+  RNA_def_property_ui_text(
+      prop, "Sculpt Curves Cage", "Show original curves that are currently being edited");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_curves_cage_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_curves_cage_opacity");
+  RNA_def_property_ui_text(
+      prop, "Curves Sculpt Cage Opacity", "Opacity of the cage overlay in curves sculpt mode");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "sculpt_mode_face_sets_opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_opacity");
   RNA_def_property_ui_text(prop, "Sculpt Face Sets Opacity", "");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_show_mask", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_sculpt_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
   RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_show_face_sets", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
   RNA_def_property_ui_text(prop, "Sculpt Show Face Sets", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
@@ -6899,6 +6912,12 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_FOLLOW_PREFS,
+       "FOLLOW_PREFS",
+       0,
+       "Follow Preferences",
+       "Use the import method set in the Preferences for this asset library, don't override it "
+       "for this Asset Browser"},
       {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
       {FILE_ASSET_IMPORT_APPEND,
        "APPEND",
@@ -6945,9 +6964,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, asset_import_type_items);
-  RNA_def_property_ui_text(prop, "Import Type", "Determine how the asset will be imported");
-  /* Asset drag info saved by buttons stores the import type, so the space must redraw when import
-   * type changes. */
+  RNA_def_property_ui_text(prop, "Import Method", "Determine how the asset will be imported");
+  /* Asset drag info saved by buttons stores the import method, so the space must redraw when
+   * import type changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 

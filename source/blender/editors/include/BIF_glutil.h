@@ -34,7 +34,7 @@ typedef struct IMMDrawPixelsTexState {
  * To be used before calling #immDrawPixelsTex
  * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
  * You can still set uniforms with:
- * `GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);`
+ * `GPU_shader_uniform_*(shader, "name", value);`
  */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 

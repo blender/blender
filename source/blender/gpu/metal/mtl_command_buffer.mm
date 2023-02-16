@@ -57,17 +57,22 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
     BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs <
                GHOST_ContextCGL::max_command_buffer_count);
 
-    if (G.debug & G_DEBUG_GPU) {
-      /* Debug: Enable Advanced Errors for GPU work execution. */
-      MTLCommandBufferDescriptor *desc = [[MTLCommandBufferDescriptor alloc] init];
-      desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
-      desc.retainedReferences = YES;
-      BLI_assert(context_.queue != nil);
-      active_command_buffer_ = [context_.queue commandBufferWithDescriptor:desc];
+    if (@available(macos 11.0, *)) {
+      if (G.debug & G_DEBUG_GPU) {
+        /* Debug: Enable Advanced Errors for GPU work execution. */
+        MTLCommandBufferDescriptor *desc = [[MTLCommandBufferDescriptor alloc] init];
+        desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
+        desc.retainedReferences = YES;
+        BLI_assert(context_.queue != nil);
+        active_command_buffer_ = [context_.queue commandBufferWithDescriptor:desc];
+      }
     }
-    else {
+
+    /* Ensure command buffer is created if debug command buffer unavailable. */
+    if (active_command_buffer_ == nil) {
       active_command_buffer_ = [context_.queue commandBuffer];
     }
+
     [active_command_buffer_ retain];
     MTLCommandBufferManager::num_active_cmd_bufs++;
 
@@ -164,20 +169,22 @@ bool MTLCommandBufferManager::submit(bool wait)
 
     /* Command buffer execution debugging can return an error message if
      * execution has failed or encountered GPU-side errors. */
-    if (G.debug & G_DEBUG_GPU) {
+    if (@available(macos 11.0, *)) {
+      if (G.debug & G_DEBUG_GPU) {
 
-      NSError *error = [active_command_buffer_ error];
-      if (error != nil) {
-        NSLog(@"%@", error);
-        BLI_assert(false);
+        NSError *error = [active_command_buffer_ error];
+        if (error != nil) {
+          NSLog(@"%@", error);
+          BLI_assert(false);
 
-        @autoreleasepool {
-          const char *stringAsChar = [[NSString stringWithFormat:@"%@", error] UTF8String];
+          @autoreleasepool {
+            const char *stringAsChar = [[NSString stringWithFormat:@"%@", error] UTF8String];
 
-          std::ofstream outfile;
-          outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-          outfile << stringAsChar;
-          outfile.close();
+            std::ofstream outfile;
+            outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
+            outfile << stringAsChar;
+            outfile.close();
+          }
         }
       }
     }
