@@ -53,7 +53,6 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     params.global_scale = 1.0f;
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
-    params.import_normals_as_attribute = true;
     params.merge_verts = false;
 
     /* Import the test file. */
@@ -97,14 +96,10 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         EXPECT_V3_NEAR(verts.last(), exp.vert_last, 0.0001f);
 
         /* Fetch normal data from mesh and test if it matches expectation. */
-        /* This uses the normal import workaround for vertex normals. This should be changed when
-         * Blender supports custom vertex normals. */
         if (BKE_mesh_has_custom_loop_normals(mesh)) {
-          const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
-              &mesh->vdata, CD_PROP_FLOAT3, "Normal");
-          ASSERT_TRUE(vertex_normals != nullptr);
-          float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
-          EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
+          const Span<float3> vertex_normals = mesh->vertex_normals();
+          ASSERT_FALSE(vertex_normals.is_empty());
+          EXPECT_V3_NEAR(vertex_normals[0], exp.normal_first, 0.0001f);
         }
 
         /* Fetch UV data from mesh and test if it matches expectation. */
