@@ -93,7 +93,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 class SocketSearchOp {
  public:
-  std::string socket_name;
+  const StringRef socket_name;
   eNodeSocketDatatype data_type;
   NodeCompareOperation operation;
   NodeCompareMode mode = NODE_COMPARE_MODE_ELEMENT;
@@ -107,40 +107,62 @@ class SocketSearchOp {
   }
 };
 
+static std::optional<eNodeSocketDatatype> get_compare_type_for_operation(
+    const eNodeSocketDatatype type, const NodeCompareOperation operation)
+{
+  switch (type) {
+    case SOCK_BOOLEAN:
+      if (ELEM(operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+        return SOCK_RGBA;
+      }
+      return SOCK_INT;
+    case SOCK_INT:
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+      if (ELEM(operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+        return SOCK_RGBA;
+      }
+      return type;
+    case SOCK_RGBA:
+      if (!ELEM(operation,
+                NODE_COMPARE_COLOR_BRIGHTER,
+                NODE_COMPARE_COLOR_DARKER,
+                NODE_COMPARE_EQUAL,
+                NODE_COMPARE_NOT_EQUAL)) {
+        return SOCK_VECTOR;
+      }
+      return type;
+    case SOCK_STRING:
+      if (!ELEM(operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL)) {
+        return std::nullopt;
+      }
+      return type;
+    default:
+      BLI_assert_unreachable();
+      return std::nullopt;
+  }
+}
+
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
-  if (!ELEM(type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT, SOCK_STRING)) {
+  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  if (!ELEM(type, SOCK_INT, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING)) {
     return;
   }
-
-  const eNodeSocketDatatype mode_type = (type == SOCK_BOOLEAN) ? SOCK_INT : type;
-  const bool string_type = (type == SOCK_STRING);
-
-  const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
-
+  const StringRef socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
   for (const EnumPropertyItem *item = rna_enum_node_compare_operation_items;
        item->identifier != nullptr;
        item++) {
     if (item->name != nullptr && item->identifier[0] != '\0') {
-      if (!string_type &&
-          ELEM(item->value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
-        params.add_item(IFACE_(item->name),
-                        SocketSearchOp{socket_name,
-                                       SOCK_RGBA,
-                                       static_cast<NodeCompareOperation>(item->value)});
-      }
-      else if ((!string_type) ||
-               (string_type && ELEM(item->value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))) {
-        params.add_item(IFACE_(item->name),
-                        SocketSearchOp{socket_name,
-                                       mode_type,
-                                       static_cast<NodeCompareOperation>(item->value)});
+      const NodeCompareOperation operation = NodeCompareOperation(item->value);
+      if (const std::optional<eNodeSocketDatatype> fixed_type = get_compare_type_for_operation(
+              type, operation)) {
+        params.add_item(IFACE_(item->name), SocketSearchOp{socket_name, *fixed_type, operation});
       }
     }
   }
-  /* Add Angle socket. */
-  if (!string_type && params.in_out() == SOCK_IN) {
+
+  if (params.in_out() != SOCK_IN && type != SOCK_STRING) {
     params.add_item(
         IFACE_("Angle"),
         SocketSearchOp{
