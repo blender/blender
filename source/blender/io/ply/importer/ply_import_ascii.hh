@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "BKE_mesh.h"
-
 #include "DNA_mesh_types.h"
 
 #include "IO_ply.h"
