@@ -93,7 +93,7 @@ TEST(nla_track, BKE_nlatrack_remove_strip)
 
 TEST(nla_track, BKE_nlatrack_remove_and_free)
 {
-  AnimData adt{}; 
+  AnimData adt{};
   NlaTrack *track1;
   NlaTrack *track2;
 
