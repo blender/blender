@@ -736,7 +736,7 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
       }
 
       /* call delete on this track - deletes all strips too */
-      BKE_nlatrack_free(&adt->nla_tracks, nlt, true);
+      BKE_nlatrack_remove_and_free(&adt->nla_tracks, nlt, true);
       ale->update = ANIM_UPDATE_DEPS;
     }
   }
