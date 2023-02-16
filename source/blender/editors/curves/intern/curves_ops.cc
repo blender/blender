@@ -1027,7 +1027,7 @@ static void CURVES_OT_select_more(wmOperatorType *ot)
 {
   ot->name = "Select More";
   ot->idname = __func__;
-  ot->description = "Grow the selection by one point.";
+  ot->description = "Grow the selection by one point";
 
   ot->exec = select_more_exec;
   ot->poll = editable_curves_point_domain_poll;
