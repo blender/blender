@@ -832,6 +832,36 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
   return nullptr;
 }
 
+/** The name of the active tool is "builtin_brush." concatenated with the returned string. */
+static blender::StringRefNull curves_active_tool_name_get(const eBrushCurvesSculptTool tool)
+{
+  switch (tool) {
+    case CURVES_SCULPT_TOOL_COMB:
+      return "comb";
+    case CURVES_SCULPT_TOOL_DELETE:
+      return "delete";
+    case CURVES_SCULPT_TOOL_SNAKE_HOOK:
+      return "snake_hook";
+    case CURVES_SCULPT_TOOL_ADD:
+      return "add";
+    case CURVES_SCULPT_TOOL_GROW_SHRINK:
+      return "grow_shrink";
+    case CURVES_SCULPT_TOOL_SELECTION_PAINT:
+      return "selection_paint";
+    case CURVES_SCULPT_TOOL_PINCH:
+      return "pinch";
+    case CURVES_SCULPT_TOOL_SMOOTH:
+      return "smooth";
+    case CURVES_SCULPT_TOOL_PUFF:
+      return "puff";
+    case CURVES_SCULPT_TOOL_DENSITY:
+      return "density";
+    case CURVES_SCULPT_TOOL_SLIDE:
+      return "slide";
+  }
+  return "";
+}
+
 static bool brush_generic_tool_set(bContext *C,
                                    Main *bmain,
                                    Paint *paint,
@@ -869,8 +899,14 @@ static bool brush_generic_tool_set(bContext *C,
      * tool_name again. */
     int tool_result = brush_tool(brush, paint->runtime.tool_offset);
     ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
-    const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-    RNA_enum_name_from_value(items, tool_result, &tool_name);
+
+    if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
+      tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
+    }
+    else {
+      const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+      RNA_enum_name_from_value(items, tool_result, &tool_name);
+    }
 
     char tool_id[MAX_NAME];
     SNPRINTF(tool_id, "builtin_brush.%s", tool_name);
@@ -921,8 +957,14 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   if (paint == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-  RNA_enum_name_from_value(items, tool, &tool_name);
+
+  if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
+    tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
+  }
+  else {
+    const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+    RNA_enum_name_from_value(items, tool, &tool_name);
+  }
 
   if (brush_generic_tool_set(C, bmain, paint, tool, tool_name, create_missing, toggle)) {
     return OPERATOR_FINISHED;
