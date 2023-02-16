@@ -66,6 +66,22 @@ using blender::Span;
 /* join selected meshes into the active mesh, context sensitive
  * return 0 if no join is made (error) and 1 if the join is done */
 
+static const char *get_id_name(int elemtype)
+{
+  switch (elemtype) {
+    case BM_VERT:
+      return "vertex_id";
+    case BM_EDGE:
+      return "edge_id";
+    case BM_LOOP:
+      return "loop_id";
+    case BM_FACE:
+      return "face_id";
+    default:
+      return nullptr;
+  }
+}
+
 static void get_id_range(Mesh *mesh,
                          CustomData *vdata,
                          CustomData *edata,
@@ -83,7 +99,8 @@ static void get_id_range(Mesh *mesh,
   int min_id = 0, max_id = 0;
 
   for (int i = 0; i < 4; i++) {
-    int *ids = (int *)CustomData_get_layer(datas[i], CD_MESH_ID);
+    const int *ids = (const int *)CustomData_get_layer_named(
+        datas[i], CD_PROP_INT32, get_id_name(1 << i));
     if (!ids) {
       continue;
     }
@@ -124,7 +141,7 @@ static void handle_missing_id_layers(Mesh *src,
                                      int totpoly)
 {
   const CustomData *src_datas[4] = {&src->vdata, &src->edata, &src->ldata, &src->pdata};
-  const CustomData *dst_datas[4] = {vdata, edata, ldata, pdata};
+  CustomData *dst_datas[4] = {vdata, edata, ldata, pdata};
   int srctots[4] = {src->totvert, src->totedge, src->totloop, src->totpoly};
   int dsttots[4] = {totvert, totedge, totloop, totpoly};
 
@@ -157,17 +174,19 @@ static void handle_missing_id_layers(Mesh *src,
 
   for (int i = 0; i < 4; i++) {
     const CustomData *srcdata = src_datas[i];
-    const CustomData *dstdata = dst_datas[i];
+    CustomData *dstdata = dst_datas[i];
 
-    const bool haveid_src = CustomData_has_layer(srcdata, CD_MESH_ID);
-    const bool haveid_dst = CustomData_has_layer(dstdata, CD_MESH_ID);
+    const char *idname = get_id_name(1 << i);
+    const bool haveid_src = CustomData_get_layer_named(srcdata, CD_PROP_INT32, idname);
+    const bool haveid_dst = CustomData_get_layer_named(dstdata, CD_PROP_INT32, idname);
 
     if (haveid_dst && haveid_src) {
       // assign ids
       int offset = dst_range[1] - src_range[0] + 1;
 
-      int *srcids = (int *)CustomData_get_layer(srcdata, CD_MESH_ID);
-      int *dstids = (int *)CustomData_get_layer(dstdata, CD_MESH_ID);
+      const int *srcids = (const int *)CustomData_get_layer_named(srcdata, CD_PROP_INT32, idname);
+      int *dstids = (int *)CustomData_get_layer_named_for_write(
+          dstdata, CD_PROP_INT32, idname, dsttots[i]);
 
       int start = dsttots[i];
       int end = start + srctots[i];
@@ -180,7 +199,8 @@ static void handle_missing_id_layers(Mesh *src,
     }
     else if (haveid_dst) {
       int curid = dst_range[1] + 1;
-      int *dstids = (int *)CustomData_get_layer(dstdata, CD_MESH_ID);
+      int *dstids = (int *)CustomData_get_layer_named_for_write(
+          dstdata, CD_PROP_INT32, idname, dsttots[i]);
 
       int start = dsttots[i];
       int end = start + srctots[i];

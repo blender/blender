@@ -1136,8 +1136,7 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh *source, bool reference)
   return result;
 }
 
-BMesh *BKE_mesh_to_bmesh_ex(const Object *ob,
-                            const Mesh *me,
+BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
                             const struct BMeshCreateParams *create_params,
                             const struct BMeshFromMeshParams *convert_params)
 {
@@ -1160,7 +1159,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
   bmesh_from_mesh_params.active_shapekey = ob->shapenr;
-  return BKE_mesh_to_bmesh_ex(ob, me, params, &bmesh_from_mesh_params);
+  return BKE_mesh_to_bmesh_ex(me, params, &bmesh_from_mesh_params);
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,

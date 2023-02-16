@@ -48,7 +48,7 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
   from_mesh_params.calc_face_normal = true;
   from_mesh_params.calc_vert_normal = true;
   from_mesh_params.cd_mask_extra = cd_mask_extra;
-  BMesh *bm = BKE_mesh_to_bmesh_ex(nullptr, &mesh, &create_params, &from_mesh_params);
+  BMesh *bm = BKE_mesh_to_bmesh_ex(&mesh, &create_params, &from_mesh_params);
 
   /* Tag faces to be triangulated from the selection mask. */
   BM_mesh_elem_table_ensure(bm, BM_FACE);

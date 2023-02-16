@@ -21,7 +21,6 @@
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#
 #include "BLI_asan.h"
 #include "BLI_mempool.h"         /* own include */
 #include "BLI_mempool_private.h" /* own include */

@@ -63,7 +63,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   bmesh_from_mesh_params.calc_vert_normal = false;
   bmesh_from_mesh_params.cd_mask_extra = cd_mask_extra;
 
-  bm = BKE_mesh_to_bmesh_ex(nullptr, mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   BM_mesh_triangulate(
       bm, quad_method, ngon_method, min_vertices, false, nullptr, nullptr, nullptr);

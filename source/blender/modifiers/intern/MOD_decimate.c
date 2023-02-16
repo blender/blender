@@ -158,8 +158,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  bm = BKE_mesh_to_bmesh_ex(NULL,
-                            mesh,
+  bm = BKE_mesh_to_bmesh_ex(mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = calc_face_normal,

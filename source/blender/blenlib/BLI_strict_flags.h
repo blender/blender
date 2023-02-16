@@ -33,7 +33,6 @@
 #    pragma clang diagnostic error "-Wsign-conversion"
 #    pragma clang diagnostic error "-Wsign-compare"
 #    pragma clang diagnostic error "-Wimplicit-float-conversion"
-#    pragma clang diagnostic error "-Wimplicit-int-conversion"
 #    pragma clang diagnostic error "-Wimplicit-int"
 #    pragma clang diagnostic error "-Wshadow"
 /* Normal MSVC */

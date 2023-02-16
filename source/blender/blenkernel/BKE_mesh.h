@@ -6,10 +6,6 @@
  * \ingroup bke
  */
 
-#include "BKE_attribute.h"
-#include "BKE_customdata.h"
-#include "BKE_mesh_types.h"
-
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
@@ -80,8 +76,7 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh);
 
 /* *** mesh.c *** */
 
-struct BMesh *BKE_mesh_to_bmesh_ex(const struct Object *ob,
-                                   const struct Mesh *me,
+struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,
                                    const struct BMeshCreateParams *create_params,
                                    const struct BMeshFromMeshParams *convert_params);
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me,

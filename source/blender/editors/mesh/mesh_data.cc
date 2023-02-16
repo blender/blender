@@ -715,66 +715,6 @@ static int mesh_customdata_add_exec__internal(bContext *C, char htype, int type)
 }
 
 /* Clear Mask */
-static bool mesh_customdata_ids_clear_poll(bContext *C)
-{
-  Object *ob = ED_object_context(C);
-  if (ob && ob->type == OB_MESH) {
-    Mesh *me = (Mesh *)ob->data;
-
-    if (me->edit_mesh) {
-      return false;
-    }
-
-    /* special case - can't run this if we're in sculpt mode */
-    if (ob->mode & OB_MODE_SCULPT) {
-      return false;
-    }
-
-    if (!ID_IS_LINKED(me)) {
-      bool ret = CustomData_has_layer(GET_CD_DATA(me, vdata), CD_MESH_ID);
-      ret |= CustomData_has_layer(GET_CD_DATA(me, edata), CD_MESH_ID);
-      ret |= CustomData_has_layer(GET_CD_DATA(me, ldata), CD_MESH_ID);
-      ret |= CustomData_has_layer(GET_CD_DATA(me, pdata), CD_MESH_ID);
-
-      return ret;
-    }
-  }
-  return false;
-}
-static int mesh_customdata_ids_clear_exec(bContext *C, wmOperator * /* op */)
-{
-  bool ret = false;
-
-  for (int i = 0; i < 4; i++) {
-    int type = 1 << i;
-
-    ret |= mesh_customdata_clear_exec__internal(C, type, CD_MESH_ID);
-  }
-
-  if (ret) {
-    return OPERATOR_FINISHED;
-  }
-
-  return OPERATOR_CANCELLED;
-}
-
-void MESH_OT_customdata_ids_clear(wmOperatorType *ot)
-{
-
-  /* identifiers */
-  ot->name = "Clear Element ID Data";
-  ot->idname = "MESH_OT_customdata_ids_clear";
-  ot->description = "Clear element ID layers";
-
-  /* api callbacks */
-  ot->exec = mesh_customdata_ids_clear_exec;
-  ot->poll = mesh_customdata_ids_clear_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/* Clear Mask */
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);

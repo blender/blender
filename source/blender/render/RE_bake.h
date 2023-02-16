@@ -13,7 +13,6 @@ struct Depsgraph;
 struct ImBuf;
 struct Mesh;
 struct Render;
-struct MLoopUV;
 
 #ifdef __cplusplus
 extern "C" {
