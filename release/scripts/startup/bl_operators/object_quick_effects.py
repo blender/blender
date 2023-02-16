@@ -111,6 +111,7 @@ class QuickFur(ObjectModeOperator, Operator):
             bpy.ops.wm.append(directory=assets_directory,
                               filename=name,
                               use_recursive=True,
+                              clear_asset_data=True,
                               do_reuse_local_id=True)
         generate_group = bpy.data.node_groups["Generate Hair Curves"]
         interpolate_group = bpy.data.node_groups["Interpolate Hair Curves"]
