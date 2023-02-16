@@ -112,7 +112,7 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
     return false;
   }
 
-  LISTBASE_FOREACH (const bNode *, node, &grouptree->nodes) {
+  for (const bNode *node : grouptree->all_nodes()) {
     if (node->typeinfo->poll_instance &&
         !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint)) {
       return false;
