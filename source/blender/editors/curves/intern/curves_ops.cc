@@ -1097,24 +1097,7 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
 {
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    const eAttrDomain domain = eAttrDomain(curves_id->selection_domain);
-    const bke::AttributeAccessor attributes = curves.attributes();
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(".selection", domain, false);
-    const int domain_size_orig = attributes.domain_size(domain);
-    Vector<int64_t> indices;
-    const IndexMask mask = index_mask_ops::find_indices_from_virtual_array(
-        selection.index_range(), selection, 4096, indices);
-    switch (domain) {
-      case ATTR_DOMAIN_POINT:
-        curves.remove_points(mask);
-        break;
-      case ATTR_DOMAIN_CURVE:
-        curves.remove_curves(mask);
-        break;
-      default:
-        BLI_assert_unreachable();
-    }
-    if (attributes.domain_size(domain) != domain_size_orig) {
+    if (remove_selection(curves, eAttrDomain(curves_id->selection_domain))) {
       DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
     }
