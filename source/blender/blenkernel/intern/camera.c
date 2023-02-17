@@ -159,12 +159,8 @@ static void camera_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-      BLO_expand(expander, bgpic->ima);
-    }
-    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-      BLO_expand(expander, bgpic->ima);
-    }
+    BLO_expand(expander, bgpic->ima);
+    BLO_expand(expander, bgpic->clip);
   }
 }
 
