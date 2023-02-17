@@ -786,7 +786,7 @@ static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
   RNA_float_set(op->ptr, "strength", initial_strength);
 }
 
-static void sculpt_mesh_filter_end(bContext *C, wmOperator *op)
+static void sculpt_mesh_filter_end(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1024,7 +1024,7 @@ void SCULPT_mesh_filter_properties(wmOperatorType *ot)
   RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
 }
 
-static void sculpt_mesh_ui_exec(bContext * /* C */, wmOperator *op)
+static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
