@@ -52,7 +52,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(Object *ob,
   bmesh_from_mesh_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
   bmesh_from_mesh_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
 
-  bm = BKE_mesh_to_bmesh_ex(nullptr, mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   /* Define bisecting plane (aka mirror plane). */
   float plane[4];
@@ -97,7 +97,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   bmesh_from_mesh_params.calc_vert_normal = true;
   bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_SHAPEKEY;
 
-  BMesh *bm = BKE_mesh_to_bmesh_ex(nullptr, mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
