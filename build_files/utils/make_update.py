@@ -40,6 +40,8 @@ def parse_arguments():
     parser.add_argument("--use-centos-libraries", action="store_true")
     parser.add_argument("--use-linux-libraries", action="store_true")
 
+    parser.add_argument("--architecture", type=str, choices=("x86_64", "arm64",))
+
     return parser.parse_args()
 
 
@@ -47,6 +49,16 @@ def get_blender_git_root():
     return check_output([args.git_command, "rev-parse", "--show-toplevel"])
 
 # Setup for precompiled libraries and tests from svn.
+
+def get_effective_architecture(args):
+    if args.architecture:
+        return args.architecture
+
+    # Check platform.version to detect arm64 with x86_64 python binary.
+    if "ARM64" in platform.version():
+        return "arm64"
+
+    return platform.machine().lower()
 
 
 def svn_update(args, release_version):
@@ -56,11 +68,12 @@ def svn_update(args, release_version):
     svn_url = make_utils.svn_libraries_base_url(release_version)
 
     # Checkout precompiled libraries
+    architecture = get_effective_architecture(args)
     if sys.platform == 'darwin':
-        if platform.machine() == 'x86_64':
-            lib_platform = "darwin"
-        elif platform.machine() == 'arm64':
+        if architecture == 'arm64':
             lib_platform = "darwin_arm64"
+        elif architecture == 'x86_64':
+            lib_platform = "darwin"
         else:
             lib_platform = None
     elif sys.platform == 'win32':
