@@ -23,8 +23,6 @@ extern "C" {
 /** Blender release cycle stage: alpha/beta/rc/release. */
 #define BLENDER_VERSION_CYCLE alpha
 
-/* TODO proper version bump. */
-
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
 #define BLENDER_FILE_SUBVERSION 0
