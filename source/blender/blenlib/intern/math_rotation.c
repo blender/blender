@@ -1516,8 +1516,9 @@ void compatible_eul(float eul[3], const float oldrot[3])
 
   uint j = 1, k = 2;
   for (i = 0; i < 3; j = k, k = i++) {
-    /* Check if this axis of rotations larger than 180 degrees and the other two are small. */
-    if (fabsf(deul[i]) > 3.2f && fabsf(deul[j]) < 1.6f && fabsf(deul[k]) < 1.6f) {
+    /* Check if this axis of rotations larger than 180 degrees and
+     * the others are smaller than 90 degrees. */
+    if (fabsf(deul[i]) > M_PI && fabsf(deul[j]) < M_PI_2 && fabsf(deul[k]) < M_PI_2) {
       if (deul[i] > 0.0f) {
         eul[i] -= pi_x2;
       }
