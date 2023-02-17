@@ -25,7 +25,7 @@ def build_default_empty_geometry_node_group(name):
 
 def geometry_node_group_empty_new():
     group = build_default_empty_geometry_node_group(data_("Geometry Nodes"))
-    group.links.new(group.nodes["Group Input"].outputs[0], group.nodes["Group Output"].inputs[0])
+    group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
     return group
 
 
@@ -121,8 +121,8 @@ class MoveModifierToNodes(Operator):
         group_node.node_tree = old_group
         group_node.update()
 
-        group_input_node = group.nodes["Group Input"]
-        group_output_node = group.nodes["Group Output"]
+        group_input_node = group.nodes[data_("Group Input")]
+        group_output_node = group.nodes[data_("Group Output")]
 
         # Copy default values for inputs and create named attribute input nodes.
         input_nodes = []
@@ -173,6 +173,7 @@ class MoveModifierToNodes(Operator):
                     first_geometry_output = group_node_output
 
         # Adjust locations of store named attribute nodes and move group output.
+        # Note that the node group has its sockets names translated, while the built-in nodes don't.
         if store_nodes:
             for i, node in enumerate(store_nodes):
                 node.location.x = (i + 1) * 175
@@ -182,9 +183,10 @@ class MoveModifierToNodes(Operator):
             group.links.new(first_geometry_output, store_nodes[0].inputs["Geometry"])
             for i in range(len(store_nodes) - 1):
                 group.links.new(store_nodes[i].outputs["Geometry"], store_nodes[i + 1].inputs["Geometry"])
-            group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs["Geometry"])
+
+            group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs[data_("Geometry")])
         else:
-            group.links.new(first_geometry_output, group_output_node.inputs["Geometry"])
+            group.links.new(first_geometry_output, group_output_node.inputs[data_("Geometry")])
 
         modifier.node_group = group
 
