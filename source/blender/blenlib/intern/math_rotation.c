@@ -1491,14 +1491,17 @@ void rotate_eul(float beul[3], const char axis, const float angle)
 void compatible_eul(float eul[3], const float oldrot[3])
 {
   /* When the rotation exceeds 180 degrees, it can be wrapped by 360 degrees
-   * to produce a closer match, see !104856. */
+   * to produce a closer match.
+   * NOTE: Values between `pi` & `2 * pi` work, where `pi` has the lowest number of
+   * discontinuities and values approaching `2 * pi` center the resulting rotation around zero,
+   * at the expense of the result being less compatible, see !104856. */
   const float pi_thresh = (float)M_PI;
   const float pi_x2 = (2.0f * (float)M_PI);
 
   float deul[3];
   uint i;
 
-  /* correct differences of about 360 degrees first */
+  /* Correct differences around 360 degrees first. */
   for (i = 0; i < 3; i++) {
     deul[i] = eul[i] - oldrot[i];
     if (deul[i] > pi_thresh) {
@@ -1513,7 +1516,7 @@ void compatible_eul(float eul[3], const float oldrot[3])
 
   uint j = 1, k = 2;
   for (i = 0; i < 3; j = k, k = i++) {
-    /* is 1 of the axis rotations larger than 180 degrees and the other small? */
+    /* Check if this axis of rotations larger than 180 degrees and the other two are small. */
     if (fabsf(deul[i]) > 3.2f && fabsf(deul[j]) < 1.6f && fabsf(deul[k]) < 1.6f) {
       if (deul[i] > 0.0f) {
         eul[i] -= pi_x2;
