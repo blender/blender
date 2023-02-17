@@ -891,6 +891,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             col.operator("sculpt.detail_flood_fill")
 
         col.prop(sculpt, "use_smooth_shading")
+        col.prop(sculpt, "use_flat_vcol_shading")
+
 
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):

@@ -406,7 +406,7 @@ static ID **node_owner_pointer_get(ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
-  /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
+  /* TODO: Sort this NO_MAIN or not for embedded node trees. See #86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -542,7 +542,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         /* pass */
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
-        /* Simple forward compatibility for fix for T50736.
+        /* Simple forward compatibility for fix for #50736.
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = (NodeGlare *)node->storage;
         /* Not in undo case. */
@@ -838,7 +838,7 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
   IDP_BlendReadLib(reader, lib, sock->prop);
 
   /* This can happen for all socket types when a file is saved in an older version of Blender than
-   * it was originally created in (T86298). Some socket types still require a default value. The
+   * it was originally created in (#86298). Some socket types still require a default value. The
    * default value of those sockets will be created in `ntreeSetTypes`. */
   if (sock->default_value == nullptr) {
     return;
@@ -3109,7 +3109,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
    * since it is a localized copy itself (no risk of accessing free'd
-   * data in main, see T37939). */
+   * data in main, see #37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;
   }

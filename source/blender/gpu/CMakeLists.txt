@@ -70,7 +70,7 @@ set(SRC
   intern/gpu_select_pick.c
   intern/gpu_select_sample_query.cc
   intern/gpu_shader.cc
-  intern/gpu_shader_builtin.c
+  intern/gpu_shader_builtin.cc
   intern/gpu_shader_create_info.cc
   intern/gpu_shader_dependency.cc
   intern/gpu_shader_interface.cc
@@ -104,6 +104,7 @@ set(SRC
   GPU_primitive.h
   GPU_select.h
   GPU_shader.h
+  GPU_shader_builtin.h
   GPU_shader_shared.h
   GPU_state.h
   GPU_storage_buffer.h
@@ -195,6 +196,7 @@ set(VULKAN_SRC
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_memory.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
@@ -211,6 +213,7 @@ set(VULKAN_SRC
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_memory.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
@@ -303,6 +306,10 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
+if(WITH_VULKAN_GUARDEDALLOC)
+  add_definitions(-DWITH_VULKAN_GUARDEDALLOC)
+endif()
+
 set(MSL_SRC
   shaders/metal/mtl_shader_defines.msl
   shaders/metal/mtl_shader_common.msl
@@ -371,7 +378,6 @@ set(GLSL_SRC
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
   shaders/gpu_shader_point_varying_color_frag.glsl
-  shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
   shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl

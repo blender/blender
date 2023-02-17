@@ -565,8 +565,8 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
 /**
  * \note this function can be extended to include other exotic cases as they arise.
  *
- * This function was added in response to bug T25715.
- * This is going to be a long list T42426.
+ * This function was added in response to bug #25715.
+ * This is going to be a long list #42426.
  */
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
@@ -1083,7 +1083,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
          * so the box needs to small enough not to let the cursor escape the window but large
          * enough that the cursor isn't being warped every time.
          * If this was not the case it would be less trouble to simply warp the cursor to the
-         * center of the screen on every motion, see: D16558 (alternative fix for T102346). */
+         * center of the screen on every motion, see: D16558 (alternative fix for #102346). */
         const int32_t subregion_div = 4; /* One quarter of the region. */
         const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
         const int32_t center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
@@ -1209,7 +1209,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
     const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
 
-    /* We can be here with !key_down if processing dead keys (diacritics). See T103119. */
+    /* We can be here with !key_down if processing dead keys (diacritics). See #103119. */
 
     /* No text with control key pressed (Alt can be used to insert special characters though!). */
     if (ctrl_pressed && !alt_pressed) {

@@ -121,7 +121,7 @@ if(WITH_WINDOWS_BUNDLE_CRT)
   include(InstallRequiredSystemLibraries)
 
   # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
-  # redirects for this dll, for details see T88813.
+  # redirects for this dll, for details see #88813.
   foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
     string(FIND ${lib} "ucrtbase" pos)
     if(NOT pos EQUAL -1)
@@ -295,7 +295,7 @@ unset(MATERIALX_LIB_FOLDER_EXISTS)
 if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
    NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
    NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
-  add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
+  add_compile_options(/experimental:external /external:I "${LIBDIR}" /external:W0)
 endif()
 
 # Add each of our libraries to our cmake_prefix_path so find_package() could work

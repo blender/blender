@@ -332,7 +332,7 @@ void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry)
 #ifdef WIN32
     /* XXX Special case, always consider those as valid.
      * Thanks to Windows, which can spend five seconds to perform a mere stat() call on those paths
-     * See T43684. */
+     * See #43684. */
     const char *exceptions[] = {"A:\\", "B:\\", NULL};
     const size_t exceptions_len[] = {strlen(exceptions[0]), strlen(exceptions[1]), 0};
     int i;
@@ -653,7 +653,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
         /* Skip over floppy disks A & B. */
         if (i > 1) {
-          /* Friendly volume descriptions without using SHGetFileInfoW (T85689). */
+          /* Friendly volume descriptions without using SHGetFileInfoW (#85689). */
           BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
           IShellFolder *desktop;
           if (SHGetDesktopFolder(&desktop) == S_OK) {

@@ -367,7 +367,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
         if (socket->link != nullptr && !(socket->link->flag & NODE_LINK_MUTED)) {
           bNodeLink *link = socket->link;
-          /* Fix the case where the socket is actually converting the data. (see T71374)
+          /* Fix the case where the socket is actually converting the data. (see #71374)
            * We only do the case of lossy conversion to float. */
           if ((socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
             if (link->fromsock->type == SOCK_RGBA) {
@@ -439,7 +439,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup->nodes) {
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
-     * We must delay removal since sockets will reference this node. see: T52092 */
+     * We must delay removal since sockets will reference this node. see: #52092 */
     if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
       BLI_linklist_prepend(&group_interface_nodes, node);
     }
@@ -448,7 +448,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     BLI_addtail(&ntree->nodes, node);
     nodeUniqueID(ntree, node);
     /* ensure unique node name in the node tree */
-    /* This is very slow and it has no use for GPU nodetree. (see T70609) */
+    /* This is very slow and it has no use for GPU nodetree. (see #70609) */
     // nodeUniqueName(ntree, node);
   }
   ngroup->runtime->nodes_by_id.clear();

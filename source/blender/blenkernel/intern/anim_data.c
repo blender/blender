@@ -1461,7 +1461,7 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, AnimData *adt)
 
   /* relink active track/strip - even though strictly speaking this should only be used
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
-   * undo, but also since users may not exit tweak-mode before saving (T24535).
+   * undo, but also since users may not exit tweak-mode before saving (#24535).
    */
   /* TODO: it's not really nice that anyone should be able to save the file in this
    *       state, but it's going to be too hard to enforce this single case. */

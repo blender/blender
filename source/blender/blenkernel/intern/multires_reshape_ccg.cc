@@ -64,7 +64,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
          * used by sculpt changes. In other use cases the code might not catch inconsistency and
          * silently do wrong decision. */
         /* NOTE: There is a known bug in Undo code that results in first Sculpt step
-         * after a Memfile one to never be undone (see T83806). This might be the root cause of
+         * after a Memfile one to never be undone (see #83806). This might be the root cause of
          * this inconsistency. */
         if (reshape_level_key.has_mask && grid_element.mask != nullptr) {
           *grid_element.mask = *CCG_grid_elem_mask(&reshape_level_key, ccg_grid, x, y);

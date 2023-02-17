@@ -145,7 +145,7 @@ void main()
 /* Only supported attrib for world/background shaders. */
 vec3 attr_load_orco(vec4 orco)
 {
-  /* Retain precision better than g_data.P (see T99128). */
+  /* Retain precision better than g_data.P (see #99128). */
   return -normal_view_to_world(viewCameraVec(viewPosition));
 }
 /* Unsupported. */

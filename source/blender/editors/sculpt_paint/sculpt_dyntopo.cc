@@ -593,7 +593,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     }
   }
 
-  /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
+  /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
 
   if (!ss->bm) {

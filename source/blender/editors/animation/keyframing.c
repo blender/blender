@@ -2077,7 +2077,7 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 
   /* Show a menu listing all keying-sets, the enum is expanded here to make use of the
    * operator that accesses the keying-set by name. This is important for the ability
-   * to assign shortcuts to arbitrarily named keying sets. See T89560.
+   * to assign shortcuts to arbitrarily named keying sets. See #89560.
    * These menu items perform the key-frame insertion (not this operator)
    * hence the #OPERATOR_INTERFACE return. */
   uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
@@ -2966,7 +2966,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
 
   /* check own animation data - specifically, the action it contains */
   if ((ob->adt) && (ob->adt->action)) {
-    /* T41525 - When the active action is a NLA strip being edited,
+    /* #41525 - When the active action is a NLA strip being edited,
      * we need to correct the frame number to "look inside" the
      * remapped action
      */
@@ -3167,7 +3167,7 @@ bool ED_autokeyframe_property(bContext *C,
       if (only_if_property_keyed) {
         /* NOTE: We use rnaindex instead of fcu->array_index,
          *       because a button may control all items of an array at once.
-         *       E.g., color wheels (see T42567). */
+         *       E.g., color wheels (see #42567). */
         BLI_assert((fcu->array_index == rnaindex) || (rnaindex == -1));
       }
       changed = insert_keyframe(bmain,

@@ -500,7 +500,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
     float pivot_local[3];
     if (rotate_mode != TRANSLATE_ROTATE_OFF) {
       copy_v3_v3(pivot_local, t->tsnap.snap_source);
-      /* The pivot has to be in local-space (see T49494) */
+      /* The pivot has to be in local-space (see #49494) */
       if (tc->use_local_mat) {
         mul_m4_v3(tc->imat, pivot_local);
       }
@@ -693,7 +693,7 @@ void initTranslation(TransInfo *t)
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
   if (t->spacetype == SPACE_VIEW3D) {
-    /* Handling units makes only sense in 3Dview... See T38877. */
+    /* Handling units makes only sense in 3Dview... See #38877. */
     t->num.unit_type[0] = B_UNIT_LENGTH;
     t->num.unit_type[1] = B_UNIT_LENGTH;
     t->num.unit_type[2] = B_UNIT_LENGTH;

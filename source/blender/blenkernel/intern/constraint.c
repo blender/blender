@@ -141,7 +141,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           /* NOTE: Versions <= 2.76 assumed that "default" order
            *       would always get used, so we may seem some rig
            *       breakage as a result. However, this change here
-           *       is needed to fix T46599
+           *       is needed to fix #46599
            */
           cob->rotOrder = ob->rotmode;
         }
@@ -1222,7 +1222,7 @@ static void vectomat(const float vec[3],
   }
 
   /* NOTE: even though 'n' is normalized, don't use 'project_v3_v3v3_normalized' below
-   * because precision issues cause a problem in near degenerate states, see: T53455. */
+   * because precision issues cause a problem in near degenerate states, see: #53455. */
 
   /* project the up vector onto the plane specified by n */
   project_v3_v3v3(proj, u, n); /* first u onto n... */
@@ -1953,7 +1953,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* To allow compatible rotations, must get both rotations in the order of the owner... */
     mat4_to_eulO(obeul, rot_order, cob->matrix);
     /* We must get compatible eulers from the beginning because
-     * some of them can be modified below (see bug T21875).
+     * some of them can be modified below (see bug #21875).
      * Additionally, since this constraint is based on euler rotation math, it doesn't work well
      * with shear. The Y axis is chosen as the main axis when we orthogonalize the matrix because
      * constraints are used most commonly on bones. */
@@ -4024,7 +4024,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         mat4_to_size(dvec, ct->matrix);
 
         if (is_negative_m4(ct->matrix)) {
-          /* Bugfix T27886: (this is a limitation that riggers will have to live with for now).
+          /* Bugfix #27886: (this is a limitation that riggers will have to live with for now).
            * We can't be sure which axis/axes are negative,
            * though we know that something is negative.
            * Assume we don't care about negativity of separate axes. */
@@ -4307,7 +4307,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
           /* Transform normal into requested space */
           /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
            * object case, because SpaceTransform also takes it into account when handling normals.
-           * See T42447. */
+           * See #42447. */
           unit_m4(mat);
           BKE_constraint_mat_convertspace(
               cob->ob, cob->pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
@@ -5605,7 +5605,7 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
 {
   const short type = con->type;
   if (BKE_constraint_remove(list, con)) {
-    /* ITASC needs to be rebuilt once a constraint is removed T26920. */
+    /* ITASC needs to be rebuilt once a constraint is removed #26920. */
     if (clear_dep && ELEM(type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
       BIK_clear_data(ob->pose);
     }
@@ -5831,7 +5831,7 @@ static bConstraint *add_new_constraint(Object *ob,
     }
     case CONSTRAINT_TYPE_ACTION: {
       /* The Before or Split modes require computing in local space, but
-       * for objects the Local space doesn't make sense (T78462, D6095 etc).
+       * for objects the Local space doesn't make sense (#78462, D6095 etc).
        * So only default to Before (Split) if the constraint is on a bone. */
       if (pchan) {
         bActionConstraint *data = con->data;
@@ -6422,7 +6422,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
      * - all this happens in world-space to prevent any weirdness creeping in
-     *   (T26014 and T25725), since some constraints may not convert the solution back to the input
+     *   (#26014 and #25725), since some constraints may not convert the solution back to the input
      *   space before blending but all are guaranteed to end up in good "world-space" result.
      */
     /* NOTE: all kind of stuff here before (caused trouble), much easier to just interpolate,

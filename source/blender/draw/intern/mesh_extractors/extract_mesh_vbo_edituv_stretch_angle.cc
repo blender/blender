@@ -229,7 +229,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
    * the data for the mesh when switching to the `UV Editing` workspace, and therefore the position
    * buffer might not be created yet. In this case, create a buffer it locally, the subdivision
    * data should already be evaluated if we are here. This can happen if the subsurf modifier is
-   * only enabled in edit-mode. See T96338. */
+   * only enabled in edit-mode. See #96338. */
   if (!pos_nor) {
     const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
     pos_nor = GPU_vertbuf_calloc();
@@ -245,7 +245,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_MESH) ? &mr->me->ldata : &mr->bm->ldata;
 
   uint32_t uv_layers = cache->cd_used.uv;
-  /* HACK to fix T68857 */
+  /* HACK to fix #68857 */
   if (mr->extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
     if (layer != -1) {

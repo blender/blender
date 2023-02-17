@@ -54,7 +54,7 @@ static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
   }
 
 #ifdef USE_STRING_COERCE
-  return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
+  return PyC_UnicodeFromBytesAndSize(IDP_Array(prop), prop->len - 1);
 #else
   return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
 #endif
@@ -192,7 +192,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         int alloc_len;
         PyObject *value_coerce = NULL;
 
-        st = (char *)PyC_UnicodeAsByte(value, &value_coerce);
+        st = (char *)PyC_UnicodeAsBytes(value, &value_coerce);
         alloc_len = strlen(st) + 1;
 
         st = PyUnicode_AsUTF8(value);
@@ -433,7 +433,7 @@ static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
 #ifdef USE_STRING_COERCE
   Py_ssize_t value_size;
   PyObject *value_coerce = NULL;
-  val.string.str = PyC_UnicodeAsByteAndSize(ob, &value_size, &value_coerce);
+  val.string.str = PyC_UnicodeAsBytesAndSize(ob, &value_size, &value_coerce);
   val.string.len = (int)value_size + 1;
   val.string.subtype = IDP_STRING_SUB_UTF8;
   prop = IDP_New(IDP_STRING, &val, name);
@@ -727,12 +727,12 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
   else {
     IDProperty *prop_exist;
 
-    /* avoid freeing when types match in case they are referenced by the UI, see: T37073
+    /* avoid freeing when types match in case they are referenced by the UI, see: #37073
      * obviously this isn't a complete solution, but helps for common cases. */
     prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
     if ((prop_exist != NULL) && (prop_exist->type == prop->type) &&
         (prop_exist->subtype == prop->subtype)) {
-      /* Preserve prev/next links!!! See T42593. */
+      /* Preserve prev/next links!!! See #42593. */
       prop->prev = prop_exist->prev;
       prop->next = prop_exist->next;
       prop->flag = prop_exist->flag;

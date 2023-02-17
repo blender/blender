@@ -2115,7 +2115,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 258, 1)) {
-    /* screen view2d settings were not properly initialized T27164.
+    /* screen view2d settings were not properly initialized #27164.
      * v2d->scroll caused the bug but best reset other values too
      * which are in old blend files only.
      * Need to make less ugly - possibly an iterator? */

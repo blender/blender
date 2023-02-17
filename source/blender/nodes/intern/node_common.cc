@@ -78,16 +78,14 @@ bool node_group_poll_instance(const bNode *node,
                               const bNodeTree *nodetree,
                               const char **disabled_hint)
 {
-  if (node->typeinfo->poll(node->typeinfo, nodetree, disabled_hint)) {
-    const bNodeTree *grouptree = (const bNodeTree *)node->id;
-    if (grouptree) {
-      return nodeGroupPoll(nodetree, grouptree, disabled_hint);
-    }
-
-    return true; /* without a linked node tree, group node is always ok */
+  if (!node->typeinfo->poll(node->typeinfo, nodetree, disabled_hint)) {
+    return false;
   }
-
-  return false;
+  const bNodeTree *grouptree = reinterpret_cast<const bNodeTree *>(node->id);
+  if (!grouptree) {
+    return true;
+  }
+  return nodeGroupPoll(nodetree, grouptree, disabled_hint);
 }
 
 bool nodeGroupPoll(const bNodeTree *nodetree,
@@ -114,10 +112,9 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
     return false;
   }
 
-  LISTBASE_FOREACH (const bNode *, node, &grouptree->nodes) {
+  for (const bNode *node : grouptree->all_nodes()) {
     if (node->typeinfo->poll_instance &&
-        !node->typeinfo->poll_instance(
-            const_cast<bNode *>(node), const_cast<bNodeTree *>(nodetree), r_disabled_hint)) {
+        !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint)) {
       return false;
     }
   }

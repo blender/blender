@@ -514,7 +514,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* handle gizmo */
   wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
   if (modal_fn) {
-    /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see T73727.
+    /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see #73727.
      * note that we could move away from wrapping modal gizmos in a modal operator,
      * since it's causing the need for code like this. */
     wmEvent *evil_event = (wmEvent *)event;
@@ -997,7 +997,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
 
   wmGizmoGroup *gzgroup = wm_gizmogroup_new_from_type(gzmap, gzgt);
 
-  /* Don't allow duplicates when switching modes for e.g. see: T66229. */
+  /* Don't allow duplicates when switching modes for e.g. see: #66229. */
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup_iter, &gzmap->groups) {
     if (gzgroup_iter->type == gzgt) {
       if (gzgroup_iter != gzgroup) {

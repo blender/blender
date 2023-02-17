@@ -556,7 +556,7 @@ static void tc_mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tc
        *
        * Since we only need to check if the vertex is in this corner,
        * its not important _which_ loop - as long as its not overlapping
-       * 'sv->co_orig_3d', see: T45096. */
+       * 'sv->co_orig_3d', see: #45096. */
       project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
       while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
                       ((l_prev = l_prev->prev) != l->next))) {
@@ -1508,7 +1508,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
     }
 
     /* Snap rotation along normal needs a common axis for whole islands,
-     * otherwise one get random crazy results, see T59104.
+     * otherwise one get random crazy results, see #59104.
      * However, we do not want to use the island center for the pivot/translation reference. */
     const bool is_snap_rotate = ((t->mode == TFM_TRANSLATION) &&
                                  /* There is not guarantee that snapping
@@ -1517,7 +1517,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
                                   (t->settings->snap_flag & SCE_SNAP_ROTATE) != 0) &&
                                  (t->around != V3D_AROUND_LOCAL_ORIGINS));
 
-    /* Even for translation this is needed because of island-orientation, see: T51651. */
+    /* Even for translation this is needed because of island-orientation, see: #51651. */
     const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
     if (is_island_center) {
       /* In this specific case, near-by vertices will need to know
@@ -2046,7 +2046,7 @@ static void recalcData_mesh(TransInfo *t)
 
     bool do_mirror = !(t->flag & T_NO_MIRROR);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      /* Apply clipping after so we never project past the clip plane T25423. */
+      /* Apply clipping after so we never project past the clip plane #25423. */
       transform_convert_clip_mirror_modifier_apply(tc);
 
       if (do_mirror) {

@@ -162,7 +162,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }
         else if (defgroup->flag & DG_LOCK_WEIGHT) {
-          /* In case vgroup already exists and is locked, do not modify it here. See T43814. */
+          /* In case vgroup already exists and is locked, do not modify it here. See #43814. */
           defgroup = NULL;
         }
       }
@@ -401,9 +401,9 @@ static void add_verts_to_dgroups(ReportList *reports,
     vertsfilled = 1;
   }
   else if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
-    /* is subsurf on? Lets use the verts on the limit surface then.
+    /* Is subdivision-surface on? Lets use the verts on the limit surface then.
      * = same amount of vertices as mesh, but vertices  moved to the
-     * subsurfed position, like for 'optimal'. */
+     * subdivision-surfaced position, like for 'optimal'. */
     subsurf_calculate_limit_positions(mesh, verts);
     vertsfilled = 1;
   }
@@ -477,7 +477,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
 
     if (defbase_add) {
       /* It's possible there are DWeights outside the range of the current
-       * object's deform groups. In this case the new groups won't be empty T33889. */
+       * object's deform groups. In this case the new groups won't be empty #33889. */
       ED_vgroup_data_clamp_range(ob->data, defbase_tot);
     }
   }

@@ -22,7 +22,7 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if params.asset_library_ref != 'LOCAL':
+        if params.asset_library_ref not in {'LOCAL', 'ESSENTIALS'}:
             layout.prop(params, "import_type", text="")
 
         layout.separator_spacer()

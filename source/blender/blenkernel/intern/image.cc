@@ -313,7 +313,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (result) {
     if (flag & BKE_BPATH_FOREACH_PATH_RELOAD_EDITED) {
       if (!BKE_image_has_packedfile(ima) &&
-          /* Image may have been painted onto (and not saved, T44543). */
+          /* Image may have been painted onto (and not saved, #44543). */
           !BKE_image_is_dirty(ima)) {
         BKE_image_signal(bpath_data->bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
       }

@@ -19,7 +19,7 @@ void main()
 
 #else
   /* NOTE(@fclem): textureSize() does not work the same on all implementations
-   * when changing the min and max texture levels. Use uniform instead (see T87801). */
+   * when changing the min and max texture levels. Use uniform instead (see #87801). */
   vec2 uvs = gl_FragCoord.xy * texelSize;
   vec4 ofs = texelSize.xyxy * vec4(0.75, 0.75, -0.75, -0.75);
   uvs *= 2.0;

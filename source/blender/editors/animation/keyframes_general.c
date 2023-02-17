@@ -679,7 +679,7 @@ void sample_fcurve(FCurve *fcu)
         /* If next bezt is also selected, don't start sampling yet,
          * but instead wait for that one to reconsider, to avoid
          * changing the curve when sampling consecutive segments
-         * (T53229)
+         * (#53229)
          */
         if (i < fcu->totvert - 1) {
           BezTriple *next = &fcu->bezt[i + 1];

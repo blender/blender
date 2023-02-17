@@ -185,7 +185,7 @@ struct FileListEntryPreview {
 };
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
- * tasks' data (see T74609). */
+ * tasks' data (see #74609). */
 struct FileListEntryPreviewTaskData {
   FileListEntryPreview *preview;
 };
@@ -233,11 +233,15 @@ struct FileList {
 
   FileListEntryCache filelist_cache;
 
-  /* We need to keep those info outside of actual filelist items,
+  /**
+   * We need to keep those info outside of actual file-list items,
    * because those are no more persistent
    * (only generated on demand, and freed as soon as possible).
    * Persistent part (mere list of paths + stat info)
    * is kept as small as possible, and file-browser agnostic.
+   *
+   * - The key is a #FileDirEntry::uid
+   * - The value is an #eDirEntry_SelectFlag.
    */
   GHash *selection_state;
 
@@ -633,7 +637,7 @@ static bool is_hidden_dot_filename(const char *filename, const FileListInternEnt
     while (sep) {
       /* This happens when a path contains 'ALTSEP', '\' on Unix for e.g.
        * Supporting alternate slashes in paths is a bigger task involving changes
-       * in many parts of the code, for now just prevent an assert, see T74579. */
+       * in many parts of the code, for now just prevent an assert, see #74579. */
 #if 0
       BLI_assert(sep[1] != '\0');
 #endif
@@ -2737,13 +2741,13 @@ int filelist_needs_reading(FileList *filelist)
 uint filelist_entry_select_set(const FileList *filelist,
                                const FileDirEntry *entry,
                                FileSelType select,
-                               uint flag,
+                               const eDirEntry_SelectFlag flag,
                                FileCheckType check)
 {
   /* Default nullptr pointer if not found is fine here! */
   void **es_p = BLI_ghash_lookup_p(filelist->selection_state, POINTER_FROM_UINT(entry->uid));
-  uint entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
-  const uint org_entry_flag = entry_flag;
+  eDirEntry_SelectFlag entry_flag = eDirEntry_SelectFlag(es_p ? POINTER_AS_UINT(*es_p) : 0);
+  const eDirEntry_SelectFlag org_entry_flag = entry_flag;
 
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2782,8 +2786,11 @@ uint filelist_entry_select_set(const FileList *filelist,
   return entry_flag;
 }
 
-void filelist_entry_select_index_set(
-    FileList *filelist, const int index, FileSelType select, uint flag, FileCheckType check)
+void filelist_entry_select_index_set(FileList *filelist,
+                                     const int index,
+                                     FileSelType select,
+                                     const eDirEntry_SelectFlag flag,
+                                     FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2792,8 +2799,11 @@ void filelist_entry_select_index_set(
   }
 }
 
-void filelist_entries_select_index_range_set(
-    FileList *filelist, FileSelection *sel, FileSelType select, uint flag, FileCheckType check)
+void filelist_entries_select_index_range_set(FileList *filelist,
+                                             FileSelection *sel,
+                                             FileSelType select,
+                                             const eDirEntry_SelectFlag flag,
+                                             FileCheckType check)
 {
   /* select all valid files between first and last indicated */
   if ((sel->first >= 0) && (sel->first < filelist->filelist.entries_filtered_num) &&
@@ -2805,7 +2815,9 @@ void filelist_entries_select_index_range_set(
   }
 }
 
-uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileCheckType check)
+eDirEntry_SelectFlag filelist_entry_select_get(FileList *filelist,
+                                               FileDirEntry *entry,
+                                               FileCheckType check)
 {
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2813,14 +2825,16 @@ uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileChec
   if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
       ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
     /* Default nullptr pointer if not found is fine here! */
-    return POINTER_AS_UINT(
-        BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid)));
+    return eDirEntry_SelectFlag(POINTER_AS_UINT(
+        BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid))));
   }
 
-  return 0;
+  return eDirEntry_SelectFlag(0);
 }
 
-uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCheckType check)
+eDirEntry_SelectFlag filelist_entry_select_index_get(FileList *filelist,
+                                                     const int index,
+                                                     FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2828,7 +2842,7 @@ uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCh
     return filelist_entry_select_get(filelist, entry, check);
   }
 
-  return 0;
+  return eDirEntry_SelectFlag(0);
 }
 
 bool filelist_entry_is_selected(FileList *filelist, const int index)
@@ -2838,15 +2852,15 @@ bool filelist_entry_is_selected(FileList *filelist, const int index)
 
   /* BLI_ghash_lookup returns nullptr if not found, which gets mapped to 0, which gets mapped to
    * "not selected". */
-  const uint selection_state = POINTER_AS_UINT(
-      BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(intern_entry->uid)));
+  const eDirEntry_SelectFlag selection_state = eDirEntry_SelectFlag(POINTER_AS_UINT(
+      BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(intern_entry->uid))));
 
   return selection_state != 0;
 }
 
 void filelist_entry_parent_select_set(FileList *filelist,
                                       FileSelType select,
-                                      uint flag,
+                                      const eDirEntry_SelectFlag flag,
                                       FileCheckType check)
 {
   if ((filelist->filter_data.flags & FLF_HIDE_PARENT) == 0) {
@@ -3587,7 +3601,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     /* ARRRG! We have to be very careful *not to use* common BLI_path_util helpers over
      * entry->relpath itself (nor any path containing it), since it may actually be a datablock
-     * name inside .blend file, which can have slashes and backslashes! See T46827.
+     * name inside .blend file, which can have slashes and backslashes! See #46827.
      * Note that in the end, this means we 'cache' valid relative subdir once here,
      * this is actually better. */
     BLI_strncpy(rel_subdir, subdir, sizeof(rel_subdir));
@@ -4062,7 +4076,7 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   /* The file list type may not support threading so execute immediately. Same when only rereading
    * #Main data (which we do quite often on changes to #Main, since it's the easiest and safest way
    * to ensure the displayed data is up to date), because some operations executing right after
-   * main data changed may need access to the ID files (see T93691). */
+   * main data changed may need access to the ID files (see #93691). */
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
   if (no_threads) {

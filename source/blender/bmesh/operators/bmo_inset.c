@@ -20,7 +20,7 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* Merge loop-data that diverges, see: T41445 */
+/* Merge loop-data that diverges, see: #41445 */
 #define USE_LOOP_CUSTOMDATA_MERGE
 
 #define ELE_NEW 1
@@ -953,10 +953,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
                   is_mid = false;
                 }
 
-                /* Disable since this gives odd results at times, see T39288. */
+                /* Disable since this gives odd results at times, see #39288. */
 #if 0
                 else if (compare_v3v3(f_a->no, f_b->no, 0.001f) == false) {
-                  /* epsilon increased to fix T32329. */
+                  /* epsilon increased to fix #32329. */
 
                   /* faces don't touch,
                    * just get cross product of their normals, its *good enough*
@@ -1183,7 +1183,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
     BMO_face_flag_enable(bm, f, ELE_NEW);
 
-    /* Copy for loop data, otherwise UVs and vcols are no good.
+    /* Copy for loop data, otherwise UVs and vertex-colors are no good.
      * tiny speedup here we could be more clever and copy from known adjacent data
      * also - we could attempt to interpolate the loop data,
      * this would be much slower but more useful too. */

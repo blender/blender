@@ -1831,7 +1831,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
          * For the sake of making the code more generic/defensive, the relation
          * is added for any geometry type.
          *
-         * See T96289 for more info. */
+         * See #96289 for more info. */
         if (object != nullptr && OB_TYPE_IS_GEOMETRY(object->type)) {
           StringRef rna_path(dtar->rna_path);
           if (rna_path == "data" || rna_path.startswith("data.")) {

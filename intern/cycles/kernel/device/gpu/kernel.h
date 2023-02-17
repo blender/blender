@@ -645,7 +645,7 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
                                                           const int y,
                                                           const half4 half_pixel)
 {
-  /* Work around HIP issue with half float display, see T92972. */
+  /* Work around HIP issue with half float display, see #92972. */
 #ifdef __KERNEL_HIP__
   ccl_global half *out = ((ccl_global half *)rgba) + (rgba_offset + y * rgba_stride + x) * 4;
   out[0] = half_pixel.x;

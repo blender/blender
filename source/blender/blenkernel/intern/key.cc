@@ -1875,7 +1875,7 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
   /* In case of absolute keys, there is no point in adding more than one key with the same pos.
    * Hence only set new key-block pos to current time if none previous one already use it.
    * Now at least people just adding absolute keys without touching to ctime
-   * won't have to systematically use retiming func (and have ordering issues, too). See T39897.
+   * won't have to systematically use retiming func (and have ordering issues, too). See #39897.
    */
   if (!do_force && (key->type != KEY_RELATIVE)) {
     KeyBlock *it_kb;

@@ -371,13 +371,6 @@ GLShaderInterface::GLShaderInterface(GLuint program)
     builtin_blocks_[u] = (block != nullptr) ? block->binding : -1;
   }
 
-  /* Builtin Storage Buffers */
-  for (int32_t u_int = 0; u_int < GPU_NUM_STORAGE_BUFFERS; u_int++) {
-    GPUStorageBufferBuiltin u = static_cast<GPUStorageBufferBuiltin>(u_int);
-    const ShaderInput *block = this->ssbo_get(builtin_storage_block_name(u));
-    builtin_buffers_[u] = (block != nullptr) ? block->binding : -1;
-  }
-
   MEM_freeN(uniforms_from_blocks);
 
   /* Resize name buffer to save some memory. */
@@ -548,13 +541,6 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     GPUUniformBlockBuiltin u = static_cast<GPUUniformBlockBuiltin>(u_int);
     const ShaderInput *block = this->ubo_get(builtin_uniform_block_name(u));
     builtin_blocks_[u] = (block != nullptr) ? block->binding : -1;
-  }
-
-  /* Builtin Storage Buffers */
-  for (int32_t u_int = 0; u_int < GPU_NUM_STORAGE_BUFFERS; u_int++) {
-    GPUStorageBufferBuiltin u = static_cast<GPUStorageBufferBuiltin>(u_int);
-    const ShaderInput *block = this->ssbo_get(builtin_storage_block_name(u));
-    builtin_buffers_[u] = (block != nullptr) ? block->binding : -1;
   }
 
   this->sort_inputs();

@@ -82,7 +82,7 @@ static void blo_update_defaults_screen(bScreen *screen,
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       /* Some toolbars have been saved as initialized,
-       * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
+       * we don't want them to have odd zoom-level or scrolling set, see: #47047 */
       if (ELEM(region->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
         region->v2d.flag &= ~V2D_IS_INIT;
       }

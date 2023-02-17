@@ -100,6 +100,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   if (brush_src->curves_sculpt_settings != nullptr) {
     brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
         __func__, *(brush_src->curves_sculpt_settings));
+    brush_dst->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_copy(
+        brush_src->curves_sculpt_settings->curve_parameter_falloff);
   }
 
   /* enable fake user by default */
@@ -130,6 +132,7 @@ static void brush_free_data(ID *id)
     MEM_SAFE_FREE(brush->gpencil_settings);
   }
   if (brush->curves_sculpt_settings != nullptr) {
+    BKE_curvemapping_free(brush->curves_sculpt_settings->curve_parameter_falloff);
     MEM_freeN(brush->curves_sculpt_settings);
   }
 
@@ -255,6 +258,7 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   if (brush->curves_sculpt_settings) {
     BLO_write_struct(writer, BrushCurvesSculptSettings, brush->curves_sculpt_settings);
+    BKE_curvemapping_blend_write(writer, brush->curves_sculpt_settings->curve_parameter_falloff);
   }
   if (brush->gradient) {
     BLO_write_struct(writer, ColorBand, brush->gradient);
@@ -337,6 +341,12 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BLO_read_data_address(reader, &brush->curves_sculpt_settings);
+  if (brush->curves_sculpt_settings) {
+    BLO_read_data_address(reader, &brush->curves_sculpt_settings->curve_parameter_falloff);
+    if (brush->curves_sculpt_settings->curve_parameter_falloff) {
+      BKE_curvemapping_blend_read(reader, brush->curves_sculpt_settings->curve_parameter_falloff);
+    }
+  }
 
   brush->preview = nullptr;
   brush->icon_imbuf = nullptr;
@@ -1583,6 +1593,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   settings->minimum_length = 0.01f;
   settings->curve_length = 0.3f;
   settings->density_add_attempts = 100;
+  settings->curve_parameter_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)

@@ -2880,7 +2880,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
                   STRIP_EVAL_NOBLEND));
 
   /* directly evaluate child strip into accumulation buffer...
-   * - there's no need to use a temporary buffer (as it causes issues [T40082])
+   * - there's no need to use a temporary buffer (as it causes issues [#40082])
    */
   if (tmp_nes) {
     nlastrip_evaluate(evaluation_mode,
@@ -4163,7 +4163,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
         const float curval = calculate_fcurve(&anim_rna, fcu, &anim_eval_context);
         ok = BKE_animsys_write_to_rna_path(&anim_rna, curval);
 
-        /* Flush results & status codes to original data for UI (T59984) */
+        /* Flush results & status codes to original data for UI (#59984) */
         if (ok && DEG_is_active(depsgraph)) {
           animsys_write_orig_anim_rna(&id_ptr, fcu->rna_path, fcu->array_index, curval);
 

@@ -356,7 +356,7 @@ void DEG_iterator_objects_end(BLI_Iterator *iter)
   DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
   if (data != nullptr) {
     /* Force crash in case the iterator data is referenced and accessed down
-     * the line. (T51718) */
+     * the line. (#51718) */
     deg_invalidate_iterator_work_data(data);
   }
 }

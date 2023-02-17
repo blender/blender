@@ -877,7 +877,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
     /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
      * use object's material slots amount as reference.
      * This avoids losing materials in a local object when its linked obdata goes missing.
-     * See T92780. */
+     * See #92780. */
     BKE_id_material_resize(bmain, id, short(ob->totcol), false);
   }
   else {
@@ -1311,7 +1311,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next)) {
     if (obt->data == ob->data) {
-      /* Can happen when object material lists are used, see: T52953 */
+      /* Can happen when object material lists are used, see: #52953 */
       if (actcol > obt->totcol) {
         continue;
       }

@@ -30,7 +30,9 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -47,6 +49,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_curves.h"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil.h"
@@ -623,6 +626,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                   const TransformCalcParams *params,
                                   TransformBounds *tbounds)
 {
+  using namespace blender;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -925,6 +929,28 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
             totsel++;
           }
           bp++;
+        }
+      }
+      FOREACH_EDIT_OBJECT_END();
+    }
+    else if (obedit->type == OB_CURVES) {
+      FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
+        const Curves &curves_id = *static_cast<Curves *>(ob_iter->data);
+        const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+        const bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *ob);
+
+        float4x4 mat_local;
+        if (use_mat_local) {
+          mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
+        }
+
+        Vector<int64_t> indices;
+        const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, indices);
+        const Span<float3> positions = deformation.positions;
+        totsel += selected_points.size();
+        for (const int point_i : selected_points) {
+          calc_tw_center_with_matrix(tbounds, positions[point_i], use_mat_local, mat_local.ptr());
         }
       }
       FOREACH_EDIT_OBJECT_END();
@@ -1294,11 +1320,10 @@ static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
                                            const float mval_init[2],
                                            float r_mat_basis[4][4])
 {
-  copy_v3_v3(r_mat_basis[2], axis);
+  plane_from_point_normal_v3(r_mat_basis[2], center_global, axis);
   copy_v3_v3(r_mat_basis[3], center_global);
-  r_mat_basis[2][3] = -dot_v3v3(axis, center_global);
 
-  if (ED_view3d_win_to_3d_on_plane(region, axis, mval_init, false, r_mat_basis[1])) {
+  if (ED_view3d_win_to_3d_on_plane(region, r_mat_basis[2], mval_init, false, r_mat_basis[1])) {
     sub_v3_v3(r_mat_basis[1], center_global);
     normalize_v3(r_mat_basis[1]);
     cross_v3_v3v3(r_mat_basis[0], r_mat_basis[1], r_mat_basis[2]);
@@ -1376,7 +1401,7 @@ static void gizmo_3d_setup_draw_default(wmGizmo *axis, const int axis_idx)
       WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_MODAL, true);
       WM_gizmo_set_scale(axis, 0.2f);
 
-      /* Prevent axis gizmos overlapping the center point, see: T63744. */
+      /* Prevent axis gizmos overlapping the center point, see: #63744. */
       axis->select_bias = 2.0f;
       break;
     case MAN_AXIS_SCALE_C:
@@ -1386,7 +1411,7 @@ static void gizmo_3d_setup_draw_default(wmGizmo *axis, const int axis_idx)
       RNA_float_set(axis->ptr, "arc_inner_factor", 1.0 / 6.0);
       WM_gizmo_set_scale(axis, 1.2f);
 
-      /* Prevent axis gizmos overlapping the center point, see: T63744. */
+      /* Prevent axis gizmos overlapping the center point, see: #63744. */
       axis->select_bias = -2.0f;
       break;
 
@@ -1577,7 +1602,7 @@ static int gizmo_modal(bContext *C,
                        const wmEvent *event,
                        eWM_GizmoFlagTweak /*tweak_flag*/)
 {
-  /* Avoid unnecessary updates, partially address: T55458. */
+  /* Avoid unnecessary updates, partially address: #55458. */
   if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {
     return OPERATOR_RUNNING_MODAL;
   }

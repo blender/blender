@@ -307,6 +307,7 @@ struct GPUMaterial *DRW_shader_from_material(struct Material *ma,
                                              bool deferred,
                                              GPUCodegenCallbackFn callback,
                                              void *thunk);
+void DRW_shader_queue_optimize_material(struct GPUMaterial *mat);
 void DRW_shader_free(struct GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \
   do { \
@@ -463,7 +464,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
                              bool use_mask,
                              bool use_fset,
                              bool use_color,
-                             bool use_uv);
+                             bool use_uv,
+                             bool use_ids);
 
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             struct GPUMaterial **gpumats,

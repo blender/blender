@@ -476,7 +476,7 @@ MODULE_GROUPING = {
 
 # -------------------------------BLENDER----------------------------------------
 
-# converting bytes to strings, due to T30154
+# Converting bytes to strings, due to #30154.
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 BLENDER_REVISION_TIMESTAMP = bpy.app.build_commit_timestamp
 
@@ -487,7 +487,7 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
         BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
     )
     BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
@@ -647,7 +647,7 @@ def undocumented_message(module_name, type_name, identifier):
         module_name, type_name, identifier,
     )
 
-    return "Undocumented, consider `contributing <https://developer.blender.org/T51061>`__."
+    return "Undocumented, consider `contributing <https://developer.blender.org/>`__."
 
 
 def range_str(val):
@@ -2200,7 +2200,7 @@ def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
     Write a single page for a static enum in RST.
 
     This helps avoiding very large lists being in-lined in many places which is an issue
-    especially with icons in ``bpy.types.UILayout``. See T87008.
+    especially with icons in ``bpy.types.UILayout``. See #87008.
     """
     filepath = os.path.join(basepath, "%s.rst" % key_no_prefix)
     with open(filepath, "w", encoding="utf-8") as fh:

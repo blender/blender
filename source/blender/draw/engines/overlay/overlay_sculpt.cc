@@ -34,6 +34,8 @@ void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
       grp, "faceSetsPatSeed", pd->overlay.sculpt_mode_face_sets_moire_seed);
   DRW_shgroup_uniform_bool_copy(
       grp, "useMoire", pd->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_FSET_MOIRE);
+  DRW_shgroup_uniform_bool_copy(
+      grp, "showIds", pd->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_SHOW_IDS);
 
   DRW_shgroup_uniform_float_copy(
       grp, "faceSetsPatScale", 0.5f * (1.1f - pd->overlay.sculpt_mode_face_sets_moire_scale));
@@ -62,7 +64,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (use_pbvh) {
-    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false);
+    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false, false);
   }
   else {
     sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(static_cast<Mesh *>(ob->data));

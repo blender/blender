@@ -114,7 +114,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     ParamKey vkeys[2]{edge.v1, edge.v2};
     GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
   }
-  /* TODO: once field input nodes are able to emit warnings (T94039), emit a
+  /* TODO: once field input nodes are able to emit warnings (#94039), emit a
    * warning if we fail to solve an island. */
   GEO_uv_parametrizer_construct_end(handle, fill_holes, false, nullptr);
 

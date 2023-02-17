@@ -1800,9 +1800,9 @@ static void uv_select_linked_multi(Scene *scene,
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
-    /* NOTE: we had 'use winding' so we don't consider overlapping islands as connected, see T44320
+    /* NOTE: we had 'use winding' so we don't consider overlapping islands as connected, see #44320
      * this made *every* projection split the island into front/back islands.
-     * Keep 'use_winding' to false, see: T50970.
+     * Keep 'use_winding' to false, see: #50970.
      *
      * Better solve this by having a delimit option for select-linked operator,
      * keeping island-select working as is. */
@@ -4302,7 +4302,7 @@ static bool overlap_tri_tri_uv_test(const float t1[3][2],
    * However, the `endpoint_bias` on segment intersections causes _exact_ overlapping
    * triangles not to be detected.
    *
-   * Resolve this problem at the small cost of calculating the triangle center, see T85508. */
+   * Resolve this problem at the small cost of calculating the triangle center, see #85508. */
   mid_v2_v2v2v2(vi, UNPACK3(t1));
   if (isect_point_tri_v2(vi, UNPACK3(t2)) != 0) {
     return true;
@@ -4402,7 +4402,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
       BLI_polyfill_calc_arena(uv_verts, face_len, coords_sign, indices, arena);
 
       /* A beauty fill is necessary to remove degenerate triangles that may be produced from the
-       * above poly-fill (see T103913), otherwise the overlap tests can fail. */
+       * above poly-fill (see #103913), otherwise the overlap tests can fail. */
       BLI_polyfill_beautify(uv_verts, face_len, indices, arena, heap);
 
       for (int t = 0; t < tri_len; t++) {

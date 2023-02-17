@@ -223,7 +223,7 @@ static float compute_scale_factor(const float ve_median, const float median)
  * Apply helpers.
  * \note In case we only have one element,
  * copy directly the value instead of applying the diff or scale factor.
- * Avoids some glitches when going e.g. from 3 to 0.0001 (see T37327).
+ * Avoids some glitches when going e.g. from 3 to 0.0001 (see #37327).
  */
 static void apply_raw_diff(float *val, const int tot, const float ve_median, const float median)
 {
@@ -1117,7 +1117,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
             if (bezt->f2 & SELECT) {
               if (apply_vcos) {
                 /* Here we always have to use the diff... :/
-                 * Cannot avoid some glitches when going e.g. from 3 to 0.0001 (see T37327),
+                 * Cannot avoid some glitches when going e.g. from 3 to 0.0001 (see #37327),
                  * unless we use doubles.
                  */
                 add_v3_v3(bezt->vec[0], median->location);

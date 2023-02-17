@@ -101,7 +101,7 @@ void GeometryExporter::operator()(Object *ob)
 
   createLooseEdgeList(ob, me, geom_id);
 
-  /* Only create Polylists if number of faces > 0 */
+  /* Only create poly-lists if number of faces > 0. */
   if (me->totface > 0) {
     /* XXX slow */
     if (ob->totcol) {

@@ -1249,7 +1249,31 @@ class WM_OT_doc_view_manual(Operator):
         # XXX, for some reason all RNA ID's are stored lowercase
         # Adding case into all ID's isn't worth the hassle so force lowercase.
         rna_id = rna_id.lower()
+
+        # NOTE: `fnmatch` in Python is slow as it translate the string to a regular-expression
+        # which needs to be compiled (as of Python 3.11), this is slow enough to cause a noticeable
+        # delay when opening manual links (approaching half a second).
+        #
+        # Resolve by matching characters that have a special meaning to `fnmatch`.
+        # The characters that can occur as the first special character are `*?[`.
+        # If any of these are used we must let `fnmatch` run its own matching logic.
+        # However, in most cases a literal prefix is used making it considerably faster
+        # to do a simple `startswith` check before performing a full match.
+        # An alternative solution could be to use `fnmatch` from C which is significantly
+        # faster than Python's, see !104581 for details.
+        import re
+        re_match_non_special = re.compile(r"^[^?\*\[]+").match
+
         for pattern, url_suffix in url_mapping:
+
+            # Simple optimization, makes a big difference (over 50x speedup).
+            # Even when `non_special.end()` is zero (resulting in an empty-string),
+            # the `startswith` check succeeds so there is no need to check for an empty match.
+            non_special = re_match_non_special(pattern)
+            if non_special is None or not rna_id.startswith(pattern[:non_special.end()]):
+                continue
+            # End simple optimization.
+
             if fnmatchcase(rna_id, pattern):
                 if verbose:
                     print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
@@ -1725,7 +1749,7 @@ class WM_OT_properties_edit(Operator):
                     for nt in adt.nla_tracks:
                         _update_strips(nt.strips)
 
-        # Otherwise existing buttons which reference freed memory may crash Blender (T26510).
+        # Otherwise existing buttons which reference freed memory may crash Blender (#26510).
         for win in context.window_manager.windows:
             for area in win.screen.areas:
                 area.tag_redraw()

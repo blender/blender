@@ -61,7 +61,7 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0);
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0, 1.0f);
 
   switch (sd->transform_deform_target) {
     case SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY:

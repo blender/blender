@@ -265,7 +265,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   /* Store geometry set data for attribute lookup in innermost to outermost
    * order, copying only non-null entries to save space. */
-  const int max_instance = sizeof(dob->instance_data) / sizeof(void *);
+  const int max_instance = ARRAY_SIZE(dob->instance_data);
   int next_instance = 0;
   if (geometry != nullptr) {
     dob->instance_idx[next_instance] = int(instance_index);
@@ -1535,7 +1535,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       }
 
       if (part->ren_as == PART_DRAW_GR) {
-        /* Prevent divide by zero below T28336. */
+        /* Prevent divide by zero below #28336. */
         if (totcollection == 0) {
           continue;
         }
@@ -1821,7 +1821,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
   using namespace blender;
 
   /* Loop over layers from innermost to outermost. */
-  for (const int i : IndexRange(sizeof(dupli->instance_data) / sizeof(void *))) {
+  for (const int i : IndexRange(ARRAY_SIZE(dupli->instance_data))) {
     /* Skip non-geonode layers. */
     if (dupli->instance_data[i] == nullptr) {
       continue;

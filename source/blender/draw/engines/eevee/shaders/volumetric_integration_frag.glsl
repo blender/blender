@@ -52,7 +52,7 @@ void main()
     float ray_len = orig_ray_len * cell_depth;
 
     /* Emission does not work of there is no extinction because
-     * Tr evaluates to 1.0 leading to Lscat = 0.0. (See T65771) */
+     * Tr evaluates to 1.0 leading to Lscat = 0.0. (See #65771) */
     s_extinction = max(vec3(1e-7) * step(1e-5, Lscat), s_extinction);
 
     /* Evaluate Scattering */

@@ -330,7 +330,7 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 
   /* When 'wait_for_input' is false,
    * use properties to get the selection state (typically tool settings).
-   * This is done so executing as a mode can select & de-select, see: T58594. */
+   * This is done so executing as a mode can select & de-select, see: #58594. */
   if (gesture->wait_for_input) {
     gesture_modal_state_to_operator(op, gesture->modal_state);
   }

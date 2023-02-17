@@ -644,7 +644,7 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
   vector<WVertex *>::iterator it;
 
   // compute the face normal (v1v2 ^ v1v3)
-  // Double precision numbers are used here to avoid truncation errors [T47705]
+  // Double precision numbers are used here to avoid truncation errors [#47705]
   Vec3r v1, v2, v3;
   it = iVertexList.begin();
   v1 = (*it)->GetVertex();

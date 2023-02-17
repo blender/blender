@@ -42,7 +42,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
             bpy.ops.mesh.extrude_vertices_move('INVOKE_REGION_WIN')
 
         # ignore return from operators above because they are 'RUNNING_MODAL',
-        # and cause this one not to be freed. T24671.
+        # and cause this one not to be freed. #24671.
         return {'FINISHED'}
 
     def invoke(self, context, _event):
@@ -104,7 +104,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_translate={
                     # Don't set the constraint axis since users will expect MMB
-                    # to use the user setting, see: T61637
+                    # to use the user setting, see: #61637
                     # "orient_type": 'NORMAL',
                     # Not a popular choice, too restrictive for retopo.
                     # "constraint_axis": (True, True, False)})
@@ -114,7 +114,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
             bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
 
         # ignore return from operators above because they are 'RUNNING_MODAL',
-        # and cause this one not to be freed. T24671.
+        # and cause this one not to be freed. #24671.
         return {'FINISHED'}
 
     def execute(self, context):

@@ -1620,12 +1620,12 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  const int data_binding = GPU_shader_get_uniform_block_binding(shader, "multi_rect_data");
+  const int data_binding = GPU_shader_get_ubo_binding(shader, "multi_rect_data");
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
       sizeof(MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
   GPU_uniformbuf_bind(ubo, data_binding);
 
-  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
+  const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
 
   GPUBatch *quad = GPU_batch_preset_quad();
@@ -1797,25 +1797,25 @@ static void icon_draw_texture(float x,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_ICON);
   GPU_shader_bind(shader);
 
-  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
+  const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
   const int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
   const int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   const int rect_geom_loc = GPU_shader_get_uniform(shader, "rect_geom");
 
   if (rgb) {
     const float color[4] = {rgb[0], rgb[1], rgb[2], alpha};
-    GPU_shader_uniform_vector(shader, color_loc, 4, 1, color);
+    GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, color);
   }
   else {
     const float color[4] = {alpha, alpha, alpha, alpha};
-    GPU_shader_uniform_vector(shader, color_loc, 4, 1, color);
+    GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, color);
   }
 
   const float tex_color[4] = {x1, y1, x2, y2};
   const float geom_color[4] = {x, y, x + w, y + h};
 
-  GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, tex_color);
-  GPU_shader_uniform_vector(shader, rect_geom_loc, 4, 1, geom_color);
+  GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, tex_color);
+  GPU_shader_uniform_float_ex(shader, rect_geom_loc, 4, 1, geom_color);
   GPU_shader_uniform_1f(shader, "text_width", text_width);
 
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);

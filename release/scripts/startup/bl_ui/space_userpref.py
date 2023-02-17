@@ -1424,34 +1424,40 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         layout.use_property_decorate = False
 
         paths = context.preferences.filepaths
+        active_library_index = paths.active_asset_library
 
-        box = layout.box()
-        split = box.split(factor=0.35)
-        name_col = split.column()
-        path_col = split.column()
+        row = layout.row()
 
-        row = name_col.row(align=True)  # Padding
-        row.separator()
-        row.label(text="Name")
+        row.template_list(
+            "USERPREF_UL_asset_libraries", "user_asset_libraries",
+            paths, "asset_libraries",
+            paths, "active_asset_library"
+        )
 
-        row = path_col.row(align=True)  # Padding
-        row.separator()
-        row.label(text="Path")
+        col = row.column(align=True)
+        col.operator("preferences.asset_library_add", text="", icon='ADD')
+        props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
+        props.index = active_library_index
 
-        for i, library in enumerate(paths.asset_libraries):
-            row = name_col.row()
-            row.alert = not library.name
-            row.prop(library, "name", text="")
+        if active_library_index < 0:
+            return
 
-            row = path_col.row()
-            subrow = row.row()
-            subrow.alert = not library.path
-            subrow.prop(library, "path", text="")
-            row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+        layout.separator()
 
-        row = box.row()
-        row.alignment = 'RIGHT'
-        row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
+        active_library = paths.asset_libraries[active_library_index]
+        layout.prop(active_library, "path")
+        layout.prop(active_library, "import_method", text="Import Method")
+
+
+class USERPREF_UL_asset_libraries(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        asset_library = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(asset_library, "name", text="", emboss=False)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.prop(asset_library, "name", text="", emboss=False)
 
 
 # -----------------------------------------------------------------------------
@@ -2319,21 +2325,15 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
     bl_label = "New Features"
 
     def draw(self, context):
-        self._draw_items(context,
-                         (({"property": "use_sculpt_tools_tilt"},
-                           ("blender/blender/issues/82877",
-                            "#82877")),
-                             ({"property": "use_extended_asset_browser"},
-                              ("blender/blender/projects/10",
-                                 "Pipeline, Assets & IO Project Page")),
-                             ({"property": "use_override_templates"},
-                              ("blender/blender/issues/73318",
-                                 "Milestone 4")),
-                             ({"property": "use_new_volume_nodes"},
-                              ("blender/blender/issues/103248",
-                                 "#103248")),
-                          ),
-                         )
+        self._draw_items(
+            context, (
+                ({"property": "use_sculpt_tools_tilt"}, ("blender/blender/issues/82877", "#82877")),
+                ({"property": "use_extended_asset_browser"},
+                 ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
+                ({"property": "use_override_templates"}, ("blender/blender/issues/73318", "Milestone 4")),
+                ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
+            ),
+        )
 
 
 class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
@@ -2492,6 +2492,9 @@ classes = (
     USERPREF_PT_experimental_prototypes,
     # USERPREF_PT_experimental_tweaks,
     USERPREF_PT_experimental_debugging,
+
+    # UI lists
+    USERPREF_UL_asset_libraries,
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.

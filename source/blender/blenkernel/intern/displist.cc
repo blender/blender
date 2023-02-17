@@ -1353,7 +1353,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
        *   but it doesn't seem to work in this case.
        *
        * Since the plan is to replace this legacy curve object with the curves data-block
-       * (see T95355), this somewhat hacky inefficient solution is relatively temporary.
+       * (see #95355), this somewhat hacky inefficient solution is relatively temporary.
        */
       Curve &cow_curve = *reinterpret_cast<Curve *>(
           BKE_id_copy_ex(nullptr, &original_curve.id, nullptr, LIB_ID_COPY_LOCALIZE));

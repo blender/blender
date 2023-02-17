@@ -144,7 +144,7 @@ void ED_editors_init(bContext *C)
     /* Other edit/paint/etc. modes are only settable for objects visible in active scene currently.
      * Otherwise, they (and their obdata) may not be (fully) evaluated, which is mandatory for some
      * modes like Sculpt.
-     * Ref. T98225. */
+     * Ref. #98225. */
     if (!BKE_collection_has_object_recursive(scene->master_collection, ob) ||
         !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
       continue;
@@ -193,7 +193,7 @@ void ED_editors_init(bContext *C)
   /* Enforce a full redraw for the first time areas/regions get drawn. Further region init/refresh
    * just triggers non-rebuild redraws (#RGN_DRAW_NO_REBUILD). Usually a full redraw would be
    * triggered by a `NC_WM | ND_FILEREAD` notifier, but if a startup script calls an operator that
-   * redraws the window, notifiers are not handled before the operator runs. See T98461. */
+   * redraws the window, notifiers are not handled before the operator runs. See #98461. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(win);
 
@@ -235,7 +235,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
    * Python for example can do this, some callers to #ED_object_base_activate
    * don't handle modes either (doing so isn't always practical).
    *
-   * To reproduce the problem where stale data is used, see: T84920. */
+   * To reproduce the problem where stale data is used, see: #84920. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     if (ED_object_editmode_free_ex(bmain, ob)) {
       if (do_undo_system == false) {
@@ -258,7 +258,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
   if (ob->mode & OB_MODE_SCULPT) {
     /* Don't allow flushing while in the middle of a stroke (frees data in use).
      * Auto-save prevents this from happening but scripts
-     * may cause a flush on saving: T53986. */
+     * may cause a flush on saving: #53986. */
     if (ob->sculpt != nullptr && ob->sculpt->cache == nullptr) {
       char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
       if (check_needs_flush && (*needs_flush_ptr == 0)) {

@@ -608,7 +608,7 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
 
   /* Node trees may virtually use any kind of data-block... */
   /* XXX Yuck!!!! nodetree update can do pretty much any thing when talking about py nodes,
-   *     including creating new data-blocks (see T50385), so we need to unlock main here. :(
+   *     including creating new data-blocks (see #50385), so we need to unlock main here. :(
    *     Why can't we have re-entrent locks? */
   BKE_main_unlock(bmain);
   libblock_remap_data_postprocess_nodetree_update(bmain, new_id);

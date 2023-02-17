@@ -1186,7 +1186,7 @@ void UI_widgetbase_draw_cache_end()
 static bool draw_widgetbase_batch_skip_draw_cache()
 {
   /* MacOS is known to have issues on Mac Mini and MacBook Pro with Intel Iris GPU.
-   * For example, T78307. */
+   * For example, #78307. */
   if (GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     return true;
   }
@@ -2133,7 +2133,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
             int pos_x = rect->xmin + font_xofs + bounds.xmin +
                         (bounds.xmax - bounds.xmin - ul_width) / 2;
             int pos_y = rect->ymin + font_yofs + bounds.ymin - U.pixelsize;
-            /* Use text output because direct drawing doesn't always work. See T89246. */
+            /* Use text output because direct drawing doesn't always work. See #89246. */
             BLF_position(fstyle->uifont_id, float(pos_x), pos_y, 0.0f);
             BLF_color4ubv(fstyle->uifont_id, wcol->text);
             BLF_draw(fstyle->uifont_id, "_", 2);
@@ -2585,7 +2585,7 @@ static void widget_state_numslider(uiWidgetType *wt,
   if (color_blend != nullptr) {
     /* Set the slider 'item' so that it reflects state settings too.
      * De-saturate so the color of the slider doesn't conflict with the blend color,
-     * which can make the color hard to see when the slider is set to full (see T66102). */
+     * which can make the color hard to see when the slider is set to full (see #66102). */
     wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(wt->wcol.item);
     color_blend_v3_v3(wt->wcol.item, color_blend, wcol_state->blend);
     color_ensure_contrast_v3(wt->wcol.item, wt->wcol.inner, 30);

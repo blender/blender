@@ -263,9 +263,9 @@ void GPU_batch_program_set_imm_shader(GPUBatch *batch);
 #define GPU_batch_uniform_mat4(batch, name, val) \
   GPU_shader_uniform_mat4((batch)->shader, name, val);
 #define GPU_batch_uniformbuf_bind(batch, name, ubo) \
-  GPU_uniformbuf_bind(ubo, GPU_shader_get_uniform_block_binding((batch)->shader, name));
+  GPU_uniformbuf_bind(ubo, GPU_shader_get_ubo_binding((batch)->shader, name));
 #define GPU_batch_texture_bind(batch, name, tex) \
-  GPU_texture_bind(tex, GPU_shader_get_texture_binding((batch)->shader, name));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding((batch)->shader, name));
 
 /** \} */
 

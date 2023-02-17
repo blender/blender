@@ -168,7 +168,7 @@ bool python_script_error_jump(
 {
   /* WARNING(@ideasman42): The normalized exception is restored (losing line number info).
    * Ideally this would leave the exception state as it found it, but that needs to be done
-   * carefully with regards to reference counting, see: T97731. */
+   * carefully with regards to reference counting, see: #97731. */
 
   bool success = false;
   PyObject *exception, *value;

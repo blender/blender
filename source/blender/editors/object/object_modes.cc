@@ -154,12 +154,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_CURVES:
-      if (U.experimental.use_new_curves_tools) {
-        if (mode & OB_MODE_EDIT) {
-          return true;
-        }
-      }
-      if (mode & OB_MODE_SCULPT_CURVES) {
+      if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT_CURVES)) {
         return true;
       }
       break;

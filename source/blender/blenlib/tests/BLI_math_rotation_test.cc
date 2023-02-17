@@ -140,7 +140,7 @@ TEST(math_rotation, quat_to_mat_to_quat_near_0001)
   test_quat_to_mat_to_quat(0.30f, -0.030f, -0.30f, 0.95f);
 }
 
-/* A zeroed matrix converted to a quaternion and back should not add rotation, see: T101848 */
+/* A zeroed matrix converted to a quaternion and back should not add rotation, see: #101848 */
 TEST(math_rotation, quat_to_mat_to_quat_zeroed_matrix)
 {
   float matrix_zeroed[3][3] = {{0.0f}};

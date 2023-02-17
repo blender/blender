@@ -154,7 +154,7 @@ static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *mpoly,
 /**
  * A version of mesh_calc_poly_volume_centroid that takes an initial reference center,
  * use this to increase numeric stability as the quality of the result becomes
- * very low quality as the value moves away from 0.0, see: T65986.
+ * very low quality as the value moves away from 0.0, see: #65986.
  */
 static float mesh_calc_poly_volume_centroid_with_reference_center(const MPoly *mpoly,
                                                                   const MLoop *loopstart,

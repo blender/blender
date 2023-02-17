@@ -412,11 +412,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
   # warn for other versions
   if((CUDA_VERSION STREQUAL "101") OR
      (CUDA_VERSION STREQUAL "102") OR
-     (CUDA_VERSION_MAJOR STREQUAL "11"))
+     (CUDA_VERSION_MAJOR STREQUAL "11") OR
+     (CUDA_VERSION_MAJOR STREQUAL "12"))
   else()
     message(WARNING
       "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-      "build may succeed but only CUDA 11, 10.2 and 10.1 have been tested")
+      "build may succeed but only CUDA 12, 11, 10.2 and 10.1 have been tested")
   endif()
 
   # build for each arch
@@ -513,6 +514,16 @@ if(WITH_CYCLES_CUDA_BINARIES)
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 10 or earlier, skipped.")
+      endif()
+    elseif(${arch} MATCHES ".*_3.")
+      if(DEFINED CUDA11_NVCC_EXECUTABLE)
+        set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
+        set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
+      elseif("${CUDA_VERSION}" LESS 120) # Support for sm_35, sm_37 was removed in CUDA 12
+        set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
+        set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+      else()
+        message(STATUS "CUDA binaries for ${arch} require CUDA 11 or earlier, skipped.")
       endif()
     elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")

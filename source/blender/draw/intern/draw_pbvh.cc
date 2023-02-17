@@ -77,6 +77,7 @@ static bool valid_pbvh_attr(int type)
     case CD_PROP_COLOR:
     case CD_PROP_BYTE_COLOR:
     case CD_PROP_FLOAT2:
+    case CD_PBVH_ID_TYPE:
       return true;
   }
 
@@ -760,7 +761,7 @@ struct PBVHBatches {
     }
   }
 
-  void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
+  ATTR_NO_OPT void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
@@ -914,6 +915,20 @@ struct PBVHBatches {
 #endif
 
     switch (vbo.type) {
+      case CD_PBVH_ID_TYPE: {
+        const int cd_id = CustomData_get_offset_named(
+            &args->bm->vdata, CD_PROP_INT32, "vertex_id");
+
+        printf("cd_id: %d\n", cd_id);
+
+        foreach_bmesh([&](BMLoop *l) {
+          int *id = BM_ELEM_CD_PTR<int *>(l->v, cd_id);
+
+          *static_cast<int *>(GPU_vertbuf_raw_step(&access)) = *id;
+        });
+        break;
+      }
+
       case CD_PROP_FLOAT2: {
         const int cd_uv = CustomData_get_offset_named(
             &args->bm->ldata, CD_PROP_FLOAT2, vbo.name.c_str());
@@ -1129,6 +1144,9 @@ struct PBVHBatches {
         break;
       case CD_PBVH_MASK_TYPE:
         GPU_vertformat_attr_add(&format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        break;
+      case CD_PBVH_ID_TYPE:
+        GPU_vertformat_attr_add(&format, "eid", GPU_COMP_I32, 1, GPU_FETCH_INT);
         break;
       case CD_PROP_FLOAT:
         GPU_vertformat_attr_add(&format, "f", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);

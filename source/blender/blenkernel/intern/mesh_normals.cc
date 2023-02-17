@@ -42,6 +42,7 @@
 using blender::BitVector;
 using blender::float3;
 using blender::int2;
+using blender::MutableBitSpan;
 using blender::MutableSpan;
 using blender::short2;
 using blender::Span;
@@ -1238,7 +1239,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
                                                          const Span<int2> edge_to_loops,
                                                          const Span<int> loop_to_poly,
                                                          const int *e2l_prev,
-                                                         BitVector<> &skip_loops,
+                                                         MutableBitSpan skip_loops,
                                                          const int ml_curr_index,
                                                          const int ml_prev_index,
                                                          const int mp_curr_index)
@@ -1749,7 +1750,7 @@ static void mesh_normals_loop_custom_set(const float (*positions)[3],
       /* We also have to check between last and first loops,
        * otherwise we may miss some sharp edges here!
        * This is just a simplified version of above while loop.
-       * See T45984. */
+       * See #45984. */
       loops = lnors_spacearr.lspacearr[i]->loops;
       if (loops && org_nor) {
         const int lidx = POINTER_AS_INT(loops->link);

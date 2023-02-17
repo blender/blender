@@ -7,8 +7,8 @@ set(INC
   ../../gpu
   ../../makesdna
   ../../makesrna
-  ../../../../intern/guardedalloc
   ../../../../intern/clog
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS

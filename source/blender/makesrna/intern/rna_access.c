@@ -2130,7 +2130,7 @@ static void rna_property_update(
      *
      * So editing custom properties only causes updates in the UI,
      * keep this exception because it happens to be useful for driving settings.
-     * Python developers on the other hand will need to manually 'update_tag', see: T74000. */
+     * Python developers on the other hand will need to manually 'update_tag', see: #74000. */
     DEG_id_tag_update(ptr->owner_id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
 
@@ -5942,7 +5942,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
         case PROP_STRING: {
           const char *defvalue = ((StringPropertyRNA *)parm)->defaultvalue;
           if (defvalue && defvalue[0]) {
-            /* causes bug T29988, possibly this is only correct for thick wrapped
+            /* Causes bug #29988, possibly this is only correct for thick wrapped
              * need to look further into it - campbell */
 #if 0
             BLI_strncpy(data, defvalue, size);

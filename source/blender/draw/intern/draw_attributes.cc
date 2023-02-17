@@ -1,23 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 
 /* Return true if the given DRW_AttributeRequest is already in the requests. */
-static bool drw_attributes_has_request(const DRW_Attributes *requests, DRW_AttributeRequest req)
+static bool drw_attributes_has_request(const DRW_Attributes *requests,
+                                       const DRW_AttributeRequest &req)
 {
   for (int i = 0; i < requests->num_requests; i++) {
-    const DRW_AttributeRequest src_req = requests->requests[i];
-    if (src_req.domain != req.domain) {
-      continue;
+    const DRW_AttributeRequest &src_req = requests->requests[i];
+    if (src_req.domain == req.domain && src_req.layer_index == req.layer_index &&
+        src_req.cd_type == req.cd_type) {
+      return true;
     }
-    if (src_req.layer_index != req.layer_index) {
-      continue;
-    }
-    if (src_req.cd_type != req.cd_type) {
-      continue;
-    }
-    return true;
   }
   return false;
 }
@@ -61,14 +56,15 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
   return true;
 }
 
-DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
-                                                 const char *name,
-                                                 const eCustomDataType type,
-                                                 const int layer_index,
-                                                 const eAttrDomain domain)
+void drw_attributes_add_request(DRW_Attributes *attrs,
+                                const char *name,
+                                const eCustomDataType type,
+                                const int layer_index,
+                                const eAttrDomain domain)
 {
-  if (attrs->num_requests >= GPU_MAX_ATTR) {
-    return nullptr;
+  if (attrs->num_requests >= GPU_MAX_ATTR ||
+      drw_attributes_has_request(attrs, {type, layer_index, domain})) {
+    return;
   }
 
   DRW_AttributeRequest *req = &attrs->requests[attrs->num_requests];
@@ -77,7 +73,6 @@ DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
   req->layer_index = layer_index;
   req->domain = domain;
   attrs->num_requests += 1;
-  return req;
 }
 
 bool drw_custom_data_match_attribute(const CustomData *custom_data,

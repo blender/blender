@@ -12,6 +12,7 @@ set(INC
   ../../draw
   ../../geometry
   ../../gpu
+  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna
@@ -28,6 +29,7 @@ set(SRC
   editface.cc
   editmesh_add.c
   editmesh_add_gizmo.c
+  editmesh_attribute.cc
   editmesh_automerge.c
   editmesh_bevel.c
   editmesh_bisect.c

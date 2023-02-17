@@ -259,17 +259,16 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
     GPU_shader_uniform_1i(shader, "visibility_word_per_draw", word_per_draw);
     GPU_shader_uniform_1b(shader, "force_fail_method", force_fail_method_);
     GPU_shader_uniform_3fv(shader, "shadow_direction", light_direction_);
-    GPU_uniformbuf_bind(extruded_frustum_,
-                        GPU_shader_get_uniform_block(shader, "extruded_frustum"));
-    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo(shader, "bounds_buf"));
+    GPU_uniformbuf_bind(extruded_frustum_, GPU_shader_get_ubo_binding(shader, "extruded_frustum"));
+    GPU_storagebuf_bind(bounds, GPU_shader_get_ssbo_binding(shader, "bounds_buf"));
     if (current_pass_type_ == ShadowPass::FORCED_FAIL) {
-      GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo(shader, "visibility_buf"));
+      GPU_storagebuf_bind(visibility_buf_, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
     }
     else {
       GPU_storagebuf_bind(pass_visibility_buf_,
-                          GPU_shader_get_ssbo(shader, "pass_visibility_buf"));
+                          GPU_shader_get_ssbo_binding(shader, "pass_visibility_buf"));
       GPU_storagebuf_bind(fail_visibility_buf_,
-                          GPU_shader_get_ssbo(shader, "fail_visibility_buf"));
+                          GPU_shader_get_ssbo_binding(shader, "fail_visibility_buf"));
     }
     GPU_uniformbuf_bind(data_, DRW_VIEW_UBO_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(resource_len, DRW_VISIBILITY_GROUP_SIZE), 1, 1);
@@ -439,7 +438,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 #endif
 
   /* Shadow pass technique needs object to be have all its surface opaque. */
-  /* We cannot use the PASS technique on non-manifold object (see T76168). */
+  /* We cannot use the PASS technique on non-manifold object (see #76168). */
   bool force_fail_pass = has_transp_mat || (!is_manifold && (scene_state.cull_state != 0));
 
   PassType fail_type = force_fail_pass ? FORCED_FAIL : FAIL;

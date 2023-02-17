@@ -965,7 +965,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
       Object *ob = ptr->data;
 
       if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type) && ob->totcol) {
-        /* a valid actcol isn't ensured T27526. */
+        /* a valid actcol isn't ensured #27526. */
         int matnr = ob->actcol - 1;
         if (matnr < 0) {
           matnr = 0;

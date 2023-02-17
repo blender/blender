@@ -152,21 +152,67 @@ static void geom_add_uv_vertex(const char *p, const char *end, GlobalVertices &r
   r_global_vertices.uv_vertices.append(uv);
 }
 
-static void geom_add_edge(Geometry *geom,
-                          const char *p,
-                          const char *end,
-                          GlobalVertices &r_global_vertices)
+/**
+ * Parse vertex index and transform to non-negative, zero-based.
+ * Sets r_index to the index or INT32_MAX on error.
+ * Index is transformed and bounds-checked using n_vertices,
+ * which specifies the number of vertices that have been read before.
+ * Returns updated p.
+ */
+static const char *parse_vertex_index(const char *p, const char *end, size_t n_elems, int &r_index)
 {
-  int edge_v1, edge_v2;
-  p = parse_int(p, end, -1, edge_v1);
-  p = parse_int(p, end, -1, edge_v2);
-  /* Always keep stored indices non-negative and zero-based. */
-  edge_v1 += edge_v1 < 0 ? r_global_vertices.vertices.size() : -1;
-  edge_v2 += edge_v2 < 0 ? r_global_vertices.vertices.size() : -1;
-  BLI_assert(edge_v1 >= 0 && edge_v2 >= 0);
-  geom->edges_.append({uint(edge_v1), uint(edge_v2)});
-  geom->track_vertex_index(edge_v1);
-  geom->track_vertex_index(edge_v2);
+  p = parse_int(p, end, INT32_MAX, r_index, false);
+  if (r_index != INT32_MAX) {
+    r_index += r_index < 0 ? n_elems : -1;
+    if (r_index < 0 || r_index >= n_elems) {
+      fprintf(stderr, "Invalid vertex index %i (valid range [0, %zu))\n", r_index, n_elems);
+      r_index = INT32_MAX;
+    }
+  }
+  return p;
+}
+
+/**
+ * Parse a polyline and add its line segments as loose edges.
+ * We support the following polyline specifications:
+ *  - "l v1/vt1 v2/vt2 ..."
+ *  - "l v1 v2 ..."
+ *  If a line only has one vertex (technically not allowed by the spec),
+ *  no line is created, but the vertex will be added to
+ *  the mesh even if it is unconnected.
+ */
+static void geom_add_polyline(Geometry *geom,
+                              const char *p,
+                              const char *end,
+                              GlobalVertices &r_global_vertices)
+{
+  int last_vertex_index;
+  p = drop_whitespace(p, end);
+  p = parse_vertex_index(p, end, r_global_vertices.vertices.size(), last_vertex_index);
+
+  if (last_vertex_index == INT32_MAX) {
+    fprintf(stderr, "Skipping invalid OBJ polyline.\n");
+    return;
+  }
+  geom->track_vertex_index(last_vertex_index);
+
+  while (p < end) {
+    int vertex_index;
+
+    /* Lines can contain texture coordinate indices, just ignore them. */
+    p = drop_non_whitespace(p, end);
+    /* Skip whitespace to get to the next vertex. */
+    p = drop_whitespace(p, end);
+
+    p = parse_vertex_index(p, end, r_global_vertices.vertices.size(), vertex_index);
+    if (vertex_index == INT32_MAX) {
+      break;
+    }
+
+    geom->edges_.append({uint(last_vertex_index), uint(vertex_index)});
+    geom->track_vertex_index(vertex_index);
+    last_vertex_index = vertex_index;
+  }
 }
 
 static void geom_add_polygon(Geometry *geom,
@@ -222,7 +268,7 @@ static void geom_add_polygon(Geometry *geom,
     else {
       geom->track_vertex_index(corner.vert_index);
     }
-    /* Ignore UV index, if the geometry does not have any UVs (T103212). */
+    /* Ignore UV index, if the geometry does not have any UVs (#103212). */
     if (got_uv && !global_vertices.uv_vertices.is_empty()) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
@@ -235,7 +281,7 @@ static void geom_add_polygon(Geometry *geom,
     }
     /* Ignore corner normal index, if the geometry does not have any normals.
      * Some obj files out there do have face definitions that refer to normal indices,
-     * without any normals being present (T98782). */
+     * without any normals being present (#98782). */
     if (got_normal && !global_vertices.vertex_normals.is_empty()) {
       corner.vertex_normal_index += corner.vertex_normal_index < 0 ?
                                         global_vertices.vertex_normals.size() :
@@ -252,7 +298,7 @@ static void geom_add_polygon(Geometry *geom,
     geom->face_corners_.append(corner);
     curr_face.corner_count_++;
 
-    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (T103441). */
+    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (#103441). */
     p = drop_non_whitespace(p, end);
     /* Skip whitespace to get to the next face corner. */
     p = drop_whitespace(p, end);
@@ -548,7 +594,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       }
       /* Faces. */
       else if (parse_keyword(p, end, "l")) {
-        geom_add_edge(curr_geom, p, end, r_global_vertices);
+        geom_add_polyline(curr_geom, p, end, r_global_vertices);
       }
       /* Objects. */
       else if (parse_keyword(p, end, "o")) {
@@ -767,7 +813,7 @@ Span<std::string> OBJParser::mtl_libraries() const
 
 void OBJParser::add_mtl_library(StringRef path)
 {
-  /* Remove any quotes from start and end (T67266, T97794). */
+  /* Remove any quotes from start and end (#67266, #97794). */
   if (path.size() > 2 && path.startswith("\"") && path.endswith("\"")) {
     path = path.drop_prefix(1).drop_suffix(1);
   }
@@ -783,7 +829,7 @@ void OBJParser::add_default_mtl_library()
    * into candidate .mtl files to search through. This is not technically following the
    * spec, but the old python importer was doing it, and there are user files out there
    * that contain "mtllib bar.mtl" for a foo.obj, and depend on finding materials
-   * from foo.mtl (see T97757). */
+   * from foo.mtl (see #97757). */
   char mtl_file_path[FILE_MAX];
   BLI_strncpy(mtl_file_path, import_params_.filepath, sizeof(mtl_file_path));
   BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
@@ -855,7 +901,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
         parse_float(p, end, 1.0f, material->alpha);
       }
       else if (parse_keyword(p, end, "illum")) {
-        /* Some files incorrectly use a float (T60135). */
+        /* Some files incorrectly use a float (#60135). */
         float val;
         parse_float(p, end, 1.0f, val);
         material->illum_mode = val;

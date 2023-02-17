@@ -203,7 +203,7 @@ static void setup_app_data(bContext *C,
      * But if they close one of the screens,
      * undo will ensure that the scene being operated on will be activated
      * (otherwise we'd be undoing on an off-screen scene which isn't acceptable).
-     * see: T43424
+     * see: #43424
      */
     wmWindow *win;
     bScreen *curscreen = nullptr;

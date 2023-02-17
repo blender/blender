@@ -338,7 +338,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
   copy_v3_v3(data->grabtarget, pchan->pose_tail);
 
   /* watch-it! has to be 0 here, since we're still on the
-   * same bone for the first time through the loop T25885. */
+   * same bone for the first time through the loop #25885. */
   data->rootbone = 0;
 
   /* we only include bones that are part of a continual connected chain */
@@ -1051,9 +1051,9 @@ static void createTransArmatureVerts(bContext *UNUSED(C), TransInfo *t)
             copy_v3_v3(td->iloc, ebo->tail);
 
             /* Don't allow single selected tips to have a modified center,
-             * causes problem with snapping (see T45974).
+             * causes problem with snapping (see #45974).
              * However, in rotation mode, we want to keep that 'rotate bone around root with
-             * only its tip selected' behavior (see T46325). */
+             * only its tip selected' behavior (see #46325). */
             if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
                 ((t->mode == TFM_ROTATION) || (ebo->flag & BONE_ROOTSEL))) {
               copy_v3_v3(td->center, ebo->head);
@@ -1271,7 +1271,7 @@ static void recalcData_edit_armature(TransInfo *t)
             rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
             mul_qt_v3(qrot, up_axis);
 
-            /* roll has a tendency to flip in certain orientations - T34283, T33974. */
+            /* roll has a tendency to flip in certain orientations - #34283, #33974. */
             roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
             ebo->roll = angle_compat_rad(roll, td->ival);
           }
@@ -1612,7 +1612,7 @@ static short apply_targetless_ik(Object *ob)
           normalize_m3(rmat3);
 
           /* rotation */
-          /* T22409 is partially caused by this, as slight numeric error introduced during
+          /* #22409 is partially caused by this, as slight numeric error introduced during
            * the solving process leads to locked-axis values changing. However, we cannot modify
            * the values here, or else there are huge discrepancies between IK-solver (interactive)
            * and applied poses. */
@@ -1712,7 +1712,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       if ((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
         /* when running transform non-interactively (operator exec),
          * we need to update the pose otherwise no updates get called during
-         * transform and the auto-ik is not applied. see T26164. */
+         * transform and the auto-ik is not applied. see #26164. */
         struct Object *pose_ob = tc->poseobj;
         BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
       }

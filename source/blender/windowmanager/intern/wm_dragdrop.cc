@@ -9,6 +9,7 @@
 
 #include <cstring>
 
+#include "DNA_asset_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -563,7 +564,7 @@ wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset, const char *pat
   asset_drag->metadata = ED_asset_handle_get_metadata(asset);
   asset_drag->path = path;
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
-  asset_drag->import_type = import_type;
+  asset_drag->import_method = import_type;
 
   return asset_drag;
 }
@@ -617,11 +618,11 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
   View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
 
-  switch ((eFileAssetImportType)asset_drag->import_type) {
-    case FILE_ASSET_IMPORT_LINK:
+  switch (eAssetImportMethod(asset_drag->import_method)) {
+    case ASSET_IMPORT_LINK:
       return WM_file_link_datablock(
           bmain, scene, view_layer, view3d, asset_drag->path, idtype, name, flag);
-    case FILE_ASSET_IMPORT_APPEND:
+    case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(bmain,
                                       scene,
                                       view_layer,
@@ -631,7 +632,7 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
                                       name,
                                       flag | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR);
-    case FILE_ASSET_IMPORT_APPEND_REUSE:
+    case ASSET_IMPORT_APPEND_REUSE:
       return WM_file_append_datablock(G_MAIN,
                                       scene,
                                       view_layer,
@@ -655,7 +656,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   }
 
   const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-  return asset_drag->import_type == FILE_ASSET_IMPORT_LINK;
+  return asset_drag->import_method == ASSET_IMPORT_LINK;
 }
 
 ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
@@ -694,7 +695,7 @@ void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
       bmain, drop->ptr, static_cast<ID_Type>(asset_drag->id_type));
   if (id != nullptr) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
-     * cause T95636. Note that we need first to add the user that we want to remove in
+     * cause #95636. Note that we need first to add the user that we want to remove in
      * #BKE_id_free_us. */
     id_us_plus(id);
     BKE_id_free_us(bmain, id);
@@ -728,7 +729,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const AssetHandle *asset)
     ED_asset_handle_get_full_library_path(asset, asset_blend_path);
     drag_asset->is_external = true;
     drag_asset->asset_data.external_info = WM_drag_create_asset_data(
-        asset, BLI_strdup(asset_blend_path), FILE_ASSET_IMPORT_APPEND);
+        asset, BLI_strdup(asset_blend_path), ASSET_IMPORT_APPEND);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }

@@ -95,8 +95,7 @@ void light_eval(ClosureDiffuse diffuse,
   uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
   vec4 ltc_mat = utility_tx_sample(utility_tx, uv, UTIL_LTC_MAT_LAYER);
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL(light_cull_buf, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     light_eval_ex(diffuse,
                   reflection,
                   true,
@@ -113,8 +112,7 @@ void light_eval(ClosureDiffuse diffuse,
   LIGHT_FOREACH_END
 
   vec2 px = gl_FragCoord.xy;
-  LIGHT_FOREACH_BEGIN_LOCAL(light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
     light_eval_ex(diffuse,
                   reflection,
                   false,

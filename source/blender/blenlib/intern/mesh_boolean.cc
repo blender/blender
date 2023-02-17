@@ -2761,7 +2761,7 @@ static IMesh raycast_tris_boolean(const IMesh &tm,
          * For most operations, even a hint of being inside
          * gives good results, but when shape is a cutter in a Difference
          * operation, we want to be pretty sure that the point is inside other_shape.
-         * E.g., T75827.
+         * E.g., #75827.
          * Also, when the operation is intersection, we also want high confidence.
          */
         bool need_high_confidence = (op == BoolOpType::Difference && shape != 0) ||

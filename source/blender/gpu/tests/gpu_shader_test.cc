@@ -47,7 +47,7 @@ static void test_gpu_shader_compute_2d()
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
-  GPU_texture_image_bind(texture, GPU_shader_get_texture_binding(shader, "img_output"));
+  GPU_texture_image_bind(texture, GPU_shader_get_sampler_binding(shader, "img_output"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, SIZE, 1);
@@ -93,7 +93,7 @@ static void test_gpu_shader_compute_1d()
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
-  GPU_texture_image_bind(texture, GPU_shader_get_texture_binding(shader, "img_output"));
+  GPU_texture_image_bind(texture, GPU_shader_get_sampler_binding(shader, "img_output"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -142,7 +142,7 @@ static void test_gpu_shader_compute_vbo()
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(vbo, SIZE);
-  GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo(shader, "out_positions"));
+  GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo_binding(shader, "out_positions"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -151,8 +151,8 @@ static void test_gpu_shader_compute_vbo()
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 
   /* Download the vertex buffer. */
-  const float *data = static_cast<const float *>(GPU_vertbuf_read(vbo));
-  ASSERT_NE(data, nullptr);
+  float data[SIZE * 4];
+  GPU_vertbuf_read(vbo, data);
   for (int index = 0; index < SIZE; index++) {
     float expected_value = index;
     EXPECT_FLOAT_EQ(data[index * 4 + 0], expected_value);
@@ -186,7 +186,7 @@ static void test_gpu_shader_compute_ibo()
 
   /* Construct IBO. */
   GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
-  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo(shader, "out_indices"));
+  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -195,8 +195,8 @@ static void test_gpu_shader_compute_ibo()
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 
   /* Download the index buffer. */
-  const uint32_t *data = GPU_indexbuf_read(ibo);
-  ASSERT_NE(data, nullptr);
+  uint32_t data[SIZE];
+  GPU_indexbuf_read(ibo, data);
   for (int index = 0; index < SIZE; index++) {
     uint32_t expected = index;
     EXPECT_EQ(data[index], expected);
@@ -228,7 +228,7 @@ static void test_gpu_shader_compute_ssbo()
   /* Construct IBO. */
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
       SIZE * sizeof(uint32_t), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
-  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo(shader, "out_indices"));
+  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -264,8 +264,8 @@ static void test_gpu_shader_ssbo_binding()
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
-  EXPECT_EQ(0, GPU_shader_get_ssbo(shader, "data0"));
-  EXPECT_EQ(1, GPU_shader_get_ssbo(shader, "data1"));
+  EXPECT_EQ(0, GPU_shader_get_ssbo_binding(shader, "data0"));
+  EXPECT_EQ(1, GPU_shader_get_ssbo_binding(shader, "data1"));
 
   /* Cleanup. */
   GPU_shader_unbind();

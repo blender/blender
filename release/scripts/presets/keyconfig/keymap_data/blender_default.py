@@ -37,7 +37,7 @@ class Params:
         # instead be bound to a binding that doesn't de-select all, this way:
         # - Click-drag moves the current selection.
         # - Click selects only the item at the cursor position.
-        # See: T97032.
+        # See: #97032.
         "use_tweak_select_passthrough",
         "use_tweak_tool_lmb_interaction",
         "use_mouse_emulate_3_button",
@@ -465,7 +465,7 @@ def _template_items_tool_select(
         fallback=False,
 ):
     if not params.legacy and not fallback:
-        # Experimental support for LMB interaction for the tweak tool. see: T96544.
+        # Experimental support for LMB interaction for the tweak tool. see: #96544.
         # NOTE: For RMB-select this is a much bigger change as it disables 3D cursor placement on LMB.
         # For LMB-select this means an LMB -drag will not first de-select all (similar to node/graph editor).
         select_passthrough = False
@@ -498,7 +498,7 @@ def _template_items_tool_select(
              {"properties": [("toggle", True), *operator_props]}),
 
             # Fallback key-map must transform as the primary tool is expected
-            # to be accessed via gizmos in this case. See: T96885.
+            # to be accessed via gizmos in this case. See: #96885.
             *(() if not fallback else (
                 ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
                  {"properties": [("release_confirm", True)]}),
@@ -4730,7 +4730,7 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 
 def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
-    # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See T92467.
+    # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See #92467.
 
     props_vert_without_handles = ()
     if select_passthrough:
@@ -5629,6 +5629,10 @@ def km_curves(params):
         ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         *_template_items_select_actions(params, "curves.select_all"),
         ("curves.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("curves.delete", {"type": 'X', "value": 'PRESS'}, None),
+        ("curves.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("curves.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("curves.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
     ])
 
     return keymap
@@ -5683,7 +5687,7 @@ def km_object_non_modal(params):
         ])
     else:
         items.extend([
-            # NOTE: this shortcut (while not temporary) is not ideal, see: T89757.
+            # NOTE: this shortcut (while not temporary) is not ideal, see: #89757.
             ("object.transfer_mode", {"type": 'Q', "value": 'PRESS', "alt": True}, None),
         ])
 
@@ -6345,9 +6349,8 @@ def km_node_link_modal_map(_params):
 
     return keymap
 
+
 # Fallback for gizmos that don't have custom a custom key-map.
-
-
 def km_generic_gizmo(_params):
     keymap = (
         "Generic Gizmo",

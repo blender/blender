@@ -10,7 +10,7 @@
 #ifndef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
 #  define KERNEL_STUB
 #else
-/* SSE optimization disabled for now on 32 bit, see bug T36316. */
+/* SSE optimization disabled for now on 32 bit, see bug #36316. */
 #  if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
 #    define __KERNEL_SSE2__
 #    define __KERNEL_SSE3__

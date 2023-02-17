@@ -773,6 +773,12 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->gpu_backend = GPU_BACKEND_OPENGL;
   }
 
+  if (!USER_VERSION_ATLEAST(305, 10)) {
+    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+      asset_library->import_method = ASSET_IMPORT_APPEND_REUSE;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

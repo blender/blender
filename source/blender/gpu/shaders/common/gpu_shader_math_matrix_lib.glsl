@@ -169,7 +169,7 @@ mat4x4 scale(mat4x4 mat, vec3 scale);
  *
  * \note This code is about five times faster than the polar decomposition.
  * However, it gives un-expected results even with non-uniformly scaled matrices,
- * see T46418 for an example.
+ * see #46418 for an example.
  *
  * \param A: Input matrix which is totally effective with `t = 0.0`.
  * \param B: Input matrix which is totally effective with `t = 1.0`.
@@ -1059,7 +1059,7 @@ EulerXYZ to_euler(mat4x4 mat, const bool normalized)
 
 Quaternion normalized_to_quat_fast(mat3 mat)
 {
-  /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
+  /* Caller must ensure matrices aren't negative for valid results, see: #24291, #94231. */
   Quaternion q;
 
   /* Method outlined by Mike Day, ref: https://math.stackexchange.com/a/3183435/220949
@@ -1122,7 +1122,7 @@ Quaternion normalized_to_quat_fast(mat3 mat)
     }
     else {
       /* NOTE(@ideasman42): A zero matrix will fall through to this block,
-       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848. */
+       * needed so a zero scaled matrices to return a quaternion without rotation, see: #101848. */
       float trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       float s = 2.0f * sqrt(trace);
       q.x = 0.25f * s;

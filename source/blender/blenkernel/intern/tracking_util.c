@@ -538,13 +538,14 @@ void tracking_cameraIntrinscisOptionsFromTracking(
 void tracking_trackingCameraFromIntrinscisOptions(
     MovieTracking *tracking, const libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
 {
-  float aspy = 1.0f / tracking->camera.pixel_aspect;
   MovieTrackingCamera *camera = &tracking->camera;
 
   camera->focal = camera_intrinsics_options->focal_length;
 
+  /* NOTE: The image size stored in the `camera_intrinsics_options` is aspect-ratio corrected,
+   * so there is no need to "un-apply" it from the principal point. */
   const float principal_px[2] = {camera_intrinsics_options->principal_point_x,
-                                 camera_intrinsics_options->principal_point_y / (double)aspy};
+                                 camera_intrinsics_options->principal_point_y};
 
   tracking_principal_point_pixel_to_normalized(principal_px,
                                                camera_intrinsics_options->image_width,

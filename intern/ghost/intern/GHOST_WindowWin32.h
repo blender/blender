@@ -87,12 +87,12 @@ class GHOST_WindowWin32 : public GHOST_Window {
   ~GHOST_WindowWin32();
 
   /**
-   * Adjusts a requested window rect to fit and position correctly in monitor.
+   * Adjusts a requested window rect to fit and position within the desktop.
    * \param win_rect: pointer to rectangle that will be modified.
    * \param dwStyle: The Window Style of the window whose required size is to be calculated.
    * \param dwExStyle: The Extended Window Style of the window.
    */
-  void adjustWindowRectForClosestMonitor(LPRECT win_rect, DWORD dwStyle, DWORD dwExStyle);
+  void adjustWindowRectForDesktop(LPRECT win_rect, DWORD dwStyle, DWORD dwExStyle);
 
   /**
    * Returns indication as to whether the window is valid.

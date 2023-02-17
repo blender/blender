@@ -76,7 +76,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 
 static bool rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 {
-  /* can be NULL on file load, T42619 */
+  /* can be NULL on file load, #42619 */
   wmWindowManager *wm = G_MAIN->wm.first;
   return wm ? (ED_screen_animation_playing(wm) != NULL) : 0;
 }
@@ -103,7 +103,7 @@ static int rna_Area_type_get(PointerRNA *ptr)
 {
   ScrArea *area = (ScrArea *)ptr->data;
   /* Usually 'spacetype' is used. It lags behind a bit while switching area
-   * type though, then we use 'butspacetype' instead (T41435). */
+   * type though, then we use 'butspacetype' instead (#41435). */
   return (area->butspacetype == SPACE_EMPTY) ? area->spacetype : area->butspacetype;
 }
 
@@ -130,7 +130,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
   bScreen *screen = (bScreen *)ptr->owner_id;
   ScrArea *area = (ScrArea *)ptr->data;
 
-  /* Running update without having called 'set', see: T64049 */
+  /* Running update without having called 'set', see: #64049 */
   if (area->butspacetype == SPACE_EMPTY) {
     return;
   }
@@ -377,7 +377,7 @@ static void rna_def_area(BlenderRNA *brna)
    * and needs to be read back by script authors.
    *
    * This happens when an area is full-screen (when #ScrArea.full is set).
-   * in this case reading the empty value is needed, but it should never be set, see: T87187. */
+   * in this case reading the empty value is needed, but it should never be set, see: #87187. */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "spacetype");
   RNA_def_property_enum_items(prop, rna_enum_space_type_items);

@@ -394,7 +394,7 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
 
   /* Compile.
    *
-   * Mutex protected because the OSL compiler does not appear to be thread safe, see T92503. */
+   * Mutex protected because the OSL compiler does not appear to be thread safe, see #92503. */
   static thread_mutex osl_compiler_mutex;
   thread_scoped_lock lock(osl_compiler_mutex);
 

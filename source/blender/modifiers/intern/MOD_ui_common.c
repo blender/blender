@@ -274,6 +274,17 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   if (!md->next) {
     uiLayoutSetEnabled(row, false);
   }
+
+  if (md->type == eModifierType_Nodes) {
+    uiItemFullO(layout,
+                "OBJECT_OT_geometry_nodes_move_to_nodes",
+                NULL,
+                ICON_NONE,
+                NULL,
+                WM_OP_INVOKE_DEFAULT,
+                0,
+                &op_ptr);
+  }
 }
 
 static void modifier_panel_header(const bContext *C, Panel *panel)

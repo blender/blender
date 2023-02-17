@@ -766,7 +766,7 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
       (BlenderSession::headless || is_interface_locked) &&
       /* Baking re-uses the depsgraph multiple times, clearing crashes
        * reading un-evaluated mesh data which isn't aligned with the
-       * geometry we're baking, see T71012. */
+       * geometry we're baking, see #71012. */
       !scene->bake_manager->get_baking() &&
       /* Persistent data must main caches for performance and correctness. */
       !is_persistent_data;

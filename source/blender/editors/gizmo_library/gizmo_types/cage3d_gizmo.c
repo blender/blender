@@ -88,7 +88,10 @@ static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], 
 
 /* -------------------------------------------------------------------- */
 
-static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_constrain_axis[3])
+static void gizmo_rect_pivot_from_scale_part(int part,
+                                             float r_pt[3],
+                                             bool r_constrain_axis[3],
+                                             bool has_translation)
 {
   if (part >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
       part <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z) {
@@ -102,7 +105,7 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_con
 
     const float sign[3] = {0.5f, 0.0f, -0.5f};
     for (int i = 0; i < 3; i++) {
-      r_pt[i] = sign[range[i]];
+      r_pt[i] = has_translation ? sign[range[i]] : 0.0f;
       r_constrain_axis[i] = (range[i] == 1);
     }
   }
@@ -512,41 +515,33 @@ static int gizmo_cage3d_modal(bContext *C,
   else {
     /* scale */
     copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
+
     float pivot[3];
     bool constrain_axis[3] = {false};
-
-    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
-      gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis);
-    }
-    else {
-      zero_v3(pivot);
-    }
-
-    /* Cursor deltas scaled to (-0.5..0.5). */
-    float delta_orig[3], delta_curr[3];
-
-    for (int i = 0; i < 3; i++) {
-      delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) -
-                      pivot[i];
-      delta_curr[i] = ((point_local[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
-    }
+    bool has_translation = transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE;
+    gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis, has_translation);
 
     float scale[3] = {1.0f, 1.0f, 1.0f};
     for (int i = 0; i < 3; i++) {
       if (constrain_axis[i] == false) {
-        if (delta_orig[i] < 0.0f) {
-          delta_orig[i] *= -1.0f;
-          delta_curr[i] *= -1.0f;
-        }
-        const int sign = signum_i(scale[i]);
-
-        scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
+        /* Original cursor position relative to pivot, remapped to [-1, 1] */
+        const float delta_orig = (data->orig_mouse[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
+        const float delta_curr = (point_local[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
 
         if ((transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_SIGNED) == 0) {
-          if (sign != signum_i(scale[i])) {
+          if (signum_i(delta_orig) != signum_i(delta_curr)) {
             scale[i] = 0.0f;
+            continue;
           }
         }
+
+        /* Original cursor position does not exactly lie on the cage boundary due to margin. */
+        const float delta_boundary = signf(delta_orig) * 0.5f - pivot[i];
+        scale[i] = delta_curr / delta_boundary;
       }
     }
 

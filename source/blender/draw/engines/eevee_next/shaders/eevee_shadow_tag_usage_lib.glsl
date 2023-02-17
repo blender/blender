@@ -92,14 +92,12 @@ void shadow_tag_usage(vec3 vP, vec3 P, vec2 pixel)
 {
   float dist_to_cam = length(vP);
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL(light_cull_buf, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     shadow_tag_usage_tilemap(l_idx, P, dist_to_cam, true);
   }
   LIGHT_FOREACH_END
 
-  LIGHT_FOREACH_BEGIN_LOCAL(light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx)
-  {
+  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
     shadow_tag_usage_tilemap(l_idx, P, dist_to_cam, false);
   }
   LIGHT_FOREACH_END

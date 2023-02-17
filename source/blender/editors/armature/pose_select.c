@@ -230,7 +230,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
        */
       else if (arm->flag & ARM_HAS_VIZ_DEPS) {
         /* NOTE: ob not ob_act here is intentional - it's the source of the
-         *       bones being selected  [T37247]
+         *       bones being selected [#37247].
          */
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }

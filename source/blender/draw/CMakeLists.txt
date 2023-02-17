@@ -225,7 +225,7 @@ set(SRC
   DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
-  intern/draw_attributes.h
+  intern/draw_attributes.hh
   intern/draw_cache.h
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.h
@@ -234,7 +234,7 @@ set(SRC
   intern/draw_command.hh
   intern/draw_common.h
   intern/draw_common_shader_shared.h
-  intern/draw_curves_private.h
+  intern/draw_curves_private.hh
   intern/draw_debug.h
   intern/draw_debug.hh
   intern/draw_hair_private.h
@@ -702,6 +702,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
   engines/overlay/shaders/overlay_pointcloud_only_vert.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_cage_vert.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
   engines/overlay/shaders/overlay_sculpt_mask_frag.glsl

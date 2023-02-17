@@ -215,7 +215,7 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
 #  if 0
           /* Note (sebbas):
            * Disabling this "skip section" as not copying borders results in weird cut-off effects.
-           * It is possible that this cutting off is the reason for line effects as seen in T74559.
+           * It is possible that this cutting off is the reason for line effects as seen in #74559.
            * Since domain borders will be handled on the simulation side anyways,
            * copying border values should not be an issue. */
 
@@ -3812,7 +3812,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
 
   /* When reading data from cache (has_config == true) ensure that active fields are allocated.
    * update_flowsflags() and update_obstacleflags() will not find flow sources hidden from renders.
-   * See also: T72192. */
+   * See also: #72192. */
   if (has_config) {
     ensure_flowsfields(fds);
     ensure_obstaclefields(fds);
@@ -4169,7 +4169,7 @@ Mesh *BKE_fluid_modifier_do(
    * This does not seem particularly useful, but it's backwards compatible.
    *
    * Smoke simulation needs a texture space relative to the adaptive domain bounds, not the
-   * original mesh. So recompute it at this point in the modifier stack. See T58492. */
+   * original mesh. So recompute it at this point in the modifier stack. See #58492. */
   BKE_mesh_texspace_calc(result);
 
   return result;

@@ -2846,7 +2846,7 @@ static Base *duplibase_for_convert(
    * having same 'family name' as orig ones, they will affect end result of meta-ball computation.
    * For until we get rid of that name-based thingy in meta-balls, that should do the trick
    * (this is weak, but other solution (to change name of `obn`) is even worse IMHO).
-   * See T65996. */
+   * See #65996. */
   const bool is_meta_ball = (obn->type == OB_MBALL);
   void *obdata = obn->data;
   if (is_meta_ball) {
@@ -2930,7 +2930,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
   /* Ensure we get all meshes calculated with a sufficient data-mask,
    * needed since re-evaluating single modifiers causes bugs if they depend
-   * on other objects data masks too, see: T50950. */
+   * on other objects data masks too, see: #50950. */
   {
     LISTBASE_FOREACH (CollectionPointerLink *, link, &selected_editable_bases) {
       Base *base = static_cast<Base *>(link->ptr.data);
@@ -2975,7 +2975,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* obdata already modified */
       if (!IS_TAGGED(ob->data)) {
         /* When 2 objects with linked data are selected, converting both
-         * would keep modifiers on all but the converted object T26003. */
+         * would keep modifiers on all but the converted object #26003. */
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
@@ -3708,7 +3708,7 @@ Base *ED_object_add_duplicate(
 
   ob = basen->object;
 
-  /* Link own references to the newly duplicated data T26816.
+  /* Link own references to the newly duplicated data #26816.
    * Note that this function can be called from edit-mode code, in which case we may have to
    * enforce remapping obdata (by default this is forbidden in edit mode). */
   const int remap_flag = BKE_object_is_in_editmode(ob) ? ID_REMAP_FORCE_OBDATA_IN_EDITMODE : 0;
@@ -4156,7 +4156,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
 
   if (ret & OPERATOR_FINISHED) {
     /* Even though internally failure to invert is accounted for with a fallback,
-     * show a warning since the result may not be what the user expects. See T80077.
+     * show a warning since the result may not be what the user expects. See #80077.
      *
      * Failure to invert the matrix is typically caused by zero scaled axes
      * (which can be caused by constraints, even if the input scale isn't zero).

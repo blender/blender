@@ -1391,7 +1391,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   BMFace **side_faces = MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
-    /* Calculate with higher precision, see: T87779. */
+    /* Calculate with higher precision, see: #87779. */
     float sin_phi, cos_phi;
     sin_cos_from_fraction(i, segs, &sin_phi, &cos_phi);
 

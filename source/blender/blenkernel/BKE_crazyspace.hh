@@ -46,6 +46,7 @@ struct GeometryDeformation {
  * function either retrieves the deformation data from the evaluated object, or falls back to
  * returning the original data.
  */
+GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, const Object &ob_orig);
 GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
                                                      const Object &ob_orig);
 

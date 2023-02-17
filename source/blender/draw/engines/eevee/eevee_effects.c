@@ -93,7 +93,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
 
   /* Update matrices here because EEVEE_screen_raytrace_init can have reset the
-   * taa_current_sample. (See T66811) */
+   * taa_current_sample. (See #66811) */
   EEVEE_temporal_sampling_update_matrices(vedata);
 
   EEVEE_volumes_init(sldata, vedata);

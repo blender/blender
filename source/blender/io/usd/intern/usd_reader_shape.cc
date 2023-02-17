@@ -1,0 +1,245 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2023 Nvidia. All rights reserved. */
+
+#include "BKE_lib_id.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+
+#include "DNA_cachefile_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "WM_api.h"
+
+#include "usd_reader_shape.h"
+
+#include <pxr/usd/usdGeom/capsule.h>
+#include <pxr/usd/usdGeom/cone.h>
+#include <pxr/usd/usdGeom/cube.h>
+#include <pxr/usd/usdGeom/cylinder.h>
+#include <pxr/usd/usdGeom/sphere.h>
+#include <pxr/usdImaging/usdImaging/capsuleAdapter.h>
+#include <pxr/usdImaging/usdImaging/coneAdapter.h>
+#include <pxr/usdImaging/usdImaging/cubeAdapter.h>
+#include <pxr/usdImaging/usdImaging/cylinderAdapter.h>
+#include <pxr/usdImaging/usdImaging/sphereAdapter.h>
+
+namespace blender::io::usd {
+
+USDShapeReader::USDShapeReader(const pxr::UsdPrim &prim,
+                               const USDImportParams &import_params,
+                               const ImportSettings &settings)
+    : USDGeomReader(prim, import_params, settings)
+{
+}
+
+void USDShapeReader::create_object(Main *bmain, double /*motionSampleTime*/)
+{
+  Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
+  object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
+  object_->data = mesh;
+}
+
+void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
+{
+  Mesh *mesh = (Mesh *)object_->data;
+  Mesh *read_mesh = this->read_mesh(
+      mesh, motionSampleTime, import_params_.mesh_read_flag, nullptr);
+
+  if (read_mesh != mesh) {
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
+    if (is_time_varying()) {
+      USDGeomReader::add_cache_modifier();
+    }
+  }
+
+  USDXformReader::read_object_data(bmain, motionSampleTime);
+}
+
+template<typename Adapter>
+void USDShapeReader::read_values(const double motionSampleTime,
+                                 pxr::VtVec3fArray &positions,
+                                 pxr::VtIntArray &face_indices,
+                                 pxr::VtIntArray &face_counts) const
+{
+  Adapter adapter;
+  pxr::VtValue points_val = adapter.GetPoints(prim_, motionSampleTime);
+
+  if (points_val.IsHolding<pxr::VtVec3fArray>()) {
+    positions = points_val.Get<pxr::VtVec3fArray>();
+  }
+
+  pxr::VtValue topology_val = adapter.GetTopology(prim_, pxr::SdfPath(), motionSampleTime);
+
+  if (topology_val.IsHolding<pxr::HdMeshTopology>()) {
+    const pxr::HdMeshTopology &topology = topology_val.Get<pxr::HdMeshTopology>();
+    face_counts = topology.GetFaceVertexCounts();
+    face_indices = topology.GetFaceVertexIndices();
+  }
+}
+
+bool USDShapeReader::read_mesh_values(double motionSampleTime,
+                                      pxr::VtVec3fArray &positions,
+                                      pxr::VtIntArray &face_indices,
+                                      pxr::VtIntArray &face_counts) const
+{
+  if (prim_.IsA<pxr::UsdGeomCapsule>()) {
+    read_values<pxr::UsdImagingCapsuleAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCylinder>()) {
+    read_values<pxr::UsdImagingCylinderAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCone>()) {
+    read_values<pxr::UsdImagingConeAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCube>()) {
+    read_values<pxr::UsdImagingCubeAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  if (prim_.IsA<pxr::UsdGeomSphere>()) {
+    read_values<pxr::UsdImagingSphereAdapter>(
+        motionSampleTime, positions, face_indices, face_counts);
+    return true;
+  }
+
+  WM_reportf(RPT_ERROR,
+             "Unhandled Gprim type: %s (%s)",
+             prim_.GetTypeName().GetText(),
+             prim_.GetPath().GetText());
+  return false;
+}
+
+Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
+                                double motionSampleTime,
+                                int /*read_flag*/,
+                                const char ** /*err_str*/)
+{
+  pxr::VtIntArray face_indices;
+  pxr::VtIntArray face_counts;
+
+  if (!prim_) {
+    return existing_mesh;
+  }
+
+  /* Should have a good set of data by this point-- copy over. */
+  Mesh *active_mesh = mesh_from_prim(existing_mesh, motionSampleTime, face_indices, face_counts);
+  if (active_mesh == existing_mesh) {
+    return existing_mesh;
+  }
+
+  MutableSpan<MPoly> polys = active_mesh->polys_for_write();
+  MutableSpan<MLoop> loops = active_mesh->loops_for_write();
+
+  const char should_smooth = prim_.IsA<pxr::UsdGeomCube>() ? 0 : ME_SMOOTH;
+
+  int loop_index = 0;
+  for (int i = 0; i < face_counts.size(); i++) {
+    const int face_size = face_counts[i];
+
+    MPoly &poly = polys[i];
+    poly.loopstart = loop_index;
+    poly.totloop = face_size;
+
+    /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
+    poly.flag |= should_smooth;
+
+    for (int f = 0; f < face_size; ++f, ++loop_index) {
+      loops[loop_index].v = face_indices[loop_index];
+    }
+  }
+
+  BKE_mesh_calc_edges(active_mesh, false, false);
+  return active_mesh;
+}
+
+Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
+                                     double motionSampleTime,
+                                     pxr::VtIntArray &face_indices,
+                                     pxr::VtIntArray &face_counts) const
+{
+  pxr::VtVec3fArray positions;
+
+  if (!read_mesh_values(motionSampleTime, positions, face_indices, face_counts)) {
+    return existing_mesh;
+  }
+
+  const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->totpoly :
+                                                 false;
+  const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->totvert :
+                                                     false;
+
+  Mesh *active_mesh = nullptr;
+  if (!position_counts_match || !poly_counts_match) {
+    active_mesh = BKE_mesh_new_nomain_from_template(
+        existing_mesh, positions.size(), 0, 0, face_indices.size(), face_counts.size());
+  }
+  else {
+    active_mesh = existing_mesh;
+  }
+
+  MutableSpan<float3> vert_positions = active_mesh->vert_positions_for_write();
+
+  for (int i = 0; i < positions.size(); i++) {
+    vert_positions[i][0] = positions[i][0];
+    vert_positions[i][1] = positions[i][1];
+    vert_positions[i][2] = positions[i][2];
+  }
+
+  return active_mesh;
+}
+
+bool USDShapeReader::is_time_varying()
+{
+  if (prim_.IsA<pxr::UsdGeomCapsule>()) {
+    pxr::UsdGeomCapsule geom(prim_);
+    return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
+            geom.GetHeightAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusAttr().ValueMightBeTimeVarying());
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCylinder>()) {
+    pxr::UsdGeomCylinder geom(prim_);
+    return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
+            geom.GetHeightAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusAttr().ValueMightBeTimeVarying());
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCone>()) {
+    pxr::UsdGeomCone geom(prim_);
+    return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||
+            geom.GetHeightAttr().ValueMightBeTimeVarying() ||
+            geom.GetRadiusAttr().ValueMightBeTimeVarying());
+  }
+
+  if (prim_.IsA<pxr::UsdGeomCube>()) {
+    pxr::UsdGeomCube geom(prim_);
+    return geom.GetSizeAttr().ValueMightBeTimeVarying();
+  }
+
+  if (prim_.IsA<pxr::UsdGeomSphere>()) {
+    pxr::UsdGeomSphere geom(prim_);
+    return geom.GetRadiusAttr().ValueMightBeTimeVarying();
+  }
+
+  WM_reportf(RPT_ERROR,
+             "Unhandled Gprim type: %s (%s)",
+             prim_.GetTypeName().GetText(),
+             prim_.GetPath().GetText());
+  return false;
+}
+
+}  // namespace blender::io::usd

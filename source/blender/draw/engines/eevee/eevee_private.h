@@ -607,7 +607,7 @@ typedef struct EEVEE_MotionBlurData {
 typedef struct EEVEE_ObjectKey {
   /** Object or source object for duplis. */
   /** WORKAROUND: The pointer is different for particle systems and do not point to the real
-   * object. (See T97380) */
+   * object. (See #97380) */
   void *ob;
   /** Parent object for duplis */
   struct Object *parent;
@@ -988,7 +988,7 @@ typedef struct EEVEE_PrivateData {
   float camtexcofac[4];
   float size_orig[2];
 
-  /* Cached original camera when rendering for motion blur (see T79637). */
+  /* Cached original camera when rendering for motion blur (see #79637). */
   struct Object *cam_original_ob;
 
   /* Mist Settings */
@@ -1000,6 +1000,8 @@ typedef struct EEVEE_PrivateData {
   /* Compiling shaders count. This is to track if a shader has finished compiling. */
   int queued_shaders_count;
   int queued_shaders_count_prev;
+  /* Optimizing shaders count. */
+  int queued_optimise_shaders_count;
 
   /* LookDev Settings */
   int studiolight_index;

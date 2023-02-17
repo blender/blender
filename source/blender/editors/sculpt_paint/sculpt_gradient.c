@@ -232,7 +232,7 @@ static int sculpt_mask_gradient_invoke(bContext *C, wmOperator *op, const wmEven
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
 
   // XXX get area_normal_radius argument properly
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK, event->mval, 0.25f);
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_MASK, event->mval, 0.25f, 1.0f);
 
   ss->filter_cache->gradient_context = sculpt_mask_gradient_context_create(ob, op);
   sculpt_gradient_context_init_common(C, op, event, ss->filter_cache->gradient_context);

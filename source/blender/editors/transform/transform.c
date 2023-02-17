@@ -343,7 +343,7 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
         adr[1] = vec[1];
       }
       else if (t->region->regiontype == RGN_TYPE_WINDOW) {
-        /* allow points behind the view T33643. */
+        /* allow points behind the view #33643. */
         if (ED_view3d_project_float_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
           /* XXX, 2.64 and prior did this, weak! */
           adr[0] = t->region->winx / 2.0f;
@@ -989,7 +989,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
         }
         else if (transform_mode_is_changeable(t->mode)) {
-          /* Scale isn't normally very useful after extrude along normals, see T39756 */
+          /* Scale isn't normally very useful after extrude along normals, see #39756 */
           if ((t->con.mode & CON_APPLY) && (t->orient[t->orient_curr].type == V3D_ORIENT_NORMAL)) {
             stopConstraint(t);
           }
@@ -1302,7 +1302,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   /* Per transform event, if present */
   if (t->handleEvent && (!handled ||
-                         /* Needed for vertex slide, see T38756. */
+                         /* Needed for vertex slide, see #38756. */
                          (event->type == MOUSEMOVE))) {
     t->redraw |= t->handleEvent(t, event);
   }
@@ -1377,7 +1377,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
 static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *region)
 {
-  /* Don't show overlays when not the active view and when overlay is disabled: T57139 */
+  /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
   bool ok = false;
   if (region == t->region) {
     ok = true;
@@ -1859,7 +1859,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
      *
      * Do this only for translation/rotation/resize because only these
      * modes are available from gizmo and doing such check could
-     * lead to keymap conflicts for other modes (see T31584)
+     * lead to keymap conflicts for other modes (see #31584)
      */
     if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
       LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {

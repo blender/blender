@@ -76,6 +76,8 @@ struct MTLRenderPipelineStateInstance {
   int null_attribute_buffer_index;
   /* buffer bind used for transform feedback output buffer. */
   int transform_feedback_buffer_index;
+  /* Topology class. */
+  MTLPrimitiveTopologyClass prim_type;
 
   /** Reflection Data.
    * Currently used to verify whether uniform buffers of incorrect sizes being bound, due to left
@@ -188,6 +190,7 @@ class MTLShader : public Shader {
   MTLRenderPipelineStateDescriptor current_pipeline_state_;
   /* Cache of compiled PipelineStateObjects. */
   blender::Map<MTLRenderPipelineStateDescriptor, MTLRenderPipelineStateInstance *> pso_cache_;
+  std::mutex pso_cache_lock_;
 
   /** Compute pipeline state and Compute PSO caching. */
   MTLComputePipelineStateInstance compute_pso_instance_;
@@ -256,6 +259,7 @@ class MTLShader : public Shader {
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
   bool finalize_compute(const shader::ShaderCreateInfo *info);
+  void warm_cache(int limit) override;
 
   /* Utility. */
   bool is_valid()
@@ -331,8 +335,14 @@ class MTLShader : public Shader {
   void shader_source_from_msl(NSString *input_vertex_source, NSString *input_fragment_source);
   void shader_compute_source_from_msl(NSString *input_compute_source);
   void set_interface(MTLShaderInterface *interface);
+
   MTLRenderPipelineStateInstance *bake_current_pipeline_state(MTLContext *ctx,
                                                               MTLPrimitiveTopologyClass prim_type);
+  MTLRenderPipelineStateInstance *bake_pipeline_state(
+      MTLContext *ctx,
+      MTLPrimitiveTopologyClass prim_type,
+      const MTLRenderPipelineStateDescriptor &pipeline_descriptor);
+
   bool bake_compute_pipeline_state(MTLContext *ctx);
   const MTLComputePipelineStateInstance &get_compute_pipeline_state();
 

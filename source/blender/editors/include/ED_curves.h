@@ -136,6 +136,11 @@ void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points);
 void select_linked(bke::CurvesGeometry &curves);
 
 /**
+ * (De)select all the adjacent points of the current selected points.
+ */
+void select_adjacent(bke::CurvesGeometry &curves, bool deselect);
+
+/**
  * Select random points or curves.
  *
  * \param random_seed: The seed for the \a RandomNumberGenerator.
@@ -183,6 +188,18 @@ bool select_circle(const ViewContext &vc,
                    int2 coord,
                    float radius,
                    eSelectOp sel_op);
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Editing
+ * \{ */
+
+/**
+ * Remove (dissolve) selected curves or points based on the ".selection" attribute.
+ * \returns true if any point or curve was removed.
+ */
+bool remove_selection(bke::CurvesGeometry &curves, eAttrDomain selection_domain);
+
 /** \} */
 
 }  // namespace blender::ed::curves

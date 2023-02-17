@@ -141,7 +141,7 @@ constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
  * \{ */
 
 /**
- * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
+ * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: #98793.
  * Even though this has been fixed, at time of writing it's not yet in a release.
  * Workaround the problem by implementing confine with a software cursor.
  * While this isn't ideal, it's not adding a lot of overhead as software
@@ -176,7 +176,7 @@ static bool use_gnome_confine_hack = false;
 
 /**
  * KDE (plasma 5.26.1) has a bug where the cursor surface needs to be committed
- * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: T102048.
+ * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: #102048.
  * See: https://bugs.kde.org/show_bug.cgi?id=461001
  */
 #define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
@@ -197,8 +197,8 @@ static bool use_gnome_confine_hack = false;
  * \{ */
 
 /**
- * Fix short-cut part of keyboard reading code not properly handling some keys, see: T102194.
- * \note This is similar to X11 workaround by the same name, see: T47228.
+ * Fix short-cut part of keyboard reading code not properly handling some keys, see: #102194.
+ * \note This is similar to X11 workaround by the same name, see: #47228.
  */
 #define USE_NON_LATIN_KB_WORKAROUND
 
@@ -1328,7 +1328,7 @@ static void ghost_wl_display_report_error(struct wl_display *display)
    * So in practice re-connecting to the display server isn't an option.
    *
    * Exit since leaving the process open will simply flood the output and do nothing.
-   * Although as the process is in a valid state, auto-save for e.g. is possible, see: T100855. */
+   * Although as the process is in a valid state, auto-save for e.g. is possible, see: #100855. */
   ::exit(-1);
 }
 
@@ -1442,7 +1442,7 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 
       /* Additional keys for non US layouts. */
 
-      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: T102287. */
+      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: #102287. */
       GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
 
       default:
@@ -3810,7 +3810,7 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
 
   /* NOTE(@ideasman42): Only perform the number-locked lookup as a fallback
    * when a number-pad key has been pressed. This is important as some key-maps use number lock
-   * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: T96170.
+   * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: #96170.
    * Alternative solutions could be to inspect the layout however this could get involved
    * and turning on the number-lock is only needed for a limited set of keys. */
 
@@ -4467,7 +4467,7 @@ static void xdg_output_handle_logical_size(void *data,
 
 #ifdef USE_GNOME_CONFINE_HACK
       /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
-       * as T98793 has been fixed up-stream too, but not in a release at time of writing. */
+       * as #98793 has been fixed up-stream too, but not in a release at time of writing. */
       use_gnome_confine_hack = true;
 #endif
 

@@ -12,8 +12,10 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_sort.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 
@@ -1887,6 +1889,25 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   edge_nabr->flags = 0;
 }
 
+static void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
+{
+  blender::parallel_sort(
+      ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
+        int a = p1.v1 - p2.v1;
+        int b = p1.v2 - p2.v2;
+        /* parallel_sort() requires cmp() to return true when the first element needs to appear
+         * before the second element in the sorted array, false otherwise (strict weak ordering),
+         * see https://en.cppreference.com/w/cpp/named_req/Compare. */
+        if (a < 0) {
+          return true;
+        }
+        if (a > 0) {
+          return false;
+        }
+        return b < 0;
+      });
+}
+
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edges)
 {
   /* Because the mesh is triangulated, so `me->totedge` should be reliable? */
@@ -2458,7 +2479,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
     if ((!use_mesh) || use_mesh->edit_mesh) {
       /* If the object is being edited, then the mesh is not evaluated fully into the final
        * result, do not load them. This could be caused by incorrect evaluation order due to
-       * the way line art uses depsgraph.See T102612 for explanation of this workaround. */
+       * the way line art uses depsgraph.See #102612 for explanation of this workaround. */
       return;
     }
   }

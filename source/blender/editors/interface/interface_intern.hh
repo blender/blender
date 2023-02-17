@@ -86,11 +86,6 @@ enum {
   /* WARNING: rest of #uiBut.flag in UI_interface.h */
 };
 
-/** #uiBut.dragflag */
-enum {
-  UI_BUT_DRAGPOIN_FREE = (1 << 0),
-};
-
 /** #uiBut.pie_dir */
 enum RadialDirection {
   UI_RADIAL_NONE = -1,

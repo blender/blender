@@ -1798,7 +1798,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   }
   /* Using some extra margin (-1.0f) for the coordinates used to complete the polygon
    * avoids the profile line crossing itself in some common situations, which can lead to
-   * incorrect triangulation. See T841183. */
+   * incorrect triangulation. See #841183. */
   if (add_left_tri && add_bottom_tri) {
     /* Add left side, bottom left corner, and bottom side points. */
     table_coords[tot_points - 3][0] = profile->view_rect.xmin - 1.0f;

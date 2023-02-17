@@ -71,7 +71,7 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
   BKE_bvhtree_from_mesh_get(&surface_bvh, &surface, BVHTREE_FROM_LOOPTRI, 2);
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
-  const float radius = 0.001f;
+  const float radius = 0.005f;
   const int max_collisions = 5;
 
   threading::parallel_for(curve_selection.index_range(), 64, [&](const IndexRange range) {

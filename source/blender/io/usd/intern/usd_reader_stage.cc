@@ -9,16 +9,22 @@
 #include "usd_reader_mesh.h"
 #include "usd_reader_nurbs.h"
 #include "usd_reader_prim.h"
+#include "usd_reader_shape.h"
 #include "usd_reader_volume.h"
 #include "usd_reader_xform.h"
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/camera.h>
+#include <pxr/usd/usdGeom/capsule.h>
+#include <pxr/usd/usdGeom/cone.h>
+#include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/curves.h>
+#include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/scope.h>
+#include <pxr/usd/usdGeom/sphere.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdShade/material.h>
 
@@ -57,8 +63,18 @@ bool USDStageReader::valid() const
   return stage_;
 }
 
+bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
+{
+  return (prim.IsA<pxr::UsdGeomCapsule>() || prim.IsA<pxr::UsdGeomCylinder>() ||
+          prim.IsA<pxr::UsdGeomCone>() || prim.IsA<pxr::UsdGeomCube>() ||
+          prim.IsA<pxr::UsdGeomSphere>());
+}
+
 USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim)
 {
+  if (params_.import_shapes && is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
+  }
   if (params_.import_cameras && prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
   }
@@ -91,6 +107,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
 
 USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
 {
+  if (is_primitive_prim(prim)) {
+    return new USDShapeReader(prim, params_, settings_);
+  }
   if (prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
   }

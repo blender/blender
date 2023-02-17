@@ -414,7 +414,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
   /* Collapse between 2 edges */
 
   /* in this case we want to keep all faces and not join them,
-   * rather just get rid of the vertex - see bug T28645. */
+   * rather just get rid of the vertex - see bug #28645. */
   BMVert *tv = BM_edge_other_vert(e_kill, v_kill);
   if (tv) {
     BMEdge *e2 = bmesh_disk_edge_next(e_kill, v_kill);

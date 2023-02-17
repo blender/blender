@@ -1220,7 +1220,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
 
   /* To avoid floating point precision issues when evaluating patches at patch boundaries,
    * ensure that all loops sharing a vertex use the same patch coordinate. This could cause
-   * the mesh to not be watertight, leading to shadowing artifacts (see T97877). */
+   * the mesh to not be watertight, leading to shadowing artifacts (see #97877). */
   blender::Vector<int> first_loop_index(cache->num_subdiv_verts, -1);
 
   /* Save coordinates for corners, as attributes may vary for each loop connected to the same
@@ -1350,7 +1350,7 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
 
   GPU_uniformbuf_update(cache->ubo, &storage);
 
-  const int binding = GPU_shader_get_uniform_block_binding(shader, "shader_data");
+  const int binding = GPU_shader_get_ubo_binding(shader, "shader_data");
   GPU_uniformbuf_bind(cache->ubo, binding);
 }
 

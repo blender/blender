@@ -1,6 +1,5 @@
 uniform float faceSetsPatSeed;
 uniform float faceSetsPatScale;
-uniform bool useMoire;
 
 float tent(float f)
 {
@@ -11,6 +10,21 @@ void main()
 {
   vec3 final_color = faceset_color;
   vec3 white = vec3(1.0, 1.0, 1.0);
+
+  if (showIds) {
+    float id = float(sculpt_id);
+
+    if (sculpt_id == -1) {
+      final_color *= vec3(0.0, 0.0, 0.0);
+    }
+    else {
+      id *= 0.1;
+
+      vec3 id_color = vec3(fract(id), fract(id * 0.1 + 0.1), fract(id * 0.01 + 0.2));
+      // final_color = mix(final_color, id_color, 0.5);
+      final_color *= id_color;
+    }
+  }
 
   if (!useMoire) {
     fragColor = vec4(final_color * vec3(mask_color), 1.0);

@@ -20,7 +20,7 @@ BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
     : b_image(b_image),
       frame(frame),
       tile_number(tile_number),
-      /* Don't free cache for preview render to avoid race condition from T93560, to be fixed
+      /* Don't free cache for preview render to avoid race condition from #93560, to be fixed
        * properly later as we are close to release. */
       free_cache(!is_preview_render && !b_image.has_data())
 {
@@ -72,7 +72,7 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaDat
     metadata.colorspace = u_colorspace_raw;
   }
   else {
-    /* In some cases (e.g. T94135), the colorspace setting in Blender gets updated as part of the
+    /* In some cases (e.g. #94135), the colorspace setting in Blender gets updated as part of the
      * metadata queries in this function, so update the colorspace setting here. */
     PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
     metadata.colorspace = get_enum_identifier(colorspace_ptr, "name");

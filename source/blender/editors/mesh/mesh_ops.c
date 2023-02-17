@@ -54,6 +54,8 @@ void ED_operatortypes_mesh(void)
 
   WM_operatortype_append(MESH_OT_primitive_cube_add_gizmo);
 
+  WM_operatortype_append(MESH_OT_attribute_set);
+
   WM_operatortype_append(MESH_OT_duplicate);
   WM_operatortype_append(MESH_OT_remove_doubles);
   WM_operatortype_append(MESH_OT_spin);

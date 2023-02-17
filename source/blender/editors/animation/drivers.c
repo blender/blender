@@ -195,7 +195,7 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
      *   - For transform properties, we want to automatically use "transform channel" instead
      *     (The only issue is with quaternion rotations vs euler channels...)
      *   - To avoid problems with transform properties depending on the final transform that they
-     *     control (thus creating pseudo-cycles - see T48734), we don't use transform channels
+     *     control (thus creating pseudo-cycles - see #48734), we don't use transform channels
      *     when both the source and destinations are in same places.
      */
     dvar = driver_add_new_variable(driver);

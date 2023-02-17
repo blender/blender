@@ -1621,8 +1621,9 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
       prop, "Mode", "The way the constraint treats original non-free axis scaling");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
-  prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_range(prop, 0.001f, 100.0f);
+  prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, 100.0f, 1, 3);
   RNA_def_property_ui_text(prop, "Volume", "Volume of the bone at rest");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 

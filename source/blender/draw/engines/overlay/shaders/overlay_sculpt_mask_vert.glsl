@@ -1,5 +1,3 @@
-uniform bool useMoire;
-
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
@@ -10,6 +8,10 @@ void main()
 
   faceset_color = !useMoire ? mix(vec3(1.0), fset, sqrt(faceSetsOpacity)) : fset;
   mask_color = 1.0 - (msk * maskOpacity);
+
+  if (showIds) {
+    sculpt_id = eid;
+  }
 
   view_clipping_distances(world_pos);
 }

@@ -259,15 +259,15 @@ def bake_action_iter(
     if is_new_action:
         action = bpy.data.actions.new("Action")
 
-    # Only leave tweak mode if we actually need to modify the action (T57159)
+    # Only leave tweak mode if we actually need to modify the action (#57159)
     if action != atd.action:
-        # Leave tweak mode before trying to modify the action (T48397)
+        # Leave tweak mode before trying to modify the action (#48397)
         if atd.use_tweak_mode:
             atd.use_tweak_mode = False
 
         atd.action = action
 
-    # Baking the action only makes sense in Replace mode, so force it (T69105)
+    # Baking the action only makes sense in Replace mode, so force it (#69105)
     if not atd.use_tweak_mode:
         atd.action_blend_type = 'REPLACE'
 

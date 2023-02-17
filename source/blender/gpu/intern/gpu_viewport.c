@@ -236,7 +236,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
 {
   /**
    * HACK(fclem): We copy the settings here to avoid use after free if an update frees the scene
-   * and the viewport stays cached (see T75443). But this means the OCIO curve-mapping caching
+   * and the viewport stays cached (see #75443). But this means the OCIO curve-mapping caching
    * (which is based on #CurveMap pointer address) cannot operate correctly and it will create
    * a different OCIO processor for each viewport. We try to only reallocate the curve-map copy
    * if needed to avoid unneeded cache invalidation.

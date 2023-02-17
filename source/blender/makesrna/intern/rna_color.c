@@ -332,7 +332,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
-      /* ColorRamp for particle display is owned by the object (see T54422) */
+      /* ColorRamp for particle display is owned by the object (see #54422) */
       case ID_OB:
       case ID_PA: {
         ParticleSettings *part = (ParticleSettings *)ptr->owner_id;

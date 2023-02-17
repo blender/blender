@@ -329,7 +329,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  /* See T32272. */
+  /* See #32272. */
   if (G.is_rendering) {
     return;
   }

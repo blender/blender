@@ -94,7 +94,7 @@ template<typename T, int NumCol, int NumRow>
  * (it typically remains below 2 usec on an average i74700,
  * while naive implementation remains below 0.4 usec).
  * However, it gives expected results even with non-uniformly scaled matrices,
- * see T46418 for an example.
+ * see #46418 for an example.
  *
  * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
  *
@@ -125,7 +125,7 @@ template<typename T>
  *
  * \note This code is about five times faster than the polar decomposition.
  * However, it gives un-expected results even with non-uniformly scaled matrices,
- * see T46418 for an example.
+ * see #46418 for an example.
  *
  * \param A: Input matrix which is totally effective with `t = 0.0`.
  * \param B: Input matrix which is totally effective with `t = 1.0`.
@@ -142,7 +142,7 @@ template<typename T>
  *
  * \note This code is about five times faster than the polar decomposition.
  * However, it gives un-expected results even with non-uniformly scaled matrices,
- * see T46418 for an example.
+ * see #46418 for an example.
  *
  * \param A: Input matrix which is totally effective with `t = 0.0`.
  * \param B: Input matrix which is totally effective with `t = 1.0`.
@@ -693,7 +693,7 @@ extern template void normalized_to_eul2(const double3x3 &mat,
 template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase<T, 3, 3> &mat)
 {
   BLI_assert(math::is_unit_scale(mat));
-  /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
+  /* Caller must ensure matrices aren't negative for valid results, see: #24291, #94231. */
   BLI_assert(!math::is_negative(mat));
 
   detail::Quaternion<T> q;
@@ -758,7 +758,7 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
     }
     else {
       /* NOTE(@ideasman42): A zero matrix will fall through to this block,
-       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848.
+       * needed so a zero scaled matrices to return a quaternion without rotation, see: #101848.
        */
       const T trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       T s = 2.0f * math::sqrt(trace);

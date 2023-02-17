@@ -467,7 +467,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
  * in 3.0 this happened because left-click drag would both select and add a new ruler,
  * significantly increasing the likelihood of this happening.
  * Workaround this crash by checking the gizmo's custom-data has not been cleared.
- * The key-map has also been modified not to trigger this bug, see T95591.
+ * The key-map has also been modified not to trigger this bug, see #95591.
  */
 static bool gizmo_ruler_check_for_operator(const wmGizmoGroup *gzgroup)
 {

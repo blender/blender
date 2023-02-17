@@ -12,12 +12,12 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
-#include "BLI_array.h"
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
@@ -26,13 +26,13 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-static void copy_cdata_simple(BMesh *bm,
-                              CustomData *data_layer,
-                              BMElem *ele_dst,
-                              const BMElem *ele_src)
+ATTR_NO_OPT static void copy_cdata_simple(BMesh *bm,
+                                          CustomData *data_layer,
+                                          BMElem *ele_dst,
+                                          const BMElem *ele_src)
 {
   int cd_tflags;
-  MToolFlags saved_tflags;
+  MToolFlags saved_tflags = {};
 
   if ((cd_tflags = CustomData_get_offset(data_layer, CD_TOOLFLAGS)) != -1) {
     saved_tflags = *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags);
@@ -47,12 +47,12 @@ static void copy_cdata_simple(BMesh *bm,
 }
 
 /* edge and vertex share, currently there's no need to have different logic */
-static void bm_data_interp_from_elem(BMesh *bm,
-                                     CustomData *data_layer,
-                                     const BMElem *ele_src_1,
-                                     const BMElem *ele_src_2,
-                                     BMElem *ele_dst,
-                                     const float fac)
+ATTR_NO_OPT static void bm_data_interp_from_elem(BMesh *bm,
+                                                 CustomData *data_layer,
+                                                 const BMElem *ele_src_1,
+                                                 const BMElem *ele_src_2,
+                                                 BMElem *ele_dst,
+                                                 const float fac)
 {
   if (ele_src_1->head.data && ele_src_2->head.data) {
     /* first see if we can avoid interpolation */
@@ -790,7 +790,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   CustomDataLayer **nocopy_layers = NULL;
   BLI_array_staticdeclare(nocopy_layers, 1024);
 
-  // temporarily clear CD_FLAG_ELEM_NOCOPY flags
+  /* Temporarily clear CD_FLAG_ELEM_NOCOPY flags. */
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
       data->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
@@ -882,7 +882,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   BLI_array_free(nocopy_layers);
 
   if (oldpool) {
-    /* this should never happen but can when dissolve fails - T28960. */
+    /* this should never happen but can when dissolve fails - #28960. */
     BLI_assert(data->pool != oldpool);
 
     BLI_mempool_destroy(oldpool);
