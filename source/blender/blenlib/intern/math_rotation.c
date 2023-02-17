@@ -1490,9 +1490,9 @@ void rotate_eul(float beul[3], const char axis, const float angle)
 
 void compatible_eul(float eul[3], const float oldrot[3])
 {
-  /* we could use M_PI as pi_thresh: which is correct but 5.1 gives better results.
-   * Checked with baking actions to fcurves - campbell */
-  const float pi_thresh = (5.1f);
+  /* When the rotation exceeds 180 degrees, it can be wrapped by 360 degrees
+   * to produce a closer match, see !104856. */
+  const float pi_thresh = (float)M_PI;
   const float pi_x2 = (2.0f * (float)M_PI);
 
   float deul[3];
