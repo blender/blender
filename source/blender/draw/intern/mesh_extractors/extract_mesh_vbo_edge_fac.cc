@@ -102,7 +102,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
                                             void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
-  const BitVector<> &optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
+  const BitSpan optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
 
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;

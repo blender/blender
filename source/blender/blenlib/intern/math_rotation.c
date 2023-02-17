@@ -1490,15 +1490,18 @@ void rotate_eul(float beul[3], const char axis, const float angle)
 
 void compatible_eul(float eul[3], const float oldrot[3])
 {
-  /* we could use M_PI as pi_thresh: which is correct but 5.1 gives better results.
-   * Checked with baking actions to fcurves - campbell */
-  const float pi_thresh = (5.1f);
+  /* When the rotation exceeds 180 degrees, it can be wrapped by 360 degrees
+   * to produce a closer match.
+   * NOTE: Values between `pi` & `2 * pi` work, where `pi` has the lowest number of
+   * discontinuities and values approaching `2 * pi` center the resulting rotation around zero,
+   * at the expense of the result being less compatible, see !104856. */
+  const float pi_thresh = (float)M_PI;
   const float pi_x2 = (2.0f * (float)M_PI);
 
   float deul[3];
   uint i;
 
-  /* correct differences of about 360 degrees first */
+  /* Correct differences around 360 degrees first. */
   for (i = 0; i < 3; i++) {
     deul[i] = eul[i] - oldrot[i];
     if (deul[i] > pi_thresh) {
@@ -1511,29 +1514,17 @@ void compatible_eul(float eul[3], const float oldrot[3])
     }
   }
 
-  /* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */
-  if (fabsf(deul[0]) > 3.2f && fabsf(deul[1]) < 1.6f && fabsf(deul[2]) < 1.6f) {
-    if (deul[0] > 0.0f) {
-      eul[0] -= pi_x2;
-    }
-    else {
-      eul[0] += pi_x2;
-    }
-  }
-  if (fabsf(deul[1]) > 3.2f && fabsf(deul[2]) < 1.6f && fabsf(deul[0]) < 1.6f) {
-    if (deul[1] > 0.0f) {
-      eul[1] -= pi_x2;
-    }
-    else {
-      eul[1] += pi_x2;
-    }
-  }
-  if (fabsf(deul[2]) > 3.2f && fabsf(deul[0]) < 1.6f && fabsf(deul[1]) < 1.6f) {
-    if (deul[2] > 0.0f) {
-      eul[2] -= pi_x2;
-    }
-    else {
-      eul[2] += pi_x2;
+  uint j = 1, k = 2;
+  for (i = 0; i < 3; j = k, k = i++) {
+    /* Check if this axis of rotations larger than 180 degrees and
+     * the others are smaller than 90 degrees. */
+    if (fabsf(deul[i]) > M_PI && fabsf(deul[j]) < M_PI_2 && fabsf(deul[k]) < M_PI_2) {
+      if (deul[i] > 0.0f) {
+        eul[i] -= pi_x2;
+      }
+      else {
+        eul[i] += pi_x2;
+      }
     }
   }
 }

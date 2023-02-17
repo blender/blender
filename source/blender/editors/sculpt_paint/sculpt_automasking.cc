@@ -83,7 +83,7 @@ bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
 
 bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
 {
-  if (br && SCULPT_stroke_is_dynamic_topology(ss, br)) {
+  if (ss && br && SCULPT_stroke_is_dynamic_topology(ss, br)) {
     return false;
   }
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {

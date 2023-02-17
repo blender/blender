@@ -282,6 +282,7 @@ bool CustomData_has_layer(const struct CustomData *data, int type);
  * Returns the number of layers with this type.
  */
 int CustomData_number_of_layers(const struct CustomData *data, int type);
+int CustomData_number_of_anonymous_layers(const struct CustomData *data, int type);
 int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
 
 /**
