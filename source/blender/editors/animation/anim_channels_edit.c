@@ -3708,16 +3708,18 @@ static bool get_channel_bounds(bAnimContext *ac,
 {
   bool found_bounds = false;
   switch (ale->datatype) {
-    case ALE_GPFRAME:
+    case ALE_GPFRAME: {
       bGPDlayer *gpl = (bGPDlayer *)ale->data;
       get_gpencil_bounds(gpl, range, r_bounds);
       found_bounds = true;
       break;
-    case ALE_FCURVE:
+    }
+    case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
       get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
       found_bounds = true;
       break;
+    }
   }
   return found_bounds;
 }
