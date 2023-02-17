@@ -3513,6 +3513,9 @@ def km_animation_channels(params):
         ("anim.channels_ungroup", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Menus.
         *_template_items_context_menu("DOPESHEET_MT_channel_context_menu", params.context_menu_event),
+        # View
+        ("anim.channel_view_pick", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
+        ("anim.channels_view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
     ])
 
     return keymap
