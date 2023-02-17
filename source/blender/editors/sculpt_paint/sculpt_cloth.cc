@@ -1571,8 +1571,13 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   SCULPT_stroke_id_next(ob);
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_filter_cache_init(
-      C, ob, sd, SCULPT_UNDO_COORDS, event->mval, RNA_float_get(op->ptr, "area_normal_radius"));
+  SCULPT_filter_cache_init(C,
+                           ob,
+                           sd,
+                           SCULPT_UNDO_COORDS,
+                           event->mval,
+                           RNA_float_get(op->ptr, "area_normal_radius"),
+                           RNA_float_get(op->ptr, "strength"));
 
   ss->filter_cache->automasking = SCULPT_automasking_cache_init(sd, nullptr, ob);
 
