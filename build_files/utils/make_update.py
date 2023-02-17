@@ -40,7 +40,7 @@ def parse_arguments():
     parser.add_argument("--use-centos-libraries", action="store_true")
     parser.add_argument("--use-linux-libraries", action="store_true")
 
-    parser.add_argument("--architecture", type=str, choices=("x86_64", "arm64",))
+    parser.add_argument("--architecture", type=str, choices=("x86_64", "amd64", "arm64",))
 
     return parser.parse_args()
 
