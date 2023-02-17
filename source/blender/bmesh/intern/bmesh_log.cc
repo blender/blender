@@ -416,7 +416,33 @@ struct BMLogEntry {
 
   template<typename T> T *get_elem_from_id(BMesh *bm, BMID<T> id)
   {
-    return reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
+    T *elem = reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
+    char htype = 0;
+
+    if (!elem) {
+      return nullptr;
+    }
+
+    if constexpr (std::is_same_v<T, BMVert>) {
+      htype = BM_VERT;
+    }
+    if constexpr (std::is_same_v<T, BMEdge>) {
+      htype = BM_EDGE;
+    }
+    if constexpr (std::is_same_v<T, BMFace>) {
+      htype = BM_FACE;
+    }
+
+    if (elem->head.htype != htype) {
+      printf("%s: error: expected %s, got %s; id: %d\n",
+             __func__,
+             get_elem_htype_str(elem->head.htype),
+             get_elem_htype_str(htype),
+             id.id);
+      return nullptr;
+    }
+
+    return elem;
   }
 
   template<typename T> void assign_elem_id(BMesh *bm, T *elem, BMID<T> _id, bool check_unique)
@@ -428,10 +454,12 @@ struct BMLogEntry {
       old = BM_idmap_lookup(idmap, id);
 
       if (old && old != (BMElem *)elem) {
-        printf("id conflict in BMLogEntry::assign_elem_id; elem %p (a %s) is being reassinged to id %d.\n",
-               elem,
-               get_elem_htype_str((int)elem->head.htype),
-               (int)id);
+        printf(
+            "id conflict in BMLogEntry::assign_elem_id; elem %p (a %s) is being reassinged to id "
+            "%d.\n",
+            elem,
+            get_elem_htype_str((int)elem->head.htype),
+            (int)id);
         printf(
             "  elem %p (a %s) will get a new id\n", old, get_elem_htype_str((int)old->head.htype));
 

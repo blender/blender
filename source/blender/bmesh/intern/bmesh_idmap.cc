@@ -16,6 +16,8 @@
 #include "bmesh_idmap.h"
 #include <cstdio>
 
+#define BM_ID_NONE 0 //-1
+
 using namespace blender;
 
 #define FREELIST_HASHMAP_THRESHOLD_HIGH 1024
@@ -31,6 +33,7 @@ BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
 
   idmap->flag = elem_mask;
   idmap->bm = bm;
+  idmap->maxid = 1;
 
   BM_idmap_check_attributes(idmap);
 
@@ -71,7 +74,7 @@ void BM_idmap_check_ids(BMIdMap *idmap)
     idmap->free_idx_map = nullptr;
   }
 
-  int max_id = 0;
+  int max_id = 1;
 
   if (idmap->flag & BM_VERT) {
     BM_ITER_MESH (v, &iter, idmap->bm, BM_VERTS_OF_MESH) {
@@ -204,7 +207,7 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
     cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP | CD_FLAG_ELEM_NOCOPY;
 
     int *default_data = static_cast<int *>(cdata->layers[idx].default_data);
-    *default_data = -1;
+    *default_data = BM_ID_NONE;
 
     idmap->cd_id_off[type] = cdata->layers[idx].offset;
   };
@@ -242,13 +245,13 @@ static void check_idx_map(BMIdMap *idmap)
 
 int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
 {
-  int id = -1;
+  int id = BM_ID_NONE;
 #ifdef USE_NEW_IDMAP
 
   while (idmap->freelist.size()) {
     id = idmap->freelist.pop_last();
 
-    if (id == -1) {
+    if (id == BM_ID_NONE) {
       continue;
     }
 
@@ -259,7 +262,7 @@ int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
     break;
   }
 
-  if (id == -1) {
+  if (id == BM_ID_NONE) {
     id = idmap->maxid++;
   }
 
@@ -279,14 +282,14 @@ void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
     const int *val;
 
     if ((val = idmap->free_idx_map->lookup_ptr(id))) {
-      idmap->freelist[*val] = -1;
+      idmap->freelist[*val] = BM_ID_NONE;
       idmap->free_idx_map->remove(id);
     }
   }
   else {
     for (int i : IndexRange(idmap->freelist.size())) {
       if (idmap->freelist[i] == id) {
-        idmap->freelist[i] = -1;
+        idmap->freelist[i] = BM_ID_NONE;
       }
     }
   }
@@ -305,7 +308,7 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
 #ifdef USE_NEW_IDMAP
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
 
-  if (id == -1) {
+  if (id == BM_ID_NONE) {
     printf("%s: unassigned id!\n", __func__);
     return;
   };
@@ -325,7 +328,7 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
   check_idx_map(idmap);
 
   if (clear_id) {
-    BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], -1);
+    BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], BM_ID_NONE);
   }
 #endif
 }
@@ -334,7 +337,7 @@ int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
 
-  if (id == -1) {
+  if (id == BM_ID_NONE) {
     return BM_idmap_alloc(idmap, elem);
   }
 
