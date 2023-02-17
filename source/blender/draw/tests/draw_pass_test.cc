@@ -2,6 +2,8 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_matrix.hh"
+
 #include "draw_manager.hh"
 #include "draw_pass.hh"
 #include "draw_shader.h"
@@ -163,6 +165,9 @@ static void test_draw_pass_simple_draw()
   pass.draw_procedural(GPU_PRIM_POINTS, 6, 60, 6, {5});
   pass.draw_procedural(GPU_PRIM_TRIS, 3, 70, 7, {6});
 
+  PassSimple::Sub &sub = pass.sub("sub");
+  sub.draw_procedural(GPU_PRIM_TRIS, 3, 80, 8, {8});
+
   std::string result = pass.serialize();
   std::stringstream expected;
   expected << ".test.simple_draw" << std::endl;
@@ -174,6 +179,8 @@ static void test_draw_pass_simple_draw()
   expected << "  .draw(inst_len=1, vert_len=50, vert_first=5, res_id=5)" << std::endl;
   expected << "  .draw(inst_len=6, vert_len=60, vert_first=6, res_id=5)" << std::endl;
   expected << "  .draw(inst_len=3, vert_len=70, vert_first=7, res_id=6)" << std::endl;
+  expected << "  .sub" << std::endl;
+  expected << "    .draw(inst_len=3, vert_len=80, vert_first=8, res_id=8)" << std::endl;
 
   EXPECT_EQ(result, expected.str());
 
@@ -260,10 +267,8 @@ static void test_draw_resource_id_gen()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();
   ResourceHandle handle1 = drw.resource_handle(obmat_1);
@@ -334,10 +339,8 @@ static void test_draw_visibility()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();                                   /* Default {0} always visible. */
   drw.resource_handle(obmat_1);                       /* No bounds, always visible. */
@@ -367,10 +370,8 @@ DRAW_TEST(draw_visibility)
 
 static void test_draw_manager_sync()
 {
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   /* TODO find a way to create a minimum object to test resource handle creation on it. */
   Manager drw;

@@ -105,7 +105,6 @@ MeshRuntime::~MeshRuntime()
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(this->subsurf_face_dot_tags);
 }
 
 }  // namespace blender::bke
@@ -230,10 +229,11 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->looptris_cache.tag_dirty();
+  mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
 }
 
 void BKE_mesh_tag_edges_split(struct Mesh *mesh)
@@ -245,10 +245,11 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   free_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->loose_edges_cache.tag_dirty();
+  mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
 }
 
 void BKE_mesh_tag_coords_changed(Mesh *mesh)
@@ -341,22 +342,22 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
       do_fixes,
       &changed);
 
-  is_valid &= BKE_mesh_validate_arrays(
-      me_eval,
-      reinterpret_cast<float(*)[3]>(positions.data()),
-      positions.size(),
-      edges.data(),
-      edges.size(),
-      static_cast<MFace *>(CustomData_get_layer(&me_eval->fdata, CD_MFACE)),
-      me_eval->totface,
-      loops.data(),
-      loops.size(),
-      polys.data(),
-      polys.size(),
-      me_eval->deform_verts_for_write().data(),
-      do_verbose,
-      do_fixes,
-      &changed);
+  is_valid &= BKE_mesh_validate_arrays(me_eval,
+                                       reinterpret_cast<float(*)[3]>(positions.data()),
+                                       positions.size(),
+                                       edges.data(),
+                                       edges.size(),
+                                       static_cast<MFace *>(CustomData_get_layer_for_write(
+                                           &me_eval->fdata, CD_MFACE, me_eval->totface)),
+                                       me_eval->totface,
+                                       loops.data(),
+                                       loops.size(),
+                                       polys.data(),
+                                       polys.size(),
+                                       me_eval->deform_verts_for_write().data(),
+                                       do_verbose,
+                                       do_fixes,
+                                       &changed);
 
   BLI_assert(changed == false);
 

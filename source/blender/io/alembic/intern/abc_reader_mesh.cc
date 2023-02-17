@@ -202,7 +202,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
     poly.totloop = face_size;
 
     /* Polygons are always assumed to be smooth-shaded. If the Alembic mesh should be flat-shaded,
-     * this is encoded in custom loop normals. See T71246. */
+     * this is encoded in custom loop normals. See #71246. */
     poly.flag |= ME_SMOOTH;
 
     /* NOTE: Alembic data is stored in the reverse order. */
@@ -215,7 +215,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
       if (f > 0 && loop.v == last_vertex_index) {
         /* This face is invalid, as it has consecutive loops from the same vertex. This is caused
-         * by invalid geometry in the Alembic file, such as in T76514. */
+         * by invalid geometry in the Alembic file, such as in #76514. */
         seen_invalid_geometry = true;
       }
       last_vertex_index = loop.v;
@@ -383,7 +383,8 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
     return nullptr;
   }
 
-  void *cd_ptr = CustomData_get_layer_named(&mesh->ldata, cd_data_type, name);
+  void *cd_ptr = CustomData_get_layer_named_for_write(
+      &mesh->ldata, cd_data_type, name, mesh->totloop);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
@@ -731,7 +732,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   }
   else {
     /* If the face count changed (e.g. by triangulation), only read points.
-     * This prevents crash from T49813.
+     * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->totpoly ||
         face_indices->size() != existing_mesh->totloop) {
@@ -1064,7 +1065,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   }
   else {
     /* If the face count changed (e.g. by triangulation), only read points.
-     * This prevents crash from T49813.
+     * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->totpoly ||
         face_indices->size() != existing_mesh->totloop) {

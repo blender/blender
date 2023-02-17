@@ -521,24 +521,75 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
         switch (RNA_property_type(prop)) {
           /* Continuous values that can be smoothly interpolated. */
           case PROP_FLOAT: {
-            float tval = RNA_property_float_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_float_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_float_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_float_set(&ptr, prop, tval);
+
+            if (is_array) {
+              RNA_property_float_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_float_set(&ptr, prop, tval);
+            }
             break;
           }
           case PROP_INT: {
-            float tval = (float)RNA_property_int_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_int_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_int_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_int_set(&ptr, prop, (int)tval);
+
+            if (is_array) {
+              RNA_property_int_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_int_set(&ptr, prop, tval);
+            }
             break;
           }
 
           /* Values which can only take discrete values. */
           case PROP_BOOLEAN: {
-            float tval = (float)RNA_property_boolean_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_boolean_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_boolean_set(
-                &ptr, prop, (int)tval); /* XXX: do we need threshold clamping here? */
+
+            /* XXX: do we need threshold clamping here? */
+            if (is_array) {
+              RNA_property_boolean_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_boolean_set(&ptr, prop, tval);
+            }
             break;
           }
           case PROP_ENUM: {
@@ -1788,58 +1839,6 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
             fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
       }
     }
-  }
-}
-
-/**
- * Propagate just works along each F-Curve in turn.
- */
-static void UNUSED_FUNCTION(pose_propagate_fcurve)(FCurve *fcu,
-                                                   float start_frame,
-                                                   const float end_frame)
-{
-  /* Skip if no keyframes to edit. */
-  if ((fcu->bezt == NULL) || (fcu->totvert < 2)) {
-    return;
-  }
-
-  /* Find the reference value from bones directly, which means that the user
-   * doesn't need to firstly keyframe the pose (though this doesn't mean that
-   * they can't either). */
-  float refVal = evaluate_fcurve(fcu, start_frame);
-
-  /* Find the first keyframe to start propagating from:
-   * - if there's a keyframe on the current frame, we probably want to save this value there too
-   *   since it may be as of yet un-keyed
-   * - if starting before the starting frame, don't touch the key, as it may have had some valid
-   *   values
-   */
-  bool keyExists;
-  const int match = BKE_fcurve_bezt_binarysearch_index(
-      fcu->bezt, start_frame, fcu->totvert, &keyExists);
-
-  int i;
-  if (fcu->bezt[match].vec[1][0] < start_frame) {
-    i = match + 1;
-  }
-  else {
-    i = match;
-  }
-
-  BezTriple *bezt;
-  for (bezt = &fcu->bezt[i]; i < fcu->totvert; i++, bezt++) {
-    /* Additional termination conditions based on the operator 'mode' property go here. */
-    /* Stop if keyframe is outside the accepted range. */
-    if (bezt->vec[1][0] > end_frame) {
-      break;
-    }
-
-    /* Just flatten handles, since values will now be the same either side. */
-    /* TODO: perhaps a fade-out modulation of the value is required here (optional once again)? */
-    bezt->vec[0][1] = bezt->vec[1][1] = bezt->vec[2][1] = refVal;
-
-    /* Select keyframe to indicate that it's been changed. */
-    bezt->f2 |= SELECT;
   }
 }
 

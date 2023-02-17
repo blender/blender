@@ -328,21 +328,12 @@ void MTLVertBuf::bind_as_texture(uint binding)
   GPU_texture_bind(buffer_texture_, binding);
 }
 
-const void *MTLVertBuf::read() const
+void MTLVertBuf::read(void *data) const
 {
   BLI_assert(vbo_ != nullptr);
   BLI_assert(usage_ != GPU_USAGE_DEVICE_ONLY);
-  void *return_ptr = vbo_->get_host_ptr();
-  BLI_assert(return_ptr != nullptr);
-
-  return return_ptr;
-}
-
-void *MTLVertBuf::unmap(const void *mapped_data) const
-{
-  void *result = MEM_mallocN(alloc_size_, __func__);
-  memcpy(result, mapped_data, alloc_size_);
-  return result;
+  void *host_ptr = vbo_->get_host_ptr();
+  memcpy(data, host_ptr, alloc_size_);
 }
 
 void MTLVertBuf::wrap_handle(uint64_t handle)

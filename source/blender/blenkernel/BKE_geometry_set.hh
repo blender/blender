@@ -10,24 +10,18 @@
 #include <iostream>
 #include <mutex>
 
-#include "BLI_float4x4.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_set.hh"
 #include "BLI_user_counter.hh"
 #include "BLI_vector_set.hh"
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_geometry_set.h"
 
 struct Curves;
-struct Collection;
 struct Curve;
 struct Mesh;
-struct Object;
 struct PointCloud;
 struct Volume;
 

@@ -6,9 +6,9 @@
  *
  * \name Cage Gizmo
  *
- * 2D Gizmo
+ * 3D Gizmo
  *
- * \brief Rectangular gizmo acting as a 'cage' around its content.
+ * \brief Cuboid gizmo acting as a 'cage' around its content.
  * Interacting scales or translates the gizmo.
  */
 
@@ -88,7 +88,10 @@ static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], 
 
 /* -------------------------------------------------------------------- */
 
-static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_constrain_axis[3])
+static void gizmo_rect_pivot_from_scale_part(int part,
+                                             float r_pt[3],
+                                             bool r_constrain_axis[3],
+                                             bool has_translation)
 {
   if (part >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
       part <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z) {
@@ -102,7 +105,7 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_con
 
     const float sign[3] = {0.5f, 0.0f, -0.5f};
     for (int i = 0; i < 3; i++) {
-      r_pt[i] = sign[range[i]];
+      r_pt[i] = has_translation ? sign[range[i]] : 0.0f;
       r_constrain_axis[i] = (range[i] == 1);
     }
   }
@@ -111,7 +114,7 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_con
 /* -------------------------------------------------------------------- */
 /** \name Box Draw Style
  *
- * Useful for 3D views, see: #ED_GIZMO_CAGE2D_STYLE_BOX
+ * Useful for 3D views, see: #ED_GIZMO_CAGE3D_STYLE_BOX
  * \{ */
 
 static void cage3d_draw_box_corners(const float r[3],
@@ -180,7 +183,7 @@ static void cage3d_draw_box_interaction(const RegionView3D *rv3d,
 /* -------------------------------------------------------------------- */
 /** \name Circle Draw Style
  *
- * Useful for 2D views, see: #ED_GIZMO_CAGE2D_STYLE_CIRCLE
+ * Useful for 2D views, see: #ED_GIZMO_CAGE3D_STYLE_CIRCLE
  * \{ */
 
 static void imm_draw_point_aspect_3d(uint pos, const float co[3], const float rad[3], bool solid)
@@ -213,8 +216,8 @@ static void cage3d_draw_circle_wire(const float r[3],
   imm_draw_cube_wire_3d(pos, (const float[3]){0}, r);
 
 #if 0
-  if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
-    if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+  if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
+    if (draw_options & ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE) {
       const float rad[2] = {margin[0] / 2, margin[1] / 2};
       const float center[2] = {0.0f, 0.0f};
 
@@ -316,7 +319,7 @@ static void gizmo_cage3d_draw_intern(
     const float size[3] = {UNPACK3(size_real)};
 #endif
 
-    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE) {
+    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
       for (int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
            i <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z;
            i++) {
@@ -327,7 +330,7 @@ static void gizmo_cage3d_draw_intern(
         cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, i, size, margin);
       }
     }
-    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
+    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
       const int transform_part = ED_GIZMO_CAGE3D_PART_TRANSLATE;
       GPU_select_load_id(select_id | transform_part);
       cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, transform_part, size, margin);
@@ -342,7 +345,7 @@ static void gizmo_cage3d_draw_intern(
         .ymax = size_real[1],
     };
 #endif
-    if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX) {
+    if (draw_style == ED_GIZMO_CAGE3D_STYLE_BOX) {
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
@@ -356,7 +359,7 @@ static void gizmo_cage3d_draw_intern(
       if (gz->highlight_part == ED_GIZMO_CAGE3D_PART_TRANSLATE) {
         /* Only show if we're drawing the center handle
          * otherwise the entire rectangle is the hot-spot. */
-        if (draw_options & ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+        if (draw_options & ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE) {
           show = true;
         }
       }
@@ -369,7 +372,7 @@ static void gizmo_cage3d_draw_intern(
             rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
       }
     }
-    else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
+    else if (draw_style == ED_GIZMO_CAGE3D_STYLE_CIRCLE) {
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
@@ -512,45 +515,37 @@ static int gizmo_cage3d_modal(bContext *C,
   else {
     /* scale */
     copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
+
     float pivot[3];
     bool constrain_axis[3] = {false};
-
-    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
-      gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis);
-    }
-    else {
-      zero_v3(pivot);
-    }
-
-    /* Cursor deltas scaled to (-0.5..0.5). */
-    float delta_orig[3], delta_curr[3];
-
-    for (int i = 0; i < 3; i++) {
-      delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) -
-                      pivot[i];
-      delta_curr[i] = ((point_local[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
-    }
+    bool has_translation = transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE;
+    gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis, has_translation);
 
     float scale[3] = {1.0f, 1.0f, 1.0f};
     for (int i = 0; i < 3; i++) {
       if (constrain_axis[i] == false) {
-        if (delta_orig[i] < 0.0f) {
-          delta_orig[i] *= -1.0f;
-          delta_curr[i] *= -1.0f;
-        }
-        const int sign = signum_i(scale[i]);
+        /* Original cursor position relative to pivot, remapped to [-1, 1] */
+        const float delta_orig = (data->orig_mouse[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
+        const float delta_curr = (point_local[i] - data->orig_matrix_offset[3][i]) /
+                                     (dims[i] * len_v3(data->orig_matrix_offset[i])) -
+                                 pivot[i];
 
-        scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
-
-        if ((transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_SIGNED) == 0) {
-          if (sign != signum_i(scale[i])) {
+        if ((transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_SIGNED) == 0) {
+          if (signum_i(delta_orig) != signum_i(delta_curr)) {
             scale[i] = 0.0f;
+            continue;
           }
         }
+
+        /* Original cursor position does not exactly lie on the cage boundary due to margin. */
+        const float delta_boundary = signf(delta_orig) * 0.5f - pivot[i];
+        scale[i] = delta_curr / delta_boundary;
       }
     }
 
-    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
+    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM) {
       if (constrain_axis[0] == false && constrain_axis[1] == false) {
         scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
       }
@@ -647,22 +642,18 @@ static void GIZMO_GT_cage_3d(wmGizmoType *gzt)
 
   /* rna */
   static EnumPropertyItem rna_enum_draw_style[] = {
-      {ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
-      {ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+      {ED_GIZMO_CAGE3D_STYLE_BOX, "BOX", 0, "Box", ""},
+      {ED_GIZMO_CAGE3D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static EnumPropertyItem rna_enum_transform[] = {
-      {ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
-      {ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
-      {ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
+      {ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
+      {ED_GIZMO_CAGE_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
+      {ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static EnumPropertyItem rna_enum_draw_options[] = {
-      {ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE,
-       "XFORM_CENTER_HANDLE",
-       0,
-       "Center Handle",
-       ""},
+      {ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static float unit_v3[3] = {1.0f, 1.0f, 1.0f};
@@ -672,13 +663,13 @@ static void GIZMO_GT_cage_3d(wmGizmoType *gzt)
   RNA_def_enum(gzt->srna,
                "draw_style",
                rna_enum_draw_style,
-               ED_GIZMO_CAGE2D_STYLE_CIRCLE,
+               ED_GIZMO_CAGE3D_STYLE_CIRCLE,
                "Draw Style",
                "");
   RNA_def_enum_flag(gzt->srna,
                     "draw_options",
                     rna_enum_draw_options,
-                    ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE,
+                    ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE,
                     "Draw Options",
                     "");
 

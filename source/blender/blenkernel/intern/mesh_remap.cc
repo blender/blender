@@ -448,9 +448,9 @@ struct IslandResult {
  *   This only concerns loops, currently (because of islands), and 'sampled' edges/polys norproj.
  */
 
-/* At most n raycasts per 'real' ray. */
+/** At most N ray-casts per 'real' ray. */
 #define MREMAP_RAYCAST_APPROXIMATE_NR 3
-/* Each approximated raycasts will have n times bigger radius than previous one. */
+/** Each approximated ray-casts will have n times bigger radius than previous one. */
 #define MREMAP_RAYCAST_APPROXIMATE_FAC 5.0f
 
 /* min 16 rays/face, max 400. */
@@ -1357,10 +1357,11 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
       if (need_lnors_dst) {
         short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
-            CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
+            CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, numloops_dst));
 
         /* Cache loop normals into a temporary custom data layer. */
-        loop_nors_dst = static_cast<float(*)[3]>(CustomData_get_layer(ldata_dst, CD_NORMAL));
+        loop_nors_dst = static_cast<float(*)[3]>(
+            CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, numloops_dst));
         const bool do_loop_nors_dst = (loop_nors_dst == nullptr);
         if (!loop_nors_dst) {
           loop_nors_dst = static_cast<float(*)[3]>(
@@ -1368,6 +1369,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
           CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
         }
         if (dirty_nors_dst || do_loop_nors_dst) {
+          const bool *sharp_edges = static_cast<const bool *>(
+              CustomData_get_layer_named(&mesh_dst->edata, CD_PROP_BOOL, "sharp_edge"));
           BKE_mesh_normals_loop_split(vert_positions_dst,
                                       BKE_mesh_vertex_normals_ensure(mesh_dst),
                                       numverts_dst,
@@ -1381,6 +1384,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                       numpolys_dst,
                                       use_split_nors_dst,
                                       split_angle_dst,
+                                      sharp_edges,
                                       nullptr,
                                       nullptr,
                                       custom_nors_dst);
@@ -1420,7 +1424,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* Needed for islands (or plain mesh) to AStar graph conversion. */
     BKE_mesh_edge_poly_map_create(&edge_to_poly_map_src,
                                   &edge_to_poly_map_src_buff,
-                                  edges_src,
                                   num_edges_src,
                                   polys_src,
                                   num_polys_src,
@@ -1663,7 +1666,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
                 if (dot > best_nor_dot - 1e-6f) {
                   /* We need something as fallback decision in case dest normal matches several
-                   * source normals (see T44522), using distance between polys' centers here. */
+                   * source normals (see #44522), using distance between polys' centers here. */
                   float *pcent_src;
                   float sqdist;
 

@@ -9,6 +9,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -276,7 +277,7 @@ static void copy_transformed_positions(const Span<float3> src,
 {
   threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      dst[i] = transform * src[i];
+      dst[i] = math::transform_point(transform, src[i]);
     }
   });
 }
@@ -430,11 +431,12 @@ static void foreach_geometry_in_reference(
     case InstanceReference::Type::Collection: {
       Collection &collection = reference.collection();
       float4x4 offset_matrix = float4x4::identity();
-      sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
+      offset_matrix.location() -= collection.instance_offset;
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world;
+        const float4x4 matrix = base_transform * offset_matrix *
+                                float4x4_view(object->object_to_world);
         const int sub_id = noise::hash(id, index);
         fn(object_geometry_set, matrix, sub_id);
         index++;
@@ -837,7 +839,6 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                                     options.propagation_info,
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("normal");
   attributes_to_propagate.remove("shade_smooth");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
@@ -963,7 +964,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
 
   threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
-      dst_positions[i] = task.transform * src_positions[i];
+      dst_positions[i] = math::transform_point(task.transform, src_positions[i]);
     }
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
@@ -1197,7 +1198,7 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
     const Curves *curves_id = info.order[curve_index];
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     curve_info.curves = curves_id;
 
     /* Access attributes. */
@@ -1258,7 +1259,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
   const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
@@ -1347,7 +1348,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   /* Allocate new curves data-block. */
   Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  bke::CurvesGeometry &dst_curves = dst_curves_id->geometry.wrap();
   dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);

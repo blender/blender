@@ -430,7 +430,7 @@ TEST(math_matrix, MatrixTransform)
   result = transform_direction(m3, p);
   EXPECT_V3_NEAR(result, expect, 1e-5);
 
-  expect = {-0.5, -1, -1.7222222};
+  expect = {-0.333333, -0.666666, -1.14814};
   result = project_point(pers4, p);
   EXPECT_V3_NEAR(result, expect, 1e-5);
 
@@ -457,13 +457,13 @@ TEST(math_matrix, MatrixProjection)
   expect = transpose(float4x4({-0.8f, 0.0f, 0.2f, 0.0f},
                               {0.0f, -0.666667f, 0.333333f, 0.0f},
                               {0.0f, 0.0f, -2.33333f, 0.666667f},
-                              {0.0f, 0.0f, -1.0f, 1.0f}));
+                              {0.0f, 0.0f, -1.0f, 0.0f}));
   EXPECT_M4_NEAR(pers1, expect, 1e-5);
 
   expect = transpose(float4x4({4.0f, 0.0f, 0.2f, 0.0f},
                               {0.0f, 3.33333f, 0.333333f, 0.0f},
                               {0.0f, 0.0f, -2.33333f, 0.666667f},
-                              {0.0f, 0.0f, -1.0f, 1.0f}));
+                              {0.0f, 0.0f, -1.0f, 0.0f}));
   EXPECT_M4_NEAR(pers2, expect, 1e-5);
 }
 

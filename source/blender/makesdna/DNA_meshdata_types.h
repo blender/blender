@@ -39,15 +39,15 @@ typedef struct MEdge {
 enum {
   /** Deprecated selection status. Now stored in ".select_edge" attribute. */
   /*  SELECT = (1 << 0), */
-  ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
 /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
 /*  ME_HIDE = (1 << 4), */
 #ifdef DNA_DEPRECATED_ALLOW
   /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
+  /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
+  ME_SHARP = (1 << 9),
 #endif
-  ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 
 /**
@@ -139,7 +139,7 @@ enum {
  * - Physics/collision detection.
  *
  * Storing loop indices (instead of vertex indices) allows us to
- * directly access UV's, vertex-colors as well as vertices.
+ * directly access UVs, vertex-colors as well as vertices.
  * The index of the source polygon is stored as well,
  * giving access to materials and polygon normals.
  *
@@ -364,7 +364,7 @@ typedef struct GridPaintMask {
  * Original space within a face (similar to UV coordinates),
  * however they are used to determine the original position in a face.
  *
- * Unlike UV's these are not user editable and always start out using a fixed 0-1 range.
+ * Unlike UVs these are not user editable and always start out using a fixed 0-1 range.
  * Currently only used for particle placement.
  */
 #

@@ -472,8 +472,8 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 
   /* Check if object or bone, and get transform matrix accordingly:
    * - "use_eulers" code is used to prevent the problems associated with non-uniqueness
-   *   of euler decomposition from matrices T20870.
-   * - "local-space" is for T21384, where parent results are not wanted
+   *   of euler decomposition from matrices #20870.
+   * - "local-space" is for #21384, where parent results are not wanted
    *   but #DTAR_FLAG_LOCAL_CONSTS is for all the common "corrective-shapes-for-limbs" situations.
    */
   if (pchan) {

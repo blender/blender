@@ -1486,7 +1486,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
     GPU_blend(GPU_BLEND_NONE);
 
-    /* Not essential, but allows events to be handled right up to the region edge (T38171). */
+    /* Not essential, but allows events to be handled right up to the region edge (#38171). */
     if (is_left) {
       pc_dyn->rect.xmin = v2d->mask.xmin;
     }
@@ -2320,7 +2320,7 @@ int ui_handler_panel_region(bContext *C,
         UI_panel_category_active_set(region, pc_dyn->idname);
         ED_region_tag_redraw(region);
 
-        /* Reset scroll to the top (T38348). */
+        /* Reset scroll to the top (#38348). */
         UI_view2d_offset(&region->v2d, -1.0f, 1.0f);
 
         retval = WM_UI_HANDLER_BREAK;

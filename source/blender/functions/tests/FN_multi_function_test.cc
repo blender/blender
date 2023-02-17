@@ -24,7 +24,7 @@ class AddFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     const VArray<int> &a = params.readonly_single_input<int>(0, "A");
     const VArray<int> &b = params.readonly_single_input<int>(1, "B");

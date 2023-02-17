@@ -513,17 +513,19 @@ if(WITH_FFTW)
 			src/fx/Convolver.cpp
 			src/fx/ConvolverReader.cpp
 			src/fx/ConvolverSound.cpp
+			src/fx/Equalizer.cpp
 			src/fx/FFTConvolver.cpp
 			src/fx/HRTF.cpp
 			src/fx/ImpulseResponse.cpp
 			src/util/FFTPlan.cpp
 		)
 	set(FFTW_HDR
-		include/fx/BinauralSound.h
+			include/fx/BinauralSound.h
 			include/fx/BinauralReader.h
 			include/fx/Convolver.h
 			include/fx/ConvolverReader.h
 			include/fx/ConvolverSound.h
+			include/fx/Equalizer.h
 			include/fx/FFTConvolver.h
 			include/fx/HRTF.h
 			include/fx/HRTFLoader.h

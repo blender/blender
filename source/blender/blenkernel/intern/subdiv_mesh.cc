@@ -79,8 +79,8 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   ctx->num_uv_layers = CustomData_number_of_layers(&subdiv_mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    ctx->uv_layers[layer_index] = static_cast<float2 *>(
-        CustomData_get_layer_n(&subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index));
+    ctx->uv_layers[layer_index] = static_cast<float2 *>(CustomData_get_layer_n_for_write(
+        &subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index, subdiv_mesh->totloop));
   }
 }
 
@@ -93,19 +93,20 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->subdiv_loops = BKE_mesh_loops_for_write(subdiv_mesh);
   /* Pointers to original indices layers. */
   ctx->vert_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORIGINDEX, subdiv_mesh->totvert));
   ctx->edge_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->edata, CD_ORIGINDEX, subdiv_mesh->totedge));
   ctx->loop_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->ldata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_ORIGINDEX, subdiv_mesh->totloop));
   ctx->poly_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->pdata, CD_ORIGINDEX, subdiv_mesh->totpoly));
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
-  ctx->orco = static_cast<float(*)[3]>(CustomData_get_layer(&subdiv_mesh->vdata, CD_ORCO));
+  ctx->orco = static_cast<float(*)[3]>(
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORCO, subdiv_mesh->totvert));
   ctx->cloth_orco = static_cast<float(*)[3]>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_CLOTH_ORCO));
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_CLOTH_ORCO, subdiv_mesh->totvert));
 }
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
@@ -470,11 +471,11 @@ static void subdiv_vertex_orco_evaluate(const SubdivMeshContext *ctx,
     if (ctx->orco) {
       copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
       if (ctx->cloth_orco) {
-        copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data + 3);
+        copy_v3_v3(ctx->cloth_orco[subdiv_vertex_index], vertex_data + 3);
       }
     }
     else if (ctx->cloth_orco) {
-      copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
+      copy_v3_v3(ctx->cloth_orco[subdiv_vertex_index], vertex_data);
     }
   }
 }
@@ -533,9 +534,12 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
       subdiv_context->coarse_mesh, num_vertices, num_edges, 0, num_loops, num_polygons, mask);
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
-  MEM_SAFE_FREE(subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags);
-  subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags = BLI_BITMAP_NEW(num_vertices,
-                                                                               __func__);
+  subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.clear();
+  subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.resize(num_vertices);
+  if (subdiv_context->settings->use_optimal_display) {
+    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.clear();
+    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.resize(num_edges);
+  }
   return true;
 }
 
@@ -597,7 +601,7 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
   /* Evaluate undeformed texture coordinate. */
   subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
   /* Remove face-dot flag. This can happen if there is more than one subsurf modifier. */
-  BLI_BITMAP_DISABLE(ctx->subdiv_mesh->runtime->subsurf_face_dot_tags, subdiv_vertex_index);
+  ctx->subdiv_mesh->runtime->subsurf_face_dot_tags[subdiv_vertex_index].reset();
 }
 
 static void evaluate_vertex_and_apply_displacement_interpolate(
@@ -751,7 +755,7 @@ static void subdiv_mesh_tag_center_vertex(const MPoly *coarse_poly,
                                           Mesh *subdiv_mesh)
 {
   if (subdiv_mesh_is_center_vertex(coarse_poly, u, v)) {
-    BLI_BITMAP_ENABLE(subdiv_mesh->runtime->subsurf_face_dot_tags, subdiv_vertex_index);
+    subdiv_mesh->runtime->subsurf_face_dot_tags[subdiv_vertex_index].set();
   }
 }
 
@@ -784,24 +788,20 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
  * \{ */
 
 static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
-                                  MEdge *subdiv_edge,
-                                  const MEdge *coarse_edge)
+                                  const int subdiv_edge_index,
+                                  const int coarse_edge_index)
 {
-  const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
-  if (coarse_edge == nullptr) {
-    subdiv_edge->flag = 0;
-    if (!ctx->settings->use_optimal_display) {
-      subdiv_edge->flag |= ME_EDGEDRAW;
-    }
+  if (coarse_edge_index == ORIGINDEX_NONE) {
     if (ctx->edge_origindex != nullptr) {
       ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
     }
     return;
   }
-  const int coarse_edge_index = coarse_edge - ctx->coarse_edges;
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
-  subdiv_edge->flag |= ME_EDGEDRAW;
+  if (ctx->settings->use_optimal_display) {
+    ctx->subdiv_mesh->runtime->subsurf_optimal_display_edges[subdiv_edge_index].set();
+  }
 }
 
 static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
@@ -815,12 +815,7 @@ static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   MEdge *subdiv_medge = ctx->subdiv_edges;
   MEdge *subdiv_edge = &subdiv_medge[subdiv_edge_index];
-  const MEdge *coarse_edge = nullptr;
-  if (coarse_edge_index != ORIGINDEX_NONE) {
-    const MEdge *coarse_medge = ctx->coarse_edges;
-    coarse_edge = &coarse_medge[coarse_edge_index];
-  }
-  subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge);
+  subdiv_copy_edge_data(ctx, subdiv_edge_index, coarse_edge_index);
   subdiv_edge->v1 = subdiv_v1;
   subdiv_edge->v2 = subdiv_v2;
 }

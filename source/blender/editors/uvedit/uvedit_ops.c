@@ -1333,7 +1333,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Pin UV's Operator
+/** \name Pin UVs Operator
  * \{ */
 
 static int uv_pin_exec(bContext *C, wmOperator *op)
@@ -2097,7 +2097,7 @@ void ED_operatormacros_uvedit(void)
 
   ot = WM_operatortype_append_macro("UV_OT_rip_move",
                                     "UV Rip Move",
-                                    "Unstitch UV's and move the result",
+                                    "Unstitch UVs and move the result",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "UV_OT_rip");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");

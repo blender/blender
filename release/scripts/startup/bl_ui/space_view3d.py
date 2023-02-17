@@ -161,6 +161,8 @@ class VIEW3D_HT_tool_header(Header):
             sub.prop(context.object.data, "use_mirror_y", text="Y", toggle=True)
             sub.prop(context.object.data, "use_mirror_z", text="Z", toggle=True)
 
+            layout.prop(context.object.data, "use_sculpt_collision", icon='MOD_PHYSICS', icon_only=True, toggle=True)
+
         # Expand panels from the side-bar as popovers.
         popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}
 
@@ -520,7 +522,8 @@ class _draw_tool_settings_context_mode:
 
         if curves_tool == 'COMB':
             layout.prop(brush, "falloff_shape", expand=True)
-            layout.popover("VIEW3D_PT_tools_brush_falloff")
+            layout.popover("VIEW3D_PT_tools_brush_falloff", text="Brush Falloff")
+            layout.popover("VIEW3D_PT_curves_sculpt_parameter_falloff", text="Curve Falloff")
         elif curves_tool == 'ADD':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
@@ -718,7 +721,7 @@ class VIEW3D_HT_header(Header):
             if object_mode == 'PARTICLE_EDIT':
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
-            elif object_mode == 'SCULPT_CURVES' and obj.type == 'CURVES':
+            elif object_mode in {'EDIT', 'SCULPT_CURVES'} and obj.type == 'CURVES':
                 curves = obj.data
 
                 row = layout.row(align=True)
@@ -890,7 +893,7 @@ class VIEW3D_HT_header(Header):
         row.active = (object_mode == 'EDIT') or (shading.type in {'WIREFRAME', 'SOLID'})
 
         # While exposing `shading.show_xray(_wireframe)` is correct.
-        # this hides the key shortcut from users: T70433.
+        # this hides the key shortcut from users: #70433.
         if has_pose_mode:
             draw_depressed = overlay.show_xray_bone
         elif shading.type == 'WIREFRAME':
@@ -2038,13 +2041,38 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
         layout.separator()
 
         layout.operator("paint.vert_select_ungrouped", text="Ungrouped Vertices")
+        layout.operator("paint.vert_select_linked", text="Select Linked")
+
+
+class VIEW3D_MT_edit_curves_select_more_less(Menu):
+    bl_label = "Select More/Less"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("curves.select_more", text="More")
+        layout.operator("curves.select_less", text="Less")
 
 
 class VIEW3D_MT_select_edit_curves(Menu):
     bl_label = "Select"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+
+        layout.operator("curves.select_all", text="All").action = 'SELECT'
+        layout.operator("curves.select_all", text="None").action = 'DESELECT'
+        layout.operator("curves.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("curves.select_random", text="Random")
+        layout.operator("curves.select_end", text="Endpoints")
+        layout.operator("curves.select_linked", text="Linked")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_curves_select_more_less")
 
 
 class VIEW3D_MT_select_sculpt_curves(Menu):
@@ -2053,46 +2081,12 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("sculpt_curves.select_all", text="All").action = 'SELECT'
-        layout.operator("sculpt_curves.select_all", text="None").action = 'DESELECT'
-        layout.operator("sculpt_curves.select_all", text="Invert").action = 'INVERT'
+        layout.operator("curves.select_all", text="All").action = 'SELECT'
+        layout.operator("curves.select_all", text="None").action = 'DESELECT'
+        layout.operator("curves.select_all", text="Invert").action = 'INVERT'
         layout.operator("sculpt_curves.select_random", text="Random")
-        layout.operator("sculpt_curves.select_end", text="Endpoints")
+        layout.operator("curves.select_end", text="Endpoints")
         layout.operator("sculpt_curves.select_grow", text="Grow")
-
-
-class VIEW3D_MT_angle_control(Menu):
-    bl_label = "Angle Control"
-
-    @classmethod
-    def poll(cls, context):
-        settings = UnifiedPaintPanel.paint_settings(context)
-        if not settings:
-            return False
-
-        brush = settings.brush
-        tex_slot = brush.texture_slot
-
-        return tex_slot.has_texture_angle and tex_slot.has_texture_angle_source
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
-
-        sculpt = (context.sculpt_object is not None)
-
-        tex_slot = brush.texture_slot
-
-        layout.prop(tex_slot, "use_rake", text="Rake")
-
-        if brush.brush_capabilities.has_random_texture_angle and tex_slot.has_random_texture_angle:
-            if sculpt:
-                if brush.sculpt_capabilities.has_random_texture_angle:
-                    layout.prop(tex_slot, "use_random", text="Random")
-            else:
-                layout.prop(tex_slot, "use_random", text="Random")
 
 
 class VIEW3D_MT_mesh_add(Menu):
@@ -2140,6 +2134,7 @@ class VIEW3D_MT_curve_add(Menu):
         layout.separator()
 
         layout.operator("object.curves_empty_hair_add", text="Empty Hair", icon='CURVES_DATA')
+        layout.operator("object.quick_fur", text="Fur", icon='CURVES_DATA')
 
         experimental = context.preferences.experimental
         if experimental.use_new_curves_tools:
@@ -2274,6 +2269,7 @@ class VIEW3D_MT_camera_add(Menu):
 class VIEW3D_MT_volume_add(Menu):
     bl_idname = "VIEW3D_MT_volume_add"
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
 
     def draw(self, _context):
         layout = self.layout
@@ -2293,7 +2289,7 @@ class VIEW3D_MT_add(Menu):
         # NOTE: don't use 'EXEC_SCREEN' or operators won't get the `v3d` context.
 
         # NOTE: was `EXEC_AREA`, but this context does not have the `rv3d`, which prevents
-        #       "align_view" to work on first call (see T32719).
+        #       "align_view" to work on first call (see #32719).
         layout.operator_context = 'EXEC_REGION_WIN'
 
         # layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
@@ -2702,10 +2698,9 @@ class VIEW3D_MT_object_context_menu(Menu):
             if obj.type == 'GPENCIL':
                 layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
 
-            if (
-                    obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT', 'POINTCLOUD'} or
-                    (obj.type == 'EMPTY' and obj.instance_collection is not None)
-            ):
+            if (obj.type in {
+                'MESH', 'CURVE', 'CURVES', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT', 'POINTCLOUD',
+            } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
                 layout.operator_context = 'INVOKE_DEFAULT'
@@ -3893,6 +3888,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_normals")
         layout.menu("VIEW3D_MT_edit_mesh_shading")
         layout.menu("VIEW3D_MT_edit_mesh_weights")
+        layout.operator("mesh.attribute_set")
         layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements...")
 
         layout.separator()
@@ -4303,7 +4299,10 @@ class VIEW3D_MT_edit_mesh_faces_data(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.flip_quad_tessellation")
+
         if with_freestyle:
+            layout.separator()
             layout.operator("mesh.mark_freestyle_face").clear = False
             layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
@@ -5327,7 +5326,11 @@ class VIEW3D_MT_edit_curves(Menu):
     bl_label = "Curves"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+
+        layout.menu("VIEW3D_MT_transform")
+        layout.separator()
+        layout.operator("curves.delete")
 
 
 class VIEW3D_MT_object_mode_pie(Menu):
@@ -5396,7 +5399,7 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         pie.prop_enum(view.shading, "type", value='WIREFRAME')
         pie.prop_enum(view.shading, "type", value='SOLID')
 
-        # Note this duplicates "view3d.toggle_xray" logic, so we can see the active item: T58661.
+        # Note this duplicates "view3d.toggle_xray" logic, so we can see the active item: #58661.
         if context.pose_object:
             pie.prop(view.overlay, "show_xray_bone", icon='XRAY')
         else:
@@ -6217,14 +6220,15 @@ class VIEW3D_PT_shading_compositor(Panel):
     def draw(self, context):
         shading = context.space_data.shading
 
-        import sys
-        is_macos = sys.platform == "darwin"
+        import gpu
+        is_supported = (gpu.capabilities.compute_shader_support_get()
+                        and gpu.capabilities.shader_image_load_store_support_get())
 
         row = self.layout.row()
-        row.active = not is_macos
+        row.active = is_supported
         row.prop(shading, "use_compositor", expand=True)
-        if is_macos and shading.use_compositor != "DISABLED":
-            self.layout.label(text="Compositor not supported on MacOS", icon='ERROR')
+        if shading.use_compositor != "DISABLED" and not is_supported:
+            self.layout.label(text="Compositor not supported on this platform", icon='ERROR')
 
 
 class VIEW3D_PT_gizmo_display(Panel):
@@ -6316,7 +6320,7 @@ class VIEW3D_PT_overlay_guides(Panel):
             (view.region_3d.is_orthographic_side_view and not view.region_3d.is_perspective)
         )
         row_el.active = grid_active
-        row.prop(overlay, "show_floor", text="Floor")
+        row.prop(overlay, "show_floor", text="Floor", text_ctxt=i18n_contexts.editor_view3d)
 
         if overlay.show_floor or overlay.show_ortho_grid:
             sub = col.row(align=True)
@@ -6726,27 +6730,26 @@ class VIEW3D_PT_overlay_sculpt(Panel):
     def poll(cls, context):
         return (
             context.mode == 'SCULPT' and
-            (context.sculpt_object and context.tool_settings.sculpt)
+            context.sculpt_object
         )
 
     def draw(self, context):
         layout = self.layout
         tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
 
         view = context.space_data
         overlay = view.overlay
 
         row = layout.row(align=True)
-        row.prop(overlay, "sculpt_show_mask", text="")
+        row.prop(overlay, "show_sculpt_mask", text="")
         sub = row.row()
-        sub.active = overlay.sculpt_show_mask
+        sub.active = overlay.show_sculpt_mask
         sub.prop(overlay, "sculpt_mode_mask_opacity", text="Mask")
 
         row = layout.row(align=True)
-        row.prop(overlay, "sculpt_show_face_sets", text="")
+        row.prop(overlay, "show_sculpt_face_sets", text="")
         sub = row.row()
-        sub.active = overlay.sculpt_show_face_sets
+        sub.active = overlay.show_sculpt_face_sets
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
 
 
@@ -6772,6 +6775,13 @@ class VIEW3D_PT_overlay_sculpt_curves(Panel):
         row = layout.row(align=True)
         row.active = overlay.show_overlays
         row.prop(overlay, "sculpt_mode_mask_opacity", text="Selection Opacity")
+
+        row = layout.row(align=True)
+        row.active = overlay.show_overlays
+        row.prop(overlay, "show_sculpt_curves_cage", text="")
+        subrow = row.row(align=True)
+        subrow.active = overlay.show_sculpt_curves_cage
+        subrow.prop(overlay, "sculpt_curves_cage_opacity", text="Cage Opacity")
 
 
 class VIEW3D_PT_overlay_bones(Panel):
@@ -7954,6 +7964,28 @@ class VIEW3D_PT_curves_sculpt_add_shape(Panel):
         col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
 
+class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
+    # Only for popover, these are dummy values.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Curves Sculpt Parameter Falloff"
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        layout.template_curve_mapping(brush.curves_sculpt_settings, "curve_parameter_falloff")
+        row = layout.row(align=True)
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.sculpt_curves_falloff_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
 class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
@@ -8031,9 +8063,9 @@ classes = (
     VIEW3D_MT_select_gpencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
+    VIEW3D_MT_edit_curves_select_more_less,
     VIEW3D_MT_select_edit_curves,
     VIEW3D_MT_select_sculpt_curves,
-    VIEW3D_MT_angle_control,
     VIEW3D_MT_mesh_add,
     VIEW3D_MT_curve_add,
     VIEW3D_MT_surface_add,
@@ -8232,6 +8264,7 @@ classes = (
     TOPBAR_PT_gpencil_vertexcolor,
     TOPBAR_PT_annotation_layers,
     VIEW3D_PT_curves_sculpt_add_shape,
+    VIEW3D_PT_curves_sculpt_parameter_falloff,
     VIEW3D_PT_curves_sculpt_grow_shrink_scaling,
     VIEW3D_PT_viewport_debug,
 )

@@ -85,6 +85,10 @@ def get_arguments(filepath, output_filepath):
     if custom_args:
         args.extend(shlex.split(custom_args))
 
+    spp_multiplier = os.getenv('CYCLESTEST_SPP_MULTIPLIER')
+    if spp_multiplier:
+        args.extend(["--python-expr", f"import bpy; bpy.context.scene.cycles.samples *= {spp_multiplier}"])
+
     if subject == 'bake':
         args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
     elif subject == 'denoise_animation':
@@ -135,7 +139,7 @@ def main():
     else:
         report.set_compare_engine('cycles', 'CPU')
 
-    # Increase threshold for motion blur, see T78777.
+    # Increase threshold for motion blur, see #78777.
     test_dir_name = Path(test_dir).name
     if test_dir_name == 'motion_blur':
         report.set_fail_threshold(0.032)

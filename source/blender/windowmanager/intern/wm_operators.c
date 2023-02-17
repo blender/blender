@@ -504,7 +504,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
       }
       case ID_MA: {
 #  define ID_CAST_OBMATACT(id_pt) \
-    (BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol))
+    BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol)
         CTX_TEST_PTR_ID_CAST(
             C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->owner_id);
         break;
@@ -1437,7 +1437,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 
   uiBlock *block = arg2;
   /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
-   * in case WM_operator_call_ex exits/reloads the current file (T49199). */
+   * in case WM_operator_call_ex exits/reloads the current file (#49199). */
 
   UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
 
@@ -1473,7 +1473,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
   /* clear so the OK button is left alone */
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  /* new column so as not to interfere with custom layouts T26436. */
+  /* new column so as not to interfere with custom layouts #26436. */
   {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiBlock *col_block = uiLayoutGetBlock(col);
@@ -3327,7 +3327,7 @@ static void redraw_timer_step(bContext *C,
 static bool redraw_timer_poll(bContext *C)
 {
   /* Check background mode as many of these actions use redrawing.
-   * NOTE(@campbellbarton): if it's useful to support undo or animation step this could
+   * NOTE(@ideasman42): if it's useful to support undo or animation step this could
    * be allowed at the moment this seems like a corner case that isn't needed. */
   return !G.background && WM_operator_winactive(C);
 }

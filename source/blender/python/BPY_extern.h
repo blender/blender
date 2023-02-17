@@ -109,7 +109,7 @@ void BPY_context_update(struct bContext *C);
 /**
  * Use for `CTX_*_set(..)` functions need to set values which are later read back as expected.
  * In this case we don't want the Python context to override the values as it causes problems
- * see T66256.
+ * see #66256.
  *
  * \param dict_p: A pointer to #bContext.data.py_context so we can assign a new value.
  * \param dict_orig: The value of #bContext.data.py_context_orig to check if we need to copy.

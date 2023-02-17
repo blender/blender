@@ -65,7 +65,7 @@
 #include "bmesh.h"
 
 #include "paint_intern.h" /* own include */
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 using blender::IndexRange;
 using namespace blender;
@@ -965,7 +965,7 @@ static void do_weight_paint_vertex_single(
     dw->weight = weight;
 
     /* WATCH IT: take care of the ordering of applying mirror -> normalize,
-     * can give wrong results T26193, least confusing if normalize is done last */
+     * can give wrong results #26193, least confusing if normalize is done last */
 
     /* apply mirror */
     if (index_mirr != -1) {

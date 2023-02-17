@@ -520,7 +520,7 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
   /* If there is an overscan used for the tile copy pixels into single continuous block of memory
    * without any "gaps".
    * This is a workaround for bug in OIIO (https://github.com/OpenImageIO/oiio/pull/3176).
-   * Our task reference: T93008. */
+   * Our task reference: #93008. */
   if (tile_params.window_x || tile_params.window_y ||
       tile_params.window_width != tile_params.width ||
       tile_params.window_height != tile_params.height) {

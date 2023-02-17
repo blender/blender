@@ -1548,7 +1548,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
@@ -1702,7 +1702,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
@@ -2752,7 +2752,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed, -1 for any state");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
-  /* XXX(@campbellbarton): the `*_ui` suffix is only for the UI, may be removed,
+  /* XXX(@ideasman42): the `*_ui` suffix is only for the UI, may be removed,
    * since this is only exposed so the UI can show these settings as toggle-buttons. */
   prop = RNA_def_property(srna, "shift_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);

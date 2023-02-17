@@ -779,6 +779,68 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   sunsky->nishita_data[9] = sun_intensity;
 }
 
+float SkyTextureNode::get_sun_average_radiance()
+{
+  float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  float angular_diameter = get_sun_size();
+
+  float pix_bottom[3];
+  float pix_top[3];
+  SKY_nishita_skymodel_precompute_sun(sun_elevation,
+                                      angular_diameter,
+                                      clamped_altitude,
+                                      air_density,
+                                      dust_density,
+                                      pix_bottom,
+                                      pix_top);
+
+  /* Approximate the direction's elevation as the sun's elevation. */
+  float dir_elevation = sun_elevation;
+  float half_angular = angular_diameter / 2.0f;
+  float3 pixel_bottom = make_float3(pix_bottom[0], pix_bottom[1], pix_bottom[2]);
+  float3 pixel_top = make_float3(pix_top[0], pix_top[1], pix_top[2]);
+
+  /* Same code as in the sun evaluation shader. */
+  float3 xyz = make_float3(0.0f, 0.0f, 0.0f);
+  float y = 0.0f;
+  if (sun_elevation - half_angular > 0.0f) {
+    if (sun_elevation + half_angular > 0.0f) {
+      y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
+      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
+    }
+  }
+  else {
+    if (sun_elevation + half_angular > 0.0f) {
+      y = dir_elevation / (sun_elevation + half_angular);
+      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
+    }
+  }
+
+  /* We first approximate the sun's contribution by
+   * multiplying the evaluated point by the square of the angular diameter.
+   * Then we scale the approximation using a piecewise function (determined empirically). */
+  float sun_contribution = average(xyz) * sqr(angular_diameter);
+
+  float first_point = 0.8f / 180.0f * M_PI_F;
+  float second_point = 1.0f / 180.0f * M_PI_F;
+  float third_point = M_PI_2_F;
+  if (angular_diameter < first_point) {
+    sun_contribution *= 1.0f;
+  }
+  else if (angular_diameter < second_point) {
+    float diff = angular_diameter - first_point;
+    float slope = (0.8f - 1.0f) / (second_point - first_point);
+    sun_contribution *= 1.0f + slope * diff;
+  }
+  else {
+    float diff = angular_diameter - 1.0f / 180.0f * M_PI_F;
+    float slope = (0.45f - 0.8f) / (third_point - second_point);
+    sun_contribution *= 0.8f + slope * diff;
+  }
+
+  return sun_contribution;
+}
+
 NODE_DEFINE(SkyTextureNode)
 {
   NodeType *type = NodeType::add("sky_texture", create, NodeType::SHADER);

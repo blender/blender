@@ -92,7 +92,7 @@ struct UndoMesh {
 
   /** \note
    * This isn't a perfect solution, if you edit keys and change shapes this works well
-   * (fixing T32442), but editing shape keys, going into object mode, removing or changing their
+   * (fixing #32442), but editing shape keys, going into object mode, removing or changing their
    * order, then go back into editmode and undo will give issues - where the old index will be
    * out of sync with the new object index.
    *
@@ -156,7 +156,7 @@ static void um_arraystore_cd_compact(CustomData *cdata,
      * Unfortunately we can't compare dynamic layer types as they contain allocated pointers,
      * which burns CPU cycles looking for duplicate data that doesn't exist.
      * The array data isn't comparable once copied from the mesh,
-     * this bottlenecks on high poly meshes, see T84114.
+     * this bottlenecks on high poly meshes, see #84114.
      *
      * Notes:
      *
@@ -398,13 +398,13 @@ static void um_arraystore_compact_with_info(UndoMesh *um, const UndoMesh *um_ref
         &um_arraystore.bs_stride, &size_expanded, &size_compacted);
 
     const double percent_total = size_expanded ?
-                                     (((double)size_compacted / (double)size_expanded) * 100.0) :
+                                     ((double(size_compacted) / double(size_expanded)) * 100.0) :
                                      -1.0;
 
     size_t size_expanded_step = size_expanded - size_expanded_prev;
     size_t size_compacted_step = size_compacted - size_compacted_prev;
     const double percent_step = size_expanded_step ?
-                                    (((double)size_compacted_step / (double)size_expanded_step) *
+                                    ((double(size_compacted_step) / double(size_expanded_step)) *
                                      100.0) :
                                     -1.0;
 

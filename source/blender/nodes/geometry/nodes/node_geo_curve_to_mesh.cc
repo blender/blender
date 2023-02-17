@@ -34,15 +34,12 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   if (profile_curves == nullptr) {
-    Mesh *mesh = bke::curve_to_wire_mesh(bke::CurvesGeometry::wrap(curves.geometry),
-                                         propagation_info);
+    Mesh *mesh = bke::curve_to_wire_mesh(curves.geometry.wrap(), propagation_info);
     geometry_set.replace_mesh(mesh);
   }
   else {
-    Mesh *mesh = bke::curve_to_mesh_sweep(bke::CurvesGeometry::wrap(curves.geometry),
-                                          bke::CurvesGeometry::wrap(profile_curves->geometry),
-                                          fill_caps,
-                                          propagation_info);
+    Mesh *mesh = bke::curve_to_mesh_sweep(
+        curves.geometry.wrap(), profile_curves->geometry.wrap(), fill_caps, propagation_info);
     geometry_set.replace_mesh(mesh);
   }
 }

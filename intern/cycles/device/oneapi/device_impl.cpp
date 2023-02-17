@@ -377,7 +377,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  /* Resize if needed. Also, in case of resize - allocate in advance for future allocs. */
+  /* Resize if needed. Also, in case of resize - allocate in advance for future allocations. */
   const uint slot = mem.slot;
   if (slot >= texture_info_.size()) {
     texture_info_.resize(slot + 128);
@@ -631,9 +631,9 @@ bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
 /* The same min compute-runtime version is currently required across Windows and Linux.
- * For Windows driver 101.3430, compute-runtime version is 23904. */
-static const int lowest_supported_driver_version_win = 1013430;
-static const int lowest_supported_driver_version_neo = 23904;
+ * For Windows driver 101.4032, compute-runtime version is 24931. */
+static const int lowest_supported_driver_version_win = 1014032;
+static const int lowest_supported_driver_version_neo = 24931;
 
 int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 {

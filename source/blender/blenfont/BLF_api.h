@@ -28,7 +28,6 @@ extern "C" {
 
 struct ColorManagedDisplay;
 struct ResultBLF;
-struct rctf;
 struct rcti;
 
 int BLF_init(void);

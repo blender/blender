@@ -20,11 +20,9 @@ extern "C" {
 
 #define RNA_MAGIC ((int)~0)
 
-struct AssetLibraryReference;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
-struct IDOverrideLibraryenOperation;
 struct IDProperty;
 struct Main;
 struct Object;
@@ -665,7 +663,7 @@ const char *rna_translate_ui_text(const char *text,
                                   struct PropertyRNA *prop,
                                   bool translate);
 
-/* Internal functions that cycles uses so we need to declare (tsk!). */
+/* Internal functions that cycles uses so we need to declare (not ideal!). */
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 
 #ifdef RNA_RUNTIME

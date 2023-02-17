@@ -45,7 +45,7 @@ static const size_t utf8_skip_data[256] = {
 
 ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
 {
-  /* NOTE(@campbellbarton): from libswish3, originally called u8_isvalid(),
+  /* NOTE(@ideasman42): from libswish3, originally called u8_isvalid(),
    * modified to return the index of the bad character (byte index not UTF).
    * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044.
    *
@@ -403,7 +403,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 
-/* NOTE(@campbellbarton): glib uses uint for unicode, best we do the same,
+/* NOTE(@ideasman42): glib uses uint for unicode, best we do the same,
  * though we don't typedef it. */
 
 #define UTF8_COMPUTE(Char, Mask, Len, Err) \

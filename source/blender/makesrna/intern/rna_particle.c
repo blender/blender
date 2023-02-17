@@ -397,11 +397,9 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   /* get uvco */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
       !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-    MFace *mface;
-    MTFace *mtface;
 
-    mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-    mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);
+    const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+    const MTFace *mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);
 
     if (mface && mtface) {
       mtface += num;
@@ -565,7 +563,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
     }
     else if (part->from == PART_FROM_VERT) {
       if (num != DMCACHE_NOTFOUND && num < totvert) {
-        MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+        const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
 
         *r_fuv = &particle->fuv;
 
@@ -608,7 +606,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
       }
       else if (part->from == PART_FROM_VERT) {
         if (num != DMCACHE_NOTFOUND && num < totvert) {
-          MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+          const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
 
           *r_fuv = &parent->fuv;
 
@@ -658,8 +656,8 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
       zero_v2(r_uv);
     }
     else {
-      MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-      MFace *mface = &mfaces[num];
+      const MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+      const MFace *mface = &mfaces[num];
       const MTFace *mtface = (const MTFace *)CustomData_get_layer_n(
           &modifier->mesh_final->fdata, CD_MTFACE, uv_no);
 
@@ -693,8 +691,8 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
       zero_v3(r_mcol);
     }
     else {
-      MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-      MFace *mface = &mfaces[num];
+      const MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+      const MFace *mface = &mfaces[num];
       const MCol *mc = (const MCol *)CustomData_get_layer_n(
           &modifier->mesh_final->fdata, CD_MCOL, vcol_no);
       MCol mcol;
@@ -2978,7 +2976,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "effector_amount", PROP_INT, PROP_UNSIGNED);
   /* In theory PROP_ANIMATABLE perhaps should be cleared,
    * but animating this can give some interesting results! */
-  RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will bel SLOW, but who knows */
+  RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will be SLOW, but who knows */
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
   RNA_def_property_ui_text(
       prop, "Effector Number", "How many particles are effectors (0 is all particles)");
@@ -3143,7 +3141,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   /* children */
 
-  /* NOTE(@campbellbarton): name is not following conventions: `nbr`.
+  /* NOTE(@ideasman42): name is not following conventions: `nbr`.
    * Could be changed next major version. */
   prop = RNA_def_property(srna, "child_nbr", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(
@@ -4017,7 +4015,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
 
-  /* extract hair mcols */
+  /* Extract hair vertex-colors. */
   func = RNA_def_function(srna, "mcol_on_emitter", "rna_ParticleSystem_mcol_on_emitter");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Obtain mcol for all particles");

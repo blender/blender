@@ -22,7 +22,7 @@ elseif(UNIX AND NOT APPLE)
   )
 endif()
 
-# Boolean crashes with Arm assembly, see T103423.
+# Boolean crashes with Arm assembly, see #103423.
 if(BLENDER_PLATFORM_ARM)
   set(GMP_OPTIONS
     ${GMP_OPTIONS}

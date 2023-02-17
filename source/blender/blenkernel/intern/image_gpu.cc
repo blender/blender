@@ -264,7 +264,7 @@ static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
                                               eGPUTextureTarget textarget,
                                               const int multiview_eye)
 {
-  const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
+  const bool in_range = (int(textarget) >= 0) && (textarget < TEXTARGET_COUNT);
   BLI_assert(in_range);
   BLI_assert(ELEM(multiview_eye, 0, 1));
 

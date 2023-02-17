@@ -904,10 +904,10 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
     /* Create the batches */
     cache->edit_points_batch = GPU_batch_create(GPU_PRIM_POINTS, cache->vbo, nullptr);
-    GPU_batch_vertbuf_add(cache->edit_points_batch, cache->edit_vbo);
+    GPU_batch_vertbuf_add(cache->edit_points_batch, cache->edit_vbo, false);
 
     cache->edit_lines_batch = GPU_batch_create(GPU_PRIM_LINE_STRIP, cache->vbo, nullptr);
-    GPU_batch_vertbuf_add(cache->edit_lines_batch, cache->edit_vbo);
+    GPU_batch_vertbuf_add(cache->edit_lines_batch, cache->edit_vbo, false);
   }
 
   /* Curve Handles and Points for Editing. */
@@ -941,11 +941,11 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
 
       cache->edit_curve_handles_batch = GPU_batch_create(
           GPU_PRIM_LINES, cache->edit_curve_vbo, nullptr);
-      GPU_batch_vertbuf_add(cache->edit_curve_handles_batch, cache->edit_curve_vbo);
+      GPU_batch_vertbuf_add(cache->edit_curve_handles_batch, cache->edit_curve_vbo, false);
 
       cache->edit_curve_points_batch = GPU_batch_create(
           GPU_PRIM_POINTS, cache->edit_curve_vbo, nullptr);
-      GPU_batch_vertbuf_add(cache->edit_curve_points_batch, cache->edit_curve_vbo);
+      GPU_batch_vertbuf_add(cache->edit_curve_points_batch, cache->edit_curve_vbo, false);
     }
 
     gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;

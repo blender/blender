@@ -91,7 +91,7 @@
  *
  * This struct adds/removes the user-count of each #PyObject it references,
  * it's needed in case the function is removed from the class (unlikely but possible),
- * also when an annotation evaluates to a `lambda` with Python 3.10 and newer e.g: T86332.
+ * also when an annotation evaluates to a `lambda` with Python 3.10 and newer e.g: #86332.
  *
  * Pointers to this struct are held in:
  *

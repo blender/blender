@@ -179,7 +179,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
     int amax = from == PART_FROM_FACE ? 3 : 1;
 
     totface = mesh->totface;
-    mface = mface_array = CustomData_get_layer(&mesh->fdata, CD_MFACE);
+    mface = mface_array = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
 
     for (a = 0; a < amax; a++) {
       if (a == 0) {
@@ -316,9 +316,10 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   }
 }
 
-/* modified copy from rayshade.c */
 static void hammersley_create(float *out, int n, int seed, float amount)
 {
+  /* This code is originally from a modified copy from `rayshade.c`
+   * (a file that's no longer included). */
   RNG *rng;
 
   double ofs[2], t;
@@ -462,7 +463,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
   ParticleThreadContext *ctx = thread->ctx;
   MFace *mface;
 
-  mface = CustomData_get_layer(&ctx->mesh->fdata, CD_MFACE);
+  mface = CustomData_get_layer_for_write(&ctx->mesh->fdata, CD_MFACE, ctx->mesh->totface);
 
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
@@ -523,7 +524,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
   int i;
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   MFace *mface;
 
   pa->num = i = ctx->index[p];
@@ -578,7 +579,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
 
   pa->num = i = ctx->index[p];
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   mface = &mfaces[i];
 
   switch (distr) {
@@ -630,7 +631,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 
   min_d = FLT_MAX;
   intersect = 0;
-  mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  mface = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   for (i = 0; i < tot; i++, mface++) {
     if (i == pa->num) {
       continue;
@@ -700,7 +701,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     return;
   }
 
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   mf = &mfaces[ctx->index[p]];
 
   randu = BLI_rng_get_float(thread->rng);
@@ -917,7 +918,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   }
 
   /* XXX This distribution code is totally broken in case from == PART_FROM_CHILD,
-   *     it's always using finaldm even if use_modifier_stack is unset...
+   *     it's always using `final_mesh` even if use_modifier_stack is unset...
    *     But making things consistent here break all existing edited
    *     hair systems, so better wait for complete rewrite. */
 
@@ -1053,7 +1054,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO);
 
-    MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+    MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
     for (i = 0; i < totelem; i++) {
       MFace *mf = &mfaces[i];
 
@@ -1114,7 +1115,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       }
     }
     else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-      MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+      MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
+          &mesh->fdata, CD_MFACE, mesh->totface);
       for (i = 0; i < totelem; i++) {
         MFace *mf = &mfaces[i];
         tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];
@@ -1204,12 +1206,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     step = (totpart < 2) ? 0.5 : 1.0 / (double)totpart;
     /* This is to address tricky issues with vertex-emitting when user tries
-     * (and expects) exact 1-1 vert/part distribution (see T47983 and its two example files).
+     * (and expects) exact 1-1 vert/part distribution (see #47983 and its two example files).
      * It allows us to consider pos as 'midpoint between v and v+1'
      * (or 'p and p+1', depending whether we have more vertices than particles or not),
      * and avoid stumbling over float impression in element_sum.
      * NOTE: moved face and volume distribution to this as well (instead of starting at zero),
-     * for the same reasons, see T52682. */
+     * for the same reasons, see #52682. */
     pos = (totpart < totmapped) ? 0.5 / (double)totmapped :
                                   step * 0.5; /* We choose the smaller step. */
 

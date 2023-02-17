@@ -1206,7 +1206,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
           }
           if (collection_hidden == NULL) {
             /* This should never happen (objects are always supposed to be instantiated in a
-             * scene), but it does sometimes, see e.g. T81168.
+             * scene), but it does sometimes, see e.g. #81168.
              * Just put them in first hidden collection in those cases. */
             collection_hidden = &hidden_collection_array[0];
           }
@@ -1297,7 +1297,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
-  /* New workspace design */
+  /* New workspace design. */
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
     do_version_workspaces_after_lib_link(bmain);
   }
@@ -1739,7 +1739,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 /* NOTE: This version patch is intended for versions < 2.52.2,
  * but was initially introduced in 2.27 already.
  * But in 2.79 another case generating non-unique names was discovered
- * (see T55668, involving Meta strips). */
+ * (see #55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
   for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {
@@ -1791,7 +1791,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* MTexPoly now removed. */
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
-        /* If we have UV's, so this file will have MTexPoly layers too! */
+        /* If we have UVs, so this file will have MTexPoly layers too! */
         if (CustomData_has_layer(&me->ldata, CD_MLOOPUV) ||
             CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
           CustomData_update_typemap(&me->pdata);
@@ -1969,6 +1969,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 #endif
+
+  /* Files from this version included do get a valid `win->screen` pointer written for backward
+   * compatibility, however this should never be used nor needed, so clear these pointers here. */
+  if (MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
+    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        win->screen = NULL;
+      }
+    }
+  }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
     /* init grease pencil grids and paper */

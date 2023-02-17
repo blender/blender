@@ -57,6 +57,35 @@ void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
   src->first = src->last = nullptr;
 }
 
+void BLI_listbase_split_after(ListBase *original_listbase, ListBase *split_listbase, void *vlink)
+{
+  BLI_assert(BLI_listbase_is_empty(split_listbase));
+  BLI_assert(vlink == nullptr || BLI_findindex(original_listbase, vlink) >= 0);
+
+  if (vlink == original_listbase->last) {
+    /* Nothing to split, and `split_listbase` is assumed already empty (see assert above). */
+    return;
+  }
+
+  if (vlink == nullptr) {
+    /* Move everything into `split_listbase`. */
+    SWAP(ListBase, *original_listbase, *split_listbase);
+    return;
+  }
+
+  Link *link = static_cast<Link *>(vlink);
+  Link *next_link = link->next;
+  BLI_assert(next_link != nullptr);
+  Link *last_link = static_cast<Link *>(original_listbase->last);
+
+  original_listbase->last = link;
+  split_listbase->first = next_link;
+  split_listbase->last = last_link;
+
+  link->next = nullptr;
+  next_link->prev = nullptr;
+}
+
 void BLI_addhead(ListBase *listbase, void *vlink)
 {
   Link *link = static_cast<Link *>(vlink);

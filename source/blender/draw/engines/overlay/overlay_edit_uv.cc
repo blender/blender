@@ -102,7 +102,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   const bool show_overlays = !pd->hide_overlays;
 
   Image *image = sima->image;
-  /* By design no image is an image type. This so editor shows UV's by default. */
+  /* By design no image is an image type. This so editor shows UVs by default. */
   const bool is_image_type = (image == nullptr) || ELEM(image->type,
                                                         IMA_TYPE_IMAGE,
                                                         IMA_TYPE_MULTILAYER,
@@ -414,7 +414,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
   /* HACK: When editing objects that share the same mesh we should only draw the
    * first one in the order that is used during uv editing. We can only trust that the first object
-   * has the correct batches with the correct selection state. See T83187. */
+   * has the correct batches with the correct selection state. See #83187. */
   if ((pd->edit_uv.do_uv_overlay || pd->edit_uv.do_uv_shadow_overlay) &&
       draw_ctx->obact->type == OB_MESH) {
     uint objects_len = 0;

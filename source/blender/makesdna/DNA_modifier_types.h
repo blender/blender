@@ -105,7 +105,8 @@ typedef struct ModifierData {
   struct ModifierData *next, *prev;
 
   int type, mode;
-  char _pad0[4];
+  /** Time in seconds that the modifier took to evaluate. This is only set on evaluated objects. */
+  float execution_time;
   short flag;
   /** An "expand" bit for each of the modifier's (sub)panels (#uiPanelDataExpansion). */
   short ui_expand_flag;
@@ -1094,6 +1095,8 @@ typedef struct ExplodeModifierData {
 } ExplodeModifierData;
 
 typedef struct MultiresModifierData {
+  DNA_DEFINE_CXX_METHODS(MultiresModifierData)
+
   ModifierData modifier;
 
   char lvl, sculptlvl, renderlvl, totlvl;

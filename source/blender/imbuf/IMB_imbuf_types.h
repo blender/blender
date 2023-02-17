@@ -49,7 +49,7 @@ typedef struct DDSData {
 /* WARNING: Keep explicit value assignments here,
  * this file is included in areas where not all format defines are set
  * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
- * See T46524. */
+ * See #46524. */
 
 /** #ImBuf.ftype flag, main image types. */
 enum eImbFileType {

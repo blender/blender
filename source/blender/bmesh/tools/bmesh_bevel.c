@@ -97,7 +97,7 @@ typedef struct EdgeHalf {
   bool is_bev;
   /** Is e->v2 the vertex at this end? */
   bool is_rev;
-  /** Is e a seam for custom loop-data (e.g., UV's). */
+  /** Is e a seam for custom loop-data (e.g., UVs). */
   bool is_seam;
   /** Used during the custom profile orientation pass. */
   bool visited_rpo;
@@ -307,7 +307,10 @@ typedef struct BevelParams {
   GHash *vert_hash;
   /** Records new faces: key BMFace*, value one of {VERT/EDGE/RECON}_POLY. */
   GHash *face_hash;
-  /** Use for all allocs while bevel runs. NOTE: If we need to free we can switch to mempool. */
+  /**
+   * Use for all allocations while bevel runs.
+   * \note If we need to free we can switch to `BLI_mempool`.
+   */
   MemArena *mem_arena;
   /** Profile vertex location and spacings. */
   ProfileSpacing pro_spacing;
@@ -1348,7 +1351,7 @@ static void offset_meet(BevelParams *bp,
     /* Special case: e1 and e2 are parallel; put offset point perp to both, from v.
      * need to find a suitable plane.
      * This code used to just use offset and dir1, but that makes for visible errors
-     * on a circle with > 200 sides, which trips this "nearly perp" code (see T61214).
+     * on a circle with > 200 sides, which trips this "nearly perp" code (see #61214).
      * so use the average of the two, and the offset formula for angle bisector.
      * If offsets are different, we're out of luck:
      * Use the max of the two (so get consistent looking results if the same situation
@@ -1385,7 +1388,7 @@ static void offset_meet(BevelParams *bp,
     copy_v3_v3(meetco, off1a);
   }
   else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG) {
-    /* Special case: e1 and e2 are antiparallel, so bevel is into a zero-area face.
+    /* Special case: e1 and e2 are anti-parallel, so bevel is into a zero-area face.
      * Just make the offset point on the common line, at offset distance from v. */
     float d = max_ff(e1->offset_r, e2->offset_l);
     slide_dist(e2, v, d, meetco);
@@ -1501,12 +1504,12 @@ static void offset_meet(BevelParams *bp,
   }
 }
 
-/* This was changed from 0.25f to fix bug T86768.
- * Original bug T44961 remains fixed with this value.
- * Update: changed again from 0.0001f to fix bug T95335.
+/* This was changed from 0.25f to fix bug #86768.
+ * Original bug #44961 remains fixed with this value.
+ * Update: changed again from 0.0001f to fix bug #95335.
  * Original two bugs remained fixed.
  */
-#define BEVEL_GOOD_ANGLE 0.001f
+#define BEVEL_GOOD_ANGLE 0.1f
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
@@ -2262,7 +2265,7 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
   co[2] = z;
 }
 
-#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
+#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) BM_elem_flag_test(eh->e, flag)
 
 static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
@@ -5463,7 +5466,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
         BMVert *bmv4 = mesh_vert(vm, i, j + 1, k)->v;
         BMVert *bmvs[4] = {bmv1, bmv2, bmv3, bmv4};
         BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
-        /* For each created quad, the UV's etc. will be interpolated
+        /* For each created quad, the UVs etc. will be interpolated
          * in potentially a different face for each corner and may need
          * to snap to a particular edge before interpolating.
          * The fr and se arrays will be filled with the interpolation faces
@@ -7600,14 +7603,14 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   }
 
   /* Now check edge slide cases. */
-  if (kb > 0.0f && ka == 0.0f /*&& bvb->selcount == 1 && bvb->edgecount > 2 */) {
+  if (kb > 0.0f && ka == 0.0f /* `&& bvb->selcount == 1 && bvb->edgecount > 2` */) {
     float t = BM_edge_calc_length(ea->e);
     t *= sin1 / kb;
     if (t >= 0.0f && t < limit) {
       limit = t;
     }
   }
-  if (kb > 0.0f && kc == 0.0f /* && bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2 */) {
+  if (kb > 0.0f && kc == 0.0f /* `&& bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2` */) {
     float t = BM_edge_calc_length(ec->e);
     t *= sin2 / kb;
     if (t >= 0.0f && t < limit) {

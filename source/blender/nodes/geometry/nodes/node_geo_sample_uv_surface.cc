@@ -138,7 +138,7 @@ class SampleMeshBarycentricFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(0,
                                                                                "Triangle Index");
@@ -200,15 +200,15 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Sample UV Surface", signature};
       builder.single_input<float2>("Sample UV");
-      builder.single_output<bool>("Is Valid");
-      builder.single_output<int>("Triangle Index");
-      builder.single_output<float3>("Barycentric Weights");
+      builder.single_output<bool>("Is Valid", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<int>("Triangle Index", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float3>("Barycentric Weights", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float2> sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
     MutableSpan<bool> is_valid = params.uninitialized_single_output_if_required<bool>(1,

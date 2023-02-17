@@ -248,16 +248,16 @@ void MTLImmediate::end()
                      "ssbo_input_prim_type uniform location invalid!");
       BLI_assert_msg(active_mtl_shader->uni_ssbo_input_vert_count_loc != -1,
                      "ssbo_input_vert_count uniform location invalid!");
-      GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
-                                    active_mtl_shader->uni_ssbo_input_prim_type_loc,
-                                    1,
-                                    1,
-                                    (const int *)(&this->prim_type));
-      GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
-                                    active_mtl_shader->uni_ssbo_input_vert_count_loc,
-                                    1,
-                                    1,
-                                    (const int *)(&this->vertex_idx));
+      GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
+                                active_mtl_shader->uni_ssbo_input_prim_type_loc,
+                                1,
+                                1,
+                                (const int *)(&this->prim_type));
+      GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
+                                active_mtl_shader->uni_ssbo_input_vert_count_loc,
+                                1,
+                                1,
+                                (const int *)(&this->vertex_idx));
     }
 
     MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);

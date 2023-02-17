@@ -18,7 +18,7 @@ class AddPrefixFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     const VArray<std::string> &prefixes = params.readonly_single_input<std::string>(0, "Prefix");
     MutableSpan<std::string> strings = params.single_mutable<std::string>(1, "Strings");
@@ -43,7 +43,7 @@ class CreateRangeFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     const VArray<int> &sizes = params.readonly_single_input<int>(0, "Size");
     GVectorArray &ranges = params.vector_output(1, "Range");
@@ -70,7 +70,7 @@ class GenericAppendFunction : public MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     GVectorArray &vectors = params.vector_mutable(0, "Vector");
     const GVArray &values = params.readonly_single_input(1, "Value");
@@ -98,7 +98,7 @@ class ConcatVectorsFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     GVectorArray &a = params.vector_mutable(0);
     const GVVectorArray &b = params.readonly_vector_input(1);
@@ -120,7 +120,7 @@ class AppendFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     GVectorArray_TypedMutableRef<int> vectors = params.vector_mutable<int>(0);
     const VArray<int> &values = params.readonly_single_input<int>(1);
@@ -145,7 +145,7 @@ class SumVectorFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     const VVectorArray<int> &vectors = params.readonly_vector_input<int>(0);
     MutableSpan<int> sums = params.uninitialized_single_output<int>(1);
@@ -174,7 +174,7 @@ class OptionalOutputsFunction : public MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, MFParams params, Context /*context*/) const override
+  void call(IndexMask mask, Params params, Context /*context*/) const override
   {
     if (params.single_output_is_required(0, "Out 1")) {
       MutableSpan<int> values = params.uninitialized_single_output<int>(0, "Out 1");

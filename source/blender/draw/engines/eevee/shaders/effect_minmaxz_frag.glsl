@@ -35,7 +35,7 @@ void main()
   float val = sampleLowerMip(uv);
 #else
   /* NOTE(@fclem): textureSize() does not work the same on all implementations
-   * when changing the min and max texture levels. Use uniform instead (see T87801). */
+   * when changing the min and max texture levels. Use uniform instead (see #87801). */
   vec2 uv = texel * 2.0 * texelSize;
 
   vec4 samp;

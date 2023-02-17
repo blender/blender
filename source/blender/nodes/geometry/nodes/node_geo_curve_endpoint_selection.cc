@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_task.hh"
+
 #include "BKE_curves.hh"
 
 #include "UI_interface.h"
@@ -61,10 +63,11 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
 
     Array<bool> selection(curves.points_num(), false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
       threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
         for (const int i : curves_range) {
-          const IndexRange points = curves.points_for_curve(i);
+          const IndexRange points = points_by_curve[i];
           const int start = std::max(start_size[i], 0);
           const int end = std::max(end_size[i], 0);
 

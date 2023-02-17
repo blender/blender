@@ -341,7 +341,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_ui_range(prop, 0, 100, 0.1, 3);
   RNA_def_property_ui_text(
       prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows)");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
+  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
   /* Eevee */
   prop = RNA_def_property(srna, "use_contact_shadow", PROP_BOOLEAN, PROP_NONE);

@@ -50,83 +50,84 @@
 #define MARK_BOUNDARY 1
 
 typedef struct UvAdjacencyElement {
-  /* pointer to original uvelement */
+  /** pointer to original UV-element. */
   UvElement *element;
-  /* uv pointer for convenience. Caution, this points to the original UVs! */
+  /** UV pointer for convenience. Caution, this points to the original UVs! */
   float *uv;
-  /* Are we on locked in place? */
+  /** Are we on locked in place? */
   bool is_locked;
-  /* Are we on the boundary? */
+  /** Are we on the boundary? */
   bool is_boundary;
 } UvAdjacencyElement;
 
 typedef struct UvEdge {
   uint uv1;
   uint uv2;
-  /* Are we in the interior? */
+  /** Are we in the interior? */
   bool is_interior;
 } UvEdge;
 
 typedef struct UVInitialStrokeElement {
-  /* index to unique uv */
+  /** index to unique UV. */
   int uv;
 
-  /* strength of brush on initial position */
+  /** Strength of brush on initial position. */
   float strength;
 
-  /* initial uv position */
+  /** initial UV position. */
   float initial_uv[2];
 } UVInitialStrokeElement;
 
 typedef struct UVInitialStroke {
-  /* Initial Selection,for grab brushes for instance */
+  /** Initial Selection,for grab brushes for instance. */
   UVInitialStrokeElement *initialSelection;
 
-  /* Total initially selected UV's. */
+  /** Total initially selected UVs. */
   int totalInitialSelected;
 
-  /* initial mouse coordinates */
+  /** Initial mouse coordinates. */
   float init_coord[2];
 } UVInitialStroke;
 
-/* custom data for uv smoothing brush */
+/** Custom data for UV smoothing brush. */
 typedef struct UvSculptData {
-  /* Contains the first of each set of coincident UV's.
-   * These will be used to perform smoothing on and propagate the changes
-   * to their coincident UV's */
+  /**
+   * Contains the first of each set of coincident UVs.
+   * These will be used to perform smoothing on and propagate the changes to their coincident UVs.
+   */
   UvAdjacencyElement *uv;
 
-  /* Total number of unique UVs. */
+  /** Total number of unique UVs. */
   int totalUniqueUvs;
 
-  /* Edges used for adjacency info, used with laplacian smoothing */
+  /** Edges used for adjacency info, used with laplacian smoothing */
   UvEdge *uvedges;
 
-  /* Total number of #UvEdge. */
+  /** Total number of #UvEdge. */
   int totalUvEdges;
 
-  /* data for initial stroke, used by tools like grab */
+  /** data for initial stroke, used by tools like grab */
   UVInitialStroke *initial_stroke;
 
-  /* timer to be used for airbrush-type brush */
+  /** Timer to be used for airbrush-type brush. */
   wmTimer *timer;
 
-  /* to determine quickly adjacent UV's */
+  /** To determine quickly adjacent UVs. */
   UvElementMap *elementMap;
 
-  /* uvsmooth Paint for fast reference */
+  /** UV-smooth Paint for fast reference. */
   Paint *uvsculpt;
 
-  /* tool to use. duplicating here to change if modifier keys are pressed */
+  /** Tool to use. duplicating here to change if modifier keys are pressed. */
   char tool;
 
-  /* store invert flag here */
+  /** Store invert flag here. */
   char invert;
 
-  /* Is constrain to image bounds active? */
+  /** Is constrain to image bounds active? */
   bool constrain_to_bounds;
 
-  /* Base for constrain_to_bounds. */
+  /** Base for constrain_to_bounds. */
   float uv_base_offset[2];
 } UvSculptData;
 
@@ -685,7 +686,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     /* Winding was added to island detection in 5197aa04c6bd
      * However the sculpt tools can flip faces, potentially creating orphaned islands.
-     * See T100132 */
+     * See #100132 */
     const bool use_winding = false;
     const bool use_seams = true;
     data->elementMap = BM_uv_element_map_create(
@@ -709,7 +710,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       island_index = element->island;
     }
 
-    /* Count 'unique' UV's */
+    /* Count 'unique' UVs */
     int unique_uvs = data->elementMap->total_unique_uvs;
     if (do_island_optimization) {
       unique_uvs = data->elementMap->island_total_unique_uvs[island_index];
@@ -785,8 +786,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         offset1 = uniqueUv[itmp1];
         offset2 = uniqueUv[itmp2];
 
-        /* Using an order policy, sort UV's according to address space.
-         * This avoids having two different UvEdges with the same UV's on different positions. */
+        /* Using an order policy, sort UVs according to address space.
+         * This avoids having two different UvEdges with the same UVs on different positions. */
         if (offset1 < offset2) {
           edges[counter].uv1 = offset1;
           edges[counter].uv2 = offset2;
@@ -832,7 +833,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     BLI_ghash_free(edgeHash, NULL, NULL);
     MEM_SAFE_FREE(edges);
 
-    /* transfer boundary edge property to UV's */
+    /* transfer boundary edge property to UVs */
     for (int i = 0; i < data->totalUvEdges; i++) {
       if (!data->uvedges[i].is_interior) {
         data->uv[data->uvedges[i].uv1].is_boundary = true;

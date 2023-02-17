@@ -42,6 +42,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--use-linux-libraries", action="store_true")
+    parser.add_argument("--architecture", type=str, choices=("x86_64", "amd64", "arm64",))
     return parser.parse_args()
 
 
@@ -51,6 +52,17 @@ def get_blender_git_root() -> str:
 # Setup for precompiled libraries and tests from svn.
 
 
+def get_effective_architecture(args: argparse.Namespace):
+    if args.architecture:
+        return args.architecture
+
+    # Check platform.version to detect arm64 with x86_64 python binary.
+    if "ARM64" in platform.version():
+        return "arm64"
+
+    return platform.machine().lower()
+
+
 def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None:
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
@@ -58,11 +70,11 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
     svn_url = make_utils.svn_libraries_base_url(release_version, args.svn_branch)
 
     # Checkout precompiled libraries
+    architecture = get_effective_architecture(args)
     if sys.platform == 'darwin':
-        # Check platform.version to detect arm64 with x86_64 python binary.
-        if platform.machine() == 'arm64' or ('ARM64' in platform.version()):
+        if architecture == 'arm64':
             lib_platform = "darwin_arm64"
-        elif platform.machine() == 'x86_64':
+        elif architecture == 'x86_64':
             lib_platform = "darwin"
         else:
             lib_platform = None
@@ -104,17 +116,30 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
             svn_url_tests = svn_url + lib_tests
             call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
 
-    # Update precompiled libraries and tests
+    lib_assets = "assets"
+    lib_assets_dirpath = os.path.join(lib_dirpath, lib_assets)
+
+    if not os.path.exists(lib_assets_dirpath):
+        print_stage("Checking out Assets")
+
+        if make_utils.command_missing(args.svn_command):
+            sys.stderr.write("svn not found, can't checkout assets\n")
+            sys.exit(1)
+
+        svn_url_assets = svn_url + lib_assets
+        call(svn_non_interactive + ["checkout", svn_url_assets, lib_assets_dirpath])
+
+    # Update precompiled libraries, assets and tests
 
     if not os.path.isdir(lib_dirpath):
         print("Library path: %r, not found, skipping" % lib_dirpath)
     else:
         paths_local_and_remote = []
         if os.path.exists(os.path.join(lib_dirpath, ".svn")):
-            print_stage("Updating Precompiled Libraries and Tests (one repository)")
+            print_stage("Updating Precompiled Libraries, Assets and Tests (one repository)")
             paths_local_and_remote.append((lib_dirpath, svn_url))
         else:
-            print_stage("Updating Precompiled Libraries and Tests (multiple repositories)")
+            print_stage("Updating Precompiled Libraries, Assets and Tests (multiple repositories)")
             # Separate paths checked out.
             for dirname in os.listdir(lib_dirpath):
                 if dirname.startswith("."):
@@ -157,7 +182,7 @@ def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) 
         return "rebase or merge in progress, complete it first"
 
     # Abort if uncommitted changes.
-    changes = check_output([args.git_command, 'status', '--porcelain', '--untracked-files=no'])
+    changes = check_output([args.git_command, 'status', '--porcelain', '--untracked-files=no', '--ignore-submodules'])
     if len(changes) != 0:
         return "you have unstaged changes"
 
@@ -189,8 +214,8 @@ def submodules_update(
         sys.exit(1)
 
     # Update submodules to appropriate given branch,
-    # falling back to master if none is given and/or found in a sub-repository.
-    branch_fallback = "master"
+    # falling back to main if none is given and/or found in a sub-repository.
+    branch_fallback = "main"
     if not branch:
         branch = branch_fallback
 
@@ -243,14 +268,15 @@ if __name__ == "__main__":
     blender_skip_msg = ""
     submodules_skip_msg = ""
 
-    # Test if we are building a specific release version.
-    branch = make_utils.git_branch(args.git_command)
-    if branch == 'HEAD':
-        sys.stderr.write('Blender git repository is in detached HEAD state, must be in a branch\n')
-        sys.exit(1)
-
-    tag = make_utils.git_tag(args.git_command)
-    release_version = make_utils.git_branch_release_version(branch, tag)
+    blender_version = make_utils. parse_blender_version()
+    if blender_version.cycle != 'alpha':
+        major = blender_version.version // 100
+        minor = blender_version.version % 100
+        branch = f"blender-v{major}.{minor}-release"
+        release_version = f"{major}.{minor}"
+    else:
+        branch = 'main'
+        release_version = None
 
     if not args.no_libraries:
         svn_update(args, release_version)

@@ -575,14 +575,6 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
   MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
   BLI_assert(ctx);
 
-  /* Apple Silicon does not support memory barriers.
-   * We do not currently need these due to implicit API guarantees.
-   * NOTE(Metal): MTLFence/MTLEvent may be required to synchronize work if
-   * untracked resources are ever used. */
-  if ([ctx->device hasUnifiedMemory]) {
-    return;
-  }
-
   ctx->main_command_buffer.insert_memory_barrier(barrier_bits, before_stages, after_stages);
 }
 

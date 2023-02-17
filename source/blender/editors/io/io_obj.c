@@ -115,7 +115,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *box, *col, *sub, *row;
+  uiLayout *box, *col, *sub;
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
@@ -123,11 +123,8 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
@@ -410,6 +407,8 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.use_split_objects = RNA_boolean_get(op->ptr, "use_split_objects");
+  import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
@@ -464,14 +463,14 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
   sub = uiLayoutColumn(col, false);
 
-  uiLayout *row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "use_split_objects", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "use_split_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "import_vertex_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
@@ -531,6 +530,16 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_boolean(ot->srna,
+                  "use_split_objects",
+                  true,
+                  "Split By Object",
+                  "Import each OBJ 'o' as a separate object");
+  RNA_def_boolean(ot->srna,
+                  "use_split_groups",
+                  false,
+                  "Split By Group",
+                  "Import each OBJ 'g' as a separate object");
   RNA_def_boolean(ot->srna,
                   "import_vertex_groups",
                   false,

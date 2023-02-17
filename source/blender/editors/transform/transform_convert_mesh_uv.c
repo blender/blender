@@ -470,8 +470,8 @@ static void recalcData_uv(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshUV = {
-    /* flags */ (T_EDIT | T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransUVs,
-    /* recalcData */ recalcData_uv,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransUVs,
+    /*recalcData*/ recalcData_uv,
+    /*special_aftertrans_update*/ NULL,
 };

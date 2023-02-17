@@ -10,9 +10,9 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_array.hh"
-#include "BLI_float4x4.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -237,7 +237,7 @@ static BMesh *BMD_mesh_bm_create(
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
   /* Keep `mesh` first, needed so active layers are set based on `mesh` not `mesh_operand_ob`,
-   * otherwise the wrong active render layer is used, see T92384.
+   * otherwise the wrong active render layer is used, see #92384.
    *
    * NOTE: while initializing customer data layers the is not essential,
    * it avoids the overhead of having to re-allocate #BMHeader.data when the 2nd mesh is added
@@ -664,35 +664,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Boolean = {
-    /* name */ N_("Boolean"),
-    /* structName */ "BooleanModifierData",
-    /* structSize */ sizeof(BooleanModifierData),
-    /* srna */ &RNA_BooleanModifier,
-    /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */
+    /*name*/ N_("Boolean"),
+    /*structName*/ "BooleanModifierData",
+    /*structSize*/ sizeof(BooleanModifierData),
+    /*srna*/ &RNA_BooleanModifier,
+    /*type*/ eModifierTypeType_Nonconstructive,
+    /*flags*/
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode),
-    /* icon */ ICON_MOD_BOOLEAN,
+    /*icon*/ ICON_MOD_BOOLEAN,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

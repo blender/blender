@@ -319,7 +319,7 @@ void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, const boo
       use_shadow_pass_technique = false;
     }
 
-    /* We cannot use Shadow Pass technique on non-manifold object (see T76168). */
+    /* We cannot use Shadow Pass technique on non-manifold object (see #76168). */
     if (use_shadow_pass_technique && !is_manifold && (wpd->cull_state != 0)) {
       use_shadow_pass_technique = false;
     }

@@ -41,7 +41,7 @@ typedef enum eGPUTextureType {
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
 } eGPUTextureType;
 
-ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
+ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_BUFFER)
 
 /* Format types for samplers within the shader.
  * This covers the sampler format type permutations within GLSL/MSL. */

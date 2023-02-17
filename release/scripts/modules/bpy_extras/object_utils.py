@@ -127,7 +127,7 @@ def object_data_add(context, obdata, operator=None, name=None):
         layer.update()  # apply location
         # layer.objects.active = obj_new
 
-        # Match up UV layers, this is needed so adding an object with UV's
+        # Match up UV layers, this is needed so adding an object with UVs
         # doesn't create new layers when there happens to be a naming mismatch.
         uv_new = obdata.uv_layers.active
         if uv_new is not None:

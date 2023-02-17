@@ -577,7 +577,7 @@ IDProperty **rna_ID_idprops(PointerRNA *ptr)
 int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
 {
   ID *id = (ID *)ptr->data;
-  /* TODO: This should be abstracted in a BKE function or define, somewhat related to T88555. */
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
                  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
     *r_info =
@@ -592,7 +592,7 @@ int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
 bool rna_ID_is_runtime_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
-  /* TODO: This should be abstracted in a BKE function or define, somewhat related to T88555. */
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
                  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
     return true;
@@ -1482,6 +1482,15 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
 
   prop = RNA_def_property(srna, "double_array", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 1);
+
+  /* IDP_BOOLEAN */
+  prop = RNA_def_property(srna, "bool", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 1);
+
+  prop = RNA_def_property(srna, "bool_array", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_array(prop, 1);
 

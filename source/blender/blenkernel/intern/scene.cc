@@ -277,7 +277,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
-    scene_dst->master_collection->owner_id = &scene_dst->id;
+    scene_dst->master_collection->runtime.owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -1748,6 +1748,7 @@ IDTypeInfo IDType_ID_SCE = get_type_info();
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
+const char *RE_engine_id_BLENDER_WORKBENCH_NEXT = "BLENDER_WORKBENCH_NEXT";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -2587,7 +2588,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
   return false;
 }
 
-/* TODO(@campbellbarton): shouldn't we be able to use 'DEG_get_view_layer' here?
+/* TODO(@ideasman42): shouldn't we be able to use 'DEG_get_view_layer' here?
  * Currently this is nullptr on load, so don't. */
 static void prepare_mesh_for_viewport_render(Main *bmain,
                                              const Scene *scene,
@@ -2939,7 +2940,8 @@ bool BKE_scene_uses_blender_eevee(const Scene *scene)
 
 bool BKE_scene_uses_blender_workbench(const Scene *scene)
 {
-  return STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH);
+  return STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH) ||
+         STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH_NEXT);
 }
 
 bool BKE_scene_uses_cycles(const Scene *scene)
@@ -3081,7 +3083,7 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
       return value * pow(unit->scale_length, 3);
     case B_UNIT_MASS:
       return value * pow(unit->scale_length, 3);
-    case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See T42026. */
+    case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See #42026. */
     default:
       return value;
   }

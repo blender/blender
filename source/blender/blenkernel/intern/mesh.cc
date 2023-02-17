@@ -17,7 +17,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bit_vector.hh"
 #include "BLI_bounds.hh"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
@@ -66,7 +65,6 @@
 
 #include "BLO_read_write.h"
 
-using blender::BitVector;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -107,10 +105,12 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->wrapper_type_finalize = mesh_src->runtime->wrapper_type_finalize;
   mesh_dst->runtime->subsurf_runtime_data = mesh_src->runtime->subsurf_runtime_data;
   mesh_dst->runtime->cd_mask_extra = mesh_src->runtime->cd_mask_extra;
-  /* Copy face dot tags, since meshes may be duplicated after a subsurf modifier
-   * or node, but we still need to be able to draw face center vertices. */
-  mesh_dst->runtime->subsurf_face_dot_tags = static_cast<uint32_t *>(
-      MEM_dupallocN(mesh_src->runtime->subsurf_face_dot_tags));
+  /* Copy face dot tags and edge tags, since meshes may be duplicated after a subsurf modifier or
+   * node, but we still need to be able to draw face center vertices and "optimal edges"
+   * differently. The tags may be cleared explicitly when the topology is changed. */
+  mesh_dst->runtime->subsurf_face_dot_tags = mesh_src->runtime->subsurf_face_dot_tags;
+  mesh_dst->runtime->subsurf_optimal_display_edges =
+      mesh_src->runtime->subsurf_optimal_display_edges;
   if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime->deformed_only = true;
@@ -270,8 +270,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_convert_selection_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
-      BKE_mesh_legacy_face_set_from_generic(mesh, poly_layers);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
+      BKE_mesh_legacy_sharp_edges_to_flags(mesh);
       BKE_mesh_legacy_attribute_strings_to_flags(mesh);
       mesh->active_color_attribute = nullptr;
       mesh->default_color_attribute = nullptr;
@@ -291,6 +291,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_uvs_to_struct(mesh, temp_arrays_for_legacy_format, loop_layers);
+      BKE_mesh_legacy_face_set_from_generic(poly_layers);
     }
   }
 
@@ -359,7 +360,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &mesh->active_color_attribute);
   BLO_read_data_address(reader, &mesh->default_color_attribute);
 
-  mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
+  mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   mesh->edit_mesh = nullptr;
 
   mesh->runtime = new blender::bke::MeshRuntime();
@@ -407,33 +408,33 @@ static void mesh_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_ME = {
-    /* id_code */ ID_ME,
-    /* id_filter */ FILTER_ID_ME,
-    /* main_listbase_index */ INDEX_ID_ME,
-    /* struct_size */ sizeof(Mesh),
-    /* name */ "Mesh",
-    /* name_plural */ "meshes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_MESH,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_ME,
+    /*id_filter*/ FILTER_ID_ME,
+    /*main_listbase_index*/ INDEX_ID_ME,
+    /*struct_size*/ sizeof(Mesh),
+    /*name*/ "Mesh",
+    /*name_plural*/ "meshes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_MESH,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ mesh_init_data,
-    /* copy_data */ mesh_copy_data,
-    /* free_data */ mesh_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ mesh_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ mesh_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ mesh_init_data,
+    /*copy_data*/ mesh_copy_data,
+    /*free_data*/ mesh_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ mesh_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ mesh_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ mesh_blend_write,
-    /* blend_read_data */ mesh_blend_read_data,
-    /* blend_read_lib */ mesh_blend_read_lib,
-    /* blend_read_expand */ mesh_read_expand,
+    /*blend_write*/ mesh_blend_write,
+    /*blend_read_data*/ mesh_blend_read_data,
+    /*blend_read_lib*/ mesh_blend_read_lib,
+    /*blend_read_expand*/ mesh_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 enum {
@@ -510,14 +511,13 @@ static bool is_uv_bool_sublayer(CustomDataLayer const *l)
          is_sublayer_name(UV_PINNED_NAME, name);
 }
 
-/** Thresh is threshold for comparing vertices, UV's, vertex colors, weights, etc. */
+/** Thresh is threshold for comparing vertices, UVs, vertex colors, weights, etc. */
 static int customdata_compare(
     CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, Mesh *m2, const float thresh)
 {
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_PROP_BYTE_COLOR |
-                                       CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
   const Span<MLoop> loops_1 = m1->loops();
   const Span<MLoop> loops_2 = m2->loops();
@@ -905,7 +905,7 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  *
  * - Edit-Mesh (#Mesh.edit_mesh)
  *   Since edit-mesh is tied to the objects mode,
- *   which crashes when called in edit-mode, see: T90972.
+ *   which crashes when called in edit-mode, see: #90972.
  */
 static void mesh_clear_geometry(Mesh *mesh)
 {
@@ -1029,9 +1029,9 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   me_dst->face_sets_color_default = me_src->face_sets_color_default;
 
   /* Copy texture space. */
-  me_dst->texflag = me_src->texflag;
-  copy_v3_v3(me_dst->loc, me_src->loc);
-  copy_v3_v3(me_dst->size, me_src->size);
+  me_dst->texspace_flag = me_src->texspace_flag;
+  copy_v3_v3(me_dst->texspace_location, me_src->texspace_location);
+  copy_v3_v3(me_dst->texspace_size, me_src->texspace_size);
 
   me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
   me_dst->attributes_active_index = me_src->attributes_active_index;
@@ -1228,7 +1228,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 
 void BKE_mesh_texspace_calc(Mesh *me)
 {
-  if (me->texflag & ME_AUTOSPACE) {
+  if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
@@ -1237,75 +1237,79 @@ void BKE_mesh_texspace_calc(Mesh *me)
       max[0] = max[1] = max[2] = 1.0f;
     }
 
-    float loc[3], size[3];
-    mid_v3_v3v3(loc, min, max);
+    float texspace_location[3], texspace_size[3];
+    mid_v3_v3v3(texspace_location, min, max);
 
-    size[0] = (max[0] - min[0]) / 2.0f;
-    size[1] = (max[1] - min[1]) / 2.0f;
-    size[2] = (max[2] - min[2]) / 2.0f;
+    texspace_size[0] = (max[0] - min[0]) / 2.0f;
+    texspace_size[1] = (max[1] - min[1]) / 2.0f;
+    texspace_size[2] = (max[2] - min[2]) / 2.0f;
 
     for (int a = 0; a < 3; a++) {
-      if (size[a] == 0.0f) {
-        size[a] = 1.0f;
+      if (texspace_size[a] == 0.0f) {
+        texspace_size[a] = 1.0f;
       }
-      else if (size[a] > 0.0f && size[a] < 0.00001f) {
-        size[a] = 0.00001f;
+      else if (texspace_size[a] > 0.0f && texspace_size[a] < 0.00001f) {
+        texspace_size[a] = 0.00001f;
       }
-      else if (size[a] < 0.0f && size[a] > -0.00001f) {
-        size[a] = -0.00001f;
+      else if (texspace_size[a] < 0.0f && texspace_size[a] > -0.00001f) {
+        texspace_size[a] = -0.00001f;
       }
     }
 
-    copy_v3_v3(me->loc, loc);
-    copy_v3_v3(me->size, size);
+    copy_v3_v3(me->texspace_location, texspace_location);
+    copy_v3_v3(me->texspace_size, texspace_size);
 
-    me->texflag |= ME_AUTOSPACE_EVALUATED;
+    me->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   }
 }
 
 void BKE_mesh_texspace_ensure(Mesh *me)
 {
-  if ((me->texflag & ME_AUTOSPACE) && !(me->texflag & ME_AUTOSPACE_EVALUATED)) {
+  if ((me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
+      !(me->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED)) {
     BKE_mesh_texspace_calc(me);
   }
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_size[3])
+void BKE_mesh_texspace_get(Mesh *me, float r_texspace_location[3], float r_texspace_size[3])
 {
   BKE_mesh_texspace_ensure(me);
 
-  if (r_loc) {
-    copy_v3_v3(r_loc, me->loc);
+  if (r_texspace_location) {
+    copy_v3_v3(r_texspace_location, me->texspace_location);
   }
-  if (r_size) {
-    copy_v3_v3(r_size, me->size);
+  if (r_texspace_size) {
+    copy_v3_v3(r_texspace_size, me->texspace_size);
   }
 }
 
-void BKE_mesh_texspace_get_reference(Mesh *me, char **r_texflag, float **r_loc, float **r_size)
+void BKE_mesh_texspace_get_reference(Mesh *me,
+                                     char **r_texspace_flag,
+                                     float **r_texspace_location,
+                                     float **r_texspace_size)
 {
   BKE_mesh_texspace_ensure(me);
 
-  if (r_texflag != nullptr) {
-    *r_texflag = &me->texflag;
+  if (r_texspace_flag != nullptr) {
+    *r_texspace_flag = &me->texspace_flag;
   }
-  if (r_loc != nullptr) {
-    *r_loc = me->loc;
+  if (r_texspace_location != nullptr) {
+    *r_texspace_location = me->texspace_location;
   }
-  if (r_size != nullptr) {
-    *r_size = me->size;
+  if (r_texspace_size != nullptr) {
+    *r_texspace_size = me->texspace_size;
   }
 }
 
 void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
 {
-  float *texloc, *texsize;
-  char *texflag;
+  float *texspace_location, *texspace_size;
+  char *texspace_flag;
 
-  if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize)) {
-    me->texflag = *texflag;
-    copy_v3_v3(me->loc, texloc);
-    copy_v3_v3(me->size, texsize);
+  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &texspace_location, &texspace_size)) {
+    me->texspace_flag = *texspace_flag;
+    copy_v3_v3(me->texspace_location, texspace_location);
+    copy_v3_v3(me->texspace_size, texspace_size);
   }
 }
 
@@ -1329,22 +1333,22 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 
 void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)
 {
-  float loc[3], size[3];
+  float texspace_location[3], texspace_size[3];
 
-  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
+  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
 
   if (invert) {
     for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
-      madd_v3_v3v3v3(co, loc, co, size);
+      madd_v3_v3v3v3(co, texspace_location, co, texspace_size);
     }
   }
   else {
     for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
-      co[0] = (co[0] - loc[0]) / size[0];
-      co[1] = (co[1] - loc[1]) / size[1];
-      co[2] = (co[2] - loc[2]) / size[2];
+      co[0] = (co[0] - texspace_location[0]) / texspace_size[0];
+      co[1] = (co[1] - texspace_location[1]) / texspace_size[1];
+      co[2] = (co[2] - texspace_location[2]) / texspace_size[2];
     }
   }
 }
@@ -1601,7 +1605,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
   /* don't update normals, caller can do this explicitly.
    * We do update loop normals though, those may not be auto-generated
    * (see e.g. STL import script)! */
-  float(*lnors)[3] = (float(*)[3])CustomData_duplicate_referenced_layer(
+  float(*lnors)[3] = (float(*)[3])CustomData_get_layer_for_write(
       &me->ldata, CD_NORMAL, me->totloop);
   if (lnors) {
     float m3[3][3];
@@ -1815,7 +1819,8 @@ static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
 {
   float(*r_loop_normals)[3];
   if (CustomData_has_layer(&mesh.ldata, CD_NORMAL)) {
-    r_loop_normals = (float(*)[3])CustomData_get_layer(&mesh.ldata, CD_NORMAL);
+    r_loop_normals = (float(*)[3])CustomData_get_layer_for_write(
+        &mesh.ldata, CD_NORMAL, mesh.totloop);
     memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
   }
   else {
@@ -1830,8 +1835,6 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                                     MLoopNorSpaceArray *r_lnors_spacearr,
                                     float (*r_corner_normals)[3])
 {
-  short(*clnors)[2] = nullptr;
-
   /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
    * However, we obviously only use the auto-smooth angle threshold
    * only in case auto-smooth is enabled. */
@@ -1840,7 +1843,10 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
 
   /* may be nullptr */
-  clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+  short(*clnors)[2] = (short(*)[2])CustomData_get_layer_for_write(
+      &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop);
+  const bool *sharp_edges = static_cast<const bool *>(
+      CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
 
   const Span<float3> positions = mesh->vert_positions();
   const Span<MEdge> edges = mesh->edges();
@@ -1860,6 +1866,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               polys.size(),
                               use_split_normals,
                               split_angle,
+                              sharp_edges,
                               nullptr,
                               r_lnors_spacearr,
                               clnors);
@@ -1886,10 +1893,10 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
   }
   if (DEG_is_active(depsgraph)) {
     Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);
-    if (mesh->texflag & ME_AUTOSPACE_EVALUATED) {
-      mesh_orig->texflag |= ME_AUTOSPACE_EVALUATED;
-      copy_v3_v3(mesh_orig->loc, mesh->loc);
-      copy_v3_v3(mesh_orig->size, mesh->size);
+    if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED) {
+      mesh_orig->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
+      copy_v3_v3(mesh_orig->texspace_location, mesh->texspace_location);
+      copy_v3_v3(mesh_orig->texspace_size, mesh->texspace_size);
     }
   }
 }

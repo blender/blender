@@ -62,7 +62,6 @@ struct World;
 struct bAction;
 struct bArmature;
 struct bConstraint;
-struct bGPdata;
 struct bNodeSocket;
 struct bNodeTree;
 struct bPoseChannel;

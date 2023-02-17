@@ -23,7 +23,7 @@ const char *osx_user_locale()
   [myNSLocale autorelease];
 
   // This produces gettext-invalid locale in recent macOS versions (11.4),
-  // like `ko-Kore_KR` instead of `ko_KR`. See T88877.
+  // like `ko-Kore_KR` instead of `ko_KR`. See #88877.
   // NSString *nsIdentifier = [myNSLocale localeIdentifier];
 
   const NSString *nsIdentifier = [myNSLocale languageCode];

@@ -92,13 +92,13 @@ class WhiteNoiseFunction : public mf::MultiFunction {
       builder.single_input<float>("W");
     }
 
-    builder.single_output<float>("Value");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Value", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     return signature;
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     int param = ELEM(dimensions_, 2, 3, 4) + ELEM(dimensions_, 1, 4);
 

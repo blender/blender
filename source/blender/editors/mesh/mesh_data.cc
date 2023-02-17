@@ -232,7 +232,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     /* Collect Mesh UVs */
     BLI_assert(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
     float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, layernum));
+        CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, layernum, me->totloop));
 
     const MPoly *polys = BKE_mesh_polys(me);
     for (int i = 0; i < me->totpoly; i++) {
@@ -302,7 +302,8 @@ int ED_mesh_uv_add(
       CustomData_add_layer_named(&me->ldata,
                                  CD_PROP_FLOAT2,
                                  CD_DUPLICATE,
-                                 CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2),
+                                 const_cast<float2 *>(static_cast<const float2 *>(
+                                     CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2))),
                                  me->totloop,
                                  unique_name);
 
@@ -364,8 +365,8 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
-  bool *data = static_cast<bool *>(CustomData_duplicate_referenced_layer_named(
-      &mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
+  bool *data = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(&mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
         &mesh.ldata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, mesh.totpoly, name.c_str()));
@@ -843,6 +844,7 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 /* Clear custom loop normals */
 static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender;
   Mesh *me = ED_mesh_context(C);
   if (BKE_mesh_has_custom_loop_normals(me)) {
     return OPERATOR_CANCELLED;
@@ -862,18 +864,20 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     /* Tag edges as sharp according to smooth threshold if needed,
      * to preserve auto-smooth shading. */
     if (me->flag & ME_AUTOSMOOTH) {
-      MutableSpan<MEdge> edges = me->edges_for_write();
       const Span<MPoly> polys = me->polys();
       const Span<MLoop> loops = me->loops();
-
-      BKE_edges_sharp_from_angle_set(edges.data(),
-                                     edges.size(),
+      bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+      bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+          "sharp_edge", ATTR_DOMAIN_EDGE);
+      BKE_edges_sharp_from_angle_set(me->totedge,
                                      loops.data(),
                                      loops.size(),
                                      polys.data(),
                                      BKE_mesh_poly_normals_ensure(me),
                                      polys.size(),
-                                     me->smoothresh);
+                                     me->smoothresh,
+                                     sharp_edges.span.data());
+      sharp_edges.finish();
     }
 
     CustomData_add_layer(&me->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, me->totloop);
@@ -1256,11 +1260,6 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   mesh->totedge = totedge;
 
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-  for (MEdge &edge : edges.take_back(len)) {
-    edge.flag = ME_EDGEDRAW;
-  }
-
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
       ".select_edge", ATTR_DOMAIN_EDGE);
@@ -1532,36 +1531,39 @@ Mesh *ED_mesh_context(bContext *C)
 void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
-  Array<MEdge> edges(mesh->edges());
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
-  BKE_edges_sharp_from_angle_set(edges.data(),
-                                 edges.size(),
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> mesh_sharp_edges = attributes.lookup_or_default<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+
+  Array<bool> sharp_edges(mesh->totedge);
+  mesh_sharp_edges.materialize(sharp_edges);
+
+  BKE_edges_sharp_from_angle_set(mesh->totedge,
                                  loops.data(),
                                  loops.size(),
                                  polys.data(),
                                  BKE_mesh_poly_normals_ensure(mesh),
                                  polys.size(),
-                                 split_angle);
+                                 split_angle,
+                                 sharp_edges.data());
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int poly_i : range) {
       const MPoly &poly = polys[poly_i];
       if (!(poly.flag & ME_SMOOTH)) {
         for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-          edges[loop.e].flag |= ME_SHARP;
+          sharp_edges[loop.e] = true;
         }
       }
     }
   });
 
   Vector<int64_t> split_indices;
-  const IndexMask split_mask = index_mask_ops::find_indices_based_on_predicate(
-      edges.index_range(), 4096, split_indices, [&](const int64_t i) {
-        return edges[i].flag & ME_SHARP;
-      });
-
+  const IndexMask split_mask = index_mask_ops::find_indices_from_virtual_array(
+      sharp_edges.index_range(), VArray<bool>::ForSpan(sharp_edges), 4096, split_indices);
   if (split_mask.is_empty()) {
     return;
   }

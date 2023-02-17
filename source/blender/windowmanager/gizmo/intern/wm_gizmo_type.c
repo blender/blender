@@ -106,7 +106,8 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void 
 
 void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
-  if (gzt->rna_ext.srna) { /* python gizmo, allocs own string */
+  /* Python gizmo, allocates it's own string. */
+  if (gzt->rna_ext.srna) {
     MEM_freeN((void *)gzt->idname);
   }
 

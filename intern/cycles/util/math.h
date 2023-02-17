@@ -483,6 +483,12 @@ ccl_device_inline float compatible_signf(float f)
 
 ccl_device_inline float smoothstepf(float f)
 {
+  if (f <= 0.0f) {
+    return 0.0f;
+  }
+  if (f >= 1.0f) {
+    return 1.0f;
+  }
   float ff = f * f;
   return (3.0f * ff - 2.0f * ff * f);
 }
@@ -748,6 +754,16 @@ ccl_device float safe_modulo(float a, float b)
 ccl_device_inline float sqr(float a)
 {
   return a * a;
+}
+
+ccl_device_inline float sin_from_cos(const float c)
+{
+  return safe_sqrtf(1.0f - sqr(c));
+}
+
+ccl_device_inline float cos_from_sin(const float s)
+{
+  return safe_sqrtf(1.0f - sqr(s));
 }
 
 ccl_device_inline float pow20(float a)

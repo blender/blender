@@ -31,7 +31,6 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EdgeHash;
 struct KDTree_3d;
-struct LatticeDeformData;
 struct LinkNode;
 struct MCol;
 struct MFace;
@@ -210,10 +209,12 @@ typedef struct ParticleCollision {
 
   ParticleCollisionElement pce;
 
-  /* total_time is the amount of time in this subframe
-   * inv_total_time is the opposite
-   * inv_timestep is the inverse of the amount of time in this frame */
-  float total_time, inv_total_time, inv_timestep;
+  /** The amount of time in this sub-frame. */
+  float total_time;
+  /** The inverse of `total_time`. */
+  float inv_total_time;
+  /** The inverse of the amount of time in this frame. */
+  float inv_timestep;
 
   float radius;
   float co1[3], co2[3];
@@ -584,7 +585,7 @@ void psys_get_texture(struct ParticleSimulationData *sim,
 void psys_interpolate_face(struct Mesh *mesh,
                            const float (*vert_positions)[3],
                            const float (*vert_normals)[3],
-                           struct MFace *mface,
+                           const struct MFace *mface,
                            struct MTFace *tface,
                            const float (*orcodata)[3],
                            float w[4],

@@ -363,7 +363,7 @@ static UUID_Int bm_uuidwalk_calc_face_uuid(UUIDWalk *uuidwalk, BMFace *f)
 static void bm_uuidwalk_rehash_reserve(UUIDWalk *uuidwalk, uint rehash_store_len_new)
 {
   if (UNLIKELY(rehash_store_len_new > uuidwalk->cache.rehash_store_len)) {
-    /* avoid re-allocs */
+    /* Avoid re-allocations. */
     rehash_store_len_new *= 2;
     uuidwalk->cache.rehash_store = MEM_reallocN(uuidwalk->cache.rehash_store,
                                                 rehash_store_len_new *

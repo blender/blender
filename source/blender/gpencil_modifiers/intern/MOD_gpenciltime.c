@@ -388,7 +388,7 @@ static void custom_range_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetActive(layout,
-                    (!ELEM(mode, GP_TIME_MODE_FIX, GP_TIME_MODE_CHAIN)) &&
+                    !ELEM(mode, GP_TIME_MODE_FIX, GP_TIME_MODE_CHAIN) &&
                         RNA_boolean_get(ptr, "use_custom_frame_range"));
 
   col = uiLayoutColumn(layout, true);
@@ -421,25 +421,25 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Time = {
-    /* name */ N_("TimeOffset"),
-    /* structName */ "TimeGpencilModifierData",
-    /* structSize */ sizeof(TimeGpencilModifierData),
-    /* type */ eGpencilModifierTypeType_Gpencil,
-    /* flags */ eGpencilModifierTypeFlag_NoApply,
+    /*name*/ N_("TimeOffset"),
+    /*structName*/ "TimeGpencilModifierData",
+    /*structSize*/ sizeof(TimeGpencilModifierData),
+    /*type*/ eGpencilModifierTypeType_Gpencil,
+    /*flags*/ eGpencilModifierTypeFlag_NoApply,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformStroke */ NULL,
-    /* generateStrokes */ NULL,
-    /* bakeModifier */ NULL,
-    /* remapTime */ remapTime,
+    /*deformStroke*/ NULL,
+    /*generateStrokes*/ NULL,
+    /*bakeModifier*/ NULL,
+    /*remapTime*/ remapTime,
 
-    /* initData */ initData,
-    /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* panelRegister */ panelRegister,
+    /*initData*/ initData,
+    /*freeData*/ freeData,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*panelRegister*/ panelRegister,
 };

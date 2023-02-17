@@ -104,6 +104,7 @@ class Bool : public SocketDeclaration {
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -124,6 +125,7 @@ class Color : public SocketDeclaration {
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -144,6 +146,7 @@ class String : public SocketDeclaration {
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -214,6 +217,34 @@ class Shader : public SocketDeclaration {
 };
 
 class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
+};
+
+class ExtendBuilder;
+
+class Extend : public SocketDeclaration {
+ private:
+  friend ExtendBuilder;
+
+ public:
+  using Builder = ExtendBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class ExtendBuilder : public SocketDeclarationBuilder<Extend> {
+};
+
+class Custom : public SocketDeclaration {
+ public:
+  const char *idname_;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 /* -------------------------------------------------------------------- */

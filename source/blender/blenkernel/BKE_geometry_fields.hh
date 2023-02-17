@@ -8,7 +8,6 @@
  * Common field utilities and field definitions for geometry components.
  */
 
-#include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
 
 #include "FN_field.hh"
@@ -313,6 +312,12 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
                                    const eAttrDomain domain,
+                                   const fn::GField &field);
+
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::Field<bool> &selection,
                                    const fn::GField &field);
 
 /**

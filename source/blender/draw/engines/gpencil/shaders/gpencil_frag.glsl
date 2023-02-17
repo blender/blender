@@ -104,6 +104,7 @@ void main()
 
     if (fragColor.a < 0.001) {
       discard;
+      return;
     }
   }
 
@@ -114,6 +115,7 @@ void main()
   float scene_depth = texture(gpSceneDepthTexture, uvs).r;
   if (gl_FragCoord.z > scene_depth) {
     discard;
+    return;
   }
 
   /* FIXME(fclem): Grrr. This is bad for performance but it's the easiest way to not get
@@ -121,6 +123,7 @@ void main()
   float mask = texture(gpMaskTexture, uvs).r;
   if (mask < 0.001) {
     discard;
+    return;
   }
 
   /* We override the fragment depth using the fragment shader to ensure a constant value.

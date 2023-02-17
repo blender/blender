@@ -1786,7 +1786,8 @@ float ED_gpencil_radial_control_scale(struct bContext *C,
                                       const int mval[2])
 {
   float scale_fac = 1.0f;
-  if ((brush && brush->gpencil_settings) && (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
+  if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
+      (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
     float cursor_radius = ED_gpencil_cursor_radius(C, mval[0], mval[1]);
     scale_fac = max_ff(cursor_radius, 1.0f) / max_ff(initial_value, 1.0f);
   }
@@ -3325,6 +3326,14 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
       /* Use same frame type. */
       gpf_dst->key_type = gpf_src->key_type;
       BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum), gpf_dst);
+    }
+
+    /* Copy current source frame to further frames
+     * that are keyframes in destination layer and not in source layer
+     * to keep the image equals. */
+    if (gpf_dst->next && (!gpf_src->next || (gpf_dst->next->framenum < gpf_src->next->framenum))) {
+      gpf_dst = gpf_dst->next;
+      BKE_gpencil_layer_frame_get(gpl_src, gpf_dst->framenum, GP_GETFRAME_ADD_COPY);
     }
   }
 

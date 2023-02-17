@@ -1454,9 +1454,9 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
-    MFace *mface = &mfaces[i];
+    const MFace *mface = &mfaces[i];
 
     copy_v3_v3(vec, positions[mface->v1]);
     copy_v3_v3(nor, vert_normals[mface->v1]);
@@ -3234,7 +3234,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
     tree = BLI_kdtree_3d_new(psys->totpart);
 
-    /* insert particles into kd tree */
+    /* Insert particles into KD-tree. */
     LOOP_SELECTED_POINTS {
       psys_mat_hair_to_object(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
@@ -3564,9 +3564,10 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
   }
 
   if (newtotpart != psys->totpart) {
-    MFace *mtessface = use_dm_final_indices ?
-                           (MFace *)CustomData_get_layer(&psmd_eval->mesh_final->fdata, CD_MFACE) :
-                           (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
+    const MFace *mtessface = use_dm_final_indices ?
+                                 (const MFace *)CustomData_get_layer(&psmd_eval->mesh_final->fdata,
+                                                                     CD_MFACE) :
+                                 (const MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
 
     /* allocate new arrays and copy existing */
     new_pars = MEM_callocN(newtotpart * sizeof(ParticleData), "ParticleData new");
@@ -3957,7 +3958,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
         /* blend between the current and straight position */
         sub_v3_v3v3(dco, kco, co);
         madd_v3_v3fl(co, dco, fac);
-        /* keep the same distance from the root or we get glitches T35406. */
+        /* keep the same distance from the root or we get glitches #35406. */
         dist_ensure_v3_v3fl(co, co_root, length_accum);
 
         /* Re-use dco to compare before and after translation and add to the offset. */
@@ -4136,7 +4137,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
                                    float radius,
                                    float *ipoint)
 {
-  MFace *mface = NULL;
+  const MFace *mface = NULL;
   int i, totface, intersect = 0;
   float cur_d, cur_uv[2], v1[3], v2[3], v3[3], v4[3], min[3], max[3], p_min[3], p_max[3];
   float cur_ipoint[3];
@@ -4173,7 +4174,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   }
 
   totface = mesh->totface;
-  mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
 
   /* lets intersect the faces */

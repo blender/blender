@@ -55,60 +55,6 @@
 
 /* ************************** GENERICS **************************** */
 
-void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)
-{
-  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
-    return;
-  }
-
-  float v1[3], v2[3], v3[3];
-  uchar col[3], col2[3];
-
-  if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = t->view;
-
-    copy_v3_v3(v3, dir);
-    mul_v3_fl(v3, v3d->clip_end);
-
-    sub_v3_v3v3(v2, center, v3);
-    add_v3_v3v3(v1, center, v3);
-  }
-  else if (t->spacetype == SPACE_SEQ) {
-    View2D *v2d = t->view;
-
-    copy_v3_v3(v3, dir);
-    float max_dist = max_ff(BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur));
-    mul_v3_fl(v3, max_dist);
-
-    sub_v3_v3v3(v2, center, v3);
-    add_v3_v3v3(v1, center, v3);
-  }
-
-  GPU_matrix_push();
-
-  if (options & DRAWLIGHT) {
-    col[0] = col[1] = col[2] = 220;
-  }
-  else {
-    UI_GetThemeColor3ubv(TH_GRID, col);
-  }
-  UI_make_axis_color(col, col2, axis);
-
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-  immUniformColor3ubv(col2);
-
-  immBegin(GPU_PRIM_LINES, 2);
-  immVertex3fv(pos, v1);
-  immVertex3fv(pos, v2);
-  immEnd();
-
-  immUnbindProgram();
-
-  GPU_matrix_pop();
-}
-
 void resetTransModal(TransInfo *t)
 {
   freeTransCustomDataForMode(t);
@@ -440,6 +386,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   {
     short orient_types[3];
+    short orient_type_apply = O_DEFAULT;
     float custom_matrix[3][3];
 
     int orient_type_scene = V3D_ORIENT_GLOBAL;
@@ -502,14 +449,23 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         t->is_orient_default_overwrite = true;
       }
     }
-    else if (t->con.mode & CON_APPLY) {
-      orient_type_set = orient_type_scene;
-    }
-    else if (orient_type_scene == V3D_ORIENT_GLOBAL) {
-      orient_type_set = V3D_ORIENT_LOCAL;
+
+    if (orient_type_set == -1) {
+      if (orient_type_scene == V3D_ORIENT_GLOBAL) {
+        orient_type_set = V3D_ORIENT_LOCAL;
+      }
+      else {
+        orient_type_set = V3D_ORIENT_GLOBAL;
+      }
+
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SCENE;
+      }
     }
     else {
-      orient_type_set = V3D_ORIENT_GLOBAL;
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SET;
+      }
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
@@ -546,7 +502,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
+    transform_orientations_current_set(t, orient_type_apply);
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
@@ -556,7 +512,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else {
-    /* Release confirms preference should not affect node editor (T69288, T70504). */
+    /* Release confirms preference should not affect node editor (#69288, #70504). */
     if (ISMOUSE_BUTTON(t->launch_event) &&
         ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE))) {
       /* Global "release confirm" on mouse bindings */
@@ -684,6 +640,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   setTransformViewMatrices(t);
   initNumInput(&t->num);
+
+  transform_gizmo_3d_model_from_constraint_and_mode_init(t);
 }
 
 static void freeTransCustomData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
@@ -811,8 +769,14 @@ void applyTransObjects(TransInfo *t)
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
 {
-  /* TransData for crease has no loc */
-  if (td_basic->loc) {
+  if (td_basic->val) {
+    *td_basic->val = td_basic->ival;
+  }
+
+  /* TODO(mano-wii): Only use 3D or larger vectors in `td->loc`.
+   * If `loc` and `val` point to the same address, it may indicate that `loc` is not 3D which is
+   * not safe for `copy_v3_v3`. */
+  if (td_basic->loc && td_basic->val != td_basic->loc) {
     copy_v3_v3(td_basic->loc, td_basic->iloc);
   }
 }
@@ -820,10 +784,6 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
 static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
-
-  if (td->val && td->val != td->loc) {
-    *td->val = td->ival;
-  }
 
   if (td->ext && (td->flag & TD_NO_EXT) == 0) {
     if (td->ext->rot) {
@@ -1462,7 +1422,7 @@ Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob
   if (!(ob->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
     return NULL;
   }
-  /* Important that ob_armature can be set even when its not selected T23412.
+  /* Important that ob_armature can be set even when its not selected #23412.
    * Lines below just check is also visible. */
   Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
   if (ob_armature && ob_armature->mode & OB_MODE_POSE) {

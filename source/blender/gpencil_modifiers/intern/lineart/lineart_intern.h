@@ -173,8 +173,6 @@ void lineart_add_edge_to_array(struct LineartPendingEdges *pe, struct LineartEdg
 void lineart_finalize_object_edge_array_reserve(struct LineartPendingEdges *pe, int count);
 void lineart_destroy_render_data_keep_init(struct LineartData *ld);
 
-void lineart_sort_adjacent_items(struct LineartAdjacentEdge *ai, int length);
-
 #ifdef __cplusplus
 }
 #endif

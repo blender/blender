@@ -16,6 +16,7 @@
 #  ifdef OBINFO_LIB
 vec3 attr_load_orco(vec4 orco)
 {
+#    ifdef GPU_VERTEX_SHADER
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
    * attribute (which is [0,0,0,1]). */
   if (orco.w == 1.0) {
@@ -23,6 +24,7 @@ vec3 attr_load_orco(vec4 orco)
      * using the orco_madd factors. */
     return OrcoTexCoFactors[0].xyz + pos * OrcoTexCoFactors[1].xyz;
   }
+#    endif
   return orco.xyz * 0.5 + 0.5;
 }
 #  endif

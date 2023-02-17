@@ -205,11 +205,11 @@ static void polyedge_beauty_cost_update_single(const float (*coords)[2],
    * which leads to infinite loop. Anyway, costs above that are not worth recomputing,
    * maybe we could even optimize it to a smaller limit?
    * Actually, FLT_EPSILON is too small in some cases, 1e-6f seems to work OK hopefully?
-   * See T43578, T49478.
+   * See #43578, #49478.
    *
    * In fact a larger epsilon can still fail when the area of the face is very large,
    * now the epsilon is scaled by the face area.
-   * See T56532. */
+   * See #56532. */
   if (cost < -1e-6f * max_ff(area, 1.0f)) {
     BLI_heap_insert_or_update(eheap, &eheap_table[i], cost, e);
   }

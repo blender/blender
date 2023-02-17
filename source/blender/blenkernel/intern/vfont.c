@@ -720,10 +720,10 @@ typedef struct VFontToCurveIter {
    * Wrap words that extends beyond the text-box width (enabled by default).
    *
    * Currently only disabled when scale-to-fit is enabled,
-   * so floating-point error doesn't cause unexpected wrapping, see T89241.
+   * so floating-point error doesn't cause unexpected wrapping, see #89241.
    *
    * \note This should only be set once, in the #VFONT_TO_CURVE_INIT pass
-   * otherwise iterations wont behave predictably, see T91401.
+   * otherwise iterations wont behave predictably, see #91401.
    */
   bool word_wrap;
   int status;
@@ -974,7 +974,7 @@ static bool vfont_to_curve(Object *ob,
          *
          * Floating precision error can cause the text to be slightly larger.
          * Assert this is a small value as large values indicate incorrect
-         * calculations with scale-to-fit which shouldn't be ignored. See T89241. */
+         * calculations with scale-to-fit which shouldn't be ignored. See #89241. */
         if (x_used > x_available) {
           BLI_assert_msg(compare_ff_relative(x_used, x_available, FLT_EPSILON, 64),
                          "VFontToCurveIter.scale_to_fit not set correctly!");
@@ -993,7 +993,7 @@ static bool vfont_to_curve(Object *ob,
                * Typically when a text-box has any height and overflow is set to scale
                * the text will wrap to fit the width as necessary. When wrapping isn't
                * possible it's important to use the same code-path as zero-height lines.
-               * Without this exception a single word will not scale-to-fit (see: T95116). */
+               * Without this exception a single word will not scale-to-fit (see: #95116). */
               tb_scale.h = 0.0f;
             }
             break;
@@ -1229,7 +1229,7 @@ static bool vfont_to_curve(Object *ob,
 
         if (cu->overflow == CU_OVERFLOW_TRUNCATE) {
           /* Ensure overflow doesn't truncate text, before centering vertically
-           * giving odd/buggy results, see: T66614. */
+           * giving odd/buggy results, see: #66614. */
           if ((tb_index == cu->totbox - 1) && (last_line != -1)) {
             lines = last_line - ct_first->linenr;
           }

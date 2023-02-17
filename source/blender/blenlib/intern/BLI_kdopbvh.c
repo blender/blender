@@ -1047,7 +1047,7 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree)
   return tree->epsilon;
 }
 
-void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3])
+void BLI_bvhtree_get_bounding_box(const BVHTree *tree, float r_bb_min[3], float r_bb_max[3])
 {
   BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != NULL) {
@@ -1494,7 +1494,7 @@ static void bvhtree_intersect_plane_dfs_recursive(BVHIntersectPlaneData *__restr
   }
 }
 
-int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_num)
+int *BLI_bvhtree_intersect_plane(const BVHTree *tree, float plane[4], uint *r_intersect_num)
 {
   int *intersect = NULL;
   size_t total = 0;
@@ -1641,7 +1641,7 @@ static void heap_find_nearest_begin(BVHNearestData *data, BVHNode *root)
   }
 }
 
-int BLI_bvhtree_find_nearest_ex(BVHTree *tree,
+int BLI_bvhtree_find_nearest_ex(const BVHTree *tree,
                                 const float co[3],
                                 BVHTreeNearest *nearest,
                                 BVHTree_NearestPointCallback callback,
@@ -1690,7 +1690,7 @@ int BLI_bvhtree_find_nearest_ex(BVHTree *tree,
   return data.nearest.index;
 }
 
-int BLI_bvhtree_find_nearest(BVHTree *tree,
+int BLI_bvhtree_find_nearest(const BVHTree *tree,
                              const float co[3],
                              BVHTreeNearest *nearest,
                              BVHTree_NearestPointCallback callback,
@@ -1756,7 +1756,7 @@ static bool dfs_find_duplicate_fast_dfs(BVHNearestData *data, BVHNode *node)
   return false;
 }
 
-int BLI_bvhtree_find_nearest_first(BVHTree *tree,
+int BLI_bvhtree_find_nearest_first(const BVHTree *tree,
                                    const float co[3],
                                    const float dist_sq,
                                    BVHTree_NearestPointCallback callback,
@@ -1971,7 +1971,7 @@ static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data, int flag)
 #endif
 }
 
-int BLI_bvhtree_ray_cast_ex(BVHTree *tree,
+int BLI_bvhtree_ray_cast_ex(const BVHTree *tree,
                             const float co[3],
                             const float dir[3],
                             float radius,
@@ -2016,7 +2016,7 @@ int BLI_bvhtree_ray_cast_ex(BVHTree *tree,
   return data.hit.index;
 }
 
-int BLI_bvhtree_ray_cast(BVHTree *tree,
+int BLI_bvhtree_ray_cast(const BVHTree *tree,
                          const float co[3],
                          const float dir[3],
                          float radius,
@@ -2055,7 +2055,7 @@ float BLI_bvhtree_bb_raycast(const float bv[6],
   return dist;
 }
 
-void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
+void BLI_bvhtree_ray_cast_all_ex(const BVHTree *tree,
                                  const float co[3],
                                  const float dir[3],
                                  float radius,
@@ -2089,7 +2089,7 @@ void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
   }
 }
 
-void BLI_bvhtree_ray_cast_all(BVHTree *tree,
+void BLI_bvhtree_ray_cast_all(const BVHTree *tree,
                               const float co[3],
                               const float dir[3],
                               float radius,
@@ -2113,7 +2113,7 @@ void BLI_bvhtree_ray_cast_all(BVHTree *tree,
  * \{ */
 
 typedef struct RangeQueryData {
-  BVHTree *tree;
+  const BVHTree *tree;
   const float *center;
   float radius_sq; /* squared radius */
 
@@ -2154,8 +2154,11 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
   }
 }
 
-int BLI_bvhtree_range_query(
-    BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata)
+int BLI_bvhtree_range_query(const BVHTree *tree,
+                            const float co[3],
+                            float radius,
+                            BVHTree_RangeQuery callback,
+                            void *userdata)
 {
   BVHNode *root = tree->nodes[tree->leaf_num];
 
@@ -2307,7 +2310,7 @@ static void bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(
   }
 }
 
-int BLI_bvhtree_find_nearest_projected(BVHTree *tree,
+int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
                                        float projmat[4][4],
                                        float winsize[2],
                                        float mval[2],
@@ -2421,7 +2424,7 @@ static bool bvhtree_walk_dfs_recursive(BVHTree_WalkData *walk_data, const BVHNod
   return true;
 }
 
-void BLI_bvhtree_walk_dfs(BVHTree *tree,
+void BLI_bvhtree_walk_dfs(const BVHTree *tree,
                           BVHTree_WalkParentCallback walk_parent_cb,
                           BVHTree_WalkLeafCallback walk_leaf_cb,
                           BVHTree_WalkOrderCallback walk_order_cb,

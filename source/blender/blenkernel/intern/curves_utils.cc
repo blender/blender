@@ -10,66 +10,65 @@
 
 namespace blender::bke::curves {
 
-void fill_curve_counts(const bke::CurvesGeometry &curves,
-                       const Span<IndexRange> curve_ranges,
-                       MutableSpan<int> counts)
+void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
+                      const IndexMask mask,
+                      MutableSpan<int> sizes)
+{
+  threading::parallel_for(mask.index_range(), 4096, [&](IndexRange ranges_range) {
+    for (const int64_t i : mask.slice(ranges_range)) {
+      sizes[i] = points_by_curve.size(i);
+    }
+  });
+}
+
+void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
+                      const Span<IndexRange> curve_ranges,
+                      MutableSpan<int> sizes)
 {
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
         for (const int i : range) {
-          counts[i] = curves.points_for_curve(i).size();
+          sizes[i] = points_by_curve.size(i);
         }
       });
     }
   });
 }
 
-void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int start_offset)
-{
-  int offset = start_offset;
-  for (const int i : counts_to_offsets.index_range().drop_back(1)) {
-    const int count = counts_to_offsets[i];
-    BLI_assert(count > 0);
-    counts_to_offsets[i] = offset;
-    offset += count;
-  }
-  counts_to_offsets.last() = offset;
-}
-
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(const OffsetIndices<int> src_points_by_curve,
+                     const OffsetIndices<int> dst_points_by_curve,
                      const Span<IndexRange> curve_ranges,
                      const GSpan src,
                      GMutableSpan dst)
 {
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curves(range);
-      const IndexRange dst_points = dst_curves.points_for_curves(range);
+      const IndexRange src_points = src_points_by_curve[range];
+      const IndexRange dst_points = dst_points_by_curve[range];
       /* The arrays might be large, so a threaded copy might make sense here too. */
       dst.slice(dst_points).copy_from(src.slice(src_points));
     }
   });
 }
 
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(const OffsetIndices<int> src_points_by_curve,
+                     const OffsetIndices<int> dst_points_by_curve,
                      const IndexMask src_curve_selection,
                      const GSpan src,
                      GMutableSpan dst)
 {
   threading::parallel_for(src_curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : src_curve_selection.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curve(i);
-      const IndexRange dst_points = dst_curves.points_for_curve(i);
+      const IndexRange src_points = src_points_by_curve[i];
+      const IndexRange dst_points = dst_points_by_curve[i];
       /* The arrays might be large, so a threaded copy might make sense here too. */
       dst.slice(dst_points).copy_from(src.slice(src_points));
     }
   });
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  const IndexMask curve_selection,
                  const GPointer value,
                  GMutableSpan dst)
@@ -78,13 +77,13 @@ void fill_points(const CurvesGeometry &curves,
   const CPPType &type = dst.type();
   threading::parallel_for(curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : curve_selection.slice(range)) {
-      const IndexRange points = curves.points_for_curve(i);
-      type.fill_assign_n(value.get(), dst.slice(curves.points_for_curve(i)).data(), points.size());
+      const IndexRange points = points_by_curve[i];
+      type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
     }
   });
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  Span<IndexRange> curve_ranges,
                  GPointer value,
                  GMutableSpan dst)
@@ -93,7 +92,7 @@ void fill_points(const CurvesGeometry &curves,
   const CPPType &type = dst.type();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange points = curves.points_for_curves(range);
+      const IndexRange points = points_by_curve[range];
       type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
     }
   });

@@ -134,7 +134,10 @@ static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *o
   BLI_split_file_part(path, dirname, sizeof(dirname));
 
   /* NULL is a valid directory path here. A library without path will be created then. */
-  BKE_asset_library_custom_add(&U.asset_libraries, dirname, path);
+  CustomAssetLibraryDefinition *new_library = BKE_asset_library_custom_add(
+      &U.asset_libraries, dirname, path);
+  /* Activate new library in the UI for further setup. */
+  U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
   U.runtime.is_dirty = true;
 
   /* There's no dedicated notifier for the Preferences. */
@@ -183,16 +186,31 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 /** \name Remove Asset Library Operator
  * \{ */
 
+static bool preferences_asset_library_remove_poll(bContext *C)
+{
+  if (BLI_listbase_is_empty(&U.asset_libraries)) {
+    CTX_wm_operator_poll_msg_set(C, "There is no asset library to remove");
+    return false;
+  }
+  return true;
+}
+
 static int preferences_asset_library_remove_exec(bContext *UNUSED(C), wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
   CustomAssetLibraryDefinition *library = BLI_findlink(&U.asset_libraries, index);
-  if (library) {
-    BKE_asset_library_custom_remove(&U.asset_libraries, library);
-    U.runtime.is_dirty = true;
-    /* Trigger refresh for the Asset Browser. */
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+  if (!library) {
+    return OPERATOR_CANCELLED;
   }
+
+  BKE_asset_library_custom_remove(&U.asset_libraries, library);
+  const int count_remaining = BLI_listbase_count(&U.asset_libraries);
+  /* Update active library index to be in range. */
+  CLAMP(U.active_asset_library, 0, count_remaining - 1);
+  U.runtime.is_dirty = true;
+  /* Trigger refresh for the Asset Browser. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+
   return OPERATOR_FINISHED;
 }
 
@@ -205,6 +223,7 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
       "Remove a path to a .blend file, so the Asset Browser will not attempt to show it anymore";
 
   ot->exec = preferences_asset_library_remove_exec;
+  ot->poll = preferences_asset_library_remove_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 

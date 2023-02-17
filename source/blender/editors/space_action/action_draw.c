@@ -60,19 +60,20 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  int height = ACHANNEL_TOT_HEIGHT(ac, items);
+  const int height = ANIM_UI_get_channels_total_height(v2d, items);
   v2d->tot.ymin = -height;
 
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
   UI_view2d_sync(NULL, ac->area, v2d, V2D_LOCK_COPY);
 
+  const float channel_step = ANIM_UI_get_channel_step();
   /* Loop through channels, and set up drawing depending on their type. */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
-    float ymax = ACHANNEL_FIRST_TOP(ac);
+    float ymax = ANIM_UI_get_first_channel_top(v2d);
 
-    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
-      float ymin = ymax - ACHANNEL_HEIGHT(ac);
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step, channel_index++) {
+      const float ymin = ymax - ANIM_UI_get_channel_height();
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -85,10 +86,10 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   { /* second pass: widgets */
     uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
     size_t channel_index = 0;
-    float ymax = ACHANNEL_FIRST_TOP(ac);
+    float ymax = ANIM_UI_get_first_channel_top(v2d);
 
-    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
-      float ymin = ymax - ACHANNEL_HEIGHT(ac);
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step, channel_index++) {
+      const float ymin = ymax - ANIM_UI_get_channel_height();
 
       /* check if visible */
       if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -115,7 +116,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 #define EXTRA_SCROLL_PAD 100.0f
 
 /* Draw manually set intended playback frame ranges for actions. */
-static void draw_channel_action_ranges(bAnimContext *ac, ListBase *anim_data, View2D *v2d)
+static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
 {
   /* Variables for coalescing the Y region of one action. */
   bAction *cur_action = NULL;
@@ -123,8 +124,8 @@ static void draw_channel_action_ranges(bAnimContext *ac, ListBase *anim_data, Vi
   float cur_ymax;
 
   /* Walk through channels, grouping contiguous spans referencing the same action. */
-  float ymax = ACHANNEL_FIRST_TOP(ac) + ACHANNEL_SKIP / 2;
-  float ystep = ACHANNEL_STEP(ac);
+  float ymax = ANIM_UI_get_first_channel_top(v2d) + ANIM_UI_get_channel_skip() / 2;
+  const float ystep = ANIM_UI_get_channel_step();
   float ymin = ymax - ystep;
 
   for (bAnimListElem *ale = anim_data->first; ale; ale = ale->next, ymax = ymin, ymin -= ystep) {
@@ -193,13 +194,13 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  int height = ACHANNEL_TOT_HEIGHT(ac, items);
+  const int height = ANIM_UI_get_channels_total_height(v2d, items);
   v2d->tot.ymin = -height;
 
   /* Draw the manual frame ranges for actions in the background of the dopesheet.
    * The action editor has already drawn the range for its action so it's not needed. */
   if (ac->datatype == ANIMCONT_DOPESHEET) {
-    draw_channel_action_ranges(ac, &anim_data, v2d);
+    draw_channel_action_ranges(&anim_data, v2d);
   }
 
   /* Draw the background strips. */
@@ -211,10 +212,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* first backdrop strips */
-  float ymax = ACHANNEL_FIRST_TOP(ac);
-
-  for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
-    float ymin = ymax - ACHANNEL_HEIGHT(ac);
+  float ymax = ANIM_UI_get_first_channel_top(v2d);
+  const float channel_step = ANIM_UI_get_channel_step();
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step) {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
 
     /* check if visible */
     if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -366,12 +367,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
     action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
   }
 
-  ymax = ACHANNEL_FIRST_TOP(ac);
+  ymax = ANIM_UI_get_first_channel_top(v2d);
 
   struct AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
 
-  for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
-    float ymin = ymax - ACHANNEL_HEIGHT(ac);
+  const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
+
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= channel_step) {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
     float ycenter = (ymin + ymax) / 2.0f;
 
     /* check if visible */
@@ -384,32 +387,28 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
         /* draw 'keyframes' for each specific datatype */
         switch (ale->datatype) {
           case ALE_ALL:
-            draw_summary_channel(draw_list, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_summary_channel(draw_list, ale->data, ycenter, scale_factor, action_flag);
             break;
           case ALE_SCE:
-            draw_scene_channel(
-                draw_list, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_scene_channel(draw_list, ads, ale->key_data, ycenter, scale_factor, action_flag);
             break;
           case ALE_OB:
-            draw_object_channel(
-                draw_list, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_object_channel(draw_list, ads, ale->key_data, ycenter, scale_factor, action_flag);
             break;
           case ALE_ACT:
-            draw_action_channel(
-                draw_list, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_action_channel(draw_list, adt, ale->key_data, ycenter, scale_factor, action_flag);
             break;
           case ALE_GROUP:
-            draw_agroup_channel(draw_list, adt, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_agroup_channel(draw_list, adt, ale->data, ycenter, scale_factor, action_flag);
             break;
           case ALE_FCURVE:
-            draw_fcurve_channel(
-                draw_list, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_fcurve_channel(draw_list, adt, ale->key_data, ycenter, scale_factor, action_flag);
             break;
           case ALE_GPFRAME:
-            draw_gpl_channel(draw_list, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_gpl_channel(draw_list, ads, ale->data, ycenter, scale_factor, action_flag);
             break;
           case ALE_MASKLAY:
-            draw_masklay_channel(draw_list, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_masklay_channel(draw_list, ads, ale->data, ycenter, scale_factor, action_flag);
             break;
         }
       }

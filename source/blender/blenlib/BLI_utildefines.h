@@ -806,6 +806,10 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
     { \
       return a = (_enum_type)(uint64_t(a) & uint64_t(b)); \
     } \
+    inline _enum_type &operator^=(_enum_type &a, _enum_type b) \
+    { \
+      return a = (_enum_type)(uint64_t(a) ^ uint64_t(b)); \
+    } \
     } /* extern "C++" */
 
 #else

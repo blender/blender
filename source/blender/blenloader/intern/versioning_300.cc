@@ -248,6 +248,7 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
       case IDP_UI_DATA_TYPE_FLOAT:
         version_idproperty_move_data_float((IDPropertyUIDataFloat *)ui_data, prop_ui_data);
         break;
+      case IDP_UI_DATA_TYPE_BOOLEAN:
       case IDP_UI_DATA_TYPE_UNSUPPORTED:
         BLI_assert_unreachable();
         break;
@@ -876,7 +877,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
 
     bNodeSocket *store_attribute_geometry_input = static_cast<bNodeSocket *>(
         store_attribute_node->inputs.first);
-    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next;
+    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next->next;
     bNodeSocket *store_attribute_value_input = nullptr;
     LISTBASE_FOREACH (bNodeSocket *, socket, &store_attribute_node->inputs) {
       if (socket->type == SOCK_VECTOR) {
@@ -1600,6 +1601,12 @@ static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static bool version_fix_delete_flag(Sequence *seq, void * /*user_data*/)
+{
+  seq->flag &= ~SEQ_FLAG_DELETE;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -2250,7 +2257,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 9)) {
     /* Fix a bug where reordering FCurves and bActionGroups could cause some corruption. Just
      * reconstruct all the action groups & ensure that the FCurves of a group are continuously
-     * stored (i.e. not mixed with other groups) to be sure. See T89435. */
+     * stored (i.e. not mixed with other groups) to be sure. See #89435. */
     LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
       BKE_action_groups_reconstruct(act);
     }
@@ -2362,7 +2369,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /* Font names were copied directly into ID names, see: T90417. */
+  /* Font names were copied directly into ID names, see: #90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
@@ -3605,7 +3612,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
-    /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
+    /* Fix for #98925 - remove channels region, that was initialized in incorrect editor types. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3635,7 +3642,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
-     * outline implementation. See T95933. */
+     * outline implementation. See #95933. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type == OB_CURVES) {
         ob->dtx &= ~OB_DRAWBOUNDOX;
@@ -3737,7 +3744,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 304, 5)) {
-    /* Fix for T101622 - update flags of sequence editor regions that were not initialized
+    /* Fix for #101622 - update flags of sequence editor regions that were not initialized
      * properly. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -3774,15 +3781,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         BLI_assert(curve_socket != nullptr);
         STRNCPY(curve_socket->name, "Curves");
         STRNCPY(curve_socket->identifier, "Curves");
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 305, 1)) {
-    /* Reset edge visibility flag, since the base is meant to be "true" for original meshes. */
-    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-      for (MEdge &edge : mesh->edges_for_write()) {
-        edge.flag |= ME_EDGEDRAW;
       }
     }
   }
@@ -3842,8 +3840,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Light *, light, &bmain->lights) {
       light->radius = light->area_size;
     }
-    /* Grease Pencil Build modifier: Set default value for new natural drawspeed factor and maximum
-     * gap. */
+    /* Grease Pencil Build modifier:
+     * Set default value for new natural draw-speed factor and maximum gap. */
     if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
         !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -3853,6 +3851,123 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             mmd->speed_fac = 1.2f;
             mmd->speed_maxgap = 0.5f;
           }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 8)) {
+    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+    }
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
+      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
+    }
+
+    /* Toggle the Invert Vertex Group flag on Armature modifiers in some cases. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      bool after_armature = false;
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->multi) {
+            /* Toggle the invert vertex group flag on operational Multi Modifier entries. */
+            if (after_armature && amd->defgrp_name[0]) {
+              amd->deformflag ^= ARM_DEF_INVERT_VGROUP;
+            }
+          }
+          else {
+            /* Disabled multi modifiers don't reset propagation, but non-multi ones do. */
+            after_armature = false;
+          }
+          /* Multi Modifier is only valid and operational after an active Armature modifier. */
+          if (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
+            after_armature = true;
+          }
+        }
+        else if (ELEM(md->type, eModifierType_Lattice, eModifierType_MeshDeform)) {
+          /* These modifiers will also allow a following Multi Modifier to work. */
+          after_armature = (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) != 0;
+        }
+        else {
+          after_armature = false;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 9)) {
+    /* Enable legacy normal and rotation outputs in Distribute Points on Faces node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_DISTRIBUTE_POINTS_ON_FACES) {
+          continue;
+        }
+        node->custom2 = true;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 10)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (!sfile->asset_params) {
+            continue;
+          }
+
+          /* When an asset browser uses the default import method, make it follow the new
+           * preference setting. This means no effective default behavior change. */
+          if (sfile->asset_params->import_type == FILE_ASSET_IMPORT_APPEND_REUSE) {
+            sfile->asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+          }
+        }
+      }
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "shadow_pool_size")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.flag |= SCE_EEVEE_SHADOW_ENABLED;
+        scene->eevee.shadow_pool_size = 512;
+        scene->r.simplify_shadows = 1.0f;
+        scene->r.simplify_shadows_render = 1.0f;
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag |= V3D_OVERLAY_SCULPT_CURVES_CAGE;
+            v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
+          }
+        }
+      }
+    }
+
+    /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode == OB_MODE_SCULPT_CURVES) {
+        if (brush->curves_sculpt_settings->curve_parameter_falloff == nullptr) {
+          brush->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_add(
+              1, 0.0f, 0.0f, 1.0f, 1.0f);
         }
       }
     }
@@ -3869,13 +3984,5 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
-    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
-      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
-    }
-    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
-      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
-      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
-    }
   }
 }

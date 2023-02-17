@@ -114,7 +114,9 @@ int BKE_volume_grid_channels(const struct VolumeGrid *grid);
  * Transformation from index space to object space.
  */
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
-void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4]);
+void BKE_volume_grid_transform_matrix_set(const struct Volume *volume,
+                                          struct VolumeGrid *volume_grid,
+                                          const float mat[4][4]);
 
 /* Volume Editing
  *
@@ -159,7 +161,7 @@ bool BKE_volume_save(const struct Volume *volume,
  * file or copy shared grids to make them writeable. */
 
 #ifdef __cplusplus
-#  include "BLI_float4x4.hh"
+#  include "BLI_math_matrix_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_string_ref.hh"
 

@@ -1403,7 +1403,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
 
   params = ED_fileselect_get_active_params(sfile);
   /* In case #SpaceFile.browse_mode just changed, the area may be pending a refresh still, which is
-   * what creates the params for the current browse mode. See T93508. */
+   * what creates the params for the current browse mode. See #93508. */
   if (!params) {
     return false;
   }
@@ -2203,7 +2203,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   int deltay = 0;
 
   /* We adjust speed of scrolling to avoid tens of seconds of it in e.g. directories with tens of
-   * thousands of folders... See T65782. */
+   * thousands of folders... See #65782. */
   /* This will slow down scrolling when approaching final goal, also avoids going too far and
    * having to bounce back... */
 
@@ -2485,7 +2485,7 @@ static void file_expand_directory(bContext *C)
     {
       BLI_windows_get_default_root_dir(params->dir);
     }
-    /* change "C:" --> "C:\", T28102. */
+    /* change "C:" --> "C:\", #28102. */
     else if ((isalpha(params->dir[0]) && (params->dir[1] == ':')) && (params->dir[2] == '\0')) {
       params->dir[2] = '\\';
       params->dir[3] = '\0';

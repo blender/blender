@@ -340,7 +340,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer(&subdiv_mesh->ldata, CD_NORMAL));
+        CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_NORMAL, subdiv_mesh->totloop));
     BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
@@ -350,7 +350,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
     BKE_mesh_calc_normals_split(subdiv_mesh);
   }
 
-  if (subdiv != runtime_data->subdiv) {
+  if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     BKE_subdiv_free(subdiv);
   }
 

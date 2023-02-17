@@ -147,6 +147,22 @@ void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
 #define SEL_FLAG 1
 #define SEL_ORIG 2
 
+void bmo_flip_quad_tessellation_exec(BMesh *bm, BMOperator *op)
+{
+  BMOIter siter;
+  BMFace *f;
+  bool changed = false;
+  BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
+    if (f->len == 4) {
+      f->l_first = f->l_first->next;
+      changed = true;
+    }
+  }
+  if (changed) {
+    bm->elem_index_dirty |= BM_LOOP;
+  }
+}
+
 static void bmo_face_flag_set_flush(BMesh *bm, BMFace *f, const short oflag, const bool value)
 {
   BMLoop *l_iter;

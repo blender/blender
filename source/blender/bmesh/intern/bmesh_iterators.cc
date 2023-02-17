@@ -211,7 +211,7 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 
 int BM_iter_mesh_bitmap_from_filter(const char itype,
                                     BMesh *bm,
-                                    blender::BitVector<> &bitmap,
+                                    blender::MutableBitSpan bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data)
 {
@@ -234,7 +234,7 @@ int BM_iter_mesh_bitmap_from_filter(const char itype,
 }
 
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
-                                             blender::BitVector<> &bitmap,
+                                             blender::MutableBitSpan bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data)
 {
@@ -352,7 +352,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  * VERT OF MESH CALLBACKS
  */
 
-/* see bug T36923 for why we need this,
+/* see bug #36923 for why we need this,
  * allow adding but not removing, this isn't _totally_ safe since
  * you could add/remove within the same loop, but catches common cases
  */

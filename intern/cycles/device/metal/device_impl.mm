@@ -105,6 +105,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_AMD: {
       max_threads_per_threadgroup = 128;
+      use_metalrt = info.use_metalrt;
       break;
     }
     case METAL_GPU_APPLE: {
@@ -192,6 +193,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         arg_desc_as.dataType = MTLDataTypeInstanceAccelerationStructure;
         arg_desc_as.access = MTLArgumentAccessReadOnly;
 
+        MTLArgumentDescriptor *arg_desc_ptrs = [[MTLArgumentDescriptor alloc] init];
+        arg_desc_ptrs.dataType = MTLDataTypePointer;
+        arg_desc_ptrs.access = MTLArgumentAccessReadOnly;
+
         MTLArgumentDescriptor *arg_desc_ift = [[MTLArgumentDescriptor alloc] init];
         arg_desc_ift.dataType = MTLDataTypeIntersectionFunctionTable;
         arg_desc_ift.access = MTLArgumentAccessReadOnly;
@@ -204,13 +209,27 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_shadow */
         arg_desc_ift.index = index++;
         [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local */
+        arg_desc_ift.index = index++;
+        [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_prim */
+        arg_desc_ptrs.index = index++;
+        [ancillary_desc addObject:[arg_desc_ptrs copy]]; /* blas array */
+        arg_desc_ptrs.index = index++;
+        [ancillary_desc addObject:[arg_desc_ptrs copy]]; /* look up table for blas */
 
         [arg_desc_ift release];
         [arg_desc_as release];
+        [arg_desc_ptrs release];
       }
     }
 
     mtlAncillaryArgEncoder = [mtlDevice newArgumentEncoderWithArguments:ancillary_desc];
+
+    // preparing the blas arg encoder
+    MTLArgumentDescriptor *arg_desc_blas = [[MTLArgumentDescriptor alloc] init];
+    arg_desc_blas.dataType = MTLDataTypeInstanceAccelerationStructure;
+    arg_desc_blas.access = MTLArgumentAccessReadOnly;
+    mtlBlasArgEncoder = [mtlDevice newArgumentEncoderWithArguments:@[ arg_desc_blas ]];
+    [arg_desc_blas release];
 
     for (int i = 0; i < ancillary_desc.count; i++) {
       [ancillary_desc[i] release];
@@ -271,11 +290,20 @@ bool MetalDevice::use_adaptive_compilation()
   return DebugFlags().metal.adaptive_compile;
 }
 
+bool MetalDevice::use_local_atomic_sort() const
+{
+  return DebugFlags().metal.use_local_atomic_sort;
+}
+
 void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
 {
   string global_defines;
   if (use_adaptive_compilation()) {
     global_defines += "#define __KERNEL_FEATURES__ " + to_string(kernel_features) + "\n";
+  }
+
+  if (use_local_atomic_sort()) {
+    global_defines += "#define __KERNEL_LOCAL_ATOMIC_SORT__\n";
   }
 
   if (use_metalrt) {
@@ -327,10 +355,21 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
 #  define KERNEL_STRUCT_BEGIN(name, parent) \
     string_replace_same_length(source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
 
+    bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
+
     /* Add constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    baked_constants += string(#parent "." #name "=") + \
-                       to_string(_type(launch_params.data.parent.name)) + "\n";
+    if (next_member_is_specialized) { \
+      baked_constants += string(#parent "." #name "=") + \
+                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
+    } \
+    else { \
+      string_replace( \
+          source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
+      next_member_is_specialized = true; \
+    }
 
 #  include "kernel/data_template.h"
 
@@ -547,7 +586,7 @@ void MetalDevice::erase_allocation(device_memory &mem)
   if (it != metal_mem_map.end()) {
     MetalMem *mmem = it->second.get();
 
-    /* blank out reference to MetalMem* in the launch params (fixes crash T94736) */
+    /* blank out reference to MetalMem* in the launch params (fixes crash #94736) */
     if (mmem->pointer_index >= 0) {
       device_ptr *pointers = (device_ptr *)&launch_params;
       pointers[mmem->pointer_index] = 0;
@@ -1220,6 +1259,33 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (@available(macos 11.0, *)) {
       if (bvh->params.top_level) {
         bvhMetalRT = bvh_metal;
+
+        // allocate required buffers for BLAS array
+        uint64_t count = bvhMetalRT->blas_array.size();
+        uint64_t bufferSize = mtlBlasArgEncoder.encodedLength * count;
+        blas_buffer = [mtlDevice newBufferWithLength:bufferSize options:default_storage_mode];
+        stats.mem_alloc(blas_buffer.allocatedSize);
+
+        for (uint64_t i = 0; i < count; ++i) {
+          [mtlBlasArgEncoder setArgumentBuffer:blas_buffer
+                                        offset:i * mtlBlasArgEncoder.encodedLength];
+          [mtlBlasArgEncoder setAccelerationStructure:bvhMetalRT->blas_array[i] atIndex:0];
+        }
+
+        count = bvhMetalRT->blas_lookup.size();
+        bufferSize = sizeof(uint32_t) * count;
+        blas_lookup_buffer = [mtlDevice newBufferWithLength:bufferSize
+                                                    options:default_storage_mode];
+        stats.mem_alloc(blas_lookup_buffer.allocatedSize);
+
+        memcpy([blas_lookup_buffer contents],
+               bvhMetalRT -> blas_lookup.data(),
+               blas_lookup_buffer.allocatedSize);
+
+        if (default_storage_mode == MTLResourceStorageModeManaged) {
+          [blas_buffer didModifyRange:NSMakeRange(0, blas_buffer.length)];
+          [blas_lookup_buffer didModifyRange:NSMakeRange(0, blas_lookup_buffer.length)];
+        }
       }
     }
   }

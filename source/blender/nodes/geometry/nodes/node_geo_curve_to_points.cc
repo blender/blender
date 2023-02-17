@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -25,6 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>(N_("Count"))
       .default_value(10)
       .min(2)
+      .field_on_all()
       .max(100000)
       .make_available(
           [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_COUNT; });
@@ -71,9 +73,28 @@ static void fill_rotation_attribute(const Span<float3> tangents,
 {
   threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
     for (const int i : range) {
-      rotations[i] =
-          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
+      rotations[i] = float3(
+          math::to_euler(math::from_orthonormal_axes<float4x4>(normals[i], tangents[i])));
     }
+  });
+}
+
+static void copy_curve_domain_attributes(const AttributeAccessor curve_attributes,
+                                         MutableAttributeAccessor point_attributes)
+{
+  curve_attributes.for_all([&](const bke::AttributeIDRef &id,
+                               const bke::AttributeMetaData &meta_data) {
+    if (curve_attributes.is_builtin(id)) {
+      return true;
+    }
+    if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+      return true;
+    }
+    point_attributes.add(id,
+                         ATTR_DOMAIN_POINT,
+                         meta_data.data_type,
+                         bke::AttributeInitVArray(curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
+    return true;
   });
 }
 
@@ -99,6 +120,8 @@ static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
   CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
   pointcloud->pdata = curves.point_data;
   CustomData_reset(&curves.point_data);
+
+  copy_curve_domain_attributes(curves.attributes(), pointcloud->attributes_for_write());
 
   return pointcloud;
 }
@@ -128,8 +151,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<int> count = params.extract_input<Field<int>>("Count");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
               src_curves, fn::make_constant_field<bool>(true), count, resample_attributes);
           PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
@@ -146,8 +168,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<float> length = params.extract_input<Field<float>>("Length");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
               src_curves, fn::make_constant_field<bool>(true), length, resample_attributes);
           PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
@@ -163,8 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
               src_curves, fn::make_constant_field<bool>(true), resample_attributes);
           PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),

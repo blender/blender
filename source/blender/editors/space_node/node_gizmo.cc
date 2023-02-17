@@ -117,7 +117,7 @@ static void WIDGETGROUP_node_transform_setup(const bContext * /*C*/, wmGizmoGrou
 
   RNA_enum_set(wwrapper->gizmo->ptr,
                "transform",
-               ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
+               ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM);
 
   gzgroup->customdata = wwrapper;
 }
@@ -323,7 +323,7 @@ static void WIDGETGROUP_node_crop_setup(const bContext * /*C*/, wmGizmoGroup *gz
 
   RNA_enum_set(crop_group->border->ptr,
                "transform",
-               ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
+               ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE);
 
   gzgroup->customdata = crop_group;
 }

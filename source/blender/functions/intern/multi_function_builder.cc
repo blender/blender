@@ -31,7 +31,7 @@ CustomMF_GenericConstant::~CustomMF_GenericConstant()
   }
 }
 
-void CustomMF_GenericConstant::call(IndexMask mask, MFParams params, Context /*context*/) const
+void CustomMF_GenericConstant::call(IndexMask mask, Params params, Context /*context*/) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
   type_.fill_construct_indices(value_, output.data(), mask);
@@ -62,9 +62,7 @@ CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : arra
   this->set_signature(&signature_);
 }
 
-void CustomMF_GenericConstantArray::call(IndexMask mask,
-                                         MFParams params,
-                                         Context /*context*/) const
+void CustomMF_GenericConstantArray::call(IndexMask mask, Params params, Context /*context*/) const
 {
   GVectorArray &vectors = params.vector_output(0);
   for (int64_t i : mask) {
@@ -85,7 +83,7 @@ CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<DataType> input_types,
   }
   this->set_signature(&signature_);
 }
-void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, Context /*context*/) const
+void CustomMF_DefaultOutput::call(IndexMask mask, Params params, Context /*context*/) const
 {
   for (int param_index : this->param_indices()) {
     ParamType param_type = this->param_type(param_index);
@@ -109,7 +107,7 @@ CustomMF_GenericCopy::CustomMF_GenericCopy(DataType data_type)
   this->set_signature(&signature_);
 }
 
-void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, Context /*context*/) const
+void CustomMF_GenericCopy::call(IndexMask mask, Params params, Context /*context*/) const
 {
   const DataType data_type = this->param_type(0).data_type();
   switch (data_type.category()) {

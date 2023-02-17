@@ -71,19 +71,19 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Colorize = {
-    /* name */ N_("Colorize"),
-    /* structName */ "ColorizeShaderFxData",
-    /* structSize */ sizeof(ColorizeShaderFxData),
-    /* type */ eShaderFxType_GpencilType,
-    /* flags */ 0,
+    /*name*/ N_("Colorize"),
+    /*structName*/ "ColorizeShaderFxData",
+    /*structSize*/ sizeof(ColorizeShaderFxData),
+    /*type*/ eShaderFxType_GpencilType,
+    /*flags*/ 0,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* initData */ initData,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* foreachIDLink */ NULL,
-    /* panelRegister */ panelRegister,
+    /*initData*/ initData,
+    /*freeData*/ NULL,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ NULL,
+    /*foreachIDLink*/ NULL,
+    /*panelRegister*/ panelRegister,
 };

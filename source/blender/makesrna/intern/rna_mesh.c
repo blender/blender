@@ -469,7 +469,7 @@ static bool rna_MeshVertex_hide_get(PointerRNA *ptr)
 static void rna_MeshVertex_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_vert = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
   if (!hide_vert) {
     if (!value) {
@@ -495,7 +495,7 @@ static bool rna_MeshVertex_select_get(PointerRNA *ptr)
 static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_vert = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *select_vert = (bool *)CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_BOOL, ".select_vert", mesh->totvert);
   if (!select_vert) {
     if (!value) {
@@ -564,13 +564,13 @@ static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*vec)[3] = CustomData_get(&me->ldata, index, CD_NORMAL);
+  const float(*layer)[3] = CustomData_get_layer(&me->ldata, CD_NORMAL);
 
-  if (!vec) {
+  if (!layer) {
     zero_v3(values);
   }
   else {
-    copy_v3_v3(values, (const float *)vec);
+    copy_v3_v3(values, layer[index]);
   }
 }
 
@@ -578,10 +578,10 @@ static void rna_MeshLoop_normal_set(PointerRNA *ptr, const float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  float(*vec)[3] = CustomData_get(&me->ldata, index, CD_NORMAL);
+  float(*layer)[3] = CustomData_get_layer_for_write(&me->ldata, CD_NORMAL, me->totloop);
 
-  if (vec) {
-    normalize_v3_v3(*vec, values);
+  if (layer) {
+    normalize_v3_v3(layer[index], values);
   }
 }
 
@@ -589,13 +589,13 @@ static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*vec)[4] = CustomData_get(&me->ldata, index, CD_MLOOPTANGENT);
+  const float(*layer)[4] = CustomData_get_layer(&me->ldata, CD_MLOOPTANGENT);
 
-  if (!vec) {
+  if (!layer) {
     zero_v3(values);
   }
   else {
-    copy_v3_v3(values, (const float *)vec);
+    copy_v3_v3(values, (const float *)(layer + index));
   }
 }
 
@@ -603,21 +603,21 @@ static float rna_MeshLoop_bitangent_sign_get(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*vec)[4] = CustomData_get(&me->ldata, index, CD_MLOOPTANGENT);
+  const float(*vec)[4] = CustomData_get_layer(&me->ldata, CD_MLOOPTANGENT);
 
-  return (vec) ? (*vec)[3] : 0.0f;
+  return (vec) ? vec[index][3] : 0.0f;
 }
 
 static void rna_MeshLoop_bitangent_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*nor)[3] = CustomData_get(&me->ldata, index, CD_NORMAL);
-  const float(*vec)[4] = CustomData_get(&me->ldata, index, CD_MLOOPTANGENT);
+  const float(*nor)[3] = CustomData_get_layer(&me->ldata, CD_NORMAL);
+  const float(*vec)[4] = CustomData_get_layer(&me->ldata, CD_MLOOPTANGENT);
 
   if (nor && vec) {
-    cross_v3_v3v3(values, (const float *)nor, (const float *)vec);
-    mul_v3_fl(values, (*vec)[3]);
+    cross_v3_v3v3(values, nor[index], vec[index]);
+    mul_v3_fl(values, vec[index][3]);
   }
   else {
     zero_v3(values);
@@ -645,7 +645,7 @@ static bool rna_MeshPolygon_hide_get(PointerRNA *ptr)
 static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_poly = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *hide_poly = (bool *)CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly);
   if (!hide_poly) {
     if (!value) {
@@ -671,7 +671,7 @@ static bool rna_MeshPolygon_select_get(PointerRNA *ptr)
 static void rna_MeshPolygon_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_poly = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *select_poly = (bool *)CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_BOOL, ".select_poly", mesh->totpoly);
   if (!select_poly) {
     if (!value) {
@@ -723,7 +723,7 @@ static void rna_MeshPolygon_flip(ID *id, MPoly *mp)
 {
   Mesh *me = (Mesh *)id;
   MLoop *loops = BKE_mesh_loops_for_write(me);
-  BKE_mesh_polygon_flip(mp, loops, &me->ldata);
+  BKE_mesh_polygon_flip(mp, loops, &me->ldata, me->totloop);
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
 }
@@ -804,7 +804,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   Mesh *me = (Mesh *)ptr->data;
-  return (me->texflag & ME_AUTOSPACE) ? 0 : PROP_EDITABLE;
+  return (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
 }
 
 static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
@@ -813,16 +813,16 @@ static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
 
   BKE_mesh_texspace_ensure(me);
 
-  copy_v3_v3(values, me->size);
+  copy_v3_v3(values, me->texspace_size);
 }
 
-static void rna_Mesh_texspace_loc_get(PointerRNA *ptr, float values[3])
+static void rna_Mesh_texspace_location_get(PointerRNA *ptr, float values[3])
 {
   Mesh *me = (Mesh *)ptr->data;
 
   BKE_mesh_texspace_ensure(me);
 
-  copy_v3_v3(values, me->loc);
+  copy_v3_v3(values, me->texspace_location);
 }
 
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -850,10 +850,10 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
   if (orco) {
     const int index = rna_MeshVertex_index_get(ptr);
     /* orco is normalized to 0..1, we do inverse to match the vertex position */
-    float loc[3], size[3];
+    float texspace_location[3], texspace_size[3];
 
-    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
-    madd_v3_v3v3v3(values, loc, orco[index], size);
+    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
+    madd_v3_v3v3v3(values, texspace_location, orco[index], texspace_size);
   }
   else {
     copy_v3_v3(values, position);
@@ -914,25 +914,25 @@ static bool rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
 {
   const Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshEdge_index_get(ptr);
-  const FreestyleEdge *fed = CustomData_get(&me->edata, index, CD_FREESTYLE_EDGE);
+  const FreestyleEdge *fed = CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
 
-  return fed && (fed->flag & FREESTYLE_EDGE_MARK) != 0;
+  return fed && (fed[index].flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
 static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, bool value)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshEdge_index_get(ptr);
-  FreestyleEdge *fed = CustomData_get(&me->edata, index, CD_FREESTYLE_EDGE);
+  FreestyleEdge *fed = CustomData_get_layer_for_write(&me->edata, CD_FREESTYLE_EDGE, me->totedge);
 
   if (!fed) {
     fed = CustomData_add_layer(&me->edata, CD_FREESTYLE_EDGE, CD_SET_DEFAULT, NULL, me->totedge);
   }
   if (value) {
-    fed->flag |= FREESTYLE_EDGE_MARK;
+    fed[index].flag |= FREESTYLE_EDGE_MARK;
   }
   else {
-    fed->flag &= ~FREESTYLE_EDGE_MARK;
+    fed[index].flag &= ~FREESTYLE_EDGE_MARK;
   }
 }
 
@@ -940,25 +940,25 @@ static bool rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
 {
   const Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshPolygon_index_get(ptr);
-  const FreestyleFace *ffa = CustomData_get(&me->pdata, index, CD_FREESTYLE_FACE);
+  const FreestyleFace *ffa = CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
 
-  return ffa && (ffa->flag & FREESTYLE_FACE_MARK) != 0;
+  return ffa && (ffa[index].flag & FREESTYLE_FACE_MARK) != 0;
 }
 
 static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, bool value)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshPolygon_index_get(ptr);
-  FreestyleFace *ffa = CustomData_get(&me->pdata, index, CD_FREESTYLE_FACE);
+  FreestyleFace *ffa = CustomData_get_layer_for_write(&me->pdata, CD_FREESTYLE_FACE, me->totpoly);
 
   if (!ffa) {
     ffa = CustomData_add_layer(&me->pdata, CD_FREESTYLE_FACE, CD_SET_DEFAULT, NULL, me->totpoly);
   }
   if (value) {
-    ffa->flag |= FREESTYLE_FACE_MARK;
+    ffa[index].flag |= FREESTYLE_FACE_MARK;
   }
   else {
-    ffa->flag &= ~FREESTYLE_FACE_MARK;
+    ffa[index].flag &= ~FREESTYLE_FACE_MARK;
   }
 }
 
@@ -986,16 +986,128 @@ static char *rna_MeshUVLoopLayer_path(const PointerRNA *ptr)
 
 static void rna_MeshUVLoopLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Mesh *me = rna_mesh(ptr);
+  Mesh *mesh = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
   rna_iterator_array_begin(
-      iter, layer->data, sizeof(float[2]), (me->edit_mesh) ? 0 : me->totloop, 0, NULL);
+      iter, layer->data, sizeof(float[2]), (mesh->edit_mesh) ? 0 : mesh->totloop, 0, NULL);
 }
 
 static int rna_MeshUVLoopLayer_data_length(PointerRNA *ptr)
 {
+  Mesh *mesh = rna_mesh(ptr);
+  return (mesh->edit_mesh) ? 0 : mesh->totloop;
+}
+
+static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, char const *name)
+{
+  void *layer = CustomData_get_layer_named_for_write(
+      &mesh->ldata, CD_PROP_BOOL, name, mesh->totloop);
+  if (layer == NULL) {
+    layer = CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totloop, name);
+  }
+
+  BLI_assert(layer);
+
+  return (MBoolProperty *)layer;
+}
+
+static void bool_layer_begin(CollectionPropertyIterator *iter,
+                             PointerRNA *ptr,
+                             const char *(*layername_func)(const char *uv_name, char *name))
+{
+  char bool_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
+  Mesh *mesh = rna_mesh(ptr);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  layername_func(layer->name, bool_layer_name);
+
+  rna_iterator_array_begin(iter,
+                           MeshUVLoopLayer_get_bool_layer(mesh, bool_layer_name),
+                           sizeof(MBoolProperty),
+                           (mesh->edit_mesh) ? 0 : mesh->totloop,
+                           0,
+                           NULL);
+}
+
+static int bool_layer_lookup_int(PointerRNA *ptr,
+                                 int index,
+                                 PointerRNA *r_ptr,
+                                 const char *(*layername_func)(const char *uv_name, char *name))
+{
+  char bool_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
+  Mesh *mesh = rna_mesh(ptr);
+  if (mesh->edit_mesh || index < 0 || index >= mesh->totloop) {
+    return 0;
+  }
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  layername_func(layer->name, bool_layer_name);
+
+  r_ptr->owner_id = &mesh->id;
+  r_ptr->type = &RNA_BoolAttributeValue;
+  r_ptr->data = MeshUVLoopLayer_get_bool_layer(mesh, bool_layer_name) + index;
+  return 1;
+}
+
+/* Collection accessors for vert_select. */
+static void rna_MeshUVLoopLayer_vert_select_begin(CollectionPropertyIterator *iter,
+                                                  PointerRNA *ptr)
+{
+  bool_layer_begin(iter, ptr, BKE_uv_map_vert_select_name_get);
+}
+
+static int rna_MeshUVLoopLayer_vert_select_lookup_int(PointerRNA *ptr,
+                                                      int index,
+                                                      PointerRNA *r_ptr)
+{
+  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_vert_select_name_get);
+}
+
+/* Collection accessors for edge_select. */
+static void rna_MeshUVLoopLayer_edge_select_begin(CollectionPropertyIterator *iter,
+                                                  PointerRNA *ptr)
+{
+  bool_layer_begin(iter, ptr, BKE_uv_map_edge_select_name_get);
+}
+
+static int rna_MeshUVLoopLayer_edge_select_lookup_int(PointerRNA *ptr,
+                                                      int index,
+                                                      PointerRNA *r_ptr)
+{
+  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_edge_select_name_get);
+}
+
+/* Collection accessors for pin. */
+static void rna_MeshUVLoopLayer_pin_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  bool_layer_begin(iter, ptr, BKE_uv_map_pin_name_get);
+}
+
+static int rna_MeshUVLoopLayer_pin_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_pin_name_get);
+}
+
+static void rna_MeshUVLoopLayer_uv_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
   Mesh *me = rna_mesh(ptr);
-  return (me->edit_mesh) ? 0 : me->totloop;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  rna_iterator_array_begin(
+      iter, layer->data, sizeof(float[2]), (me->edit_mesh) ? 0 : me->totloop, 0, NULL);
+}
+
+int rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  if (mesh->edit_mesh || index < 0 || index >= mesh->totloop) {
+    return 0;
+  }
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  r_ptr->owner_id = &mesh->id;
+  r_ptr->type = &RNA_Float2AttributeValue;
+  r_ptr->data = (float *)layer->data + 2 * index;
+  return 1;
 }
 
 static bool rna_MeshUVLoopLayer_active_render_get(PointerRNA *ptr)
@@ -1466,7 +1578,7 @@ static bool rna_MeshEdge_hide_get(PointerRNA *ptr)
 static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_edge = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *hide_edge = (bool *)CustomData_get_layer_named_for_write(
       &mesh->edata, CD_PROP_BOOL, ".hide_edge", mesh->totedge);
   if (!hide_edge) {
     if (!value) {
@@ -1492,7 +1604,7 @@ static bool rna_MeshEdge_select_get(PointerRNA *ptr)
 static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_edge = (bool *)CustomData_duplicate_referenced_layer_named(
+  bool *select_edge = (bool *)CustomData_get_layer_named_for_write(
       &mesh->edata, CD_PROP_BOOL, ".select_edge", mesh->totedge);
   if (!select_edge) {
     if (!value) {
@@ -1504,6 +1616,32 @@ static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
   }
   const int index = rna_MeshEdge_index_get(ptr);
   select_edge[index] = value;
+}
+
+static bool rna_MeshEdge_use_edge_sharp_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *sharp_edge = (const bool *)CustomData_get_layer_named(
+      &mesh->edata, CD_PROP_BOOL, "sharp_edge");
+  const int index = rna_MeshEdge_index_get(ptr);
+  return sharp_edge == NULL ? false : sharp_edge[index];
+}
+
+static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *sharp_edge = (bool *)CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_BOOL, "sharp_edge", mesh->totedge);
+  if (!sharp_edge) {
+    if (!value) {
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
+      return;
+    }
+    sharp_edge = (bool *)CustomData_add_layer_named(
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, "sharp_edge");
+  }
+  const int index = rna_MeshEdge_index_get(ptr);
+  sharp_edge[index] = value;
 }
 
 static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
@@ -1826,7 +1964,7 @@ static bool get_uv_index_and_layer(const PointerRNA *ptr,
   /* We don't know from which attribute the RNA pointer is from, so we need to scan them all. */
   const int uv_layers_num = CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_i = 0; layer_i < uv_layers_num; layer_i++) {
-    const float(*layer_data)[2] = (float(*)[2])CustomData_get_layer_n(
+    const float(*layer_data)[2] = (const float(*)[2])CustomData_get_layer_n(
         &mesh->ldata, CD_PROP_FLOAT2, layer_i);
     const ptrdiff_t index = uv_coord - layer_data;
     if (index >= 0 && index < mesh->totloop) {
@@ -2247,8 +2385,9 @@ static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me,
 
 static void rna_Mesh_uv_layers_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
 {
-  if (!BKE_id_attribute_find(&me->id, layer->name, CD_PROP_FLOAT, ATTR_DOMAIN_CORNER)) {
+  if (!BKE_id_attribute_find(&me->id, layer->name, CD_PROP_FLOAT2, ATTR_DOMAIN_CORNER)) {
     BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", layer->name);
+    return;
   }
   BKE_id_attribute_remove(&me->id, layer->name, reports);
 }
@@ -2476,8 +2615,9 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "use_edge_sharp", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SHARP);
-  RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the Edge Split modifier");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_MeshEdge_use_edge_sharp_get", "rna_MeshEdge_use_edge_sharp_set");
+  RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for shading");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
@@ -2774,8 +2914,63 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Active Clone", "Set the map as active for cloning");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
+  prop = RNA_def_property(srna, "uv", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Float2AttributeValue");
+  RNA_def_property_ui_text(prop, "UV", "UV coordinates on face corners");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_MeshUVLoopLayer_uv_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_MeshUVLoopLayer_uv_lookup_int",
+                                    NULL,
+                                    NULL);
+
+  prop = RNA_def_property(srna, "vertex_selection", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_ui_text(
+      prop, "UV Vertex Selection", "Selection state of the face corner the UV editor");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_MeshUVLoopLayer_vert_select_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_MeshUVLoopLayer_vert_select_lookup_int",
+                                    NULL,
+                                    NULL);
+
+  prop = RNA_def_property(srna, "edge_selection", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_ui_text(
+      prop, "UV Edge Selection", "Selection state of the edge in the UV editor");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_MeshUVLoopLayer_edge_select_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_MeshUVLoopLayer_edge_select_lookup_int",
+                                    NULL,
+                                    NULL);
+
+  prop = RNA_def_property(srna, "pin", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_ui_text(prop, "UV Pin", "UV pinned state in the uv editor");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_MeshUVLoopLayer_pin_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_MeshUVLoopLayer_pin_lookup_int",
+                                    NULL,
+                                    NULL);
+
   srna = RNA_def_struct(brna, "MeshUVLoop", NULL);
-  RNA_def_struct_ui_text(srna, "Mesh UV Layer", "Layer of UV coordinates in a Mesh data-block");
+  RNA_def_struct_ui_text(
+      srna, "Mesh UV Layer", "(Deprecated) Layer of UV coordinates in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshUVLoop_path");
 
   prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_XYZ);
@@ -3068,21 +3263,21 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 
   /* texture space */
   prop = RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", ME_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
       "Adjust active object's texture space automatically when transforming object");
 
   prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
-  RNA_def_property_float_sdna(prop, NULL, "loc");
+  RNA_def_property_float_sdna(prop, NULL, "texspace_location");
   RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
-  RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", NULL, NULL);
+  RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_location_get", NULL, NULL);
   RNA_def_property_editable_func(prop, texspace_editable);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_sdna(prop, NULL, "size");
+  RNA_def_property_float_sdna(prop, NULL, "texspace_size");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
   RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_size_get", NULL, NULL);
@@ -3212,7 +3407,7 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-/* Defines a read-only vector type since normals should not be modified manually. */
+/* Defines a read-only vector type since normals can not be modified manually. */
 static void rna_def_normal_layer_value(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "MeshNormalValue", NULL);
@@ -4322,7 +4517,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   /* texture space */
   prop = RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", ME_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
@@ -4335,7 +4530,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
   RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
   RNA_def_property_float_funcs(
-      prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);
+      prop, "rna_Mesh_texspace_location_get", "rna_Mesh_texspace_location_set", NULL);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 #  endif
 

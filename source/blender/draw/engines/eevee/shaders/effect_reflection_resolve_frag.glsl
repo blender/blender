@@ -226,6 +226,7 @@ void main()
 
   if (depth == 1.0) {
     discard;
+    return;
   }
 
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -235,6 +236,7 @@ void main()
 
   if (max_v3(brdf) <= 0.0) {
     discard;
+    return;
   }
 
   FragDepth = depth;

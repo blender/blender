@@ -767,7 +767,6 @@ void render_result_single_layer_end(Render *re)
     BLI_remlink(&re->result->layers, rl);
 
     /* reconstruct render result layers */
-    int nr = 0;
     LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
       if (STREQ(view_layer->name, re->single_view_layer)) {
         BLI_addtail(&re->result->layers, rl);
@@ -779,7 +778,6 @@ void render_result_single_layer_end(Render *re)
           BLI_addtail(&re->result->layers, rlpush);
         }
       }
-      nr++;
     }
   }
 
@@ -1102,7 +1100,7 @@ RenderView *RE_RenderViewGetByName(RenderResult *rr, const char *viewname)
 
 static RenderPass *duplicate_render_pass(RenderPass *rpass)
 {
-  RenderPass *new_rpass = MEM_cnew("new render pass", *rpass);
+  RenderPass *new_rpass = MEM_cnew<RenderPass>("new render pass", *rpass);
   new_rpass->next = new_rpass->prev = nullptr;
   if (new_rpass->rect != nullptr) {
     new_rpass->rect = static_cast<float *>(MEM_dupallocN(new_rpass->rect));
@@ -1112,7 +1110,7 @@ static RenderPass *duplicate_render_pass(RenderPass *rpass)
 
 static RenderLayer *duplicate_render_layer(RenderLayer *rl)
 {
-  RenderLayer *new_rl = MEM_cnew("new render layer", *rl);
+  RenderLayer *new_rl = MEM_cnew<RenderLayer>("new render layer", *rl);
   new_rl->next = new_rl->prev = nullptr;
   new_rl->passes.first = new_rl->passes.last = nullptr;
   new_rl->exrhandle = nullptr;
@@ -1125,7 +1123,7 @@ static RenderLayer *duplicate_render_layer(RenderLayer *rl)
 
 static RenderView *duplicate_render_view(RenderView *rview)
 {
-  RenderView *new_rview = MEM_cnew("new render view", *rview);
+  RenderView *new_rview = MEM_cnew<RenderView>("new render view", *rview);
   if (new_rview->rectf != nullptr) {
     new_rview->rectf = static_cast<float *>(MEM_dupallocN(new_rview->rectf));
   }
@@ -1140,7 +1138,7 @@ static RenderView *duplicate_render_view(RenderView *rview)
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 {
-  RenderResult *new_rr = MEM_cnew("new duplicated render result", *rr);
+  RenderResult *new_rr = MEM_cnew<RenderResult>("new duplicated render result", *rr);
   new_rr->next = new_rr->prev = nullptr;
   new_rr->layers.first = new_rr->layers.last = nullptr;
   new_rr->views.first = new_rr->views.last = nullptr;

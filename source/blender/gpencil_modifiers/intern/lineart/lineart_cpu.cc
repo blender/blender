@@ -12,11 +12,14 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_sort.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
@@ -1477,6 +1480,7 @@ struct EdgeFeatData {
   blender::Span<MLoop> loops;
   blender::Span<MPoly> polys;
   LineartTriangle *tri_array;
+  blender::VArray<bool> sharp_edges;
   LineartVert *v_array;
   float crease_threshold;
   bool use_auto_smooth;
@@ -1682,9 +1686,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
       e_feat_data->edges.data(), e_feat_data->loops.data(), &mlooptri[i / 3], real_edges);
 
   if (real_edges[i % 3] >= 0) {
-    const MEdge *medge = &e_feat_data->edges[real_edges[i % 3]];
-
-    if (ld->conf.use_crease && ld->conf.sharp_as_crease && (medge->flag & ME_SHARP)) {
+    if (ld->conf.use_crease && ld->conf.sharp_as_crease &&
+        e_feat_data->sharp_edges[real_edges[i % 3]]) {
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
     }
 
@@ -1886,6 +1889,25 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   edge_nabr->flags = 0;
 }
 
+static void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
+{
+  blender::parallel_sort(
+      ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
+        int a = p1.v1 - p2.v1;
+        int b = p1.v2 - p2.v2;
+        /* parallel_sort() requires cmp() to return true when the first element needs to appear
+         * before the second element in the sorted array, false otherwise (strict weak ordering),
+         * see https://en.cppreference.com/w/cpp/named_req/Compare. */
+        if (a < 0) {
+          return true;
+        }
+        if (a > 0) {
+          return false;
+        }
+        return b < 0;
+      });
+}
+
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edges)
 {
   /* Because the mesh is triangulated, so `me->totedge` should be reliable? */
@@ -2068,6 +2090,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.userdata_chunk_size = sizeof(EdgeFeatReduceData);
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
+  const bke::AttributeAccessor attributes = me->attributes();
+  const VArray<bool> sharp_edges = attributes.lookup_or_default<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+
   EdgeFeatData edge_feat_data = {nullptr};
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
@@ -2077,6 +2103,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.edges = me->edges();
   edge_feat_data.polys = me->polys();
   edge_feat_data.loops = me->loops();
+  edge_feat_data.sharp_edges = sharp_edges;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
   edge_feat_data.v_array = la_v_arr;
@@ -2441,8 +2468,8 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   /* Prepare the matrix used for transforming this specific object (instance). This has to be
    * done before mesh boundbox check because the function needs that. */
-  mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, ld->conf.view_projection, use_mat);
-  mul_m4db_m4db_m4fl_uniq(obi->model_view, ld->conf.view, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view_proj, ld->conf.view_projection, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view, ld->conf.view, use_mat);
 
   if (!ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     return;
@@ -2452,7 +2479,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
     if ((!use_mesh) || use_mesh->edit_mesh) {
       /* If the object is being edited, then the mesh is not evaluated fully into the final
        * result, do not load them. This could be caused by incorrect evaluation order due to
-       * the way line art uses depsgraph.See T102612 for explanation of this workaround. */
+       * the way line art uses depsgraph.See #102612 for explanation of this workaround. */
       return;
     }
   }
@@ -2518,7 +2545,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     }
 
     invert_m4_m4(inv, ld->conf.cam_obmat);
-    mul_m4db_m4db_m4fl_uniq(result, proj, inv);
+    mul_m4db_m4db_m4fl(result, proj, inv);
     copy_m4_m4_db(proj, result);
     copy_m4_m4_db(ld->conf.view_projection, proj);
 
@@ -4500,7 +4527,7 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, do
 static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartIsecThread *th)
 {
   LineartData *ld = th->ld;
-  int _dir_control = 0;
+  // int _dir_control = 0; /* UNUSED */
   while (lineart_schedule_new_triangle_task(th)) {
     for (LineartElementLinkNode *eln = th->pending_from; eln != th->pending_to->next;
          eln = eln->next) {
@@ -4516,7 +4543,7 @@ static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartI
           continue;
         }
         if (lineart_get_triangle_bounding_areas(ld, tri, &y1, &y2, &x1, &x2)) {
-          _dir_control++;
+          // _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
               lineart_bounding_area_link_triangle(ld,
@@ -5150,7 +5177,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
                                      uchar silhouette_mode,
                                      const char *source_vgname,
                                      const char *vgname,
-                                     int modifier_flags)
+                                     int modifier_flags,
+                                     int modifier_calculation_flags)
 {
   if (cache == nullptr) {
     if (G.debug_value == 4000) {
@@ -5176,8 +5204,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
   int enabled_types = cache->all_enabled_edge_types;
-  bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
-  bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
+  bool invert_input = modifier_calculation_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
+  bool match_output = modifier_calculation_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
   bool inverse_silhouette = modifier_flags & LRT_GPENCIL_INVERT_SILHOUETTE_FILTER;
 
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &cache->chains) {
@@ -5375,7 +5403,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uchar silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
-                                  int modifier_flags)
+                                  int modifier_flags,
+                                  int modifier_calculation_flags)
 {
 
   if (!gpl || !gpf || !ob) {
@@ -5421,5 +5450,6 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                            silhouette_mode,
                            source_vgname,
                            vgname,
-                           modifier_flags);
+                           modifier_flags,
+                           modifier_calculation_flags);
 }

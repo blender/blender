@@ -946,7 +946,7 @@ static void rna_EnvelopeGpencilModifier_material_set(PointerRNA *ptr,
 
 const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
                                                        PointerRNA *ptr,
-                                                       PropertyRNA *prop,
+                                                       PropertyRNA *UNUSED(prop),
                                                        bool *r_free)
 {
 
@@ -959,7 +959,7 @@ const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
 
   for (const EnumPropertyItem *item = gpencil_build_time_mode_items; item->identifier != NULL;
        item++) {
-    if (is_concurrent && item->identifier == "DRAWSPEED") {
+    if (is_concurrent && (item->value == GP_BUILD_TIMEMODE_DRAWSPEED)) {
       continue;
     }
     RNA_enum_item_add(&item_list, &totitem, item);
@@ -1425,8 +1425,8 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   /* Sample */
   prop = RNA_def_property(srna, "length", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "length");
-  RNA_def_property_range(prop, 0.005, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0, 1.0, 0.05, 3);
+  RNA_def_property_range(prop, 0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.005, 1.0, 0.05, 3);
   RNA_def_property_ui_text(prop, "Length", "Length of each segment");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 

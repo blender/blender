@@ -407,7 +407,7 @@ class SEQUENCER_MT_view(Menu):
         if st.view_type == 'PREVIEW':
             # Specifying the REGION_PREVIEW context is needed in preview-only
             # mode, else the lookup for the shortcut will fail in
-            # wm_keymap_item_find_props() (see T32595).
+            # wm_keymap_item_find_props() (see #32595).
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_tool_header")
@@ -429,7 +429,7 @@ class SEQUENCER_MT_view(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         if st.view_type == 'PREVIEW':
-            # See above (T32595)
+            # See above (#32595)
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.operator("sequencer.view_selected", text="Frame Selected")
 
@@ -931,8 +931,14 @@ class SEQUENCER_MT_strip(Menu):
 
         if has_sequencer:
 
-            layout.operator("sequencer.split", text="Split").type = 'SOFT'
-            layout.operator("sequencer.split", text="Hold Split").type = 'HARD'
+            props = layout.operator("sequencer.split", text="Split")
+            props.type = 'SOFT'
+            props.side = 'RIGHT'
+
+            props = layout.operator("sequencer.split", text="Hold Split")
+            props.type = 'HARD'
+            props.side = 'RIGHT'
+
             layout.separator()
 
         if has_sequencer:
@@ -946,6 +952,7 @@ class SEQUENCER_MT_strip(Menu):
 
         if strip and strip.type == 'SCENE':
             layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+            layout.operator("sequencer.scene_frame_range_update")
 
         if has_sequencer:
             if strip:
@@ -1068,6 +1075,7 @@ class SEQUENCER_MT_context_menu(Menu):
         strip = context.active_sequence_strip
         if strip and strip.type == 'SCENE':
             layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+            layout.operator("sequencer.scene_frame_range_update")
 
         layout.separator()
 
@@ -1577,7 +1585,7 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         subsub.prop(strip, "shadow_color", text="")
         row.prop_decorator(strip, "shadow_color")
 
-        row = layout.row(align=True, heading="Box")
+        row = layout.row(align=True, heading="Box", heading_ctxt=i18n_contexts.id_sequence)
         row.use_property_decorate = False
         sub = row.row(align=True)
         sub.prop(strip, "use_box", text="")
@@ -1845,17 +1853,17 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         frame_offset_end = strip.frame_offset_end
 
         length_list = (
-            str(frame_start),
-            str(frame_final_end),
-            str(frame_final_duration),
-            str(frame_offset_start),
-            str(frame_offset_end),
+            str(round(frame_start, 0)),
+            str(round(frame_final_end, 0)),
+            str(round(frame_final_duration, 0)),
+            str(round(frame_offset_start, 0)),
+            str(round(frame_offset_end, 0)),
         )
 
         if not is_effect:
             length_list = length_list + (
-                str(strip.animation_offset_start),
-                str(strip.animation_offset_end),
+                str(round(strip.animation_offset_start, 0)),
+                str(round(strip.animation_offset_end, 0)),
             )
 
         max_length = max(len(x) for x in length_list)
@@ -1994,7 +2002,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
             split = col.split(factor=0.4)
             split.alignment = 'RIGHT'
-            split.label(text="Pan")
+            split.label(text="Pan", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
 
@@ -2607,7 +2615,7 @@ class SEQUENCER_PT_annotation_onion(AnnotationOnionSkin, SequencerButtonsPanel_O
 
 
 class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
     _context_path = "active_sequence_strip"
     _property_type = (bpy.types.Sequence,)
     bl_category = "Strip"

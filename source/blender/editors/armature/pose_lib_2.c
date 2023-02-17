@@ -353,9 +353,14 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
   /* Release confirm data. Only available if there's an event to work with. */
   if (is_interactive) {
     PropertyRNA *release_confirm_prop = RNA_struct_find_property(op->ptr, "release_confirm");
-    pbd->release_confirm_info.use_release_confirm = (release_confirm_prop != NULL) &&
-                                                    RNA_property_boolean_get(op->ptr,
-                                                                             release_confirm_prop);
+    if (release_confirm_prop && RNA_property_is_set(op->ptr, release_confirm_prop)) {
+      pbd->release_confirm_info.use_release_confirm = RNA_property_boolean_get(
+          op->ptr, release_confirm_prop);
+    }
+    else {
+      pbd->release_confirm_info.use_release_confirm = event->val != KM_RELEASE;
+    }
+
     pbd->slider = ED_slider_create(C);
     ED_slider_init(pbd->slider, event);
     ED_slider_factor_set(pbd->slider, pbd->blend_factor);

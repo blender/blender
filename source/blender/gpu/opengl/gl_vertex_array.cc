@@ -136,7 +136,7 @@ void GLVertArray::update_bindings(const GLuint vao,
       if (attr_mask & mask) {
         GLContext *ctx = GLContext::get();
         /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
-         * Fix issues for some drivers (see T75069). */
+         * Fix issues for some drivers (see #75069). */
         glBindVertexBuffer(a, ctx->default_attr_vbo_, intptr_t(0), intptr_t(0));
         glEnableVertexAttribArray(a);
         glVertexAttribFormat(a, 4, GL_FLOAT, GL_FALSE, 0);

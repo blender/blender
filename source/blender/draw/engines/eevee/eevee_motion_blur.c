@@ -507,7 +507,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
             if (!GPU_batch_vertbuf_has(batch, vbo)) {
               /* Currently, the code assumes that all objects that share the same mesh in the
                * current frame also share the same mesh on other frames. */
-              GPU_batch_vertbuf_add_ex(batch, vbo, false);
+              GPU_batch_vertbuf_add(batch, vbo, false);
             }
           }
         }

@@ -61,8 +61,8 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
   {
     const IndexRange vert_range(mesh.totvert);
     const Span<MEdge> edges = mesh.edges();
-    Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(edges,
-                                                                                     mesh.totvert);
+    const Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(
+        edges, mesh.totvert);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -77,6 +77,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     edge_evaluator.add(sort_weight_);
     edge_evaluator.evaluate();
     const VArray<float> all_sort_weights = edge_evaluator.get_evaluated<float>(0);
+    const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> edge_of_vertex(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
@@ -99,27 +100,32 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
           continue;
         }
 
-        /* Retrieve the connected edge indices as 64 bit integers for #materialize_compressed. */
-        edge_indices.reinitialize(edges.size());
-        convert_span(edges, edge_indices);
-
-        /* Retrieve a compressed array of weights for each edge. */
-        sort_weights.reinitialize(edges.size());
-        all_sort_weights.materialize_compressed(IndexMask(edge_indices),
-                                                sort_weights.as_mutable_span());
-
-        /* Sort a separate array of compressed indices corresponding to the compressed weights.
-         * This allows using `materialize_compressed` to avoid virtual function call overhead
-         * when accessing values in the sort weights. However, it means a separate array of
-         * indices within the compressed array is necessary for sorting. */
-        sort_indices.reinitialize(edges.size());
-        std::iota(sort_indices.begin(), sort_indices.end(), 0);
-        std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
-          return sort_weights[a] < sort_weights[b];
-        });
-
         const int index_in_sort_wrapped = mod_i(index_in_sort, edges.size());
-        edge_of_vertex[selection_i] = edge_indices[sort_indices[index_in_sort_wrapped]];
+        if (use_sorting) {
+          /* Retrieve the connected edge indices as 64 bit integers for #materialize_compressed. */
+          edge_indices.reinitialize(edges.size());
+          convert_span(edges, edge_indices);
+
+          /* Retrieve a compressed array of weights for each edge. */
+          sort_weights.reinitialize(edges.size());
+          all_sort_weights.materialize_compressed(IndexMask(edge_indices),
+                                                  sort_weights.as_mutable_span());
+
+          /* Sort a separate array of compressed indices corresponding to the compressed weights.
+           * This allows using `materialize_compressed` to avoid virtual function call overhead
+           * when accessing values in the sort weights. However, it means a separate array of
+           * indices within the compressed array is necessary for sorting. */
+          sort_indices.reinitialize(edges.size());
+          std::iota(sort_indices.begin(), sort_indices.end(), 0);
+          std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
+            return sort_weights[a] < sort_weights[b];
+          });
+
+          edge_of_vertex[selection_i] = edge_indices[sort_indices[index_in_sort_wrapped]];
+        }
+        else {
+          edge_of_vertex[selection_i] = edges[index_in_sort_wrapped];
+        }
       }
     });
 

@@ -49,6 +49,18 @@ struct ShaderCache {
     if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
       switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
         default:
+        case APPLE_M2_BIG:
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {384, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {640, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST] = {1024, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW] = {704, 704};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE] = {640, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY] = {896, 768};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND] = {512, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW] = {32, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = {768, 576};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY] = {896, 768};
+          break;
         case APPLE_M2:
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {32, 32};
           occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {832, 32};
@@ -75,6 +87,9 @@ struct ShaderCache {
           break;
       }
     }
+
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS] = {1024, 1024};
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS] = {1024, 1024};
   }
   ~ShaderCache();
 
@@ -448,13 +463,18 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
   if (!data) {
     data = &zero_data;
   }
-  int zero_int = 0;
-  [constant_values setConstantValue:&zero_int type:MTLDataType_int atIndex:Kernel_DummyConstant];
+  [constant_values setConstantValue:&zero_data type:MTLDataType_int atIndex:Kernel_DummyConstant];
+
+  bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    [constant_values setConstantValue:&data->parent.name \
+    [constant_values setConstantValue:next_member_is_specialized ? (void *)&data->parent.name : \
+                                                                   (void *)&zero_data \
                                  type:MTLDataType_##_type \
-                              atIndex:KernelData_##parent##_##name];
+                              atIndex:KernelData_##parent##_##name]; \
+    next_member_is_specialized = true;
 
 #  include "kernel/data_template.h"
 
@@ -504,6 +524,8 @@ void MetalKernelPipeline::compile()
           "__anyhit__cycles_metalrt_shadow_all_hit_box",
           "__anyhit__cycles_metalrt_local_hit_tri",
           "__anyhit__cycles_metalrt_local_hit_box",
+          "__anyhit__cycles_metalrt_local_hit_tri_prim",
+          "__anyhit__cycles_metalrt_local_hit_box_prim",
           "__intersection__curve_ribbon",
           "__intersection__curve_ribbon_shadow",
           "__intersection__curve_all",
@@ -594,11 +616,17 @@ void MetalKernelPipeline::compile()
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
                          rt_intersection_function[METALRT_FUNC_LOCAL_BOX],
                          nil];
+    table_functions[METALRT_TABLE_LOCAL_PRIM] = [NSArray
+        arrayWithObjects:rt_intersection_function[METALRT_FUNC_LOCAL_TRI_PRIM],
+                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
+                         rt_intersection_function[METALRT_FUNC_LOCAL_BOX_PRIM],
+                         nil];
 
     NSMutableSet *unique_functions = [NSMutableSet
         setWithArray:table_functions[METALRT_TABLE_DEFAULT]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_SHADOW]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL]];
+    [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL_PRIM]];
 
     if (kernel_has_intersection(device_kernel)) {
       linked_functions = [[NSArray arrayWithArray:[unique_functions allObjects]]

@@ -285,6 +285,7 @@ class MTLSafeFreeList {
  private:
   std::atomic<int> reference_count_;
   std::atomic<bool> in_free_queue_;
+  std::atomic<bool> referenced_by_workload_;
   std::recursive_mutex lock_;
 
   /* Linked list of next MTLSafeFreeList chunk if current chunk is full. */
@@ -292,8 +293,12 @@ class MTLSafeFreeList {
   std::atomic<MTLSafeFreeList *> next_;
 
   /* Lockless list. MAX_NUM_BUFFERS_ within a chunk based on considerations
-   * for performance and memory. */
+   * for performance and memory.
+   * MIN_BUFFER_FLUSH_COUNT refers to the minimum count of buffers in the MTLSafeFreeList
+   * before buffers are returned to global memory pool. This is set at a point to reduce
+   * overhead of small pool flushes, while ensuring floating memory overhead is not excessive. */
   static const int MAX_NUM_BUFFERS_ = 1024;
+  static const int MIN_BUFFER_FLUSH_COUNT = 120;
   std::atomic<int> current_list_index_;
   gpu::MTLBuffer *safe_free_pool_[MAX_NUM_BUFFERS_];
 
@@ -304,11 +309,13 @@ class MTLSafeFreeList {
    * Performs a lockless list insert. */
   void insert_buffer(gpu::MTLBuffer *buffer);
 
+  /* Whether we need to start a new safe free list, or can carry on using the existing one. */
+  bool should_flush();
+
   /* Increments command buffer reference count. */
   void increment_reference();
 
-  /* Decrement and return of buffers to pool occur on MTLCommandBuffer completion callback thread.
-   */
+  /* Decrement and return of buffers to pool occur on MTLCommandBuffer completion callback. */
   void decrement_reference();
 
   void flag_in_queue()
@@ -339,10 +346,10 @@ class MTLSafeFreeList {
 class MTLBufferPool {
 
  private:
-  /* Memory statistics. */
-  int64_t total_allocation_bytes_ = 0;
-
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
+  /* Memory statistics. */
+  std::atomic<int64_t> total_allocation_bytes_;
+
   /* Debug statistics. */
   std::atomic<int> per_frame_allocation_count_;
   std::atomic<int64_t> allocations_in_pool_;
@@ -368,10 +375,14 @@ class MTLBufferPool {
    * - A size-ordered list (MultiSet) of allocated buffers is kept per MTLResourceOptions
    *   permutation. This allows efficient lookup for buffers of a given requested size.
    * - MTLBufferHandle wraps a gpu::MTLBuffer pointer to achieve easy size-based sorting
-   *   via CompareMTLBuffer. */
+   *   via CompareMTLBuffer.
+   *
+   * NOTE: buffer_pool_lock_ guards against concurrent access to the memory allocator. This
+   * can occur during light baking or rendering operations. */
   using MTLBufferPoolOrderedList = std::multiset<MTLBufferHandle, CompareMTLBuffer>;
   using MTLBufferResourceOptions = uint64_t;
 
+  std::mutex buffer_pool_lock_;
   blender::Map<MTLBufferResourceOptions, MTLBufferPoolOrderedList *> buffer_pools_;
   blender::Vector<gpu::MTLBuffer *> allocations_;
 

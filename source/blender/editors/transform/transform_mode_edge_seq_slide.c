@@ -110,7 +110,7 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 void initSeqSlide(TransInfo *t)
 {
   t->transform = applySeqSlide;
-  t->tsnap.applySnap = transform_snap_sequencer_apply_translate;
+  t->tsnap.snap_mode_apply_fn = transform_snap_sequencer_apply_translate;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 

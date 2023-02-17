@@ -86,7 +86,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    # Experimental: only show with developer extras, see: T96544.
+    # Experimental: only show with developer extras, see: #96544.
     use_tweak_select_passthrough: BoolProperty(
         name="Tweak Select: Mouse Select & Move",
         description=(
@@ -96,7 +96,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
-    # Experimental: only show with developer extras, see: T96544.
+    # Experimental: only show with developer extras, see: #96544.
     use_tweak_tool_lmb_interaction: BoolProperty(
         name="Tweak Tool: Left Mouse Select & Move",
         description=(
@@ -352,8 +352,7 @@ def load():
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
-            use_fallback_tool=True,
-            use_fallback_tool_rmb=(False if is_select_left else kc_prefs.rmb_action == 'FALLBACK_TOOL'),
+            use_fallback_tool=True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL'),
             use_tweak_select_passthrough=(show_developer_ui and kc_prefs.use_tweak_select_passthrough),
             use_tweak_tool_lmb_interaction=(
                 False if is_select_left else

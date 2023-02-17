@@ -58,6 +58,8 @@ class AssetLibraryService {
   static void destroy();
 
   static std::string root_path_from_library_ref(const AssetLibraryReference &library_reference);
+  static CustomAssetLibraryDefinition *find_custom_asset_library_from_library_ref(
+      const AssetLibraryReference &library_reference);
 
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);

@@ -53,10 +53,8 @@ struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
 struct bNodePreview;
-struct bNodeTreeExec;
 struct bNodeType;
 struct bNode;
-struct uiBlock;
 
 #define NODE_MAXSTR 64
 
@@ -79,7 +77,7 @@ typedef struct bNodeStack {
   char _pad[4];
 } bNodeStack;
 
-/* ns->datatype, shadetree only */
+/** #bNodeStack.datatype (shade-tree only). */
 #define NS_OSA_VECTORS 1
 #define NS_OSA_VALUES 2
 
@@ -284,6 +282,10 @@ typedef enum eNodeSocketFlag {
    * type is obvious and the name takes up too much space.
    */
   SOCK_HIDE_LABEL = (1 << 12),
+  /**
+   * Only used for geometry nodes. Don't show the socket value in the modifier interface.
+   */
+  SOCK_HIDE_IN_MODIFIER = (1 << 13),
 } eNodeSocketFlag;
 
 typedef struct bNode {
@@ -661,9 +663,9 @@ typedef struct bNodeTree {
 
 /** #NodeTree.flag */
 #define NTREE_DS_EXPAND (1 << 0)            /* for animation editors */
-#define NTREE_COM_OPENCL (1 << 1)           /* use opencl */
+#define NTREE_COM_OPENCL (1 << 1)           /* Use OPENCL. */
 #define NTREE_TWO_PASS (1 << 2)             /* two pass */
-#define NTREE_COM_GROUPNODE_BUFFER (1 << 3) /* use groupnode buffers */
+#define NTREE_COM_GROUPNODE_BUFFER (1 << 3) /* Use group-node buffers. */
 #define NTREE_VIEWER_BORDER (1 << 4)        /* use a border for viewer nodes */
 /* NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead. */
 
@@ -963,7 +965,7 @@ typedef struct NodeScriptDict {
 typedef struct NodeGlare {
   char quality, type, iter;
   /* XXX angle is only kept for backward/forward compatibility,
-   * was used for two different things, see T50736. */
+   * was used for two different things, see #50736. */
   char angle DNA_DEPRECATED, _pad0, size, star_45, streaks;
   float colmod, mix, threshold, fade;
   float angle_ofs;

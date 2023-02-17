@@ -1949,7 +1949,7 @@ char *GHOST_SystemCocoa::getClipboard(bool selection) const
 
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 
-    NSString *textPasted = [pasteBoard stringForType:NSStringPboardType];
+    NSString *textPasted = [pasteBoard stringForType:NSPasteboardTypeString];
 
     if (textPasted == nil) {
       return NULL;
@@ -1984,8 +1984,8 @@ void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
   @autoreleasepool {
 
     NSPasteboard *pasteBoard = NSPasteboard.generalPasteboard;
-    [pasteBoard declareTypes:@[ NSStringPboardType ] owner:nil];
+    [pasteBoard declareTypes:@[ NSPasteboardTypeString ] owner:nil];
     NSString *textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
-    [pasteBoard setString:textToCopy forType:NSStringPboardType];
+    [pasteBoard setString:textToCopy forType:NSPasteboardTypeString];
   }
 }

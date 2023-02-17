@@ -156,7 +156,7 @@ var Popover = function() {
     },
     getNamed : function(v) {
       $.each(all_versions, function(ix, title) {
-        if (ix === "master" || ix === "latest") {
+        if (ix === "master" || ix === "main" || ix === "latest") {
           var m = title.match(/\d\.\d[\w\d\.]*/)[0];
           if (parseFloat(m) == v) {
             v = ix;

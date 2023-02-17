@@ -179,12 +179,6 @@ if(WITH_BULLET)
     ${BULLET_INCLUDE_DIRS}
     ../../../intern/rigidbody
   )
-  if(NOT WITH_SYSTEM_BULLET)
-  list(APPEND LIB
-    extern_bullet
-    )
-  endif()
-
   list(APPEND LIB
     ${BULLET_LIBRARIES}
   )

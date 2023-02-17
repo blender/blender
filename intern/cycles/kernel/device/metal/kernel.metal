@@ -139,6 +139,20 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 #endif
 }
 
+[[intersection(triangle, triangle_data )]] TriangleIntersectionResult
+__anyhit__cycles_metalrt_local_hit_tri_prim(
+    constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+    ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
+    uint primitive_id [[primitive_id]],
+    float2 barycentrics [[barycentric_coord]],
+    float ray_tmax [[distance]])
+{
+  //instance_id, aka the user_id has been removed. If we take this function we optimized the
+  //SSS for starting traversal from a primitive acceleration structure instead of the root of the global AS.
+  //this means we will always be intersecting the correct object no need for the userid to check
+  return metalrt_local_hit<TriangleIntersectionResult, METALRT_HIT_TRIANGLE>(
+      launch_params_metal, payload, payload.local_object, primitive_id, barycentrics, ray_tmax);
+}
 [[intersection(triangle, triangle_data, METALRT_TAGS)]] TriangleIntersectionResult
 __anyhit__cycles_metalrt_local_hit_tri(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
@@ -154,6 +168,17 @@ __anyhit__cycles_metalrt_local_hit_tri(
 
 [[intersection(bounding_box, triangle_data, METALRT_TAGS)]] BoundingBoxIntersectionResult
 __anyhit__cycles_metalrt_local_hit_box(const float ray_tmax [[max_distance]])
+{
+  /* unused function */
+  BoundingBoxIntersectionResult result;
+  result.distance = ray_tmax;
+  result.accept = false;
+  result.continue_search = false;
+  return result;
+}
+
+[[intersection(bounding_box, triangle_data )]] BoundingBoxIntersectionResult
+__anyhit__cycles_metalrt_local_hit_box_prim(const float ray_tmax [[max_distance]])
 {
   /* unused function */
   BoundingBoxIntersectionResult result;

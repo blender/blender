@@ -733,7 +733,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Collapse Edges & Faces";
   ot->description =
-      "Collapse isolated edge and face regions, merging data such as UV's and color attributes. "
+      "Collapse isolated edge and face regions, merging data such as UVs and color attributes. "
       "This can collapse edge-rings as well as regions of connected faces into vertices";
   ot->idname = "MESH_OT_edge_collapse";
 
@@ -849,7 +849,7 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
            (BM_edge_share_face_check(e, ed_pair_v1[0]) == false) &&
            (BM_edge_share_face_check(e, ed_pair_v2[0]) == false)) ||
 
-#  if 1 /* better support mixed cases T37203. */
+#  if 1 /* better support mixed cases #37203. */
           ((edbm_add_edge_face_exec__vert_edge_lookup(e->v1, e, ed_pair_v1, 2, BM_edge_is_wire) ==
             1) &&
            (edbm_add_edge_face_exec__vert_edge_lookup(
@@ -2061,7 +2061,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
     BMO_slot_buffer_hflag_enable(
         bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
 
-    /* rebuild editselection */
+    /* Rebuild edit-selection. */
     BM_SELECT_HISTORY_RESTORE(bm);
 
     if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -2227,6 +2227,18 @@ static void edbm_flip_normals_custom_loop_normals(Object *obedit, BMEditMesh *em
               });
 }
 
+static void edbm_flip_quad_tessellation(wmOperator *op, Object *obedit, BMEditMesh *em)
+{
+  if (EDBM_op_callf(em, op, "flip_quad_tessellation faces=%hf", BM_ELEM_SELECT)) {
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = false,
+                });
+  }
+}
+
 static void edbm_flip_normals_face_winding(wmOperator *op, Object *obedit, BMEditMesh *em)
 {
 
@@ -2251,6 +2263,27 @@ static void edbm_flip_normals_face_winding(wmOperator *op, Object *obedit, BMEdi
   if (lnors_ed_arr != NULL) {
     BM_loop_normal_editdata_array_free(lnors_ed_arr);
   }
+}
+
+static int edbm_flip_quad_tessellation_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    if (em->bm->totfacesel == 0) {
+      continue;
+    }
+    edbm_flip_quad_tessellation(op, obedit, em);
+  }
+
+  MEM_freeN(objects);
+  return OPERATOR_FINISHED;
 }
 
 static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
@@ -4315,7 +4348,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
     BMO_edge_flag_set(bm, be, ELE_EDGE_CUT, is_cut);
   }
 
-  /* free all allocs */
+  /* Free all allocations. */
   MEM_freeN(screen_vert_coords);
   MEM_freeN(mouse_path);
 
@@ -4401,7 +4434,7 @@ static Base *mesh_separate_tagged(
                                  &((struct BMeshCreateParams){
                                      .use_toolflags = true,
                                  }));
-  BM_mesh_elem_toolflags_ensure(bm_new); /* needed for 'duplicate' bmo */
+  BM_mesh_elem_toolflags_ensure(bm_new); /* Needed for 'duplicate' BMO. */
 
   BM_mesh_copy_init_customdata(bm_new, bm_old, &bm_mesh_allocsize_default);
 
@@ -5151,7 +5184,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
       int offset;
 
       /* Only reuse on redo because these settings need to match the current selection.
-       * We never want to use them on other geometry, repeat last for eg, see: T60777. */
+       * We never want to use them on other geometry, repeat last for eg, see: #60777. */
       if (((op->flag & OP_IS_INVOKE) || (op->flag & OP_IS_REPEAT_LAST) == 0) &&
           RNA_property_is_set(op->ptr, prop_span)) {
         span = RNA_property_int_get(op->ptr, prop_span);
@@ -8741,7 +8774,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   /* If we allow other tools to run, we can't be sure if they will re-allocate
-   * the data this operator uses, see: T68159.
+   * the data this operator uses, see: #68159.
    * Free the data here, then use #point_normals_ensure to add it back on demand. */
   if (ret == OPERATOR_PASS_THROUGH) {
     /* Don't free on mouse-move, causes creation/freeing of the loop data in an inefficient way. */
@@ -9022,7 +9055,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
     BKE_editmesh_lnorspace_update(em, obedit->data);
 
     /* Note that we need temp lnor editing data for all loops of all affected vertices, since by
-     * setting some faces/edges as smooth we are going to change clnors spaces... See also T65809.
+     * setting some faces/edges as smooth we are going to change clnors spaces... See also #65809.
      */
     BMLoopNorEditDataArray *lnors_ed_arr = do_merge ?
                                                BM_loop_normal_editdata_array_init(bm, true) :
@@ -9932,6 +9965,20 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
       FACE_STRENGTH_MEDIUM,
       "Face Strength",
       "Strength to use for assigning or selecting face influence for weighted normal modifier");
+}
+
+void MESH_OT_flip_quad_tessellation(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Flip Quad Tessellation";
+  ot->description = "Flips the tessellation of selected quads";
+  ot->idname = "MESH_OT_flip_quad_tessellation";
+
+  ot->exec = edbm_flip_quad_tessellation_exec;
+  ot->poll = ED_operator_editmesh;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

@@ -13,7 +13,7 @@ namespace blender::ed::sculpt_paint {
 bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
 {
   /* TODO: Use a generic attribute conversion utility instead of this function. */
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   if (const auto meta_data = attributes.lookup_meta_data(".selection")) {

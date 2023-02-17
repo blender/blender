@@ -1078,6 +1078,33 @@ class LazyFunctionForAnonymousAttributeSetJoin : public lf::LazyFunction {
   {
     return 2 * i + 1;
   }
+
+  /**
+   * Cache for functions small amounts to avoid to avoid building them many times.
+   */
+  static const LazyFunctionForAnonymousAttributeSetJoin &get_cached(
+      const int amount, Vector<std::unique_ptr<LazyFunction>> &r_functions)
+  {
+    constexpr int cache_amount = 16;
+    static std::array<LazyFunctionForAnonymousAttributeSetJoin, cache_amount> cached_functions =
+        get_cache(std::make_index_sequence<cache_amount>{});
+    if (amount < cached_functions.size()) {
+      return cached_functions[amount];
+    }
+
+    auto fn = std::make_unique<LazyFunctionForAnonymousAttributeSetJoin>(amount);
+    const auto &fn_ref = *fn;
+    r_functions.append(std::move(fn));
+    return fn_ref;
+  }
+
+ private:
+  template<size_t... I>
+  static std::array<LazyFunctionForAnonymousAttributeSetJoin, sizeof...(I)> get_cache(
+      std::index_sequence<I...> /*indices*/)
+  {
+    return {LazyFunctionForAnonymousAttributeSetJoin(I)...};
+  }
 };
 
 enum class AttributeReferenceKeyType {
@@ -2250,15 +2277,18 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       AttributeReferenceKey key;
       key.type = AttributeReferenceKeyType::InputField;
       key.index = relation.field_input;
-      r_attribute_reference_keys.add_new(key);
-      AttributeReferenceInfo info;
-      lf::OutputSocket &lf_field_socket = *const_cast<lf::OutputSocket *>(
-          mapping_->group_input_sockets[relation.field_input]);
-      info.lf_attribute_set_socket = &add_get_attributes_node(lf_field_socket);
+      const int key_index = r_attribute_reference_keys.index_of_or_add(key);
+      if (key_index >= r_attribute_reference_infos.size()) {
+        AttributeReferenceInfo info;
+        lf::OutputSocket &lf_field_socket = *const_cast<lf::OutputSocket *>(
+            mapping_->group_input_sockets[relation.field_input]);
+        info.lf_attribute_set_socket = &add_get_attributes_node(lf_field_socket);
+        r_attribute_reference_infos.append(info);
+      }
+      AttributeReferenceInfo &info = r_attribute_reference_infos[key_index];
       for (const bNode *bnode : btree_.group_input_nodes()) {
         info.initial_geometry_sockets.append(&bnode->output_socket(relation.geometry_input));
       }
-      r_attribute_reference_infos.append(std::move(info));
     }
     /* Find group outputs that attributes need to be propagated to. */
     for (const aal::PropagateRelation &relation : tree_relations.propagate_relations) {
@@ -2520,27 +2550,23 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     if (attribute_set_sockets.is_empty()) {
       return nullptr;
     }
-    if (attribute_set_sockets.size() == 1) {
-      return attribute_set_sockets[0];
-    }
 
     Vector<lf::OutputSocket *, 16> key;
     key.extend(attribute_set_sockets);
     key.extend(used_sockets);
     std::sort(key.begin(), key.end());
     return cache.lookup_or_add_cb(key, [&]() {
-      auto lazy_function = std::make_unique<LazyFunctionForAnonymousAttributeSetJoin>(
-          attribute_set_sockets.size());
-      lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
+      const auto &lazy_function = LazyFunctionForAnonymousAttributeSetJoin::get_cached(
+          attribute_set_sockets.size(), lf_graph_info_->functions);
+      lf::Node &lf_node = lf_graph_->add_function(lazy_function);
       for (const int i : attribute_set_sockets.index_range()) {
-        lf::InputSocket &lf_use_input = lf_node.input(lazy_function->get_use_input(i));
+        lf::InputSocket &lf_use_input = lf_node.input(lazy_function.get_use_input(i));
         socket_usage_inputs_.add(&lf_use_input);
         lf::InputSocket &lf_attributes_input = lf_node.input(
-            lazy_function->get_attribute_set_input(i));
+            lazy_function.get_attribute_set_input(i));
         lf_graph_->add_link(*used_sockets[i], lf_use_input);
         lf_graph_->add_link(*attribute_set_sockets[i], lf_attributes_input);
       }
-      lf_graph_info_->functions.append(std::move(lazy_function));
       return &lf_node.output(0);
     });
   }
@@ -2568,28 +2594,31 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     Array<SocketState> socket_states(sockets_num);
 
-    Stack<lf::Socket *> lf_sockets_to_check;
+    Vector<lf::Socket *> lf_sockets_to_check;
     for (lf::Node *lf_node : lf_graph_->nodes()) {
       if (lf_node->is_function()) {
         for (lf::OutputSocket *lf_socket : lf_node->outputs()) {
           if (lf_socket->targets().is_empty()) {
-            lf_sockets_to_check.push(lf_socket);
+            lf_sockets_to_check.append(lf_socket);
           }
         }
       }
       if (lf_node->outputs().is_empty()) {
         for (lf::InputSocket *lf_socket : lf_node->inputs()) {
-          lf_sockets_to_check.push(lf_socket);
+          lf_sockets_to_check.append(lf_socket);
         }
       }
     }
     Vector<lf::Socket *> lf_socket_stack;
     while (!lf_sockets_to_check.is_empty()) {
-      lf::Socket *lf_inout_socket = lf_sockets_to_check.peek();
+      lf::Socket *lf_inout_socket = lf_sockets_to_check.last();
       lf::Node &lf_node = lf_inout_socket->node();
       SocketState &state = socket_states[lf_inout_socket->index_in_graph()];
-      lf_socket_stack.append(lf_inout_socket);
-      state.in_stack = true;
+
+      if (!state.in_stack) {
+        lf_socket_stack.append(lf_inout_socket);
+        state.in_stack = true;
+      }
 
       Vector<lf::Socket *, 16> lf_origin_sockets;
       if (lf_inout_socket->is_input()) {
@@ -2613,10 +2642,24 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       }
 
       bool pushed_socket = false;
+      bool detected_cycle = false;
       for (lf::Socket *lf_origin_socket : lf_origin_sockets) {
         if (socket_states[lf_origin_socket->index_in_graph()].in_stack) {
+          /* A cycle has been detected. The cycle is broken by removing a link and replacing it
+           * with a constant "true" input. This can only affect inputs which determine whether a
+           * specific value is used. Therefore, setting it to a constant true can result in more
+           * computation later, but does not change correctness.
+           *
+           * After the cycle is broken, the cycle-detection is "rolled back" to the socket where
+           * the first socket of the cycle was found. This is necessary in case another cycle goes
+           * through this socket. */
+
+          detected_cycle = true;
+          const int index_in_socket_stack = lf_socket_stack.first_index_of(lf_origin_socket);
+          const int index_in_sockets_to_check = lf_sockets_to_check.first_index_of(
+              lf_origin_socket);
           const Span<lf::Socket *> cycle = lf_socket_stack.as_span().drop_front(
-              lf_socket_stack.first_index_of(lf_origin_socket));
+              index_in_socket_stack);
 
           bool broke_cycle = false;
           for (lf::Socket *lf_cycle_socket : cycle) {
@@ -2628,15 +2671,27 @@ struct GeometryNodesLazyFunctionGraphBuilder {
               lf_cycle_input_socket.set_default_value(&static_true);
               broke_cycle = true;
             }
+            /* This is actually removed from the stack when it is resized below. */
+            SocketState &lf_cycle_socket_state = socket_states[lf_cycle_socket->index_in_graph()];
+            lf_cycle_socket_state.in_stack = false;
           }
           if (!broke_cycle) {
             BLI_assert_unreachable();
           }
+          /* Roll back algorithm by removing the sockets that corresponded to the cycle from the
+           * stacks. */
+          lf_socket_stack.resize(index_in_socket_stack);
+          /* The +1 is there so that the socket itself is not removed. */
+          lf_sockets_to_check.resize(index_in_sockets_to_check + 1);
+          break;
         }
         else if (!socket_states[lf_origin_socket->index_in_graph()].done) {
-          lf_sockets_to_check.push(lf_origin_socket);
+          lf_sockets_to_check.append(lf_origin_socket);
           pushed_socket = true;
         }
+      }
+      if (detected_cycle) {
+        continue;
       }
       if (pushed_socket) {
         continue;
@@ -2644,7 +2699,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
       state.done = true;
       state.in_stack = false;
-      lf_sockets_to_check.pop();
+      lf_sockets_to_check.pop_last();
       lf_socket_stack.pop_last();
     }
   }

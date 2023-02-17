@@ -605,7 +605,10 @@ if(UNIX AND NOT APPLE)
       )
     endif()
 
-    if(EXISTS ${LIBDIR}/mesa)
+    # NOTE: there is a bug in CMake 3.25.1 where `LIBDIR` is reported as undefined.
+    if(NOT DEFINED LIBDIR)
+      # Pass.
+    elseif(EXISTS ${LIBDIR}/mesa)
       install(DIRECTORY ${LIBDIR}/mesa/lib/ DESTINATION "lib/mesa/")
 
       install(
@@ -617,16 +620,16 @@ if(UNIX AND NOT APPLE)
       # Remove from old location, so existing builds don't start with software
       # OpenGL now that the lib/ folder is used for other libraries.
       install(
-        CODE
-        "file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
+        CODE "\
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
         "
       )
     endif()
@@ -665,7 +668,7 @@ if(UNIX AND NOT APPLE)
       DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       # Precompiled libraries, copy over complete lib directory.
       install_dir(
         ${PYTHON_LIBPATH}
@@ -1071,7 +1074,7 @@ elseif(WIN32)
       )
 
       if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages) #this will only exist for 3.5+
-         install(
+        install(
           DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages/
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
@@ -1370,6 +1373,13 @@ elseif(APPLE)
     )
   endif()
 
+  if(WITH_VULKAN_BACKEND)
+    install(
+      FILES ${VULKAN_LIBRARY} ${MOLTENVK_LIBRARY}
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  endif()
+
   # Python.
   if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
     # Copy the python libraries into the install directory.
@@ -1472,6 +1482,20 @@ install(
 
 
 # -----------------------------------------------------------------------------
+# Bundle assets
+
+set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+
+if(EXISTS "${ASSET_BUNDLE_DIR}")
+  install(
+    DIRECTORY ${ASSET_BUNDLE_DIR}
+    DESTINATION ${TARGETDIR_VER}/datafiles/assets
+    PATTERN ".svn" EXCLUDE
+  )
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Setup link libraries
 
 add_dependencies(blender makesdna)
@@ -1499,7 +1523,7 @@ endif()
 
 # Always install USD shared library and datafiles regardless if Blender
 # itself uses them, the bundled Python module still needs it.
-if(LIBDIR AND TARGETDIR_LIB)
+if((DEFINED LIBDIR) AND TARGETDIR_LIB)
   # On windows the usd library sits in ./blender.shared copy the files
   # relative to the location of the USD dll, if the dll does not exist
   # assume we are linking against the static 3.5 lib.
@@ -1556,7 +1580,7 @@ endif()
 
 # Always install MaterialX files regardless if Blender itself uses them, the
 # bundled Python module still needs it.
-if(WITH_MATERIALX AND LIBDIR AND TARGETDIR_LIB)
+if((DEFINED LIBDIR) AND TARGETDIR_LIB AND WITH_MATERIALX )
   install(
     DIRECTORY ${LIBDIR}/materialx/libraries
     DESTINATION "${TARGETDIR_LIB}/materialx"

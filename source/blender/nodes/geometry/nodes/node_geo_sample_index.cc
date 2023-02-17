@@ -222,7 +222,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
@@ -298,13 +298,50 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySampleIndex &storage = node_storage(params.node());
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const eAttrDomain domain = eAttrDomain(storage.domain);
+  const bool use_clamp = bool(storage.clamp);
 
-  auto fn = std::make_shared<SampleIndexFunction>(std::move(geometry),
-                                                  get_input_attribute_field(params, data_type),
-                                                  domain,
-                                                  bool(storage.clamp));
-  auto op = FieldOperation::Create(std::move(fn), {params.extract_input<Field<int>>("Index")});
-  output_attribute_field(params, GField(std::move(op)));
+  GField value_field = get_input_attribute_field(params, data_type);
+  ValueOrField<int> index_value_or_field = params.extract_input<ValueOrField<int>>("Index");
+  const CPPType &cpp_type = value_field.cpp_type();
+
+  GField output_field;
+  if (index_value_or_field.is_field()) {
+    /* If the index is a field, the output has to be a field that still depends on the input. */
+    auto fn = std::make_shared<SampleIndexFunction>(
+        std::move(geometry), std::move(value_field), domain, use_clamp);
+    auto op = FieldOperation::Create(std::move(fn), {index_value_or_field.as_field()});
+    output_field = GField(std::move(op));
+  }
+  else if (const GeometryComponent *component = find_source_component(geometry, domain)) {
+    /* Optimization for the case when the index is a single value. Here only that one index has to
+     * be evaluated. */
+    const int domain_size = component->attribute_domain_size(domain);
+    int index = index_value_or_field.as_value();
+    if (use_clamp) {
+      index = std::clamp(index, 0, domain_size - 1);
+    }
+    if (index >= 0 && index < domain_size) {
+      const IndexMask mask = IndexRange(index, 1);
+      bke::GeometryFieldContext geometry_context(*component, domain);
+      FieldEvaluator evaluator(geometry_context, &mask);
+      evaluator.add(value_field);
+      evaluator.evaluate();
+      const GVArray &data = evaluator.get_evaluated(0);
+      BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, buffer);
+      data.get_to_uninitialized(index, buffer);
+      output_field = fn::make_constant_field(cpp_type, buffer);
+      cpp_type.destruct(buffer);
+    }
+    else {
+      output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+    }
+  }
+  else {
+    /* Output default value if there is no geometry. */
+    output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+  }
+
+  output_attribute_field(params, std::move(output_field));
 }
 
 }  // namespace blender::nodes::node_geo_sample_index_cc

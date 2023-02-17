@@ -3,21 +3,179 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * A #GPUShader is a container for backend specific shader program.
  */
 
 #pragma once
+
+#include "GPU_shader_builtin.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct GPUIndexBuf;
 struct GPUVertBuf;
 
 /** Opaque type hiding #blender::gpu::shader::ShaderCreateInfo */
 typedef struct GPUShaderCreateInfo GPUShaderCreateInfo;
 /** Opaque type hiding #blender::gpu::Shader */
 typedef struct GPUShader GPUShader;
+
+/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
+ * This makes sure the GPUVertexFormat name buffer does not overflow. */
+#define GPU_MAX_ATTR 15
+
+/* Determined by the maximum uniform buffer size divided by chunk size. */
+#define GPU_MAX_UNIFORM_ATTR 8
+
+/* -------------------------------------------------------------------- */
+/** \name Creation
+ * \{ */
+
+/**
+ * Create a shader using the given #GPUShaderCreateInfo.
+ * Can return a NULL pointer if compilation fails.
+ */
+GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
+
+/**
+ * Create a shader using a named #GPUShaderCreateInfo registered at startup.
+ * These are declared inside `*_info.hh` files using the `GPU_SHADER_CREATE_INFO()` macro.
+ * They are also expected to have been flagged using `do_static_compilation`.
+ * Can return a NULL pointer if compilation fails.
+ */
+GPUShader *GPU_shader_create_from_info_name(const char *info_name);
+
+/**
+ * Fetch a named #GPUShaderCreateInfo registered at startup.
+ * These are declared inside `*_info.hh` files using the `GPU_SHADER_CREATE_INFO()` macro.
+ * Can return a NULL pointer if no match is found.
+ */
+const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
+
+/**
+ * Error checking for user created shaders.
+ * \return true is create info is valid.
+ */
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free
+ * \{ */
+
+void GPU_shader_free(GPUShader *shader);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Binding
+ * \{ */
+
+/**
+ * Set the given shader as active shader for the active GPU context.
+ * It replaces any already bound shader.
+ * All following draw-calls and dispatches will use this shader.
+ * Uniform functions need to have the shader bound in order to work. (TODO: until we use
+ * glProgramUniform)
+ */
+void GPU_shader_bind(GPUShader *shader);
+
+/**
+ * Unbind the active shader.
+ * \note this is a no-op in release builds. But it make sense to actually do it in user land code
+ * to detect incorrect API usage.
+ */
+void GPU_shader_unbind(void);
+
+/**
+ * Return the currently bound shader to the active GPU context.
+ * \return NULL pointer if no shader is bound of if no context is active.
+ */
+GPUShader *GPU_shader_get_bound(void);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debugging introspection API.
+ * \{ */
+
+const char *GPU_shader_get_name(GPUShader *shader);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform API.
+ * \{ */
+
+/**
+ * Returns binding point location.
+ * Binding location are given to be set at shader compile time and immutable.
+ */
+int GPU_shader_get_ubo_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_ssbo_binding(GPUShader *shader, const char *name);
+int GPU_shader_get_sampler_binding(GPUShader *shader, const char *name);
+
+/**
+ * Returns uniform location.
+ * If cached, it is faster than querying the interface for each uniform assignment.
+ */
+int GPU_shader_get_uniform(GPUShader *shader, const char *name);
+
+/**
+ * Sets a generic push constant (a.k.a. uniform).
+ * \a length and \a array_size should match the create info push_constant declaration.
+ */
+void GPU_shader_uniform_float_ex(
+    GPUShader *shader, int location, int length, int array_size, const float *value);
+void GPU_shader_uniform_int_ex(
+    GPUShader *shader, int location, int length, int array_size, const int *value);
+
+/**
+ * Sets a generic push constant (a.k.a. uniform).
+ * \a length and \a array_size should match the create info push_constant declaration.
+ * These functions need to have the shader bound in order to work. (TODO: until we use
+ * glProgramUniform)
+ */
+void GPU_shader_uniform_1i(GPUShader *sh, const char *name, int value);
+void GPU_shader_uniform_1b(GPUShader *sh, const char *name, bool value);
+void GPU_shader_uniform_1f(GPUShader *sh, const char *name, float value);
+void GPU_shader_uniform_2f(GPUShader *sh, const char *name, float x, float y);
+void GPU_shader_uniform_3f(GPUShader *sh, const char *name, float x, float y, float z);
+void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, float z, float w);
+void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2]);
+void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3]);
+void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]);
+void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2]);
+void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4]);
+void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3]);
+void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
+void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Attribute API.
+ *
+ * Used to create #GPUVertexFormat from the shader's vertex input layout.
+ * \{ */
+
+unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
+int GPU_shader_get_attribute(const GPUShader *shader, const char *name);
+bool GPU_shader_get_attribute_info(const GPUShader *shader,
+                                   int attr_location,
+                                   char r_name[256],
+                                   int *r_type);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Legacy API
+ *
+ * All of this section is deprecated and should be ported to use the API described above.
+ * \{ */
 
 typedef enum eGPUShaderTFBType {
   GPU_SHADER_TFB_NONE = 0, /* Transform feedback unsupported. */
@@ -52,54 +210,6 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
                                 const char **tf_names,
                                 int tf_count,
                                 const char *shname);
-GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
-GPUShader *GPU_shader_create_from_info_name(const char *info_name);
-
-const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
-bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
-
-struct GPU_ShaderCreateFromArray_Params {
-  const char **vert, **geom, **frag, **defs;
-};
-/**
- * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
- *
- * Similar to #DRW_shader_create_with_lib with the ability to include libraries for each type of
- * shader.
- *
- * It has the advantage that each item can be conditionally included
- * without having to build the string inline, then free it.
- *
- * \param params: NULL terminated arrays of strings.
- *
- * Example:
- * \code{.c}
- * sh = GPU_shader_create_from_arrays({
- *     .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
- *     .geom = (const char *[]){shader_geom_glsl, NULL},
- *     .frag = (const char *[]){shader_frag_glsl, NULL},
- *     .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
- * });
- * \endcode
- */
-struct GPUShader *GPU_shader_create_from_arrays_impl(
-    const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line);
-
-#define GPU_shader_create_from_arrays(...) \
-  GPU_shader_create_from_arrays_impl( \
-      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, __func__, __LINE__)
-
-#define GPU_shader_create_from_arrays_named(name, ...) \
-  GPU_shader_create_from_arrays_impl( \
-      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, name, 0)
-
-void GPU_shader_free(GPUShader *shader);
-
-void GPU_shader_bind(GPUShader *shader);
-void GPU_shader_unbind(void);
-GPUShader *GPU_shader_get_bound(void);
-
-const char *GPU_shader_get_name(GPUShader *shader);
 
 /**
  * Returns true if transform feedback was successfully enabled.
@@ -107,9 +217,54 @@ const char *GPU_shader_get_name(GPUShader *shader);
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
+/**
+ * Shader cache warming.
+ * For each shader, rendering APIs perform a two-step compilation:
+ *
+ *  * The first stage is Front-End compilation which only needs to be performed once, and generates
+ * a portable intermediate representation. This happens during `gpu::Shader::finalize()`.
+ *
+ *  * The second is Back-End compilation which compiles a device-specific executable shader
+ * program. This compilation requires some contextual pipeline state which is baked into the
+ * executable shader source, producing a Pipeline State Object (PSO). In OpenGL, backend
+ * compilation happens in the background, within the driver, but can still incur runtime stutters.
+ * In Metal/Vulkan, PSOs are compiled explicitly. These are currently resolved within the backend
+ * based on the current pipeline state and can incur runtime stalls when they occur.
+ *
+ * Shader Cache warming uses the specified parent shader set using `GPU_shader_set_parent(..)` as a
+ * template reference for pre-compiling Render Pipeline State Objects (PSOs) outside of the main
+ * render pipeline.
+ *
+ * PSOs require descriptors containing information on the render state for a given shader, which
+ * includes input vertex data layout and output pixel formats, along with some state such as
+ * blend mode and color output masks. As this state information is usually consistent between
+ * similar draws, we can assign a parent shader and use this shader's cached pipeline state's to
+ * prime compilations.
+ *
+ * Shaders do not necessarily have to be similar in functionality to be used as a parent, so long
+ * as the #GPUVertFormt and #GPUFrameBuffer which they are used with remain the same.
+ * Other bindings such as textures, uniforms and UBOs are all assigned independently as dynamic
+ * state.
+ *
+ * This function should be called asynchronously, mitigating the impact of run-time stuttering from
+ * dynamic compilation of PSOs during normal rendering.
+ *
+ * \param: shader: The shader whose cache to warm.
+ * \param limit: The maximum number of PSOs to compile within a call. Specifying
+ * a limit <= 0 will compile a PSO for all cached PSOs in the parent shader. */
+void GPU_shader_warm_cache(GPUShader *shader, int limit);
+
+/* We expect the parent shader to be compiled and already have some cached PSOs when being assigned
+ * as a reference. Ensure the parent shader still exists when `GPU_shader_cache_warm(..)` is
+ * called. */
+void GPU_shader_set_parent(GPUShader *shader, GPUShader *parent);
+
 /** DEPRECATED: Kept only because of BGL API. */
 int GPU_shader_get_program(GPUShader *shader);
 
+/**
+ * Indexed commonly used uniform name for faster lookup into the uniform cache.
+ */
 typedef enum {
   GPU_UNIFORM_MODEL = 0,      /* mat4 ModelMatrix */
   GPU_UNIFORM_VIEW,           /* mat4 ViewMatrix */
@@ -133,16 +288,21 @@ typedef enum {
   GPU_UNIFORM_RESOURCE_CHUNK, /* int resourceChunk */
   GPU_UNIFORM_RESOURCE_ID,    /* int resourceId */
   GPU_UNIFORM_SRGB_TRANSFORM, /* bool srgbTarget */
-
-  GPU_NUM_UNIFORMS, /* Special value, denotes number of builtin uniforms. */
 } GPUUniformBuiltin;
+#define GPU_NUM_UNIFORMS (GPU_UNIFORM_SRGB_TRANSFORM + 1)
 
+/**
+ * TODO: To be moved as private API. Not really used outside of gpu_matrix.cc and doesn't really
+ * offer a noticeable performance boost.
+ */
+int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
+
+/** DEPRECATED: Use hardcoded buffer location instead. */
 typedef enum {
-  /** Deprecated */
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
   GPU_UNIFORM_BLOCK_MODEL,    /* modelBlock */
   GPU_UNIFORM_BLOCK_INFO,     /* infoBlock */
-  /** New ones */
+
   GPU_UNIFORM_BLOCK_DRW_VIEW,
   GPU_UNIFORM_BLOCK_DRW_MODEL,
   GPU_UNIFORM_BLOCK_DRW_INFOS,
@@ -151,260 +311,13 @@ typedef enum {
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;
 
-typedef enum {
-  GPU_STORAGE_BUFFER_DEBUG_VERTS = 0, /* drw_debug_verts_buf */
-  GPU_STORAGE_BUFFER_DEBUG_PRINT,     /* drw_debug_print_buf */
-
-  GPU_NUM_STORAGE_BUFFERS, /* Special value, denotes number of builtin buffer blocks. */
-} GPUStorageBufferBuiltin;
-
-void GPU_shader_set_srgb_uniform(GPUShader *shader);
-
-int GPU_shader_get_uniform(GPUShader *shader, const char *name);
-int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
+/** DEPRECATED: Use hardcoded buffer location instead. */
 int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
-int GPU_shader_get_builtin_ssbo(GPUShader *shader, int builtin);
+
 /** DEPRECATED: Kept only because of Python GPU API. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
-int GPU_shader_get_ssbo(GPUShader *shader, const char *name);
 
-int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name);
-int GPU_shader_get_texture_binding(GPUShader *shader, const char *name);
-
-void GPU_shader_uniform_vector(
-    GPUShader *shader, int location, int length, int arraysize, const float *value);
-void GPU_shader_uniform_vector_int(
-    GPUShader *shader, int location, int length, int arraysize, const int *value);
-
-void GPU_shader_uniform_float(GPUShader *shader, int location, float value);
-void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
-
-void GPU_shader_uniform_1i(GPUShader *sh, const char *name, int value);
-void GPU_shader_uniform_1b(GPUShader *sh, const char *name, bool value);
-void GPU_shader_uniform_1f(GPUShader *sh, const char *name, float value);
-void GPU_shader_uniform_2f(GPUShader *sh, const char *name, float x, float y);
-void GPU_shader_uniform_3f(GPUShader *sh, const char *name, float x, float y, float z);
-void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, float z, float w);
-void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2]);
-void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3]);
-void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]);
-void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2]);
-void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4]);
-void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3]);
-void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
-void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
-
-unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
-int GPU_shader_get_attribute(GPUShader *shader, const char *name);
-bool GPU_shader_get_attribute_info(const GPUShader *shader,
-                                   int attr_location,
-                                   char r_name[256],
-                                   int *r_type);
-
-void GPU_shader_set_framebuffer_srgb_target(int use_srgb_to_linear);
-
-/* Builtin/Non-generated shaders */
-typedef enum eGPUBuiltinShader {
-  /* specialized drawing */
-  GPU_SHADER_TEXT,
-  GPU_SHADER_KEYFRAME_SHAPE,
-  GPU_SHADER_SIMPLE_LIGHTING,
-  /**
-   * Draw an icon, leaving a semi-transparent rectangle on top of the icon.
-   */
-  GPU_SHADER_ICON,
-  /**
-   * Take a 2D position and color for each vertex with linear interpolation in window space.
-   *
-   * \param color: in vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
-  GPU_SHADER_2D_IMAGE_RECT_COLOR,
-  GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR,
-  GPU_SHADER_2D_CHECKER,
-  GPU_SHADER_2D_DIAG_STRIPES,
-  /* for simple 3D drawing */
-  /**
-   * Take a single color for all the vertices and a 3D position for each vertex.
-   *
-   * \param color: uniform vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_UNIFORM_COLOR,
-  GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR,
-  /**
-   * Take a 3D position and color for each vertex without color interpolation.
-   *
-   * \param color: in vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_FLAT_COLOR,
-  /**
-   * Take a 3D position and color for each vertex with perspective correct interpolation.
-   *
-   * \param color: in vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_SMOOTH_COLOR,
-  /**
-   * Take a single color for all the vertices and a 3D position for each vertex.
-   * Used for drawing wide lines.
-   *
-   * \param color: uniform vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
-  GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
-  /**
-   * Take a 3D position and color for each vertex without color interpolation.
-   * Used for drawing wide lines.
-   *
-   * \param color: in vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
-  /**
-   * Take a 3D position and color for each vertex with perspective correct interpolation.
-   * Used for drawing wide lines.
-   *
-   * \param color: in vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR,
-  /**
-   * Take a 3D position for each vertex and output only depth.
-   * Used for drawing wide lines.
-   *
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_DEPTH_ONLY,
-  /* basic image drawing */
-  GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE,
-  GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE,
-  GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR,
-  /**
-   * Draw a texture in 3D. Take a 3D position and a 2D texture coordinate for each vertex.
-   *
-   * Exposed via Python-API for add-ons.
-   *
-   * \param image: uniform sampler2D
-   * \param texCoord: in vec2
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_IMAGE,
-  /**
-   * Take a 3D position and color for each vertex with linear interpolation in window space.
-   *
-   * \param color: uniform vec4
-   * \param image: uniform sampler2D
-   * \param texCoord: in vec2
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_IMAGE_COLOR,
-  /* points */
-  /**
-   * Draw round points with a constant size.
-   * Take a single color for all the vertices and a 2D position for each vertex.
-   *
-   * \param size: uniform float
-   * \param color: uniform vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
-  /**
-   * Draw round points with a constant size and an outline.
-   * Take a single color for all the vertices and a 2D position for each vertex.
-   *
-   * \param size: uniform float
-   * \param outlineWidth: uniform float
-   * \param color: uniform vec4
-   * \param outlineColor: uniform vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA,
-  /**
-   * Draw round points with a hardcoded size.
-   * Take a single color for all the vertices and a 3D position for each vertex.
-   *
-   * \param color: uniform vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR,
-  /**
-   * Draw round points with a constant size.
-   * Take a single color for all the vertices and a 3D position for each vertex.
-   *
-   * \param size: uniform float
-   * \param color: uniform vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
-  /**
-   * Draw round points with a constant size and an outline.
-   * Take a 3D position and a color for each vertex.
-   *
-   * \param size: in float
-   * \param color: in vec4
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
-  /* lines */
-  GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,
-  /* grease pencil drawing */
-  GPU_SHADER_GPENCIL_STROKE,
-  /* specialized for widget drawing */
-  GPU_SHADER_2D_AREA_BORDERS,
-  GPU_SHADER_2D_WIDGET_BASE,
-  GPU_SHADER_2D_WIDGET_BASE_INST,
-  GPU_SHADER_2D_WIDGET_SHADOW,
-  GPU_SHADER_2D_NODELINK,
-  GPU_SHADER_2D_NODELINK_INST,
-} eGPUBuiltinShader;
-#define GPU_SHADER_BUILTIN_LEN (GPU_SHADER_2D_NODELINK_INST + 1)
-
-/** Support multiple configurations. */
-typedef enum eGPUShaderConfig {
-  GPU_SHADER_CFG_DEFAULT = 0,
-  GPU_SHADER_CFG_CLIPPED = 1,
-} eGPUShaderConfig;
-#define GPU_SHADER_CFG_LEN (GPU_SHADER_CFG_CLIPPED + 1)
-
-typedef struct GPUShaderConfigData {
-  const char *lib;
-  const char *def;
-} GPUShaderConfigData;
-/* gpu_shader.c */
-
-extern const GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN];
-
-GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
-                                                     eGPUShaderConfig sh_cfg);
-GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader);
-
-void GPU_shader_free_builtin_shaders(void);
-
-/* Vertex attributes for shaders */
-
-/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
- * This makes sure the GPUVertexFormat name buffer does not overflow. */
-#define GPU_MAX_ATTR 15
-
-/* Determined by the maximum uniform buffer size divided by chunk size. */
-#define GPU_MAX_UNIFORM_ATTR 8
-
-typedef enum eGPUKeyframeShapes {
-  GPU_KEYFRAME_SHAPE_DIAMOND = (1 << 0),
-  GPU_KEYFRAME_SHAPE_CIRCLE = (1 << 1),
-  GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1 << 2),
-  GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL = (1 << 3),
-  GPU_KEYFRAME_SHAPE_INNER_DOT = (1 << 4),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MAX = (1 << 8),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MIN = (1 << 9),
-  GPU_KEYFRAME_SHAPE_ARROW_END_MIXED = (1 << 10),
-} eGPUKeyframeShapes;
-#define GPU_KEYFRAME_SHAPE_SQUARE \
-  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
+/** \} */
 
 #ifdef __cplusplus
 }

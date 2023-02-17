@@ -31,7 +31,7 @@ enum class ParamCategory {
   VectorMutable,
 };
 
-template<ParamCategory Category, typename T> struct MFParamTag {
+template<ParamCategory Category, typename T> struct ParamTag {
   static constexpr ParamCategory category = Category;
   using base_type = T;
 };

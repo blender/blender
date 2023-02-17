@@ -254,7 +254,11 @@ void main()
   edge_case += int(has_edge_neg_y) * YNEG;
 
   if (edge_case == ALL || edge_case == NONE) {
+    /* NOTE(Metal): Discards are not explicit returns in Metal. We should also return to avoid
+     * erroneous derivatives which can manifest during texture sampling in
+     * non-uniform-control-flow. */
     discard;
+    return;
   }
 
   if (!doAntiAliasing) {

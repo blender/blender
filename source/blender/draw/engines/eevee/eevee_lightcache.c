@@ -395,7 +395,8 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   }
 
   if (lcache->grid_tx.tex == NULL) {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_HOST_READ;
     lcache->grid_tx.tex = GPU_texture_create_2d_array_ex("lightcache_irradiance",
                                                          UNPACK3(lcache->grid_tx.tex_size),
                                                          1,
@@ -529,7 +530,7 @@ static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex
     }
 
     /* FIXME: We can't save more than what 32bit systems can handle.
-     * The solution would be to split the texture but it is too late for 2.90. (see T78529) */
+     * The solution would be to split the texture but it is too late for 2.90. (see #78529) */
     if (data_size < INT_MAX) {
       BLO_write_raw(writer, data_size, tex->data);
     }
@@ -716,7 +717,8 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
                                                     lbake->irr_size[1],
                                                     lbake->irr_size[2],
                                                     IRRADIANCE_FORMAT,
-                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ |
+                                                        GPU_TEXTURE_USAGE_ATTACHMENT,
                                                     DRW_TEX_FILTER,
                                                     NULL);
 

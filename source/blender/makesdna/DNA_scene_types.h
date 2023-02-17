@@ -9,12 +9,12 @@
 
 #include "DNA_defs.h"
 
-/* XXX(@campbellbarton): temp feature. */
+/* XXX(@ideasman42): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /**
  * Check for cyclic set-scene.
- * Libraries can cause this case which is normally prevented, see (T42009).
+ * Libraries can cause this case which is normally prevented, see (#42009).
  */
 #define USE_SETSCENE_CHECK
 
@@ -431,7 +431,7 @@ typedef struct ImageFormatData {
   /** OpenEXR. */
   char exr_codec;
 
-  /** Cineon. */
+  /** CINEON. */
   char cineon_flag;
   short cineon_white, cineon_black;
   float cineon_gamma;
@@ -657,7 +657,7 @@ typedef struct RenderData {
 
   /** Frames as in 'images'. */
   int cfra, sfra, efra;
-  /** Subframe offset from cfra, in 0.0-1.0. */
+  /** Sub-frame offset from `cfra`, in 0.0-1.0. */
   float subframe;
   /** Start+end frames of preview range. */
   int psfra, pefra;
@@ -719,13 +719,13 @@ typedef struct RenderData {
 
   /**
    * What to do with the sky/background.
-   * Picks sky/premul blending for the background.
+   * Picks sky/pre-multiply blending for the background.
    */
   char alphamode;
 
   char _pad0[1];
 
-  /** Render border to render sub-resions. */
+  /** Render border to render sub-regions. */
   rctf border;
 
   /* Information on different layers to be rendered. */
@@ -793,6 +793,8 @@ typedef struct RenderData {
   float simplify_particles;
   float simplify_particles_render;
   float simplify_volumes;
+  float simplify_shadows;
+  float simplify_shadows_render;
 
   /** Freestyle line thickness options. */
   int line_thickness_mode;
@@ -1596,7 +1598,7 @@ typedef struct ToolSettings {
   /** Keyframe type (see DNA_curve_types.h). */
   char keyframe_type;
 
-  /* Multires. */
+  /** Multi-resolution meshes. */
   char multires_subdiv_type;
 
   /** Edge tagging, store operator settings (no UI access). */
@@ -1618,7 +1620,7 @@ typedef struct ToolSettings {
   short snap_flag_node;
   short snap_flag_seq;
   short snap_uv_flag;
-  /** Default snap source, #eSnapSourceSelect. */
+  /** Default snap source, #eSnapSourceOP. */
   /**
    * TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
    * "target" (now, "source" is geometry to be moved and "target" is geometry to which moved
@@ -1829,6 +1831,8 @@ typedef struct SceneEEVEE {
   int shadow_method DNA_DEPRECATED;
   int shadow_cube_size;
   int shadow_cascade_size;
+  int shadow_pool_size;
+  char _pad[4];
 
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;
@@ -1928,7 +1932,7 @@ typedef struct Scene {
   void *sound_scrub_handle;
   void *speaker_handles;
 
-  /** (runtime) info/cache used for presenting playback framerate info to the user. */
+  /** (runtime) info/cache used for presenting playback frame-rate info to the user. */
   void *fps_info;
 
   /** None of the dependency graph vars is mean to be saved. */
@@ -2000,7 +2004,7 @@ typedef struct Scene {
 /* Use preview range. */
 #define SCER_PRV_RANGE (1 << 0)
 #define SCER_LOCK_FRAME_SELECTION (1 << 1)
-/* Show/use subframes (for checking motion blur). */
+/** Show/use sub-frames (for checking motion blur). */
 #define SCER_SHOW_SUBFRAME (1 << 3)
 
 /** #RenderData.mode. */
@@ -2148,6 +2152,7 @@ enum {
 /** #RenderData.engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
+extern const char *RE_engine_id_BLENDER_WORKBENCH_NEXT;
 extern const char *RE_engine_id_CYCLES;
 
 /** \} */
@@ -2156,7 +2161,7 @@ extern const char *RE_engine_id_CYCLES;
 /** \name Scene Defines
  * \{ */
 
-/* Note that much higher max-frames give imprecise sub-frames, see: T46859. */
+/* Note that much higher max-frames give imprecise sub-frames, see: #46859. */
 /* Current precision is 16 for the sub-frames closer to MAXFRAME. */
 
 /* For general use. */
@@ -2244,7 +2249,7 @@ typedef enum eSnapFlag {
   SCE_SNAP_ABS_GRID = (1 << 5),
   SCE_SNAP_BACKFACE_CULLING = (1 << 6),
   SCE_SNAP_KEEP_ON_SAME_OBJECT = (1 << 7),
-  /** see #eSnapTargetSelect */
+  /** see #eSnapTargetOP */
   SCE_SNAP_TO_INCLUDE_EDITED = (1 << 8),
   SCE_SNAP_TO_INCLUDE_NONEDITED = (1 << 9),
   SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
@@ -2255,30 +2260,30 @@ typedef enum eSnapFlag {
 ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
 #endif
 
-/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_select */
-typedef enum eSnapSourceSelect {
+/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
+typedef enum eSnapSourceOP {
   SCE_SNAP_SOURCE_CLOSEST = 0,
   SCE_SNAP_SOURCE_CENTER = 1,
   SCE_SNAP_SOURCE_MEDIAN = 2,
   SCE_SNAP_SOURCE_ACTIVE = 3,
-} eSnapSourceSelect;
+} eSnapSourceOP;
 
-ENUM_OPERATORS(eSnapSourceSelect, SCE_SNAP_SOURCE_ACTIVE)
+ENUM_OPERATORS(eSnapSourceOP, SCE_SNAP_SOURCE_ACTIVE)
 
 /**
- * #TransSnap.target_select and #ToolSettings.snap_flag
+ * #TransSnap.target_operation and #ToolSettings.snap_flag
  * (#SCE_SNAP_NOT_TO_ACTIVE, #SCE_SNAP_TO_INCLUDE_EDITED, #SCE_SNAP_TO_INCLUDE_NONEDITED,
  * #SCE_SNAP_TO_ONLY_SELECTABLE).
  */
-typedef enum eSnapTargetSelect {
+typedef enum eSnapTargetOP {
   SCE_SNAP_TARGET_ALL = 0,
   SCE_SNAP_TARGET_NOT_SELECTED = (1 << 0),
   SCE_SNAP_TARGET_NOT_ACTIVE = (1 << 1),
   SCE_SNAP_TARGET_NOT_EDITED = (1 << 2),
   SCE_SNAP_TARGET_ONLY_SELECTABLE = (1 << 3),
   SCE_SNAP_TARGET_NOT_NONEDITED = (1 << 4),
-} eSnapTargetSelect;
-ENUM_OPERATORS(eSnapTargetSelect, SCE_SNAP_TARGET_NOT_NONEDITED)
+} eSnapTargetOP;
+ENUM_OPERATORS(eSnapTargetOP, SCE_SNAP_TARGET_NOT_NONEDITED)
 
 /** #ToolSettings.snap_mode */
 typedef enum eSnapMode {
@@ -2428,6 +2433,7 @@ typedef enum ePaintFlags {
  * (for now just a duplicate of sculpt symmetry flags).
  */
 typedef enum ePaintSymmetryFlags {
+  PAINT_SYMM_NONE = 0,
   PAINT_SYMM_X = (1 << 0),
   PAINT_SYMM_Y = (1 << 1),
   PAINT_SYMM_Z = (1 << 2),
@@ -2437,6 +2443,13 @@ typedef enum ePaintSymmetryFlags {
   PAINT_TILE_Z = (1 << 6),
 } ePaintSymmetryFlags;
 ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
+#ifdef __cplusplus
+inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
+{
+  flags = ePaintSymmetryFlags(char(flags) + 1);
+  return flags;
+}
+#endif
 
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
 
@@ -2526,11 +2539,11 @@ enum {
 #define UVCALC_FILLHOLES (1 << 0)
 /** Would call this UVCALC_ASPECT_CORRECT, except it should be default with old file. */
 #define UVCALC_NO_ASPECT_CORRECT (1 << 1)
-/** Adjust UV's while transforming with Vert or Edge Slide. */
+/** Adjust UVs while transforming with Vert or Edge Slide. */
 #define UVCALC_TRANSFORM_CORRECT_SLIDE (1 << 2)
-/** Use mesh data after subsurf to compute UV's. */
+/** Use mesh data after subsurf to compute UVs. */
 #define UVCALC_USESUBSURF (1 << 3)
-/** Adjust UV's while transforming to avoid distortion */
+/** Adjust UVs while transforming to avoid distortion */
 #define UVCALC_TRANSFORM_CORRECT (1 << 4)
 /** Keep equal values merged while correcting custom-data. */
 #define UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED (1 << 5)
@@ -2560,7 +2573,7 @@ typedef enum eGPencil_Flags {
   GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2),
   /** Show compact list of colors. */
   GP_TOOL_FLAG_THUMBNAIL_LIST = (1 << 3),
-  /** Generate wheight data for new strokes. */
+  /** Generate weight data for new strokes. */
   GP_TOOL_FLAG_CREATE_WEIGHTS = (1 << 4),
   /** Auto-merge with last stroke. */
   GP_TOOL_FLAG_AUTOMERGE_STROKE = (1 << 5),
@@ -2693,6 +2706,7 @@ enum {
   SCE_EEVEE_OVERSCAN = (1 << 21),
   SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS = (1 << 22),
   SCE_EEVEE_DOF_JITTER = (1 << 23),
+  SCE_EEVEE_SHADOW_ENABLED = (1 << 24),
 };
 
 /** #SceneEEVEE.shadow_method */

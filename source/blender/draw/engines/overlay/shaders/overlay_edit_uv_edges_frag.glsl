@@ -22,7 +22,7 @@ void main()
 
   if (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) {
 #ifdef USE_EDGE_SELECT
-    /* TODO(@campbellbarton): The current wire-edit color contrast enough against the selection.
+    /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
      * Look into changing the default theme color instead of reducing contrast with edge-select. */
     inner_color = (geom_out.selectionFac != 0.0) ? colorEdgeSelect : (colorWireEdit * 0.5);
 #else

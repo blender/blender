@@ -82,6 +82,8 @@
 #include "CLG_log.h"
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
+#  include "GHOST_TimerTask.h"
+
 #  include <pthread.h>
 #endif
 
@@ -139,7 +141,7 @@ constexpr size_t events_pending_default_size = 4096 / sizeof(void *);
  * \{ */
 
 /**
- * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
+ * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: #98793.
  * Even though this has been fixed, at time of writing it's not yet in a release.
  * Workaround the problem by implementing confine with a software cursor.
  * While this isn't ideal, it's not adding a lot of overhead as software
@@ -174,7 +176,7 @@ static bool use_gnome_confine_hack = false;
 
 /**
  * KDE (plasma 5.26.1) has a bug where the cursor surface needs to be committed
- * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: T102048.
+ * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: #102048.
  * See: https://bugs.kde.org/show_bug.cgi?id=461001
  */
 #define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
@@ -195,8 +197,8 @@ static bool use_gnome_confine_hack = false;
  * \{ */
 
 /**
- * Fix short-cut part of keyboard reading code not properly handling some keys, see: T102194.
- * \note This is similar to X11 workaround by the same name, see: T47228.
+ * Fix short-cut part of keyboard reading code not properly handling some keys, see: #102194.
+ * \note This is similar to X11 workaround by the same name, see: #47228.
  */
 #define USE_NON_LATIN_KB_WORKAROUND
 
@@ -215,13 +217,15 @@ static bool use_gnome_confine_hack = false;
 /**
  * The event codes are used to differentiate from which mouse button an event comes from.
  */
-#define BTN_LEFT 0x110
-#define BTN_RIGHT 0x111
-#define BTN_MIDDLE 0x112
-#define BTN_SIDE 0x113
-#define BTN_EXTRA 0x114
-#define BTN_FORWARD 0x115
-#define BTN_BACK 0x116
+enum {
+  BTN_LEFT = 0x110,
+  BTN_RIGHT = 0x111,
+  BTN_MIDDLE = 0x112,
+  BTN_SIDE = 0x113,
+  BTN_EXTRA = 0x114,
+  BTN_FORWARD = 0x115,
+  BTN_BACK = 0x116
+};
 // #define BTN_TASK 0x117 /* UNUSED. */
 
 /**
@@ -232,28 +236,34 @@ static bool use_gnome_confine_hack = false;
  * at the Blender studio, having the button closest to the nib be MMB is preferable,
  * so use this as a default. If needs be - swapping these could be a preference.
  */
-#define BTN_STYLUS 0x14b  /* Use as middle-mouse. */
-#define BTN_STYLUS2 0x14c /* Use as right-mouse. */
-/* NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
-#define BTN_STYLUS3 0x149
+enum {
+  /** Use as middle-mouse. */
+  BTN_STYLUS = 0x14b,
+  /** Use as right-mouse. */
+  BTN_STYLUS2 = 0x14c,
+  /** NOTE(@ideasman42): Map to an additional button (not sure which hardware uses this). */
+  BTN_STYLUS3 = 0x149,
+};
 
 /**
  * Keyboard scan-codes.
  */
-#define KEY_GRAVE 41
+enum {
+  KEY_GRAVE = 41,
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
-#  define KEY_1 2
-#  define KEY_2 3
-#  define KEY_3 4
-#  define KEY_4 5
-#  define KEY_5 6
-#  define KEY_6 7
-#  define KEY_7 8
-#  define KEY_8 9
-#  define KEY_9 10
-#  define KEY_0 11
+  KEY_1 = 2,
+  KEY_2 = 3,
+  KEY_3 = 4,
+  KEY_4 = 5,
+  KEY_5 = 6,
+  KEY_6 = 7,
+  KEY_7 = 8,
+  KEY_8 = 9,
+  KEY_9 = 10,
+  KEY_0 = 11,
 #endif
+};
 
 /** \} */
 
@@ -280,41 +290,41 @@ struct GWL_ModifierInfo {
 };
 
 static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
-    /* MOD_INDEX_SHIFT */
+    /*MOD_INDEX_SHIFT*/
     {
-        /* display_name */ "Shift",
-        /* xkb_id */ XKB_MOD_NAME_SHIFT,
-        /* key_l */ GHOST_kKeyLeftShift,
-        /* key_r */ GHOST_kKeyRightShift,
-        /* mod_l */ GHOST_kModifierKeyLeftShift,
-        /* mod_r */ GHOST_kModifierKeyRightShift,
+        /*display_name*/ "Shift",
+        /*xkb_id*/ XKB_MOD_NAME_SHIFT,
+        /*key_l*/ GHOST_kKeyLeftShift,
+        /*key_r*/ GHOST_kKeyRightShift,
+        /*mod_l*/ GHOST_kModifierKeyLeftShift,
+        /*mod_r*/ GHOST_kModifierKeyRightShift,
     },
-    /* MOD_INDEX_ALT */
+    /*MOD_INDEX_ALT*/
     {
-        /* display_name */ "Alt",
-        /* xkb_id */ XKB_MOD_NAME_ALT,
-        /* key_l */ GHOST_kKeyLeftAlt,
-        /* key_r */ GHOST_kKeyRightAlt,
-        /* mod_l */ GHOST_kModifierKeyLeftAlt,
-        /* mod_r */ GHOST_kModifierKeyRightAlt,
+        /*display_name*/ "Alt",
+        /*xkb_id*/ XKB_MOD_NAME_ALT,
+        /*key_l*/ GHOST_kKeyLeftAlt,
+        /*key_r*/ GHOST_kKeyRightAlt,
+        /*mod_l*/ GHOST_kModifierKeyLeftAlt,
+        /*mod_r*/ GHOST_kModifierKeyRightAlt,
     },
-    /* MOD_INDEX_CTRL */
+    /*MOD_INDEX_CTRL*/
     {
-        /* display_name */ "Control",
-        /* xkb_id */ XKB_MOD_NAME_CTRL,
-        /* key_l */ GHOST_kKeyLeftControl,
-        /* key_r */ GHOST_kKeyRightControl,
-        /* mod_l */ GHOST_kModifierKeyLeftControl,
-        /* mod_r */ GHOST_kModifierKeyRightControl,
+        /*display_name*/ "Control",
+        /*xkb_id*/ XKB_MOD_NAME_CTRL,
+        /*key_l*/ GHOST_kKeyLeftControl,
+        /*key_r*/ GHOST_kKeyRightControl,
+        /*mod_l*/ GHOST_kModifierKeyLeftControl,
+        /*mod_r*/ GHOST_kModifierKeyRightControl,
     },
-    /* MOD_INDEX_OS */
+    /*MOD_INDEX_OS*/
     {
-        /* display_name */ "OS",
-        /* xkb_id */ XKB_MOD_NAME_LOGO,
-        /* key_l */ GHOST_kKeyLeftOS,
-        /* key_r */ GHOST_kKeyRightOS,
-        /* mod_l */ GHOST_kModifierKeyLeftOS,
-        /* mod_r */ GHOST_kModifierKeyRightOS,
+        /*display_name*/ "OS",
+        /*xkb_id*/ XKB_MOD_NAME_LOGO,
+        /*key_l*/ GHOST_kKeyLeftOS,
+        /*key_r*/ GHOST_kKeyRightOS,
+        /*mod_l*/ GHOST_kModifierKeyLeftOS,
+        /*mod_r*/ GHOST_kModifierKeyRightOS,
     },
 };
 
@@ -760,7 +770,12 @@ struct GWL_Seat {
     int32_t rate = 0;
     /** Time (milliseconds) after which to start repeating keys. */
     int32_t delay = 0;
-    /** Timer for key repeats. */
+    /**
+     * Timer for key repeats.
+     *
+     * \note For as long as #USE_EVENT_BACKGROUND_THREAD is defined, any access to this
+     * (including null checks, must lock `timer_mutex` first.
+     */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
 
@@ -824,6 +839,42 @@ static bool gwl_seat_key_depressed_suppress_warning(const GWL_Seat *seat)
   return suppress_warning;
 }
 
+/**
+ * \note Caller must lock `timer_mutex`.
+ */
+static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
+                                          GHOST_TimerProcPtr key_repeat_fn,
+                                          GHOST_TUserDataPtr payload,
+                                          const bool use_delay)
+{
+  GHOST_SystemWayland *system = seat->system;
+  const uint64_t time_step = 1000 / seat->key_repeat.rate;
+  const uint64_t time_start = use_delay ? seat->key_repeat.delay : time_step;
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  GHOST_TimerTask *timer = new GHOST_TimerTask(
+      system->getMilliSeconds() + time_start, time_step, key_repeat_fn, payload);
+  seat->key_repeat.timer = timer;
+  system->ghost_timer_manager()->addTimer(timer);
+#else
+  seat->key_repeat.timer = system->installTimer(time_start, time_step, key_repeat_fn, payload);
+#endif
+}
+
+/**
+ * \note The caller must lock `timer_mutex`.
+ */
+static void gwl_seat_key_repeat_timer_remove(GWL_Seat *seat)
+{
+  GHOST_SystemWayland *system = seat->system;
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  system->ghost_timer_manager()->removeTimer(
+      static_cast<GHOST_TimerTask *>(seat->key_repeat.timer));
+#else
+  system->removeTimer(seat->key_repeat.timer);
+#endif
+  seat->key_repeat.timer = nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -865,7 +916,7 @@ struct GWL_Display {
    * The main purpose of having an active seat is an alternative from always using the first
    * seat which prevents events from any other seat.
    *
-   * NOTE(@campbellbarton): This could be extended and developed further extended to support
+   * NOTE(@ideasman42): This could be extended and developed further extended to support
    * an active seat per window (for e.g.), basic support is sufficient for now as currently isn't
    * a widely used feature.
    */
@@ -897,6 +948,16 @@ struct GWL_Display {
   std::vector<GHOST_IEvent *> events_pending;
   /** Guard against multiple threads accessing `events_pending` at once. */
   std::mutex events_pending_mutex;
+
+  /**
+   * A separate timer queue, needed so the WAYLAND thread can lock access.
+   * Using the system's #GHOST_Sysem::getTimerManager is not thread safe because
+   * access to the timer outside of WAYLAND specific logic will not lock.
+   *
+   * Needed because #GHOST_System::dispatchEvents fires timers
+   * outside of WAYLAND (without locking the `timer_mutex`).
+   */
+  GHOST_TimerManager *ghost_timer_manager = nullptr;
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 };
@@ -951,6 +1012,13 @@ static void gwl_display_destroy(GWL_Display *display)
     gwl_display_event_thread_destroy(display);
     display->system->server_mutex->unlock();
   }
+
+  /* Important to remove after the seats which may have key repeat timers active. */
+  if (display->ghost_timer_manager) {
+    delete display->ghost_timer_manager;
+    display->ghost_timer_manager = nullptr;
+  }
+
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
   if (display->wl_display) {
@@ -1171,7 +1239,7 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
 {
   const bool on_exit = true;
 
-  /* NOTE(@campbellbarton): Free by slot instead of simply looping over
+  /* NOTE(@ideasman42): Free by slot instead of simply looping over
    * `display->registry_entry` so the order of freeing is always predictable.
    * Otherwise global objects would be feed in the order they are registered.
    * While this works in my tests, it could cause difficult to reproduce bugs
@@ -1201,7 +1269,7 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
  * so there is no reason to update all other outputs that an output was removed (for e.g.).
  * Pass as -1 to update all slots.
  *
- * NOTE(@campbellbarton): Updating all other items on a single change is typically worth avoiding.
+ * NOTE(@ideasman42): Updating all other items on a single change is typically worth avoiding.
  * In practice this isn't a problem as so there are so few elements in `display->registry_entry`,
  * so few use update functions and adding/removal at runtime is rarely called (plugging/unplugging)
  * hardware for e.g. So while it's possible to store dependency links to avoid unnecessary
@@ -1250,7 +1318,7 @@ static void ghost_wl_display_report_error(struct wl_display *display)
     fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
   }
 
-  /* NOTE(@campbellbarton): The application is running,
+  /* NOTE(@ideasman42): The application is running,
    * however an error closes all windows and most importantly:
    * shuts down the GPU context (loosing all GPU state - shaders, bind codes etc),
    * so recovering from this effectively involves restarting.
@@ -1260,7 +1328,7 @@ static void ghost_wl_display_report_error(struct wl_display *display)
    * So in practice re-connecting to the display server isn't an option.
    *
    * Exit since leaving the process open will simply flood the output and do nothing.
-   * Although as the process is in a valid state, auto-save for e.g. is possible, see: T100855. */
+   * Although as the process is in a valid state, auto-save for e.g. is possible, see: #100855. */
   ::exit(-1);
 }
 
@@ -1374,7 +1442,7 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 
       /* Additional keys for non US layouts. */
 
-      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: T102287. */
+      /* Uses the same physical key as #XKB_KEY_KP_Decimal for QWERTZ layout, see: #102287. */
       GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
 
       default:
@@ -1662,31 +1730,39 @@ static int ghost_wl_display_event_pump_from_thread(struct wl_display *wl_display
   server_mutex->lock();
   int err = 0;
   if (wl_display_prepare_read(wl_display) == 0) {
+    bool wait_on_fd = false;
     /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
     if (file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0) {
       err = wl_display_read_events(wl_display);
     }
     else {
       wl_display_cancel_read(wl_display);
+      /* Without this, the thread will loop continuously, 100% CPU. */
+      wait_on_fd = true;
+    }
+
+    server_mutex->unlock();
+
+    if (wait_on_fd) {
+      /* Important this runs after unlocking. */
+      file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX);
     }
   }
   else {
-    int state;
-    do {
-      server_mutex->unlock();
-      /* Wait for input (unlocked, so as not to block other threads). */
-      state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX);
+    server_mutex->unlock();
+
+    /* Wait for input (unlocked, so as not to block other threads). */
+    int state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, INT32_MAX);
+    /* Re-check `state` with a lock held, needed to avoid holding the lock. */
+    if (state > 0) {
       server_mutex->lock();
-      /* Re-check `state` with a lock held, needed to avoid holding the lock. */
+      state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0);
       if (state > 0) {
-        state = file_descriptor_is_io_ready(fd, GWL_IOR_READ | GWL_IOR_NO_RETRY, 0);
-        if (state > 0) {
-          err = wl_display_dispatch_pending(wl_display);
-        }
+        err = wl_display_dispatch_pending(wl_display);
       }
-    } while (state > 0);
+      server_mutex->unlock();
+    }
   }
-  server_mutex->unlock();
 
   return err;
 }
@@ -2578,8 +2654,6 @@ static void pointer_handle_enter(void *data,
 
   GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface);
 
-  win->activate();
-
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->cursor_source_serial = serial;
   seat->pointer.serial = serial;
@@ -2619,8 +2693,6 @@ static void pointer_handle_leave(void *data,
   static_cast<GWL_Seat *>(data)->pointer.wl_surface_window = nullptr;
   if (wl_surface && ghost_wl_surface_own(wl_surface)) {
     CLOG_INFO(LOG, 2, "leave");
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface);
-    win->deactivate();
   }
   else {
     CLOG_INFO(LOG, 2, "leave (skipped)");
@@ -2898,7 +2970,7 @@ static void gesture_pinch_handle_begin(void *data,
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
-  /* NOTE(@campbellbarton): Blender's use of track-pad coordinates is inconsistent and needs work.
+  /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
    * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
    * Some operators scale by the UI scale, some don't.
    * Even this window scale is not correct because it doesn't account for:
@@ -2912,7 +2984,7 @@ static void gesture_pinch_handle_begin(void *data,
    */
   const wl_fixed_t win_scale = win ? win->scale() : 1;
 
-  /* NOTE(@campbellbarton): Scale factors match Blender's operators & default preferences.
+  /* NOTE(@ideasman42): Scale factors match Blender's operators & default preferences.
    * For these values to work correctly, operator logic will need to be changed not to scale input
    * by the region size (as with 3D view zoom) or preference for 3D view orbit sensitivity.
    *
@@ -3075,7 +3147,7 @@ static const struct zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener
 /* -------------------------------------------------------------------- */
 /** \name Listener (Touch Seat), #wl_touch_listener
  *
- * NOTE(@campbellbarton): It's not clear if this interface is used by popular compositors.
+ * NOTE(@ideasman42): It's not clear if this interface is used by popular compositors.
  * It looks like GNOME/KDE only support `zwp_pointer_gestures_v1_interface`.
  * If this isn't used anywhere, it could be removed.
  * \{ */
@@ -3706,9 +3778,14 @@ static void keyboard_handle_leave(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->keyboard.wl_surface_window = nullptr;
 
-  /* Losing focus must stop repeating text. */
-  if (seat->key_repeat.timer) {
-    keyboard_handle_key_repeat_cancel(seat);
+  {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+    /* Losing focus must stop repeating text. */
+    if (seat->key_repeat.timer) {
+      keyboard_handle_key_repeat_cancel(seat);
+    }
   }
 
 #ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
@@ -3731,9 +3808,9 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
   /* Use an empty keyboard state to access key symbol without modifiers. */
   xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
 
-  /* NOTE(@campbellbarton): Only perform the number-locked lookup as a fallback
+  /* NOTE(@ideasman42): Only perform the number-locked lookup as a fallback
    * when a number-pad key has been pressed. This is important as some key-maps use number lock
-   * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: T96170.
+   * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: #96170.
    * Alternative solutions could be to inspect the layout however this could get involved
    * and turning on the number-lock is only needed for a limited set of keys. */
 
@@ -3768,36 +3845,32 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
   return sym;
 }
 
+/**
+ * \note Caller must lock `timer_mutex`.
+ */
 static void keyboard_handle_key_repeat_cancel(GWL_Seat *seat)
 {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
-#endif
   GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller much check for timer");
   delete static_cast<GWL_KeyRepeatPlayload *>(seat->key_repeat.timer->getUserData());
-  seat->system->removeTimer(seat->key_repeat.timer);
-  seat->key_repeat.timer = nullptr;
+
+  gwl_seat_key_repeat_timer_remove(seat);
 }
 
 /**
  * Restart the key-repeat timer.
  * \param use_delay: When false, use the interval
  * (prevents pause when the setting changes while the key is held).
+ *
+ * \note Caller must lock `timer_mutex`.
  */
 static void keyboard_handle_key_repeat_reset(GWL_Seat *seat, const bool use_delay)
 {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
-#endif
   GHOST_ASSERT(seat->key_repeat.timer != nullptr, "Caller much check for timer");
-  GHOST_SystemWayland *system = seat->system;
-  GHOST_ITimerTask *timer = seat->key_repeat.timer;
-  GHOST_TimerProcPtr key_repeat_fn = timer->getTimerProc();
+  GHOST_TimerProcPtr key_repeat_fn = seat->key_repeat.timer->getTimerProc();
   GHOST_TUserDataPtr payload = seat->key_repeat.timer->getUserData();
-  seat->system->removeTimer(seat->key_repeat.timer);
-  const uint64_t time_step = 1000 / seat->key_repeat.rate;
-  const uint64_t time_start = use_delay ? seat->key_repeat.delay : time_step;
-  seat->key_repeat.timer = system->installTimer(time_start, time_step, key_repeat_fn, payload);
+
+  gwl_seat_key_repeat_timer_remove(seat);
+  gwl_seat_key_repeat_timer_add(seat, key_repeat_fn, payload, use_delay);
 }
 
 static void keyboard_handle_key(void *data,
@@ -3836,6 +3909,11 @@ static void keyboard_handle_key(void *data,
       break;
   }
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  /* Any access to `seat->key_repeat.timer` must lock. */
+  std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+
   struct GWL_KeyRepeatPlayload *key_repeat_payload = nullptr;
 
   /* Delete previous timer. */
@@ -3860,7 +3938,7 @@ static void keyboard_handle_key(void *data,
       else {
         /* Key-up from keys that were not repeating cause the repeat timer to pause.
          *
-         * NOTE(@campbellbarton): This behavior isn't universal, some text input systems will
+         * NOTE(@ideasman42): This behavior isn't universal, some text input systems will
          * stop the repeat entirely. Choose to pause repeat instead as this is what GTK/WIN32 do,
          * and it fits better for keyboard input that isn't related to text entry. */
         timer_action = RESET;
@@ -3874,23 +3952,14 @@ static void keyboard_handle_key(void *data,
         break;
       }
       case RESET: {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-        std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
-#endif
         /* The payload will be added again. */
-        seat->system->removeTimer(seat->key_repeat.timer);
-        seat->key_repeat.timer = nullptr;
+        gwl_seat_key_repeat_timer_remove(seat);
         break;
       }
       case CANCEL: {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-        std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
-#endif
         delete key_repeat_payload;
         key_repeat_payload = nullptr;
-
-        seat->system->removeTimer(seat->key_repeat.timer);
-        seat->key_repeat.timer = nullptr;
+        gwl_seat_key_repeat_timer_remove(seat);
         break;
       }
     }
@@ -3944,8 +4013,8 @@ static void keyboard_handle_key(void *data,
                                                            utf8_buf));
       }
     };
-    seat->key_repeat.timer = seat->system->installTimer(
-        seat->key_repeat.delay, 1000 / seat->key_repeat.rate, key_repeat_fn, key_repeat_payload);
+
+    gwl_seat_key_repeat_timer_add(seat, key_repeat_fn, key_repeat_payload, true);
   }
 }
 
@@ -3970,8 +4039,13 @@ static void keyboard_handle_modifiers(void *data,
 
   /* A modifier changed so reset the timer,
    * see comment in #keyboard_handle_key regarding this behavior. */
-  if (seat->key_repeat.timer) {
-    keyboard_handle_key_repeat_reset(seat, true);
+  {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+    if (seat->key_repeat.timer) {
+      keyboard_handle_key_repeat_reset(seat, true);
+    }
   }
 
 #ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
@@ -3990,9 +4064,14 @@ static void keyboard_repeat_handle_info(void *data,
   seat->key_repeat.rate = rate;
   seat->key_repeat.delay = delay;
 
-  /* Unlikely possible this setting changes while repeating. */
-  if (seat->key_repeat.timer) {
-    keyboard_handle_key_repeat_reset(seat, false);
+  {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+    /* Unlikely possible this setting changes while repeating. */
+    if (seat->key_repeat.timer) {
+      keyboard_handle_key_repeat_reset(seat, false);
+    }
   }
 }
 
@@ -4263,8 +4342,14 @@ static void gwl_seat_capability_keyboard_disable(GWL_Seat *seat)
   if (!seat->wl_keyboard) {
     return;
   }
-  if (seat->key_repeat.timer) {
-    keyboard_handle_key_repeat_cancel(seat);
+
+  {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+    if (seat->key_repeat.timer) {
+      keyboard_handle_key_repeat_cancel(seat);
+    }
   }
   wl_keyboard_destroy(seat->wl_keyboard);
   seat->wl_keyboard = nullptr;
@@ -4382,7 +4467,7 @@ static void xdg_output_handle_logical_size(void *data,
 
 #ifdef USE_GNOME_CONFINE_HACK
       /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
-       * as T98793 has been fixed up-stream too, but not in a release at time of writing. */
+       * as #98793 has been fixed up-stream too, but not in a release at time of writing. */
       use_gnome_confine_hack = true;
 #endif
 
@@ -5320,7 +5405,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   /* Connect to the Wayland server. */
   display_->wl_display = wl_display_connect(nullptr);
   if (!display_->wl_display) {
-    this->~GHOST_SystemWayland();
+    display_destroy_and_free_all();
     throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
@@ -5364,7 +5449,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
               "WAYLAND found but libdecor was not, install libdecor for Wayland support, "
               "falling back to X11\n");
 #  endif
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to find libdecor!");
 
       use_libdecor = true;
@@ -5381,7 +5466,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     GWL_LibDecor_System &decor = *display_->libdecor;
     decor.context = libdecor_new(display_->wl_display, &libdecor_interface);
     if (!decor.context) {
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to create window decorations!");
     }
   }
@@ -5392,17 +5477,19 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   {
     GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
     }
   }
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   gwl_display_event_thread_create(display_);
+
+  display_->ghost_timer_manager = new GHOST_TimerManager();
 #endif
 }
 
-GHOST_SystemWayland::~GHOST_SystemWayland()
+void GHOST_SystemWayland::display_destroy_and_free_all()
 {
   gwl_display_destroy(display_);
 
@@ -5410,6 +5497,11 @@ GHOST_SystemWayland::~GHOST_SystemWayland()
   delete server_mutex;
   delete timer_mutex;
 #endif
+}
+
+GHOST_SystemWayland::~GHOST_SystemWayland()
+{
+  display_destroy_and_free_all();
 }
 
 GHOST_TSuccess GHOST_SystemWayland::init()
@@ -5474,10 +5566,16 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
   {
+    const uint64_t now = getMilliSeconds();
 #ifdef USE_EVENT_BACKGROUND_THREAD
-    std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
+    {
+      std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
+      if (ghost_timer_manager()->fireTimers(now)) {
+        any_processed = true;
+      }
+    }
 #endif
-    if (getTimerManager()->fireTimers(getMilliSeconds())) {
+    if (getTimerManager()->fireTimers(now)) {
       any_processed = true;
     }
   }
@@ -6700,6 +6798,13 @@ struct wl_shm *GHOST_SystemWayland::wl_shm() const
   return display_->wl_shm;
 }
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
+{
+  return display_->ghost_timer_manager;
+}
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -6932,7 +7037,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                          UNPACK2(xy_next));
           wl_surface_commit(wl_surface);
 
-          /* NOTE(@campbellbarton): The new cursor position is a hint,
+          /* NOTE(@ideasman42): The new cursor position is a hint,
            * it's possible the hint is ignored. It doesn't seem like there is a good way to
            * know if the hint will be used or not, at least not immediately. */
           xy_motion[0] = xy_next[0];
@@ -6975,7 +7080,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   if (mode != GHOST_kGrabDisable) {
     if (grab_state_next.use_lock) {
       if (!grab_state_prev.use_lock) {
-        /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
+        /* TODO(@ideasman42): As WAYLAND does not support warping the pointer it may not be
          * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
          * An alternative could be to draw the cursor in software (and hide the real cursor),
          * or just accept a locked cursor on WAYLAND. */

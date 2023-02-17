@@ -135,8 +135,8 @@ class BrickFunction : public mf::MultiFunction {
       builder.single_input<float>("Bias");
       builder.single_input<float>("Brick Width");
       builder.single_input<float>("Row Height");
-      builder.single_output<ColorGeometry4f>("Color");
-      builder.single_output<float>("Fac");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
@@ -201,7 +201,7 @@ class BrickFunction : public mf::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(

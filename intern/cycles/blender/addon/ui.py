@@ -20,7 +20,7 @@ class CyclesPresetPanel(PresetPanel, Panel):
     @staticmethod
     def post_cb(context):
         # Modify an arbitrary built-in scene property to force a depsgraph
-        # update, because add-on properties don't. (see T62325)
+        # update, because add-on properties don't. (see #62325)
         render = context.scene.render
         render.filter_size = render.filter_size
 
@@ -2112,9 +2112,7 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
 
         row = col.row(align=True)
         row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
-        row.prop(cscene, "debug_use_cpu_sse3", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse41", toggle=True)
-        row.prop(cscene, "debug_use_cpu_avx", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
         col.prop(cscene, "debug_bvh_layout", text="BVH")
 

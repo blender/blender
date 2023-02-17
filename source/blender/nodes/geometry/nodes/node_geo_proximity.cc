@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -142,14 +143,14 @@ class ProximityFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Geometry Proximity", signature};
       builder.single_input<float3>("Source Position");
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Distance");
       return signature;
     }();
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
                                                                                "Source Position");

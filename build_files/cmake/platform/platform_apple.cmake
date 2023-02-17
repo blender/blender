@@ -97,20 +97,8 @@ add_bundled_libraries(materialx/lib)
 
 if(WITH_VULKAN_BACKEND)
   find_package(MoltenVK REQUIRED)
-
-  if(EXISTS ${LIBDIR}/vulkan)
-    set(VULKAN_FOUND On)
-    set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan/macOS)
-    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
-    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/lib/libvulkan.1.dylib)
-    set(SHADERC_LIBRARY ${VULKAN_ROOT_DIR}/lib/libshaderc_combined.a)
-
-    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR} ${MOLTENVK_INCLUDE_DIRS})
-    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY} ${SHADERC_LIBRARY} ${MOLTENVK_LIBRARIES})
-  else()
-    message(WARNING "Vulkan SDK was not found, disabling WITH_VULKAN_BACKEND")
-    set(WITH_VULKAN_BACKEND OFF)
-  endif()
+  find_package(ShaderC REQUIRED)
+  find_package(Vulkan REQUIRED)
 endif()
 
 if(WITH_OPENSUBDIV)
@@ -452,7 +440,7 @@ string(APPEND PLATFORM_LINKFLAGS " -stdlib=libc++")
 # Make stack size more similar to Embree, required for Embree.
 string(APPEND PLATFORM_LINKFLAGS_EXECUTABLE " -Wl,-stack_size,0x100000")
 
-# Suppress ranlib "has no symbols" warnings (workaround for T48250)
+# Suppress ranlib "has no symbols" warnings (workaround for #48250).
 set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
 # llvm-ranlib doesn't support this flag. Xcode's libtool does.

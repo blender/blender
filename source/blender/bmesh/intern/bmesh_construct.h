@@ -170,12 +170,6 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
-char BM_face_flag_from_mflag(char mflag);
-char BM_edge_flag_from_mflag(short mflag);
-/* ME -> BM */
-char BM_face_flag_to_mflag(BMFace *f);
-short BM_edge_flag_to_mflag(BMEdge *e);
-
 #ifdef __cplusplus
 }
 #endif

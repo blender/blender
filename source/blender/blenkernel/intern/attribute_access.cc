@@ -316,9 +316,6 @@ GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) cons
 
 GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) const
 {
-  if (writable_ != Writable) {
-    return {};
-  }
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
     return {};
@@ -340,11 +337,11 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
 
   void *data = nullptr;
   if (stored_as_named_attribute_) {
-    data = CustomData_duplicate_referenced_layer_named(
+    data = CustomData_get_layer_named_for_write(
         custom_data, stored_type_, name_.c_str(), element_num);
   }
   else {
-    data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
+    data = CustomData_get_layer_for_write(custom_data, stored_type_, element_num);
   }
   if (data == nullptr) {
     return {};
@@ -461,7 +458,7 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    CustomData_duplicate_referenced_layer_named(custom_data, layer.type, layer.name, element_num);
+    CustomData_get_layer_named_for_write(custom_data, layer.type, layer.name, element_num);
 
     const CPPType *type = custom_data_type_to_cpp_type((eCustomDataType)layer.type);
     if (type == nullptr) {
@@ -911,38 +908,6 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
         return true;
       });
   return attributes;
-}
-
-void copy_attribute_domain(const AttributeAccessor src_attributes,
-                           MutableAttributeAccessor dst_attributes,
-                           const IndexMask selection,
-                           const eAttrDomain domain,
-                           const AnonymousAttributePropagationInfo &propagation_info,
-                           const Set<std::string> &skip)
-{
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
-        if (meta_data.domain != domain) {
-          return true;
-        }
-        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-          return true;
-        }
-        if (skip.contains(id.name())) {
-          return true;
-        }
-
-        const GVArray src = src_attributes.lookup(id, meta_data.domain);
-        BLI_assert(src);
-
-        /* Copy attribute. */
-        GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, domain, meta_data.data_type);
-        array_utils::copy(src, selection, dst.span);
-        dst.finish();
-
-        return true;
-      });
 }
 
 }  // namespace blender::bke

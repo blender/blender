@@ -88,11 +88,11 @@ typedef struct AssetMetaData {
 } AssetMetaData;
 
 typedef enum eAssetLibraryType {
-  /* For the future. Display assets bundled with Blender by default. */
-  // ASSET_LIBRARY_BUNDLED = 0,
   /** Display assets from the current session (current "Main"). */
   ASSET_LIBRARY_LOCAL = 1,
   ASSET_LIBRARY_ALL = 2,
+  /** Display assets bundled with Blender by default. */
+  ASSET_LIBRARY_ESSENTIALS = 3,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#CustomAssetLibraryDefinition). In RNA, we add the index of the custom library to this to
@@ -102,6 +102,17 @@ typedef enum eAssetLibraryType {
      project only. */
   ASSET_LIBRARY_CUSTOM_FROM_PROJECT = 500,
 } eAssetLibraryType;
+
+typedef enum eAssetImportMethod {
+  /** Regular data-block linking. */
+  ASSET_IMPORT_LINK = 0,
+  /** Regular data-block appending (basically linking + "Make Local"). */
+  ASSET_IMPORT_APPEND = 1,
+  /** Append data-block with the #BLO_LIBLINK_APPEND_LOCAL_ID_REUSE flag enabled. Some typically
+   * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
+   * be reused from an earlier append. */
+  ASSET_IMPORT_APPEND_REUSE = 2,
+} eAssetImportMethod;
 
 /**
  * Information to identify an asset library. May be either one of the predefined types ("Current
@@ -129,6 +140,9 @@ typedef struct CustomAssetLibraryDefinition {
 
   char name[64];   /* MAX_NAME */
   char path[1024]; /* FILE_MAX */
+
+  short import_method; /* eAssetImportMethod */
+  char _pad[6];
 } CustomAssetLibraryDefinition;
 
 /**

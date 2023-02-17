@@ -367,7 +367,9 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       mr->loop_normals = static_cast<float(*)[3]>(
           MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
       short(*clnors)[2] = static_cast<short(*)[2]>(
-          CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL));
+          CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
+      const bool *sharp_edges = static_cast<const bool *>(
+          CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
       BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions),
                                   mr->vert_normals,
                                   mr->vert_len,
@@ -381,6 +383,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                   mr->poly_len,
                                   is_auto_smooth,
                                   split_angle,
+                                  sharp_edges,
                                   nullptr,
                                   nullptr,
                                   clnors);

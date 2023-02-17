@@ -30,10 +30,15 @@
 #  include "ED_asset.h"
 #  include "ED_fileselect.h"
 
-#  include "RNA_access.h"
-
 #  include "WM_api.h"
 #  include "WM_types.h"
+
+#  include "RNA_access.h"
+
+static char *rna_AssetMetaData_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("asset_data");
+}
 
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
                                                      const AssetMetaData *asset_data,
@@ -58,6 +63,12 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, asset_data, r_info) ?
              PROP_EDITABLE :
              0;
+}
+
+static char *rna_AssetTag_path(const PointerRNA *ptr)
+{
+  const AssetTag *asset_tag = ptr->data;
+  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -343,6 +354,7 @@ static void rna_def_asset_tag(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetTag", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetTag_path");
   RNA_def_struct_ui_text(srna, "Asset Tag", "User defined tag (name token)");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -394,6 +406,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetMetaData", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetMetaData_path");
   RNA_def_struct_ui_text(srna, "Asset Data", "Additional data stored for an asset data-block");
   //  RNA_def_struct_ui_icon(srna, ICON_ASSET); /* TODO: Icon doesn't exist! */
   /* The struct has custom properties, but no pointer properties to other IDs! */
@@ -538,6 +551,31 @@ static void rna_def_asset_library_reference_custom(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CustomAssetLibraryDefinition_path_set");
+  RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
+
+  static const EnumPropertyItem import_method_items[] = {
+      {ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
+      {ASSET_IMPORT_APPEND,
+       "APPEND",
+       0,
+       "Append",
+       "Import the assets as copied data-block, with no link to the original asset data-block"},
+      {ASSET_IMPORT_APPEND_REUSE,
+       "APPEND_REUSE",
+       0,
+       "Append (Reuse Data)",
+       "Import the assets as copied data-block while avoiding multiple copies of nested, "
+       "typically heavy data. For example the textures of a material asset, or the mesh of an "
+       "object asset, don't have to be copied every time this asset is imported. The instances of "
+       "the asset share the data instead"},
+      {0, NULL, 0, NULL, NULL},
+  };
+  prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, import_method_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Default Import Method",
+      "Determine how the asset will be imported, unless overridden by the Asset Browser");
   RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
 }
 

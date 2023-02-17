@@ -157,6 +157,8 @@ static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA 
     }
   }
 
+  BKE_nlastrip_recalculate_blend(strip);
+
   rna_NlaStrip_update(bmain, scene, ptr);
 }
 
@@ -537,12 +539,12 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
   strip->end += (start - strip->start);
   strip->start = start;
 
-  if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
+  if (!BKE_nlastrips_add_strip(&track->strips, strip)) {
     BKE_report(
         reports,
         RPT_ERROR,
         "Unable to add strip (the track does not have any space to accommodate this new strip)");
-    BKE_nlastrip_free(NULL, strip, true);
+    BKE_nlastrip_free(strip, true);
     return NULL;
   }
 
@@ -593,7 +595,7 @@ static void rna_NlaStrip_remove(
     return;
   }
 
-  BKE_nlastrip_free(&track->strips, strip, true);
+  BKE_nlastrip_remove_and_free(&track->strips, strip, true);
   RNA_POINTER_INVALIDATE(strip_ptr);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
@@ -952,7 +954,7 @@ static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "NlaStrips");
   srna = RNA_def_struct(brna, "NlaStrips", NULL);
   RNA_def_struct_sdna(srna, "NlaTrack");
-  RNA_def_struct_ui_text(srna, "Nla Strips", "Collection of Nla Strips");
+  RNA_def_struct_ui_text(srna, "NLA Strips", "Collection of NLA Strips");
 
   func = RNA_def_function(srna, "new", "rna_NlaStrip_new");
   RNA_def_function_flag(func,
@@ -992,7 +994,7 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "NlaTrack", NULL);
   RNA_def_struct_ui_text(
-      srna, "NLA Track", "A animation layer containing Actions referenced as NLA strips");
+      srna, "NLA Track", "An animation layer containing Actions referenced as NLA strips");
   RNA_def_struct_ui_icon(srna, ICON_NLA);
 
   /* strips collection */

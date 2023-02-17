@@ -248,7 +248,7 @@ class ColorSceneLinearByteEncoded4b final
 template<typename ChannelStorageType>
 class ColorTheme4 final : public ColorRGBA<ChannelStorageType, eSpace::Theme, eAlpha::Straight> {
  public:
-  constexpr ColorTheme4() : ColorRGBA<ChannelStorageType, eSpace::Theme, eAlpha::Straight>(){};
+  constexpr ColorTheme4() = default;
 
   constexpr ColorTheme4(const ChannelStorageType *rgba)
       : ColorRGBA<ChannelStorageType, eSpace::Theme, eAlpha::Straight>(rgba)

@@ -593,13 +593,13 @@ typedef struct wmGesture {
   /**
    * customdata
    * - for border is a #rcti.
-   * - for circle is recti, (xmin, ymin) is center, xmax radius.
+   * - for circle is #rcti, (xmin, ymin) is center, xmax radius.
    * - for lasso is short array.
-   * - for straight line is a recti: (xmin,ymin) is start, (xmax, ymax) is end.
+   * - for straight line is a #rcti: (xmin, ymin) is start, (xmax, ymax) is end.
    */
   void *customdata;
 
-  /** Free pointer to use for operator allocs (if set, its freed on exit). */
+  /** Free pointer to use for operator allocations (if set, its freed on exit). */
   wmGenericUserData user_data;
 } wmGesture;
 
@@ -673,7 +673,7 @@ typedef struct wmTabletData {
  * - The reason to differentiate between "press" and the previous event state is
  *   the previous event may be set by key-release events. In the case of a single key click
  *   this isn't a problem however releasing other keys such as modifiers prevents click/click-drag
- *   events from being detected, see: T89989.
+ *   events from being detected, see: #89989.
  *
  * - Mouse-wheel events are excluded even though they generate #KM_PRESS
  *   as clicking and dragging don't make sense for mouse wheel events.
@@ -1079,7 +1079,7 @@ typedef struct wmDragAsset {
   const char *path;
   int id_type;
   struct AssetMetaData *metadata;
-  int import_type; /* eFileAssetImportType */
+  int import_method; /* eAssetImportType */
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.
@@ -1275,7 +1275,7 @@ typedef struct RecentFile {
 
 /* Logging */
 struct CLG_LogRef;
-/* wm_init_exit.c */
+/* wm_init_exit.cc */
 
 extern struct CLG_LogRef *WM_LOG_OPERATORS;
 extern struct CLG_LogRef *WM_LOG_HANDLERS;

@@ -51,6 +51,7 @@ CustomAssetLibraryDefinition *BKE_asset_library_custom_add(ListBase *custom_libr
   if (path) {
     BLI_strncpy(library->path, path, sizeof(library->path));
   }
+  library->import_method = ASSET_IMPORT_APPEND_REUSE;
 
   return library;
 }

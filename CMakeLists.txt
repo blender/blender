@@ -167,14 +167,26 @@ get_blender_version()
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
 
-if(APPLE)
-  # In future, can be used with `quicklookthumbnailing/qlthumbnailreply` to create file
-  # thumbnails for say Finder. Turn it off for now.
-  option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" OFF)
-elseif(WIN32)
-  option(WITH_BLENDER_THUMBNAILER "Build \"BlendThumb.dll\" helper for Windows explorer integration" ON)
+if(WIN32)
+  option(WITH_BLENDER_THUMBNAILER "\
+Build \"BlendThumb.dll\" helper for Windows explorer integration to support extracting \
+thumbnails from `.blend` files."
+    ON
+  )
 else()
-  option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" ON)
+  set(_option_default ON)
+  if(APPLE)
+    # In future, can be used with `quicklookthumbnailing/qlthumbnailreply`
+    # to create file thumbnails for say Finder.
+    # Turn it off for now, even though it can build on APPLE, it's not likely to be useful.
+    set(_option_default OFF)
+  endif()
+  option(WITH_BLENDER_THUMBNAILER "\
+Build stand-alone \"blender-thumbnailer\" command-line thumbnail extraction utility, \
+intended for use by file-managers to extract PNG images from `.blend` files."
+    ${_option_default}
+  )
+  unset(_option_default)
 endif()
 
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
@@ -214,14 +226,19 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported due to missing features in upstream!)" )
 mark_as_advanced(WITH_SYSTEM_BULLET)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
+
+set(_option_default ON)
 if(APPLE)
   # There's no OpenXR runtime in sight for macOS, neither is code well
   # tested there -> disable it by default.
-  option(WITH_XR_OPENXR   "Enable VR features through the OpenXR specification" OFF)
-  mark_as_advanced(WITH_XR_OPENXR)
-else()
-  option(WITH_XR_OPENXR   "Enable VR features through the OpenXR specification" ON)
+  set(_option_default OFF)
 endif()
+option(WITH_XR_OPENXR "Enable VR features through the OpenXR specification" ${_option_default})
+if(APPLE)
+  mark_as_advanced(WITH_XR_OPENXR)
+endif()
+unset(_option_default)
+
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 
 # Compositor
@@ -353,12 +370,13 @@ else()
   set(WITH_COREAUDIO OFF)
 endif()
 if(NOT WIN32)
+  set(_option_default ON)
   if(APPLE)
-    option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" OFF)
-  else()
-    option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" ON)
+    set(_option_default OFF)
   endif()
-  option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
+  option(WITH_JACK "Enable JACK Support (http://www.jackaudio.org)" ${_option_default})
+  unset(_option_default)
+  option(WITH_JACK_DYNLOAD "Enable runtime dynamic JACK libraries loading" OFF)
 else()
   set(WITH_JACK OFF)
 endif()
@@ -399,6 +417,26 @@ mark_as_advanced(WITH_SYSTEM_GLOG)
 # Freestyle
 option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
 
+# Libraries.
+if(UNIX AND NOT APPLE)
+  # Optionally build without pre-compiled libraries.
+  # NOTE: this could be supported on all platforms however in practice UNIX is the only platform
+  # that has good support for detecting installed libraries.
+  option(WITH_LIBS_PRECOMPILED "\
+Detect and link against pre-compiled libraries (typically found under \"../lib/\"). \
+Disabling this option will use the system libraries although cached paths \
+that point to pre-compiled libraries will be left as-is."
+    ON
+  )
+  mark_as_advanced(WITH_LIBS_PRECOMPILED)
+
+  option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
+  if(WITH_STATIC_LIBS)
+    option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
+    mark_as_advanced(WITH_BOOST_ICU)
+  endif()
+endif()
+
 # Misc
 if(WIN32 OR APPLE)
   option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)
@@ -406,11 +444,6 @@ endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 if(UNIX AND NOT APPLE)
   option(WITH_INSTALL_PORTABLE "Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
-  option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
-  if(WITH_STATIC_LIBS)
-    option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
-    mark_as_advanced(WITH_BOOST_ICU)
-  endif()
 endif()
 
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
@@ -592,8 +625,10 @@ mark_as_advanced(
 
 # Vulkan
 option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
+option(WITH_VULKAN_GUARDEDALLOC "Use guardedalloc for host allocations done inside Vulkan (development option)" OFF)
 mark_as_advanced(
   WITH_VULKAN_BACKEND
+  WITH_VULKAN_GUARDEDALLOC
 )
 
 # Metal
@@ -993,6 +1028,8 @@ set(PLATFORM_LINKLIBS "")
 # - CMAKE_EXE_LINKER_FLAGS_DEBUG
 set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
+set(PLATFORM_LINKFLAGS_RELEASE "")
+set(PLATFORM_LINKFLAGS_EXECUTABLE "")
 
 if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
   if(WITH_COMPILER_ASAN)
@@ -1206,13 +1243,6 @@ if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure Vulkan.
-
-if(WITH_VULKAN_BACKEND)
-  list(APPEND BLENDER_GL_LIBRARIES ${VULKAN_LIBRARIES})
-endif()
-
 # -----------------------------------------------------------------------------
 # Configure Metal
 
@@ -1262,12 +1292,14 @@ endif()
 # -----------------------------------------------------------------------------
 # Configure Bullet
 
-if(WITH_BULLET AND WITH_SYSTEM_BULLET)
-  find_package(Bullet)
-  set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
-else()
-  set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
-  # set(BULLET_LIBRARIES "")
+if(WITH_BULLET)
+  if(WITH_SYSTEM_BULLET)
+    find_package(Bullet)
+    set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
+  else()
+    set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
+    set(BULLET_LIBRARIES "extern_bullet")
+  endif()
 endif()
 
 
@@ -1427,6 +1459,9 @@ if(CMAKE_COMPILER_IS_GNUCC)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_TYPE_LIMITS -Wtype-limits)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_FORMAT_SIGN -Wformat-signedness)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_RESTRICT -Wrestrict)
+  # Useful but too many false positives and inconvenient to suppress each occurrence.
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_STRINGOP_OVERREAD -Wno-stringop-overread)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_STRINGOP_OVERFLOW -Wno-stringop-overflow)
 
   # C-only.
   add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_NULL -Wnonnull)
@@ -1466,6 +1501,9 @@ if(CMAKE_COMPILER_IS_GNUCC)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_RESTRICT -Wrestrict)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE  -Wno-suggest-override)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
+  # Useful but too many false positives and inconvenient to suppress each occurrence.
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_STRINGOP_OVERREAD -Wno-stringop-overread)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_STRINGOP_OVERFLOW -Wno-stringop-overflow)
 
   # causes too many warnings
   if(NOT APPLE)

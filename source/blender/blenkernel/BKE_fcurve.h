@@ -63,7 +63,7 @@ typedef struct FModifierTypeInfo {
   /** #eFMI_Action_Types. */
   short acttype;
   /** #eFMI_Requirement_Flags. */
-  short requires;
+  short requires_flag;
   /** name of modifier in interface. */
   char name[64];
   /** name of struct for SDNA. */

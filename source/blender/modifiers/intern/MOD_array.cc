@@ -329,22 +329,26 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* Set #CD_ORIGINDEX. */
-  index_orig = static_cast<int *>(CustomData_get_layer(&result->vdata, CD_ORIGINDEX));
+  index_orig = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->vdata, CD_ORIGINDEX, result->totvert));
   if (index_orig) {
     copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
   }
 
-  index_orig = static_cast<int *>(CustomData_get_layer(&result->edata, CD_ORIGINDEX));
+  index_orig = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->edata, CD_ORIGINDEX, result->totedge));
   if (index_orig) {
     copy_vn_i(index_orig + cap_edges_index, cap_nedges, ORIGINDEX_NONE);
   }
 
-  index_orig = static_cast<int *>(CustomData_get_layer(&result->pdata, CD_ORIGINDEX));
+  index_orig = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->totpoly));
   if (index_orig) {
     copy_vn_i(index_orig + cap_polys_index, cap_npolys, ORIGINDEX_NONE);
   }
 
-  index_orig = static_cast<int *>(CustomData_get_layer(&result->ldata, CD_ORIGINDEX));
+  index_orig = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->ldata, CD_ORIGINDEX, result->totloop));
   if (index_orig) {
     copy_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
   }
@@ -663,7 +667,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     const int totuv = CustomData_number_of_layers(&result->ldata, CD_PROP_FLOAT2);
     for (i = 0; i < totuv; i++) {
       blender::float2 *dmloopuv = static_cast<blender::float2 *>(
-          CustomData_get_layer_n(&result->ldata, CD_PROP_FLOAT2, i));
+          CustomData_get_layer_n_for_write(&result->ldata, CD_PROP_FLOAT2, i, result->totloop));
       dmloopuv += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
@@ -996,36 +1000,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Array = {
-    /* name */ N_("Array"),
-    /* structName */ "ArrayModifierData",
-    /* structSize */ sizeof(ArrayModifierData),
-    /* srna */ &RNA_ArrayModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+    /*name*/ N_("Array"),
+    /*structName*/ "ArrayModifierData",
+    /*structSize*/ sizeof(ArrayModifierData),
+    /*srna*/ &RNA_ArrayModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,
-    /* icon */ ICON_MOD_ARRAY,
+    /*icon*/ ICON_MOD_ARRAY,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ nullptr,
-    /* freeData */ nullptr,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

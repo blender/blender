@@ -13,7 +13,12 @@ class PHYSICS_PT_rigidbody_constraint_panel:
 
 class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Rigid Body Constraint"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -33,7 +38,12 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
 class PHYSICS_PT_rigid_body_constraint_settings(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Settings"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -64,7 +74,12 @@ class PHYSICS_PT_rigid_body_constraint_settings(PHYSICS_PT_rigidbody_constraint_
 class PHYSICS_PT_rigid_body_constraint_objects(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Objects"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -85,7 +100,12 @@ class PHYSICS_PT_rigid_body_constraint_objects(PHYSICS_PT_rigidbody_constraint_p
 class PHYSICS_PT_rigid_body_constraint_override_iterations(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Override Iterations"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -111,7 +131,12 @@ class PHYSICS_PT_rigid_body_constraint_override_iterations(PHYSICS_PT_rigidbody_
 class PHYSICS_PT_rigid_body_constraint_limits(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Limits"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -128,7 +153,12 @@ class PHYSICS_PT_rigid_body_constraint_limits(PHYSICS_PT_rigidbody_constraint_pa
 class PHYSICS_PT_rigid_body_constraint_limits_linear(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Linear"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_limits'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -185,7 +215,12 @@ class PHYSICS_PT_rigid_body_constraint_limits_linear(PHYSICS_PT_rigidbody_constr
 class PHYSICS_PT_rigid_body_constraint_limits_angular(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Angular"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_limits'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -251,7 +286,12 @@ class PHYSICS_PT_rigid_body_constraint_limits_angular(PHYSICS_PT_rigidbody_const
 class PHYSICS_PT_rigid_body_constraint_motor(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Motor"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -268,7 +308,12 @@ class PHYSICS_PT_rigid_body_constraint_motor(PHYSICS_PT_rigidbody_constraint_pan
 class PHYSICS_PT_rigid_body_constraint_motor_angular(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Angular"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_motor'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -304,7 +349,12 @@ class PHYSICS_PT_rigid_body_constraint_motor_angular(PHYSICS_PT_rigidbody_constr
 class PHYSICS_PT_rigid_body_constraint_motor_linear(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Linear"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_motor'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -340,7 +390,12 @@ class PHYSICS_PT_rigid_body_constraint_motor_linear(PHYSICS_PT_rigidbody_constra
 class PHYSICS_PT_rigid_body_constraint_springs(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Springs"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -364,7 +419,12 @@ class PHYSICS_PT_rigid_body_constraint_springs(PHYSICS_PT_rigidbody_constraint_p
 class PHYSICS_PT_rigid_body_constraint_springs_angular(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Angular"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_springs'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -412,7 +472,12 @@ class PHYSICS_PT_rigid_body_constraint_springs_angular(PHYSICS_PT_rigidbody_cons
 class PHYSICS_PT_rigid_body_constraint_springs_linear(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Linear"
     bl_parent_id = 'PHYSICS_PT_rigid_body_constraint_springs'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):

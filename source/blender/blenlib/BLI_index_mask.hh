@@ -234,8 +234,15 @@ class IndexMask {
     return indices_.first() >= range.first() && indices_.last() <= range.last();
   }
 
-  IndexMask slice(int64_t start, int64_t size) const;
-  IndexMask slice(IndexRange slice) const;
+  IndexMask slice(const int64_t start, const int64_t size) const
+  {
+    return IndexMask(indices_.slice(start, size));
+  }
+
+  IndexMask slice(const IndexRange slice) const
+  {
+    return IndexMask(indices_.slice(slice));
+  }
 
   IndexMask slice_safe(int64_t start, int64_t size) const;
   IndexMask slice_safe(IndexRange slice) const;

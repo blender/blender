@@ -314,7 +314,7 @@ static int doc_scroll = 0;
 
 static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* NOTE(@campbellbarton): this code could be refactored or rewritten. */
+  /* NOTE(@ideasman42): this code could be refactored or rewritten. */
   SpaceText *st = CTX_wm_space_text(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);

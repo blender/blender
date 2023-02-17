@@ -294,7 +294,7 @@ static void action_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
 }
 
 static AssetTypeInfo AssetType_AC = {
-    /* pre_save_fn */ action_asset_pre_save,
+    /*pre_save_fn*/ action_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_AC = {
@@ -1406,7 +1406,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
          * - no "selected only", since this is often used in the backend
          * - no "minimum length" (we will apply this later), otherwise
          *   single-keyframe curves will increase the overall length by
-         *   a phantom frame (T50354)
+         *   a phantom frame (#50354)
          */
         BKE_fcurve_calc_range(fcu, &nmin, &nmax, false, false);
 

@@ -208,18 +208,6 @@ bool CustomData_has_layer(const struct CustomData * /*data*/, int /*type*/)
   return false;
 }
 
-void *CustomData_get_layer_named(const struct CustomData * /*data*/,
-                                 int /*type*/,
-                                 const char * /*name*/)
-{
-  return nullptr;
-}
-
-void *CustomData_get_layer(const struct CustomData * /*data*/, int /*type*/)
-{
-  return nullptr;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

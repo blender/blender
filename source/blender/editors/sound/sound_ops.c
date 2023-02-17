@@ -500,7 +500,7 @@ static bool sound_mixdown_draw_check_prop(PointerRNA *UNUSED(ptr),
                                           void *UNUSED(user_data))
 {
   const char *prop_id = RNA_property_identifier(prop);
-  return !(STR_ELEM(prop_id, "filepath", "directory", "filename"));
+  return !STR_ELEM(prop_id, "filepath", "directory", "filename");
 }
 
 static void sound_mixdown_draw(bContext *C, wmOperator *op)

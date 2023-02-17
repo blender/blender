@@ -51,7 +51,7 @@ struct PaintGeometryPrimitives {
 
   int64_t mem_size() const
   {
-    return size() * sizeof(int3);
+    return this->vert_indices.as_span().size_in_bytes();
   }
 };
 
@@ -59,7 +59,7 @@ struct UVPrimitivePaintInput {
   /** Corresponding index into PaintGeometryPrimitives */
   int64_t geometry_primitive_index;
   /**
-   * Delta barycentric coordinates between 2 neighboring UV's in the U direction.
+   * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
    *
    * Only the first two coordinates are stored. The third should be recalculated
    */
@@ -200,6 +200,10 @@ struct NodeData {
   {
     undo_regions.clear();
     for (UDIMTilePixels &tile : tiles) {
+      if (tile.pixel_rows.size() == 0) {
+        continue;
+      }
+
       rcti region;
       BLI_rcti_init_minmax(&region);
       for (PackedPixelRow &pixel_row : tile.pixel_rows) {

@@ -67,7 +67,7 @@ typedef struct TransDataNla {
 static void applyTransformNLA_translation(PointerRNA *strip_rna_ptr, const TransDataNla *transdata)
 {
   /* NOTE: we write these twice to avoid truncation errors which can arise when
-   * moving the strips a large distance using numeric input T33852.
+   * moving the strips a large distance using numeric input #33852.
    */
   RNA_float_set(strip_rna_ptr, "frame_start", transdata->h1[0]);
   RNA_float_set(strip_rna_ptr, "frame_end", transdata->h2[0]);
@@ -457,7 +457,7 @@ static void recalcData_nla(TransInfo *t)
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
               !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
-            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
@@ -477,7 +477,7 @@ static void recalcData_nla(TransInfo *t)
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
               !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
-            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
@@ -542,8 +542,8 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 /** \} */
 
 TransConvertTypeInfo TransConvertType_NLA = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransNlaData,
-    /* recalcData */ recalcData_nla,
-    /* special_aftertrans_update */ special_aftertrans_update__nla,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransNlaData,
+    /*recalcData*/ recalcData_nla,
+    /*special_aftertrans_update*/ special_aftertrans_update__nla,
 };

@@ -105,7 +105,7 @@ class ColorBandFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
     MutableSpan<ColorGeometry4f> colors = params.uninitialized_single_output<ColorGeometry4f>(

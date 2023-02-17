@@ -60,7 +60,7 @@ bool space_node_view_flag(
   int tot = 0;
   bool has_frame = false;
   if (snode.edittree) {
-    LISTBASE_FOREACH (const bNode *, node, &snode.edittree->nodes) {
+    for (const bNode *node : snode.edittree->all_nodes()) {
       if ((node->flag & node_flag) == node_flag) {
         BLI_rctf_union(&cur_new, &node->runtime->totr);
         tot++;
@@ -645,7 +645,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ImageSampleInfo *info;
 
   /* Don't handle events intended for nodes (which rely on click/drag distinction).
-   * which this operator would use since sampling is normally activated on press, see: T98191. */
+   * which this operator would use since sampling is normally activated on press, see: #98191. */
   if (node_or_socket_isect_event(*C, *event)) {
     return OPERATOR_PASS_THROUGH;
   }

@@ -34,7 +34,7 @@ class MetalKernelContext {
       kernel_assert(0);
       return 0;
     }
-    
+
 #ifdef __KERNEL_METAL_INTEL__
     template<typename TextureType, typename CoordsType>
     inline __attribute__((__always_inline__))
@@ -55,7 +55,7 @@ class MetalKernelContext {
       }
     }
 #endif
-    
+
     // texture2d
     template<>
     inline __attribute__((__always_inline__))

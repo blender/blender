@@ -22,13 +22,15 @@
 
 #include "SEQ_animation.h"
 
-static bool seq_animation_curves_exist(Scene *scene)
+bool SEQ_animation_curves_exist(Scene *scene)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL ||
-      BLI_listbase_is_empty(&scene->adt->action->curves)) {
-    return false;
-  }
-  return true;
+  return scene->adt != NULL && scene->adt->action != NULL &&
+         !BLI_listbase_is_empty(&scene->adt->action->curves);
+}
+
+bool SEQ_animation_drivers_exist(Scene *scene)
+{
+  return scene->adt != NULL && !BLI_listbase_is_empty(&scene->adt->drivers);
 }
 
 /* r_prefix + [" + escaped_name + "] + \0 */
@@ -66,7 +68,7 @@ GSet *SEQ_fcurves_by_strip_get(const Sequence *seq, ListBase *fcurve_base)
 
 void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
-  if (!seq_animation_curves_exist(scene) || ofs == 0) {
+  if (!SEQ_animation_curves_exist(scene) || ofs == 0) {
     return;
   }
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
@@ -99,7 +101,7 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 
 void SEQ_free_animdata(Scene *scene, Sequence *seq)
 {
-  if (!seq_animation_curves_exist(scene)) {
+  if (!SEQ_animation_curves_exist(scene)) {
     return;
   }
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
@@ -115,46 +117,55 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
   BLI_gset_free(fcurves, NULL);
 }
 
-void SEQ_animation_backup_original(Scene *scene, ListBase *list)
+void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL ||
-      BLI_listbase_is_empty(&scene->adt->action->curves)) {
-    return;
+  if (SEQ_animation_curves_exist(scene)) {
+    BLI_movelisttolist(&backup->curves, &scene->adt->action->curves);
   }
-
-  BLI_movelisttolist(list, &scene->adt->action->curves);
+  if (SEQ_animation_drivers_exist(scene)) {
+    BLI_movelisttolist(&backup->drivers, &scene->adt->drivers);
+  }
 }
 
-void SEQ_animation_restore_original(Scene *scene, ListBase *list)
+void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL || BLI_listbase_is_empty(list)) {
-    return;
+  if (!BLI_listbase_is_empty(&backup->curves)) {
+    BLI_movelisttolist(&scene->adt->action->curves, &backup->curves);
   }
-
-  BLI_movelisttolist(&scene->adt->action->curves, list);
+  if (!BLI_listbase_is_empty(&backup->drivers)) {
+    BLI_movelisttolist(&scene->adt->drivers, &backup->drivers);
+  }
 }
 
-void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
+static void seq_animation_duplicate(Scene *scene, Sequence *seq, ListBase *dst, ListBase *src)
 {
-  if (BLI_listbase_is_empty(list)) {
-    return;
-  }
-
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
-      SEQ_animation_duplicate(scene, meta_child, list);
+      seq_animation_duplicate(scene, meta_child, dst, src);
     }
   }
 
-  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, list);
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, src);
   if (fcurves == NULL) {
     return;
   }
 
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
-    BLI_addtail(&scene->adt->action->curves, fcu_cpy);
+    BLI_addtail(dst, fcu_cpy);
   }
   GSET_FOREACH_END();
   BLI_gset_free(fcurves, NULL);
+}
+
+void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
+                                             Sequence *seq,
+                                             SeqAnimationBackup *backup)
+{
+  if (!BLI_listbase_is_empty(&backup->curves)) {
+    seq_animation_duplicate(scene, seq, &scene->adt->action->curves, &backup->curves);
+  }
+  if (!BLI_listbase_is_empty(&backup->drivers)) {
+    seq_animation_duplicate(scene, seq, &scene->adt->drivers, &backup->drivers);
+  }
 }

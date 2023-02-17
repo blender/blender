@@ -1112,12 +1112,12 @@ void IMB_rectfill_area_replace(
 
       if (ibuf->rect) {
         uchar *rrect = (uchar *)ibuf->rect + offset;
-        memcpy(rrect, &col_char, sizeof(uchar) * 4);
+        memcpy(rrect, col_char, sizeof(uchar[4]));
       }
 
       if (ibuf->rect_float) {
         float *rrectf = ibuf->rect_float + offset;
-        memcpy(rrectf, &col, sizeof(float) * 4);
+        memcpy(rrectf, col, sizeof(float[4]));
       }
     }
   }

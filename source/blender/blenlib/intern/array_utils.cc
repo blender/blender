@@ -10,7 +10,8 @@ void copy(const GVArray &src,
           const int64_t grain_size)
 {
   BLI_assert(src.type() == dst.type());
-  BLI_assert(src.size() == dst.size());
+  BLI_assert(src.size() >= selection.min_array_size());
+  BLI_assert(dst.size() >= selection.min_array_size());
   threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
     src.materialize_to_uninitialized(selection.slice(range), dst.data());
   });

@@ -44,7 +44,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      set_resolution(bke::CurvesGeometry::wrap(curves_id->geometry), selection, resolution);
+      set_resolution(curves_id->geometry.wrap(), selection, resolution);
     }
   });
 

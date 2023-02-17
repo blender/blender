@@ -8,6 +8,7 @@ void main()
   /* Discard outside the circle. */
   if (dist_sqr > 1.0) {
     discard;
+    return;
   }
 
   vec3 view_nor = vec3(quadCoord, sqrt(max(0.0, 1.0 - dist_sqr)));

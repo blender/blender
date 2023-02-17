@@ -521,8 +521,8 @@ void BKE_particle_init_rng(void)
   RNG *rng = BLI_rng_new_srandom(5831); /* arbitrary */
   for (int i = 0; i < PSYS_FRAND_COUNT; i++) {
     PSYS_FRAND_BASE[i] = BLI_rng_get_float(rng);
-    PSYS_FRAND_SEED_OFFSET[i] = (uint)BLI_rng_get_int(rng);
-    PSYS_FRAND_SEED_MULTIPLIER[i] = (uint)BLI_rng_get_int(rng);
+    PSYS_FRAND_SEED_OFFSET[i] = uint(BLI_rng_get_int(rng));
+    PSYS_FRAND_SEED_MULTIPLIER[i] = uint(BLI_rng_get_int(rng));
   }
   BLI_rng_free(rng);
 }
@@ -847,7 +847,7 @@ void psys_find_group_weights(ParticleSettings *part)
 {
   /* Find object pointers based on index. If the collection is linked from
    * another library linking may not have the object pointers available on
-   * file load, so we have to retrieve them later. See T49273. */
+   * file load, so we have to retrieve them later. See #49273. */
   ListBase instance_collection_objects = {nullptr, nullptr};
 
   if (part->instance_collection) {
@@ -1702,7 +1702,7 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 void psys_interpolate_face(Mesh *mesh,
                            const float (*vert_positions)[3],
                            const float (*vert_normals)[3],
-                           MFace *mface,
+                           const MFace *mface,
                            MTFace *tface,
                            const float (*orcodata)[3],
                            float w[4],
@@ -1888,7 +1888,8 @@ static float psys_interpolate_value_from_verts(
       return values[index];
     case PART_FROM_FACE:
     case PART_FROM_VOLUME: {
-      MFace *mfaces = static_cast<MFace *>(CustomData_get_layer(&mesh->fdata, CD_MFACE));
+      MFace *mfaces = static_cast<MFace *>(
+          CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
       MFace *mf = &mfaces[index];
       return interpolate_particle_value(
           values[mf->v1], values[mf->v2], values[mf->v3], values[mf->v4], fw, mf->v4);
@@ -1981,9 +1982,10 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
 
   index_mf_to_mpoly_deformed = nullptr;
 
-  mtessface_final = static_cast<MFace *>(CustomData_get_layer(&mesh_final->fdata, CD_MFACE));
+  mtessface_final = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh_final->fdata, CD_MFACE, mesh_final->totface));
   osface_final = static_cast<OrigSpaceFace *>(
-      CustomData_get_layer(&mesh_final->fdata, CD_ORIGSPACE));
+      CustomData_get_layer_for_write(&mesh_final->fdata, CD_ORIGSPACE, mesh_final->totface));
 
   if (osface_final == nullptr) {
     /* Assume we don't need osface_final data, and we get a direct 1-1 mapping... */
@@ -2102,7 +2104,7 @@ static int psys_map_index_on_dm(Mesh *mesh,
       /* modify the original weights to become
        * weights for the derived mesh face */
       OrigSpaceFace *osface = static_cast<OrigSpaceFace *>(
-          CustomData_get_layer(&mesh->fdata, CD_ORIGSPACE));
+          CustomData_get_layer_for_write(&mesh->fdata, CD_ORIGSPACE, mesh->totface));
       const MFace *mfaces = static_cast<const MFace *>(
           CustomData_get_layer(&mesh->fdata, CD_MFACE));
       const MFace *mface = &mfaces[i];
@@ -2187,10 +2189,12 @@ void psys_particle_on_dm(Mesh *mesh_final,
     MFace *mface;
     MTFace *mtface;
 
-    MFace *mfaces = static_cast<MFace *>(CustomData_get_layer(&mesh_final->fdata, CD_MFACE));
+    MFace *mfaces = static_cast<MFace *>(
+        CustomData_get_layer_for_write(&mesh_final->fdata, CD_MFACE, mesh_final->totface));
     mface = &mfaces[mapindex];
     const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
-    mtface = static_cast<MTFace *>(CustomData_get_layer(&mesh_final->fdata, CD_MTFACE));
+    mtface = static_cast<MTFace *>(
+        CustomData_get_layer_for_write(&mesh_final->fdata, CD_MTFACE, mesh_final->totface));
 
     if (mtface) {
       mtface += mapindex;
@@ -3031,7 +3035,7 @@ static void psys_thread_create_path(ParticleTask *task,
      */
     cpa_num = ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa->num : pa->num_dmcache;
 
-    /* XXX hack to avoid messed up particle num and subsequent crash (T40733) */
+    /* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
     if (cpa_num > ctx->sim.psmd->mesh_final->totface) {
       cpa_num = 0;
     }
@@ -3509,7 +3513,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
         }
       }
 
-      /* lattices have to be calculated separately to avoid mixups between effector calculations */
+      /* Lattices have to be calculated separately to avoid mix-ups between effector calculations.
+       */
       if (psys->lattice_deform_data) {
         for (k = 0, ca = cache[p]; k <= segments; k++, ca++) {
           BKE_lattice_deform_data_eval_co(
@@ -3893,10 +3898,11 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
     return;
   }
 
-  MFace *mfaces = static_cast<MFace *>(CustomData_get_layer(&mesh->fdata, CD_MFACE));
+  MFace *mfaces = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
   mface = &mfaces[i];
   const OrigSpaceFace *osface = static_cast<const OrigSpaceFace *>(
-      CustomData_get(&mesh->fdata, i, CD_ORIGSPACE));
+      CustomData_get_for_write(&mesh->fdata, i, CD_ORIGSPACE, mesh->totface));
 
   if (orco &&
       (orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vdata, CD_ORCO)))) {
@@ -4204,13 +4210,15 @@ static int get_particle_uv(Mesh *mesh,
                            float *texco,
                            bool from_vert)
 {
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   MFace *mf;
   const MTFace *tf;
   int i;
 
   tf = static_cast<const MTFace *>(CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name));
-
+  if (tf == nullptr) {
+    tf = static_cast<const MTFace *>(CustomData_get_layer(&mesh->fdata, CD_MTFACE));
+  }
   if (tf == nullptr) {
     return 0;
   }
@@ -4446,15 +4454,15 @@ void psys_get_texture(
                                    texvec);
 
           BKE_mesh_texspace_ensure(me);
-          sub_v3_v3(texvec, me->loc);
-          if (me->size[0] != 0.0f) {
-            texvec[0] /= me->size[0];
+          sub_v3_v3(texvec, me->texspace_location);
+          if (me->texspace_size[0] != 0.0f) {
+            texvec[0] /= me->texspace_size[0];
           }
-          if (me->size[1] != 0.0f) {
-            texvec[1] /= me->size[1];
+          if (me->texspace_size[1] != 0.0f) {
+            texvec[1] /= me->texspace_size[1];
           }
-          if (me->size[2] != 0.0f) {
-            texvec[2] /= me->size[2];
+          if (me->texspace_size[2] != 0.0f) {
+            texvec[2] /= me->texspace_size[2];
           }
           break;
         case TEXCO_PARTICLE:
@@ -5091,7 +5099,7 @@ void psys_get_dupli_texture(ParticleSystem *psys,
    * the entire scenes dupli's are scanned, which also looks into uncalculated data.
    *
    * For now just include this workaround as an alternative to crashing,
-   * but longer term meta-balls should behave in a more manageable way, see: T46622. */
+   * but longer term meta-balls should behave in a more manageable way, see: #46622. */
 
   uv[0] = uv[1] = 0.0f;
 
@@ -5108,8 +5116,8 @@ void psys_get_dupli_texture(ParticleSystem *psys,
           const MTFace *mtface = static_cast<const MTFace *>(
               CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx));
           if (mtface != nullptr) {
-            const MFace *mface = static_cast<const MFace *>(
-                CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE));
+            const MFace *mface = static_cast<const MFace *>(CustomData_get_for_write(
+                &psmd->mesh_final->fdata, cpa->num, CD_MFACE, psmd->mesh_final->totface));
             mtface += cpa->num;
             psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
           }
@@ -5153,8 +5161,8 @@ void psys_get_dupli_texture(ParticleSystem *psys,
       if (uv_idx >= 0) {
         const MTFace *mtface = static_cast<const MTFace *>(
             CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx));
-        const MFace *mface = static_cast<const MFace *>(
-            CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE));
+        const MFace *mface = static_cast<const MFace *>(CustomData_get_for_write(
+            &psmd->mesh_final->fdata, num, CD_MFACE, psmd->mesh_final->totface));
         mtface += num;
         psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
       }
@@ -5462,7 +5470,7 @@ void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
       BLO_read_id_address(reader, id->lib, &psys->target_ob);
 
       if (psys->clmd) {
-        /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage
+        /* XXX(@ideasman42): from reading existing code this seems correct but intended usage
          * of point-cache with cloth should be added in #ParticleSystem. */
         psys->clmd->point_cache = psys->pointcache;
         psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = nullptr;

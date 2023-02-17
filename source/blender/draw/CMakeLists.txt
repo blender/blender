@@ -35,7 +35,6 @@ set(INC
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
-  ${OPENSUBDIV_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -152,21 +151,33 @@ set(SRC
   engines/eevee_next/eevee_renderbuffers.cc
   engines/eevee_next/eevee_sampling.cc
   engines/eevee_next/eevee_shader.cc
+  engines/eevee_next/eevee_shadow.cc
   engines/eevee_next/eevee_sync.cc
   engines/eevee_next/eevee_velocity.cc
   engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
+  engines/workbench/workbench_effect_antialiasing.cc
   engines/workbench/workbench_effect_cavity.c
+  engines/workbench/workbench_effect_cavity.cc
   engines/workbench/workbench_effect_dof.c
+  engines/workbench/workbench_effect_dof.cc
   engines/workbench/workbench_effect_outline.c
+  engines/workbench/workbench_effect_outline.cc
   engines/workbench/workbench_engine.c
+  engines/workbench/workbench_engine.cc
   engines/workbench/workbench_materials.cc
+  engines/workbench/workbench_materials_next.cc
+  engines/workbench/workbench_mesh_passes.cc
   engines/workbench/workbench_opaque.c
   engines/workbench/workbench_render.c
+  engines/workbench/workbench_resources.cc
   engines/workbench/workbench_shader.cc
+  engines/workbench/workbench_shader_cache.cc
   engines/workbench/workbench_shadow.c
+  engines/workbench/workbench_shadow.cc
+  engines/workbench/workbench_state.cc
   engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
   engines/external/external_engine.c
@@ -210,11 +221,11 @@ set(SRC
   engines/overlay/overlay_wireframe.cc
 
   DRW_engine.h
-  DRW_pbvh.h
+  DRW_pbvh.hh
   DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
-  intern/draw_attributes.h
+  intern/draw_attributes.hh
   intern/draw_cache.h
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.h
@@ -223,7 +234,7 @@ set(SRC
   intern/draw_command.hh
   intern/draw_common.h
   intern/draw_common_shader_shared.h
-  intern/draw_curves_private.h
+  intern/draw_curves_private.hh
   intern/draw_debug.h
   intern/draw_debug.hh
   intern/draw_hair_private.h
@@ -271,6 +282,7 @@ set(SRC
   engines/eevee_next/eevee_renderbuffers.hh
   engines/eevee_next/eevee_sampling.hh
   engines/eevee_next/eevee_shader.hh
+  engines/eevee_next/eevee_shadow.hh
   engines/eevee_next/eevee_sync.hh
   engines/eevee_next/eevee_velocity.hh
   engines/eevee_next/eevee_view.hh
@@ -290,8 +302,11 @@ set(SRC
   engines/image/image_space_node.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
+  engines/workbench/workbench_defines.hh
   engines/workbench/workbench_engine.h
+  engines/workbench/workbench_enums.hh
   engines/workbench/workbench_private.h
+  engines/workbench/workbench_private.hh
   engines/workbench/workbench_shader_shared.h
   engines/select/select_engine.h
   engines/select/select_private.h
@@ -409,6 +424,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_camera_lib.glsl
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
+  engines/eevee_next/shaders/eevee_transparency_lib.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
@@ -449,10 +465,29 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_motion_blur_lib.glsl
   engines/eevee_next/shaders/eevee_nodetree_lib.glsl
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl
+  engines/eevee_next/shaders/eevee_shadow_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_allocate_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_clear_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_defrag_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_free_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_mask_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_page_ops_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_tag_update_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_tag_usage_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_tag_usage_frag.glsl
+  engines/eevee_next/shaders/eevee_shadow_tag_usage_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_tag_usage_vert.glsl
+  engines/eevee_next/shaders/eevee_shadow_test.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_bounds_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_finalize_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
   engines/eevee_next/shaders/eevee_surf_lib.glsl
+  engines/eevee_next/shaders/eevee_surf_shadow_frag.glsl
   engines/eevee_next/shaders/eevee_surf_world_frag.glsl
   engines/eevee_next/shaders/eevee_velocity_lib.glsl
 
@@ -462,6 +497,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
   engines/workbench/shaders/workbench_composite_frag.glsl
+  engines/workbench/shaders/workbench_next_composite_frag.glsl
   engines/workbench/shaders/workbench_curvature_lib.glsl
   engines/workbench/shaders/workbench_effect_cavity_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_frag.glsl
@@ -473,6 +509,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_matcap_lib.glsl
   engines/workbench/shaders/workbench_material_lib.glsl
   engines/workbench/shaders/workbench_merge_infront_frag.glsl
+  engines/workbench/shaders/workbench_next_merge_depth_frag.glsl
   engines/workbench/shaders/workbench_prepass_frag.glsl
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
@@ -482,6 +519,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
   engines/workbench/shaders/workbench_shadow_geom.glsl
   engines/workbench/shaders/workbench_shadow_vert.glsl
+  engines/workbench/shaders/workbench_shadow_visibility_comp.glsl
   engines/workbench/shaders/workbench_shadow_vert_no_geom.glsl
   engines/workbench/shaders/workbench_transparent_accum_frag.glsl
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
@@ -530,6 +568,7 @@ set(GLSL_SRC
   intern/shaders/draw_debug_print_display_frag.glsl
   intern/shaders/draw_debug_print_display_vert.glsl
   intern/shaders/draw_resource_finalize_comp.glsl
+  intern/shaders/draw_view_finalize_comp.glsl
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
@@ -663,6 +702,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
   engines/overlay/shaders/overlay_pointcloud_only_vert.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_cage_vert.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
   engines/overlay/shaders/overlay_sculpt_mask_frag.glsl
@@ -689,6 +729,7 @@ set(GLSL_SRC
 )
 
 set(GLSL_C)
+
 foreach(GLSL_FILE ${GLSL_SRC})
   data_to_c_simple(${GLSL_FILE} GLSL_C)
 endforeach()
@@ -700,6 +741,7 @@ list(APPEND LIB
 )
 
 set(GLSL_SOURCE_CONTENT "")
+
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
@@ -721,6 +763,12 @@ if(WITH_DRAW_DEBUG)
     engines/select/select_debug_engine.c
   )
   add_definitions(-DWITH_DRAW_DEBUG)
+endif()
+
+if(WITH_OPENSUBDIV)
+  list(APPEND INC_SYS
+    ${OPENSUBDIV_INCLUDE_DIRS}
+  )
 endif()
 
 if(WITH_MOD_FLUID)
@@ -746,11 +794,13 @@ endif()
 
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)
+
   if(WIN32)
     # TBB includes Windows.h which will define min/max macros
     # that will collide with the stl versions.
     add_definitions(-DNOMINMAX)
   endif()
+
   list(APPEND INC_SYS
     ${TBB_INCLUDE_DIRS}
   )
@@ -770,6 +820,7 @@ if(WITH_GTESTS)
     set(TEST_SRC
       tests/draw_pass_test.cc
       tests/draw_testing.cc
+      tests/eevee_test.cc
       tests/shaders_test.cc
 
       tests/draw_testing.hh

@@ -232,10 +232,6 @@ class ShaderManager {
   AttributeIDMap unique_attribute_id;
 
   static thread_mutex lookup_table_mutex;
-  static vector<float> beckmann_table;
-  static bool beckmann_table_ready;
-
-  size_t beckmann_table_offset;
 
   uint get_graph_kernel_features(ShaderGraph *graph);
 

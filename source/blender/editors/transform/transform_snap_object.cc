@@ -9,11 +9,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_float4x4.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
@@ -63,13 +63,13 @@ enum eViewProj {
   VIEW_PROJ_PERSP = -1,
 };
 
-/* SnapObjectContext.cache.editmesh_map */
+/** #SnapObjectContext.editmesh_caches */
 struct SnapData_EditMesh {
   /* Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
 
-  /* Looptris. */
+  /* BVH tree from #BMEditMesh.looptris. */
   BVHTreeFromEditMesh treedata_editmesh;
 
   blender::bke::MeshRuntime *mesh_runtime;
@@ -162,7 +162,7 @@ struct SnapObjectContext {
  *
  * - When the return value is null the `BKE_editmesh_from_object(ob_eval)` should be used.
  * - In rare cases there is no evaluated mesh available and a null result doesn't imply an
- *   edit-mesh, so callers need to account for a null edit-mesh too, see: T96536.
+ *   edit-mesh, so callers need to account for a null edit-mesh too, see: #96536.
  */
 static ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_use_hide)
 {
@@ -404,7 +404,7 @@ using IterSnapObjsCallback = eSnapMode (*)(SnapObjectContext *sctx,
                                            void *data);
 
 static bool snap_object_is_snappable(const SnapObjectContext *sctx,
-                                     const eSnapTargetSelect snap_target_select,
+                                     const eSnapTargetOP snap_target_select,
                                      const Base *base_act,
                                      const Base *base)
 {
@@ -471,7 +471,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx,
 
   Scene *scene = DEG_get_input_scene(sctx->runtime.depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(sctx->runtime.depsgraph);
-  const eSnapTargetSelect snap_target_select = params->snap_target_select;
+  const eSnapTargetOP snap_target_select = params->snap_target_select;
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base_act = BKE_view_layer_active_base_get(view_layer);
 
@@ -726,10 +726,11 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
-   * very far away ray_start values (as returned in case of ortho view3d), see T50486, T38358.
+   * very far away ray_start values (as returned in case of ortho view3d), see #50486, #38358.
    */
   if (len_diff > 400.0f) {
-    len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
+    /* Make temporary start point a bit away from bounding-box hit point. */
+    len_diff -= local_scale;
     madd_v3_v3fl(ray_start_local, ray_normal_local, len_diff);
     local_depth -= len_diff;
   }
@@ -859,7 +860,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   }
 
   /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
-   * very far away ray_start values (as returned in case of ortho view3d), see T50486, T38358.
+   * very far away ray_start values (as returned in case of ortho view3d), see #50486, #38358.
    */
   if (len_diff > 400.0f) {
     len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
@@ -1374,7 +1375,7 @@ static bool snap_bound_box_check_dist(const float min[3],
                                       float dist_px_sq)
 {
   /* In vertex and edges you need to get the pixel distance from ray to BoundBox,
-   * see: T46099, T46816 */
+   * see: #46099, #46816 */
 
   DistProjectedAABBPrecalc data_precalc;
   dist_squared_to_projected_aabb_precalc(&data_precalc, lpmat, win_size, mval);
@@ -2389,31 +2390,26 @@ static eSnapMode snap_object_center(const SnapObjectContext *sctx,
   }
 
   /* for now only vertex supported */
-  if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-    DistProjectedAABBPrecalc neasrest_precalc;
-    dist_squared_to_projected_aabb_precalc(
-        &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
+  if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
+    return retval;
+  }
 
-    float tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
-    transpose_m4_m4(tobmat, obmat);
-    for (int i = sctx->runtime.clip_plane_len; i--;) {
-      mul_v4_m4v4(clip_planes_local[i], tobmat, sctx->runtime.clip_plane[i]);
-    }
+  DistProjectedAABBPrecalc neasrest_precalc;
+  dist_squared_to_projected_aabb_precalc(
+      &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
 
-    bool is_persp = sctx->runtime.view_proj == VIEW_PROJ_PERSP;
-    float dist_px_sq = square_f(*dist_px);
-    float co[3];
-    copy_v3_v3(co, obmat[3]);
-    if (test_projected_vert_dist(&neasrest_precalc,
-                                 clip_planes_local,
-                                 sctx->runtime.clip_plane_len,
-                                 is_persp,
-                                 co,
-                                 &dist_px_sq,
-                                 r_loc)) {
-      *dist_px = sqrtf(dist_px_sq);
-      retval = SCE_SNAP_MODE_VERTEX;
-    }
+  bool is_persp = sctx->runtime.view_proj == VIEW_PROJ_PERSP;
+  float dist_px_sq = square_f(*dist_px);
+
+  if (test_projected_vert_dist(&neasrest_precalc,
+                               sctx->runtime.clip_plane,
+                               sctx->runtime.clip_plane_len,
+                               is_persp,
+                               obmat[3],
+                               &dist_px_sq,
+                               r_loc)) {
+    *dist_px = sqrtf(dist_px_sq);
+    retval = SCE_SNAP_MODE_VERTEX;
   }
 
   if (retval) {

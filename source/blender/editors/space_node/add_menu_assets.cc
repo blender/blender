@@ -87,7 +87,8 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   ED_assetlist_storage_fetch(&all_library_ref, &C);
   ED_assetlist_ensure_previews_job(&all_library_ref, &C);
 
-  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(all_library_ref);
+  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+      all_library_ref);
   if (!all_library) {
     return {};
   }
@@ -107,6 +108,9 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
 
     const asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
         meta_data.catalog_id);
+    if (catalog == nullptr) {
+      return true;
+    }
     assets_per_path.add(catalog->path, LibraryAsset{all_library_ref, asset});
     return true;
   });
@@ -120,6 +124,9 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     }
     asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
         item.get_catalog_id());
+    if (catalog == nullptr) {
+      return;
+    }
     catalogs_with_node_assets.insert_item(*catalog);
   });
 

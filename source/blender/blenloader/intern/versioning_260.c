@@ -1587,7 +1587,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   /* correction for files saved in blender version when BKE_pose_copy_data
    * didn't copy animation visualization, which lead to deadlocks on motion
-   * path calculation for proxied armatures, see T32742.
+   * path calculation for proxied armatures, see #32742.
    */
   if (bmain->versionfile < 264) {
     Object *ob;

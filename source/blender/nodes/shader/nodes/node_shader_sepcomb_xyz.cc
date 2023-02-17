@@ -35,15 +35,15 @@ class MF_SeparateXYZ : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Separate XYZ", signature};
       builder.single_input<float3>("XYZ");
-      builder.single_output<float>("X");
-      builder.single_output<float>("Y");
-      builder.single_output<float>("Z");
+      builder.single_output<float>("X", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Y", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Z", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
     MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");

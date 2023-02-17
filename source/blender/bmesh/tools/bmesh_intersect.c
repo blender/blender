@@ -10,7 +10,7 @@
  * Supported:
  * - Concave faces.
  * - Non-planar faces.
- * - Custom-data (UV's etc).
+ * - Custom-data (UVs etc).
  *
  * Unsupported:
  * - Intersecting between different meshes.
@@ -1068,7 +1068,7 @@ bool BM_mesh_intersect(BMesh *bm,
   /* For self intersection this can be useful, sometimes users generate geometry
    * where surfaces that seem disconnected happen to share an edge.
    * So when performing intersection calculation allow shared vertices,
-   * just not shared edges. See T75946. */
+   * just not shared edges. See #75946. */
   const bool isect_tri_tri_no_shared = (boolean_mode != BMESH_ISECT_BOOLEAN_NONE);
 
   int flag = BVH_OVERLAP_USE_THREADING | BVH_OVERLAP_RETURN_PAIRS;
@@ -1250,7 +1250,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
       /* It's possible the vertex to dissolve is an edge on an existing face
        * that doesn't divide the face, therefor the edges are not wire
-       * and shouldn't be handled here, see: T63787. */
+       * and shouldn't be handled here, see: #63787. */
       if (!BLI_gset_haskey(s.wire_edges, e_pair[0]) || !BLI_gset_haskey(s.wire_edges, e_pair[1])) {
         continue;
       }
@@ -1342,10 +1342,9 @@ bool BM_mesh_intersect(BMesh *bm,
       GHASH_ITER (gh_iter, s.face_edges) {
         struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
         LinkNode **node_prev_p;
-        uint i;
 
         node_prev_p = &e_ls_base->list;
-        for (i = 0, node = e_ls_base->list; node; i++, node = node->next) {
+        for (node = e_ls_base->list; node; node = node->next) {
           BMEdge *e = node->link;
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
             /* allocated by arena, don't free */
@@ -1639,7 +1638,7 @@ bool BM_mesh_intersect(BMesh *bm,
   BLI_memarena_free(s.mem_arena);
 
   /* It's unlikely the selection history is useful at this point,
-   * if this is not called this array would need to be validated, see: T86799. */
+   * if this is not called this array would need to be validated, see: #86799. */
   BM_select_history_clear(bm);
 
   return (has_edit_isect || has_edit_boolean);

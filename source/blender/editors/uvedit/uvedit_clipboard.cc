@@ -36,9 +36,7 @@
 #include "uvedit_clipboard_graph_iso.hh"
 #include "uvedit_intern.h" /* linker, extern "C" */
 
-extern "C" {
-void UV_clipboard_free(void);
-}
+void UV_clipboard_free();
 
 class UV_ClipboardBuffer {
  public:

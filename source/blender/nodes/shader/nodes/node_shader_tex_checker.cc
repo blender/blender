@@ -55,14 +55,14 @@ class NodeTexChecker : public mf::MultiFunction {
       builder.single_input<ColorGeometry4f>("Color1");
       builder.single_input<ColorGeometry4f>("Color2");
       builder.single_input<float>("Scale");
-      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Fac");
       return signature;
     }();
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(

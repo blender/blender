@@ -301,7 +301,7 @@ int main(int argc,
   /* Un-buffered `stdout` makes `stdout` and `stderr` better synchronized, and helps
    * when stepping through code in a debugger (prints are immediately
    * visible). However disabling buffering causes lock contention on windows
-   * see T76767 for details, since this is a debugging aid, we do not enable
+   * see #76767 for details, since this is a debugging aid, we do not enable
    * the un-buffered behavior for release builds. */
 #ifndef NDEBUG
   setvbuf(stdout, NULL, _IONBF, 0);
@@ -584,9 +584,13 @@ int main(int argc,
     }
     WM_main(C);
   }
-#endif /* WITH_PYTHON_MODULE */
+  /* Neither #WM_exit, #WM_main return, this quiets CLANG's `unreachable-code-return` warning. */
+  BLI_assert_unreachable();
+
+#endif /* !WITH_PYTHON_MODULE */
 
   return 0;
+
 } /* End of `int main(...)` function. */
 
 #ifdef WITH_PYTHON_MODULE

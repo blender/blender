@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
       .default_value(0.005f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
@@ -46,7 +46,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      set_radius(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, radii_field);
+      set_radius(curves_id->geometry.wrap(), selection_field, radii_field);
     }
   });
 

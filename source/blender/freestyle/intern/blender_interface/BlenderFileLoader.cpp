@@ -50,7 +50,7 @@ NodeGroup *BlenderFileLoader::Load()
     // Adjust clipping start/end and set up a Z offset when the viewport preview
     // is used with the orthographic view.  In this case, _re->clip_start is negative,
     // while Freestyle assumes that imported mesh data are in the camera coordinate
-    // system with the view point located at origin [bug T36009].
+    // system with the view point located at origin [bug #36009].
     _z_near = -0.001f;
     _z_offset = _re->clip_start + _z_near;
     _z_far = -_re->clip_end + _z_offset;
@@ -202,7 +202,7 @@ void BlenderFileLoader::clipTriangle(int numTris,
                                      float n1[3],
                                      float n2[3],
                                      float n3[3],
-                                     bool edgeMarks[],
+                                     bool edgeMarks[5],
                                      bool em1,
                                      bool em2,
                                      bool em3,
@@ -421,12 +421,14 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   const float(*lnors)[3] = nullptr;
 
   if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
-    lnors = (float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
+    lnors = (const float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
   }
 
   // Get other mesh data
-  const FreestyleEdge *fed = (FreestyleEdge *)CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (FreestyleFace *)CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edata,
+                                                                         CD_FREESTYLE_EDGE);
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->pdata,
+                                                                         CD_FREESTYLE_FACE);
 
   // Compute view matrix
   Object *ob_camera_eval = DEG_get_evaluated_object(_depsgraph, RE_GetCamera(_re));

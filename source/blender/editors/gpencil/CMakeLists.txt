@@ -18,6 +18,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   annotate_draw.c
   annotate_paint.c
@@ -43,7 +46,7 @@ set(SRC
   gpencil_primitive.c
   gpencil_sculpt_paint.c
   gpencil_select.c
-  gpencil_undo.c
+  gpencil_undo.cc
   gpencil_utils.c
   gpencil_uv.c
   gpencil_vertex_ops.c

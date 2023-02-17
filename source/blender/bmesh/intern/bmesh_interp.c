@@ -149,14 +149,12 @@ void BM_face_interp_from_face_ex(BMesh *bm,
 
   float *w = BLI_array_alloca(w, f_src->len);
   float co[2];
-  int i;
 
   if (f_src != f_dst) {
     BM_elem_attrs_copy(bm, bm, f_src, f_dst);
   }
 
   /* interpolate */
-  i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
   do {
     mul_v2_m3v3(co, axis_mat, l_iter->v->co);
@@ -165,7 +163,7 @@ void BM_face_interp_from_face_ex(BMesh *bm,
     if (do_vertex) {
       CustomData_bmesh_interp(&bm->vdata, blocks_v, w, NULL, f_src->len, l_iter->v->head.data);
     }
-  } while ((void)i++, (l_iter = l_iter->next) != l_first);
+  } while ((l_iter = l_iter->next) != l_first);
 }
 
 void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, const bool do_vertex)
@@ -829,7 +827,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   }
 
   if (oldpool) {
-    /* this should never happen but can when dissolve fails - T28960. */
+    /* this should never happen but can when dissolve fails - #28960. */
     BLI_assert(data->pool != oldpool);
 
     BLI_mempool_destroy(oldpool);
@@ -877,8 +875,8 @@ void BM_uv_map_ensure_select_and_pin_attrs(BMesh *bm)
 {
   const int nr_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
   for (int l = 0; l < nr_uv_layers; l++) {
-    /* NOTE: you can't re-use the returnvalue of CustomData_get_layer_name() because adding layers
-     * can invalidate that. */
+    /* NOTE: you can't re-use the return-value of #CustomData_get_layer_name()
+     * because adding layers can invalidate that. */
     char name[MAX_CUSTOMDATA_LAYER_NAME];
     BM_data_layer_ensure_named(
         bm,
@@ -1045,7 +1043,7 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float
 /* -------------------------------------------------------------------- */
 /** \name Loop interpolation functions: BM_vert_loop_groups_data_layer_***
  *
- * Handling loop custom-data such as UV's, while keeping contiguous fans is rather tedious.
+ * Handling loop custom-data such as UVs, while keeping contiguous fans is rather tedious.
  * Especially when a verts loops can have multiple CustomData layers,
  * and each layer can have multiple (different) contiguous fans.
  * Said differently, a single vertices loops may span multiple UV islands.

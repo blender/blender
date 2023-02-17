@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_float4x4.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_mesh_types.h"

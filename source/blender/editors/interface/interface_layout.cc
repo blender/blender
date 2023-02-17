@@ -43,7 +43,7 @@
 #include "interface_intern.hh"
 
 /* Show an icon button after each RNA button to use to quickly set keyframes,
- * this is a way to display animation/driven/override status, see T54951. */
+ * this is a way to display animation/driven/override status, see #54951. */
 #define UI_PROP_DECORATE
 /* Alternate draw mode where some buttons can use single icon width,
  * giving more room for the text at the expense of nicely aligned text. */
@@ -1009,7 +1009,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   ) {
     /* Also avoid setting 'align' if possible. Set the space to zero instead as aligning a large
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
-     * heavy operation), see: T78636. */
+     * heavy operation), see: #78636. */
     sub = uiLayoutRow(layout, layout->align);
     sub->space = 0;
   }
@@ -3139,28 +3139,28 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
 
   /* Loop for the array-case, but only do in case of an expanded array. */
   for (int i = 0; i < (is_expand ? RNA_property_array_length(ptr, prop) : 1); i++) {
-    uiButDecorator *decorator_but = (uiButDecorator *)uiDefIconBut(block,
-                                                                   UI_BTYPE_DECORATOR,
-                                                                   0,
-                                                                   ICON_DOT,
-                                                                   0,
-                                                                   0,
-                                                                   UI_UNIT_X,
-                                                                   UI_UNIT_Y,
-                                                                   nullptr,
-                                                                   0.0,
-                                                                   0.0,
-                                                                   0.0,
-                                                                   0.0,
-                                                                   TIP_("Animate property"));
+    uiButDecorator *but = (uiButDecorator *)uiDefIconBut(block,
+                                                         UI_BTYPE_DECORATOR,
+                                                         0,
+                                                         ICON_DOT,
+                                                         0,
+                                                         0,
+                                                         UI_UNIT_X,
+                                                         UI_UNIT_Y,
+                                                         nullptr,
+                                                         0.0,
+                                                         0.0,
+                                                         0.0,
+                                                         0.0,
+                                                         TIP_("Animate property"));
 
-    UI_but_func_set(&decorator_but->but, ui_but_anim_decorate_cb, decorator_but, nullptr);
-    decorator_but->but.flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
-    /* Reusing RNA search members, setting actual RNA data has many side-effects. */
-    decorator_but->rnapoin = *ptr;
-    decorator_but->rnaprop = prop;
+    UI_but_func_set(but, ui_but_anim_decorate_cb, but, nullptr);
+    but->flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
+    /* Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects. */
+    but->decorated_rnapoin = *ptr;
+    but->decorated_rnaprop = prop;
     /* ui_def_but_rna() sets non-array buttons to have a RNA index of 0. */
-    decorator_but->rnaindex = (!is_array || is_expand) ? i : index;
+    but->decorated_rnaindex = (!is_array || is_expand) ? i : index;
   }
 }
 
@@ -3516,7 +3516,7 @@ void uiItemMenuFN(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc
 struct MenuItemLevel {
   wmOperatorCallContext opcontext;
   /* don't use pointers to the strings because python can dynamically
-   * allocate strings and free before the menu draws, see T27304. */
+   * allocate strings and free before the menu draws, see #27304. */
   char opname[OP_MAX_TYPENAME];
   char propname[MAX_IDPROP_NAME];
   PointerRNA rnapoin;
@@ -3960,8 +3960,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
 
   /* For the radial layout we will use Matt Ebb's design
    * for radiation, see http://mattebb.com/weblog/radiation/
-   * also the old code at http://developer.blender.org/T5103
-   */
+   * also the old code at #5103. */
 
   const int pie_radius = U.pie_menu_radius * UI_DPI_FAC;
 
@@ -4197,11 +4196,9 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 
   /* compute max needed width and total height */
   int toth = 0;
-  int totitem = 0;
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
     ui_item_size(item, &itemw, &itemh);
     toth += itemh;
-    totitem++;
   }
 
   /* compute sizes */

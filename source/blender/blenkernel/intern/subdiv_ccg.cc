@@ -352,7 +352,7 @@ struct StaticOrHeapIntStorage {
 
 static void static_or_heap_storage_init(StaticOrHeapIntStorage *storage)
 {
-  storage->static_storage_len = sizeof(storage->static_storage) / sizeof(*storage->static_storage);
+  storage->static_storage_len = ARRAY_SIZE(storage->static_storage);
   storage->heap_storage = nullptr;
   storage->heap_storage_len = 0;
 }

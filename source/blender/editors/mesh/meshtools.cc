@@ -108,9 +108,10 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
-    MDeformVert *dvert = (MDeformVert *)CustomData_get(vdata, *vertofs, CD_MDEFORMVERT);
-    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get(
-        &me->vdata, 0, CD_MDEFORMVERT);
+    MDeformVert *dvert = (MDeformVert *)CustomData_get_for_write(
+        vdata, *vertofs, CD_MDEFORMVERT, totvert);
+    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get_layer(&me->vdata,
+                                                                             CD_MDEFORMVERT);
 
     /* Remap to correct new vgroup indices, if needed. */
     if (dvert_src) {
@@ -254,7 +255,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
      * material is the result of joining. */
     int *material_indices = static_cast<int *>(
-        CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
           pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
@@ -270,8 +271,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
 
     /* Face maps. */
-    int *fmap = (int *)CustomData_get(pdata, *polyofs, CD_FACEMAP);
-    const int *fmap_src = (const int *)CustomData_get(&me->pdata, 0, CD_FACEMAP);
+    int *fmap = (int *)CustomData_get_for_write(pdata, *polyofs, CD_FACEMAP, totpoly);
+    const int *fmap_src = (const int *)CustomData_get_for_write(
+        &me->pdata, 0, CD_FACEMAP, me->totpoly);
 
     /* Remap to correct new face-map indices, if needed. */
     if (fmap_src) {
@@ -300,14 +302,14 @@ static void join_mesh_single(Depsgraph *depsgraph,
 /* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
  * updates face_set_offset with the maximum ID value. This way, when used in multiple meshes, all
  * of them will have different IDs for their Face Sets. */
-static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset)
+static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
   if (!mesh->totpoly) {
     return;
   }
 
-  int *face_sets = (int *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  int *face_sets = (int *)CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly);
   if (!face_sets) {
     return;
   }
@@ -419,7 +421,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Clear any run-time data.
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
+   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
   BKE_mesh_runtime_clear_geometry(me);
 
   /* new material indices and material array */
@@ -599,7 +601,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible
    * (i.e. data from active mesh will remain first ones in new result of the merge,
-   * in same order for CD layers, etc). See also T50084.
+   * in same order for CD layers, etc). See also #50084.
    */
   join_mesh_single(depsgraph,
                    bmain,
@@ -1081,7 +1083,7 @@ static uint mirror_facehash(const void *ptr)
   return ((v0 * 39) ^ (v1 * 31));
 }
 
-static int mirror_facerotation(MFace *a, MFace *b)
+static int mirror_facerotation(const MFace *a, const MFace *b)
 {
   if (b->v4) {
     if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3 && a->v4 == b->v4) {
@@ -1120,7 +1122,8 @@ static bool mirror_facecmp(const void *a, const void *b)
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MFace mirrormf, *mf, *hashmf;
+  MFace mirrormf;
+  const MFace *mf, *hashmf;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
 
@@ -1135,7 +1138,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
   const Span<float3> vert_positions = me_eval ? me_eval->vert_positions() : me->vert_positions();
-  MFace *mface = (MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata, CD_MFACE);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata,
+                                                           CD_MFACE);
 
   ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
 
@@ -1147,7 +1151,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
   fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
   for (a = 0, mf = mface; a < totface; a++, mf++) {
-    BLI_ghash_insert(fhash, mf, mf);
+    BLI_ghash_insert(fhash, (void *)mf, (void *)mf);
   }
 
   for (a = 0, mf = mface; a < totface; a++, mf++) {
@@ -1162,7 +1166,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
       std::swap(mirrormf.v2, mirrormf.v4);
     }
 
-    hashmf = static_cast<MFace *>(BLI_ghash_lookup(fhash, &mirrormf));
+    hashmf = static_cast<const MFace *>(BLI_ghash_lookup(fhash, &mirrormf));
     if (hashmf) {
       mirrorfaces[a * 2] = hashmf - mface;
       mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);

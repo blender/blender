@@ -282,7 +282,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   GHOST_TSuccess exit();
 
   /**
-   * Converts raw WIN32 key codes from the wndproc to GHOST keys.
+   * Converts raw WIN32 key codes from the `wndproc` to GHOST keys.
    * \param vKey: The virtual key from #hardKey.
    * \param ScanCode: The ScanCode of pressed key (similar to PS/2 Set 1).
    * \param extend: Flag if key is not primly (left or right).
@@ -291,7 +291,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   GHOST_TKey convertKey(short vKey, short ScanCode, short extend) const;
 
   /**
-   * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
+   * Catches raw WIN32 key codes from WM_INPUT in the `wndproc`.
    * \param raw: RawInput structure with detailed info about the key event.
    * \param r_key_down: Set true when the key is pressed, otherwise false.
    * \return The GHOST key (GHOST_kKeyUnknown if no match).
@@ -319,8 +319,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    * Creates tablet events from pointer events.
    * \param type: The type of pointer event.
    * \param window: The window receiving the event (the active window).
-   * \param wParam: The wParam from the wndproc.
-   * \param lParam: The lParam from the wndproc.
+   * \param wParam: The wParam from the `wndproc`.
+   * \param lParam: The lParam from the `wndproc`.
    * \param eventhandled: True if the method handled the event.
    */
   static void processPointerEvent(
@@ -337,8 +337,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Handles a mouse wheel event.
    * \param window: The window receiving the event (the active window).
-   * \param wParam: The wParam from the wndproc.
-   * \param lParam: The lParam from the wndproc.
+   * \param wParam: The wParam from the `wndproc`.
+   * \param lParam: The lParam from the `wndproc`.
    */
   static void processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam);
 

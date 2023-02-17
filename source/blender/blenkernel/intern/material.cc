@@ -243,33 +243,33 @@ static void material_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_MA = {
-    /* id_code */ ID_MA,
-    /* id_filter */ FILTER_ID_MA,
-    /* main_listbase_index */ INDEX_ID_MA,
-    /* struct_size */ sizeof(Material),
-    /* name */ "Material",
-    /* name_plural */ "materials",
-    /* translation_context */ BLT_I18NCONTEXT_ID_MATERIAL,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_MA,
+    /*id_filter*/ FILTER_ID_MA,
+    /*main_listbase_index*/ INDEX_ID_MA,
+    /*struct_size*/ sizeof(Material),
+    /*name*/ "Material",
+    /*name_plural*/ "materials",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_MATERIAL,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ material_init_data,
-    /* copy_data */ material_copy_data,
-    /* free_data */ material_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ material_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ material_init_data,
+    /*copy_data*/ material_copy_data,
+    /*free_data*/ material_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ material_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ material_blend_write,
-    /* blend_read_data */ material_blend_read_data,
-    /* blend_read_lib */ material_blend_read_lib,
-    /* blend_read_expand */ material_blend_read_expand,
+    /*blend_write*/ material_blend_write,
+    /*blend_read_data*/ material_blend_read_data,
+    /*blend_read_lib*/ material_blend_read_lib,
+    /*blend_read_expand*/ material_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)
@@ -850,7 +850,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     ob->mat = newmatar;
     ob->matbits = newmatbits;
   }
-  /* XXX(@campbellbarton): why not realloc on shrink? */
+  /* XXX(@ideasman42): why not realloc on shrink? */
 
   ob->totcol = totcol;
   if (ob->totcol && ob->actcol == 0) {
@@ -877,7 +877,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
     /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
      * use object's material slots amount as reference.
      * This avoids losing materials in a local object when its linked obdata goes missing.
-     * See T92780. */
+     * See #92780. */
     BKE_id_material_resize(bmain, id, short(ob->totcol), false);
   }
   else {
@@ -1311,7 +1311,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next)) {
     if (obt->data == ob->data) {
-      /* Can happen when object material lists are used, see: T52953 */
+      /* Can happen when object material lists are used, see: #52953 */
       if (actcol > obt->totcol) {
         continue;
       }

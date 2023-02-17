@@ -14,7 +14,6 @@ extern "C" {
 struct Depsgraph;
 struct Main;
 struct Object;
-struct RegionView3D;
 struct Scene;
 struct bGPDcurve;
 struct bGPDframe;

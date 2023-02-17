@@ -69,8 +69,10 @@ set(SRC
   nodes/node_geo_edge_paths_to_curves.cc
   nodes/node_geo_edge_paths_to_selection.cc
   nodes/node_geo_edge_split.cc
+  nodes/node_geo_edges_to_face_groups.cc
+  nodes/node_geo_evaluate_at_index.cc
+  nodes/node_geo_evaluate_on_domain.cc
   nodes/node_geo_extrude_mesh.cc
-  nodes/node_geo_field_at_index.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_image.cc
@@ -105,13 +107,13 @@ set(SRC
   nodes/node_geo_input_tangent.cc
   nodes/node_geo_instance_on_points.cc
   nodes/node_geo_instances_to_points.cc
-  nodes/node_geo_interpolate_domain.cc
+  nodes/node_geo_interpolate_curves.cc
   nodes/node_geo_is_viewport.cc
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_material_replace.cc
   nodes/node_geo_material_selection.cc
   nodes/node_geo_merge_by_distance.cc
-  nodes/node_geo_mesh_face_set_boundaries.cc
+  nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc
   nodes/node_geo_mesh_primitive_cube.cc
@@ -196,12 +198,6 @@ if(WITH_BULLET)
     ${BULLET_INCLUDE_DIRS}
     ../../../../intern/rigidbody
   )
-  if(NOT WITH_SYSTEM_BULLET)
-  list(APPEND LIB
-    extern_bullet
-    )
-  endif()
-
   list(APPEND LIB
     ${BULLET_LIBRARIES}
   )

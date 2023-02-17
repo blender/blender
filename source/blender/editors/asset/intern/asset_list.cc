@@ -373,6 +373,7 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
   switch (eAssetLibraryType(library_reference.type)) {
     case ASSET_LIBRARY_ALL:
       return FILE_ASSET_LIBRARY_ALL;
+    case ASSET_LIBRARY_ESSENTIALS:
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
       return FILE_ASSET_LIBRARY;

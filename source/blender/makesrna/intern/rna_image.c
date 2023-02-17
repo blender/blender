@@ -203,7 +203,7 @@ static void rna_Image_alpha_mode_update(Main *bmain, Scene *scene, PointerRNA *p
 {
   Image *ima = (Image *)ptr->owner_id;
   /* When operating on a generated image, avoid re-generating when changing the alpha-mode
-   * as it doesn't impact generated images, causing them to reload pixel data, see T82785. */
+   * as it doesn't impact generated images, causing them to reload pixel data, see #82785. */
   if (ima->source == IMA_SRC_GENERATED) {
     return;
   }

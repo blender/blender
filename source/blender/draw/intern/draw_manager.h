@@ -439,15 +439,22 @@ struct DRWPass {
 #define MAX_CULLED_VIEWS 32
 
 struct DRWView {
+  /**
+   * These float4x4 (as well as the ViewMatrices) have alignment requirements in C++
+   * (see math::MatBase) that isn't fulfilled in C. So they need to be manually aligned.
+   * Since the DRWView are allocated using BLI_memblock, the chunks are given to be 16 bytes
+   * aligned (equal to the alignment of float4x4). We then assert that the DRWView itself is 16
+   * bytes aligned.
+   */
+  float4x4 persmat;
+  float4x4 persinv;
+  ViewMatrices storage;
+
   /** Parent view if this is a sub view. NULL otherwise. */
   struct DRWView *parent;
 
-  ViewMatrices storage;
-
   float4 clip_planes[6];
 
-  float4x4 persmat;
-  float4x4 persinv;
   /** Number of active clip planes. */
   int clip_planes_len;
   /** Does culling result needs to be updated. */
@@ -463,6 +470,8 @@ struct DRWView {
   DRWCallVisibilityFn *visibility_fn;
   void *user_data;
 };
+/* Needed to assert that alignment is the same in C++ and C. */
+BLI_STATIC_ASSERT_ALIGN(DRWView, 16);
 
 /* ------------ Data Chunks --------------- */
 /**
@@ -628,9 +637,6 @@ typedef struct DRWManager {
   DRWView *view_active;
   DRWView *view_previous;
   uint primary_view_num;
-  /** TODO(@fclem): Remove this. Only here to support
-   * shaders without common_view_lib.glsl */
-  ViewMatrices view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;

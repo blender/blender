@@ -354,7 +354,8 @@ typedef struct ThemeSpace {
   unsigned char path_before[4], path_after[4];
   unsigned char path_keyframe_before[4], path_keyframe_after[4];
   unsigned char camera_path[4];
-  unsigned char _pad1[6];
+  unsigned char camera_passepartout[4];
+  unsigned char _pad1[2];
 
   unsigned char gp_vertex_size;
   unsigned char gp_vertex[4], gp_vertex_select[4];
@@ -646,8 +647,10 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
+  char enable_workbench_next;
+  char use_new_volume_nodes;
   char use_blender_projects;
-  char _pad[7];
+  char _pad[5];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -655,6 +658,8 @@ typedef struct UserDef_Experimental {
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
 typedef struct UserDef {
+  DNA_DEFINE_CXX_METHODS(UserDef)
+
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
 
@@ -770,8 +775,10 @@ typedef struct UserDef {
 
   char keyconfigstr[64];
 
+  /** Index of the asset library being edited in the Preferences UI. */
+  short active_asset_library;
+
   short undosteps;
-  char _pad1[2];
   int undomemory;
   float gpu_viewport_quality DNA_DEPRECATED;
   short gp_manhattandist, gp_euclideandist, gp_eraser;
@@ -951,7 +958,7 @@ extern UserDef U;
 /* ***************** USERDEF ****************** */
 
 /* Toggles for unfinished 2.8 UserPref design. */
-//#define WITH_USERDEF_WORKSPACES
+// #define WITH_USERDEF_WORKSPACES
 
 /** #UserDef_SpaceData.section_active (UI active_section) */
 typedef enum eUserPref_Section {

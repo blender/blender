@@ -174,6 +174,8 @@ class SkyTextureNode : public TextureNode {
     /* Clamping for numerical precision. */
     return fmaxf(sun_size, 0.0005f);
   }
+
+  float get_sun_average_radiance();
 };
 
 class OutputNode : public ShaderNode {

@@ -530,14 +530,15 @@ static void get_loop_normals(struct Mesh *mesh,
   normals.clear();
 
   /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
-   * normals at all. This is also done by other software, see T71246. */
+   * normals at all. This is also done by other software, see #71246. */
   if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL) &&
       (mesh->flag & ME_AUTOSMOOTH) == 0) {
     return;
   }
 
   BKE_mesh_calc_normals_split(mesh);
-  const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+  const float(*lnors)[3] = static_cast<const float(*)[3]>(
+      CustomData_get_layer(&mesh->ldata, CD_NORMAL));
   BLI_assert_msg(lnors != nullptr, "BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
 
   normals.resize(mesh->totloop);

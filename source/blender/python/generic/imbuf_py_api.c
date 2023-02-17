@@ -261,7 +261,7 @@ static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void *UNUSED(closure))
 {
   PY_IMBUF_CHECK_OBJ(self);
   ImBuf *ibuf = self->ibuf;
-  return PyC_UnicodeFromByte(ibuf->name);
+  return PyC_UnicodeFromBytes(ibuf->name);
 }
 
 static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void *UNUSED(closure))

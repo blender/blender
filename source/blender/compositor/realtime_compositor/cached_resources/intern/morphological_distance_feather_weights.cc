@@ -135,7 +135,7 @@ void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(int type, in
 void MorphologicalDistanceFeatherWeights::bind_weights_as_texture(GPUShader *shader,
                                                                   const char *texture_name) const
 {
-  const int texture_image_unit = GPU_shader_get_texture_binding(shader, texture_name);
+  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
   GPU_texture_bind(weights_texture_, texture_image_unit);
 }
 
@@ -147,7 +147,7 @@ void MorphologicalDistanceFeatherWeights::unbind_weights_as_texture() const
 void MorphologicalDistanceFeatherWeights::bind_distance_falloffs_as_texture(
     GPUShader *shader, const char *texture_name) const
 {
-  const int texture_image_unit = GPU_shader_get_texture_binding(shader, texture_name);
+  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
   GPU_texture_bind(distance_falloffs_texture_, texture_image_unit);
 }
 

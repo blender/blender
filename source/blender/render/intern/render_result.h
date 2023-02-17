@@ -18,10 +18,8 @@ struct ImBuf;
 struct ListBase;
 struct Render;
 struct RenderData;
-struct RenderEngine;
 struct RenderLayer;
 struct RenderResult;
-struct Scene;
 struct rcti;
 
 #ifdef __cplusplus

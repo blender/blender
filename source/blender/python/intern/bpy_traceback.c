@@ -166,9 +166,9 @@ finally:
 bool python_script_error_jump(
     const char *filepath, int *r_lineno, int *r_offset, int *r_lineno_end, int *r_offset_end)
 {
-  /* WARNING(@campbellbarton): The normalized exception is restored (losing line number info).
+  /* WARNING(@ideasman42): The normalized exception is restored (losing line number info).
    * Ideally this would leave the exception state as it found it, but that needs to be done
-   * carefully with regards to reference counting, see: T97731. */
+   * carefully with regards to reference counting, see: #97731. */
 
   bool success = false;
   PyObject *exception, *value;

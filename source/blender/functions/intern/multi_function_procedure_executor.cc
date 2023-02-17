@@ -10,7 +10,7 @@ ProcedureExecutor::ProcedureExecutor(const Procedure &procedure) : procedure_(pr
 {
   SignatureBuilder builder("Procedure Executor", signature_);
 
-  for (const ConstMFParameter &param : procedure.params()) {
+  for (const ConstParameter &param : procedure.params()) {
     builder.add("Parameter", ParamType(param.type, param.variable->data_type()));
   }
 
@@ -861,7 +861,7 @@ class VariableStates {
 
   void add_initial_variable_states(const ProcedureExecutor &fn,
                                    const Procedure &procedure,
-                                   MFParams &params)
+                                   Params &params)
   {
     for (const int param_index : fn.param_indices()) {
       ParamType param_type = fn.param_type(param_index);
@@ -1169,7 +1169,7 @@ class InstructionScheduler {
   }
 };
 
-void ProcedureExecutor::call(IndexMask full_mask, MFParams params, Context context) const
+void ProcedureExecutor::call(IndexMask full_mask, Params params, Context context) const
 {
   BLI_assert(procedure_.validate());
 

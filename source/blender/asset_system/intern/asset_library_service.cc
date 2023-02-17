@@ -21,6 +21,7 @@
 
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
+#include "AS_essentials_library.hh"
 #include "asset_library_service.hh"
 #include "utils.hh"
 
@@ -65,6 +66,14 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   const eAssetLibraryType type = eAssetLibraryType(library_reference.type);
 
   switch (type) {
+    case ASSET_LIBRARY_ESSENTIALS: {
+      const StringRefNull root_path = essentials_directory_path();
+
+      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
+
+      return library;
+    }
     case ASSET_LIBRARY_LOCAL: {
       /* For the "Current File" library  we get the asset library root path based on main. */
       std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) :
@@ -80,12 +89,22 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       return get_asset_library_all(bmain);
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      std::string root_path = root_path_from_library_ref(library_reference);
-
-      if (!root_path.empty()) {
-        return get_asset_library_on_disk(root_path);
+      CustomAssetLibraryDefinition *custom_library = find_custom_asset_library_from_library_ref(
+          library_reference);
+      if (!custom_library) {
+        return nullptr;
       }
-      break;
+
+      std::string root_path = custom_library->path;
+      if (root_path.empty()) {
+        return nullptr;
+      }
+
+      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      library->import_method_ = eAssetImportMethod(custom_library->import_method);
+      library->may_override_import_method_ = true;
+
+      return library;
     }
   }
 
@@ -186,49 +205,74 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   return all_library_.get();
 }
 
-std::string AssetLibraryService::root_path_from_library_ref(
+CustomAssetLibraryDefinition *AssetLibraryService::find_custom_asset_library_from_library_ref(
     const AssetLibraryReference &library_reference)
 {
-  if (ELEM(library_reference.type, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL)) {
-    return "";
-  }
-
+  BLI_assert(ELEM(library_reference.type,
+                  ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES,
+                  ASSET_LIBRARY_CUSTOM_FROM_PROJECT));
   BLI_assert(library_reference.custom_library_index >= 0);
 
-  switch (library_reference.type) {
+  switch (eAssetLibraryType(library_reference.type)) {
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES: {
-      CustomAssetLibraryDefinition *user_library = BKE_asset_library_custom_find_from_index(
-          &U.asset_libraries, library_reference.custom_library_index);
-      if (user_library && user_library->path[0]) {
-        return user_library->path;
-      }
-      break;
+      return BKE_asset_library_custom_find_from_index(&U.asset_libraries,
+                                                      library_reference.custom_library_index);
     }
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
       BlenderProject *project = BKE_project_active_get();
       if (!project) {
-        return "";
+        return NULL;
       }
 
       ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
-      CustomAssetLibraryDefinition *project_library_ = BKE_asset_library_custom_find_from_index(
-          project_libraries, library_reference.custom_library_index);
-      if (!project_library_) {
+      return BKE_asset_library_custom_find_from_index(project_libraries,
+                                                      library_reference.custom_library_index);
+    }
+    case ASSET_LIBRARY_ALL:
+    case ASSET_LIBRARY_LOCAL:
+    case ASSET_LIBRARY_ESSENTIALS:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return NULL;
+}
+
+std::string AssetLibraryService::root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  switch (eAssetLibraryType(library_reference.type)) {
+    case ASSET_LIBRARY_ALL:
+    case ASSET_LIBRARY_LOCAL:
+    case ASSET_LIBRARY_ESSENTIALS:
+      return "";
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES: {
+      CustomAssetLibraryDefinition *user_library = find_custom_asset_library_from_library_ref(
+          library_reference);
+      if (!user_library) {
+        return "";
+      }
+
+      return user_library->path;
+    }
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
+      CustomAssetLibraryDefinition *project_library = find_custom_asset_library_from_library_ref(
+          library_reference);
+      if (!project_library) {
         return "";
       }
 
       /* Project asset libraries typically use relative paths (relative to project root directory).
        */
-      if (BLI_path_is_rel(project_library_->path)) {
+      if (BLI_path_is_rel(project_library->path)) {
+        const BlenderProject *project = BKE_project_active_get();
         const char *project_root_path = BKE_project_root_path_get(project);
         char path[1024]; /* FILE_MAX */
-        BLI_path_join(path, sizeof(path), project_root_path, project_library_->path);
+        BLI_path_join(path, sizeof(path), project_root_path, project_library->path);
         return path;
       }
-      else {
-        return project_library_->path;
-      }
-      break;
+
+      return project_library->path;
     }
     default:
       BLI_assert_unreachable();

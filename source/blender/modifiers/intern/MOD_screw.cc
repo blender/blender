@@ -394,7 +394,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, int(maxPolys));
   }
 
-  int *origindex = static_cast<int *>(CustomData_get_layer(&result->pdata, CD_ORIGINDEX));
+  int *origindex = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->totpoly));
 
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(totvert));
 
@@ -406,8 +407,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (mloopuv_layers_tot) {
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-      mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(
-          CustomData_get_layer_n(&result->ldata, CD_PROP_FLOAT2, int(uv_lay)));
+      mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
+          &result->ldata, CD_PROP_FLOAT2, int(uv_lay), result->totloop));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -785,7 +786,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* add the new edge */
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = ME_EDGEDRAW;
+      med_new->flag = 0;
       med_new++;
     }
   }
@@ -803,7 +804,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (i = 0; i < totvert; i++) {
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
-      med_new->flag = ME_EDGEDRAW;
+      med_new->flag = 0;
       med_new++;
     }
   }
@@ -1103,36 +1104,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Screw = {
-    /* name */ N_("Screw"),
-    /* structName */ "ScrewModifierData",
-    /* structSize */ sizeof(ScrewModifierData),
-    /* srna */ &RNA_ScrewModifier,
-    /* type */ eModifierTypeType_Constructive,
+    /*name*/ N_("Screw"),
+    /*structName*/ "ScrewModifierData",
+    /*structSize*/ sizeof(ScrewModifierData),
+    /*srna*/ &RNA_ScrewModifier,
+    /*type*/ eModifierTypeType_Constructive,
 
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_SCREW,
+    /*icon*/ ICON_MOD_SCREW,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ nullptr,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

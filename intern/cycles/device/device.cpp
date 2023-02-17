@@ -452,6 +452,320 @@ void *Device::get_cpu_osl_memory()
   return nullptr;
 }
 
+GPUDevice::~GPUDevice() noexcept(false)
+{
+}
+
+bool GPUDevice::load_texture_info()
+{
+  if (need_texture_info) {
+    /* Unset flag before copying, so this does not loop indefinitely if the copy below calls
+     * into 'move_textures_to_host' (which calls 'load_texture_info' again). */
+    need_texture_info = false;
+    texture_info.copy_to_device();
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+void GPUDevice::init_host_memory(size_t preferred_texture_headroom,
+                                 size_t preferred_working_headroom)
+{
+  /* Limit amount of host mapped memory, because allocating too much can
+   * cause system instability. Leave at least half or 4 GB of system
+   * memory free, whichever is smaller. */
+  size_t default_limit = 4 * 1024 * 1024 * 1024LL;
+  size_t system_ram = system_physical_ram();
+
+  if (system_ram > 0) {
+    if (system_ram / 2 > default_limit) {
+      map_host_limit = system_ram - default_limit;
+    }
+    else {
+      map_host_limit = system_ram / 2;
+    }
+  }
+  else {
+    VLOG_WARNING << "Mapped host memory disabled, failed to get system RAM";
+    map_host_limit = 0;
+  }
+
+  /* Amount of device memory to keep free after texture memory
+   * and working memory allocations respectively. We set the working
+   * memory limit headroom lower than the working one so there
+   * is space left for it. */
+  device_working_headroom = preferred_working_headroom > 0 ? preferred_working_headroom :
+                                                             32 * 1024 * 1024LL;  // 32MB
+  device_texture_headroom = preferred_texture_headroom > 0 ? preferred_texture_headroom :
+                                                             128 * 1024 * 1024LL;  // 128MB
+
+  VLOG_INFO << "Mapped host memory limit set to " << string_human_readable_number(map_host_limit)
+            << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
+}
+
+void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
+{
+  /* Break out of recursive call, which can happen when moving memory on a multi device. */
+  static bool any_device_moving_textures_to_host = false;
+  if (any_device_moving_textures_to_host) {
+    return;
+  }
+
+  /* Signal to reallocate textures in host memory only. */
+  move_texture_to_host = true;
+
+  while (size > 0) {
+    /* Find suitable memory allocation to move. */
+    device_memory *max_mem = NULL;
+    size_t max_size = 0;
+    bool max_is_image = false;
+
+    thread_scoped_lock lock(device_mem_map_mutex);
+    foreach (MemMap::value_type &pair, device_mem_map) {
+      device_memory &mem = *pair.first;
+      Mem *cmem = &pair.second;
+
+      /* Can only move textures allocated on this device (and not those from peer devices).
+       * And need to ignore memory that is already on the host. */
+      if (!mem.is_resident(this) || cmem->use_mapped_host) {
+        continue;
+      }
+
+      bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
+                        (&mem != &texture_info);
+      bool is_image = is_texture && (mem.data_height > 1);
+
+      /* Can't move this type of memory. */
+      if (!is_texture || cmem->array) {
+        continue;
+      }
+
+      /* For other textures, only move image textures. */
+      if (for_texture && !is_image) {
+        continue;
+      }
+
+      /* Try to move largest allocation, prefer moving images. */
+      if (is_image > max_is_image || (is_image == max_is_image && mem.device_size > max_size)) {
+        max_is_image = is_image;
+        max_size = mem.device_size;
+        max_mem = &mem;
+      }
+    }
+    lock.unlock();
+
+    /* Move to host memory. This part is mutex protected since
+     * multiple backend devices could be moving the memory. The
+     * first one will do it, and the rest will adopt the pointer. */
+    if (max_mem) {
+      VLOG_WORK << "Move memory from device to host: " << max_mem->name;
+
+      static thread_mutex move_mutex;
+      thread_scoped_lock lock(move_mutex);
+
+      any_device_moving_textures_to_host = true;
+
+      /* Potentially need to call back into multi device, so pointer mapping
+       * and peer devices are updated. This is also necessary since the device
+       * pointer may just be a key here, so cannot be accessed and freed directly.
+       * Unfortunately it does mean that memory is reallocated on all other
+       * devices as well, which is potentially dangerous when still in use (since
+       * a thread rendering on another devices would only be caught in this mutex
+       * if it so happens to do an allocation at the same time as well. */
+      max_mem->device_copy_to();
+      size = (max_size >= size) ? 0 : size - max_size;
+
+      any_device_moving_textures_to_host = false;
+    }
+    else {
+      break;
+    }
+  }
+
+  /* Unset flag before texture info is reloaded, since it should stay in device memory. */
+  move_texture_to_host = false;
+
+  /* Update texture info array with new pointers. */
+  load_texture_info();
+}
+
+GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_padding)
+{
+  void *device_pointer = 0;
+  size_t size = mem.memory_size() + pitch_padding;
+
+  bool mem_alloc_result = false;
+  const char *status = "";
+
+  /* First try allocating in device memory, respecting headroom. We make
+   * an exception for texture info. It is small and frequently accessed,
+   * so treat it as working memory.
+   *
+   * If there is not enough room for working memory, we will try to move
+   * textures to host memory, assuming the performance impact would have
+   * been worse for working memory. */
+  bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) && (&mem != &texture_info);
+  bool is_image = is_texture && (mem.data_height > 1);
+
+  size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
+
+  size_t total = 0, free = 0;
+  get_device_memory_info(total, free);
+
+  /* Move textures to host memory if needed. */
+  if (!move_texture_to_host && !is_image && (size + headroom) >= free && can_map_host) {
+    move_textures_to_host(size + headroom - free, is_texture);
+    get_device_memory_info(total, free);
+  }
+
+  /* Allocate in device memory. */
+  if (!move_texture_to_host && (size + headroom) < free) {
+    mem_alloc_result = alloc_device(device_pointer, size);
+    if (mem_alloc_result) {
+      device_mem_in_use += size;
+      status = " in device memory";
+    }
+  }
+
+  /* Fall back to mapped host memory if needed and possible. */
+
+  void *shared_pointer = 0;
+
+  if (!mem_alloc_result && can_map_host && mem.type != MEM_DEVICE_ONLY) {
+    if (mem.shared_pointer) {
+      /* Another device already allocated host memory. */
+      mem_alloc_result = true;
+      shared_pointer = mem.shared_pointer;
+    }
+    else if (map_host_used + size < map_host_limit) {
+      /* Allocate host memory ourselves. */
+      mem_alloc_result = alloc_host(shared_pointer, size);
+
+      assert((mem_alloc_result && shared_pointer != 0) ||
+             (!mem_alloc_result && shared_pointer == 0));
+    }
+
+    if (mem_alloc_result) {
+      assert(transform_host_pointer(device_pointer, shared_pointer));
+      map_host_used += size;
+      status = " in host memory";
+    }
+  }
+
+  if (!mem_alloc_result) {
+    if (mem.type == MEM_DEVICE_ONLY) {
+      status = " failed, out of device memory";
+      set_error("System is out of GPU memory");
+    }
+    else {
+      status = " failed, out of device and host memory";
+      set_error("System is out of GPU and shared host memory");
+    }
+  }
+
+  if (mem.name) {
+    VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")" << status;
+  }
+
+  mem.device_pointer = (device_ptr)device_pointer;
+  mem.device_size = size;
+  stats.mem_alloc(size);
+
+  if (!mem.device_pointer) {
+    return NULL;
+  }
+
+  /* Insert into map of allocations. */
+  thread_scoped_lock lock(device_mem_map_mutex);
+  Mem *cmem = &device_mem_map[&mem];
+  if (shared_pointer != 0) {
+    /* Replace host pointer with our host allocation. Only works if
+     * memory layout is the same and has no pitch padding. Also
+     * does not work if we move textures to host during a render,
+     * since other devices might be using the memory. */
+
+    if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
+        mem.host_pointer != shared_pointer) {
+      memcpy(shared_pointer, mem.host_pointer, size);
+
+      /* A Call to device_memory::host_free() should be preceded by
+       * a call to device_memory::device_free() for host memory
+       * allocated by a device to be handled properly. Two exceptions
+       * are here and a call in OptiXDevice::generic_alloc(), where
+       * the current host memory can be assumed to be allocated by
+       * device_memory::host_alloc(), not by a device */
+
+      mem.host_free();
+      mem.host_pointer = shared_pointer;
+    }
+    mem.shared_pointer = shared_pointer;
+    mem.shared_counter++;
+    cmem->use_mapped_host = true;
+  }
+  else {
+    cmem->use_mapped_host = false;
+  }
+
+  return cmem;
+}
+
+void GPUDevice::generic_free(device_memory &mem)
+{
+  if (mem.device_pointer) {
+    thread_scoped_lock lock(device_mem_map_mutex);
+    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
+    const Mem &cmem = device_mem_map[&mem];
+
+    /* If cmem.use_mapped_host is true, reference counting is used
+     * to safely free a mapped host memory. */
+
+    if (cmem.use_mapped_host) {
+      assert(mem.shared_pointer);
+      if (mem.shared_pointer) {
+        assert(mem.shared_counter > 0);
+        if (--mem.shared_counter == 0) {
+          if (mem.host_pointer == mem.shared_pointer) {
+            mem.host_pointer = 0;
+          }
+          free_host(mem.shared_pointer);
+          mem.shared_pointer = 0;
+        }
+      }
+      map_host_used -= mem.device_size;
+    }
+    else {
+      /* Free device memory. */
+      free_device((void *)mem.device_pointer);
+      device_mem_in_use -= mem.device_size;
+    }
+
+    stats.mem_free(mem.device_size);
+    mem.device_pointer = 0;
+    mem.device_size = 0;
+
+    device_mem_map.erase(device_mem_map.find(&mem));
+  }
+}
+
+void GPUDevice::generic_copy_to(device_memory &mem)
+{
+  if (!mem.host_pointer || !mem.device_pointer) {
+    return;
+  }
+
+  /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
+   * backend device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
+   * copy data from mem.host_pointer. */
+  thread_scoped_lock lock(device_mem_map_mutex);
+  if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+    copy_host_to_device((void *)mem.device_pointer, mem.host_pointer, mem.memory_size());
+  }
+}
+
 /* DeviceInfo */
 
 CCL_NAMESPACE_END

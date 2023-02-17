@@ -195,35 +195,35 @@ static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_KE = {
-    /* id_code */ ID_KE,
-    /* id_filter */ FILTER_ID_KE,
-    /* main_listbase_index */ INDEX_ID_KE,
-    /* struct_size */ sizeof(Key),
-    /* name */ "Key",
-    /* name_plural */ "shape_keys",
-    /* translation_context */ BLT_I18NCONTEXT_ID_SHAPEKEY,
-    /* flags */ IDTYPE_FLAGS_NO_LIBLINKING,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_KE,
+    /*id_filter*/ FILTER_ID_KE,
+    /*main_listbase_index*/ INDEX_ID_KE,
+    /*struct_size*/ sizeof(Key),
+    /*name*/ "Key",
+    /*name_plural*/ "shape_keys",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_SHAPEKEY,
+    /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ nullptr,
-    /* copy_data */ shapekey_copy_data,
-    /* free_data */ shapekey_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ shapekey_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
+    /*init_data*/ nullptr,
+    /*copy_data*/ shapekey_copy_data,
+    /*free_data*/ shapekey_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ shapekey_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
     /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
-    /* owner_pointer_get */ shapekey_owner_pointer_get,
+    /*owner_pointer_get*/ shapekey_owner_pointer_get,
 
-    /* blend_write */ shapekey_blend_write,
-    /* blend_read_data */ shapekey_blend_read_data,
-    /* blend_read_lib */ shapekey_blend_read_lib,
-    /* blend_read_expand */ shapekey_blend_read_expand,
+    /*blend_write*/ shapekey_blend_write,
+    /*blend_read_data*/ shapekey_blend_read_data,
+    /*blend_read_lib*/ shapekey_blend_read_lib,
+    /*blend_read_expand*/ shapekey_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */
@@ -1875,7 +1875,7 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
   /* In case of absolute keys, there is no point in adding more than one key with the same pos.
    * Hence only set new key-block pos to current time if none previous one already use it.
    * Now at least people just adding absolute keys without touching to ctime
-   * won't have to systematically use retiming func (and have ordering issues, too). See T39897.
+   * won't have to systematically use retiming func (and have ordering issues, too). See #39897.
    */
   if (!do_force && (key->type != KEY_RELATIVE)) {
     KeyBlock *it_kb;
@@ -2218,11 +2218,11 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
                                   const int totvert)
 {
   const int tot = min_ii(kb->totelem, totvert);
-  memcpy(kb->data, vert_positions, sizeof(float[3]) * tot);
+  memcpy(vert_positions, kb->data, sizeof(float[3]) * tot);
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
-                                    const Mesh *mesh,
+                                    Mesh *mesh,
                                     float (*r_vert_normals)[3],
                                     float (*r_poly_normals)[3],
                                     float (*r_loop_normals)[3])
@@ -2272,8 +2272,10 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                           vert_normals);
   }
   if (loop_normals_needed) {
-    short(*clnors)[2] = static_cast<short(*)[2]>(
-        CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL)); /* May be nullptr. */
+    short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop)); /* May be nullptr. */
+    const bool *sharp_edges = static_cast<const bool *>(
+        CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 mesh->totvert,
@@ -2287,6 +2289,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                 mesh->totpoly,
                                 (mesh->flag & ME_AUTOSMOOTH) != 0,
                                 mesh->smoothresh,
+                                sharp_edges,
                                 nullptr,
                                 nullptr,
                                 clnors);
