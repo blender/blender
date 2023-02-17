@@ -494,8 +494,6 @@ struct FilterCache {
   float (*pre_smoothed_color)[4];
 
   ViewContext vc;
-  float start_filter_strength;
-  bool no_orig_co;
 };
 
 /**
@@ -1429,8 +1427,7 @@ void SCULPT_filter_cache_init(bContext *C,
                               Sculpt *sd,
                               int undo_type,
                               const int mval[2],
-                              float area_normal_radius,
-                              float start_strength);
+                              float area_normal_radius);
 void SCULPT_filter_cache_free(SculptSession *ss);
 void SCULPT_mesh_filter_properties(wmOperatorType *ot);
 

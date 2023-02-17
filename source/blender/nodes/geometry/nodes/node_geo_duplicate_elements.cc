@@ -64,6 +64,18 @@ struct IndexAttributes {
 /** \name Utility Functions
  * \{ */
 
+static Map<AttributeIDRef, AttributeKind> gather_attributes_without_id(
+    const GeometrySet &geometry_set,
+    const GeometryComponentType component_type,
+    const AnonymousAttributePropagationInfo &propagation_info)
+{
+  Map<AttributeIDRef, AttributeKind> attributes;
+  geometry_set.gather_attributes_for_propagation(
+      {component_type}, component_type, false, propagation_info, attributes);
+  attributes.remove("id");
+  return attributes;
+};
+
 static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask selection,
                                                        const VArray<int> &counts,
                                                        Array<int> &r_offset_data)
@@ -171,25 +183,39 @@ static void copy_stable_id_point(const OffsetIndices<int> offsets,
   dst_attribute.finish();
 }
 
-static void copy_attributes_without_id(const OffsetIndices<int> offsets,
+static void copy_attributes_without_id(GeometrySet &geometry_set,
+                                       const GeometryComponentType component_type,
+                                       const eAttrDomain domain,
+                                       const OffsetIndices<int> offsets,
                                        const IndexMask selection,
                                        const AnonymousAttributePropagationInfo &propagation_info,
-                                       const eAttrDomain domain,
                                        const bke::AttributeAccessor src_attributes,
                                        bke::MutableAttributeAccessor dst_attributes)
 {
-  for (auto &attribute : bke::retrieve_attributes_for_transfer(src_attributes,
-                                                               dst_attributes,
-                                                               ATTR_DOMAIN_AS_MASK(domain),
-                                                               propagation_info,
-                                                               {"id"})) {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+  const Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, component_type, propagation_info);
+
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
+    if (!src_attribute || src_attribute.domain != domain) {
+      continue;
+    }
+    eAttrDomain out_domain = src_attribute.domain;
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
+      VArraySpan<T> src = src_attribute.varray.typed<T>();
+      MutableSpan<T> dst = dst_attribute.span.typed<T>();
       threaded_slice_fill<T>(offsets, selection, src, dst);
     });
-    attribute.dst.finish();
+    dst_attribute.finish();
   }
 }
 
@@ -204,26 +230,42 @@ static void copy_attributes_without_id(const OffsetIndices<int> offsets,
  * copied with an offset fill, otherwise a mapping is used.
  */
 static void copy_curve_attributes_without_id(
+    const GeometrySet &geometry_set,
     const bke::CurvesGeometry &src_curves,
     const IndexMask selection,
     const OffsetIndices<int> curve_offsets,
     const AnonymousAttributePropagationInfo &propagation_info,
     bke::CurvesGeometry &dst_curves)
 {
+  Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, GEO_COMPONENT_TYPE_CURVE, propagation_info);
+
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
-  for (auto &attribute : bke::retrieve_attributes_for_transfer(src_curves.attributes(),
-                                                               dst_curves.attributes_for_write(),
-                                                               ATTR_DOMAIN_MASK_ALL,
-                                                               propagation_info,
-                                                               {"id"})) {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    GAttributeReader src_attribute = src_curves.attributes().lookup(attribute_id);
+    if (!src_attribute) {
+      continue;
+    }
 
-      switch (attribute.meta_data.domain) {
+    eAttrDomain out_domain = src_attribute.domain;
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    GSpanAttributeWriter dst_attribute =
+        dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
+            attribute_id, out_domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
+      MutableSpan<T> dst = dst_attribute.span.typed<T>();
+
+      switch (out_domain) {
         case ATTR_DOMAIN_CURVE:
           threaded_slice_fill<T>(curve_offsets, selection, src, dst);
           break;
@@ -239,11 +281,10 @@ static void copy_curve_attributes_without_id(
           });
           break;
         default:
-          BLI_assert_unreachable();
           break;
       }
     });
-    attribute.dst.finish();
+    dst_attribute.finish();
   }
 }
 
@@ -353,7 +394,8 @@ static void duplicate_curves(GeometrySet &geometry_set,
   });
   all_dst_offsets.last() = dst_points_num;
 
-  copy_curve_attributes_without_id(curves, selection, curve_offsets, propagation_info, new_curves);
+  copy_curve_attributes_without_id(
+      geometry_set, curves, selection, curve_offsets, propagation_info, new_curves);
 
   copy_stable_id_curves(curves, selection, curve_offsets, new_curves);
 
@@ -380,6 +422,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
  * copied with an offset fill, otherwise a mapping is used.
  */
 static void copy_face_attributes_without_id(
+    GeometrySet &geometry_set,
     const Span<int> edge_mapping,
     const Span<int> vert_mapping,
     const Span<int> loop_mapping,
@@ -389,14 +432,31 @@ static void copy_face_attributes_without_id(
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes)
 {
-  for (auto &attribute : bke::retrieve_attributes_for_transfer(
-           src_attributes, dst_attributes, ATTR_DOMAIN_MASK_ALL, propagation_info, {"id"})) {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
+  Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, GEO_COMPONENT_TYPE_MESH, propagation_info);
 
-      switch (attribute.meta_data.domain) {
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
+    if (!src_attribute) {
+      continue;
+    }
+
+    eAttrDomain out_domain = src_attribute.domain;
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
+      MutableSpan<T> dst = dst_attribute.span.typed<T>();
+
+      switch (out_domain) {
         case ATTR_DOMAIN_POINT:
           array_utils::gather(src, vert_mapping, dst);
           break;
@@ -410,11 +470,10 @@ static void copy_face_attributes_without_id(
           array_utils::gather(src, loop_mapping, dst);
           break;
         default:
-          BLI_assert_unreachable();
           break;
       }
     });
-    attribute.dst.finish();
+    dst_attribute.finish();
   }
 }
 
@@ -548,7 +607,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
 
   new_mesh->loose_edges_tag_none();
 
-  copy_face_attributes_without_id(edge_mapping,
+  copy_face_attributes_without_id(geometry_set,
+                                  edge_mapping,
                                   vert_mapping,
                                   loop_mapping,
                                   duplicates,
@@ -586,6 +646,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
  * copied with an offset fill, for point domain a mapping is used.
  */
 static void copy_edge_attributes_without_id(
+    GeometrySet &geometry_set,
     const Span<int> point_mapping,
     const OffsetIndices<int> offsets,
     const IndexMask selection,
@@ -593,18 +654,30 @@ static void copy_edge_attributes_without_id(
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes)
 {
-  for (auto &attribute :
-       bke::retrieve_attributes_for_transfer(src_attributes,
-                                             dst_attributes,
-                                             ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_EDGE,
-                                             propagation_info,
-                                             {"id"})) {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
+  Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, GEO_COMPONENT_TYPE_MESH, propagation_info);
 
-      switch (attribute.meta_data.domain) {
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
+    if (!src_attribute) {
+      continue;
+    }
+
+    const eAttrDomain out_domain = src_attribute.domain;
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
+      MutableSpan<T> dst = dst_attribute.span.typed<T>();
+
+      switch (out_domain) {
         case ATTR_DOMAIN_EDGE:
           threaded_slice_fill<T>(offsets, selection, src, dst);
           break;
@@ -612,11 +685,10 @@ static void copy_edge_attributes_without_id(
           array_utils::gather(src, point_mapping, dst);
           break;
         default:
-          BLI_assert_unreachable();
           break;
       }
     });
-    attribute.dst.finish();
+    dst_attribute.finish();
   }
 }
 
@@ -719,7 +791,8 @@ static void duplicate_edges(GeometrySet &geometry_set,
     }
   });
 
-  copy_edge_attributes_without_id(vert_orig_indices,
+  copy_edge_attributes_without_id(geometry_set,
+                                  vert_orig_indices,
                                   duplicates,
                                   selection,
                                   propagation_info,
@@ -782,16 +855,32 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   }
   new_curve_offsets.last() = dst_num;
 
-  for (auto &attribute : bke::retrieve_attributes_for_transfer(src_curves.attributes(),
-                                                               new_curves.attributes_for_write(),
-                                                               ATTR_DOMAIN_MASK_ALL,
-                                                               propagation_info,
-                                                               {"id"})) {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+  Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, GEO_COMPONENT_TYPE_CURVE, propagation_info);
+
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    GAttributeReader src_attribute = src_curves.attributes().lookup(attribute_id);
+    if (!src_attribute) {
+      continue;
+    }
+
+    eAttrDomain domain = src_attribute.domain;
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    GSpanAttributeWriter dst_attribute =
+        new_curves.attributes_for_write().lookup_or_add_for_write_only_span(
+            attribute_id, domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-      switch (attribute.meta_data.domain) {
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
+      MutableSpan<T> dst = dst_attribute.span.typed<T>();
+
+      switch (domain) {
         case ATTR_DOMAIN_CURVE:
           threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
             for (const int i_selection : range) {
@@ -804,11 +893,10 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
           threaded_slice_fill(duplicates, selection, src, dst);
           break;
         default:
-          BLI_assert_unreachable();
           break;
       }
     });
-    attribute.dst.finish();
+    dst_attribute.finish();
   }
 
   copy_stable_id_point(duplicates, src_curves.attributes(), new_curves.attributes_for_write());
@@ -852,10 +940,12 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
 
   Mesh *new_mesh = BKE_mesh_new_nomain(duplicates.total_size(), 0, 0, 0, 0);
 
-  copy_attributes_without_id(duplicates,
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_MESH,
+                             ATTR_DOMAIN_POINT,
+                             duplicates,
                              selection,
                              propagation_info,
-                             ATTR_DOMAIN_POINT,
                              mesh.attributes(),
                              new_mesh->attributes_for_write());
 
@@ -900,10 +990,12 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(duplicates.total_size());
 
-  copy_attributes_without_id(duplicates,
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_POINT_CLOUD,
+                             ATTR_DOMAIN_POINT,
+                             duplicates,
                              selection,
                              propagation_info,
-                             ATTR_DOMAIN_POINT,
                              src_points.attributes(),
                              pointcloud->attributes_for_write());
 
@@ -1011,10 +1103,12 @@ static void duplicate_instances(GeometrySet &geometry_set,
     dst_instances->reference_handles().slice(range).fill(new_handle);
   }
 
-  copy_attributes_without_id(duplicates,
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_INSTANCES,
+                             ATTR_DOMAIN_INSTANCE,
+                             duplicates,
                              selection,
                              propagation_info,
-                             ATTR_DOMAIN_INSTANCE,
                              src_instances.attributes(),
                              dst_instances->attributes_for_write());
 

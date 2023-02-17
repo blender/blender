@@ -15,7 +15,7 @@ llvm-config = '${LIBDIR}/llvm/bin/llvm-config'"
 )
 
 set(MESA_EXTRA_FLAGS
-  ${MESON_BUILD_TYPE}
+  -Dbuildtype=release
   -Dc_args=${MESA_CFLAGS}
   -Dcpp_args=${MESA_CXXFLAGS}
   -Dc_link_args=${MESA_LDFLAGS}
