@@ -256,14 +256,15 @@ if __name__ == "__main__":
     blender_skip_msg = ""
     submodules_skip_msg = ""
 
-    # Test if we are building a specific release version.
-    branch = make_utils.git_branch(args.git_command)
-    if branch == 'HEAD':
-        sys.stderr.write('Blender git repository is in detached HEAD state, must be in a branch\n')
-        sys.exit(1)
-
-    tag = make_utils.git_tag(args.git_command)
-    release_version = make_utils.git_branch_release_version(branch, tag)
+    blender_version = make_utils. parse_blender_version()
+    if blender_version.cycle != 'alpha':
+        major = blender_version.version // 100
+        minor = blender_version.version % 100
+        branch = f"blender-v{major}.{minor}-release"
+        release_version = f"{major}.{minor}"
+    else:
+        branch = 'main'
+        release_version = None
 
     if not args.no_libraries:
         svn_update(args, release_version)
