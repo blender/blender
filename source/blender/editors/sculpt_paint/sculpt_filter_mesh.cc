@@ -754,7 +754,7 @@ static void sculpt_mesh_update_strength(wmOperator *op,
   float filter_strength = ss->filter_cache->start_filter_strength * -len * 0.001f * UI_DPI_FAC;
   RNA_float_set(op->ptr, "strength", filter_strength);
 }
-void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
+static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
 {
   /* Event history is only stored for smooth and relax filters. */
   if (!RNA_collection_length(op->ptr, "event_history")) {
@@ -1024,11 +1024,9 @@ void SCULPT_mesh_filter_properties(wmOperatorType *ot)
   RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
 }
 
-void sculpt_mesh_ui_exec(bContext *C, wmOperator *op)
+static void sculpt_mesh_ui_exec(bContext * /* C */, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-
-  eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
 
   uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "iteration_count", 0, nullptr, ICON_NONE);
