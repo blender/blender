@@ -36,7 +36,14 @@ def parse_arguments():
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
+
+    # NOTE: Both old and new style command line flags, so that the Buildbot can use the new style.
+    # It is not possible to know from the Buildbot which style to use when building patches.
+    #
+    # Acts as an alias: `use_centos_libraries or use_linux_libraries`.
     parser.add_argument("--use-centos-libraries", action="store_true")
+    parser.add_argument("--use-linux-libraries", action="store_true")
+
     return parser.parse_args()
 
 
@@ -66,7 +73,7 @@ def svn_update(args, release_version):
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
         lib_platform = "win64_vc15"
-    elif args.use_centos_libraries:
+    elif args.use_centos_libraries or args.use_linux_libraries:
         lib_platform = "linux_centos7_x86_64"
     else:
         # No precompiled libraries for Linux.
