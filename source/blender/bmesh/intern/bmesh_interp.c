@@ -887,8 +887,6 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
     BLI_mempool_destroy(oldpool);
   }
-
-  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer)
@@ -989,7 +987,6 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
     data->pool = NULL;
 
     update_data_blocks(bm, &old, data);
-    bm_update_idmap_cdlayers(bm);
   }
 
   if (old.layers) {

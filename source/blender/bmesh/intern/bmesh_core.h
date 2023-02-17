@@ -31,7 +31,6 @@ typedef enum eBMCreateFlag {
    */
   BM_CREATE_SKIP_CD = (1 << 2), /* if true, you must call bm_elem_check_toolflags(bm, elem) later
                                    if toolflags are on */
-  BM_CREATE_SKIP_ID = (1 << 3)
 } eBMCreateFlag;
 
 /* if toolflags are enabled, checks that internal pointer to toolflags it not null */
@@ -419,8 +418,6 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
  */
 BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
 
-void BM_reassign_ids(BMesh *bm);
-void BM_clear_ids(BMesh *bm);
 #ifdef __cplusplus
 }
 #endif

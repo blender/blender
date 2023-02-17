@@ -150,10 +150,6 @@ BMVert *BM_vert_create(BMesh *bm,
 
       zero_v3(v->no);
     }
-
-    if (!(create_flag & BM_CREATE_SKIP_ID)) {
-      bm_alloc_id(bm, (BMElem *)v);
-    }
   }
   else {
     if (v_example) {
@@ -228,10 +224,6 @@ BMEdge *BM_edge_create(
     }
     else {
       CustomData_bmesh_set_default(&bm->edata, &e->head.data);
-    }
-
-    if (!(create_flag & BM_CREATE_SKIP_ID)) {
-      bm_alloc_id(bm, (BMElem *)e);
     }
   }
 
@@ -313,10 +305,6 @@ static BMLoop *bm_loop_create(BMesh *bm,
     else {
       CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
     }
-
-    if (!(create_flag & BM_CREATE_SKIP_ID)) {
-      bm_alloc_id(bm, (BMElem *)l);
-    }
   }
 
   return l;
@@ -390,18 +378,15 @@ BMFace *BM_face_copy(
     i++;
   } while ((l_iter = l_iter->next) != l_first);
 
-  f_copy = BM_face_create(
-      bm_dst, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
+  f_copy = BM_face_create(bm_dst, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD);
 
   BM_elem_attrs_copy(bm_src, bm_dst, f, f_copy);
-  bm_alloc_id(bm_dst, (BMElem *)f_copy);
   bm_elem_check_toolflags(bm_dst, (BMElem *)f_copy);
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   l_copy = BM_FACE_FIRST_LOOP(f_copy);
   do {
     BM_elem_attrs_copy(bm_src, bm_dst, l_iter, l_copy);
-    bm_alloc_id(bm_dst, (BMElem *)l_copy);
 
     l_copy = l_copy->next;
   } while ((l_iter = l_iter->next) != l_first);
@@ -511,10 +496,6 @@ BMFace *BM_face_create(BMesh *bm,
     else {
       CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
       zero_v3(f->no);
-    }
-
-    if (!(create_flag & BM_CREATE_SKIP_ID)) {
-      bm_alloc_id(bm, (BMElem *)f);
     }
   }
   else {
@@ -792,8 +773,6 @@ void bm_kill_only_vert(BMesh *bm, BMVert *v)
   bm->elem_table_dirty |= BM_VERT;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
-  bm_free_id(bm, (BMElem *)v);
-
   BM_select_history_remove(bm, v);
 
   if (bm->vtoolflagpool) {
@@ -811,82 +790,6 @@ void bm_kill_only_vert(BMesh *bm, BMVert *v)
   BLI_mempool_free(bm->vpool, v);
 }
 
-#ifdef WITH_BM_ID_FREELIST
-void bm_id_freelist_push(BMesh *bm, uint id);
-#endif
-
-// does not modify actual element ids
-void BM_clear_ids(BMesh *bm)
-{
-  if (!(bm->idmap.flag & BM_HAS_IDS)) {
-    return;
-  }
-
-  if (bm->idmap.map) {
-    memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
-  }
-  else if (bm->idmap.ghash) {
-    BLI_ghash_clear(bm->idmap.ghash, NULL, NULL);
-  }
-
-#ifndef WITH_BM_ID_FREELIST
-  if (bm->idmap.idtree) {
-    range_tree_uint_free(bm->idmap.idtree);
-  }
-
-  bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
-#else
-  if (bm->idmap.freelist) {
-    MEM_freeN(bm->idmap.freelist);
-    bm->idmap.freelist = NULL;
-  }
-
-  if (bm->idmap.free_ids) {
-    MEM_SAFE_FREE(bm->idmap.free_ids);
-    bm->idmap.free_ids = NULL;
-  }
-
-  bm->idmap.freelist_len = 0;
-  bm->idmap.freelist_size = 0;
-#endif
-}
-
-void BM_reassign_ids(BMesh *bm)
-{
-  BM_clear_ids(bm);
-
-  int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH, BM_FACES_OF_MESH};
-
-  for (int i = 0; i < 4; i++) {
-    int htype = 1 << i;
-
-    if (!(bm->idmap.flag & htype)) {
-      continue;
-    }
-
-    BMElem *elem;
-    BMIter iter;
-
-    if (htype == BM_LOOP) {
-      BMFace *f;
-      BM_ITER_MESH (f, &iter, bm, iters[i]) {
-
-        BMLoop *l = f->l_first;
-        do {
-          l = l->next;
-        } while (l != f->l_first);
-
-        bm_alloc_id(bm, (BMElem *)l);
-      }
-    }
-    else {
-      BM_ITER_MESH (elem, &iter, bm, iters[i]) {
-        bm_alloc_id(bm, elem);
-      }
-    }
-  }
-}
-
 /**
  * low level function, only frees the edge,
  * doesn't change or adjust surrounding geometry
@@ -897,8 +800,6 @@ void bm_kill_only_edge(BMesh *bm, BMEdge *e)
   bm->elem_index_dirty |= BM_EDGE;
   bm->elem_table_dirty |= BM_EDGE;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
-
-  bm_free_id(bm, (BMElem *)e);
 
   BM_select_history_remove(bm, (BMElem *)e);
 
@@ -933,8 +834,6 @@ void bm_kill_only_face(BMesh *bm, BMFace *f)
   bm->elem_table_dirty |= BM_FACE;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
-  bm_free_id(bm, (BMElem *)f);
-
   BM_select_history_remove(bm, (BMElem *)f);
 
   if (bm->ftoolflagpool) {
@@ -960,8 +859,6 @@ void bm_kill_only_loop(BMesh *bm, BMLoop *l)
   bm->totloop--;
   bm->elem_index_dirty |= BM_LOOP;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
-
-  bm_free_id(bm, (BMElem *)l);
 
   if (l->head.data) {
     CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
@@ -1511,7 +1408,6 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
 #endif
 
   BM_elem_attrs_copy(bm, bm, f_example, f);
-  bm_alloc_id(bm, (BMElem *)f);
 
   if (bm->use_toolflags && f->head.data) {
     int cd_tflags = bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset;

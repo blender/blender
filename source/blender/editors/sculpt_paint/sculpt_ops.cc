@@ -292,7 +292,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       SCULT_dyntopo_flag_all_disk_sort(ss);
 
       // symmetrize is messing up ids, regenerate them from scratch
-      BM_reassign_ids(ss->bm);
+      BM_idmap_check_ids(ss->bm_idmap);
       BM_mesh_toolflags_set(ss->bm, false);
       BM_log_full_mesh(ss->bm, ss->bm_log);
 

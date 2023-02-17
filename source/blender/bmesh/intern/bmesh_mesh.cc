@@ -216,7 +216,6 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   }
 
   if (params->create_unique_ids) {
-    bm_init_idmap_cdlayers(bm);
     init_cdata_pools = true;
   }
 
@@ -389,26 +388,6 @@ void BM_mesh_clear(BMesh *bm)
   CustomData_reset(&bm->edata);
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
-
-  bm->idmap.flag = idmap_flags;
-
-  if (bm->idmap.flag & BM_HAS_IDS) {
-    bm->idmap.map = nullptr;
-    bm->idmap.ghash = nullptr;
-    bm->idmap.map_size = 0;
-
-#ifndef WITH_BM_ID_FREELIST
-    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
-#else
-    MEM_SAFE_FREE(bm->idmap.free_ids);
-    MEM_SAFE_FREE(bm->idmap.freelist);
-
-    bm->idmap.freelist_len = bm->idmap.freelist_size = 0;
-    bm->idmap.free_ids = nullptr;
-    bm->idmap.freelist = nullptr;
-#endif
-    bm_init_idmap_cdlayers(bm);
-  }
 }
 
 void BM_mesh_free(BMesh *bm)
@@ -1625,8 +1604,6 @@ void BM_mesh_rebuild(BMesh *bm,
     BLI_mempool_destroy(bm->fpool);
     bm->fpool = fpool_dst;
   }
-
-  bm_rebuild_idmap(bm);
 }
 
 void bm_alloc_toolflags_cdlayers(BMesh *bm, bool set_elems)

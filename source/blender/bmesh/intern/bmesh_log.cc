@@ -1119,7 +1119,7 @@ ATTR_NO_OPT void BMLogSetDiff::restore_verts(BMesh *bm,
                                              BMLogCallbacks *callbacks)
 {
   for (BMLogVert *lv : verts.values()) {
-    BMVert *v = BM_vert_create(bm, lv->co, nullptr, BM_CREATE_SKIP_ID);
+    BMVert *v = BM_vert_create(bm, lv->co, nullptr, BM_CREATE_NOP);
 
     v->head.hflag = lv->flag;
     copy_v3_v3(v->no, lv->no);
@@ -1180,7 +1180,7 @@ void BMLogSetDiff::restore_edges(BMesh *bm,
       continue;
     }
 
-    BMEdge *e = BM_edge_create(bm, v1, v2, nullptr, BM_CREATE_SKIP_ID);
+    BMEdge *e = BM_edge_create(bm, v1, v2, nullptr, BM_CREATE_NOP);
     CustomData_bmesh_copy_data(&entry->edata, &bm->edata, le->customdata, &e->head.data);
 
     entry->assign_elem_id<BMEdge>(bm, e, le->id, true);
@@ -1270,8 +1270,7 @@ ATTR_NO_OPT void BMLogSetDiff::restore_faces(BMesh *bm,
       continue;
     }
 
-    BMFace *f = BM_face_create_verts(
-        bm, verts.data(), verts.size(), nullptr, BM_CREATE_SKIP_ID, true);
+    BMFace *f = BM_face_create_verts(bm, verts.data(), verts.size(), nullptr, BM_CREATE_NOP, true);
 
     f->head.hflag = lf->flag;
     CustomData_bmesh_copy_data(&entry->pdata, &bm->pdata, lf->customdata, &f->head.data);

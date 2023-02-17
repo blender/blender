@@ -178,7 +178,7 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
         cdata = &idmap->bm->edata;
         break;
       case BM_LOOP:
-        name = "loop_id";
+        name = "corner_id";
         cdata = &idmap->bm->ldata;
         break;
       case BM_FACE:

@@ -21,7 +21,6 @@ static BMVert *bm_vert_copy(BMesh *bm_src, BMesh *bm_dst, BMVert *v_src)
   BMVert *v_dst = BM_vert_create(bm_dst, v_src->co, NULL, BM_CREATE_SKIP_CD);
   BM_elem_attrs_copy(bm_src, bm_dst, v_src, v_dst);
 
-  bm_alloc_id(bm_dst, (BMElem *)v_dst);
   bm_elem_check_toolflags(bm_dst, (BMElem *)v_dst);
 
   return v_dst;
@@ -38,7 +37,6 @@ static BMEdge *bm_edge_copy_with_arrays(BMesh *bm_src,
 
   BM_elem_attrs_copy(bm_src, bm_dst, e_src, e_dst);
 
-  bm_alloc_id(bm_dst, (BMElem *)e_dst);
   bm_elem_check_toolflags(bm_dst, (BMElem *)e_dst);
 
   return e_dst;
@@ -70,7 +68,6 @@ static BMFace *bm_face_copy_with_arrays(
   /* Copy attributes. */
   BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
 
-  bm_alloc_id(bm_dst, (BMElem *)f_dst);
   bm_elem_check_toolflags(bm_dst, (BMElem *)f_dst);
 
   /* Copy per-loop custom data. */
@@ -78,7 +75,6 @@ static BMFace *bm_face_copy_with_arrays(
   l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
   do {
     BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
-    bm_alloc_id(bm_dst, (BMElem *)l_iter_dst);
   } while ((void)(l_iter_dst = l_iter_dst->next), (l_iter_src = l_iter_src->next) != l_first_src);
 
   return f_dst;

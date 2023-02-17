@@ -137,12 +137,3 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT 
 #define BM_DEFAULT_IDMAP_SIZE (1 << 12)
 
 #include "intern/bmesh_structure_inline.h"
-
-void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unique);
-void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id);
-void bm_alloc_id(BMesh *bm, BMElem *elem);
-void bm_free_id(BMesh *bm, BMElem *elem);
-void bm_init_idmap_cdlayers(BMesh *bm);
-void bm_update_idmap_cdlayers(BMesh *bm);
-void bm_free_ids_check(BMesh *bm, uint id);
-void bm_id_freelist_push(BMesh *bm, uint id);
