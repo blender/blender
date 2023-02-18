@@ -55,14 +55,14 @@ class FileBuffer : private NonMovable {
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file()
   {
-    for (const auto &b : blocks_)
+    for (const VectorChar &b : blocks_)
       fwrite(b.data(), 1, b.size(), this->outfile_);
     blocks_.clear();
   }
 
   void close_file()
   {
-    auto close_status = std::fclose(outfile_);
+    int close_status = std::fclose(outfile_);
     if (close_status == EOF) {
       return;
     }
@@ -75,7 +75,7 @@ class FileBuffer : private NonMovable {
   std::string get_as_string() const
   {
     std::string s;
-    for (const auto &b : blocks_)
+    for (const VectorChar &b : blocks_)
       s.append(b.data(), b.size());
     return s;
   }

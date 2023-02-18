@@ -186,7 +186,8 @@ int2 get_uv_index(const PlyHeader *header)
 int get_index(const PlyHeader *header, std::string property, PlyDataTypes datatype)
 {
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
-  auto it = std::find(header->properties[0].begin(), header->properties[0].end(), pair);
+  const std::pair<std::string, blender::io::ply::PlyDataTypes> *it = std::find(
+      header->properties[0].begin(), header->properties[0].end(), pair);
   return (int)(it - header->properties[0].begin());
 }
 
@@ -196,7 +197,7 @@ Vector<std::string> explode(const StringRef str, const char &ch)
   Vector<std::string> result;
 
   /* For each character in the string. */
-  for (auto c : str) {
+  for (char c : str) {
     /* If we've hit the terminal character. */
     if (c == ch) {
       /* If we have some characters accumulated. */

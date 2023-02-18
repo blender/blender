@@ -97,7 +97,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     bool force_triangulation = false;
-    for (auto &&poly : mesh->polys()) {
+    for (const MPoly poly : mesh->polys()) {
       if (poly.totloop > 255) {
         force_triangulation = true;
         break;
