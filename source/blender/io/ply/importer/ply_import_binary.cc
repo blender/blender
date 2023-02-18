@@ -10,14 +10,13 @@
 #include <fstream>
 
 namespace blender::io::ply {
-std::unique_ptr<PlyData> import_ply_binary(std::ifstream &file, const PlyHeader *header)
+std::unique_ptr<PlyData> import_ply_binary(fstream &file, const PlyHeader *header)
 {
-  std::unique_ptr<PlyData> data = std::make_unique<PlyData>();
-  *data = load_ply_binary(file, header);
+  std::unique_ptr<PlyData> data = std::make_unique<PlyData>(load_ply_binary(file, header));
   return data;
 }
 
-template<typename T> T read(std::ifstream &file, bool isBigEndian)
+template<typename T> T read(fstream &file, bool isBigEndian)
 {
   T returnVal;
   file.read((char *)&returnVal, sizeof(returnVal));
@@ -28,16 +27,16 @@ template<typename T> T read(std::ifstream &file, bool isBigEndian)
   return returnVal;
 }
 
-template uint8_t read<uint8_t>(std::ifstream &file, bool isBigEndian);
-template int8_t read<int8_t>(std::ifstream &file, bool isBigEndian);
-template uint16_t read<uint16_t>(std::ifstream &file, bool isBigEndian);
-template int16_t read<int16_t>(std::ifstream &file, bool isBigEndian);
-template uint32_t read<uint32_t>(std::ifstream &file, bool isBigEndian);
-template int32_t read<int32_t>(std::ifstream &file, bool isBigEndian);
-template float read<float>(std::ifstream &file, bool isBigEndian);
-template double read<double>(std::ifstream &file, bool isBigEndian);
+template uint8_t read<uint8_t>(fstream &file, bool isBigEndian);
+template int8_t read<int8_t>(fstream &file, bool isBigEndian);
+template uint16_t read<uint16_t>(fstream &file, bool isBigEndian);
+template int16_t read<int16_t>(fstream &file, bool isBigEndian);
+template uint32_t read<uint32_t>(fstream &file, bool isBigEndian);
+template int32_t read<int32_t>(fstream &file, bool isBigEndian);
+template float read<float>(fstream &file, bool isBigEndian);
+template double read<double>(fstream &file, bool isBigEndian);
 
-void check_file_errors(const std::ifstream &file)
+void check_file_errors(const fstream &file)
 {
   if (file.bad()) {
     throw std::ios_base::failure("Read/Write error on io operation");
@@ -50,7 +49,7 @@ void check_file_errors(const std::ifstream &file)
   }
 }
 
-void discard_value(std::ifstream &file, const PlyDataTypes type)
+void discard_value(fstream &file, const PlyDataTypes type)
 {
   switch (type) {
     case CHAR:
@@ -80,7 +79,7 @@ void discard_value(std::ifstream &file, const PlyDataTypes type)
   }
 }
 
-PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
+PlyData load_ply_binary(fstream &file, const PlyHeader *header)
 {
   PlyData data;
   bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
@@ -141,7 +140,7 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
   return data;
 }
 
-void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_data, int index)
+void load_vertex_data(fstream &file, const PlyHeader *header, PlyData *r_data, int index)
 {
   bool hasNormal = false;
   bool hasColor = false;

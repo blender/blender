@@ -14,6 +14,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_fileops.hh"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 
@@ -86,11 +87,12 @@ void importer_main(Main *bmain,
 {
 
   std::string line;
-  std::ifstream infile(import_params.filepath, std::ios::binary);
+  fstream infile;
+  infile.open(import_params.filepath, std::ios::in | std::ios::binary);
 
   PlyHeader header;
 
-  while (true) {  // We break when end_header is encountered.
+  while (true) { /* We break when end_header is encountered. */
     safe_getline(infile, line);
     if (header.header_size == 0 && line != "ply") {
       fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
@@ -141,7 +143,6 @@ void importer_main(Main *bmain,
     else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() ||
              infile.eof()) {
       /* A value was found before we broke out of the loop. No end_header. */
-      fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
       BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
       return;
     }

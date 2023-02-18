@@ -38,13 +38,13 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     }
   }
 
-  /* Add faces and edges to the mesh. */
+  /* Add faces to the mesh. */
   if (!data.faces.is_empty()) {
     /* Specify amount of total faces. */
     mesh->totpoly = int(data.faces.size());
     mesh->totloop = 0;
     for (int i = 0; i < data.faces.size(); i++) {
-      /* Add number of edges to the amount of edges. */
+      /* Add number of loops from the vertex indices in the face. */
       mesh->totloop += data.faces[i].size();
     }
     CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
@@ -87,7 +87,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     int counter = 0;
     for (int i = 0; i < data.faces.size(); i++) {
       for (int j = 0; j < data.faces[i].size(); j++) {
-        copy_v2_v2(uv_map.span[counter], data.UV_coordinates[data.faces[i][j]]);
+        uv_map.span[counter] = data.UV_coordinates[data.faces[i][j]];
         counter++;
       }
     }

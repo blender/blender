@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include "BLI_endian_switch.h"
+#include "BLI_fileops.hh"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -16,7 +19,7 @@ namespace blender::io::ply {
  * \param header: The information in the PLY header.
  * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
-std::unique_ptr<PlyData> import_ply_binary(std::ifstream &file, const PlyHeader *header);
+std::unique_ptr<PlyData> import_ply_binary(fstream &file, const PlyHeader *header);
 
 /**
  * Loads the information from the PLY file in binary format to the PlyData datastructure.
@@ -24,13 +27,13 @@ std::unique_ptr<PlyData> import_ply_binary(std::ifstream &file, const PlyHeader 
  * \param header: The information in the PLY header.
  * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
-PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
+PlyData load_ply_binary(fstream &file, const PlyHeader *header);
 
-void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_data, int index);
+void load_vertex_data(fstream &file, const PlyHeader *header, PlyData *r_data, int index);
 
-void check_file_errors(const std::ifstream &file);
+void check_file_errors(const fstream &file);
 
-void discard_value(std::ifstream &file, const PlyDataTypes type);
+void discard_value(fstream &file, const PlyDataTypes type);
 
 template<typename T> T swap_bytes(T input)
 {
@@ -42,34 +45,27 @@ template<typename T> T swap_bytes(T input)
     return input;
   }
 
-  if (sizeof(T) == 2) {
-    uint16_t newInput = uint16_t(input);
-    return (T)(((newInput & 0xFF) << 8) | ((newInput >> 8) & 0xFF));
+  if constexpr (sizeof(T) == 2) {
+    uint16_t value = uint16_t(input);
+    BLI_endian_switch_uint16(&value);
+    return reinterpret_cast<T &>(value);
   }
 
-  if (sizeof(T) == 4) {
+  if constexpr (sizeof(T) == 4) {
     /* Reinterpret this data as uint32 for easy rearranging of bytes. */
-    uint32_t newInput = *(uint32_t *)&input;
-    uint32_t output = 0;
-    for (int i = 0; i < 4; i++) {
-      output |= ((newInput >> i * 8) & 0xFF) << (24 - i * 8);
-    }
-    T value = *(T *)&output;
-    return value; /* Reinterpret the bytes of output as a T value. */
+    uint32_t value = uint32_t(input);
+    BLI_endian_switch_uint32(&value);
+    return reinterpret_cast<T &>(value);
   }
 
-  if (sizeof(T) == 8) {
+  if constexpr (sizeof(T) == 8) {
     /* Reinterpret this data as uint64 for easy rearranging of bytes. */
-    uint64_t newInput = *(uint64_t *)&input;
-    uint64_t output = 0;
-    for (int i = 0; i < 8; i++) {
-      output |= ((newInput >> i * 8) & 0xFF) << (56 - i * 8);
-    }
-    T value = *(T *)&output;
-    return value; /* Reinterpret the bytes of output as a T value. */
+    uint64_t value = uint64_t(input);
+    BLI_endian_switch_uint64(&value);
+    return reinterpret_cast<T &>(value);
   }
 }
 
-template<typename T> T read(std::ifstream &file, bool isBigEndian);
+template<typename T> T read(fstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
