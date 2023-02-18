@@ -1119,9 +1119,28 @@ void wm_gizmomap_modal_set(
   }
 
   if (do_refresh) {
+    const int update_flag = GIZMOMAP_IS_REFRESH_CALLBACK;
     const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(
         gz->parent_gzgroup);
-    gzmap->update_flag[step] |= GIZMOMAP_IS_REFRESH_CALLBACK;
+    gzmap->update_flag[step] |= update_flag;
+
+    /* Ensure the update flag is set for gizmos that were hidden while modal, see #104817. */
+    for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
+      const eWM_GizmoFlagMapDrawStep step_iter = (eWM_GizmoFlagMapDrawStep)i;
+      if (step_iter == step) {
+        continue;
+      }
+      if ((gzmap->update_flag[i] & update_flag) == update_flag) {
+        continue;
+      }
+      LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
+        if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) &&
+            wm_gizmogroup_is_visible_in_drawstep(gzgroup, step_iter)) {
+          gzmap->update_flag[i] |= update_flag;
+          break;
+        }
+      }
+    }
   }
 }
 
