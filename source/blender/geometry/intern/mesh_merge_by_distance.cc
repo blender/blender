@@ -1499,7 +1499,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int totedge = mesh.totedge;
 
   /* Reuse the same buffer as #vert_dest_map.
-   * Note: the caller must be made aware of it changes. */
+   * NOTE: the caller must be made aware of it changes. */
   MutableSpan<int> vert_group_map = vert_dest_map;
 
   WeldMesh weld_mesh;
