@@ -28,7 +28,7 @@ namespace blender::io::ply {
  * File buffer writer.
  * All writes are done into an internal chunked memory buffer
  * (list of default 64 kilobyte blocks).
- * Call write_fo_file once in a while to write the memory buffer(s)
+ * Call write_to_file once in a while to write the memory buffer(s)
  * into the given file.
  */
 class FileBuffer : private NonMovable {
@@ -40,57 +40,14 @@ class FileBuffer : private NonMovable {
   FILE *outfile_;
 
  public:
-  FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
-      : buffer_chunk_size_(buffer_chunk_size), filepath_(filepath)
-  {
-    outfile_ = BLI_fopen(filepath, "wb");
-    if (!outfile_) {
-      throw std::system_error(
-          errno, std::system_category(), "Cannot open file " + std::string(filepath) + ".");
-    }
-  }
+  FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024);
 
   virtual ~FileBuffer() = default;
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
-  void write_to_file()
-  {
-    for (const auto &b : blocks_)
-      fwrite(b.data(), 1, b.size(), this->outfile_);
-    blocks_.clear();
-  }
+  void write_to_file();
 
-  void close_file()
-  {
-    auto close_status = std::fclose(outfile_);
-    if (close_status == EOF) {
-      return;
-    }
-    if (outfile_ && close_status) {
-      std::cerr << "Error: could not close the file '" << this->filepath_
-                << "' properly, it may be corrupted." << std::endl;
-    }
-  }
-
-  std::string get_as_string() const
-  {
-    std::string s;
-    for (const auto &b : blocks_)
-      s.append(b.data(), b.size());
-    return s;
-  }
-  size_t get_block_count() const
-  {
-    return blocks_.size();
-  }
-
-  void append_from(FileBuffer &v)
-  {
-    blocks_.insert(blocks_.end(),
-                   std::make_move_iterator(v.blocks_.begin()),
-                   std::make_move_iterator(v.blocks_.end()));
-    v.blocks_.clear();
-  }
+  void close_file();
 
   virtual void write_vertex(float x, float y, float z) = 0;
 
@@ -106,41 +63,20 @@ class FileBuffer : private NonMovable {
 
   virtual void write_edge(int first, int second) = 0;
 
-  void write_header_element(StringRef name, int count)
-  {
-    write_fstring("element {} {}\n", name, count);
-  }
-  void write_header_scalar_property(StringRef dataType, StringRef name)
-  {
-    write_fstring("property {} {}\n", dataType, name);
-  }
+  void write_header_element(StringRef name, int count);
 
-  void write_header_list_property(StringRef countType, StringRef dataType, StringRef name)
-  {
-    write_fstring("property list {} {} {}\n", countType, dataType, name);
-  }
+  void write_header_scalar_property(StringRef dataType, StringRef name);
 
-  void write_string(StringRef s)
-  {
-    write_fstring("{}\n", s);
-  }
+  void write_header_list_property(StringRef countType, StringRef dataType, StringRef name);
 
-  void write_newline()
-  {
-    write_fstring("\n");
-  }
+  void write_string(StringRef s);
+
+  void write_newline();
 
  protected:
   /* Ensure the last block contains at least this amount of free space.
    * If not, add a new block with max of block size & the amount of space needed. */
-  void ensure_space(size_t at_least)
-  {
-    if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
-
-      blocks_.append(VectorChar());
-      blocks_.reserve(std::max(at_least, buffer_chunk_size_));
-    }
-  }
+  void ensure_space(size_t at_least);
 
   template<typename... T> void write_fstring(const char *fmt, T &&...args)
   {
@@ -153,12 +89,7 @@ class FileBuffer : private NonMovable {
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
-  void write_bytes(Span<char> bytes)
-  {
-    ensure_space(bytes.size());
-    VectorChar &bb = blocks_.last();
-    bb.insert(bb.end(), bytes.begin(), bytes.end());
-  }
+  void write_bytes(Span<char> bytes);
 };
 
 }  // namespace blender::io::ply

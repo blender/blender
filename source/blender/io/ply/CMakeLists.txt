@@ -23,29 +23,33 @@ set(INC_SYS
 )
 
 set(SRC
-    IO_ply.cc
-    exporter/ply_export.cc
-    importer/ply_import.cc
-    importer/ply_import_binary.cc
-    importer/ply_import_ascii.cc
-    importer/ply_import_mesh.cc
-    exporter/ply_export_header.cc
     exporter/ply_export_data.cc
+    exporter/ply_export_header.cc
     exporter/ply_export_load_plydata.cc
+    exporter/ply_export.cc
+    exporter/ply_file_buffer_ascii.cc
+    exporter/ply_file_buffer_binary.cc
+    exporter/ply_file_buffer.cc
+    importer/ply_import_ascii.cc
+    importer/ply_import_binary.cc
+    importer/ply_import_mesh.cc
+    importer/ply_import.cc
+    IO_ply.cc
 
 
 
-    IO_ply.h
-    exporter/ply_export.hh
-    exporter/ply_export_header.hh
     exporter/ply_export_data.hh
+    exporter/ply_export_header.hh
+    exporter/ply_export_load_plydata.hh
+    exporter/ply_export.hh
     exporter/ply_file_buffer_ascii.hh
     exporter/ply_file_buffer_binary.hh
-    exporter/ply_export_load_plydata.hh
-    importer/ply_import.hh
-    importer/ply_import_binary.hh
+    exporter/ply_file_buffer.hh
     importer/ply_import_ascii.hh
+    importer/ply_import_binary.hh
     importer/ply_import_mesh.hh
+    importer/ply_import.hh
+    IO_ply.h
 
     intern/ply_data.hh
     intern/ply_functions.hh
