@@ -87,8 +87,7 @@ void importer_main(Main *bmain,
 {
 
   std::string line;
-  fstream infile;
-  infile.open(import_params.filepath, std::ios::in | std::ios::binary);
+  fstream infile(import_params.filepath, std::ios::in | std::ios::binary);
 
   PlyHeader header;
 
