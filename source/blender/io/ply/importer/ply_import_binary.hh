@@ -46,21 +46,21 @@ template<typename T> T swap_bytes(T input)
   }
 
   if constexpr (sizeof(T) == 2) {
-    uint16_t value = uint16_t(input);
+    uint16_t value = reinterpret_cast<uint16_t &>(input);
     BLI_endian_switch_uint16(&value);
     return reinterpret_cast<T &>(value);
   }
 
   if constexpr (sizeof(T) == 4) {
     /* Reinterpret this data as uint32 for easy rearranging of bytes. */
-    uint32_t value = uint32_t(input);
+    uint32_t value = reinterpret_cast<uint32_t &>(input);
     BLI_endian_switch_uint32(&value);
     return reinterpret_cast<T &>(value);
   }
 
   if constexpr (sizeof(T) == 8) {
     /* Reinterpret this data as uint64 for easy rearranging of bytes. */
-    uint64_t value = uint64_t(input);
+    uint64_t value = reinterpret_cast<uint64_t &>(input);
     BLI_endian_switch_uint64(&value);
     return reinterpret_cast<T &>(value);
   }
