@@ -56,7 +56,7 @@ class FileBufferAscii : public FileBuffer {
   {
     write_fstring("{}", int(count));
 
-    for (auto &&v : vertex_indices) {
+    for (const uint32_t v : vertex_indices) {
       write_fstring(" {}", v);
     }
     write_newline();
