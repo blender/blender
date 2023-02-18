@@ -52,9 +52,11 @@ def get_blender_git_root() -> str:
 # Setup for precompiled libraries and tests from svn.
 
 
-def get_effective_architecture(args: argparse.Namespace):
-    if args.architecture:
-        return args.architecture
+def get_effective_architecture(args: argparse.Namespace) -> str:
+    architecture = args.architecture
+    if architecture:
+        assert isinstance(architecture, str)
+        return architecture
 
     # Check platform.version to detect arm64 with x86_64 python binary.
     if "ARM64" in platform.version():
@@ -273,7 +275,7 @@ if __name__ == "__main__":
         major = blender_version.version // 100
         minor = blender_version.version % 100
         branch = f"blender-v{major}.{minor}-release"
-        release_version = f"{major}.{minor}"
+        release_version: Optional[str] = f"{major}.{minor}"
     else:
         branch = 'main'
         release_version = None
