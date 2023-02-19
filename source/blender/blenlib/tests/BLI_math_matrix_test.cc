@@ -131,7 +131,7 @@ TEST(math_matrix, mul_m4_series)
       {0.0f, 0.0f, 125.0f, 0.0f},
       {0.0f, 0.0f, 0.0f, 343.0f},
   };
-  EXPECT_M3_NEAR(matrix, expect, 1e-5);
+  EXPECT_M4_NEAR(matrix, expect, 1e-5);
 }
 
 namespace blender::tests {
