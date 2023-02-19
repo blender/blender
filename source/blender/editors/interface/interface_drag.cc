@@ -24,6 +24,7 @@ void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
 {
   but->imb = imb;
   but->imb_scale = scale;
+  UI_but_dragflag_enable(but, UI_BUT_DRAG_FULL_BUT);
 }
 
 void UI_but_drag_set_asset(uiBut *but,

@@ -122,7 +122,7 @@ KERNEL_STRUCT_MEMBER(guiding, bool, use_surface_guiding, KERNEL_FEATURE_PATH_GUI
 KERNEL_STRUCT_MEMBER(guiding, float, sample_surface_guiding_rand, KERNEL_FEATURE_PATH_GUIDING)
 /* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob)*/
 KERNEL_STRUCT_MEMBER(guiding, float, surface_guiding_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
-/* Probability of sampling a BSSRDF closure instead of a BSDF closure*/
+/* Probability of sampling a BSSRDF closure instead of a BSDF closure. */
 KERNEL_STRUCT_MEMBER(guiding, float, bssrdf_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
 /* If volume guiding is enabled */
 KERNEL_STRUCT_MEMBER(guiding, bool, use_volume_guiding, KERNEL_FEATURE_PATH_GUIDING)

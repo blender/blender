@@ -267,6 +267,85 @@ void select_linked(bke::CurvesGeometry &curves)
   selection.finish();
 }
 
+void select_adjacent(bke::CurvesGeometry &curves, const bool deselect)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+  const VArray<bool> cyclic = curves.cyclic();
+
+  if (deselect) {
+    invert_selection(selection.span);
+  }
+
+  if (selection.span.type().is<bool>()) {
+    MutableSpan<bool> selection_typed = selection.span.typed<bool>();
+    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+
+        /* Handle all cases in the forward direction. */
+        for (int point_i = points.first(); point_i < points.last(); point_i++) {
+          if (!selection_typed[point_i] && selection_typed[point_i + 1]) {
+            selection_typed[point_i] = true;
+          }
+        }
+
+        /* Handle all cases in the backwards direction. */
+        for (int point_i = points.last(); point_i > points.first(); point_i--) {
+          if (!selection_typed[point_i] && selection_typed[point_i - 1]) {
+            selection_typed[point_i] = true;
+          }
+        }
+
+        /* Handle cyclic curve case. */
+        if (cyclic[curve_i]) {
+          if (selection_typed[points.first()] != selection_typed[points.last()]) {
+            selection_typed[points.first()] = true;
+            selection_typed[points.last()] = true;
+          }
+        }
+      }
+    });
+  }
+  else if (selection.span.type().is<float>()) {
+    MutableSpan<float> selection_typed = selection.span.typed<float>();
+    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+
+        /* Handle all cases in the forward direction. */
+        for (int point_i = points.first(); point_i < points.last(); point_i++) {
+          if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i + 1] > 0.0f)) {
+            selection_typed[point_i] = 1.0f;
+          }
+        }
+
+        /* Handle all cases in the backwards direction. */
+        for (int point_i = points.last(); point_i > points.first(); point_i--) {
+          if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i - 1] > 0.0f)) {
+            selection_typed[point_i] = 1.0f;
+          }
+        }
+
+        /* Handle cyclic curve case. */
+        if (cyclic[curve_i]) {
+          if (selection_typed[points.first()] != selection_typed[points.last()]) {
+            selection_typed[points.first()] = 1.0f;
+            selection_typed[points.last()] = 1.0f;
+          }
+        }
+      }
+    });
+  }
+
+  if (deselect) {
+    invert_selection(selection.span);
+  }
+
+  selection.finish();
+}
+
 void select_random(bke::CurvesGeometry &curves,
                    const eAttrDomain selection_domain,
                    uint32_t random_seed,

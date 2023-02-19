@@ -239,6 +239,9 @@ class GRAPH_MT_channel(Menu):
         layout.separator()
         layout.operator("anim.channels_fcurves_enable")
 
+        layout.separator()
+        layout.operator("anim.channels_view_selected")
+
 
 class GRAPH_MT_key(Menu):
     bl_label = "Key"

@@ -41,6 +41,7 @@ typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
   ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
 } eAttrDomainMask;
+ENUM_OPERATORS(eAttrDomainMask, ATTR_DOMAIN_MASK_ALL);
 
 #define ATTR_DOMAIN_AS_MASK(domain) ((eAttrDomainMask)((1 << (int)(domain))))
 

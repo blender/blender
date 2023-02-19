@@ -590,7 +590,7 @@ void ED_animedit_unlink_action(
 
               if (nlt->strips.first == NULL) {
                 BLI_assert(nstrip == NULL);
-                BKE_nlatrack_free(&adt->nla_tracks, nlt, true);
+                BKE_nlatrack_remove_and_free(&adt->nla_tracks, nlt, true);
               }
             }
           }
