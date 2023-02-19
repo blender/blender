@@ -236,12 +236,12 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
   /* Index of the UV layer to be renamed "st", set to the active UV layer index if
    * the convert_uv_to_st option is enabled and set to -1 otherwise. */
   const int st_layer_idx = usd_export_context_.export_params.convert_uv_to_st ?
-                               CustomData_get_active_layer_index(ldata, CD_MLOOPUV) :
+                               CustomData_get_active_layer_index(ldata, CD_PROP_FLOAT2) :
                                -1;
 
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
-    if (layer->type == CD_MLOOPUV && usd_export_context_.export_params.export_uvmaps) {
+    if (layer->type == CD_PROP_FLOAT2 && usd_export_context_.export_params.export_uvmaps) {
       const char *name_override = st_layer_idx == layer_idx ? "st" : nullptr;
       write_uv_maps(mesh, usd_mesh, layer, name_override);
     }
