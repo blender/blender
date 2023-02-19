@@ -199,6 +199,12 @@ TextFormatType *ED_text_format_get(Text *text)
   return tft_lb.first;
 }
 
+const char *ED_text_format_comment_line_prefix(Text *text)
+{
+  const struct TextFormatType *format = ED_text_format_get(text);
+  return format->comment_line;
+}
+
 bool ED_text_is_syntax_highlight_supported(Text *text)
 {
   if (text == NULL) {
