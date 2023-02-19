@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "BLI_fileops.hh"
+
 #include "DNA_mesh_types.h"
 
 #include "IO_ply.h"
@@ -18,7 +20,7 @@ namespace blender::io::ply {
  * \param file: The PLY file that was opened.
  * \param header: The information in the PLY header.
  */
-std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header);
+std::unique_ptr<PlyData> import_ply_ascii(fstream &file, PlyHeader *header);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
@@ -26,7 +28,7 @@ std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header
  * \param header: The information in the PLY header.
  * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
-PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header);
+PlyData load_ply_ascii(fstream &file, const PlyHeader *header);
 
 int3 get_vertex_index(const PlyHeader *header);
 int3 get_color_index(const PlyHeader *header);

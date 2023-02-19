@@ -12,14 +12,13 @@
 
 namespace blender::io::ply {
 
-std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header)
+std::unique_ptr<PlyData> import_ply_ascii(fstream &file, PlyHeader *header)
 {
-  std::unique_ptr<PlyData> data = std::make_unique<PlyData>();
-  *data = load_ply_ascii(file, header);
+  std::unique_ptr<PlyData> data = std::make_unique<PlyData>(load_ply_ascii(file, header));
   return data;
 }
 
-PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
+PlyData load_ply_ascii(fstream &file, const PlyHeader *header)
 {
   PlyData data;
   /* Check if header contains alpha. */
