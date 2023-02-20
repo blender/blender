@@ -2243,8 +2243,10 @@ void ED_spacetype_view3d()
   art->listener = ED_asset_shelf_region_listen;
   art->context = view3d_asset_shelf_context;
   art->init = view3d_header_region_init;
-  art->draw = ED_region_header;
+  art->draw = ED_asset_shelf_region_draw;
   BLI_addhead(&st->regiontypes, art);
+  ED_asset_shelf_region_register(art, "VIEW3D_HT_asset_shelf_main", SPACE_VIEW3D);
+
   /* regions: asset shelf footer */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf footer region");
   art->regionid = RGN_TYPE_ASSET_SHELF_FOOTER;
@@ -2255,7 +2257,7 @@ void ED_spacetype_view3d()
   art->listener = ED_asset_shelf_footer_region_listen;
   art->context = view3d_asset_shelf_context;
   BLI_addhead(&st->regiontypes, art);
-  ED_asset_shelf_footer_register(art, "VIEW3D_HT_asset_shelf", SPACE_VIEW3D);
+  ED_asset_shelf_footer_register(art, "VIEW3D_HT_asset_shelf_footer", SPACE_VIEW3D);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);
