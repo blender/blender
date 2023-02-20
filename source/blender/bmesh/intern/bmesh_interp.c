@@ -781,7 +781,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype);
 void *BPy_bm_new_customdata_layout_pre(BMesh *bm, CustomData *cdata, char htype);
 
-static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
+ATTR_NO_OPT static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
   BMIter iter;
   BLI_mempool *oldpool = olddata->pool;
@@ -893,21 +893,14 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
 {
   bool modified = false;
   CustomData old = *data;
-  CustomData temp;
-  eCustomDataMask mask = 0;
 
   if (old.layers) {
     old.layers = MEM_dupallocN(old.layers);
   }
 
-  memset(&temp, 0, sizeof(temp));
-  CustomData_reset(&temp);
-
   for (int i = 0; i < totlayer; i++) {
     BMCustomLayerReq *req = layers + i;
     int idx;
-
-    mask |= 1ULL << (eCustomDataMask)req->type;
 
     if (req->name) {
       idx = CustomData_get_named_layer_index(data, req->type, req->name);
@@ -920,66 +913,16 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
       modified = true;
 
       if (req->name) {
-        CustomData_add_layer_named(&temp, req->type, CD_ASSIGN, NULL, 0, req->name);
+        CustomData_add_layer_named(data, req->type, CD_ASSIGN, NULL, 0, req->name);
+        idx = CustomData_get_named_layer_index(data, req->type, req->name);
       }
       else {
-        CustomData_add_layer(&temp, req->type, CD_ASSIGN, NULL, 0);
+        CustomData_add_layer(data, req->type, CD_ASSIGN, NULL, 0);
+        idx = CustomData_get_layer_index(data, req->type);
       }
+
+      data->layers[idx].flag |= req->flag;
     }
-  }
-
-  int htype;
-  if (data == &bm->vdata) {
-    htype = BM_VERT;
-  }
-  else if (data == &bm->edata) {
-    htype = BM_EDGE;
-  }
-  else if (data == &bm->ldata) {
-    htype = BM_LOOP;
-  }
-  else if (data == &bm->pdata) {
-    htype = BM_FACE;
-  }
-  else {
-    printf("error in %s!\n", __func__);
-    CustomData_free(&temp, 0);
-    return;
-  }
-
-  CustomDataLayer **nocopy_layers = NULL;
-  BLI_array_declare(nocopy_layers);
-
-  for (int i = 0; i < data->totlayer; i++) {
-    if (data->layers[i].flag & CD_FLAG_NOCOPY) {
-      BLI_array_append(nocopy_layers, &data->layers[i]);
-    }
-  }
-
-  if (modified) {
-    CustomData_merge(&temp, data, mask, CD_ASSIGN, 0);
-  }
-
-  for (int i = 0; i < BLI_array_len(nocopy_layers); i++) {
-    nocopy_layers[i]->flag |= CD_FLAG_NOCOPY;
-  }
-
-  BLI_array_free(nocopy_layers);
-
-  for (int i = 0; i < totlayer; i++) {
-    BMCustomLayerReq *req = layers + i;
-    int idx;
-
-    mask |= 1LL << req->type;
-
-    if (req->name) {
-      idx = CustomData_get_named_layer_index(data, req->type, req->name);
-    }
-    else {
-      idx = CustomData_get_layer_index(data, req->type);
-    }
-
-    data->layers[idx].flag |= req->flag;
   }
 
   if (modified) {
@@ -992,8 +935,6 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
   if (old.layers) {
     MEM_freeN(old.layers);
   }
-
-  CustomData_free(&temp, 0);
 }
 
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type)

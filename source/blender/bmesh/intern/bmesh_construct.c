@@ -406,7 +406,7 @@ void BM_sort_disk_cycle(BMVert *v)
 
 /*************************************************************/
 
-static void bm_vert_attrs_copy(
+ATTR_NO_OPT static void bm_vert_attrs_copy(
     BMesh *bm_src, BMesh *bm_dst, const BMVert *v_src, BMVert *v_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (v_src == v_dst)) {
@@ -422,7 +422,7 @@ static void bm_vert_attrs_copy(
       &bm_src->vdata, &bm_dst->vdata, v_src->head.data, &v_dst->head.data, mask_exclude);
 }
 
-static void bm_edge_attrs_copy(
+ATTR_NO_OPT static void bm_edge_attrs_copy(
     BMesh *bm_src, BMesh *bm_dst, const BMEdge *e_src, BMEdge *e_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (e_src == e_dst)) {
@@ -435,7 +435,7 @@ static void bm_edge_attrs_copy(
       &bm_src->edata, &bm_dst->edata, e_src->head.data, &e_dst->head.data, mask_exclude);
 }
 
-static void bm_loop_attrs_copy(
+ATTR_NO_OPT static void bm_loop_attrs_copy(
     BMesh *bm_src, BMesh *bm_dst, const BMLoop *l_src, BMLoop *l_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (l_src == l_dst)) {
@@ -448,7 +448,7 @@ static void bm_loop_attrs_copy(
       &bm_src->ldata, &bm_dst->ldata, l_src->head.data, &l_dst->head.data, mask_exclude);
 }
 
-static void bm_face_attrs_copy(
+ATTR_NO_OPT static void bm_face_attrs_copy(
     BMesh *bm_src, BMesh *bm_dst, const BMFace *f_src, BMFace *f_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (f_src == f_dst)) {

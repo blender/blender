@@ -300,7 +300,7 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 static void check_new_elem_id(BMElem *elem, TraceData *data)
 {
   int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[elem->head.htype]);
-  if (id >= 0) {
+  if (id != BM_ID_NONE) {
     BMElem *existing = id < data->pbvh->bm_idmap->map_size ?
                            BM_idmap_lookup(data->pbvh->bm_idmap, id) :
                            nullptr;

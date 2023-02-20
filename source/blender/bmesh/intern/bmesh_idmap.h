@@ -8,7 +8,11 @@
 #  define WITH_BM_ID_FREELIST
 #endif
 
+//#define DEBUG_BM_IDMAP /* Debug idmap; note: disables mempool deallocation */
+
 #define USE_NEW_IDMAP
+
+#define BM_ID_NONE 0  //-1
 
 #ifdef __cplusplus
 #  include "BLI_map.hh"
@@ -30,10 +34,19 @@ typedef struct BMIdMap {
 
   using FreeIdxMap = blender::Map<int, int>;
 
-/* maps ids to their position within the freelist
-     only used if freelist is bigger then a certain size,
-     see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
+  /* maps ids to their position within the freelist
+       only used if freelist is bigger then a certain size,
+       see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
   FreeIdxMap *free_idx_map;
+#endif
+
+#ifdef DEBUG_BM_IDMAP
+#  ifdef __cplusplus
+  blender::Map<BMElem *, int> *elem2id;
+  blender::Map<int, BMElem *> *id2elem;
+#  else
+  void elem_idmap;
+#  endif
 #endif
 } BMIdMap;
 

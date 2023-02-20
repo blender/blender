@@ -3602,6 +3602,9 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   sculptsession_bmesh_add_layers(ob);
+  if (ss->bm_idmap) {
+    BM_idmap_check_attributes(ss->bm_idmap);
+  }
 
   if (ss->pbvh) {
     int cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);

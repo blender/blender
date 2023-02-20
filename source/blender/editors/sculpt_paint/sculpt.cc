@@ -4100,6 +4100,10 @@ static void sculpt_topology_update(Sculpt *sd,
   /* build brush radius scale */
   float radius_scale = 1.0f;
 
+  if (brush->dyntopo.flag & DYNTOPO_DISABLED) {
+    return;
+  }
+
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(SCULPT_get_tool(ss, brush)) ?
                                 true :

@@ -921,17 +921,26 @@ void BMLogSetDiff::add_vert(BMesh *bm, BMVert *v)
 {
   BMID<BMVert> id = entry->get_elem_id(bm, v);
 
+  BMLogVert *lv = nullptr;
   BMLogVert **modified_lv = modified_verts.lookup_ptr(id);
+
   if (modified_lv) {
     modified_verts.remove(id);
-    entry->free_logvert(*modified_lv);
+    lv = *modified_lv;
   }
 
   if (added_verts.contains(id)) {
+    if (lv) {
+      entry->free_logvert(lv);
+    }
     return;
   }
 
-  added_verts.add(id, entry->alloc_logvert(bm, v));
+  if (!lv) {
+    lv = entry->alloc_logvert(bm, v);
+  }
+
+  added_verts.add(id, lv);
 }
 
 void BMLogSetDiff::remove_vert(BMesh *bm, BMVert *v)

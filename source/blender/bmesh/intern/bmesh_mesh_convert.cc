@@ -235,7 +235,8 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
                                  POINTER_OFFSET(header.data, info.bmesh_offset));
     }
     else {
-      CustomData_data_set_default_value(&data, info.type, info.n, POINTER_OFFSET(header.data, info.bmesh_offset));
+      CustomData_data_set_default_value(
+          &data, info.type, info.n, POINTER_OFFSET(header.data, info.bmesh_offset));
     }
   }
 }
@@ -1190,7 +1191,10 @@ static void bmesh_block_copy_to_mesh_attributes(const Span<BMeshToMeshLayerInfo>
   }
 }
 
-void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
+ATTR_NO_OPT void BM_mesh_bm_to_me(Main *bmain,
+                                  BMesh *bm,
+                                  Mesh *me,
+                                  const struct BMeshToMeshParams *params)
 {
   using namespace blender;
   BMVert *v, *eve;

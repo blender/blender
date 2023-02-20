@@ -1308,7 +1308,7 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_DISABLED);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
-  RNA_def_property_ui_text(prop, "Disable", "Disable Dyntopo for this brush");
+  RNA_def_property_ui_text(prop, "No Dyntopo", "Disable Dyntopo for this brush");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 

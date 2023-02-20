@@ -19,11 +19,11 @@
 
 #include "atomic_ops.h"
 
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 #include "BLI_asan.h"
 #include "BLI_mempool.h"         /* own include */
 #include "BLI_mempool_private.h" /* own include */
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #ifndef WITH_DNA_GHASH
 #  include "BLI_threads.h"
@@ -740,6 +740,11 @@ int BLI_mempool_get_size(BLI_mempool *pool)
   return ret;
 }
 
+void BLI_mempool_ignore_free(BLI_mempool *pool)
+{
+  pool->flag |= BLI_MEMPOOL_IGNORE_FREE;
+}
+
 /**
  * Free an element from the mempool.
  *
@@ -747,6 +752,10 @@ int BLI_mempool_get_size(BLI_mempool *pool)
  */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
+  if (pool->flag & BLI_MEMPOOL_IGNORE_FREE) {
+    return;
+  }
+
   mempool_unpoison(pool);
 
   BLI_freenode *newhead = addr;

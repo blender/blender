@@ -126,7 +126,8 @@ enum {
 
   /* allow random access, implies BLI_MEMPOOL_ALLOW_ITER since we
      need the freewords to detect free state of elements*/
-  BLI_MEMPOOL_RANDOM_ACCESS = (1 << 1) | (1 << 0)
+  BLI_MEMPOOL_RANDOM_ACCESS = (1 << 1) | (1 << 0),
+  BLI_MEMPOOL_IGNORE_FREE = (1 << 2), /* Used for debugging. */
 };
 
 /**
@@ -157,6 +158,11 @@ int BLI_mempool_find_elems_fuzzy(
 
 int BLI_mempool_get_size(BLI_mempool *pool);
 int BLI_mempool_find_real_index(BLI_mempool *pool, void *ptr);
+
+/* Sets BLI_MEMPOOL_IGNORE_FREE flag, ignores call to BLI_mempool_free.
+ * Used for debugging.
+ */
+void BLI_mempool_ignore_free(BLI_mempool *pool);
 
 #ifdef __cplusplus
 }

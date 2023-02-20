@@ -933,6 +933,8 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         use_accumulate = capabilities.has_accumulate
         use_frontface = True
 
+        layout.prop(brush.dyntopo, "disabled")
+
         col = layout.column(heading="Auto-Masking", align=True)
 
         col = layout.column(align=True)

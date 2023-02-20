@@ -14,18 +14,60 @@
 #include "DNA_meshdata_types.h"
 
 #include "bmesh_idmap.h"
+#include <cstdarg>
 #include <cstdio>
-
-#define BM_ID_NONE 0 //-1
 
 using namespace blender;
 
 #define FREELIST_HASHMAP_THRESHOLD_HIGH 1024
 #define FREELIST_HASHMAP_THRESHOLD_LOW 700
 
+#ifdef DEBUG_BM_IDMAP
+static void bm_idmap_debug_check_init(BMesh *bm)
+{
+  /* Disable mempool allocation so we can use
+   * element pointers as backup IDs.
+   */
+  BLI_mempool_ignore_free(bm->vpool);
+  BLI_mempool_ignore_free(bm->epool);
+  BLI_mempool_ignore_free(bm->lpool);
+  BLI_mempool_ignore_free(bm->fpool);
+}
+#endif
+
+ATTR_NO_OPT static void idmap_log_message(const char *fmt, ...)
+{
+  char msg[64];
+
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+}
+
+#ifdef DEBUG_BM_IDMAP
+ATTR_NO_OPT static void _idmap_debug_insert(const char *func, BMIdMap *idmap, BMElem *elem, int id)
+{
+  if (id == BM_ID_NONE) {
+    idmap_log_message("%s: Tried to assign a null id\n", func);
+  }
+
+  idmap->elem2id->add(elem, id);
+  idmap->id2elem->add(id, elem);
+}
+
+#  define idmap_debug_insert(idmap, elem, id) _idmap_debug_insert(__func__, idmap, elem, id)
+#endif
+
 BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
 {
   BMIdMap *idmap = MEM_new<BMIdMap>("BMIdMap");
+
+#ifdef DEBUG_BM_IDMAP
+  bm_idmap_debug_check_init(bm);
+  idmap->elem2id = new blender::Map<BMElem *, int>;
+  idmap->id2elem = new blender::Map<int, BMElem *>;
+#endif
 
   for (int i = 0; i < ARRAY_SIZE(idmap->cd_id_off); i++) {
     idmap->cd_id_off[i] = -1;
@@ -33,12 +75,98 @@ BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
 
   idmap->flag = elem_mask;
   idmap->bm = bm;
-  idmap->maxid = 1;
+  idmap->maxid = BM_ID_NONE + 1;
 
   BM_idmap_check_attributes(idmap);
 
   return idmap;
 }
+
+static const char elem_names[9][16] = {
+    "corrupted",  // 0
+    "vertex",     // 1
+    "edge",       // 2
+    "corrupted",  // 3
+    "loop",       // 4
+    "corrupted",  // 5
+    "corrupted",  // 6
+    "corrupted",  // 7
+    "face",       // 8
+};
+
+static const char *get_type_name(char htype)
+{
+  if (htype <= 0 || htype >= 9) {
+    return "corrupted";
+  }
+
+  return elem_names[int(htype)];
+}
+
+template<typename T> static constexpr char get_elem_type()
+{
+  if constexpr (std::is_same_v<T, BMVert>) {
+    return BM_VERT;
+  }
+  else if constexpr (std::is_same_v<T, BMEdge>) {
+    return BM_EDGE;
+  }
+  else if constexpr (std::is_same_v<T, BMLoop>) {
+    return BM_LOOP;
+  }
+  else if constexpr (std::is_same_v<T, BMFace>) {
+    return BM_FACE;
+  }
+}
+
+#ifdef DEBUG_BM_IDMAP
+ATTR_NO_OPT static bool _idmap_check_elem(const char *func, BMIdMap *idmap, BMElem *elem)
+{
+  int id = BM_idmap_get_id(idmap, elem);
+  bool exists = idmap->elem2id->contains(elem);
+
+  if (!elem || !ELEM(elem->head.htype, BM_VERT, BM_EDGE, BM_LOOP, BM_FACE)) {
+    idmap_log_message("%s: bad call to idmap_check_elem; %p\n", func, elem);
+    return false;
+  }
+
+  if (id == BM_ID_NONE && !exists) {
+    return true;
+  }
+
+  if (id != BM_ID_NONE && !exists) {
+    idmap_log_message("%s: elem %p(%d, a %s) has an id but isn't in map\n",
+                      func,
+                      elem,
+                      id,
+                      get_type_name(elem->head.htype));
+    if (idmap->id2elem->contains(id)) {
+      BMElem *elem2 = idmap->id2elem->lookup(id);
+      idmap_log_message(
+          "  another elem %p (a %s) has the id\n", elem2, get_type_name(elem2->head.htype));
+    }
+    return false;
+  }
+
+  int id2 = idmap->elem2id->contains(elem) ? idmap->elem2id->lookup(elem) : -1;
+  if (id2 != id) {
+    idmap_log_message("%s: elem %p (a %s) has id %d; expected %d\n",
+                      func,
+                      elem,
+                      get_type_name(elem->head.htype),
+                      id,
+                      id2);
+  }
+
+  return true;
+}
+
+#  define idmap_check_elem(idmap, elem) _idmap_check_elem(__func__, idmap, elem)
+#else
+#  define idmap_check_elem(idmap, elem) \
+    do { \
+    } while (0)
+#endif
 
 static void idmap_grow_map(BMIdMap *idmap, int newid)
 {
@@ -59,12 +187,21 @@ static void idmap_grow_map(BMIdMap *idmap, int newid)
   idmap->map_size = newsize;
 }
 
-void BM_idmap_check_ids(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_check_ids(BMIdMap *idmap)
 {
   BMIter iter;
   BMVert *v;
   BMEdge *e;
   BMFace *f;
+
+#ifdef DEBUG_BM_IDMAP
+  bm_idmap_debug_check_init(idmap->bm);
+  delete idmap->id2elem;
+  delete idmap->elem2id;
+
+  idmap->elem2id = new blender::Map<BMElem *, int>;
+  idmap->id2elem = new blender::Map<int, BMElem *>;
+#endif
 
   BM_idmap_check_attributes(idmap);
 
@@ -119,15 +256,19 @@ void BM_idmap_check_ids(BMIdMap *idmap)
   }
 
   auto check_elem = [&](auto *elem) {
-    int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
+    int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
-    if (id < 0 || id >= idmap->map_size || idmap->map[id]) {
+    if (id == BM_ID_NONE || id < 0 || (id < idmap->map_size && idmap->map[id])) {
       id = max_id++;
-      BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[(int)elem->head.htype], id);
+      BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
     }
 
     idmap_grow_map(idmap, id);
     idmap->map[id] = reinterpret_cast<BMElem *>(elem);
+
+#ifdef DEBUG_BM_IDMAP
+    idmap_debug_insert(idmap, reinterpret_cast<BMElem *>(elem), id);
+#endif
   };
 
   if (idmap->flag & BM_VERT) {
@@ -152,16 +293,11 @@ void BM_idmap_check_ids(BMIdMap *idmap)
       }
     }
   }
-  if (idmap->flag & BM_VERT) {
-    BM_ITER_MESH (v, &iter, idmap->bm, BM_VERTS_OF_MESH) {
-      check_elem(v);
-    }
-  }
 
-  idmap->maxid = max_id;
+  idmap->maxid = max_id + 1;
 }
 
-void BM_idmap_check_attributes(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_check_attributes(BMIdMap *idmap)
 {
   auto check_attr = [&](int type) {
     if (!(idmap->flag & type)) {
@@ -218,22 +354,27 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
   check_attr(BM_FACE);
 }
 
-void BM_idmap_destroy(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_destroy(BMIdMap *idmap)
 {
+#ifdef DEBUG_BM_IDMAP
+  delete idmap->elem2id;
+  delete idmap->id2elem;
+#endif
+
   MEM_SAFE_FREE(idmap->map);
   MEM_delete<BMIdMap>(idmap);
 }
 
-static void check_idx_map(BMIdMap *idmap)
+ATTR_NO_OPT static void check_idx_map(BMIdMap *idmap)
 {
   if (idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_LOW) {
-    // printf("%s: Deleting free_idx_map\n", __func__);
+    // idmap_log_message("%s: Deleting free_idx_map\n", __func__);
 
     MEM_delete<BMIdMap::FreeIdxMap>(idmap->free_idx_map);
     idmap->free_idx_map = nullptr;
   }
   else if (!idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_HIGH) {
-    // printf("%s: Adding free_idx_map\n", __func__);
+    // idmap_log_message("%s: Adding free_idx_map\n", __func__);
 
     idmap->free_idx_map = MEM_new<BMIdMap::FreeIdxMap>("BMIdMap::FreeIdxMap");
 
@@ -243,10 +384,36 @@ static void check_idx_map(BMIdMap *idmap)
   }
 }
 
-int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
+ATTR_NO_OPT int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_ID_NONE;
-#ifdef USE_NEW_IDMAP
+
+#ifdef DEBUG_BM_IDMAP
+  int id2 = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
+
+  if (idmap->elem2id->contains(elem)) {
+    int id3 = idmap->elem2id->lookup(elem);
+
+    if (id2 == id3) {
+      idmap_log_message("%s: elem %p already had id %d\n", __func__, elem, id3);
+    }
+    else {
+      idmap_log_message(
+          "%s: elem %p already has an id (%d), but its attribute has the wrong one (%d)\n",
+          __func__,
+          elem,
+          id3,
+          id2);
+    }
+
+    idmap->elem2id->remove(elem);
+  }
+
+  if (idmap->id2elem->contains(id)) {
+    idmap->id2elem->remove(id);
+  }
+
+#endif
 
   while (idmap->freelist.size()) {
     id = idmap->freelist.pop_last();
@@ -269,14 +436,17 @@ int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
   idmap_grow_map(idmap, id);
   idmap->map[id] = elem;
 
-  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], id);
+  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
+
+#ifdef DEBUG_BM_IDMAP
+  idmap_debug_insert(idmap, elem, id);
 #endif
+
   return id;
 }
 
-void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
+ATTR_NO_OPT void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
 {
-#ifdef USE_NEW_IDMAP
   /* Remove id from freelist. */
   if (idmap->free_idx_map) {
     const int *val;
@@ -294,26 +464,65 @@ void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
     }
   }
 
-  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], id);
+  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
 
   idmap_grow_map(idmap, id);
   idmap->map[id] = elem;
 
   check_idx_map(idmap);
+
+#ifdef DEBUG_BM_IDMAP
+  if (idmap->elem2id->contains(elem) && idmap->elem2id->lookup(elem) == id) {
+    return;
+  }
+
+  if (idmap->elem2id->contains(elem)) {
+    int id2 = idmap->elem2id->lookup(elem);
+
+    idmap_log_message("%s: elem %p already had id %d, new id: %d\n", __func__, elem, id2, id);
+    idmap->elem2id->remove(elem);
+  }
+
+  if (idmap->id2elem->contains(id)) {
+    BMElem *elem2 = idmap->id2elem->lookup(id);
+    if (elem2 != elem) {
+      idmap_log_message("%s: elem %p (a %s) took over id from elem %p (a %s)\n",
+                        __func__,
+                        elem,
+                        get_type_name(elem->head.htype),
+                        elem2,
+                        get_type_name(elem2->head.htype));
+    }
+  }
+
+  idmap_debug_insert(idmap, elem, id);
+  idmap_check_elem(idmap, elem);
 #endif
 }
 
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
+ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
 {
-#ifdef USE_NEW_IDMAP
-  int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
+#ifdef DEBUG_BM_IDMAP
+  idmap_check_elem(idmap, elem);
+
+  if (idmap->elem2id->contains(elem)) {
+    int id2 = idmap->elem2id->lookup(elem);
+
+    if (idmap->id2elem->contains(id2)) {
+      idmap->id2elem->remove(id2);
+    }
+    idmap->elem2id->remove(elem);
+  }
+#endif
+
+  int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
   if (id == BM_ID_NONE) {
-    printf("%s: unassigned id!\n", __func__);
+    idmap_log_message("%s: unassigned id!\n", __func__);
     return;
   };
   if (id < 0 || id >= idmap->map_size || (idmap->map[id] && idmap->map[id] != elem)) {
-    printf("%s: id corruptions\n", __func__);
+    idmap_log_message("%s: id corruptions\n", __func__);
   }
   else {
     idmap->map[id] = nullptr;
@@ -328,18 +537,21 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
   check_idx_map(idmap);
 
   if (clear_id) {
-    BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], BM_ID_NONE);
+    BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], BM_ID_NONE);
   }
-#endif
 }
 
-int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
+ATTR_NO_OPT int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
 {
-  int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
+  int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
   if (id == BM_ID_NONE) {
-    return BM_idmap_alloc(idmap, elem);
+    id = BM_idmap_alloc(idmap, elem);
   }
+
+#ifdef DEBUG_BM_IDMAP
+  idmap_check_elem(idmap, elem);
+#endif
 
   return id;
 }
