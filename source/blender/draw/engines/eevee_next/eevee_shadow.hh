@@ -338,16 +338,12 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   float size_x_, size_y_;
   /** Shape type. */
   eLightType light_type_;
-  /** Random position on the light. In world space. */
-  float3 random_offset_;
   /** Light position. */
   float3 position_;
   /** Near and far clip distances. */
   float far_, near_;
   /** Number of tile-maps needed to cover the light angular extents. */
   int tilemaps_needed_;
-  /** Visibility cone angle from the light source. */
-  int cone_aperture_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};

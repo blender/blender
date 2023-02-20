@@ -91,7 +91,7 @@ void BKE_nlastrip_free(NlaStrip *strip, const bool do_id_user)
   MEM_freeN(strip);
 }
 
-void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user)
+void BKE_nlatrack_free(NlaTrack *nlt, const bool do_id_user)
 {
   NlaStrip *strip, *stripn;
 
@@ -107,12 +107,7 @@ void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user)
   }
 
   /* free NLA track itself now */
-  if (tracks) {
-    BLI_freelinkN(tracks, nlt);
-  }
-  else {
-    MEM_freeN(nlt);
-  }
+  MEM_freeN(nlt);
 }
 
 void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user)
@@ -127,7 +122,7 @@ void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user)
   /* free tracks one by one */
   for (nlt = tracks->first; nlt; nlt = nltn) {
     nltn = nlt->next;
-    BKE_nlatrack_free(tracks, nlt, do_id_user);
+    BKE_nlatrack_remove_and_free(tracks, nlt, do_id_user);
   }
 
   /* clear the list's pointers to be safe */
@@ -512,6 +507,20 @@ void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
   LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_nla_strip_foreach_id(substrip, data));
   }
+}
+
+/* Removing ------------------------------------------ */
+
+void BKE_nlatrack_remove(ListBase *tracks, struct NlaTrack *nlt)
+{
+  BLI_assert(tracks);
+  BLI_remlink(tracks, nlt);
+}
+
+void BKE_nlatrack_remove_and_free(ListBase *tracks, struct NlaTrack *nlt, bool do_id_user)
+{
+  BKE_nlatrack_remove(tracks, nlt);
+  BKE_nlatrack_free(nlt, do_id_user);
 }
 
 /* *************************************************** */

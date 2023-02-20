@@ -8,7 +8,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
@@ -23,6 +25,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "paint_intern.h"
@@ -30,13 +33,19 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "bmesh.h"
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::float2;
+using blender::float3;
+using blender::IndexRange;
 
 void SCULPT_filter_to_orientation_space(float r_v[3], FilterCache *filter_cache)
 {
@@ -96,13 +105,14 @@ void SCULPT_filter_cache_init(bContext *C,
                               Sculpt *sd,
                               const int undo_type,
                               const int mval[2],
-                              float area_normal_radius)
+                              float area_normal_radius,
+                              float start_strength)
 {
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
 
   ss->filter_cache = MEM_cnew<FilterCache>(__func__);
-
+  ss->filter_cache->start_filter_strength = start_strength;
   ss->filter_cache->random_seed = rand();
 
   if (undo_type == SCULPT_UNDO_COLOR) {
@@ -338,6 +348,15 @@ static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
               MESH_FILTER_SHARPEN);
 }
 
+static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
+{
+  return (ELEM(type,
+               MESH_FILTER_SHARPEN,
+               MESH_FILTER_SMOOTH,
+               MESH_FILTER_RELAX,
+               MESH_FILTER_RELAX_FACE_SETS));
+}
+
 static void mesh_filter_task_cb(void *__restrict userdata,
                                 const int i,
                                 const TaskParallelTLS *__restrict /*tls*/)
@@ -379,7 +398,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       continue;
     }
 
-    if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
+    if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS) ||
+        ss->filter_cache->no_orig_co) {
       copy_v3_v3(orig_co, vd.co);
     }
     else {
@@ -681,33 +701,15 @@ static void mesh_filter_surface_smooth_displace_task_cb(void *__restrict userdat
   BKE_pbvh_vertex_iter_end;
 }
 
-static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
-  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end(ob);
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
-    return OPERATOR_FINISHED;
-  }
-
-  if (event->type != MOUSEMOVE) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  const float len = event->prev_press_xy[0] - event->xy[0];
-  filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
-
   SCULPT_vertex_random_access_ensure(ss);
-
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, false);
 
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -740,22 +742,136 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+}
+
+static void sculpt_mesh_update_strength(wmOperator *op,
+                                        SculptSession *ss,
+                                        float2 prev_press_mouse,
+                                        float2 mouse)
+{
+  const float len = prev_press_mouse[0] - mouse[0];
+
+  float filter_strength = ss->filter_cache->start_filter_strength * -len * 0.001f * UI_DPI_FAC;
+  RNA_float_set(op->ptr, "strength", filter_strength);
+}
+static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
+{
+  /* Event history is only stored for smooth and relax filters. */
+  if (!RNA_collection_length(op->ptr, "event_history")) {
+    sculpt_mesh_filter_apply(C, op);
+    return;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  float2 start_mouse;
+  bool first = true;
+  float initial_strength = ss->filter_cache->start_filter_strength;
+
+  RNA_BEGIN (op->ptr, item, "event_history") {
+    float2 mouse;
+    RNA_float_get_array(&item, "mouse_event", mouse);
+
+    if (first) {
+      first = false;
+      start_mouse = mouse;
+      continue;
+    }
+
+    sculpt_mesh_update_strength(op, ss, start_mouse, mouse);
+    sculpt_mesh_filter_apply(C, op);
+  }
+  RNA_END;
+
+  RNA_float_set(op->ptr, "strength", initial_strength);
+}
+
+static void sculpt_mesh_filter_end(bContext *C, wmOperator * /*op*/)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  SCULPT_filter_cache_free(ss);
+  SCULPT_undo_push_end(ob);
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
+}
+
+static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  SculptSession *ss = ob->sculpt;
+  const eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
+
+  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+    float initial_strength = ss->filter_cache->start_filter_strength;
+    sculpt_mesh_filter_end(C, op);
+
+    /* Don't update strength property if we're storing an event history. */
+    if (sculpt_mesh_filter_is_continuous(filter_type)) {
+      RNA_float_set(op->ptr, "strength", initial_strength);
+    }
+
+    return OPERATOR_FINISHED;
+  }
+
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  /* Note: some filter types are continuous, for these we store an
+   * event history in RNA for continuous.
+   * This way the user can tweak the last operator properties
+   * or repeat the op and get expected results. */
+  if (sculpt_mesh_filter_is_continuous(filter_type)) {
+    if (RNA_collection_length(op->ptr, "event_history") == 0) {
+      /* First entry is the start mouse position, event->prev_press_xy. */
+      PointerRNA startptr;
+      RNA_collection_add(op->ptr, "event_history", &startptr);
+
+      float2 mouse_start(float(event->prev_press_xy[0]), float(event->prev_press_xy[1]));
+      RNA_float_set_array(&startptr, "mouse_event", mouse_start);
+    }
+
+    PointerRNA itemptr;
+    RNA_collection_add(op->ptr, "event_history", &itemptr);
+
+    float2 mouse(float(event->xy[0]), float(event->xy[1]));
+    RNA_float_set_array(&itemptr, "mouse_event", mouse);
+    RNA_float_set(&itemptr, "pressure", WM_event_tablet_data(event, nullptr, nullptr));
+  }
+
+  float2 prev_mval(float(event->prev_press_xy[0]), float(event->prev_press_xy[1]));
+  float2 mval(float(event->xy[0]), float(event->xy[1]));
+
+  sculpt_mesh_update_strength(op, ss, prev_mval, mval);
+
+  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, false);
+
+  sculpt_mesh_filter_apply(C, op);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+/* Returns OPERATOR_PASS_THROUGH on success. */
+static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  int mval[2];
+  RNA_int_get_array(op->ptr, "start_mouse", mval);
+
+  const eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const bool use_automasking = SCULPT_is_automasking_enabled(sd, nullptr, nullptr);
+  const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_topology_info, false, false);
   SculptSession *ss = ob->sculpt;
 
   const eMeshFilterDeformAxis deform_axis = eMeshFilterDeformAxis(
       RNA_enum_get(op->ptr, "deform_axis"));
-  const eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
-  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, nullptr);
-  const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
 
   if (deform_axis == 0) {
     /* All axis are disabled, so the filter is not going to produce any deformation. */
@@ -768,21 +884,25 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
-    float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+    float mval_fl[2] = {float(mval[0]), float(mval[1])};
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
 
   SCULPT_vertex_random_access_ensure(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_topology_info, false, false);
   if (needs_topology_info) {
     SCULPT_boundary_info_ensure(ob);
   }
 
   SCULPT_undo_push_begin(ob, op);
 
-  SCULPT_filter_cache_init(
-      C, ob, sd, SCULPT_UNDO_COORDS, event->mval, RNA_float_get(op->ptr, "area_normal_radius"));
+  SCULPT_filter_cache_init(C,
+                           ob,
+                           sd,
+                           SCULPT_UNDO_COORDS,
+                           mval,
+                           RNA_float_get(op->ptr, "area_normal_radius"),
+                           RNA_float_get(op->ptr, "strength"));
 
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
@@ -826,12 +946,56 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
       RNA_enum_get(op->ptr, "orientation"));
   ss->filter_cache->orientation = orientation;
 
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_PASS_THROUGH;
+}
+
+static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  RNA_int_set_array(op->ptr, "start_mouse", event->mval);
+  int ret = sculpt_mesh_filter_start(C, op);
+
+  if (ret == OPERATOR_PASS_THROUGH) {
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  return ret;
+}
+
+static int sculpt_mesh_filter_exec(bContext *C, wmOperator *op)
+{
+  int ret = sculpt_mesh_filter_start(C, op);
+
+  if (ret == OPERATOR_PASS_THROUGH) {
+    Object *ob = CTX_data_active_object(C);
+    SculptSession *ss = ob->sculpt;
+
+    int iterations = RNA_int_get(op->ptr, "iteration_count");
+    bool has_history = RNA_collection_length(op->ptr, "event_history") > 0;
+
+    if (!has_history) {
+      ss->filter_cache->no_orig_co = true;
+    }
+
+    for (int i = 0; i < iterations; i++) {
+      sculpt_mesh_filter_apply_with_history(C, op);
+
+      ss->filter_cache->no_orig_co = true;
+    }
+
+    sculpt_mesh_filter_end(C, op);
+
+    return OPERATOR_FINISHED;
+  }
+
+  return ret;
 }
 
 void SCULPT_mesh_filter_properties(wmOperatorType *ot)
 {
+  RNA_def_int_array(
+      ot->srna, "start_mouse", 2, nullptr, 0, 1 << 14, "Starting Mouse", "", 0, 1 << 14);
+
   RNA_def_float(
       ot->srna,
       "area_normal_radius",
@@ -844,6 +1008,31 @@ void SCULPT_mesh_filter_properties(wmOperatorType *ot)
       1.0);
   RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
+  RNA_def_int(ot->srna,
+              "iteration_count",
+              1,
+              1,
+              10000,
+              "Repeat",
+              "How many times to repeat the filter",
+              1,
+              100);
+
+  /* Smooth filter requires entire event history. */
+  PropertyRNA *prop = RNA_def_collection_runtime(
+      ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
+  RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
+}
+
+static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+
+  uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "iteration_count", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "orientation", 0, nullptr, ICON_NONE);
+  layout = uiLayoutRow(layout, true);
+  uiItemR(layout, op->ptr, "deform_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot)
@@ -857,6 +1046,8 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
   ot->invoke = sculpt_mesh_filter_invoke;
   ot->modal = sculpt_mesh_filter_modal;
   ot->poll = SCULPT_mode_poll;
+  ot->exec = sculpt_mesh_filter_exec;
+  ot->ui = sculpt_mesh_ui_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

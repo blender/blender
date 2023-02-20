@@ -290,6 +290,24 @@ TEST(index_range, SplitByAlignment)
     EXPECT_EQ(ranges.aligned, IndexRange());
     EXPECT_EQ(ranges.suffix, IndexRange());
   }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(64), 64);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange(64));
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(64, 64), 64);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange(64, 64));
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(4, 8), 64);
+    EXPECT_EQ(ranges.prefix, IndexRange(4, 8));
+    EXPECT_EQ(ranges.aligned, IndexRange());
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
 }
 
 }  // namespace blender::tests

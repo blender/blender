@@ -42,6 +42,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--use-linux-libraries", action="store_true")
+    parser.add_argument("--architecture", type=str, choices=("x86_64", "amd64", "arm64",))
     return parser.parse_args()
 
 
@@ -51,6 +52,19 @@ def get_blender_git_root() -> str:
 # Setup for precompiled libraries and tests from svn.
 
 
+def get_effective_architecture(args: argparse.Namespace) -> str:
+    architecture = args.architecture
+    if architecture:
+        assert isinstance(architecture, str)
+        return architecture
+
+    # Check platform.version to detect arm64 with x86_64 python binary.
+    if "ARM64" in platform.version():
+        return "arm64"
+
+    return platform.machine().lower()
+
+
 def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None:
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
@@ -58,11 +72,11 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
     svn_url = make_utils.svn_libraries_base_url(release_version, args.svn_branch)
 
     # Checkout precompiled libraries
+    architecture = get_effective_architecture(args)
     if sys.platform == 'darwin':
-        # Check platform.version to detect arm64 with x86_64 python binary.
-        if platform.machine() == 'arm64' or ('ARM64' in platform.version()):
+        if architecture == 'arm64':
             lib_platform = "darwin_arm64"
-        elif platform.machine() == 'x86_64':
+        elif architecture == 'x86_64':
             lib_platform = "darwin"
         else:
             lib_platform = None
@@ -256,14 +270,15 @@ if __name__ == "__main__":
     blender_skip_msg = ""
     submodules_skip_msg = ""
 
-    # Test if we are building a specific release version.
-    branch = make_utils.git_branch(args.git_command)
-    if branch == 'HEAD':
-        sys.stderr.write('Blender git repository is in detached HEAD state, must be in a branch\n')
-        sys.exit(1)
-
-    tag = make_utils.git_tag(args.git_command)
-    release_version = make_utils.git_branch_release_version(branch, tag)
+    blender_version = make_utils. parse_blender_version()
+    if blender_version.cycle != 'alpha':
+        major = blender_version.version // 100
+        minor = blender_version.version % 100
+        branch = f"blender-v{major}.{minor}-release"
+        release_version: Optional[str] = f"{major}.{minor}"
+    else:
+        branch = 'main'
+        release_version = None
 
     if not args.no_libraries:
         svn_update(args, release_version)

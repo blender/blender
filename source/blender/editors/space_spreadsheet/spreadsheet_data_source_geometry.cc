@@ -68,6 +68,122 @@ std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
   return std::make_unique<ColumnValues>(column_id.name, GVArray::ForSpan(*values));
 }
 
+static void add_mesh_debug_column_names(
+    const Mesh &mesh,
+    const eAttrDomain domain,
+    FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      if (CustomData_has_layer(&mesh.vdata, CD_ORIGINDEX)) {
+        fn({(char *)"Original Index"}, false);
+      }
+      break;
+    case ATTR_DOMAIN_EDGE:
+      if (CustomData_has_layer(&mesh.edata, CD_ORIGINDEX)) {
+        fn({(char *)"Original Index"}, false);
+      }
+      fn({(char *)"Vertex 1"}, false);
+      fn({(char *)"Vertex 2"}, false);
+      break;
+    case ATTR_DOMAIN_FACE:
+      if (CustomData_has_layer(&mesh.pdata, CD_ORIGINDEX)) {
+        fn({(char *)"Original Index"}, false);
+      }
+      fn({(char *)"Corner Start"}, false);
+      fn({(char *)"Corner Size"}, false);
+      break;
+    case ATTR_DOMAIN_CORNER:
+      fn({(char *)"Vertex"}, false);
+      fn({(char *)"Edge"}, false);
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
+                                                              const eAttrDomain domain,
+                                                              const StringRef name)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT: {
+      if (name == "Original Index") {
+        const int *data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.vdata, CD_ORIGINDEX));
+        if (data) {
+          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totvert}));
+        }
+      }
+      return {};
+    }
+    case ATTR_DOMAIN_EDGE: {
+      const Span<MEdge> edges = mesh.edges();
+      if (name == "Original Index") {
+        const int *data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.edata, CD_ORIGINDEX));
+        if (data) {
+          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totedge}));
+        }
+      }
+      if (name == "Vertex 1") {
+        return std::make_unique<ColumnValues>(
+            name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
+              return edges[index].v1;
+            }));
+      }
+      if (name == "Vertex 2") {
+        return std::make_unique<ColumnValues>(
+            name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
+              return edges[index].v2;
+            }));
+      }
+      return {};
+    }
+    case ATTR_DOMAIN_FACE: {
+      const Span<MPoly> polys = mesh.polys();
+      if (name == "Original Index") {
+        const int *data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.pdata, CD_ORIGINDEX));
+        if (data) {
+          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totpoly}));
+        }
+      }
+      if (name == "Corner Start") {
+        return std::make_unique<ColumnValues>(
+            name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
+              return polys[index].loopstart;
+            }));
+      }
+      if (name == "Corner Size") {
+        return std::make_unique<ColumnValues>(
+            name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
+              return polys[index].totloop;
+            }));
+      }
+      return {};
+    }
+    case ATTR_DOMAIN_CORNER: {
+      const Span<MLoop> loops = mesh.loops();
+      if (name == "Vertex") {
+        return std::make_unique<ColumnValues>(
+            name,
+            VArray<int>::ForFunc(loops.size(), [loops](int64_t index) { return loops[index].v; }));
+      }
+      if (name == "Edge") {
+        return std::make_unique<ColumnValues>(
+            name,
+            VArray<int>::ForFunc(loops.size(), [loops](int64_t index) { return loops[index].e; }));
+      }
+      return {};
+    }
+    default:
+      BLI_assert_unreachable();
+      return {};
+  }
+}
+
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
@@ -109,17 +225,9 @@ void GeometryDataSource::foreach_default_column_ids(
     fn({(char *)"Scale"}, false);
   }
   else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
-    if (domain_ == ATTR_DOMAIN_EDGE) {
-      fn({(char *)"Vertex 1"}, false);
-      fn({(char *)"Vertex 2"}, false);
-    }
-    else if (domain_ == ATTR_DOMAIN_FACE) {
-      fn({(char *)"Corner Start"}, false);
-      fn({(char *)"Corner Size"}, false);
-    }
-    else if (domain_ == ATTR_DOMAIN_CORNER) {
-      fn({(char *)"Vertex"}, false);
-      fn({(char *)"Edge"}, false);
+    const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
+    if (const Mesh *mesh = component.get_for_read()) {
+      add_mesh_debug_column_names(*mesh, domain_, fn);
     }
   }
 }
@@ -174,51 +282,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
     const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get_for_read()) {
-      const Span<MEdge> edges = mesh->edges();
-      const Span<MPoly> polys = mesh->polys();
-      const Span<MLoop> loops = mesh->loops();
-
-      if (domain_ == ATTR_DOMAIN_EDGE) {
-        if (STREQ(column_id.name, "Vertex 1")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
-                return edges[index].v1;
-              }));
-        }
-        if (STREQ(column_id.name, "Vertex 2")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
-                return edges[index].v2;
-              }));
-        }
-      }
-      else if (domain_ == ATTR_DOMAIN_FACE) {
-        if (STREQ(column_id.name, "Corner Start")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-                return polys[index].loopstart;
-              }));
-        }
-        if (STREQ(column_id.name, "Corner Size")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-                return polys[index].totloop;
-              }));
-        }
-      }
-      else if (domain_ == ATTR_DOMAIN_CORNER) {
-        if (STREQ(column_id.name, "Vertex")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(loops.size(), [loops](int64_t index) {
-                return loops[index].v;
-              }));
-        }
-        if (STREQ(column_id.name, "Edge")) {
-          return std::make_unique<ColumnValues>(
-              column_id.name, VArray<int>::ForFunc(loops.size(), [loops](int64_t index) {
-                return loops[index].e;
-              }));
-        }
+      if (std::unique_ptr<ColumnValues> values = build_mesh_debug_columns(
+              *mesh, domain_, column_id.name)) {
+        return values;
       }
     }
   }

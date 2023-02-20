@@ -993,7 +993,9 @@ static void node_group_make_insert_selected(const bContext &C,
     }
   }
 
-  bke::node_field_inferencing::update_field_inferencing(group);
+  if (group.type == NTREE_GEOMETRY) {
+    bke::node_field_inferencing::update_field_inferencing(group);
+  }
   nodes::update_node_declaration_and_sockets(ntree, *gnode);
 
   /* Add new links to inputs outside of the group. */

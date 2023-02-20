@@ -21,7 +21,7 @@
 #include "BLI_mempool.h"
 
 #ifdef __cplusplus
-#  include "BLI_bit_vector.hh"
+#  include "BLI_bit_span.hh"
 #endif
 
 #ifdef __cplusplus
@@ -228,14 +228,14 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 
 int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,
-                                    blender::BitVector<> &bitmap,
+                                    blender::MutableBitSpan bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data);
 /**
  * Needed when we want to check faces, but return a loop aligned array.
  */
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
-                                             blender::BitVector<> &bitmap,
+                                             blender::MutableBitSpan bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data);
 

@@ -821,7 +821,7 @@ static void node_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME) {
+      if (ELEM(wmn->action, NA_RENAME, NA_EDITED)) {
         ED_region_tag_redraw(region);
       }
       break;
