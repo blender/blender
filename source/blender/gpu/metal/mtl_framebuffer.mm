@@ -1754,9 +1754,8 @@ void MTLFrameBuffer::blit(uint read_slot,
                           uint height,
                           eGPUFrameBufferBits blit_buffers)
 {
-  BLI_assert(this);
   BLI_assert(metal_fb_write);
-  if (!(this && metal_fb_write)) {
+  if (!metal_fb_write) {
     return;
   }
   MTLContext *mtl_context = reinterpret_cast<MTLContext *>(GPU_context_active_get());
@@ -1899,4 +1898,4 @@ int MTLFrameBuffer::get_height()
   return height_;
 }
 
-}  // blender::gpu
+}  // namespace blender::gpu
