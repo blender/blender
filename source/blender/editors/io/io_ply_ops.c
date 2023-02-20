@@ -77,7 +77,7 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *box, *col, *sub, *row;
+  uiLayout *box, *col, *sub;
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
@@ -88,10 +88,8 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
 
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);

@@ -1,22 +1,11 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_blender_version.h"
-#include "BKE_curve.h"
-#include "BKE_main.h"
-#include "BKE_scene.h"
-
-#include "BLI_fileops.h"
-
-#include "BLO_readfile.h"
 
 #include "DEG_depsgraph.h"
-
-#include "DNA_curve_types.h"
-#include "DNA_material_types.h"
-#include "DNA_scene_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "IO_ply.h"
 #include "intern/ply_data.hh"
