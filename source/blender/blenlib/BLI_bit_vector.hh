@@ -38,141 +38,10 @@
 #include <cstring>
 
 #include "BLI_allocator.hh"
-#include "BLI_index_range.hh"
-#include "BLI_memory_utils.hh"
+#include "BLI_bit_span.hh"
 #include "BLI_span.hh"
 
 namespace blender::bits {
-
-/**
- * Using a large integer type is better because then it's easier to process many bits at once.
- */
-using IntType = uint64_t;
-static constexpr int64_t BitsPerInt = int64_t(sizeof(IntType) * 8);
-static constexpr int64_t BitToIntIndexShift = 3 + (sizeof(IntType) >= 2) + (sizeof(IntType) >= 4) +
-                                              (sizeof(IntType) >= 8);
-static constexpr IntType BitIndexMask = (IntType(1) << BitToIntIndexShift) - 1;
-
-/**
- * This is a read-only pointer to a specific bit. The value of the bit can be retrieved, but
- * not changed.
- */
-class BitRef {
- private:
-  /** Points to the integer that the bit is in. */
-  const IntType *ptr_;
-  /** All zeros except for a single one at the bit that is referenced. */
-  IntType mask_;
-
-  friend class MutableBitRef;
-
- public:
-  BitRef() = default;
-
-  /**
-   * Reference a specific bit in an array. Note that #ptr does *not* have to point to the
-   * exact integer the bit is in.
-   */
-  BitRef(const IntType *ptr, const int64_t bit_index)
-  {
-    ptr_ = ptr + (bit_index >> BitToIntIndexShift);
-    mask_ = IntType(1) << (bit_index & BitIndexMask);
-  }
-
-  /**
-   * Return true when the bit is currently 1 and false otherwise.
-   */
-  bool test() const
-  {
-    const IntType value = *ptr_;
-    const IntType masked_value = value & mask_;
-    return masked_value != 0;
-  }
-
-  operator bool() const
-  {
-    return this->test();
-  }
-};
-
-/**
- * Similar to #BitRef, but also allows changing the referenced bit.
- */
-class MutableBitRef {
- private:
-  /** Points to the integer that the bit is in. */
-  IntType *ptr_;
-  /** All zeros except for a single one at the bit that is referenced. */
-  IntType mask_;
-
- public:
-  MutableBitRef() = default;
-
-  /**
-   * Reference a specific bit in an array. Note that #ptr does *not* have to point to the
-   * exact int the bit is in.
-   */
-  MutableBitRef(IntType *ptr, const int64_t bit_index)
-  {
-    ptr_ = ptr + (bit_index >> BitToIntIndexShift);
-    mask_ = IntType(1) << IntType(bit_index & BitIndexMask);
-  }
-
-  /**
-   * Support implicitly casting to a read-only #BitRef.
-   */
-  operator BitRef() const
-  {
-    BitRef bit_ref;
-    bit_ref.ptr_ = ptr_;
-    bit_ref.mask_ = mask_;
-    return bit_ref;
-  }
-
-  /**
-   * Return true when the bit is currently 1 and false otherwise.
-   */
-  bool test() const
-  {
-    const IntType value = *ptr_;
-    const IntType masked_value = value & mask_;
-    return masked_value != 0;
-  }
-
-  operator bool() const
-  {
-    return this->test();
-  }
-
-  /**
-   * Change the bit to a 1.
-   */
-  void set()
-  {
-    *ptr_ |= mask_;
-  }
-
-  /**
-   * Change the bit to a 0.
-   */
-  void reset()
-  {
-    *ptr_ &= ~mask_;
-  }
-
-  /**
-   * Change the bit to a 1 if #value is true and 0 otherwise.
-   */
-  void set(const bool value)
-  {
-    if (value) {
-      this->set();
-    }
-    else {
-      this->reset();
-    }
-  }
-};
 
 template<
     /**
@@ -193,13 +62,13 @@ class BitVector {
 
   static constexpr int64_t IntsInInlineBuffer = required_ints_for_bits(InlineBufferCapacity);
   static constexpr int64_t BitsInInlineBuffer = IntsInInlineBuffer * BitsPerInt;
-  static constexpr int64_t AllocationAlignment = alignof(IntType);
+  static constexpr int64_t AllocationAlignment = alignof(BitInt);
 
   /**
    * Points to the first integer used by the vector. It might point to the memory in the inline
    * buffer.
    */
-  IntType *data_;
+  BitInt *data_;
 
   /** Current size of the vector in bits. */
   int64_t size_in_bits_;
@@ -211,7 +80,7 @@ class BitVector {
   BLI_NO_UNIQUE_ADDRESS Allocator allocator_;
 
   /** Contains the bits as long as the vector is small enough. */
-  BLI_NO_UNIQUE_ADDRESS TypedBuffer<IntType, IntsInInlineBuffer> inline_buffer_;
+  BLI_NO_UNIQUE_ADDRESS TypedBuffer<BitInt, IntsInInlineBuffer> inline_buffer_;
 
  public:
   BitVector(Allocator allocator = {}) noexcept : allocator_(allocator)
@@ -219,7 +88,7 @@ class BitVector {
     data_ = inline_buffer_;
     size_in_bits_ = 0;
     capacity_in_bits_ = BitsInInlineBuffer;
-    uninitialized_fill_n(data_, IntsInInlineBuffer, IntType(0));
+    uninitialized_fill_n(data_, IntsInInlineBuffer, BitInt(0));
   }
 
   BitVector(NoExceptConstructor, Allocator allocator = {}) noexcept : BitVector(allocator)
@@ -236,8 +105,8 @@ class BitVector {
     }
     else {
       /* Allocate a new array because the inline buffer is too small. */
-      data_ = static_cast<IntType *>(
-          allocator_.allocate(ints_to_copy * sizeof(IntType), AllocationAlignment, __func__));
+      data_ = static_cast<BitInt *>(
+          allocator_.allocate(ints_to_copy * sizeof(BitInt), AllocationAlignment, __func__));
       capacity_in_bits_ = ints_to_copy * BitsPerInt;
     }
     size_in_bits_ = other.size_in_bits_;
@@ -303,6 +172,16 @@ class BitVector {
     return move_assign_container(*this, std::move(other));
   }
 
+  operator BitSpan() const
+  {
+    return {data_, IndexRange(size_in_bits_)};
+  }
+
+  operator MutableBitSpan()
+  {
+    return {data_, IndexRange(size_in_bits_)};
+  }
+
   /**
    * Number of bits in the bit vector.
    */
@@ -352,80 +231,24 @@ class BitVector {
     size_in_bits_++;
   }
 
-  class Iterator {
-   private:
-    const BitVector *vector_;
-    int64_t index_;
-
-   public:
-    Iterator(const BitVector &vector, const int64_t index) : vector_(&vector), index_(index)
-    {
-    }
-
-    Iterator &operator++()
-    {
-      index_++;
-      return *this;
-    }
-
-    friend bool operator!=(const Iterator &a, const Iterator &b)
-    {
-      BLI_assert(a.vector_ == b.vector_);
-      return a.index_ != b.index_;
-    }
-
-    BitRef operator*() const
-    {
-      return (*vector_)[index_];
-    }
-  };
-
-  class MutableIterator {
-   private:
-    BitVector *vector_;
-    int64_t index_;
-
-   public:
-    MutableIterator(BitVector &vector, const int64_t index) : vector_(&vector), index_(index)
-    {
-    }
-
-    MutableIterator &operator++()
-    {
-      index_++;
-      return *this;
-    }
-
-    friend bool operator!=(const MutableIterator &a, const MutableIterator &b)
-    {
-      BLI_assert(a.vector_ == b.vector_);
-      return a.index_ != b.index_;
-    }
-
-    MutableBitRef operator*() const
-    {
-      return (*vector_)[index_];
-    }
-  };
-
-  Iterator begin() const
+  BitIterator begin() const
   {
-    return {*this, 0};
+    return {data_, 0};
   }
 
-  Iterator end() const
+  BitIterator end() const
   {
-    return {*this, size_in_bits_};
+    return {data_, size_in_bits_};
   }
 
-  MutableIterator begin()
+  MutableBitIterator begin()
   {
-    return {*this, 0};
+    return {data_, 0};
   }
 
-  MutableIterator end()
+  MutableBitIterator end()
   {
-    return {*this, size_in_bits_};
+    return {data_, size_in_bits_};
   }
 
   /**
@@ -441,31 +264,8 @@ class BitVector {
     }
     size_in_bits_ = new_size_in_bits;
     if (old_size_in_bits < new_size_in_bits) {
-      this->fill_range(IndexRange(old_size_in_bits, new_size_in_bits - old_size_in_bits), value);
-    }
-  }
-
-  /**
-   * Set #value for every element in #range.
-   */
-  void fill_range(const IndexRange range, const bool value)
-  {
-    const AlignedIndexRanges aligned_ranges = split_index_range_by_alignment(range, BitsPerInt);
-
-    /* Fill first few bits. */
-    for (const int64_t i : aligned_ranges.prefix) {
-      (*this)[i].set(value);
-    }
-
-    /* Fill entire ints at once. */
-    const int64_t start_fill_int_index = aligned_ranges.aligned.start() / BitsPerInt;
-    const int64_t ints_to_fill = aligned_ranges.aligned.size() / BitsPerInt;
-    const IntType fill_value = value ? IntType(-1) : IntType(0);
-    initialized_fill_n(data_ + start_fill_int_index, ints_to_fill, fill_value);
-
-    /* Fill bits in the end that don't cover a full int. */
-    for (const int64_t i : aligned_ranges.suffix) {
-      (*this)[i].set(value);
+      MutableBitSpan(data_, IndexRange(old_size_in_bits, new_size_in_bits - old_size_in_bits))
+          .set_all(value);
     }
   }
 
@@ -474,7 +274,7 @@ class BitVector {
    */
   void fill(const bool value)
   {
-    this->fill_range(IndexRange(0, size_in_bits_), value);
+    MutableBitSpan(data_, size_in_bits_).set_all(value);
   }
 
   /**
@@ -517,7 +317,7 @@ class BitVector {
   }
 
   BLI_NOINLINE void realloc_to_at_least(const int64_t min_capacity_in_bits,
-                                        const IntType initial_value_for_new_ints = 0x00)
+                                        const BitInt initial_value_for_new_ints = 0)
   {
     if (capacity_in_bits_ >= min_capacity_in_bits) {
       return;
@@ -531,8 +331,8 @@ class BitVector {
     const int64_t new_capacity_in_ints = std::max(min_capacity_in_ints, min_new_capacity_in_ints);
     const int64_t ints_to_copy = this->used_ints_amount();
 
-    IntType *new_data = static_cast<IntType *>(allocator_.allocate(
-        new_capacity_in_ints * sizeof(IntType), AllocationAlignment, __func__));
+    BitInt *new_data = static_cast<BitInt *>(
+        allocator_.allocate(new_capacity_in_ints * sizeof(BitInt), AllocationAlignment, __func__));
     uninitialized_copy_n(data_, ints_to_copy, new_data);
     /* Always initialize new capacity even if it isn't used yet. That's necessary to avoid warnings
      * caused by using uninitialized memory. This happens when e.g. setting a clearing a bit in an
@@ -562,7 +362,5 @@ class BitVector {
 }  // namespace blender::bits
 
 namespace blender {
-using bits::BitRef;
 using bits::BitVector;
-using bits::MutableBitRef;
 }  // namespace blender

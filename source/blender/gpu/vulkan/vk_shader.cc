@@ -640,6 +640,10 @@ void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   build_shader_module(sources, shaderc_compute_shader, &compute_module_);
 }
 
+void VKShader::warm_cache(int /*limit*/)
+{
+}
+
 bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {

@@ -4224,6 +4224,10 @@ static uiBut *ui_def_but(uiBlock *block,
     but->flag |= UI_BUT_UNDO;
   }
 
+  if (ELEM(but->type, UI_BTYPE_COLOR)) {
+    but->dragflag |= UI_BUT_DRAG_FULL_BUT;
+  }
+
   BLI_addtail(&block->buttons, but);
 
   if (block->curlayout) {
@@ -4287,6 +4291,7 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
   int totitems = 0;
   int categories = 0;
   int entries_nosepr_count = 0;
+  bool has_item_with_icon = false;
   for (const EnumPropertyItem *item = item_array; item->identifier; item++, totitems++) {
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
@@ -4297,6 +4302,9 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
       }
       /* We do not want simple separators in `entries_nosepr_count`. */
       continue;
+    }
+    if (item->icon) {
+      has_item_with_icon = true;
     }
     entries_nosepr_count++;
   }
@@ -4402,11 +4410,18 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
       uiItemS(column);
     }
     else {
-      if (item->icon) {
+      int icon = item->icon;
+      /* Use blank icon if there is none for this item (but for some other one) to make sure labels
+       * align. */
+      if (icon == ICON_NONE && has_item_with_icon) {
+        icon = ICON_BLANK1;
+      }
+
+      if (icon) {
         uiDefIconTextButI(block,
                           UI_BTYPE_BUT_MENU,
                           B_NOP,
-                          item->icon,
+                          icon,
                           item->name,
                           0,
                           0,
@@ -4585,15 +4600,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
 #endif
       }
 
-      /* #ICON_BLANK1 can be used to add padding of the size of an icon. This is fine to align
-       * multiple items within a menu, but not for the menu button that only shows the label then.
-       */
-      if ((type == UI_BTYPE_MENU) && (item[i].icon == ICON_BLANK1)) {
-        icon = ICON_NONE;
-      }
-      else {
-        icon = item[i].icon;
-      }
+      icon = item[i].icon;
     }
     else {
       if (!str) {
@@ -5885,6 +5892,16 @@ void UI_but_drawflag_enable(uiBut *but, int flag)
 void UI_but_drawflag_disable(uiBut *but, int flag)
 {
   but->drawflag &= ~flag;
+}
+
+void UI_but_dragflag_enable(uiBut *but, int flag)
+{
+  but->dragflag |= flag;
+}
+
+void UI_but_dragflag_disable(uiBut *but, int flag)
+{
+  but->dragflag &= ~flag;
 }
 
 void UI_but_disable(uiBut *but, const char *disabled_hint)

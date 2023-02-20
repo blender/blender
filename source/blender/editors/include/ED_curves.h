@@ -136,6 +136,11 @@ void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points);
 void select_linked(bke::CurvesGeometry &curves);
 
 /**
+ * (De)select all the adjacent points of the current selected points.
+ */
+void select_adjacent(bke::CurvesGeometry &curves, bool deselect);
+
+/**
  * Select random points or curves.
  *
  * \param random_seed: The seed for the \a RandomNumberGenerator.

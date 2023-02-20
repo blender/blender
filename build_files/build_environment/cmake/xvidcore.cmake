@@ -17,11 +17,13 @@ ExternalProject_Add(external_xvidcore
   INSTALL_DIR ${LIBDIR}/xvidcore
 )
 
-ExternalProject_Add_Step(external_xvidcore after_install
-  COMMAND ${CMAKE_COMMAND} -E rename ${LIBDIR}/xvidcore/lib/xvidcore.a ${LIBDIR}/xvidcore/lib/libxvidcore.a || true
-  COMMAND ${CMAKE_COMMAND} -E remove ${LIBDIR}/xvidcore/lib/xvidcore.dll.a
-  DEPENDEES install
-)
+if(WIN32)
+  ExternalProject_Add_Step(external_xvidcore after_install
+    COMMAND ${CMAKE_COMMAND} -E rename ${LIBDIR}/xvidcore/lib/xvidcore.a ${LIBDIR}/xvidcore/lib/libxvidcore.a || true
+    COMMAND ${CMAKE_COMMAND} -E remove ${LIBDIR}/xvidcore/lib/xvidcore.dll.a
+    DEPENDEES install
+  )
+endif()
 
 if(MSVC)
   set_target_properties(external_xvidcore PROPERTIES FOLDER Mingw)

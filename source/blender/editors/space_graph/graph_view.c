@@ -91,7 +91,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 
       /* Get range. */
       if (BKE_fcurve_calc_bounds(
-              fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles)) {
+              fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles, NULL)) {
         short mapping_flag = ANIM_get_normalization_flags(ac);
 
         /* Apply NLA scaling. */

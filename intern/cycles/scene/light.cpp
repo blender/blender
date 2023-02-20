@@ -1177,7 +1177,7 @@ void LightManager::device_update(Device *device,
 
 void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_background)
 {
-  /* to-do: check if the light tree member variables need to be wrapped in a conditional too*/
+  /* TODO: check if the light tree member variables need to be wrapped in a conditional too. */
   dscene->light_tree_nodes.free();
   dscene->light_tree_emitters.free();
   dscene->light_to_tree.free();
