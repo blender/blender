@@ -1749,7 +1749,7 @@ static void ed_default_handlers(
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
   if (flag & ED_KEYMAP_ASSET_SHELF) {
-    /* standard keymap for Navigation bar regions */
+    /* standard keymap for asset shelf regions */
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Shelf", 0, 0);
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
