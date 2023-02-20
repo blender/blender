@@ -18,11 +18,7 @@
 
 #include "ply_file_buffer.hh"
 
-/* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
-#undef SEP
-#define FMT_HEADER_ONLY
 #include <bitset>
-#include <fmt/format.h>
 
 namespace blender::io::ply {
 class FileBufferBinary : public FileBuffer {
