@@ -6,7 +6,7 @@
 
 #include "testing/testing.h"
 
-namespace blender::bits::tests {
+namespace blender::tests {
 
 TEST(bit_vector, DefaultConstructor)
 {
@@ -183,4 +183,4 @@ TEST(bit_vector, AppendMany)
   EXPECT_TRUE(vec[5]);
 }
 
-}  // namespace blender::bits::tests
+}  // namespace blender::tests

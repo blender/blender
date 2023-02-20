@@ -1008,60 +1008,6 @@ static void CURVES_OT_select_linked(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int select_more_exec(bContext *C, wmOperator * /*op*/)
-{
-  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
-  for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_adjacent(curves, false);
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-static void CURVES_OT_select_more(wmOperatorType *ot)
-{
-  ot->name = "Select More";
-  ot->idname = __func__;
-  ot->description = "Grow the selection by one point";
-
-  ot->exec = select_more_exec;
-  ot->poll = editable_curves_point_domain_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int select_less_exec(bContext *C, wmOperator * /*op*/)
-{
-  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
-  for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_adjacent(curves, true);
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-static void CURVES_OT_select_less(wmOperatorType *ot)
-{
-  ot->name = "Select Less";
-  ot->idname = __func__;
-  ot->description = "Shrink the selection by one point";
-
-  ot->exec = select_less_exec;
-  ot->poll = editable_curves_point_domain_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 namespace surface_set {
 
 static bool surface_set_poll(bContext *C)
@@ -1187,8 +1133,6 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_random);
   WM_operatortype_append(CURVES_OT_select_end);
   WM_operatortype_append(CURVES_OT_select_linked);
-  WM_operatortype_append(CURVES_OT_select_more);
-  WM_operatortype_append(CURVES_OT_select_less);
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
 }

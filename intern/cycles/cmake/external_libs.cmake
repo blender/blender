@@ -42,15 +42,12 @@ endif()
 ###########################################################################
 
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
-  set(WITH_CYCLES_HIP_BINARIES OFF)
-  message(STATUS "HIP temporarily disabled due to compiler bugs")
+  find_package(HIP)
+  set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
 
-  # find_package(HIP)
-  # set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
-
-  # if(HIP_FOUND)
-  #   message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
-  # endif()
+  if(HIP_FOUND)
+    message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
+  endif()
 endif()
 
 if(NOT WITH_HIP_DYNLOAD)
