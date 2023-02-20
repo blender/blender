@@ -13,6 +13,7 @@
 #include <string>
 
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "BKE_context.h"
 
@@ -464,8 +465,8 @@ PreviewImage *ED_assetlist_asset_preview_request(const AssetLibraryReference *li
   else {
     const char *asset_identifier = ED_asset_handle_get_identifier(asset_handle);
     const int source = filelist_preview_source_get(asset_handle->file_data->typeflag);
-    const std::string asset_path = ED_assetlist_asset_filepath_get(
-        nullptr, *library_reference, *asset_handle);
+    const std::string asset_path = AS_asset_representation_full_path_get(
+        asset_handle->file_data->asset);
 
     asset_handle->preview = BKE_previewimg_cached_thumbnail_read(
         asset_identifier, asset_path.c_str(), source, false);
@@ -515,20 +516,11 @@ AssetHandle *ED_assetlist_asset_get_from_index(const AssetLibraryReference *libr
   return asset;
 }
 
-const char *ED_assetlist_library_path(const AssetLibraryReference *library_reference)
-{
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
-  if (list) {
-    return list->filepath().data();
-  }
-  return nullptr;
-}
-
 AssetLibrary *ED_assetlist_library_get(const AssetLibraryReference *library_reference)
 {
   AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
-    return list->asset_library();
+    return reinterpret_cast<AssetLibrary *>(list->asset_library());
   }
   return nullptr;
 }

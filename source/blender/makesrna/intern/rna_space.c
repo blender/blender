@@ -3361,7 +3361,7 @@ static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char
 
   if (value[0] == '\0') {
     params->catalog_id = BLI_uuid_nil();
-    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ALL_ASSETS;
     return;
   }
 
@@ -3372,7 +3372,7 @@ static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char
   }
 
   params->catalog_id = new_uuid;
-  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG;
 }
 
 static int RNA_SpaceAssetBrowser_asset_library_get(PointerRNA *ptr)

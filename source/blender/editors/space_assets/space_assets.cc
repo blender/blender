@@ -35,7 +35,7 @@
 /* ---------------------------------------------------------------------- */
 /* Asset Browser Space */
 
-static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *asset_browser_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   SpaceAssets *assets_space = MEM_cnew<SpaceAssets>("asset browser space");
   assets_space->spacetype = SPACE_ASSETS;
@@ -85,11 +85,11 @@ static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene 
   return (SpaceLink *)assets_space;
 }
 
-static void asset_browser_free(SpaceLink *UNUSED(sl))
+static void asset_browser_free(SpaceLink * /*sl*/)
 {
 }
 
-static void asset_browser_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void asset_browser_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
 {
 }
 
@@ -199,12 +199,12 @@ static void asset_browser_main_region_message_subscribe(
 /* ---------------------------------------------------------------------- */
 /* Header Region */
 
-static void asset_browser_header_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void asset_browser_header_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
 
-static void asset_browser_header_listener(const wmRegionListenerParams *UNUSED(params))
+static void asset_browser_header_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 
@@ -228,7 +228,7 @@ static void asset_browser_navigation_region_draw(const bContext *C, ARegion *reg
 }
 
 static void asset_browser_navigation_region_listener(
-    const wmRegionListenerParams *UNUSED(listener_params))
+    const wmRegionListenerParams * /*listener_params*/)
 {
 }
 
@@ -252,7 +252,7 @@ static void asset_browser_sidebar_region_draw(const bContext *C, ARegion *region
 }
 
 static void asset_browser_sidebar_region_listener(
-    const wmRegionListenerParams *UNUSED(listener_params))
+    const wmRegionListenerParams * /*listener_params*/)
 {
 }
 

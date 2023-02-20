@@ -6,18 +6,18 @@
 
 #include <memory>
 
-#include "DNA_space_types.h"
+#include "AS_asset_catalog.hh"
+#include "AS_asset_library.hh"
 
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
+#include "DNA_space_types.h"
 
 #include "ED_asset_view_catalog_filter.h"
 
-namespace bke = blender::bke;
+namespace asset_system = blender::asset_system;
 
 struct AssetViewCatalogFilter {
   AssetCatalogFilterSettings filter_settings;
-  std::unique_ptr<bke::AssetCatalogFilter> catalog_filter;
+  std::unique_ptr<asset_system::AssetCatalogFilter> catalog_filter;
 };
 
 AssetViewCatalogFilterSettingsHandle *asset_view_create_catalog_filter_settings()
@@ -64,11 +64,11 @@ void asset_view_ensure_updated_catalog_filter_data(
 {
   AssetViewCatalogFilter *filter_settings = reinterpret_cast<AssetViewCatalogFilter *>(
       filter_settings_handle);
-  const bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+  const asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       asset_library);
 
   if (filter_settings->filter_settings.filter_mode != ASSET_CATALOG_SHOW_ALL_ASSETS) {
-    filter_settings->catalog_filter = std::make_unique<bke::AssetCatalogFilter>(
+    filter_settings->catalog_filter = std::make_unique<asset_system::AssetCatalogFilter>(
         catalog_service->create_catalog_filter(
             filter_settings->filter_settings.active_catalog_id));
   }

@@ -10,6 +10,7 @@
 extern "C" {
 #endif
 
+struct AssetCatalogFilterSettings;
 struct AssetHandle;
 struct AssetLibrary;
 struct AssetLibraryReference;

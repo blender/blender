@@ -85,7 +85,6 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   const AssetLibraryReference all_library_ref = all_library_reference();
 
   ED_assetlist_storage_fetch(&all_library_ref, &C);
-  ED_assetlist_ensure_previews_job(&all_library_ref, &C);
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       all_library_ref);

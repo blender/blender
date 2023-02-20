@@ -4,11 +4,13 @@
  * \ingroup spassets
  */
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
+#include "AS_asset_library.hh"
+
 #include "DNA_space_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 
 #include "BLI_string_ref.hh"
 
@@ -24,6 +26,8 @@
 #include "UI_resources.h"
 #include "UI_tree_view.hh"
 
+#include "RNA_prototypes.h"
+
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
@@ -31,7 +35,7 @@
 #include "asset_browser_intern.hh"
 
 using namespace blender;
-using namespace blender::bke;
+using namespace blender::asset_system;
 
 namespace blender::ed::asset_browser {
 
@@ -42,7 +46,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
    * before the library was read. */
   ::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
-  bke::AssetCatalogTree *catalog_tree_;
+  AssetCatalogTree *catalog_tree_;
 
   PointerRNA catalog_filter_owner_;
   PropertyRNA &catalog_filter_prop_;
@@ -62,7 +66,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   void build_tree() override;
   bool listen(const wmNotifier &notifier) const override;
 
-  void activate_catalog_by_id(CatalogID catalog_id);
+  void activate_catalog_by_id(asset_system::CatalogID catalog_id);
 
  private:
   ui::BasicTreeViewItem &build_catalog_items_recursive(ui::TreeViewOrItem &view_parent_item,
@@ -184,7 +188,7 @@ AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
                                            PropertyRNA &catalog_filter_prop,
                                            wmMsgBus *msg_bus)
     : asset_library_(library),
-      catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
+      catalog_tree_(AS_asset_library_get_catalog_tree(library)),
       catalog_filter_owner_(catalog_filter_owner),
       catalog_filter_prop_(catalog_filter_prop),
       msg_bus_(msg_bus)
@@ -537,7 +541,7 @@ AssetCatalog *AssetCatalogDropController::get_drag_catalog(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
   }
-  const bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+  const asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       &asset_library);
   const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
 
@@ -649,7 +653,7 @@ std::string AssetCatalogTreeViewAllItem::DropController::drop_tooltip(const wmDr
          TIP_("to the top level of the tree");
 }
 
-bool AssetCatalogTreeViewAllItem::DropController::on_drop(struct bContext *UNUSED(C),
+bool AssetCatalogTreeViewAllItem::DropController::on_drop(struct bContext * /*C*/,
                                                           const wmDrag &drag)
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);

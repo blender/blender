@@ -933,9 +933,9 @@ struct SpaceAssets *CTX_wm_space_assets(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_ASSETS) {
-    return area->spacedata.first;
+    return static_cast<SpaceAssets *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
@@ -1509,7 +1509,8 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
  */
 AssetHandle *CTX_wm_asset_handle_ptr(const bContext *C)
 {
-  return CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data;
+  return static_cast<AssetHandle *>(
+      CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data);
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

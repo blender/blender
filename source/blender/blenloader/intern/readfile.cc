@@ -2666,6 +2666,7 @@ static void lib_link_workspace_layout_restore(IDNameLib_Map *id_map,
             lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
             break;
           }
+          case SPACE_ASSETS:
           case SPACE_INFO:
           case SPACE_IMASEL:
           case SPACE_SOUND:
