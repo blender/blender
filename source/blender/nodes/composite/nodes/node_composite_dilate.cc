@@ -7,7 +7,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "RNA_access.h"
 
@@ -122,7 +122,7 @@ class DilateErodeOperation : public NodeOperation {
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
     GPUTexture *horizontal_pass_result = texture_pool().acquire_color(transposed_domain);
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(horizontal_pass_result, image_unit);
 
     compute_dispatch_threads_at_least(shader, domain.size);
@@ -143,7 +143,7 @@ class DilateErodeOperation : public NodeOperation {
     GPU_shader_uniform_1i(shader, "radius", math::abs(get_distance()));
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-    const int texture_image_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    const int texture_image_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(horizontal_pass_result, texture_image_unit);
 
     const Domain domain = compute_domain();
@@ -273,7 +273,7 @@ class DilateErodeOperation : public NodeOperation {
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
     GPUTexture *horizontal_pass_result = texture_pool().acquire_color(transposed_domain);
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(horizontal_pass_result, image_unit);
 
     compute_dispatch_threads_at_least(shader, domain.size);
@@ -293,7 +293,7 @@ class DilateErodeOperation : public NodeOperation {
     GPU_shader_bind(shader);
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-    const int texture_image_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    const int texture_image_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(horizontal_pass_result, texture_image_unit);
 
     const MorphologicalDistanceFeatherWeights &weights =

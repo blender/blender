@@ -62,7 +62,7 @@ static eDRWColorManagementType drw_color_management_type_for_space_image(const S
 {
   Image *image = sima.image;
 
-  /* Use inverse logic as there isn't a setting for `Color And Alpha`. */
+  /* Use inverse logic as there isn't a setting for `Color & Alpha`. */
   const eSpaceImage_Flag display_channels_mode = static_cast<eSpaceImage_Flag>(sima.flag);
   const bool display_color_channel = (display_channels_mode & (SI_SHOW_ALPHA | SI_SHOW_ZBUF)) == 0;
 

@@ -737,7 +737,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
       break;
     }
-    /* FIXME: This is a temporary fix to update the runtime pointers properly, see T96216. Should
+    /* FIXME: This is a temporary fix to update the runtime pointers properly, see #96216. Should
      * be removed at some point. */
     case ID_GD: {
       bGPdata *gpd_cow = (bGPdata *)id_cow;

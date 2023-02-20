@@ -48,7 +48,7 @@
 
 #include "UI_interface.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1165,7 +1165,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
       bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-      if (nodeFindNode(ntree, sock, &node, nullptr)) {
+      if (nodeFindNodeTry(ntree, sock, &node, nullptr)) {
         if ((path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node)) != nullptr) {
           /* we're good! */
         }
@@ -1245,7 +1245,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else if (GS(id->name) == ID_SCE) {
       /* Sequencer's ID is scene :/ */
       /* Try to recursively find an RNA_Sequence ancestor,
-       * to handle situations like T41062... */
+       * to handle situations like #41062... */
       if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) !=
           nullptr) {
         /* Special case when we do this for 'Sequence.lock'.
@@ -1658,8 +1658,8 @@ static void ui_editsource_active_but_set(uiBut *but)
 {
   BLI_assert(ui_editsource_info == nullptr);
 
-  ui_editsource_info = MEM_cnew<uiEditSourceStore>(__func__);
-  memcpy(&ui_editsource_info->but_orig, but, sizeof(uiBut));
+  ui_editsource_info = MEM_new<uiEditSourceStore>(__func__);
+  ui_editsource_info->but_orig = *but;
 
   ui_editsource_info->hash = BLI_ghash_ptr_new(__func__);
 }

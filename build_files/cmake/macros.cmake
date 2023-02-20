@@ -326,8 +326,8 @@ function(blender_add_lib__impl
   # NOTE: If separated libraries for debug and release are needed every library is the list are
   # to be prefixed explicitly.
   #
-  #  Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
-  #  NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
+  # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
+  # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
     foreach(library ${library_deps})
@@ -422,7 +422,9 @@ function(blender_add_test_suite)
       --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
       --test-release-dir "${_test_release_dir}"
   )
-
+  if(WIN32)
+    set_tests_properties(${ARGS_SUITE_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/;$ENV{PATH}")
+  endif()
   unset(_test_release_dir)
 endfunction()
 
@@ -533,7 +535,7 @@ function(setup_platform_linker_flags
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " ${PLATFORM_LINKFLAGS_DEBUG}")
 
   get_target_property(target_type ${target} TYPE)
-  if (target_type STREQUAL "EXECUTABLE")
+  if(target_type STREQUAL "EXECUTABLE")
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS_EXECUTABLE}")
   endif()
 endfunction()
@@ -542,13 +544,15 @@ endfunction()
 function(setup_platform_linker_libs
   target
   )
-  # jemalloc must be early in the list, to be before pthread (see T57998)
+  # jemalloc must be early in the list, to be before pthread (see #57998).
   if(WITH_MEM_JEMALLOC)
     target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
   endif()
 
   if(WIN32 AND NOT UNIX)
-    target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    if(DEFINED PTHREADS_LIBRARIES)
+      target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    endif()
   endif()
 
   # target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
@@ -1113,7 +1117,7 @@ function(find_python_package
     # endif()
     # Not set, so initialize.
   else()
-   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache
@@ -1217,10 +1221,10 @@ macro(openmp_delayload
       else()
         set(OPENMP_DLL_NAME "vcomp140")
       endif()
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
     endif()
   endif()
 endmacro()
@@ -1240,7 +1244,7 @@ endmacro()
 
 macro(set_and_warn_library_found
   _library_name _library_found _setting)
-  if(NOT ${${_library_found}} AND ${${_setting}})
+  if(((NOT ${_library_found}) OR (NOT ${${_library_found}})) AND ${${_setting}})
     if(WITH_STRICT_BUILD_OPTIONS)
       message(SEND_ERROR "${_library_name} required but not found")
     else()
@@ -1256,4 +1260,89 @@ endmacro()
 
 macro(without_system_libs_end)
   unset(CMAKE_IGNORE_PATH)
+endmacro()
+
+# Utility to gather and install precompiled shared libraries.
+macro(add_bundled_libraries library_dir)
+  if(DEFINED LIBDIR)
+    set(_library_dir ${LIBDIR}/${library_dir})
+    if(WIN32)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dll)
+    elseif(APPLE)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
+    else()
+      file(GLOB _all_library_versions ${_library_dir}/*\.so*)
+    endif()
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
+    unset(_all_library_versions)
+    unset(_library_dir)
+  endif()
+endmacro()
+
+macro(windows_install_shared_manifest)
+  set(options OPTIONAL DEBUG RELEASE ALL)
+  set(oneValueArgs)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_INSTALL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  # If none of the options are set assume ALL.
+  unset(WINDOWS_CONFIGURATIONS)
+  if(NOT WINDOWS_INSTALL_ALL AND
+     NOT WINDOWS_INSTALL_DEBUG AND
+     NOT WINDOWS_INSTALL_RELEASE)
+    set(WINDOWS_INSTALL_ALL TRUE)
+  endif()
+  # If all is set, turn both DEBUG and RELEASE on.
+  if(WINDOWS_INSTALL_ALL)
+    set(WINDOWS_INSTALL_DEBUG TRUE)
+    set(WINDOWS_INSTALL_RELEASE TRUE)
+  endif()
+  if(WINDOWS_INSTALL_DEBUG)
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Debug")
+    list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
+  endif()
+  if(WINDOWS_INSTALL_RELEASE)
+    list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Release;RelWithDebInfo;MinSizeRel")
+  endif()
+  install(FILES ${WINDOWS_INSTALL_FILES}
+          CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
+          DESTINATION "./blender.shared"
+  )
+endmacro()
+
+macro(windows_generate_manifest)
+  set(options)
+  set(oneValueArgs OUTPUT NAME)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_MANIFEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  set(MANIFEST_LIBS "")
+  foreach(lib ${WINDOWS_MANIFEST_FILES})
+    get_filename_component(filename ${lib} NAME)
+    set(MANIFEST_LIBS "${MANIFEST_LIBS}    <file name=\"${filename}\"/>\n")
+  endforeach()
+  configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.manifest.in ${WINDOWS_MANIFEST_OUTPUT} @ONLY)
+endmacro()
+
+macro(windows_generate_shared_manifest)
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_DEBUG}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_RELEASE}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Release/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  install(
+    FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
+    DESTINATION "./blender.shared"
+    CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+  )
+  install(
+    FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
+    DESTINATION "./blender.shared"
+    CONFIGURATIONS Debug
+  )
 endmacro()

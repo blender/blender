@@ -172,7 +172,7 @@ TEST(path_util, ParentDir_Complex)
     const char *expect = str_expect; \
     int index_output, len_output; \
     const bool ret = BLI_path_name_at_index(path, index_input, &index_output, &len_output); \
-    if (expect == NULL) { \
+    if (expect == nullptr) { \
       EXPECT_FALSE(ret); \
     } \
     else { \
@@ -764,7 +764,7 @@ TEST(path_util, PathFrameCheckChars)
     bool ret; \
     BLI_strncpy(path, input_path, FILE_MAX); \
     ret = BLI_path_frame_range(path, sta, end, digits); \
-    if (expect_outpath == NULL) { \
+    if (expect_outpath == nullptr) { \
       EXPECT_FALSE(ret); \
     } \
     else { \

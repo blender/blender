@@ -1,24 +1,12 @@
 
-/* Values in GPU_shader.h. */
-#define GPU_KEYFRAME_SHAPE_DIAMOND (1 << 0)
-#define GPU_KEYFRAME_SHAPE_CIRCLE (1 << 1)
-#define GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL (1 << 2)
-#define GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL (1 << 3)
-#define GPU_KEYFRAME_SHAPE_INNER_DOT (1 << 4)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MAX (1 << 8)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MIN (1 << 9)
-#define GPU_KEYFRAME_SHAPE_ARROW_END_MIXED (1 << 10)
-#define GPU_KEYFRAME_SHAPE_SQUARE \
-  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
-
 const float line_falloff = 1.0;
 const float circle_scale = sqrt(2.0 / 3.1416);
 const float square_scale = sqrt(0.5);
 const float diagonal_scale = sqrt(0.5);
 
-bool test(int bit)
+bool test(uint bit)
 {
-  return (flags & bit) != 0;
+  return (flags & bit) != 0u;
 }
 
 vec2 line_thresholds(float width)

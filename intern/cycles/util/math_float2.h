@@ -134,6 +134,11 @@ ccl_device_inline float len(const float2 a)
   return sqrtf(dot(a, a));
 }
 
+ccl_device_inline float len_squared(const float2 a)
+{
+  return dot(a, a);
+}
+
 #if !defined(__KERNEL_METAL__)
 ccl_device_inline float distance(const float2 a, const float2 b)
 {

@@ -22,6 +22,14 @@ elseif(UNIX AND NOT APPLE)
   )
 endif()
 
+# Boolean crashes with Arm assembly, see #103423.
+if(BLENDER_PLATFORM_ARM)
+  set(GMP_OPTIONS
+    ${GMP_OPTIONS}
+    --disable-assembly
+  )
+endif()
+
 ExternalProject_Add(external_gmp
   URL file://${PACKAGE_DIR}/${GMP_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -40,19 +48,21 @@ endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_gmp after_install
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
-      COMMAND  lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
-      COMMAND  ${CMAKE_COMMAND} -E copy ${LIBDIR}/gmp/bin/libgmp-10.dll ${HARVEST_TARGET}/gmp/lib/libgmp-10.dll
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib ${HARVEST_TARGET}/gmp/lib/libgmp-10.lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/gmp/include ${HARVEST_TARGET}/gmp/include
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
+    COMMAND lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/gmp/bin/libgmp-10.dll ${HARVEST_TARGET}/gmp/lib/libgmp-10.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib ${HARVEST_TARGET}/gmp/lib/libgmp-10.lib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/gmp/include ${HARVEST_TARGET}/gmp/include
+
     DEPENDEES install
   )
 endif()
 
 if(BUILD_MODE STREQUAL Debug AND WIN32)
-ExternalProject_Add_Step(external_gmp after_install
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
-      COMMAND  lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+  ExternalProject_Add_Step(external_gmp after_install
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
+    COMMAND lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+
     DEPENDEES install
   )
 endif()

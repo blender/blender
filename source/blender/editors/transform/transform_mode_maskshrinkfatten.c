@@ -89,7 +89,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
           *td->val = td->ival * ratio;
         }
 
-        /* apply PET */
+        /* Apply proportional editing. */
         *td->val = interpf(*td->val, td->ival, td->factor);
         if (*td->val <= 0.0f) {
           *td->val = 0.001f;

@@ -13,38 +13,48 @@ namespace blender::eevee {
 
 class Instance;
 
-inline constexpr float cubeface_mat[6][4][4] = {
-    /* Pos X */
-    {{0.0f, 0.0f, -1.0f, 0.0f},
-     {0.0f, -1.0f, 0.0f, 0.0f},
-     {-1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-    /* Neg X */
-    {{0.0f, 0.0f, 1.0f, 0.0f},
-     {0.0f, -1.0f, 0.0f, 0.0f},
-     {1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-    /* Pos Y */
-    {{1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, -1.0f, 0.0f},
-     {0.0f, 1.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-    /* Neg Y */
-    {{1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 1.0f, 0.0f},
-     {0.0f, -1.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-    /* Pos Z */
-    {{1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, -1.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, -1.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-    /* Neg Z */
-    {{-1.0f, 0.0f, 0.0f, 0.0f},
-     {0.0f, -1.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 1.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f, 1.0f}},
-};
+inline float4x4 cubeface_mat(int face)
+{
+  switch (face) {
+    default:
+    case 0:
+      /* Pos X */
+      return float4x4({0.0f, 0.0f, -1.0f, 0.0f},
+                      {0.0f, -1.0f, 0.0f, 0.0f},
+                      {-1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+    case 1:
+      /* Neg X */
+      return float4x4({0.0f, 0.0f, 1.0f, 0.0f},
+                      {0.0f, -1.0f, 0.0f, 0.0f},
+                      {1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+    case 2:
+      /* Pos Y */
+      return float4x4({1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, -1.0f, 0.0f},
+                      {0.0f, 1.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+    case 3:
+      /* Neg Y */
+      return float4x4({1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 1.0f, 0.0f},
+                      {0.0f, -1.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+    case 4:
+      /* Pos Z */
+      return float4x4({1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, -1.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, -1.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+    case 5:
+      /* Neg Z */
+      return float4x4({-1.0f, 0.0f, 0.0f, 0.0f},
+                      {0.0f, -1.0f, 0.0f, 0.0f},
+                      {0.0f, 0.0f, 1.0f, 0.0f},
+                      {0.0f, 0.0f, 0.0f, 1.0f});
+  }
+}
 
 inline void cubeface_winmat_get(float4x4 &winmat, float near, float far)
 {
@@ -84,6 +94,11 @@ class Camera {
 
   CameraDataBuf data_;
 
+  struct {
+    float3 center;
+    float radius;
+  } bound_sphere;
+
  public:
   Camera(Instance &inst) : inst_(inst){};
   ~Camera(){};
@@ -117,12 +132,23 @@ class Camera {
   }
   const float3 &position() const
   {
-    return *reinterpret_cast<const float3 *>(data_.viewinv[3]);
+    return data_.viewinv.location();
   }
   const float3 &forward() const
   {
-    return *reinterpret_cast<const float3 *>(data_.viewinv[2]);
+    return data_.viewinv.z_axis();
   }
+  const float3 &bound_center() const
+  {
+    return bound_sphere.center;
+  }
+  const float &bound_radius() const
+  {
+    return bound_sphere.radius;
+  }
+
+ private:
+  void update_bounds();
 };
 
 /** \} */

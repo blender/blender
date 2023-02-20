@@ -17,7 +17,7 @@ vec4 load_weight(ivec2 texel, float radius)
   /* The center zero texel is always assigned a unit weight regardless of the corresponding weight
    * in the weights texture. That's to guarantee that at last the center pixel will be accumulated
    * even if the weights texture is zero at its center. */
-  if (texel == ivec2(0)) {
+  if (texel.x == 0 && texel.y == 0) {
     return vec4(1.0);
   }
 
@@ -26,7 +26,7 @@ vec4 load_weight(ivec2 texel, float radius)
    * the texel into the normalized range [0, 1] needed to sample the weights sampler. Finally,
    * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights as
    * mentioned in the function description. */
-  return texture(weights_tx, 1.0 - ((texel + vec2(radius + 0.5)) / (radius * 2 + 1)));
+  return texture(weights_tx, 1.0 - ((vec2(texel) + vec2(radius + 0.5)) / (radius * 2.0 + 1.0)));
 }
 
 void main()

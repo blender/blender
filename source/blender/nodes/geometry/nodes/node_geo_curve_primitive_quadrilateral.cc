@@ -136,7 +136,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   if (params.in_out() == SOCK_OUT) {
-    search_link_ops_for_declarations(params, declaration.outputs());
+    search_link_ops_for_declarations(params, declaration.outputs);
   }
   else if (params.node_tree().typeinfo->validate_link(
                eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
@@ -216,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurvePrimitiveQuadMode mode = (GeometryNodeCurvePrimitiveQuadMode)storage.mode;
 
   Curves *curves_id = bke::curves_new_nomain_single(4, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.cyclic_for_write().first() = true;
 
   MutableSpan<float3> positions = curves.positions_for_write();

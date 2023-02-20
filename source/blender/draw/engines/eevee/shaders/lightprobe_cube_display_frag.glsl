@@ -2,11 +2,6 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 
-flat in int pid;
-in vec2 quadCoord;
-
-out vec4 FragColor;
-
 void main()
 {
   float dist_sqr = dot(quadCoord, quadCoord);
@@ -14,6 +9,7 @@ void main()
   /* Discard outside the circle. */
   if (dist_sqr > 1.0) {
     discard;
+    return;
   }
 
   vec3 view_nor = vec3(quadCoord, sqrt(max(0.0, 1.0 - dist_sqr)));

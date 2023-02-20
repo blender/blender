@@ -139,6 +139,20 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 #endif
 }
 
+[[intersection(triangle, triangle_data )]] TriangleIntersectionResult
+__anyhit__cycles_metalrt_local_hit_tri_prim(
+    constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+    ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
+    uint primitive_id [[primitive_id]],
+    float2 barycentrics [[barycentric_coord]],
+    float ray_tmax [[distance]])
+{
+  //instance_id, aka the user_id has been removed. If we take this function we optimized the
+  //SSS for starting traversal from a primitive acceleration structure instead of the root of the global AS.
+  //this means we will always be intersecting the correct object no need for the userid to check
+  return metalrt_local_hit<TriangleIntersectionResult, METALRT_HIT_TRIANGLE>(
+      launch_params_metal, payload, payload.local_object, primitive_id, barycentrics, ray_tmax);
+}
 [[intersection(triangle, triangle_data, METALRT_TAGS)]] TriangleIntersectionResult
 __anyhit__cycles_metalrt_local_hit_tri(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
@@ -154,6 +168,17 @@ __anyhit__cycles_metalrt_local_hit_tri(
 
 [[intersection(bounding_box, triangle_data, METALRT_TAGS)]] BoundingBoxIntersectionResult
 __anyhit__cycles_metalrt_local_hit_box(const float ray_tmax [[max_distance]])
+{
+  /* unused function */
+  BoundingBoxIntersectionResult result;
+  result.distance = ray_tmax;
+  result.accept = false;
+  result.continue_search = false;
+  return result;
+}
+
+[[intersection(bounding_box, triangle_data )]] BoundingBoxIntersectionResult
+__anyhit__cycles_metalrt_local_hit_box_prim(const float ray_tmax [[max_distance]])
 {
   /* unused function */
   BoundingBoxIntersectionResult result;
@@ -182,20 +207,20 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
 
   const float u = barycentrics.x;
   const float v = barycentrics.y;
-  int type = 0;
-  if (intersection_type == METALRT_HIT_TRIANGLE) {
-    type = kernel_data_fetch(objects, object).primitive_type;
-  }
+  const int prim_type = kernel_data_fetch(objects, object).primitive_type;
+  int type = prim_type;
 #  ifdef __HAIR__
-  else {
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    type = segment.type;
-    prim = segment.prim;
-
-    /* Filter out curve endcaps */
-    if (u == 0.0f || u == 1.0f) {
-      /* continue search */
-      return true;
+  if (intersection_type != METALRT_HIT_TRIANGLE) {
+    if ( (prim_type == PRIMITIVE_CURVE_THICK || prim_type == PRIMITIVE_CURVE_RIBBON)) {
+      const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
+      type = segment.type;
+      prim = segment.prim;
+      
+      /* Filter out curve endcaps */
+      if (u == 0.0f || u == 1.0f) {
+        /* continue search */
+        return true;
+      }
     }
   }
 #  endif
@@ -279,7 +304,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
-
+  
   /* Continue tracing. */
 #  endif /* __TRANSPARENT_SHADOWS__ */
 #endif   /* __SHADOW_RECORD_ALL__ */
@@ -327,7 +352,8 @@ inline TReturnType metalrt_visibility_test(
   TReturnType result;
 
 #ifdef __HAIR__
-  if (intersection_type == METALRT_HIT_BOUNDING_BOX) {
+  const int type = kernel_data_fetch(objects, object).primitive_type;
+  if (intersection_type == METALRT_HIT_BOUNDING_BOX && (type == PRIMITIVE_CURVE_THICK || type == PRIMITIVE_CURVE_RIBBON)) {
     /* Filter out curve endcaps. */
     if (u == 0.0f || u == 1.0f) {
       result.accept = false;
@@ -463,7 +489,12 @@ ccl_device_inline void metalrt_intersection_curve_shadow(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
+#  ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
+    return;
+  }
+#  endif
 
   Intersection isect;
   isect.t = ray_tmax;
@@ -685,7 +716,12 @@ ccl_device_inline void metalrt_intersection_point_shadow(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
+#  ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
+    return;
+  }
+#  endif
 
   Intersection isect;
   isect.t = ray_tmax;

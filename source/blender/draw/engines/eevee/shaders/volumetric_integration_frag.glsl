@@ -7,21 +7,10 @@
 /* Step 3 : Integrate for each froxel the final amount of light
  * scattered back to the viewer and the amount of transmittance. */
 
-uniform sampler3D volumeScattering; /* Result of the scatter step */
-uniform sampler3D volumeExtinction;
-
+/* Globals when using OPTI */
 #ifdef USE_VOLUME_OPTI
-uniform layout(r11f_g11f_b10f) writeonly restrict image3D finalScattering_img;
-uniform layout(r11f_g11f_b10f) writeonly restrict image3D finalTransmittance_img;
-
 vec3 finalScattering;
 vec3 finalTransmittance;
-#else
-
-flat in int slice;
-
-layout(location = 0) out vec3 finalScattering;
-layout(location = 1) out vec3 finalTransmittance;
 #endif
 
 void main()
@@ -50,6 +39,8 @@ void main()
 #ifdef USE_VOLUME_OPTI
   int slice = textureSize(volumeScattering, 0).z;
   ivec2 texco = ivec2(gl_FragCoord.xy);
+#else
+  int slice = volumetric_geom_iface.slice;
 #endif
   for (int i = 0; i <= slice; i++) {
     ivec3 volume_cell = ivec3(ivec2(gl_FragCoord.xy), i);
@@ -61,7 +52,7 @@ void main()
     float ray_len = orig_ray_len * cell_depth;
 
     /* Emission does not work of there is no extinction because
-     * Tr evaluates to 1.0 leading to Lscat = 0.0. (See T65771) */
+     * Tr evaluates to 1.0 leading to Lscat = 0.0. (See #65771) */
     s_extinction = max(vec3(1e-7) * step(1e-5, Lscat), s_extinction);
 
     /* Evaluate Scattering */

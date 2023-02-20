@@ -84,7 +84,7 @@ AviError AVI_set_compress_option(
         case AVI_OPTION_QUALITY:
           for (i = 0; i < movie->header->Streams; i++) {
             if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {
-              movie->streams[i].sh.Quality = (*((int *)opt_data)) * 100;
+              movie->streams[i].sh.Quality = *((int *)opt_data) * 100;
               BLI_fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
               awrite(movie,
                      movie->streams[i].sf,
@@ -97,7 +97,7 @@ AviError AVI_set_compress_option(
           break;
 
         case AVI_OPTION_FRAMERATE:
-          useconds = (int)(1000000 / (*((double *)opt_data)));
+          useconds = (int)(1000000 / *((double *)opt_data));
           if (useconds) {
             movie->header->MicroSecPerFrame = useconds;
           }

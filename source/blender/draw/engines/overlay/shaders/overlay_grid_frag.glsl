@@ -81,7 +81,7 @@ void main()
   }
   else {
     dist = gl_FragCoord.z * 2.0 - 1.0;
-    /* Avoid fading in +Z direction in camera view (see T70193). */
+    /* Avoid fading in +Z direction in camera view (see #70193). */
     dist = flag_test(grid_flag, GRID_CAMERA) ? clamp(dist, 0.0, 1.0) : abs(dist);
     fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
     dist = 1.0; /* Avoid branch after. */

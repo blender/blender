@@ -477,7 +477,8 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   void *buffer_cache_handle = NULL;
   display_buffer = ocio_transform_ibuf(ps, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
-  GPUTexture *texture = GPU_texture_create_2d("display_buf", ibuf->x, ibuf->y, 1, format, NULL);
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   GPU_texture_update(texture, data, display_buffer);
   GPU_texture_filter_mode(texture, false);
 
@@ -649,7 +650,7 @@ static void build_pict_list_ex(
   }
   else {
     /* Load images into cache until the cache is full,
-     * this resolves choppiness for images that are slow to load, see: T81751. */
+     * this resolves choppiness for images that are slow to load, see: #81751. */
 #ifdef USE_FRAME_CACHE_LIMIT
     bool fill_cache = true;
 #else

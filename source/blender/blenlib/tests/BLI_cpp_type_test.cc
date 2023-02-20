@@ -76,7 +76,7 @@ struct TestType {
 
 }  // namespace blender::tests
 
-BLI_CPP_TYPE_MAKE(TestType, blender::tests::TestType, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(blender::tests::TestType, CPPTypeFlags::BasicType)
 
 namespace blender::tests {
 

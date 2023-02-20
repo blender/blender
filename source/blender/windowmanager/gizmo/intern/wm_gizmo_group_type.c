@@ -125,11 +125,12 @@ wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_typ
 }
 
 /**
- * Free but don't remove from ghash.
+ * Free but don't remove from #GHash.
  */
 static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
-  if (gzgt->rna_ext.srna) { /* python gizmo group, allocs own string */
+  /* Python gizmo group, allocates it's own string. */
+  if (gzgt->rna_ext.srna) {
     MEM_freeN((void *)gzgt->idname);
   }
 

@@ -37,8 +37,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include "BLI_float4x4.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
 #include "RNA_access.h"
@@ -204,34 +204,34 @@ static void modifyGeometrySet(ModifierData *md,
 }
 
 ModifierTypeInfo modifierType_MeshToVolume = {
-    /* name */ N_("Mesh to Volume"),
-    /* structName */ "MeshToVolumeModifierData",
-    /* structSize */ sizeof(MeshToVolumeModifierData),
-    /* srna */ &RNA_MeshToVolumeModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */ static_cast<ModifierTypeFlag>(0),
-    /* icon */ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
+    /*name*/ N_("Mesh to Volume"),
+    /*structName*/ "MeshToVolumeModifierData",
+    /*structSize*/ sizeof(MeshToVolumeModifierData),
+    /*srna*/ &RNA_MeshToVolumeModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/ static_cast<ModifierTypeFlag>(0),
+    /*icon*/ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ nullptr,
-    /* modifyGeometrySet */ modifyGeometrySet,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ modifyGeometrySet,
 
-    /* initData */ initData,
-    /* requiredDataMask */ nullptr,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

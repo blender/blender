@@ -28,13 +28,15 @@ void workbench_volume_engine_init(WORKBENCH_Data *vedata)
   WORKBENCH_TextureList *txl = vedata->txl;
 
   if (txl->dummy_volume_tx == NULL) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+
     const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    txl->dummy_volume_tx = GPU_texture_create_3d(
-        "dummy_volume", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, zero);
-    txl->dummy_shadow_tx = GPU_texture_create_3d(
-        "dummy_shadow", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, one);
-    txl->dummy_coba_tx = GPU_texture_create_1d("dummy_coba", 1, 1, GPU_RGBA8, zero);
+    txl->dummy_volume_tx = GPU_texture_create_3d_ex(
+        "dummy_volume", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, usage, zero);
+    txl->dummy_shadow_tx = GPU_texture_create_3d_ex(
+        "dummy_shadow", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, usage, one);
+    txl->dummy_coba_tx = GPU_texture_create_1d_ex("dummy_coba", 1, 1, GPU_RGBA8, usage, zero);
   }
 }
 

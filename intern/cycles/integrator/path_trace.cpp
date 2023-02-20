@@ -390,6 +390,9 @@ void PathTrace::path_trace(RenderWork &render_work)
     const int num_samples = render_work.path_trace.num_samples;
 
     PathTraceWork *path_trace_work = path_trace_works_[i].get();
+    if (path_trace_work->get_device()->have_error()) {
+      return;
+    }
 
     PathTraceWork::RenderStatistics statistics;
     path_trace_work->render_samples(statistics,

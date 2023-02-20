@@ -15,6 +15,9 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+
+#  include "BLI_math_vector_types.hh"
+
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
@@ -22,6 +25,7 @@ namespace bke {
 struct MeshRuntime;
 class AttributeAccessor;
 class MutableAttributeAccessor;
+struct LooseEdgeCache;
 }  // namespace bke
 }  // namespace blender
 using MeshRuntimeHandle = blender::bke::MeshRuntime;
@@ -40,7 +44,6 @@ struct MCol;
 struct MEdge;
 struct MFace;
 struct MLoopTri;
-struct MVert;
 struct Material;
 
 typedef struct Mesh {
@@ -61,7 +64,7 @@ typedef struct Mesh {
    */
   struct Material **mat;
 
-  /** The number of vertices (#MVert) in the mesh, and the size of #vdata. */
+  /** The number of vertices in the mesh, and the size of #vdata. */
   int totvert;
   /** The number of edges (#MEdge) in the mesh, and the size of #edata. */
   int totedge;
@@ -124,9 +127,9 @@ typedef struct Mesh {
   struct Mesh *texcomesh;
 
   /** Texture space location and size, used for procedural coordinates when rendering. */
-  float loc[3];
-  float size[3];
-  char texflag;
+  float texspace_location[3];
+  float texspace_size[3];
+  char texspace_flag;
 
   /** Various flags used when editing the mesh. */
   char editflag;
@@ -137,6 +140,20 @@ typedef struct Mesh {
    * The angle for auto smooth in radians. `M_PI` (180 degrees) causes all edges to be smooth.
    */
   float smoothresh;
+
+  /** Per-mesh settings for voxel remesh. */
+  float remesh_voxel_size;
+  float remesh_voxel_adaptivity;
+
+  int face_sets_color_seed;
+  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
+   * default and Face Sets can be used without affecting the color of the mesh. */
+  int face_sets_color_default;
+
+  /** The color attribute currently selected in the list and edited by a user. */
+  char *active_color_attribute;
+  /** The color attribute used by default (i.e. for rendering) if no name is given explicitly. */
+  char *default_color_attribute;
 
   /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
@@ -190,32 +207,22 @@ typedef struct Mesh {
   /* Deprecated size of #fdata. */
   int totface;
 
-  /** Per-mesh settings for voxel remesh. */
-  float remesh_voxel_size;
-  float remesh_voxel_adaptivity;
-
-  int face_sets_color_seed;
-  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
-   * default and Face Sets can be used without affecting the color of the mesh. */
-  int face_sets_color_default;
-
   char _pad1[4];
 
   /**
    * Data that isn't saved in files, including caches of derived data, temporary data to improve
-   * the editing experience, etc. Runtime data is created when reading files and can be accessed
+   * the editing experience, etc. The struct is created when reading files and can be accessed
    * without null checks, with the exception of some temporary meshes which should allocate and
    * free the data if they are passed to functions that expect run-time data.
    */
   MeshRuntimeHandle *runtime;
 #ifdef __cplusplus
   /**
-   * Array of vertex positions (and various other data). Edges and faces are defined by indices
-   * into this array.
+   * Array of vertex positions. Edges and faces are defined by indices into this array.
    */
-  blender::Span<MVert> verts() const;
+  blender::Span<blender::float3> vert_positions() const;
   /** Write access to vertex data. */
-  blender::MutableSpan<MVert> verts_for_write();
+  blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
    * Array of edges, containing vertex indices. For simple triangle or quad meshes, edges could be
    * calculated from the #MPoly and #MLoop arrays, however, edges need to be stored explicitly to
@@ -253,6 +260,30 @@ typedef struct Mesh {
    * Cached triangulation of the mesh.
    */
   blender::Span<MLoopTri> looptris() const;
+
+  /**
+   * Cached information about loose edges, calculated lazily when necessary.
+   */
+  const blender::bke::LooseEdgeCache &loose_edges() const;
+  /**
+   * Explicitly set the cached number of loose edges to zero. This can improve performance
+   * later on, because finding loose edges lazily can be skipped entirely.
+   *
+   * \note To allow setting this status on meshes without changing them, this does not tag the
+   * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
+   */
+  void loose_edges_tag_none() const;
+
+  /**
+   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   */
+  blender::Span<blender::float3> poly_normals() const;
+  /**
+   * Normal direction for each vertex, which is defined as the weighted average of the normals
+   * from a vertices surrounding faces, or the normalized position of vertices connected to no
+   * faces.
+   */
+  blender::Span<blender::float3> vertex_normals() const;
 #endif
 } Mesh;
 
@@ -272,10 +303,10 @@ typedef struct TFace {
 
 /* **************** MESH ********************* */
 
-/** #Mesh.texflag */
+/** #Mesh.texspace_flag */
 enum {
-  ME_AUTOSPACE = 1,
-  ME_AUTOSPACE_EVALUATED = 2,
+  ME_TEXSPACE_FLAG_AUTO = 1 << 0,
+  ME_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
 };
 
 /** #Mesh.editflag */

@@ -207,10 +207,12 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   if (!stage) {
     WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filepath);
     data->import_ok = false;
+    data->error_code = USD_ARCHIVE_FAIL;
     return;
   }
 
   convert_to_z_up(stage, &data->settings);
+  data->settings.stage_meters_per_unit = UsdGeomGetStageMetersPerUnit(stage);
 
   /* Set up the stage for animated data. */
   if (data->params.set_frame_range) {
@@ -226,6 +228,10 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   data->archive = archive;
 
   archive->collect_readers(data->bmain);
+
+  if (data->params.import_materials && data->params.import_all_materials) {
+    archive->import_all_materials(data->bmain);
+  }
 
   *data->do_update = true;
   *data->progress = 0.2f;
@@ -352,6 +358,10 @@ static void import_endjob(void *customdata)
 
     DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     DEG_relations_tag_update(data->bmain);
+
+    if (data->params.import_materials && data->params.import_all_materials) {
+      data->archive->fake_users_for_unused_materials();
+    }
   }
 
   WM_set_locked_interface(data->wm, false);
@@ -382,13 +392,16 @@ static void import_freejob(void *user_data)
 
 using namespace blender::io::usd;
 
+void USD_ensure_plugin_path_registered()
+{
+  blender::io::usd::ensure_usd_plugin_path_registered();
+}
+
 bool USD_import(struct bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job)
 {
-  blender::io::usd::ensure_usd_plugin_path_registered();
-
   /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
   job->bmain = CTX_data_main(C);
@@ -447,7 +460,9 @@ bool USD_import(struct bContext *C,
  * USD reader is compatible with the type of the given (currently unused) 'ob'
  * Object parameter, similar to the logic in get_abc_reader() in the
  * Alembic importer code. */
-static USDPrimReader *get_usd_reader(CacheReader *reader, Object * /* ob */, const char **err_str)
+static USDPrimReader *get_usd_reader(CacheReader *reader,
+                                     const Object * /* ob */,
+                                     const char **err_str)
 {
   USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);
   pxr::UsdPrim iobject = usd_reader->prim();
@@ -476,8 +491,11 @@ struct Mesh *USD_read_mesh(struct CacheReader *reader,
   return usd_reader->read_mesh(existing_mesh, time, read_flag, err_str);
 }
 
-bool USD_mesh_topology_changed(
-    CacheReader *reader, Object *ob, Mesh *existing_mesh, const double time, const char **err_str)
+bool USD_mesh_topology_changed(CacheReader *reader,
+                               const Object *ob,
+                               const Mesh *existing_mesh,
+                               const double time,
+                               const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 
@@ -542,9 +560,6 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filepath,
                                       ListBase *object_paths)
 {
-  /* Must call this so that USD file format plugins are loaded. */
-  ensure_usd_plugin_path_registered();
-
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filepath);
 
   if (!stage) {

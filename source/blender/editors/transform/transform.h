@@ -23,17 +23,11 @@
 extern "C" {
 #endif
 
-/* use node center for transform instead of upper-left corner.
- * disabled since it makes absolute snapping not work so nicely
- */
-// #define USE_NODE_CENTER
-
 /* -------------------------------------------------------------------- */
 /** \name Types/
  * \{ */
 
 struct ARegion;
-struct BMPartialUpdate;
 struct Depsgraph;
 struct NumInput;
 struct Object;
@@ -144,6 +138,9 @@ typedef enum {
 
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
+
+  /** Do not display Xform gizmo even though it is available. */
+  T_NO_GIZMO = 1 << 24,
 } eTFlag;
 ENUM_OPERATORS(eTFlag, T_NO_CURSOR_WRAP);
 
@@ -157,18 +154,21 @@ typedef enum {
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
+  MOD_NODE_ATTACH = 1 << 5,
+  MOD_SNAP_FORCED = 1 << 6,
 } eTModifier;
+ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
   SNAP_RESETTED = 0,
-  SNAP_FORCED = 1 << 0,
-  TARGET_INIT = 1 << 1,
+  SNAP_SOURCE_FOUND = 1 << 0,
   /* Special flag for snap to grid. */
-  TARGET_GRID_INIT = 1 << 2,
-  POINT_INIT = 1 << 3,
-  MULTI_POINTS = 1 << 4,
+  SNAP_TARGET_GRID_FOUND = 1 << 1,
+  SNAP_TARGET_FOUND = 1 << 2,
+  SNAP_MULTI_POINTS = 1 << 3,
 } eTSnap;
+ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
 
 /** #TransCon.mode, #TransInfo.con.mode */
 typedef enum {
@@ -198,6 +198,7 @@ typedef enum {
   TREDRAW_SOFT = (1 << 0),
   TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 } eRedrawFlag;
+ENUM_OPERATORS(eRedrawFlag, TREDRAW_HARD)
 
 /** #TransInfo.helpline */
 typedef enum {
@@ -209,6 +210,12 @@ typedef enum {
   HLP_CARROW = 5,
   HLP_TRACKBALL = 6,
 } eTHelpline;
+
+typedef enum {
+  O_DEFAULT = 0,
+  O_SCENE,
+  O_SET,
+} eTOType;
 
 /** \} */
 
@@ -246,8 +253,8 @@ enum {
   TFM_MODAL_AUTOIK_LEN_INC = 22,
   TFM_MODAL_AUTOIK_LEN_DEC = 23,
 
-  TFM_MODAL_EDGESLIDE_UP = 24,
-  TFM_MODAL_EDGESLIDE_DOWN = 25,
+  TFM_MODAL_NODE_ATTACH_ON = 24,
+  TFM_MODAL_NODE_ATTACH_OFF = 25,
 
   /** For analog input, like track-pad. */
   TFM_MODAL_PROPSIZE = 26,
@@ -277,9 +284,9 @@ typedef struct TransSnap {
   /* Method(s) used for snapping source to target */
   eSnapMode mode;
   /* Part of source to snap to target */
-  eSnapSourceSelect source_select;
+  eSnapSourceOP source_operation;
   /* Determines which objects are possible target */
-  eSnapTargetSelect target_select;
+  eSnapTargetOP target_operation;
   bool align;
   bool project;
   bool peel;
@@ -289,25 +296,25 @@ typedef struct TransSnap {
   /* Snapped Element Type (currently for objects only). */
   eSnapMode snapElem;
   /** snapping from this point (in global-space). */
-  float snapTarget[3];
+  float snap_source[3];
   /** to this point (in global-space). */
-  float snapPoint[3];
-  float snapTargetGrid[3];
+  float snap_target[3];
+  float snap_target_grid[3];
   float snapNormal[3];
   char snapNodeBorder;
   ListBase points;
   TransSnapPoint *selectedPoint;
   double last;
-  void (*applySnap)(struct TransInfo *, float *);
-  void (*calcSnap)(struct TransInfo *, float *);
-  void (*targetSnap)(struct TransInfo *);
+  void (*snap_target_fn)(struct TransInfo *, float *);
+  void (*snap_source_fn)(struct TransInfo *);
   /**
    * Get the transform distance between two points (used by Closest snap)
    *
    * \note Return value can be anything,
    * where the smallest absolute value defines what's closest.
    */
-  float (*distance)(struct TransInfo *t, const float p1[3], const float p2[3]);
+  float (*snap_mode_distance_fn)(struct TransInfo *t, const float p1[3], const float p2[3]);
+  void (*snap_mode_apply_fn)(struct TransInfo *, float *);
 
   /**
    * Re-usable snap context data.
@@ -606,11 +613,7 @@ typedef struct TransInfo {
     float matrix[3][3];
   } orient[3];
 
-  enum {
-    O_DEFAULT = 0,
-    O_SCENE,
-    O_SET,
-  } orient_curr;
+  eTOType orient_curr;
 
   /**
    * All values from `TransInfo.orient[].type` converted into a flag
@@ -736,6 +739,27 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
 bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
 
+/**
+ * Set the #T_NO_GIZMO flag.
+ *
+ * \note This maintains the conventional behavior of not displaying the gizmo if the operator has
+ * been triggered by shortcuts.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t);
+
+/**
+ * Change the gizmo and its orientation to match the transform state.
+ *
+ * \note This used while the modal operator is running so changes to the constraint or mode show
+ * the gizmo associated with that state, as if it had been the initial gizmo dragged.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t);
+
+/**
+ * Restores the non-modal state of the gizmo.
+ */
+void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -810,8 +834,6 @@ void postTrans(struct bContext *C, TransInfo *t);
  */
 void resetTransModal(TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
-
-void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options);
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT 1

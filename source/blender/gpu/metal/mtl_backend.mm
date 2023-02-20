@@ -55,6 +55,11 @@ DrawList *MTLBackend::drawlist_alloc(int list_length)
   return new MTLDrawList(list_length);
 };
 
+Fence *MTLBackend::fence_alloc()
+{
+  return new MTLFence();
+};
+
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 {
   MTLContext *mtl_context = static_cast<MTLContext *>(
@@ -65,6 +70,11 @@ FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 IndexBuf *MTLBackend::indexbuf_alloc()
 {
   return new MTLIndexBuf();
+};
+
+PixelBuffer *MTLBackend::pixelbuf_alloc(uint size)
+{
+  return new MTLPixelBuffer(size);
 };
 
 QueryPool *MTLBackend::querypool_alloc()
@@ -134,16 +144,18 @@ void MTLBackend::render_step()
    * is also thread-safe. */
 
   /* Flush any MTLSafeFreeLists which have previously been released by any MTLContext. */
-  MTLContext::get_global_memory_manager().update_memory_pools();
+  MTLContext::get_global_memory_manager()->update_memory_pools();
 
   /* End existing MTLSafeFreeList and begin new list --
    * Buffers wont `free` until all associated in-flight command buffers have completed.
    * Decrement final reference count for ensuring the previous list is certainly
    * released. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
-  MTLContext::get_global_memory_manager().begin_new_safe_list();
-  cmd_free_buffer_list->decrement_reference();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
+  if (cmd_free_buffer_list->should_flush()) {
+    MTLContext::get_global_memory_manager()->begin_new_safe_list();
+    cmd_free_buffer_list->decrement_reference();
+  }
 }
 
 bool MTLBackend::is_inside_render_boundary()
@@ -348,6 +360,9 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
       supportsFamily:MTLGPUFamilyMacCatalyst1];
   MTLBackend::capabilities.supports_family_mac_catalyst2 = [device
       supportsFamily:MTLGPUFamilyMacCatalyst2];
+  /* NOTE(Metal): Texture gather is supported on AMD, but results are non consistent
+   * with Apple Silicon GPUs. Disabling for now to avoid erroneous rendering. */
+  MTLBackend::capabilities.supports_texture_gather = [device hasUnifiedMemory];
 
   /* Common Global Capabilities. */
   GCaps.max_texture_size = ([device supportsFamily:MTLGPUFamilyApple3] ||
@@ -385,7 +400,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac2);
   /* TODO(Metal): Add support? */
   GCaps.shader_draw_parameters_support = false;
-  GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
+  GCaps.compute_shader_support = true;
+  GCaps.geometry_shader_support = false;
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
 
@@ -424,6 +440,24 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* Minimum per-vertex stride is 4 bytes in Metal.
    * A bound vertex buffer must contribute at least 4 bytes per vertex. */
   GCaps.minimum_per_vertex_stride = 4;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compute dispatch.
+ * \{ */
+
+void MTLBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
+{
+  /* Fetch Context.
+   * With Metal, workload submission and resource management occurs within the context.
+   * Call compute dispatch on valid context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx != nullptr);
+  if (ctx) {
+    ctx->compute_dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
 }
 
 /** \} */

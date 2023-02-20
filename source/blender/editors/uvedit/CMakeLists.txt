@@ -18,9 +18,13 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
 
 set(SRC
   uvedit_buttons.c
+  uvedit_clipboard.cc
+  uvedit_clipboard_graph_iso.cc
   uvedit_draw.c
   uvedit_islands.cc
   uvedit_ops.c
@@ -28,8 +32,9 @@ set(SRC
   uvedit_rip.c
   uvedit_select.c
   uvedit_smart_stitch.c
-  uvedit_unwrap_ops.c
+  uvedit_unwrap_ops.cc
 
+  uvedit_clipboard_graph_iso.hh
   uvedit_intern.h
 )
 

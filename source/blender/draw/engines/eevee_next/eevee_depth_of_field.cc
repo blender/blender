@@ -44,7 +44,7 @@ void DepthOfField::init()
 {
   const SceneEEVEE &sce_eevee = inst_.scene->eevee;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera = (camera_object_eval) ?
+  const ::Camera *camera = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                nullptr;
   if (camera == nullptr) {
@@ -70,7 +70,7 @@ void DepthOfField::sync()
 {
   const Camera &camera = inst_.camera;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera_data = (camera_object_eval) ?
+  const ::Camera *camera_data = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                     reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                     nullptr;
 
@@ -166,8 +166,9 @@ void DepthOfField::sync()
   /* Now that we know the maximum render resolution of every view, using depth of field, allocate
    * the reduced buffers. Color needs to be signed format here. See note in shader for
    * explanation. Do not use texture pool because of needs mipmaps. */
-  reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, nullptr, DOF_MIP_COUNT);
-  reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, nullptr, DOF_MIP_COUNT);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
+  reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_color_tx_.ensure_mip_views();
   reduced_coc_tx_.ensure_mip_views();
 
@@ -284,7 +285,7 @@ void DepthOfField::stabilize_pass_sync()
   stabilize_ps_.bind_texture("in_history_tx", &stabilize_input_, with_filter);
   stabilize_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
   stabilize_ps_.bind_ubo("dof_buf", data_);
-  stabilize_ps_.push_constant("use_history", &stabilize_valid_history_, 1);
+  stabilize_ps_.push_constant("u_use_history", &stabilize_valid_history_, 1);
   stabilize_ps_.bind_image("out_coc_img", reduced_coc_tx_.mip_view(0));
   stabilize_ps_.bind_image("out_color_img", reduced_color_tx_.mip_view(0));
   stabilize_ps_.bind_image("out_history_img", &stabilize_output_tx_);
@@ -753,7 +754,7 @@ void DepthOfField::render(View &view,
   DRW_stats_group_end();
 
   /* Swap buffers so that next effect has the right input. */
-  SWAP(GPUTexture *, *input_tx, *output_tx);
+  std::swap(*input_tx, *output_tx);
 }
 
 /** \} */

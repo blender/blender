@@ -388,8 +388,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
         ED_armature_ebone_to_mat3(ebone, mat);
         copy_v3_v3(vec, mat[2]);
       }
-      else { /* Axis */
-        BLI_assert(type <= 5);
+      else if (type < 6) { /* NOTE: always true, check to quiet GCC12.2 `-Warray-bounds`. */
+        /* Axis */
         if (type < 3) {
           vec[type] = 1.0f;
         }
@@ -398,6 +398,10 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
         }
         mul_m3_v3(imat, vec);
         normalize_v3(vec);
+      }
+      else {
+        /* The previous block should handle all remaining cases. */
+        BLI_assert_unreachable();
       }
 
       if (axis_flip) {
@@ -908,7 +912,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
     armature_tag_select_mirrored(arm);
 
     /* Clear BONE_TRANSFORM flags
-     * - Used to prevent duplicate/canceling operations from occurring T34123.
+     * - Used to prevent duplicate/canceling operations from occurring #34123.
      * - #BONE_DONE cannot be used here as that's already used for mirroring.
      */
     armature_clear_swap_done_flags(arm);
@@ -925,7 +929,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
          */
         parent = ebo->parent;
 
-        /* skip bone if already handled, see T34123. */
+        /* skip bone if already handled, see #34123. */
         if ((ebo->flag & BONE_TRANSFORM) == 0) {
           /* only if selected and editable */
           if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {

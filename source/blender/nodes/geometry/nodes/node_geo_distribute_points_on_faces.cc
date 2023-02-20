@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   };
 
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
   b.add_input<decl::Float>(N_("Distance Min"))
       .min(0.0f)
       .subtype(PROP_DISTANCE)
@@ -46,25 +46,30 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Density"))
       .default_value(10.0f)
       .min(0.0f)
-      .supports_field()
+      .field_on_all()
       .make_available(enable_random);
   b.add_input<decl::Float>(N_("Density Factor"))
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .supports_field()
+      .field_on_all()
       .make_available(enable_poisson);
   b.add_input<decl::Int>(N_("Seed"));
 
-  b.add_output<decl::Geometry>(N_("Points"));
-  b.add_output<decl::Vector>(N_("Normal")).field_source();
-  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_source();
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
+  b.add_output<decl::Vector>(N_("Normal")).field_on_all();
+  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
+}
+
+static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_legacy_normal", 0, nullptr, ICON_NONE);
 }
 
 static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode *node)
@@ -105,7 +110,7 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 Vector<float3> &r_bary_coords,
                                 Vector<int> &r_looptri_indices)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris = mesh.looptris();
 
@@ -117,9 +122,9 @@ static void sample_mesh_surface(const Mesh &mesh,
     const int v0_index = loops[v0_loop].v;
     const int v1_index = loops[v1_loop].v;
     const int v2_index = loops[v2_loop].v;
-    const float3 v0_pos = verts[v0_index].co;
-    const float3 v1_pos = verts[v1_index].co;
-    const float3 v2_pos = verts[v2_index].co;
+    const float3 v0_pos = positions[v0_index];
+    const float3 v1_pos = positions[v1_index];
+    const float3 v2_pos = positions[v2_index];
 
     float looptri_density_factor = 1.0f;
     if (!density_factors.is_empty()) {
@@ -320,16 +325,78 @@ BLI_NOINLINE static void propagate_existing_attributes(
 
 namespace {
 struct AttributeOutputs {
-  StrongAnonymousAttributeID normal_id;
-  StrongAnonymousAttributeID rotation_id;
+  AutoAnonymousAttributeID normal_id;
+  AutoAnonymousAttributeID rotation_id;
 };
 }  // namespace
+
+static void compute_normal_outputs(const Mesh &mesh,
+                                   const Span<float3> bary_coords,
+                                   const Span<int> looptri_indices,
+                                   MutableSpan<float3> r_normals)
+{
+  Array<float3> corner_normals(mesh.totloop);
+  BKE_mesh_calc_normals_split_ex(
+      const_cast<Mesh *>(&mesh), nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+
+  const Span<MLoopTri> looptris = mesh.looptris();
+
+  threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int looptri_index = looptri_indices[i];
+      const MLoopTri &looptri = looptris[looptri_index];
+      const float3 &bary_coord = bary_coords[i];
+
+      const float3 normal = math::normalize(
+          bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+              bary_coord, looptri, corner_normals.as_span()));
+
+      r_normals[i] = normal;
+    }
+  });
+}
+
+static void compute_legacy_normal_outputs(const Mesh &mesh,
+                                          const Span<float3> bary_coords,
+                                          const Span<int> looptri_indices,
+                                          MutableSpan<float3> r_normals)
+{
+  const Span<float3> positions = mesh.vert_positions();
+  const Span<MLoop> loops = mesh.loops();
+  const Span<MLoopTri> looptris = mesh.looptris();
+
+  for (const int i : bary_coords.index_range()) {
+    const int looptri_index = looptri_indices[i];
+    const MLoopTri &looptri = looptris[looptri_index];
+
+    const int v0_index = loops[looptri.tri[0]].v;
+    const int v1_index = loops[looptri.tri[1]].v;
+    const int v2_index = loops[looptri.tri[2]].v;
+    const float3 v0_pos = positions[v0_index];
+    const float3 v1_pos = positions[v1_index];
+    const float3 v2_pos = positions[v2_index];
+
+    float3 normal;
+    normal_tri_v3(normal, v0_pos, v1_pos, v2_pos);
+    r_normals[i] = normal;
+  }
+}
+
+static void compute_rotation_output(const Span<float3> normals, MutableSpan<float3> r_rotations)
+{
+  threading::parallel_for(normals.index_range(), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      r_rotations[i] = normal_to_euler_rotation(normals[i]);
+    }
+  });
+}
 
 BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
                                                    PointCloud &points,
                                                    const Span<float3> bary_coords,
                                                    const Span<int> looptri_indices,
-                                                   const AttributeOutputs &attribute_outputs)
+                                                   const AttributeOutputs &attribute_outputs,
+                                                   const bool use_legacy_normal)
 {
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
@@ -348,33 +415,24 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
         attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
   }
 
-  const Span<MVert> verts = mesh.verts();
-  const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris = mesh.looptris();
-
-  for (const int i : bary_coords.index_range()) {
-    const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
-    const float3 &bary_coord = bary_coords[i];
-
-    const int v0_index = loops[looptri.tri[0]].v;
-    const int v1_index = loops[looptri.tri[1]].v;
-    const int v2_index = loops[looptri.tri[2]].v;
-    const float3 v0_pos = verts[v0_index].co;
-    const float3 v1_pos = verts[v1_index].co;
-    const float3 v2_pos = verts[v2_index].co;
-
-    ids.span[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
-
-    float3 normal;
-    if (!normals.span.is_empty() || !rotations.span.is_empty()) {
-      normal_tri_v3(normal, v0_pos, v1_pos, v2_pos);
+  threading::parallel_for(bary_coords.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int looptri_index = looptri_indices[i];
+      const float3 &bary_coord = bary_coords[i];
+      ids.span[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
     }
-    if (!normals.span.is_empty()) {
-      normals.span[i] = normal;
+  });
+
+  if (normals) {
+    if (use_legacy_normal) {
+      compute_legacy_normal_outputs(mesh, bary_coords, looptri_indices, normals.span);
     }
-    if (!rotations.span.is_empty()) {
-      rotations.span[i] = normal_to_euler_rotation(normal);
+    else {
+      compute_normal_outputs(mesh, bary_coords, looptri_indices, normals.span);
+    }
+
+    if (rotations) {
+      compute_rotation_output(normals.span, rotations.span);
     }
   }
 
@@ -496,15 +554,20 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   geometry_set.replace_pointcloud(pointcloud);
 
   Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
+  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_MESH},
+                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                 false,
+                                                 params.get_output_propagation_info("Points"),
+                                                 attributes);
 
   /* Position is set separately. */
   attributes.remove("position");
 
   propagate_existing_attributes(mesh, attributes, *pointcloud, bary_coords, looptri_indices);
 
-  compute_attribute_outputs(mesh, *pointcloud, bary_coords, looptri_indices, attribute_outputs);
+  const bool use_legacy_normal = params.node().custom2 != 0;
+  compute_attribute_outputs(
+      mesh, *pointcloud, bary_coords, looptri_indices, attribute_outputs, use_legacy_normal);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -518,12 +581,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   AttributeOutputs attribute_outputs;
-  if (params.output_is_required("Normal")) {
-    attribute_outputs.normal_id = StrongAnonymousAttributeID("Normal");
-  }
-  if (params.output_is_required("Rotation")) {
-    attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
-  }
+  attribute_outputs.rotation_id = params.get_output_anonymous_attribute_id_if_needed("Rotation");
+  attribute_outputs.normal_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Normal", bool(attribute_outputs.rotation_id));
 
   lazy_threading::send_hint();
 
@@ -568,5 +628,6 @@ void register_node_type_geo_distribute_points_on_faces()
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons_ex = file_ns::node_layout_ex;
   nodeRegisterType(&ntype);
 }

@@ -9,9 +9,9 @@ if(UNIX AND NOT APPLE)
   add_definitions(-D_GLIBCXX_PERMIT_BACKWARD_HASH)
 endif()
 if(WIN32)
-  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DBOOST_DEBUG_PYTHON)
 endif()
-add_definitions(-DPXR_STATIC)
+add_definitions(-DBOOST_ALL_NO_LIB)
 
 # USD headers use deprecated TBB headers, silence warning.
 add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
@@ -56,9 +56,11 @@ set(INC_SYS
   ${USD_INCLUDE_DIRS}
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
+  ${PYTHON_INCLUDE_DIR}
 )
 
 set(SRC
+  intern/usd_asset_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_common.cc
@@ -81,12 +83,14 @@ set(SRC
   intern/usd_reader_mesh.cc
   intern/usd_reader_nurbs.cc
   intern/usd_reader_prim.cc
+  intern/usd_reader_shape.cc
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
 
   usd.h
 
+  intern/usd_asset_utils.h
   intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
@@ -108,6 +112,7 @@ set(SRC
   intern/usd_reader_mesh.h
   intern/usd_reader_nurbs.h
   intern/usd_reader_prim.h
+  intern/usd_reader_shape.h
   intern/usd_reader_stage.h
   intern/usd_reader_volume.h
   intern/usd_reader_xform.h
@@ -122,6 +127,10 @@ set(LIB
 
 list(APPEND LIB
   ${BOOST_LIBRARIES}
+  ${BOOST_PYTHON_LIBRARIES}
+  ${PYTHON_LIBRARIES}
+  ${USD_LIBRARIES}
+  ${TBB_LIBRARIES}
 )
 
 if(WITH_OPENVDB)
@@ -136,36 +145,20 @@ endif()
 
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-if(WIN32)
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:Debug>:/WHOLEARCHIVE:${USD_DEBUG_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:Release>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:RelWithDebInfo>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:MinSizeRel>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-endif()
-
-# Source:
-# https://github.com/PixarAnimationStudios/USD/blob/master/BUILDING.md#linking-whole-archives
-if(WIN32)
-  target_link_libraries(bf_usd INTERFACE ${USD_LIBRARIES})
-elseif(APPLE)
-  target_link_libraries(bf_usd INTERFACE -Wl,-force_load ${USD_LIBRARIES})
-elseif(UNIX)
-  target_link_libraries(bf_usd INTERFACE "-Wl,--whole-archive ${USD_LIBRARIES} -Wl,--no-whole-archive ${TBB_LIBRARIES}")
-else()
-  message(FATAL_ERROR "Unknown how to link USD with your compiler ${CMAKE_CXX_COMPILER_ID}")
-endif()
-
-target_link_libraries(bf_usd INTERFACE ${TBB_LIBRARIES})
-
 if(WITH_GTESTS)
   set(TEST_SRC
+    tests/usd_export_test.cc
     tests/usd_stage_creation_test.cc
     tests/usd_tests_common.cc
     tests/usd_tests_common.h
+
+    intern/usd_writer_material.h
   )
   if(USD_IMAGING_HEADERS)
     list(APPEND TEST_SRC tests/usd_imaging_test.cc)
   endif()
+
+  include_directories(intern)
 
   set(TEST_INC
   )

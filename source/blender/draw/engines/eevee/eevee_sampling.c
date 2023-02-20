@@ -17,7 +17,7 @@ void EEVEE_sample_ball(int sample_ofs, float radius, float rsample[3])
 
   BLI_halton_3d(ht_primes, ht_offset, sample_ofs, ht_point);
 
-  /* De-correlate AA and shadow samples. (see T68594) */
+  /* De-correlate AA and shadow samples. (see #68594) */
   ht_point[0] = fmod(ht_point[0] * 1151.0, 1.0);
   ht_point[1] = fmod(ht_point[1] * 1069.0, 1.0);
   ht_point[2] = fmod(ht_point[2] * 1151.0, 1.0);
@@ -48,7 +48,7 @@ void EEVEE_sample_rectangle(int sample_ofs,
 
   BLI_halton_2d(ht_primes, ht_offset, sample_ofs, ht_point);
 
-  /* De-correlate AA and shadow samples. (see T68594) */
+  /* De-correlate AA and shadow samples. (see #68594) */
   ht_point[0] = fmod(ht_point[0] * 1151.0, 1.0);
   ht_point[1] = fmod(ht_point[1] * 1069.0, 1.0);
 
@@ -74,7 +74,7 @@ void EEVEE_sample_ellipse(int sample_ofs,
 
   BLI_halton_2d(ht_primes, ht_offset, sample_ofs, ht_point);
 
-  /* Decorrelate AA and shadow samples. (see T68594) */
+  /* Decorrelate AA and shadow samples. (see #68594) */
 
   ht_point[0] = fmod(ht_point[0] * 1151.0, 1.0);
   ht_point[1] = fmod(ht_point[1] * 1069.0, 1.0);
@@ -98,7 +98,7 @@ void EEVEE_random_rotation_m4(int sample_ofs, float scale, float r_mat[4][4])
 
   BLI_halton_3d(ht_primes, ht_offset, sample_ofs, ht_point);
 
-  /* Decorrelate AA and shadow samples. (see T68594) */
+  /* Decorrelate AA and shadow samples. (see #68594) */
   ht_point[0] = fmod(ht_point[0] * 1151.0, 1.0);
   ht_point[1] = fmod(ht_point[1] * 1069.0, 1.0);
   ht_point[2] = fmod(ht_point[2] * 1151.0, 1.0);

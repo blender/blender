@@ -72,8 +72,12 @@ void imm_draw_circle_fill_aspect_2d(
  * Use this version when #GPUVertFormat has a vec3 position.
  */
 void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_wire_aspect_3d(
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments);
 void imm_draw_circle_dashed_3d(uint pos, float x, float y, float radius, int nsegments);
 void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_fill_aspect_3d(
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments);
 
 /**
  * Same as 'imm_draw_disk_partial_fill_2d', except it draws a wire arc.

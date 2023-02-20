@@ -32,114 +32,6 @@ namespace OCIO = OCIO_NAMESPACE;
 CCL_NAMESPACE_BEGIN
 
 thread_mutex ShaderManager::lookup_table_mutex;
-vector<float> ShaderManager::beckmann_table;
-bool ShaderManager::beckmann_table_ready = false;
-
-/* Beckmann sampling precomputed table, see bsdf_microfacet.h */
-
-/* 2D slope distribution (alpha = 1.0) */
-static float beckmann_table_P22(const float slope_x, const float slope_y)
-{
-  return expf(-(slope_x * slope_x + slope_y * slope_y));
-}
-
-/* maximal slope amplitude (range that contains 99.99% of the distribution) */
-static float beckmann_table_slope_max()
-{
-  return 6.0;
-}
-
-/* MSVC 2015 needs this ugly hack to prevent a codegen bug on x86
- * see T50176 for details
- */
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#  define MSVC_VOLATILE volatile
-#else
-#  define MSVC_VOLATILE
-#endif
-
-/* Paper used: Importance Sampling Microfacet-Based BSDFs with the
- * Distribution of Visible Normals. Supplemental Material 2/2.
- *
- * http://hal.inria.fr/docs/01/00/66/20/ANNEX/supplemental2.pdf
- */
-static void beckmann_table_rows(float *table, int row_from, int row_to)
-{
-  /* allocate temporary data */
-  const int DATA_TMP_SIZE = 512;
-  vector<double> slope_x(DATA_TMP_SIZE);
-  vector<double> CDF_P22_omega_i(DATA_TMP_SIZE);
-
-  /* loop over incident directions */
-  for (int index_theta = row_from; index_theta < row_to; index_theta++) {
-    /* incident vector */
-    const float cos_theta = index_theta / (BECKMANN_TABLE_SIZE - 1.0f);
-    const float sin_theta = safe_sqrtf(1.0f - cos_theta * cos_theta);
-
-    /* for a given incident vector
-     * integrate P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
-    slope_x[0] = (double)-beckmann_table_slope_max();
-    CDF_P22_omega_i[0] = 0;
-
-    for (MSVC_VOLATILE int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x) {
-      /* slope_x */
-      slope_x[index_slope_x] = (double)(-beckmann_table_slope_max() +
-                                        2.0f * beckmann_table_slope_max() * index_slope_x /
-                                            (DATA_TMP_SIZE - 1.0f));
-
-      /* dot product with incident vector */
-      float dot_product = fmaxf(0.0f, -(float)slope_x[index_slope_x] * sin_theta + cos_theta);
-      /* marginalize P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
-      float P22_omega_i = 0.0f;
-
-      for (int j = 0; j < 100; ++j) {
-        float slope_y = -beckmann_table_slope_max() +
-                        2.0f * beckmann_table_slope_max() * j * (1.0f / 99.0f);
-        P22_omega_i += dot_product * beckmann_table_P22((float)slope_x[index_slope_x], slope_y);
-      }
-
-      /* CDF of P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
-      CDF_P22_omega_i[index_slope_x] = CDF_P22_omega_i[index_slope_x - 1] + (double)P22_omega_i;
-    }
-
-    /* renormalize CDF_P22_omega_i */
-    for (int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x)
-      CDF_P22_omega_i[index_slope_x] /= CDF_P22_omega_i[DATA_TMP_SIZE - 1];
-
-    /* loop over random number U1 */
-    int index_slope_x = 0;
-
-    for (int index_U = 0; index_U < BECKMANN_TABLE_SIZE; ++index_U) {
-      const double U = 0.0000001 + 0.9999998 * index_U / (double)(BECKMANN_TABLE_SIZE - 1);
-
-      /* inverse CDF_P22_omega_i, solve Eq.(11) */
-      while (CDF_P22_omega_i[index_slope_x] <= U)
-        ++index_slope_x;
-
-      const double interp = (CDF_P22_omega_i[index_slope_x] - U) /
-                            (CDF_P22_omega_i[index_slope_x] - CDF_P22_omega_i[index_slope_x - 1]);
-
-      /* store value */
-      table[index_U + index_theta * BECKMANN_TABLE_SIZE] =
-          (float)(interp * slope_x[index_slope_x - 1] + (1.0 - interp) * slope_x[index_slope_x]);
-    }
-  }
-}
-
-#undef MSVC_VOLATILE
-
-static void beckmann_table_build(vector<float> &table)
-{
-  table.resize(BECKMANN_TABLE_SIZE * BECKMANN_TABLE_SIZE);
-
-  /* multithreaded build */
-  TaskPool pool;
-
-  for (int i = 0; i < BECKMANN_TABLE_SIZE; i += 8)
-    pool.push(function_bind(&beckmann_table_rows, &table[0], i, i + 8));
-
-  pool.wait_work();
-}
 
 /* Shader */
 
@@ -147,7 +39,17 @@ NODE_DEFINE(Shader)
 {
   NodeType *type = NodeType::add("shader", create);
 
-  SOCKET_BOOLEAN(use_mis, "Use MIS", true);
+  static NodeEnum emission_sampling_method_enum;
+  emission_sampling_method_enum.insert("none", EMISSION_SAMPLING_NONE);
+  emission_sampling_method_enum.insert("auto", EMISSION_SAMPLING_AUTO);
+  emission_sampling_method_enum.insert("front", EMISSION_SAMPLING_FRONT);
+  emission_sampling_method_enum.insert("back", EMISSION_SAMPLING_BACK);
+  emission_sampling_method_enum.insert("front_back", EMISSION_SAMPLING_FRONT_BACK);
+  SOCKET_ENUM(emission_sampling_method,
+              "Emission Sampling Method",
+              emission_sampling_method_enum,
+              EMISSION_SAMPLING_AUTO);
+
   SOCKET_BOOLEAN(use_transparent_shadow, "Use Transparent Shadow", true);
   SOCKET_BOOLEAN(heterogeneous_volume, "Heterogeneous Volume", true);
 
@@ -189,7 +91,6 @@ Shader::Shader() : Node(get_node_type())
 
   has_surface = false;
   has_surface_transparent = false;
-  has_surface_emission = false;
   has_surface_raytrace = false;
   has_surface_bssrdf = false;
   has_volume = false;
@@ -202,6 +103,10 @@ Shader::Shader() : Node(get_node_type())
   has_integrator_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
+
+  emission_estimate = zero_float3();
+  emission_sampling = EMISSION_SAMPLING_NONE;
+  emission_is_constant = true;
 
   displacement_method = DISPLACE_BUMP;
 
@@ -217,50 +122,142 @@ Shader::~Shader()
   delete graph;
 }
 
-bool Shader::is_constant_emission(float3 *emission)
+static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
+{
+  /* Only supports a few nodes for now, not arbitrary shader graphs. */
+  ShaderNode *node = (output) ? output->parent : nullptr;
+
+  if (node == nullptr) {
+    return zero_float3();
+  }
+  else if (node->type == EmissionNode::get_node_type() ||
+           node->type == BackgroundNode::get_node_type()) {
+    /* Emission and Background node. */
+    ShaderInput *color_in = node->input("Color");
+    ShaderInput *strength_in = node->input("Strength");
+
+    float3 estimate = one_float3();
+
+    if (color_in->link) {
+      is_constant = false;
+    }
+    else {
+      estimate *= node->get_float3(color_in->socket_type);
+    }
+
+    if (strength_in->link) {
+      is_constant = false;
+      estimate *= output_estimate_emission(strength_in->link, is_constant);
+    }
+    else {
+      estimate *= node->get_float(strength_in->socket_type);
+    }
+
+    return estimate;
+  }
+  else if (node->type == LightFalloffNode::get_node_type() ||
+           node->type == IESLightNode::get_node_type()) {
+    /* Get strength from Light Falloff and IES texture node. */
+    ShaderInput *strength_in = node->input("Strength");
+    is_constant = false;
+
+    return (strength_in->link) ? output_estimate_emission(strength_in->link, is_constant) :
+                                 make_float3(node->get_float(strength_in->socket_type));
+  }
+  else if (node->type == AddClosureNode::get_node_type()) {
+    /* Add Closure. */
+    ShaderInput *closure1_in = node->input("Closure1");
+    ShaderInput *closure2_in = node->input("Closure2");
+
+    const float3 estimate1 = (closure1_in->link) ?
+                                 output_estimate_emission(closure1_in->link, is_constant) :
+                                 zero_float3();
+    const float3 estimate2 = (closure2_in->link) ?
+                                 output_estimate_emission(closure2_in->link, is_constant) :
+                                 zero_float3();
+
+    return estimate1 + estimate2;
+  }
+  else if (node->type == MixClosureNode::get_node_type()) {
+    /* Mix Closure. */
+    ShaderInput *fac_in = node->input("Fac");
+    ShaderInput *closure1_in = node->input("Closure1");
+    ShaderInput *closure2_in = node->input("Closure2");
+
+    const float3 estimate1 = (closure1_in->link) ?
+                                 output_estimate_emission(closure1_in->link, is_constant) :
+                                 zero_float3();
+    const float3 estimate2 = (closure2_in->link) ?
+                                 output_estimate_emission(closure2_in->link, is_constant) :
+                                 zero_float3();
+
+    if (fac_in->link) {
+      is_constant = false;
+      return estimate1 + estimate2;
+    }
+    else {
+      const float fac = node->get_float(fac_in->socket_type);
+      return (1.0f - fac) * estimate1 + fac * estimate2;
+    }
+  }
+  else {
+    /* Other nodes, potentially OSL nodes with arbitrary code for which all we can
+     * determine is if it has emission or not. */
+    const bool has_emission = node->has_surface_emission();
+    float3 estimate;
+
+    if (output->type() == SocketType::CLOSURE) {
+      if (has_emission) {
+        estimate = one_float3();
+        is_constant = false;
+      }
+      else {
+        estimate = zero_float3();
+      }
+
+      foreach (const ShaderInput *in, node->inputs) {
+        if (in->type() == SocketType::CLOSURE && in->link) {
+          estimate += output_estimate_emission(in->link, is_constant);
+        }
+      }
+    }
+    else {
+      estimate = one_float3();
+      is_constant = false;
+    }
+
+    return estimate;
+  }
+}
+
+void Shader::estimate_emission()
 {
   /* If the shader has AOVs, they need to be evaluated, so we can't skip the shader. */
+  emission_is_constant = true;
+
   foreach (ShaderNode *node, graph->nodes) {
     if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
-      return false;
+      emission_is_constant = false;
     }
   }
 
   ShaderInput *surf = graph->output()->input("Surface");
+  emission_estimate = fabs(output_estimate_emission(surf->link, emission_is_constant));
 
-  if (surf->link == NULL) {
-    return false;
+  if (is_zero(emission_estimate)) {
+    emission_sampling = EMISSION_SAMPLING_NONE;
   }
-
-  if (surf->link->parent->type == EmissionNode::get_node_type()) {
-    EmissionNode *node = (EmissionNode *)surf->link->parent;
-
-    assert(node->input("Color"));
-    assert(node->input("Strength"));
-
-    if (node->input("Color")->link || node->input("Strength")->link) {
-      return false;
-    }
-
-    *emission = node->get_color() * node->get_strength();
-  }
-  else if (surf->link->parent->type == BackgroundNode::get_node_type()) {
-    BackgroundNode *node = (BackgroundNode *)surf->link->parent;
-
-    assert(node->input("Color"));
-    assert(node->input("Strength"));
-
-    if (node->input("Color")->link || node->input("Strength")->link) {
-      return false;
-    }
-
-    *emission = node->get_color() * node->get_strength();
+  else if (emission_sampling_method == EMISSION_SAMPLING_AUTO) {
+    /* Automatically disable MIS when emission is low, to avoid weakly emitting
+     * using a lot of memory in the light tree and potentially wasting samples
+     * where indirect light samples are sufficient.
+     * Possible optimization: estimate front and back emission separately. */
+    emission_sampling = (reduce_max(emission_estimate) > 0.5f) ? EMISSION_SAMPLING_FRONT_BACK :
+                                                                 EMISSION_SAMPLING_NONE;
   }
   else {
-    return false;
+    emission_sampling = emission_sampling_method;
   }
-
-  return true;
 }
 
 void Shader::set_graph(ShaderGraph *graph_)
@@ -305,7 +302,7 @@ void Shader::tag_update(Scene *scene)
   /* if the shader previously was emissive, update light distribution,
    * if the new shader is emissive, a light manager update tag will be
    * done in the shader manager device update. */
-  if (use_mis && has_surface_emission)
+  if (emission_sampling != EMISSION_SAMPLING_NONE)
     scene->light_manager->tag_update(scene, LightManager::SHADER_MODIFIED);
 
   /* Special handle of background MIS light for now: for some reason it
@@ -386,7 +383,6 @@ bool Shader::need_update_geometry() const
 ShaderManager::ShaderManager()
 {
   update_flags = UPDATE_ALL;
-  beckmann_table_offset = TABLE_OFFSET_INVALID;
 
   init_xyz_transforms();
 }
@@ -491,9 +487,17 @@ void ShaderManager::device_update_common(Device * /*device*/,
   foreach (Shader *shader, scene->shaders) {
     uint flag = 0;
 
-    if (shader->get_use_mis())
-      flag |= SD_USE_MIS;
-    if (shader->has_surface_emission)
+    if (shader->emission_sampling == EMISSION_SAMPLING_FRONT) {
+      flag |= SD_MIS_FRONT;
+    }
+    else if (shader->emission_sampling == EMISSION_SAMPLING_BACK) {
+      flag |= SD_MIS_BACK;
+    }
+    else if (shader->emission_sampling == EMISSION_SAMPLING_FRONT_BACK) {
+      flag |= SD_MIS_FRONT | SD_MIS_BACK;
+    }
+
+    if (!is_zero(shader->emission_estimate))
       flag |= SD_HAS_EMISSION;
     if (shader->has_surface_transparent && shader->get_use_transparent_shadow())
       flag |= SD_HAS_TRANSPARENT_SHADOW;
@@ -531,8 +535,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_HAS_DISPLACEMENT;
 
     /* constant emission check */
-    float3 constant_emission = zero_float3();
-    if (shader->is_constant_emission(&constant_emission))
+    if (shader->emission_is_constant)
       flag |= SD_HAS_CONSTANT_EMISSION;
 
     uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
@@ -540,9 +543,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
     /* regular shader */
     kshader->flags = flag;
     kshader->pass_id = shader->get_pass_id();
-    kshader->constant_emission[0] = constant_emission.x;
-    kshader->constant_emission[1] = constant_emission.y;
-    kshader->constant_emission[2] = constant_emission.z;
+    kshader->constant_emission[0] = shader->emission_estimate.x;
+    kshader->constant_emission[1] = shader->emission_estimate.y;
+    kshader->constant_emission[2] = shader->emission_estimate.z;
     kshader->cryptomatte_id = util_hash_to_float(cryptomatte_id);
     kshader++;
 
@@ -550,22 +553,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
   }
 
   dscene->shaders.copy_to_device();
-
-  /* lookup tables */
-  KernelTables *ktables = &dscene->data.tables;
-
-  /* beckmann lookup table */
-  if (beckmann_table_offset == TABLE_OFFSET_INVALID) {
-    if (!beckmann_table_ready) {
-      thread_scoped_lock lock(lookup_table_mutex);
-      if (!beckmann_table_ready) {
-        beckmann_table_build(beckmann_table);
-        beckmann_table_ready = true;
-      }
-    }
-    beckmann_table_offset = scene->lookup_tables->add_table(dscene, beckmann_table);
-  }
-  ktables->beckmann_offset = (int)beckmann_table_offset;
 
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
@@ -586,10 +573,8 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->is_rec709 = is_rec709;
 }
 
-void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
+void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene * /*scene*/)
 {
-  scene->lookup_tables->remove_table(&beckmann_table_offset);
-
   dscene->shaders.free();
 }
 
@@ -627,8 +612,8 @@ void ShaderManager::add_default(Scene *scene)
     shader->set_graph(graph);
     scene->default_volume = shader;
     shader->tag_update(scene);
-    /* No default reference for the volume to avoid compiling volume kernels if there are no actual
-     * volumes in the scene */
+    /* No default reference for the volume to avoid compiling volume kernels if there are no
+     * actual volumes in the scene */
   }
 
   /* default light */
@@ -732,7 +717,6 @@ uint ShaderManager::get_kernel_features(Scene *scene)
 
 void ShaderManager::free_memory()
 {
-  beckmann_table.free_memory();
 
 #ifdef WITH_OSL
   OSLShaderManager::free_memory();

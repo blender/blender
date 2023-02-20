@@ -10,6 +10,9 @@
 #ifndef KERNEL_STRUCT_MEMBER
 #  define KERNEL_STRUCT_MEMBER(parent, type, name)
 #endif
+#ifndef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+#endif
 
 /* Background. */
 
@@ -23,24 +26,19 @@ KERNEL_STRUCT_MEMBER(background, int, volume_shader)
 KERNEL_STRUCT_MEMBER(background, float, volume_step_size)
 KERNEL_STRUCT_MEMBER(background, int, transparent)
 KERNEL_STRUCT_MEMBER(background, float, transparent_roughness_squared_threshold)
-/* Portal sampling. */
-KERNEL_STRUCT_MEMBER(background, float, portal_weight)
-KERNEL_STRUCT_MEMBER(background, int, num_portals)
-KERNEL_STRUCT_MEMBER(background, int, portal_offset)
 /* Sun sampling. */
 KERNEL_STRUCT_MEMBER(background, float, sun_weight)
 /* Importance map sampling. */
 KERNEL_STRUCT_MEMBER(background, float, map_weight)
+KERNEL_STRUCT_MEMBER(background, float, portal_weight)
 KERNEL_STRUCT_MEMBER(background, int, map_res_x)
 KERNEL_STRUCT_MEMBER(background, int, map_res_y)
 /* Multiple importance sampling. */
 KERNEL_STRUCT_MEMBER(background, int, use_mis)
 /* Lightgroup. */
 KERNEL_STRUCT_MEMBER(background, int, lightgroup)
-/* Padding. */
-KERNEL_STRUCT_MEMBER(background, int, pad1)
-KERNEL_STRUCT_MEMBER(background, int, pad2)
-KERNEL_STRUCT_MEMBER(background, int, pad3)
+/* Light Index. */
+KERNEL_STRUCT_MEMBER(background, int, light_index)
 KERNEL_STRUCT_END(KernelBackground)
 
 /* BVH: own BVH2 if no native device acceleration struct used. */
@@ -49,11 +47,11 @@ KERNEL_STRUCT_BEGIN(KernelBVH, bvh)
 KERNEL_STRUCT_MEMBER(bvh, int, root)
 KERNEL_STRUCT_MEMBER(bvh, int, have_motion)
 KERNEL_STRUCT_MEMBER(bvh, int, have_curves)
+KERNEL_STRUCT_MEMBER(bvh, int, have_points)
+KERNEL_STRUCT_MEMBER(bvh, int, have_volumes)
 KERNEL_STRUCT_MEMBER(bvh, int, bvh_layout)
 KERNEL_STRUCT_MEMBER(bvh, int, use_bvh_steps)
 KERNEL_STRUCT_MEMBER(bvh, int, curve_subdivisions)
-KERNEL_STRUCT_MEMBER(bvh, int, pad1)
-KERNEL_STRUCT_MEMBER(bvh, int, pad2)
 KERNEL_STRUCT_END(KernelBVH)
 
 /* Film. */
@@ -102,8 +100,6 @@ KERNEL_STRUCT_MEMBER(film, int, pass_emission)
 KERNEL_STRUCT_MEMBER(film, int, pass_background)
 KERNEL_STRUCT_MEMBER(film, int, pass_ao)
 KERNEL_STRUCT_MEMBER(film, float, pass_alpha_threshold)
-KERNEL_STRUCT_MEMBER(film, int, pass_shadow)
-KERNEL_STRUCT_MEMBER(film, float, pass_shadow_scale)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher_sample_count)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher_matte)
@@ -137,9 +133,6 @@ KERNEL_STRUCT_MEMBER(film, int, use_approximate_shadow_catcher)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_color)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_probability)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_avg_roughness)
-/* Padding. */
-KERNEL_STRUCT_MEMBER(film, int, pad1)
-KERNEL_STRUCT_MEMBER(film, int, pad2)
 KERNEL_STRUCT_END(KernelFilm)
 
 /* Integrator. */
@@ -147,10 +140,18 @@ KERNEL_STRUCT_END(KernelFilm)
 KERNEL_STRUCT_BEGIN(KernelIntegrator, integrator)
 /* Emission. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_direct_light)
+KERNEL_STRUCT_MEMBER(integrator, int, use_light_mis)
+KERNEL_STRUCT_MEMBER(integrator, int, use_light_tree)
+KERNEL_STRUCT_MEMBER(integrator, int, num_lights)
+KERNEL_STRUCT_MEMBER(integrator, int, num_distant_lights)
+KERNEL_STRUCT_MEMBER(integrator, int, num_background_lights)
+/* Portal sampling. */
+KERNEL_STRUCT_MEMBER(integrator, int, num_portals)
+KERNEL_STRUCT_MEMBER(integrator, int, portal_offset)
+/* Flat light distribution. */
 KERNEL_STRUCT_MEMBER(integrator, int, num_distribution)
-KERNEL_STRUCT_MEMBER(integrator, int, num_all_lights)
-KERNEL_STRUCT_MEMBER(integrator, float, pdf_triangles)
-KERNEL_STRUCT_MEMBER(integrator, float, pdf_lights)
+KERNEL_STRUCT_MEMBER(integrator, float, distribution_pdf_triangles)
+KERNEL_STRUCT_MEMBER(integrator, float, distribution_pdf_lights)
 KERNEL_STRUCT_MEMBER(integrator, float, light_inv_rr_threshold)
 /* Bounces. */
 KERNEL_STRUCT_MEMBER(integrator, int, min_bounce)
@@ -177,13 +178,16 @@ KERNEL_STRUCT_MEMBER(integrator, int, seed)
 /* Clamp. */
 KERNEL_STRUCT_MEMBER(integrator, float, sample_clamp_direct)
 KERNEL_STRUCT_MEMBER(integrator, float, sample_clamp_indirect)
-/* MIS. */
-KERNEL_STRUCT_MEMBER(integrator, int, use_lamp_mis)
 /* Caustics. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_caustics)
 /* Sampling pattern. */
 KERNEL_STRUCT_MEMBER(integrator, int, sampling_pattern)
 KERNEL_STRUCT_MEMBER(integrator, float, scrambling_distance)
+/* Sobol pattern. */
+KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+KERNEL_STRUCT_MEMBER(integrator, int, tabulated_sobol_sequence_size)
+KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+KERNEL_STRUCT_MEMBER(integrator, int, sobol_index_mask)
 /* Volume render. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_volumes)
 KERNEL_STRUCT_MEMBER(integrator, int, volume_max_steps)
@@ -194,7 +198,6 @@ KERNEL_STRUCT_MEMBER(integrator, int, has_shadow_catcher)
 KERNEL_STRUCT_MEMBER(integrator, int, filter_closures)
 /* MIS debugging. */
 KERNEL_STRUCT_MEMBER(integrator, int, direct_light_sampling_type)
-
 /* Path Guiding */
 KERNEL_STRUCT_MEMBER(integrator, float, surface_guiding_probability)
 KERNEL_STRUCT_MEMBER(integrator, float, volume_guiding_probability)
@@ -205,6 +208,9 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_surface_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_volume_guiding)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_direct_light)
 KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
+
+/* Padding. */
+KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 KERNEL_STRUCT_END(KernelIntegrator)
 
 /* SVM. For shader specialization. */
@@ -216,4 +222,5 @@ KERNEL_STRUCT_END(KernelSVMUsage)
 
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
+#undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 #undef KERNEL_STRUCT_END

@@ -4,6 +4,8 @@
  * \ingroup bke
  */
 
+#include "BLI_task.hh"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 
@@ -12,8 +14,12 @@ namespace blender::bke::curves::catmull_rom {
 int calculate_evaluated_num(const int points_num, const bool cyclic, const int resolution)
 {
   const int eval_num = resolution * segments_num(points_num, cyclic);
+  if (cyclic) {
+    /* Make sure there is a single evaluated point for the single-point curve case. */
+    return std::max(eval_num, 1);
+  }
   /* If the curve isn't cyclic, one last point is added to the final point. */
-  return cyclic ? eval_num : eval_num + 1;
+  return eval_num + 1;
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */
@@ -119,7 +125,7 @@ static void interpolate_to_evaluated(const Span<T> src,
 template<typename T>
 static void interpolate_to_evaluated(const Span<T> src,
                                      const bool cyclic,
-                                     const Span<int> evaluated_offsets,
+                                     const OffsetIndices<int> evaluated_offsets,
                                      MutableSpan<T> dst)
 
 {
@@ -127,7 +133,7 @@ static void interpolate_to_evaluated(const Span<T> src,
       src,
       cyclic,
       [evaluated_offsets](const int segment_i) -> IndexRange {
-        return bke::offsets_to_range(evaluated_offsets, segment_i);
+        return evaluated_offsets[segment_i];
       },
       dst);
 }
@@ -145,7 +151,7 @@ void interpolate_to_evaluated(const GSpan src,
 
 void interpolate_to_evaluated(const GSpan src,
                               const bool cyclic,
-                              const Span<int> evaluated_offsets,
+                              const OffsetIndices<int> evaluated_offsets,
                               GMutableSpan dst)
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {

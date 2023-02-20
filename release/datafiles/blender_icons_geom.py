@@ -121,9 +121,13 @@ def object_child_map(objects):
 
 def mesh_data_lists_from_mesh(me, material_colors):
     me_loops = me.loops[:]
-    me_loops_color = me.attributes.active_color.data[:]
     me_verts = me.vertices[:]
     me_polys = me.polygons[:]
+
+    if me.attributes.active_color:
+        me_loops_color = me_loops_color_active.data[:]
+    else:
+        me_loops_color = None
 
     tris_data = []
 
@@ -138,7 +142,8 @@ def mesh_data_lists_from_mesh(me, material_colors):
         l_sta = p.loop_start
         l_len = p.loop_total
         loops_poly = me_loops[l_sta:l_sta + l_len]
-        color_poly = me_loops_color[l_sta:l_sta + l_len]
+        if me_loops_color is not None:
+            color_poly = me_loops_color[l_sta:l_sta + l_len]
         i0 = 0
         i1 = 1
 
@@ -150,9 +155,12 @@ def mesh_data_lists_from_mesh(me, material_colors):
             l1 = loops_poly[i1]
             l2 = loops_poly[i2]
 
-            c0 = color_poly[i0]
-            c1 = color_poly[i1]
-            c2 = color_poly[i2]
+            if me_loops_color is not None:
+                c0 = color_poly[i0].color
+                c1 = color_poly[i1].color
+                c2 = color_poly[i2].color
+            else:
+                c0 = c1 = c2 = (1.0, 1.0, 1.0, 1.0)
 
             v0 = me_verts[l0.vertex_index]
             v1 = me_verts[l1.vertex_index]
@@ -186,7 +194,7 @@ def color_multiply_and_from_linear_to_srgb(base_color, vertex_color):
     The final color is the product between the base color and the vertex color.
     """
     import mathutils
-    color_linear = [c * b for c, b in zip(vertex_color.color, base_color)]
+    color_linear = [c * b for c, b in zip(vertex_color, base_color)]
     color_srgb = mathutils.Color(color_linear[:3]).from_scene_linear_to_srgb()
     return tuple(round(c * 255) for c in (*color_srgb, color_linear[3]))
 

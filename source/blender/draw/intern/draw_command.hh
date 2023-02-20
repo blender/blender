@@ -21,6 +21,12 @@
 #include "draw_state.h"
 #include "draw_view.hh"
 
+/* Forward declarations. */
+namespace blender::draw::detail {
+template<typename T, int64_t block_size> class SubPassVector;
+template<typename DrawCommandBufType> class PassBase;
+}  // namespace blender::draw::detail
+
 namespace blender::draw::command {
 
 class DrawCommandBuf;
@@ -84,6 +90,7 @@ enum class Type : uint8_t {
   /** Commands stored as Undetermined in regular command buffer. */
   Barrier,
   Clear,
+  ClearMulti,
   Dispatch,
   DispatchIndirect,
   Draw,
@@ -120,7 +127,7 @@ struct ShaderBind {
 };
 
 struct FramebufferBind {
-  GPUFrameBuffer *framebuffer;
+  GPUFrameBuffer **framebuffer;
 
   void execute() const;
   std::string serialize() const;
@@ -133,9 +140,13 @@ struct ResourceBind {
 
   enum class Type : uint8_t {
     Sampler = 0,
+    BufferSampler,
     Image,
     UniformBuf,
     StorageBuf,
+    UniformAsStorageBuf,
+    VertexAsStorageBuf,
+    IndexAsStorageBuf,
   } type;
 
   union {
@@ -148,6 +159,10 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
+    GPUVertBuf *vertex_buf;
+    GPUVertBuf **vertex_buf_ref;
+    GPUIndexBuf *index_buf;
+    GPUIndexBuf **index_buf_ref;
   };
 
   ResourceBind() = default;
@@ -160,6 +175,18 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res){};
   ResourceBind(int slot_, GPUStorageBuf **res)
       : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res){};
+  ResourceBind(int slot_, GPUUniformBuf *res, Type /* type */)
+      : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
+  ResourceBind(int slot_, GPUUniformBuf **res, Type /* type */)
+      : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res, Type /* type */)
+      : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res, Type /* type */)
+      : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res){};
+  ResourceBind(int slot_, GPUIndexBuf *res, Type /* type */)
+      : slot(slot_), is_reference(false), type(Type::IndexAsStorageBuf), index_buf(res){};
+  ResourceBind(int slot_, GPUIndexBuf **res, Type /* type */)
+      : slot(slot_), is_reference(true), type(Type::IndexAsStorageBuf), index_buf_ref(res){};
   ResourceBind(int slot_, draw::Image *res)
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
   ResourceBind(int slot_, draw::Image **res)
@@ -168,6 +195,10 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, eGPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res)
+      : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res)
+      : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;
   std::string serialize() const;
@@ -323,6 +354,15 @@ struct Clear {
   std::string serialize() const;
 };
 
+struct ClearMulti {
+  /** \note This should be a Span<float4> but we need have to only have trivial types here. */
+  const float4 *colors;
+  int colors_len;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 struct StateSet {
   DRWState new_state;
   int clip_plane_count;
@@ -343,6 +383,7 @@ struct StencilSet {
 union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
+  FramebufferBind framebuffer_bind;
   PushConstant push_constant;
   Draw draw;
   DrawMulti draw_multi;
@@ -351,6 +392,7 @@ union Undetermined {
   DispatchIndirect dispatch_indirect;
   Barrier barrier;
   Clear clear;
+  ClearMulti clear_multi;
   StateSet state_set;
   StencilSet stencil_set;
 };
@@ -375,6 +417,7 @@ class DrawCommandBuf {
 
  private:
   using ResourceIdBuf = StorageArrayBuffer<uint, 128, false>;
+  using SubPassVector = detail::SubPassVector<detail::PassBase<DrawCommandBuf>, 16>;
 
   /** Array of resource id. One per instance. Generated on GPU and send to GPU. */
   ResourceIdBuf resource_id_buf_;
@@ -400,7 +443,17 @@ class DrawCommandBuf {
     commands[index].draw = {batch, instance_len, vertex_len, vertex_first, handle};
   }
 
-  void bind(RecordingState &state, Vector<Header, 0> &headers, Vector<Undetermined, 0> &commands);
+  void bind(RecordingState &state,
+            Vector<Header, 0> &headers,
+            Vector<Undetermined, 0> &commands,
+            SubPassVector &sub_passes);
+
+ private:
+  static void finalize_commands(Vector<Header, 0> &headers,
+                                Vector<Undetermined, 0> &commands,
+                                SubPassVector &sub_passes,
+                                uint &resource_id_count,
+                                ResourceIdBuf &resource_id_buf);
 };
 
 /** \} */
@@ -539,7 +592,9 @@ class DrawMultiBuf {
   void bind(RecordingState &state,
             Vector<Header, 0> &headers,
             Vector<Undetermined, 0> &commands,
-            VisibilityBuf &visibility_buf);
+            VisibilityBuf &visibility_buf,
+            int visibility_word_per_draw,
+            int view_len);
 };
 
 /** \} */

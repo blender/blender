@@ -11,6 +11,7 @@
 #include "GPU_debug.h"
 
 #include "draw_command.hh"
+#include "draw_pass.hh"
 #include "draw_shader.h"
 #include "draw_view.hh"
 
@@ -32,7 +33,7 @@ void ShaderBind::execute(RecordingState &state) const
 
 void FramebufferBind::execute() const
 {
-  GPU_framebuffer_bind(framebuffer);
+  GPU_framebuffer_bind(*framebuffer);
 }
 
 void ResourceBind::execute() const
@@ -44,6 +45,9 @@ void ResourceBind::execute() const
     case ResourceBind::Type::Sampler:
       GPU_texture_bind_ex(is_reference ? *texture_ref : texture, sampler, slot, false);
       break;
+    case ResourceBind::Type::BufferSampler:
+      GPU_vertbuf_bind_as_texture(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
     case ResourceBind::Type::Image:
       GPU_texture_image_bind(is_reference ? *texture_ref : texture, slot);
       break;
@@ -52,6 +56,15 @@ void ResourceBind::execute() const
       break;
     case ResourceBind::Type::StorageBuf:
       GPU_storagebuf_bind(is_reference ? *storage_buf_ref : storage_buf, slot);
+      break;
+    case ResourceBind::Type::UniformAsStorageBuf:
+      GPU_uniformbuf_bind_as_ssbo(is_reference ? *uniform_buf_ref : uniform_buf, slot);
+      break;
+    case ResourceBind::Type::VertexAsStorageBuf:
+      GPU_vertbuf_bind_as_ssbo(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
+    case ResourceBind::Type::IndexAsStorageBuf:
+      GPU_indexbuf_bind_as_ssbo(is_reference ? *index_buf_ref : index_buf, slot);
       break;
   }
 }
@@ -63,16 +76,16 @@ void PushConstant::execute(RecordingState &state) const
   }
   switch (type) {
     case PushConstant::Type::IntValue:
-      GPU_shader_uniform_vector_int(state.shader, location, comp_len, array_len, int4_value);
+      GPU_shader_uniform_int_ex(state.shader, location, comp_len, array_len, int4_value);
       break;
     case PushConstant::Type::IntReference:
-      GPU_shader_uniform_vector_int(state.shader, location, comp_len, array_len, int_ref);
+      GPU_shader_uniform_int_ex(state.shader, location, comp_len, array_len, int_ref);
       break;
     case PushConstant::Type::FloatValue:
-      GPU_shader_uniform_vector(state.shader, location, comp_len, array_len, float4_value);
+      GPU_shader_uniform_float_ex(state.shader, location, comp_len, array_len, float4_value);
       break;
     case PushConstant::Type::FloatReference:
-      GPU_shader_uniform_vector(state.shader, location, comp_len, array_len, float_ref);
+      GPU_shader_uniform_float_ex(state.shader, location, comp_len, array_len, float_ref);
       break;
   }
 }
@@ -158,6 +171,12 @@ void Clear::execute() const
   GPU_framebuffer_clear(fb, (eGPUFrameBufferBits)clear_channels, color, depth, stencil);
 }
 
+void ClearMulti::execute() const
+{
+  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
+}
+
 void StateSet::execute(RecordingState &recording_state) const
 {
   /**
@@ -234,7 +253,8 @@ std::string ShaderBind::serialize() const
 
 std::string FramebufferBind::serialize() const
 {
-  return std::string(".framebuffer_bind(") + GPU_framebuffer_get_name(framebuffer) + ")";
+  return std::string(".framebuffer_bind(") +
+         (*framebuffer == nullptr ? "nullptr" : GPU_framebuffer_get_name(*framebuffer)) + ")";
 }
 
 std::string ResourceBind::serialize() const
@@ -244,6 +264,9 @@ std::string ResourceBind::serialize() const
       return std::string(".bind_texture") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) +
              (sampler != GPU_SAMPLER_MAX ? ", sampler=" + std::to_string(sampler) : "") + ")";
+    case Type::BufferSampler:
+      return std::string(".bind_vertbuf_as_texture") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
     case Type::Image:
       return std::string(".bind_image") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
@@ -252,6 +275,15 @@ std::string ResourceBind::serialize() const
              std::to_string(slot) + ")";
     case Type::StorageBuf:
       return std::string(".bind_storage_buf") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::UniformAsStorageBuf:
+      return std::string(".bind_uniform_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::VertexAsStorageBuf:
+      return std::string(".bind_vertbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::IndexAsStorageBuf:
+      return std::string(".bind_indexbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
     default:
       BLI_assert_unreachable();
@@ -335,7 +367,8 @@ std::string PushConstant::serialize() const
             BLI_assert_unreachable();
             break;
           case Type::FloatValue:
-            ss << *reinterpret_cast<const float4x4 *>(&float4_value);
+            ss << float4x4(
+                (&float4_value)[0], (&float4_value)[1], (&float4_value)[2], (&float4_value)[3]);
             break;
           case Type::FloatReference:
             ss << *float4x4_ref;
@@ -395,7 +428,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     intptr_t offset = grp.start;
 
     if (grp.back_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.back_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(handle.has_inverted_handedness());
@@ -407,7 +440,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     }
 
     if (grp.front_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.front_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(!handle.has_inverted_handedness());
@@ -470,6 +503,15 @@ std::string Clear::serialize() const
   return std::string(".clear(") + ss.str() + ")";
 }
 
+std::string ClearMulti::serialize() const
+{
+  std::stringstream ss;
+  for (float4 color : Span<float4>(colors, colors_len)) {
+    ss << color << ", ";
+  }
+  return std::string(".clear_multi(colors={") + ss.str() + "})";
+}
+
 std::string StateSet::serialize() const
 {
   /* TODO(@fclem): Better serialization... */
@@ -479,8 +521,8 @@ std::string StateSet::serialize() const
 std::string StencilSet::serialize() const
 {
   std::stringstream ss;
-  ss << ".stencil_set(write_mask=0b" << std::bitset<8>(write_mask) << ", compare_mask=0b"
-     << std::bitset<8>(compare_mask) << ", reference=0b" << std::bitset<8>(reference);
+  ss << ".stencil_set(write_mask=0b" << std::bitset<8>(write_mask) << ", reference=0b"
+     << std::bitset<8>(reference) << ", compare_mask=0b" << std::bitset<8>(compare_mask) << ")";
   return ss.str();
 }
 
@@ -490,15 +532,20 @@ std::string StencilSet::serialize() const
 /** \name Commands buffers binding / command / resource ID generation
  * \{ */
 
-void DrawCommandBuf::bind(RecordingState &state,
-                          Vector<Header, 0> &headers,
-                          Vector<Undetermined, 0> &commands)
+void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
+                                       Vector<Undetermined, 0> &commands,
+                                       SubPassVector &sub_passes,
+                                       uint &resource_id_count,
+                                       ResourceIdBuf &resource_id_buf)
 {
-  UNUSED_VARS(headers, commands);
-
-  resource_id_count_ = 0;
-
   for (const Header &header : headers) {
+    if (header.type == Type::SubPass) {
+      /** WARNING: Recursive. */
+      auto &sub = sub_passes[int64_t(header.index)];
+      finalize_commands(
+          sub.headers_, sub.commands_, sub_passes, resource_id_count, resource_id_buf);
+    }
+
     if (header.type != Type::Draw) {
       continue;
     }
@@ -519,18 +566,28 @@ void DrawCommandBuf::bind(RecordingState &state,
 
     if (cmd.handle.raw > 0) {
       /* Save correct offset to start of resource_id buffer region for this draw. */
-      uint instance_first = resource_id_count_;
-      resource_id_count_ += cmd.instance_len;
+      uint instance_first = resource_id_count;
+      resource_id_count += cmd.instance_len;
       /* Ensure the buffer is big enough. */
-      resource_id_buf_.get_or_resize(resource_id_count_ - 1);
+      resource_id_buf.get_or_resize(resource_id_count - 1);
 
       /* Copy the resource id for all instances. */
       uint index = cmd.handle.resource_index();
       for (int i = instance_first; i < (instance_first + cmd.instance_len); i++) {
-        resource_id_buf_[i] = index;
+        resource_id_buf[i] = index;
       }
     }
   }
+}
+
+void DrawCommandBuf::bind(RecordingState &state,
+                          Vector<Header, 0> &headers,
+                          Vector<Undetermined, 0> &commands,
+                          SubPassVector &sub_passes)
+{
+  resource_id_count_ = 0;
+
+  finalize_commands(headers, commands, sub_passes, resource_id_count_, resource_id_buf_);
 
   resource_id_buf_.push_update();
 
@@ -545,7 +602,9 @@ void DrawCommandBuf::bind(RecordingState &state,
 void DrawMultiBuf::bind(RecordingState &state,
                         Vector<Header, 0> &headers,
                         Vector<Undetermined, 0> &commands,
-                        VisibilityBuf &visibility_buf)
+                        VisibilityBuf &visibility_buf,
+                        int visibility_word_per_draw,
+                        int view_len)
 {
   UNUSED_VARS(headers, commands);
 
@@ -555,7 +614,7 @@ void DrawMultiBuf::bind(RecordingState &state,
   for (DrawGroup &group : MutableSpan<DrawGroup>(group_buf_.data(), group_count_)) {
     /* Compute prefix sum of all instance of previous group. */
     group.start = resource_id_count_;
-    resource_id_count_ += group.len;
+    resource_id_count_ += group.len * view_len;
 
     int batch_inst_len;
     /* Now that GPUBatches are guaranteed to be finished, extract their parameters. */
@@ -585,10 +644,12 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPUShader *shader = DRW_shader_draw_command_generate_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
-    GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo(shader, "group_buf"));
-    GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo(shader, "visibility_buf"));
-    GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo(shader, "prototype_buf"));
-    GPU_storagebuf_bind(command_buf_, GPU_shader_get_ssbo(shader, "command_buf"));
+    GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
+    GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
+    GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo_binding(shader, "group_buf"));
+    GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo_binding(shader, "visibility_buf"));
+    GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo_binding(shader, "prototype_buf"));
+    GPU_storagebuf_bind(command_buf_, GPU_shader_get_ssbo_binding(shader, "command_buf"));
     GPU_storagebuf_bind(resource_id_buf_, DRW_RESOURCE_ID_SLOT);
     GPU_compute_dispatch(shader, divide_ceil_u(prototype_count_, DRW_COMMAND_GROUP_SIZE), 1, 1);
     if (GPU_shader_draw_parameters_support() == false) {

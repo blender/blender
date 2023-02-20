@@ -176,35 +176,22 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
-      /* the moons align! */
-      int i;
-
-      float(*vertexCos_Source)[3] = MEM_malloc_arrayN(
-          verts_num, sizeof(*vertexCos_Source), __func__);
       float(*vertexCos_New)[3] = MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__);
-      const MVert *mv = BKE_mesh_verts(me);
-
-      for (i = 0; i < verts_num; i++, mv++) {
-        copy_v3_v3(vertexCos_Source[i], mv->co);
-      }
 
       BKE_mesh_calc_relative_deform(
           BKE_mesh_polys(me),
           me->totpoly,
           BKE_mesh_loops(me),
           me->totvert,
-
-          (const float(*)[3])vertexCos_Source, /* From the original Mesh. */
-          (const float(*)[3])vertexCos_Real,   /* the input we've been given (shape keys!) */
-
-          (const float(*)[3])vertexCos, /* The result of this modifier. */
-          vertexCos_New                 /* The result of this function. */
+          BKE_mesh_vert_positions(me),       /* From the original Mesh. */
+          (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */
+          (const float(*)[3])vertexCos,      /* The result of this modifier. */
+          vertexCos_New                      /* The result of this function. */
       );
 
       /* write the corrected locations back into the result */
       memcpy(vertexCos, vertexCos_New, sizeof(*vertexCos) * verts_num);
 
-      MEM_freeN(vertexCos_Source);
       MEM_freeN(vertexCos_New);
     }
   }
@@ -415,35 +402,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_MeshCache = {
-    /* name */ N_("MeshCache"),
-    /* structName */ "MeshCacheModifierData",
-    /* structSize */ sizeof(MeshCacheModifierData),
-    /* srna */ &RNA_MeshCacheModifier,
-    /* type */ eModifierTypeType_OnlyDeform,
-    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
+    /*name*/ N_("MeshCache"),
+    /*structName*/ "MeshCacheModifierData",
+    /*structSize*/ sizeof(MeshCacheModifierData),
+    /*srna*/ &RNA_MeshCacheModifier,
+    /*type*/ eModifierTypeType_OnlyDeform,
+    /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
-    /* icon */ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
+    /*icon*/ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ deformVertsEM,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ deformVerts,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ deformVertsEM,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ NULL,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /*initData*/ initData,
+    /*requiredDataMask*/ NULL,
+    /*freeData*/ NULL,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ NULL,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ NULL,
 };

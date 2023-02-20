@@ -426,7 +426,7 @@ void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_
  * cannot run the tasks itself. On a single thread, that causes a deadlock already. When there are
  * multiple threads, another thread will typically run the task and avoid the deadlock. However, if
  * this situation happens on all threads at the same time, all threads will deadlock. This happened
- * in T88598.
+ * in #88598.
  * \{ */
 
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata);

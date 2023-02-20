@@ -19,7 +19,8 @@ int blender_device_threads(BL::Scene &b_scene);
 /* Convert Blender settings to device specification. */
 DeviceInfo blender_device_info(BL::Preferences &b_preferences,
                                BL::Scene &b_scene,
-                               bool background);
+                               bool background,
+                               bool preview);
 
 CCL_NAMESPACE_END
 

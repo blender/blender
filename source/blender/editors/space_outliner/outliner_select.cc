@@ -363,7 +363,7 @@ static void tree_element_object_activate(bContext *C,
       /* Only in object mode so we can switch the active object,
        * keeping all objects in the current 'mode' selected, useful for multi-pose/edit mode.
        * This keeps the convention that all objects in the current mode are also selected.
-       * see T55246. */
+       * see #55246. */
       if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
               (ob->mode == OB_MODE_OBJECT) :
               true) {
@@ -416,7 +416,7 @@ static void tree_element_material_activate(bContext *C,
   }
 
   /* Tagging object for update seems a bit stupid here, but looks like we have to do it
-   * for render views to update. See T42973.
+   * for render views to update. See #42973.
    * Note that RNA material update does it too, see e.g. rna_MaterialSlot_update(). */
   DEG_id_tag_update((ID *)ob, ID_RECALC_TRANSFORM);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
@@ -1402,7 +1402,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
            TSE_EBONE,
            TSE_LAYER_COLLECTION)) {
     /* Note about TSE_EBONE: In case of a same ID_AR datablock shared among several
-     * objects, we do not want to switch out of edit mode (see T48328 for details). */
+     * objects, we do not want to switch out of edit mode (see #48328 for details). */
   }
   else if (do_activate_data) {
     tree_element_object_activate(C,

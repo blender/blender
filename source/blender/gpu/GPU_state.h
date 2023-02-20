@@ -8,6 +8,9 @@
 
 #include "BLI_utildefines.h"
 
+/** Opaque type hiding blender::gpu::Fence. */
+typedef struct GPUFence GPUFence;
+
 typedef enum eGPUWriteMask {
   GPU_WRITE_NONE = 0,
   GPU_WRITE_RED = (1 << 0),
@@ -31,9 +34,10 @@ typedef enum eGPUBarrier {
   GPU_BARRIER_TEXTURE_UPDATE = (1 << 5),
   GPU_BARRIER_VERTEX_ATTRIB_ARRAY = (1 << 6),
   GPU_BARRIER_ELEMENT_ARRAY = (1 << 7),
+  GPU_BARRIER_UNIFORM = (1 << 8),
 } eGPUBarrier;
 
-ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_ELEMENT_ARRAY)
+ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_UNIFORM)
 
 /* NOTE: For Metal and Vulkan only.
  * TODO(Metal): Update barrier calls to use stage flags. */
@@ -194,6 +198,11 @@ void GPU_bgl_end(void);
 bool GPU_bgl_get(void);
 
 void GPU_memory_barrier(eGPUBarrier barrier);
+
+GPUFence *GPU_fence_create(void);
+void GPU_fence_free(GPUFence *fence);
+void GPU_fence_signal(GPUFence *fence);
+void GPU_fence_wait(GPUFence *fence);
 
 #ifdef __cplusplus
 }

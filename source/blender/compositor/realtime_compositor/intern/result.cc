@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_float3x3.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -16,6 +16,13 @@ namespace blender::realtime_compositor {
 Result::Result(ResultType type, TexturePool &texture_pool)
     : type_(type), texture_pool_(&texture_pool)
 {
+}
+
+Result Result::Temporary(ResultType type, TexturePool &texture_pool)
+{
+  Result result = Result(type, texture_pool);
+  result.increment_reference_count();
+  return result;
 }
 
 void Result::allocate_texture(Domain domain)
@@ -75,13 +82,18 @@ void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
   /* Make sure any prior writes to the texture are reflected before reading from it. */
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
 
-  const int texture_image_unit = GPU_shader_get_texture_binding(shader, texture_name);
+  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
   GPU_texture_bind(texture_, texture_image_unit);
 }
 
-void Result::bind_as_image(GPUShader *shader, const char *image_name) const
+void Result::bind_as_image(GPUShader *shader, const char *image_name, bool read) const
 {
-  const int image_unit = GPU_shader_get_texture_binding(shader, image_name);
+  /* Make sure any prior writes to the texture are reflected before reading from it. */
+  if (read) {
+    GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
+
+  const int image_unit = GPU_shader_get_sampler_binding(shader, image_name);
   GPU_texture_image_bind(texture_, image_unit);
 }
 

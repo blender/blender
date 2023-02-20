@@ -5,9 +5,16 @@
  * \ingroup gpu
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "vk_vertex_buffer.hh"
 
 namespace blender::gpu {
+
+VKVertexBuffer::~VKVertexBuffer()
+{
+  release_data();
+}
 
 void VKVertexBuffer::bind_as_ssbo(uint /*binding*/)
 {
@@ -25,18 +32,19 @@ void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*dat
 {
 }
 
-const void *VKVertexBuffer::read() const
+void VKVertexBuffer::read(void * /*data*/) const
 {
-  return nullptr;
-}
-
-void *VKVertexBuffer::unmap(const void * /*mapped_data*/) const
-{
-  return nullptr;
 }
 
 void VKVertexBuffer::acquire_data()
 {
+  if (usage_ == GPU_USAGE_DEVICE_ONLY) {
+    return;
+  }
+
+  /* Discard previous data if any. */
+  MEM_SAFE_FREE(data);
+  data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }
 
 void VKVertexBuffer::resize_data()
@@ -45,6 +53,7 @@ void VKVertexBuffer::resize_data()
 
 void VKVertexBuffer::release_data()
 {
+  MEM_SAFE_FREE(data);
 }
 
 void VKVertexBuffer::upload_data()

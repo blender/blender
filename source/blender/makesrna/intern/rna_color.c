@@ -332,7 +332,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
-      /* ColorRamp for particle display is owned by the object (see T54422) */
+      /* ColorRamp for particle display is owned by the object (see #54422) */
       case ID_OB:
       case ID_PA: {
         ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
@@ -626,6 +626,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     Image *ima = (Image *)id;
 
     DEG_id_tag_update(&ima->id, 0);
+    DEG_id_tag_update(&ima->id, ID_RECALC_SOURCE);
 
     BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 
@@ -727,7 +728,7 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
   PropertyRNA *prop;
   static const EnumPropertyItem prop_handle_type_items[] = {
       {0, "AUTO", 0, "Auto Handle", ""},
-      {CUMA_HANDLE_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped Handle", ""},
+      {CUMA_HANDLE_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto-Clamped Handle", ""},
       {CUMA_HANDLE_VECTOR, "VECTOR", 0, "Vector Handle", ""},
       {0, NULL, 0, NULL, NULL},
   };

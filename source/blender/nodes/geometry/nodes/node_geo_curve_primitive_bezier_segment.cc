@@ -63,7 +63,7 @@ static Curves *create_bezier_segment_curve(const float3 start,
                                            const GeometryNodeCurvePrimitiveBezierSegmentMode mode)
 {
   Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_BEZIER);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.resolution_for_write().fill(resolution);
 
   MutableSpan<float3> positions = curves.positions_for_write();

@@ -472,7 +472,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   }
 
   /* These arrays used to be stack memory, however they can be
-   * large for single faces with complex edge-nets, see: T65980. */
+   * large for single faces with complex edge-nets, see: #65980. */
 
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
   edge_order = MEM_mallocN(sizeof(*edge_order) * edge_order_len, __func__);
@@ -501,7 +501,7 @@ bool BM_face_split_edgenet(BMesh *bm,
    * however in rare cases verts are added multiple times to the queue,
    * that on its own is harmless but in _very_ rare cases,
    * the queue will overflow its maximum size,
-   * so we better be strict about this! see: T51539 */
+   * so we better be strict about this! see: #51539 */
 
   for (i = 0; i < edge_net_len; i++) {
     BM_ELEM_API_FLAG_ENABLE(edge_net[i], EDGE_NET);
@@ -706,7 +706,7 @@ BLI_INLINE bool edge_isect_verts_point_2d(const BMEdge *e,
                                           float r_isect[2])
 {
   /* This bias seems like it could be too large,
-   * mostly its not needed, see T52329 for example where it is. */
+   * mostly its not needed, see #52329 for example where it is. */
   const float endpoint_bias = 1e-4f;
   return ((isect_seg_seg_v2_point_ex(
                v_a->co, v_b->co, e->v1->co, e->v2->co, endpoint_bias, r_isect) == 1) &&
@@ -1159,7 +1159,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
 
     BLI_assert(v_delimit->e != NULL);
 
-    /* Degenerate, avoid eternal loop, see: T59074. */
+    /* Degenerate, avoid eternal loop, see: #59074. */
 #  if 0
     BLI_assert(v_split->e != NULL);
 #  else
@@ -1481,7 +1481,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   /* Now create bvh tree
    *
    * Note that a large epsilon is used because meshes with dimensions of around 100+ need it.
-   * see T52329. */
+   * see #52329. */
   BVHTree *bvhtree = BLI_bvhtree_new(edge_arr_len, 1e-4f, 8, 8);
   for (uint i = 0; i < edge_arr_len; i++) {
     const float e_cos[2][3] = {
@@ -1633,7 +1633,7 @@ finally:
     struct TempVertPair *tvp = temp_vert_pairs.list;
     do {
       /* its _very_ unlikely the edge exists,
-       * however splicing may cause this. see: T48012 */
+       * however splicing may cause this. see: #48012 */
       if (!BM_edge_exists(tvp->v_orig, tvp->v_temp)) {
         BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
       }

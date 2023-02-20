@@ -47,7 +47,7 @@ static int uvedit_center(Scene *scene, Object **objects, uint objects_len, float
   BMFace *f;
   BMLoop *l;
   BMIter iter, liter;
-  MLoopUV *luv;
+  float *luv;
   int tot = 0;
 
   zero_v2(center);
@@ -55,7 +55,7 @@ static int uvedit_center(Scene *scene, Object **objects, uint objects_len, float
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
     BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, f)) {
@@ -63,9 +63,9 @@ static int uvedit_center(Scene *scene, Object **objects, uint objects_len, float
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          add_v2_v2(center, luv->uv);
+        if (uvedit_uv_select_test(scene, l, offsets)) {
+          luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+          add_v2_v2(center, luv);
           tot++;
         }
       }
@@ -88,13 +88,13 @@ static void uvedit_translate(Scene *scene,
   BMFace *f;
   BMLoop *l;
   BMIter iter, liter;
-  MLoopUV *luv;
+  float *luv;
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
     BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, f)) {
@@ -102,9 +102,9 @@ static void uvedit_translate(Scene *scene,
       }
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          add_v2_v2(luv->uv, delta);
+        if (uvedit_uv_select_test(scene, l, offsets)) {
+          luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+          add_v2_v2(luv, delta);
         }
       }
     }

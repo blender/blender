@@ -884,7 +884,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 void BKE_appdir_program_path_init(const char *argv0)
 {
 #ifdef WITH_PYTHON_MODULE
-  /* NOTE(@campbellbarton): Always use `argv[0]` as is, when building as a Python module.
+  /* NOTE(@ideasman42): Always use `argv[0]` as is, when building as a Python module.
    * Otherwise other methods of detecting the binary that override this argument
    * which must point to the Python module for data-files to be detected. */
   STRNCPY(g_app.program_filepath, argv0);

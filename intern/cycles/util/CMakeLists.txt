@@ -74,7 +74,6 @@ set(SRC_HEADERS
   md5.h
   murmurhash.h
   openimagedenoise.h
-  opengl.h
   openvdb.h
   optimization.h
   param.h

@@ -226,6 +226,7 @@ NODE_DEFINE(ImageTextureNode)
   extension_enum.insert("periodic", EXTENSION_REPEAT);
   extension_enum.insert("clamp", EXTENSION_EXTEND);
   extension_enum.insert("black", EXTENSION_CLIP);
+  extension_enum.insert("mirror", EXTENSION_MIRROR);
   SOCKET_ENUM(extension, "Extension", extension_enum, EXTENSION_REPEAT);
 
   static NodeEnum projection_enum;
@@ -776,6 +777,68 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   sunsky->nishita_data[7] = sun_rotation;
   sunsky->nishita_data[8] = sun_disc ? sun_size : -1.0f;
   sunsky->nishita_data[9] = sun_intensity;
+}
+
+float SkyTextureNode::get_sun_average_radiance()
+{
+  float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  float angular_diameter = get_sun_size();
+
+  float pix_bottom[3];
+  float pix_top[3];
+  SKY_nishita_skymodel_precompute_sun(sun_elevation,
+                                      angular_diameter,
+                                      clamped_altitude,
+                                      air_density,
+                                      dust_density,
+                                      pix_bottom,
+                                      pix_top);
+
+  /* Approximate the direction's elevation as the sun's elevation. */
+  float dir_elevation = sun_elevation;
+  float half_angular = angular_diameter / 2.0f;
+  float3 pixel_bottom = make_float3(pix_bottom[0], pix_bottom[1], pix_bottom[2]);
+  float3 pixel_top = make_float3(pix_top[0], pix_top[1], pix_top[2]);
+
+  /* Same code as in the sun evaluation shader. */
+  float3 xyz = make_float3(0.0f, 0.0f, 0.0f);
+  float y = 0.0f;
+  if (sun_elevation - half_angular > 0.0f) {
+    if (sun_elevation + half_angular > 0.0f) {
+      y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
+      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
+    }
+  }
+  else {
+    if (sun_elevation + half_angular > 0.0f) {
+      y = dir_elevation / (sun_elevation + half_angular);
+      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
+    }
+  }
+
+  /* We first approximate the sun's contribution by
+   * multiplying the evaluated point by the square of the angular diameter.
+   * Then we scale the approximation using a piecewise function (determined empirically). */
+  float sun_contribution = average(xyz) * sqr(angular_diameter);
+
+  float first_point = 0.8f / 180.0f * M_PI_F;
+  float second_point = 1.0f / 180.0f * M_PI_F;
+  float third_point = M_PI_2_F;
+  if (angular_diameter < first_point) {
+    sun_contribution *= 1.0f;
+  }
+  else if (angular_diameter < second_point) {
+    float diff = angular_diameter - first_point;
+    float slope = (0.8f - 1.0f) / (second_point - first_point);
+    sun_contribution *= 1.0f + slope * diff;
+  }
+  else {
+    float diff = angular_diameter - 1.0f / 180.0f * M_PI_F;
+    float slope = (0.45f - 0.8f) / (third_point - second_point);
+    sun_contribution *= 0.8f + slope * diff;
+  }
+
+  return sun_contribution;
 }
 
 NODE_DEFINE(SkyTextureNode)
@@ -3677,9 +3740,6 @@ NODE_DEFINE(GeometryNode)
 {
   NodeType *type = NodeType::add("geometry", create, NodeType::SHADER);
 
-  SOCKET_IN_NORMAL(
-      normal_osl, "NormalIn", zero_float3(), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
-
   SOCKET_OUT_POINT(position, "Position");
   SOCKET_OUT_NORMAL(normal, "Normal");
   SOCKET_OUT_NORMAL(tangent, "Tangent");
@@ -3811,9 +3871,6 @@ NODE_DEFINE(TextureCoordinateNode)
   SOCKET_BOOLEAN(from_dupli, "From Dupli", false);
   SOCKET_BOOLEAN(use_transform, "Use Transform", false);
   SOCKET_TRANSFORM(ob_tfm, "Object Transform", transform_identity());
-
-  SOCKET_IN_NORMAL(
-      normal_osl, "NormalIn", zero_float3(), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
 
   SOCKET_OUT_POINT(generated, "Generated");
   SOCKET_OUT_NORMAL(normal, "Normal");
@@ -4953,6 +5010,7 @@ NODE_DEFINE(MixNode)
   type_enum.insert("color", NODE_MIX_COL);
   type_enum.insert("soft_light", NODE_MIX_SOFT);
   type_enum.insert("linear_light", NODE_MIX_LINEAR);
+  type_enum.insert("exclusion", NODE_MIX_EXCLUSION);
   SOCKET_ENUM(mix_type, "Type", type_enum, NODE_MIX_BLEND);
 
   SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
@@ -5031,6 +5089,7 @@ NODE_DEFINE(MixColorNode)
   type_enum.insert("color", NODE_MIX_COL);
   type_enum.insert("soft_light", NODE_MIX_SOFT);
   type_enum.insert("linear_light", NODE_MIX_LINEAR);
+  type_enum.insert("exclusion", NODE_MIX_EXCLUSION);
   SOCKET_ENUM(blend_type, "Type", type_enum, NODE_MIX_BLEND);
 
   SOCKET_IN_FLOAT(fac, "Factor", 0.5f);
@@ -5138,6 +5197,9 @@ void MixFloatNode::constant_fold(const ConstantFolder &folder)
     }
     folder.make_constant(a * (1 - fac) + b * fac);
   }
+  else {
+    folder.fold_mix_float(use_clamp, false);
+  }
 }
 
 /* Mix Vector */
@@ -5190,6 +5252,9 @@ void MixVectorNode::constant_fold(const ConstantFolder &folder)
       fac = clamp(fac, 0.0f, 1.0f);
     }
     folder.make_constant(a * (one_float3() - fac) + b * fac);
+  }
+  else {
+    folder.fold_mix_color(NODE_MIX_BLEND, use_clamp, false);
   }
 }
 
@@ -7217,6 +7282,7 @@ void SetNormalNode::compile(OSLCompiler &compiler)
 OSLNode::OSLNode() : ShaderNode(new NodeType(NodeType::SHADER))
 {
   special_type = SHADER_SPECIAL_TYPE_OSL;
+  has_emission = false;
 }
 
 OSLNode::~OSLNode()
@@ -7263,12 +7329,12 @@ char *OSLNode::input_default_value()
   return (char *)this + align_up(sizeof(OSLNode), 16) + inputs_size;
 }
 
-void OSLNode::add_input(ustring name, SocketType::Type socket_type)
+void OSLNode::add_input(ustring name, SocketType::Type socket_type, const int flags)
 {
   char *memory = input_default_value();
   size_t offset = memory - (char *)this;
   const_cast<NodeType *>(type)->register_input(
-      name, name, socket_type, offset, memory, NULL, NULL, SocketType::LINKABLE);
+      name, name, socket_type, offset, memory, NULL, NULL, flags | SocketType::LINKABLE);
 }
 
 void OSLNode::add_output(ustring name, SocketType::Type socket_type)
@@ -7305,8 +7371,6 @@ NODE_DEFINE(NormalMapNode)
 
   SOCKET_STRING(attribute, "Attribute", ustring());
 
-  SOCKET_IN_NORMAL(
-      normal_osl, "NormalIn", zero_float3(), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
   SOCKET_IN_FLOAT(strength, "Strength", 1.0f);
   SOCKET_IN_COLOR(color, "Color", make_float3(0.5f, 0.5f, 1.0f));
 
@@ -7400,8 +7464,6 @@ NODE_DEFINE(TangentNode)
 
   SOCKET_STRING(attribute, "Attribute", ustring());
 
-  SOCKET_IN_NORMAL(
-      normal_osl, "NormalIn", zero_float3(), SocketType::LINK_NORMAL | SocketType::OSL_INTERNAL);
   SOCKET_OUT_NORMAL(tangent, "Tangent");
 
   return type;

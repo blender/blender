@@ -276,13 +276,22 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
     return;
   }
 
-  /* Make sure new sockets are properly created. */
-  node_verify_sockets(ntree, node, false);
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = node->storage;
-  bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue"),
-              *saturation = nodeFindSocket(node, SOCK_IN, "Saturation"),
-              *value = nodeFindSocket(node, SOCK_IN, "Value");
+  bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue");
+  bNodeSocket *saturation = nodeFindSocket(node, SOCK_IN, "Saturation");
+  bNodeSocket *value = nodeFindSocket(node, SOCK_IN, "Value");
+  if (hue == NULL) {
+    hue = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
+  }
+  if (saturation == NULL) {
+    saturation = nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
+  }
+  if (value == NULL) {
+    value = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
+  }
+
   ((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;
   ((bNodeSocketValueFloat *)saturation->default_value)->value = nhs->sat;
   ((bNodeSocketValueFloat *)value->default_value)->value = nhs->val;
@@ -400,7 +409,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
         FMod_Stepped *data = fcm->data;
 
         /* Modifier doesn't work if the modifier's copy of start/end frame are both 0
-         * as those were only getting written to the fcm->data copy (T52009)
+         * as those were only getting written to the fcm->data copy (#52009)
          */
         if ((fcm->sfra == fcm->efra) && (fcm->sfra == 0)) {
           fcm->sfra = data->start_frame;
@@ -548,7 +557,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 270, 4)) {
     /* ui_previews were not handled correctly when copying areas,
-     * leading to corrupted files (see T39847).
+     * leading to corrupted files (see #39847).
      * This will always reset situation to a valid state.
      */
     bScreen *screen;
@@ -1380,15 +1389,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 278, 0)) {
     if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
-      MovieClip *clip;
-      for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-        MovieTracking *tracking = &clip->tracking;
-        MovieTrackingObject *tracking_object;
-        for (tracking_object = tracking->objects.first; tracking_object != NULL;
-             tracking_object = tracking_object->next) {
-          ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-          MovieTrackingTrack *track;
-          for (track = tracksbase->first; track != NULL; track = track->next) {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        const MovieTracking *tracking = &clip->tracking;
+        LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
+                                           &tracking->tracks_legacy :
+                                           &tracking_object->tracks;
+          LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
             track->weight_stab = track->weight;
           }
         }
@@ -1544,7 +1551,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix for T50736, Glare comp node using same var for two different things. */
+    /* Fix for #50736, Glare comp node using same var for two different things. */
     if (!DNA_struct_elem_find(fd->filesdna, "NodeGlare", "char", "star_45")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_COMPOSIT) {
@@ -1595,7 +1602,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix related to VGroup modifiers creating named defgroup CD layers! See T51520. */
+    /* Fix related to VGroup modifiers creating named defgroup CD layers! See #51520. */
     for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
       CustomData_set_layer_name(&me->vdata, CD_MDEFORMVERT, 0, "");
     }

@@ -70,9 +70,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   void enqueue_path_iteration(DeviceKernel kernel, const int num_paths_limit = INT_MAX);
 
   void compute_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
-  void compute_sorted_queued_paths(DeviceKernel kernel,
-                                   DeviceKernel queued_kernel,
-                                   const int num_paths_limit);
+  void compute_sorted_queued_paths(DeviceKernel queued_kernel, const int num_paths_limit);
 
   void compact_main_paths(const int num_active_paths);
   void compact_shadow_paths();
@@ -135,6 +133,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   device_vector<int> integrator_shader_raytrace_sort_counter_;
   device_vector<int> integrator_shader_mnee_sort_counter_;
   device_vector<int> integrator_shader_sort_prefix_sum_;
+  device_vector<int> integrator_shader_sort_partition_key_offsets_;
   /* Path split. */
   device_vector<int> integrator_next_main_path_index_;
   device_vector<int> integrator_next_shadow_path_index_;

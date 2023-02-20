@@ -4,11 +4,9 @@
 
 /** \file
  * \ingroup bli
- * Some of the functions below have very similar alternatives in the standard library. However, it
- * is rather annoying to use those when debugging. Therefore, some more specialized and easier to
- * debug functions are provided here.
  */
 
+#include <algorithm>
 #include <memory>
 #include <new>
 #include <type_traits>
@@ -33,280 +31,66 @@ template<typename T>
 inline constexpr bool is_trivially_move_constructible_extended_v =
     is_trivial_extended_v<T> || std::is_trivially_move_constructible_v<T>;
 
-/**
- * Call the destructor on n consecutive values. For trivially destructible types, this does
- * nothing.
- *
- * Exception Safety: Destructors shouldn't throw exceptions.
- *
- * Before:
- *  ptr: initialized
- * After:
- *  ptr: uninitialized
- */
 template<typename T> void destruct_n(T *ptr, int64_t n)
 {
-  BLI_assert(n >= 0);
-
-  static_assert(std::is_nothrow_destructible_v<T>,
-                "This should be true for all types. Destructors are noexcept by default.");
-
-  /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
-   * nice to make behavior this explicitly, though. */
   if (is_trivially_destructible_extended_v<T>) {
     return;
   }
 
-  for (int64_t i = 0; i < n; i++) {
-    ptr[i].~T();
-  }
+  std::destroy_n(ptr, n);
 }
 
-/**
- * Call the default constructor on n consecutive elements. For trivially constructible types, this
- * does nothing.
- *
- * Exception Safety: Strong.
- *
- * Before:
- *  ptr: uninitialized
- * After:
- *  ptr: initialized
- */
 template<typename T> void default_construct_n(T *ptr, int64_t n)
 {
-  BLI_assert(n >= 0);
-
-  /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
-   * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_constructible_v<T>) {
-    return;
-  }
-
-  int64_t current = 0;
-  try {
-    for (; current < n; current++) {
-      new (static_cast<void *>(ptr + current)) T;
-    }
-  }
-  catch (...) {
-    destruct_n(ptr, current);
-    throw;
-  }
+  std::uninitialized_default_construct_n(ptr, n);
 }
 
-/**
- * Copy n values from src to dst.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  src: initialized
- *  dst: initialized
- * After:
- *  src: initialized
- *  dst: initialized
- */
 template<typename T> void initialized_copy_n(const T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
-  for (int64_t i = 0; i < n; i++) {
-    dst[i] = src[i];
-  }
+  std::copy_n(src, n, dst);
 }
 
-/**
- * Copy n values from src to dst.
- *
- * Exception Safety: Strong.
- *
- * Before:
- *  src: initialized
- *  dst: uninitialized
- * After:
- *  src: initialized
- *  dst: initialized
- */
 template<typename T> void uninitialized_copy_n(const T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
-  int64_t current = 0;
-  try {
-    for (; current < n; current++) {
-      new (static_cast<void *>(dst + current)) T(src[current]);
-    }
-  }
-  catch (...) {
-    destruct_n(dst, current);
-    throw;
-  }
+  std::uninitialized_copy_n(src, n, dst);
 }
 
-/**
- * Convert n values from type `From` to type `To`.
- *
- * Exception Safety: Strong.
- *
- * Before:
- *  src: initialized
- *  dst: uninitialized
- * After:
- *  src: initialized
- *  dst: initialized
- */
 template<typename From, typename To>
 void uninitialized_convert_n(const From *src, int64_t n, To *dst)
 {
-  BLI_assert(n >= 0);
-
-  int64_t current = 0;
-  try {
-    for (; current < n; current++) {
-      new (static_cast<void *>(dst + current)) To(static_cast<To>(src[current]));
-    }
-  }
-  catch (...) {
-    destruct_n(dst, current);
-    throw;
-  }
+  std::uninitialized_copy_n(src, n, dst);
 }
 
-/**
- * Move n values from src to dst.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  src: initialized
- *  dst: initialized
- * After:
- *  src: initialized, moved-from
- *  dst: initialized
- */
 template<typename T> void initialized_move_n(T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
-  for (int64_t i = 0; i < n; i++) {
-    dst[i] = std::move(src[i]);
-  }
+  std::copy_n(std::make_move_iterator(src), n, dst);
 }
 
-/**
- * Move n values from src to dst.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  src: initialized
- *  dst: uninitialized
- * After:
- *  src: initialized, moved-from
- *  dst: initialized
- */
 template<typename T> void uninitialized_move_n(T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
-  int64_t current = 0;
-  try {
-    for (; current < n; current++) {
-      new (static_cast<void *>(dst + current)) T(std::move(src[current]));
-    }
-  }
-  catch (...) {
-    destruct_n(dst, current);
-    throw;
-  }
+  std::uninitialized_copy_n(std::make_move_iterator(src), n, dst);
 }
 
-/**
- * Relocate n values from src to dst. Relocation is a move followed by destruction of the src
- * value.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  src: initialized
- *  dst: initialized
- * After:
- *  src: uninitialized
- *  dst: initialized
- */
 template<typename T> void initialized_relocate_n(T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
   initialized_move_n(src, n, dst);
   destruct_n(src, n);
 }
 
-/**
- * Relocate n values from src to dst. Relocation is a move followed by destruction of the src
- * value.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  src: initialized
- *  dst: uninitialized
- * After:
- *  src: uninitialized
- *  dst: initialized
- */
 template<typename T> void uninitialized_relocate_n(T *src, int64_t n, T *dst)
 {
-  BLI_assert(n >= 0);
-
   uninitialized_move_n(src, n, dst);
   destruct_n(src, n);
 }
 
-/**
- * Copy the value to n consecutive elements.
- *
- * Exception Safety: Basic.
- *
- * Before:
- *  dst: initialized
- * After:
- *  dst: initialized
- */
 template<typename T> void initialized_fill_n(T *dst, int64_t n, const T &value)
 {
-  BLI_assert(n >= 0);
-
-  for (int64_t i = 0; i < n; i++) {
-    dst[i] = value;
-  }
+  std::fill_n(dst, n, value);
 }
 
-/**
- * Copy the value to n consecutive elements.
- *
- *  Exception Safety: Strong.
- *
- * Before:
- *  dst: uninitialized
- * After:
- *  dst: initialized
- */
 template<typename T> void uninitialized_fill_n(T *dst, int64_t n, const T &value)
 {
-  BLI_assert(n >= 0);
-
-  int64_t current = 0;
-  try {
-    for (; current < n; current++) {
-      new (static_cast<void *>(dst + current)) T(value);
-    }
-  }
-  catch (...) {
-    destruct_n(dst, current);
-    throw;
-  }
+  std::uninitialized_fill_n(dst, n, value);
 }
 
 template<typename T> struct DestructValueAtAddress {

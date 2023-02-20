@@ -146,7 +146,6 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
         /* Initialize new edge. */
         new_edge.v1 = item.key.v_low;
         new_edge.v2 = item.key.v_high;
-        new_edge.flag = ME_EDGEDRAW;
       }
       item.value.index = new_edge_index;
       new_edge_index++;
@@ -177,7 +176,7 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
         else {
           /* This is an invalid edge; normally this does not happen in Blender,
            * but it can be part of an imported mesh with invalid geometry. See
-           * T76514. */
+           * #76514. */
           edge_index = 0;
         }
         prev_loop->e = edge_index;
@@ -260,6 +259,11 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
       }
       select_edge.finish();
     }
+  }
+
+  if (!keep_existing_edges) {
+    /* All edges are rebuilt from the faces, so there are no loose edges. */
+    mesh->loose_edges_tag_none();
   }
 
   /* Explicitly clear edge maps, because that way it can be parallelized. */

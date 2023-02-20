@@ -8,6 +8,7 @@ void main()
 
   if (dist > 0.5) {
     discard;
+    return;
   }
   /* Nice sphere falloff. */
   float intensity = sqrt(1.0 - dist * 2.0) * 0.5 + 0.5;

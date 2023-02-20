@@ -1403,7 +1403,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
 
   params = ED_fileselect_get_active_params(sfile);
   /* In case #SpaceFile.browse_mode just changed, the area may be pending a refresh still, which is
-   * what creates the params for the current browse mode. See T93508. */
+   * what creates the params for the current browse mode. See #93508. */
   if (!params) {
     return false;
   }
@@ -2203,7 +2203,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   int deltay = 0;
 
   /* We adjust speed of scrolling to avoid tens of seconds of it in e.g. directories with tens of
-   * thousands of folders... See T65782. */
+   * thousands of folders... See #65782. */
   /* This will slow down scrolling when approaching final goal, also avoids going too far and
    * having to bounce back... */
 
@@ -2485,7 +2485,7 @@ static void file_expand_directory(bContext *C)
     {
       BLI_windows_get_default_root_dir(params->dir);
     }
-    /* change "C:" --> "C:\", T28102. */
+    /* change "C:" --> "C:\", #28102. */
     else if ((isalpha(params->dir[0]) && (params->dir[1] == ':')) && (params->dir[2] == '\0')) {
       params->dir[2] = '\\';
       params->dir[3] = '\0';
@@ -2859,12 +2859,12 @@ static bool file_delete_poll(bContext *C)
   return false;
 }
 
-static bool file_delete_single(const FileSelectParams *params,
+static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX];
-  BLI_path_join(str, sizeof(str), params->dir, file->relpath);
+  char str[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, str);
   if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
     return false;
   }
@@ -2876,7 +2876,6 @@ static int file_delete_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   int numfiles = filelist_files_ensure(sfile->files);
 
   const char *error_message = NULL;
@@ -2885,7 +2884,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   for (int i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
       FileDirEntry *file = filelist_file(sfile->files, i);
-      if (!file_delete_single(params, file, &error_message)) {
+      if (!file_delete_single(sfile->files, file, &error_message)) {
         report_error = true;
       }
     }

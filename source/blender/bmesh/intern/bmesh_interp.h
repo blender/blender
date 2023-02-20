@@ -9,6 +9,10 @@
 struct LinkNode;
 struct MemArena;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void BM_loop_interp_multires_ex(BMesh *bm,
                                 BMLoop *l_dst,
                                 const BMFace *f_src,
@@ -58,7 +62,16 @@ void BM_data_interp_face_vert_edge(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v, BMEdge *e, float fac);
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type);
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
+void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const char *name);
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type);
+
+/** Ensure the dependent boolean layers exist for all face corner #CD_PROP_FLOAT2 layers. */
+void BM_uv_map_ensure_select_and_pin_attrs(BMesh *bm);
+
+void BM_uv_map_ensure_vert_select_attr(BMesh *bm, const char *uv_map_name);
+void BM_uv_map_ensure_edge_select_attr(BMesh *bm, const char *uv_map_name);
+void BM_uv_map_ensure_pin_attr(BMesh *bm, const char *uv_map_name);
+
 /**
  * Remove a named custom data layer, if it existed. Return true if the layer was removed.
  */
@@ -113,3 +126,7 @@ void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm,
                                                   struct LinkNode *groups,
                                                   int layer_n,
                                                   const float *loop_weights);
+
+#ifdef __cplusplus
+}
+#endif

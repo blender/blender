@@ -16,7 +16,6 @@ extern "C" {
 struct ListBase;
 struct Mask;
 struct Scene;
-struct SeqRenderData;
 struct Sequence;
 struct StripElem;
 

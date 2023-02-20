@@ -1493,7 +1493,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
        * like, MX or NZ, which is basically has structure of
        *   <pass_prefix><component>
        *
-       * This is a bit silly, but see file from T35658.
+       * This is a bit silly, but see file from #35658.
        *
        * Here we do some magic to distinguish such cases.
        */
@@ -2215,8 +2215,8 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
 
     float scale_factor = MIN2(float(max_thumb_size) / float(source_w),
                               float(max_thumb_size) / float(source_h));
-    int dest_w = int(source_w * scale_factor);
-    int dest_h = int(source_h * scale_factor);
+    int dest_w = MAX2(int(source_w * scale_factor), 1);
+    int dest_h = MAX2(int(source_h * scale_factor), 1);
 
     struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
 

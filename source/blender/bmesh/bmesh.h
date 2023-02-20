@@ -14,7 +14,7 @@
  * BMesh stores topology in four main element structures:
  *
  * - Faces - BMFace
- * - Loops - BMLoop, (stores per-face-vertex data, UV's, vertex-colors, etc)
+ * - Loops - BMLoop, (stores per-face-vertex data, UVs, vertex-colors, etc)
  * - Edges - BMEdge
  * - Verts - BMVert
  * \subsection bm_header_flags Header Flags
@@ -173,15 +173,12 @@
  * - Use two different iterator types for BMO map/buffer types.
  */
 
+#include "BKE_customdata.h"
 #include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.h uses */
 #include "DNA_listBase.h"         /* selection history uses */
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "bmesh_class.h"
 
@@ -215,7 +212,3 @@ extern "C" {
 #include "intern/bmesh_walkers.h"
 
 #include "intern/bmesh_inline.h"
-
-#ifdef __cplusplus
-}
-#endif

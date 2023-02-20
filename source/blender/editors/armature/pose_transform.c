@@ -524,7 +524,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
        * change, thus changing the result we may be trying to record. */
 
       /* NOTE: For some reason `pchan->chan_mat` can't be used here as it gives odd
-       * rotation/offset, see T38251.
+       * rotation/offset, see #38251.
        * Using `pchan->pose_mat` and bringing it back in bone space seems to work as expected!
        * This matches how visual key-framing works. */
       BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, pchan_xform_array[i].matrix);

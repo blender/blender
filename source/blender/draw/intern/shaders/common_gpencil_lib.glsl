@@ -123,7 +123,7 @@ bool gpencil_is_stroke_vertex()
  *
  *
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
- * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536)
+ * considers gl_VertexID and gl_InstanceID as vertex attribute. (see #74536)
  */
 vec4 gpencil_vertex(vec4 viewport_size,
                     gpMaterialFlag material_flags,
@@ -185,6 +185,13 @@ vec4 gpencil_vertex(vec4 viewport_size,
     if (!is_dot && ma.x == -1 && ma2.x == -1) {
       is_dot = true;
       is_squares = false;
+    }
+
+    /* Endpoints, we discard the vertices. */
+    if (!is_dot && ma2.x == -1) {
+      /* We set the vertex at the camera origin to generate 0 fragments. */
+      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
+      return out_ndc;
     }
 
     /* Avoid using a vertex attribute for quad positioning. */

@@ -476,7 +476,7 @@ MODULE_GROUPING = {
 
 # -------------------------------BLENDER----------------------------------------
 
-# converting bytes to strings, due to T30154
+# Converting bytes to strings, due to #30154.
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 BLENDER_REVISION_TIMESTAMP = bpy.app.build_commit_timestamp
 
@@ -487,7 +487,7 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
         BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
     )
     BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
@@ -647,7 +647,7 @@ def undocumented_message(module_name, type_name, identifier):
         module_name, type_name, identifier,
     )
 
-    return "Undocumented, consider `contributing <https://developer.blender.org/T51061>`__."
+    return "Undocumented, consider `contributing <https://developer.blender.org/>`__."
 
 
 def range_str(val):
@@ -1294,6 +1294,7 @@ def pycontext2sphinx(basepath):
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`bpy.types.%s`",
+                mathutils_fmt=":class:`mathutils.%s`",
                 collection_id=_BPY_PROP_COLLECTION_ID,
                 enum_descr_override=enum_descr_override,
             )
@@ -1446,6 +1447,7 @@ def pyrna2sphinx(basepath):
             identifier = " %s" % prop.identifier
 
         kwargs["class_fmt"] = ":class:`%s`"
+        kwargs["mathutils_fmt"] = ":class:`mathutils.%s`"
 
         kwargs["collection_id"] = _BPY_PROP_COLLECTION_ID
 
@@ -1565,6 +1567,7 @@ def pyrna2sphinx(basepath):
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`%s`",
+                mathutils_fmt=":class:`mathutils.%s`",
                 collection_id=_BPY_PROP_COLLECTION_ID,
                 enum_descr_override=enum_descr_override,
             )
@@ -1631,6 +1634,7 @@ def pyrna2sphinx(basepath):
 
                     type_descr = prop.get_type_description(
                         as_ret=True, class_fmt=":class:`%s`",
+                        mathutils_fmt=":class:`mathutils.%s`",
                         collection_id=_BPY_PROP_COLLECTION_ID,
                         enum_descr_override=enum_descr_override,
                     )
@@ -1812,9 +1816,9 @@ def pyrna2sphinx(basepath):
 
     # operators
     def write_ops():
-        API_BASEURL = "https://developer.blender.org/diffusion/B/browse/master/release/scripts"
-        API_BASEURL_ADDON = "https://developer.blender.org/diffusion/BA"
-        API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC"
+        API_BASEURL = "https://projects.blender.org/blender/blender/src/branch/main/release/scripts"
+        API_BASEURL_ADDON = "https://projects.blender.org/blender/blender-addons"
+        API_BASEURL_ADDON_CONTRIB = "https://projects.blender.org/blender/blender-addons-contrib"
 
         op_modules = {}
         op = None
@@ -2094,6 +2098,8 @@ def write_rst_types_index(basepath):
         fw(title_string("Types (bpy.types)", "="))
         fw(".. module:: bpy.types\n\n")
         fw(".. toctree::\n")
+        # Only show top-level entries (avoids unreasonably large pages).
+        fw("   :maxdepth: 1\n")
         fw("   :glob:\n\n")
         fw("   bpy.types.*\n\n")
 
@@ -2120,6 +2126,8 @@ def write_rst_ops_index(basepath):
         write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
         fw("   :caption: Submodules\n")
+        # Only show top-level entries (avoids unreasonably large pages).
+        fw("   :maxdepth: 1\n")
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
         file.close()
@@ -2192,7 +2200,7 @@ def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
     Write a single page for a static enum in RST.
 
     This helps avoiding very large lists being in-lined in many places which is an issue
-    especially with icons in ``bpy.types.UILayout``. See T87008.
+    especially with icons in ``bpy.types.UILayout``. See #87008.
     """
     filepath = os.path.join(basepath, "%s.rst" % key_no_prefix)
     with open(filepath, "w", encoding="utf-8") as fh:

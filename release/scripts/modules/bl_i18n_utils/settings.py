@@ -98,7 +98,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in /branches we do not want to import in /trunk currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'fi_FI', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ', 'es_ES',
+    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ', 'es_ES',
 }
 
 # Languages that need RTL pre-processing.
@@ -412,6 +412,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "selected",
     "selected and lock unselected",
     "selected and unlock unselected",
+    "screen",
     "the lazy dog",
     "this legacy pose library to pose assets",
     "to the top level of the tree",
@@ -548,6 +549,8 @@ CUSTOM_PY_UI_FILES = [
     os.path.join("scripts", "startup", "bl_ui"),
     os.path.join("scripts", "startup", "bl_operators"),
     os.path.join("scripts", "modules", "rna_prop_ui.py"),
+    os.path.join("scripts", "modules", "rna_keymap_ui.py"),
+    os.path.join("scripts", "modules", "bpy_types.py"),
     os.path.join("scripts", "presets", "keyconfig"),
 ]
 

@@ -13,7 +13,6 @@ extern "C" {
 
 #include "BLI_ghash.h"
 
-struct Editing;
 struct GSet;
 struct GSetIterator;
 struct Sequence;

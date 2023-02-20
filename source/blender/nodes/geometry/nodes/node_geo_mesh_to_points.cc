@@ -23,14 +23,14 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshToPoints)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field_on_all(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .supports_field();
-  b.add_output<decl::Geometry>(N_("Points"));
+      .field_on_all();
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -49,7 +49,8 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         Field<float3> &position_field,
                                         Field<float> &radius_field,
                                         Field<bool> &selection_field,
-                                        const eAttrDomain domain)
+                                        const eAttrDomain domain,
+                                        const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh *mesh = geometry_set.get_mesh_for_read();
   if (mesh == nullptr) {
@@ -87,8 +88,11 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   radius.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
+  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_MESH},
+                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                 false,
+                                                 propagation_info,
+                                                 attributes);
   attributes.remove("position");
 
   const AttributeAccessor src_attributes = mesh->attributes();
@@ -117,10 +121,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Use another multi-function operation to make sure the input radius is greater than zero.
    * TODO: Use mutable multi-function once that is supported. */
-  static fn::CustomMF_SI_SO<float, float> max_zero_fn(
+  static auto max_zero_fn = mf::build::SI1_SO<float, float>(
       __func__,
       [](float value) { return std::max(0.0f, value); },
-      fn::CustomMF_presets::AllSpanOrSingle());
+      mf::build::exec_presets::AllSpanOrSingle());
   auto max_zero_op = std::make_shared<FieldOperation>(
       FieldOperation(max_zero_fn, {std::move(radius)}));
   Field<float> positive_radius(std::move(max_zero_op), 0);
@@ -128,23 +132,42 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Points");
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     switch (mode) {
       case GEO_NODE_MESH_TO_POINTS_VERTICES:
-        geometry_set_mesh_to_points(
-            geometry_set, position, positive_radius, selection, ATTR_DOMAIN_POINT);
+        geometry_set_mesh_to_points(geometry_set,
+                                    position,
+                                    positive_radius,
+                                    selection,
+                                    ATTR_DOMAIN_POINT,
+                                    propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_EDGES:
-        geometry_set_mesh_to_points(
-            geometry_set, position, positive_radius, selection, ATTR_DOMAIN_EDGE);
+        geometry_set_mesh_to_points(geometry_set,
+                                    position,
+                                    positive_radius,
+                                    selection,
+                                    ATTR_DOMAIN_EDGE,
+                                    propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_FACES:
-        geometry_set_mesh_to_points(
-            geometry_set, position, positive_radius, selection, ATTR_DOMAIN_FACE);
+        geometry_set_mesh_to_points(geometry_set,
+                                    position,
+                                    positive_radius,
+                                    selection,
+                                    ATTR_DOMAIN_FACE,
+                                    propagation_info);
         break;
       case GEO_NODE_MESH_TO_POINTS_CORNERS:
-        geometry_set_mesh_to_points(
-            geometry_set, position, positive_radius, selection, ATTR_DOMAIN_CORNER);
+        geometry_set_mesh_to_points(geometry_set,
+                                    position,
+                                    positive_radius,
+                                    selection,
+                                    ATTR_DOMAIN_CORNER,
+                                    propagation_info);
         break;
     }
   });

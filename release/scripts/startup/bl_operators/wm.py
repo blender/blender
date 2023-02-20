@@ -14,11 +14,15 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     StringProperty,
+    BoolVectorProperty,
     IntVectorProperty,
     FloatVectorProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -200,9 +204,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := rna_prop.description)
+            (description := iface_(rna_prop.description))
     ):
-        description = "%s: %s" % (prefix, description)
+        description = iface_("%s: %s") % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
         return description
@@ -302,7 +306,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -403,7 +407,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -552,7 +556,7 @@ class WM_OT_context_toggle_enum(Operator):
 
 class WM_OT_context_cycle_int(Operator):
     """Set a context value (useful for cycling active material, """ \
-        """vertex keys, groups, etc.)"""
+        """shape keys, groups, etc.)"""
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -769,7 +773,7 @@ class WM_OT_operator_pie_enum(Operator):
         try:
             op_rna = op.get_rna_type()
         except KeyError:
-            self.report({'ERROR'}, "Operator not found: bpy.ops.%s" % data_path)
+            self.report({'ERROR'}, tip_("Operator not found: bpy.ops.%s") % data_path)
             return {'CANCELLED'}
 
         def draw_cb(self, context):
@@ -869,7 +873,7 @@ class WM_OT_context_collection_boolean_set(Operator):
             elif value_orig is False:
                 pass
             else:
-                self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
+                self.report({'WARNING'}, tip_("Non boolean value found: %s[ ].%s") %
                             (data_path_iter, data_path_item))
                 return {'CANCELLED'}
 
@@ -972,7 +976,7 @@ class WM_OT_context_modal_mouse(Operator):
                     (item, ) = self._values.keys()
                     header_text = header_text % eval("item.%s" % self.data_path_item)
                 else:
-                    header_text = (self.header_text % delta) + " (delta)"
+                    header_text = (self.header_text % delta) + tip_(" (delta)")
                 context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
@@ -992,7 +996,7 @@ class WM_OT_context_modal_mouse(Operator):
         self._values_store(context)
 
         if not self._values:
-            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
+            self.report({'WARNING'}, tip_("Nothing to operate on: %s[ ].%s") %
                         (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
@@ -1052,7 +1056,7 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+        return "https://docs.blender.org/manual/%s/%d.%d/" % (bpy.utils.manual_language_code(), *bpy.app.version[:2])
 
     def _url_from_api(self, _context):
         return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
@@ -1130,7 +1134,7 @@ class WM_OT_path_open(Operator):
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "File '%s' not found" % filepath)
+            self.report({'ERROR'}, tip_("File '%s' not found") % filepath)
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
@@ -1201,7 +1205,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, iface_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, tip_("Type \"%s\" can not be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1245,7 +1249,31 @@ class WM_OT_doc_view_manual(Operator):
         # XXX, for some reason all RNA ID's are stored lowercase
         # Adding case into all ID's isn't worth the hassle so force lowercase.
         rna_id = rna_id.lower()
+
+        # NOTE: `fnmatch` in Python is slow as it translate the string to a regular-expression
+        # which needs to be compiled (as of Python 3.11), this is slow enough to cause a noticeable
+        # delay when opening manual links (approaching half a second).
+        #
+        # Resolve by matching characters that have a special meaning to `fnmatch`.
+        # The characters that can occur as the first special character are `*?[`.
+        # If any of these are used we must let `fnmatch` run its own matching logic.
+        # However, in most cases a literal prefix is used making it considerably faster
+        # to do a simple `startswith` check before performing a full match.
+        # An alternative solution could be to use `fnmatch` from C which is significantly
+        # faster than Python's, see !104581 for details.
+        import re
+        re_match_non_special = re.compile(r"^[^?\*\[]+").match
+
         for pattern, url_suffix in url_mapping:
+
+            # Simple optimization, makes a big difference (over 50x speedup).
+            # Even when `non_special.end()` is zero (resulting in an empty-string),
+            # the `startswith` check succeeds so there is no need to check for an empty match.
+            non_special = re_match_non_special(pattern)
+            if non_special is None or not rna_id.startswith(pattern[:non_special.end()]):
+                continue
+            # End simple optimization.
+
             if fnmatchcase(rna_id, pattern):
                 if verbose:
                     print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
@@ -1272,9 +1300,9 @@ class WM_OT_doc_view_manual(Operator):
         if url is None:
             self.report(
                 {'WARNING'},
-                "No reference available %r, "
-                "Update info in 'rna_manual_reference.py' "
-                "or callback to bpy.utils.manual_map()" %
+                tip_("No reference available %r, "
+                     "Update info in 'rna_manual_reference.py' "
+                     "or callback to bpy.utils.manual_map()") %
                 self.doc_id
             )
             return {'CANCELLED'}
@@ -1322,6 +1350,8 @@ rna_custom_property_type_items = (
     ('FLOAT_ARRAY', "Float Array", "An array of floating-point values"),
     ('INT', "Integer", "A single integer"),
     ('INT_ARRAY', "Integer Array", "An array of integers"),
+    ('BOOL', "Boolean", "A true or false value"),
+    ('BOOL_ARRAY', "Boolean Array", "An array of true or false values"),
     ('STRING', "String", "A string value"),
     ('PYTHON', "Python", "Edit a python value directly, for unsupported property types"),
 )
@@ -1374,7 +1404,8 @@ class WM_OT_properties_edit(Operator):
         name="Array Length",
         default=3,
         min=1,
-        max=32,  # 32 is the maximum size for RNA array properties.
+        # 32 is the maximum size for RNA array properties.
+        max=32,
     )
 
     # Integer properties.
@@ -1404,6 +1435,14 @@ class WM_OT_properties_edit(Operator):
         name="Step",
         min=1,
         default=1,
+    )
+
+    # Boolean properties.
+
+    # This property stores values for both array and non-array properties.
+    default_bool: BoolVectorProperty(
+        name="Default Value",
+        size=32,
     )
 
     # Float properties.
@@ -1455,7 +1494,7 @@ class WM_OT_properties_edit(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Python value for unsupported custom property types"
+        description="Python value for unsupported custom property types",
     )
 
     type_items = rna_custom_property_type_items
@@ -1516,6 +1555,10 @@ class WM_OT_properties_edit(Operator):
             if is_array:
                 return 'FLOAT_ARRAY'
             return 'FLOAT'
+        elif prop_type == bool:
+            if is_array:
+                return 'BOOL_ARRAY'
+            return 'BOOL'
         elif prop_type == str:
             if is_array:
                 return 'PYTHON'
@@ -1567,8 +1610,10 @@ class WM_OT_properties_edit(Operator):
             self.default_int = self._convert_new_value_array(rna_data["default"], int, 32)
         elif self.property_type == 'STRING':
             self.default_string = rna_data["default"]
+        elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
+            self.default_bool = self._convert_new_value_array(rna_data["default"], bool, 32)
 
-        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY'}:
+        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
             self.array_length = len(item[name])
 
         # The dictionary does not contain the description if it was empty.
@@ -1583,23 +1628,26 @@ class WM_OT_properties_edit(Operator):
     def _get_converted_value(self, item, name_old, prop_type_new):
         if prop_type_new == 'INT':
             return self._convert_new_value_single(item[name_old], int)
-
-        if prop_type_new == 'FLOAT':
+        elif prop_type_new == 'FLOAT':
             return self._convert_new_value_single(item[name_old], float)
-
-        if prop_type_new == 'INT_ARRAY':
+        elif prop_type_new == 'BOOL':
+            return self._convert_new_value_single(item[name_old], bool)
+        elif prop_type_new == 'INT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], int, self.array_length)
-
-        if prop_type_new == 'FLOAT_ARRAY':
+        elif prop_type_new == 'FLOAT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], float, self.array_length)
-
-        if prop_type_new == 'STRING':
+        elif prop_type_new == 'BOOL_ARRAY':
+            prop_type_old = self.get_property_type(item, name_old)
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
+                return self._convert_new_value_array(item[name_old], bool, self.array_length)
+            else:
+                return [False] * self.array_length
+        elif prop_type_new == 'STRING':
             return self.convert_custom_property_to_string(item, name_old)
-
         # If all else fails, create an empty string property. That should avoid errors later on anyway.
         return ""
 
@@ -1618,6 +1666,9 @@ class WM_OT_properties_edit(Operator):
             self.soft_min_float = float(self.soft_min_int)
             self.soft_max_float = float(self.soft_max_int)
             self.default_float = self._convert_new_value_array(self.default_int, float, 32)
+        elif prop_type_new in {'BOOL', 'BOOL_ARRAY'} and prop_type_old in {'INT', 'INT_ARRAY'}:
+            self.default_bool = self._convert_new_value_array(self.default_int, bool, 32)
+
         # Don't convert between string and float/int defaults here, it's not expected like the other conversions.
 
     # Fill the property's UI data with the values chosen in the operator.
@@ -1631,6 +1682,12 @@ class WM_OT_properties_edit(Operator):
                 soft_max=self.soft_max_int if self.use_soft_limits else self.max_int,
                 step=self.step_int,
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
+                description=self.description,
+            )
+        elif prop_type_new in {'BOOL', 'BOOL_ARRAY'}:
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                default=self.default_bool[0] if prop_type_new == 'BOOL' else self.default_bool[:self.array_length],
                 description=self.description,
             )
         elif prop_type_new in {'FLOAT', 'FLOAT_ARRAY'}:
@@ -1692,7 +1749,7 @@ class WM_OT_properties_edit(Operator):
                     for nt in adt.nla_tracks:
                         _update_strips(nt.strips)
 
-        # Otherwise existing buttons which reference freed memory may crash Blender (T26510).
+        # Otherwise existing buttons which reference freed memory may crash Blender (#26510).
         for win in context.window_manager.windows:
             for area in win.screen.areas:
                 area.tag_redraw()
@@ -1875,6 +1932,15 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "soft_max_int", text="Max")
 
             layout.prop(self, "step_int")
+        elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
+            if self.property_type == 'BOOL_ARRAY':
+                layout.prop(self, "array_length")
+                col = layout.column(align=True)
+                col.prop(self, "default_bool", index=0, text="Default")
+                for i in range(1, self.array_length):
+                    col.prop(self, "default_bool", index=i, text=" ")
+            else:
+                layout.prop(self, "default_bool", index=0)
         elif self.property_type == 'STRING':
             layout.prop(self, "default_string")
 
@@ -1901,7 +1967,7 @@ class WM_OT_properties_edit_value(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Value for custom property types that can only be edited as a Python expression"
+        description="Value for custom property types that can only be edited as a Python expression",
     )
 
     def execute(self, context):
@@ -2081,7 +2147,7 @@ class WM_OT_operator_cheat_sheet(Operator):
 # Add-on Operators
 
 class WM_OT_owner_enable(Operator):
-    """Enable workspace owner ID"""
+    """Enable add-on for workspace"""
     bl_idname = "wm.owner_enable"
     bl_label = "Enable Add-on"
 
@@ -2096,9 +2162,9 @@ class WM_OT_owner_enable(Operator):
 
 
 class WM_OT_owner_disable(Operator):
-    """Enable workspace owner ID"""
+    """Disable add-on for workspace"""
     bl_idname = "wm.owner_disable"
-    bl_label = "Disable UI Tag"
+    bl_label = "Disable Add-on"
 
     owner_id: StringProperty(
         name="UI Tag",
@@ -2153,7 +2219,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, "Tool %r not found for space %r" % (self.name, space_type))
+            self.report({'WARNING'}, tip_("Tool %r not found for space %r") % (self.name, space_type))
             return {'CANCELLED'}
 
 
@@ -2286,7 +2352,7 @@ class WM_OT_toolbar_fallback_pie(Operator):
             ToolSelectPanelHelper.draw_fallback_tool_items_for_pie_menu(self.layout, context)
 
         wm = context.window_manager
-        wm.popup_menu_pie(draw_func=draw_cb, title="Fallback Tool", event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=iface_("Fallback Tool"), event=event)
         return {'FINISHED'}
 
 
@@ -2402,7 +2468,9 @@ class WM_OT_toolbar_prompt(Operator):
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
             for _, name, item in status_items:
                 row = flow.row(align=True)
-                row.template_event_from_keymap_item(item, text=name)
+                row.template_event_from_keymap_item(
+                    item, text=name, text_ctxt=i18n_contexts.operator_default
+                )
 
         self._keymap = keymap
 
@@ -2465,11 +2533,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     replace_match_case: BoolProperty(name="Case Sensitive")
     use_replace_regex_src: BoolProperty(
         name="Regular Expression Find",
-        description="Use regular expressions to match text in the 'Find' field"
+        description="Use regular expressions to match text in the 'Find' field",
     )
     use_replace_regex_dst: BoolProperty(
         name="Regular Expression Replace",
-        description="Use regular expression for the replacement text (supporting groups)"
+        description="Use regular expression for the replacement text (supporting groups)",
     )
 
     # type: 'CASE'.
@@ -2501,7 +2569,7 @@ class WM_OT_batch_rename(Operator):
             ('COLLECTION', "Collections", ""),
             ('MATERIAL', "Materials", ""),
             None,
-            # Enum identifiers are compared with 'object.type'.
+            # Enum identifiers are compared with `object.type`.
             # Follow order in "Add" menu.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
@@ -2938,7 +3006,7 @@ class WM_OT_batch_rename(Operator):
             row.prop(action, "op_remove", text="", icon='REMOVE')
             row.prop(action, "op_add", text="", icon='ADD')
 
-        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]))
+        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]), translate=False)
 
     def check(self, context):
         changed = False
@@ -3078,7 +3146,13 @@ class WM_MT_splash_quick_setup(Menu):
 
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version)
+            sub.operator(
+                "preferences.copy_prev",
+                text=iface_(
+                    "Load %d.%d Settings",
+                    "Operator") %
+                old_version,
+                translate=False)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()

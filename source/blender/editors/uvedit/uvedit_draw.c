@@ -49,7 +49,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
   immUniform4f("color", 1.0f, 0.0f, 0.0f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 8.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 8);
 
@@ -70,7 +70,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
   immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 1.0f);
   immUniform1f("dash_width", 2.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 8);
 

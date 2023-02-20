@@ -261,7 +261,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     copy_m3_m3(ggd->data.normal_mat3, tbounds_normal.axis);
   }
 
-  /* TODO(@campbellbarton): run second since this modifies the 3D view, it should not. */
+  /* TODO(@ideasman42): run second since this modifies the 3D view, it should not. */
   if (!ED_transform_calc_gizmo_stats(C,
                                      &(struct TransformCalcParams){
                                          .orientation_index = ggd->data.orientation_index + 1,

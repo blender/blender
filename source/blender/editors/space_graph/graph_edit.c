@@ -485,7 +485,7 @@ static eKeyPasteError paste_graph_keys(bAnimContext *ac,
    * - First time we try to filter more strictly, allowing only selected channels
    *   to allow copying animation between channels
    * - Second time, we loosen things up if nothing was found the first time, allowing
-   *   users to just paste keyframes back into the original curve again T31670.
+   *   users to just paste keyframes back into the original curve again #31670.
    */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
             ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
@@ -1880,6 +1880,11 @@ static bool euler_filter_single_channel(FCurve *fcu)
     return false;
   }
 
+  /* Skip baked FCurves. */
+  if (fcu->bezt == NULL) {
+    return false;
+  }
+
   /* `prev` follows bezt, bezt = "current" point to be fixed. */
   /* Our method depends on determining a "difference" from the previous vert. */
   bool is_modified = false;
@@ -2279,6 +2284,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
   edit_cb = ANIM_editkeyframes_snap(mode);
 
   /* Snap keyframes. */
+  const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
@@ -2296,10 +2302,12 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, BKE_fcurve_handles_recalc);
+      BKE_fcurve_merge_duplicate_keys(ale->key_data, BEZT_FLAG_TEMP_TAG, use_handle);
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
     }
     else {
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, BKE_fcurve_handles_recalc);
+      BKE_fcurve_merge_duplicate_keys(ale->key_data, BEZT_FLAG_TEMP_TAG, use_handle);
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;

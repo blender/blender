@@ -404,7 +404,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
      * point we know that we've got everything to render current view layer.
      */
     /* At the moment we only free if we are not doing multi-view
-     * (or if we are rendering the last view). See T58142/D4239 for discussion.
+     * (or if we are rendering the last view). See #58142/D4239 for discussion.
      */
     if (view_index == num_views - 1) {
       free_blender_memory_if_possible();
@@ -558,11 +558,6 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
     integrator->set_use_transmission((bake_filter & BL::BakeSettings::pass_filter_TRANSMISSION) !=
                                      0);
     integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
-  }
-  /* Shadow pass. */
-  else if (strcmp(bake_type, "SHADOW") == 0) {
-    type = PASS_SHADOW;
-    use_direct_light = true;
   }
   /* Light component passes. */
   else if (strcmp(bake_type, "DIFFUSE") == 0) {

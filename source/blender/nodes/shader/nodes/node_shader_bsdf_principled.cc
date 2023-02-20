@@ -6,6 +6,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes::node_shader_bsdf_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -171,7 +173,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_CLEARCOAT;
   }
 
-  /* Ref. T98190: Defines are optimizations for old compilers.
+  /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
   if (use_diffuse == false && use_refract == false && use_clear == true) {
     flag |= GPU_MATFLAG_PRINCIPLED_CLEARCOAT;
@@ -190,7 +192,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 
   if (use_subsurf) {
-    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);
+    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
     use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);

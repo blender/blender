@@ -4,8 +4,8 @@
 
 #include <cstdint>
 
-#include "BLI_float3x3.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 
 namespace blender::realtime_compositor {
 
@@ -143,9 +143,9 @@ class Domain {
 
  public:
   /* A size only constructor that sets the transformation to identity. */
-  Domain(int2 size);
+  Domain(const int2 &size);
 
-  Domain(int2 size, float3x3 transformation);
+  Domain(const int2 &size, const float3x3 &transformation);
 
   /* Transform the domain by the given transformation. This effectively pre-multiply the given
    * transformation by the current transformation of the domain. */

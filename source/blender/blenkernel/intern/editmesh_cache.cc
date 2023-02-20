@@ -122,7 +122,7 @@ bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
   if (bm->totvert) {
     if (emd->vertexCos) {
       Span<float3> vert_coords(reinterpret_cast<const float3 *>(emd->vertexCos), bm->totvert);
-      std::optional<bounds::MinMaxResult<float3>> bounds = bounds::min_max(vert_coords);
+      std::optional<Bounds<float3>> bounds = bounds::min_max(vert_coords);
       BLI_assert(bounds.has_value());
       copy_v3_v3(min, math::min(bounds->min, float3(min)));
       copy_v3_v3(max, math::max(bounds->max, float3(max)));

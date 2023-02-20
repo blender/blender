@@ -40,7 +40,8 @@ ExternalProject_Add(external_igc_llvm
     ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-support-cl_ext_float_atomics.patch &&
     ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-OpenCL-Add-cl_khr_integer_dot_product.patch &&
     ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0001-Memory-leak-fix-for-Managed-Static-Mutex.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0002-Remove-repo-name-in-LLVM-IR.patch
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0002-Remove-repo-name-in-LLVM-IR.patch &&
+    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/llvm/0003-Add-missing-include-limit-in-benchmark.patch
 )
 add_dependencies(
   external_igc_llvm
@@ -55,9 +56,6 @@ ExternalProject_Add(external_igc_spirv_translator
   CONFIGURE_COMMAND echo .
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${IGC_SPIRV_TRANSLATOR_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/spirv/0001-update-SPIR-V-headers-for-SPV_INTEL_split_barrier.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_SPIRV_TRANSLATOR_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/spirv/0002-Add-support-for-split-barriers-extension-SPV_INTEL_s.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_SPIRV_TRANSLATOR_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/spirv/0003-Support-cl_bf16_conversions.patch
 )
 add_dependencies(
   external_igc_spirv_translator

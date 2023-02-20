@@ -51,6 +51,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
@@ -161,7 +162,7 @@
  * which keeps large arrays in memory from data-blocks we may not even use.
  *
  * \note This is disabled when using compression,
- * while ZLIB supports seek it's unusably slow, see: T61880.
+ * while ZLIB supports seek it's unusably slow, see: #61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
@@ -229,119 +230,19 @@ static const char *library_parent_filepath(Library *lib)
 /** \name OldNewMap API
  * \{ */
 
-struct OldNew {
-  const void *oldp;
+struct NewAddress {
   void *newp;
   /* `nr` is "user count" for data, and ID code for libdata. */
   int nr;
 };
 
 struct OldNewMap {
-  /* Array that stores the actual entries. */
-  OldNew *entries;
-  int nentries;
-  /* Hash-map that stores indices into the `entries` array. */
-  int32_t *map;
-
-  int capacity_exp;
+  blender::Map<const void *, NewAddress> map;
 };
-
-#define ENTRIES_CAPACITY(onm) (1ll << (onm)->capacity_exp)
-#define MAP_CAPACITY(onm) (1ll << ((onm)->capacity_exp + 1))
-#define SLOT_MASK(onm) (MAP_CAPACITY(onm) - 1)
-#define DEFAULT_SIZE_EXP 6
-#define PERTURB_SHIFT 5
-
-/* based on the probing algorithm used in Python dicts. */
-#define ITER_SLOTS(onm, KEY, SLOT_NAME, INDEX_NAME) \
-  uint32_t hash = BLI_ghashutil_ptrhash(KEY); \
-  uint32_t mask = SLOT_MASK(onm); \
-  uint perturb = hash; \
-  int SLOT_NAME = mask & hash; \
-  int INDEX_NAME = onm->map[SLOT_NAME]; \
-  for (;; SLOT_NAME = mask & ((5 * SLOT_NAME) + 1 + perturb), \
-          perturb >>= PERTURB_SHIFT, \
-          INDEX_NAME = onm->map[SLOT_NAME])
-
-static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int index)
-{
-  ITER_SLOTS (onm, ptr, slot, stored_index) {
-    if (stored_index == -1) {
-      onm->map[slot] = index;
-      break;
-    }
-  }
-}
-
-static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
-{
-  ITER_SLOTS (onm, entry.oldp, slot, index) {
-    if (index == -1) {
-      onm->entries[onm->nentries] = entry;
-      onm->map[slot] = onm->nentries;
-      onm->nentries++;
-      break;
-    }
-    if (onm->entries[index].oldp == entry.oldp) {
-      onm->entries[index] = entry;
-      break;
-    }
-  }
-}
-
-static OldNew *oldnewmap_lookup_entry(const OldNewMap *onm, const void *addr)
-{
-  ITER_SLOTS (onm, addr, slot, index) {
-    if (index >= 0) {
-      OldNew *entry = &onm->entries[index];
-      if (entry->oldp == addr) {
-        return entry;
-      }
-    }
-    else {
-      return nullptr;
-    }
-  }
-}
-
-static void oldnewmap_clear_map(OldNewMap *onm)
-{
-  memset(onm->map, 0xFF, MAP_CAPACITY(onm) * sizeof(*onm->map));
-}
-
-static void oldnewmap_increase_size(OldNewMap *onm)
-{
-  onm->capacity_exp++;
-  onm->entries = static_cast<OldNew *>(
-      MEM_reallocN(onm->entries, sizeof(*onm->entries) * ENTRIES_CAPACITY(onm)));
-  onm->map = static_cast<int32_t *>(MEM_reallocN(onm->map, sizeof(*onm->map) * MAP_CAPACITY(onm)));
-  oldnewmap_clear_map(onm);
-  for (int i = 0; i < onm->nentries; i++) {
-    oldnewmap_insert_index_in_map(onm, onm->entries[i].oldp, i);
-  }
-}
-
-/* Public OldNewMap API */
-
-static void oldnewmap_init_data(OldNewMap *onm, const int capacity_exp)
-{
-  memset(onm, 0x0, sizeof(*onm));
-
-  onm->capacity_exp = capacity_exp;
-  onm->entries = static_cast<OldNew *>(
-      MEM_malloc_arrayN(ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries"));
-  onm->map = static_cast<int32_t *>(
-      MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map"));
-  oldnewmap_clear_map(onm);
-}
 
 static OldNewMap *oldnewmap_new()
 {
-  OldNewMap *onm = static_cast<OldNewMap *>(MEM_mallocN(sizeof(*onm), "OldNewMap"));
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
-
-  return onm;
+  return MEM_new<OldNewMap>(__func__);
 }
 
 static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
@@ -350,15 +251,7 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
     return;
   }
 
-  if (UNLIKELY(onm->nentries == ENTRIES_CAPACITY(onm))) {
-    oldnewmap_increase_size(onm);
-  }
-
-  OldNew entry;
-  entry.oldp = oldaddr;
-  entry.newp = newaddr;
-  entry.nr = nr;
-  oldnewmap_insert_or_replace(onm, entry);
+  onm->map.add_overwrite(oldaddr, NewAddress{newaddr, nr});
 }
 
 static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
@@ -373,7 +266,7 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void 
 
 static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool increase_users)
 {
-  OldNew *entry = oldnewmap_lookup_entry(onm, addr);
+  NewAddress *entry = onm->map.lookup_ptr(addr);
   if (entry == nullptr) {
     return nullptr;
   }
@@ -383,7 +276,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool inc
   return entry->newp;
 }
 
-/* for libdata, OldNew.nr has ID code, no increment */
+/* for libdata, NewAddress.nr has ID code, no increment */
 static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
 {
   if (addr == nullptr) {
@@ -403,33 +296,18 @@ static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *l
 static void oldnewmap_clear(OldNewMap *onm)
 {
   /* Free unused data. */
-  for (int i = 0; i < onm->nentries; i++) {
-    OldNew *entry = &onm->entries[i];
-    if (entry->nr == 0) {
-      MEM_freeN(entry->newp);
-      entry->newp = nullptr;
+  for (NewAddress &new_addr : onm->map.values()) {
+    if (new_addr.nr == 0) {
+      MEM_freeN(new_addr.newp);
     }
   }
-
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
+  onm->map.clear_and_shrink();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
 {
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-  MEM_freeN(onm);
+  MEM_delete(onm);
 }
-
-#undef ENTRIES_CAPACITY
-#undef MAP_CAPACITY
-#undef SLOT_MASK
-#undef DEFAULT_SIZE_EXP
-#undef PERTURB_SHIFT
-#undef ITER_SLOTS
 
 /** \} */
 
@@ -846,13 +724,15 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->has_data = false;
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = bhead;
-          off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
-          if (seek_new == -1) {
+          const off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
+          if (UNLIKELY(seek_new == -1)) {
             fd->is_eof = true;
             MEM_freeN(new_bhead);
             new_bhead = nullptr;
           }
-          BLI_assert(fd->file->offset == seek_new);
+          else {
+            BLI_assert(fd->file->offset == seek_new);
+          }
         }
         else {
           fd->is_eof = true;
@@ -1555,13 +1435,11 @@ static void change_link_placeholder_to_real_ID_pointer_fd(FileData *fd,
                                                           const void *old,
                                                           void *newp)
 {
-  for (int i = 0; i < fd->libmap->nentries; i++) {
-    OldNew *entry = &fd->libmap->entries[i];
-
-    if (old == entry->newp && entry->nr == ID_LINK_PLACEHOLDER) {
-      entry->newp = newp;
+  for (NewAddress &entry : fd->libmap->map.values()) {
+    if (old == entry.newp && entry.nr == ID_LINK_PLACEHOLDER) {
+      entry.newp = newp;
       if (newp) {
-        entry->nr = GS(((ID *)newp)->name);
+        entry.nr = GS(((ID *)newp)->name);
       }
     }
   }
@@ -1640,12 +1518,10 @@ void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 {
-  OldNew *entry = fd->packedmap->entries;
-
   /* used entries were restored, so we put them to zero */
-  for (int i = 0; i < fd->packedmap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = nullptr;
+  for (NewAddress &entry : fd->packedmap->map.values()) {
+    if (entry.nr > 0) {
+      entry.newp = nullptr;
     }
   }
 
@@ -1730,7 +1606,7 @@ static void blo_cache_storage_entry_register(
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
 static void blo_cache_storage_entry_restore_in_new(
-    ID * /*id*/, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
+    ID *id, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
 
@@ -1741,6 +1617,15 @@ static void blo_cache_storage_entry_restore_in_new(
     if ((flags & IDTYPE_CACHE_CB_FLAGS_PERSISTENT) == 0) {
       *cache_p = nullptr;
     }
+    return;
+  }
+
+  /* Assume that when ID source is tagged as changed, its caches need to be cleared.
+   * NOTE: This is mainly a work-around for some IDs, like Image, which use a non-depsgraph-handled
+   * process for part of their updates.
+   */
+  if (id->recalc & ID_RECALC_SOURCE) {
+    *cache_p = nullptr;
     return;
   }
 
@@ -2146,7 +2031,16 @@ static void direct_link_id_common(
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+
+    /* Runtime IDs should never be written in .blend files (except memfiles from undo). */
+    BLI_assert((id->tag & LIB_TAG_RUNTIME) == 0);
   }
+
+  /* No-main and other types of special IDs should never be written in .blend files. */
+  /* NOTE: `NO_MAIN` is commented for now as some code paths may still generate embedded IDs with
+   * this tag, see #103389. Related to #88555. */
+  BLI_assert(
+      (id->tag & (/*LIB_TAG_NO_MAIN |*/ LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
@@ -2160,7 +2054,12 @@ static void direct_link_id_common(
   id->py_instance = nullptr;
 
   /* Initialize with provided tag. */
-  id->tag = tag;
+  if (BLO_read_data_is_undo(reader)) {
+    id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+  }
+  else {
+    id->tag = tag;
+  }
 
   if (ID_IS_LINKED(id)) {
     id->library_weak_reference = nullptr;
@@ -2212,7 +2111,7 @@ static void direct_link_id_common(
   /* Link direct data of overrides. */
   if (id->override_library) {
     BLO_read_data_address(reader, &id->override_library);
-    /* Work around file corruption on writing, see T86853. */
+    /* Work around file corruption on writing, see #86853. */
     if (id->override_library != nullptr) {
       BLO_read_list_cb(
           reader, &id->override_library->properties, direct_link_id_override_property_cb);
@@ -2400,11 +2299,11 @@ static bool lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 {
   IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(arg_pt);
 
-  lib_link_seq_clipboard_pt_restore((ID *)seq->scene, id_map);
-  lib_link_seq_clipboard_pt_restore((ID *)seq->scene_camera, id_map);
-  lib_link_seq_clipboard_pt_restore((ID *)seq->clip, id_map);
-  lib_link_seq_clipboard_pt_restore((ID *)seq->mask, id_map);
-  lib_link_seq_clipboard_pt_restore((ID *)seq->sound, id_map);
+  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene), id_map);
+  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene_camera), id_map);
+  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->clip), id_map);
+  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->mask), id_map);
+  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->sound), id_map);
   return true;
 }
 
@@ -2426,7 +2325,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
   /* We probably need to add more cases here (hint: nodetrees),
    * but will wait for changes from D5559 to get in first. */
   if (GS((*id_pointer)->name) == ID_GR) {
-    Collection *collection = (Collection *)*id_pointer;
+    Collection *collection = reinterpret_cast<Collection *>(*id_pointer);
     if (collection->flag & COLLECTION_IS_MASTER) {
       /* We should never reach that point anymore, since master collection private ID should be
        * properly tagged with IDWALK_CB_EMBEDDED. */
@@ -2458,7 +2357,7 @@ static void lib_link_main_data_restore(IDNameLib_Map *id_map, Main *newmain)
 static void lib_link_wm_xr_data_restore(IDNameLib_Map *id_map, wmXrData *xr_data)
 {
   xr_data->session_settings.base_pose_object = static_cast<Object *>(restore_pointer_by_name(
-      id_map, (ID *)xr_data->session_settings.base_pose_object, USER_REAL));
+      id_map, reinterpret_cast<ID *>(xr_data->session_settings.base_pose_object), USER_REAL));
 }
 
 static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, ViewLayer *view_layer)
@@ -2468,7 +2367,7 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       if (sl->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = (View3D *)sl;
+        View3D *v3d = reinterpret_cast<View3D *>(sl);
 
         if (v3d->camera == nullptr || v3d->scenelock) {
           v3d->camera = scene->camera;
@@ -2517,7 +2416,7 @@ static void lib_link_restore_viewer_path(IDNameLib_Map *id_map, ViewerPath *view
     if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
       IDViewerPathElem *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
       typed_elem->id = static_cast<ID *>(
-          restore_pointer_by_name(id_map, (ID *)typed_elem->id, USER_IGNORE));
+          restore_pointer_by_name(id_map, typed_elem->id, USER_IGNORE));
     }
   }
 }
@@ -2532,225 +2431,253 @@ static void lib_link_workspace_layout_restore(IDNameLib_Map *id_map,
   {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)sl;
+        switch (static_cast<eSpace_Type>(sl->spacetype)) {
+          case SPACE_VIEW3D: {
+            View3D *v3d = reinterpret_cast<View3D *>(sl);
 
-          v3d->camera = static_cast<Object *>(
-              restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL));
-          v3d->ob_center = static_cast<Object *>(
-              restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL));
+            v3d->camera = static_cast<Object *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(v3d->camera), USER_REAL));
+            v3d->ob_center = static_cast<Object *>(restore_pointer_by_name(
+                id_map, reinterpret_cast<ID *>(v3d->ob_center), USER_REAL));
 
-          lib_link_restore_viewer_path(id_map, &v3d->viewer_path);
-        }
-        else if (sl->spacetype == SPACE_GRAPH) {
-          SpaceGraph *sipo = (SpaceGraph *)sl;
-          bDopeSheet *ads = sipo->ads;
+            lib_link_restore_viewer_path(id_map, &v3d->viewer_path);
+            break;
+          }
+          case SPACE_GRAPH: {
+            SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
+            bDopeSheet *ads = sipo->ads;
 
-          if (ads) {
-            ads->source = static_cast<ID *>(
-                restore_pointer_by_name(id_map, (ID *)ads->source, USER_REAL));
+            if (ads) {
+              ads->source = static_cast<ID *>(
+                  restore_pointer_by_name(id_map, reinterpret_cast<ID *>(ads->source), USER_REAL));
 
-            if (ads->filter_grp) {
-              ads->filter_grp = static_cast<Collection *>(
-                  restore_pointer_by_name(id_map, (ID *)ads->filter_grp, USER_IGNORE));
+              if (ads->filter_grp) {
+                ads->filter_grp = static_cast<Collection *>(restore_pointer_by_name(
+                    id_map, reinterpret_cast<ID *>(ads->filter_grp), USER_IGNORE));
+              }
             }
+
+            /* force recalc of list of channels (i.e. includes calculating F-Curve colors)
+             * thus preventing the "black curves" problem post-undo
+             */
+            sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+            break;
           }
+          case SPACE_PROPERTIES: {
+            SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
+            sbuts->pinid = static_cast<ID *>(
+                restore_pointer_by_name(id_map, sbuts->pinid, USER_IGNORE));
+            if (sbuts->pinid == nullptr) {
+              sbuts->flag &= ~SB_PIN_CONTEXT;
+            }
 
-          /* force recalc of list of channels (i.e. includes calculating F-Curve colors)
-           * thus preventing the "black curves" problem post-undo
-           */
-          sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
-        }
-        else if (sl->spacetype == SPACE_PROPERTIES) {
-          SpaceProperties *sbuts = (SpaceProperties *)sl;
-          sbuts->pinid = static_cast<ID *>(
-              restore_pointer_by_name(id_map, sbuts->pinid, USER_IGNORE));
-          if (sbuts->pinid == nullptr) {
-            sbuts->flag &= ~SB_PIN_CONTEXT;
+            /* TODO: restore path pointers: #40046
+             * (complicated because this contains data pointers too, not just ID). */
+            MEM_SAFE_FREE(sbuts->path);
+            break;
           }
-
-          /* TODO: restore path pointers: T40046
-           * (complicated because this contains data pointers too, not just ID). */
-          MEM_SAFE_FREE(sbuts->path);
-        }
-        else if (sl->spacetype == SPACE_FILE) {
-          SpaceFile *sfile = (SpaceFile *)sl;
-          sfile->op = nullptr;
-          sfile->tags = FILE_TAG_REBUILD_MAIN_FILES;
-        }
-        else if (sl->spacetype == SPACE_ACTION) {
-          SpaceAction *saction = (SpaceAction *)sl;
-
-          saction->action = static_cast<bAction *>(
-              restore_pointer_by_name(id_map, (ID *)saction->action, USER_REAL));
-          saction->ads.source = static_cast<ID *>(
-              restore_pointer_by_name(id_map, (ID *)saction->ads.source, USER_REAL));
-
-          if (saction->ads.filter_grp) {
-            saction->ads.filter_grp = static_cast<Collection *>(
-                restore_pointer_by_name(id_map, (ID *)saction->ads.filter_grp, USER_IGNORE));
+          case SPACE_FILE: {
+            SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+            sfile->op = nullptr;
+            sfile->tags = FILE_TAG_REBUILD_MAIN_FILES;
+            break;
           }
+          case SPACE_ACTION: {
+            SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
 
-          /* force recalc of list of channels, potentially updating the active action
-           * while we're at it (as it can only be updated that way) T28962.
-           */
-          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
-        }
-        else if (sl->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = (SpaceImage *)sl;
+            saction->action = static_cast<bAction *>(restore_pointer_by_name(
+                id_map, reinterpret_cast<ID *>(saction->action), USER_REAL));
+            saction->ads.source = static_cast<ID *>(restore_pointer_by_name(
+                id_map, reinterpret_cast<ID *>(saction->ads.source), USER_REAL));
 
-          sima->image = static_cast<Image *>(
-              restore_pointer_by_name(id_map, (ID *)sima->image, USER_REAL));
+            if (saction->ads.filter_grp) {
+              saction->ads.filter_grp = static_cast<Collection *>(restore_pointer_by_name(
+                  id_map, reinterpret_cast<ID *>(saction->ads.filter_grp), USER_IGNORE));
+            }
 
-          /* this will be freed, not worth attempting to find same scene,
-           * since it gets initialized later */
-          sima->iuser.scene = nullptr;
+            /* force recalc of list of channels, potentially updating the active action
+             * while we're at it (as it can only be updated that way) #28962.
+             */
+            saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+            break;
+          }
+          case SPACE_IMAGE: {
+            SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+
+            sima->image = static_cast<Image *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(sima->image), USER_REAL));
+
+            /* this will be freed, not worth attempting to find same scene,
+             * since it gets initialized later */
+            sima->iuser.scene = nullptr;
 
 #if 0
-          /* Those are allocated and freed by space code, no need to handle them here. */
-          MEM_SAFE_FREE(sima->scopes.waveform_1);
-          MEM_SAFE_FREE(sima->scopes.waveform_2);
-          MEM_SAFE_FREE(sima->scopes.waveform_3);
-          MEM_SAFE_FREE(sima->scopes.vecscope);
+            /* Those are allocated and freed by space code, no need to handle them here. */
+            MEM_SAFE_FREE(sima->scopes.waveform_1);
+            MEM_SAFE_FREE(sima->scopes.waveform_2);
+            MEM_SAFE_FREE(sima->scopes.waveform_3);
+            MEM_SAFE_FREE(sima->scopes.vecscope);
 #endif
-          sima->scopes.ok = 0;
+            sima->scopes.ok = 0;
 
-          /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
-           * so assume that here we're doing for undo only...
-           */
-          sima->gpd = static_cast<bGPdata *>(
-              restore_pointer_by_name(id_map, (ID *)sima->gpd, USER_REAL));
-          sima->mask_info.mask = static_cast<Mask *>(
-              restore_pointer_by_name(id_map, (ID *)sima->mask_info.mask, USER_REAL));
-        }
-        else if (sl->spacetype == SPACE_SEQ) {
-          SpaceSeq *sseq = (SpaceSeq *)sl;
+            /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+             * so assume that here we're doing for undo only...
+             */
+            sima->gpd = static_cast<bGPdata *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(sima->gpd), USER_REAL));
+            sima->mask_info.mask = static_cast<Mask *>(restore_pointer_by_name(
+                id_map, reinterpret_cast<ID *>(sima->mask_info.mask), USER_REAL));
+            break;
+          }
+          case SPACE_SEQ: {
+            SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(sl);
 
-          /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
-           * so assume that here we're doing for undo only...
-           */
-          sseq->gpd = static_cast<bGPdata *>(
-              restore_pointer_by_name(id_map, (ID *)sseq->gpd, USER_REAL));
-        }
-        else if (sl->spacetype == SPACE_NLA) {
-          SpaceNla *snla = (SpaceNla *)sl;
-          bDopeSheet *ads = snla->ads;
+            /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+             * so assume that here we're doing for undo only...
+             */
+            sseq->gpd = static_cast<bGPdata *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(sseq->gpd), USER_REAL));
+            break;
+          }
+          case SPACE_NLA: {
+            SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
+            bDopeSheet *ads = snla->ads;
 
-          if (ads) {
-            ads->source = static_cast<ID *>(
-                restore_pointer_by_name(id_map, (ID *)ads->source, USER_REAL));
+            if (ads) {
+              ads->source = static_cast<ID *>(
+                  restore_pointer_by_name(id_map, reinterpret_cast<ID *>(ads->source), USER_REAL));
 
-            if (ads->filter_grp) {
-              ads->filter_grp = static_cast<Collection *>(
-                  restore_pointer_by_name(id_map, (ID *)ads->filter_grp, USER_IGNORE));
+              if (ads->filter_grp) {
+                ads->filter_grp = static_cast<Collection *>(restore_pointer_by_name(
+                    id_map, reinterpret_cast<ID *>(ads->filter_grp), USER_IGNORE));
+              }
             }
+            break;
           }
-        }
-        else if (sl->spacetype == SPACE_TEXT) {
-          SpaceText *st = (SpaceText *)sl;
+          case SPACE_TEXT: {
+            SpaceText *st = reinterpret_cast<SpaceText *>(sl);
 
-          st->text = static_cast<Text *>(
-              restore_pointer_by_name(id_map, (ID *)st->text, USER_IGNORE));
-          if (st->text == nullptr) {
-            st->text = static_cast<Text *>(newmain->texts.first);
+            st->text = static_cast<Text *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(st->text), USER_IGNORE));
+            if (st->text == nullptr) {
+              st->text = static_cast<Text *>(newmain->texts.first);
+            }
+          } break;
+          case SPACE_SCRIPT: {
+            SpaceScript *scpt = reinterpret_cast<SpaceScript *>(sl);
+
+            scpt->script = static_cast<Script *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(scpt->script), USER_REAL));
+
+            // screen->script = nullptr; /* 2.45 set to null, better re-run the script. */
+            if (scpt->script) {
+              SCRIPT_SET_NULL(scpt->script);
+            }
+            break;
           }
-        }
-        else if (sl->spacetype == SPACE_SCRIPT) {
-          SpaceScript *scpt = (SpaceScript *)sl;
+          case SPACE_OUTLINER: {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
 
-          scpt->script = static_cast<Script *>(
-              restore_pointer_by_name(id_map, (ID *)scpt->script, USER_REAL));
+            if (space_outliner->treestore) {
+              TreeStoreElem *tselem;
+              BLI_mempool_iter iter;
 
-          // screen->script = nullptr; /* 2.45 set to null, better re-run the script. */
-          if (scpt->script) {
-            SCRIPT_SET_NULL(scpt->script);
+              BLI_mempool_iternew(space_outliner->treestore, &iter);
+              while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+                /* Do not try to restore pointers to drivers/sequence/etc.,
+                 * can crash in undo case! */
+                if (TSE_IS_REAL_ID(tselem)) {
+                  tselem->id = static_cast<ID *>(
+                      restore_pointer_by_name(id_map, tselem->id, USER_IGNORE));
+                }
+                else {
+                  tselem->id = nullptr;
+                }
+              }
+              /* rebuild hash table, because it depends on ids too */
+              space_outliner->storeflag |= SO_TREESTORE_REBUILD;
+            }
+            break;
           }
-        }
-        else if (sl->spacetype == SPACE_OUTLINER) {
-          SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+          case SPACE_NODE: {
+            SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
+            bNodeTreePath *path, *path_next;
+            bNodeTree *ntree;
 
-          if (space_outliner->treestore) {
-            TreeStoreElem *tselem;
-            BLI_mempool_iter iter;
+            /* node tree can be stored locally in id too, link this first */
+            snode->id = static_cast<ID *>(restore_pointer_by_name(id_map, snode->id, USER_REAL));
+            snode->from = static_cast<ID *>(
+                restore_pointer_by_name(id_map, snode->from, USER_IGNORE));
 
-            BLI_mempool_iternew(space_outliner->treestore, &iter);
-            while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-              /* Do not try to restore pointers to drivers/sequence/etc.,
-               * can crash in undo case! */
-              if (TSE_IS_REAL_ID(tselem)) {
-                tselem->id = static_cast<ID *>(
-                    restore_pointer_by_name(id_map, tselem->id, USER_IGNORE));
+            ntree = snode->id ? ntreeFromID(snode->id) : nullptr;
+            snode->nodetree = ntree ?
+                                  ntree :
+                                  static_cast<bNodeTree *>(restore_pointer_by_name(
+                                      id_map, reinterpret_cast<ID *>(snode->nodetree), USER_REAL));
+
+            for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path;
+                 path = path->next) {
+              if (path == snode->treepath.first) {
+                /* first nodetree in path is same as snode->nodetree */
+                path->nodetree = snode->nodetree;
               }
               else {
-                tselem->id = nullptr;
+                path->nodetree = static_cast<bNodeTree *>(restore_pointer_by_name(
+                    id_map, reinterpret_cast<ID *>(path->nodetree), USER_REAL));
+              }
+
+              if (!path->nodetree) {
+                break;
               }
             }
-            /* rebuild hash table, because it depends on ids too */
-            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
-          }
-        }
-        else if (sl->spacetype == SPACE_NODE) {
-          SpaceNode *snode = (SpaceNode *)sl;
-          bNodeTreePath *path, *path_next;
-          bNodeTree *ntree;
 
-          /* node tree can be stored locally in id too, link this first */
-          snode->id = static_cast<ID *>(restore_pointer_by_name(id_map, snode->id, USER_REAL));
-          snode->from = static_cast<ID *>(
-              restore_pointer_by_name(id_map, snode->from, USER_IGNORE));
+            /* remaining path entries are invalid, remove */
+            for (; path; path = path_next) {
+              path_next = path->next;
 
-          ntree = snode->id ? ntreeFromID(snode->id) : nullptr;
-          snode->nodetree = ntree ? ntree :
-                                    static_cast<bNodeTree *>(restore_pointer_by_name(
-                                        id_map, (ID *)snode->nodetree, USER_REAL));
+              BLI_remlink(&snode->treepath, path);
+              MEM_freeN(path);
+            }
 
-          for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path;
-               path = path->next) {
-            if (path == snode->treepath.first) {
-              /* first nodetree in path is same as snode->nodetree */
-              path->nodetree = snode->nodetree;
+            /* edittree is just the last in the path,
+             * set this directly since the path may have been shortened above */
+            if (snode->treepath.last) {
+              path = static_cast<bNodeTreePath *>(snode->treepath.last);
+              snode->edittree = path->nodetree;
             }
             else {
-              path->nodetree = static_cast<bNodeTree *>(
-                  restore_pointer_by_name(id_map, (ID *)path->nodetree, USER_REAL));
+              snode->edittree = nullptr;
             }
-
-            if (!path->nodetree) {
-              break;
-            }
+            break;
           }
+          case SPACE_CLIP: {
+            SpaceClip *sclip = reinterpret_cast<SpaceClip *>(sl);
 
-          /* remaining path entries are invalid, remove */
-          for (; path; path = path_next) {
-            path_next = path->next;
+            sclip->clip = static_cast<MovieClip *>(
+                restore_pointer_by_name(id_map, reinterpret_cast<ID *>(sclip->clip), USER_REAL));
+            sclip->mask_info.mask = static_cast<Mask *>(restore_pointer_by_name(
+                id_map, reinterpret_cast<ID *>(sclip->mask_info.mask), USER_REAL));
 
-            BLI_remlink(&snode->treepath, path);
-            MEM_freeN(path);
+            sclip->scopes.ok = 0;
+            break;
           }
-
-          /* edittree is just the last in the path,
-           * set this directly since the path may have been shortened above */
-          if (snode->treepath.last) {
-            path = static_cast<bNodeTreePath *>(snode->treepath.last);
-            snode->edittree = path->nodetree;
+          case SPACE_SPREADSHEET: {
+            SpaceSpreadsheet *sspreadsheet = reinterpret_cast<SpaceSpreadsheet *>(sl);
+            lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
+            break;
           }
-          else {
-            snode->edittree = nullptr;
-          }
-        }
-        else if (sl->spacetype == SPACE_CLIP) {
-          SpaceClip *sclip = (SpaceClip *)sl;
-
-          sclip->clip = static_cast<MovieClip *>(
-              restore_pointer_by_name(id_map, (ID *)sclip->clip, USER_REAL));
-          sclip->mask_info.mask = static_cast<Mask *>(
-              restore_pointer_by_name(id_map, (ID *)sclip->mask_info.mask, USER_REAL));
-
-          sclip->scopes.ok = 0;
-        }
-        else if (sl->spacetype == SPACE_SPREADSHEET) {
-          SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-          lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
+          case SPACE_INFO:
+          case SPACE_IMASEL:
+          case SPACE_SOUND:
+          case SPACE_TIME:
+          case SPACE_LOGIC:
+          case SPACE_CONSOLE:
+          case SPACE_USERPREF:
+          case SPACE_TOPBAR:
+          case SPACE_STATUSBAR:
+          case SPACE_EMPTY:
+            /* Nothing to do here. */
+            break;
         }
       }
     }
@@ -2769,32 +2696,28 @@ void blo_lib_link_restore(Main *oldmain,
     LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
       lib_link_workspace_layout_restore(id_map, newmain, layout);
     }
-    workspace->pin_scene = static_cast<Scene *>(
-        restore_pointer_by_name(id_map, (ID *)workspace->pin_scene, USER_IGNORE));
+    workspace->pin_scene = static_cast<Scene *>(restore_pointer_by_name(
+        id_map, reinterpret_cast<ID *>(workspace->pin_scene), USER_IGNORE));
     lib_link_restore_viewer_path(id_map, &workspace->viewer_path);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &curwm->windows) {
     WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-    ID *workspace_id = (ID *)workspace;
-    Scene *oldscene = win->scene;
+    ID *workspace_id = reinterpret_cast<ID *>(workspace);
 
     workspace = static_cast<WorkSpace *>(restore_pointer_by_name(id_map, workspace_id, USER_REAL));
     BKE_workspace_active_set(win->workspace_hook, workspace);
     win->scene = static_cast<Scene *>(
-        restore_pointer_by_name(id_map, (ID *)win->scene, USER_REAL));
+        restore_pointer_by_name(id_map, reinterpret_cast<ID *>(win->scene), USER_REAL));
     if (win->scene == nullptr) {
       win->scene = curscene;
     }
     win->unpinned_scene = static_cast<Scene *>(
-        restore_pointer_by_name(id_map, (ID *)win->unpinned_scene, USER_IGNORE));
+        restore_pointer_by_name(id_map, reinterpret_cast<ID *>(win->unpinned_scene), USER_IGNORE));
     if (BKE_view_layer_find(win->scene, win->view_layer_name) == nullptr) {
       STRNCPY(win->view_layer_name, cur_view_layer->name);
     }
     BKE_workspace_active_set(win->workspace_hook, workspace);
-
-    /* keep cursor location through undo */
-    memcpy(&win->scene->cursor, &oldscene->cursor, sizeof(win->scene->cursor));
 
     /* NOTE: even though that function seems to redo part of what is done by
      * `lib_link_workspace_layout_restore()` above, it seems to have a slightly different scope:
@@ -2802,15 +2725,13 @@ void blo_lib_link_restore(Main *oldmain,
      * all workspaces), that one only focuses one current active screen, takes care of
      * potential local view, and needs window's scene pointer to be final... */
     lib_link_window_scene_data_restore(win, win->scene, cur_view_layer);
-
-    BLI_assert(win->screen == nullptr);
   }
 
   lib_link_wm_xr_data_restore(id_map, &curwm->xr);
 
   /* Restore all ID pointers in Main database itself
    * (especially IDProperties might point to some word-space of other 'weirdly unchanged' ID
-   * pointers, see T69146).
+   * pointers, see #69146).
    * Note that this will re-apply again a few pointers in workspaces or so,
    * but since we are remapping final ones already set above,
    * that is just some minor harmless double-processing. */
@@ -2853,7 +2774,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
          * where to add all non-library data-blocks found in file next, we have to switch that
          * 'dupli' found Main to latest position in the list!
          * Otherwise, you get weird disappearing linked data on a rather inconsistent basis.
-         * See also T53977 for reproducible case. */
+         * See also #53977 for reproducible case. */
         BLI_remlink(fd->mainlist, newmain);
         BLI_addtail(fd->mainlist, newmain);
 
@@ -2896,7 +2817,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
       /* when loading a linked lib into a file which has not been saved,
        * there is nothing we can be relative to, so instead we need to make
        * it absolute. This can happen when appending an object with a relative
-       * link into an unsaved blend file. See T27405.
+       * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
         BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
@@ -3111,7 +3032,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
       SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
       allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
-      char *allocname_buf = malloc(allocname_size);
+      char *allocname_buf = static_cast<char *>(malloc(allocname_size));
       memcpy(allocname_buf, allocname, allocname_size);
       allocname = allocname_buf;
     }
@@ -3157,7 +3078,7 @@ static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const I
    * (see BLO_read_from_memfile).
    * However, some needed by the snapshot being read may have been removed in previous one,
    * and would go missing.
-   * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
+   * This leads e.g. to disappearing objects in some undo/redo case, see #34446.
    * That means we have to carefully check whether current lib or
    * libdata already exits in old main, if it does we merely copy it over into new main area,
    * otherwise we have to do a full read of that bhead... */
@@ -3231,7 +3152,7 @@ static void read_libblock_undo_restore_identical(
   BLI_assert(id_old != nullptr);
 
   /* Some tags need to be preserved here. */
-  id_old->tag = tag | (id_old->tag & LIB_TAG_EXTRAUSER);
+  id_old->tag = tag | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
@@ -3296,7 +3217,7 @@ static bool read_libblock_undo_restore(
 {
   /* Get pointer to memory of new ID that we will be reading. */
   const ID *id = static_cast<const ID *>(peek_struct_undo(fd, bhead));
-  const short idcode = GS(id->name);
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
   if (bhead->code == ID_LI) {
     /* Restore library datablock. */
@@ -3310,7 +3231,7 @@ static bool read_libblock_undo_restore(
       return true;
     }
   }
-  else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
     /* Skip reading any UI datablocks, existing ones are kept. We don't
      * support pointers from other datablocks to UI datablocks so those
      * we also don't put UI datablocks in fd->libmap. */
@@ -3390,11 +3311,23 @@ static BHead *read_libblock(FileData *fd,
    * address and inherit recalc flags for the dependency graph. */
   ID *id_old = nullptr;
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
+    /* FIXME `read_libblock_undo_restore` currently often skips setting `id_old` even if there
+     * would be a valid matching old ID (libraries, linked data, and `IDTYPE_FLAGS_NO_MEMFILE_UNDO`
+     * id types, at least).
+     *
+     * It is unclear whether this is currently an issue:
+     *   * `r_id` is currently only requested by linking code (both independent one, and as part of
+     *     loading .blend file through `read_library_linked_ids`).
+     *   * `main->id_map` seems to always be `nullptr` in undo case at this point.
+     *
+     * So undo case does not seem to be affected by this. A future cleanup should try to remove
+     * most of this related code in the future, and instead assert that both `r_id` and
+     * `main->id_map` are `nullptr`. */
     if (read_libblock_undo_restore(fd, main, bhead, tag, &id_old)) {
       if (r_id) {
         *r_id = id_old;
       }
-      if (main->id_map != nullptr) {
+      if (main->id_map != nullptr && id_old != nullptr) {
         BKE_main_idmap_insert_id(main->id_map, id_old);
       }
 
@@ -3872,6 +3805,21 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 /** \name Read File (Internal)
  * \{ */
 
+/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done). */
+static void blo_read_file_checks(Main *bmain)
+{
+#ifndef NDEBUG
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      /* This pointer is deprecated and should always be nullptr. */
+      BLI_assert(win->screen == nullptr);
+    }
+  }
+#endif
+  UNUSED_VARS_NDEBUG(bmain);
+}
+
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
   BHead *bhead = blo_bhead_first(fd);
@@ -4033,6 +3981,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
 
+      /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+       * `BKE_lib_override_library_main_update`, see #103062.
+       * Proper fix involves first addressing #90610. */
+      BKE_main_collections_parent_relations_rebuild(bfd->main);
+
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
                                             fd->reports->duration.lib_overrides;
     }
@@ -4048,6 +4001,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   fd->mainlist = nullptr; /* Safety, this is local variable, shall not be used afterward. */
 
   BLI_assert(bfd->main->id_map == nullptr);
+
+  /* Sanity checks. */
+  blo_read_file_checks(bfd->main);
 
   return bfd;
 }
@@ -4655,6 +4611,11 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
 
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
+  /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+   * `BKE_lib_override_library_main_update`, see #103062.
+   * Proper fix involves first addressing #90610. */
+  BKE_main_collections_parent_relations_rebuild(mainvar);
+
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
 
@@ -4663,6 +4624,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
     blo_filedata_free(*fd);
     *fd = nullptr;
   }
+
+  /* Sanity checks. */
+  blo_read_file_checks(mainvar);
 }
 
 void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Params *params)
@@ -5065,6 +5029,11 @@ void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr
   if (BLO_read_requires_endian_switch(reader)) {
     BLI_endian_switch_int32_array(*ptr_p, array_size);
   }
+}
+
+void BLO_read_int8_array(BlendDataReader *reader, int /*array_size*/, int8_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
 }
 
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p)

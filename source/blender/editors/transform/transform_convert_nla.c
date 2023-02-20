@@ -67,13 +67,18 @@ typedef struct TransDataNla {
 static void applyTransformNLA_translation(PointerRNA *strip_rna_ptr, const TransDataNla *transdata)
 {
   /* NOTE: we write these twice to avoid truncation errors which can arise when
-   * moving the strips a large distance using numeric input T33852.
+   * moving the strips a large distance using numeric input #33852.
    */
   RNA_float_set(strip_rna_ptr, "frame_start", transdata->h1[0]);
   RNA_float_set(strip_rna_ptr, "frame_end", transdata->h2[0]);
 
   RNA_float_set(strip_rna_ptr, "frame_start", transdata->h1[0]);
   RNA_float_set(strip_rna_ptr, "frame_end", transdata->h2[0]);
+}
+
+static void applyTransformNLA_timeScale(PointerRNA *strip_rna_ptr, const float value)
+{
+  RNA_float_set(strip_rna_ptr, "scale", value);
 }
 
 /** \} */
@@ -204,6 +209,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
             tdn->h1[1] = yval;
             tdn->h2[0] = strip->end;
             tdn->h2[1] = yval;
+            tdn->h1[2] = tdn->h2[2] = strip->scale;
 
             center[0] = (float)scene->r.cfra;
             center[1] = yval;
@@ -333,6 +339,8 @@ static void recalcData_nla(TransInfo *t)
         strip->next->start = tdn->h2[0];
       }
 
+      strip->scale = tdn->h1[2];
+
       /* flush transforms to child strips (since this should be a meta) */
       BKE_nlameta_flush_transforms(strip);
 
@@ -399,7 +407,24 @@ static void recalcData_nla(TransInfo *t)
      */
     RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 
-    applyTransformNLA_translation(&strip_ptr, tdn);
+    switch (t->mode) {
+      case TFM_TIME_EXTEND:
+      case TFM_TIME_SCALE: {
+        /* The final scale is the product of the original strip scale (from before the transform
+         * operation started) and the current scale value of this transform operation. */
+        const float originalStripScale = tdn->h1[2];
+        const float newStripScale = originalStripScale * t->values_final[0];
+        applyTransformNLA_timeScale(&strip_ptr, newStripScale);
+        applyTransformNLA_translation(&strip_ptr, tdn);
+        break;
+      }
+      case TFM_TRANSLATION:
+        applyTransformNLA_translation(&strip_ptr, tdn);
+        break;
+      default:
+        printf("recalcData_nla: unsupported NLA transformation mode %d\n", t->mode);
+        continue;
+    }
 
     /* flush transforms to child strips (since this should be a meta) */
     BKE_nlameta_flush_transforms(strip);
@@ -432,7 +457,7 @@ static void recalcData_nla(TransInfo *t)
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
               !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
-            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
@@ -452,7 +477,7 @@ static void recalcData_nla(TransInfo *t)
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
               !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
             /* move strip to this track */
-            BLI_remlink(&tdn->nlt->strips, strip);
+            BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
 
             tdn->nlt = track;
@@ -517,8 +542,8 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 /** \} */
 
 TransConvertTypeInfo TransConvertType_NLA = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransNlaData,
-    /* recalcData */ recalcData_nla,
-    /* special_aftertrans_update */ special_aftertrans_update__nla,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransNlaData,
+    /*recalcData*/ recalcData_nla,
+    /*special_aftertrans_update*/ special_aftertrans_update__nla,
 };

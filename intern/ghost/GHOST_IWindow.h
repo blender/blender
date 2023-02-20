@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string>
 
+class GHOST_IContext;
+
 /**
  * Interface for GHOST windows.
  *
@@ -61,6 +63,12 @@ class GHOST_IWindow {
    * \return Indication as to whether installation has succeeded.
    */
   virtual GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type) = 0;
+
+  /**
+   * Returns the drawing context used in this window.
+   * \return The current drawing context.
+   */
+  virtual GHOST_IContext *getDrawingContext() = 0;
 
   /**
    * Sets the title displayed in the title bar.
@@ -203,6 +211,18 @@ class GHOST_IWindow {
   virtual unsigned int getDefaultFramebuffer() = 0;
 
   /**
+   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap events as the framebuffer will change.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
+                                             void *framebuffer,
+                                             void *command_buffer,
+                                             void *render_pass,
+                                             void *extent,
+                                             uint32_t *fb_id) = 0;
+
+  /**
    * Invalidates the contents of this window.
    * \return Indication of success.
    */
@@ -254,7 +274,7 @@ class GHOST_IWindow {
    */
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
 
-  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) = 0;
+  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const = 0;
 
   virtual void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                                   GHOST_TAxisFlag &axis_flag,

@@ -46,16 +46,13 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
   MTL_LOG_WARNING("MTLIndexBuf::bind_as_ssbo not yet implemented!\n");
 }
 
-const uint32_t *MTLIndexBuf::read() const
+void MTLIndexBuf::read(uint32_t *data) const
 {
   if (ibo_ != nullptr) {
-
-    /* Return host pointer. */
-    void *data = ibo_->get_host_ptr();
-    return static_cast<uint32_t *>(data);
+    void *host_ptr = ibo_->get_host_ptr();
+    memcpy(data, host_ptr, size_get());
   }
   BLI_assert(false && "Index buffer not ready to be read.");
-  return nullptr;
 }
 
 void MTLIndexBuf::upload_data()
@@ -98,7 +95,7 @@ void MTLIndexBuf::upload_data()
       MTL_LOG_WARNING("[Metal] Warning! Trying to allocate index buffer with size=0 bytes\n");
     }
     else {
-      ibo_ = MTLContext::get_global_memory_manager().allocate_with_data(alloc_size_, true, data_);
+      ibo_ = MTLContext::get_global_memory_manager()->allocate_with_data(alloc_size_, true, data_);
       BLI_assert(ibo_);
       ibo_->set_label(@"Index Buffer");
     }
@@ -340,7 +337,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         BLI_assert(max_possible_verts > 0);
 
         /* Allocate new buffer. */
-        optimized_ibo_ = MTLContext::get_global_memory_manager().allocate(
+        optimized_ibo_ = MTLContext::get_global_memory_manager()->allocate(
             max_possible_verts *
                 ((index_type_ == GPU_INDEX_U16) ? sizeof(uint16_t) : sizeof(uint32_t)),
             true);
@@ -350,7 +347,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint16_t> orig_data(static_cast<const uint16_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint16_t> output_data(
-              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_emulated_tri_fan_buf<uint16_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -358,7 +355,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint32_t> orig_data(static_cast<const uint32_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint32_t> output_data(
-              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_emulated_tri_fan_buf<uint32_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -379,7 +376,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         BLI_assert(max_possible_verts > 0);
 
         /* Allocate new buffer. */
-        optimized_ibo_ = MTLContext::get_global_memory_manager().allocate(
+        optimized_ibo_ = MTLContext::get_global_memory_manager()->allocate(
             max_possible_verts *
                 ((index_type_ == GPU_INDEX_U16) ? sizeof(uint16_t) : sizeof(uint32_t)),
             true);
@@ -389,7 +386,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint16_t> orig_data(static_cast<const uint16_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint16_t> output_data(
-              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_optimized_tri_strip_buf<uint16_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -397,7 +394,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint32_t> orig_data(static_cast<const uint32_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint32_t> output_data(
-              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_optimized_tri_strip_buf<uint32_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -475,7 +472,7 @@ void MTLIndexBuf::strip_restart_indices()
 
       /* Find swap index at end of index buffer. */
       int swap_index = -1;
-      for (uint j = index_len_ - 1; j >= i; j--) {
+      for (uint j = index_len_ - 1; j >= i && index_len_ > 0; j--) {
         /* If end index is restart, just reduce length. */
         if (uint_idx[j] == 0xFFFFFFFFu) {
           index_len_--;
@@ -486,22 +483,26 @@ void MTLIndexBuf::strip_restart_indices()
         break;
       }
 
-      /* If swap index is not valid, then there were no valid non-restart indices
-       * to swap with. However, the above loop will have removed these indices by
-       * reducing the length of indices. Debug assertions verify that the restart
-       * index is no longer included. */
-      if (swap_index == -1) {
-        BLI_assert(index_len_ <= i);
-      }
-      else {
-        /* If we have found an index we can swap with, flip the values.
-         * We also reduce the length. As per above loop, swap_index should
-         * now be outside the index length range. */
-        uint32_t swap_index_value = uint_idx[swap_index];
-        uint_idx[i] = swap_index_value;
-        uint_idx[swap_index] = 0xFFFFFFFFu;
-        index_len_--;
-        BLI_assert(index_len_ <= swap_index);
+      /* If index_len_ == 0, this means all indices were flagged as hidden, with restart index
+       * values. Hence we will entirely skip the draw. */
+      if (index_len_ > 0) {
+        /* If swap index is not valid, then there were no valid non-restart indices
+         * to swap with. However, the above loop will have removed these indices by
+         * reducing the length of indices. Debug assertions verify that the restart
+         * index is no longer included. */
+        if (swap_index == -1) {
+          BLI_assert(index_len_ <= i);
+        }
+        else {
+          /* If we have found an index we can swap with, flip the values.
+           * We also reduce the length. As per above loop, swap_index should
+           * now be outside the index length range. */
+          uint32_t swap_index_value = uint_idx[swap_index];
+          uint_idx[i] = swap_index_value;
+          uint_idx[swap_index] = 0xFFFFFFFFu;
+          index_len_--;
+          BLI_assert(index_len_ <= swap_index);
+        }
       }
     }
   }

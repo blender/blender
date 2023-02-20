@@ -462,7 +462,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
     i = m_vertex_id;
     if ((sys->zerola[i] == false) &&
         /* Non zero check is to account for vertices that aren't connected to a selected face.
-         * Without this wire edges become `nan`, see T89214. */
+         * Without this wire edges become `nan`, see #89214. */
         (sys->ring_areas[i] != 0.0f)) {
       w = sys->vweights[i] * sys->ring_areas[i];
       sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda_factor / (4.0f * w);

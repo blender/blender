@@ -26,9 +26,7 @@ class DebugFlags {
 
     /* Flags describing which instructions sets are allowed for use. */
     bool avx2 = true;
-    bool avx = true;
     bool sse41 = true;
-    bool sse3 = true;
     bool sse2 = true;
 
     /* Check functions to see whether instructions up to the given one
@@ -36,19 +34,11 @@ class DebugFlags {
      */
     bool has_avx2()
     {
-      return has_avx() && avx2;
-    }
-    bool has_avx()
-    {
-      return has_sse41() && avx;
+      return has_sse41() && avx2;
     }
     bool has_sse41()
     {
-      return has_sse3() && sse41;
-    }
-    bool has_sse3()
-    {
-      return has_sse2() && sse3;
+      return has_sse2() && sse41;
     }
     bool has_sse2()
     {
@@ -107,6 +97,9 @@ class DebugFlags {
 
     /* Whether adaptive feature based runtime compile is enabled or not. */
     bool adaptive_compile = false;
+
+    /* Whether local atomic sorting is enabled or not. */
+    bool use_local_atomic_sort = true;
   };
 
   /* Get instance of debug flags registry. */

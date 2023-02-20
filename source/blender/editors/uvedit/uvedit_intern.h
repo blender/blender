@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMFace;
 struct BMLoop;
 struct Object;
@@ -30,7 +34,7 @@ typedef struct UvNearestHit {
    */
   float dist_sq;
 
-  /** Scale the UV's to account for aspect ratio from the image view. */
+  /** Scale the UVs to account for aspect ratio from the image view. */
   float scale[2];
 } UvNearestHit;
 
@@ -117,13 +121,13 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
 
 bool uvedit_vert_is_edge_select_any_other(const struct Scene *scene,
                                           struct BMLoop *l,
-                                          const int cd_loop_uv_offset);
+                                          BMUVOffsets offsets);
 bool uvedit_vert_is_face_select_any_other(const struct Scene *scene,
                                           struct BMLoop *l,
-                                          const int cd_loop_uv_offset);
+                                          BMUVOffsets offsets);
 bool uvedit_vert_is_all_other_faces_selected(const struct Scene *scene,
                                              struct BMLoop *l,
-                                             const int cd_loop_uv_offset);
+                                             BMUVOffsets offsets);
 
 /* utility tool functions */
 
@@ -146,6 +150,10 @@ void UV_OT_rip(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
 void UV_OT_smart_project(struct wmOperatorType *ot);
 
+/* uvedit_copy_paste.cc */
+void UV_OT_copy(wmOperatorType *ot);
+void UV_OT_paste(wmOperatorType *ot);
+
 /* uvedit_path.c */
 
 void UV_OT_shortest_path_pick(struct wmOperatorType *ot);
@@ -163,7 +171,7 @@ bool uvedit_select_is_any_selected_multi(const struct Scene *scene,
  */
 const float *uvedit_first_selected_uv_from_vertex(struct Scene *scene,
                                                   struct BMVert *eve,
-                                                  int cd_loop_uv_offset);
+                                                  BMUVOffsets offsets);
 
 void UV_OT_select_all(struct wmOperatorType *ot);
 void UV_OT_select(struct wmOperatorType *ot);
@@ -182,3 +190,7 @@ void UV_OT_select_overlap(struct wmOperatorType *ot);
 void UV_OT_select_similar(struct wmOperatorType *ot);
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

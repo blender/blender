@@ -22,6 +22,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   clip_buttons.c
   clip_dopesheet_draw.c
@@ -36,7 +39,7 @@ set(SRC
   space_clip.c
   tracking_ops.c
   tracking_ops_detect.c
-  tracking_ops_orient.c
+  tracking_ops_orient.cc
   tracking_ops_plane.c
   tracking_ops_solve.c
   tracking_ops_stabilize.c

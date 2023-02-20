@@ -141,6 +141,9 @@ static int wm_link_append_flag(wmOperator *op)
     if (RNA_boolean_get(op->ptr, "do_reuse_local_id")) {
       flag |= BLO_LIBLINK_APPEND_LOCAL_ID_REUSE;
     }
+    if (RNA_boolean_get(op->ptr, "clear_asset_data")) {
+      flag |= BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR;
+    }
   }
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
     flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
@@ -399,6 +402,12 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
       false,
       "Re-Use Local Data",
       "Try to re-use previously matching appended data-blocks instead of appending a new copy");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  prop = RNA_def_boolean(ot->srna,
+                         "clear_asset_data",
+                         false,
+                         "Clear Asset Data",
+                         "Don't add asset meta-data or tags from the original data-block");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   prop = RNA_def_boolean(ot->srna, "autoselect", true, "Select", "Select new objects");

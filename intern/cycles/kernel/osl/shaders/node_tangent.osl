@@ -3,8 +3,7 @@
 
 #include "stdcycles.h"
 
-shader node_tangent(normal NormalIn = N,
-                    string attr_name = "geom:tangent",
+shader node_tangent(string attr_name = "geom:tangent",
                     string direction_type = "radial",
                     string axis = "z",
                     output normal Tangent = normalize(dPdu))
@@ -29,5 +28,5 @@ shader node_tangent(normal NormalIn = N,
   }
 
   T = transform("object", "world", T);
-  Tangent = cross(NormalIn, normalize(cross(T, NormalIn)));
+  Tangent = cross(N, normalize(cross(T, N)));
 }

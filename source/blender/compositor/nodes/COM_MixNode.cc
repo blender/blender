@@ -57,6 +57,9 @@ void MixNode::convert_to_operations(NodeConverter &converter,
     case MA_RAMP_DIFF:
       convert_prog = new MixDifferenceOperation();
       break;
+    case MA_RAMP_EXCLUSION:
+      convert_prog = new MixExclusionOperation();
+      break;
     case MA_RAMP_SAT:
       convert_prog = new MixSaturationOperation();
       break;

@@ -15,6 +15,8 @@ set(INC
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
+set(INC_SYS
+)
 
 set(SRC
   script_edit.c

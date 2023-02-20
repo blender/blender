@@ -12,7 +12,7 @@ __all__ = (
     "path_reference",
     "path_reference_copy",
     "path_reference_mode",
-    "unique_name"
+    "unique_name",
 )
 
 import bpy
@@ -111,7 +111,7 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     """
     def wrapper(cls):
         # Without that, we may end up adding those fields to some **parent** class' __annotations__ property
-        # (like the ImportHelper or ExportHelper ones)! See T58772.
+        # (like the ImportHelper or ExportHelper ones)! See #58772.
         if "__annotations__" not in cls.__dict__:
             setattr(cls, "__annotations__", {})
 
@@ -396,11 +396,11 @@ path_reference_mode = EnumProperty(
     name="Path Mode",
     description="Method used to reference paths",
     items=(
-        ('AUTO', "Auto", "Use Relative paths with subdirectories only"),
+        ('AUTO', "Auto", "Use relative paths with subdirectories only"),
         ('ABSOLUTE', "Absolute", "Always write absolute paths"),
         ('RELATIVE', "Relative", "Always write relative paths "
          "(where possible)"),
-        ('MATCH', "Match", "Match Absolute/Relative "
+        ('MATCH', "Match", "Match absolute/relative "
          "setting with input path"),
         ('STRIP', "Strip Path", "Filename only"),
         ('COPY', "Copy", "Copy the file to the destination path "

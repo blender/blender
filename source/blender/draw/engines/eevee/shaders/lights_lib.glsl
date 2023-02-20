@@ -1,26 +1,14 @@
 
+#pragma BLENDER_REQUIRE(engine_eevee_shared_defines.h)
+#pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(raytrace_lib.glsl)
 #pragma BLENDER_REQUIRE(ltc_lib.glsl)
 
-#ifndef MAX_CASCADE_NUM
-#  define MAX_CASCADE_NUM 4
-#endif
-
 /* ---------------------------------------------------------------------- */
 /** \name Structure
  * \{ */
-
-struct LightData {
-  vec4 position_influence;     /* w : InfluenceRadius (inversed and squared) */
-  vec4 color_influence_volume; /* w : InfluenceRadius but for Volume power */
-  vec4 spotdata_radius_shadow; /* x : spot size, y : spot blend, z : radius, w: shadow id */
-  vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: area size X or spot scale X */
-  vec4 upvec_sizey;            /* xyz: Normalized right vector, w: area size Y or spot scale Y */
-  vec4 forwardvec_type;        /* xyz: Normalized forward vector, w: Light Type */
-  vec4 diff_spec_volume;       /* xyz: Diffuse/Spec/Volume power, w: radius for volumetric. */
-};
 
 /* convenience aliases */
 #define l_color color_influence_volume.rgb
@@ -42,23 +30,6 @@ struct LightData {
 #define l_radius spotdata_radius_shadow.z
 #define l_shadowid spotdata_radius_shadow.w
 
-struct ShadowData {
-  vec4 near_far_bias_id;
-  vec4 contact_shadow_data;
-};
-
-struct ShadowCubeData {
-  mat4 shadowmat;
-  vec4 position;
-};
-
-struct ShadowCascadeData {
-  mat4 shadowmat[MAX_CASCADE_NUM];
-  vec4 split_start_distances;
-  vec4 split_end_distances;
-  vec4 shadow_vec_id;
-};
-
 /* convenience aliases */
 #define sh_near near_far_bias_id.x
 #define sh_far near_far_bias_id.y
@@ -77,20 +48,34 @@ struct ShadowCascadeData {
 /** \name Resources
  * \{ */
 
+#if !defined(USE_GPU_SHADER_CREATE_INFO)
+
 layout(std140) uniform shadow_block
 {
-  ShadowData shadows_data[MAX_SHADOW];
-  ShadowCubeData shadows_cube_data[MAX_SHADOW_CUBE];
-  ShadowCascadeData shadows_cascade_data[MAX_SHADOW_CASCADE];
+  ShadowBlock _shadow_block;
 };
 
 layout(std140) uniform light_block
 {
-  LightData lights_data[MAX_LIGHT];
+  LightBlock _light_block;
 };
 
 uniform depth2DArrayShadow shadowCubeTexture;
 uniform depth2DArrayShadow shadowCascadeTexture;
+
+/* Keep original syntax: ShadowBlock */
+#  define shadows_data _shadow_block.shadows_data
+#  define shadows_cube_data _shadow_block.shadows_cube_data
+#  define shadows_cascade_data _shadow_block.shadows_cascade_data
+
+/* Keep original syntax: LightBlock */
+#  define lights_data _light_block.lights_data
+
+#else
+#  ifndef EEVEE_SHADER_SHARED_H
+#    error Ensure eevee_legacy_common_lib is included.
+#  endif
+#endif
 
 /** \} */
 

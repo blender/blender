@@ -12,6 +12,12 @@
 #include "GPU_common_types.h"
 #include "GPU_context.h"
 
+/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
+ * solvable in a short term. */
+#ifdef __clang__
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "intern/GHOST_Context.h"
 #include "intern/GHOST_ContextCGL.h"
 #include "intern/GHOST_Window.h"
@@ -28,6 +34,7 @@
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
+#include <mutex>
 
 @class CAMetalLayer;
 @class MTLCommandQueue;
@@ -59,6 +66,40 @@ struct MTLSamplerBinding {
   }
 };
 
+/* Caching of resource bindings for active MTLRenderCommandEncoder.
+ * In Metal, resource bindings are local to the MTLCommandEncoder,
+ * not globally to the whole pipeline/cmd buffer. */
+struct MTLBoundShaderState {
+  MTLShader *shader_ = nullptr;
+  uint pso_index_;
+  void set(MTLShader *shader, uint pso_index)
+  {
+    shader_ = shader;
+    pso_index_ = pso_index;
+  }
+};
+
+/* Caching of CommandEncoder Vertex/Fragment buffer bindings. */
+struct BufferBindingCached {
+  /* Whether the given binding slot uses byte data (Push Constant equivalent)
+   * or an MTLBuffer. */
+  bool is_bytes;
+  id<MTLBuffer> metal_buffer;
+  int offset;
+};
+
+/* Caching of CommandEncoder textures bindings. */
+struct TextureBindingCached {
+  id<MTLTexture> metal_texture;
+};
+
+/* Cached of CommandEncoder sampler states. */
+struct SamplerStateBindingCached {
+  MTLSamplerState binding_state;
+  id<MTLSamplerState> sampler_state;
+  bool is_arg_buffer_binding;
+};
+
 /* Metal Context Render Pass State -- Used to track active RenderCommandEncoder state based on
  * bound MTLFrameBuffer's.Owned by MTLContext. */
 class MTLRenderPassState {
@@ -73,52 +114,16 @@ class MTLRenderPassState {
   MTLContext &ctx;
   MTLCommandBufferManager &cmd;
 
-  /* Caching of resource bindings for active MTLRenderCommandEncoder.
-   * In Metal, resource bindings are local to the MTLCommandEncoder,
-   * not globally to the whole pipeline/cmd buffer. */
-  struct MTLBoundShaderState {
-    MTLShader *shader_ = nullptr;
-    uint pso_index_;
-    void set(MTLShader *shader, uint pso_index)
-    {
-      shader_ = shader;
-      pso_index_ = pso_index;
-    }
-  };
-
   MTLBoundShaderState last_bound_shader_state;
   id<MTLRenderPipelineState> bound_pso = nil;
   id<MTLDepthStencilState> bound_ds_state = nil;
   uint last_used_stencil_ref_value = 0;
   MTLScissorRect last_scissor_rect;
 
-  /* Caching of CommandEncoder Vertex/Fragment buffer bindings. */
-  struct BufferBindingCached {
-    /* Whether the given binding slot uses byte data (Push Constant equivalent)
-     * or an MTLBuffer. */
-    bool is_bytes;
-    id<MTLBuffer> metal_buffer;
-    int offset;
-  };
-
-  BufferBindingCached cached_vertex_buffer_bindings[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
-  BufferBindingCached cached_fragment_buffer_bindings[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
-
-  /* Caching of CommandEncoder textures bindings. */
-  struct TextureBindingCached {
-    id<MTLTexture> metal_texture;
-  };
-
+  BufferBindingCached cached_vertex_buffer_bindings[MTL_MAX_BUFFER_BINDINGS];
+  BufferBindingCached cached_fragment_buffer_bindings[MTL_MAX_BUFFER_BINDINGS];
   TextureBindingCached cached_vertex_texture_bindings[MTL_MAX_TEXTURE_SLOTS];
   TextureBindingCached cached_fragment_texture_bindings[MTL_MAX_TEXTURE_SLOTS];
-
-  /* Cached of CommandEncoder sampler states. */
-  struct SamplerStateBindingCached {
-    MTLSamplerState binding_state;
-    id<MTLSamplerState> sampler_state;
-    bool is_arg_buffer_binding;
-  };
-
   SamplerStateBindingCached cached_vertex_sampler_state_bindings[MTL_MAX_TEXTURE_SLOTS];
   SamplerStateBindingCached cached_fragment_sampler_state_bindings[MTL_MAX_TEXTURE_SLOTS];
 
@@ -142,6 +147,44 @@ class MTLRenderPassState {
   void bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index);
   void bind_vertex_bytes(void *bytes, uint length, uint index);
   void bind_fragment_bytes(void *bytes, uint length, uint index);
+};
+
+/* Metal Context Compute Pass State -- Used to track active ComputeCommandEncoder state. */
+class MTLComputeState {
+  friend class MTLContext;
+
+ public:
+  MTLComputeState(MTLContext &context, MTLCommandBufferManager &command_buffer_manager)
+      : ctx(context), cmd(command_buffer_manager){};
+
+  /* Given a ComputePassState is associated with a live ComputeCommandEncoder,
+   * this state sits within the MTLCommandBufferManager. */
+  MTLContext &ctx;
+  MTLCommandBufferManager &cmd;
+
+  id<MTLComputePipelineState> bound_pso = nil;
+  BufferBindingCached cached_compute_buffer_bindings[MTL_MAX_BUFFER_BINDINGS];
+  TextureBindingCached cached_compute_texture_bindings[MTL_MAX_TEXTURE_SLOTS];
+  SamplerStateBindingCached cached_compute_sampler_state_bindings[MTL_MAX_TEXTURE_SLOTS];
+
+  /* Reset ComputeCommandEncoder binding state. */
+  void reset_state();
+
+  /* PSO Binding. */
+  void bind_pso(id<MTLComputePipelineState> pso);
+
+  /* Texture Binding (ComputeCommandEncoder). */
+  void bind_compute_texture(id<MTLTexture> tex, uint slot);
+  /* Sampler Binding (ComputeCommandEncoder). */
+  void bind_compute_sampler(MTLSamplerBinding &sampler_binding,
+                            bool use_argument_buffer_for_samplers,
+                            uint slot);
+  /* Buffer binding (ComputeCommandEncoder). */
+  void bind_compute_buffer(id<MTLBuffer> buffer,
+                           uint buffer_offset,
+                           uint index,
+                           bool writeable = false);
+  void bind_compute_bytes(void *bytes, uint length, uint index);
 };
 
 /* Depth Stencil State */
@@ -310,6 +353,12 @@ struct MTLContextTextureUtils {
       GPU_shader_free(fullscreen_blit_shader);
     }
 
+    /* Free depth 2D Update shaders */
+    for (auto item : depth_2d_update_shaders.items()) {
+      GPU_shader_free(item.value);
+    }
+    depth_2d_update_shaders.clear();
+
     /* Free Read shader maps */
     free_cached_pso_map(texture_1d_read_compute_psos);
     free_cached_pso_map(texture_1d_read_compute_psos);
@@ -453,6 +502,9 @@ struct MTLContextGlobalShaderPipelineState {
   /* Render parameters. */
   float point_size = 1.0f;
   float line_width = 1.0f;
+
+  /* Clipping plane enablement. */
+  bool clip_distance_enabled[6] = {false};
 };
 
 /* Command Buffer Manager - Owned by MTLContext.
@@ -505,6 +557,9 @@ class MTLCommandBufferManager {
   MTLFrameBuffer *active_frame_buffer_ = nullptr;
   MTLRenderPassDescriptor *active_pass_descriptor_ = nullptr;
 
+  /* State associated with active ComputeCommandEncoder. */
+  MTLComputeState compute_state_;
+
   /* Workload heuristics - We may need to split command buffers to optimize workload and balancing.
    */
   int current_draw_call_count_ = 0;
@@ -514,7 +569,7 @@ class MTLCommandBufferManager {
 
  public:
   MTLCommandBufferManager(MTLContext &context)
-      : context_(context), render_pass_state_(context, *this){};
+      : context_(context), render_pass_state_(context, *this), compute_state_(context, *this){};
   void prepare(bool supports_render = true);
 
   /* If wait is true, CPU will stall until GPU work has completed. */
@@ -537,6 +592,14 @@ class MTLCommandBufferManager {
     return render_pass_state_;
   }
 
+  /* RenderPassState for RenderCommandEncoder. */
+  MTLComputeState &get_compute_state()
+  {
+    /* Render pass state should only be valid if we are inside a compute encoder. */
+    BLI_assert(this->is_inside_compute());
+    return compute_state_;
+  }
+
   /* Rendering Heuristics. */
   void register_draw_counters(int vertex_submission);
   void reset_counters();
@@ -555,6 +618,8 @@ class MTLCommandBufferManager {
   bool insert_memory_barrier(eGPUBarrier barrier_bits,
                              eGPUStageBarrierBits before_stages,
                              eGPUStageBarrierBits after_stages);
+  void encode_signal_event(id<MTLEvent> event, uint64_t value);
+  void encode_wait_for_event(id<MTLEvent> event, uint64_t value);
   /* TODO(Metal): Support fences in command buffer class. */
 
   /* Debug. */
@@ -575,6 +640,7 @@ class MTLCommandBufferManager {
 class MTLContext : public Context {
   friend class MTLBackend;
   friend class MTLRenderPassState;
+  friend class MTLComputeState;
 
  public:
   /* Swap-chain and latency management. */
@@ -597,7 +663,9 @@ class MTLContext : public Context {
 
   /* Memory Management. */
   MTLScratchBufferManager memory_manager;
-  static MTLBufferPool global_memory_manager;
+  static std::mutex global_memory_manager_reflock;
+  static int global_memory_manager_refcount;
+  static MTLBufferPool *global_memory_manager;
 
   /* CommandBuffer managers. */
   MTLCommandBufferManager main_command_buffer;
@@ -644,9 +712,9 @@ class MTLContext : public Context {
 
   /** Dummy Resources */
   /* Maximum of 32 texture types. Though most combinations invalid. */
-  gpu::MTLTexture *dummy_textures_[GPU_TEXTURE_BUFFER] = {nullptr};
-  GPUVertFormat dummy_vertformat_;
-  GPUVertBuf *dummy_verts_ = nullptr;
+  gpu::MTLTexture *dummy_textures_[GPU_SAMPLER_TYPE_MAX][GPU_TEXTURE_BUFFER] = {{nullptr}};
+  GPUVertFormat dummy_vertformat_[GPU_SAMPLER_TYPE_MAX];
+  GPUVertBuf *dummy_verts_[GPU_SAMPLER_TYPE_MAX] = {nullptr};
 
  public:
   /* GPUContext interface. */
@@ -725,15 +793,26 @@ class MTLContext : public Context {
       id<MTLRenderCommandEncoder> rec,
       const MTLShaderInterface *shader_interface,
       const MTLRenderPipelineStateInstance *pipeline_state_instance);
+  bool ensure_uniform_buffer_bindings(
+      id<MTLComputeCommandEncoder> rec,
+      const MTLShaderInterface *shader_interface,
+      const MTLComputePipelineStateInstance &pipeline_state_instance);
   void ensure_texture_bindings(id<MTLRenderCommandEncoder> rec,
                                MTLShaderInterface *shader_interface,
                                const MTLRenderPipelineStateInstance *pipeline_state_instance);
+  void ensure_texture_bindings(id<MTLComputeCommandEncoder> rec,
+                               MTLShaderInterface *shader_interface,
+                               const MTLComputePipelineStateInstance &pipeline_state_instance);
   void ensure_depth_stencil_state(MTLPrimitiveType prim_type);
 
   id<MTLBuffer> get_null_buffer();
   id<MTLBuffer> get_null_attribute_buffer();
-  gpu::MTLTexture *get_dummy_texture(eGPUTextureType type);
+  gpu::MTLTexture *get_dummy_texture(eGPUTextureType type, eGPUSamplerFormat sampler_format);
   void free_dummy_resources();
+
+  /* Compute. */
+  bool ensure_compute_pipeline_state();
+  void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
 
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);
@@ -778,8 +857,34 @@ class MTLContext : public Context {
     return this->memory_manager;
   }
 
-  static MTLBufferPool &get_global_memory_manager()
+  static void global_memory_manager_acquire_ref()
   {
+    MTLContext::global_memory_manager_reflock.lock();
+    if (MTLContext::global_memory_manager == nullptr) {
+      BLI_assert(MTLContext::global_memory_manager_refcount == 0);
+      MTLContext::global_memory_manager = new MTLBufferPool();
+    }
+    MTLContext::global_memory_manager_refcount++;
+    MTLContext::global_memory_manager_reflock.unlock();
+  }
+
+  static void global_memory_manager_release_ref()
+  {
+    MTLContext::global_memory_manager_reflock.lock();
+    MTLContext::global_memory_manager_refcount--;
+    BLI_assert(MTLContext::global_memory_manager_refcount >= 0);
+    BLI_assert(MTLContext::global_memory_manager != nullptr);
+
+    if (MTLContext::global_memory_manager_refcount <= 0) {
+      delete MTLContext::global_memory_manager;
+      MTLContext::global_memory_manager = nullptr;
+    }
+    MTLContext::global_memory_manager_reflock.unlock();
+  }
+
+  static MTLBufferPool *get_global_memory_manager()
+  {
+    BLI_assert(MTLContext::global_memory_manager != nullptr);
     return MTLContext::global_memory_manager;
   }
 

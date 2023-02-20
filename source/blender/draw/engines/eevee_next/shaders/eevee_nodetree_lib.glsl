@@ -277,7 +277,7 @@ void output_aov(vec4 color, float value, uint hash)
 /* Return new shading normal. */
 vec3 displacement_bump()
 {
-#  ifdef GPU_FRAGMENT_SHADER
+#  if defined(GPU_FRAGMENT_SHADER) && !defined(MAT_GEOM_CURVES)
   vec2 dHd;
   dF_branch(dot(nodetree_displacement(), g_data.N + dF_impl(g_data.N)), dHd);
 

@@ -121,7 +121,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
   bContext *C = self->context;
 
   /* Special case where the window is expected to be freed on file-read,
-   * in this case the window should not be restored, see: T92818. */
+   * in this case the window should not be restored, see: #92818. */
   bool do_restore = true;
   if (self->ctx_init.win) {
     wmWindowManager *wm = CTX_wm_manager(C);

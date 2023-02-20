@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-struct AssetCatalogFilterSettings;
-struct AssetFilterSettings;
 struct AssetHandle;
 struct AssetLibrary;
 struct AssetLibraryReference;
@@ -22,6 +20,9 @@ struct wmNotifier;
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
  * and may return earlier.
+ *
+ * \warning: Asset list reading involves an #AS_asset_library_load() call which may reload asset
+ *           library data like catalogs (invalidating pointers). Refer to its warning for details.
  */
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
                                 const struct bContext *C);
@@ -55,7 +56,6 @@ struct PreviewImage *ED_assetlist_asset_preview_request(
 int ED_assetlist_asset_preview_icon_id_request(const AssetLibraryReference *library_reference,
                                                AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
-const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
 
 struct AssetLibrary *ED_assetlist_library_get(
     const struct AssetLibraryReference *library_reference);

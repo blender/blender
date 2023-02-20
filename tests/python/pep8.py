@@ -26,8 +26,11 @@ FORCE_PEP8_ALL = False
 
 
 def file_list_py(path):
-    for dirpath, _dirnames, filenames in os.walk(path):
+    for dirpath, dirnames, filenames in os.walk(path):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
         for filename in filenames:
+            if filename.startswith("."):
+                continue
             if filename.endswith((".py", ".cfg")):
                 yield os.path.join(dirpath, filename)
 
@@ -93,12 +96,11 @@ def check_files_pylint(files):
             "--disable="
             "C0111,"  # missing doc string
             "C0103,"  # invalid name
+            "C0209,"  # Formatting a regular string which could be a f-string
+            "C0302,"  # Too many lines in module
             "C0413,"  # import should be placed at the top
+            "C0415,"  # Import outside toplevel
             "W0613,"  # unused argument, may add this back
-            # but happens a lot for 'context' for eg.
-            "W0232,"  # class has no __init__, Operator/Panel/Menu etc
-            "W0142,"  # Used * or ** magic
-            # even needed in some cases
             "R0902,"  # Too many instance attributes
             "R0903,"  # Too many statements
             "R0911,"  # Too many return statements

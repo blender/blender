@@ -129,6 +129,7 @@ set(SRC_DNA_DEFAULTS_INC
 add_subdirectory(datatoc)
 add_subdirectory(editors)
 add_subdirectory(windowmanager)
+add_subdirectory(asset_system)
 add_subdirectory(blenkernel)
 add_subdirectory(blenlib)
 add_subdirectory(bmesh)

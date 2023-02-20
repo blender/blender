@@ -217,9 +217,9 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
     const MLoopTri *mlooptri = mr->mlooptri;
     for (int i = 0; i < mr->tri_len; i++, mlooptri++) {
       const int index = mlooptri->poly;
-      const float *cos[3] = {mr->mvert[mr->mloop[mlooptri->tri[0]].v].co,
-                             mr->mvert[mr->mloop[mlooptri->tri[1]].v].co,
-                             mr->mvert[mr->mloop[mlooptri->tri[2]].v].co};
+      const float *cos[3] = {mr->vert_positions[mr->mloop[mlooptri->tri[0]].v],
+                             mr->vert_positions[mr->mloop[mlooptri->tri[1]].v],
+                             mr->vert_positions[mr->mloop[mlooptri->tri[2]].v]};
       float ray_co[3];
       float ray_no[3];
 
@@ -259,7 +259,7 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
 }
 
 struct BVHTree_OverlapData {
-  const MVert *verts;
+  const float3 *positions;
   const MLoop *loops;
   const MLoopTri *mlooptri;
   float epsilon;
@@ -276,12 +276,12 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
     return false;
   }
 
-  const float *tri_a_co[3] = {data->verts[data->loops[tri_a->tri[0]].v].co,
-                              data->verts[data->loops[tri_a->tri[1]].v].co,
-                              data->verts[data->loops[tri_a->tri[2]].v].co};
-  const float *tri_b_co[3] = {data->verts[data->loops[tri_b->tri[0]].v].co,
-                              data->verts[data->loops[tri_b->tri[1]].v].co,
-                              data->verts[data->loops[tri_b->tri[2]].v].co};
+  const float *tri_a_co[3] = {data->positions[data->loops[tri_a->tri[0]].v],
+                              data->positions[data->loops[tri_a->tri[1]].v],
+                              data->positions[data->loops[tri_a->tri[2]].v]};
+  const float *tri_b_co[3] = {data->positions[data->loops[tri_b->tri[0]].v],
+                              data->positions[data->loops[tri_b->tri[1]].v],
+                              data->positions[data->loops[tri_b->tri[2]].v]};
   float ix_pair[2][3];
   int verts_shared = 0;
 
@@ -342,12 +342,12 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr->me, BVHTREE_FROM_LOOPTRI, 4);
 
     struct BVHTree_OverlapData data = {nullptr};
-    data.verts = mr->mvert;
+    data.positions = mr->vert_positions;
     data.loops = mr->mloop;
     data.mlooptri = mr->mlooptri;
     data.epsilon = BLI_bvhtree_get_epsilon(tree);
 
-    BVHTreeOverlap *overlap = BLI_bvhtree_overlap(tree, tree, &overlap_len, bvh_overlap_cb, &data);
+    BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(tree, &overlap_len, bvh_overlap_cb, &data);
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {
         const MPoly *f_hit_pair[2] = {
@@ -454,9 +454,9 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
           const MLoop *l_next = &mr->mloop[mp->loopstart + (i + 1) % mp->totloop];
           float no_corner[3];
           normal_tri_v3(no_corner,
-                        mr->mvert[l_prev->v].co,
-                        mr->mvert[l_curr->v].co,
-                        mr->mvert[l_next->v].co);
+                        mr->vert_positions[l_prev->v],
+                        mr->vert_positions[l_curr->v],
+                        mr->vert_positions[l_next->v]);
           /* simple way to detect (what is most likely) concave */
           if (dot_v3v3(f_no, no_corner) < 0.0f) {
             negate_v3(no_corner);
@@ -534,8 +534,6 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
       for (int i = 0; i < mp->totloop; i++) {
         const MLoop *l_curr = &mr->mloop[mp->loopstart + (i + 0) % mp->totloop];
         const MLoop *l_next = &mr->mloop[mp->loopstart + (i + 1) % mp->totloop];
-        const MVert *v_curr = &mr->mvert[l_curr->v];
-        const MVert *v_next = &mr->mvert[l_next->v];
         float angle;
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, l_curr->v, l_next->v, &pval);
@@ -548,7 +546,10 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
           const float *f1_no = mr->poly_normals[mp_index];
           const float *f2_no = static_cast<const float *>(*pval);
           angle = angle_normalized_v3v3(f1_no, f2_no);
-          angle = is_edge_convex_v3(v_curr->co, v_next->co, f1_no, f2_no) ? angle : -angle;
+          angle = is_edge_convex_v3(
+                      mr->vert_positions[l_curr->v], mr->vert_positions[l_next->v], f1_no, f2_no) ?
+                      angle :
+                      -angle;
           /* Tag as manifold. */
           *pval = nullptr;
         }

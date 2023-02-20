@@ -114,20 +114,8 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(POSE_OT_propagate);
 
   /* POSELIB */
-  WM_operatortype_append(POSELIB_OT_browse_interactive);
-  WM_operatortype_append(POSELIB_OT_apply_pose);
   WM_operatortype_append(POSELIB_OT_apply_pose_asset);
   WM_operatortype_append(POSELIB_OT_blend_pose_asset);
-
-  WM_operatortype_append(POSELIB_OT_pose_add);
-  WM_operatortype_append(POSELIB_OT_pose_remove);
-  WM_operatortype_append(POSELIB_OT_pose_rename);
-  WM_operatortype_append(POSELIB_OT_pose_move);
-
-  WM_operatortype_append(POSELIB_OT_new);
-  WM_operatortype_append(POSELIB_OT_unlink);
-
-  WM_operatortype_append(POSELIB_OT_action_sanitize);
 
   /* POSE SLIDING */
   WM_operatortype_append(POSE_OT_push);
@@ -163,7 +151,7 @@ void ED_operatormacros_armature(void)
 
   /* XXX would it be nicer to just be able to have standard extrude_move,
    * but set the forked property separate?
-   * that would require fixing a properties bug T19733. */
+   * that would require fixing a properties bug #19733. */
   ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_forked",
                                     "Extrude Forked",
                                     "Create new bones from the selected joints and move them",

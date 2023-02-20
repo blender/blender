@@ -32,7 +32,6 @@
 /* Unused currently. */
 // static CLG_LogRef LOG = {.identifier = "bke.library"};
 
-struct BlendWriter;
 struct BlendDataReader;
 
 static void library_runtime_reset(Library *lib)
@@ -122,7 +121,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
   /* Not essential but set `filepath_abs` is an absolute copy of value which
    * is more useful if its kept in sync. */
   if (BLI_path_is_rel(lib->filepath_abs)) {
-    /* NOTE(@campbellbarton): the file may be unsaved, in this case, setting the
+    /* NOTE(@ideasman42): the file may be unsaved, in this case, setting the
      * `filepath_abs` on an indirectly linked path is not allowed from the
      * outliner, and its not really supported but allow from here for now
      * since making local could cause this to be directly linked.

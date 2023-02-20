@@ -17,7 +17,6 @@
 
 void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 {
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
   int hidden = 0;
   if ((sc->flag & SC_SHOW_MARKER_PATTERN) == 0) {
     hidden |= TRACK_AREA_PAT;
@@ -25,11 +24,14 @@ void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *cli
   if ((sc->flag & SC_SHOW_MARKER_SEARCH) == 0) {
     hidden |= TRACK_AREA_SEARCH;
   }
-  if (hidden) {
-    for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
-      if ((track->flag & TRACK_HIDDEN) == 0) {
-        BKE_tracking_track_flag_clear(track, hidden, SELECT);
-      }
+  if (!hidden) {
+    return;
+  }
+
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+    if ((track->flag & TRACK_HIDDEN) == 0) {
+      BKE_tracking_track_flag_clear(track, hidden, SELECT);
     }
   }
 }

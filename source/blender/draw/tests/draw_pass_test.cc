@@ -2,6 +2,8 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_matrix.hh"
+
 #include "draw_manager.hh"
 #include "draw_pass.hh"
 #include "draw_shader.h"
@@ -22,6 +24,10 @@ static void test_draw_pass_all_commands()
   StorageBuffer<uint4> ssbo;
   ssbo.push_update();
 
+  /* Won't be dereferenced. */
+  GPUVertBuf *vbo = (GPUVertBuf *)1;
+  GPUIndexBuf *ibo = (GPUIndexBuf *)1;
+
   float4 color(1.0f, 1.0f, 1.0f, 0.0f);
   int3 dispatch_size(1);
 
@@ -33,12 +39,16 @@ static void test_draw_pass_all_commands()
   pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   pass.bind_texture("image", tex);
   pass.bind_texture("image", &tex);
-  pass.bind_image("missing_image", tex);  /* Should not crash. */
-  pass.bind_image("missing_image", &tex); /* Should not crash. */
-  pass.bind_ubo("missing_ubo", ubo);      /* Should not crash. */
-  pass.bind_ubo("missing_ubo", &ubo);     /* Should not crash. */
-  pass.bind_ssbo("missing_ssbo", ssbo);   /* Should not crash. */
-  pass.bind_ssbo("missing_ssbo", &ssbo);  /* Should not crash. */
+  pass.bind_image("missing_image", tex);       /* Should not crash. */
+  pass.bind_image("missing_image", &tex);      /* Should not crash. */
+  pass.bind_ubo("missing_ubo", ubo);           /* Should not crash. */
+  pass.bind_ubo("missing_ubo", &ubo);          /* Should not crash. */
+  pass.bind_ssbo("missing_ssbo", ssbo);        /* Should not crash. */
+  pass.bind_ssbo("missing_ssbo", &ssbo);       /* Should not crash. */
+  pass.bind_ssbo("missing_vbo_as_ssbo", vbo);  /* Should not crash. */
+  pass.bind_ssbo("missing_vbo_as_ssbo", &vbo); /* Should not crash. */
+  pass.bind_ssbo("missing_ibo_as_ssbo", ibo);  /* Should not crash. */
+  pass.bind_ssbo("missing_ibo_as_ssbo", &ibo); /* Should not crash. */
   pass.push_constant("color", color);
   pass.push_constant("color", &color);
   pass.push_constant("ModelViewProjectionMatrix", float4x4::identity());
@@ -61,8 +71,9 @@ static void test_draw_pass_all_commands()
   expected << "  .state_set(6)" << std::endl;
   expected << "  .clear(color=(0.25, 0.5, 100, -2000), depth=0.5, stencil=0b11110000))"
            << std::endl;
-  expected << "  .stencil_set(write_mask=0b10000000, compare_mask=0b00001111, reference=0b10001111"
-           << std::endl;
+  expected
+      << "  .stencil_set(write_mask=0b10000000, reference=0b00001111, compare_mask=0b10001111)"
+      << std::endl;
   expected << "  .shader_bind(gpu_shader_3D_image_color)" << std::endl;
   expected << "  .bind_texture(0)" << std::endl;
   expected << "  .bind_texture_ref(0)" << std::endl;
@@ -72,8 +83,12 @@ static void test_draw_pass_all_commands()
   expected << "  .bind_uniform_buf_ref(-1)" << std::endl;
   expected << "  .bind_storage_buf(-1)" << std::endl;
   expected << "  .bind_storage_buf_ref(-1)" << std::endl;
-  expected << "  .push_constant(1, data=(1, 1, 1, 0))" << std::endl;
-  expected << "  .push_constant(1, data=(1, 1, 1, 1))" << std::endl;
+  expected << "  .bind_vertbuf_as_ssbo(-1)" << std::endl;
+  expected << "  .bind_vertbuf_as_ssbo_ref(-1)" << std::endl;
+  expected << "  .bind_indexbuf_as_ssbo(-1)" << std::endl;
+  expected << "  .bind_indexbuf_as_ssbo_ref(-1)" << std::endl;
+  expected << "  .push_constant(2, data=(1, 1, 1, 0))" << std::endl;
+  expected << "  .push_constant(2, data=(1, 1, 1, 1))" << std::endl;
   expected << "  .push_constant(0, data=(" << std::endl;
   expected << "(   1.000000,    0.000000,    0.000000,    0.000000)" << std::endl;
   expected << "(   0.000000,    1.000000,    0.000000,    0.000000)" << std::endl;
@@ -150,6 +165,9 @@ static void test_draw_pass_simple_draw()
   pass.draw_procedural(GPU_PRIM_POINTS, 6, 60, 6, {5});
   pass.draw_procedural(GPU_PRIM_TRIS, 3, 70, 7, {6});
 
+  PassSimple::Sub &sub = pass.sub("sub");
+  sub.draw_procedural(GPU_PRIM_TRIS, 3, 80, 8, {8});
+
   std::string result = pass.serialize();
   std::stringstream expected;
   expected << ".test.simple_draw" << std::endl;
@@ -161,6 +179,8 @@ static void test_draw_pass_simple_draw()
   expected << "  .draw(inst_len=1, vert_len=50, vert_first=5, res_id=5)" << std::endl;
   expected << "  .draw(inst_len=6, vert_len=60, vert_first=6, res_id=5)" << std::endl;
   expected << "  .draw(inst_len=3, vert_len=70, vert_first=7, res_id=6)" << std::endl;
+  expected << "  .sub" << std::endl;
+  expected << "    .draw(inst_len=3, vert_len=80, vert_first=8, res_id=8)" << std::endl;
 
   EXPECT_EQ(result, expected.str());
 
@@ -247,10 +267,8 @@ static void test_draw_resource_id_gen()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();
   ResourceHandle handle1 = drw.resource_handle(obmat_1);
@@ -321,10 +339,8 @@ static void test_draw_visibility()
 
   Manager drw;
 
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   drw.begin_sync();                                   /* Default {0} always visible. */
   drw.resource_handle(obmat_1);                       /* No bounds, always visible. */
@@ -354,10 +370,8 @@ DRAW_TEST(draw_visibility)
 
 static void test_draw_manager_sync()
 {
-  float4x4 obmat_1 = float4x4::identity();
-  float4x4 obmat_2 = float4x4::identity();
-  obmat_1.apply_scale(-0.5f);
-  obmat_2.apply_scale(0.5f);
+  float4x4 obmat_1 = math::from_scale<float4x4>(float3(-0.5f));
+  float4x4 obmat_2 = math::from_scale<float4x4>(float3(0.5f));
 
   /* TODO find a way to create a minimum object to test resource handle creation on it. */
   Manager drw;

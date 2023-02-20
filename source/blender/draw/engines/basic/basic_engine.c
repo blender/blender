@@ -10,9 +10,11 @@
 
 #include "DRW_render.h"
 
+#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 
 #include "BLI_alloca.h"
 
@@ -164,6 +166,11 @@ static void basic_cache_populate(void *vedata, Object *ob)
     DRW_shgroup_curves_create_sub(ob, stl->g_data->depth_curves_shgrp[do_in_front], NULL);
   }
 
+  if (ob->type == OB_POINTCLOUD) {
+    DRW_shgroup_pointcloud_create_sub(ob, stl->g_data->depth_pointcloud_shgrp[do_in_front], NULL);
+    return;
+  }
+
   /* Make flat object selectable in ortho view if wireframe is enabled. */
   if ((draw_ctx->v3d->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
       (draw_ctx->v3d->shading.type == OB_WIRE) || (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE)) {
@@ -173,7 +180,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
                                             DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
     if (is_flat_object_viewed_from_side) {
-      /* Avoid losing flat objects when in ortho views (see T56549) */
+      /* Avoid losing flat objects when in ortho views (see #56549) */
       struct GPUBatch *geom = DRW_cache_object_all_edges_get(ob);
       if (geom) {
         DRW_shgroup_call(stl->g_data->depth_shgrp[do_in_front], geom, ob);
@@ -187,15 +194,8 @@ static void basic_cache_populate(void *vedata, Object *ob)
   const bool do_cull = (draw_ctx->v3d &&
                         (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
 
-  DRWShadingGroup *shgrp = NULL;
-
-  if (ob->type == OB_POINTCLOUD) {
-    shgrp = stl->g_data->depth_pointcloud_shgrp[do_in_front];
-  }
-  else {
-    shgrp = (do_cull) ? stl->g_data->depth_shgrp_cull[do_in_front] :
-                        stl->g_data->depth_shgrp[do_in_front];
-  }
+  DRWShadingGroup *shgrp = (do_cull) ? stl->g_data->depth_shgrp_cull[do_in_front] :
+                                       stl->g_data->depth_shgrp[do_in_front];
 
   if (use_sculpt_pbvh) {
     DRW_shgroup_call_sculpt(shgrp, ob, false, false, false, false, false);
@@ -220,6 +220,12 @@ static void basic_cache_populate(void *vedata, Object *ob)
       if (geom) {
         DRW_shgroup_call(shgrp, geom, ob);
       }
+    }
+
+    if (G.debug_value == 889 && ob->sculpt && ob->sculpt->pbvh) {
+      int debug_node_nr = 0;
+      DRW_debug_modelmat(ob->object_to_world);
+      BKE_pbvh_draw_debug_cb(ob->sculpt->pbvh, DRW_sculpt_debug_cb, &debug_node_nr);
     }
   }
 }
@@ -257,7 +263,7 @@ DrawEngineType draw_engine_basic_type = {
     &basic_data_size,
     NULL,
     &basic_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &basic_cache_init,
     &basic_cache_populate,
     &basic_cache_finish,

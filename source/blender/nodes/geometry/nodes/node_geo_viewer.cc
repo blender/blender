@@ -19,11 +19,11 @@ NODE_STORAGE_FUNCS(NodeGeometryViewer)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Float>(N_("Value")).supports_field().hide_value();
-  b.add_input<decl::Vector>(N_("Value"), "Value_001").supports_field().hide_value();
-  b.add_input<decl::Color>(N_("Value"), "Value_002").supports_field().hide_value();
-  b.add_input<decl::Int>(N_("Value"), "Value_003").supports_field().hide_value();
-  b.add_input<decl::Bool>(N_("Value"), "Value_004").supports_field().hide_value();
+  b.add_input<decl::Float>(N_("Value")).field_on_all().hide_value();
+  b.add_input<decl::Vector>(N_("Value"), "Value_001").field_on_all().hide_value();
+  b.add_input<decl::Color>(N_("Value"), "Value_002").field_on_all().hide_value();
+  b.add_input<decl::Int>(N_("Value"), "Value_003").field_on_all().hide_value();
+  b.add_input<decl::Bool>(N_("Value"), "Value_004").field_on_all().hide_value();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

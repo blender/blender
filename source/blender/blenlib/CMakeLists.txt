@@ -18,6 +18,7 @@ set(INC
 )
 
 set(INC_SYS
+  ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
   ${GMP_INCLUDE_DIRS}
@@ -50,6 +51,7 @@ set(SRC
   intern/array_utils.c
   intern/array_utils.cc
   intern/astar.c
+  intern/atomic_disjoint_set.cc
   intern/bitmap.c
   intern/bitmap_draw_2d.c
   intern/boxpack_2d.c
@@ -57,7 +59,7 @@ set(SRC
   intern/cache_mutex.cc
   intern/compute_context.cc
   intern/convexhull_2d.c
-  intern/cpp_type.cc
+  intern/cpp_types.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
   intern/dynlib.c
@@ -88,7 +90,7 @@ set(SRC
   intern/lasso_2d.c
   intern/lazy_threading.cc
   intern/length_parameterize.cc
-  intern/listbase.c
+  intern/listbase.cc
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
@@ -101,6 +103,7 @@ set(SRC
   intern/math_geom_inline.c
   intern/math_interp.c
   intern/math_matrix.c
+  intern/math_matrix.cc
   intern/math_rotation.c
   intern/math_rotation.cc
   intern/math_solvers.c
@@ -114,6 +117,7 @@ set(SRC
   intern/mesh_intersect.cc
   intern/noise.c
   intern/noise.cc
+  intern/offset_indices.cc
   intern/path_util.c
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
@@ -172,11 +176,13 @@ set(SRC
   BLI_asan.h
   BLI_assert.h
   BLI_astar.h
+  BLI_atomic_disjoint_set.hh
   BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
   BLI_blenlib.h
   BLI_bounds.hh
+  BLI_bounds_types.hh
   BLI_boxpack_2d.h
   BLI_buffer.h
   BLI_cache_mutex.hh
@@ -190,6 +196,8 @@ set(SRC
   BLI_convexhull_2d.h
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
+  BLI_cpp_types.hh
+  BLI_cpp_types_make.hh
   BLI_delaunay_2d.h
   BLI_devirtualize_parameters.hh
   BLI_dial_2d.h
@@ -210,8 +218,6 @@ set(SRC
   BLI_fileops.hh
   BLI_fileops_types.h
   BLI_filereader.h
-  BLI_float3x3.hh
-  BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_function_ref.hh
   BLI_generic_array.hh
@@ -265,16 +271,20 @@ set(SRC
   BLI_math_inline.h
   BLI_math_interp.h
   BLI_math_matrix.h
+  BLI_math_matrix.hh
+  BLI_math_matrix_types.hh
   BLI_math_mpq.hh
   BLI_math_rotation.h
   BLI_math_rotation.hh
+  BLI_math_rotation_legacy.hh
+  BLI_math_rotation_types.hh
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
-  BLI_math_vec_mpq_types.hh
-  BLI_math_vec_types.hh
   BLI_math_vector.h
   BLI_math_vector.hh
+  BLI_math_vector_mpq_types.hh
+  BLI_math_vector_types.hh
   BLI_memarena.h
   BLI_memblock.h
   BLI_memiter.h
@@ -287,6 +297,7 @@ set(SRC
   BLI_multi_value_map.hh
   BLI_noise.h
   BLI_noise.hh
+  BLI_offset_indices.hh
   BLI_parameter_pack_utils.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
@@ -304,6 +315,7 @@ set(SRC
   BLI_session_uuid.h
   BLI_set.hh
   BLI_set_slots.hh
+  BLI_shared_cache.hh
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
@@ -336,6 +348,7 @@ set(SRC
   BLI_uuid.h
   BLI_uvproject.h
   BLI_vector.hh
+  BLI_vector_list.hh
   BLI_vector_set.hh
   BLI_vector_set_slots.hh
   BLI_virtual_array.hh
@@ -444,6 +457,8 @@ if(WITH_GTESTS)
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
+    tests/BLI_bit_ref_test.cc
+    tests/BLI_bit_span_test.cc
     tests/BLI_bit_vector_test.cc
     tests/BLI_bitmap_test.cc
     tests/BLI_bounds_test.cc
@@ -454,7 +469,6 @@ if(WITH_GTESTS)
     tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
-    tests/BLI_float3x3_test.cc
     tests/BLI_function_ref_test.cc
     tests/BLI_generic_array_test.cc
     tests/BLI_generic_span_test.cc
@@ -479,11 +493,12 @@ if(WITH_GTESTS)
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
     tests/BLI_math_matrix_test.cc
+    tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_rotation_test.cc
     tests/BLI_math_solvers_test.cc
     tests/BLI_math_time_test.cc
-    tests/BLI_math_vec_types_test.cc
     tests/BLI_math_vector_test.cc
+    tests/BLI_math_vector_types_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc
     tests/BLI_mesh_boolean_test.cc

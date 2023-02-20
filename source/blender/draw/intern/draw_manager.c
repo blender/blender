@@ -45,6 +45,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "ED_gpencil.h"
@@ -1182,6 +1183,11 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
   switch (drawtype) {
     case OB_WIRE:
     case OB_SOLID:
+      if (U.experimental.enable_workbench_next &&
+          STREQ(engine_type->idname, "BLENDER_WORKBENCH_NEXT")) {
+        use_drw_engine(DRW_engine_viewport_workbench_next_type.draw_engine);
+        break;
+      }
       use_drw_engine(DRW_engine_viewport_workbench_type.draw_engine);
       break;
     case OB_MATERIAL:
@@ -1243,11 +1249,7 @@ static void drw_engines_enable_editors(void)
 
 static bool is_compositor_enabled(void)
 {
-  if (!U.experimental.use_realtime_compositor) {
-    return false;
-  }
-
-  if (!(DST.draw_ctx.v3d->shading.flag & V3D_SHADING_COMPOSITOR)) {
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
 
@@ -1260,6 +1262,11 @@ static bool is_compositor_enabled(void)
   }
 
   if (!DST.draw_ctx.scene->nodetree) {
+    return false;
+  }
+
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
+      DST.draw_ctx.rv3d->persp != RV3D_CAMOB) {
     return false;
   }
 
@@ -1332,10 +1339,6 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
   }
 
   const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
-
-  if (G.is_rendering && U.experimental.use_draw_manager_acquire_lock) {
-    return;
-  }
 
   /* XXX Really nasty locking. But else this could
    * be executed by the material previews thread
@@ -1476,7 +1479,7 @@ void DRW_draw_callbacks_post_scene(void)
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (do_annotations) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      /* XXX: as scene->gpd is not copied for COW yet */
+      /* XXX: as `scene->gpd` is not copied for COW yet. */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
@@ -1760,7 +1763,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-  /* Fix 3D view "lagging" on APPLE and WIN32+NVIDIA. (See T56996, T61474) */
+  /* Fix 3D view "lagging" on APPLE and WIN32+NVIDIA. (See #56996, #61474) */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GPU_flush();
   }
@@ -2017,7 +2020,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
                                                        size[0],
                                                        size[1],
                                                        view_layer->name,
-                                                       /* RR_ALL_VIEWS */ NULL);
+                                                       /*RR_ALL_VIEWS*/ NULL);
   RenderLayer *render_layer = render_result->layers.first;
   for (RenderView *render_view = render_result->views.first; render_view != NULL;
        render_view = render_view->next) {
@@ -2039,6 +2042,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   DRW_smoke_exit(DST.vmempool);
 
   drw_manager_exit(&DST);
+  DRW_cache_free_old_subdiv();
 
   /* Reset state after drawing */
   DRW_state_reset();
@@ -2134,7 +2138,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   /* The use of custom pipeline in other thread using the same
    * resources as the main thread (viewport) may lead to data
    * races and undefined behavior on certain drivers. Using
-   * GPU_finish to sync seems to fix the issue. (see T62997) */
+   * GPU_finish to sync seems to fix the issue. (see #62997) */
   eGPUBackendType type = GPU_backend_get_type();
   if (type == GPU_BACKEND_OPENGL) {
     GPU_finish();
@@ -2184,7 +2188,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   DRW_viewport_colormanagement_set(viewport);
 
   /* TODO(jbakker): Only populate when editor needs to draw object.
-   * for the image editor this is when showing UV's. */
+   * for the image editor this is when showing UVs. */
   const bool do_populate_loop = (DST.draw_ctx.space_data->spacetype == SPACE_IMAGE);
   const bool do_annotations = drw_draw_show_annotation();
   const bool do_draw_gizmos = (DST.draw_ctx.space_data->spacetype != SPACE_IMAGE);
@@ -2247,7 +2251,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-  /* Fix 3D view being "laggy" on macos and win+nvidia. (See T56996, T61474) */
+  /* Fix 3D view being "laggy" on MACOS and MS-Windows+NVIDIA. (See #56996, #61474) */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GPU_flush();
   }
@@ -2334,8 +2338,9 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
   }
 
   if (g_select_buffer.texture_depth == NULL) {
-    g_select_buffer.texture_depth = GPU_texture_create_2d(
-        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, NULL);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(
         g_select_buffer.framebuffer_depth_only, g_select_buffer.texture_depth, 0, 0);
@@ -2775,7 +2780,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See T69377) */
+#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See #69377) */
     DRW_render_instance_buffer_finish();
 #else
     DST.buffer_finish_called = true;
@@ -2825,7 +2830,7 @@ void DRW_draw_depth_object(
     for (int i = 0; i < 6; i++) {
       copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
     }
-    copy_m4_m4(planes.ModelMatrix, object->object_to_world);
+    copy_m4_m4(planes.ClipModelMatrix, object->object_to_world);
   }
 
   drw_batch_cache_validate(object);
@@ -2990,6 +2995,9 @@ void DRW_engines_register_experimental(void)
   if (U.experimental.enable_eevee_next) {
     RE_engines_register(&DRW_engine_viewport_eevee_next_type);
   }
+  if (U.experimental.enable_workbench_next) {
+    RE_engines_register(&DRW_engine_viewport_workbench_next_type);
+  }
 }
 
 void DRW_engines_register(void)
@@ -3064,7 +3072,7 @@ void DRW_engines_free(void)
   if (DST.gl_context == NULL) {
     /* Nothing has been setup. Nothing to clear.
      * Otherwise, DRW_opengl_context_enable can
-     * create a context in background mode. (see T62355) */
+     * create a context in background mode. (see #62355) */
     return;
   }
 
@@ -3128,10 +3136,9 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
-  GPU_render_end();
-
   if (GPU_use_main_context_workaround()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
@@ -3141,11 +3148,14 @@ void DRW_render_context_disable(Render *render)
   if (re_gl_context != NULL) {
     void *re_gpu_context = NULL;
     re_gpu_context = RE_gpu_context_get(render);
+    /* GPU rendering may occur during context disable. */
     DRW_gpu_render_context_disable(re_gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(re_gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 

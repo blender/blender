@@ -6,21 +6,20 @@
 
 #include <string>
 
-#include "DNA_space_types.h"
+#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
-#include "BKE_asset.h"
-#include "BKE_asset_representation.hh"
+#include "DNA_space_types.h"
 
 #include "BLO_readfile.h"
 
 #include "ED_asset_handle.h"
-#include "ED_asset_list.hh"
 
 #include "WM_api.h"
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
-  return BKE_asset_representation_name_get(asset->file_data->asset);
+  return AS_asset_representation_name_get(asset->file_data->asset);
 }
 
 const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
@@ -30,7 +29,7 @@ const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
 
 AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset_handle)
 {
-  return BKE_asset_representation_metadata_get(asset_handle->file_data->asset);
+  return AS_asset_representation_metadata_get(asset_handle->file_data->asset);
 }
 
 ID *ED_asset_handle_get_local_id(const AssetHandle *asset)
@@ -43,14 +42,23 @@ ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset)
   return static_cast<ID_Type>(asset->file_data->blentype);
 }
 
-void ED_asset_handle_get_full_library_path(const bContext *C,
-                                           const AssetLibraryReference *asset_library_ref,
-                                           const AssetHandle *asset,
+int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
+{
+  return asset->file_data->preview_icon_id;
+}
+
+std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
+    const AssetHandle *asset_handle)
+{
+  return AS_asset_representation_import_method_get(asset_handle->file_data->asset);
+}
+
+void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
                                            char r_full_lib_path[FILE_MAX_LIBEXTRA])
 {
   *r_full_lib_path = '\0';
 
-  std::string asset_path = ED_assetlist_asset_filepath_get(C, *asset_library_ref, *asset);
+  std::string asset_path = AS_asset_representation_full_path_get(asset_handle->file_data->asset);
   if (asset_path.empty()) {
     return;
   }
@@ -60,16 +68,14 @@ void ED_asset_handle_get_full_library_path(const bContext *C,
 
 namespace blender::ed::asset {
 
-ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain,
-                                                const AssetLibraryReference &library_ref,
-                                                const AssetHandle asset)
+ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain, const AssetHandle asset)
 {
   if (ID *local_id = ED_asset_handle_get_local_id(&asset)) {
     return local_id;
   }
 
   char blend_path[FILE_MAX_LIBEXTRA];
-  ED_asset_handle_get_full_library_path(nullptr, &library_ref, &asset, blend_path);
+  ED_asset_handle_get_full_library_path(&asset, blend_path);
   const char *id_name = ED_asset_handle_get_name(&asset);
 
   return WM_file_append_datablock(&bmain,

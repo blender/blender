@@ -1,15 +1,6 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-/* Corners for cell outlines. 0.45 is arbitrary. Any value below 0.5 can be used to avoid
- * overlapping of the outlines. */
-const vec3 corners[4] = vec3[4](vec3(-0.45, 0.45, 0.0),
-                                vec3(0.45, 0.45, 0.0),
-                                vec3(0.45, -0.45, 0.0),
-                                vec3(-0.45, -0.45, 0.0));
-
-const int indices[8] = int[8](0, 1, 1, 2, 2, 3, 3, 0);
-
 vec4 flag_to_color(uint flag)
 {
   /* Color mapping for flags */
@@ -88,6 +79,16 @@ void main()
     }
   }
 #endif
+  /* NOTE(Metal): Declaring constant arrays in function scope to avoid increasing local shader
+   * memory pressure. */
+  const int indices[8] = int[8](0, 1, 1, 2, 2, 3, 3, 0);
+
+  /* Corners for cell outlines. 0.45 is arbitrary. Any value below 0.5 can be used to avoid
+   * overlapping of the outlines. */
+  const vec3 corners[4] = vec3[4](vec3(-0.45, 0.45, 0.0),
+                                  vec3(0.45, 0.45, 0.0),
+                                  vec3(0.45, -0.45, 0.0),
+                                  vec3(-0.45, -0.45, 0.0));
 
   vec3 pos = domainOriginOffset + cellSize * (vec3(cell_co + adaptiveCellOffset) + cell_offset);
   vec3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 8]];

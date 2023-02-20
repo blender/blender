@@ -68,6 +68,7 @@
 
 #include "object_intern.h"
 
+using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -914,7 +915,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
    * deform group.
    */
 
-  /* TODO(@campbellbarton): This is slow in a loop, better pass def_nr directly,
+  /* TODO(@ideasman42): This is slow in a loop, better pass def_nr directly,
    * but leave for later. */
   const ListBase *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
@@ -1141,7 +1142,7 @@ static void vgroup_duplicate(Object *ob)
   BKE_object_defgroup_active_index_set(ob, BLI_listbase_count(defbase));
   icdg = BKE_object_defgroup_active_index_get(ob) - 1;
 
-  /* TODO(@campbellbarton): we might want to allow only copy selected verts here? */
+  /* TODO(@ideasman42): we might want to allow only copy selected verts here? */
   ED_vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
 
   if (dvert_array) {
@@ -1149,7 +1150,7 @@ static void vgroup_duplicate(Object *ob)
       MDeformVert *dv = dvert_array[i];
       dw_org = BKE_defvert_find_index(dv, idg);
       if (dw_org) {
-        /* BKE_defvert_ensure_index re-allocs org so need to store the weight first */
+        /* #BKE_defvert_ensure_index re-allocates org so need to store the weight first. */
         const float weight = dw_org->weight;
         dw_cpy = BKE_defvert_ensure_index(dv, icdg);
         dw_cpy->weight = weight;
@@ -1286,12 +1287,12 @@ static blender::Vector<int> getSurroundingVerts(Mesh *me, int vert)
  * coord is the place the average is stored,
  * points is the point cloud, count is the number of points in the cloud.
  */
-static void getSingleCoordinate(MVert *points, int count, float coord[3])
+static void getSingleCoordinate(float3 *points, int count, float coord[3])
 {
   int i;
   zero_v3(coord);
   for (i = 0; i < count; i++) {
-    add_v3_v3(coord, points[i].co);
+    add_v3_v3(coord, points[i]);
   }
   mul_v3_fl(coord, 1.0f / count);
 }
@@ -1357,7 +1358,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
 
   Mesh *me_deform;
   MDeformWeight *dw, *dw_eval;
-  MVert m;
+  float3 m;
   MDeformVert *dvert = me->deform_verts_for_write().data() + index;
   MDeformVert *dvert_eval = mesh_eval->deform_verts_for_write().data() + index;
   int totweight = dvert->totweight;
@@ -1382,9 +1383,9 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
   do {
     wasChange = false;
     me_deform = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-    const Span<MVert> verts = me_deform->verts();
-    m = verts[index];
-    copy_v3_v3(oldPos, m.co);
+    const Span<float3> positions = me_deform->vert_positions();
+    m = positions[index];
+    copy_v3_v3(oldPos, m);
     distToStart = dot_v3v3(norm, oldPos) + d;
 
     if (distToBe == originalDistToBe) {
@@ -1425,9 +1426,8 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
         }
         dw_eval->weight = dw->weight;
         me_deform = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-        m = verts[index];
-        getVerticalAndHorizontalChange(
-            norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
+        m = positions[index];
+        getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m, changes, dists, i);
         dw->weight = oldw;
         dw_eval->weight = oldw;
         if (!k) {
@@ -1465,10 +1465,10 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
       }
       /* switch with k */
       if (bestIndex != k) {
-        SWAP(bool, upDown[k], upDown[bestIndex]);
-        SWAP(int, dwIndices[k], dwIndices[bestIndex]);
+        std::swap(upDown[k], upDown[bestIndex]);
+        std::swap(dwIndices[k], dwIndices[bestIndex]);
         swap_v2_v2(changes[k], changes[bestIndex]);
-        SWAP(float, dists[k], dists[bestIndex]);
+        std::swap(dists[k], dists[bestIndex]);
       }
     }
     bestIndex = -1;
@@ -1531,28 +1531,27 @@ static void vgroup_fix(
   int i;
 
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mvert = me->verts_for_write().data();
   if (!(me->editflag & ME_EDIT_PAINT_VERT_SEL)) {
     return;
   }
   const bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  for (i = 0; i < me->totvert && mvert; i++, mvert++) {
+  for (i = 0; i < me->totvert; i++) {
     if (select_vert[i]) {
       blender::Vector<int> verts = getSurroundingVerts(me, i);
       const int count = verts.size();
       if (!verts.is_empty()) {
-        MVert m;
-        MVert *p = static_cast<MVert *>(MEM_callocN(sizeof(MVert) * (count), "deformedPoints"));
+        float3 m;
+        float3 *p = static_cast<float3 *>(MEM_callocN(sizeof(float3) * (count), "deformedPoints"));
         int k;
 
         Mesh *me_deform = mesh_get_eval_deform(
             depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-        const Span<MVert> verts_deform = me_deform->verts();
+        const Span<float3> positions_deform = me_deform->vert_positions();
         k = count;
         while (k--) {
-          p[k] = verts_deform[verts[k]];
+          p[k] = positions_deform[verts[k]];
         }
 
         if (count >= 3) {
@@ -1560,8 +1559,8 @@ static void vgroup_fix(
           float coord[3];
           float norm[3];
           getSingleCoordinate(p, count, coord);
-          m = verts_deform[i];
-          sub_v3_v3v3(norm, m.co, coord);
+          m = positions_deform[i];
+          sub_v3_v3v3(norm, m, coord);
           mag = normalize_v3(norm);
           if (mag) { /* zeros fix */
             d = -dot_v3v3(norm, coord);
@@ -2092,7 +2091,7 @@ static void vgroup_smooth_subset(Object *ob,
         }
       }
 
-      SWAP(float *, weight_accum_curr, weight_accum_prev);
+      std::swap(weight_accum_curr, weight_accum_prev);
     }
 
     ED_vgroup_parray_from_weight_array(dvert_array, dvert_tot, weight_accum_prev, def_nr, true);
@@ -2131,8 +2130,8 @@ static void vgroup_smooth_subset(Object *ob,
 
 static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
 {
-  /* qsort sorts in ascending order.  We want descending order to save a memcopy
-   * so this compare function is inverted from the standard greater than comparison qsort needs.
+  /* #qsort sorts in ascending order. We want descending order to save a #memcpy
+   * so this compare function is inverted from the standard greater than comparison #qsort needs.
    * A normal compare function is called with two pointer arguments and should return an integer
    * less than, equal to, or greater than zero corresponding to whether its first argument is
    * considered less than, equal to, or greater than its second argument.
@@ -2319,14 +2318,14 @@ static void dvert_mirror_op(MDeformVert *dvert,
     /* swap */
     if (mirror_weights) {
       if (all_vgroups) {
-        SWAP(MDeformVert, *dvert, *dvert_mirr);
+        std::swap(*dvert, *dvert_mirr);
       }
       else {
         MDeformWeight *dw = BKE_defvert_find_index(dvert, act_vgroup);
         MDeformWeight *dw_mirr = BKE_defvert_find_index(dvert_mirr, act_vgroup);
 
         if (dw && dw_mirr) {
-          SWAP(float, dw->weight, dw_mirr->weight);
+          std::swap(dw->weight, dw_mirr->weight);
         }
         else if (dw) {
           dw_mirr = BKE_defvert_ensure_index(dvert_mirr, act_vgroup);
@@ -2349,7 +2348,7 @@ static void dvert_mirror_op(MDeformVert *dvert,
   else {
     /* dvert should always be the target, only swaps pointer */
     if (sel_mirr) {
-      SWAP(MDeformVert *, dvert, dvert_mirr);
+      std::swap(dvert, dvert_mirr);
     }
 
     if (mirror_weights) {
@@ -2946,7 +2945,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex groups aren't stored
    * in local edit mode stack and toggling "all" property will lead to
-   * all groups deleted without way to restore them (see T29527, sergey) */
+   * all groups deleted without way to restore them (see #29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */
@@ -2989,7 +2988,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex group assignment
    * isn't stored in local edit mode stack and toggling "new" property will
-   * lead to creating plenty of new vertex groups (see T29527, sergey) */
+   * lead to creating plenty of new vertex groups (see #29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
@@ -3024,7 +3023,7 @@ void OBJECT_OT_vertex_group_assign_new(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex group assignment
    * isn't stored in local edit mode stack and toggling "new" property will
-   * lead to creating plenty of new vertex groups (see T29527, sergey) */
+   * lead to creating plenty of new vertex groups (see #29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
@@ -3076,7 +3075,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex groups assignment
    * isn't stored in local edit mode stack and toggling "all" property will lead to
-   * removing vertices from all groups (see T29527, sergey) */
+   * removing vertices from all groups (see #29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */
@@ -3447,55 +3446,63 @@ static char *vertex_group_lock_description(bContext * /*C*/,
   int action = RNA_enum_get(params, "action");
   int mask = RNA_enum_get(params, "mask");
 
-  const char *action_str, *target_str;
-
+  /* NOTE: constructing the following string literals can be done in a less verbose way,
+   * however the resulting strings can't be usefully translated, (via `TIP_`). */
   switch (action) {
     case VGROUP_LOCK:
-      action_str = TIP_("Lock");
+      switch (mask) {
+        case VGROUP_MASK_ALL:
+          return BLI_strdup(TIP_("Lock all vertex groups of the active object"));
+        case VGROUP_MASK_SELECTED:
+          return BLI_strdup(TIP_("Lock selected vertex groups of the active object"));
+        case VGROUP_MASK_UNSELECTED:
+          return BLI_strdup(TIP_("Lock unselected vertex groups of the active object"));
+        case VGROUP_MASK_INVERT_UNSELECTED:
+          return BLI_strdup(
+              TIP_("Lock selected and unlock unselected vertex groups of the active object"));
+      }
       break;
     case VGROUP_UNLOCK:
-      action_str = TIP_("Unlock");
+      switch (mask) {
+        case VGROUP_MASK_ALL:
+          return BLI_strdup(TIP_("Unlock all vertex groups of the active object"));
+        case VGROUP_MASK_SELECTED:
+          return BLI_strdup(TIP_("Unlock selected vertex groups of the active object"));
+        case VGROUP_MASK_UNSELECTED:
+          return BLI_strdup(TIP_("Unlock unselected vertex groups of the active object"));
+        case VGROUP_MASK_INVERT_UNSELECTED:
+          return BLI_strdup(
+              TIP_("Unlock selected and lock unselected vertex groups of the active object"));
+      }
       break;
     case VGROUP_TOGGLE:
-      action_str = TIP_("Toggle locks of");
+      switch (mask) {
+        case VGROUP_MASK_ALL:
+          return BLI_strdup(TIP_("Toggle locks of all vertex groups of the active object"));
+        case VGROUP_MASK_SELECTED:
+          return BLI_strdup(TIP_("Toggle locks of selected vertex groups of the active object"));
+        case VGROUP_MASK_UNSELECTED:
+          return BLI_strdup(TIP_("Toggle locks of unselected vertex groups of the active object"));
+        case VGROUP_MASK_INVERT_UNSELECTED:
+          return BLI_strdup(TIP_(
+              "Toggle locks of all and invert unselected vertex groups of the active object"));
+      }
       break;
     case VGROUP_INVERT:
-      action_str = TIP_("Invert locks of");
-      break;
-    default:
-      return nullptr;
-  }
-
-  switch (mask) {
-    case VGROUP_MASK_ALL:
-      target_str = TIP_("all");
-      break;
-    case VGROUP_MASK_SELECTED:
-      target_str = TIP_("selected");
-      break;
-    case VGROUP_MASK_UNSELECTED:
-      target_str = TIP_("unselected");
-      break;
-    case VGROUP_MASK_INVERT_UNSELECTED:
-      switch (action) {
-        case VGROUP_INVERT:
-          target_str = TIP_("selected");
-          break;
-        case VGROUP_LOCK:
-          target_str = TIP_("selected and unlock unselected");
-          break;
-        case VGROUP_UNLOCK:
-          target_str = TIP_("selected and lock unselected");
-          break;
-        default:
-          target_str = TIP_("all and invert unselected");
+      switch (mask) {
+        case VGROUP_MASK_ALL:
+          return BLI_strdup(TIP_("Invert locks of all vertex groups of the active object"));
+        case VGROUP_MASK_SELECTED:
+        case VGROUP_MASK_INVERT_UNSELECTED:
+          return BLI_strdup(TIP_("Invert locks of selected vertex groups of the active object"));
+        case VGROUP_MASK_UNSELECTED:
+          return BLI_strdup(TIP_("Invert locks of unselected vertex groups of the active object"));
       }
       break;
     default:
       return nullptr;
   }
-
-  return BLI_sprintfN(TIP_("%s %s vertex groups of the active object"), action_str, target_str);
+  return nullptr;
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)

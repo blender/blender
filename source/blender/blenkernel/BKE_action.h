@@ -271,7 +271,7 @@ struct bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob)
  * In this case the active-selected is an obvious choice when finding the target for a
  * constraint for eg. however from the users perspective the active pose bone of the
  * active object is the _real_ active bone, so any other non-active selected bone
- * is a candidate for being the other selected bone, see: T58447.
+ * is a candidate for being the other selected bone, see: #58447.
  */
 struct bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob);
 /**

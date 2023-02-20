@@ -3,6 +3,7 @@
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
+#include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
@@ -10,6 +11,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -17,6 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -113,7 +116,7 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
   const CustomData *ldata = &mesh->ldata;
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
-    if (layer->type != CD_MLOOPUV) {
+    if (layer->type != CD_PROP_FLOAT2) {
       continue;
     }
 
@@ -125,10 +128,10 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
     pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
-    MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
+    const float2 *mloopuv = static_cast<const float2 *>(layer->data);
     pxr::VtArray<pxr::GfVec2f> uv_coords;
     for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].uv));
+      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].x, mloopuv[loop_idx].y));
     }
 
     if (!uv_coords_primvar.HasValue()) {
@@ -150,6 +153,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   write_visibility(context, timecode, usd_mesh);
 
   USDMeshData usd_mesh_data;
+  /* Ensure data exists if currently in edit mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
   get_geometry_data(mesh, usd_mesh_data);
 
   if (usd_export_context_.export_params.use_instancing && context.is_instance()) {
@@ -243,15 +248,25 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   if (usd_export_context_.export_params.export_materials) {
     assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
   }
+
+  /* Blender grows its bounds cache to cover animated meshes, so only author once. */
+  float bound_min[3];
+  float bound_max[3];
+  INIT_MINMAX(bound_min, bound_max);
+  BKE_mesh_minmax(mesh, bound_min, bound_max);
+  pxr::VtArray<pxr::GfVec3f> extent{pxr::GfVec3f{bound_min[0], bound_min[1], bound_min[2]},
+                                    pxr::GfVec3f{bound_max[0], bound_max[1], bound_max[2]}};
+  usd_mesh.CreateExtentAttr().Set(extent);
 }
 
 static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   usd_mesh_data.points.reserve(mesh->totvert);
 
-  const Span<MVert> verts = mesh->verts();
-  for (const int i : verts.index_range()) {
-    usd_mesh_data.points.push_back(pxr::GfVec3f(verts[i].co));
+  const Span<float3> positions = mesh->vert_positions();
+  for (const int i : positions.index_range()) {
+    const float3 &position = positions[i];
+    usd_mesh_data.points.push_back(pxr::GfVec3f(position.x, position.y, position.z));
   }
 }
 
@@ -345,7 +360,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
    * which is why we always bind the first material to the entire mesh. See
    * https://github.com/PixarAnimationStudios/USD/issues/542 for more info. */
   bool mesh_material_bound = false;
-  pxr::UsdShadeMaterialBindingAPI material_binding_api(usd_mesh.GetPrim());
+  auto mesh_prim = usd_mesh.GetPrim();
+  pxr::UsdShadeMaterialBindingAPI material_binding_api(mesh_prim);
   for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
@@ -364,7 +380,13 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     break;
   }
 
-  if (!mesh_material_bound) {
+  if (mesh_material_bound) {
+    /* USD will require that prims with material bindings have the MaterialBindingAPI applied
+     * schema. While Bind() above will create the binding attribute, Apply() needs to be called as
+     * well to add the MaterialBindingAPI schema to the prim itself.*/
+    material_binding_api.Apply(mesh_prim);
+  }
+  else {
     /* Blender defaults to double-sided, but USD to single-sided. */
     usd_mesh.CreateDoubleSidedAttr(pxr::VtValue(true));
   }
@@ -391,14 +413,19 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
 
     pxr::UsdGeomSubset usd_face_subset = material_binding_api.CreateMaterialBindSubset(
         material_name, face_indices);
-    pxr::UsdShadeMaterialBindingAPI(usd_face_subset.GetPrim()).Bind(usd_material);
+    auto subset_prim = usd_face_subset.GetPrim();
+    auto subset_material_api = pxr::UsdShadeMaterialBindingAPI(subset_prim);
+    subset_material_api.Bind(usd_material);
+    /* Apply the MaterialBindingAPI applied schema, as required by USD.*/
+    subset_material_api.Apply(subset_prim);
   }
 }
 
 void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
-  const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+  const float(*lnors)[3] = static_cast<const float(*)[3]>(
+      CustomData_get_layer(&mesh->ldata, CD_NORMAL));
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 

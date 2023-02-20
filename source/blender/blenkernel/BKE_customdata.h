@@ -23,7 +23,6 @@
 extern "C" {
 #endif
 
-struct AnonymousAttributeID;
 struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
@@ -31,6 +30,28 @@ struct CustomData;
 struct CustomData_MeshMasks;
 struct ID;
 typedef uint64_t eCustomDataMask;
+
+/* These names are used as prefixes for UV layer names to find the associated boolean
+ * layers. They should never be longer than 2 chars, as MAX_CUSTOMDATA_LAYER_NAME
+ * has 4 extra bytes above what can be used for the base layer name, and these
+ * prefixes are placed between 2 '.'s at the start of the layer name.
+ * For example The uv vert selection layer of a layer named 'UVMap.001'
+ * will be called '.vs.UVMap.001' . */
+#define UV_VERTSEL_NAME "vs"
+#define UV_EDGESEL_NAME "es"
+#define UV_PINNED_NAME "pn"
+
+/**
+ * UV map related customdata offsets into BMesh attribute blocks. See #BM_uv_map_get_offsets.
+ * Defined in #BKE_customdata.h to avoid including bmesh.h in many unrelated areas.
+ * An offset of -1 means that the corresponding layer does not exist.
+ */
+typedef struct BMUVOffsets {
+  int uv;
+  int select_vert;
+  int select_edge;
+  int pin;
+} BMUVOffsets;
 
 /* A data type large enough to hold 1 element from any custom-data layer type. */
 typedef struct {
@@ -116,6 +137,7 @@ bool CustomData_has_referenced(const struct CustomData *data);
  * implemented for mloopuv/mloopcol, for now.
  */
 void CustomData_data_copy_value(int type, const void *source, void *dest);
+void CustomData_data_set_default_value(int type, void *elem);
 
 /**
  * Mixes the "value" (e.g. mloopuv uv or mloopcol colors) from one block into
@@ -126,7 +148,7 @@ void CustomData_data_mix_value(
 
 /**
  * Compares if data1 is equal to data2.  type is a valid CustomData type
- * enum (e.g. #CD_MLOOPUV). the layer type's equal function is used to compare
+ * enum (e.g. #CD_PROP_FLOAT). the layer type's equal function is used to compare
  * the data, if it exists, otherwise #memcmp is used.
  */
 bool CustomData_data_equals(int type, const void *data1, const void *data2);
@@ -227,7 +249,7 @@ void *CustomData_add_layer_anonymous(struct CustomData *data,
                                      eCDAllocType alloctype,
                                      void *layer,
                                      int totelem,
-                                     const struct AnonymousAttributeID *anonymous_id);
+                                     const AnonymousAttributeIDHandle *anonymous_id);
 
 /**
  * Frees the active or first data layer with the give type.
@@ -260,24 +282,8 @@ bool CustomData_has_layer(const struct CustomData *data, int type);
  * Returns the number of layers with this type.
  */
 int CustomData_number_of_layers(const struct CustomData *data, int type);
+int CustomData_number_of_anonymous_layers(const struct CustomData *data, int type);
 int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
-
-/**
- * Duplicate data of a layer with flag NOFREE, and remove that flag.
- * \return the layer data.
- */
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type, int totelem);
-void *CustomData_duplicate_referenced_layer_n(struct CustomData *data,
-                                              int type,
-                                              int n,
-                                              int totelem);
-void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-                                                  int type,
-                                                  const char *name,
-                                                  int totelem);
-void *CustomData_duplicate_referenced_layer_anonymous(
-    CustomData *data, int type, const struct AnonymousAttributeID *anonymous_id, int totelem);
-bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /**
  * Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers.
@@ -300,8 +306,8 @@ void CustomData_copy_data(const struct CustomData *source,
                           int source_index,
                           int dest_index,
                           int count);
-void CustomData_copy_data_layer(const CustomData *source,
-                                CustomData *dest,
+void CustomData_copy_data_layer(const struct CustomData *source,
+                                struct CustomData *dest,
                                 int src_layer_index,
                                 int dst_layer_index,
                                 int src_index,
@@ -390,11 +396,15 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
 void CustomData_swap(struct CustomData *data, int index_a, int index_b);
 
 /**
- * Gets a pointer to the data element at index from the first layer of type.
- * \return NULL if there is no layer of type.
+ * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the
+ * \a index, if it exists.
  */
-void *CustomData_get(const struct CustomData *data, int index, int type);
-void *CustomData_get_n(const struct CustomData *data, int type, int index, int n);
+void *CustomData_get_for_write(struct CustomData *data, int index, int type, int totelem);
+/**
+ * Retrieve a pointer to an element of the \a nth layer of the given \a type, chosen by the
+ * \a index, if it exists.
+ */
+void *CustomData_get_n_for_write(struct CustomData *data, int type, int index, int n, int totelem);
 
 /* BMesh Custom Data Functions.
  * Should replace edit-mesh ones with these as well, due to more efficient memory alloc. */
@@ -412,19 +422,37 @@ bool CustomData_set_layer_name(struct CustomData *data, int type, int n, const c
 const char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
 /**
- * Gets a pointer to the active or first layer of type.
- * \return NULL if there is no layer of type.
+ * Retrieve the data array of the active layer of the given \a type, if it exists. Return null
+ * otherwise.
  */
-void *CustomData_get_layer(const struct CustomData *data, int type);
-void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
-void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
+const void *CustomData_get_layer(const struct CustomData *data, int type);
+void *CustomData_get_layer_for_write(struct CustomData *data, int type, int totelem);
+
+/**
+ * Retrieve the data array of the \a nth layer of the given \a type, if it exists. Return null
+ * otherwise.
+ */
+const void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
+void *CustomData_get_layer_n_for_write(struct CustomData *data, int type, int n, int totelem);
+
+/**
+ * Retrieve the data array of the layer with the given \a name and \a type, if it exists. Return
+ * null otherwise.
+ */
+const void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
+void *CustomData_get_layer_named_for_write(CustomData *data,
+                                           int type,
+                                           const char *name,
+                                           int totelem);
+
 int CustomData_get_offset(const struct CustomData *data, int type);
-int CustomData_get_offset_named(const CustomData *data, int type, const char *name);
+int CustomData_get_offset_named(const struct CustomData *data, int type, const char *name);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n);
 int CustomData_get_named_layer_index(const struct CustomData *data, int type, const char *name);
+int CustomData_get_named_layer_index_notype(const struct CustomData *data, const char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
@@ -480,6 +508,8 @@ void CustomData_clear_layer_flag(struct CustomData *data, int type, int flag);
 
 void CustomData_bmesh_set_default(struct CustomData *data, void **block);
 void CustomData_bmesh_free_block(struct CustomData *data, void **block);
+void CustomData_bmesh_alloc_block(struct CustomData *data, void **block);
+
 /**
  * Same as #CustomData_bmesh_free_block but zero the memory rather than freeing.
  */
@@ -490,24 +520,6 @@ void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
 void CustomData_bmesh_free_block_data_exclude_by_type(struct CustomData *data,
                                                       void *block,
                                                       eCustomDataMask mask_exclude);
-
-/**
- * Copy custom data to/from layers as in mesh/derived-mesh, to edit-mesh
- * blocks of data. the CustomData's must not be compatible.
- *
- * \param use_default_init: initializes data which can't be copied,
- * typically you'll want to use this if the BM_xxx create function
- * is called with BM_CREATE_SKIP_CD flag
- */
-void CustomData_to_bmesh_block(const struct CustomData *source,
-                               struct CustomData *dest,
-                               int src_index,
-                               void **dest_block,
-                               bool use_default_init);
-void CustomData_from_bmesh_block(const struct CustomData *source,
-                                 struct CustomData *dest,
-                                 void *src_block,
-                                 int dest_index);
 
 /**
  * Query info over types.
@@ -533,6 +545,13 @@ bool CustomData_layertype_is_dynamic(int type);
  * \return Maximum number of layers of given \a type, -1 means 'no limit'.
  */
 int CustomData_layertype_layers_max(int type);
+
+#ifdef __cplusplus
+
+/** \return The maximum length for a layer name with the given prefix. */
+int CustomData_name_max_length_calc(blender::StringRef name);
+
+#endif
 
 /**
  * Make sure the name of layer at index is unique.
@@ -607,8 +626,9 @@ enum {
   CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
 
   /* Multiple types of mesh elements... */
-  CD_FAKE_UV = CD_FAKE |
-               CD_MLOOPUV, /* UV flag, because we handle both loop's UVs and poly's textures. */
+  CD_FAKE_UV =
+      CD_FAKE |
+      CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and poly's textures. */
 
   CD_FAKE_LNOR = CD_FAKE |
                  CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
@@ -647,7 +667,7 @@ typedef struct CustomDataTransferLayerMap {
   /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
   const float *mix_weights;
 
-  /** Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+  /** Data source array (can be regular CD data, vertices/edges/etc., key-blocks...). */
   const void *data_src;
   /** Data dest array (same type as dat_src). */
   void *data_dst;
@@ -665,7 +685,7 @@ typedef struct CustomDataTransferLayerMap {
   /** For bit-flag transfer, flag(s) to affect in transferred data. */
   uint64_t data_flag;
 
-  /** Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+  /** Opaque pointer, to be used by specific interp callback (e.g. transform-space for normals). */
   void *interp_data;
 
   cd_datatransfer_interp interp;
@@ -709,7 +729,7 @@ void CustomData_blend_write(BlendWriter *writer,
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
-size_t CustomData_get_elem_size(struct CustomDataLayer *layer);
+size_t CustomData_get_elem_size(const struct CustomDataLayer *layer);
 
 #ifndef NDEBUG
 struct DynStr;

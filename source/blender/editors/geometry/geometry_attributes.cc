@@ -34,6 +34,7 @@
 #include "UI_resources.h"
 
 #include "ED_geometry.h"
+#include "ED_mesh.h"
 #include "ED_object.h"
 
 #include "geometry_intern.hh"
@@ -98,7 +99,7 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_set(id, layer);
+  BKE_id_attributes_active_set(id, layer->name);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -106,8 +107,9 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
+static void next_color_attribute(ID *id, const StringRefNull name, bool is_render)
 {
+  const CustomDataLayer *layer = BKE_id_attributes_color_find(id, name.c_str());
   int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
   index++;
@@ -121,18 +123,18 @@ static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
 
   if (layer) {
     if (is_render) {
-      BKE_id_attributes_active_color_set(id, layer);
+      BKE_id_attributes_active_color_set(id, layer->name);
     }
     else {
-      BKE_id_attributes_render_color_set(id, layer);
+      BKE_id_attributes_default_color_set(id, layer->name);
     }
   }
 }
 
-static void next_color_attributes(ID *id, CustomDataLayer *layer)
+static void next_color_attributes(ID *id, const StringRefNull name)
 {
-  next_color_attribute(id, layer, false); /* active */
-  next_color_attribute(id, layer, true);  /* render */
+  next_color_attribute(id, name, false); /* active */
+  next_color_attribute(id, name, true);  /* render */
 }
 
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
@@ -180,7 +182,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   ID *id = static_cast<ID *>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
-  next_color_attributes(id, layer);
+  next_color_attributes(id, layer->name);
 
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -230,10 +232,10 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, layer);
+  BKE_id_attributes_active_color_set(id, layer->name);
 
-  if (!BKE_id_attributes_render_color_get(id)) {
-    BKE_id_attributes_render_color_set(id, layer);
+  if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id))) {
+    BKE_id_attributes_default_color_set(id, layer->name);
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);
@@ -246,7 +248,6 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 
 enum class ConvertAttributeMode {
   Generic,
-  UVMap,
   VertexGroup,
 };
 
@@ -275,14 +276,13 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *ob_data = static_cast<ID *>(ob->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
-  const std::string name = layer->name;
-
+  CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
       RNA_enum_get(op->ptr, "mode"));
-
   Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+
+  const std::string name = layer->name;
 
   /* General conversion steps are always the same:
    * 1. Convert old data to right domain and data type.
@@ -291,34 +291,13 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
    * 4. Create a new attribute based on the previously copied data. */
   switch (mode) {
     case ConvertAttributeMode::Generic: {
-      const eAttrDomain dst_domain = static_cast<eAttrDomain>(RNA_enum_get(op->ptr, "domain"));
-      const eCustomDataType dst_type = static_cast<eCustomDataType>(
-          RNA_enum_get(op->ptr, "data_type"));
-
-      if (ELEM(dst_type, CD_PROP_STRING)) {
-        BKE_report(op->reports, RPT_ERROR, "Cannot convert to the selected type");
+      if (!ED_geometry_attribute_convert(mesh,
+                                         name.c_str(),
+                                         eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                                         eAttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                         op->reports)) {
         return OPERATOR_CANCELLED;
       }
-
-      GVArray src_varray = attributes.lookup_or_default(name, dst_domain, dst_type);
-      const CPPType &cpp_type = src_varray.type();
-      void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
-      src_varray.materialize_to_uninitialized(new_data);
-      attributes.remove(name);
-      attributes.add(name, dst_domain, dst_type, blender::bke::AttributeInitMoveArray(new_data));
-      break;
-    }
-    case ConvertAttributeMode::UVMap: {
-      MLoopUV *dst_uvs = static_cast<MLoopUV *>(
-          MEM_calloc_arrayN(mesh->totloop, sizeof(MLoopUV), __func__));
-      VArray<float2> src_varray = attributes.lookup_or_default<float2>(
-          name, ATTR_DOMAIN_CORNER, {0.0f, 0.0f});
-      for (const int i : IndexRange(mesh->totloop)) {
-        copy_v2_v2(dst_uvs[i].uv, src_varray[i]);
-      }
-      attributes.remove(name);
-      CustomData_add_layer_named(
-          &mesh->ldata, CD_MLOOPUV, CD_ASSIGN, dst_uvs, mesh->totloop, name.c_str());
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
@@ -337,18 +316,16 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
           BKE_defvert_add_index_notest(dverts + i, defgroup_index, weight);
         }
       }
+      int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
+      if (*active_index > 0) {
+        *active_index -= 1;
+      }
       break;
     }
   }
 
-  int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
-  if (*active_index > 0) {
-    *active_index -= 1;
-  }
-
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
-
   return OPERATOR_FINISHED;
 }
 
@@ -417,13 +394,8 @@ static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
 
-  CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT) : layer;
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER) : layer;
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER) : layer;
-
-  if (layer) {
-    BKE_id_attributes_render_color_set(id, layer);
+  if (BKE_id_attributes_color_find(id, name)) {
+    BKE_id_attributes_default_color_set(id, name);
 
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -459,15 +431,14 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-
-  if (layer == nullptr) {
+  const std::string active_name = StringRef(BKE_id_attributes_active_color_name(id));
+  if (active_name.empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  next_color_attributes(id, layer);
+  next_color_attributes(id, active_name);
 
-  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
+  if (!BKE_id_attribute_remove(id, active_name.c_str(), op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -483,10 +454,10 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
-  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const ID *data = static_cast<ID *>(ob->data);
 
-  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+  if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data))) {
     return true;
   }
 
@@ -512,18 +483,17 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-
-  if (layer == nullptr) {
+  const char *active_name = BKE_id_attributes_active_color_name(id);
+  if (active_name == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, active_name, op->reports);
   if (new_layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, new_layer);
+  BKE_id_attributes_active_color_set(id, new_layer->name);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -541,10 +511,10 @@ static bool geometry_color_attributes_duplicate_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
-  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const ID *data = static_cast<ID *>(ob->data);
 
-  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+  if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data))) {
     return true;
   }
 
@@ -566,6 +536,28 @@ void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int geometry_attribute_convert_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
+{
+  Object *ob = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
+      BKE_id_attributes_active_get(&mesh->id)->name);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
+  }
+  prop = RNA_struct_find_property(op->ptr, "data_type");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
+  }
+
+  return WM_operator_props_dialog_popup(C, op, 300);
+}
+
 static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
@@ -583,11 +575,106 @@ static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
   }
 }
 
-static int geometry_attribute_convert_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static bool geometry_color_attribute_convert_poll(bContext *C)
 {
+  if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  ID *id = static_cast<ID *>(ob->data);
+  if (GS(id->name) != ID_ME) {
+    return false;
+  }
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+  if (layer == nullptr) {
+    return false;
+  }
+
+  return true;
+}
+
+static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_context(C);
+  ID *ob_data = static_cast<ID *>(ob->data);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ob_data);
+  ED_geometry_attribute_convert(static_cast<Mesh *>(ob->data),
+                                layer->name,
+                                eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
+                                eAttrDomain(RNA_enum_get(op->ptr, "domain")),
+                                op->reports);
+  return OPERATOR_FINISHED;
+}
+
+static int geometry_color_attribute_convert_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
+{
+  Object *ob = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
+      BKE_id_attributes_active_color_get(&mesh->id)->name);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
+  }
+  prop = RNA_struct_find_property(op->ptr, "data_type");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
+  }
+
   return WM_operator_props_dialog_popup(C, op, 300);
+}
+
+static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
+
+void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)
+{
+  ot->name = "Convert Color Attribute";
+  ot->description = "Change how the color attribute is stored";
+  ot->idname = "GEOMETRY_OT_color_attribute_convert";
+
+  ot->invoke = geometry_color_attribute_convert_invoke;
+  ot->exec = geometry_color_attribute_convert_exec;
+  ot->poll = geometry_color_attribute_convert_poll;
+  ot->ui = geometry_color_attribute_convert_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_enum(ot->srna,
+                      "domain",
+                      rna_enum_color_attribute_domain_items,
+                      ATTR_DOMAIN_POINT,
+                      "Domain",
+                      "Type of element that attribute is stored on");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "data_type",
+                      rna_enum_color_attribute_type_items,
+                      CD_PROP_COLOR,
+                      "Data Type",
+                      "Type of data stored in attribute");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
@@ -605,7 +692,6 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 
   static EnumPropertyItem mode_items[] = {
       {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
-      {int(ConvertAttributeMode::UVMap), "UV_MAP", 0, "UV Map", ""},
       {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -628,37 +714,31 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 
 }  // namespace blender::ed::geometry
 
-using blender::CPPType;
-using blender::GVArray;
-
 bool ED_geometry_attribute_convert(Mesh *mesh,
-                                   const char *layer_name,
-                                   eCustomDataType old_type,
-                                   eAttrDomain old_domain,
-                                   eCustomDataType new_type,
-                                   eAttrDomain new_domain)
+                                   const char *name,
+                                   const eCustomDataType dst_type,
+                                   const eAttrDomain dst_domain,
+                                   ReportList *reports)
 {
-  CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, layer_name, old_type, old_domain);
-  const std::string name = layer->name;
-
-  if (!layer) {
+  using namespace blender;
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  BLI_assert(mesh->attributes().contains(name));
+  BLI_assert(mesh->edit_mesh == nullptr);
+  if (ELEM(dst_type, CD_PROP_STRING)) {
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, "Cannot convert to the selected type");
+    }
     return false;
   }
 
-  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  const std::string name_copy = name;
+  const GVArray varray = attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
-  GVArray src_varray = attributes.lookup_or_default(name, new_domain, new_type);
-
-  const CPPType &cpp_type = src_varray.type();
-  void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
-  src_varray.materialize_to_uninitialized(new_data);
-  attributes.remove(name);
-  attributes.add(name, new_domain, new_type, blender::bke::AttributeInitMoveArray(new_data));
-
-  int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
-  if (*active_index > 0) {
-    *active_index -= 1;
-  }
+  const CPPType &cpp_type = varray.type();
+  void *new_data = MEM_malloc_arrayN(varray.size(), cpp_type.size(), __func__);
+  varray.materialize_to_uninitialized(new_data);
+  attributes.remove(name_copy);
+  attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data));
 
   return true;
 }

@@ -10,144 +10,34 @@
 
 namespace blender::ed::sculpt_paint {
 
-static VArray<float> get_curves_selection(const CurvesGeometry &curves, const eAttrDomain domain)
+bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
 {
-  switch (domain) {
-    case ATTR_DOMAIN_CURVE:
-      return curves.selection_curve_float();
-    case ATTR_DOMAIN_POINT:
-      return curves.adapt_domain(
-          curves.selection_point_float(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
-    default:
-      BLI_assert_unreachable();
-      return {};
-  }
-}
+  /* TODO: Use a generic attribute conversion utility instead of this function. */
+  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-VArray<float> get_curves_selection(const Curves &curves_id)
-{
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return VArray<float>::ForSingle(1.0f, CurvesGeometry::wrap(curves_id.geometry).curves_num());
-  }
-  return get_curves_selection(CurvesGeometry::wrap(curves_id.geometry),
-                              eAttrDomain(curves_id.selection_domain));
-}
+  if (const auto meta_data = attributes.lookup_meta_data(".selection")) {
+    if (meta_data->data_type == CD_PROP_BOOL) {
+      const VArray<float> selection = attributes.lookup<float>(".selection");
+      float *dst = static_cast<float *>(
+          MEM_malloc_arrayN(selection.size(), sizeof(float), __func__));
+      selection.materialize({dst, selection.size()});
 
-static VArray<float> get_point_selection(const CurvesGeometry &curves, const eAttrDomain domain)
-{
-  switch (domain) {
-    case ATTR_DOMAIN_CURVE:
-      return curves.adapt_domain(
-          curves.selection_curve_float(), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
-    case ATTR_DOMAIN_POINT:
-      return curves.selection_point_float();
-    default:
-      BLI_assert_unreachable();
-      return {};
-  }
-}
-
-VArray<float> get_point_selection(const Curves &curves_id)
-{
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return VArray<float>::ForSingle(1.0f, CurvesGeometry::wrap(curves_id.geometry).points_num());
-  }
-  return get_point_selection(CurvesGeometry::wrap(curves_id.geometry),
-                             eAttrDomain(curves_id.selection_domain));
-}
-
-static IndexMask retrieve_selected_curves(const CurvesGeometry &curves,
-                                          const eAttrDomain domain,
-                                          Vector<int64_t> &r_indices)
-{
-  switch (domain) {
-    case ATTR_DOMAIN_POINT: {
-      const VArray<float> selection = curves.selection_point_float();
-      if (selection.is_single()) {
-        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
-                                                         IndexMask(curves.curves_num());
-      }
-      const Span<float> point_selection_span = selection.get_internal_span();
-      return index_mask_ops::find_indices_based_on_predicate(
-          curves.curves_range(), 512, r_indices, [&](const int curve_i) {
-            for (const int i : curves.points_for_curve(curve_i)) {
-              if (point_selection_span[i] > 0.0f) {
-                return true;
-              }
-            }
-            return false;
-          });
+      attributes.remove(".selection");
+      attributes.add(
+          ".selection", meta_data->domain, CD_PROP_FLOAT, bke::AttributeInitMoveArray(dst));
     }
-    case ATTR_DOMAIN_CURVE: {
-      const VArray<float> selection = curves.selection_curve_float();
-      if (selection.is_single()) {
-        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
-                                                         IndexMask(curves.curves_num());
-      }
-      return index_mask_ops::find_indices_based_on_predicate(
-          curves.curves_range(), 2048, r_indices, [&](const int i) {
-            return selection[i] > 0.0f;
-          });
-    }
-    default:
-      BLI_assert_unreachable();
-      return {};
   }
-}
+  else {
+    const eAttrDomain domain = eAttrDomain(curves_id.selection_domain);
+    const int64_t size = attributes.domain_size(domain);
+    attributes.add(".selection",
+                   domain,
+                   CD_PROP_FLOAT,
+                   bke::AttributeInitVArray(VArray<float>::ForSingle(size, 1.0f)));
+  }
 
-IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices)
-{
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return CurvesGeometry::wrap(curves_id.geometry).curves_range();
-  }
-  return retrieve_selected_curves(CurvesGeometry::wrap(curves_id.geometry),
-                                  eAttrDomain(curves_id.selection_domain),
-                                  r_indices);
-}
-
-static IndexMask retrieve_selected_points(const CurvesGeometry &curves,
-                                          const eAttrDomain domain,
-                                          Vector<int64_t> &r_indices)
-{
-  switch (domain) {
-    case ATTR_DOMAIN_POINT: {
-      const VArray<float> selection = curves.selection_point_float();
-      if (selection.is_single()) {
-        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
-                                                         IndexMask(curves.points_num());
-      }
-      return index_mask_ops::find_indices_based_on_predicate(
-          curves.points_range(), 2048, r_indices, [&](const int i) {
-            return selection[i] > 0.0f;
-          });
-    }
-    case ATTR_DOMAIN_CURVE: {
-      const VArray<float> selection = curves.selection_curve_float();
-      if (selection.is_single()) {
-        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
-                                                         IndexMask(curves.points_num());
-      }
-      const VArray<float> point_selection = curves.adapt_domain(
-          selection, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
-      return index_mask_ops::find_indices_based_on_predicate(
-          curves.points_range(), 2048, r_indices, [&](const int i) {
-            return point_selection[i] > 0.0f;
-          });
-    }
-    default:
-      BLI_assert_unreachable();
-      return {};
-  }
-}
-
-IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_indices)
-{
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return CurvesGeometry::wrap(curves_id.geometry).points_range();
-  }
-  return retrieve_selected_points(CurvesGeometry::wrap(curves_id.geometry),
-                                  eAttrDomain(curves_id.selection_domain),
-                                  r_indices);
+  return curves.attributes_for_write().lookup_for_write_span<float>(".selection");
 }
 
 }  // namespace blender::ed::sculpt_paint

@@ -113,7 +113,7 @@ typedef struct ParticleData {
    * Particles can die unnaturally (collision).
    *
    * \note Particles die on this frame, be sure to add 1 when clamping the lifetime of particles
-   * to inclusive ranges such as the scenes end frame. See: T68290.
+   * to inclusive ranges such as the scenes end frame. See: #68290.
    */
   float dietime;
 
@@ -359,12 +359,13 @@ typedef struct ParticleSystem {
   char _pad1[6];
 
   /** Billboard uv name, MAX_CUSTOMDATA_LAYER_NAME. */
-  char bb_uvname[3][64] DNA_DEPRECATED;
+  char bb_uvname[3][68] DNA_DEPRECATED;
 
+  char _pad2[4];
   /* if you change these remember to update array lengths to PSYS_TOT_VG! */
   /** Vertex groups, 0==disable, 1==starting index. */
   short vgroup[13], vg_neg, rt3;
-  char _pad[6];
+  char _pad3[6];
 
   /* point cache */
   struct PointCache *pointcache;

@@ -153,12 +153,12 @@ class ArmatureSymmetrizeTest(AbstractAnimationTest, unittest.TestCase):
         bpy.ops.wm.open_mainfile(filepath=str(
             self.testdir / "symm_test.blend"))
 
-        # T81541 (D9214)
+        # #81541 (D9214)
         arm = bpy.data.objects['transform_const_rig']
         expected_arm = bpy.data.objects['expected_transform_const_rig']
         self.assertEqualSymmetrize(arm, expected_arm)
 
-        # T66751 (D6009)
+        # #66751 (D6009)
         arm = bpy.data.objects['dragon_rig']
         expected_arm = bpy.data.objects['expected_dragon_rig']
         self.assertEqualSymmetrize(arm, expected_arm)

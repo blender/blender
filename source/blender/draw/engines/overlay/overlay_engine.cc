@@ -92,10 +92,10 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   if (ts->sculpt) {
-    if (ts->sculpt->flags & SCULPT_HIDE_FACE_SETS) {
+    if (!(v3d->overlay.flag & int(V3D_OVERLAY_SCULPT_SHOW_FACE_SETS))) {
       pd->overlay.sculpt_mode_face_sets_opacity = 0.0f;
     }
-    if (ts->sculpt->flags & SCULPT_HIDE_MASK) {
+    if (!(v3d->overlay.flag & int(V3D_OVERLAY_SCULPT_SHOW_MASK))) {
       pd->overlay.sculpt_mode_mask_opacity = 0.0f;
     }
   }
@@ -248,7 +248,7 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
 static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Object *ob)
 {
   if (DRW_object_is_in_edit_mode(ob)) {
-    /* Also check for context mode as the object mode is not 100% reliable. (see T72490) */
+    /* Also check for context mode as the object mode is not 100% reliable. (see #72490) */
     switch (ob->type) {
       case OB_MESH:
         return pd->ctx_mode == CTX_MODE_EDIT_MESH;
@@ -324,8 +324,6 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                     (draw_ctx->object_mode & OB_MODE_SCULPT_CURVES);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != nullptr) &&
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);
-  const bool in_curves_sculpt_mode = (ob == draw_ctx->obact) &&
-                                     (ob->mode == OB_MODE_SCULPT_CURVES);
   const bool has_surface = ELEM(ob->type,
                                 OB_MESH,
                                 OB_CURVES_LEGACY,
@@ -449,7 +447,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   if (in_sculpt_mode) {
     OVERLAY_sculpt_cache_populate(data, ob);
   }
-  else if (in_curves_sculpt_mode) {
+  else if (in_sculpt_curve_mode) {
     OVERLAY_sculpt_curves_cache_populate(data, ob);
   }
 
@@ -632,6 +630,10 @@ static void OVERLAY_draw_scene(void *vedata)
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
+  }
+
+  if (pd->ctx_mode == CTX_MODE_SCULPT_CURVES) {
+    OVERLAY_sculpt_curves_draw_wires(data);
   }
 
   OVERLAY_wireframe_draw(data);

@@ -7,7 +7,7 @@
 #include "BLI_color.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_hash.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 

@@ -104,7 +104,13 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
         char path[FILE_MAX];
 
         /* combine file path for the input */
-        BLI_path_join(path, FILE_MAX, storage->base_path, sockdata->path);
+        if (sockdata->path[0]) {
+          BLI_path_join(path, FILE_MAX, storage->base_path, sockdata->path);
+        }
+        else {
+          BLI_strncpy(path, storage->base_path, FILE_MAX);
+          BLI_path_slash_ensure(path, FILE_MAX);
+        }
 
         NodeOperation *output_operation = nullptr;
 

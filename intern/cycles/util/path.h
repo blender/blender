@@ -55,8 +55,15 @@ bool path_remove(const string &path);
 /* source code utility */
 string path_source_replace_includes(const string &source, const string &path);
 
-/* cache utility */
-void path_cache_clear_except(const string &name, const set<string> &except);
+/* Simple least-recently-used cache for kernels.
+ *
+ * Kernels of same type are cached in the same directory.
+ * Whenever a kernel is used, its last modified time is updated.
+ * When a new kernel is added to the cache, clear old entries of the same type (i.e. in the same
+ * directory). */
+bool path_cache_kernel_exists_and_mark_used(const string &path);
+void path_cache_kernel_mark_added_and_clear_old(const string &path,
+                                                const size_t max_old_kernel_of_same_type = 5);
 
 CCL_NAMESPACE_END
 

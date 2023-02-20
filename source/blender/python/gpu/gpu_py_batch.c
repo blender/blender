@@ -47,8 +47,6 @@ static bool pygpu_batch_is_program_or_error(BPyGPUBatch *self)
 
 static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   const char *exc_str_missing_arg = "GPUBatch.__new__() missing required argument '%s' (pos %d)";
 
   struct PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
@@ -159,7 +157,7 @@ static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_bu
   PyList_Append(self->references, (PyObject *)py_buf);
 #endif
 
-  GPU_batch_vertbuf_add(self->batch, py_buf->buf);
+  GPU_batch_vertbuf_add(self->batch, py_buf->buf, false);
   Py_RETURN_NONE;
 }
 

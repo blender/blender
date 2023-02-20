@@ -40,7 +40,7 @@
 
 static bool socket_is_used(bNodeSocket *sock)
 {
-  return sock->flag & SOCK_IN_USE;
+  return sock->flag & SOCK_IS_LINKED;
 }
 
 static float *cycles_node_socket_float_value(bNodeSocket *socket)
@@ -371,7 +371,7 @@ static void light_emission_node_to_energy(Light *light, float *energy, float col
   bNodeSocket *strength_socket = nodeFindSocket(emission_node, SOCK_IN, "Strength");
   bNodeSocket *color_socket = nodeFindSocket(emission_node, SOCK_IN, "Color");
 
-  if ((strength_socket->flag & SOCK_IN_USE) || (color_socket->flag & SOCK_IN_USE)) {
+  if ((strength_socket->flag & SOCK_IS_LINKED) || (color_socket->flag & SOCK_IS_LINKED)) {
     return;
   }
 

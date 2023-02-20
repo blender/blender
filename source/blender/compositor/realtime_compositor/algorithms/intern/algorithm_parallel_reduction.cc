@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -41,10 +41,10 @@ static float *parallel_reduction_dispatch(Context &context,
     GPUTexture *reduced_texture = context.texture_pool().acquire(reduced_size, format);
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-    const int texture_image_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    const int texture_image_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(texture_to_reduce, texture_image_unit);
 
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(reduced_texture, image_unit);
 
     GPU_compute_dispatch(shader, reduced_size.x, reduced_size.y, 1);

@@ -105,6 +105,18 @@ void PointCloudComponent::ensure_owns_direct_data()
 
 namespace blender::bke {
 
+static void tag_component_positions_changed(void *owner)
+{
+  PointCloud &points = *static_cast<PointCloud *>(owner);
+  points.tag_positions_changed();
+}
+
+static void tag_component_radius_changed(void *owner)
+{
+  PointCloud &points = *static_cast<PointCloud *>(owner);
+  points.tag_radii_changed();
+}
+
 /**
  * In this function all the attribute providers for a point cloud component are created. Most data
  * in this function is statically allocated, because it does not change over time.
@@ -130,29 +142,26 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                  CD_PROP_FLOAT3,
                                                  CD_PROP_FLOAT3,
                                                  BuiltinAttributeProvider::NonCreatable,
-                                                 BuiltinAttributeProvider::Writable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
                                                  make_array_read_attribute<float3>,
                                                  make_array_write_attribute<float3>,
-                                                 nullptr);
+                                                 tag_component_positions_changed);
   static BuiltinCustomDataLayerProvider radius("radius",
                                                ATTR_DOMAIN_POINT,
                                                CD_PROP_FLOAT,
                                                CD_PROP_FLOAT,
                                                BuiltinAttributeProvider::Creatable,
-                                               BuiltinAttributeProvider::Writable,
                                                BuiltinAttributeProvider::Deletable,
                                                point_access,
                                                make_array_read_attribute<float>,
                                                make_array_write_attribute<float>,
-                                               nullptr);
+                                               tag_component_radius_changed);
   static BuiltinCustomDataLayerProvider id("id",
                                            ATTR_DOMAIN_POINT,
                                            CD_PROP_INT32,
                                            CD_PROP_INT32,
                                            BuiltinAttributeProvider::Creatable,
-                                           BuiltinAttributeProvider::Writable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
                                            make_array_read_attribute<int>,

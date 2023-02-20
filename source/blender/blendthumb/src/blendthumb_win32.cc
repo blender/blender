@@ -26,7 +26,7 @@
  */
 class CBlendThumb : public IInitializeWithStream, public IThumbnailProvider {
  public:
-  CBlendThumb() : _cRef(1), _pStream(NULL)
+  CBlendThumb() : _cRef(1), _pStream(nullptr)
   {
   }
 
@@ -85,7 +85,7 @@ HRESULT CBlendThumb_CreateInstance(REFIID riid, void **ppv)
 
 IFACEMETHODIMP CBlendThumb::Initialize(IStream *pStream, DWORD)
 {
-  if (_pStream != NULL) {
+  if (_pStream != nullptr) {
     /* Can only be initialized once. */
     return E_UNEXPECTED;
   }
@@ -179,7 +179,7 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
 
     IWICImagingFactory *pImgFac;
     hr = CoCreateInstance(
-        CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
+        CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
 
     IWICBitmap *WICBmp;
     hr = pImgFac->CreateBitmapFromHBITMAP(*phbmp, 0, WICBitmapUseAlpha, &WICBmp);
@@ -193,7 +193,8 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
     bmi.bmiHeader.biCompression = BI_RGB;
 
     BYTE *pBits;
-    HBITMAP ResizedHBmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void **)&pBits, NULL, 0);
+    HBITMAP ResizedHBmp = CreateDIBSection(
+        nullptr, &bmi, DIB_RGB_COLORS, (void **)&pBits, nullptr, 0);
     hr = ResizedHBmp ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr)) {
       IWICBitmapScaler *pIScaler;

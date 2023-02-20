@@ -561,7 +561,7 @@ void WM_toolsystem_refresh_active(bContext *C)
       workspace->id.tag &= ~LIB_TAG_DOIT;
       /* Refresh to ensure data is initialized.
        * This is needed because undo can load a state which no longer has the underlying DNA data
-       * needed for the tool (un-initialized paint-slots for eg), see: T64339. */
+       * needed for the tool (un-initialized paint-slots for eg), see: #64339. */
       LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
         toolsystem_refresh_ref(C, workspace, tref);
       }

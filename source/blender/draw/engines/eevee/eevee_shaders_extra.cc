@@ -17,33 +17,14 @@
 
 using blender::gpu::shader::StageInterfaceInfo;
 
-static StageInterfaceInfo *stage_interface = nullptr;
-
-void eevee_shader_extra_init()
-{
-  if (stage_interface != nullptr) {
-    return;
-  }
-
-  using namespace blender::gpu::shader;
-  stage_interface = new StageInterfaceInfo("ShaderStageInterface", "");
-  stage_interface->smooth(Type::VEC3, "worldPosition");
-  stage_interface->smooth(Type::VEC3, "viewPosition");
-  stage_interface->smooth(Type::VEC3, "worldNormal");
-  stage_interface->smooth(Type::VEC3, "viewNormal");
-  stage_interface->flat(Type::INT, "resourceIDFrag");
-}
-
-void eevee_shader_extra_exit()
-{
-  delete stage_interface;
-}
-
 void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
                                              GPUCodegenOutput *codegen_,
-                                             char *frag,
                                              char *vert,
                                              char *geom,
+                                             char *frag,
+                                             const char *vert_info_name,
+                                             const char *geom_info_name,
+                                             const char *frag_info_name,
                                              char *defines)
 {
   using namespace blender::gpu::shader;
@@ -58,7 +39,17 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
 
-  info.legacy_resource_location(true);
+  /* Append stage-specific create info. */
+  if (vert_info_name) {
+    info.additional_info(vert_info_name);
+  }
+  if (geom_info_name) {
+    info.additional_info(geom_info_name);
+  }
+  if (frag_info_name) {
+    info.additional_info(frag_info_name);
+  }
+
   info.auto_resource_location(true);
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
@@ -74,6 +65,12 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC) && is_hair) {
     info.define("USE_BARYCENTRICS");
+  }
+
+  /* Lookdev - Add FragDepth. */
+  if (options & VAR_MAT_LOOKDEV) {
+    info.define("LOOKDEV");
+    info.depth_write(DepthWrite::ANY);
   }
 
   std::stringstream attr_load;
@@ -124,7 +121,6 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
 
   if (!is_volume) {
     info.define("EEVEE_GENERATED_INTERFACE");
-    info.vertex_out(*stage_interface);
   }
 
   attr_load << "void attrib_load()\n";

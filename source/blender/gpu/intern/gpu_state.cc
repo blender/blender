@@ -16,6 +16,7 @@
 
 #include "GPU_state.h"
 
+#include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
 #include "gpu_state_private.hh"
@@ -321,7 +322,7 @@ void GPU_bgl_start()
   }
   StateManager &state_manager = *(Context::get()->state_manager);
   if (state_manager.use_bgl == false) {
-    /* Expected by many addons (see T80169, T81289).
+    /* Expected by many addons (see #80169, #81289).
      * This will reset the blend function. */
     GPU_blend(GPU_BLEND_NONE);
 
@@ -371,6 +372,27 @@ bool GPU_bgl_get()
 void GPU_memory_barrier(eGPUBarrier barrier)
 {
   Context::get()->state_manager->issue_barrier(barrier);
+}
+
+GPUFence *GPU_fence_create()
+{
+  Fence *fence = GPUBackend::get()->fence_alloc();
+  return wrap(fence);
+}
+
+void GPU_fence_free(GPUFence *fence)
+{
+  delete unwrap(fence);
+}
+
+void GPU_fence_signal(GPUFence *fence)
+{
+  unwrap(fence)->signal();
+}
+
+void GPU_fence_wait(GPUFence *fence)
+{
+  unwrap(fence)->wait();
 }
 
 /** \} */

@@ -60,6 +60,12 @@ static const DTreeContext *find_active_context_recursive(const DTreeContext *con
  * instance of the node group. */
 static const DTreeContext *find_active_context(const DerivedNodeTree &tree)
 {
+  /* If the active viewer key is NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
+   * we return the root context in that case. See the find_active_context_recursive function. */
+  if (tree.root_context().btree().active_viewer_key.value == NODE_INSTANCE_KEY_NONE.value) {
+    return &tree.root_context();
+  }
+
   /* The root context has an instance key of NODE_INSTANCE_KEY_BASE by definition. */
   return find_active_context_recursive(&tree.root_context(), NODE_INSTANCE_KEY_BASE);
 }

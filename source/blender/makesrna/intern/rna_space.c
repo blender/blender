@@ -376,7 +376,7 @@ static const EnumPropertyItem display_channels_items[] = {
     {SI_USE_ALPHA,
      "COLOR_ALPHA",
      ICON_IMAGE_RGB_ALPHA,
-     "Color and Alpha",
+     "Color & Alpha",
      "Display image with RGB colors and alpha transparency"},
     {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
     {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},
@@ -535,6 +535,8 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_asset_representation.h"
+
 #  include "DNA_anim_types.h"
 #  include "DNA_asset_types.h"
 #  include "DNA_scene_types.h"
@@ -545,7 +547,6 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BLI_string.h"
 
 #  include "BKE_anim_data.h"
-#  include "BKE_asset.h"
 #  include "BKE_brush.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"
@@ -1019,6 +1020,15 @@ static void rna_SpaceView3D_object_type_visibility_update(Main *UNUSED(bmain),
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
+static void rna_SpaceView3D_shading_use_compositor_update(Main *UNUSED(bmain),
+                                                          Scene *UNUSED(scene),
+                                                          PointerRNA *UNUSED(ptr))
+{
+  /* Nodes may display warnings when the compositor is enabled, so we need a redraw in that case,
+   * and even when it gets disabled in order to potentially remove the warning. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE, NULL);
+}
+
 static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
@@ -1176,7 +1186,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
   View3DShading *shading = ptr->data;
   if (shading->type == OB_MATERIAL ||
-      (shading->type == OB_RENDER && !STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH))) {
+      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene))) {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -1977,7 +1987,7 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList *UNUSED(reports))
@@ -2075,7 +2085,7 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain),
                                                PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  /* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
+  /* XXX BCONTEXT_DATA is ugly, but required for lights... See #51318. */
   if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
     sbuts->preview = 1;
   }
@@ -2787,14 +2797,14 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
     return PointerRNA_NULL;
   }
 
-  AssetMetaData *asset_data = BKE_asset_representation_metadata_get(entry->asset);
+  AssetMetaData *asset_data = AS_asset_representation_metadata_get(entry->asset);
 
   /* Note that the owning ID of the RNA pointer (`ptr->owner_id`) has to be set carefully:
    * Local IDs (`entry->id`) own their asset metadata themselves. Asset metadata from other blend
    * files are owned by the file browser (`entry`). Only if this is set correctly, we can tell from
    * the metadata RNA pointer if the metadata is stored locally and can thus be edited or not. */
 
-  if (BKE_asset_representation_is_local_id(entry->asset)) {
+  if (AS_asset_representation_is_local_id(entry->asset)) {
     PointerRNA id_ptr;
     RNA_id_pointer_create(entry->id, &id_ptr);
     return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, asset_data);
@@ -3343,6 +3353,26 @@ static void rna_FileAssetSelectParams_catalog_id_get(PointerRNA *ptr, char *valu
 static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
 {
   return UUID_STRING_LEN - 1;
+}
+
+static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char *value)
+{
+  FileAssetSelectParams *params = ptr->data;
+
+  if (value[0] == '\0') {
+    params->catalog_id = BLI_uuid_nil();
+    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    return;
+  }
+
+  bUUID new_uuid;
+  if (!BLI_uuid_parse_string(&new_uuid, value)) {
+    printf("UUID %s not formatted correctly, ignoring new value\n", value);
+    return;
+  }
+
+  params->catalog_id = new_uuid;
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
 }
 
 static int RNA_SpaceAssetBrowser_asset_library_get(PointerRNA *ptr)
@@ -3986,6 +4016,25 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem use_compositor_items[] = {
+      {V3D_SHADING_USE_COMPOSITOR_DISABLED,
+       "DISABLED",
+       0,
+       "Disabled",
+       "The compositor is disabled"},
+      {V3D_SHADING_USE_COMPOSITOR_CAMERA,
+       "CAMERA",
+       0,
+       "Camera",
+       "The compositor is enabled only in camera view"},
+      {V3D_SHADING_USE_COMPOSITOR_ALWAYS,
+       "ALWAYS",
+       0,
+       "Always",
+       "The compositor is always enabled regardless of the view"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* Note these settings are used for both 3D viewport and the OpenGL render
    * engine in the scene, so can't assume to always be part of a screen. */
   srna = RNA_def_struct(brna, "View3DShading", NULL);
@@ -4272,13 +4321,15 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "use_compositor", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_COMPOSITOR);
+  prop = RNA_def_property(srna, "use_compositor", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "use_compositor");
+  RNA_def_property_enum_items(prop, use_compositor_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(
-      prop, "Compositor", "Preview the compositor output inside the viewport");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
+      prop, "Compositor", "When to preview the compositor output inside the viewport");
+  RNA_def_property_update(prop,
+                          NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING,
+                          "rna_SpaceView3D_shading_use_compositor_update");
 }
 
 static void rna_def_space_view3d_overlay(BlenderRNA *brna)
@@ -4711,10 +4762,33 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_sculpt_curves_cage", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_CURVES_CAGE);
+  RNA_def_property_ui_text(
+      prop, "Sculpt Curves Cage", "Show original curves that are currently being edited");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_curves_cage_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_curves_cage_opacity");
+  RNA_def_property_ui_text(
+      prop, "Curves Sculpt Cage Opacity", "Opacity of the cage overlay in curves sculpt mode");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "sculpt_mode_face_sets_opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_opacity");
   RNA_def_property_ui_text(prop, "Sculpt Face Sets Opacity", "");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "show_sculpt_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
+  RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "show_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+  RNA_def_property_ui_text(prop, "Sculpt Show Face Sets", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   /* grease pencil paper settings */
@@ -5760,7 +5834,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       {SEQ_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {0, NULL, 0, NULL, NULL},
@@ -5921,7 +5995,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   /* Overlay settings. */
   prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_OVERLAY);
-  RNA_def_property_ui_text(prop, "Show Overlay", "");
+  RNA_def_property_ui_text(prop, "Show Overlays", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "preview_overlay", PROP_POINTER, PROP_NONE);
@@ -6321,7 +6395,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);
-  RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
+  RNA_def_property_ui_text(prop, "Auto-Merge Keyframes", "Automatically merge nearby keyframes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
@@ -6886,6 +6960,12 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_FOLLOW_PREFS,
+       "FOLLOW_PREFS",
+       0,
+       "Follow Preferences",
+       "Use the import method set in the Preferences for this asset library, don't override it "
+       "for this Asset Browser"},
       {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
       {FILE_ASSET_IMPORT_APPEND,
        "APPEND",
@@ -6917,9 +6997,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop,
                                 "rna_FileAssetSelectParams_catalog_id_get",
                                 "rna_FileAssetSelectParams_catalog_id_length",
-                                NULL);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+                                "rna_FileAssetSelectParams_catalog_id_set");
   RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -6932,9 +7012,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, asset_import_type_items);
-  RNA_def_property_ui_text(prop, "Import Type", "Determine how the asset will be imported");
-  /* Asset drag info saved by buttons stores the import type, so the space must redraw when import
-   * type changes. */
+  RNA_def_property_ui_text(prop, "Import Method", "Determine how the asset will be imported");
+  /* Asset drag info saved by buttons stores the import method, so the space must redraw when
+   * import type changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
@@ -7350,7 +7430,7 @@ static void rna_def_space_node(BlenderRNA *brna)
       {SNODE_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},
@@ -7810,6 +7890,17 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "around");
   RNA_def_property_enum_items(prop, pivot_items);
   RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+  /* Gizmo Toggles. */
+  prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCLIP_GIZMO_HIDE);
+  RNA_def_property_ui_text(prop, "Show Gizmo", "Show gizmos of all types");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+  prop = RNA_def_property(srna, "show_gizmo_navigate", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCLIP_GIZMO_HIDE_NAVIGATE);
+  RNA_def_property_ui_text(prop, "Navigate Gizmo", "Viewport navigation gizmo");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 }
 

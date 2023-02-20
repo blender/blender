@@ -5,6 +5,8 @@
 
 #include "BLI_multi_value_map.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "COM_Converter.h"
 #include "COM_Debug.h"
 
@@ -222,10 +224,11 @@ PreviewOperation *NodeOperationBuilder::make_preview_operation() const
   bNodeInstanceHash *previews = context_->get_preview_hash();
   if (previews) {
     Scene *scene = context_->get_scene();
-    PreviewOperation *operation = new PreviewOperation(&scene->view_settings,
-                                                       &scene->display_settings,
-                                                       current_node_->get_bnode()->preview_xsize,
-                                                       current_node_->get_bnode()->preview_ysize);
+    PreviewOperation *operation = new PreviewOperation(
+        &scene->view_settings,
+        &scene->display_settings,
+        current_node_->get_bnode()->runtime->preview_xsize,
+        current_node_->get_bnode()->runtime->preview_ysize);
     operation->set_bnodetree(context_->get_bnodetree());
     operation->verify_preview(previews, current_node_->get_instance_key());
     return operation;

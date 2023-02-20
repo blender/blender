@@ -577,7 +577,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
     cdd->vc.obedit = CTX_data_edit_object(C);
 
     /* Using an empty stroke complicates logic later,
-     * it's simplest to disallow early on (see: T94085). */
+     * it's simplest to disallow early on (see: #94085). */
     if (RNA_collection_is_empty(op->ptr, "stroke")) {
       MEM_freeN(cdd);
       BKE_report(op->reports, RPT_ERROR, "The \"stroke\" cannot be empty");

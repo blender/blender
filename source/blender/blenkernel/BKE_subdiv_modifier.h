@@ -32,8 +32,13 @@ typedef struct SubsurfRuntimeData {
   SubdivSettings settings;
 
   /* Cached subdivision surface descriptor, with topology and settings. */
-  struct Subdiv *subdiv;
-  bool set_by_draw_code;
+  struct Subdiv *subdiv_cpu;
+  struct Subdiv *subdiv_gpu;
+
+  /* Recent usage markers for UI diagnostics. To avoid UI flicker due to races
+   * between evaluation and UI redraw, they are set to 2 when an evaluator is used,
+   * and count down every frame. */
+  char used_cpu, used_gpu;
 
   /* Cached mesh wrapper data, to be used for GPU subdiv or lazy evaluation on CPU. */
   bool has_gpu_subdiv;
@@ -48,6 +53,9 @@ typedef struct SubsurfRuntimeData {
   int stats_totpoly;
   int stats_totloop;
 } SubsurfRuntimeData;
+
+SubdivSettings BKE_subsurf_modifier_settings_init(const struct SubsurfModifierData *smd,
+                                                  bool use_render_params);
 
 bool BKE_subsurf_modifier_runtime_init(struct SubsurfModifierData *smd, bool use_render_params);
 

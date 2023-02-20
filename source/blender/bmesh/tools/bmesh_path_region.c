@@ -23,7 +23,7 @@
  *
  * \note Regarding manifold edge stepping: #BM_vert_is_edge_pair_manifold usage.
  * Logic to skip a chain of vertices is not applied at boundaries because it gives
- * strange behavior from a user perspective especially with boundary quads, see: T52701
+ * strange behavior from a user perspective especially with boundary quads, see: #52701
  *
  * Restrict walking over a vertex chain to cases where the edges share the same faces.
  * This is more typical of what a user would consider a vertex chain.

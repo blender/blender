@@ -71,6 +71,13 @@ Static Source Code Checking
    * check_mypy:            Checks all Python scripts using mypy,
                             see: source/tools/check_source/check_mypy_config.py scripts which are included.
 
+Documentation Checking
+
+   * check_wiki_file_structure:
+     Check the WIKI documentation for the source-tree's file structure
+     matches Blender's source-code.
+     See: https://wiki.blender.org/wiki/Source/File_Structure
+
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
 
@@ -211,7 +218,7 @@ endif
 # Set the LIBDIR, an empty string when not found.
 LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
 ifeq (, $(LIBDIR))
-	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_centos7_${CPU})
+	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU}_glibc_228)
 endif
 ifeq (, $(LIBDIR))
 	LIBDIR:=$(wildcard ../lib/${OS_NCASE})
@@ -292,7 +299,11 @@ else
 	ifneq ("$(wildcard $(DEPS_BUILD_DIR)/build.ninja)","")
 		DEPS_BUILD_COMMAND:=ninja
 	else
-		DEPS_BUILD_COMMAND:=make -s
+		ifeq ($(OS), Darwin)
+			DEPS_BUILD_COMMAND:=make -s
+		else
+			DEPS_BUILD_COMMAND:="$(BLENDER_DIR)/build_files/build_environment/linux/make_deps_wrapper.sh" -s
+		endif
 	endif
 endif
 
@@ -391,7 +402,7 @@ endif
 
 deps: .FORCE
 	@echo
-	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\"
+	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
 	@cmake -H"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
@@ -480,6 +491,10 @@ check_smatch: .FORCE
 
 check_mypy: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+
+check_wiki_file_structure: .FORCE
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    "$(BLENDER_DIR)/source/tools/check_wiki/check_wiki_file_structure.py"
 
 check_spelling_py: .FORCE
 	@cd "$(BUILD_DIR)" ; \

@@ -120,9 +120,11 @@ set(SRC
   nodes/node_shader_wavelength.cc
   nodes/node_shader_wireframe.cc
 
+  node_shader_register.cc
   node_shader_tree.cc
   node_shader_util.cc
 
+  node_shader_register.hh
   node_shader_util.hh
 )
 

@@ -76,6 +76,26 @@ set(LIB
   ${Epoxy_LIBRARIES}
 )
 
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC
+    intern/GHOST_ContextVK.cpp
+
+    intern/GHOST_ContextVK.h
+  )
+
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+    ${MOLTENVK_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+    ${MOLTENVK_LIBRARIES}
+  )
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GHOST_DEBUG)
   list(APPEND SRC
     intern/GHOST_EventPrinter.cpp
@@ -111,7 +131,7 @@ list(APPEND SRC
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
-elseif (WITH_GHOST_SDL)
+elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cpp
     intern/GHOST_DisplayManagerSDL.cpp
@@ -310,6 +330,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DHAVE_MEMFD_CREATE)
     endif()
 
+    check_symbol_exists(poll "poll.h" HAVE_POLL)
+    if(HAVE_POLL)
+      add_definitions(-DHAVE_POLL)
+    endif()
+
     list(APPEND SRC
       intern/GHOST_SystemWayland.cpp
       intern/GHOST_WindowWayland.cpp
@@ -337,6 +362,15 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
         COMMAND ${WAYLAND_SCANNER} private-code ${PROT_DEF} ${INC_DST}/${_name}-client-protocol.c
         DEPENDS ${INC_DST}/${_name}-client-protocol.h
       )
+
+      if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        # Prevent warnings/failure to compile with generated `WL_PRIVATE` declarations.
+        set_source_files_properties(
+          "${INC_DST}/${_name}-client-protocol.c"
+          PROPERTIES COMPILE_FLAGS "-Wno-missing-variable-declarations"
+        )
+      endif()
+
       list(APPEND SRC
         ${INC_DST}/${_name}-client-protocol.c
         ${INC_DST}/${_name}-client-protocol.h
@@ -388,6 +422,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
+
+    if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
+      add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
+    endif()
+
   endif()
 
   if(WITH_INPUT_NDOF)

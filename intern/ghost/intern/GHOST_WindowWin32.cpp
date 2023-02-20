@@ -15,6 +15,9 @@
 #include "utfconv.h"
 
 #include "GHOST_ContextWGL.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 #include <Dwmapi.h>
 
@@ -90,7 +93,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   }
 
   RECT win_rect = {left, top, long(left + width), long(top + height)};
-  adjustWindowRectForClosestMonitor(&win_rect, style, extended_style);
+  adjustWindowRectForDesktop(&win_rect, style, extended_style);
 
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
   m_hWnd = ::CreateWindowExW(extended_style,                 /* window extended style */
@@ -151,7 +154,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   }
 
   if (parentwindow) {
-    /* Release any parent capture to allow immediate interaction (T90110). */
+    /* Release any parent capture to allow immediate interaction (#90110). */
     ::ReleaseCapture();
     parentwindow->lostMouseCapture();
   }
@@ -295,24 +298,55 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
   m_directManipulationHelper = NULL;
 }
 
-void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
-                                                          DWORD dwStyle,
-                                                          DWORD dwExStyle)
+void GHOST_WindowWin32::adjustWindowRectForDesktop(LPRECT win_rect, DWORD dwStyle, DWORD dwExStyle)
 {
-  /* Get Details of the closest monitor. */
-  HMONITOR hmonitor = MonitorFromRect(win_rect, MONITOR_DEFAULTTONEAREST);
+  /* Windows can span multiple monitors, but must be usable. The desktop can have a larger
+   * surface than all monitors combined, for example when two monitors are aligned diagonally.
+   * Therefore we ensure that all the window's corners are within some monitor's Work area. */
+
+  POINT pt;
+  HMONITOR hmonitor;
   MONITORINFOEX monitor;
   monitor.cbSize = sizeof(MONITORINFOEX);
   monitor.dwFlags = 0;
-  GetMonitorInfo(hmonitor, &monitor);
 
-  /* Constrain requested size and position to fit within this monitor. */
-  LONG width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect->right - win_rect->left);
-  LONG height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect->bottom - win_rect->top);
-  win_rect->left = min(max(monitor.rcWork.left, win_rect->left), monitor.rcWork.right - width);
-  win_rect->right = win_rect->left + width;
-  win_rect->top = min(max(monitor.rcWork.top, win_rect->top), monitor.rcWork.bottom - height);
-  win_rect->bottom = win_rect->top + height;
+  /* We'll need this value before it is altered for checking later. */
+  LONG requested_top = win_rect->top;
+
+  /* Note that with MonitorFromPoint using MONITOR_DEFAULTTONEAREST, it will return
+   * the exact monitor if there is one at the location or the nearest monitor if not. */
+
+  /* Top-left. */
+  pt.x = win_rect->left;
+  pt.y = win_rect->top;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
+  win_rect->top = max(win_rect->top, monitor.rcWork.top);
+  win_rect->left = max(win_rect->left, monitor.rcWork.left);
+
+  /* Top-right. */
+  pt.x = win_rect->right;
+  pt.y = win_rect->top;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
+  win_rect->top = max(win_rect->top, monitor.rcWork.top);
+  win_rect->right = min(win_rect->right, monitor.rcWork.right);
+
+  /* Bottom-left. */
+  pt.x = win_rect->left;
+  pt.y = win_rect->bottom;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
+  win_rect->bottom = min(win_rect->bottom, monitor.rcWork.bottom);
+  win_rect->left = max(win_rect->left, monitor.rcWork.left);
+
+  /* Bottom-right. */
+  pt.x = win_rect->right;
+  pt.y = win_rect->bottom;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
+  win_rect->bottom = min(win_rect->bottom, monitor.rcWork.bottom);
+  win_rect->right = min(win_rect->right, monitor.rcWork.right);
 
   /* With Windows 10 and newer we can adjust for chrome that differs with DPI and scale. */
   GHOST_WIN32_AdjustWindowRectExForDpi fpAdjustWindowRectExForDpi = nullptr;
@@ -324,6 +358,9 @@ void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
   /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
    * correctly outside of monitor bounds. NOTE: You cannot specify #WS_OVERLAPPED when calling. */
   if (fpAdjustWindowRectExForDpi) {
+    /* Use the DPI of the monitor that is at the middle of the rect. */
+    hmonitor = MonitorFromRect(win_rect, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(hmonitor, &monitor);
     UINT dpiX, dpiY;
     GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
     fpAdjustWindowRectExForDpi(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle, dpiX);
@@ -332,7 +369,12 @@ void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
     AdjustWindowRectEx(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle);
   }
 
-  /* But never allow a top position that can hide part of the title bar. */
+  /* Don't hide the title bar. Check the working area of the monitor at the top-left corner, using
+   * the original top since the justWindowRects might have altered it to different monitor.  */
+  pt.x = win_rect->left;
+  pt.y = requested_top;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
   win_rect->top = max(monitor.rcWork.top, win_rect->top);
 }
 
@@ -631,6 +673,19 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 
     return context;
   }
+
+#ifdef WITH_VULKAN_BACKEND
+  else if (type == GHOST_kDrawingContextTypeVulkan) {
+    GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 0, m_debug_context);
+
+    if (context->initializeDrawingContext()) {
+      return context;
+    }
+    else {
+      delete context;
+    }
+  }
+#endif
 
   return NULL;
 }

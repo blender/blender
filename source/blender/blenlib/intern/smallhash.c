@@ -329,7 +329,7 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
 /** \name Debugging & Introspection
  * \{ */
 
-/* NOTE(@campbellbarton): useful for debugging but may not be intended for general use. */
+/* NOTE(@ideasman42): useful for debugging but may not be intended for general use. */
 #if 0
 void BLI_smallhash_print(SmallHash *sh)
 {

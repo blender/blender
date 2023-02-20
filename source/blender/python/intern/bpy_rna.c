@@ -780,7 +780,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
   return ret;
 }
 
-/* NOTE(@campbellbarton): Regarding comparison `__cmp__`:
+/* NOTE(@ideasman42): Regarding comparison `__cmp__`:
  * checking the 'ptr->data' matches works in almost all cases,
  * however there are a few RNA properties that are fake sub-structs and
  * share the pointer with the parent, in those cases this happens 'a.b == a'
@@ -1403,7 +1403,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
         ret = PyBytes_FromStringAndSize(buf, buf_len);
       }
       else if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-        ret = PyC_UnicodeFromByteAndSize(buf, buf_len);
+        ret = PyC_UnicodeFromBytesAndSize(buf, buf_len);
       }
       else {
         ret = PyUnicode_FromStringAndSize(buf, buf_len);
@@ -1712,7 +1712,7 @@ static int pyrna_py_to_prop(
           PyObject *value_coerce = NULL;
           if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
             /* TODO: get size. */
-            param = PyC_UnicodeAsByte(value, &value_coerce);
+            param = PyC_UnicodeAsBytes(value, &value_coerce);
           }
           else {
             param = PyUnicode_AsUTF8(value);
@@ -2264,7 +2264,7 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
       }
     }
     /* It's important to end the iterator after `result` has been created
-     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+     * so iterators may optionally invalidate items that were iterated over, see: #100286. */
     RNA_property_collection_end(&iter);
     if (found) {
       if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
@@ -2384,7 +2384,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
       }
     }
     /* It's important to end the iterator after `result` has been created
-     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+     * so iterators may optionally invalidate items that were iterated over, see: #100286. */
     RNA_property_collection_end(&iter);
     if (found) {
       if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
@@ -3378,7 +3378,7 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
     /*sq_item*/ (ssizeargfunc)pyrna_prop_array_subscript_int,
     /*sq_slice*/ NULL,
     /*sq_ass_item*/ (ssizeobjargproc)prop_subscript_ass_array_int,
-    /* was_sq_ass_slice */ NULL, /* DEPRECATED. */
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
     /*sq_contains*/ (objobjproc)pyrna_prop_array_contains,
     /*sq_inplace_concat*/ NULL,
     /*sq_inplace_repeat*/ NULL,
@@ -6057,7 +6057,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
           ret = PyBytes_FromStringAndSize(data_ch, data_ch_len);
         }
         else if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-          ret = PyC_UnicodeFromByteAndSize(data_ch, data_ch_len);
+          ret = PyC_UnicodeFromBytesAndSize(data_ch, data_ch_len);
         }
         else {
           ret = PyUnicode_FromStringAndSize(data_ch, data_ch_len);
@@ -8152,7 +8152,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
       continue;
     }
 
-    /* TODO(@campbellbarton): this is used for classmethod's too,
+    /* TODO(@ideasman42): this is used for classmethod's too,
      * even though class methods should have 'FUNC_USE_SELF_TYPE' set, see Operator.poll for eg.
      * Keep this as-is since it's working, but we should be using
      * 'FUNC_USE_SELF_TYPE' for many functions. */
@@ -8243,7 +8243,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
       continue;
     }
 
-    /* TODO(@campbellbarton): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
+    /* TODO(@ideasman42): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
     identifier = RNA_property_identifier(prop);
     item = PyObject_GetAttrString(py_class, identifier);
 
@@ -8495,7 +8495,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       }
 
 #ifdef USE_PEDANTIC_WRITE
-      /* Handle nested draw calls, see: T89253. */
+      /* Handle nested draw calls, see: #89253. */
       const bool rna_disallow_writes_prev = rna_disallow_writes;
       rna_disallow_writes = is_readonly ? true : false;
 #endif

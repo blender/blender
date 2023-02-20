@@ -91,8 +91,8 @@ class AddPresetPerformance(AddPresetBase, Operator):
     preset_menu = "CYCLES_PT_performance_presets"
 
     preset_defines = [
-        "render = bpy.context.scene.render"
-        "cycles = bpy.context.scene.cycles"
+        "render = bpy.context.scene.render",
+        "cycles = bpy.context.scene.cycles",
     ]
 
     preset_values = [

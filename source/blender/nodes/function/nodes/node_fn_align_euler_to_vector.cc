@@ -12,7 +12,7 @@
 
 namespace blender::nodes::node_fn_align_euler_to_vector_cc {
 
-static void fn_node_align_euler_to_vector_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).hide_value();
@@ -25,9 +25,7 @@ static void fn_node_align_euler_to_vector_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
 }
 
-static void fn_node_align_euler_to_vector_layout(uiLayout *layout,
-                                                 bContext * /*C*/,
-                                                 PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiLayoutSetPropSep(layout, true);
@@ -135,7 +133,7 @@ static void align_rotations_fixed_pivot(IndexMask mask,
   });
 }
 
-class MF_AlignEulerToVector : public fn::MultiFunction {
+class MF_AlignEulerToVector : public mf::MultiFunction {
  private:
   int main_axis_mode_;
   int pivot_axis_mode_;
@@ -144,22 +142,19 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
   MF_AlignEulerToVector(int main_axis_mode, int pivot_axis_mode)
       : main_axis_mode_(main_axis_mode), pivot_axis_mode_(pivot_axis_mode)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Align Euler to Vector", signature};
+      builder.single_input<float3>("Rotation");
+      builder.single_input<float>("Factor");
+      builder.single_input<float3>("Vector");
+      builder.single_output<float3>("Rotation");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Align Euler to Vector"};
-    signature.single_input<float3>("Rotation");
-    signature.single_input<float>("Factor");
-    signature.single_input<float3>("Vector");
-
-    signature.single_output<float3>("Rotation");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &input_rotations = params.readonly_single_input<float3>(0, "Rotation");
     const VArray<float> &factors = params.readonly_single_input<float>(1, "Factor");
@@ -188,7 +183,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
   }
 };
 
-static void fn_node_align_euler_to_vector_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
@@ -204,8 +199,8 @@ void register_node_type_fn_align_euler_to_vector()
 
   fn_node_type_base(
       &ntype, FN_NODE_ALIGN_EULER_TO_VECTOR, "Align Euler to Vector", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::fn_node_align_euler_to_vector_declare;
-  ntype.draw_buttons = file_ns::fn_node_align_euler_to_vector_layout;
-  ntype.build_multi_function = file_ns::fn_node_align_euler_to_vector_build_multi_function;
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
   nodeRegisterType(&ntype);
 }

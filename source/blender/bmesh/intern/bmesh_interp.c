@@ -15,8 +15,10 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
 
@@ -147,14 +149,12 @@ void BM_face_interp_from_face_ex(BMesh *bm,
 
   float *w = BLI_array_alloca(w, f_src->len);
   float co[2];
-  int i;
 
   if (f_src != f_dst) {
     BM_elem_attrs_copy(bm, bm, f_src, f_dst);
   }
 
   /* interpolate */
-  i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
   do {
     mul_v2_m3v3(co, axis_mat, l_iter->v->co);
@@ -163,7 +163,7 @@ void BM_face_interp_from_face_ex(BMesh *bm,
     if (do_vertex) {
       CustomData_bmesh_interp(&bm->vdata, blocks_v, w, NULL, f_src->len, l_iter->v->head.data);
     }
-  } while ((void)i++, (l_iter = l_iter->next) != l_first);
+  } while ((l_iter = l_iter->next) != l_first);
 }
 
 void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, const bool do_vertex)
@@ -690,7 +690,6 @@ void BM_loop_interp_from_face(
   float *w = BLI_array_alloca(w, f_src->len);
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
-  int i;
 
   /* Convert the 3d coords into 2d for projection. */
   float axis_dominant[3];
@@ -708,7 +707,7 @@ void BM_loop_interp_from_face(
   }
   axis_dominant_v3_to_m3(axis_mat, axis_dominant);
 
-  i = 0;
+  int i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
   do {
     mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
@@ -742,13 +741,12 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
   float *w = BLI_array_alloca(w, f_src->len);
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
-  int i;
 
   /* convert the 3d coords into 2d for projection */
   BLI_assert(BM_face_is_normal_valid(f_src));
   axis_dominant_v3_to_m3(axis_mat, f_src->no);
 
-  i = 0;
+  int i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
   do {
     mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
@@ -829,7 +827,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   }
 
   if (oldpool) {
-    /* this should never happen but can when dissolve fails - T28960. */
+    /* this should never happen but can when dissolve fails - #28960. */
     BLI_assert(data->pool != oldpool);
 
     BLI_mempool_destroy(oldpool);
@@ -838,12 +836,9 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 {
-  CustomData olddata;
-
-  olddata = *data;
+  CustomData olddata = *data;
   olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
-
-  /* the pool is now owned by olddata and must not be shared */
+  /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
   CustomData_add_layer(data, type, CD_SET_DEFAULT, NULL, 0);
@@ -856,12 +851,9 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
 {
-  CustomData olddata;
-
-  olddata = *data;
+  CustomData olddata = *data;
   olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
-
-  /* the pool is now owned by olddata and must not be shared */
+  /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
   CustomData_add_layer_named(data, type, CD_SET_DEFAULT, NULL, 0, name);
@@ -872,21 +864,72 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   }
 }
 
+void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const char *name)
+{
+  if (CustomData_get_named_layer_index(data, type, name) == -1) {
+    BM_data_layer_add_named(bm, data, type, name);
+  }
+}
+
+void BM_uv_map_ensure_select_and_pin_attrs(BMesh *bm)
+{
+  const int nr_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
+  for (int l = 0; l < nr_uv_layers; l++) {
+    /* NOTE: you can't re-use the return-value of #CustomData_get_layer_name()
+     * because adding layers can invalidate that. */
+    char name[MAX_CUSTOMDATA_LAYER_NAME];
+    BM_data_layer_ensure_named(
+        bm,
+        &bm->ldata,
+        CD_PROP_BOOL,
+        BKE_uv_map_vert_select_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l),
+                                        name));
+    BM_data_layer_ensure_named(
+        bm,
+        &bm->ldata,
+        CD_PROP_BOOL,
+        BKE_uv_map_edge_select_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l),
+                                        name));
+    BM_data_layer_ensure_named(
+        bm,
+        &bm->ldata,
+        CD_PROP_BOOL,
+        BKE_uv_map_pin_name_get(CustomData_get_layer_name(&bm->ldata, CD_PROP_FLOAT2, l), name));
+  }
+}
+
+void BM_uv_map_ensure_vert_select_attr(BMesh *bm, const char *uv_map_name)
+{
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  BM_data_layer_ensure_named(
+      bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(uv_map_name, name));
+}
+
+void BM_uv_map_ensure_edge_select_attr(BMesh *bm, const char *uv_map_name)
+{
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  BM_data_layer_ensure_named(
+      bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(uv_map_name, name));
+}
+
+void BM_uv_map_ensure_pin_attr(BMesh *bm, const char *uv_map_name)
+{
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  BM_data_layer_ensure_named(
+      bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(uv_map_name, name));
+}
+
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 {
-  CustomData olddata;
-  bool has_layer;
-
-  olddata = *data;
+  CustomData olddata = *data;
   olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
-
-  /* the pool is now owned by olddata and must not be shared */
+  /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  has_layer = CustomData_free_layer_active(data, type, 0);
+  const bool had_layer = CustomData_free_layer_active(data, type, 0);
   /* Assert because its expensive to realloc - better not do if layer isn't present. */
-  BLI_assert(has_layer != false);
-  UNUSED_VARS_NDEBUG(has_layer);
+  BLI_assert(had_layer != false);
+  UNUSED_VARS_NDEBUG(had_layer);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
@@ -898,38 +941,38 @@ bool BM_data_layer_free_named(BMesh *bm, CustomData *data, const char *name)
 {
   CustomData olddata = *data;
   olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
-
-  /* the pool is now owned by olddata and must not be shared */
+  /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  const bool has_layer = CustomData_free_layer_named(data, name, 0);
+  const bool had_layer = CustomData_free_layer_named(data, name, 0);
 
-  if (has_layer) {
+  if (had_layer) {
     update_data_blocks(bm, &olddata, data);
+  }
+  else {
+    /* Move pool ownership back to BMesh CustomData, no block reallocation. */
+    data->pool = olddata.pool;
   }
 
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
 
-  return has_layer;
+  return had_layer;
 }
 
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 {
-  CustomData olddata;
-  bool has_layer;
-
-  olddata = *data;
+  CustomData olddata = *data;
   olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
-
-  /* the pool is now owned by olddata and must not be shared */
+  /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  has_layer = CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
+  const bool had_layer = CustomData_free_layer(
+      data, type, 0, CustomData_get_layer_index_n(data, type, n));
   /* Assert because its expensive to realloc - better not do if layer isn't present. */
-  BLI_assert(has_layer != false);
-  UNUSED_VARS_NDEBUG(has_layer);
+  BLI_assert(had_layer != false);
+  UNUSED_VARS_NDEBUG(had_layer);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
@@ -1000,7 +1043,7 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float
 /* -------------------------------------------------------------------- */
 /** \name Loop interpolation functions: BM_vert_loop_groups_data_layer_***
  *
- * Handling loop custom-data such as UV's, while keeping contiguous fans is rather tedious.
+ * Handling loop custom-data such as UVs, while keeping contiguous fans is rather tedious.
  * Especially when a verts loops can have multiple CustomData layers,
  * and each layer can have multiple (different) contiguous fans.
  * Said differently, a single vertices loops may span multiple UV islands.

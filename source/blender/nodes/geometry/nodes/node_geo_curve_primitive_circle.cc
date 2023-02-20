@@ -109,12 +109,6 @@ static Curves *create_point_circle_curve(
     return nullptr;
   }
 
-  Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.cyclic_for_write().first() = true;
-
-  MutableSpan<float3> positions = curves.positions_for_write();
-
   float3 center;
   /* Midpoints of `P1->P2` and `P2->P3`. */
   const float3 q1 = math::interpolate(p1, p2, 0.5f);
@@ -142,6 +136,12 @@ static Curves *create_point_circle_curve(
     return nullptr;
   }
 
+  Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  curves.cyclic_for_write().first() = true;
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+
   /* Get the radius from the center-point to p1. */
   const float r = math::distance(p1, center);
   const float theta_step = ((2 * M_PI) / float(resolution));
@@ -163,7 +163,7 @@ static Curves *create_point_circle_curve(
 static Curves *create_radius_circle_curve(const int resolution, const float radius)
 {
   Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.cyclic_for_write().first() = true;
 
   MutableSpan<float3> positions = curves.positions_for_write();

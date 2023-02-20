@@ -120,6 +120,10 @@ void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 
 void MESH_OT_primitive_cube_add_gizmo(struct wmOperatorType *ot);
 
+/* *** editmesh_attribute.cc *** */
+
+void MESH_OT_attribute_set(struct wmOperatorType *ot);
+
 /* *** editmesh_bevel.c *** */
 
 void MESH_OT_bevel(struct wmOperatorType *ot);
@@ -294,8 +298,9 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot);
 void MESH_OT_average_normals(struct wmOperatorType *ot);
 void MESH_OT_smooth_normals(struct wmOperatorType *ot);
 void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot);
+void MESH_OT_flip_quad_tessellation(struct wmOperatorType *ot);
 
-/* *** editmesh_mask_extract.c *** */
+/* *** editmesh_mask_extract.cc *** */
 
 void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);
 void MESH_OT_face_set_extract(struct wmOperatorType *ot);

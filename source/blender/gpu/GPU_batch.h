@@ -4,8 +4,15 @@
 /** \file
  * \ingroup gpu
  *
- * GPU geometry batch
- * Contains VAOs + VBOs + Shader representing a drawable entity.
+ * GPU geometry batch.
+ *
+ * Contains Vertex Buffers, Index Buffers, and Shader reference, altogether representing a drawable
+ * entity. It is meant to be used for drawing large (> 1000 vertices) reusable (drawn multiple
+ * times) model with complex data layout. In other words, it is meant for all cases where the
+ * immediate drawing module (imm) is inadequate.
+ *
+ * Vertex & Index Buffers can be owned by a batch. In such case they will be freed when the batch
+ * gets cleared or discarded.
  */
 
 #pragma once
@@ -60,7 +67,8 @@ extern "C" {
 
 /**
  * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLBatch). This is only
- * the common and "public" part of the struct. Use the provided allocator.
+ * the common and "public" part of the struct. Use `GPU_batch_calloc()` and `GPU_batch_create()`
+ * instead.
  * TODO(fclem): Make the content of this struct hidden and expose getters/setters.
  */
 typedef struct GPUBatch {
@@ -80,75 +88,163 @@ typedef struct GPUBatch {
   struct GPUShader *shader;
 } GPUBatch;
 
+/* -------------------------------------------------------------------- */
+/** \name Creation
+ * \{ */
+
+/**
+ * Allocate a #GPUBatch with a cleared state.
+ * The returned #GPUBatch needs to be passed to `GPU_batch_init` before being usable.
+ */
 GPUBatch *GPU_batch_calloc(void);
-GPUBatch *GPU_batch_create_ex(GPUPrimType prim,
-                              GPUVertBuf *vert,
-                              GPUIndexBuf *elem,
+
+/**
+ * Creates a #GPUBatch with explicit buffer ownership.
+ */
+GPUBatch *GPU_batch_create_ex(GPUPrimType primitive_type,
+                              GPUVertBuf *vertex_buf,
+                              GPUIndexBuf *index_buf,
                               eGPUBatchFlag owns_flag);
+/**
+ * Creates a #GPUBatch without buffer ownership.
+ */
+#define GPU_batch_create(primitive_type, vertex_buf, index_buf) \
+  GPU_batch_create_ex(primitive_type, vertex_buf, index_buf, (eGPUBatchFlag)0)
+
+/**
+ * Initialize a cleared #GPUBatch with explicit buffer ownership.
+ * A #GPUBatch is in cleared state if it was just allocated using `GPU_batch_calloc()` or cleared
+ * using `GPU_batch_clear()`.
+ */
 void GPU_batch_init_ex(GPUBatch *batch,
-                       GPUPrimType prim,
-                       GPUVertBuf *vert,
-                       GPUIndexBuf *elem,
+                       GPUPrimType primitive_type,
+                       GPUVertBuf *vertex_buf,
+                       GPUIndexBuf *index_buf,
                        eGPUBatchFlag owns_flag);
 /**
+ * Initialize a cleared #GPUBatch without buffer ownership.
+ * A #GPUBatch is in cleared state if it was just allocated using `GPU_batch_calloc()` or cleared
+ * using `GPU_batch_clear()`.
+ */
+#define GPU_batch_init(batch, primitive_type, vertex_buf, index_buf) \
+  GPU_batch_init_ex(batch, primitive_type, vertex_buf, index_buf, (eGPUBatchFlag)0)
+
+/**
+ * DEPRECATED: It is easy to loose ownership with this. To be removed.
  * This will share the VBOs with the new batch.
  */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
-#define GPU_batch_create(prim, verts, elem) \
-  GPU_batch_create_ex(prim, verts, elem, (eGPUBatchFlag)0)
-#define GPU_batch_init(batch, prim, verts, elem) \
-  GPU_batch_init_ex(batch, prim, verts, elem, (eGPUBatchFlag)0)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deletion
+ * \{ */
 
 /**
- * Same as discard but does not free. (does not call free callback).
+ * Clear a #GPUBatch without freeing its own memory.
+ * The #GPUBatch can then be reused using `GPU_batch_init()`.
+ * Discards all owned vertex and index buffers.
  */
-void GPU_batch_clear(GPUBatch *);
+void GPU_batch_clear(GPUBatch *batch);
+
+#define GPU_BATCH_CLEAR_SAFE(batch) \
+  do { \
+    if (batch != NULL) { \
+      GPU_batch_clear(batch); \
+      memset(batch, 0, sizeof(*(batch))); \
+    } \
+  } while (0)
 
 /**
- * \note Verts & elem are not discarded.
+ * Free a #GPUBatch object.
+ * Discards all owned vertex and index buffers.
  */
-void GPU_batch_discard(GPUBatch *);
+void GPU_batch_discard(GPUBatch *batch);
+
+#define GPU_BATCH_DISCARD_SAFE(batch) \
+  do { \
+    if (batch != NULL) { \
+      GPU_batch_discard(batch); \
+      batch = NULL; \
+    } \
+  } while (0)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Buffers Management
+ * \{ */
 
 /**
+ * Add the given \a vertex_buf as vertex buffer to a #GPUBatch.
+ * \return the index of verts in the batch.
+ */
+int GPU_batch_vertbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+
+/**
+ * Add the given \a vertex_buf as instanced vertex buffer to a #GPUBatch.
+ * \return the index of verts in the batch.
+ */
+int GPU_batch_instbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+
+/**
+ * Set the first instanced vertex buffer of a #GPUBatch.
  * \note Override ONLY the first instance VBO (and free them if owned).
  */
-void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
+void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+
 /**
- * \note Override any previously assigned elem (and free it if owned).
+ * Set the index buffer of a #GPUBatch.
+ * \note Override any previously assigned index buffer (and free it if owned).
  */
-void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);
+void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *index_buf, bool own_ibo);
 
-int GPU_batch_instbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 /**
- * Returns the index of verts in the batch.
+ * Returns true if the #GPUbatch has \a vertex_buf in its vertex buffer list.
+ * \note The search is only conducted on the non-instance rate vertex buffer list.
  */
-int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
-bool GPU_batch_vertbuf_has(GPUBatch *, GPUVertBuf *);
-
-#define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
+bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *vertex_buf);
 
 /**
- * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance.
+ * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance
+ * on some hardware / platform.
+ * \note Only to be used by draw manager.
  */
 void GPU_batch_resource_id_buf_set(GPUBatch *batch, GPUStorageBuf *resource_id_buf);
 
-void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
-/**
- * Bind program bound to IMM to the batch.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shader Binding & Uniforms
  *
- * XXX Use this with much care. Drawing with the #GPUBatch API is not compatible with IMM.
- * DO NOT DRAW WITH THE BATCH BEFORE CALLING #immUnbindProgram.
+ * TODO(fclem): This whole section should be removed. See the other `TODO`s in this section.
+ * This is because we want to remove #GPUBatch.shader to avoid usage mistakes.
+ * Interacting directly with the #GPUShader provide a clearer interface and less error-prone.
+ * \{ */
+
+/**
+ * Sets the shader to be drawn with this #GPUBatch.
+ * \note This need to be called first for the `GPU_batch_uniform_*` functions to work.
  */
-void GPU_batch_program_set_imm_shader(GPUBatch *batch);
+/* TODO(fclem): These should be removed and replaced by `GPU_shader_bind()`. */
+void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
 void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUBuiltinShader shader_id,
                                                eGPUShaderConfig sh_cfg);
+/**
+ * Bind program bound to IMM (immediate mode) to the #GPUBatch.
+ *
+ * XXX: Use this with much care. Drawing with the #GPUBatch API is not compatible with IMM.
+ * DO NOT DRAW WITH THE BATCH BEFORE CALLING #immUnbindProgram.
+ */
+void GPU_batch_program_set_imm_shader(GPUBatch *batch);
 
-/* Will only work after setting the batch program. */
+/**
+ * Set uniform variables for the shader currently bound to the #GPUBatch.
+ */
 /* TODO(fclem): These need to be replaced by GPU_shader_uniform_* with explicit shader. */
-
 #define GPU_batch_uniform_1i(batch, name, x) GPU_shader_uniform_1i((batch)->shader, name, x);
 #define GPU_batch_uniform_1b(batch, name, x) GPU_shader_uniform_1b((batch)->shader, name, x);
 #define GPU_batch_uniform_1f(batch, name, x) GPU_shader_uniform_1f((batch)->shader, name, x);
@@ -167,103 +263,109 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
 #define GPU_batch_uniform_mat4(batch, name, val) \
   GPU_shader_uniform_mat4((batch)->shader, name, val);
 #define GPU_batch_uniformbuf_bind(batch, name, ubo) \
-  GPU_uniformbuf_bind(ubo, GPU_shader_get_uniform_block_binding((batch)->shader, name));
+  GPU_uniformbuf_bind(ubo, GPU_shader_get_ubo_binding((batch)->shader, name));
 #define GPU_batch_texture_bind(batch, name, tex) \
-  GPU_texture_bind(tex, GPU_shader_get_texture_binding((batch)->shader, name));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding((batch)->shader, name));
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shader Binding & Uniforms
+ * \{ */
 
 /**
- * Return indirect draw call parameters for this batch.
- * NOTE: r_base_index is set to -1 if not using an index buffer.
+ * Draw the #GPUBatch with vertex count and instance count from its vertex buffers lengths.
+ * Ensures the associated shader is bound. TODO(fclem) remove this behavior.
  */
-void GPU_batch_draw_parameter_get(
-    GPUBatch *batch, int *r_v_count, int *r_v_first, int *r_base_index, int *r_i_count);
-
 void GPU_batch_draw(GPUBatch *batch);
-void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count);
-/**
- * Draw multiple instance of a batch without having any instance attributes.
- */
-void GPU_batch_draw_instanced(GPUBatch *batch, int i_count);
 
 /**
- * This does not bind/unbind shader and does not call GPU_matrix_bind().
+ * Draw the #GPUBatch with vertex count and instance count from its vertex buffers lengths.
+ * Ensures the associated shader is bound. TODO(fclem) remove this behavior.
+ *
+ * A \a vertex_count of 0 will use the default number of vertex.
+ * The \a vertex_first sets the start of the instance-rate attributes.
+ *
+ * \note No out-of-bound access check is made on the vertex buffers since they are tricky to
+ * detect. Double check that the range of vertex has data or that the data isn't read by the
+ * shader.
  */
-void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count);
+void GPU_batch_draw_range(GPUBatch *batch, int vertex_first, int vertex_count);
 
 /**
- * Issue a draw call using GPU computed arguments. The argument are expected to be valid for the
- * type of geometry drawn (index or non-indexed).
+ * Draw multiple instances of the #GPUBatch with custom instance range.
+ * Ensures the associated shader is bound. TODO(fclem) remove this behavior.
+ *
+ * An \a instance_count of 0 will use the default number of instances.
+ * The \a instance_first sets the start of the instance-rate attributes.
+ *
+ * \note this can be used even if the #GPUBatch contains no instance-rate attributes.
+ * \note No out-of-bound access check is made on the vertex buffers since they are tricky to
+ * detect. Double check that the range of vertex has data or that the data isn't read by the
+ * shader.
+ */
+void GPU_batch_draw_instance_range(GPUBatch *batch, int instance_first, int instance_count);
+
+/**
+ * Draw the #GPUBatch custom parameters.
+ * IMPORTANT: This does not bind/unbind shader and does not call GPU_matrix_bind().
+ *
+ * A \a vertex_count of 0 will use the default number of vertex.
+ * An \a instance_count of 0 will use the default number of instances.
+ *
+ * \note No out-of-bound access check is made on the vertex buffers since they are tricky to
+ * detect. Double check that the range of vertex has data or that the data isn't read by the
+ * shader.
+ */
+void GPU_batch_draw_advanced(
+    GPUBatch *batch, int vertex_first, int vertex_count, int instance_first, int instance_count);
+
+/**
+ * Issue a single draw call using arguments sourced from a #GPUStorageBuf.
+ * The argument are expected to be valid for the type of geometry contained by this #GPUBatch
+ * (index or non-indexed).
+ *
+ * A `GPU_BARRIER_COMMAND` memory barrier is automatically added before the call.
+ *
+ * For more info see the GL documentation:
+ * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDrawArraysIndirect.xhtml
  */
 void GPU_batch_draw_indirect(GPUBatch *batch, GPUStorageBuf *indirect_buf, intptr_t offset);
+
+/**
+ * Issue \a count draw calls using arguments sourced from a #GPUStorageBuf.
+ * The \a stride (in bytes) control the spacing between each command description.
+ * The argument are expected to be valid for the type of geometry contained by this #GPUBatch
+ * (index or non-indexed).
+ *
+ * A `GPU_BARRIER_COMMAND` memory barrier is automatically added before the call.
+ *
+ * For more info see the GL documentation:
+ * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMultiDrawArraysIndirect.xhtml
+ */
 void GPU_batch_multi_draw_indirect(
     GPUBatch *batch, GPUStorageBuf *indirect_buf, int count, intptr_t offset, intptr_t stride);
 
-#if 0 /* future plans */
+/**
+ * Return indirect draw call parameters for this #GPUBatch.
+ * NOTE: \a r_base_index is set to -1 if not using an index buffer.
+ */
+void GPU_batch_draw_parameter_get(GPUBatch *batch,
+                                  int *r_vertex_count,
+                                  int *r_vertex_first,
+                                  int *r_base_index,
+                                  int *r_indices_count);
 
-/* Can multiple batches share a #GPUVertBuf? Use ref count? */
+/** \} */
 
-/* We often need a batch with its own data, to be created and discarded together. */
-/* WithOwn variants reduce number of system allocations. */
-
-typedef struct BatchWithOwnVertexBuffer {
-  GPUBatch batch;
-  GPUVertBuf verts; /* link batch.verts to this */
-} BatchWithOwnVertexBuffer;
-
-typedef struct BatchWithOwnElementList {
-  GPUBatch batch;
-  GPUIndexBuf elem; /* link batch.elem to this */
-} BatchWithOwnElementList;
-
-typedef struct BatchWithOwnVertexBufferAndElementList {
-  GPUBatch batch;
-  GPUIndexBuf elem; /* link batch.elem to this */
-  GPUVertBuf verts; /* link batch.verts to this */
-} BatchWithOwnVertexBufferAndElementList;
-
-GPUBatch *create_BatchWithOwnVertexBuffer(GPUPrimType, GPUVertFormat *, uint v_len, GPUIndexBuf *);
-GPUBatch *create_BatchWithOwnElementList(GPUPrimType, GPUVertBuf *, uint prim_len);
-GPUBatch *create_BatchWithOwnVertexBufferAndElementList(GPUPrimType,
-                                                        GPUVertFormat *,
-                                                        uint v_len,
-                                                        uint prim_len);
-/* verts: shared, own */
-/* elem: none, shared, own */
-GPUBatch *create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff);
-
-#endif /* future plans */
+/* -------------------------------------------------------------------- */
+/** \name Module init/exit
+ * \{ */
 
 void gpu_batch_init(void);
 void gpu_batch_exit(void);
 
-/* Macros */
-
-#define GPU_BATCH_DISCARD_SAFE(batch) \
-  do { \
-    if (batch != NULL) { \
-      GPU_batch_discard(batch); \
-      batch = NULL; \
-    } \
-  } while (0)
-
-#define GPU_BATCH_CLEAR_SAFE(batch) \
-  do { \
-    if (batch != NULL) { \
-      GPU_batch_clear(batch); \
-      memset(batch, 0, sizeof(*(batch))); \
-    } \
-  } while (0)
-
-#define GPU_BATCH_DISCARD_ARRAY_SAFE(_batch_array, _len) \
-  do { \
-    if (_batch_array != NULL) { \
-      BLI_assert(_len > 0); \
-      for (int _i = 0; _i < _len; _i++) { \
-        GPU_BATCH_DISCARD_SAFE(_batch_array[_i]); \
-      } \
-      MEM_freeN(_batch_array); \
-    } \
-  } while (0)
+/** \} */
 
 #ifdef __cplusplus
 }

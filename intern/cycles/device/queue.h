@@ -112,6 +112,13 @@ class DeviceQueue {
     return 65536;
   }
 
+  /* Does device support local atomic sorting kernels (INTEGRATOR_SORT_BUCKET_PASS and
+   * INTEGRATOR_SORT_WRITE_PASS)? */
+  virtual bool supports_local_atomic_sort() const
+  {
+    return false;
+  }
+
   /* Initialize execution of kernels on this queue.
    *
    * Will, for example, load all data required by the kernels from Device to global or path state.

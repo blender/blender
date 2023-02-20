@@ -131,17 +131,19 @@ static void populate_cache_for_geometry(Object &object,
     }
     case OB_CURVES_LEGACY: {
       Curve *curve = static_cast<Curve *>(object.data);
-      const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curve->curve_eval->geometry);
-      if (curves.attributes().contains(".viewer")) {
-        GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
-        DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
-        DRW_shgroup_call_obmat(pd.viewer_attribute_curve_grp, batch, object.object_to_world);
+      if (curve->curve_eval) {
+        const bke::CurvesGeometry &curves = curve->curve_eval->geometry.wrap();
+        if (curves.attributes().contains(".viewer")) {
+          GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
+          DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
+          DRW_shgroup_call_obmat(pd.viewer_attribute_curve_grp, batch, object.object_to_world);
+        }
       }
       break;
     }
     case OB_CURVES: {
       Curves *curves_id = static_cast<Curves *>(object.data);
-      const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+      const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       if (curves.attributes().contains(".viewer")) {
         bool is_point_domain;
         GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(

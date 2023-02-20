@@ -64,6 +64,31 @@
 #endif
 
 /* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+/**
+ * Return true when the cursor is grabbed and wrapped within a region.
+ */
+static bool wm_window_grab_warp_region_is_set(const wmWindow *win)
+{
+  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+    GHOST_TGrabCursorMode mode_dummy;
+    GHOST_TAxisFlag wrap_axis_dummy;
+    int bounds[4] = {0};
+    bool use_software_cursor_dummy = false;
+    GHOST_GetCursorGrabState(
+        win->ghostwin, &mode_dummy, &wrap_axis_dummy, bounds, &use_software_cursor_dummy);
+    if ((bounds[0] != bounds[2]) || (bounds[1] != bounds[3])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Draw Paint Cursor
  * \{ */
 
@@ -102,8 +127,14 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
                   region->winrct.ymin,
                   BLI_rcti_size_x(&region->winrct) + 1,
                   BLI_rcti_size_y(&region->winrct) + 1);
-
-      if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+      /* Reading the cursor location from the operating-system while the cursor is grabbed
+       * conflicts with grabbing logic that hides the cursor, then keeps it centered to accumulate
+       * deltas without it escaping from the window. In this case we never want to show the actual
+       * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
+       * wrapping in a region since this is the case when it would otherwise attempt to draw the
+       * cursor outside the view/window. See: #102792. */
+      if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
+          wm_window_grab_warp_region_is_set(win)) {
         int x = 0, y = 0;
         wm_cursor_position_get(win, &x, &y);
         pc->draw(C, x, y, pc->customdata);
@@ -670,24 +701,13 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
   }
 }
 
-static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
+static void wm_draw_region_bind(ARegion *region, int view)
 {
   if (!region->draw_buffer) {
-    return true;
+    return;
   }
 
   if (region->draw_buffer->viewport) {
-    if (G.is_rendering && C != NULL && U.experimental.use_draw_manager_acquire_lock) {
-      Scene *scene = CTX_data_scene(C);
-      RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
-      if (RE_engine_is_opengl(render_engine_type)) {
-        /* Do not try to acquire the viewport as this would be locking at the moment.
-         * But tag the viewport to update after the rendering finishes. */
-        GPU_viewport_tag_update(region->draw_buffer->viewport);
-        return false;
-      }
-    }
-
     GPU_viewport_bind(region->draw_buffer->viewport, view, &region->winrct);
   }
   else {
@@ -700,7 +720,6 @@ static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
   }
 
   region->draw_buffer->bound_view = view;
-  return true;
 }
 
 static void wm_draw_region_unbind(ARegion *region)
@@ -805,12 +824,12 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  /* Not the same layout as rectf/recti. */
+  /* Not the same layout as #rctf/#rcti. */
   const float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
   const float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
 
   if (blend) {
-    /* Regions drawn offscreen have premultiplied alpha. */
+    /* Regions drawn off-screen have pre-multiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
@@ -823,13 +842,13 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
   int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   int rect_geo_loc = GPU_shader_get_uniform(shader, "rect_geom");
-  int texture_bind_loc = GPU_shader_get_texture_binding(shader, "image");
+  int texture_bind_loc = GPU_shader_get_sampler_binding(shader, "image");
 
   GPU_texture_bind(texture, texture_bind_loc);
 
-  GPU_shader_uniform_vector(shader, rect_tex_loc, 4, 1, rectt);
-  GPU_shader_uniform_vector(shader, rect_geo_loc, 4, 1, rectg);
-  GPU_shader_uniform_vector(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
+  GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, rectt);
+  GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
+  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -913,7 +932,6 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
       if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
         wm_draw_region_buffer_create(region, true, use_viewport);
-        bool views_valid = true;
 
         for (int view = 0; view < 2; view++) {
           eStereoViews sview;
@@ -925,25 +943,21 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
             wm_draw_region_stereo_set(bmain, area, region, sview);
           }
 
-          if (wm_draw_region_bind(C, region, view)) {
-            ED_region_do_draw(C, region);
-            wm_draw_region_unbind(region);
-          }
-          else {
-            views_valid = false;
-          }
+          wm_draw_region_bind(region, view);
+          ED_region_do_draw(C, region);
+          wm_draw_region_unbind(region);
         }
-        if (use_viewport && views_valid) {
+        if (use_viewport) {
           GPUViewport *viewport = region->draw_buffer->viewport;
           GPU_viewport_stereo_composite(viewport, win->stereo3d_format);
         }
       }
       else {
+        wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID);
         wm_draw_region_buffer_create(region, false, use_viewport);
-        if (wm_draw_region_bind(C, region, 0)) {
-          ED_region_do_draw(C, region);
-          wm_draw_region_unbind(region);
-        }
+        wm_draw_region_bind(region, 0);
+        ED_region_do_draw(C, region);
+        wm_draw_region_unbind(region);
       }
 
       GPU_debug_group_end();
@@ -974,11 +988,10 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     }
 
     wm_draw_region_buffer_create(region, false, false);
-    if (wm_draw_region_bind(C, region, 0)) {
-      GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-      ED_region_do_draw(C, region);
-      wm_draw_region_unbind(region);
-    }
+    wm_draw_region_bind(region, 0);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+    ED_region_do_draw(C, region);
+    wm_draw_region_unbind(region);
 
     GPU_debug_group_end();
 
@@ -1193,7 +1206,7 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
 
 uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
 {
-  /* NOTE(@campbellbarton): There is a problem reading the windows front-buffer after redrawing
+  /* NOTE(@ideasman42): There is a problem reading the windows front-buffer after redrawing
    * the window in some cases (typically to clear UI elements such as menus or search popup).
    * With EGL `eglSurfaceAttrib(..)` may support setting the `EGL_SWAP_BEHAVIOR` attribute to
    * `EGL_BUFFER_PRESERVED` however not all implementations support this.
@@ -1201,7 +1214,7 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
    * not to initialize at all.
    * Confusingly there are some cases where this *does* work, depending on the state of the window
    * and prior calls to swap-buffers, however ensuring the state exactly as needed to satisfy a
-   * particular GPU back-end is fragile, see T98462.
+   * particular GPU back-end is fragile, see #98462.
    *
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
@@ -1349,8 +1362,8 @@ void wm_draw_update(bContext *C)
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 
     if (state == GHOST_kWindowStateMinimized) {
-      /* do not update minimized windows, gives issues on Intel (see T33223)
-       * and AMD (see T50856). it seems logical to skip update for invisible
+      /* do not update minimized windows, gives issues on Intel (see #33223)
+       * and AMD (see #50856). it seems logical to skip update for invisible
        * window anyway.
        */
       continue;
@@ -1403,11 +1416,10 @@ void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
   /* Function for redraw timer benchmark. */
   bool use_viewport = WM_region_use_viewport(area, region);
   wm_draw_region_buffer_create(region, false, use_viewport);
-  if (wm_draw_region_bind(C, region, 0)) {
-    ED_region_do_draw(C, region);
-    wm_draw_region_unbind(region);
-    region->do_draw = false;
-  }
+  wm_draw_region_bind(region, 0);
+  ED_region_do_draw(C, region);
+  wm_draw_region_unbind(region);
+  region->do_draw = false;
 }
 
 void WM_redraw_windows(bContext *C)
@@ -1443,7 +1455,7 @@ void WM_draw_region_viewport_ensure(ARegion *region, short space_type)
 
 void WM_draw_region_viewport_bind(ARegion *region)
 {
-  wm_draw_region_bind(NULL, region, 0);
+  wm_draw_region_bind(region, 0);
 }
 
 void WM_draw_region_viewport_unbind(ARegion *region)

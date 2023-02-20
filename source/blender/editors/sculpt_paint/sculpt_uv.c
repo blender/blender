@@ -50,83 +50,84 @@
 #define MARK_BOUNDARY 1
 
 typedef struct UvAdjacencyElement {
-  /* pointer to original uvelement */
+  /** pointer to original UV-element. */
   UvElement *element;
-  /* uv pointer for convenience. Caution, this points to the original UVs! */
+  /** UV pointer for convenience. Caution, this points to the original UVs! */
   float *uv;
-  /* Are we on locked in place? */
+  /** Are we on locked in place? */
   bool is_locked;
-  /* Are we on the boundary? */
+  /** Are we on the boundary? */
   bool is_boundary;
 } UvAdjacencyElement;
 
 typedef struct UvEdge {
   uint uv1;
   uint uv2;
-  /* Are we in the interior? */
+  /** Are we in the interior? */
   bool is_interior;
 } UvEdge;
 
 typedef struct UVInitialStrokeElement {
-  /* index to unique uv */
+  /** index to unique UV. */
   int uv;
 
-  /* strength of brush on initial position */
+  /** Strength of brush on initial position. */
   float strength;
 
-  /* initial uv position */
+  /** initial UV position. */
   float initial_uv[2];
 } UVInitialStrokeElement;
 
 typedef struct UVInitialStroke {
-  /* Initial Selection,for grab brushes for instance */
+  /** Initial Selection,for grab brushes for instance. */
   UVInitialStrokeElement *initialSelection;
 
-  /* Total initially selected UV's. */
+  /** Total initially selected UVs. */
   int totalInitialSelected;
 
-  /* initial mouse coordinates */
+  /** Initial mouse coordinates. */
   float init_coord[2];
 } UVInitialStroke;
 
-/* custom data for uv smoothing brush */
+/** Custom data for UV smoothing brush. */
 typedef struct UvSculptData {
-  /* Contains the first of each set of coincident UV's.
-   * These will be used to perform smoothing on and propagate the changes
-   * to their coincident UV's */
+  /**
+   * Contains the first of each set of coincident UVs.
+   * These will be used to perform smoothing on and propagate the changes to their coincident UVs.
+   */
   UvAdjacencyElement *uv;
 
-  /* Total number of unique UVs. */
+  /** Total number of unique UVs. */
   int totalUniqueUvs;
 
-  /* Edges used for adjacency info, used with laplacian smoothing */
+  /** Edges used for adjacency info, used with laplacian smoothing */
   UvEdge *uvedges;
 
-  /* Total number of #UvEdge. */
+  /** Total number of #UvEdge. */
   int totalUvEdges;
 
-  /* data for initial stroke, used by tools like grab */
+  /** data for initial stroke, used by tools like grab */
   UVInitialStroke *initial_stroke;
 
-  /* timer to be used for airbrush-type brush */
+  /** Timer to be used for airbrush-type brush. */
   wmTimer *timer;
 
-  /* to determine quickly adjacent UV's */
+  /** To determine quickly adjacent UVs. */
   UvElementMap *elementMap;
 
-  /* uvsmooth Paint for fast reference */
+  /** UV-smooth Paint for fast reference. */
   Paint *uvsculpt;
 
-  /* tool to use. duplicating here to change if modifier keys are pressed */
+  /** Tool to use. duplicating here to change if modifier keys are pressed. */
   char tool;
 
-  /* store invert flag here */
+  /** Store invert flag here. */
   char invert;
 
-  /* Is constrain to image bounds active? */
+  /** Is constrain to image bounds active? */
   bool constrain_to_bounds;
 
-  /* Base for constrain_to_bounds. */
+  /** Base for constrain_to_bounds. */
   float uv_base_offset[2];
 } UvSculptData;
 
@@ -219,7 +220,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
       for (element = sculptdata->uv[i].element; element; element = element->next) {
-        MLoopUV *luv;
+        float(*luv)[2];
         BMLoop *l;
 
         if (element->separate && element != sculptdata->uv[i].element) {
@@ -227,8 +228,8 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
         }
 
         l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-        copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
+        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        copy_v2_v2(*luv, sculptdata->uv[i].uv);
       }
     }
   }
@@ -302,7 +303,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
       for (element = sculptdata->uv[i].element; element; element = element->next) {
-        MLoopUV *luv;
+        float(*luv)[2];
         BMLoop *l;
 
         if (element->separate && element != sculptdata->uv[i].element) {
@@ -310,8 +311,8 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
         }
 
         l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-        copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
+        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        copy_v2_v2(*luv, sculptdata->uv[i].uv);
       }
     }
   }
@@ -323,12 +324,12 @@ static void add_weighted_edge(float (*delta_buf)[3],
                               const UvElement *storage,
                               const UvElement *ele_next,
                               const UvElement *ele_prev,
-                              const MLoopUV *luv_next,
-                              const MLoopUV *luv_prev,
+                              const float luv_next[2],
+                              const float luv_prev[2],
                               const float weight)
 {
   float delta[2];
-  sub_v2_v2v2(delta, luv_next->uv, luv_prev->uv);
+  sub_v2_v2v2(delta, luv_next, luv_prev);
 
   bool code1 = (ele_prev->flag & MARK_BOUNDARY);
   bool code2 = (ele_next->flag & MARK_BOUNDARY);
@@ -380,7 +381,7 @@ static void relaxation_iteration_uv(BMEditMesh *em,
 
   struct UvElement **head_table = BM_uv_element_map_ensure_head_table(sculptdata->elementMap);
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
   BLI_assert(cd_loop_uv_offset >= 0);
 
   const int total_uvs = sculptdata->elementMap->total_uvs;
@@ -397,9 +398,9 @@ static void relaxation_iteration_uv(BMEditMesh *em,
     const float *v_prev_co = ele_prev->l->v->co;
     const float *v_next_co = ele_next->l->v->co;
 
-    const MLoopUV *luv_curr = BM_ELEM_CD_GET_VOID_P(ele_curr->l, cd_loop_uv_offset);
-    const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(ele_next->l, cd_loop_uv_offset);
-    const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(ele_prev->l, cd_loop_uv_offset);
+    const float(*luv_curr)[2] = BM_ELEM_CD_GET_FLOAT2_P(ele_curr->l, cd_loop_uv_offset);
+    const float(*luv_next)[2] = BM_ELEM_CD_GET_FLOAT2_P(ele_next->l, cd_loop_uv_offset);
+    const float(*luv_prev)[2] = BM_ELEM_CD_GET_FLOAT2_P(ele_prev->l, cd_loop_uv_offset);
 
     const UvElement *head_curr = head_table[ele_curr - sculptdata->elementMap->storage];
     const UvElement *head_next = head_table[ele_next - sculptdata->elementMap->storage];
@@ -407,11 +408,11 @@ static void relaxation_iteration_uv(BMEditMesh *em,
 
     /* If the mesh is triangulated with no boundaries, only one edge is required. */
     const float weight_curr = tri_weight_v3(method, v_curr_co, v_prev_co, v_next_co);
-    add_weighted_edge(delta_buf, storage, head_next, head_prev, luv_next, luv_prev, weight_curr);
+    add_weighted_edge(delta_buf, storage, head_next, head_prev, *luv_next, *luv_prev, weight_curr);
 
     /* Triangulated with a boundary? We need the incoming edges to solve the boundary. */
     const float weight_prev = tri_weight_v3(method, v_prev_co, v_curr_co, v_next_co);
-    add_weighted_edge(delta_buf, storage, head_next, head_curr, luv_next, luv_curr, weight_prev);
+    add_weighted_edge(delta_buf, storage, head_next, head_curr, *luv_next, *luv_curr, weight_prev);
 
     if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
       /* Laplacian method has zero weights on virtual edges. */
@@ -420,7 +421,7 @@ static void relaxation_iteration_uv(BMEditMesh *em,
 
     /* Meshes with quads (or other n-gons) need "virtual" edges too. */
     const float weight_next = tri_weight_v3(method, v_next_co, v_curr_co, v_prev_co);
-    add_weighted_edge(delta_buf, storage, head_prev, head_curr, luv_prev, luv_curr, weight_next);
+    add_weighted_edge(delta_buf, storage, head_prev, head_curr, *luv_prev, *luv_curr, weight_next);
   }
 
   Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
@@ -444,18 +445,18 @@ static void relaxation_iteration_uv(BMEditMesh *em,
     const float *delta_sum = delta_buf[adj_el->element - storage];
 
     {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(adj_el->element->l, cd_loop_uv_offset);
-      BLI_assert(adj_el->uv == luv->uv); /* Only true for head. */
-      adj_el->uv[0] = luv->uv[0] + strength * safe_divide(delta_sum[0], delta_sum[2]);
-      adj_el->uv[1] = luv->uv[1] + strength * safe_divide(delta_sum[1], delta_sum[2]);
+      const float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(adj_el->element->l, cd_loop_uv_offset);
+      BLI_assert(adj_el->uv == (float *)luv); /* Only true for head. */
+      adj_el->uv[0] = (*luv)[0] + strength * safe_divide(delta_sum[0], delta_sum[2]);
+      adj_el->uv[1] = (*luv)[1] + strength * safe_divide(delta_sum[1], delta_sum[2]);
       apply_sculpt_data_constraints(sculptdata, adj_el->uv);
     }
 
     /* Copy UV co-ordinates to all UvElements. */
     UvElement *tail = adj_el->element;
     while (tail) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(tail->l, cd_loop_uv_offset);
-      copy_v2_v2(luv->uv, adj_el->uv);
+      float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(tail->l, cd_loop_uv_offset);
+      copy_v2_v2(*luv, adj_el->uv);
       tail = tail->next;
       if (tail && tail->separate) {
         break;
@@ -527,7 +528,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
         apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
         for (element = sculptdata->uv[i].element; element; element = element->next) {
-          MLoopUV *luv;
+          float(*luv)[2];
           BMLoop *l;
 
           if (element->separate && element != sculptdata->uv[i].element) {
@@ -535,8 +536,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
           }
 
           l = element->l;
-          luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-          copy_v2_v2(luv->uv, sculptdata->uv[i].uv);
+          luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          copy_v2_v2(*luv, sculptdata->uv[i].uv);
         }
       }
     }
@@ -570,7 +571,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[uvindex].uv);
 
       for (element = sculptdata->uv[uvindex].element; element; element = element->next) {
-        MLoopUV *luv;
+        float(*luv)[2];
         BMLoop *l;
 
         if (element->separate && element != sculptdata->uv[uvindex].element) {
@@ -578,8 +579,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
         }
 
         l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-        copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
+        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        copy_v2_v2(*luv, sculptdata->uv[uvindex].uv);
       }
     }
     if (sima->flag & SI_LIVE_UNWRAP) {
@@ -666,7 +667,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     ARegion *region = CTX_wm_region(C);
     float co[2];
     BMFace *efa;
-    MLoopUV *luv;
+    float(*luv)[2];
     BMLoop *l;
     BMIter iter, liter;
 
@@ -685,7 +686,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     /* Winding was added to island detection in 5197aa04c6bd
      * However the sculpt tools can flip faces, potentially creating orphaned islands.
-     * See T100132 */
+     * See #100132 */
     const bool use_winding = false;
     const bool use_seams = true;
     data->elementMap = BM_uv_element_map_create(
@@ -709,7 +710,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       island_index = element->island;
     }
 
-    /* Count 'unique' UV's */
+    /* Count 'unique' UVs */
     int unique_uvs = data->elementMap->total_unique_uvs;
     if (do_island_optimization) {
       unique_uvs = data->elementMap->island_total_unique_uvs[island_index];
@@ -736,6 +737,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     data->totalUniqueUvs = unique_uvs;
     /* Index for the UvElements. */
     int counter = -1;
+
+    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
     /* initialize the unique UVs */
     for (int i = 0; i < bm->totvert; i++) {
       UvElement *element = data->elementMap->vertex[i];
@@ -749,14 +752,13 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
             continue;
           }
 
-          l = element->l;
-          luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+          luv = BM_ELEM_CD_GET_FLOAT2_P(element->l, offsets.uv);
 
           counter++;
           data->uv[counter].element = element;
-          data->uv[counter].uv = luv->uv;
+          data->uv[counter].uv = *luv;
           if (data->tool != UV_SCULPT_TOOL_GRAB) {
-            if (luv->flag & MLOOPUV_PINNED) {
+            if (BM_ELEM_CD_GET_BOOL(element->l, offsets.pin)) {
               data->uv[counter].is_locked = true;
             }
           }
@@ -784,8 +786,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         offset1 = uniqueUv[itmp1];
         offset2 = uniqueUv[itmp2];
 
-        /* Using an order policy, sort UV's according to address space.
-         * This avoids having two different UvEdges with the same UV's on different positions. */
+        /* Using an order policy, sort UVs according to address space.
+         * This avoids having two different UvEdges with the same UVs on different positions. */
         if (offset1 < offset2) {
           edges[counter].uv1 = offset1;
           edges[counter].uv2 = offset2;
@@ -831,7 +833,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     BLI_ghash_free(edgeHash, NULL, NULL);
     MEM_SAFE_FREE(edges);
 
-    /* transfer boundary edge property to UV's */
+    /* transfer boundary edge property to UVs */
     for (int i = 0; i < data->totalUvEdges; i++) {
       if (!data->uvedges[i].is_interior) {
         data->uv[data->uvedges[i].uv1].is_boundary = true;

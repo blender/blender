@@ -41,6 +41,7 @@ KERNEL_STRUCT_MEMBER(path, uint8_t, mnee, KERNEL_FEATURE_PATH_TRACING)
  * zero and distance. Note that transparency and volume attenuation increase
  * the ray tmin but keep P unmodified so that this works. */
 KERNEL_STRUCT_MEMBER(path, float, mis_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(path, packed_float3, mis_origin_n, KERNEL_FEATURE_PATH_TRACING)
 /* Filter glossy. */
 KERNEL_STRUCT_MEMBER(path, float, min_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
 /* Continuation probability for path termination. */
@@ -121,7 +122,7 @@ KERNEL_STRUCT_MEMBER(guiding, bool, use_surface_guiding, KERNEL_FEATURE_PATH_GUI
 KERNEL_STRUCT_MEMBER(guiding, float, sample_surface_guiding_rand, KERNEL_FEATURE_PATH_GUIDING)
 /* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob)*/
 KERNEL_STRUCT_MEMBER(guiding, float, surface_guiding_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
-/* Probability of sampling a BSSRDF closure instead of a BSDF closure*/
+/* Probability of sampling a BSSRDF closure instead of a BSDF closure. */
 KERNEL_STRUCT_MEMBER(guiding, float, bssrdf_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
 /* If volume guiding is enabled */
 KERNEL_STRUCT_MEMBER(guiding, bool, use_volume_guiding, KERNEL_FEATURE_PATH_GUIDING)

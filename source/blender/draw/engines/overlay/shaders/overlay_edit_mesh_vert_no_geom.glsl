@@ -59,9 +59,9 @@ void main()
    * IF PrimType == LineList:  base_vertex_id = quad_id*2
    * IF PrimType == LineStrip: base_vertex_id = quad_id
    *
-   * Note: This is currently used as LineList.
+   * NOTE: This is currently used as LineList.
    *
-   * Note: Primitive Restart Will not work with this setup as-is. We should avoid using
+   * NOTE: Primitive Restart Will not work with this setup as-is. We should avoid using
    * input primitive types which use restart indices. */
   int base_vertex_id = quad_id * 2;
 
@@ -84,8 +84,8 @@ void main()
   vec3 world_pos1 = point_object_to_world(in_pos1);
   vec4 out_pos0 = point_world_to_ndc(world_pos0);
   vec4 out_pos1 = point_world_to_ndc(world_pos1);
-  ivec4 m_data0 = ivec4(in_data0) & dataMask;
-  ivec4 m_data1 = ivec4(in_data1) & dataMask;
+  uvec4 m_data0 = uvec4(in_data0) & uvec4(dataMask);
+  uvec4 m_data1 = uvec4(in_data1) & uvec4(dataMask);
 
 #if defined(EDGE)
 #  ifdef FLAT

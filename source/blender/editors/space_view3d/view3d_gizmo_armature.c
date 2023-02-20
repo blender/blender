@@ -37,7 +37,7 @@
  * \{ */
 
 /*
- * TODO(@campbellbarton): Current conversion is a approximation (usable not correct),
+ * TODO(@ideasman42): Current conversion is a approximation (usable not correct),
  * we'll need to take the next/previous bones into account to get the tangent directions.
  * First last matrices from 'BKE_pchan_bbone_spline_setup' are close but also not quite accurate
  * since they're not at either end-points on the curve.

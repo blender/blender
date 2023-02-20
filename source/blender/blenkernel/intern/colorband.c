@@ -144,7 +144,7 @@ static float color_sample_remove_cost(const struct ColorResampleElem *c)
   return area;
 }
 
-/* TODO(@campbellbarton): create `BLI_math_filter` ? */
+/* TODO(@ideasman42): create `BLI_math_filter` ? */
 static float filter_gauss(float x)
 {
   const float gaussfac = 1.6f;
@@ -469,7 +469,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
       }
       else {
         /* was setting to 0.0 in 2.56 & previous, but this
-         * is incorrect for the last element, see T26732. */
+         * is incorrect for the last element, see #26732. */
         fac = (a != coba->tot) ? 0.0f : 1.0f;
       }
 

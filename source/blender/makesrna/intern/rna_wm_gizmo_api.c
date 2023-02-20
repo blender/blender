@@ -147,7 +147,7 @@ static PointerRNA rna_gizmo_target_set_operator(wmGizmo *gz,
 {
   wmOperatorType *ot;
 
-  ot = WM_operatortype_find(opname, 0); /* print error next */
+  ot = WM_operatortype_find(opname, false); /* print error next */
   if (!ot || !ot->srna) {
     BKE_reportf(
         reports, RPT_ERROR, "%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);

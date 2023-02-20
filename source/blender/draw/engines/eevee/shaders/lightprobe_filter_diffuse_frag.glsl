@@ -4,30 +4,19 @@
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(irradiance_lib.glsl)
 
-uniform samplerCube probeHdr;
-uniform int probeSize;
-uniform float lodFactor;
-uniform float lodMax;
-uniform float intensityFac;
-
-uniform float sampleCount;
-
-in vec3 worldPosition;
-
-out vec4 FragColor;
-
 #define M_4PI 12.5663706143591729
-
-const mat3 CUBE_ROTATIONS[6] = mat3[](
-    mat3(vec3(0.0, 0.0, -1.0), vec3(0.0, -1.0, 0.0), vec3(-1.0, 0.0, 0.0)),
-    mat3(vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), vec3(1.0, 0.0, 0.0)),
-    mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0)),
-    mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0)),
-    mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0), vec3(0.0, 0.0, -1.0)),
-    mat3(vec3(-1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0), vec3(0.0, 0.0, 1.0)));
 
 vec3 get_cubemap_vector(vec2 co, int face)
 {
+  /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
+   * memory pressure. */
+  const mat3 CUBE_ROTATIONS[6] = mat3[](
+      mat3(vec3(0.0, 0.0, -1.0), vec3(0.0, -1.0, 0.0), vec3(-1.0, 0.0, 0.0)),
+      mat3(vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), vec3(1.0, 0.0, 0.0)),
+      mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0)),
+      mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0)),
+      mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0), vec3(0.0, 0.0, -1.0)),
+      mat3(vec3(-1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0), vec3(0.0, 0.0, 1.0)));
   return normalize(CUBE_ROTATIONS[face] * vec3(co * 2.0 - 1.0, 1.0));
 }
 

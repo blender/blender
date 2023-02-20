@@ -32,7 +32,7 @@ def generate_from_enum_ex(
         attr,
         cursor='DEFAULT',
         tooldef_keywords={},
-        exclude_filter={}
+        exclude_filter={},
 ):
     tool_defs = []
     for enum in type.bl_rna.properties[attr].enum_items_static:
@@ -49,8 +49,8 @@ def generate_from_enum_ex(
                     cursor=cursor,
                     data_block=idname,
                     **tooldef_keywords,
-                )
-            )
+                ),
+            ),
         )
     return tuple(tool_defs)
 
@@ -1408,6 +1408,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.trim_box_gesture")
             layout.prop(props, "trim_mode", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(
             idname="builtin.box_trim",
@@ -1424,6 +1425,7 @@ class _defs_sculpt:
             props = tool.operator_properties("sculpt.trim_lasso_gesture")
             layout.prop(props, "trim_mode", expand=False)
             layout.prop(props, "trim_orientation", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(
             idname="builtin.lasso_trim",
@@ -1633,7 +1635,7 @@ class _defs_weight_paint:
             cursor='EYEDROPPER',
             widget=None,
             keymap=(),
-            draw_settings=draw_settings
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -1660,7 +1662,7 @@ class _defs_weight_paint:
                     "weight",
                     unified_name="use_unified_weight",
                     slider=True,
-                    header=True
+                    header=True,
                 )
                 UnifiedPaintPanel.prop_unified(
                     layout,
@@ -1668,7 +1670,7 @@ class _defs_weight_paint:
                     brush,
                     "strength",
                     unified_name="use_unified_strength",
-                    header=True
+                    header=True,
                 )
 
             props = tool.operator_properties("paint.weight_gradient")
@@ -2073,6 +2075,7 @@ class _defs_gpencil_paint:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("gpencil.interpolate")
             layout.prop(props, "layers")
+            layout.prop(props, "exclude_breakdowns")
             layout.prop(props, "flip")
             layout.prop(props, "smooth_factor")
             layout.prop(props, "smooth_steps")
@@ -2256,6 +2259,7 @@ class _defs_gpencil_edit:
             props = tool.operator_properties("gpencil.interpolate")
             layout.prop(props, "layers")
             layout.prop(props, "interpolate_selected_only")
+            layout.prop(props, "exclude_breakdowns")
             layout.prop(props, "flip")
             layout.prop(props, "smooth_factor")
             layout.prop(props, "smooth_steps")
@@ -2321,7 +2325,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.selection_paint",
             label="Selection Paint",
             icon="ops.generic.select_paint",
-            data_block="SELECTION_PAINT"
+            data_block="SELECTION_PAINT",
         )
 
     @ToolDef.from_fn
@@ -2330,7 +2334,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.comb",
             label="Comb",
             icon="ops.curves.sculpt_comb",
-            data_block='COMB'
+            data_block='COMB',
         )
 
     @ToolDef.from_fn
@@ -2339,7 +2343,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.add",
             label="Add",
             icon="ops.curves.sculpt_add",
-            data_block='ADD'
+            data_block='ADD',
         )
 
     @ToolDef.from_fn
@@ -2348,7 +2352,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.delete",
             label="Delete",
             icon="ops.curves.sculpt_delete",
-            data_block='DELETE'
+            data_block='DELETE',
         )
 
     @ToolDef.from_fn
@@ -2357,7 +2361,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.snake_hook",
             label="Snake Hook",
             icon="ops.curves.sculpt_snake_hook",
-            data_block='SNAKE_HOOK'
+            data_block='SNAKE_HOOK',
         )
 
     @ToolDef.from_fn
@@ -2366,7 +2370,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.grow_shrink",
             label="Grow/Shrink",
             icon="ops.curves.sculpt_grow_shrink",
-            data_block='GROW_SHRINK'
+            data_block='GROW_SHRINK',
         )
 
     @ToolDef.from_fn
@@ -2375,7 +2379,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.pinch",
             label="Pinch",
             icon="ops.curves.sculpt_pinch",
-            data_block='PINCH'
+            data_block='PINCH',
         )
 
     @ToolDef.from_fn
@@ -2384,7 +2388,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.smooth",
             label="Smooth",
             icon="ops.curves.sculpt_smooth",
-            data_block='SMOOTH'
+            data_block='SMOOTH',
         )
 
     @ToolDef.from_fn
@@ -2393,7 +2397,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.puff",
             label="Puff",
             icon="ops.curves.sculpt_puff",
-            data_block='PUFF'
+            data_block='PUFF',
         )
 
     @ToolDef.from_fn
@@ -2402,7 +2406,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.density",
             label="Density",
             icon="ops.curves.sculpt_density",
-            data_block="DENSITY"
+            data_block="DENSITY",
         )
 
     @ToolDef.from_fn
@@ -2411,7 +2415,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.slide",
             label="Slide",
             icon="ops.curves.sculpt_slide",
-            data_block="SLIDE"
+            data_block="SLIDE",
         )
 
 
@@ -2704,7 +2708,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match image spaces modes: 'context.space_data.mode'.
+    # The keys match image spaces modes: `context.space_data.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -2890,7 +2894,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match object-modes from: 'context.mode'.
+    # The keys match object-modes from: `context.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -2991,6 +2995,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_transform.shear,
             _defs_edit_curve.curve_vertex_randomize,
+        ],
+        'EDIT_CURVES': [
+            *_tools_default,
         ],
         'EDIT_SURFACE': [
             *_tools_default,
@@ -3228,7 +3235,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match sequence editors view type: 'context.space_data.view_type'.
+    # The keys match sequence editors view type: `context.space_data.view_type`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [

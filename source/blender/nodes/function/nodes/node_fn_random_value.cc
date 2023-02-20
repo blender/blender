@@ -14,7 +14,7 @@ namespace blender::nodes::node_fn_random_value_cc {
 
 NODE_STORAGE_FUNCS(NodeRandomValue)
 
-static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Min")).supports_field();
   b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f}).supports_field();
@@ -42,7 +42,7 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Value"), "Value_003").dependent_field();
 }
 
-static void fn_node_random_value_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
@@ -103,7 +103,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
   }
 }
 
-static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &params)
+static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
@@ -123,7 +123,7 @@ static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &pa
         params.update_and_connect_available_socket(node, "Max");
       });
     }
-    search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
+    search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
   }
   else {
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -134,71 +134,56 @@ static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &pa
   }
 }
 
-static void fn_node_random_value_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeRandomValue &storage = node_storage(builder.node());
   const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   switch (data_type) {
     case CD_PROP_FLOAT3: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
-          fn{"Random Vector",
-             [](float3 min_value, float3 max_value, int id, int seed, float3 *r_value) {
-               const float x = noise::hash_to_float(seed, id, 0);
-               const float y = noise::hash_to_float(seed, id, 1);
-               const float z = noise::hash_to_float(seed, id, 2);
-               *r_value = float3(x, y, z) * (max_value - min_value) + min_value;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<float3, float3, int, int, float3>(
+          "Random Vector",
+          [](float3 min_value, float3 max_value, int id, int seed) -> float3 {
+            const float x = noise::hash_to_float(seed, id, 0);
+            const float y = noise::hash_to_float(seed, id, 1);
+            const float z = noise::hash_to_float(seed, id, 2);
+            return float3(x, y, z) * (max_value - min_value) + min_value;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_FLOAT: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
-          fn{"Random Float",
-             [](float min_value, float max_value, int id, int seed, float *r_value) {
-               const float value = noise::hash_to_float(seed, id);
-               *r_value = value * (max_value - min_value) + min_value;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<float, float, int, int, float>(
+          "Random Float",
+          [](float min_value, float max_value, int id, int seed) -> float {
+            const float value = noise::hash_to_float(seed, id);
+            return value * (max_value - min_value) + min_value;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_INT32: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, int>>
-          fn{"Random Int",
-             [](int min_value, int max_value, int id, int seed, int *r_value) {
-               const float value = noise::hash_to_float(id, seed);
-               /* Add one to the maximum and use floor to produce an even
-                * distribution for the first and last values (See T93591). */
-               *r_value = floor(value * (max_value + 1 - min_value) + min_value);
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<int, int, int, int, int>(
+          "Random Int",
+          [](int min_value, int max_value, int id, int seed) -> int {
+            const float value = noise::hash_to_float(id, seed);
+            /* Add one to the maximum and use floor to produce an even
+             * distribution for the first and last values (See #93591). */
+            return floor(value * (max_value + 1 - min_value) + min_value);
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_BOOL: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, bool>>
-          fn{"Random Bool",
-             [](float probability, int id, int seed, bool *r_value) {
-               *r_value = noise::hash_to_float(id, seed) <= probability;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<1>()};
+      static auto fn = mf::build::SI3_SO<float, int, int, bool>(
+          "Random Bool",
+          [](float probability, int id, int seed) -> bool {
+            return noise::hash_to_float(id, seed) <= probability;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<1>());
       builder.set_matching_fn(fn);
       break;
     }
@@ -220,10 +205,10 @@ void register_node_type_fn_random_value()
   fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER);
   ntype.initfunc = file_ns::fn_node_random_value_init;
   ntype.updatefunc = file_ns::fn_node_random_value_update;
-  ntype.draw_buttons = file_ns::fn_node_random_value_layout;
-  ntype.declare = file_ns::fn_node_random_value_declare;
-  ntype.build_multi_function = file_ns::fn_node_random_value_build_multi_function;
-  ntype.gather_link_search_ops = file_ns::fn_node_random_value_gather_link_search;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_search_ops;
   node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

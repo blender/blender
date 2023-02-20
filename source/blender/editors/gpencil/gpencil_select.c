@@ -2441,15 +2441,15 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
   /* if select mode is stroke, use whole stroke */
   if ((ob) && (ob->mode == OB_MODE_SCULPT_GPENCIL)) {
-    whole = (bool)(gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) ==
-                   GP_SELECTMODE_STROKE);
+    whole |= (bool)(gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) ==
+                    GP_SELECTMODE_STROKE);
   }
   else if ((ob) && (ob->mode == OB_MODE_VERTEX_GPENCIL)) {
-    whole = (bool)(gpencil_select_mode_from_vertex(ts->gpencil_selectmode_sculpt) ==
-                   GP_SELECTMODE_STROKE);
+    whole |= (bool)(gpencil_select_mode_from_vertex(ts->gpencil_selectmode_sculpt) ==
+                    GP_SELECTMODE_STROKE);
   }
   else {
-    whole = (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
+    whole |= (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
   }
 
   if (is_curve_edit) {
@@ -2487,7 +2487,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
           /* check if point is inside */
           if (pt_distance <= radius_squared) {
-            /* only use this point if it is a better match than the current hit - T44685 */
+            /* only use this point if it is a better match than the current hit - #44685 */
             if (pt_distance < hit_distance) {
               hit_layer = gpl;
               hit_stroke = gps_active;

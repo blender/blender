@@ -4,6 +4,9 @@
 #include "node_shader_util.hh"
 
 #include "BKE_context.h"
+#include "BKE_node_runtime.hh"
+
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -25,7 +28,11 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
     if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+      PointerRNA eval_obptr;
+
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
+      PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
       uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
     }
     else {
@@ -52,8 +59,9 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[0].link) {
     strength = in[0].link;
   }
-  else if (node->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 0));
+  else if (node->runtime->original) {
+    bNodeSocket *socket = static_cast<bNodeSocket *>(
+        BLI_findlink(&node->runtime->original->inputs, 0));
     bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
         socket->default_value);
     strength = GPU_uniform(&socket_data->value);
@@ -66,8 +74,9 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[1].link) {
     newnormal = in[1].link;
   }
-  else if (node->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 1));
+  else if (node->runtime->original) {
+    bNodeSocket *socket = static_cast<bNodeSocket *>(
+        BLI_findlink(&node->runtime->original->inputs, 1));
     bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
     newnormal = GPU_uniform(socket_data->value);
   }

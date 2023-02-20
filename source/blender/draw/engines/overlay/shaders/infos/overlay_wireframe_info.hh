@@ -27,6 +27,7 @@ GPU_SHADER_CREATE_INFO(overlay_wireframe)
     .fragment_source("overlay_wireframe_frag.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "lineOutput")
+    .depth_write(DepthWrite::ANY)
     .additional_info("draw_mesh", "draw_object_infos", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_wireframe_clipped)

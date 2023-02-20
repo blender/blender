@@ -8,6 +8,8 @@ from bpy_extras import (
     asset_utils,
 )
 
+from bpy.app.translations import contexts as i18n_contexts
+
 
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
@@ -20,7 +22,7 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if params.asset_library_ref != 'LOCAL':
+        if params.asset_library_ref not in {'LOCAL', 'ESSENTIALS'}:
             layout.prop(params, "import_type", text="")
 
         layout.separator_spacer()
@@ -41,14 +43,14 @@ class FILEBROWSER_HT_header(Header):
         layout.popover(
             panel="ASSETBROWSER_PT_filter",
             text="",
-            icon='FILTER'
+            icon='FILTER',
         )
 
         layout.operator(
             "screen.region_toggle",
             text="",
             icon='PREFERENCES',
-            depress=is_option_region_visible(context, space_data)
+            depress=is_option_region_visible(context, space_data),
         ).region_type = 'TOOL_PROPS'
 
     def draw(self, context):
@@ -229,6 +231,7 @@ class FILEBROWSER_PT_bookmarks_volumes(Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
     bl_label = "Volumes"
+    bl_translation_context = i18n_contexts.editor_filebrowser
 
     @classmethod
     def poll(cls, context):
@@ -464,7 +467,7 @@ class FILEBROWSER_PT_directory_path(Panel):
                 "screen.region_toggle",
                 text="",
                 icon='PREFERENCES',
-                depress=is_option_region_visible(context, space)
+                depress=is_option_region_visible(context, space),
             ).region_type = 'TOOL_PROPS'
 
 
@@ -644,7 +647,7 @@ class ASSETBROWSEROLD_MT_editor_menus(AssetBrowserMenu, Menu):
 
         layout.menu("ASSETBROWSEROLD_MT_view")
         layout.menu("ASSETBROWSEROLD_MT_select")
-        layout.menu("ASSETBROWSER_MT_edit")
+        layout.menu("ASSETBROWSER_MT_catalog")
 
 
 class ASSETBROWSEROLD_MT_view(AssetBrowserMenu, Menu):
@@ -683,14 +686,18 @@ class ASSETBROWSEROLD_MT_select(AssetBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
-class ASSETBROWSEROLD_MT_edit(AssetBrowserMenu, Menu):
-    bl_label = "Edit"
+class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
+    bl_label = "Catalog"
 
     def draw(self, _context):
         layout = self.layout
 
         layout.operator("asset.catalog_undo", text="Undo")
         layout.operator("asset.catalog_redo", text="Redo")
+
+        layout.separator()
+        layout.operator("asset.catalogs_save")
+        layout.operator("asset.catalog_new").parent_path = ""
 
 
 class ASSETBROWSEROLD_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
@@ -844,7 +851,7 @@ classes = (
     ASSETBROWSEROLD_MT_editor_menus,
     ASSETBROWSEROLD_MT_view,
     ASSETBROWSEROLD_MT_select,
-    ASSETBROWSEROLD_MT_edit,
+    ASSETBROWSER_MT_catalog,
     ASSETBROWSEROLD_MT_metadata_preview_menu,
     ASSETBROWSEROLD_PT_metadata,
     ASSETBROWSEROLD_PT_metadata_preview,
@@ -862,8 +869,7 @@ def asset_path_str_get(_self):
     if asset_file_handle.local_id:
         return "Current File"
 
-    asset_library_ref = bpy.context.asset_library_ref
-    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
+    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle)
 
 
 def register_props():

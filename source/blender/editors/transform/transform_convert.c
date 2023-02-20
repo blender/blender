@@ -539,139 +539,6 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Animation Editor
- * \{ */
-
-/* Time + Average value */
-typedef struct tRetainedKeyframe {
-  struct tRetainedKeyframe *next, *prev;
-  float frame; /* frame to cluster around */
-  float val;   /* average value */
-
-  size_t tot_count; /* number of keyframes that have been averaged */
-  size_t del_count; /* number of keyframes of this sort that have been deleted so far */
-} tRetainedKeyframe;
-
-void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_handle)
-{
-  /* NOTE: We assume that all keys are sorted */
-  ListBase retained_keys = {NULL, NULL};
-  const bool can_average_points = ((fcu->flag & (FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES)) ==
-                                   0);
-
-  /* sanity checks */
-  if ((fcu->totvert == 0) || (fcu->bezt == NULL)) {
-    return;
-  }
-
-  /* 1) Identify selected keyframes, and average the values on those
-   * in case there are collisions due to multiple keys getting scaled
-   * to all end up on the same frame
-   */
-  for (int i = 0; i < fcu->totvert; i++) {
-    BezTriple *bezt = &fcu->bezt[i];
-
-    if (BEZT_ISSEL_ANY(bezt)) {
-      bool found = false;
-
-      /* If there's another selected frame here, merge it */
-      for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
-        if (IS_EQT(rk->frame, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
-          rk->val += bezt->vec[1][1];
-          rk->tot_count++;
-
-          found = true;
-          break;
-        }
-        if (rk->frame < bezt->vec[1][0]) {
-          /* Terminate early if have passed the supposed insertion point? */
-          break;
-        }
-      }
-
-      /* If nothing found yet, create a new one */
-      if (found == false) {
-        tRetainedKeyframe *rk = MEM_callocN(sizeof(tRetainedKeyframe), "tRetainedKeyframe");
-
-        rk->frame = bezt->vec[1][0];
-        rk->val = bezt->vec[1][1];
-        rk->tot_count = 1;
-
-        BLI_addtail(&retained_keys, rk);
-      }
-    }
-  }
-
-  if (BLI_listbase_is_empty(&retained_keys)) {
-    /* This may happen if none of the points were selected... */
-    if (G.debug & G_DEBUG) {
-      printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
-    }
-    return;
-  }
-
-  /* Compute the average values for each retained keyframe */
-  LISTBASE_FOREACH (tRetainedKeyframe *, rk, &retained_keys) {
-    rk->val = rk->val / (float)rk->tot_count;
-  }
-
-  /* 2) Delete all keyframes duplicating the "retained keys" found above
-   *   - Most of these will be unselected keyframes
-   *   - Some will be selected keyframes though. For those, we only keep the last one
-   *     (or else everything is gone), and replace its value with the averaged value.
-   */
-  for (int i = fcu->totvert - 1; i >= 0; i--) {
-    BezTriple *bezt = &fcu->bezt[i];
-
-    /* Is this keyframe a candidate for deletion? */
-    /* TODO: Replace loop with an O(1) lookup instead */
-    for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
-      if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
-        /* Selected keys are treated with greater care than unselected ones... */
-        if (BEZT_ISSEL_ANY(bezt)) {
-          /* - If this is the last selected key left (based on rk->del_count) ==> UPDATE IT
-           *   (or else we wouldn't have any keyframe left here)
-           * - Otherwise, there are still other selected keyframes on this frame
-           *   to be merged down still ==> DELETE IT
-           */
-          if (rk->del_count == rk->tot_count - 1) {
-            /* Update keyframe... */
-            if (can_average_points) {
-              /* TODO: update handles too? */
-              bezt->vec[1][1] = rk->val;
-            }
-          }
-          else {
-            /* Delete Keyframe */
-            BKE_fcurve_delete_key(fcu, i);
-          }
-
-          /* Update count of how many we've deleted
-           * - It should only matter that we're doing this for all but the last one
-           */
-          rk->del_count++;
-        }
-        else {
-          /* Always delete - Unselected keys don't matter */
-          BKE_fcurve_delete_key(fcu, i);
-        }
-
-        /* Stop the RK search... we've found our match now */
-        break;
-      }
-    }
-  }
-
-  /* 3) Recalculate handles */
-  testhandles_fcurve(fcu, sel_flag, use_handle);
-
-  /* cleanup */
-  BLI_freelistN(&retained_keys);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Transform Utilities
  * \{ */
 
@@ -699,7 +566,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
 
         /* constraints that require this only under special conditions */
         if (con->type == CONSTRAINT_TYPE_CHILDOF) {
-          /* ChildOf constraint only works when using all location components, see T42256. */
+          /* ChildOf constraint only works when using all location components, see #42256. */
           bChildOfConstraint *data = (bChildOfConstraint *)con->data;
 
           if ((data->flag & CHILDOF_LOCX) && (data->flag & CHILDOF_LOCY) &&
@@ -742,7 +609,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
         }
         else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
-           * but doing so when translating may also mess things up, see: T36203. */
+           * but doing so when translating may also mess things up, see: #36203. */
           bTransformConstraint *data = (bTransformConstraint *)con->data;
 
           if (data->to == TRANS_ROTATION) {
@@ -842,10 +709,11 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 
 static void init_proportional_edit(TransInfo *t)
 {
-  /* NOTE: PET is not usable in pose mode yet T32444. */
+  /* NOTE: Proportional editing is not usable in pose mode yet #32444. */
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_Graph,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
@@ -859,7 +727,7 @@ static void init_proportional_edit(TransInfo *t)
             &TransConvertType_Node,
             &TransConvertType_Object,
             &TransConvertType_Particle)) {
-    /* Disable PET */
+    /* Disable proportional editing */
     t->options |= CTX_NO_PET;
     t->flag &= ~T_PROP_EDIT_ALL;
     return;
@@ -917,6 +785,7 @@ static void init_TransDataContainers(TransInfo *t,
             &TransConvertType_Pose,
             &TransConvertType_EditArmature,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
@@ -966,7 +835,7 @@ static void init_TransDataContainers(TransInfo *t,
 
       if (object_mode & OB_MODE_EDIT) {
         tc->obedit = objects[i];
-        /* Check needed for UV's */
+        /* Check needed for UVs */
         if ((t->flag & T_2D_EDIT) == 0) {
           tc->use_local_mat = true;
         }
@@ -1092,6 +961,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     if (t->obedit_type == OB_ARMATURE) {
       return &TransConvertType_EditArmature;
     }
+    if (t->obedit_type == OB_CURVES) {
+      return &TransConvertType_Curves;
+    }
     return NULL;
   }
   if (ob && (ob->mode & OB_MODE_POSE)) {
@@ -1109,17 +981,13 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
       PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
     return &TransConvertType_Particle;
   }
-  if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+  if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
       return &TransConvertType_PaintCurve;
     }
     return NULL;
   }
-  if (ob && ELEM(ob->mode,
-                 OB_MODE_PAINT_GPENCIL,
-                 OB_MODE_SCULPT_GPENCIL,
-                 OB_MODE_WEIGHT_GPENCIL,
-                 OB_MODE_VERTEX_GPENCIL)) {
+  if (ob && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
     return NULL;
   }
@@ -1153,7 +1021,7 @@ void createTransData(bContext *C, TransInfo *t)
   if (t->data_type == &TransConvertType_Object) {
     t->options |= CTX_OBJECT;
 
-    /* Needed for correct Object.obmat after duplication, see: T62135. */
+    /* Needed for correct Object.obmat after duplication, see: #62135. */
     BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
     if ((t->settings->transform_flag & SCE_XFORM_DATA_ORIGIN) != 0) {
@@ -1207,87 +1075,75 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
 {
   Object *ob = tc->obedit;
   ModifierData *md = ob->modifiers.first;
-  float tolerance[3] = {0.0f, 0.0f, 0.0f};
-  int axis = 0;
 
   for (; md; md = md->next) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
       MirrorModifierData *mmd = (MirrorModifierData *)md;
 
-      if (mmd->flag & MOD_MIR_CLIPPING) {
-        axis = 0;
-        if (mmd->flag & MOD_MIR_AXIS_X) {
-          axis |= 1;
-          tolerance[0] = mmd->tolerance;
+      if ((mmd->flag & MOD_MIR_CLIPPING) == 0) {
+        continue;
+      }
+
+      if ((mmd->flag & (MOD_MIR_AXIS_X | MOD_MIR_AXIS_Y | MOD_MIR_AXIS_Z)) == 0) {
+        continue;
+      }
+
+      float mtx[4][4], imtx[4][4];
+
+      if (mmd->mirror_ob) {
+        float obinv[4][4];
+
+        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
+        mul_m4_m4m4(mtx, obinv, ob->object_to_world);
+        invert_m4_m4(imtx, mtx);
+      }
+
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        float loc[3], iloc[3];
+
+        if (td->loc == NULL) {
+          break;
         }
+
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+
+        copy_v3_v3(loc, td->loc);
+        copy_v3_v3(iloc, td->iloc);
+
+        if (mmd->mirror_ob) {
+          mul_m4_v3(mtx, loc);
+          mul_m4_v3(mtx, iloc);
+        }
+
+        bool is_clipping = false;
+        if (mmd->flag & MOD_MIR_AXIS_X) {
+          if (fabsf(iloc[0]) <= mmd->tolerance || loc[0] * iloc[0] < 0.0f) {
+            loc[0] = 0.0f;
+            is_clipping = true;
+          }
+        }
+
         if (mmd->flag & MOD_MIR_AXIS_Y) {
-          axis |= 2;
-          tolerance[1] = mmd->tolerance;
+          if (fabsf(iloc[1]) <= mmd->tolerance || loc[1] * iloc[1] < 0.0f) {
+            loc[1] = 0.0f;
+            is_clipping = true;
+          }
         }
         if (mmd->flag & MOD_MIR_AXIS_Z) {
-          axis |= 4;
-          tolerance[2] = mmd->tolerance;
+          if (fabsf(iloc[2]) <= mmd->tolerance || loc[2] * iloc[2] < 0.0f) {
+            loc[2] = 0.0f;
+            is_clipping = true;
+          }
         }
-        if (axis) {
-          float mtx[4][4], imtx[4][4];
-          int i;
 
+        if (is_clipping) {
           if (mmd->mirror_ob) {
-            float obinv[4][4];
-
-            invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
-            mul_m4_m4m4(mtx, obinv, ob->object_to_world);
-            invert_m4_m4(imtx, mtx);
+            mul_m4_v3(imtx, loc);
           }
-
-          TransData *td = tc->data;
-          for (i = 0; i < tc->data_len; i++, td++) {
-            int clip;
-            float loc[3], iloc[3];
-
-            if (td->loc == NULL) {
-              break;
-            }
-
-            if (td->flag & TD_SKIP) {
-              continue;
-            }
-
-            copy_v3_v3(loc, td->loc);
-            copy_v3_v3(iloc, td->iloc);
-
-            if (mmd->mirror_ob) {
-              mul_m4_v3(mtx, loc);
-              mul_m4_v3(mtx, iloc);
-            }
-
-            clip = 0;
-            if (axis & 1) {
-              if (fabsf(iloc[0]) <= tolerance[0] || loc[0] * iloc[0] < 0.0f) {
-                loc[0] = 0.0f;
-                clip = 1;
-              }
-            }
-
-            if (axis & 2) {
-              if (fabsf(iloc[1]) <= tolerance[1] || loc[1] * iloc[1] < 0.0f) {
-                loc[1] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (axis & 4) {
-              if (fabsf(iloc[2]) <= tolerance[2] || loc[2] * iloc[2] < 0.0f) {
-                loc[2] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (clip) {
-              if (mmd->mirror_ob) {
-                mul_m4_v3(imtx, loc);
-              }
-              copy_v3_v3(td->loc, loc);
-            }
-          }
+          copy_v3_v3(td->loc, loc);
         }
       }
     }
@@ -1340,7 +1196,7 @@ void animrecord_check_state(TransInfo *t, struct ID *id)
 
           /* copy current "action blending" settings from adt to the strip,
            * as it was keyframed with these settings, so omitting them will
-           * change the effect  [T54766]
+           * change the effect  [#54766]
            */
           if (is_first == false) {
             strip->blendmode = adt->act_blendmode;

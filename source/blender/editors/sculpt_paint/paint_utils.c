@@ -25,6 +25,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
@@ -146,45 +147,29 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(const MTex *mtex, float u, float v, struct ImagePool *pool, int thread)
-{
-  float intensity;
-  float rgba_dummy[4];
-  const float co[3] = {u, v, 0.0f};
-
-  RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba_dummy);
-
-  return intensity;
-}
-
-void paint_get_tex_pixel_col(const MTex *mtex,
-                             float u,
-                             float v,
-                             float rgba[4],
-                             struct ImagePool *pool,
-                             int thread,
-                             bool convert_to_linear,
-                             struct ColorSpace *colorspace)
+bool paint_get_tex_pixel(const MTex *mtex,
+                         float u,
+                         float v,
+                         struct ImagePool *pool,
+                         int thread,
+                         /* Return arguments. */
+                         float *r_intensity,
+                         float r_rgba[4])
 {
   const float co[3] = {u, v, 0.0f};
   float intensity;
+  const bool has_rgb = RE_texture_evaluate(
+      mtex, co, thread, pool, false, false, &intensity, r_rgba);
+  *r_intensity = intensity;
 
-  const bool hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
-
-  if (!hasrgb) {
-    rgba[0] = intensity;
-    rgba[1] = intensity;
-    rgba[2] = intensity;
-    rgba[3] = 1.0f;
+  if (!has_rgb) {
+    r_rgba[0] = intensity;
+    r_rgba[1] = intensity;
+    r_rgba[2] = intensity;
+    r_rgba[3] = 1.0f;
   }
 
-  if (convert_to_linear) {
-    IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, colorspace);
-  }
-
-  linearrgb_to_srgb_v3_v3(rgba, rgba);
-
-  clamp_v4(rgba, 0.0f, 1.0f);
+  return has_rgb;
 }
 
 void paint_stroke_operator_properties(wmOperatorType *ot)
@@ -288,7 +273,7 @@ static void imapaint_pick_uv(
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
 
-  const MVert *mvert = BKE_mesh_verts(me_eval);
+  const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
   const MLoop *mloop = BKE_mesh_loops(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
@@ -312,12 +297,12 @@ static void imapaint_pick_uv(
     findex = index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 
     if (findex == faceindex) {
-      const MLoopUV *mloopuv;
-      const MLoopUV *tri_uv[3];
+      const float(*mloopuv)[2];
+      const float *tri_uv[3];
       float tri_co[3][3];
 
       for (int j = 3; j--;) {
-        copy_v3_v3(tri_co[j], mvert[mloop[lt->tri[j]].v].co);
+        copy_v3_v3(tri_co[j], positions[mloop[lt->tri[j]].v]);
       }
 
       if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {
@@ -329,17 +314,18 @@ static void imapaint_pick_uv(
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
-              (mloopuv = CustomData_get_layer_named(&me_eval->ldata, CD_MLOOPUV, slot->uvname)))) {
-          mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
+              (mloopuv = CustomData_get_layer_named(
+                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))) {
+          mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
         }
       }
       else {
-        mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
+        mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
       }
 
-      tri_uv[0] = &mloopuv[lt->tri[0]];
-      tri_uv[1] = &mloopuv[lt->tri[1]];
-      tri_uv[2] = &mloopuv[lt->tri[2]];
+      tri_uv[0] = mloopuv[lt->tri[0]];
+      tri_uv[1] = mloopuv[lt->tri[1]];
+      tri_uv[2] = mloopuv[lt->tri[2]];
 
       p[0] = xy[0];
       p[1] = xy[1];
@@ -347,8 +333,8 @@ static void imapaint_pick_uv(
       imapaint_tri_weights(matrix, view, UNPACK3(tri_co), p, w);
       absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
       if (absw < minabsw) {
-        uv[0] = tri_uv[0]->uv[0] * w[0] + tri_uv[1]->uv[0] * w[1] + tri_uv[2]->uv[0] * w[2];
-        uv[1] = tri_uv[0]->uv[1] * w[0] + tri_uv[1]->uv[1] * w[1] + tri_uv[2]->uv[1] * w[2];
+        uv[0] = tri_uv[0][0] * w[0] + tri_uv[1][0] * w[1] + tri_uv[2][0] * w[2];
+        uv[1] = tri_uv[0][1] * w[0] + tri_uv[1][1] * w[1] + tri_uv[2][1] * w[2];
         minabsw = absw;
       }
     }
@@ -423,7 +409,7 @@ void paint_sample_color(
       uint faceindex;
       uint totpoly = me->totpoly;
 
-      if (CustomData_has_layer(&me_eval->ldata, CD_MLOOPUV)) {
+      if (CustomData_has_layer(&me_eval->ldata, CD_PROP_FLOAT2)) {
         ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         view3d_operator_needs_opengl(C);
@@ -584,19 +570,18 @@ static bool brush_curve_preset_poll(bContext *C)
   return br && br->curve;
 }
 
+static const EnumPropertyItem prop_shape_items[] = {
+    {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+    {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+    {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
+    {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
+    {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
+    {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-  static const EnumPropertyItem prop_shape_items[] = {
-      {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-      {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-      {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
-      {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
-      {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
-      {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   ot->name = "Preset";
   ot->description = "Set brush shape";
   ot->idname = "BRUSH_OT_curve_preset";
@@ -604,6 +589,38 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
   ot->exec = brush_curve_preset_exec;
   ot->poll = brush_curve_preset_poll;
 
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
+}
+
+static bool brush_sculpt_curves_falloff_preset_poll(bContext *C)
+{
+  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  return br && br->curves_sculpt_settings && br->curves_sculpt_settings->curve_parameter_falloff;
+}
+
+static int brush_sculpt_curves_falloff_preset_exec(bContext *C, wmOperator *op)
+{
+  Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  CurveMapping *mapping = brush->curves_sculpt_settings->curve_parameter_falloff;
+  mapping->preset = RNA_enum_get(op->ptr, "shape");
+  CurveMap *map = mapping->cm;
+  BKE_curvemap_reset(map, &mapping->clipr, mapping->preset, CURVEMAP_SLOPE_POSITIVE);
+  return OPERATOR_FINISHED;
+}
+
+void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot)
+{
+  ot->name = "Curve Falloff Preset";
+  ot->description = "Set Curve Falloff Preset";
+  ot->idname = "BRUSH_OT_sculpt_curves_falloff_preset";
+
+  ot->exec = brush_sculpt_curves_falloff_preset_exec;
+  ot->poll = brush_sculpt_curves_falloff_preset_poll;
+
+  PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
   RNA_def_property_translation_context(prop,
                                        BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
@@ -730,6 +747,53 @@ void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
+
+static int paintvert_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  paintvert_select_linked(C, CTX_data_active_object(C));
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_linked(wmOperatorType *ot)
+{
+  ot->name = "Select Linked Vertices";
+  ot->description = "Select linked vertices";
+  ot->idname = "PAINT_OT_vert_select_linked";
+
+  ot->exec = paintvert_select_linked_exec;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int paintvert_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  view3d_operator_needs_opengl(C);
+
+  paintvert_select_linked_pick(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_linked_pick(wmOperatorType *ot)
+{
+  ot->name = "Select Linked Vertices Pick";
+  ot->description = "Select linked vertices under the cursor";
+  ot->idname = "PAINT_OT_vert_select_linked_pick";
+
+  ot->invoke = paintvert_select_linked_pick_invoke;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "select",
+                  true,
+                  "Select",
+                  "Whether to select or deselect linked vertices under the cursor");
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)

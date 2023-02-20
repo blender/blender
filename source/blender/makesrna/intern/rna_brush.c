@@ -94,7 +94,7 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 /* clang-format off */
 /* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
-const EnumPropertyItem RNA_automasking_flags[] = {
+const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
   {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},
   {BRUSH_AUTOMASKING_FACE_SETS, "use_automasking_face_sets", 0,"Face Sets", "Affect only vertices that share Face Sets with the active vertex"},
   {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "use_automasking_boundary_edges", 0,"Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges"},
@@ -968,7 +968,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
 /* Grease Pencil Drawing Brushes Settings */
 static char *rna_BrushGpencilSettings_path(const PointerRNA *UNUSED(ptr))
 {
-  return BLI_strdup("tool_settings.gpencil_paint.brush.gpencil_settings");
+  return BLI_strdup("gpencil_settings");
 }
 
 static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
@@ -1121,6 +1121,11 @@ static void rna_Brush_automasking_cavity_set(PointerRNA *ptr, bool val)
   else {
     brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
   }
+}
+
+static char *rna_BrushCurvesSculptSettings_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("curves_sculpt_settings");
 }
 
 #else
@@ -2037,6 +2042,7 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "BrushCurvesSculptSettings", NULL);
+  RNA_def_struct_path_func(srna, "rna_BrushCurvesSculptSettings_path");
   RNA_def_struct_sdna(srna, "BrushCurvesSculptSettings");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Brush Settings", "");
 
@@ -2100,6 +2106,12 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, density_mode_items);
   RNA_def_property_ui_text(
       prop, "Density Mode", "Determines whether the brush adds or removes curves");
+
+  prop = RNA_def_property(srna, "curve_parameter_falloff", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop,
+                           "Curve Parameter Falloff",
+                           "Falloff that is applied from the tip to the root of each curve");
 }
 
 static void rna_def_brush(BlenderRNA *brna)
@@ -2893,6 +2905,14 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Texture Sample Bias", "Value added to texture samples");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_color_as_displacement", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_USE_COLOR_AS_DISPLACEMENT);
+  RNA_def_property_ui_text(prop,
+                           "Vector Displacement",
+                           "Handles each pixel color as individual vector for displacement. Works "
+                           "only with area plane mapping");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "normal_weight", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "normal_weight");
   RNA_def_property_float_default(prop, 0);
@@ -3204,7 +3224,7 @@ static void rna_def_brush(BlenderRNA *brna)
       "When locked keep using the plane origin of surface where stroke was initiated");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  const EnumPropertyItem *entry = RNA_automasking_flags;
+  const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
   do {
     prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", entry->value);

@@ -41,14 +41,14 @@
 /** if the cost from #BLI_quadric_evaluate is 'noise', fallback to topology */
 #define USE_TOPOLOGY_FALLBACK
 #ifdef USE_TOPOLOGY_FALLBACK
-/** cost is calculated with double precision, it's ok to use a very small epsilon, see T48154. */
+/** cost is calculated with double precision, it's ok to use a very small epsilon, see #48154. */
 #  define TOPOLOGY_FALLBACK_EPS 1e-12f
 #endif
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
 /**
  * Uses double precision, impacts behavior on near-flat surfaces,
- * cane give issues with very small faces. 1e-2 is too big, see: T48154.
+ * cane give issues with very small faces. 1e-2 is too big, see: #48154.
  */
 #define OPTIMIZE_EPS 1e-8
 #define COST_INVALID FLT_MAX
@@ -272,7 +272,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
   }
 
   /* NOTE: 'cost' shouldn't be negative but happens sometimes with small values.
-   * this can cause faces that make up a flat surface to over-collapse, see T37121. */
+   * this can cause faces that make up a flat surface to over-collapse, see #37121. */
   cost = fabsf(cost);
 
 #ifdef USE_TOPOLOGY_FALLBACK

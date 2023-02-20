@@ -20,7 +20,6 @@ struct Base;
 struct BoundBox;
 struct Curve;
 struct Depsgraph;
-struct GeometrySet;
 struct GpencilModifierData;
 struct HookGpencilModifierData;
 struct HookModifierData;
@@ -33,7 +32,6 @@ struct Object;
 struct RegionView3D;
 struct RigidBodyWorld;
 struct Scene;
-struct ShaderFxData;
 struct SubsurfModifierData;
 struct View3D;
 struct ViewLayer;
@@ -372,7 +370,7 @@ void BKE_object_dimensions_get(struct Object *ob, float r_vec[3]);
  * typically this caused by parenting, constraints or delta-scale.
  *
  * Re-using these values from the object causes a feedback loop
- * when multiple values are modified at once in some situations. see: T69536.
+ * when multiple values are modified at once in some situations. see: #69536.
  */
 void BKE_object_dimensions_set_ex(struct Object *ob,
                                   const float value[3],
@@ -507,9 +505,9 @@ void BKE_object_handle_update_ex(struct Depsgraph *depsgraph,
 void BKE_object_sculpt_data_create(struct Object *ob);
 
 bool BKE_object_obdata_texspace_get(struct Object *ob,
-                                    char **r_texflag,
-                                    float **r_loc,
-                                    float **r_size);
+                                    char **r_texspace_flag,
+                                    float **r_texspace_location,
+                                    float **r_texspace_size);
 
 struct Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const struct Object *object);
 /** Get evaluated mesh for given object. */

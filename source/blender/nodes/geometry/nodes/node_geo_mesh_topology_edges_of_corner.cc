@@ -16,11 +16,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           N_("The corner to retrieve data from. Defaults to the corner from the context"));
   b.add_output<decl::Int>(N_("Next Edge Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(
           N_("The edge after the corner in the face, in the direction of increasing indices"));
   b.add_output<decl::Int>(N_("Previous Edge Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(
           N_("The edge before the corner in the face, in the direction of decreasing indices"));
 }
@@ -88,7 +88,7 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
         [polys, loops, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const int poly_i = loop_to_poly_map[corner_i];
           const MPoly &poly = polys[poly_i];
-          const int corner_i_prev = bke::mesh_topology::previous_poly_loop(poly, corner_i);
+          const int corner_i_prev = bke::mesh_topology::poly_loop_prev(poly, corner_i);
           return loops[corner_i_prev].e;
         });
   }

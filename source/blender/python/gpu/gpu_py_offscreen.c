@@ -211,8 +211,6 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject *UNUSED(self),
                                          PyObject *args,
                                          PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   GPUOffScreen *ofs = NULL;
   int width, height;
   struct PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};
@@ -367,7 +365,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
 
   depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
 
-  /* Disable 'bgl' state since it interfere with off-screen drawing, see: T84402. */
+  /* Disable 'bgl' state since it interfere with off-screen drawing, see: #84402. */
   const bool is_bgl = GPU_bgl_get();
   if (is_bgl) {
     GPU_bgl_end();
@@ -376,7 +374,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
   GPU_offscreen_bind(self->ofs, true);
 
   /* Cache the #GPUViewport so the frame-buffers and associated textures are
-   * not reallocated each time, see: T89204 */
+   * not reallocated each time, see: #89204 */
   if (!self->viewport) {
     self->viewport = GPU_viewport_create();
   }

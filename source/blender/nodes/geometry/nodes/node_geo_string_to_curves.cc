@@ -9,7 +9,9 @@
 #include "BKE_instances.hh"
 #include "BKE_vfont.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_hash.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
@@ -53,8 +55,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
-  b.add_output<decl::Int>(N_("Line")).field_source();
-  b.add_output<decl::Vector>(N_("Pivot Point")).field_source();
+  b.add_output<decl::Int>(N_("Line")).field_on_all();
+  b.add_output<decl::Vector>(N_("Pivot Point")).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
@@ -109,12 +111,14 @@ static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &cu
   const GeometryNodeStringToCurvesPivotMode pivot_mode = (GeometryNodeStringToCurvesPivotMode)
                                                              storage.pivot_mode;
 
-  float3 min(FLT_MAX), max(FLT_MIN);
+  const std::optional<Bounds<float3>> bounds = bounds::min_max(curves.positions());
 
   /* Check if curve is empty. */
-  if (!curves.bounds_min_max(min, max)) {
+  if (!bounds.has_value()) {
     return {0.0f, 0.0f, 0.0f};
   }
+  const float3 min = bounds->min;
+  const float3 max = bounds->max;
 
   switch (pivot_mode) {
     case GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT:
@@ -246,7 +250,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     }
   }
 
-  if (params.output_is_required("Line")) {
+  if (params.anonymous_attribute_output_is_required("Line")) {
     layout.line_numbers.reinitialize(layout.positions.size());
     for (const int i : layout.positions.index_range()) {
       CharTrans &ct = chartransdata[i];
@@ -275,7 +279,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
 {
   VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
   Map<int, int> handles;
-  bool pivot_required = params.output_is_required("Pivot Point");
+  bool pivot_required = params.anonymous_attribute_output_is_required("Pivot Point");
 
   for (int i : layout.char_codes.index_range()) {
     if (handles.contains(layout.char_codes[i])) {
@@ -298,11 +302,10 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       continue;
     }
 
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     BKE_nurbList_free(&cu.nurb);
 
-    float4x4 size_matrix = float4x4::identity();
-    size_matrix.apply_scale(layout.final_font_size);
+    float4x4 size_matrix = math::from_scale<float4x4>(float3(layout.final_font_size));
     curves.transform(size_matrix);
 
     if (pivot_required) {
@@ -327,7 +330,8 @@ static void add_instances_from_handles(bke::Instances &instances,
   threading::parallel_for(IndexRange(layout.positions.size()), 256, [&](IndexRange range) {
     for (const int i : range) {
       handles[i] = char_handles.lookup(layout.char_codes[i]);
-      transforms[i] = float4x4::from_location({layout.positions[i].x, layout.positions[i].y, 0});
+      transforms[i] = math::from_location<float4x4>(
+          {layout.positions[i].x, layout.positions[i].y, 0});
     }
   });
 }
@@ -338,10 +342,10 @@ static void create_attributes(GeoNodeExecParams &params,
 {
   MutableAttributeAccessor attributes = instances.attributes_for_write();
 
-  if (params.output_is_required("Line")) {
-    StrongAnonymousAttributeID line_id = StrongAnonymousAttributeID("Line");
+  if (AutoAnonymousAttributeID line_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Line")) {
     SpanAttributeWriter<int> line_attribute = attributes.lookup_or_add_for_write_only_span<int>(
-        line_id.get(), ATTR_DOMAIN_INSTANCE);
+        *line_id, ATTR_DOMAIN_INSTANCE);
     line_attribute.span.copy_from(layout.line_numbers);
     line_attribute.finish();
     params.set_output("Line",
@@ -349,10 +353,10 @@ static void create_attributes(GeoNodeExecParams &params,
                                                                 params.attribute_producer_name()));
   }
 
-  if (params.output_is_required("Pivot Point")) {
-    StrongAnonymousAttributeID pivot_id = StrongAnonymousAttributeID("Pivot");
+  if (AutoAnonymousAttributeID pivot_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Pivot Point")) {
     SpanAttributeWriter<float3> pivot_attribute =
-        attributes.lookup_or_add_for_write_only_span<float3>(pivot_id.get(), ATTR_DOMAIN_INSTANCE);
+        attributes.lookup_or_add_for_write_only_span<float3>(*pivot_id, ATTR_DOMAIN_INSTANCE);
 
     for (const int i : layout.char_codes.index_range()) {
       pivot_attribute.span[i] = layout.pivot_points.lookup(layout.char_codes[i]);

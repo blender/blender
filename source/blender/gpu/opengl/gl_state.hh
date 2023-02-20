@@ -103,6 +103,21 @@ class GLStateManager : public StateManager {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };
 
+/* Fence synchronization primitive. */
+class GLFence : public Fence {
+ private:
+  GLsync gl_sync_ = 0;
+
+ public:
+  GLFence() : Fence(){};
+  ~GLFence();
+
+  void signal() override;
+  void wait() override;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLFence")
+};
+
 static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
 {
   GLbitfield barrier = 0;
@@ -129,6 +144,9 @@ static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
   }
   if (barrier_bits & GPU_BARRIER_ELEMENT_ARRAY) {
     barrier |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+  }
+  if (barrier_bits & GPU_BARRIER_UNIFORM) {
+    barrier |= GL_UNIFORM_BARRIER_BIT;
   }
   return barrier;
 }

@@ -11,8 +11,6 @@
 
 namespace blender::draw::command {
 
-struct RecordingState;
-
 #endif
 
 /* -------------------------------------------------------------------- */

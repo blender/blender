@@ -12,6 +12,7 @@ from bpy.props import (
     PointerProperty,
     StringProperty,
 )
+from bpy.app.translations import pgettext_iface as iface_
 
 from math import pi
 
@@ -82,8 +83,31 @@ enum_use_layer_samples = (
 )
 
 enum_sampling_pattern = (
-    ('SOBOL', "Sobol-Burley", "Use Sobol-Burley random sampling pattern", 0),
-    ('PROGRESSIVE_MULTI_JITTER', "Progressive Multi-Jitter", "Use Progressive Multi-Jitter random sampling pattern", 1),
+    ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
+    ('TABULATED_SOBOL', "Tabulated Sobol", "Use pre-computed tables of Owen-scrambled Sobol for random sampling", 1),
+)
+
+enum_emission_sampling = (
+    ('NONE',
+     'None',
+     "Do not use this surface as a light for sampling",
+     0),
+    ('AUTO',
+     'Auto',
+     "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity",
+     1),
+    ('FRONT',
+     'Front',
+     "Treat only front side of the surface as a light, usually for closed meshes whose interior is not visible",
+     2),
+    ('BACK',
+     'Back',
+     "Treat only back side of the surface as a light for sampling",
+     3),
+    ('FRONT_BACK',
+     'Front and Back',
+     "Treat surface as a light for sampling, emitting from both the front and back side",
+     4),
 )
 
 enum_volume_sampling = (
@@ -147,7 +171,6 @@ enum_view3d_shading_render_pass = (
     ('EMISSION', "Emission", "Show the Emission render pass"),
     ('BACKGROUND', "Background", "Show the Background render pass"),
     ('AO', "Ambient Occlusion", "Show the Ambient Occlusion render pass"),
-    ('SHADOW', "Shadow", "Show the Shadow render pass"),
     ('SHADOW_CATCHER', "Shadow Catcher", "Show the Shadow Catcher render pass"),
 
     ('', "Light", ""),
@@ -390,9 +413,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     sampling_pattern: EnumProperty(
         name="Sampling Pattern",
-        description="Random sampling pattern used by the integrator. When adaptive sampling is enabled, Progressive Multi-Jitter is always used instead of Sobol-Burley",
+        description="Random sampling pattern used by the integrator",
         items=enum_sampling_pattern,
-        default='PROGRESSIVE_MULTI_JITTER',
+        default='TABULATED_SOBOL',
     )
 
     scrambling_distance: FloatProperty(
@@ -479,6 +502,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="The type of strategy used for sampling direct light contributions",
         items=enum_direct_light_sampling_type,
         default='MULTIPLE_IMPORTANCE_SAMPLING',
+    )
+
+    use_light_tree: BoolProperty(
+        name="Light Tree",
+        description="Sample multiple lights more efficiently based on estimated contribution at every shading point",
+        default=True,
     )
 
     min_light_bounces: IntProperty(
@@ -622,7 +651,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     transparent_max_bounces: IntProperty(
         name="Transparent Max Bounces",
-        description="Maximum number of transparent bounces. This is independent of maximum number of other bounces ",
+        description="Maximum number of transparent bounces. This is independent of maximum number of other bounces",
         min=0, max=1024,
         default=8,
     )
@@ -877,7 +906,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     use_fast_gi: BoolProperty(
         name="Fast GI Approximation",
-        description="Approximate diffuse indirect light with background tinted ambient occlusion. This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality",
+        description="Approximate diffuse indirect light with background tinted ambient occlusion. "
+                    "This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality",
         default=False,
     )
 
@@ -922,9 +952,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         return _cycles.debug_flags_update(scene)
 
     debug_use_cpu_avx2: BoolProperty(name="AVX2", default=True)
-    debug_use_cpu_avx: BoolProperty(name="AVX", default=True)
     debug_use_cpu_sse41: BoolProperty(name="SSE41", default=True)
-    debug_use_cpu_sse3: BoolProperty(name="SSE3", default=True)
     debug_use_cpu_sse2: BoolProperty(name="SSE2", default=True)
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",
@@ -1043,13 +1071,13 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
-    sample_as_light: BoolProperty(
-        name="Multiple Importance Sample",
-        description="Use multiple importance sampling for this material, "
-        "disabling may reduce overall noise for large "
-        "objects that emit little light compared to other light sources",
-        default=True,
+    emission_sampling: EnumProperty(
+        name="Emission Sampling",
+        description="Sampling strategy for emissive surfaces",
+        items=enum_emission_sampling,
+        default="AUTO",
     )
+
     use_transparent_shadow: BoolProperty(
         name="Transparent Shadows",
         description="Use transparent shadows for this material if it contains a Transparent BSDF, "
@@ -1178,7 +1206,7 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
     )
     homogeneous_volume: BoolProperty(
         name="Homogeneous Volume",
-        description="When using volume rendering, assume volume has the same density everywhere"
+        description="When using volume rendering, assume volume has the same density everywhere "
         "(not using any textures), for faster rendering",
         default=False,
     )
@@ -1511,8 +1539,22 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     use_metalrt: BoolProperty(
         name="MetalRT (Experimental)",
-        description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly",
+        description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better "
+                    "performance in specific cases. However this support is experimental and some scenes may render incorrectly",
         default=False,
+    )
+
+    kernel_optimization_level: EnumProperty(
+        name="Kernel Optimization",
+        description="Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. "
+                    "If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set "
+                    "is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)",
+        default='FULL',
+        items=(
+            ('OFF', "Off", "Disable kernel optimization. Slowest rendering, no extra background CPU usage"),
+            ('INTERSECT', "Intersection only", "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"),
+            ('FULL', "Full", "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"),
+        ),
     )
 
     def find_existing_device_entry(self, device):
@@ -1623,30 +1665,51 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             col.label(text="No compatible GPUs found for Cycles", icon='INFO')
 
             if device_type == 'CUDA':
-                col.label(text="Requires NVIDIA GPU with compute capability 3.0", icon='BLANK1')
+                compute_capability = "3.0"
+                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                          icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
-                col.label(text="Requires NVIDIA GPU with compute capability 5.0", icon='BLANK1')
-                col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
+                compute_capability = "5.0"
+                driver_version = "470"
+                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
+                          icon='BLANK1', translate=False)
+                col.label(text="and NVIDIA driver version %s or newer" % driver_version,
+                          icon='BLANK1', translate=False)
             elif device_type == 'HIP':
-                import sys
-                if sys.platform[:3] == "win":
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                    col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
-                elif sys.platform.startswith("linux"):
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                    col.label(text="and AMD driver version 22.10 or newer", icon='BLANK1')
+                if True:
+                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                else:
+                    import sys
+                    if sys.platform[:3] == "win":
+                        driver_version = "21.Q4"
+                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                                  icon='BLANK1', translate=False)
+                    elif sys.platform.startswith("linux"):
+                        driver_version = "22.10"
+                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                        col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
+                                  translate=False)
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
+                    driver_version = "101.4032"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
-                    col.label(text="and Windows driver version 101.3430 or newer", icon='BLANK1')
+                    col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
+                              icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
+                    driver_version = "1.3.24931"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text="  - Linux driver version xx.xx.23904 or newer", icon='BLANK1')
+                    col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
+                              icon='BLANK1', translate=False)
                     col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
             elif device_type == 'METAL':
-                col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
-                col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
+                silicon_mac_version = "12.2"
+                amd_mac_version = "12.3"
+                col.label(text=iface_("Requires Apple Silicon with macOS %s or newer") % silicon_mac_version,
+                          icon='BLANK1', translate=False)
+                col.label(text=iface_("or AMD with macOS %s or newer") % amd_mac_version, icon='BLANK1',
+                          translate=False)
             return
 
         for device in devices:
@@ -1682,11 +1745,22 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if compute_device_type == 'METAL':
             import platform
-            # MetalRT only works on Apple Silicon at present, pending argument encoding fixes on AMD
-            if platform.machine() == 'arm64':
-                row = layout.row()
-                row.use_property_split = True
-                row.prop(self, "use_metalrt")
+            import re
+            is_navi_2 = False
+            for device in devices:
+                if re.search(r"((RX)|(Pro)|(PRO))\s+W?6\d00X", device.name):
+                    is_navi_2 = True
+                    break
+
+            # MetalRT only works on Apple Silicon and Navi2.
+            is_arm64 = platform.machine() == 'arm64'
+            if is_arm64 or is_navi_2:
+                col = layout.column()
+                col.use_property_split = True
+                # Kernel specialization is only supported on Apple Silicon
+                if is_arm64:
+                    col.prop(self, "kernel_optimization_level")
+                col.prop(self, "use_metalrt")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

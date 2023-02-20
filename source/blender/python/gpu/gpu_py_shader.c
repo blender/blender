@@ -95,8 +95,6 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 
 static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct {
     const char *vertexcode;
     const char *fragcode;
@@ -271,7 +269,7 @@ static PyObject *pygpu_shader_uniform_vector_float(BPyGPUShader *self, PyObject 
   }
 
   GPU_shader_bind(self->shader);
-  GPU_shader_uniform_vector(self->shader, location, length, count, pybuffer.buf);
+  GPU_shader_uniform_float_ex(self->shader, location, length, count, pybuffer.buf);
 
   PyBuffer_Release(&pybuffer);
 
@@ -294,7 +292,7 @@ static PyObject *pygpu_shader_uniform_vector_int(BPyGPUShader *self, PyObject *a
   }
 
   GPU_shader_bind(self->shader);
-  GPU_shader_uniform_vector_int(self->shader, location, length, count, pybuffer.buf);
+  GPU_shader_uniform_int_ex(self->shader, location, length, count, pybuffer.buf);
 
   PyBuffer_Release(&pybuffer);
 
@@ -369,7 +367,7 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
   }
 
   GPU_shader_bind(self->shader);
-  GPU_shader_uniform_vector_int(self->shader, location, length, 1, values);
+  GPU_shader_uniform_int_ex(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
 }
@@ -439,7 +437,7 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
   }
 
   GPU_shader_bind(self->shader);
-  GPU_shader_uniform_vector(self->shader, location, length, 1, values);
+  GPU_shader_uniform_float_ex(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
 }
@@ -511,7 +509,7 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
   }
 
   GPU_shader_bind(self->shader);
-  GPU_shader_uniform_vector_int(self->shader, location, length, 1, values);
+  GPU_shader_uniform_int_ex(self->shader, location, length, 1, values);
 
   Py_RETURN_NONE;
 }
@@ -535,7 +533,7 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
   }
 
   GPU_shader_bind(self->shader);
-  int slot = GPU_shader_get_texture_binding(self->shader, name);
+  int slot = GPU_shader_get_sampler_binding(self->shader, name);
   GPU_texture_bind(py_texture->tex, slot);
   GPU_shader_uniform_1i(self->shader, name, slot);
 
@@ -561,7 +559,7 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
-  int binding = GPU_shader_get_uniform_block_binding(self->shader, name);
+  int binding = GPU_shader_get_ubo_binding(self->shader, name);
   if (binding == -1) {
     PyErr_SetString(
         PyExc_BufferError,
@@ -627,7 +625,7 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSE
 {
   uint attr_len = GPU_shader_get_attribute_len(self->shader);
   int location_test = 0, attrs_added = 0;
-  ;
+
   PyObject *ret = PyTuple_New(attr_len);
   while (attrs_added < attr_len) {
     char name[256];
@@ -835,8 +833,6 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
   struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
@@ -954,7 +950,7 @@ PyObject *bpygpu_shader_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_shader_module_def);
+  submodule = bpygpu_create_module(&pygpu_shader_module_def);
 
   return submodule;
 }

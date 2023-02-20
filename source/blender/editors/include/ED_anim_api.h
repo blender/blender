@@ -94,8 +94,6 @@ typedef struct bAnimContext {
   /** pointer to current reports list */
   struct ReportList *reports;
 
-  /** Scale factor for height of channels (i.e. based on the size of keyframes). */
-  float yscale_fac;
 } bAnimContext;
 
 /* Main Data container types */
@@ -431,28 +429,6 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Channel Defines
- * \{ */
-
-/** Channel heights. */
-#define ACHANNEL_FIRST_TOP(ac) \
-  (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - ACHANNEL_SKIP)
-#define ACHANNEL_HEIGHT(ac) (0.8f * (ac)->yscale_fac * U.widget_unit)
-#define ACHANNEL_SKIP (0.1f * U.widget_unit)
-#define ACHANNEL_STEP(ac) (ACHANNEL_HEIGHT(ac) + ACHANNEL_SKIP)
-/** Additional offset to give some room at the end. */
-#define ACHANNEL_TOT_HEIGHT(ac, item_amount) \
-  (-ACHANNEL_FIRST_TOP(ac) + ACHANNEL_STEP(ac) * (item_amount + 1))
-
-/** Channel widths. */
-#define ACHANNEL_NAMEWIDTH (10 * U.widget_unit)
-
-/** Channel toggle-buttons. */
-#define ACHANNEL_BUTTON_WIDTH (0.8f * U.widget_unit)
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name NLA Channel Defines
  * \{ */
 
@@ -611,6 +587,20 @@ typedef struct bAnimChannelType {
    */
   void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *type);
 } bAnimChannelType;
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name Channel dimensions API
+ * \{ */
+
+float ANIM_UI_get_keyframe_scale_factor(void);
+float ANIM_UI_get_channel_height(void);
+float ANIM_UI_get_channel_skip(void);
+float ANIM_UI_get_first_channel_top(View2D *v2d);
+float ANIM_UI_get_channel_step(void);
+float ANIM_UI_get_channels_total_height(View2D *v2d, int item_count);
+float ANIM_UI_get_channel_name_width(void);
+float ANIM_UI_get_channel_button_width(void);
 
 /** \} */
 
@@ -1052,7 +1042,7 @@ void ED_keymap_anim(struct wmKeyConfig *keyconf);
 void ED_operatormacros_graph(void);
 /* space_action */
 void ED_operatormacros_action(void);
-/* space_nla*/
+/* space_nla */
 void ED_operatormacros_nla(void);
 
 /** \} */

@@ -19,10 +19,13 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   buttons_context.c
   buttons_ops.c
-  buttons_texture.c
+  buttons_texture.cc
   space_buttons.c
 
   buttons_intern.h

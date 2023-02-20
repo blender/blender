@@ -34,11 +34,15 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_node_runtime.hh"
+#include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -395,11 +399,11 @@ void paint_brush_exit_tex(Brush *brush)
   if (brush) {
     MTex *mtex = &brush->mtex;
     if (mtex->tex && mtex->tex->nodetree) {
-      ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+      ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
     }
     mtex = &brush->mask_mtex;
     if (mtex->tex && mtex->tex->nodetree) {
-      ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+      ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
     }
   }
 }
@@ -755,7 +759,58 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 /******************** texture paint toggle operator ********************/
 
-void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob)
+static void paint_init_pivot_mesh(Object *ob, float location[3])
+{
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  if (!me_eval) {
+    me_eval = (const Mesh *)ob->data;
+  }
+
+  float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+
+  if (!BKE_mesh_minmax(me_eval, min, max)) {
+    zero_v3(location);
+    zero_v3(max);
+  }
+
+  interp_v3_v3v3(location, min, max, 0.5f);
+}
+
+static void paint_init_pivot_curves(Object *ob, float location[3])
+{
+  const BoundBox *bbox = BKE_object_boundbox_get(ob);
+  interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
+}
+
+void paint_init_pivot(Object *ob, Scene *scene)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  float location[3];
+
+  switch (ob->type) {
+    case OB_MESH:
+      paint_init_pivot_mesh(ob, location);
+      break;
+    case OB_CURVES:
+      paint_init_pivot_curves(ob, location);
+      break;
+    default:
+      BLI_assert_unreachable();
+      ups->last_stroke_valid = false;
+      return;
+  }
+
+  mul_m4_v3(ob->object_to_world, location);
+
+  ups->last_stroke_valid = true;
+  ups->average_stroke_counter = 1;
+  copy_v3_v3(ups->average_stroke_accum, location);
+}
+
+void ED_object_texture_paint_mode_enter_ex(Main *bmain,
+                                           Scene *scene,
+                                           Depsgraph *depsgraph,
+                                           Object *ob)
 {
   Image *ima = nullptr;
   ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
@@ -799,6 +854,14 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
   Mesh *me = BKE_mesh_from_object(ob);
   BLI_assert(me != nullptr);
   DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
+
+  /* Ensure we have evaluated data for bounding box. */
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+
+  /* Set pivot to bounding box center. */
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  paint_init_pivot(ob_eval ? ob_eval : ob, scene);
+
   WM_main_add_notifier(NC_SCENE | ND_MODE, scene);
 }
 
@@ -807,7 +870,9 @@ void ED_object_texture_paint_mode_enter(bContext *C)
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
-  ED_object_texture_paint_mode_enter_ex(bmain, scene, ob);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  ED_object_texture_paint_mode_enter_ex(bmain, scene, depsgraph, ob);
 }
 
 void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob)
@@ -866,7 +931,8 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
     ED_object_texture_paint_mode_exit_ex(bmain, scene, ob);
   }
   else {
-    ED_object_texture_paint_mode_enter_ex(bmain, scene, ob);
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    ED_object_texture_paint_mode_enter_ex(bmain, scene, depsgraph, ob);
   }
 
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);

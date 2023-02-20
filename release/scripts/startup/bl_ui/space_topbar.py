@@ -326,7 +326,7 @@ class TOPBAR_MT_file_new(Menu):
         # Expand template paths.
 
         # Use a set to avoid duplicate user/system templates.
-        # This is a corner case, but users managed to do it! T76849.
+        # This is a corner case, but users managed to do it! #76849.
         app_templates = set()
         for path in template_paths:
             for d in os.listdir(path):
@@ -407,15 +407,20 @@ class TOPBAR_MT_file_defaults(Menu):
             app_template = None
 
         if app_template:
-            layout.label(text=bpy.path.display_name(
-                app_template, has_ext=False))
+            layout.label(
+                text=iface_(bpy.path.display_name(app_template, has_ext=False),
+                            i18n_contexts.id_workspace), translate=False)
 
         layout.operator("wm.save_homefile")
         if app_template:
             display_name = bpy.path.display_name(iface_(app_template))
-            props = layout.operator("wm.read_factory_settings", text="Load Factory Blender Settings")
+            props = layout.operator("wm.read_factory_settings",
+                                    text="Load Factory Blender Settings")
             props.app_template = app_template
-            props = layout.operator("wm.read_factory_settings", text="Load Factory %s Settings" % display_name)
+            props = layout.operator("wm.read_factory_settings",
+                                    text=iface_("Load Factory %s Settings",
+                                                i18n_contexts.operator_default) % display_name,
+                                    translate=False)
             props.app_template = app_template
             props.use_factory_startup_app_template_only = True
             del display_name
@@ -463,7 +468,7 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_import", text="Universal Scene Description (.usd, .usdc, .usda)")
+                "wm.usd_import", text="Universal Scene Description (.usd*)")
 
         if bpy.app.build_options.io_gpencil:
             self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")

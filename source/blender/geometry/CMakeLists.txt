@@ -16,9 +16,11 @@ set(INC
 
 set(SRC
   intern/add_curves_on_mesh.cc
+  intern/curve_constraints.cc
   intern/fillet_curves.cc
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
+  intern/mesh_split_edges.cc
   intern/mesh_to_curve_convert.cc
   intern/mesh_to_volume.cc
   intern/point_merge_by_distance.cc
@@ -31,9 +33,11 @@ set(SRC
   intern/uv_parametrizer.cc
 
   GEO_add_curves_on_mesh.hh
+  GEO_curve_constraints.hh
   GEO_fillet_curves.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
+  GEO_mesh_split_edges.hh
   GEO_mesh_to_curve.hh
   GEO_mesh_to_volume.hh
   GEO_point_merge_by_distance.hh

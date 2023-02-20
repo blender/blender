@@ -39,6 +39,15 @@ enum {
   IDTYPE_FLAGS_APPEND_IS_REUSABLE = 1 << 3,
   /** Indicates that the given IDType does not have animation data. */
   IDTYPE_FLAGS_NO_ANIMDATA = 1 << 4,
+  /**
+   * Indicates that the given IDType is not handled through memfile (aka global) undo.
+   *
+   * \note This currently only affect local data-blocks.
+   *
+   * \note Current readfile undo code expects these data-blocks to not be used by any 'regular'
+   * data-blocks.
+   */
+  IDTYPE_FLAGS_NO_MEMFILE_UNDO = 1 << 5,
 };
 
 typedef struct IDCacheKey {

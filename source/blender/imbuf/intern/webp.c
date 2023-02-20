@@ -112,8 +112,8 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   *r_height = (size_t)config.input.height;
 
   const float scale = (float)max_thumb_size / MAX2(config.input.width, config.input.height);
-  const int dest_w = (int)(config.input.width * scale);
-  const int dest_h = (int)(config.input.height * scale);
+  const int dest_w = MAX2((int)(config.input.width * scale), 1);
+  const int dest_h = MAX2((int)(config.input.height * scale), 1);
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
   struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);

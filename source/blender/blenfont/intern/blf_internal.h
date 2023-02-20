@@ -11,7 +11,6 @@ struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
 struct ResultBLF;
-struct rctf;
 struct rcti;
 
 /* Max number of FontBLFs in memory. Take care that every font has a glyph cache per size/dpi,

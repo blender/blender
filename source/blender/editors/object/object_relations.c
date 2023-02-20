@@ -99,6 +99,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "MOD_nodes.h"
+
 #include "object_intern.h"
 
 /* ------------------------------------------------------------------- */
@@ -412,7 +414,7 @@ void ED_object_parent_clear(Object *ob, const int type)
     }
   }
 
-  /* Always clear parentinv matrix for sake of consistency, see T41950. */
+  /* Always clear parentinv matrix for sake of consistency, see #41950. */
   unit_m4(ob->parentinv);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -460,7 +462,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 
 void ED_object_parent(Object *ob, Object *par, const int type, const char *substr)
 {
-  /* Always clear parentinv matrix for sake of consistency, see T41950. */
+  /* Always clear parentinv matrix for sake of consistency, see #41950. */
   unit_m4(ob->parentinv);
 
   if (!par || BKE_object_parent_loop_check(par, ob)) {
@@ -582,15 +584,15 @@ bool ED_object_parent_set(ReportList *reports,
 
   /* Apply transformation of previous parenting. */
   if (keep_transform) {
-    /* Was removed because of bug T23577,
-     * but this can be handy in some cases too T32616, so make optional. */
+    /* Was removed because of bug #23577,
+     * but this can be handy in some cases too #32616, so make optional. */
     BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
   }
 
   /* Set the parent (except for follow-path constraint option). */
   if (partype != PAR_PATH_CONST) {
     ob->parent = par;
-    /* Always clear parentinv matrix for sake of consistency, see T41950. */
+    /* Always clear parentinv matrix for sake of consistency, see #41950. */
     unit_m4(ob->parentinv);
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
@@ -1752,7 +1754,7 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Since master collection has already be duplicated as part of scene copy,
    * we do not duplicate it here.
    * However, this means its children need to be re-added manually here,
-   * otherwise their parent lists are empty (which will lead to crashes, see T63101). */
+   * otherwise their parent lists are empty (which will lead to crashes, see #63101). */
   CollectionChild *child_next, *child = collection->children.first;
   CollectionChild *orig_child_last = collection->children.last;
   for (; child != NULL; child = child_next) {
@@ -2072,7 +2074,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
 
 /**
  * Instance indirectly referenced zero user objects,
- * otherwise they're lost on reload, see T40595.
+ * otherwise they're lost on reload, see #40595.
  */
 static bool make_local_all__instance_indirect_unused(Main *bmain,
                                                      const Scene *scene,
@@ -2435,7 +2437,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
         case ID_GR: {
           Collection *collection_root = (Collection *)id_root;
           LISTBASE_FOREACH_MUTABLE (
-              CollectionParent *, collection_parent, &collection_root->parents) {
+              CollectionParent *, collection_parent, &collection_root->runtime.parents) {
             if (ID_IS_LINKED(collection_parent->collection) ||
                 !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
               continue;
@@ -2725,7 +2727,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "obdata")) {
     single_obdata_users(bmain, scene, view_layer, v3d, flag);
 
-    /* Needed since some IDs were remapped? (incl. me->texcomesh, see T73797). */
+    /* Needed since some IDs were remapped? (incl. me->texcomesh, see #73797). */
     update_deps = true;
   }
 
@@ -2863,6 +2865,119 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_id_lookup(ot, true);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Drop Geometry Nodes on Object Operator
+ * \{ */
+
+char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
+                                               PointerRNA *properties,
+                                               const int mval[2])
+{
+  const Object *ob = ED_view3d_give_object_under_cursor(C, mval);
+  if (ob == NULL) {
+    return BLI_strdup("");
+  }
+
+  const uint32_t session_uuid = RNA_int_get(properties, "session_uuid");
+  const ID *id = BKE_libblock_find_session_uuid(CTX_data_main(C), ID_NT, session_uuid);
+  if (!id) {
+    return BLI_strdup("");
+  }
+
+  const char *tooltip = TIP_("Add modifier with node group \"%s\" on object \"%s\"");
+  return BLI_sprintfN(tooltip, id->name, ob->id.name);
+}
+
+static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)
+{
+  const bNodeSocket *first_input = (const bNodeSocket *)tree->inputs.first;
+  if (!first_input) {
+    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry input socket");
+    return false;
+  }
+  if (first_input->type != SOCK_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "The first input must be a geometry socket");
+    return false;
+  }
+  const bNodeSocket *first_output = (const bNodeSocket *)tree->outputs.first;
+  if (!first_output) {
+    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry output socket");
+    return false;
+  }
+  if (first_output->type != SOCK_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "The first output must be a geometry socket");
+    return false;
+  }
+  return true;
+}
+
+static int drop_geometry_nodes_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  if (!ob) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  const uint32_t uuid = RNA_int_get(op->ptr, "session_uuid");
+  bNodeTree *node_tree = (bNodeTree *)BKE_libblock_find_session_uuid(bmain, ID_NT, uuid);
+  if (!node_tree) {
+    return OPERATOR_CANCELLED;
+  }
+  if (node_tree->type != NTREE_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "Node group must be a geometry node tree");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!check_geometry_node_group_sockets(op, node_tree)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  NodesModifierData *nmd = (NodesModifierData *)ED_object_modifier_add(
+      op->reports, bmain, scene, ob, node_tree->id.name + 2, eModifierType_Nodes);
+  if (!nmd) {
+    BKE_report(op->reports, RPT_ERROR, "Could not add geometry nodes modifier");
+    return OPERATOR_CANCELLED;
+  }
+
+  nmd->node_group = node_tree;
+  id_us_plus(&node_tree->id);
+  MOD_nodes_update_interface(ob, nmd);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+/** \} */
+
+void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
+{
+  ot->name = "Drop Geometry Node Group on Object";
+  ot->idname = "OBJECT_OT_drop_geometry_nodes";
+
+  ot->invoke = drop_geometry_nodes_invoke;
+  ot->poll = ED_operator_view3d_active;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "session_uuid",
+                                  0,
+                                  INT32_MIN,
+                                  INT32_MAX,
+                                  "Session UUID",
+                                  "Session UUID of the geometry node group being dropped",
+                                  INT32_MIN,
+                                  INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */

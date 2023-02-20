@@ -5,7 +5,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -81,17 +81,24 @@ class CompositeOperation : public NodeOperation {
   /* Executes when the alpha channel of the image is ignored. */
   void execute_ignore_alpha()
   {
-    GPUShader *shader = shader_manager().get("compositor_convert_color_to_opaque");
+    GPUShader *shader = shader_manager().get("compositor_write_output_opaque");
     GPU_shader_bind(shader);
+
+    /* The compositing space might be limited to a subset of the output texture, so only write into
+     * that compositing region. */
+    const rcti compositing_region = context().get_compositing_region();
+    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
     GPUTexture *output_texture = context().get_output_texture();
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, compute_domain().size);
+    const int2 compositing_region_size = context().get_compositing_region_size();
+    compute_dispatch_threads_at_least(shader, compositing_region_size);
 
     image.unbind_as_texture();
     GPU_texture_image_unbind(output_texture);
@@ -102,31 +109,54 @@ class CompositeOperation : public NodeOperation {
    * to the output texture. */
   void execute_copy()
   {
+    GPUShader *shader = shader_manager().get("compositor_write_output");
+    GPU_shader_bind(shader);
+
+    /* The compositing space might be limited to a subset of the output texture, so only write into
+     * that compositing region. */
+    const rcti compositing_region = context().get_compositing_region();
+    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
+
     const Result &image = get_input("Image");
+    image.bind_as_texture(shader, "input_tx");
 
-    /* Make sure any prior writes to the texture are reflected before copying it. */
-    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+    GPUTexture *output_texture = context().get_output_texture();
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
+    GPU_texture_image_bind(output_texture, image_unit);
 
-    GPU_texture_copy(context().get_output_texture(), image.texture());
+    const int2 compositing_region_size = context().get_compositing_region_size();
+    compute_dispatch_threads_at_least(shader, compositing_region_size);
+
+    image.unbind_as_texture();
+    GPU_texture_image_unbind(output_texture);
+    GPU_shader_unbind();
   }
 
   /* Executes when the alpha channel of the image is set as the value of the input alpha. */
   void execute_set_alpha()
   {
-    GPUShader *shader = shader_manager().get("compositor_set_alpha");
+    GPUShader *shader = shader_manager().get("compositor_write_output_alpha");
     GPU_shader_bind(shader);
 
+    /* The compositing space might be limited to a subset of the output texture, so only write into
+     * that compositing region. */
+    const rcti compositing_region = context().get_compositing_region();
+    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
+
     const Result &image = get_input("Image");
-    image.bind_as_texture(shader, "image_tx");
+    image.bind_as_texture(shader, "input_tx");
 
     const Result &alpha = get_input("Alpha");
     alpha.bind_as_texture(shader, "alpha_tx");
 
     GPUTexture *output_texture = context().get_output_texture();
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, compute_domain().size);
+    const int2 compositing_region_size = context().get_compositing_region_size();
+    compute_dispatch_threads_at_least(shader, compositing_region_size);
 
     image.unbind_as_texture();
     alpha.unbind_as_texture();
@@ -142,10 +172,11 @@ class CompositeOperation : public NodeOperation {
     return bnode().custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA;
   }
 
-  /* The operation domain have the same dimensions of the output without any transformations. */
+  /* The operation domain has the same size as the compositing region without any transformations
+   * applied. */
   Domain compute_domain() override
   {
-    return Domain(context().get_output_size());
+    return Domain(context().get_compositing_region_size());
   }
 };
 

@@ -475,7 +475,7 @@ static void mask_draw_curve_type(const bContext *C,
       immUniform4fv("color", colors[0]);
       immUniform4fv("color2", colors[1]);
       immUniform1f("dash_width", 4.0f);
-      immUniform1f("dash_factor", 0.5f);
+      immUniform1f("udash_factor", 0.5f);
       GPU_line_width(1.0f);
 
       mask_draw_array(pos, draw_method, points, tot_point);
@@ -722,7 +722,7 @@ void ED_mask_draw_region(
       GPU_matrix_mul(stabmat);
     }
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-    GPU_shader_uniform_vector(
+    GPU_shader_uniform_float_ex(
         state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, buf_col);
 
     if (overlay_mode == MASK_OVERLAY_COMBINED) {

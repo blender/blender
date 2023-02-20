@@ -92,26 +92,6 @@
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
 
-/* ----------- Private Stuff - General -------------------- */
-
-/* Get vertical scaling factor (i.e. typically used for keyframe size) */
-static void animedit_get_yscale_factor(bAnimContext *ac)
-{
-  bTheme *btheme = UI_GetTheme();
-
-  /* grab scale factor directly from action editor setting
-   * NOTE: This theme setting doesn't have an ID, as it cannot be accessed normally
-   *       since it is a float, and the theme settings methods can only handle chars.
-   */
-  ac->yscale_fac = btheme->space_action.keyframe_scale_fac;
-
-  /* clamp to avoid problems with uninitialized values... */
-  if (ac->yscale_fac < 0.1f) {
-    ac->yscale_fac = 1.0f;
-  }
-  // printf("yscale_fac = %f\n", ac->yscale_fac);
-}
-
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
@@ -243,7 +223,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       /* sync scene's "selected keys only" flag with our "only selected" flag
        *
-       * XXX: This is a workaround for T55525. We shouldn't really be syncing the flags like this,
+       * XXX: This is a workaround for #55525. We shouldn't really be syncing the flags like this,
        * but it's a simpler fix for now than also figuring out how the next/prev keyframe
        * tools should work in the 3D View if we allowed full access to the timeline's
        * dopesheet filters (i.e. we'd have to figure out where to host those settings,
@@ -407,9 +387,6 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   ac->sl = sl;
   ac->spacetype = (area) ? area->spacetype : 0;
   ac->regiontype = (region) ? region->regiontype : 0;
-
-  /* Initialize default y-scale factor. */
-  animedit_get_yscale_factor(ac);
 
   /* get data context info */
   /* XXX: if the below fails, try to grab this info from context instead...
@@ -1095,7 +1072,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
       /* Can only add this F-Curve if it is selected. */
       if (ads->filterflag & ADS_FILTER_ONLYSEL) {
 
-        /* NOTE(@campbellbarton): The `seq == NULL` check doesn't look right
+        /* NOTE(@ideasman42): The `seq == NULL` check doesn't look right
          * (compared to other checks in this function which skip data that can't be found).
          *
          * This is done since the search for sequence strips doesn't use a global lookup:
@@ -1383,7 +1360,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
    * but the group isn't expanded (1)...
    * (1) this only matters if we actually care about the hierarchy though.
    *     - Hierarchy matters: this hack should be applied
-   *     - Hierarchy ignored: cases like T21276 won't work properly, unless we skip this hack
+   *     - Hierarchy ignored: cases like #21276 won't work properly, unless we skip this hack
    */
   if (
       /* Care about hierarchy but group isn't expanded. */
@@ -2005,23 +1982,23 @@ static size_t animdata_filter_ds_cachefile(
 /* Helper for Mask Editing - mask layers */
 static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const int filter_mode)
 {
-  MaskLayer *masklay_act = BKE_mask_layer_active(mask);
-  MaskLayer *masklay;
+  const MaskLayer *masklay_act = BKE_mask_layer_active(mask);
   size_t items = 0;
 
-  /* loop over layers as the conditions are acceptable */
-  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-    /* only if selected */
-    if (ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay))) {
-      /* only if editable */
-      if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_MASK(masklay)) {
-        /* active... */
-        if (!(filter_mode & ANIMFILTER_ACTIVE) || (masklay_act == masklay)) {
-          /* add to list */
-          ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask, NULL);
-        }
-      }
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
+    if (!ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay))) {
+      continue;
     }
+
+    if ((filter_mode & ANIMFILTER_FOREDIT) && !EDITABLE_MASK(masklay)) {
+      continue;
+    }
+
+    if ((filter_mode & ANIMFILTER_ACTIVE) & (masklay_act != masklay)) {
+      continue;
+    }
+
+    ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask, NULL);
   }
 
   return items;
@@ -2033,12 +2010,11 @@ static size_t animdata_filter_mask(Main *bmain,
                                    void *UNUSED(data),
                                    int filter_mode)
 {
-  Mask *mask;
   size_t items = 0;
 
   /* For now, grab mask data-blocks directly from main. */
   /* XXX: this is not good... */
-  for (mask = bmain->masks.first; mask; mask = mask->id.next) {
+  LISTBASE_FOREACH (Mask *, mask, &bmain->masks) {
     ListBase tmp_data = {NULL, NULL};
     size_t tmp_items = 0;
 
@@ -2048,24 +2024,28 @@ static size_t animdata_filter_mask(Main *bmain,
     }
 
     /* add mask animation channels */
-    BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
-      tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+    if (!(filter_mode & ANIMFILTER_FCURVESONLY)) {
+      BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
+        tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+      }
+      END_ANIMFILTER_SUBCHANNELS;
     }
-    END_ANIMFILTER_SUBCHANNELS;
 
     /* did we find anything? */
-    if (tmp_items) {
-      /* include data-expand widget first */
-      if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-        /* add mask data-block as channel too (if for drawing, and it has layers) */
-        ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
-      }
-
-      /* now add the list of collected channels */
-      BLI_movelisttolist(anim_data, &tmp_data);
-      BLI_assert(BLI_listbase_is_empty(&tmp_data));
-      items += tmp_items;
+    if (!tmp_items) {
+      continue;
     }
+
+    /* include data-expand widget first */
+    if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+      /* add mask data-block as channel too (if for drawing, and it has layers) */
+      ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
+    }
+
+    /* now add the list of collected channels */
+    BLI_movelisttolist(anim_data, &tmp_data);
+    BLI_assert(BLI_listbase_is_empty(&tmp_data));
+    items += tmp_items;
   }
 
   /* return the number of items added to the list */
@@ -2826,7 +2806,7 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* object data */
-    if (ob->data) {
+    if ((ob->data) && (ob->type != OB_GPENCIL)) {
       tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
     }
 
@@ -3141,7 +3121,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads,
     if (object_mode & OB_MODE_POSE) {
       /* When in pose-mode handle all pose-mode objects.
        * This avoids problems with pose-mode where objects may be unselected,
-       * where a selected bone of an unselected object would be hidden. see: T81922. */
+       * where a selected bone of an unselected object would be hidden. see: #81922. */
       if (!(base->object->mode & object_mode)) {
         return false;
       }
@@ -3473,7 +3453,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
         SpaceAction *saction = (SpaceAction *)ac->sl;
         bDopeSheet *ads = (saction) ? &saction->ads : NULL;
 
-        /* specially check for AnimData filter, see T36687. */
+        /* specially check for AnimData filter, see #36687. */
         if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
           /* all channels here are within the same AnimData block, hence this special case */
           if (LIKELY(obact->adt)) {
@@ -3494,7 +3474,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
       {
         Key *key = (Key *)data;
 
-        /* specially check for AnimData filter, see T36687. */
+        /* specially check for AnimData filter, see #36687. */
         if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
           /* all channels here are within the same AnimData block, hence this special case */
           if (LIKELY(key->adt)) {

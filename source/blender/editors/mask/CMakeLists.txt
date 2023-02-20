@@ -13,6 +13,9 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+)
+
 set(SRC
   mask_add.c
   mask_draw.c

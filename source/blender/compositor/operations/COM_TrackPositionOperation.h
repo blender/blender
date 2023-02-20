@@ -25,7 +25,7 @@ class TrackPositionOperation : public ConstantOperation {
   char tracking_object_name_[64];
   char track_name_[64];
   int axis_;
-  int position_;
+  CMPNodeTrackPositionMode position_;
   int relative_frame_;
   bool speed_output_;
 
@@ -63,7 +63,7 @@ class TrackPositionOperation : public ConstantOperation {
   {
     axis_ = value;
   }
-  void set_position(int value)
+  void set_position(CMPNodeTrackPositionMode value)
   {
     position_ = value;
   }
