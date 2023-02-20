@@ -101,7 +101,11 @@ const UserDef U_default = {
     .gp_euclideandist = 2,
     .gp_eraser = 25,
     .gp_settings = 0,
+#ifdef __APPLE__
+    .gpu_backend = GPU_BACKEND_METAL,
+#else
     .gpu_backend = GPU_BACKEND_OPENGL,
+#endif
 
     /** Initialized by: #BKE_studiolight_default. */
     .light_param = {{0}},
