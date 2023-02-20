@@ -508,6 +508,7 @@ static void prepare_inferencing_interfaces(
 
 bool update_field_inferencing(const bNodeTree &tree)
 {
+  BLI_assert(tree.type == NTREE_GEOMETRY);
   tree.ensure_topology_cache();
 
   const Span<const bNode *> nodes = tree.all_nodes();

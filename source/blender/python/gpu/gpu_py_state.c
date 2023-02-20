@@ -227,6 +227,72 @@ static PyObject *pygpu_state_viewport_get(PyObject *UNUSED(self), PyObject *UNUS
   return ret;
 }
 
+PyDoc_STRVAR(pygpu_state_scissor_set_doc,
+             ".. function:: scissor_set(x, y, xsize, ysize)\n"
+             "\n"
+             "   Specifies the scissor area of the active framebuffer.\n"
+             "   Note: The scissor state is not saved upon framebuffer rebind.\n"
+             "\n"
+             "   :arg x, y: lower left corner of the scissor rectangle, in pixels.\n"
+             "   :type x, y: int\n"
+             "   :arg xsize, ysize: width and height of the scissor rectangle.\n"
+             "   :type xsize, ysize: int\n");
+static PyObject *pygpu_state_scissor_set(PyObject *UNUSED(self), PyObject *args)
+{
+  int x, y, xsize, ysize;
+  if (!PyArg_ParseTuple(args, "iiii:scissor_set", &x, &y, &xsize, &ysize)) {
+    return NULL;
+  }
+
+  GPU_scissor(x, y, xsize, ysize);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(pygpu_state_scissor_get_doc,
+             ".. function:: scissor_get()\n"
+             "\n"
+             "   Retrieve the scissors of the active framebuffer.\n"
+             "   Note: Only valid between 'scissor_set' and a framebuffer rebind.\n"
+             "\n"
+             "   :return: The scissor of the active framebuffer as a tuple\n"
+             "        (x, y, xsize, ysize).\n"
+             "        x, y: lower left corner of the scissor rectangle, in pixels.\n"
+             "        xsize, ysize: width and height of the scissor rectangle.\n"
+             "   :rtype: tuple(int, int, int, int)\n");
+static PyObject *pygpu_state_scissor_get(PyObject *UNUSED(self), PyObject *UNUSED(args))
+{
+  int scissor[4];
+  GPU_scissor_get(scissor);
+
+  PyObject *ret = PyTuple_New(4);
+  PyTuple_SET_ITEMS(ret,
+                    PyLong_FromLong(scissor[0]),
+                    PyLong_FromLong(scissor[1]),
+                    PyLong_FromLong(scissor[2]),
+                    PyLong_FromLong(scissor[3]));
+  return ret;
+}
+
+PyDoc_STRVAR(pygpu_state_scissor_test_set_doc,
+             ".. function:: scissor_test_set(enable)\n"
+             "\n"
+             "   Enable/disable scissor testing on the active framebuffer.\n"
+             "\n"
+             "   :arg enable:\n"
+             "        True - enable scissor testing.\n"
+             "        False - disable scissor testing.\n"
+             "   :type enable: bool\n");
+static PyObject *pygpu_state_scissor_test_set(PyObject *UNUSED(self), PyObject *value)
+{
+  bool enabled;
+  if (!PyC_ParseBool(value, &enabled)) {
+    return NULL;
+  }
+
+  GPU_scissor_test(enabled);
+  Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(pygpu_state_line_width_set_doc,
              ".. function:: line_width_set(width)\n"
              "\n"
@@ -394,6 +460,18 @@ static struct PyMethodDef pygpu_state__tp_methods[] = {
      (PyCFunction)pygpu_state_viewport_get,
      METH_NOARGS,
      pygpu_state_viewport_get_doc},
+    {"scissor_set",
+     (PyCFunction)pygpu_state_scissor_set,
+     METH_VARARGS,
+     pygpu_state_scissor_set_doc},
+    {"scissor_get",
+     (PyCFunction)pygpu_state_scissor_get,
+     METH_NOARGS,
+     pygpu_state_scissor_get_doc},
+    {"scissor_test_set",
+     (PyCFunction)pygpu_state_scissor_test_set,
+     METH_VARARGS,
+     pygpu_state_scissor_test_set_doc},
     {"line_width_set",
      (PyCFunction)pygpu_state_line_width_set,
      METH_O,
