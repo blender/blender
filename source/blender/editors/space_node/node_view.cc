@@ -60,7 +60,7 @@ bool space_node_view_flag(
   int tot = 0;
   bool has_frame = false;
   if (snode.edittree) {
-    for (const bNode *node : snode.edittree->all_nodes()) {
+    LISTBASE_FOREACH (const bNode *, node, &snode.edittree->nodes) {
       if ((node->flag & node_flag) == node_flag) {
         BLI_rctf_union(&cur_new, &node->runtime->totr);
         tot++;

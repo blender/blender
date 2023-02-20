@@ -17,6 +17,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_bit_vector.hh"
 #include "BLI_bounds.hh"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
@@ -65,6 +66,7 @@
 
 #include "BLO_read_write.h"
 
+using blender::BitVector;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;

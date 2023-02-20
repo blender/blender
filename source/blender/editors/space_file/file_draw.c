@@ -128,55 +128,16 @@ static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
   UI_draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
 }
 
-static void file_but_enable_drag(uiBut *but,
-                                 const SpaceFile *sfile,
-                                 const FileDirEntry *file,
-                                 const char *path,
-                                 ImBuf *preview_image,
-                                 int icon,
-                                 float scale)
-{
-  ID *id;
-
-  if ((id = filelist_file_get_id(file))) {
-    UI_but_drag_set_id(but, id);
-    if (preview_image) {
-      UI_but_drag_attach_image(but, preview_image, scale);
-    }
-  }
-  else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
-           (file->typeflag & FILE_TYPE_ASSET) != 0) {
-    char blend_path[FILE_MAX_LIBEXTRA];
-    if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
-      const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
-      BLI_assert(import_method > -1);
-
-      UI_but_drag_set_asset(but,
-                            &(AssetHandle){.file_data = file},
-                            BLI_strdup(blend_path),
-                            import_method,
-                            icon,
-                            preview_image,
-                            scale);
-    }
-  }
-  else if (preview_image) {
-    UI_but_drag_set_image(but, BLI_strdup(path), icon, preview_image, scale, true);
-  }
-  else {
-    /* path is no more static, cannot give it directly to but... */
-    UI_but_drag_set_path(but, BLI_strdup(path), true);
-  }
-}
-
-static uiBut *file_add_icon_but(const SpaceFile *sfile,
-                                uiBlock *block,
-                                const char *path,
-                                const rcti *tile_draw_rect,
-                                int icon,
-                                int width,
-                                int height,
-                                bool dimmed)
+static void file_draw_icon(const SpaceFile *sfile,
+                           uiBlock *block,
+                           const FileDirEntry *file,
+                           const char *path,
+                           const rcti *tile_draw_rect,
+                           int icon,
+                           int width,
+                           int height,
+                           bool drag,
+                           bool dimmed)
 {
   uiBut *but;
 
@@ -190,7 +151,42 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
       block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, a1, a2, NULL);
   UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
 
-  return but;
+  if (drag) {
+    /* TODO: duplicated from file_draw_preview(). */
+    ID *id;
+
+    if ((id = filelist_file_get_id(file))) {
+      UI_but_drag_set_id(but, id);
+      ImBuf *preview_image = filelist_file_getimage(file);
+      if (preview_image) {
+        UI_but_drag_attach_image(but, preview_image, UI_DPI_FAC);
+      }
+    }
+    else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
+             (file->typeflag & FILE_TYPE_ASSET) != 0) {
+      ImBuf *preview_image = filelist_file_getimage(file);
+      char blend_path[FILE_MAX_LIBEXTRA];
+      if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
+        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+        BLI_assert(asset_params != NULL);
+
+        const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
+        BLI_assert(import_method > -1);
+
+        UI_but_drag_set_asset(but,
+                              &(AssetHandle){.file_data = file},
+                              BLI_strdup(blend_path),
+                              import_method,
+                              icon,
+                              preview_image,
+                              UI_DPI_FAC);
+      }
+    }
+    else {
+      /* path is no more static, cannot give it directly to but... */
+      UI_but_drag_set_path(but, BLI_strdup(path), true);
+    }
+  }
 }
 
 static void file_draw_string(int sx,
@@ -301,50 +297,21 @@ void file_calc_previews(const bContext *C, ARegion *region)
   UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
-static void file_add_preview_drag_but(const SpaceFile *sfile,
-                                      uiBlock *block,
-                                      FileLayout *layout,
-                                      const FileDirEntry *file,
-                                      const char *path,
-                                      const rcti *tile_draw_rect,
-                                      ImBuf *preview_image,
-                                      const int icon,
-                                      const float scale)
-{
-  /* Invisible button for dragging. */
-  rcti drag_rect = *tile_draw_rect;
-  /* A bit smaller than the full tile, to increase the gap between items that users can drag from
-   * for box select. */
-  BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
-
-  uiBut *but = uiDefBut(block,
-                        UI_BTYPE_LABEL,
-                        0,
-                        "",
-                        drag_rect.xmin,
-                        drag_rect.ymin,
-                        BLI_rcti_size_x(&drag_rect),
-                        BLI_rcti_size_y(&drag_rect),
-                        NULL,
-                        0.0,
-                        0.0,
-                        0,
-                        0,
-                        NULL);
-  file_but_enable_drag(but, sfile, file, path, preview_image, icon, scale);
-}
-
-static void file_draw_preview(const FileDirEntry *file,
+static void file_draw_preview(const SpaceFile *sfile,
+                              uiBlock *block,
+                              const FileDirEntry *file,
+                              const char *path,
                               const rcti *tile_draw_rect,
                               const float icon_aspect,
                               ImBuf *imb,
                               const int icon,
                               FileLayout *layout,
                               const bool is_icon,
+                              const bool drag,
                               const bool dimmed,
-                              const bool is_link,
-                              float *r_scale)
+                              const bool is_link)
 {
+  uiBut *but;
   float fx, fy;
   float dx, dy;
   int xco, yco;
@@ -561,11 +528,62 @@ static void file_draw_preview(const FileDirEntry *file,
     immUnbindProgram();
   }
 
-  GPU_blend(GPU_BLEND_NONE);
+  /* Invisible button for dragging. */
+  rcti drag_rect = *tile_draw_rect;
+  /* A bit smaller than the full tile, to increase the gap between items that users can drag from
+   * for box select. */
+  BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
 
-  if (r_scale) {
-    *r_scale = scale;
+  but = uiDefBut(block,
+                 UI_BTYPE_LABEL,
+                 0,
+                 "",
+                 drag_rect.xmin,
+                 drag_rect.ymin,
+                 BLI_rcti_size_x(&drag_rect),
+                 BLI_rcti_size_y(&drag_rect),
+                 NULL,
+                 0.0,
+                 0.0,
+                 0,
+                 0,
+                 NULL);
+
+  /* Drag-region. */
+  if (drag) {
+    ID *id;
+
+    if ((id = filelist_file_get_id(file))) {
+      UI_but_drag_set_id(but, id);
+      UI_but_drag_attach_image(but, imb, scale);
+    }
+    /* path is no more static, cannot give it directly to but... */
+    else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
+             (file->typeflag & FILE_TYPE_ASSET) != 0) {
+      char blend_path[FILE_MAX_LIBEXTRA];
+
+      if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
+        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+        BLI_assert(asset_params != NULL);
+
+        const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
+        BLI_assert(import_method > -1);
+
+        UI_but_drag_set_asset(but,
+                              &(AssetHandle){.file_data = file},
+                              BLI_strdup(blend_path),
+                              import_method,
+                              icon,
+                              imb,
+                              scale);
+      }
+    }
+    else {
+      UI_but_drag_set_image(but, BLI_strdup(path), icon, imb, scale, true);
+    }
   }
+
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
@@ -1018,36 +1036,31 @@ void file_draw_list(const bContext *C, ARegion *region)
         is_icon = 1;
       }
 
-      float scale = 0;
-      file_draw_preview(file,
+      file_draw_preview(sfile,
+                        block,
+                        file,
+                        path,
                         &tile_draw_rect,
                         thumb_icon_aspect,
                         imb,
                         icon,
                         layout,
                         is_icon,
+                        do_drag,
                         is_hidden,
-                        is_link,
-                        /* Returns the scale which is needed below. */
-                        &scale);
-      if (do_drag) {
-        file_add_preview_drag_but(
-            sfile, block, layout, file, path, &tile_draw_rect, imb, icon, scale);
-      }
+                        is_link);
     }
     else {
-      const int icon = filelist_geticon(files, i, true);
-      uiBut *icon_but = file_add_icon_but(sfile,
-                                          block,
-                                          path,
-                                          &tile_draw_rect,
-                                          icon,
-                                          ICON_DEFAULT_WIDTH_SCALE,
-                                          ICON_DEFAULT_HEIGHT_SCALE,
-                                          is_hidden);
-      if (do_drag) {
-        file_but_enable_drag(icon_but, sfile, file, path, NULL, icon, UI_DPI_FAC);
-      }
+      file_draw_icon(sfile,
+                     block,
+                     file,
+                     path,
+                     &tile_draw_rect,
+                     filelist_geticon(files, i, true),
+                     ICON_DEFAULT_WIDTH_SCALE,
+                     ICON_DEFAULT_HEIGHT_SCALE,
+                     do_drag,
+                     is_hidden);
       icon_ofs += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
     }
 

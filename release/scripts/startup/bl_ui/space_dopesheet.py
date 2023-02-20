@@ -474,9 +474,6 @@ class DOPESHEET_MT_channel(Menu):
         layout.separator()
         layout.operator("anim.channels_fcurves_enable")
 
-        layout.separator()
-        layout.operator("anim.channels_view_selected")
-
 
 class DOPESHEET_MT_key(Menu):
     bl_label = "Key"
@@ -604,9 +601,6 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.separator()
         layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
-        layout.separator()
-        layout.operator("anim.channels_view_selected")
-
 
 class DOPESHEET_MT_gpencil_key(Menu):
     bl_label = "Key"
@@ -694,9 +688,6 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         # This menu is used from the graph editor too.
         is_graph_editor = context.area.type == 'GRAPH_EDITOR'
-
-        layout.separator()
-        layout.operator("anim.channels_view_selected")
 
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
