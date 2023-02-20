@@ -189,6 +189,9 @@ static int stroke_march_next_point(const bGPDstroke *gps,
                                    float *pressure,
                                    float *strength,
                                    float *vert_color,
+                                   float *uv_fac,
+                                   float *uv_fill,
+                                   float *uv_rot,
                                    float *ratio_result,
                                    int *index_from,
                                    int *index_to)
@@ -270,6 +273,10 @@ static int stroke_march_next_point(const bGPDstroke *gps,
       gps->points[next_point_index].pressure, gps->points[*index_from].pressure, vratio);
   *strength = interpf(
       gps->points[next_point_index].strength, gps->points[*index_from].strength, vratio);
+  *uv_fac = interpf(gps->points[next_point_index].uv_fac, gps->points[*index_from].uv_fac, vratio);
+  *uv_rot = interpf(gps->points[next_point_index].uv_rot, gps->points[*index_from].uv_rot, vratio);
+  interp_v2_v2v2(
+      uv_fill, gps->points[*index_from].uv_fill, gps->points[next_point_index].uv_fill, vratio);
   interp_v4_v4v4(vert_color,
                  gps->points[*index_from].vert_color,
                  gps->points[next_point_index].vert_color,
@@ -473,6 +480,7 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
   int next_point_index = 1;
   int i = 0;
   float pressure, strength, ratio_result;
+  float uv_fac, uv_rot, uv_fill[2];
   float vert_color[4];
   int index_from, index_to;
   float last_coord[3];
@@ -509,6 +517,9 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
                                                      &pressure,
                                                      &strength,
                                                      vert_color,
+                                                     &uv_fac,
+                                                     uv_fill,
+                                                     &uv_rot,
                                                      &ratio_result,
                                                      &index_from,
                                                      &index_to)) > -1) {
@@ -519,6 +530,10 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
     copy_v3_v3(&pt2->x, last_coord);
     new_pt[i].pressure = pressure;
     new_pt[i].strength = strength;
+    new_pt[i].uv_fac = uv_fac;
+    new_pt[i].uv_rot = uv_rot;
+    copy_v2_v2(new_pt[i].uv_fill, uv_fill);
+
     memcpy(new_pt[i].vert_color, vert_color, sizeof(float[4]));
     if (select) {
       new_pt[i].flag |= GP_SPOINT_SELECT;
