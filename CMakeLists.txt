@@ -974,7 +974,7 @@ if(WITH_PYTHON)
   if(DIR_LEN EQUAL 0)
     message(
       WARNING
-      "Addons path '${CMAKE_SOURCE_DIR}/cripts/addons' is missing. "
+      "Addons path '${CMAKE_SOURCE_DIR}/scripts/addons' is missing. "
       "This is an external repository which needs to be checked out. Use `make update` to do so. "
       "* CONTINUING WITHOUT ADDONS *"
     )
