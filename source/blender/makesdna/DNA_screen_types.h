@@ -312,6 +312,13 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   uiListDyn *dyn_data;
 } uiList;
 
+typedef struct AssetShelf {
+  struct AssetShelf *next, *prev;
+
+  /** Runtime. */
+  struct AssetShelfType *type;
+} AssetShelf;
+
 typedef struct TransformOrientation {
   struct TransformOrientation *next, *prev;
   /** MAX_NAME. */

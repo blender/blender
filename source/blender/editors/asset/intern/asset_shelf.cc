@@ -54,6 +54,12 @@ static void asset_shelf_region_listen(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_SCENE:
+      /* Asset shelf polls typically check the mode. */
+      if (ELEM(wmn->data, ND_MODE)) {
+        ED_region_tag_redraw(region);
+      }
+      break;
   }
 }
 
@@ -66,6 +72,51 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
   else {
     asset_shelf_region_listen(params);
   }
+}
+
+/**
+ * Check if there is any asset shelf type returning true in it's poll. If not, no asset shelf
+ * region should be displayed.
+ */
+static bool asset_shelf_region_header_type_poll(const bContext *C, HeaderType * /*header_type*/)
+{
+  const SpaceLink *space_link = CTX_wm_space_data(C);
+  const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
+
+  /* Is there any asset shelf type registered that returns true for it's poll? */
+  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
+    if (shelf_type->poll && shelf_type->poll(C, shelf_type)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void ED_asset_shelf_region_draw(const bContext *C, ARegion *region)
+{
+  ED_region_header(C, region);
+}
+
+static void asset_shelf_region_draw(const bContext *C, Header *header)
+{
+  uiLayout *layout = header->layout;
+  AssetFilterSettings dummy_filter_settings{0};
+
+  uiTemplateAssetShelf(layout, C, &dummy_filter_settings);
+}
+
+void ED_asset_shelf_region_register(ARegionType *region_type,
+                                    const char *idname,
+                                    const int space_type)
+{
+  HeaderType *ht = MEM_cnew<HeaderType>(__func__);
+  strcpy(ht->idname, idname);
+  ht->space_type = space_type;
+  ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
+  ht->draw = asset_shelf_region_draw;
+  ht->poll = asset_shelf_region_header_type_poll;
+  BLI_addtail(&region_type->headertypes, ht);
 }
 
 void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
@@ -505,6 +556,7 @@ void ED_asset_shelf_footer_register(ARegionType *region_type,
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
   ht->draw = asset_shelf_footer_draw;
+  ht->poll = asset_shelf_region_header_type_poll;
   BLI_addtail(&region_type->headertypes, ht);
 }
 

@@ -7,6 +7,7 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -106,6 +107,29 @@ static std::optional<asset_system::AssetCatalogFilter> catalog_filter_from_shelf
   return library->catalog_service->create_catalog_filter(active_catalog->catalog_id);
 }
 
+/* TODO calling a (.py defined) callback for every asset isn't exactly great. Should be a temporary
+solution until there is proper filtering by asset traits. */
+/**
+ * Returns true if the asset should be visible. That is, if any of the visible asset shelves has no
+ * poll function (all assets should be displayed), or its #AssetShelfType.asset_poll function
+ * returns true.
+ */
+static bool asset_shelf_asset_poll(const SpaceType &space_type,
+                                   const bContext &C,
+                                   const AssetHandle &asset)
+{
+  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
+    if (!shelf_type->poll || !shelf_type->poll(&C, shelf_type)) {
+      continue;
+    }
+    if (!shelf_type->asset_poll || shelf_type->asset_poll(shelf_type, &asset)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void uiTemplateAssetShelf(uiLayout *layout,
                           const bContext *C,
                           const AssetFilterSettings *filter_settings)
@@ -115,6 +139,8 @@ void uiTemplateAssetShelf(uiLayout *layout,
       C, "asset_shelf_settings", &RNA_AssetShelfSettings);
   const AssetShelfSettings *shelf_settings = static_cast<AssetShelfSettings *>(
       shelf_settings_ptr.data);
+
+  Vector<decltype(AssetShelfType::asset_poll)> asset_polls;
 
   ED_assetlist_storage_fetch(library_ref, C);
   ED_assetlist_ensure_previews_job(library_ref, C);
@@ -139,8 +165,13 @@ void uiTemplateAssetShelf(uiLayout *layout,
 
   uiLayout *box = uiLayoutBox(layout);
   uiLayout *row = uiLayoutRow(box, false);
+  const SpaceLink *space_link = CTX_wm_space_data(C);
+  const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
 
   ED_assetlist_iterate(*library_ref, [&](AssetHandle asset) {
+    if (!asset_shelf_asset_poll(*space_type, *C, asset)) {
+      return true;
+    }
     if (!ED_asset_filter_matches_asset(filter_settings, &asset)) {
       /* Don't do anything else, but return true to continue iterating. */
       return true;

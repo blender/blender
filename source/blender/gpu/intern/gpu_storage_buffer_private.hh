@@ -14,6 +14,8 @@ struct GPUStorageBuf;
 namespace blender {
 namespace gpu {
 
+class VertBuf;
+
 #ifdef DEBUG
 #  define DEBUG_NAME_LEN 64
 #else

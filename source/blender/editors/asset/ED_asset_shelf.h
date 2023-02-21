@@ -23,6 +23,10 @@ struct wmWindowManager;
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_FOOTER). */
 void ED_asset_shelf_region_listen(const struct wmRegionListenerParams *params);
+void ED_asset_shelf_region_draw(const bContext *C, struct ARegion *region);
+void ED_asset_shelf_region_register(ARegionType *region_type,
+                                    const char *idname,
+                                    const int space_type);
 
 void ED_asset_shelf_footer_region_init(struct wmWindowManager *wm, struct ARegion *region);
 void ED_asset_shelf_footer_region(const struct bContext *C, struct ARegion *region);

@@ -67,9 +67,12 @@ class MetalDevice : public Device {
   std::recursive_mutex metal_mem_map_mutex;
 
   /* Bindless Textures */
+  bool is_texture(const TextureInfo &tex);
   device_vector<TextureInfo> texture_info;
   bool need_texture_info;
   id<MTLArgumentEncoder> mtlTextureArgEncoder = nil;
+  id<MTLArgumentEncoder> mtlBufferArgEncoder = nil;
+  id<MTLBuffer> buffer_bindings_1d = nil;
   id<MTLBuffer> texture_bindings_2d = nil;
   id<MTLBuffer> texture_bindings_3d = nil;
   std::vector<id<MTLTexture>> texture_slot_map;

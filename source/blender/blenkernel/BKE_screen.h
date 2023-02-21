@@ -128,6 +128,9 @@ typedef struct SpaceType {
   /* region type definitions */
   ListBase regiontypes;
 
+  /* Asset shelf type definitions */
+  ListBase asset_shelf_types; /* AssetShelfType */
+
   /* read and write... */
 
   /** Default key-maps to add. */
@@ -395,6 +398,26 @@ typedef struct Menu {
   struct MenuType *type;   /* runtime */
   struct uiLayout *layout; /* runtime for drawing */
 } Menu;
+
+/* asset shelf types */
+
+typedef struct AssetShelfType {
+  struct AssetShelfType *next, *prev;
+
+  char idname[BKE_ST_MAXNAME]; /* unique name */
+
+  int space_type;
+
+  /* Determine if the asset shelf should be visible or not. */
+  bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);
+
+  /* Determine if an individual asset should be visible or not. May be a temporary design,
+   * visibility should be first and foremost controlled by asset traits. */
+  bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
+
+  /* RNA integration */
+  ExtensionRNA rna_ext;
+} AssetShelfType;
 
 /* Space-types. */
 

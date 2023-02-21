@@ -9,6 +9,7 @@
 
 #include "vk_backend.hh"
 #include "vk_memory.hh"
+#include "vk_shader_interface.hh"
 #include "vk_shader_log.hh"
 
 #include "BLI_string_utils.h"
@@ -324,9 +325,11 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
   return os;
 }
 
-static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &res)
+static void print_resource(std::ostream &os,
+                           const ShaderInput &shader_input,
+                           const ShaderCreateInfo::Resource &res)
 {
-  os << "layout(binding = " << res.slot;
+  os << "layout(binding = " << shader_input.location;
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
     os << ", " << to_string(res.image.format);
   }
@@ -370,6 +373,18 @@ static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &r
          << "; };\n";
       break;
   }
+}
+
+static void print_resource(std::ostream &os,
+                           const VKShaderInterface &shader_interface,
+                           const ShaderCreateInfo::Resource &res)
+{
+  const ShaderInput *shader_input = shader_interface.shader_input_get(res);
+  if (shader_input == nullptr) {
+    BLI_assert_msg(shader_input, "Cannot find shader input for resource");
+    return;
+  }
+  print_resource(os, *shader_input, res);
 }
 
 static void print_resource_alias(std::ostream &os, const ShaderCreateInfo::Resource &res)
@@ -603,6 +618,14 @@ VKShader::~VKShader()
     vkDestroyShaderModule(device, compute_module_, vk_allocation_callbacks);
     compute_module_ = VK_NULL_HANDLE;
   }
+  if (pipeline_layout_ != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(device, pipeline_layout_, vk_allocation_callbacks);
+    pipeline_layout_ = VK_NULL_HANDLE;
+  }
+  if (layout_ != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(device, layout_, vk_allocation_callbacks);
+    layout_ = VK_NULL_HANDLE;
+  }
 }
 
 void VKShader::build_shader_module(MutableSpan<const char *> sources,
@@ -650,52 +673,181 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     return false;
   }
 
-  if (vertex_module_ != VK_NULL_HANDLE) {
+  VKShaderInterface *vk_interface = new VKShaderInterface();
+  vk_interface->init(*info);
+
+  VkDevice vk_device = context_->device_get();
+  if (!finalize_descriptor_set_layouts(vk_device, *vk_interface, *info)) {
+    return false;
+  }
+  if (!finalize_pipeline_layout(vk_device, *info)) {
+    return false;
+  }
+
+  /* TODO we might need to move the actual pipeline construction to a later stage as the graphics
+   * pipeline requires more data before it can be constructed.*/
+  bool result;
+  if (is_graphics_shader()) {
     BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
                (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
     BLI_assert(compute_module_ == VK_NULL_HANDLE);
-
-    VkPipelineShaderStageCreateInfo vertex_stage_info = {};
-    vertex_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertex_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertex_stage_info.module = vertex_module_;
-    vertex_stage_info.pName = "main";
-    pipeline_infos_.append(vertex_stage_info);
-
-    if (geometry_module_ != VK_NULL_HANDLE) {
-      VkPipelineShaderStageCreateInfo geo_stage_info = {};
-      geo_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-      geo_stage_info.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-      geo_stage_info.module = geometry_module_;
-      geo_stage_info.pName = "main";
-      pipeline_infos_.append(geo_stage_info);
-    }
-    if (fragment_module_ != VK_NULL_HANDLE) {
-      VkPipelineShaderStageCreateInfo fragment_stage_info = {};
-      fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-      fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-      fragment_stage_info.module = fragment_module_;
-      fragment_stage_info.pName = "main";
-      pipeline_infos_.append(fragment_stage_info);
-    }
+    result = finalize_graphics_pipeline(vk_device);
   }
   else {
     BLI_assert(vertex_module_ == VK_NULL_HANDLE);
     BLI_assert(geometry_module_ == VK_NULL_HANDLE);
     BLI_assert(fragment_module_ == VK_NULL_HANDLE);
     BLI_assert(compute_module_ != VK_NULL_HANDLE);
-
-    VkPipelineShaderStageCreateInfo compute_stage_info = {};
-    compute_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    compute_stage_info.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-    compute_stage_info.module = compute_module_;
-    compute_stage_info.pName = "main";
-    pipeline_infos_.append(compute_stage_info);
+    compute_pipeline_ = VKPipeline::create_compute_pipeline(
+        *context_, compute_module_, layout_, pipeline_layout_);
+    result = compute_pipeline_.is_valid();
   }
 
-#ifdef NDEBUG
-  UNUSED_VARS(info);
-#endif
+  if (result) {
+    interface = vk_interface;
+  }
+  else {
+    delete vk_interface;
+  }
+  return result;
+}
+
+bool VKShader::finalize_graphics_pipeline(VkDevice /*vk_device */)
+{
+  Vector<VkPipelineShaderStageCreateInfo> pipeline_stages;
+  VkPipelineShaderStageCreateInfo vertex_stage_info = {};
+  vertex_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  vertex_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  vertex_stage_info.module = vertex_module_;
+  vertex_stage_info.pName = "main";
+  pipeline_stages.append(vertex_stage_info);
+
+  if (geometry_module_ != VK_NULL_HANDLE) {
+    VkPipelineShaderStageCreateInfo geo_stage_info = {};
+    geo_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    geo_stage_info.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+    geo_stage_info.module = geometry_module_;
+    geo_stage_info.pName = "main";
+    pipeline_stages.append(geo_stage_info);
+  }
+  if (fragment_module_ != VK_NULL_HANDLE) {
+    VkPipelineShaderStageCreateInfo fragment_stage_info = {};
+    fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragment_stage_info.module = fragment_module_;
+    fragment_stage_info.pName = "main";
+    pipeline_stages.append(fragment_stage_info);
+  }
+
+  return true;
+}
+
+bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
+                                        const shader::ShaderCreateInfo & /*info*/)
+{
+  VK_ALLOCATION_CALLBACKS
+
+  const uint32_t layout_count = layout_ == VK_NULL_HANDLE ? 0 : 1;
+  VkPipelineLayoutCreateInfo pipeline_info = {};
+  pipeline_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipeline_info.flags = 0;
+  pipeline_info.setLayoutCount = layout_count;
+  pipeline_info.pSetLayouts = &layout_;
+
+  if (vkCreatePipelineLayout(
+          vk_device, &pipeline_info, vk_allocation_callbacks, &pipeline_layout_) != VK_SUCCESS) {
+    return false;
+  };
+
+  return true;
+}
+
+static VkDescriptorType descriptor_type(
+    const shader::ShaderCreateInfo::Resource::BindType bind_type)
+{
+  switch (bind_type) {
+    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+      return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+      return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  }
+  BLI_assert_unreachable();
+  return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+}
+
+static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
+    const ShaderInput &shader_input, const shader::ShaderCreateInfo::Resource &resource)
+{
+  VkDescriptorSetLayoutBinding binding = {};
+  binding.binding = shader_input.location;
+  binding.descriptorType = descriptor_type(resource.bind_type);
+  binding.descriptorCount = 1;
+  binding.stageFlags = VK_SHADER_STAGE_ALL;
+  binding.pImmutableSamplers = nullptr;
+
+  return binding;
+}
+
+static void add_descriptor_set_layout_bindings(
+    const VKShaderInterface &interface,
+    const Vector<shader::ShaderCreateInfo::Resource> &resources,
+    Vector<VkDescriptorSetLayoutBinding> &r_bindings)
+{
+  for (const shader::ShaderCreateInfo::Resource &resource : resources) {
+    const ShaderInput *shader_input = interface.shader_input_get(resource);
+    if (shader_input == nullptr) {
+      BLI_assert_msg(shader_input, "Cannot find shader input for resource.");
+      continue;
+    }
+
+    r_bindings.append(create_descriptor_set_layout_binding(*shader_input, resource));
+  }
+}
+
+static VkDescriptorSetLayoutCreateInfo create_descriptor_set_layout(
+    const VKShaderInterface &interface,
+    const Vector<shader::ShaderCreateInfo::Resource> &resources,
+    Vector<VkDescriptorSetLayoutBinding> &r_bindings)
+{
+  add_descriptor_set_layout_bindings(interface, resources, r_bindings);
+  VkDescriptorSetLayoutCreateInfo set_info = {};
+  set_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  set_info.flags = 0;
+  set_info.pNext = nullptr;
+  set_info.bindingCount = r_bindings.size();
+  set_info.pBindings = r_bindings.data();
+  return set_info;
+}
+
+bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
+                                               const VKShaderInterface &shader_interface,
+                                               const shader::ShaderCreateInfo &info)
+{
+  if (info.pass_resources_.is_empty() && info.batch_resources_.is_empty()) {
+    return true;
+  }
+
+  VK_ALLOCATION_CALLBACKS
+
+  /* Currently we create a single descriptor set. The goal would be to create one descriptor set
+   * for Frequency::PASS/BATCH. This isn't possible as areas expect that the binding location is
+   * static and predictable (eevee-next) or the binding location can be mapped to a single number
+   * (python). */
+  Vector<ShaderCreateInfo::Resource> all_resources;
+  all_resources.extend(info.pass_resources_);
+  all_resources.extend(info.batch_resources_);
+
+  Vector<VkDescriptorSetLayoutBinding> bindings;
+  VkDescriptorSetLayoutCreateInfo layout_info = create_descriptor_set_layout(
+      shader_interface, all_resources, bindings);
+  if (vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_allocation_callbacks, &layout_) !=
+      VK_SUCCESS) {
+    return false;
+  };
 
   return true;
 }
@@ -716,10 +868,23 @@ void VKShader::transform_feedback_disable()
 
 void VKShader::bind()
 {
+  VKContext *context = VKContext::get();
+
+  if (is_compute_shader()) {
+    context->command_buffer_get().bind(compute_pipeline_, VK_PIPELINE_BIND_POINT_COMPUTE);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 }
 
 void VKShader::unbind()
 {
+  if (is_compute_shader()) {
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 }
 
 void VKShader::uniform_float(int /*location*/,
@@ -737,11 +902,13 @@ void VKShader::uniform_int(int /*location*/,
 
 std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) const
 {
+  VKShaderInterface interface;
+  interface.init(info);
   std::stringstream ss;
 
   ss << "\n/* Pass Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    print_resource(ss, res);
+    print_resource(ss, interface, res);
   }
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
     print_resource_alias(ss, res);
@@ -749,7 +916,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
 
   ss << "\n/* Batch Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    print_resource(ss, res);
+    print_resource(ss, interface, res);
   }
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
     print_resource_alias(ss, res);
@@ -956,6 +1123,16 @@ std::string VKShader::compute_layout_declare(const shader::ShaderCreateInfo &inf
 int VKShader::program_handle_get() const
 {
   return -1;
+}
+
+VKPipeline &VKShader::pipeline_get()
+{
+  return compute_pipeline_;
+}
+
+const VKShaderInterface &VKShader::interface_get() const
+{
+  return *static_cast<const VKShaderInterface *>(interface);
 }
 
 }  // namespace blender::gpu
