@@ -9651,31 +9651,29 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   return retval;
 }
 
-static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *region)
+/* Handle mouse hover for Views and UiList rows. */
+static int ui_handle_viewlist_items_hover(const wmEvent *event, const ARegion *region)
 {
-  bool has_view_item = false;
+  bool has_item = false;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    /* Avoid unnecessary work: view item buttons are assumed to be inside views. */
-    if (BLI_listbase_is_empty(&block->views)) {
-      continue;
-    }
-
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (but->type == UI_BTYPE_VIEW_ITEM) {
+      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM,UI_BTYPE_LISTROW)) {
         but->flag &= ~UI_ACTIVE;
-        has_view_item = true;
+        has_item = true;
       }
     }
   }
 
-  if (!has_view_item) {
+  if (!has_item) {
     /* Avoid unnecessary lookup. */
     return WM_UI_HANDLER_CONTINUE;
   }
 
-  /* Always highlight the hovered view item, even if the mouse hovers another button inside of it.
-   */
+  /* Always highlight the hovered view item, even if the mouse hovers another button inside. */
   uiBut *hovered_row_but = ui_view_item_find_mouse_over(region, event->xy);
+  if (!hovered_row_but) {
+    hovered_row_but = ui_list_row_find_mouse_over(region, event->xy);
+  }
   if (hovered_row_but) {
     hovered_row_but->flag |= UI_ACTIVE;
   }
@@ -11305,9 +11303,9 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
     ui_blocks_set_tooltips(region, true);
   }
 
-  /* Always do this, to reliably update view item highlighting, even if the mouse hovers a button
-   * nested in the item (it's an overlapping layout). */
-  ui_handle_view_items_hover(event, region);
+  /* Always do this, to reliably update view and uilist item highlighting, even if
+   * the mouse hovers a button nested in the item (it's an overlapping layout). */
+  ui_handle_viewlist_items_hover(event, region);
   if (retval == WM_UI_HANDLER_CONTINUE) {
     retval = ui_handle_view_item_event(C, event, but, region);
   }

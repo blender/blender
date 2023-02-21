@@ -3958,18 +3958,6 @@ static void widget_textbut(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_preview_tile(uiBut *but,
-                                uiWidgetColors *wcol,
-                                rcti *rect,
-                                const uiWidgetStateInfo * /*state*/,
-                                int /*roundboxalign*/,
-                                const float /*zoom*/)
-{
-  const uiStyle *style = UI_style_get();
-  ui_draw_preview_item_stateless(
-      &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
-}
-
 static void widget_menuiconbut(uiWidgetColors *wcol,
                                rcti *rect,
                                const uiWidgetStateInfo * /*state*/,
@@ -4092,7 +4080,7 @@ static void widget_menu_radial_itembut(uiBut *but,
 
 static void widget_list_itembut(uiWidgetColors *wcol,
                                 rcti *rect,
-                                const uiWidgetStateInfo * /*state*/,
+                                const uiWidgetStateInfo *state,
                                 int /*roundboxalign*/,
                                 const float zoom)
 {
@@ -4104,7 +4092,25 @@ static void widget_list_itembut(uiWidgetColors *wcol,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 
+	if (state->but_flag & UI_ACTIVE && !(state->but_flag & UI_SELECT)) {
+    copy_v3_v3_uchar(wcol->inner, wcol->text);
+    wcol->inner[3] = 20;
+  }
+
   widgetbase_draw(&wtb, wcol);
+}
+
+static void widget_preview_tile(uiBut *but,
+                                uiWidgetColors *wcol,
+                                rcti *rect,
+                                const uiWidgetStateInfo *state,
+                                int roundboxalign,
+                                const float zoom)
+{
+  widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+
+  ui_draw_preview_item_stateless(
+      &UI_style_get()->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
 }
 
 static void widget_optionbut(uiWidgetColors *wcol,
@@ -4511,6 +4517,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       /* Drawn via the `custom` callback. */
       wt.text = nullptr;
       wt.custom = widget_preview_tile;
+      wt.wcol_theme = &btheme->tui.wcol_list_item;
       break;
 
     case UI_WTYPE_SWATCH:
