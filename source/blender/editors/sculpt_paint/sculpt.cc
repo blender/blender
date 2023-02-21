@@ -76,6 +76,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
 
 using blender::float3;
@@ -4166,14 +4167,16 @@ static void sculpt_topology_update(Sculpt *sd,
 
   SCULPT_dyntopo_automasking_init(ss, sd, brush, ob, &mask_cb, &mask_cb_data);
 
-  int actv = -1, actf = -1;
+  int actv = BM_ID_NONE, actf = BM_ID_NONE;
 
   if (ss->active_vertex.i != PBVH_REF_NONE) {
-    actv = BM_ELEM_GET_ID(ss->bm, (BMElem *)ss->active_vertex.i);
+    BM_idmap_check_assign(ss->bm_idmap, (BMElem *)ss->active_vertex.i);
+    actv = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_vertex.i);
   }
 
   if (ss->active_face.i != PBVH_REF_NONE) {
-    actf = BM_ELEM_GET_ID(ss->bm, (BMElem *)ss->active_face.i);
+    BM_idmap_check_assign(ss->bm_idmap, (BMElem *)ss->active_face.i);
+    actf = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_face.i);
   }
 
   /* do nodes under the brush cursor */
@@ -4196,8 +4199,8 @@ static void sculpt_topology_update(Sculpt *sd,
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
-  if (actv != -1) {
-    BMVert *v = (BMVert *)BM_ELEM_FROM_ID_SAFE(ss->bm, actv);
+  if (actv != BM_ID_NONE) {
+    BMVert *v = (BMVert *)BM_idmap_lookup(ss->bm_idmap, actv);
 
     if (v && v->head.htype == BM_VERT) {
       ss->active_vertex.i = (intptr_t)v;
@@ -4207,8 +4210,8 @@ static void sculpt_topology_update(Sculpt *sd,
     }
   }
 
-  if (actf != -1) {
-    BMFace *f = (BMFace *)BM_ELEM_FROM_ID_SAFE(ss->bm, actf);
+  if (actf != BM_ID_NONE) {
+    BMFace *f = (BMFace *)BM_idmap_lookup(ss->bm_idmap, actf);
 
     if (f && f->head.htype == BM_FACE) {
       ss->active_face.i = (intptr_t)f;

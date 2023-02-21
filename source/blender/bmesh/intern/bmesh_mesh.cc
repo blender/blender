@@ -371,7 +371,6 @@ void BM_mesh_data_free(BMesh *bm)
 void BM_mesh_clear(BMesh *bm)
 {
   const bool use_toolflags = bm->use_toolflags;
-  const int idmap_flags = bm->idmap.flag;
 
   /* free old mesh */
   BM_mesh_data_free(bm);

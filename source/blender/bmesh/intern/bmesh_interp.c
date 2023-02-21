@@ -32,7 +32,7 @@ ATTR_NO_OPT static void copy_cdata_simple(BMesh *bm,
                                           const BMElem *ele_src)
 {
   int cd_tflags;
-  MToolFlags saved_tflags = {};
+  MToolFlags saved_tflags = {0};
 
   if ((cd_tflags = CustomData_get_offset(data_layer, CD_TOOLFLAGS)) != -1) {
     saved_tflags = *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags);
@@ -788,7 +788,7 @@ ATTR_NO_OPT static void update_data_blocks(BMesh *bm, CustomData *olddata, Custo
   void *block;
 
   CustomDataLayer **nocopy_layers = NULL;
-  BLI_array_staticdeclare(nocopy_layers, 1024);
+  BLI_array_staticdeclare(nocopy_layers, 32);
 
   /* Temporarily clear CD_FLAG_ELEM_NOCOPY flags. */
   for (int i = 0; i < data->totlayer; i++) {

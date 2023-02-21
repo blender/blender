@@ -149,6 +149,7 @@ struct BLI_mempool {
 
   char *memtag;
   char *memtag_chunk;
+  bool dead;
 };
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
@@ -482,7 +483,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   return pool;
 }
 
-static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
+ATTR_NO_OPT static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
 {
   BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
   BLI_asan_safe_free(mpchunk);
@@ -493,7 +494,9 @@ ATTR_NO_OPT static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_m
   BLI_mempool_chunk *mpchunk_next;
 
   for (; mpchunk; mpchunk = mpchunk_next) {
+    BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk));
     mpchunk_next = mpchunk->next;
+
     mempool_chunk_free(mpchunk, pool);
   }
 }
@@ -535,6 +538,7 @@ BLI_mempool *BLI_mempool_create_ex(
 
   pool->memtag = memtag;
   pool->memtag_chunk = strdup(buf);
+  pool->dead = false;
 
   pool->totchunk = 0;
   pool->chunktable = NULL;
@@ -742,7 +746,9 @@ int BLI_mempool_get_size(BLI_mempool *pool)
 
 void BLI_mempool_ignore_free(BLI_mempool *pool)
 {
+  mempool_unpoison(pool);
   pool->flag |= BLI_MEMPOOL_IGNORE_FREE;
+  mempool_poison(pool);
 }
 
 /**
@@ -750,13 +756,14 @@ void BLI_mempool_ignore_free(BLI_mempool *pool)
  *
  * \note doesn't protect against double frees, take care!
  */
-void BLI_mempool_free(BLI_mempool *pool, void *addr)
+ATTR_NO_OPT void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
+  mempool_unpoison(pool);
+
   if (pool->flag & BLI_MEMPOOL_IGNORE_FREE) {
+    mempool_poison(pool);
     return;
   }
-
-  mempool_unpoison(pool);
 
   BLI_freenode *newhead = addr;
 
@@ -1208,6 +1215,8 @@ void BLI_mempool_destroy(BLI_mempool *pool)
 {
   mempool_unpoison(pool);
   mempool_chunk_free_all(pool->chunks, pool);
+
+  pool->dead = true;
 
   if (pool->memtag) {
     free(pool->memtag);
