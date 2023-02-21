@@ -5631,6 +5631,8 @@ def km_curves(params):
         ("curves.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("curves.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("curves.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        *_template_items_proportional_editing(
+            params, connected=True, toggle_data_path='tool_settings.use_proportional_edit'),
     ])
 
     return keymap
