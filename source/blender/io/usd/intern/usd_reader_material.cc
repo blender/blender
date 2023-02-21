@@ -81,23 +81,6 @@ static const pxr::TfToken UsdPrimvarReader_float2("UsdPrimvarReader_float2",
 static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-/* Temporary folder for saving imported textures prior to packing.
- * CAUTION: this directory is recursively deleted after material
- * import. */
-static const char *temp_textures_dir()
-{
-  static bool inited = false;
-
-  static char temp_dir[FILE_MAXDIR] = {'\0'};
-
-  if (!inited) {
-    BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
-    inited = true;
-  }
-
-  return temp_dir;
-}
-
 /* Add a node of the given type at the given location coordinates. */
 static bNode *add_node(
     const bContext *C, bNodeTree *ntree, const int type, const float locx, const float locy)
@@ -405,9 +388,14 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
   }
   else if (params_.import_shaders_mode == USD_IMPORT_MDL) {
     bool has_mdl = false;
+    bool mdl_imported = false;
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
-    bool mdl_imported = umm_import_mdl_material(mtl, usd_material, true /* Verbose */, &has_mdl);
+    mdl_imported = umm_import_mdl_material(params_, mtl, usd_material, true /* Verbose */, &has_mdl);
+    if (mdl_imported && params_.import_textures_mode == USD_TEX_IMPORT_PACK) {
+      /* Process the imported material to pack the textures.  */
+      pack_imported_textures(mtl);
+    }
 #endif
     if (!(has_mdl && mdl_imported) && usd_preview) {
       /* The material has no MDL shader or we couldn't convert the MDL,
@@ -814,7 +802,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   /* Optionally copy the asset if it's inside a USDZ package. */
 
   const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE &&
-                               pxr::ArIsPackageRelativePath(file_path);
+                               should_import_asset(file_path);
 
   if (import_textures) {
     /* If we are packing the imported textures, we first write them
@@ -925,6 +913,39 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
 
   /* Connect to destination node input. */
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
+}
+
+void USDMaterialReader::pack_imported_textures(Material *material, bool delete_temp_textures_dir) const
+{
+  if (!(material && material->use_nodes)) {
+    return;
+  }
+
+  for (bNode *node = (bNode *)material->nodetree->nodes.first; node; node = node->next) {
+    if (!(ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT))) {
+      continue;
+    }
+    Image *image = reinterpret_cast<Image *>(node->id);
+    if (!image || BKE_image_has_packedfile(image)) {
+      continue;
+    }
+
+    if (image->filepath[0] == '\0') {
+      continue;
+    }
+
+    char dir_path[FILE_MAXDIR];
+    BLI_split_dir_part(image->filepath, dir_path, sizeof(dir_path));
+
+    if (BLI_path_cmp_normalized(dir_path, temp_textures_dir()) == 0) {
+      /* Texture was saved to the temporary import directory, so pack it. */
+      BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain_, &image->id));
+    }
+  }
+
+  if (delete_temp_textures_dir && BLI_is_dir(temp_textures_dir())) {
+    BLI_delete(temp_textures_dir(), true, true);
+  }
 }
 
 void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map)

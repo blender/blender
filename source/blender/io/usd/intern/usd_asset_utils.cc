@@ -8,6 +8,7 @@
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/writableAsset.h>
 
+#include "BKE_appdir.h"
 #include "BKE_main.h"
 
 #include "BLI_fileops.h"
@@ -300,4 +301,108 @@ bool is_udim_path(const std::string &path)
          path.find(UDIM_PATTERN2) != std::string::npos;
 }
 
+ std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage)
+{
+  pxr::SdfLayerHandle layer = stage->GetRootLayer();
+
+  if (layer->IsAnonymous()) {
+    WM_reportf(
+        RPT_WARNING, "%s: Can't generate a textures directory path for anonymous stage", __func__);
+    return "";
+  }
+
+  pxr::ArResolvedPath stage_path = layer->GetResolvedPath();
+
+  if (stage_path.empty()) {
+    WM_reportf(
+        RPT_WARNING, "%s: Can't get resolved path for stage", __func__);
+    return "";
+  }
+
+  pxr::ArResolver &ar = pxr::ArGetResolver();
+
+  /* Resolove the './textures' relative path, with the stage path as an anchor. */
+  std::string textures_dir = ar.CreateIdentifierForNewAsset("./textures", stage_path);
+
+  /* If parent of the stage path exists as a file system directory, try to create the
+   * textures directory. */
+  if (parent_dir_exists_on_file_system(stage_path.GetPathString().c_str())) {
+    BLI_dir_create_recursive(textures_dir.c_str());
+  }
+
+  return textures_dir;
+}
+
+bool parent_dir_exists_on_file_system(const char *path)
+{
+  char dir_path[FILE_MAX];
+  BLI_split_dir_part(path, dir_path, FILE_MAX);
+  return BLI_is_dir(dir_path);
+}
+
+bool should_import_asset(const std::string &path)
+{
+  if (BLI_path_is_rel(path.c_str())) {
+    return false;
+  }
+
+  if (pxr::ArIsPackageRelativePath(path)) {
+    return true;
+  }
+
+  return !BLI_is_file(path.c_str()) && asset_exists(path.c_str());
+}
+
+ bool paths_equal(const char *p1, const char *p2)
+ {
+   BLI_assert_msg(!BLI_path_is_rel(p1) && !BLI_path_is_rel(p2),
+                  "Paths arguments must be absolute");
+
+   pxr::ArResolver &ar = pxr::ArGetResolver();
+
+   std::string resolved_p1 = ar.ResolveForNewAsset(p1).GetPathString();
+   std::string resolved_p2 = ar.ResolveForNewAsset(p2).GetPathString();
+
+   return resolved_p1 == resolved_p2;
+ }
+
+ const char *temp_textures_dir()
+ {
+   static bool inited = false;
+
+   static char temp_dir[FILE_MAXDIR] = {'\0'};
+
+   if (!inited) {
+     BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
+     inited = true;
+   }
+
+   return temp_dir;
+ }
+
 }  // namespace blender::io::usd
+
+
+void USD_path_abs(char *path, const char *basepath, bool for_import)
+{
+  if (!BLI_path_is_rel(path)) {
+    pxr::ArResolvedPath resolved_path = for_import ? pxr::ArGetResolver().Resolve(path) :
+                                                     pxr::ArGetResolver().ResolveForNewAsset(path);
+
+    std::string path_str = resolved_path.GetPathString();
+
+    if (!path_str.empty()) {
+      if (path_str.length() < FILE_MAX) {
+        BLI_strncpy(path, path_str.c_str(), FILE_MAX);
+        return;
+      }
+      WM_reportf(RPT_ERROR,
+                 "In %s: resolved path %s exceeds path buffer length.", __func__,
+                 path_str.c_str());
+    }
+  }
+
+  /* If we got here, the path couldn't be resolved by the ArResolver, so we
+   * fall back on the standard Blender absolute path resolution. */
+  BLI_path_abs(path, basepath);
+}

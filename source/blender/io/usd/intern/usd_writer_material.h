@@ -74,7 +74,9 @@ std::string get_tex_image_asset_path(const std::string &asset_path,
                                      const pxr::UsdStageRefPtr stage,
                                      const USDExportParams &export_params);
 
-void export_textures(const Material *material, const pxr::UsdStageRefPtr stage);
+void export_textures(const Material *material,
+                     const pxr::UsdStageRefPtr stage,
+                     bool allow_overwrite = false);
 
 }  // namespace blender::io::usd
 

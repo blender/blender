@@ -24,6 +24,7 @@
 #  include "Python.h"
 
 struct Material;
+struct USDImportParams;
 
 namespace blender::io::usd {
 
@@ -31,7 +32,8 @@ struct USDExporterContext;
 
 bool umm_module_loaded();
 
-bool umm_import_mdl_material(Material *mtl,
+bool umm_import_mdl_material(const USDImportParams &params,
+                             Material *mtl,
                              const pxr::UsdShadeMaterial &usd_material,
                              bool verbose,
                              bool *r_has_material);

@@ -234,6 +234,12 @@ bool USD_umm_module_loaded(void);
 
 /* USD Import and Mesh Cache interface. */
 
+/* Similar to BLI_path_abs(), but also invokes the USD asset resolver
+ * to determine the absolute path. This is necessary for resolving
+ * paths with URIs that BLI_path_abs() would otherwise alter when
+ * attempting to normalize the path. */
+void USD_path_abs(char *path, const char *basepath, bool for_import);
+
 struct CacheArchiveHandle *USD_create_handle(struct Main *bmain,
                                              const char *filepath,
                                              struct ListBase *object_paths);

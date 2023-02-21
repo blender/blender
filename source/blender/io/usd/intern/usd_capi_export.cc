@@ -2,6 +2,7 @@
  * Copyright 2019 Blender Foundation. All rights reserved. */
 
 #include "usd.h"
+#include "usd_asset_utils.h"
 #include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_light_convert.h"
@@ -342,10 +343,9 @@ static bool perform_usdz_conversion(const ExportJobData *data)
       return false;
     }
   }
-  result = BLI_rename(usdz_temp_dirfile, data->usdz_filepath);
-  if (result != 0) {
+  if (!copy_asset(usdz_temp_dirfile, data->usdz_filepath, USD_TEX_NAME_COLLISION_OVERWRITE)) {
     WM_reportf(RPT_ERROR,
-               "USD Export: Couldn't move new usdz file from temporary location %s to %s",
+               "USD Export: Couldn't copy new usdz file from temporary location %s to %s",
                usdz_temp_dirfile,
                data->usdz_filepath);
     return false;

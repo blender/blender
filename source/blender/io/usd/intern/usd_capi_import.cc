@@ -386,7 +386,7 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
         data->view_layer, import_collection);
   }
 
-  BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
+  USD_path_abs(data->filepath, BKE_main_blendfile_path_from_global(), true);
 
   *data->do_update = true;
   *data->progress = 0.05f;

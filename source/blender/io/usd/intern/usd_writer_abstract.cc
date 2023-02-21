@@ -238,13 +238,13 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
                                usd_material,
                                this->usd_export_context_.export_params);
     if (this->usd_export_context_.export_params.export_textures) {
-      export_textures(material, this->usd_export_context_.stage);
+      export_textures(material, this->usd_export_context_.stage, this->usd_export_context_.export_params.overwrite_textures);
     }
   }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_mdl) {
     create_mdl_material(this->usd_export_context_, material, usd_material);
     if (this->usd_export_context_.export_params.export_textures) {
-      export_textures(material, this->usd_export_context_.stage);
+      export_textures(material, this->usd_export_context_.stage, this->usd_export_context_.export_params.overwrite_textures);
     }
   }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {

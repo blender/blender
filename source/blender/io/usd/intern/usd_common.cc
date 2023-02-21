@@ -2,10 +2,17 @@
  * Copyright 2021 Blender Foundation. All rights reserved. */
 
 #include "usd_common.h"
+#include "usd.h"
 
+#include <pxr/usd/ar/resolver.h>
 #include <pxr/base/plug/registry.h>
 
 #include "BKE_appdir.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 namespace blender::io::usd {
 

@@ -387,7 +387,17 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
                                 char r_filepath[FILE_MAX])
 {
   BLI_strncpy(r_filepath, cache_file->filepath, FILE_MAX);
+
+#ifdef WITH_USD
+  if (BLI_path_extension_check_glob(r_filepath, "*.usd;*.usda;*.usdc;*.usdz")) {
+    USD_path_abs(r_filepath, ID_BLEND_PATH(bmain, &cache_file->id), true /* for import */);
+  }
+  else {
+    BLI_path_abs(r_filepath, ID_BLEND_PATH(bmain, &cache_file->id));
+  }
+#else
   BLI_path_abs(r_filepath, ID_BLEND_PATH(bmain, &cache_file->id));
+#endif
 
   int fframe;
   int frame_len;
