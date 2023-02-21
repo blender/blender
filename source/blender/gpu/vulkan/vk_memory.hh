@@ -7,11 +7,7 @@
 
 #pragma once
 
-#ifdef __APPLE__
-#  include <MoltenVK/vk_mvk_moltenvk.h>
-#else
-#  include <vulkan/vulkan.h>
-#endif
+#include "vk_common.hh"
 
 namespace blender::gpu {
 

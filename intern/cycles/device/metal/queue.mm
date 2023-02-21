@@ -477,17 +477,21 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->texture_bindings_3d
                                             offset:0
                                            atIndex:1];
+  [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->buffer_bindings_1d
+                                            offset:0
+                                           atIndex:2];
+
   if (@available(macos 12.0, *)) {
     if (metal_device_->use_metalrt) {
       if (metal_device_->bvhMetalRT) {
         id<MTLAccelerationStructure> accel_struct = metal_device_->bvhMetalRT->accel_struct;
-        [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:2];
+        [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:3];
         [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
                                                   offset:0
-                                                 atIndex:7];
+                                                 atIndex:8];
         [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_lookup_buffer
                                                   offset:0
-                                                 atIndex:8];
+                                                 atIndex:9];
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -497,13 +501,13 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                                               atIndex:1];
           [metal_device_->mtlAncillaryArgEncoder
               setIntersectionFunctionTable:metal_kernel_pso->intersection_func_table[table]
-                                   atIndex:3 + table];
+                                   atIndex:4 + table];
           [mtlComputeCommandEncoder useResource:metal_kernel_pso->intersection_func_table[table]
                                           usage:MTLResourceUsageRead];
         }
         else {
           [metal_device_->mtlAncillaryArgEncoder setIntersectionFunctionTable:nil
-                                                                      atIndex:3 + table];
+                                                                      atIndex:4 + table];
         }
       }
     }
@@ -874,6 +878,7 @@ void MetalDeviceQueue::prepare_resources(DeviceKernel kernel)
   /* ancillaries */
   [mtlComputeEncoder_ useResource:metal_device_->texture_bindings_2d usage:MTLResourceUsageRead];
   [mtlComputeEncoder_ useResource:metal_device_->texture_bindings_3d usage:MTLResourceUsageRead];
+  [mtlComputeEncoder_ useResource:metal_device_->buffer_bindings_1d usage:MTLResourceUsageRead];
 }
 
 id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel kernel)

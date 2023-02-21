@@ -1,9 +1,9 @@
 name: Bug Report
 about: File a bug report
 labels:
-  - "type::Report"
-  - "status::Needs Triage"
-  - "priority::Normal"
+  - "Type/Report"
+  - "Status/Needs Triage"
+  - "Priority/Normal"
 body:
   - type: markdown
     attributes:

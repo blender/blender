@@ -1191,7 +1191,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
           need_edgesel |= BM_ELEM_CD_GET_BOOL(l, edgesel_offset);
         }
       }
-      if (pin_layer_index) {
+      if (pin_layer_index >= 0) {
         BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
           need_pin |= BM_ELEM_CD_GET_BOOL(l, pin_offset);
         }

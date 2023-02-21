@@ -100,6 +100,40 @@ TEST(math_matrix, interp_m3_m3m3_singularity)
   EXPECT_M3_NEAR(result, expect, 1e-5);
 }
 
+TEST(math_matrix, mul_m3_series)
+{
+  float matrix[3][3] = {
+      {2.0f, 0.0f, 0.0f},
+      {0.0f, 3.0f, 0.0f},
+      {0.0f, 0.0f, 5.0f},
+  };
+  mul_m3_series(matrix, matrix, matrix, matrix);
+  float expect[3][3] = {
+      {8.0f, 0.0f, 0.0f},
+      {0.0f, 27.0f, 0.0f},
+      {0.0f, 0.0f, 125.0f},
+  };
+  EXPECT_M3_NEAR(matrix, expect, 1e-5);
+}
+
+TEST(math_matrix, mul_m4_series)
+{
+  float matrix[4][4] = {
+      {2.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 3.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 5.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 7.0f},
+  };
+  mul_m4_series(matrix, matrix, matrix, matrix);
+  float expect[4][4] = {
+      {8.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 27.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 125.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 343.0f},
+  };
+  EXPECT_M4_NEAR(matrix, expect, 1e-5);
+}
+
 namespace blender::tests {
 
 using namespace blender::math;

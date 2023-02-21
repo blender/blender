@@ -758,8 +758,8 @@ static void init_proportional_edit(TransInfo *t)
     else if (t->data_type == &TransConvertType_MeshUV && t->flag & T_PROP_CONNECTED) {
       /* Already calculated by uv_set_connectivity_distance. */
     }
-    else if (t->data_type == &TransConvertType_Curve) {
-      BLI_assert(t->obedit_type == OB_CURVES_LEGACY);
+    else if (ELEM(t->data_type, &TransConvertType_Curve, &TransConvertType_Curves)) {
+      BLI_assert(t->obedit_type == OB_CURVES_LEGACY || t->obedit_type == OB_CURVES);
       set_prop_dist(t, false);
     }
     else {

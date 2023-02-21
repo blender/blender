@@ -98,6 +98,7 @@ class NodeMultiFunctionBuilder;
 class GeoNodeExecParams;
 class NodeDeclaration;
 class NodeDeclarationBuilder;
+class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;
 }  // namespace nodes
 namespace realtime_compositor {
@@ -122,6 +123,10 @@ using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket
 using NodeGatherSocketLinkOperationsFunction =
     void (*)(blender::nodes::GatherLinkSearchOpParams &params);
 
+/* Adds node add menu operations that are specific to this node type. */
+using NodeGatherAddOperationsFunction =
+    void (*)(blender::nodes::GatherAddNodeSearchParams &params);
+
 using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOperation
     *(*)(blender::realtime_compositor::Context &context, blender::nodes::DNode node);
 using NodeGetCompositorShaderNodeFunction =
@@ -135,6 +140,7 @@ typedef void *NodeGeometryExecFunction;
 typedef void *NodeDeclareFunction;
 typedef void *NodeDeclareDynamicFunction;
 typedef void *NodeGatherSocketLinkOperationsFunction;
+typedef void *NodeGatherAddOperationsFunction;
 typedef void *SocketGetCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPValueFunction;
@@ -352,6 +358,13 @@ typedef struct bNodeType {
    * custom behavior here like adding custom search items.
    */
   NodeGatherSocketLinkOperationsFunction gather_link_search_ops;
+
+  /**
+   * Add to the list of search items gathered by the add-node search. The default behavior of
+   * adding a single item with the node name is usually enough, but node types can have any number
+   * of custom search items.
+   */
+  NodeGatherAddOperationsFunction gather_add_node_search_ops;
 
   /** True when the node cannot be muted. */
   bool no_muting;

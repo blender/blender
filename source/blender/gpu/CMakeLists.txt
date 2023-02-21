@@ -191,16 +191,24 @@ set(OPENGL_SRC
 set(VULKAN_SRC
   vulkan/vk_backend.cc
   vulkan/vk_batch.cc
+  vulkan/vk_buffer.cc
   vulkan/vk_context.cc
+  vulkan/vk_command_buffer.cc
+  vulkan/vk_common.cc
+  vulkan/vk_descriptor_pools.cc
+  vulkan/vk_descriptor_set.cc
   vulkan/vk_drawlist.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_pipeline.cc
   vulkan/vk_memory.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
+  vulkan/vk_shader_interface.cc
   vulkan/vk_shader_log.cc
+  vulkan/vk_state_manager.cc
   vulkan/vk_storage_buffer.cc
   vulkan/vk_texture.cc
   vulkan/vk_uniform_buffer.cc
@@ -208,16 +216,24 @@ set(VULKAN_SRC
 
   vulkan/vk_backend.hh
   vulkan/vk_batch.hh
+  vulkan/vk_buffer.hh
   vulkan/vk_context.hh
+  vulkan/vk_command_buffer.hh
+  vulkan/vk_common.hh
+  vulkan/vk_descriptor_pools.hh
+  vulkan/vk_descriptor_set.hh
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_pipeline.hh
   vulkan/vk_memory.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
+  vulkan/vk_shader_interface.hh
   vulkan/vk_shader_log.hh
+  vulkan/vk_state_manager.hh
   vulkan/vk_storage_buffer.hh
   vulkan/vk_texture.hh
   vulkan/vk_uniform_buffer.hh
@@ -510,6 +526,7 @@ set(GLSL_SRC_TEST
   tests/shaders/gpu_compute_1d_test.glsl
   tests/shaders/gpu_compute_2d_test.glsl
   tests/shaders/gpu_compute_ibo_test.glsl
+  tests/shaders/gpu_compute_ssbo_test.glsl
   tests/shaders/gpu_compute_vbo_test.glsl
   tests/shaders/gpu_compute_dummy_test.glsl
 )
@@ -787,6 +804,7 @@ if(WITH_GTESTS)
       tests/gpu_index_buffer_test.cc
       tests/gpu_shader_builtin_test.cc
       tests/gpu_shader_test.cc
+      tests/gpu_storage_buffer_test.cc
 
       tests/gpu_testing.hh
     )
