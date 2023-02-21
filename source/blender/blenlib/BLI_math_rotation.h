@@ -304,6 +304,13 @@ void rotate_eul(float beul[3], char axis, float angle);
 
 /* Order independent. */
 
+/**
+ * Manipulate `eul` so it's close to `oldrot` while representing the same rotation
+ * with the aim of having the minimum difference between all axes.
+ *
+ * This is typically done so interpolating the values between two euler rotations
+ * doesn't add undesired rotation (even rotating multiple times around one axis).
+ */
 void compatible_eul(float eul[3], const float oldrot[3]);
 
 void add_eul_euleul(float r_eul[3], float a[3], float b[3], short order);

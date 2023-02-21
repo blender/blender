@@ -1429,7 +1429,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 
     /* All curves failed due to the same error. */
     if (status.error_vertex_keys) {
-      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with vertex keys");
+      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with shape keys");
     }
     else {
       BLI_assert(status.error_generic);

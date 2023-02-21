@@ -1880,6 +1880,11 @@ static bool euler_filter_single_channel(FCurve *fcu)
     return false;
   }
 
+  /* Skip baked FCurves. */
+  if (fcu->bezt == NULL) {
+    return false;
+  }
+
   /* `prev` follows bezt, bezt = "current" point to be fixed. */
   /* Our method depends on determining a "difference" from the previous vert. */
   bool is_modified = false;

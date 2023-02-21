@@ -195,7 +195,7 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
 
   const int automasking_flags = sculpt_automasking_mode_effective_bits(sd, brush);
 
-  if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+  if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY && brush &&
       sculpt_automasking_is_constrained_by_radius(brush)) {
     return true;
   }

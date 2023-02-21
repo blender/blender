@@ -574,6 +574,11 @@ class NODE_MT_context_menu(Menu):
         layout.menu("NODE_MT_context_menu_select_menu")
         layout.menu("NODE_MT_context_menu_show_hide_menu")
 
+        if active_node:
+            layout.separator()
+            props = layout.operator("wm.doc_view_manual", text="Online Manual", icon='URL')
+            props.doc_id = active_node.bl_idname
+
 
 class NODE_PT_active_node_generic(Panel):
     bl_space_type = 'NODE_EDITOR'

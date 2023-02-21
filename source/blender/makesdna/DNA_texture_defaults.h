@@ -85,7 +85,7 @@
     .type = TEX_IMAGE, \
     .ima = NULL, \
     .stype = 0, \
-    .flag = TEX_CHECKER_ODD, \
+    .flag = TEX_CHECKER_ODD | TEX_NO_CLAMP, \
     .imaflag = TEX_INTERPOL | TEX_MIPMAP | TEX_USEALPHA, \
     .extend = TEX_REPEAT, \
     .cropxmin = 0.0, \

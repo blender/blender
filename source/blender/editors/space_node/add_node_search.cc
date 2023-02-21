@@ -26,6 +26,8 @@
 
 #include "WM_api.h"
 
+#include "NOD_add_node_search.hh"
+
 #include "ED_asset.h"
 #include "ED_node.h"
 
@@ -36,12 +38,9 @@ struct bContext;
 namespace blender::ed::space_node {
 
 struct AddNodeItem {
-  std::string ui_name;
+  nodes::AddNodeInfo info;
   std::string identifier;
-  std::string description;
   std::optional<AssetHandle> asset;
-  std::function<void(const bContext &, bNodeTree &, bNode &)> after_add_fn;
-  int weight = 0;
 };
 
 struct AddNodeSearchStorage {
@@ -77,11 +76,11 @@ static void search_items_for_asset_metadata(const bNodeTree &node_tree,
   }
 
   AddNodeItem item{};
-  item.ui_name = ED_asset_handle_get_name(&asset);
+  item.info.ui_name = ED_asset_handle_get_name(&asset);
   item.identifier = node_tree.typeinfo->group_idname;
-  item.description = asset_data.description == nullptr ? "" : asset_data.description;
+  item.info.description = asset_data.description == nullptr ? "" : asset_data.description;
   item.asset = asset;
-  item.after_add_fn = [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
+  item.info.after_add_fn = [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
     Main &bmain = *CTX_data_main(&C);
     node.flag &= ~NODE_OPTIONS;
     node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset);
@@ -139,9 +138,9 @@ static void gather_search_items_for_node_groups(const bContext &C,
       continue;
     }
     AddNodeItem item{};
-    item.ui_name = node_group->id.name + 2;
+    item.info.ui_name = node_group->id.name + 2;
     item.identifier = node_tree.typeinfo->group_idname;
-    item.after_add_fn = [node_group](const bContext &C, bNodeTree &node_tree, bNode &node) {
+    item.info.after_add_fn = [node_group](const bContext &C, bNodeTree &node_tree, bNode &node) {
       Main &bmain = *CTX_data_main(&C);
       node.id = &node_group->id;
       id_us_plus(node.id);
@@ -161,19 +160,18 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
-    if (StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname) {
-      /* Skip the empty group type. */
+    if (!node_type->gather_add_node_search_ops) {
       continue;
     }
-    if (StringRefNull(node_type->ui_name).endswith("(Legacy)")) {
-      continue;
+    Vector<nodes::AddNodeInfo> info_items;
+    nodes::GatherAddNodeSearchParams params(*node_type, node_tree, info_items);
+    node_type->gather_add_node_search_ops(params);
+    for (nodes::AddNodeInfo &info : info_items) {
+      AddNodeItem item{};
+      item.info = std::move(info);
+      item.identifier = node_type->idname;
+      r_search_items.append(item);
     }
-
-    AddNodeItem item{};
-    item.ui_name = IFACE_(node_type->ui_name);
-    item.identifier = node_type->idname;
-    item.description = TIP_(node_type->ui_description);
-    r_search_items.append(std::move(item));
   }
   NODE_TYPES_END;
 
@@ -199,7 +197,7 @@ static void add_node_search_update_fn(
   StringSearch *search = BLI_string_search_new();
 
   for (AddNodeItem &item : storage.search_add_items) {
-    BLI_string_search_add(search, item.ui_name.c_str(), &item, item.weight);
+    BLI_string_search_add(search, item.info.ui_name.c_str(), &item, item.info.weight);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
@@ -210,7 +208,7 @@ static void add_node_search_update_fn(
 
   for (const int i : IndexRange(filtered_amount)) {
     AddNodeItem &item = *filtered_items[i];
-    if (!UI_search_item_add(items, item.ui_name.c_str(), &item, ICON_NONE, 0, 0)) {
+    if (!UI_search_item_add(items, item.info.ui_name.c_str(), &item, ICON_NONE, 0, 0)) {
       break;
     }
   }
@@ -234,8 +232,8 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
   bNode *new_node = nodeAddNode(C, &node_tree, item->identifier.c_str());
   BLI_assert(new_node != nullptr);
 
-  if (item->after_add_fn) {
-    item->after_add_fn(*C, node_tree, *new_node);
+  if (item->info.after_add_fn) {
+    item->info.after_add_fn(*C, node_tree, *new_node);
   }
 
   new_node->locx = storage.cursor.x / UI_DPI_FAC;
@@ -266,7 +264,7 @@ static ARegion *add_node_search_tooltip_fn(
   uiSearchItemTooltipData tooltip_data{};
 
   BLI_strncpy(tooltip_data.description,
-              item->asset ? item->description.c_str() : TIP_(item->description.c_str()),
+              item->asset ? item->info.description.c_str() : TIP_(item->info.description.c_str()),
               sizeof(tooltip_data.description));
 
   return UI_tooltip_create_from_search_item_generic(C, region, item_rect, &tooltip_data);

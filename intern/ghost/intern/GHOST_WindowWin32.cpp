@@ -310,6 +310,9 @@ void GHOST_WindowWin32::adjustWindowRectForDesktop(LPRECT win_rect, DWORD dwStyl
   monitor.cbSize = sizeof(MONITORINFOEX);
   monitor.dwFlags = 0;
 
+  /* We'll need this value before it is altered for checking later. */
+  LONG requested_top = win_rect->top;
+
   /* Note that with MonitorFromPoint using MONITOR_DEFAULTTONEAREST, it will return
    * the exact monitor if there is one at the location or the nearest monitor if not. */
 
@@ -355,6 +358,9 @@ void GHOST_WindowWin32::adjustWindowRectForDesktop(LPRECT win_rect, DWORD dwStyl
   /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
    * correctly outside of monitor bounds. NOTE: You cannot specify #WS_OVERLAPPED when calling. */
   if (fpAdjustWindowRectExForDpi) {
+    /* Use the DPI of the monitor that is at the middle of the rect. */
+    hmonitor = MonitorFromRect(win_rect, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(hmonitor, &monitor);
     UINT dpiX, dpiY;
     GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
     fpAdjustWindowRectExForDpi(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle, dpiX);
@@ -362,6 +368,14 @@ void GHOST_WindowWin32::adjustWindowRectForDesktop(LPRECT win_rect, DWORD dwStyl
   else {
     AdjustWindowRectEx(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle);
   }
+
+  /* Don't hide the title bar. Check the working area of the monitor at the top-left corner, using
+   * the original top since the justWindowRects might have altered it to different monitor.  */
+  pt.x = win_rect->left;
+  pt.y = requested_top;
+  hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+  GetMonitorInfo(hmonitor, &monitor);
+  win_rect->top = max(monitor.rcWork.top, win_rect->top);
 }
 
 bool GHOST_WindowWin32::getValid() const
