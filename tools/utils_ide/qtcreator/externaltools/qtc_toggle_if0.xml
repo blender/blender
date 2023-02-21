@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_toggle_if0">
+    <description>Toggle if 0 preprocessor block.</description>
+    <displayname>Toggle #if 0</displayname>
+    <category>Formatting</category>
+    <executable output="replaceselection" error="showinpane" modifiesdocument="no">
+        <path>qtc_toggle_if0.py</path>
+        <input>%{CurrentDocument:Selection}</input>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>
