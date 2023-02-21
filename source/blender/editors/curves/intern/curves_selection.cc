@@ -123,7 +123,7 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
-static bool contains(const VArray<bool> &varray, const bool value)
+static bool contains(const VArray<bool> &varray, const IndexRange range_to_check, const bool value)
 {
   const CommonVArrayInfo info = varray.common_info();
   if (info.type == CommonVArrayInfo::Type::Single) {
@@ -132,7 +132,7 @@ static bool contains(const VArray<bool> &varray, const bool value)
   if (info.type == CommonVArrayInfo::Type::Span) {
     const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
     return threading::parallel_reduce(
-        span.index_range(),
+        range_to_check,
         4096,
         false,
         [&](const IndexRange range, const bool init) {
@@ -141,7 +141,7 @@ static bool contains(const VArray<bool> &varray, const bool value)
         [&](const bool a, const bool b) { return a || b; });
   }
   return threading::parallel_reduce(
-      varray.index_range(),
+      range_to_check,
       2048,
       false,
       [&](const IndexRange range, const bool init) {
@@ -159,10 +159,15 @@ static bool contains(const VArray<bool> &varray, const bool value)
       [&](const bool a, const bool b) { return a || b; });
 }
 
+bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to_check)
+{
+  return contains(varray, range_to_check, true);
+}
+
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
   const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
-  return !selection || contains(selection, true);
+  return !selection || contains(selection, curves.curves_range(), true);
 }
 
 bool has_anything_selected(const GSpan selection)
