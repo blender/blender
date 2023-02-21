@@ -225,11 +225,15 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlAncillaryArgEncoder = [mtlDevice newArgumentEncoderWithArguments:ancillary_desc];
 
     // preparing the blas arg encoder
-    MTLArgumentDescriptor *arg_desc_blas = [[MTLArgumentDescriptor alloc] init];
-    arg_desc_blas.dataType = MTLDataTypeInstanceAccelerationStructure;
-    arg_desc_blas.access = MTLArgumentAccessReadOnly;
-    mtlBlasArgEncoder = [mtlDevice newArgumentEncoderWithArguments:@[ arg_desc_blas ]];
-    [arg_desc_blas release];
+    if (@available(macos 11.0, *)) {
+      if (use_metalrt) {
+        MTLArgumentDescriptor *arg_desc_blas = [[MTLArgumentDescriptor alloc] init];
+        arg_desc_blas.dataType = MTLDataTypeInstanceAccelerationStructure;
+        arg_desc_blas.access = MTLArgumentAccessReadOnly;
+        mtlBlasArgEncoder = [mtlDevice newArgumentEncoderWithArguments:@[ arg_desc_blas ]];
+        [arg_desc_blas release];
+      }
+    }
 
     for (int i = 0; i < ancillary_desc.count; i++) {
       [ancillary_desc[i] release];
