@@ -2198,6 +2198,13 @@ bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
   return value;
 }
 
+/**
+ * The boolean IDProperty type isn't supported in old versions. In order to keep forward
+ * compatibility for a period of time (until 4.0), save boolean RNA properties as integer
+ * IDProperties.
+ */
+#define USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
+
 void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 {
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
@@ -2228,7 +2235,11 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 
     group = RNA_struct_idprops(ptr, 1);
     if (group) {
+#ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
+      IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
+#else
       IDP_AddToGroup(group, IDP_New(IDP_BOOLEAN, &val, prop->identifier));
+#endif
     }
   }
 }
@@ -2239,6 +2250,24 @@ static void rna_property_boolean_fill_default_array_values(
   if (defarr && defarr_length > 0) {
     defarr_length = MIN2(defarr_length, out_length);
     memcpy(r_values, defarr, sizeof(bool) * defarr_length);
+  }
+  else {
+    defarr_length = 0;
+  }
+
+  for (int i = defarr_length; i < out_length; i++) {
+    r_values[i] = defvalue;
+  }
+}
+
+static void rna_property_boolean_fill_default_array_values_from_ints(
+    const int *defarr, int defarr_length, bool defvalue, int out_length, bool *r_values)
+{
+  if (defarr && defarr_length > 0) {
+    defarr_length = MIN2(defarr_length, out_length);
+    for (int i = 0; i < defarr_length; i++) {
+      r_values[i] = defarr[i] != 0;
+    }
   }
   else {
     defarr_length = 0;
@@ -2372,13 +2401,17 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
     IDProperty *group;
 
     val.array.len = prop->totarraylength;
+#ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
+    val.array.type = IDP_INT;
+#else
     val.array.type = IDP_BOOLEAN;
+#endif
 
     group = RNA_struct_idprops(ptr, 1);
     if (group) {
       idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
       IDP_AddToGroup(group, idprop);
-      bool *values_dst = IDP_Array(idprop);
+      int *values_dst = IDP_Array(idprop);
       for (uint i = 0; i < idprop->len; i++) {
         values_dst[i] = values[i];
       }
@@ -2424,10 +2457,19 @@ bool RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop
 
   if (prop->magic != RNA_MAGIC) {
     const IDProperty *idprop = (const IDProperty *)prop;
-    BLI_assert(idprop->type == IDP_BOOLEAN);
     if (idprop->ui_data) {
-      const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
-      return ui_data->default_value;
+      switch (IDP_ui_data_type(idprop)) {
+        case IDP_UI_DATA_TYPE_BOOLEAN: {
+          const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
+          return ui_data->default_value;
+        }
+        case IDP_UI_DATA_TYPE_INT: {
+          const IDPropertyUIDataInt *ui_data = (const IDPropertyUIDataInt *)idprop->ui_data;
+          return ui_data->default_value != 0;
+        }
+        default:
+          BLI_assert_unreachable();
+      }
     }
     return false;
   }
@@ -2446,18 +2488,40 @@ void RNA_property_boolean_get_default_array(PointerRNA *ptr, PropertyRNA *prop, 
     const IDProperty *idprop = (const IDProperty *)prop;
     if (idprop->ui_data) {
       BLI_assert(idprop->type == IDP_ARRAY);
-      BLI_assert(idprop->subtype == IDP_BOOLEAN);
-      const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
-      if (ui_data->default_array) {
-        rna_property_boolean_fill_default_array_values((bool *)ui_data->default_array,
-                                                       ui_data->default_array_len,
-                                                       ui_data->default_value,
-                                                       idprop->len,
-                                                       values);
-      }
-      else {
-        rna_property_boolean_fill_default_array_values(
-            NULL, 0, ui_data->default_value, idprop->len, values);
+      switch (IDP_ui_data_type(idprop)) {
+        case IDP_UI_DATA_TYPE_BOOLEAN: {
+          const IDPropertyUIDataBool *ui_data = (const IDPropertyUIDataBool *)idprop->ui_data;
+          if (ui_data->default_array) {
+            rna_property_boolean_fill_default_array_values((const bool *)ui_data->default_array,
+                                                           ui_data->default_array_len,
+                                                           ui_data->default_value,
+                                                           idprop->len,
+                                                           values);
+          }
+          else {
+            rna_property_boolean_fill_default_array_values(
+                NULL, 0, ui_data->default_value, idprop->len, values);
+          }
+          break;
+        }
+        case IDP_UI_DATA_TYPE_INT: {
+          const IDPropertyUIDataInt *ui_data = (const IDPropertyUIDataInt *)idprop->ui_data;
+          if (ui_data->default_array) {
+            rna_property_boolean_fill_default_array_values_from_ints(ui_data->default_array,
+                                                                     ui_data->default_array_len,
+                                                                     ui_data->default_value,
+                                                                     idprop->len,
+                                                                     values);
+          }
+          else {
+            rna_property_boolean_fill_default_array_values(
+                NULL, 0, ui_data->default_value, idprop->len, values);
+          }
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+          break;
       }
     }
   }
