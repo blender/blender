@@ -409,7 +409,11 @@ typedef struct AssetShelfType {
   int space_type;
 
   /* Determine if the asset shelf should be visible or not. */
-  bool (*poll)(const struct bContext *C, struct AssetShelfType *shelf_type);
+  bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);
+
+  /* Determine if an individual asset should be visible or not. May be a temporary design,
+   * visibility should be first and foremost controlled by asset traits. */
+  bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
 
   /* RNA integration */
   ExtensionRNA rna_ext;

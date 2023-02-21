@@ -1022,7 +1022,30 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 
 /* Asset Shelf */
 
-static bool asset_shelf_poll(const bContext *C, AssetShelfType *shelf_type)
+static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
+{
+  extern FunctionRNA rna_AssetShelf_asset_poll___func;
+
+  PointerRNA ptr;
+  RNA_pointer_create(NULL, shelf_type->rna_ext.srna, NULL, &ptr); /* dummy */
+  FunctionRNA *func = &rna_AssetShelf_asset_poll___func;
+
+  ParameterList list;
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  shelf_type->rna_ext.call(NULL, &ptr, func, &list);
+
+  void *ret;
+  RNA_parameter_get_lookup(&list, "visible", &ret);
+  /* Get the value before freeing. */
+  const bool is_visible = *(bool *)ret;
+
+  RNA_parameter_list_free(&list);
+
+  return is_visible;
+}
+
+static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type)
 {
   extern FunctionRNA rna_AssetShelf_poll_func;
 
@@ -1083,7 +1106,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   dummy_shelf.type = &dummy_shelf_type;
   RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_type_ptr);
 
-  int have_function[1];
+  int have_function[2];
 
   /* validate the python class */
   if (validate(&dummy_shelf_type_ptr, data, have_function) != 0) {
@@ -1131,6 +1154,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   RNA_struct_blender_type_set(shelf_type->rna_ext.srna, shelf_type);
 
   shelf_type->poll = have_function[0] ? asset_shelf_poll : NULL;
+  shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : NULL;
 
   BLI_addtail(&space_type->asset_shelf_types, shelf_type);
 
@@ -1999,6 +2023,17 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "asset_poll__", NULL);
+  RNA_def_function_ui_description(
+      func,
+      "TEMPORARY DESIGN; Expect compatibility breakage. Determine if an asset should be visible "
+      "in the asset shelf. If this method returns a non-null output, then the asset shelf will be "
+      "visible");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
