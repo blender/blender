@@ -645,6 +645,9 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
+  DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
+
   return OPERATOR_FINISHED;
 }
 
