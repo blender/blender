@@ -63,7 +63,7 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
     FAIL() << "unable to get the current working directory";
   }
 
-  const std::string temp_file_name(std::tmpnam(nullptr));
+  std::string temp_file_name(std::tmpnam(nullptr));
   test_temp_dir = temp_file_name + "_новый";
 
   if (BLI_exists(test_temp_dir.c_str())) {
@@ -83,6 +83,13 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
   if (!BLI_current_working_dir(cwd, FILE_MAX)) {
     FAIL() << "unable to get the current working directory";
   }
+
+#ifdef __APPLE__
+  /* The name returned by std::tmpnam is fine but the Apple OS method
+   * picks the true var folder, not the alias, meaning the below
+   * comparison always fails unless we prepend with the correct value. */
+  test_temp_dir = "/private" + test_temp_dir;
+#endif // #ifdef __APPLE__
 
   ASSERT_EQ(BLI_path_cmp_normalized(cwd, test_temp_dir.c_str()), 0)
       << "the path of the current working directory should equal the path of the temporary "
