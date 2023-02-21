@@ -586,7 +586,7 @@ static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
         return b;
       });
 
-  if (closest_data.index > 0) {
+  if (closest_data.index >= 0) {
     return true;
   }
 
