@@ -61,6 +61,7 @@ void VKCommandBuffer::bind(const VKPipeline &pipeline, VkPipelineBindPoint bind_
 {
   vkCmdBindPipeline(vk_command_buffer_, bind_point, pipeline.vk_handle());
 }
+
 void VKCommandBuffer::bind(const VKDescriptorSet &descriptor_set,
                            const VkPipelineLayout vk_pipeline_layout,
                            VkPipelineBindPoint bind_point)
