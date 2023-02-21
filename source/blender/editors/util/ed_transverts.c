@@ -9,6 +9,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
@@ -30,6 +31,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
+#include "ED_curves.h"
 
 #include "ED_transverts.h" /* own include */
 
@@ -181,8 +183,14 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3], const f
 
 bool ED_transverts_check_obedit(const Object *obedit)
 {
-  return (
-      ELEM(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_MBALL));
+  return (ELEM(obedit->type,
+               OB_ARMATURE,
+               OB_LATTICE,
+               OB_MESH,
+               OB_SURF,
+               OB_CURVES_LEGACY,
+               OB_MBALL,
+               OB_CURVES));
 }
 
 void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit, const int mode)
@@ -480,6 +488,10 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
       }
       bp++;
     }
+  }
+  else if (obedit->type == OB_CURVES) {
+    Curves *curves_id = obedit->data;
+    ED_curves_transverts_create(curves_id, tvs);
   }
 
   if (!tvs->transverts_tot && tvs->transverts) {
