@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
-from bpy.types import Panel, Menu
+from bpy.types import Panel, Menu, UIList
 from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_animviz import (
@@ -91,6 +91,16 @@ class DATA_MT_bone_group_context_menu(Menu):
         layout.operator("pose.group_sort", icon='SORTALPHA')
 
 
+class DATA_UL_bone_groups(UIList):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
+        layout.prop(item, "name", text="", emboss=False, icon='GROUP_BONE')
+
+        if item.is_custom_color_set or item.color_set == 'DEFAULT':
+            layout.prop(item, "color_set", icon_only=True, icon="COLOR")
+        else:
+            layout.prop(item, "color_set", icon_only=True)
+
+
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Groups"
     bl_options = {'DEFAULT_CLOSED'}
@@ -111,8 +121,9 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         rows = 1
         if group:
             rows = 4
+
         row.template_list(
-            "UI_UL_list",
+            "DATA_UL_bone_groups",
             "bone_groups",
             pose,
             "bone_groups",
@@ -120,6 +131,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             "active_index",
             rows=rows,
         )
+
 
         col = row.column(align=True)
         col.operator("pose.group_add", icon='ADD', text="")
@@ -130,17 +142,20 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            split = layout.split()
+            if group.is_custom_color_set:
+                col = layout.column()
+                split = col.split(factor=0.4)
 
-            col = split.column()
-            col.prop(group, "color_set")
-            if group.color_set:
                 col = split.column()
-                sub = col.row(align=True)
-                sub.enabled = group.is_custom_color_set  # only custom colors are editable
-                sub.prop(group.colors, "normal", text="")
-                sub.prop(group.colors, "select", text="")
-                sub.prop(group.colors, "active", text="")
+                row = col.row()
+                row.alignment = 'RIGHT'
+                row.label(text="Custom Colors")
+
+                col = split.column(align=True)
+                row = col.row(align=True)
+                row.prop(group.colors, "normal", text="")
+                row.prop(group.colors, "select", text="")
+                row.prop(group.colors, "active", text="")
 
         row = layout.row()
 
@@ -258,6 +273,7 @@ classes = (
     DATA_PT_skeleton,
     DATA_MT_bone_group_context_menu,
     DATA_PT_bone_groups,
+    DATA_UL_bone_groups,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
     DATA_PT_display,
