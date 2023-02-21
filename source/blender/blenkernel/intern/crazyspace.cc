@@ -596,8 +596,7 @@ void BKE_crazyspace_api_eval_clear(Object *object)
 
 namespace blender::bke::crazyspace {
 
-GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval,
-                                                     const Object &ob_orig)
+GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, const Object &ob_orig)
 {
   BLI_assert(ob_orig.type == OB_CURVES);
   const Curves &curves_id_orig = *static_cast<const Curves *>(ob_orig.data);

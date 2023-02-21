@@ -384,7 +384,7 @@ void WM_cursor_time(wmWindow *win, int nr)
  *
  * There is a nice Python GUI utility that can be used for drawing cursors in
  * this format in the Blender source distribution, in
- * `./source/tools/utils/make_cursor_gui.py` .
+ * `./tools/utils/make_cursor_gui.py` .
  *
  * Start it with the command `python3 make_cursor_gui.py`
  * It will copy its output to the console when you press 'Do it'.

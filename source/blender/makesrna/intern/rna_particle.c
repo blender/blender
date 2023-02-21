@@ -1190,11 +1190,11 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
       }
     }
     else {
-      strcpy(str, "Invalid target!");
+      strcpy(str, TIP_("Invalid target!"));
     }
   }
   else {
-    strcpy(str, "Invalid target!");
+    strcpy(str, TIP_("Invalid target!"));
   }
 }
 

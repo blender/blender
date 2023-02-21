@@ -1607,9 +1607,9 @@ float *BKE_key_evaluate_object_ex(
     switch (GS(obdata->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)obdata;
-        const float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
         const int totvert = min_ii(tot, mesh->totvert);
-        memcpy(out, positions, sizeof(float[3]) * totvert);
+        mesh->vert_positions_for_write().take_front(totvert).copy_from(
+            {reinterpret_cast<const blender::float3 *>(out), totvert});
         break;
       }
       case ID_LT: {

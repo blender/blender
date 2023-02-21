@@ -44,13 +44,21 @@ set(OPENVDB_EXTRA_ARGS
   # -DLLVM_DIR=${LIBDIR}/llvm/lib/cmake/llvm
 )
 
+set(OPENVDB_PATCH ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb.diff)
+if(APPLE)
+  set(OPENVDB_PATCH
+    ${OPENVDB_PATCH} &&
+    ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_metal.diff
+  )
+endif()
+
 ExternalProject_Add(openvdb
   URL file://${PACKAGE_DIR}/${OPENVDB_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENVDB_HASH_TYPE}=${OPENVDB_HASH}
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/openvdb
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb.diff
+  PATCH_COMMAND ${OPENVDB_PATCH}
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openvdb ${DEFAULT_CMAKE_FLAGS} ${OPENVDB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/openvdb
 )

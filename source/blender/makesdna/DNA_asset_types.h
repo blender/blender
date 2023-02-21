@@ -99,6 +99,17 @@ typedef enum eAssetLibraryType {
   ASSET_LIBRARY_CUSTOM = 100,
 } eAssetLibraryType;
 
+typedef enum eAssetImportMethod {
+  /** Regular data-block linking. */
+  ASSET_IMPORT_LINK = 0,
+  /** Regular data-block appending (basically linking + "Make Local"). */
+  ASSET_IMPORT_APPEND = 1,
+  /** Append data-block with the #BLO_LIBLINK_APPEND_LOCAL_ID_REUSE flag enabled. Some typically
+   * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
+   * be reused from an earlier append. */
+  ASSET_IMPORT_APPEND_REUSE = 2,
+} eAssetImportMethod;
+
 /**
  * Information to identify an asset library. May be either one of the predefined types (current
  * 'Main', builtin library, project library), or a custom type as defined in the Preferences.

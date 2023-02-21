@@ -901,11 +901,11 @@ endif()
 
 if(WINDOWS_PYTHON_DEBUG)
   # Include the system scripts in the blender_python_system_scripts project.
-  file(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/release/scripts/*.*" )
+  file(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/scripts/*.*" )
   add_custom_target(blender_python_system_scripts SOURCES ${inFiles})
   foreach(_source IN ITEMS ${inFiles})
     get_filename_component(_source_path "${_source}" PATH)
-    string(REPLACE "${CMAKE_SOURCE_DIR}/release/scripts/" "" _source_path "${_source_path}")
+    string(REPLACE "${CMAKE_SOURCE_DIR}/scripts/" "" _source_path "${_source_path}")
     string(REPLACE "/" "\\" _group_path "${_source_path}")
     source_group("${_group_path}" FILES "${_source}")
   endforeach()
@@ -940,7 +940,7 @@ if(WINDOWS_PYTHON_DEBUG)
     file(WRITE ${USER_PROPS_FILE} "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
   <PropertyGroup>
-    <LocalDebuggerCommandArguments>-con --env-system-scripts \"${CMAKE_SOURCE_DIR}/release/scripts\" </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-con --env-system-scripts \"${CMAKE_SOURCE_DIR}/scripts\" </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>")
   endif()

@@ -793,7 +793,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME) {
+      if (ELEM(wmn->action, NA_RENAME, NA_EDITED)) {
         ED_area_tag_redraw(area);
       }
       break;

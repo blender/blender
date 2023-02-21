@@ -1558,7 +1558,6 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = mesh->attributes();
   Vector<CustomDataLayer, 16> new_layer_to_write;
 
   /* Don't write the boolean UV map sublayers which will be written in the legacy #MLoopUV type. */
@@ -1591,23 +1590,29 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
     mloopuv_layer.data = mloopuv.data();
 
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-    const VArray<bool> vert_selection = attributes.lookup_or_default<bool>(
-        BKE_uv_map_vert_select_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
-    const VArray<bool> edge_selection = attributes.lookup_or_default<bool>(
-        BKE_uv_map_edge_select_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
-    const VArray<bool> pin = attributes.lookup_or_default<bool>(
-        BKE_uv_map_pin_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
+    const bool *vert_selection = static_cast<const bool *>(CustomData_get_layer_named(
+        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(layer.name, buffer)));
+    const bool *edge_selection = static_cast<const bool *>(CustomData_get_layer_named(
+        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(layer.name, buffer)));
+    const bool *pin = static_cast<const bool *>(CustomData_get_layer_named(
+        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(layer.name, buffer)));
 
     threading::parallel_for(mloopuv.index_range(), 2048, [&](IndexRange range) {
       for (const int i : range) {
         copy_v2_v2(mloopuv[i].uv, coords[i]);
-        SET_FLAG_FROM_TEST(mloopuv[i].flag, vert_selection[i], MLOOPUV_VERTSEL);
-        SET_FLAG_FROM_TEST(mloopuv[i].flag, edge_selection[i], MLOOPUV_EDGESEL);
-        SET_FLAG_FROM_TEST(mloopuv[i].flag, pin[i], MLOOPUV_PINNED);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, vert_selection && vert_selection[i], MLOOPUV_VERTSEL);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, edge_selection && edge_selection[i], MLOOPUV_EDGESEL);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, pin && pin[i], MLOOPUV_PINNED);
       }
     });
     new_layer_to_write.append(mloopuv_layer);
   }
+
+  /* #CustomData expects the layers to be sorted in increasing order based on type. */
+  std::stable_sort(
+      new_layer_to_write.begin(),
+      new_layer_to_write.end(),
+      [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
 
   loop_layers_to_write = new_layer_to_write;
   mesh->ldata.totlayer = new_layer_to_write.size();

@@ -339,7 +339,7 @@ void MTLImmediate::end()
           } break;
           case GPU_PRIM_LINE_LOOP: {
             /* Patch final vertex of line loop to close. Rendered using LineStrip.
-             * Note: vertex_len represents original length, however, allocated Metal
+             * NOTE: vertex_len represents original length, however, allocated Metal
              * buffer contains space for one extra vertex when LineLoop is used. */
             uchar *buffer_data = reinterpret_cast<uchar *>(current_allocation_.data);
             memcpy(buffer_data + (vertex_len)*vertex_format.stride,

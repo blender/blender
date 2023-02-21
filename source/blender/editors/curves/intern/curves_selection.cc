@@ -123,7 +123,7 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
-static bool contains(const VArray<bool> &varray, const bool value)
+static bool contains(const VArray<bool> &varray, const IndexRange range_to_check, const bool value)
 {
   const CommonVArrayInfo info = varray.common_info();
   if (info.type == CommonVArrayInfo::Type::Single) {
@@ -132,7 +132,7 @@ static bool contains(const VArray<bool> &varray, const bool value)
   if (info.type == CommonVArrayInfo::Type::Span) {
     const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
     return threading::parallel_reduce(
-        span.index_range(),
+        range_to_check,
         4096,
         false,
         [&](const IndexRange range, const bool init) {
@@ -141,7 +141,7 @@ static bool contains(const VArray<bool> &varray, const bool value)
         [&](const bool a, const bool b) { return a || b; });
   }
   return threading::parallel_reduce(
-      varray.index_range(),
+      range_to_check,
       2048,
       false,
       [&](const IndexRange range, const bool init) {
@@ -159,10 +159,15 @@ static bool contains(const VArray<bool> &varray, const bool value)
       [&](const bool a, const bool b) { return a || b; });
 }
 
+bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to_check)
+{
+  return contains(varray, range_to_check, true);
+}
+
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
   const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
-  return !selection || contains(selection, true);
+  return !selection || contains(selection, curves.curves_range(), true);
 }
 
 bool has_anything_selected(const GSpan selection)
@@ -264,6 +269,85 @@ void select_linked(bke::CurvesGeometry &curves)
       }
     }
   });
+  selection.finish();
+}
+
+void select_adjacent(bke::CurvesGeometry &curves, const bool deselect)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+  const VArray<bool> cyclic = curves.cyclic();
+
+  if (deselect) {
+    invert_selection(selection.span);
+  }
+
+  if (selection.span.type().is<bool>()) {
+    MutableSpan<bool> selection_typed = selection.span.typed<bool>();
+    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+
+        /* Handle all cases in the forward direction. */
+        for (int point_i = points.first(); point_i < points.last(); point_i++) {
+          if (!selection_typed[point_i] && selection_typed[point_i + 1]) {
+            selection_typed[point_i] = true;
+          }
+        }
+
+        /* Handle all cases in the backwards direction. */
+        for (int point_i = points.last(); point_i > points.first(); point_i--) {
+          if (!selection_typed[point_i] && selection_typed[point_i - 1]) {
+            selection_typed[point_i] = true;
+          }
+        }
+
+        /* Handle cyclic curve case. */
+        if (cyclic[curve_i]) {
+          if (selection_typed[points.first()] != selection_typed[points.last()]) {
+            selection_typed[points.first()] = true;
+            selection_typed[points.last()] = true;
+          }
+        }
+      }
+    });
+  }
+  else if (selection.span.type().is<float>()) {
+    MutableSpan<float> selection_typed = selection.span.typed<float>();
+    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+
+        /* Handle all cases in the forward direction. */
+        for (int point_i = points.first(); point_i < points.last(); point_i++) {
+          if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i + 1] > 0.0f)) {
+            selection_typed[point_i] = 1.0f;
+          }
+        }
+
+        /* Handle all cases in the backwards direction. */
+        for (int point_i = points.last(); point_i > points.first(); point_i--) {
+          if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i - 1] > 0.0f)) {
+            selection_typed[point_i] = 1.0f;
+          }
+        }
+
+        /* Handle cyclic curve case. */
+        if (cyclic[curve_i]) {
+          if (selection_typed[points.first()] != selection_typed[points.last()]) {
+            selection_typed[points.first()] = 1.0f;
+            selection_typed[points.last()] = 1.0f;
+          }
+        }
+      }
+    });
+  }
+
+  if (deselect) {
+    invert_selection(selection.span);
+  }
+
   selection.finish();
 }
 
@@ -502,7 +586,7 @@ static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
         return b;
       });
 
-  if (closest_data.index > 0) {
+  if (closest_data.index >= 0) {
     return true;
   }
 

@@ -1761,6 +1761,41 @@ bool write_crash_blend(void)
 }
 
 /**
+ * Helper to check if file `filepath` can be written.
+ * \return true if it can, otherwise report an error and return false.
+ */
+static bool wm_file_write_check_with_report_on_failure(Main *bmain,
+                                                       const char *filepath,
+                                                       ReportList *reports)
+{
+  const int filepath_len = strlen(filepath);
+  if (filepath_len == 0) {
+    BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
+    return false;
+  }
+
+  if (filepath_len >= FILE_MAX) {
+    BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
+    return false;
+  }
+
+  /* Check if file write permission is ok */
+  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
+    BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
+    return false;
+  }
+
+  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
+    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
+      BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * \see #wm_homefile_write_exec wraps #BLO_write_file in a similar way.
  */
 static bool wm_file_write(bContext *C,
@@ -1771,39 +1806,16 @@ static bool wm_file_write(bContext *C,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  int len;
   int ok = false;
   BlendThumbnail *thumb = nullptr, *main_thumb = nullptr;
   ImBuf *ibuf_thumb = nullptr;
-
-  len = strlen(filepath);
-
-  if (len == 0) {
-    BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
-    return ok;
-  }
-
-  if (len >= FILE_MAX) {
-    BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
-    return ok;
-  }
-
-  /* Check if file write permission is ok */
-  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
-    BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
-    return ok;
-  }
 
   /* NOTE: used to replace the file extension (to ensure '.blend'),
    * no need to now because the operator ensures,
    * its handy for scripts to save to a predefined name without blender editing it */
 
-  /* send the OnSave event */
-  LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
-    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
-      BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
-      return ok;
-    }
+  if (!wm_file_write_check_with_report_on_failure(bmain, filepath, reports)) {
+    return ok;
   }
 
   /* Call pre-save callbacks before writing preview,

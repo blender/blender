@@ -1601,6 +1601,12 @@ static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static bool version_fix_delete_flag(Sequence *seq, void * /*user_data*/)
+{
+  seq->flag &= ~SEQ_FLAG_DELETE;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -3907,16 +3913,27 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 10)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (!sfile->asset_params) {
+            continue;
+          }
+
+          /* When an asset browser uses the default import method, make it follow the new
+           * preference setting. This means no effective default behavior change. */
+          if (sfile->asset_params->import_type == FILE_ASSET_IMPORT_APPEND_REUSE) {
+            sfile->asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+          }
+        }
+      }
+    }
+
     if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "shadow_pool_size")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.flag |= SCE_EEVEE_SHADOW_ENABLED;
@@ -3938,6 +3955,34 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode == OB_MODE_SCULPT_CURVES) {
+        if (brush->curves_sculpt_settings->curve_parameter_falloff == nullptr) {
+          brush->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_add(
+              1, 0.0f, 0.0f, 1.0f, 1.0f);
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
     /* Keep this block, even when empty. */
   }
 }

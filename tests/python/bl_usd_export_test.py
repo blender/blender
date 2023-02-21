@@ -14,6 +14,7 @@ import bpy
 
 args = None
 
+
 class AbstractUSDTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

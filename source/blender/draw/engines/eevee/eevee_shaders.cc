@@ -1390,12 +1390,21 @@ struct GPUMaterial *EEVEE_material_get(
     return nullptr;
   }
   switch (status) {
-    case GPU_MAT_SUCCESS:
-      break;
-    case GPU_MAT_QUEUED:
+    case GPU_MAT_SUCCESS: {
+      /* Determine optimization status for remaining compilations counter. */
+      int optimization_status = GPU_material_optimization_status(mat);
+      if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
+        vedata->stl->g_data->queued_optimise_shaders_count++;
+      }
+    } break;
+    case GPU_MAT_QUEUED: {
       vedata->stl->g_data->queued_shaders_count++;
-      mat = EEVEE_material_default_get(scene, ma, options);
-      break;
+      GPUMaterial *default_mat = EEVEE_material_default_get(scene, ma, options);
+      /* Mark pending material with its default material for future cache warming.*/
+      GPU_material_set_default(mat, default_mat);
+      /* Return default material. */
+      mat = default_mat;
+    } break;
     case GPU_MAT_FAILED:
     default:
       ma = EEVEE_material_default_error_get();

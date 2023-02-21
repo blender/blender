@@ -118,7 +118,7 @@ static bool python_script_exec(bContext *C,
       char *buf;
       PyObject *filepath_dummy_py;
 
-      filepath_dummy_py = PyC_UnicodeFromByte(filepath_dummy);
+      filepath_dummy_py = PyC_UnicodeFromBytes(filepath_dummy);
 
       size_t buf_len_dummy;
       buf = txt_to_buf(text, &buf_len_dummy);

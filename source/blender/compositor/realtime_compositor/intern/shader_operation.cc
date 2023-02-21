@@ -81,7 +81,7 @@ Map<std::string, DOutputSocket> &ShaderOperation::get_inputs_to_linked_outputs_m
 
 void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
 {
-  for (const auto &item : output_sockets_to_output_identifiers_map_.items()) {
+  for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
     const int reference_count = number_of_inputs_linked_to_output_conditioned(
         item.key, [&](DInputSocket input) { return schedule.contains(input.node()); });
 

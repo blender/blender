@@ -13,6 +13,7 @@
 #pragma once
 
 #include "DNA_ID_enums.h"
+#include "DNA_asset_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,13 @@ void ED_asset_handle_get_full_library_path(
 #endif
 
 #ifdef __cplusplus
+
+#  include <optional>
+
+/** The asset library may have an import method (e.g. append vs. link) defined to use. If so, this
+ * returns it. Otherwise a reasonable method should be used, usually "Append (Reuse Data)". */
+std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
+    const struct AssetHandle *asset);
 
 namespace blender::ed::asset {
 

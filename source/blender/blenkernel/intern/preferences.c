@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+#include "DNA_asset_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
@@ -44,6 +46,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   if (path) {
     BLI_strncpy(library->path, path, sizeof(library->path));
   }
+  library->import_method = ASSET_IMPORT_APPEND_REUSE;
 
   return library;
 }

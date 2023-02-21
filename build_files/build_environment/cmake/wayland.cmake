@@ -13,7 +13,7 @@ ExternalProject_Add(external_wayland
   # NOTE: `-lm` is needed for `libxml2` which is a static library that uses `libm.so`,
   # without this, math symbols such as `floor` aren't found.
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env PKG_CONFIG_PATH=${LIBDIR}/expat/lib/pkgconfig:${LIBDIR}/xml2/lib/pkgconfig:${LIBDIR}/ffi/lib/pkgconfig:$PKG_CONFIG_PATH
-                    ${MESON} --prefix ${LIBDIR}/wayland -Ddocumentation=false -Dtests=false -D "c_link_args=-L${LIBDIR}/ffi/lib -lm" . ../external_wayland
+                    ${MESON} --prefix ${LIBDIR}/wayland ${MESON_BUILD_TYPE} -Ddocumentation=false -Dtests=false -D "c_link_args=-L${LIBDIR}/ffi/lib -lm" . ../external_wayland
   BUILD_COMMAND ninja
   INSTALL_COMMAND ninja install
 )

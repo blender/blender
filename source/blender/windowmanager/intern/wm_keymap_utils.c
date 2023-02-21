@@ -141,7 +141,7 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
         km_id = "Grease Pencil Stroke Vertex Mode";
         break;
       case CTX_MODE_SCULPT_CURVES:
-        km_id = "Curves Sculpt";
+        km_id = "Sculpt Curves";
         break;
     }
   }

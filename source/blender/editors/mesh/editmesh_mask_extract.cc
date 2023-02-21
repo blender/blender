@@ -285,7 +285,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   params.add_solidify = RNA_boolean_get(op->ptr, "add_solidify");
 
   /* Push an undo step prior to extraction.
-   * Note: A second push happens after the operator due to
+   * NOTE: A second push happens after the operator due to
    * the OPTYPE_UNDO flag; having an initial undo step here
    * is just needed to preserve the active object pointer.
    *

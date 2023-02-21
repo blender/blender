@@ -1,0 +1,2578 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
+"Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+
+msgid "Name"
+msgstr "Izena"
+
+
+msgid "Type"
+msgstr "Mota"
+
+
+msgid "Color"
+msgstr "Kolorea"
+
+
+msgid "Value"
+msgstr "Balioa"
+
+
+msgid "Action Group"
+msgstr "Akzio Taldea"
+
+
+msgid "Groups of F-Curves"
+msgstr "F-Kurba taldeak"
+
+
+msgid "Channels"
+msgstr "Kanalak"
+
+
+msgid "F-Curves in this group"
+msgstr "Talde honetako F-Kurbak"
+
+
+msgid "Color Set"
+msgstr "Kolore Multzoa"
+
+
+msgid "Custom color set to use"
+msgstr "Pertsonalizatutako kolore aukera"
+
+
+msgid "Default Colors"
+msgstr "Lehenetsitako Koloreak"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Kolore taldea"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Kolore taldea"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Kolore taldea"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Kolore taldea"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Kolore taldea"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Kolore taldea"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Kolore taldea"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Kolore taldea"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Kolore taldea"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Kolore taldea"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Kolore taldea"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Kolore taldea"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Kolore taldea"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Kolore taldea"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Kolore taldea"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Kolore taldea"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Kolore taldea"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Kolore taldea"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Kolore taldea"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Kolore taldea"
+
+
+msgid "Custom Color Set"
+msgstr "Pertsonalizatutako Kolore Taldea"
+
+
+msgid "Colors"
+msgstr "Koloreak"
+
+
+msgid "Lock"
+msgstr "Blokeatu"
+
+
+msgid "Action group is locked"
+msgstr "Akzio taldea blokeatuta dago"
+
+
+msgid "Select"
+msgstr "Aukera"
+
+
+msgid "Action group is selected"
+msgstr "Akzio taldea aukeratuta dago"
+
+
+msgid "Expanded"
+msgstr "Hedatua"
+
+
+msgid "Message"
+msgstr "Mezua"
+
+
+msgid "Action"
+msgstr "Akzioa"
+
+
+msgid "Replace"
+msgstr "Ordezkatu"
+
+
+msgid "Add"
+msgstr "Gehitu"
+
+
+msgid "Multiply"
+msgstr "Biderkatu"
+
+
+msgid "Heads"
+msgstr "Buruak"
+
+
+msgid "Tails"
+msgstr "Isatsak"
+
+
+msgid "Height"
+msgstr "Altuera"
+
+
+msgid "Empty"
+msgstr "Hutsa"
+
+
+msgid "Node Editor"
+msgstr "Nodo Editorea"
+
+
+msgid "Movie Clip Editor"
+msgstr "Film Sekuentzia Editorea"
+
+
+msgid "Graph Editor"
+msgstr "Grafo Editorea"
+
+
+msgid "Text Editor"
+msgstr "Testu Editorea"
+
+
+msgid "Info"
+msgstr "Informazioa"
+
+
+msgid "Outliner"
+msgstr "Laburpena"
+
+
+msgid "Properties"
+msgstr "Propietateak"
+
+
+msgid "File Browser"
+msgstr "Fitxategi Bilatzailea"
+
+
+msgid "Vector"
+msgstr "ektorea"
+
+
+msgid "Point"
+msgstr "Puntu"
+
+
+msgid "+X"
+msgstr "+X"
+
+
+msgid "+Y"
+msgstr "+Y"
+
+
+msgid "-X"
+msgstr "-X"
+
+
+msgid "-Y"
+msgstr "-Y"
+
+
+msgid "Object"
+msgstr "Objektua"
+
+
+msgid "Emit"
+msgstr "Igorri"
+
+
+msgid "Indirect"
+msgstr "Zeharkakoa"
+
+
+msgid "Target"
+msgstr "Helburua"
+
+
+msgid "Weight"
+msgstr "Pisua"
+
+
+msgid "Distance"
+msgstr "Distantzia"
+
+
+msgid "Range"
+msgstr "Tartea"
+
+
+msgid "Random"
+msgstr "Ausa"
+
+
+msgid "Parent"
+msgstr "Gurasoa"
+
+
+msgid "Active"
+msgstr "Aktibo"
+
+
+msgid "Material"
+msgstr "Materiala"
+
+
+msgid "Direction"
+msgstr "Norabidea"
+
+
+msgid "Stroke"
+msgstr "Trazua"
+
+
+msgid "Normal"
+msgstr "Normala"
+
+
+msgid "Curve"
+msgstr "Kurba"
+
+
+msgid "Look"
+msgstr "Ikusi"
+
+
+msgid "Disable"
+msgstr "Desgaitu"
+
+
+msgid "Armature"
+msgstr "Eskeletoa"
+
+
+msgid "Z"
+msgstr "Z"
+
+
+msgid "Default"
+msgstr "Lehenetsia"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Bone"
+msgstr "Hezurra"
+
+
+msgid "Script"
+msgstr "Script"
+
+
+msgid "Method"
+msgstr "Metodoak"
+
+
+msgid "Plane"
+msgstr "Planoa"
+
+
+msgid "Render"
+msgstr "Render"
+
+
+msgid "Shading"
+msgstr "Itzalak"
+
+
+msgid "Invert"
+msgstr "Alderantzikatu"
+
+
+msgid "Force"
+msgstr "Indarra"
+
+
+msgid "Cone"
+msgstr "Konoa"
+
+
+msgid "Sphere"
+msgstr "Esfera"
+
+
+msgid "Axis"
+msgstr "Ardatzak"
+
+
+msgid "Save"
+msgstr "Gorde"
+
+
+msgid "Environment"
+msgstr "Ingurunea"
+
+
+msgid "Display Mode"
+msgstr "Bistaraketa Modua"
+
+
+msgid "Link"
+msgstr "Estekatu"
+
+
+msgid "Time"
+msgstr "Denbora"
+
+
+msgid "Delete"
+msgstr "Ezabatu"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Onion Skinning"
+msgstr "Tipula-azapa"
+
+
+msgid "Layer"
+msgstr "Geruza"
+
+
+msgid "Grid"
+msgstr "Sarea"
+
+
+msgid "Window"
+msgstr "Leihoa"
+
+
+msgid "Tools"
+msgstr "Tresnak"
+
+
+msgid "Speed Factor"
+msgstr "Azelerazio-faktorea"
+
+
+msgctxt "Curve"
+msgid "Curve"
+msgstr "Kurba"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Esfera"
+
+
+msgid "Groups"
+msgstr "Taldeak"
+
+
+msgid "Visible Layers"
+msgstr "Ikusgai Dauden Geruzak"
+
+
+msgid "Local"
+msgstr "Lokala"
+
+
+msgid "Sequence"
+msgstr "Sekuentzia"
+
+
+msgid "Min"
+msgstr "Min"
+
+
+msgid "Max"
+msgstr "Max"
+
+
+msgid "Selected"
+msgstr "Hautatutako"
+
+
+msgid "Cube"
+msgstr "Kuboa"
+
+
+msgid "Cylinder"
+msgstr "Zilindroa"
+
+
+msgid "Circle"
+msgstr "Zirkulua"
+
+
+msgid "Angular Velocity"
+msgstr "Abiadura-angeluarra"
+
+
+msgid "Sound"
+msgstr "Soinua"
+
+
+msgid "Image Texture"
+msgstr "Irudiaren ehundura"
+
+
+msgid "Filter Size"
+msgstr "Filtroaren tamaina"
+
+
+msgid "Filter"
+msgstr "Filtroa"
+
+
+msgid "Area"
+msgstr "Azalera"
+
+
+msgid "Repeat X"
+msgstr "X Errepikatu"
+
+
+msgid "Repeat Y"
+msgstr "Y Errepikatu"
+
+
+msgid "Calculate Alpha"
+msgstr "Alfa Kalkulatu"
+
+
+msgid "Mirror X"
+msgstr "X Ispilua"
+
+
+msgid "Mirror Y"
+msgstr "Y Ispilua"
+
+
+msgid "Mist"
+msgstr "Laino"
+
+
+msgid "Animation"
+msgstr "Animazioa"
+
+
+msgid "Owner"
+msgstr "Jabea"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Delete"
+msgstr "Ezabatu"
+
+
+msgid "Mouse"
+msgstr "Sagua"
+
+
+msgid "Selected Objects"
+msgstr "Hautatutako objektuak"
+
+
+msgid "Max Angle"
+msgstr "Angelu Maximoa"
+
+
+msgid "Min Angle"
+msgstr "Angelu Minimoa"
+
+
+msgid "Show/Hide"
+msgstr "Erakutsi/Ezkutatu"
+
+
+msgid "Show/Hide Faces"
+msgstr "Aurpegiak erakutsi/ezkutatu"
+
+
+msgid "Edit"
+msgstr "Editatu"
+
+
+msgid "Text"
+msgstr "Testua"
+
+
+msgid "File"
+msgstr "Fitxategia"
+
+
+msgid "Export"
+msgstr "Esportatu"
+
+
+msgid "External Data"
+msgstr "Kanpo "
+
+
+msgid "Import"
+msgstr "Inportatu"
+
+
+msgid "Help"
+msgstr "Laguntza"
+
+
+msgid "Relations"
+msgstr "Loturak"
+
+
+msgid "New"
+msgstr "Berria"
+
+
+msgid "World"
+msgstr "Mundua"
+
+
+msgctxt "Curve"
+msgid "Random"
+msgstr "Ausaz"
+
+
+msgid "Shadow"
+msgstr "Itzala"
+
+
+msgid "Combined"
+msgstr "Konbinatuak"
+
+
+msgid "Translate"
+msgstr "Mugitu"
+
+
+msgid "X Axis"
+msgstr "X Ardatza"
+
+
+msgid "Y Axis"
+msgstr "Y Ardatza"
+
+
+msgid "Original"
+msgstr "Jatorrizkoa"
+
+
+msgid "Reflection"
+msgstr "Islapena"
+
+
+msgid "Layer Weight"
+msgstr "Geruza-pisua"
+
+
+msgid "X axis"
+msgstr "X ardatza"
+
+
+msgid "Y axis"
+msgstr "Y ardatza"
+
+
+msgid "Z axis"
+msgstr "Z ardatza"
+
+
+msgid "Z Axis"
+msgstr "Z Ardatza"
+
+
+msgctxt "Operator"
+msgid "Duplicate"
+msgstr "Bikoiztu"
+
+
+msgid "Select all elements"
+msgstr "Elementu guztiak hautatu"
+
+
+msgid "Deselect"
+msgstr "Hautaketa deuseztatu"
+
+
+msgid "Deselect all elements"
+msgstr "Elementu guztien hautaketa deuseztatu"
+
+
+msgid "Wait for Input"
+msgstr "Input-aren zain"
+
+
+msgid "Enable"
+msgstr "Gaitu"
+
+
+msgid "(undocumented operator)"
+msgstr "(Dokumentatu gabeko operadorea)"
+
+
+msgctxt "Operator"
+msgid "Set Origin"
+msgstr "Jatorria Ezarri"
+
+
+msgctxt "Operator"
+msgid "Zoom In"
+msgstr "Zoom Gehiago"
+
+
+msgctxt "Operator"
+msgid "Zoom Out"
+msgstr "Zoom Gutxiago"
+
+
+msgid "Clear text by type"
+msgstr "Testua mota arabera garbitu"
+
+
+msgid "History"
+msgstr "Historia"
+
+
+msgid "Clear the command history"
+msgstr "Agindu historia garbitu"
+
+
+msgctxt "Operator"
+msgid "Clear Line"
+msgstr "Lerroa garbitu"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard"
+msgstr "Arbelera Kopiatu"
+
+
+msgctxt "Operator"
+msgid "Delete"
+msgstr "Ezabatu"
+
+
+msgid "Which part of the text to delete"
+msgstr "Testuaren zein zati ezabatu"
+
+
+msgid "Next Character"
+msgstr "Hurrengo Karakterea"
+
+
+msgid "Previous Character"
+msgstr "Aurreko Karakterea"
+
+
+msgid "Next Word"
+msgstr "Hurrengo Hitza"
+
+
+msgid "Previous Word"
+msgstr "Aurreko Hitza"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Kontsola Exekutatu"
+
+
+msgid "The index of the cursor"
+msgstr "Kurtsorearen indizea"
+
+
+msgid "Remove Duplicates"
+msgstr "Errepikapenak Ezabatu"
+
+
+msgid "Remove duplicate items in the history"
+msgstr "Historiako errepikatutako artikulak ezabatu"
+
+
+msgid "Add 4 spaces at line beginning"
+msgstr "Lerroaren hasieran 4 zuriune gehitu"
+
+
+msgctxt "Operator"
+msgid "Insert"
+msgstr "Txertatu"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Kontsolaren Hizkuntza"
+
+
+msgid "Language"
+msgstr "Hizkuntza"
+
+
+msgctxt "Operator"
+msgid "Move Cursor"
+msgstr "Kurtsorea Mugitu"
+
+
+msgid "Move cursor position"
+msgstr "Kurtsorearen kokapena mugitu"
+
+
+msgid "Where to move cursor to"
+msgstr "Kurtsorea nora mugitu"
+
+
+msgid "Line Begin"
+msgstr "Lerroaren Hasiera"
+
+
+msgid "Line End"
+msgstr "Lerroaren Amaiera"
+
+
+msgctxt "Operator"
+msgid "Paste from Clipboard"
+msgstr "Arbeletik itsatsi"
+
+
+msgid "Paste text from clipboard"
+msgstr "Arbeletik testua itsatsi"
+
+
+msgid "Console output type"
+msgstr "Kontsolaren irteera-mota"
+
+
+msgid "Information"
+msgstr "Informazioa"
+
+
+msgctxt "Operator"
+msgid "Set Selection"
+msgstr "Hautaketa Finkatu"
+
+
+msgid "Set the console selection"
+msgstr "Kontsolaren hautaketa finkatu"
+
+
+msgctxt "Operator"
+msgid "Select Word"
+msgstr "Hitza Hautatu"
+
+
+msgid "Delete 4 spaces from line beginning"
+msgstr "Lerro hasieratik 4 zuriune ezabatu"
+
+
+msgctxt "Operator"
+msgid "Clear Inverse"
+msgstr "Alderantzikapena Garbitu"
+
+
+msgctxt "Operator"
+msgid "Set Inverse"
+msgstr "Alderantzikapena Finkatu"
+
+
+msgctxt "Operator"
+msgid "Reset Distance"
+msgstr "Distantzia Berrasieratu"
+
+
+msgctxt "Operator"
+msgid "Reset Original Length"
+msgstr "Jatorrizko Luzera Berrasieratu"
+
+
+msgctxt "Operator"
+msgid "(De)select First"
+msgstr "(Ez)hautatu Lehena"
+
+
+msgctxt "Operator"
+msgid "(De)select Last"
+msgstr "(Ez)hautatu Azkena"
+
+
+msgctxt "Operator"
+msgid "Duplicate Curve"
+msgstr "Kurba Bikoiztu"
+
+
+msgctxt "Operator"
+msgid "Add Duplicate"
+msgstr "Bikoizketa Gehitu"
+
+
+msgid "Remove from selection"
+msgstr "Hautaketatik ezabatu"
+
+
+msgid "Toggle Selection"
+msgstr "Hautaketa txandakatu"
+
+
+msgid "Toggle the selection"
+msgstr "Hautaketa txandakatu"
+
+
+msgid "Object Types"
+msgstr "Objektu mota"
+
+
+msgid "Which kind of object to export"
+msgstr "Zein motako objektua esportatu"
+
+
+msgid "Lamp"
+msgstr "Lanpara"
+
+
+msgid "Other"
+msgstr "Besteak"
+
+
+msgid "Always write absolute paths"
+msgstr "Beti helbide absolutuak idatzi"
+
+
+msgid "Always write relative paths (where possible)"
+msgstr "Beti helbide erlatiboak idatzi (posible denean)"
+
+
+msgid "Filename only"
+msgstr "Fitxategi-izena soilik"
+
+
+msgid "-X Axis"
+msgstr "-X ardatza"
+
+
+msgid "-Y Axis"
+msgstr "-Y ardatza"
+
+
+msgid "-Z Axis"
+msgstr "-Z ardatza"
+
+
+msgid "Use Metadata"
+msgstr "Metadata erabili"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Esportatu OBJ"
+
+
+msgid "Include UVs"
+msgstr "Gehitu UVs"
+
+
+msgid "Hierarchy"
+msgstr "Hierarkia"
+
+
+msgctxt "Operator"
+msgid "Export MDD"
+msgstr "Esportatu MDD"
+
+
+msgid "Top of the list"
+msgstr "Lista-hasiera"
+
+
+msgid "Bottom of the list"
+msgstr "Lista-bukaera"
+
+
+msgctxt "Operator"
+msgid "Cancel File Load"
+msgstr "Fitxategi kargaketa indargabetu"
+
+
+msgctxt "Operator"
+msgid "Delete Selected Files"
+msgstr "Hautatutako Fitxategiak Ezabatu"
+
+
+msgctxt "Operator"
+msgid "Create New Directory"
+msgstr "Direktorio berria sortu"
+
+
+msgid "Create a new directory"
+msgstr "Direktorio berri bat sortu"
+
+
+msgid "Name of new directory"
+msgstr "Direktorio berriaren izena"
+
+
+msgid "Open"
+msgstr "Ireki"
+
+
+msgid "Open new directory"
+msgstr "Direktorio berria ireki"
+
+
+msgid "Execute selected file"
+msgstr "Hautatutako fitxategia exekutatu"
+
+
+msgctxt "Operator"
+msgid "Increment Number in Filename"
+msgstr "Fitxategi-izenean Zenbakia Inkrementatu"
+
+
+msgid "Increment number in filename"
+msgstr "Fitxategi-izenean zenbakia inkrementatu"
+
+
+msgid "Increment"
+msgstr "Inkrementatu"
+
+
+msgctxt "Operator"
+msgid "Find Missing Files"
+msgstr "Galdutako fitxategiak bilatu"
+
+
+msgid "Find All"
+msgstr "Guztia bilatu"
+
+
+msgctxt "Operator"
+msgid "Highlight File"
+msgstr "Fitxategia nabarmendu"
+
+
+msgid "Highlight selected file(s)"
+msgstr "Hautatutako fitxategia(k) nabarmendu"
+
+
+msgctxt "Operator"
+msgid "Next Folder"
+msgstr "Hurrengo karpeta"
+
+
+msgid "Move to next folder"
+msgstr "Hurrengo karpetara mugitu"
+
+
+msgctxt "Operator"
+msgid "Parent File"
+msgstr "Erro Fitxategia"
+
+
+msgid "Move to parent directory"
+msgstr "Erro direktoriora mugitu"
+
+
+msgctxt "Operator"
+msgid "Previous Folder"
+msgstr "Aurreko karpeta"
+
+
+msgid "Move to previous folder"
+msgstr "Aurreko karpetara mugitu"
+
+
+msgid "Refresh the file list"
+msgstr "Fitxategi-lista freskatu"
+
+
+msgctxt "Operator"
+msgid "Rename File or Directory"
+msgstr "Fitxategia edo Direktorioa berrizendatu"
+
+
+msgid "Rename file or file directory"
+msgstr "Fitxategia edo fitxategi direktorioa berrizendatu"
+
+
+msgid "Open a directory when selecting it"
+msgstr "Direktorio bat ireki hautatzen denean"
+
+
+msgctxt "Operator"
+msgid "(De)select All Files"
+msgstr "(Ez)hautatu fitxategi guztiak"
+
+
+msgid "Select or deselect all files"
+msgstr "Hautatu edo ez-hautatu fitxategi guztiak"
+
+
+msgctxt "Operator"
+msgid "Select Directory"
+msgstr "Direktorioa hautatu"
+
+
+msgid "Next"
+msgstr "Hurrengoa"
+
+
+msgid "How to unpack"
+msgstr "Nola despaketatu"
+
+
+msgid "Use files in current directory (create when necessary)"
+msgstr "Uneko direktorioan fitxategiak erabili (Sortu beharrezkoa denean)"
+
+
+msgid "Write files to current directory (overwrite existing files)"
+msgstr "Uneko direktorioan fitxategiak idatzi(berridatzi existitzen diren fitxategiak)"
+
+
+msgid "Use files in original location (create when necessary)"
+msgstr "Jatorrizko kokapenean erabili fitxategiak (Sortu beharrezkoa denean)"
+
+
+msgid "Write files to original location (overwrite existing files)"
+msgstr "Jatorrizko kokapenean idatzi fitxategiak (berridatzi existitzen diren fitxategiak)"
+
+
+msgctxt "Operator"
+msgid "Unpack Item"
+msgstr "Artikulua despaketatu"
+
+
+msgid "Name of ID block to unpack"
+msgstr "Despaketatzeko ID blokearen izena"
+
+
+msgid "Identifier type of ID block"
+msgstr "ID blokearen identifikatzaile mota"
+
+
+msgid "Use file from current directory (create when necessary)"
+msgstr "Uneko direktorioko fitxategia erabili(sortu beharrezkoa denean)"
+
+
+msgid "Write file to current directory (overwrite existing file)"
+msgstr "Uneko direktorioan fitxategia idatzi(berridatzi existitzen den fitxategia)"
+
+
+msgid "Use file in original location (create when necessary)"
+msgstr "Jatorrizko kokapenean erabili fitxategia (Sortu beharrezkoa denean)"
+
+
+msgid "Write file to original location (overwrite existing file)"
+msgstr "Jatorrizko kokapenean idatzi fitxategia (berridatzi existitzen den fitxategia)"
+
+
+msgctxt "Operator"
+msgid "Change Character"
+msgstr "Karakterea aldatu"
+
+
+msgid "Delta"
+msgstr "Delta"
+
+
+msgctxt "Operator"
+msgid "Change Spacing"
+msgstr "Tartea aldatu"
+
+
+msgid "Change font spacing"
+msgstr "Letra-tipo tartea aldatu"
+
+
+msgid "Selection"
+msgstr "Hautaketa"
+
+
+msgctxt "Operator"
+msgid "Line Break"
+msgstr "Lerro berria"
+
+
+msgid "Previous Line"
+msgstr "Aurreko lerroa"
+
+
+msgid "Next Line"
+msgstr "Hurrengo lerroa"
+
+
+msgid "Previous Page"
+msgstr "Aurreko orrialdea"
+
+
+msgid "Next Page"
+msgstr "Hurrengo orrialdea"
+
+
+msgctxt "Operator"
+msgid "Move Select"
+msgstr "Hautagaia mugitu"
+
+
+msgctxt "Operator"
+msgid "Open Font"
+msgstr "Letra-tipoa ireki"
+
+
+msgid "Load a new font from a file"
+msgstr "Letra-tipo berria kargatu fitxategi batetatik"
+
+
+msgid "Select all text"
+msgstr "Testu osoa hautatu"
+
+
+msgctxt "Operator"
+msgid "Set Style"
+msgstr "Estiloa txertatu"
+
+
+msgid "Set font style"
+msgstr "Letra-tipo estiloa txertatu"
+
+
+msgid "Style"
+msgstr "Estiloa"
+
+
+msgid "Bold"
+msgstr "Lodia"
+
+
+msgid "Italic"
+msgstr "Etzana"
+
+
+msgid "Underline"
+msgstr "Azpimarratu"
+
+
+msgctxt "Operator"
+msgid "Toggle Style"
+msgstr "Estiloa txandakatu"
+
+
+msgid "Toggle font style"
+msgstr "Letra-tipo estiloa txandakatu"
+
+
+msgctxt "Operator"
+msgid "Copy Text"
+msgstr "Testua kopiatu"
+
+
+msgctxt "Operator"
+msgid "Cut Text"
+msgstr "Testua moztu"
+
+
+msgid "Cut selected text to clipboard"
+msgstr "Hautatutako testua arbelera moztu"
+
+
+msgctxt "Operator"
+msgid "Insert Text"
+msgstr "Testua txertatu"
+
+
+msgctxt "Operator"
+msgid "Paste Text"
+msgstr "Testua kopiatu"
+
+
+msgctxt "Operator"
+msgid "Paste File"
+msgstr "Fitxategia kopiatu"
+
+
+msgid "Paste contents from file"
+msgstr "Fitxategitik edukia itsatsi"
+
+
+msgid "Add a new text box"
+msgstr "Testu kaxa berria gehitu"
+
+
+msgid "The current text box"
+msgstr "Uneko testu kaxa"
+
+
+msgctxt "Operator"
+msgid "Unlink"
+msgstr "Esteka ezabatu"
+
+
+msgid "Draw Freehand"
+msgstr "Eskuz marraztu"
+
+
+msgid "Draw Straight Lines"
+msgstr "Marra zuzena marraztu"
+
+
+msgid "Eraser"
+msgstr "Borragoma"
+
+
+msgid "Timing Mode"
+msgstr "Egokitzapen modua"
+
+
+msgid "No Timing"
+msgstr "Egokitzapenik ez"
+
+
+msgid "Ignore timing"
+msgstr "Egokitzapena baztertu"
+
+
+msgid "Normalize Weight"
+msgstr "Altuera normalizatu"
+
+
+msgctxt "Operator"
+msgid "Dissolve"
+msgstr "Desegin"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Draw"
+msgstr "Arkatzez marraztu"
+
+
+msgid "Limit"
+msgstr "Limitea"
+
+
+msgctxt "Operator"
+msgid "Hide Layer(s)"
+msgstr "Geruzak ezkutatu"
+
+
+msgid "Hide unselected rather than selected layers"
+msgstr "Aukeratu gabeko geruzak ezkutatu, aukeratutakoak baino"
+
+
+msgctxt "Operator"
+msgid "Add New Layer"
+msgstr "Geruza berri bat gehitu"
+
+
+msgctxt "Operator"
+msgid "Change Layer"
+msgstr "Geruza aldatu"
+
+
+msgctxt "Operator"
+msgid "Duplicate Layer"
+msgstr "Geruza bikoiztu"
+
+
+msgctxt "Operator"
+msgid "Isolate Layer"
+msgstr "Geruza baztertu"
+
+
+msgctxt "Operator"
+msgid "Remove Layer"
+msgstr "Geruza ezabatu"
+
+
+msgctxt "Operator"
+msgid "Lock All Layers"
+msgstr "Geruza guztiak itxi"
+
+
+msgctxt "Operator"
+msgid "Move Strokes to Layer"
+msgstr "Trazuak geruzara mugitu"
+
+
+msgctxt "Operator"
+msgid "Paste Strokes"
+msgstr "Trazuak itsatsi"
+
+
+msgid "Mouse location"
+msgstr "Arratoiaren lokalizazioa"
+
+
+msgctxt "Operator"
+msgid "(De)select All Strokes"
+msgstr "(Ez)hautatu trazu guztiak"
+
+
+msgid "Shared layers"
+msgstr "Geruza partekatuak"
+
+
+msgctxt "Operator"
+msgid "Unlock All Layers"
+msgstr "Geruza guztiak ireki"
+
+
+msgctxt "Operator"
+msgid "Set Cursor"
+msgstr "Kurtsorea finkatu"
+
+
+msgid "Black Point"
+msgstr "Puntu Beltza"
+
+
+msgid "White Point"
+msgstr "Puntu Zuria"
+
+
+msgctxt "Operator"
+msgid "Invert Channels"
+msgstr "Kanalak alderantzikatu"
+
+
+msgid "Invert image's channels"
+msgstr "Irudiaren kanalak alderantzikatu"
+
+
+msgctxt "Operator"
+msgid "New Image"
+msgstr "Irudi berria"
+
+
+msgid "Create a new image"
+msgstr "Irudi berri bat sortu"
+
+
+msgid "Create an image with an alpha channel"
+msgstr "Irudi bat sortu alfa kanalarekin"
+
+
+msgid "Image height"
+msgstr "Irudiaren altuera"
+
+
+msgid "Image width"
+msgstr "Irudiaren zabalera"
+
+
+msgctxt "Operator"
+msgid "Open Image"
+msgstr "Irudia ireki"
+
+
+msgid "Open image"
+msgstr "Irudia ireki"
+
+
+msgid "X End"
+msgstr "X Bukaera"
+
+
+msgid "X Start"
+msgstr "X Hasiera"
+
+
+msgid "Y End"
+msgstr "Y Bukaera"
+
+
+msgid "Y Start"
+msgstr "Y Hasiera"
+
+
+msgctxt "Operator"
+msgid "Save Image"
+msgstr "Irudia Gorde"
+
+
+msgctxt "Operator"
+msgid "Save As Image"
+msgstr "Irudi Bezala Gorde"
+
+
+msgid "Save As Render"
+msgstr "Render Bezala Gorde"
+
+
+msgctxt "Operator"
+msgid "View Center"
+msgstr "Zentrua bistaratu"
+
+
+msgctxt "Operator"
+msgid "New Material"
+msgstr "Material Berria"
+
+
+msgid "Add a new material"
+msgstr "Material berria gehitu"
+
+
+msgctxt "Operator"
+msgid "Paste Material"
+msgstr "Materiala itsatsi"
+
+
+msgctxt "Operator"
+msgid "Duplicate Linked"
+msgstr "Bikoiztu Estekatua"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Ezkutatu"
+
+
+msgctxt "Operator"
+msgid "Join"
+msgstr "Elkartu"
+
+
+msgid "Child"
+msgstr "Umea"
+
+
+msgid "Reset"
+msgstr "Berhasieratu"
+
+
+msgctxt "Operator"
+msgid "Show Active"
+msgstr "Aktiboa Bistaratu"
+
+
+msgctxt "Operator"
+msgid "Show Hierarchy"
+msgstr "Hierarkia Bistaratu"
+
+
+msgctxt "Operator"
+msgid "Show/Hide One Level"
+msgstr "Bistaratu/Izkutatu Maila Bat"
+
+
+msgid "Write Image"
+msgstr "Irudia Gorde"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Renderizatutako Animazioa Erreproduzitu"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Renderizatu"
+
+
+msgctxt "Scene"
+msgid "New"
+msgstr "Berria"
+
+
+msgid "Copy Settings"
+msgstr "Ezarpenak Kopiatu"
+
+
+msgctxt "Operator"
+msgid "Add Render View"
+msgstr "Render Bista Gehitu"
+
+
+msgid "Add a render view"
+msgstr "Render Bista Gehitu"
+
+
+msgctxt "Operator"
+msgid "Remove Render View"
+msgstr "Render Bista Ezabatu"
+
+
+msgid "Remove the selected render view"
+msgstr "Hautatutako render bista ezabatu"
+
+
+msgctxt "Operator"
+msgid "Cancel Animation"
+msgstr "Animazioa Bertan Behera Utzi"
+
+
+msgctxt "Operator"
+msgid "Play Animation"
+msgstr "Animazioa Erreproduzitu"
+
+
+msgid "Play animation"
+msgstr "Animazioa erreproduzitu"
+
+
+msgid "Sync"
+msgstr "Sink"
+
+
+msgctxt "Operator"
+msgid "Animation Step"
+msgstr "Animazio Urratsa"
+
+
+msgctxt "Operator"
+msgid "Duplicate Area into New Window"
+msgstr "Lehio Berri Batean Ingurunea Bikoiztu"
+
+
+msgctxt "Operator"
+msgid "Toggle Maximize Area"
+msgstr "Ingurune Mazimizatua Txandakatu"
+
+
+msgctxt "Operator"
+msgid "Save Screenshot"
+msgstr "Pantaila-irudia Gorde"
+
+
+msgid "Property"
+msgstr "Ezaugarria"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Biratu"
+
+
+msgid "Delta X"
+msgstr "Delta X"
+
+
+msgid "Delta Y"
+msgstr "Delta Y"
+
+
+msgctxt "Operator"
+msgid "Reset View"
+msgstr "Bista berrasieratu"
+
+
+msgid "Reset the view"
+msgstr "Bista berrasieratu"
+
+
+msgid "Page"
+msgstr "Orria"
+
+
+msgctxt "Operator"
+msgid "Select Menu"
+msgstr "Menua Hautatu"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Bista Lokala"
+
+
+msgctxt "Operator"
+msgid "Rotate View"
+msgstr "Bista Biratu"
+
+
+msgid "Rotate the view"
+msgstr "Bista Biratu"
+
+
+msgid "Object Name"
+msgstr "Objectuaren Izena"
+
+
+msgid "Prev"
+msgstr "Aurrekoa"
+
+
+msgid "Play"
+msgstr "Erreproduzitu"
+
+
+msgctxt "Operator"
+msgid "Load Factory Settings"
+msgstr "Lehenetsitako ezarpenak kargatu"
+
+
+msgctxt "Operator"
+msgid "Recover Last Session"
+msgstr "Azken Saioa Berreskuratu"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Sistemaren Informazioa Gorde"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Eskalatu"
+
+
+msgid "Physics"
+msgstr "Fisikak"
+
+
+msgid "Dynamics"
+msgstr "Dinamikak"
+
+
+msgid "Timeline"
+msgstr "Denbora-lerroa"
+
+
+msgid "Development"
+msgstr "Garapena"
+
+
+msgctxt "Operator"
+msgid "Circle"
+msgstr "Zirkulua"
+
+
+msgid "Image Editor"
+msgstr "Irudi Editorea"
+
+
+msgid "Continue"
+msgstr "Jarraitu"
+
+
+msgctxt "Sequence"
+msgid "Type"
+msgstr "Mota"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "Irudia"
+
+
+msgctxt "Sequence"
+msgid "Scene"
+msgstr "Eszena"
+
+
+msgctxt "Sequence"
+msgid "Movie"
+msgstr "Filma"
+
+
+msgctxt "Sequence"
+msgid "Mask"
+msgstr "Maskara"
+
+
+msgctxt "Sequence"
+msgid "Sound"
+msgstr "Soinua"
+
+
+msgctxt "Sequence"
+msgid "Cross"
+msgstr "Gurutzatu"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Gehitu"
+
+
+msgctxt "Sequence"
+msgid "Subtract"
+msgstr "Kendu"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "Kolorea"
+
+
+msgctxt "Sequence"
+msgid "Speed"
+msgstr "Abiadura"
+
+
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Testua"
+
+
+msgid "Gray Scale"
+msgstr "Gris-eskala"
+
+
+msgid "Sepia"
+msgstr "Sepia"
+
+
+msgid "Blender File"
+msgstr "Blender Fitxategia"
+
+
+msgid "Sort Alphabetically"
+msgstr "Alfabetikoki Ordenatu"
+
+
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
+msgid "3D"
+msgstr "3D"
+
+
+msgctxt "WindowManager"
+msgid "Window"
+msgstr "Leihoa"
+
+
+msgctxt "WindowManager"
+msgid "View2D"
+msgstr "2DBista"
+
+
+msgctxt "WindowManager"
+msgid "3D View"
+msgstr "3D Bista"
+
+
+msgctxt "WindowManager"
+msgid "Curve"
+msgstr "Kurba"
+
+
+msgctxt "WindowManager"
+msgid "Armature"
+msgstr "Eskeletoa"
+
+
+msgctxt "WindowManager"
+msgid "Graph Editor"
+msgstr "Grafo Editorea"
+
+
+msgctxt "WindowManager"
+msgid "NLA Editor"
+msgstr "AEL (Animazio Ez-Lineala) Editorea"
+
+
+msgctxt "WindowManager"
+msgid "Timeline"
+msgstr "Denbora-lerroa"
+
+
+msgctxt "WindowManager"
+msgid "Outliner"
+msgstr "Laburpena"
+
+
+msgctxt "WindowManager"
+msgid "Node Editor"
+msgstr "Nodo Editorea"
+
+
+msgctxt "WindowManager"
+msgid "File Browser"
+msgstr "Fitxategi Bilatzailea"
+
+
+msgctxt "WindowManager"
+msgid "Info"
+msgstr "Informazioa"
+
+
+msgctxt "WindowManager"
+msgid "Text"
+msgstr "Testua"
+
+
+msgctxt "WindowManager"
+msgid "Animation"
+msgstr "Animazioa"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Berria"
+
+
+msgid "3D View"
+msgstr "3D Bista"
+
+
+msgctxt "Operator"
+msgid "Open..."
+msgstr "Ireki..."
+
+
+msgctxt "Operator"
+msgid "Manual"
+msgstr "Eskuliburua"
+
+
+msgid "Detail"
+msgstr "Xehetasuna"
+
+
+msgid "Priority"
+msgstr "Lehentasuna"
+
+
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Garbitu"
+
+
+msgid "Lower"
+msgstr "Baxua"
+
+
+msgid "Upper"
+msgstr "Altua"
+
+
+msgid "Refraction"
+msgstr "Errefrakzioa"
+
+
+msgid "Temperature"
+msgstr "Tenperatura"
+
+
+msgctxt "Image"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Operator"
+msgid "Save As..."
+msgstr "Gorde honela..."
+
+
+msgctxt "Operator"
+msgid "Color"
+msgstr "Kolorea"
+
+
+msgctxt "Operator"
+msgid "Text"
+msgstr "Testua"
+
+
+msgctxt "Operator"
+msgid "Scene..."
+msgstr "Eszena"
+
+
+msgctxt "Text"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Operator"
+msgid "One Object"
+msgstr "Objektu bat"
+
+
+msgctxt "Operator"
+msgid "One Object Per Line"
+msgstr "Objektu bat lerroko"
+
+
+msgid "Text: External"
+msgstr "Testua: Kanpokoa"
+
+
+msgid "Text: Internal"
+msgstr "Testua: Barnekoa"
+
+
+msgctxt "Operator"
+msgid "Quit"
+msgstr "Irten"
+
+
+msgctxt "Operator"
+msgid "Render Animation"
+msgstr "Animazioa"
+
+
+msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Kopia gorde..."
+
+
+msgctxt "Operator"
+msgid "Render Image"
+msgstr "Irudia Renderizatu"
+
+
+msgctxt "Operator"
+msgid "Developer Community"
+msgstr "Garatzaileen Komunitatea"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Akats baten berri eman"
+
+
+msgctxt "Operator"
+msgid "Plane"
+msgstr "Planoa"
+
+
+msgctxt "Operator"
+msgid "Cube"
+msgstr "Kuboa"
+
+
+msgctxt "Operator"
+msgid "UV Sphere"
+msgstr "UV Esfera"
+
+
+msgctxt "Operator"
+msgid "Ico Sphere"
+msgstr "Iko Esfera"
+
+
+msgctxt "Operator"
+msgid "Cylinder"
+msgstr "Zilindroa"
+
+
+msgctxt "Operator"
+msgid "Cone"
+msgstr "Konoa"
+
+
+msgctxt "Operator"
+msgid "Torus"
+msgstr "Torua"
+
+
+msgctxt "Operator"
+msgid "Grid"
+msgstr "Sarea"
+
+
+msgctxt "Operator"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
+msgid "Path is empty, cannot save"
+msgstr "Helbide hutsa, ezin da gorde"
+
+
+msgid "Path too long, cannot save"
+msgstr "Helbide oso luzea, ezin da gorde"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Lattice"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "World"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Armature"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Action"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "GPencil"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "FreestyleLineStyle"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Mesh"
+msgid "Plane"
+msgstr "Planoa"
+
+
+msgctxt "Mesh"
+msgid "Cube"
+msgstr "Kuboa"
+
+
+msgctxt "Mesh"
+msgid "Circle"
+msgstr "Zirkulua"
+
+
+msgctxt "Mesh"
+msgid "Cylinder"
+msgstr "Zilindroa"
+
+
+msgctxt "Mesh"
+msgid "Cone"
+msgstr "Konoa"
+
+
+msgctxt "Mesh"
+msgid "Grid"
+msgstr "Sarea"
+
+
+msgctxt "Mesh"
+msgid "Sphere"
+msgstr "Esfera"
+
+
+msgid "normal"
+msgstr "Normala"
+
+
+msgctxt "Armature"
+msgid "Group"
+msgstr "Taldea"
+
+
+msgid "Sound not packed"
+msgstr "Soinua paketatu gabe"
+
+
+msgid "Font not packed"
+msgstr "Letra-mota paketatugabea"
+
+
+msgid "Fac"
+msgstr "Fak"
+
+
+msgid "Val"
+msgstr "Balioa"
+
+
+msgid "AO"
+msgstr "Inguruneko Oklusioa"
+
+
+msgid "Anisotropy"
+msgstr "Anisotropia"
+
+
+msgid "BSDF"
+msgstr "BSDF"
+
+
+msgid "View Vector"
+msgstr "Bektore bista"
+
+
+msgid "View Z Depth"
+msgstr "Z sakonera bista"
+
+
+msgid "View Distance"
+msgstr "Distantzia-bista"
+
+
+msgid "True Normal"
+msgstr "Geometria zuzena"
+
+
+msgid "Backfacing"
+msgstr "Atzetik"
+
+
+msgid "Is Camera Ray"
+msgstr "Kamera-izpia da"
+
+
+msgid "Is Shadow Ray"
+msgstr "Itzal-izpia da"
+
+
+msgid "Is Diffuse Ray"
+msgstr "Hedapen-izpia da"
+
+
+msgid "Is Glossy Ray"
+msgstr "Izpi disdiratsua da"
+
+
+msgid "Is Reflection Ray"
+msgstr "Islapen-izpia da"
+
+
+msgid "Is Transmission Ray"
+msgstr "Trasmisio-izpia da"
+
+
+msgid "Ray Depth"
+msgstr "Izpi-sakonera"
+
+
+msgid "Transparent Depth"
+msgstr "Gardentasun-sakonera"
+
+
+msgid "Transmission Depth"
+msgstr "Trasmisio-sakonera"
+
+
+msgid "Color1"
+msgstr "1 Kolorea"
+
+
+msgid "Color2"
+msgstr "2 Kolorea"
+
+
+msgid "Color Fac"
+msgstr "Kolore Faktorea"
+
+
+msgid "Alpha Fac"
+msgstr "Alpha faktorea"
+
+
+msgid "BSSRDF"
+msgstr "BSSRDF"
+
+
+msgid "Mortar"
+msgstr "Zementu"
+
+
+msgid "Row Height"
+msgstr "Lerroaren Altuera"
+
+
+msgid "Patterns"
+msgstr "Patroiak"
+
+
+msgid "Coordinate 1"
+msgstr "1 Koordenatua"
+
+
+msgid "Coordinate 2"
+msgstr "2 Koordenatua"
+
+
+msgid "iScale"
+msgstr "iEskala"
+
+
+msgid "| Time:%s | "
+msgstr "| Denbora: %s |"
+
+
+msgid "Image too small"
+msgstr "Irudi txikiegia"
+
+
+msgid "Cannot render, no camera"
+msgstr "Ezin da renderizatu, kamera falta"
+
+
+msgid "No border area selected"
+msgstr "Ez da azalera-muga aukeratu"
+
+
+msgid "All render layers are disabled"
+msgstr "Renderizatutako geruza guztiak desgaitu"
+
+
+msgid "%s: failed to load '%s'"
+msgstr "%s: errorea '%s' kargatzean "
+
+
+msgid "Blender File View"
+msgstr "Blender Fitxategi Bista"
+
+
+msgid "unable to open the file"
+msgstr "Ezin izan da fitxategia ireki"
+
+
+msgid "File format is not supported in file '%s'"
+msgstr "Fitxategi formatuak ez dauka euskarririk '%s' fitxategian"
+
+
+msgid "File path '%s' invalid"
+msgstr "'%s' fitxategi-helbidea baliogabea"
+
+
+msgid "Unknown error loading '%s'"
+msgstr "Errore ezezaguna '%s' kargatzean"
+
+
+msgid "Could not read '%s'"
+msgstr "Ezin izan da '%s' irakurri"
+
+
+msgid "'%s': nothing indicated"
+msgstr "'%s': ez da ezer adierazi"
+
+
+msgid "dbl-"
+msgstr "dbl-"
+
+
+msgid "ON"
+msgstr "GAITUTA"
+
+
+msgid "OFF"
+msgstr "DESGAITUTA"
+
+
+msgid "unsupported format"
+msgstr "Euskarri gabeko formatua"
+
+
+msgid "Cannot read %s '%s': %s"
+msgstr "Ezin da irakurri %s '%s': %s"
+
+
+msgid "Add Curve"
+msgstr "Kurba Gehitu"
+
+
+msgid "Import-Export"
+msgstr "Inportatu-Esportatu"
+
+
+msgid "Rigging"
+msgstr "Rigging"
+
+
+msgid "English (English)"
+msgstr "Ingelesa (English)"
+
+
+msgid "Japanese (日本語)"
+msgstr "Japoniera (日本語)"
+
+
+msgid "Dutch (Nederlandse taal)"
+msgstr "Nederlandera (Nederlandse taal)"
+
+
+msgid "Italian (Italiano)"
+msgstr "Italiera (Italiano)"
+
+
+msgid "German (Deutsch)"
+msgstr "Alemaniera (Deutsch)"
+
+
+msgid "Finnish (Suomi)"
+msgstr "Finlandiera (Suomi)"
+
+
+msgid "Swedish (Svenska)"
+msgstr "Suediera (Svenska)"
+
+
+msgid "French (Français)"
+msgstr "Frantsesa (Français)"
+
+
+msgid "Spanish (Español)"
+msgstr "Gaztelania (Español)"
+
+
+msgid "Catalan (Català)"
+msgstr "Katalana (Català)"
+
+
+msgid "Czech (Český)"
+msgstr "Txekiarra (Český)"
+
+
+msgid "Portuguese (Português)"
+msgstr "Portugesa (Português)"
+
+
+msgid "Simplified Chinese (简体中文)"
+msgstr "Txinera laburtua (简体中文)"
+
+
+msgid "Traditional Chinese (繁體中文)"
+msgstr "Txinera tradizionala (繁體中文)"
+
+
+msgid "Russian (Русский)"
+msgstr "Errusiera (Русский)"
+
+
+msgid "Croatian (Hrvatski)"
+msgstr "Kroaziera (Hrvatski)"
+
+
+msgid "Serbian (Српски)"
+msgstr "Serbiera (Српски)"
+
+
+msgid "Polish (Polski)"
+msgstr "Poloniera (Polski)"
+
+
+msgid "Romanian (Român)"
+msgstr "Errumaniera (Român)"
+
+
+msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
+msgstr "Arabiera (ﺔﻴﺑﺮﻌﻟﺩ"
+
+
+msgid "Bulgarian (Български)"
+msgstr "Bulgariera (Български)"
+
+
+msgid "Greek (Ελληνικά)"
+msgstr "Greziera (Ελληνικά)"
+
+
+msgid "Nepali (नेपाली)"
+msgstr "Nepalera (नेपाली)"
+
+
+msgid "Persian (ﯽﺳﺭﺎﻓ)"
+msgstr "Persiera (ﯽﺳﺭﺎﻓ)"
+
+
+msgid "Indonesian (Bahasa indonesia)"
+msgstr "Indonesiera (Bahasa indonesia)"
+
+
+msgid "Kyrgyz (Кыргыз тили)"
+msgstr "Kirgizera (Кыргыз тили)"
+
+
+msgid "Turkish (Türkçe)"
+msgstr "Turkiera (Türkçe)"
+
+
+msgid "Hungarian (Magyar)"
+msgstr "Hungariera (Magyar)"
+
+
+msgid "Brazilian Portuguese (Português do Brasil)"
+msgstr "Brazilgo Portugesa (Português do Brasil)"
+
+
+msgid "Hebrew (תירִבְעִ)"
+msgstr "Hebreera (תירִבְעִ)"
+
+
+msgid "Estonian (Eestlane)"
+msgstr "Estoniera (Eestlane)"
+
+
+msgid "Esperanto (Esperanto)"
+msgstr "Esperantoa (Esperanto)"
+
+
+msgid "Spanish from Spain (Español de España)"
+msgstr "Espainiako gaztelera (Español de España)"
+
+
+msgid "Amharic (አማርኛ)"
+msgstr "Amharera (አማርኛ)\""
+
+
+msgid "Uzbek (Oʻzbek)"
+msgstr "Uzbekera (Oʻzbek)"
+
+
+msgid "Uzbek Cyrillic (Ўзбек)"
+msgstr "Uzbekera Zirilikoa (Ўзбек)"
+
+
+msgid "Hindi (मानक हिन्दी)"
+msgstr "Hindi (मानक हिन्दी)"
+
+
+msgid "Vietnamese (tiếng Việt)"
+msgstr "Vietnamera (tiếng Việt)"
+
+
+msgid "Complete"
+msgstr "Bukatuta"
+
+
+msgid "In Progress"
+msgstr "Abian"
+
+
+msgid "Starting"
+msgstr "Hasten"
+

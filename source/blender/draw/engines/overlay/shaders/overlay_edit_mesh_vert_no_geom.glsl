@@ -59,9 +59,9 @@ void main()
    * IF PrimType == LineList:  base_vertex_id = quad_id*2
    * IF PrimType == LineStrip: base_vertex_id = quad_id
    *
-   * Note: This is currently used as LineList.
+   * NOTE: This is currently used as LineList.
    *
-   * Note: Primitive Restart Will not work with this setup as-is. We should avoid using
+   * NOTE: Primitive Restart Will not work with this setup as-is. We should avoid using
    * input primitive types which use restart indices. */
   int base_vertex_id = quad_id * 2;
 

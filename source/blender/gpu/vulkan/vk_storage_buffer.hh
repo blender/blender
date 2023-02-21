@@ -10,12 +10,20 @@
 #include "GPU_texture.h"
 
 #include "gpu_storage_buffer_private.hh"
+#include "gpu_vertex_buffer_private.hh"
+
+#include "vk_buffer.hh"
 
 namespace blender::gpu {
+class VertBuf;
 
 class VKStorageBuffer : public StorageBuf {
+  GPUUsageType usage_;
+  VKBuffer buffer_;
+
  public:
-  VKStorageBuffer(int size, const char *name) : StorageBuf(size, name)
+  VKStorageBuffer(int size, GPUUsageType usage, const char *name)
+      : StorageBuf(size, name), usage_(usage)
   {
   }
 
@@ -25,6 +33,19 @@ class VKStorageBuffer : public StorageBuf {
   void clear(eGPUTextureFormat internal_format, eGPUDataFormat data_format, void *data) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
   void read(void *data) override;
+
+  VkBuffer vk_handle() const
+  {
+    return buffer_.vk_handle();
+  }
+
+  int64_t size_in_bytes() const
+  {
+    return buffer_.size_in_bytes();
+  }
+
+ private:
+  void allocate(VKContext &context);
 };
 
 }  // namespace blender::gpu
