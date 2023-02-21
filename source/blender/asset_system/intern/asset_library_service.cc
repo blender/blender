@@ -218,10 +218,6 @@ std::string AssetLibraryService::root_path_from_library_ref(
     return essentials_directory_path();
   }
 
-  if (ELEM(library_reference.type, ASSET_LIBRARY_ESSENTIALS)) {
-    return essentials_directory_path();
-  }
-
   bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
       library_reference);
   if (!custom_library || !custom_library->path[0]) {
