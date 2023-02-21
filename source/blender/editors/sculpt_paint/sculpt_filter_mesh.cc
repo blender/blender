@@ -796,6 +796,40 @@ static void sculpt_mesh_filter_end(bContext *C, wmOperator * /*op*/)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
+static void sculpt_mesh_filter_cancel(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes;
+  int nodes_num;
+
+  if (!ss || !ss->pbvh) {
+    return;
+  }
+
+  /* Gather all PBVH leaf nodes. */
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &nodes_num);
+
+  for (int i : IndexRange(nodes_num)) {
+    PBVHNode *node = nodes[i];
+    PBVHVertexIter vd;
+
+    SculptOrigVertData orig_data;
+    SCULPT_orig_vert_data_init(&orig_data, ob, nodes[i], SCULPT_UNDO_COORDS);
+
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+      SCULPT_orig_vert_data_update(&orig_data, &vd);
+
+      copy_v3_v3(vd.co, orig_data.co);
+    }
+    BKE_pbvh_vertex_iter_end;
+
+    BKE_pbvh_node_mark_update(node);
+  }
+
+  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+}
+
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
