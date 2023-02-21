@@ -480,10 +480,10 @@ if __name__ == "__main__":
         svn_update(args, release_version)
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
+        if not blender_skip_msg:
+            blender_skip_msg = blender_update(args)
         if blender_skip_msg:
             blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
-        else:
-            blender_skip_msg = "Blender repository skipped: " + blender_update(args) + "\n"
     if not args.no_submodules:
         submodules_skip_msg = submodules_update(args, branch)
 
