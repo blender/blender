@@ -1,0 +1,117 @@
+##----------------------------------------------------------------------##
+# Blender's BLI_mempool
+#
+# Blender can be built WITH_MEM_VALGRIND.
+# This causes internal operations to raise false-positives.
+
+{
+   BLI_mempool_alloc_A8
+   Memcheck:Addr8
+   fun:BLI_mempool_alloc
+   fun:*
+}
+
+{
+   BLI_mempool_alloc_A4
+   Memcheck:Addr4
+   fun:BLI_mempool_alloc
+   fun:*
+}
+
+{
+   BLI_mempool_add_A8
+   Memcheck:Addr8
+   fun:mempool_chunk_add
+   fun:*
+}
+
+{
+   BLI_mempool_add_A4
+   Memcheck:Addr4
+   fun:mempool_chunk_add
+   fun:*
+}
+
+{
+   BLI_mempool_iterstep_A4
+   Memcheck:Addr4
+   fun:BLI_mempool_iterstep
+   fun:*
+}
+
+##----------------------------------------------------------------------##
+# Python Calls aren't so useful unless we're debugging Python it's self
+
+# _PyObject_Free
+{
+   PyFree_C
+   Memcheck:Cond
+   fun:_PyObject_Free
+   fun:*
+}
+
+{
+   PyFree_A4
+   Memcheck:Addr4
+   fun:_PyObject_Free
+   fun:*
+}
+
+{
+   PyFree_A8
+   Memcheck:Addr8
+   fun:_PyObject_Free
+   fun:*
+}
+
+{
+   PyFree_V4
+   Memcheck:Value4
+   fun:_PyObject_Free
+   fun:*
+}
+
+{
+   PyFree_V8
+   Memcheck:Value8
+   fun:_PyObject_Free
+   fun:*
+}
+
+
+# _PyObject_Realloc
+{
+   PyRealloc_C
+   Memcheck:Cond
+   fun:_PyObject_Realloc
+   fun:*
+}
+
+{
+   PyRealloc_A4
+   Memcheck:Addr4
+   fun:_PyObject_Realloc
+   fun:*
+}
+
+{
+   PyRealloc_A8
+   Memcheck:Addr8
+   fun:_PyObject_Realloc
+   fun:*
+}
+{
+   PyRealloc_V4
+   Memcheck:Value4
+   fun:_PyObject_Realloc
+   fun:*
+}
+
+{
+   PyRealloc_V8
+   Memcheck:Value8
+   fun:_PyObject_Realloc
+   fun:*
+}
+
+

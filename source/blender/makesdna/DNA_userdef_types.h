@@ -692,7 +692,7 @@ typedef struct UserDef {
   /**
    * Optional user location for scripts.
    *
-   * This supports the same layout as Blender's scripts directory `release/scripts`.
+   * This supports the same layout as Blender's scripts directory `scripts`.
    *
    * \note Unlike most paths, changing this is not fully supported at run-time,
    * requiring a restart to properly take effect. Supporting this would cause complications as

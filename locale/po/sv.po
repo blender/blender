@@ -1,0 +1,2810 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
+"Language-Team: \n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+
+msgid "Name"
+msgstr "Namn"
+
+
+msgid "Type"
+msgstr "Typ"
+
+
+msgid "Color"
+msgstr "Färg"
+
+
+msgid "Value"
+msgstr "Värde"
+
+
+msgid "F-Curves in this group"
+msgstr "F-kurvor i denna grupp"
+
+
+msgid "Color Set"
+msgstr "Färguppsättning:"
+
+
+msgid "Colors"
+msgstr "Färger"
+
+
+msgid "Lock"
+msgstr "Lås"
+
+
+msgid "Select"
+msgstr "Markera"
+
+
+msgid "Off"
+msgstr "Av"
+
+
+msgid "Add"
+msgstr "Ny"
+
+
+msgid "Subtract"
+msgstr "Subtrahera"
+
+
+msgid "Multiply"
+msgstr "Multiplicera"
+
+
+msgid "Hold Forward"
+msgstr "Håll fast framåt"
+
+
+msgid "Motion Paths"
+msgstr "Rörelsebanor"
+
+
+msgid "Bake Location"
+msgstr "Baka position"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Beräkna benbanor från svans"
+
+
+msgid "All Action Keyframes"
+msgstr "Samtliga action-nycklar"
+
+
+msgid "Height"
+msgstr "Höjd"
+
+
+msgid "Empty"
+msgstr "Tomobjekt"
+
+
+msgid "UV/Image Editor"
+msgstr "UV/bildredigerare"
+
+
+msgid "Text Editor"
+msgstr "Textredigerare"
+
+
+msgid "Python Console"
+msgstr "Python-konsol"
+
+
+msgid "Info"
+msgstr "Info"
+
+
+msgid "Properties"
+msgstr "Egenskaper"
+
+
+msgid "Width"
+msgstr "Bredd"
+
+
+msgid "Edge"
+msgstr "Kant"
+
+
+msgid "Face"
+msgstr "Yta"
+
+
+msgid "File Path"
+msgstr "Sökväg"
+
+
+msgid "Margin"
+msgstr "Marginal"
+
+
+msgid "Extend"
+msgstr "Utvidga"
+
+
+msgid "Object"
+msgstr "Objekt"
+
+
+msgid "Diffuse"
+msgstr "Diffus"
+
+
+msgid "Clear"
+msgstr "Nollställ"
+
+
+msgid "Handle 1 Type"
+msgstr "Typ för handtag 1"
+
+
+msgid "Aligned"
+msgstr "Justerad"
+
+
+msgid "Hide"
+msgstr "Göm"
+
+
+msgid "Tilt"
+msgstr "Lutning"
+
+
+msgid "Weight"
+msgstr "Vikt"
+
+
+msgid "Filename"
+msgstr "Filnamn"
+
+
+msgid "Level"
+msgstr "Nivå"
+
+
+msgid "Speed"
+msgstr "Hastighet"
+
+
+msgid "Distance"
+msgstr "Avstånd"
+
+
+msgid "Line"
+msgstr "Linje"
+
+
+msgid "Range"
+msgstr "Omfång"
+
+
+msgid "Strength"
+msgstr "Styrka"
+
+
+msgid "Random"
+msgstr "Slumpmässig"
+
+
+msgid "Relative"
+msgstr "Relativ"
+
+
+msgid "B-Bone Segments"
+msgstr "B-benssegment"
+
+
+msgid "Number of subdivisions of bone (for B-Bones only)"
+msgstr "Antal uppdelningar av benet (endast B-ben)"
+
+
+msgid "Children"
+msgstr "Barn"
+
+
+msgid "Head"
+msgstr "Huvud"
+
+
+msgid "Inherit Scale"
+msgstr "Ärva skalning"
+
+
+msgid "Layers"
+msgstr "Lager"
+
+
+msgid "Length"
+msgstr "Längd"
+
+
+msgid "Parent"
+msgstr "Förälder"
+
+
+msgid "Tail"
+msgstr "Svans"
+
+
+msgid "Deform"
+msgstr "Deformera"
+
+
+msgid "Multiply Vertex Group with Envelope"
+msgstr "Multiplicera vertexgrupp med omslutning"
+
+
+msgid "Inherit Rotation"
+msgstr "Ärv rotation"
+
+
+msgid "Local Location"
+msgstr "Lokalposition"
+
+
+msgid "Bone Groups"
+msgstr "Bengrupper"
+
+
+msgid "Remove"
+msgstr "Ta bort"
+
+
+msgid "Angle"
+msgstr "Vinkel"
+
+
+msgid "Material"
+msgstr "Material"
+
+
+msgid "Direction"
+msgstr "Riktning"
+
+
+msgid "All"
+msgstr "Alla"
+
+
+msgid "Radius"
+msgstr "Radie"
+
+
+msgid "Threshold"
+msgstr "Tröskel"
+
+
+msgid "Marker"
+msgstr "Markör"
+
+
+msgid "Fill"
+msgstr "Fyll"
+
+
+msgid "Smooth"
+msgstr "Jämn"
+
+
+msgid "Thickness"
+msgstr "Tjocklek"
+
+
+msgid "Hardness"
+msgstr "Hårdhet"
+
+
+msgid "Saturation"
+msgstr "Mättnad"
+
+
+msgid "Outline"
+msgstr "Kontur"
+
+
+msgid "Path"
+msgstr "Bana"
+
+
+msgid "Opacity"
+msgstr "Genomskinlighet"
+
+
+msgid "Crop"
+msgstr "Beskär"
+
+
+msgid "Image"
+msgstr "Bild"
+
+
+msgid "Offset"
+msgstr "Förskjutning"
+
+
+msgid "Rotation"
+msgstr "Rotation"
+
+
+msgid "Scale"
+msgstr "Skala"
+
+
+msgid "Show Expanded"
+msgstr "Visa utvikt"
+
+
+msgid "Stereo"
+msgstr "Stereoskopisk"
+
+
+msgid "Center"
+msgstr "Mitten"
+
+
+msgid "Collision Quality"
+msgstr "Krockkvalitet"
+
+
+msgid "Enable Collision"
+msgstr "Aktivera krockning"
+
+
+msgid "Enable Self Collision"
+msgstr "Aktivera självkollision"
+
+
+msgid "Enable self collisions"
+msgstr "Aktivera självkrock"
+
+
+msgid "Linear"
+msgstr "Linjär"
+
+
+msgid "Gravity"
+msgstr "Gravitation"
+
+
+msgid "Quality"
+msgstr "Kvalitet"
+
+
+msgid "Bending Stiffness Vertex Group"
+msgstr "Böjstyvhet för vertexgrupp"
+
+
+msgid "Damping"
+msgstr "Dämpning"
+
+
+msgid "Friction Factor"
+msgstr "Friktionsfaktor"
+
+
+msgid "Kill Particles"
+msgstr "Avsluta partiklar"
+
+
+msgid "Kill collided particles"
+msgstr "Ta bort krockade partiklar"
+
+
+msgid "Curve"
+msgstr "Bana"
+
+
+msgid "Screen"
+msgstr "Skärm"
+
+
+msgid "Linear Light"
+msgstr "Linjärt ljus"
+
+
+msgid "Alpha"
+msgstr "Alpha"
+
+
+msgid "Position"
+msgstr "Position"
+
+
+msgid "Influence"
+msgstr "Inflytande"
+
+
+msgid "World Space"
+msgstr "Världs-rum"
+
+
+msgid "Target Space"
+msgstr "Målrymd"
+
+
+msgid "Inverse Kinematics"
+msgstr "Invers kinematik"
+
+
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgid "Maximum"
+msgstr "Maximum"
+
+
+msgid "Minimum"
+msgstr "Minimum"
+
+
+msgid "Z Rotation"
+msgstr "Z-rotation"
+
+
+msgid "Scale X"
+msgstr "Skala X"
+
+
+msgid "Scale Y"
+msgstr "Skala Y"
+
+
+msgid "Default"
+msgstr "Förval"
+
+
+msgid "Power"
+msgstr "Styrka"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Bone"
+msgstr "Ben"
+
+
+msgid "Uniform"
+msgstr "Enhetlig"
+
+
+msgid "Front"
+msgstr "Fram"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
+
+
+msgid "Location"
+msgstr "Position"
+
+
+msgid "Handle Type"
+msgstr "Handtagstyp"
+
+
+msgid "Black Level"
+msgstr "Svartnivå"
+
+
+msgid "Bezier"
+msgstr "Bezierkurva"
+
+
+msgid "Depth"
+msgstr "Djup"
+
+
+msgid "Surface"
+msgstr "Yta"
+
+
+msgid "Plane"
+msgstr "Plan"
+
+
+msgid "View"
+msgstr "Visa"
+
+
+msgid "Dash"
+msgstr "Streckad"
+
+
+msgid "Render"
+msgstr "Rendera"
+
+
+msgid "Scene"
+msgstr "Scen"
+
+
+msgid "Particle System"
+msgstr "Partikelsystem"
+
+
+msgid "Transform"
+msgstr "Transformera"
+
+
+msgid "Display World"
+msgstr "Visa värld"
+
+
+msgid "Invert"
+msgstr "Invertera"
+
+
+msgid "Expression to use for Scripted Expression"
+msgstr "Uttryck för skriptat uttryck"
+
+
+msgid "Single Property"
+msgstr "Enstaka egenskap"
+
+
+msgid "Factor"
+msgstr "Faktor"
+
+
+msgid "Force"
+msgstr "Kraft"
+
+
+msgid "Velocity"
+msgstr "Hastighet"
+
+
+msgid "Spread"
+msgstr "Spridning"
+
+
+msgid "Resolution"
+msgstr "Upplösning"
+
+
+msgid "Texture"
+msgstr "Textur"
+
+
+msgid "Format"
+msgstr "Format"
+
+
+msgid "Vertex"
+msgstr "Vertex"
+
+
+msgid "Anti-Aliasing"
+msgstr "Antialias"
+
+
+msgid "Turbulence"
+msgstr "Turbulens"
+
+
+msgid "Auto Rainbow"
+msgstr "Automatisk regnbåge"
+
+
+msgid "Group"
+msgstr "Grupp"
+
+
+msgid "Keyframes"
+msgstr "Animationsnycklar"
+
+
+msgid "Bitrate"
+msgstr "Bithastighet"
+
+
+msgid "Mono"
+msgstr "Mono"
+
+
+msgid "4 Channels"
+msgstr "4 Kanaler"
+
+
+msgid "5.1 Surround"
+msgstr "5.1 Surround"
+
+
+msgid "7.1 Surround"
+msgstr "7.1 Surround"
+
+
+msgid "Samplerate"
+msgstr "Samplingsfrekvens"
+
+
+msgid "Audio volume"
+msgstr "Ljudvolym"
+
+
+msgid "Buffersize"
+msgstr "Buffertstorlek"
+
+
+msgid "Video Codec"
+msgstr "Videokodek"
+
+
+msgid "High Quality"
+msgstr "Hög kvalitet"
+
+
+msgid "Frame"
+msgstr "Bildruta"
+
+
+msgid "Cone"
+msgstr "Kon"
+
+
+msgid "Tube"
+msgstr "Tub"
+
+
+msgid "Amount"
+msgstr "Mängd"
+
+
+msgid "Shape"
+msgstr "Form"
+
+
+msgid "Axis"
+msgstr "Axel"
+
+
+msgid "Kink"
+msgstr "Nyck"
+
+
+msgid "Seed"
+msgstr "Frö"
+
+
+msgid "Size"
+msgstr "Storlek"
+
+
+msgid "Texture Mode"
+msgstr "Texturläge"
+
+
+msgid "Nabla"
+msgstr "Nabla"
+
+
+msgid "Weights"
+msgstr "Viktningar"
+
+
+msgid "File Name"
+msgstr "Filnamn"
+
+
+msgid "Show .blend files"
+msgstr "Visa .blend-filer"
+
+
+msgid "Link"
+msgstr "Länka"
+
+
+msgid "Append"
+msgstr "Infoga"
+
+
+msgid "End"
+msgstr "Slutför"
+
+
+msgid "Start"
+msgstr "Starta"
+
+
+msgid "Smoke"
+msgstr "Rök"
+
+
+msgid "Fluid"
+msgstr "Vätska"
+
+
+msgid "Preview"
+msgstr "Förhandsgranska"
+
+
+msgid "Time"
+msgstr "Tid"
+
+
+msgid "Delete"
+msgstr "Radera"
+
+
+msgid "Top"
+msgstr "Ovan"
+
+
+msgid "Dissolve Smoke"
+msgstr "Lös upp röken"
+
+
+msgid "Collision"
+msgstr "Krock"
+
+
+msgid "Density"
+msgstr "Densitet"
+
+
+msgid "Vertex Group"
+msgstr "Vertexgrupp"
+
+
+msgid "Temp. Diff."
+msgstr "Temperaturskillnad"
+
+
+msgid "Mapping"
+msgstr "Mappning"
+
+
+msgid "Initial Velocity"
+msgstr "Initialhastiget"
+
+
+msgid "Exclusive"
+msgstr "Exklusiv"
+
+
+msgid "Use"
+msgstr "Använd"
+
+
+msgid "Keyframe Type"
+msgstr "Nyckeltyp"
+
+
+msgid "Regular"
+msgstr "Regulär"
+
+
+msgid "Frames"
+msgstr "Rutor"
+
+
+msgid "Onion Skinning"
+msgstr "Lökskal"
+
+
+msgid "Layer"
+msgstr "Lager"
+
+
+msgid "Custom"
+msgstr "Anpassad"
+
+
+msgid "Grid"
+msgstr "Rutnät"
+
+
+msgid "Options"
+msgstr "Alternativ"
+
+
+msgid "Window"
+msgstr "Fönster"
+
+
+msgid "Build"
+msgstr "Bygg upp"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "Subdivide"
+msgstr "Dela upp"
+
+
+msgid "Lattice"
+msgstr "Lattice"
+
+
+msgid "Falloff Curve"
+msgstr "Avtagandekurva"
+
+
+msgid "Step"
+msgstr "Steg"
+
+
+msgid "Steps"
+msgstr "Steg"
+
+
+msgid "Start Offset"
+msgstr "Startförskjutning"
+
+
+msgid "Subdivisions"
+msgstr "Uppdelningar"
+
+
+msgid "Negative"
+msgstr "Negativ"
+
+
+msgid "Frame Offset"
+msgstr "Rutförskjutning"
+
+
+msgid "Weight value of a vertex in a vertex group"
+msgstr "Viktningsvärde för en verte i en vertexgrupp"
+
+
+msgid "Grid Subdivisions"
+msgstr "Delningar av rutnät"
+
+
+msgid "Statistical view of the levels of color in an image"
+msgstr "Statistisk vy över bildens färgnivåer"
+
+
+msgid "Groups"
+msgstr "Grupper"
+
+
+msgid "Wire"
+msgstr "Trådmodell"
+
+
+msgid "Visible Layers"
+msgstr "Synliga lager"
+
+
+msgid "Box"
+msgstr "Box"
+
+
+msgid "Global"
+msgstr "Global"
+
+
+msgid "Root"
+msgstr "Rot"
+
+
+msgid "Repeat"
+msgstr "Upprepa"
+
+
+msgid "Rate"
+msgstr "Frekvens"
+
+
+msgid "Rotate"
+msgstr "Rotera"
+
+
+msgid "Cloth"
+msgstr "Tyg"
+
+
+msgid "List of background images"
+msgstr "Lista på bakgrundsbilder"
+
+
+msgid "Clip Start"
+msgstr "Beskärningsstart"
+
+
+msgid "Display Background Images"
+msgstr "Visa bakgrundsbilder"
+
+
+msgid "Font"
+msgstr "Typsnitt"
+
+
+msgid "Shear"
+msgstr "Vrida"
+
+
+msgid "Font Size"
+msgstr "Textstorlek"
+
+
+msgid "Small Caps"
+msgstr "Kapitäler"
+
+
+msgid "Fast Editing"
+msgstr "Snabbredigera"
+
+
+msgid "Normals"
+msgstr "Normaler"
+
+
+msgid "Min"
+msgstr "Min"
+
+
+msgid "Max"
+msgstr "Max"
+
+
+msgid "Alpha Mode"
+msgstr "Alfa-läge"
+
+
+msgid "Output image in bitmap format"
+msgstr "Resultatbild som pixelbild"
+
+
+msgid "Output image in PNG format"
+msgstr "Resultatbild i PNG-format"
+
+
+msgid "Output image in JPEG format"
+msgstr "Resultatbild i JPEG-format"
+
+
+msgid "Output image in JPEG 2000 format"
+msgstr "Resultatbild i JPEG 2000-format"
+
+
+msgid "Output image in Targa format"
+msgstr "Resultatbild i TARGA-format"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Resultatbild i okomprimerat TARGA-format"
+
+
+msgid "Output image in Cineon format"
+msgstr "Resultatbild i Cineon-format"
+
+
+msgid "Output image in DPX format"
+msgstr "Resultatbild i DPX-format"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Resultatbild i flerlagers OpenEXR-format"
+
+
+msgid "Output image in OpenEXR format"
+msgstr "Resultatbild i OpenEXR-format"
+
+
+msgid "Output image in Radiance HDR format"
+msgstr "Resultatbild i Radiance HDR-format"
+
+
+msgid "Output image in TIFF format"
+msgstr "Resultatbild i TIFF-format"
+
+
+msgid "Movie"
+msgstr "Film"
+
+
+msgid "Compositing"
+msgstr "Komponering"
+
+
+msgid "Samples"
+msgstr "Samplar"
+
+
+msgid "Size Y"
+msgstr "Storlek Y"
+
+
+msgid "Resolution X"
+msgstr "Upplösning X-led"
+
+
+msgid "Resolution Y"
+msgstr "Upplösning Y-led"
+
+
+msgid "Intensity"
+msgstr "Intensitet"
+
+
+msgid "Diffuse Color"
+msgstr "Diffus färg"
+
+
+msgid "Cube"
+msgstr "Kub"
+
+
+msgid "Specular Color"
+msgstr "Glansighetsfärg"
+
+
+msgid "Specular"
+msgstr "Glansig"
+
+
+msgid "Vertex Colors"
+msgstr "Vertexfärger"
+
+
+msgid "Nodes"
+msgstr "Noder"
+
+
+msgid "Cylinder"
+msgstr "Cylinder"
+
+
+msgid "Capsule"
+msgstr "Kapsel"
+
+
+msgid "Bounds"
+msgstr "Gränser"
+
+
+msgid "Solid"
+msgstr "Massiv"
+
+
+msgid "Circle"
+msgstr "Cirkel"
+
+
+msgid "Lock Rotation"
+msgstr "Lås rotation"
+
+
+msgid "Rotation in Eulers"
+msgstr "Rotation med Euler"
+
+
+msgid "Soft Body Settings"
+msgstr "Inställningar för mjuk kropp"
+
+
+msgid "Vertex Groups"
+msgstr "Vertexgrupper"
+
+
+msgid "Clump"
+msgstr "Klumpa"
+
+
+msgid "Damp"
+msgstr "Dämpning"
+
+
+msgid "Cross"
+msgstr "Övertona"
+
+
+msgid "Display"
+msgstr "Visa"
+
+
+msgid "Stiffness"
+msgstr "Styvhet"
+
+
+msgid "Halo"
+msgstr "Halo"
+
+
+msgid "Roughness 1"
+msgstr "Grovhet 1"
+
+
+msgid "Roughness 2"
+msgstr "Grovhet 2"
+
+
+msgid "3D Cursor"
+msgstr "3D-markör"
+
+
+msgid "Frame Dropping"
+msgstr "Tappa rutor"
+
+
+msgid "Sound"
+msgstr "Ljud"
+
+
+msgid "Blend"
+msgstr "Blanda"
+
+
+msgid "Quadratic"
+msgstr "Kvadratisk"
+
+
+msgid "Soft"
+msgstr "Suddighet"
+
+
+msgid "Filter Size"
+msgstr "Filterstorlek"
+
+
+msgid "Filter"
+msgstr "Filter"
+
+
+msgid "Lighting"
+msgstr "Belysning"
+
+
+msgid "Mist"
+msgstr "Dimma"
+
+
+msgid "Animation"
+msgstr "Animering"
+
+
+msgid "Black"
+msgstr "Svart"
+
+
+msgid "White"
+msgstr "Vitt"
+
+
+msgid "Color Management"
+msgstr "Färgstyrning"
+
+
+msgid "Codec"
+msgstr "Kodek"
+
+
+msgid "Convert to logarithmic color space"
+msgstr "Konvertera till logaritmisk färgrymd"
+
+
+msgid "Image Preview"
+msgstr "Förhandsvisa bild"
+
+
+msgid "User Modified"
+msgstr "Modifierad av användaren"
+
+
+msgid "Timer"
+msgstr "Tidtagning"
+
+
+msgid "Left Handle"
+msgstr "Vänster handtag"
+
+
+msgid "Right Handle"
+msgstr "Höger handtag"
+
+
+msgid "Coordinates of the right handle (after the control point)"
+msgstr "Koordinater för höger handtag (efter kontrollpunkten)"
+
+
+msgid "Rotation & Scale"
+msgstr "Rotation & skalning"
+
+
+msgid "Group Name"
+msgstr "Gruppnamn"
+
+
+msgid "Rotation Angle"
+msgstr "Rotationsvinkel"
+
+
+msgid "Even"
+msgstr "Jämn"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Show/Hide Faces"
+msgstr "Visa/göm ytor"
+
+
+msgid "Shape Key Specials"
+msgstr "Specialare för formnycklar"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgid "Node"
+msgstr "Nod"
+
+
+msgid "Frame Rate Presets"
+msgstr "Bildfrekvens-förinställningar"
+
+
+msgid "Cache"
+msgstr "Cache"
+
+
+msgid "System"
+msgstr "System"
+
+
+msgid "File"
+msgstr "Arkiv"
+
+
+msgid "Export"
+msgstr "Exportera"
+
+
+msgid "External Data"
+msgstr "Extern data"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Help"
+msgstr "Hjälp"
+
+
+msgid "Presets"
+msgstr "Förinställningar"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Sculpt"
+msgstr "Skulptera"
+
+
+msgid "Active Clone"
+msgstr "Klona aktivt"
+
+
+msgid "Size X"
+msgstr "Storlek X"
+
+
+msgid "Ball"
+msgstr "Klot"
+
+
+msgid "Ellipsoid"
+msgstr "Ellipsoid"
+
+
+msgid "Subdivision Surface"
+msgstr "Uppdelningsyta"
+
+
+msgid "Wireframe"
+msgstr "Trådmodell"
+
+
+msgid "Cast"
+msgstr "Tvinga"
+
+
+msgid "Explode"
+msgstr "Spräng"
+
+
+msgid "New"
+msgstr "Ny"
+
+
+msgid "Face Count"
+msgstr "Sidantal"
+
+
+msgid "Normalized"
+msgstr "Normaliserad"
+
+
+msgid "Random Seed"
+msgstr "Slumpfrö"
+
+
+msgid "World"
+msgstr "Värld"
+
+
+msgid "Limits"
+msgstr "Gränser"
+
+
+msgid "Aspect X"
+msgstr "Aspekt X"
+
+
+msgid "Aspect Y"
+msgstr "Aspekt Y"
+
+
+msgid "Use Bone Heads"
+msgstr "Använd bentoppar"
+
+
+msgid "Divisions"
+msgstr "Uppdelningar"
+
+
+msgid "Sensor"
+msgstr "Sensor"
+
+
+msgid "Markers"
+msgstr "Markörer"
+
+
+msgid "Normalize"
+msgstr "Normalisera"
+
+
+msgid "Alpha Over"
+msgstr "Alfa över"
+
+
+msgid "Basis"
+msgstr "Bas"
+
+
+msgid "Zoom"
+msgstr "Zooma"
+
+
+msgid "Shadow"
+msgstr "Skugga"
+
+
+msgid "Convex Hull"
+msgstr "Konvext hölje"
+
+
+msgid "Edge Angle"
+msgstr "Kantvinkel"
+
+
+msgid "UV Sphere"
+msgstr "UV-sfär"
+
+
+msgid "Emission"
+msgstr "Utsändning"
+
+
+msgid "Fresnel"
+msgstr "Fresnel"
+
+
+msgid "Color Source"
+msgstr "Färgkälla"
+
+
+msgid "Air"
+msgstr "Luft"
+
+
+msgid "Wrap"
+msgstr "Radbrytning"
+
+
+msgid "Object Constraints"
+msgstr "Objektbegränsningar"
+
+
+msgid "Operator Properties"
+msgstr "Operatoregenskaper"
+
+
+msgid "Only Selected Channels"
+msgstr "Endast markerade kanaler"
+
+
+msgid "Toggle selection of all keyframes"
+msgstr "Växla markering av alla nycklar"
+
+
+msgid "Toggle"
+msgstr "Växla"
+
+
+msgid "Deselect"
+msgstr "Avmarkera"
+
+
+msgid "Set"
+msgstr "Ange"
+
+
+msgctxt "Operator"
+msgid "Toggle Channel Editability"
+msgstr "Växla redigerbarhet för kanal"
+
+
+msgid "Toggle editability of selected channels"
+msgstr "Redigering av markerade kanaler av/på"
+
+
+msgid "Toggle selection of all animation channels"
+msgstr "Växla markering av samtliga animationskanaler"
+
+
+msgctxt "Operator"
+msgid "Toggle Channel Setting"
+msgstr "Växla kanalinställning"
+
+
+msgid "Toggle specified setting on all selected animation channels"
+msgstr "Växla angiven inställning för alla markerade animationskanaler"
+
+
+msgid "Filter folders"
+msgstr "Filtrera mappar"
+
+
+msgid "Filter python"
+msgstr "Filtrera Python"
+
+
+msgid "Toggle selection status of all bones"
+msgstr "Växla markeringsstatus för alla ben"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Markera hierarki"
+
+
+msgctxt "Operator"
+msgid "Subdivide"
+msgstr "Dela upp"
+
+
+msgctxt "Operator"
+msgid "Preset"
+msgstr "Förinställning"
+
+
+msgid "Tool"
+msgstr "Verktyg"
+
+
+msgid "Name of the preset, used to make the path name"
+msgstr "Namn på förinställningen, bestämmer sökvägen"
+
+
+msgctxt "Operator"
+msgid "Delete Marker"
+msgstr "Radera markör"
+
+
+msgctxt "Operator"
+msgid "Select"
+msgstr "Markera"
+
+
+msgid "Files"
+msgstr "Filer"
+
+
+msgid "Backwards"
+msgstr "Baklänges"
+
+
+msgctxt "Operator"
+msgid "Zoom In"
+msgstr "Zooma In"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Lägg till tygförinställning"
+
+
+msgctxt "Operator"
+msgid "Delete"
+msgstr "Radera"
+
+
+msgctxt "Operator"
+msgid "Insert"
+msgstr "Infoga"
+
+
+msgctxt "Operator"
+msgid "Toggle Cyclic"
+msgstr "Växla cyklisk"
+
+
+msgctxt "Operator"
+msgid "Duplicate Curve"
+msgstr "Duplicera kurva"
+
+
+msgid "Duplicate Curve"
+msgstr "Duplicera kurva"
+
+
+msgid "Shrink/Fatten"
+msgstr "Krymp/sväll"
+
+
+msgid "Toggle Free/Align"
+msgstr "Växla fri/upprätad"
+
+
+msgctxt "Operator"
+msgid "Smooth"
+msgstr "Jämn"
+
+
+msgid "Subdivide selected segments"
+msgstr "Dela upp markerade segment"
+
+
+msgid "Lamp"
+msgstr "Lampa"
+
+
+msgid "Other"
+msgstr "Annan:"
+
+
+msgid "Toggle hide hidden dot files"
+msgstr "Visa/göm osynliga .-filer"
+
+
+msgctxt "Operator"
+msgid "Toggle Case"
+msgstr "Växla skiftläge"
+
+
+msgid "Toggle font case"
+msgstr "Växla textens skiftläge"
+
+
+msgid "Bold"
+msgstr "Fet"
+
+
+msgid "Italic"
+msgstr "Kursiv"
+
+
+msgid "Underline"
+msgstr "Understruken"
+
+
+msgctxt "Operator"
+msgid "Toggle Style"
+msgstr "Växla stil"
+
+
+msgid "Toggle font style"
+msgstr "Växla textstil"
+
+
+msgid "Limit"
+msgstr "Gränsvärde"
+
+
+msgid "32-bit Float"
+msgstr "32-bit Flyttal"
+
+
+msgctxt "Operator"
+msgid "Delete Edge Loop"
+msgstr "Radera kant-slinga"
+
+
+msgctxt "Operator"
+msgid "Fill"
+msgstr "Fyll"
+
+
+msgid "Occlude Geometry"
+msgstr "Skym struktur"
+
+
+msgid "Merge selected vertices"
+msgstr "Göm Markerad"
+
+
+msgid "X Subdivisions"
+msgstr "Uppdelning X-led"
+
+
+msgid "Y Subdivisions"
+msgstr "Uppdelning Y-led"
+
+
+msgid "Extend the existing selection"
+msgstr "Utvidga existerande markering"
+
+
+msgid "Vertex selection mode"
+msgstr "Markeringsläge för vertex:ar"
+
+
+msgid "Subdivide selected edges"
+msgstr "Dela upp markerade kanter"
+
+
+msgctxt "Operator"
+msgid "Tris to Quads"
+msgstr "Trianglar till fyrhörningar"
+
+
+msgid "Smooth along the X axis"
+msgstr "Vektor Måla"
+
+
+msgid "Smooth along the Y axis"
+msgstr "Vektor Måla"
+
+
+msgid "Smooth along the Z axis"
+msgstr "Vektor Måla"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Göm"
+
+
+msgid "Toggle hiding of selected nodes"
+msgstr "Visa/göm markerade noder"
+
+
+msgid "Toggle preview display for selected nodes"
+msgstr "Förhandvisning av/på för markerade noder "
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "Räta upp objekt"
+
+
+msgctxt "Operator"
+msgid "Bake"
+msgstr "Baka"
+
+
+msgctxt "Operator"
+msgid "Toggle Force Field"
+msgstr "Kraftfält på/av"
+
+
+msgid "Monkey"
+msgstr "Apa"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "Nollställ renderingsbegränsning"
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "Begränsa rendering till markering"
+
+
+msgctxt "Operator"
+msgid "Multires Subdivide"
+msgstr "Dela upp i flera upplösningsnivåer"
+
+
+msgid "Add a new level of subdivision"
+msgstr "Lägg till en uppdelningsnivå"
+
+
+msgctxt "Operator"
+msgid "Toggle Pose Mode"
+msgstr "Växla poseringsläge"
+
+
+msgid "Render Smoke Objects"
+msgstr "Rendera rökobjekt"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "Slumpmässig transformation"
+
+
+msgid "Seed value for the random generator"
+msgstr "Frövärde för slumpgeneratorn"
+
+
+msgid "Maximum scale randomization over each axis"
+msgstr "Maximalt slumpinflytande längs var axel"
+
+
+msgid "Scale Even"
+msgstr "Skala jämnt"
+
+
+msgid "Use the same scale value for all axis"
+msgstr "Använd samma skalningsvärde för samtliga axlar"
+
+
+msgid "Randomize delta transform values instead of regular transform"
+msgstr "Slumpmässigt deltavärde för för transform istället för vanlig transform"
+
+
+msgid "Randomize the location values"
+msgstr "Slumpmässiga positionsvärden"
+
+
+msgid "Randomize the rotation values"
+msgstr "Slumpmässigt rotationsvärde"
+
+
+msgid "Randomize the scale values"
+msgstr "Slumpmässiga skalningsvärden"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Markera kamera"
+
+
+msgid "Direction to select in the hierarchy"
+msgstr "Markeringsriktning i hierarkin"
+
+
+msgid "Child"
+msgstr "Dotterobjekt"
+
+
+msgid "Case Sensitive"
+msgstr "Skiftlägeskänslig"
+
+
+msgid "Do a case sensitive compare"
+msgstr "Jämför skiftlägeskänsligt"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "För över formnyckel"
+
+
+msgid "Transformation Mode"
+msgstr "Transformationsläge"
+
+
+msgid "Apply the relative positional offset"
+msgstr "Applicera relativ positionell förskjutning"
+
+
+msgid "Relative Edge"
+msgstr "Relativt kant"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "Uppdelningssats"
+
+
+msgid "Toggle whether item under cursor is enabled or closed"
+msgstr "Växla om objektet under musen är aktiverat eller stängt"
+
+
+msgctxt "Operator"
+msgid "Texture Paint Toggle"
+msgstr "Växla texturmålning"
+
+
+msgid "Weights from envelopes with user defined radius"
+msgstr "Vikter från omslutningar med användardefinierad radie"
+
+
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgctxt "Operator"
+msgid "Particle Edit Toggle"
+msgstr "Redigera partiklar på/av"
+
+
+msgid "Selected Only"
+msgstr "Bara Markerad"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Kopiera föregående inställningar"
+
+
+msgid "Bake"
+msgstr "Baka"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Spela upp renderad animation"
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "Lägg till renderingsförinställning"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Rendera"
+
+
+msgid "Toggle show render view"
+msgstr "Visa renderingsvy på/av"
+
+
+msgctxt "Operator"
+msgid "Frame Offset"
+msgstr "Rutförskjutning"
+
+
+msgctxt "Operator"
+msgid "Toggle Quad View"
+msgstr "Växla 4-vägsvy"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "Kör en förinställning i Python"
+
+
+msgid "Menu ID Name"
+msgstr "Menyns ID-namn"
+
+
+msgid "ID name of the menu this was called from"
+msgstr "ID-namn på menyn som detta anropades från"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "Alpha Under"
+msgstr "Alfa under"
+
+
+msgid "Gamma Cross"
+msgstr "Gamma-övertona"
+
+
+msgid "Wipe"
+msgstr "Torka"
+
+
+msgid "Glow"
+msgstr "Glöd"
+
+
+msgid "Adjustment Layer"
+msgstr "Justeringslager"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Avläta filmer"
+
+
+msgctxt "Operator"
+msgid "Toggle Overwrite"
+msgstr "Överskrivning av/på"
+
+
+msgctxt "Operator"
+msgid "Find"
+msgstr "Sök"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotera"
+
+
+msgctxt "Operator"
+msgid "Shear"
+msgstr "Vrida"
+
+
+msgctxt "Operator"
+msgid "Shrink/Fatten"
+msgstr "Krymp/sväll"
+
+
+msgctxt "Operator"
+msgid "Tilt"
+msgstr "Lutning"
+
+
+msgctxt "Operator"
+msgid "Transform"
+msgstr "Transformera"
+
+
+msgid "Island"
+msgstr "Ö"
+
+
+msgid "Toggle display of selected object(s) separately and centered in view"
+msgstr "Visa/göm markerade objekt separat, och centrerat i vyn"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "Visa dokumentation"
+
+
+msgid "Open a Blender file"
+msgstr "Öppna ett Blenderdokument"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Lathund för operatorer"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "Operatorinställning"
+
+
+msgid "Property Edit"
+msgstr "Redigera egenskap"
+
+
+msgid "Property data_path edit"
+msgstr "Redigera data_path-egenskap"
+
+
+msgid "Context"
+msgstr "Kontext"
+
+
+msgid "Property Name"
+msgstr "Egenskapens namn"
+
+
+msgid "Property name edit"
+msgstr "Redigera egenskapens namn"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "Internanvändning (redigera data_path för en egenskap)"
+
+
+msgctxt "Operator"
+msgid "Reload Start-Up File"
+msgstr "Läs in förinställning"
+
+
+msgctxt "Operator"
+msgid "Redraw Timer"
+msgstr "Rita om tidur"
+
+
+msgid "Draw Window"
+msgstr "Rita fönster"
+
+
+msgid "Undo/Redo"
+msgstr "Ångra/gör om"
+
+
+msgctxt "Operator"
+msgid "Search Menu"
+msgstr "Sökmeny"
+
+
+msgid "URL to open"
+msgstr "Webbaddress som skall öppnas"
+
+
+msgid "Shapes"
+msgstr "Former"
+
+
+msgid "Dither"
+msgstr "Rastrering"
+
+
+msgid "Bone Constraints"
+msgstr "Benbegränsningar"
+
+
+msgid "Lens"
+msgstr "Lins"
+
+
+msgid "Cloth Presets"
+msgstr "Tygförinställningar"
+
+
+msgid "Pixel Filter"
+msgstr "Pixelfilter"
+
+
+msgid "Threads"
+msgstr "Trådar"
+
+
+msgid "Subdivision"
+msgstr "Uppdelning"
+
+
+msgid "Scopes"
+msgstr "Instrument"
+
+
+msgid "Histogram"
+msgstr "Histogram"
+
+
+msgid "Physics"
+msgstr "Fysik"
+
+
+msgid "Border Collisions"
+msgstr "Gränskrock"
+
+
+msgid "Self Collision"
+msgstr "Självkrock"
+
+
+msgid "Viscosity"
+msgstr "Viskositet"
+
+
+msgid "Shadows"
+msgstr "Skuggor"
+
+
+msgid "FFMPEG Presets"
+msgstr "FFMPEG-förinställningar"
+
+
+msgid "Playback"
+msgstr "Uppspelning"
+
+
+msgid "3D Mouse Settings"
+msgstr "Inställningar för 3D-mus"
+
+
+msgid "Pose Library"
+msgstr "Pose-bibliotek"
+
+
+msgid "Particle in a particle system"
+msgstr "Partikel i ett partikelsystem"
+
+
+msgid "Deflect Emitter"
+msgstr "Avlänka partikelkälla"
+
+
+msgid "Fade Time"
+msgstr "Toningstid"
+
+
+msgid "Key location for a particle over time"
+msgstr "Nyckelposition i tiden för en partikel"
+
+
+msgid "Vertex Group Length Negate"
+msgstr "Negera längd på vertexgrupp"
+
+
+msgid "Vertex Group Rotation Negate"
+msgstr "Negera rotation av vertexgrupp"
+
+
+msgid "Vertex group to control size"
+msgstr "Vertexgrupp som styr storleken"
+
+
+msgid "Toggle whether the material is linked to object data or the object block"
+msgstr "Växla om materialet länkas till objektdata eller till objektets block"
+
+
+msgid "Align Object To"
+msgstr "Räta upp objekt mot"
+
+
+msgid "Duplicate Particle"
+msgstr "Duplicera partikel"
+
+
+msgid "Image Editor"
+msgstr "Bildredigerare"
+
+
+msgid "Helicopter Mode"
+msgstr "Helikopterläge"
+
+
+msgid "Lock Horizon"
+msgstr "Lås horisonten"
+
+
+msgid "Auto Depth"
+msgstr "Automatiskt djup"
+
+
+msgid "64-bit Float"
+msgstr "64-bit Flyttal"
+
+
+msgid "Manual"
+msgstr "Manual"
+
+
+msgid "New Window"
+msgstr "Nytt fönster"
+
+
+msgid "Display Object Info"
+msgstr "Visa info om objekt"
+
+
+msgid "Show Splash"
+msgstr "Visa+markera"
+
+
+msgid "Tooltips"
+msgstr "Verktygstips"
+
+
+msgid "Only Seconds"
+msgstr "Endast sekunder"
+
+
+msgid "Translate Interface"
+msgstr "Översätt gränssnittet"
+
+
+msgid "Translate Tooltips"
+msgstr "Översätt verktygstipsen"
+
+
+msgid "Find"
+msgstr "Sök"
+
+
+msgid "Quad Split"
+msgstr "Dela fyrhörning"
+
+
+msgid "3D View Region"
+msgstr "Visa område i 3D-vyn"
+
+
+msgid "Is Perspective"
+msgstr "Perspektiv"
+
+
+msgid "Strand"
+msgstr "Strå"
+
+
+msgid "Bias"
+msgstr "Justering"
+
+
+msgid "Engine"
+msgstr "Motor"
+
+
+msgid "Engine to use for rendering"
+msgstr "Renderingsmotor"
+
+
+msgid "FPS"
+msgstr "Rutor per sekund"
+
+
+msgid "Framerate base"
+msgstr "Bas för bildfrekvens"
+
+
+msgid "Multiple Engines"
+msgstr "Flera motorer"
+
+
+msgid "More than one rendering engine is available"
+msgstr "Mer än en renderingsmotor tillgänglig"
+
+
+msgid "Movie Format"
+msgstr "Filmformat"
+
+
+msgid "When true the format is a movie"
+msgstr "Om 'sant' så är formatet en film"
+
+
+msgid "Resolution %"
+msgstr "Upplösning %"
+
+
+msgid "Percentage scale for render resolution"
+msgstr "Percentuell skala för renderingsupplösning"
+
+
+msgid "Simplify Child Particles"
+msgstr "Förenkla barnpartiklar"
+
+
+msgid "Simplify Subdivision"
+msgstr "Förenkla uppdelning"
+
+
+msgid "Global maximum subdivision level"
+msgstr "Global maximal uppdelningsnivå"
+
+
+msgid "Low Resolution Mesh"
+msgstr "Lågupplöst mesh"
+
+
+msgid "Calculate heights against unsubdivided low resolution mesh"
+msgstr "Beräkna höjder mot icke-uppdelat lågupplöst mesh"
+
+
+msgid "File Extensions"
+msgstr "Filändelse"
+
+
+msgid "Stamp Filename"
+msgstr "Stämpla filnamn"
+
+
+msgid "Stamp Sequence Strip"
+msgstr "Stämpla sekvensremsan"
+
+
+msgid "Collision Margin"
+msgstr "Krockmarginal"
+
+
+msgid "Base"
+msgstr "Bas"
+
+
+msgid "Settings for particle fluids physics"
+msgstr "Fysikinställningar för partikelvätskor"
+
+
+msgid "Scopes for statistical view of an image"
+msgstr "Instrument för statistisk analys av bilder"
+
+
+msgid "Vectorscope Opacity"
+msgstr "Genomskinlighet för vektroskop"
+
+
+msgid "Camera Override"
+msgstr "Åsidosätt kamera"
+
+
+msgid "Inverse Gain"
+msgstr "Invers nivå"
+
+
+msgid "Proxy parameters for a sequence strip"
+msgstr "Mellanparametrar för en sekvensremsa"
+
+
+msgid "Median Point"
+msgstr "Medianpunkt"
+
+
+msgid "Relative Key"
+msgstr "Relativ nyckel"
+
+
+msgid "Dampening"
+msgstr "Dämpning"
+
+
+msgid "Bending"
+msgstr "Böjning"
+
+
+msgid "Collision Type"
+msgstr "Krocktyp"
+
+
+msgid "Choose Collision Type"
+msgstr "Välj krocktyp"
+
+
+msgid "Error Limit"
+msgstr "Felgräns"
+
+
+msgid "Edge Collision"
+msgstr "Kantkrock"
+
+
+msgid "Use Edges"
+msgstr "Använd kanter"
+
+
+msgid "Face Collision"
+msgstr "Krocka yta"
+
+
+msgid "Sync Markers"
+msgstr "Synka markörer"
+
+
+msgid "Space Image Editor"
+msgstr "Redigerare för rumsbild"
+
+
+msgid "Z-Buffer"
+msgstr "Z-buffert"
+
+
+msgid "Pivot around the 3D cursor"
+msgstr "Rotera kring 3D-markören"
+
+
+msgid "Pivot around active object"
+msgstr "Rotera runt aktivt objekt"
+
+
+msgid "View Type"
+msgstr "Visningstyp"
+
+
+msgid "3D View far clipping distance"
+msgstr "Bortre beskärningsgräns i 3D-vyn"
+
+
+msgid "Lock to Object"
+msgstr "Lås till objekt"
+
+
+msgid "3D region in this space, in case of quad view the camera region"
+msgstr "3D-område i detta rum, kameraområde vid 4-vägsvy"
+
+
+msgid "Texture slot name"
+msgstr "Namn på texturplats"
+
+
+msgid "Active Theme Area"
+msgstr "Aktiv temadel"
+
+
+msgid "Active Channel Group"
+msgstr "Aktiv kanalgrupp"
+
+
+msgid "Theme settings for the graph editor"
+msgstr "Tema-inställningar för grafredigeraren"
+
+
+msgid "Meta Strip"
+msgstr "Meta-remsa"
+
+
+msgid "Theme User Interface"
+msgstr "Temasätt användargränssnittet"
+
+
+msgid "Scroll Widget Colors"
+msgstr "Rulla kontrollfärger"
+
+
+msgid "Inner"
+msgstr "Inre"
+
+
+msgid "Roundness"
+msgstr "Rundhet"
+
+
+msgid "Animated"
+msgstr "Animerad"
+
+
+msgid "Animated Selected"
+msgstr "Animera markering"
+
+
+msgid "Add & Replace"
+msgstr "Lägg till & ersätt"
+
+
+msgid "Display X Axis"
+msgstr "Visa X-axeln"
+
+
+msgid "Display Y Axis"
+msgstr "Visa Y-axeln"
+
+
+msgid "Display Z Axis"
+msgstr "Visa Z-axeln"
+
+
+msgid "Display Grid Floor"
+msgstr "Visa rutnätsbotten"
+
+
+msgid "Use Mist"
+msgstr "Använd dimma"
+
+
+msgid "Search"
+msgstr "Sök"
+
+
+msgid "Torus"
+msgstr "Torus"
+
+
+msgid "Assign"
+msgstr "Tilldela"
+
+
+msgid "Python API Reference"
+msgstr "Referens till Pythons API"
+
+
+msgid "After"
+msgstr "Efter"
+
+
+msgid "+ Non-Grouped Keyframes"
+msgstr "+ ej grupperade nycklar"
+
+
+msgid "Pivot Offset"
+msgstr "Rotationspunktförskjutning"
+
+
+msgid "Layers:"
+msgstr "Lager:"
+
+
+msgid "Protected Layers:"
+msgstr "Skyddade lager:"
+
+
+msgid "Axes"
+msgstr "Axlar"
+
+
+msgid "Passepartout"
+msgstr "Passepartout"
+
+
+msgid "Render U"
+msgstr "Rendering U"
+
+
+msgid "Bold & Italic"
+msgstr "Fet & kursiv"
+
+
+msgid "Offset X"
+msgstr "X-förskjutning"
+
+
+msgid "Before"
+msgstr "Innan"
+
+
+msgid "Parent:"
+msgstr "Förälder"
+
+
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Nollställ"
+
+
+msgid "Old"
+msgstr "Gammal"
+
+
+msgid "Date"
+msgstr "Datum"
+
+
+msgid "Jittering Amount"
+msgstr "Darrningsmängd"
+
+
+msgid "Cache is disabled until the file is saved"
+msgstr "Cachen är inaktiverad tills filen sparas"
+
+
+msgid "Exponent"
+msgstr "Exponent"
+
+
+msgid "Auto-Step"
+msgstr "Automatiska steg"
+
+
+msgid "Eccentricity"
+msgstr "Eccentricitet"
+
+
+msgid "Options:"
+msgstr "Alternativ:"
+
+
+msgid "Image*"
+msgstr "Bild*"
+
+
+msgid "Aspect Ratio"
+msgstr "Storleksförhållande"
+
+
+msgid "Offset:"
+msgstr "Förskjutning:"
+
+
+msgid "Unpack"
+msgstr "Packa upp"
+
+
+msgid "Pack"
+msgstr "Packa"
+
+
+msgid "Cut To"
+msgstr "Klipp till"
+
+
+msgid "Text: External"
+msgstr "Text: extern"
+
+
+msgid "Text: Internal"
+msgstr "Text: intern"
+
+
+msgid "File:"
+msgstr "Arkiv:"
+
+
+msgid "Layer:"
+msgstr "Rendera"
+
+
+msgid "Fields"
+msgstr "Fält"
+
+
+msgid "File Path:"
+msgstr "Sökväg:"
+
+
+msgid "Crease:"
+msgstr "Vecka:"
+
+
+msgid "Weight:"
+msgstr "Vikt:"
+
+
+msgid "Radius:"
+msgstr "Radie:"
+
+
+msgid "Tilt:"
+msgstr "Lutning:"
+
+
+msgid "Dimensions:"
+msgstr "Dimensioner:"
+
+
+msgid "Size:"
+msgstr "Storlek:"
+
+
+msgid "Bone Envelopes"
+msgstr "Benomslutningar"
+
+
+msgid "Recenter"
+msgstr "Centrera"
+
+
+msgid "Delete Higher"
+msgstr "Radera högre delningsnivåer"
+
+
+msgid "Reshape"
+msgstr "Omformera"
+
+
+msgid "Save External..."
+msgstr "Spara extern data…"
+
+
+msgid "Create Along Paths"
+msgstr "Skapa längs med banor"
+
+
+msgid "Outer"
+msgstr "Yttre"
+
+
+msgid "Life"
+msgstr "Livslängd"
+
+
+msgid "Offset Y"
+msgstr "Y-förskjutning"
+
+
+msgid "Path:"
+msgstr "Bana:"
+
+
+msgid "IOR"
+msgstr "Brytningsindex"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropisk"
+
+
+msgid "Transparency"
+msgstr "Genomskinlighet"
+
+
+msgid "English (English)"
+msgstr "Engelska (English)"
+
+
+msgid "Japanese (日本語)"
+msgstr "Japanska (日本語)"
+
+
+msgid "Dutch (Nederlandse taal)"
+msgstr "Nederländska (Nederlandse taal)"
+
+
+msgid "Italian (Italiano)"
+msgstr "Italienska (Italiano)"
+
+
+msgid "German (Deutsch)"
+msgstr "Tyska (Deutsch)"
+
+
+msgid "Finnish (Suomi)"
+msgstr "Finska (Suomi)"
+
+
+msgid "Swedish (Svenska)"
+msgstr "Svenska (Svenska)"
+
+
+msgid "Spanish (Español)"
+msgstr "Spanska (Español)"
+
+
+msgid "Catalan (Català)"
+msgstr "Katalanska (Català)"
+
+
+msgid "Czech (Český)"
+msgstr "Tjeckiska (Český)"
+
+
+msgid "Traditional Chinese (繁體中文)"
+msgstr "Traditionell kinesiska"
+
+
+msgid "Russian (Русский)"
+msgstr "Ryska (Русский)"
+
+
+msgid "Croatian (Hrvatski)"
+msgstr "Kroatiska (Hrvatski)"
+
+
+msgid "Polish (Polski)"
+msgstr "Polska (Polski)"
+
+
+msgid "Romanian (Român)"
+msgstr "Rumänska (Român)"
+
+
+msgid "Bulgarian (Български)"
+msgstr "Bulgariska (Български)"
+
+
+msgid "Greek (Ελληνικά)"
+msgstr "Grekiska (Ελληνικά)"
+

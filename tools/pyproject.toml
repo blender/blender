@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+[tool.autopep8]
+# Configuratuion for `autopep8`, allowing the command: autopep8 .
+# to reformat all source files.
+#
+# NOTE: the settings defined here map directly to commmand line arguments
+# which will override these settings when passed in to autopep8.
+
+max_line_length = 120
+
+ignore = [
+    # Info: Use `isinstance()` instead of comparing types directly.
+    # Why disable? Changes code logic, in rare cases we want to compare exact types.
+    "E721",
+    # Info: Fix bare except.
+    # Why disable? Disruptive, leave our exceptions alone.
+    "E722",
+    # Info: Fix module level import not at top of file.
+    # Why disable? Re-ordering imports is disruptive and breaks some scripts
+    # that need to check if a module has already been loaded in the case of reloading.
+    "E402",
+    # Info: Try to make lines fit within --max-line-length characters.
+    # Why disable? Causes lines to be wrapped, where long lines have the trailing bracket moved to the end of the line.
+    # If trailing commas were respected as they are by clang-format this might be acceptable.
+    # Note that this doesn't disable all line wrapping.
+    "E501",
+    # Info: Fix various deprecated code (via lib2to3)
+    # Why disable? Does nothing besides incorrectly adding a duplicate import,
+    # could be reported as a bug except this is likely to be removed soon, see:
+    # https://github.com/python/cpython/issues/84540.
+    "W690",
+]
+
+# Use aggressive as many useful edits are disabled unless it's enabled.
+# Any edits which are overly disruptive or risky can be removed in the `ignore` list.
+aggressive = 2
+
+# Exclude:
+# - `./svn_rev_map/` contains data-files which are slow to re-format and don't benefit from formatting.
+exclude = """
+./svn_rev_map/sha1_to_rev.py,
+./svn_rev_map/rev_to_sha1.py,
+"""
+
+# Omit settings such as `jobs`, `in_place` & `recursive` as they can cause editor utilities that auto-format on save
+# to fail if the STDIN/STDOUT is used for formatting (which isn't compatible with these options).

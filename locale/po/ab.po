@@ -1,0 +1,720 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Report-Msgid-Bugs-To: \n"
+"\"POT-Creation-Date: 2019-02-25 20:41:30\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Daniel Tlisha <daniel.abzakh@gmail.com>\n"
+"Language-Team: Abkhaz language team <daniel.abzakh@gmail.com>\n"
+"Language: ab\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+
+msgid "Select"
+msgstr "Алхра"
+
+
+msgid "Add"
+msgstr "Ацҵара"
+
+
+msgid "Subtract"
+msgstr "Ацхра"
+
+
+msgid "Empty"
+msgstr "Аҭацәы"
+
+
+msgid "Edge"
+msgstr "Акьыԥшь"
+
+
+msgid "Face"
+msgstr "Ахаҿы"
+
+
+msgid "Object"
+msgstr "Амаҭәар"
+
+
+msgid "Texts"
+msgstr "Аҳәоуқәа"
+
+
+msgid "Main Images"
+msgstr "Ихадоу Асахьақәа"
+
+
+msgid "Main Lights"
+msgstr "Ихадоу Алашарақәа"
+
+
+msgid "Main Meshes"
+msgstr "Ихадоу Аҿарԥагақәа"
+
+
+msgid "Mode"
+msgstr "А́иҿкаашьа"
+
+
+msgid "Marker"
+msgstr "Ашьҭа"
+
+
+msgid "Image"
+msgstr "Асахьанҵа"
+
+
+msgid "Rotation"
+msgstr "Агьежьра"
+
+
+msgid "Scale"
+msgstr "Ашәага"
+
+
+msgid "Curve"
+msgstr "Архәара"
+
+
+msgid "Difference"
+msgstr "Аиԥшымра"
+
+
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgid "Camera"
+msgstr "Акамера"
+
+
+msgid "Location"
+msgstr "Аҭыԥ"
+
+
+msgid "Cursor"
+msgstr "Ахырхага"
+
+
+msgid "Plane"
+msgstr "Аҟьаҟьа"
+
+
+msgid "View"
+msgstr "Аԥшра"
+
+
+msgid "Render"
+msgstr "Архиара"
+
+
+msgid "Shading"
+msgstr "Аршәшьра"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Акамера"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Асахьанҵа"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Ашәҟәыԥхьарҭа"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Алашара"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgid "Vertex"
+msgstr "Ақәыцә"
+
+
+msgid "Group"
+msgstr "Агәыԥ"
+
+
+msgid "Cone"
+msgstr "Аконус"
+
+
+msgid "Sphere"
+msgstr "Асфера"
+
+
+msgid "End"
+msgstr "Алгара"
+
+
+msgid "Start"
+msgstr "Алагара"
+
+
+msgid "Window"
+msgstr "Аԥенџьыр"
+
+
+msgid "Edit Mode"
+msgstr "Аиҭакра Аиҿкаашьа"
+
+
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgid "Library"
+msgstr "Ашәҟәыԥхьарҭа"
+
+
+msgid "Local"
+msgstr "Ҷыдала"
+
+
+msgid "Global"
+msgstr "Зеиԥшла"
+
+
+msgctxt "Light"
+msgid "Light"
+msgstr "Алашара"
+
+
+msgctxt "Light"
+msgid "Sun"
+msgstr "Амра"
+
+
+msgid "Cube"
+msgstr "Акуб"
+
+
+msgid "Roughness"
+msgstr "Аџьаџьара"
+
+
+msgid "Specular"
+msgstr "Ацырцырра"
+
+
+msgid "Circle"
+msgstr "Аицыгьежь"
+
+
+msgid "Object Mode"
+msgstr "Амаҭәар Аиҿкаашьа"
+
+
+msgid "Sculpt Mode"
+msgstr "Ашәаҳара Аиҿкаашьа"
+
+
+msgid "Vertex Paint"
+msgstr "Ақәыцә Ашәра"
+
+
+msgid "Weight Paint"
+msgstr "Акапан Ашәра"
+
+
+msgid "Texture Paint"
+msgstr "Атекстура Ашәра"
+
+
+msgctxt "ID"
+msgid "Empty"
+msgstr "Аҭацәы"
+
+
+msgid "3D Cursor"
+msgstr "3Д Ахырхага"
+
+
+msgid "Edit"
+msgstr "Аиҭакра"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
+msgid "File"
+msgstr "Ашәҟәы"
+
+
+msgid "Help"
+msgstr "Аилыркаа"
+
+
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgid "Light"
+msgstr "Алашара"
+
+
+msgid "Intersect"
+msgstr "Аихҵәара"
+
+
+msgid "Ball"
+msgstr "Ампыл"
+
+
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgid "Keying"
+msgstr " Аиҭаганҵа"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Ацҵара Аицыгьежь"
+
+
+msgctxt "Operator"
+msgid "Add Cube"
+msgstr "Ацҵара Акуб"
+
+
+msgctxt "Operator"
+msgid "Add Ico Sphere"
+msgstr "Ацҵара Ico Асфера"
+
+
+msgctxt "Operator"
+msgid "Add Monkey"
+msgstr "Ацҵара Амаамын"
+
+
+msgctxt "Operator"
+msgid "Add Plane"
+msgstr "Ацҵара Аҟьаҟьа"
+
+
+msgctxt "Operator"
+msgid "Add UV Sphere"
+msgstr "Ацҵара UV Асфера"
+
+
+msgctxt "Operator"
+msgid "Add Armature"
+msgstr "Ацҵара Абаҩ"
+
+
+msgctxt "Operator"
+msgid "Add Camera"
+msgstr "Ацҵара Акамера"
+
+
+msgid "Monkey"
+msgstr "Амаамын"
+
+
+msgctxt "Operator"
+msgid "Add Light"
+msgstr "Ацҵара Алашара"
+
+
+msgctxt "Operator"
+msgid "Add Metaball"
+msgstr "Ацҵара Метампыл"
+
+
+msgctxt "Operator"
+msgid "Add Speaker"
+msgstr "Ацҵара Абжьы Ахыҵхырҭа"
+
+
+msgctxt "Operator"
+msgid "Add Text"
+msgstr "Ацҵара Аҳәоу"
+
+
+msgctxt "Scene"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgid "Overlays"
+msgstr "Ақәҵакәа"
+
+
+msgctxt "Operator"
+msgid "Scale"
+msgstr "Ашәага"
+
+
+msgid "Playback"
+msgstr "Арҳәара"
+
+
+msgctxt "Operator"
+msgid "Circle"
+msgstr "Аицыгьежь"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "Асахьанҵа"
+
+
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgctxt "MovieClip"
+msgid "View"
+msgstr "Аԥшра"
+
+
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgctxt "WindowManager"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "WindowManager"
+msgid "Metaball"
+msgstr "Метампы"
+
+
+msgctxt "WindowManager"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgctxt "WindowManager"
+msgid "Image"
+msgstr "Асахьанҵа"
+
+
+msgctxt "WindowManager"
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Аҭыԥ"
+
+
+msgctxt "Image"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Operator"
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Агьежьра"
+
+
+msgctxt "Text"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgid "location"
+msgstr "Аҭыԥ"
+
+
+msgctxt "Operator"
+msgid "Plane"
+msgstr "Аҟьаҟьа"
+
+
+msgctxt "Operator"
+msgid "Cube"
+msgstr "Акуб"
+
+
+msgctxt "Operator"
+msgid "UV Sphere"
+msgstr "UV Асфера"
+
+
+msgctxt "Operator"
+msgid "Ico Sphere"
+msgstr "Ico Асфера                     "
+
+
+msgctxt "Operator"
+msgid "Cylinder"
+msgstr "Ацилиндр"
+
+
+msgctxt "Operator"
+msgid "Cone"
+msgstr "Аконус"
+
+
+msgctxt "Operator"
+msgid "Monkey"
+msgstr "Амаамын"
+
+
+msgctxt "Operator"
+msgid "Camera"
+msgstr "Акамера"
+
+
+msgctxt "Operator"
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgctxt "Object"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Mesh"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Curve"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Metaball"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Material"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Texture"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Lattice"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Light"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Camera"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "World"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Screen"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Sound"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Armature"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Action"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "NodeTree"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Brush"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "ParticleSettings"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "GPencil"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "FreestyleLineStyle"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "WorkSpace"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "LightProbe"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Агәыԥ"
+
+
+msgid "Front Orthographic"
+msgstr "Аԥхьа Аҩышьаԥҟара"
+
+
+msgid "Front Perspective"
+msgstr "Аԥхьа Ԥхьаԥшра"
+
+
+msgid "Back Orthographic"
+msgstr "Ашьҭахь Аҩышьаԥҟара"
+
+
+msgid "Back Perspective"
+msgstr "Ашьҭахь Ԥхьаԥшра"
+
+
+msgid "Top Orthographic"
+msgstr "Ақә Аҩышьаԥҟара"
+
+
+msgid "Top Perspective"
+msgstr "Ақә Ԥхьаԥшра"
+
+
+msgid "Bottom Orthographic"
+msgstr "Ҵаҟа Аҩышьаԥҟара"
+
+
+msgid "Bottom Perspective"
+msgstr "Ҵаҟа Ԥхьаԥшра"
+
+
+msgid "Right Orthographic"
+msgstr "Арӷьа Аҩышьаԥҟара"
+
+
+msgid "Right Perspective"
+msgstr "Арӷьа Ԥхьаԥшра"
+
+
+msgid "Left Orthographic"
+msgstr "Арма Аҩышьаԥҟара"
+
+
+msgid "Left Perspective"
+msgstr "Арма Ԥхьаԥшра"
+
+
+msgid "Camera Perspective"
+msgstr "Акамера Ԥхьаԥшра"
+
+
+msgid "Camera Orthographic"
+msgstr "Акамера Аҩышьаԥҟара"
+
+
+msgid "User Orthographic"
+msgstr "Ахархәаҩ Аҩышьаԥҟара"
+
+
+msgid "User Perspective"
+msgstr "Ахархәаҩ Ԥхьаԥшра"
+
+
+msgid "global"
+msgstr "Зеиԥшла"
+
+
+msgid "local"
+msgstr "Ҷыдала"
+
+
+msgid "view"
+msgstr "Аԥшра"
+
+
+msgid "cursor"
+msgstr "Ахырхага"
+
+
+msgctxt "Armature"
+msgid "Group"
+msgstr "Агәыԥ"
+
