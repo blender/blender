@@ -2215,11 +2215,14 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       copy_v3_v3(&pt_final->x, &pt->x);
       pt_final->pressure = pt->pressure;
       pt_final->strength = pt->strength;
+      pt_final->uv_rot = pt->uv_rot;
+      pt_final->uv_fac = pt->uv_fac;
       pt_final->time = pt->time;
       pt_final->flag = pt->flag;
       pt_final->runtime.pt_orig = pt->runtime.pt_orig;
       pt_final->runtime.idx_orig = pt->runtime.idx_orig;
       copy_v4_v4(pt_final->vert_color, pt->vert_color);
+      copy_v4_v4(pt_final->uv_fill, pt->uv_fill);
 
       if (gps->dvert != nullptr) {
         dvert = &temp_dverts[i];
@@ -2238,6 +2241,9 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
       pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
       pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
+      pt_final->uv_rot = interpf(pt->uv_rot, next->uv_rot, 0.5f);
+      pt_final->uv_fac = interpf(pt->uv_fac, next->uv_fac, 0.5f);
+      interp_v4_v4v4(pt_final->uv_fill, pt->uv_fill, next->uv_fill, 0.5f);
       CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt_final->time = interpf(pt->time, next->time, 0.5f);
       pt_final->runtime.pt_orig = nullptr;
