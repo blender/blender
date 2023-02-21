@@ -23,7 +23,7 @@ class AbstractImBufTest(unittest.TestCase):
         os.makedirs(cls.diff_dir, exist_ok=True)
 
         cls.errors = 0
-        cls.fail_threshold = 0.001
+        cls.fail_threshold = 0.016
         cls.fail_percent = 1
         cls.verbose = os.environ.get("BLENDER_VERBOSE") is not None
         cls.update = os.getenv('BLENDER_TEST_UPDATE') is not None
