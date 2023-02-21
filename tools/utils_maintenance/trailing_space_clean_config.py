@@ -10,8 +10,8 @@ PATHS = (
     "intern/ghost",
     "intern/guardedalloc",
     "intern/memutil",
-    "release/scripts/modules",
-    "release/scripts",
+    "scripts/modules",
+    "scripts",
     "source",
     "tests",
 

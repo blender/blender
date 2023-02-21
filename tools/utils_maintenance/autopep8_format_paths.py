@@ -37,7 +37,7 @@ extensions = (
 )
 
 ignore_files = {
-    "release/scripts/modules/rna_manual_reference.py",  # Large generated file, don't format.
+    "scripts/modules/rna_manual_reference.py",  # Large generated file, don't format.
 }
 
 

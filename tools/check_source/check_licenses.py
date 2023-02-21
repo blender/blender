@@ -430,12 +430,12 @@ def main() -> None:
                 # Directories:
                 # This is an exception, it has it's own CMake files we do not maintain.
                 "./extern",
-                "./release/scripts/addons_contrib",
+                "./scripts/addons_contrib",
                 # Just data.
                 "./doc/python_api/examples",
-                "./release/scripts/addons/presets",
-                "./release/scripts/presets",
-                "./release/scripts/templates_py",
+                "./scripts/addons/presets",
+                "./scripts/presets",
+                "./scripts/templates_py",
             ),
         ),
     )
