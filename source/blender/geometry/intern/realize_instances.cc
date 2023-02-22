@@ -154,6 +154,12 @@ struct RealizeCurveInfo {
    * curves.
    */
   VArray<int> resolution;
+
+  /**
+   * The resolution attribute must be filled with the default value if it does not exist on some
+   * curves.
+   */
+  Span<float> nurbs_weight;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -208,6 +214,7 @@ struct AllCurvesInfo {
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
   bool create_resolution_attribute = false;
+  bool create_nurbs_weight_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -1160,6 +1167,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
+  attributes_to_propagate.remove("nurbs_weight");
   attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
@@ -1221,20 +1229,20 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
       }
     }
 
-    /* Retrieve the radius attribute, if it exists. */
     if (attributes.contains("radius")) {
       curve_info.radius =
           attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_radius_attribute = true;
     }
-
-    /* Retrieve the resolution attribute, if it exists. */
+    if (attributes.contains("nurbs_weight")) {
+      curve_info.nurbs_weight =
+          attributes.lookup<float>("nurbs_weight", ATTR_DOMAIN_POINT).get_internal_span();
+      info.create_nurbs_weight_attribute = true;
+    }
     curve_info.resolution = curves.resolution();
     if (attributes.contains("resolution")) {
       info.create_resolution_attribute = true;
     }
-
-    /* Retrieve handle position attributes, if they exist. */
     if (attributes.contains("handle_right")) {
       curve_info.handle_left =
           attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).get_internal_span();
@@ -1256,6 +1264,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
                                        MutableSpan<float> all_radii,
+                                       MutableSpan<float> all_nurbs_weights,
                                        MutableSpan<int> all_resolutions)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
@@ -1286,14 +1295,20 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     }
   }
 
-  /* Copy radius attribute with 1.0 default if it doesn't exist. */
+  auto copy_point_span_with_default =
+      [&](const Span<float> src, MutableSpan<float> all_dst, const float value) {
+        if (src.is_empty()) {
+          all_dst.slice(dst_point_range).fill(value);
+        }
+        else {
+          all_dst.slice(dst_point_range).copy_from(src);
+        }
+      };
   if (all_curves_info.create_radius_attribute) {
-    if (curves_info.radius.is_empty()) {
-      all_radii.slice(dst_point_range).fill(1.0f);
-    }
-    else {
-      all_radii.slice(dst_point_range).copy_from(curves_info.radius);
-    }
+    copy_point_span_with_default(curves_info.radius, all_radii, 1.0f);
+  }
+  if (all_curves_info.create_nurbs_weight_attribute) {
+    copy_point_span_with_default(curves_info.nurbs_weight, all_nurbs_weights, 1.0f);
   }
 
   if (all_curves_info.create_resolution_attribute) {
@@ -1386,13 +1401,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                                                             ATTR_DOMAIN_POINT);
   }
 
-  /* Prepare radius attribute if necessary. */
   SpanAttributeWriter<float> radius;
   if (all_curves_info.create_radius_attribute) {
     radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
   }
-
-  /* Prepare resolution attribute if necessary. */
+  SpanAttributeWriter<float> nurbs_weight;
+  if (all_curves_info.create_nurbs_weight_attribute) {
+    nurbs_weight = dst_attributes.lookup_or_add_for_write_only_span<float>("nurbs_weight",
+                                                                           ATTR_DOMAIN_POINT);
+  }
   SpanAttributeWriter<int> resolution;
   if (all_curves_info.create_resolution_attribute) {
     resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
@@ -1413,6 +1430,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  handle_left.span,
                                  handle_right.span,
                                  radius.span,
+                                 nurbs_weight.span,
                                  resolution.span);
     }
   });
@@ -1433,6 +1451,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   point_ids.finish();
   radius.finish();
   resolution.finish();
+  nurbs_weight.finish();
   handle_left.finish();
   handle_right.finish();
 }
