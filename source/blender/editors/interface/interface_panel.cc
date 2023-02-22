@@ -731,13 +731,7 @@ Panel *UI_panel_begin(
     UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   }
 
-  *r_open = false;
-
-  if (UI_panel_is_closed(panel)) {
-    return panel;
-  }
-
-  *r_open = true;
+  *r_open = !UI_panel_is_closed(panel);
 
   return panel;
 }
