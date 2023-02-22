@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation. */
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
@@ -93,8 +93,7 @@ static const Edge<CoordSpace::Tile> convert_coord_space(const Edge<CoordSpace::U
   };
 }
 
-class NonManifoldTileEdges : public Vector<Edge<CoordSpace::Tile>> {
-};
+class NonManifoldTileEdges : public Vector<Edge<CoordSpace::Tile>> {};
 
 class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
  public:

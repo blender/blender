@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 // TODO(serrgey): For the time being we're converting simple pipeline
 // to an autotrack pipeline we call it tracks.

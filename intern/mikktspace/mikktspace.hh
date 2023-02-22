@@ -4,7 +4,7 @@
  * Copyright 2011 by Morten S. Mikkelsen.
  *
  * C++ rewrite:
- * Copyright 2022 Blender Foundation. All rights reserved.
+ * Copyright 2022 Blender Foundation
  */
 
 /** \file

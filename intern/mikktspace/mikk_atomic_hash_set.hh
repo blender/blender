@@ -4,7 +4,7 @@
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * Modifications:
- * Copyright 2022 Blender Foundation. All rights reserved.
+ * Copyright 2022 Blender Foundation
  */
 
 /* Simplified version of Folly's AtomicHashArray
