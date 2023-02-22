@@ -426,7 +426,7 @@ static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
 
-  /* we return either PropertyRNA* or IDProperty*, the rna_access.c
+  /* we return either PropertyRNA* or IDProperty*, the rna_access.cc
    * functions can handle both as PropertyRNA* with some tricks */
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Property, internal->link);
 }
@@ -455,7 +455,7 @@ static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
 
-  /* we return either PropertyRNA* or IDProperty*, the rna_access.c
+  /* we return either PropertyRNA* or IDProperty*, the rna_access.cc
    * functions can handle both as PropertyRNA* with some tricks */
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Function, internal->link);
 }
