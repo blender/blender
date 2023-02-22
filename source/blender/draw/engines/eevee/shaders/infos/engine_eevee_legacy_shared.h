@@ -16,6 +16,14 @@ typedef struct CommonUniformBlock CommonUniformBlock;
 #  endif
 #endif
 
+/* NOTE: AMD-based macOS platforms experience performance and correctness issues with EEVEE
+ * material closure evaluation. Using singular closure evaluation, rather than the compound
+ * function calls reduces register overflow, by limiting the simultaneous number of live
+ * registers used by the virtual GPU function stack. */
+#if (defined(GPU_METAL) && defined(GPU_ATI))
+#  define DO_SPLIT_CLOSURE_EVAL 1
+#endif
+
 struct CommonUniformBlock {
   mat4 pastViewProjectionMatrix;
   vec4 hizUvScale; /* To correct mip level texel misalignment */
