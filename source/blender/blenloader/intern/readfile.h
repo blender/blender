@@ -219,9 +219,9 @@ void blo_do_versions_cycles(struct FileData *fd, struct Library *lib, struct Mai
 void do_versions_after_linking_250(struct Main *bmain);
 void do_versions_after_linking_260(struct Main *bmain);
 void do_versions_after_linking_270(struct Main *bmain);
-void do_versions_after_linking_280(struct Main *bmain, struct ReportList *reports);
-void do_versions_after_linking_290(struct Main *bmain, struct ReportList *reports);
-void do_versions_after_linking_300(struct Main *bmain, struct ReportList *reports);
+void do_versions_after_linking_280(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_290(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
 /**
@@ -231,6 +231,10 @@ void do_versions_after_linking_cycles(struct Main *bmain);
  * but better use that nasty hack in do_version than readfile itself.
  */
 void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);
+
+/* Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
+ * data should be discarded). Also add an error report to `fd` including given `message`. */
+void blo_readfile_invalidate(struct FileData *fd, struct Main *bmain, const char *message);
 
 #ifdef __cplusplus
 }
