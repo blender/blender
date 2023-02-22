@@ -638,7 +638,7 @@ static bool seq_speed_factor_set(Sequence *seq, void *user_data)
   return true;
 }
 
-void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
+void do_versions_after_linking_300(FileData *UNUSED(fd), Main *bmain)
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set zero user text objects to have a fake user. */

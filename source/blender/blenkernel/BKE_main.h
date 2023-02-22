@@ -136,6 +136,13 @@ typedef struct Main {
    */
   char is_locked_for_linking;
 
+  /**
+   * When set, indicates that an unrecoverable error/data corruption was detected.
+   * Should only be set by readfile code, and used by upper-level code (typically #setup_app_data)
+   * to cancel a file reading operation.
+   */
+  bool is_read_invalid;
+
   BlendThumbnail *blen_thumb;
 
   struct Library *curlib;
