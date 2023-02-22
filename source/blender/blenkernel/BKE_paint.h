@@ -66,6 +66,7 @@ extern const uchar PAINT_CURSOR_SCULPT[3];
 extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
 extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
+extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 
 typedef enum ePaintMode {
   PAINT_MODE_SCULPT = 0,
