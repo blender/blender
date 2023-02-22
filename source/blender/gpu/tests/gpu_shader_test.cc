@@ -225,7 +225,7 @@ static void test_gpu_shader_compute_ssbo()
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
-  /* Construct IBO. */
+  /* Construct SSBO. */
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
       SIZE * sizeof(uint32_t), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
   GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));

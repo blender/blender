@@ -41,7 +41,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
   /* Make sure that the image slots don't overlap with the sampler slots.*/
-  image_offset_ += 1;
+  image_offset_++;
 
   int32_t input_tot_len = ubo_len_ + uniform_len_ + ssbo_len_;
   inputs_ = static_cast<ShaderInput *>(
@@ -51,14 +51,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
-  int location = 0;
-
   /* Uniform blocks */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      input->location = location++;
-      input->binding = res.slot;
+      input->location = input->binding = res.slot;
       input++;
     }
   }
@@ -67,14 +64,12 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
-      input->location = location++;
-      input->binding = res.slot;
+      input->location = input->binding = res.slot;
       input++;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      input->location = location++;
-      input->binding = res.slot + image_offset_;
+      input->location = input->binding = res.slot + image_offset_;
       input++;
     }
   }
@@ -83,13 +78,57 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER) {
       copy_input_name(input, res.storagebuf.name, name_buffer_, name_buffer_offset);
-      input->location = location++;
-      input->binding = res.slot;
+      input->location = input->binding = res.slot;
       input++;
     }
   }
 
   sort_inputs();
+
+  /* Determine the descriptor set locations after the inputs have been sorted.*/
+  descriptor_set_locations_ = Array<VKDescriptorSet::Location>(input_tot_len);
+  uint32_t descriptor_set_location = 0;
+  for (ShaderCreateInfo::Resource &res : all_resources) {
+    const ShaderInput *input = shader_input_get(res);
+    descriptor_set_location_update(input, descriptor_set_location++);
+  }
+}
+
+static int32_t shader_input_index(const ShaderInput *shader_inputs,
+                                  const ShaderInput *shader_input)
+{
+  int32_t index = (shader_input - shader_inputs);
+  return index;
+}
+
+void VKShaderInterface::descriptor_set_location_update(const ShaderInput *shader_input,
+                                                       const VKDescriptorSet::Location location)
+{
+  int32_t index = shader_input_index(inputs_, shader_input);
+  descriptor_set_locations_[index] = location;
+}
+
+const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+    const ShaderInput *shader_input) const
+{
+  int32_t index = shader_input_index(inputs_, shader_input);
+  return descriptor_set_locations_[index];
+}
+
+const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+    const shader::ShaderCreateInfo::Resource &resource) const
+{
+  const ShaderInput *shader_input = shader_input_get(resource);
+  BLI_assert(shader_input);
+  return descriptor_set_location(shader_input);
+}
+
+const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
+{
+  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
+  BLI_assert(shader_input);
+  return descriptor_set_location(shader_input);
 }
 
 const ShaderInput *VKShaderInterface::shader_input_get(

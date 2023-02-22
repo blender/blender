@@ -326,10 +326,10 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 }
 
 static void print_resource(std::ostream &os,
-                           const ShaderInput &shader_input,
+                           const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res)
 {
-  os << "layout(binding = " << shader_input.location;
+  os << "layout(binding = " << static_cast<uint32_t>(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
     os << ", " << to_string(res.image.format);
   }
@@ -379,12 +379,8 @@ static void print_resource(std::ostream &os,
                            const VKShaderInterface &shader_interface,
                            const ShaderCreateInfo::Resource &res)
 {
-  const ShaderInput *shader_input = shader_interface.shader_input_get(res);
-  if (shader_input == nullptr) {
-    BLI_assert_msg(shader_input, "Cannot find shader input for resource");
-    return;
-  }
-  print_resource(os, *shader_input, res);
+  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(res);
+  print_resource(os, location, res);
 }
 
 static void print_resource_alias(std::ostream &os, const ShaderCreateInfo::Resource &res)
@@ -860,10 +856,10 @@ static VkDescriptorType descriptor_type(const shader::ShaderCreateInfo::Resource
 }
 
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
-    const ShaderInput &shader_input, const shader::ShaderCreateInfo::Resource &resource)
+    const VKDescriptorSet::Location location, const shader::ShaderCreateInfo::Resource &resource)
 {
   VkDescriptorSetLayoutBinding binding = {};
-  binding.binding = shader_input.location;
+  binding.binding = location;
   binding.descriptorType = descriptor_type(resource);
   binding.descriptorCount = 1;
   binding.stageFlags = VK_SHADER_STAGE_ALL;
@@ -878,13 +874,8 @@ static void add_descriptor_set_layout_bindings(
     Vector<VkDescriptorSetLayoutBinding> &r_bindings)
 {
   for (const shader::ShaderCreateInfo::Resource &resource : resources) {
-    const ShaderInput *shader_input = interface.shader_input_get(resource);
-    if (shader_input == nullptr) {
-      BLI_assert_msg(shader_input, "Cannot find shader input for resource.");
-      continue;
-    }
-
-    r_bindings.append(create_descriptor_set_layout_binding(*shader_input, resource));
+    const VKDescriptorSet::Location location = interface.descriptor_set_location(resource);
+    r_bindings.append(create_descriptor_set_layout_binding(location, resource));
   }
 }
 
@@ -1032,12 +1023,6 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
     ss << "layout(location = " << attr.index << ") ";
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
-  }
-  /* NOTE(D4490): Fix a bug where shader without any vertex attributes do not behave correctly.
-   */
-  if (GPU_type_matches_ex(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
-      info.vertex_inputs_.is_empty()) {
-    ss << "in float gpu_dummy_workaround;\n";
   }
   ss << "\n/* Interfaces. */\n";
   int location = 0;

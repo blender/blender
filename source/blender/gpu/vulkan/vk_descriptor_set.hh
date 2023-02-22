@@ -15,10 +15,11 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
-class VKStorageBuffer;
-class VKVertexBuffer;
 class VKIndexBuffer;
+class VKShaderInterface;
+class VKStorageBuffer;
 class VKTexture;
+class VKVertexBuffer;
 
 /**
  * In vulkan shader resources (images and buffers) are grouped in descriptor sets.
@@ -26,7 +27,7 @@ class VKTexture;
  * The resources inside a descriptor set can be updated and bound per set.
  *
  * Currently Blender only supports a single descriptor set per shader, but it is planned to be able
- * to use 2 descriptor sets per shader. Only for each #blender::gpu::shader::Frequency.
+ * to use 2 descriptor sets per shader. One for each #blender::gpu::shader::Frequency.
  */
 class VKDescriptorSet : NonCopyable {
   struct Binding;
@@ -50,9 +51,12 @@ class VKDescriptorSet : NonCopyable {
      */
     uint32_t binding;
 
-    Location() = default;
+    Location(uint32_t binding) : binding(binding)
+    {
+    }
 
    public:
+    Location() = default;
     Location(const ShaderInput *shader_input) : binding(shader_input->location)
     {
     }
@@ -68,6 +72,7 @@ class VKDescriptorSet : NonCopyable {
     }
 
     friend struct Binding;
+    friend class VKShaderInterface;
   };
 
  private:

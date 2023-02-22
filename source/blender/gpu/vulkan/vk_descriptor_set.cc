@@ -119,6 +119,10 @@ void VKDescriptorSet::update(VkDevice vk_device)
     descriptor_writes.append(write_descriptor);
   }
 
+  BLI_assert_msg(image_infos.size() + buffer_infos.size() == descriptor_writes.size(),
+                 "Not all changes have been converted to a write descriptor. Check "
+                 "`Binding::is_buffer` and `Binding::is_image`.");
+
   vkUpdateDescriptorSets(
       vk_device, descriptor_writes.size(), descriptor_writes.data(), 0, nullptr);
 
