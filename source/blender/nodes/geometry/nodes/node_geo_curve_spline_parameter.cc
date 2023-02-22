@@ -80,7 +80,9 @@ static Array<float> calculate_curve_parameters(const bke::CurvesGeometry &curves
  *  - NURBS Curves: Treat the control points as if they were a poly curve, because there
  *    is no obvious mapping from each control point to a specific evaluated point.
  */
-static Array<float> calculate_point_lengths(const bke::CurvesGeometry &curves)
+static Array<float> calculate_point_lengths(
+    const bke::CurvesGeometry &curves,
+    const FunctionRef<void(MutableSpan<float>, float)> postprocess_lengths_for_curve)
 {
   curves.ensure_evaluated_lengths();
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -93,26 +95,31 @@ static Array<float> calculate_point_lengths(const bke::CurvesGeometry &curves)
   threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
     for (const int i_curve : range) {
       const IndexRange points = points_by_curve[i_curve];
-      const Span<float> evaluated_lengths = curves.evaluated_lengths_for_curve(i_curve,
-                                                                               cyclic[i_curve]);
+      const bool is_cyclic = cyclic[i_curve];
+      const Span<float> evaluated_lengths = curves.evaluated_lengths_for_curve(i_curve, is_cyclic);
       MutableSpan<float> lengths = result.as_mutable_span().slice(points);
       lengths.first() = 0.0f;
+
+      float total;
       switch (types[i_curve]) {
         case CURVE_TYPE_CATMULL_ROM: {
           const int resolution = resolutions[i_curve];
           for (const int i : IndexRange(points.size()).drop_back(1)) {
             lengths[i + 1] = evaluated_lengths[resolution * (i + 1) - 1];
           }
+          total = evaluated_lengths.last();
           break;
         }
         case CURVE_TYPE_POLY:
           lengths.drop_front(1).copy_from(evaluated_lengths.take_front(lengths.size() - 1));
+          total = evaluated_lengths.last();
           break;
         case CURVE_TYPE_BEZIER: {
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
           for (const int i : IndexRange(points.size()).drop_back(1)) {
             lengths[i + 1] = evaluated_lengths[offsets[i + 1] - 1];
           }
+          total = evaluated_lengths.last();
           break;
         }
         case CURVE_TYPE_NURBS: {
@@ -123,44 +130,44 @@ static Array<float> calculate_point_lengths(const bke::CurvesGeometry &curves)
             length += math::distance(positions[i], positions[i + 1]);
           }
           lengths.last() = length;
+          if (is_cyclic) {
+            length += math::distance(positions.first(), positions.last());
+          }
+          total = length;
           break;
         }
       }
+      postprocess_lengths_for_curve(lengths, total);
     }
   });
   return result;
 }
 
+static void convert_lengths_to_factors(MutableSpan<float> lengths, const float total_curve_length)
+{
+  if (total_curve_length > 0.0f) {
+    const float factor = 1.0f / total_curve_length;
+    for (float &value : lengths.drop_front(1)) {
+      value *= factor;
+    }
+  }
+  else if (lengths.size() == 1) {
+    /* The curve is a single point. */
+    lengths[0] = 0.0f;
+  }
+  else {
+    /* It is arbitrary what to do in those rare cases when all the
+     * points are in the same position. In this case we are just
+     * arbitrarily giving a valid
+     * value in the range based on the point index. */
+    for (const int i : lengths.index_range()) {
+      lengths[i] = i / (lengths.size() - 1.0f);
+    }
+  }
+}
 static Array<float> calculate_point_parameters(const bke::CurvesGeometry &curves)
 {
-  Array<float> lengths = calculate_point_lengths(curves);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-
-  threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange range) {
-    for (const int i_curve : range) {
-      MutableSpan<float> curve_lengths = lengths.as_mutable_span().slice(points_by_curve[i_curve]);
-      const float total_length = curve_lengths.last();
-      if (total_length > 0.0f) {
-        const float factor = 1.0f / total_length;
-        for (float &value : curve_lengths) {
-          value *= factor;
-        }
-      }
-      else if (curve_lengths.size() == 1) {
-        /* The curve is a single point. */
-        curve_lengths[0] = 0.0f;
-      }
-      else {
-        /* It is arbitrary what to do in those rare cases when all the points are
-         * in the same position. In this case we are just arbitrarily giving a valid
-         * value in the range based on the point index. */
-        for (const int i : curve_lengths.index_range()) {
-          curve_lengths[i] = i / (curve_lengths.size() - 1.0f);
-        }
-      }
-    }
-  });
-  return lengths;
+  return calculate_point_lengths(curves, convert_lengths_to_factors);
 }
 
 class CurveParameterFieldInput final : public bke::CurvesFieldInput {
@@ -210,7 +217,8 @@ class CurveLengthParameterFieldInput final : public bke::CurvesFieldInput {
   {
     switch (domain) {
       case ATTR_DOMAIN_POINT:
-        return VArray<float>::ForContainer(calculate_point_lengths(curves));
+        return VArray<float>::ForContainer(calculate_point_lengths(
+            curves, [](MutableSpan<float> /*lengths*/, const float /*total*/) {}));
       case ATTR_DOMAIN_CURVE:
         return VArray<float>::ForContainer(accumulated_lengths_curve_domain(curves));
       default:
