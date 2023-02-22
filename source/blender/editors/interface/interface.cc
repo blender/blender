@@ -6532,6 +6532,8 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   va_list args;
   uiStringInfo *si;
 
+  PointerRNA *opptr = UI_but_operator_ptr_get(but);
+
   const EnumPropertyItem *items = nullptr, *item = nullptr;
   int totitems;
   bool free_items = false;
@@ -6610,10 +6612,13 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
       else if (but->optype) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(WM_operatortype_name(but->optype, but->opptr));
+          tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr));
         }
         else {
-          tmp = WM_operatortype_description(C, but->optype, but->opptr);
+          bContextStore *previous_ctx = CTX_store_get(C);
+          CTX_store_set(C, but->context);
+          tmp = WM_operatortype_description(C, but->optype, opptr);
+          CTX_store_set(C, previous_ctx);
         }
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
@@ -6696,7 +6701,6 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
                                                               int(ui_but_value_get(but));
       }
       else if (but->optype) {
-        PointerRNA *opptr = UI_but_operator_ptr_get(but);
         wmOperatorType *ot = but->optype;
 
         /* So the context is passed to `itemf` functions. */
