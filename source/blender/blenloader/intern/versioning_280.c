@@ -1171,7 +1171,7 @@ static void do_version_fcurve_hide_viewport_fix(struct ID *UNUSED(id),
   fcu->rna_path = BLI_strdupn("hide_viewport", 13);
 }
 
-void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
+void do_versions_after_linking_280(FileData *UNUSED(fd), Main *bmain)
 {
   bool use_collection_compat_28 = true;
 
