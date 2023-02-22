@@ -970,9 +970,9 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
 
   const uint pos3d = GPU_vertformat_attr_add(format3d, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   const uint col3d = GPU_vertformat_attr_add(format3d, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint siz3d = GPU_vertformat_attr_add(format3d, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
-  immUniform1f("size", 4.0f);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
   float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
@@ -990,6 +990,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
     const float dist_to_point_re = math::distance(pos_re, brush_origin_re);
     const float alpha = 1.0f - ((dist_to_point_re - dist_to_inner_border_re) / alpha_border_re);
 
+    immAttr1f(siz3d, 3.0f);
     immAttr4f(col3d, 0.9f, 0.9f, 0.9f, alpha);
     immVertex3fv(pos3d, pos_wo);
   }
