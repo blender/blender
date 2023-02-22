@@ -108,7 +108,7 @@ static std::optional<asset_system::AssetCatalogFilter> catalog_filter_from_shelf
 }
 
 /* TODO calling a (.py defined) callback for every asset isn't exactly great. Should be a temporary
-solution until there is proper filtering by asset traits. */
+ * solution until there is proper filtering by asset traits. */
 /**
  * Returns true if the asset should be visible. That is, if any of the visible asset shelves has no
  * poll function (all assets should be displayed), or its #AssetShelfType.asset_poll function
