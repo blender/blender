@@ -2292,6 +2292,13 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me,
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
     cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, index)];
+
+    if (!me->active_color_attribute) {
+      me->active_color_attribute = BLI_strdup(cdl->name);
+    }
+    if (!me->default_color_attribute) {
+      me->default_color_attribute = BLI_strdup(cdl->name);
+    }
   }
 
   RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl, &ptr);

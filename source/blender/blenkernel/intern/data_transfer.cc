@@ -250,6 +250,88 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
 
 /* ********** */
 
+/**
+ * When transfering color attributes, also transfer the active color attribute string.
+ * If a match can't be found, use the first color layer that can be found (to ensure a valid string
+ * is set).
+ */
+static void data_transfer_mesh_attributes_transfer_active_color_string(
+    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+{
+  if (mesh_dst->active_color_attribute) {
+    return;
+  }
+
+  const char *active_color_src = BKE_id_attributes_active_color_name(&mesh_src->id);
+
+  if ((data_type == CD_PROP_COLOR) &&
+      !BKE_id_attribute_search(&mesh_src->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    return;
+  }
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           !BKE_id_attribute_search(&mesh_src->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    return;
+  }
+
+  if ((data_type == CD_PROP_COLOR) &&
+      BKE_id_attribute_search(&mesh_dst->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
+  }
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           BKE_id_attribute_search(&mesh_dst->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
+  }
+  else {
+    CustomDataLayer *first_color_layer = BKE_id_attribute_from_index(
+        &mesh_dst->id, 0, mask_domain, CD_MASK_COLOR_ALL);
+    if (first_color_layer != nullptr) {
+      mesh_dst->active_color_attribute = BLI_strdup(first_color_layer->name);
+    }
+  }
+}
+
+/**
+ * When transfering color attributes, also transfer the default color attribute string.
+ * If a match cant be found, use the first color layer that can be found (to ensure a valid string
+ * is set).
+ */
+static void data_transfer_mesh_attributes_transfer_default_color_string(
+    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+{
+  if (mesh_dst->default_color_attribute) {
+    return;
+  }
+
+  const char *default_color_src = BKE_id_attributes_default_color_name(&mesh_src->id);
+
+  if ((data_type == CD_PROP_COLOR) &&
+      !BKE_id_attribute_search(&mesh_src->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    return;
+  }
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           !BKE_id_attribute_search(&mesh_src->id, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    return;
+  }
+
+  if ((data_type == CD_PROP_COLOR) &&
+      BKE_id_attribute_search(&mesh_dst->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
+  }
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           BKE_id_attribute_search(&mesh_dst->id, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+    mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
+  }
+  else {
+    CustomDataLayer *first_color_layer = BKE_id_attribute_from_index(
+        &mesh_dst->id, 0, mask_domain, CD_MASK_COLOR_ALL);
+    if (first_color_layer != nullptr) {
+      mesh_dst->default_color_attribute = BLI_strdup(first_color_layer->name);
+    }
+  }
+}
+
+/* ********** */
+
 /* Generic pre/post processing, only used by custom loop normals currently. */
 
 static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
@@ -1124,6 +1206,14 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
+      /* Make sure we have active/defaut color layers if none existed before.
+       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+        data_transfer_mesh_attributes_transfer_active_color_string(
+            me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
+        data_transfer_mesh_attributes_transfer_default_color_string(
+            me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
+      }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
       const int num_elem_dst = me_dst->totedge;
@@ -1164,6 +1254,14 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
+      /* Make sure we have active/defaut color layers if none existed before.
+       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+        data_transfer_mesh_attributes_transfer_active_color_string(
+            me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
+        data_transfer_mesh_attributes_transfer_default_color_string(
+            me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
+      }
     }
     if (DT_DATATYPE_IS_POLY(dtdata_type)) {
       const int num_elem_dst = me_dst->totpoly;
