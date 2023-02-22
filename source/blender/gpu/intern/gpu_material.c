@@ -951,14 +951,16 @@ void GPU_material_compile(GPUMaterial *mat)
        * As PSOs do not always match for default shaders, we limit warming for PSO
        * configurations to ensure compile time remains fast, as these first
        * entries will be the most commonly used PSOs. As not all PSOs are necessarily
-       * required immediately, this limit should remain low (1-3 at most).
-       * */
+       * required immediately, this limit should remain low (1-3 at most). */
       if (mat->default_mat != NULL && mat->default_mat != mat) {
         if (mat->default_mat->pass != NULL) {
           GPUShader *parent_sh = GPU_pass_shader_get(mat->default_mat->pass);
           if (parent_sh) {
-            GPU_shader_set_parent(sh, parent_sh);
-            GPU_shader_warm_cache(sh, 1);
+            /* Skip warming if cached pass is identical to the default material. */
+            if (mat->default_mat->pass != mat->pass && parent_sh != sh) {
+              GPU_shader_set_parent(sh, parent_sh);
+              GPU_shader_warm_cache(sh, 1);
+            }
           }
         }
       }
