@@ -452,6 +452,10 @@ static void add_main_to_main(Main *mainvar, Main *from)
   ListBase *lbarray[INDEX_ID_MAX], *fromarray[INDEX_ID_MAX];
   int a;
 
+  if (from->is_read_invalid) {
+    mainvar->is_read_invalid = true;
+  }
+
   set_listbasepointers(mainvar, lbarray);
   a = set_listbasepointers(from, fromarray);
   while (a--) {
@@ -465,6 +469,9 @@ void blo_join_main(ListBase *mainlist)
 
   mainl = mainlist->first;
   while ((tojoin = mainl->next)) {
+    if (tojoin->is_read_invalid) {
+      mainl->is_read_invalid = true;
+    }
     add_main_to_main(mainl, tojoin);
     BLI_remlink(mainlist, tojoin);
     BKE_main_free(tojoin);
@@ -663,6 +670,21 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
     printf("blo_find_main: added new lib %s\n", filepath);
   }
   return m;
+}
+
+void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
+{
+  /* Tag given bmain, and 'root 'local' main one (in case given one is a library one) as invalid.
+   */
+  bmain->is_read_invalid = true;
+  for (; bmain->prev != NULL; bmain = bmain->prev)
+    ;
+  bmain->is_read_invalid = true;
+
+  BKE_reportf(fd->reports,
+              RPT_ERROR,
+              "A critical error happened (the blend file is likely corrupted): %s",
+              message);
 }
 
 /** \} */
@@ -3862,13 +3884,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
            main->build_hash);
   }
 
-  blo_do_versions_pre250(fd, lib, main);
-  blo_do_versions_250(fd, lib, main);
-  blo_do_versions_260(fd, lib, main);
-  blo_do_versions_270(fd, lib, main);
-  blo_do_versions_280(fd, lib, main);
-  blo_do_versions_290(fd, lib, main);
-  blo_do_versions_cycles(fd, lib, main);
+  if (!main->is_read_invalid) {
+    blo_do_versions_pre250(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_250(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_260(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_270(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_280(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_290(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_cycles(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
@@ -3878,7 +3914,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   main->is_locked_for_linking = false;
 }
 
-static void do_versions_after_linking(Main *main, ReportList *reports)
+static void do_versions_after_linking(FileData *fd, Main *main)
 {
   //  printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->filepath :
   //         main->name, main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
@@ -3886,12 +3922,24 @@ static void do_versions_after_linking(Main *main, ReportList *reports)
   /* Don't allow versioning to create new data-blocks. */
   main->is_locked_for_linking = true;
 
-  do_versions_after_linking_250(main);
-  do_versions_after_linking_260(main);
-  do_versions_after_linking_270(main);
-  do_versions_after_linking_280(main, reports);
-  do_versions_after_linking_290(main, reports);
-  do_versions_after_linking_cycles(main);
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_250(main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_260(main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_270(main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_280(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_290(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_cycles(main);
+  }
 
   main->is_locked_for_linking = false;
 }
@@ -4188,6 +4236,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
           bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, false, NULL);
         }
     }
+
+    if (bfd->main->is_read_invalid) {
+      return bfd;
+    }
   }
 
   /* do before read_libraries, but skip undo case */
@@ -4199,6 +4251,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     if ((fd->skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
       do_versions_userdef(fd, bfd);
     }
+  }
+
+  if (bfd->main->is_read_invalid) {
+    return bfd;
   }
 
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
@@ -4224,7 +4280,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(mainvar, fd->reports);
+        do_versions_after_linking(fd, mainvar);
       }
       blo_join_main(&mainlist);
 
@@ -4235,6 +4291,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
       /* After all data has been read and versioned, uses LIB_TAG_NEW. */
       ntreeUpdateAllNew(bfd->main);
+    }
+
+    if (bfd->main->is_read_invalid) {
+      return bfd;
     }
 
     placeholders_ensure_valid(bfd->main);
@@ -4993,7 +5053,16 @@ ID *BLO_library_link_named_part(Main *mainl,
                                 const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return link_named_part(mainl, fd, idcode, name, params->flag);
+
+  ID *ret_id = NULL;
+  if (!mainl->is_read_invalid) {
+    ret_id = link_named_part(mainl, fd, idcode, name, params->flag);
+  }
+
+  if (mainl->is_read_invalid) {
+    return NULL;
+  }
+  return ret_id;
 }
 
 /* common routine to append/link something from a library */
@@ -5199,9 +5268,13 @@ static void library_link_end(Main *mainl,
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(main_newid, (*fd)->reports);
+    do_versions_after_linking(*fd, main_newid);
 
     add_main_to_main(mainvar, main_newid);
+
+    if (mainvar->is_read_invalid) {
+      return;
+    }
   }
 
   BKE_main_free(main_newid);
@@ -5258,14 +5331,16 @@ static void library_link_end(Main *mainl,
 void BLO_library_link_end(Main *mainl, BlendHandle **bh, const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  library_link_end(mainl,
-                   &fd,
-                   params->bmain,
-                   params->flag,
-                   params->context.scene,
-                   params->context.view_layer,
-                   params->context.v3d);
-  *bh = (BlendHandle *)fd;
+  if (!mainl->is_read_invalid) {
+    library_link_end(mainl,
+                     &fd,
+                     params->bmain,
+                     params->flag,
+                     params->context.scene,
+                     params->context.view_layer,
+                     params->context.v3d);
+    *bh = (BlendHandle *)fd;
+  }
 }
 
 void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)

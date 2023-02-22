@@ -354,6 +354,13 @@ void BLO_blendhandle_close(BlendHandle *bh)
   blo_filedata_free(fd);
 }
 
+void BLO_read_invalidate_message(BlendHandle *bh, Main *bmain, const char *message)
+{
+  FileData *fd = (FileData *)bh;
+
+  blo_readfile_invalidate(fd, bmain, message);
+}
+
 /**********/
 
 /**
