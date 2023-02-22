@@ -1091,17 +1091,6 @@ static void blf_glyph_calc_rect(rcti *rect, GlyphBLF *g, const int x, const int 
   rect->ymax = rect->ymin - g->dims[1];
 }
 
-static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const int y)
-{
-  /* Intentionally check with `g->advance`, because this is the
-   * width used by BLF_width. This allows that the text slightly
-   * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = x;
-  rect->xmax = rect->xmin + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
-  rect->ymin = y;
-  rect->ymax = rect->ymin - g->dims[1];
-}
-
 static void blf_glyph_calc_rect_shadow(
     rcti *rect, GlyphBLF *g, const int x, const int y, FontBLF *font)
 {
@@ -1213,9 +1202,10 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 
   if (font->flags & BLF_CLIPPING) {
     rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, x, y);
-    BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
-
+    rect_test.xmin = x + font->pos[0] + g->pos[0] + 1;
+    rect_test.xmax = rect_test.xmin + g->dims[0] - 2;
+    rect_test.ymin = y + font->pos[1];
+    rect_test.ymax = rect_test.ymin + g->pos[1];
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
     }
