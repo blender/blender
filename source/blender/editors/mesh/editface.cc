@@ -212,106 +212,142 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
   paintface_flush_flags(C, ob, true, true);
 }
 
-/* Set object-mode face selection seams based on edge data, uses hash table to find seam edges. */
-
-static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bool select)
+/**
+ * Join all edges of each poly in the AtomicDisjointSet. This can be used to find out which polys
+ * are connected to each other.
+ * \param islands Is expected to be of length mesh->totedge.
+ * \param skip_seams Polys separated by a seam will be treated as not connected.
+ */
+static void build_poly_connections(blender::AtomicDisjointSet &islands,
+                                   Mesh &mesh,
+                                   const bool skip_seams = true)
 {
   using namespace blender;
-  bool do_it = true;
-  bool mark = false;
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MLoop> loops = mesh.loops();
 
-  BLI_bitmap *edge_tag = BLI_BITMAP_NEW(me->totedge, __func__);
-  BLI_bitmap *poly_tag = BLI_BITMAP_NEW(me->totpoly, __func__);
-
-  const Span<MEdge> edges = me->edges();
-  const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
-  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  /* Polys are connected if they share edges. By connecting all edges of a loop (as long as they
+   * are not a seam) we can find connected faces. */
+  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+
+    for (const int poly_index : range) {
+      if (hide_poly[poly_index]) {
+        continue;
+      }
+      const MPoly &poly = polys[poly_index];
+      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+
+      for (const int poly_loop_index : poly_loops.index_range()) {
+        const MLoop &outer_mloop = poly_loops[poly_loop_index];
+        if (skip_seams && (edges[outer_mloop.e].flag & ME_SEAM) != 0) {
+          continue;
+        }
+
+        for (const MLoop &inner_mloop :
+             poly_loops.slice(poly_loop_index, poly_loops.size() - poly_loop_index)) {
+          if (&outer_mloop == &inner_mloop) {
+            continue;
+          }
+          if (skip_seams && (edges[inner_mloop.e].flag & ME_SEAM) != 0) {
+            continue;
+          }
+          islands.join(inner_mloop.e, outer_mloop.e);
+        }
+      }
+      
+    }
+
+  });
+}
+
+/* Select faces connected to the given face_indices. Seams are treated as separation. */
+static void paintface_select_linked_faces(Mesh &mesh,
+                                          const blender::Span<int> face_indices,
+                                          const bool select)
+{
+  using namespace blender;
+
+  AtomicDisjointSet islands(mesh.totedge);
+  build_poly_connections(islands, mesh);
+
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MLoop> loops = mesh.loops();
+
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
 
-  if (index != uint(-1)) {
-    /* only put face under cursor in array */
-    const MPoly &poly = polys[index];
-    BKE_mesh_poly_edgebitmap_insert(edge_tag, &poly, &loops[poly.loopstart]);
-    BLI_BITMAP_ENABLE(poly_tag, index);
-  }
-  else {
-    /* fill array by selection */
-    for (int i = 0; i < me->totpoly; i++) {
-      if (hide_poly[i]) {
-        /* pass */
-      }
-      else if (select_poly.span[i]) {
-        const MPoly &poly = polys[i];
-        BKE_mesh_poly_edgebitmap_insert(edge_tag, &poly, &loops[poly.loopstart]);
-        BLI_BITMAP_ENABLE(poly_tag, i);
-      }
-    }
-  }
-
-  while (do_it) {
-    do_it = false;
-
-    /* expand selection */
-    for (int i = 0; i < me->totpoly; i++) {
-      if (hide_poly[i]) {
+  Set<int> selected_roots;
+  for (const int i : face_indices) {
+    const MPoly &poly = polys[i];
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      if ((edges[loop.e].flag & ME_SEAM) != 0) {
         continue;
       }
+      const int root = islands.find_root(loop.e);
+      selected_roots.add(root);
+    }
+  }
 
-      if (!BLI_BITMAP_TEST(poly_tag, i)) {
-        mark = false;
-
-        const MPoly &poly = polys[i];
-        const MLoop *ml = &loops[poly.loopstart];
-        for (int b = 0; b < poly.totloop; b++, ml++) {
-          if ((edges[ml->e].flag & ME_SEAM) == 0) {
-            if (BLI_BITMAP_TEST(edge_tag, ml->e)) {
-              mark = true;
-              break;
-            }
-          }
-        }
-
-        if (mark) {
-          BLI_BITMAP_ENABLE(poly_tag, i);
-          BKE_mesh_poly_edgebitmap_insert(edge_tag, &poly, &loops[poly.loopstart]);
-          do_it = true;
+  threading::parallel_for(select_poly.span.index_range(), 1024, [&](const IndexRange range) {
+    for (const int poly_index : range) {
+      const MPoly &poly = polys[poly_index];
+      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+        const int root = islands.find_root(loop.e);
+        if (selected_roots.contains(root)) {
+          select_poly.span[poly_index] = select;
+          break;
         }
       }
     }
-  }
+  });
 
-  MEM_freeN(edge_tag);
-
-  for (int i = 0; i < me->totpoly; i++) {
-    if (BLI_BITMAP_TEST(poly_tag, i)) {
-      select_poly.span[i] = select;
-    }
-  }
-
-  MEM_freeN(poly_tag);
+  select_poly.finish();
 }
 
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const bool select)
 {
-  uint index = uint(-1);
-
+  using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
   if (me == nullptr || me->totpoly == 0) {
     return;
   }
 
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+
+  Vector<int> indices;
   if (mval) {
+    uint index = uint(-1);
     if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
+      select_poly.finish();
       return;
+    }
+    /* Since paintface_select_linked_faces might not select the face under the cursor, select it
+     * here. */
+    select_poly.span[index] = true;
+    indices.append(index);
+  }
+
+  else {
+    for (const int i : select_poly.span.index_range()) {
+      if (!select_poly.span[i]) {
+        continue;
+      }
+      indices.append(i);
     }
   }
 
-  select_linked_tfaces_with_seams(me, index, select);
+  select_poly.finish();
 
+  paintface_select_linked_faces(*me, indices, select);
   paintface_flush_flags(C, ob, true, false);
 }
 
