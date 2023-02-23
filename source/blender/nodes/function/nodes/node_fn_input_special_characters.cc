@@ -7,7 +7,8 @@ namespace blender::nodes::node_fn_input_special_characters_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::String>(N_("Line Break"));
-  b.add_output<decl::String>(N_("Tab"));
+  b.add_output<decl::String>(CTX_N_(BLT_I18NCONTEXT_ID_TEXT, "Tab"))
+      .translation_context(BLT_I18NCONTEXT_ID_TEXT);
 }
 
 class MF_SpecialCharacters : public mf::MultiFunction {
