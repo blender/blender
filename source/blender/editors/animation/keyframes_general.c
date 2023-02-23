@@ -1200,6 +1200,7 @@ const EnumPropertyItem rna_enum_keyframe_paste_offset_value[] = {
      0,
      "No Offset",
      "Paste keys with the same value as they were copied"},
+    {0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_keyframe_paste_merge_items[] = {
