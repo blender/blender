@@ -1337,8 +1337,6 @@ static void layerCopyValue_propcol(const void *source,
       memcpy(tmp_col, m1->color, sizeof(tmp_col));
     }
     blend_color_interpolate_float(m2->color, m2->color, tmp_col, mixfactor);
-
-    copy_v4_v4(m2->color, m1->color);
   }
 }
 
