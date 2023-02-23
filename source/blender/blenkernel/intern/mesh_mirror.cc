@@ -115,11 +115,12 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         Object *ob,
                                                         const Mesh *mesh,
                                                         const int axis,
-                                                        const bool use_correct_order_on_merge)
+                                                        const bool use_correct_order_on_merge,
+                                                        int **r_vert_merge_map,
+                                                        int *r_vert_merge_map_len)
 {
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
-  const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
-  int tot_vtargetmap = 0; /* total merge vertices */
+  const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0 && r_vert_merge_map != nullptr;
 
   const bool do_bisect = ((axis == 0 && mmd->flag & MOD_MIR_BISECT_AXIS_X) ||
                           (axis == 1 && mmd->flag & MOD_MIR_BISECT_AXIS_Y) ||
@@ -133,7 +134,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   float plane_co[3], plane_no[3];
   int i;
   int a, totshape;
-  int *vtargetmap = nullptr, *vtmap_a = nullptr, *vtmap_b = nullptr;
+  int *vtmap_a = nullptr, *vtmap_b = nullptr;
 
   /* mtx is the mirror transformation */
   unit_m4(mtx);
@@ -211,11 +212,13 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
-    vtargetmap = static_cast<int *>(
+    *r_vert_merge_map = static_cast<int *>(
         MEM_malloc_arrayN(maxVerts, sizeof(int[2]), "MOD_mirror tarmap"));
 
-    vtmap_a = vtargetmap;
-    vtmap_b = vtargetmap + maxVerts;
+    vtmap_a = *r_vert_merge_map;
+    vtmap_b = *r_vert_merge_map + maxVerts;
+
+    *r_vert_merge_map_len = 0;
   }
 
   /* mirror vertex coordinates */
@@ -243,7 +246,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
                      tolerance_sq)) {
           *vtmap_b = i;
-          tot_vtargetmap++;
+          (*r_vert_merge_map_len)++;
 
           /* average location */
           mid_v3_v3v3(positions[vert_index], positions[vert_index_prev], positions[vert_index]);
@@ -260,7 +263,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         if (UNLIKELY(len_squared_v3v3(positions[vert_index_prev], positions[vert_index]) <
                      tolerance_sq)) {
           *vtmap_a = maxVerts + i;
-          tot_vtargetmap++;
+          (*r_vert_merge_map_len)++;
 
           /* average location */
           mid_v3_v3v3(positions[vert_index], positions[vert_index_prev], positions[vert_index]);
@@ -445,10 +448,12 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       if (flip_map) {
         for (i = 0; i < maxVerts; dvert++, i++) {
           /* merged vertices get both groups, others get flipped */
-          if (use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i + maxVerts] != -1)) {
+          if (use_correct_order_on_merge && do_vtargetmap &&
+              ((*r_vert_merge_map)[i + maxVerts] != -1)) {
             BKE_defvert_flip_merged(dvert - maxVerts, flip_map, flip_map_len);
           }
-          else if (!use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i] != -1)) {
+          else if (!use_correct_order_on_merge && do_vtargetmap &&
+                   ((*r_vert_merge_map)[i] != -1)) {
             BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
           }
           else {
@@ -459,16 +464,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         MEM_freeN(flip_map);
       }
     }
-  }
-
-  if (do_vtargetmap) {
-    /* slow - so only call if one or more merge verts are found,
-     * users may leave this on and not realize there is nothing to merge - campbell */
-    if (tot_vtargetmap) {
-      result = BKE_mesh_merge_verts(
-          result, vtargetmap, tot_vtargetmap, MESH_MERGE_VERTS_DUMP_IF_MAPPED);
-    }
-    MEM_freeN(vtargetmap);
   }
 
   if (mesh_bisect != nullptr) {

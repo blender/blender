@@ -201,7 +201,6 @@ set(SRC
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc
-  intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
   intern/mesh_normals.cc

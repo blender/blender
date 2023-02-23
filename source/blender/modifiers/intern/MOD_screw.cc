@@ -12,6 +12,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -22,6 +23,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
@@ -41,6 +43,10 @@
 #include "MOD_ui_common.h"
 
 #include "BLI_strict_flags.h"
+
+#include "GEO_mesh_merge_by_distance.hh"
+
+using namespace blender;
 
 static void initData(ModifierData *md)
 {
@@ -165,10 +171,16 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
         }
       }
     }
-    result = BKE_mesh_merge_verts(result,
-                                  full_doubles_map,
-                                  int(tot_doubles * (step_tot - 1)),
-                                  MESH_MERGE_VERTS_DUMP_IF_MAPPED);
+
+    Mesh *tmp = result;
+
+    /* TODO(mano-wii): Polygons with all vertices merged are the ones that form duplicates.
+     * Therefore the duplicate polygon test can be skipped. */
+    result = geometry::mesh_merge_verts(*tmp,
+                                        MutableSpan<int>{full_doubles_map, result->totvert},
+                                        int(tot_doubles * (step_tot - 1)));
+
+    BKE_id_free(NULL, tmp);
     MEM_freeN(full_doubles_map);
   }
 

@@ -12,6 +12,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_math.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -45,6 +46,10 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "GEO_mesh_merge_by_distance.hh"
+
+using namespace blender;
 
 static void initData(ModifierData *md)
 {
@@ -756,7 +761,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       if (new_i != -1) {
         /* We have to follow chains of doubles
          * (merge start/end especially is likely to create some),
-         * those are not supported at all by BKE_mesh_merge_verts! */
+         * those are not supported at all by `geometry::mesh_merge_verts`! */
         while (!ELEM(full_doubles_map[new_i], -1, new_i)) {
           new_i = full_doubles_map[new_i];
         }
@@ -770,8 +775,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       }
     }
     if (tot_doubles > 0) {
-      result = BKE_mesh_merge_verts(
-          result, full_doubles_map, tot_doubles, MESH_MERGE_VERTS_DUMP_IF_EQUAL);
+      Mesh *tmp = result;
+      result = geometry::mesh_merge_verts(
+          *tmp, MutableSpan<int>{full_doubles_map, result->totvert}, tot_doubles);
+      BKE_id_free(NULL, tmp);
     }
     MEM_freeN(full_doubles_map);
   }
