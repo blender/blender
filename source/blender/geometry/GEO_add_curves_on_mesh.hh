@@ -25,6 +25,7 @@ struct AddCurvesOnMeshInputs {
   bool interpolate_length = false;
   bool interpolate_shape = false;
   bool interpolate_point_count = false;
+  bool interpolate_resolution = false;
   float fallback_curve_length = 0.0f;
   int fallback_point_count = 0;
 

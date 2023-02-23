@@ -225,6 +225,7 @@ struct AddOperationExecutor {
                                    BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     add_inputs.interpolate_point_count = brush_settings_->flag &
                                          BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT;
+    add_inputs.interpolate_resolution = curves_orig_->attributes().contains("resolution");
     add_inputs.fallback_curve_length = brush_settings_->curve_length;
     add_inputs.fallback_point_count = std::max(2, brush_settings_->points_per_curve);
     add_inputs.transforms = &transforms_;
@@ -234,7 +235,7 @@ struct AddOperationExecutor {
     add_inputs.corner_normals_su = corner_normals_su;
 
     if (add_inputs.interpolate_length || add_inputs.interpolate_shape ||
-        add_inputs.interpolate_point_count) {
+        add_inputs.interpolate_point_count || add_inputs.interpolate_resolution) {
       this->ensure_curve_roots_kdtree();
       add_inputs.old_roots_kdtree = self_->curve_roots_kdtree_;
     }

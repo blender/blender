@@ -514,6 +514,9 @@ set(GLSL_SRC
   shaders/gpu_shader_gpencil_stroke_frag.glsl
   shaders/gpu_shader_gpencil_stroke_geom.glsl
 
+  shaders/gpu_shader_display_fallback_vert.glsl
+  shaders/gpu_shader_display_fallback_frag.glsl
+
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
