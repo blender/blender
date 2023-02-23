@@ -108,15 +108,12 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
         for (const int curve_i : range) {
           const IndexRange points = points_by_curve[curve_i];
           const bool has_any_selected = ed::curves::has_anything_selected(selection, points);
-          if (!has_any_selected) {
+          if (!has_any_selected && use_connected_only) {
             for (const int point_i : points) {
               TransData &td = tc.data[point_i];
-              td.flag |= TD_NOTCONNECTED;
-              td.dist = FLT_MAX;
+              td.flag |= TD_SKIP;
             }
-            if (use_connected_only) {
-              continue;
-            }
+            continue;
           }
 
           closest_distances.reinitialize(points.size());
