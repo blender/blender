@@ -3749,14 +3749,14 @@ static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
   BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
 }
 
-/* Find the window region in the bAnimContext area and move it to bounds. */
-static void move_graph_view(bContext *C, bAnimContext *ac, rctf *bounds, const int smooth_viewtx)
+static ARegion *get_window_region(bAnimContext *ac)
 {
   LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
-      UI_view2d_smooth_view(C, region, bounds, smooth_viewtx);
+      return region;
     }
   }
+  return NULL;
 }
 
 static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
@@ -3765,6 +3765,12 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ARegion *window_region = get_window_region(&ac);
+
+  if (!window_region) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3805,8 +3811,13 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   add_region_padding(C, &ac, &bounds);
 
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
+
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -3852,6 +3863,12 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
+  ARegion *window_region = get_window_region(&ac);
+
+  if (!window_region) {
+    return OPERATOR_CANCELLED;
+  }
+
   ListBase anim_data = {NULL, NULL};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
                       ANIMFILTER_LIST_CHANNELS);
@@ -3880,8 +3897,13 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   add_region_padding(C, &ac, &bounds);
 
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
+
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
