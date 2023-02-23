@@ -942,6 +942,7 @@ static void graph_panel_drivers_header(const bContext *C, Panel *panel)
   }
 
   graph_draw_driven_property_enabled_btn(panel->layout, ale->id, fcu, IFACE_("Driver"));
+  MEM_freeN(ale);
 }
 
 static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *fcu)
