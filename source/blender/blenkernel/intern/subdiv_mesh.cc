@@ -24,8 +24,8 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
-#include "BKE_subdiv_foreach.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 #include "MEM_guardedalloc.h"
 

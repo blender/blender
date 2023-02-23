@@ -469,8 +469,8 @@ set(SRC
   BKE_subdiv_ccg.h
   BKE_subdiv_deform.h
   BKE_subdiv_eval.h
-  BKE_subdiv_foreach.h
-  BKE_subdiv_mesh.h
+  BKE_subdiv_foreach.hh
+  BKE_subdiv_mesh.hh
   BKE_subdiv_modifier.h
   BKE_subdiv_topology.h
   BKE_subsurf.h

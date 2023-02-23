@@ -12,8 +12,8 @@
 
 #include "BLI_math_vector.h"
 
-#include "BKE_subdiv_foreach.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 struct MultiresReshapeAssignVertcosContext {
   const MultiresReshapeContext *reshape_context;

@@ -22,8 +22,8 @@
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
-#include "BKE_subdiv_foreach.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 #include "opensubdiv_converter_capi.h"
 #include "opensubdiv_evaluator_capi.h"
