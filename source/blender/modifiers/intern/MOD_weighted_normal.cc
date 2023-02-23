@@ -456,15 +456,13 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
   const blender::Span<MPoly> polys = wn_data->polys;
   const blender::Span<MLoop> loops = wn_data->loops;
 
-  int mp_index;
-
   ModePair *face_area = static_cast<ModePair *>(
       MEM_malloc_arrayN(size_t(polys.size()), sizeof(*face_area), __func__));
 
   ModePair *f_area = face_area;
   for (const int i : polys.index_range()) {
     f_area->val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
-    f_area->index = mp_index;
+    f_area->index = i;
   }
 
   qsort(face_area, polys.size(), sizeof(*face_area), modepair_cmp_by_val_inverse);

@@ -2574,10 +2574,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               else {
                 face_edges[k] = new_edge->link_edge_groups[flip]->open_face_edge;
               }
-              BLI_assert(k == 0 || medge[face_edges[k]].v2 == face_verts[k - 1] ||
-                         medge[face_edges[k]].v1 == face_verts[k - 1]);
+              BLI_assert(k == 0 || edges[face_edges[k]].v2 == face_verts[k - 1] ||
+                         edges[face_edges[k]].v1 == face_verts[k - 1]);
               BLI_assert(face_edges[k] == MOD_SOLIDIFY_EMPTY_TAG ||
-                         medge[face_edges[k]].v2 == new_v1 || medge[face_edges[k]].v1 == new_v1);
+                         edges[face_edges[k]].v2 == new_v1 || edges[face_edges[k]].v1 == new_v1);
               face_verts[k++] = new_v1;
             }
             prior_edge = new_edge;

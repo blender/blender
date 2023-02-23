@@ -440,7 +440,6 @@ static bool weight_paint_set(Object *ob, float paintweight)
   Mesh *me = static_cast<Mesh *>(ob->data);
   MDeformWeight *dw, *dw_prev;
   int vgroup_active, vgroup_mirror = -1;
-  uint index;
   const bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   /* mutually exclusive, could be made into a */
@@ -473,7 +472,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
     const MPoly &poly = polys[i];
     uint fidx = poly.totloop - 1;
 
-    if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[index])) {
+    if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[i])) {
       continue;
     }
 
@@ -517,7 +516,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
   {
     MDeformVert *dv = dvert;
-    for (index = me->totvert; index != 0; index--, dv++) {
+    for (int index = me->totvert; index != 0; index--, dv++) {
       dv->flag = 0;
     }
   }
