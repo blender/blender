@@ -3661,19 +3661,19 @@ static void get_normalized_fcurve_bounds(FCurve *fcu,
                          range);
   const short mapping_flag = ANIM_get_normalization_flags(ac);
 
-  const float min_height = 0.01f;
-  const float height = BLI_rctf_size_y(r_bounds);
-  if (height < min_height) {
-    r_bounds->ymin -= (min_height - height) / 2;
-    r_bounds->ymax += (min_height - height) / 2;
-  }
-
   float offset;
   const float unit_fac = ANIM_unit_mapping_get_factor(
       ac->scene, ale->id, fcu, mapping_flag, &offset);
 
   r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
   r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
+
+  const float min_height = 0.01f;
+  const float height = BLI_rctf_size_y(r_bounds);
+  if (height < min_height) {
+    r_bounds->ymin -= (min_height - height) / 2;
+    r_bounds->ymax += (min_height - height) / 2;
+  }
 }
 
 static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
