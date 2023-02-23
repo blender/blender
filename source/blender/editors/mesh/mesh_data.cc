@@ -465,13 +465,6 @@ int ED_mesh_color_add(
     name = "Col";
   }
 
-  if (const CustomDataLayer *layer = BKE_id_attribute_find(
-          &me->id, me->active_color_attribute, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER)) {
-    int dummy;
-    const CustomData *data = mesh_customdata_get_type(me, BM_LOOP, &dummy);
-    return CustomData_get_named_layer(data, CD_PROP_BYTE_COLOR, layer->name);
-  }
-
   CustomDataLayer *layer = BKE_id_attribute_new(
       &me->id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER, reports);
 
