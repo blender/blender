@@ -24,6 +24,8 @@
 
 #include "ED_view3d.h"
 
+#include <functional>
+
 struct AutomaskingCache;
 struct AutomaskingNodeData;
 struct Dial;
@@ -892,7 +894,18 @@ void SCULPT_tag_update_overlays(bContext *C);
  * Do a ray-cast in the tree to find the 3d brush location
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise.
+ *
+ * If check_closest is true and the ray test fails a point closest
+ * to the ray will be found. If limit_closest_radius is true then
+ * the closest point will be tested against the active brush radius.
  */
+bool SCULPT_stroke_get_location_ex(bContext *C,
+                                   float out[3],
+                                   const float mval[2],
+                                   bool force_original,
+                                   bool check_closest,
+                                   bool limit_closest_radius);
+
 bool SCULPT_stroke_get_location(bContext *C,
                                 float out[3],
                                 const float mouse[2],
