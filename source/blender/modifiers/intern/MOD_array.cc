@@ -555,16 +555,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
 
-  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
-   * Now add #position/#MEdge/#MPoly layers. */
-  if (!CustomData_has_layer(&mesh->edata, CD_MEDGE)) {
-    memcpy(result_edges, src_edges, sizeof(MEdge) * mesh->totedge);
-  }
-  if (!CustomData_has_layer(&mesh->pdata, CD_MPOLY)) {
-    memcpy(result_loops, src_loops, sizeof(MLoop) * mesh->totloop);
-    memcpy(result_polys, src_polys, sizeof(MPoly) * mesh->totpoly);
-  }
-
   /* Remember first chunk, in case of cap merge */
   first_chunk_start = 0;
   first_chunk_nverts = chunk_nverts;

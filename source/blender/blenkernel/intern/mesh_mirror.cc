@@ -202,21 +202,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, maxLoops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, maxPolys);
 
-  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
-   * Now add position/#MEdge/#MPoly layers. */
-  if (BKE_mesh_vert_positions(mesh) != nullptr) {
-    memcpy(BKE_mesh_vert_positions_for_write(result),
-           BKE_mesh_vert_positions(mesh),
-           sizeof(float[3]) * mesh->totvert);
-  }
-  if (!CustomData_has_layer(&mesh->edata, CD_MEDGE)) {
-    memcpy(BKE_mesh_edges_for_write(result), BKE_mesh_edges(mesh), sizeof(MEdge) * mesh->totedge);
-  }
-  if (!CustomData_has_layer(&mesh->pdata, CD_MPOLY)) {
-    memcpy(BKE_mesh_loops_for_write(result), BKE_mesh_loops(mesh), sizeof(MLoop) * mesh->totloop);
-    memcpy(BKE_mesh_polys_for_write(result), BKE_mesh_polys(mesh), sizeof(MPoly) * mesh->totpoly);
-  }
-
   /* Copy custom-data to new geometry,
    * copy from itself because this data may have been created in the checks above. */
   CustomData_copy_data(&result->vdata, &result->vdata, 0, maxVerts, maxVerts);
