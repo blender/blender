@@ -129,7 +129,6 @@ static void uv_warp_compute(void *__restrict userdata,
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
-  int polys_num, loops_num;
   const MDeformVert *dvert;
   int defgrp_index;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -196,7 +195,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const blender::Span<MLoop> loops = mesh->loops();
 
   float(*mloopuv)[2] = static_cast<float(*)[2]>(
-      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
+      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops.size()));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
@@ -210,8 +209,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (polys_num > 1000);
-  BLI_task_parallel_range(0, polys_num, &data, uv_warp_compute, &settings);
+  settings.use_threading = (polys.size() > 1000);
+  BLI_task_parallel_range(0, polys.size(), &data, uv_warp_compute, &settings);
 
   mesh->runtime->is_original_bmesh = false;
 
