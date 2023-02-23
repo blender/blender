@@ -642,8 +642,8 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_y)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *polys = BKE_mesh_polys(original_mesh);
-  const MLoop *loops = BKE_mesh_loops(original_mesh);
+  const blender::Span<MPoly> polys = original_mesh->polys();
+  const blender::Span<MLoop> loops = original_mesh->loops();
   const MPoly *poly = &polys[BM_elem_index_get(f)];
 
   const int corner_vertex_index = BM_elem_index_get(v);
@@ -921,7 +921,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *original_polys = BKE_mesh_polys(original_mesh);
+  const blender::Span<MPoly> original_polys = original_mesh->polys();
 
   Mesh *base_mesh = context->base_mesh;
 
@@ -966,8 +966,11 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  * Checks the orientation of the loops to flip the x and y axis when extracting the grid if
  * necessary.
  */
-static bool multires_unsubdivide_flip_grid_x_axis(
-    const MPoly *polys, const MLoop *loops, int poly, int loop, int v_x)
+static bool multires_unsubdivide_flip_grid_x_axis(const blender::Span<MPoly> polys,
+                                                  const blender::Span<MLoop> loops,
+                                                  int poly,
+                                                  int loop,
+                                                  int v_x)
 {
   const MPoly *p = &polys[poly];
 
@@ -1041,8 +1044,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   const int base_l_offset = CustomData_get_n_offset(
       &bm_base_mesh->ldata, CD_PROP_INT32, base_l_layer_index);
 
-  const MPoly *polys = BKE_mesh_polys(base_mesh);
-  const MLoop *loops = BKE_mesh_loops(base_mesh);
+  const blender::Span<MPoly> polys = base_mesh->polys();
+  const blender::Span<MLoop> loops = base_mesh->loops();
 
   /* Main loop for extracting the grids. Iterates over the base mesh vertices. */
   BM_ITER_MESH (v, &iter, bm_base_mesh, BM_VERTS_OF_MESH) {

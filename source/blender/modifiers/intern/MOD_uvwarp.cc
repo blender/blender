@@ -80,8 +80,8 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 }
 
 struct UVWarpData {
-  const MPoly *mpoly;
-  const MLoop *mloop;
+  blender::Span<MPoly> polys;
+  blender::Span<MLoop> loops;
   float (*mloopuv)[2];
 
   const MDeformVert *dvert;
@@ -97,8 +97,8 @@ static void uv_warp_compute(void *__restrict userdata,
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
 
-  const MPoly *mp = &data->mpoly[i];
-  const MLoop *ml = &data->mloop[mp->loopstart];
+  const MPoly *mp = &data->polys[i];
+  const MLoop *ml = &data->loops[mp->loopstart];
   float(*mluv)[2] = &data->mloopuv[mp->loopstart];
 
   const MDeformVert *dvert = data->dvert;
@@ -192,18 +192,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
-  polys_num = mesh->totpoly;
-  loops_num = mesh->totloop;
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   float(*mloopuv)[2] = static_cast<float(*)[2]>(
       CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
-  data.mpoly = polys;
-  data.mloop = loops;
+  data.polys = polys;
+  data.loops = loops;
   data.mloopuv = mloopuv;
   data.dvert = dvert;
   data.defgrp_index = defgrp_index;

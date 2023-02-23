@@ -208,8 +208,8 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     float2 *mloopuv = static_cast<float2 *>(
         CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, layernum, me->totloop));
 
-    const MPoly *polys = BKE_mesh_polys(me);
-    for (int i = 0; i < me->totpoly; i++) {
+    const blender::Span<MPoly> polys = me->polys();
+    for (const int i : polys.index_range()) {
       mesh_uv_reset_mface(&polys[i], mloopuv);
     }
   }

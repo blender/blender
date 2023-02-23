@@ -978,8 +978,8 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   return true;
 }
 
-static int find_original_loop(const MPoly *orig_polys,
-                              const MLoop *orig_loops,
+static int find_original_loop(const blender::Span<MPoly> orig_polys,
+                              const blender::Span<MLoop> orig_loops,
                               const int *vert_origindex,
                               const int *poly_origindex,
                               const int poly_eval,
@@ -995,8 +995,8 @@ static int find_original_loop(const MPoly *orig_polys,
   }
 
   /* Find matching loop with original vertex in original polygon. */
-  const MPoly *mpoly_orig = orig_polys + poly_orig;
-  const MLoop *mloop_orig = orig_loops + mpoly_orig->loopstart;
+  const MPoly *mpoly_orig = &orig_polys[poly_orig];
+  const MLoop *mloop_orig = &orig_loops[mpoly_orig->loopstart];
   for (int j = 0; j < mpoly_orig->totloop; ++j, ++mloop_orig) {
     if (mloop_orig->v == vert_orig) {
       return mpoly_orig->loopstart + j;
@@ -1033,9 +1033,9 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const int tottri = poly_to_tri_count(me_eval->totpoly, me_eval->totloop);
   MLoopTri *looptri = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
 
-  const MLoop *loops = BKE_mesh_loops(me_eval);
-  BKE_mesh_recalc_looptri(loops,
-                          BKE_mesh_polys(me_eval),
+  const blender::Span<MLoop> loops = me_eval->loops();
+  BKE_mesh_recalc_looptri(loops.data(),
+                          me_eval->polys().data(),
                           BKE_mesh_vert_positions(me_eval),
                           me_eval->totloop,
                           me_eval->totpoly,
@@ -1046,8 +1046,8 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
       CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX));
   const int *poly_origindex = static_cast<const int *>(
       CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
-  const MPoly *orig_polys = BKE_mesh_polys(me);
-  const MLoop *orig_loops = BKE_mesh_loops(me);
+  const blender::Span<MPoly> orig_polys = me->polys();
+  const blender::Span<MLoop> orig_loops = me->loops();
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -1156,9 +1156,9 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
         MEM_callocN(sizeof(int) * me->totvert, "num_loops_for_vertex"));
     memset(mcol, 0, sizeof(MPropCol) * me->totvert);
 
-    const MLoop *mloop = BKE_mesh_loops(me);
-    for (int i = 0; i < totloop; i++, mloop++) {
-      const int v = mloop->v;
+    const blender::Span<MLoop> loops = me->loops();
+    for (int i = 0; i < totloop; i++) {
+      const int v = loops[i].v;
       bake_result_add_to_rgba(mcol[v].color, &result[i * channels_num], channels_num);
       num_loops_for_vertex[v]++;
     }

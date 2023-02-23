@@ -630,9 +630,9 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   Mesh *subdiv_mesh = subdivide_edit_mesh(ob, em, &smd);
 
   const float(*subsurfedPositions)[3] = BKE_mesh_vert_positions(subdiv_mesh);
-  const MEdge *subsurfedEdges = BKE_mesh_edges(subdiv_mesh);
-  const MPoly *subsurfedPolys = BKE_mesh_polys(subdiv_mesh);
-  const MLoop *subsurfedLoops = BKE_mesh_loops(subdiv_mesh);
+  const blender::Span<MEdge> subsurf_edges = subdiv_mesh->edges();
+  const blender::Span<MPoly> subsurf_polys = subdiv_mesh->polys();
+  const blender::Span<MLoop> subsurf_loops = subdiv_mesh->loops();
 
   const int *origVertIndices = static_cast<const int *>(
       CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
@@ -664,8 +664,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver */
-  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
-    const MPoly *mpoly = &subsurfedPolys[i];
+  for (const int i : subsurf_polys.index_range()) {
+    const MPoly *mpoly = &subsurf_polys[i];
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -684,7 +684,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const MLoop *mloop = &subsurfedLoops[mpoly->loopstart];
+    const MLoop *mloop = &subsurf_loops[mpoly->loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(mpoly->totloop == 4);
@@ -715,9 +715,9 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* these are calculated from original mesh too */
-  for (int i = 0; i < subdiv_mesh->totedge; i++) {
+  for (const int i : subsurf_edges.index_range()) {
     if ((edgeMap[i] != nullptr) && BM_elem_flag_test(edgeMap[i], BM_ELEM_SEAM)) {
-      const MEdge *edge = &subsurfedEdges[i];
+      const MEdge *edge = &subsurf_edges[i];
       ParamKey vkeys[2];
       vkeys[0] = (ParamKey)edge->v1;
       vkeys[1] = (ParamKey)edge->v2;

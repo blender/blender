@@ -849,17 +849,17 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const MPoly *base_mpoly = reshape_context->base_polys;
-  const MLoop *base_mloop = reshape_context->base_loops;
+  const blender::Span<MPoly> base_polys = reshape_context->base_polys;
+  const blender::Span<MLoop> base_loops = reshape_context->base_loops;
 
   reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
                                                                    "non_loose_base_edge_map");
 
   int num_used_edges = 0;
-  for (int poly_index = 0; poly_index < base_mesh->totpoly; ++poly_index) {
-    const MPoly *base_poly = &base_mpoly[poly_index];
+  for (const int poly_index : base_polys.index_range()) {
+    const MPoly *base_poly = &base_polys[poly_index];
     for (int corner = 0; corner < base_poly->totloop; corner++) {
-      const MLoop *loop = &base_mloop[base_poly->loopstart + corner];
+      const MLoop *loop = &base_loops[base_poly->loopstart + corner];
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
 

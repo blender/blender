@@ -317,8 +317,8 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
 
       ED_view3d_viewcontext_init(C, &vc, depsgraph);
       me = BKE_mesh_from_object(vc.obact);
-      const MPoly *polys = BKE_mesh_polys(me);
-      const MLoop *loops = BKE_mesh_loops(me);
+      const blender::Span<MPoly> polys = me->polys();
+      const blender::Span<MLoop> loops = me->loops();
       const MDeformVert *dverts = BKE_mesh_deform_verts(me);
 
       if (me && dverts && vc.v3d && vc.rv3d && me->vertex_group_names.first) {
@@ -438,7 +438,6 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 static bool weight_paint_set(Object *ob, float paintweight)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const MPoly *mp;
   MDeformWeight *dw, *dw_prev;
   int vgroup_active, vgroup_mirror = -1;
   uint index;
@@ -447,8 +446,8 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-  const MPoly *polys = BKE_mesh_polys(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const blender::Span<MPoly> polys = me->polys();
+  const blender::Span<MLoop> loops = me->loops();
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
 
   if (me->totpoly == 0 || dvert == nullptr) {
@@ -470,15 +469,16 @@ static bool weight_paint_set(Object *ob, float paintweight)
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_BOOL, ".select_poly");
 
-  for (index = 0, mp = polys; index < me->totpoly; index++, mp++) {
-    uint fidx = mp->totloop - 1;
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    uint fidx = poly.totloop - 1;
 
     if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[index])) {
       continue;
     }
 
     do {
-      uint vidx = loops[mp->loopstart + fidx].v;
+      uint vidx = loops[poly.loopstart + fidx].v;
 
       if (!dvert[vidx].flag) {
         if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {

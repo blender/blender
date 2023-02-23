@@ -2233,9 +2233,9 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
 
   float(*positions)[3] = static_cast<float(*)[3]>(MEM_dupallocN(BKE_mesh_vert_positions(mesh)));
   BKE_keyblock_convert_to_mesh(kb, positions, mesh->totvert);
-  const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   const bool loop_normals_needed = r_loop_normals != nullptr;
   const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
@@ -2258,35 +2258,40 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   if (poly_normals_needed) {
-    BKE_mesh_calc_normals_poly(
-        positions, mesh->totvert, loops, mesh->totloop, polys, mesh->totpoly, poly_normals);
+    BKE_mesh_calc_normals_poly(positions,
+                               mesh->totvert,
+                               loops.data(),
+                               loops.size(),
+                               polys.data(),
+                               polys.size(),
+                               poly_normals);
   }
   if (vert_normals_needed) {
     BKE_mesh_calc_normals_poly_and_vertex(positions,
                                           mesh->totvert,
-                                          loops,
-                                          mesh->totloop,
-                                          polys,
-                                          mesh->totpoly,
+                                          loops.data(),
+                                          loops.size(),
+                                          polys.data(),
+                                          polys.size(),
                                           poly_normals,
                                           vert_normals);
   }
   if (loop_normals_needed) {
     short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
-        &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop)); /* May be nullptr. */
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, loops.size())); /* May be nullptr. */
     const bool *sharp_edges = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 mesh->totvert,
-                                edges,
+                                edges.data(),
                                 mesh->totedge,
-                                loops,
+                                loops.data(),
                                 r_loop_normals,
-                                mesh->totloop,
-                                polys,
+                                loops.size(),
+                                polys.data(),
                                 poly_normals,
-                                mesh->totpoly,
+                                polys.size(),
                                 (mesh->flag & ME_AUTOSMOOTH) != 0,
                                 mesh->smoothresh,
                                 sharp_edges,

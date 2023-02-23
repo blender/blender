@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 #include "BKE_multires.h"
@@ -34,9 +35,9 @@ struct MultiresReshapeContext {
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
   const float (*base_positions)[3];
-  const MEdge *base_edges;
-  const MPoly *base_polys;
-  const MLoop *base_loops;
+  blender::Span<MEdge> base_edges;
+  blender::Span<MPoly> base_polys;
+  blender::Span<MLoop> base_loops;
 
   /* Subdivision surface created for multires modifier.
    *

@@ -114,7 +114,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
-  data->polys = BKE_mesh_polys(mesh);
+  data->polys = mesh->polys().data();
   data->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
@@ -189,15 +189,15 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 {
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const MEdge *medge = BKE_mesh_edges(mesh);
-  const MLoop *mloop = BKE_mesh_loops(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   /* Count faces per edge (up to 2). */
   char *edge_mode = static_cast<char *>(
       MEM_calloc_arrayN(size_t(mesh->totedge), sizeof(char), __func__));
 
   for (int i = 0; i < mesh->totloop; i++) {
-    uint eidx = mloop[i].e;
+    uint eidx = loops[i].e;
 
     if (edge_mode[eidx] < 2) {
       edge_mode[eidx]++;
@@ -238,11 +238,11 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
                                                     "ShrinkwrapBoundaryData::looptri_is_boundary");
 
   for (int i = 0; i < totlooptri; i++) {
-    int edges[3];
-    BKE_mesh_looptri_get_real_edges(medge, mloop, &mlooptri[i], edges);
+    int real_edges[3];
+    BKE_mesh_looptri_get_real_edges(edges.data(), loops.data(), &mlooptri[i], real_edges);
 
     for (int j = 0; j < 3; j++) {
-      if (edges[j] >= 0 && edge_mode[edges[j]]) {
+      if (real_edges[j] >= 0 && edge_mode[real_edges[j]]) {
         BLI_BITMAP_ENABLE(looptri_has_boundary, i);
         break;
       }
@@ -257,7 +257,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
-      const MEdge *edge = &medge[i];
+      const MEdge *edge = &edges[i];
 
       vert_boundary_id[edge->v1] = 1;
       vert_boundary_id[edge->v2] = 1;
@@ -282,7 +282,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
-      const MEdge *edge = &medge[i];
+      const MEdge *edge = &edges[i];
 
       float dir[3];
       sub_v3_v3v3(dir, positions[edge->v2], positions[edge->v1]);

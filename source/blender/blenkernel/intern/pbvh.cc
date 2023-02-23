@@ -924,10 +924,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  const MPoly *mpoly = BKE_mesh_polys(me);
-
-  for (int i = 0; i < me->totpoly; i++) {
-    max_grids = max_ii(max_grids, mpoly[i].totloop);
+  const blender::Span<MPoly> polys = me->polys();
+  for (const int i : polys.index_range()) {
+    max_grids = max_ii(max_grids, polys[i].totloop);
   }
 
   /* Ensure leaf limit is at least 4 so there's room
@@ -941,8 +940,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->ldata = &me->ldata;
   pbvh->pdata = &me->pdata;
 
-  pbvh->mpoly = BKE_mesh_polys(me);
-  pbvh->mloop = BKE_mesh_loops(me);
+  pbvh->mpoly = me->polys().data();
+  pbvh->mloop = me->loops().data();
 
   /* We also need the base mesh for PBVH draw. */
   pbvh->mesh = me;
@@ -3846,18 +3845,18 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       break;
     }
     case PBVH_GRIDS: {
-      const MPoly *mp = BKE_mesh_polys(mesh);
+      const blender::Span<MPoly> polys = mesh->polys();
       CCGKey key = pbvh->gridkey;
 
       bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
           &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
 
       bool delete_hide_poly = true;
-      for (int face_index = 0; face_index < mesh->totpoly; face_index++, mp++) {
+      for (const int face_index : polys.index_range()) {
         bool hidden = false;
 
-        for (int loop_index = 0; !hidden && loop_index < mp->totloop; loop_index++) {
-          int grid_index = mp->loopstart + loop_index;
+        for (int loop_index = 0; !hidden && loop_index < polys[face_index].totloop; loop_index++) {
+          int grid_index = polys[face_index].loopstart + loop_index;
 
           if (pbvh->grid_hidden[grid_index] &&
               BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {

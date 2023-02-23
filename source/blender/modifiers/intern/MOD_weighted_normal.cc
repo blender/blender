@@ -69,22 +69,19 @@ struct WeightedNormalDataAggregateItem {
 
 struct WeightedNormalData {
   int verts_num;
-  int edges_num;
-  int loops_num;
-  int polys_num;
 
   const float (*vert_positions)[3];
   const float (*vert_normals)[3];
-  const MEdge *medge;
+  blender::Span<MEdge> edges;
   bool *sharp_edges;
 
-  const MLoop *mloop;
+  blender::Span<MLoop> loops;
   blender::Span<int> loop_to_poly;
   short (*clnors)[2];
   bool has_clnors; /* True if clnors already existed, false if we had to create them. */
   float split_angle;
 
-  const MPoly *mpoly;
+  blender::Span<MPoly> polys;
   const float (*poly_normals)[3];
   const int *poly_strength;
 
@@ -185,18 +182,15 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 {
   using namespace blender;
   const int verts_num = wn_data->verts_num;
-  const int edges_num = wn_data->edges_num;
-  const int loops_num = wn_data->loops_num;
-  const int polys_num = wn_data->polys_num;
 
   const float(*positions)[3] = wn_data->vert_positions;
-  const MEdge *medge = wn_data->medge;
+  const blender::Span<MEdge> edges = wn_data->edges;
+  const blender::Span<MPoly> polys = wn_data->polys;
+  const blender::Span<MLoop> loops = wn_data->loops;
 
-  const MLoop *mloop = wn_data->mloop;
   short(*clnors)[2] = wn_data->clnors;
   const Span<int> loop_to_poly = wn_data->loop_to_poly;
 
-  const MPoly *mpoly = wn_data->mpoly;
   const float(*poly_normals)[3] = wn_data->poly_normals;
   const int *poly_strength = wn_data->poly_strength;
 
@@ -219,23 +213,23 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   WeightedNormalDataAggregateItem *items_data = nullptr;
   int items_num = 0;
   if (keep_sharp) {
-    BLI_bitmap *done_loops = BLI_BITMAP_NEW(loops_num, __func__);
+    BLI_bitmap *done_loops = BLI_BITMAP_NEW(loops.size(), __func__);
 
     /* This will give us loop normal spaces,
      * we do not actually care about computed loop_normals for now... */
     loop_normals = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
+        MEM_calloc_arrayN(size_t(loops.size()), sizeof(*loop_normals), __func__));
     BKE_mesh_normals_loop_split(positions,
                                 wn_data->vert_normals,
                                 verts_num,
-                                medge,
-                                edges_num,
-                                mloop,
+                                edges.data(),
+                                edges.size(),
+                                loops.data(),
                                 loop_normals,
-                                loops_num,
-                                mpoly,
+                                loops.size(),
+                                polys.data(),
                                 poly_normals,
-                                polys_num,
+                                polys.size(),
                                 true,
                                 split_angle,
                                 wn_data->sharp_edges,
@@ -249,12 +243,11 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
     /* In this first loop, we assign each WeightedNormalDataAggregateItem
      * to its smooth fan of loops (aka lnor space). */
-    const MPoly *mp;
     int mp_index;
     int item_index;
-    for (mp = mpoly, mp_index = 0, item_index = 0; mp_index < polys_num; mp++, mp_index++) {
-      int ml_index = mp->loopstart;
-      const int ml_end_index = ml_index + mp->totloop;
+    for (mp_index = 0, item_index = 0; mp_index < polys.size(); mp_index++) {
+      int ml_index = polys[mp_index].loopstart;
+      const int ml_end_index = ml_index + polys[mp_index].totloop;
 
       for (; ml_index < ml_end_index; ml_index++) {
         if (BLI_BITMAP_TEST(done_loops, ml_index)) {
@@ -299,14 +292,14 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
   switch (mode) {
     case MOD_WEIGHTEDNORMAL_MODE_FACE:
-      for (int i = 0; i < polys_num; i++) {
+      for (int i = 0; i < polys.size(); i++) {
         const int mp_index = mode_pair[i].index;
         const float mp_val = mode_pair[i].val;
 
-        int ml_index = mpoly[mp_index].loopstart;
-        const int ml_index_end = ml_index + mpoly[mp_index].totloop;
+        int ml_index = polys[mp_index].loopstart;
+        const int ml_index_end = ml_index + polys[mp_index].totloop;
         for (; ml_index < ml_index_end; ml_index++) {
-          const int mv_index = mloop[ml_index].v;
+          const int mv_index = loops[ml_index].v;
           WeightedNormalDataAggregateItem *item_data =
               keep_sharp ? static_cast<WeightedNormalDataAggregateItem *>(
                                lnors_spacearr.lspacearr[ml_index]->user_data) :
@@ -319,12 +312,12 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       break;
     case MOD_WEIGHTEDNORMAL_MODE_ANGLE:
     case MOD_WEIGHTEDNORMAL_MODE_FACE_ANGLE:
-      for (int i = 0; i < loops_num; i++) {
+      for (int i = 0; i < loops.size(); i++) {
         const int ml_index = mode_pair[i].index;
         const float ml_val = mode_pair[i].val;
 
         const int mp_index = loop_to_poly[ml_index];
-        const int mv_index = mloop[ml_index].v;
+        const int mv_index = loops[ml_index].v;
         WeightedNormalDataAggregateItem *item_data =
             keep_sharp ? static_cast<WeightedNormalDataAggregateItem *>(
                              lnors_spacearr.lspacearr[ml_index]->user_data) :
@@ -350,7 +343,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
      * Note that loop_normals is already populated with clnors
      * (before this modifier is applied, at start of this function),
      * so no need to recompute them here. */
-    for (int ml_index = 0; ml_index < loops_num; ml_index++) {
+    for (int ml_index = 0; ml_index < loops.size(); ml_index++) {
       WeightedNormalDataAggregateItem *item_data = static_cast<WeightedNormalDataAggregateItem *>(
           lnors_spacearr.lspacearr[ml_index]->user_data);
       if (!is_zero_v3(item_data->normal)) {
@@ -361,14 +354,14 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     BKE_mesh_normals_loop_custom_set(positions,
                                      wn_data->vert_normals,
                                      verts_num,
-                                     medge,
-                                     edges_num,
-                                     mloop,
+                                     edges.data(),
+                                     edges.size(),
+                                     loops.data(),
                                      loop_normals,
-                                     loops_num,
-                                     mpoly,
+                                     loops.size(),
+                                     polys.data(),
                                      poly_normals,
-                                     polys_num,
+                                     polys.size(),
                                      wn_data->sharp_edges,
                                      clnors);
   }
@@ -385,8 +378,8 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       float(*vert_normals)[3] = static_cast<float(*)[3]>(
           MEM_calloc_arrayN(size_t(verts_num), sizeof(*loop_normals), __func__));
 
-      for (int ml_index = 0; ml_index < loops_num; ml_index++) {
-        const int mv_index = mloop[ml_index].v;
+      for (int ml_index = 0; ml_index < loops.size(); ml_index++) {
+        const int mv_index = loops[ml_index].v;
         copy_v3_v3(vert_normals[mv_index], items_data[mv_index].normal);
       }
 
@@ -394,13 +387,13 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                                   wn_data->vert_normals,
                                                   vert_normals,
                                                   verts_num,
-                                                  medge,
-                                                  edges_num,
-                                                  mloop,
-                                                  loops_num,
-                                                  mpoly,
+                                                  edges.data(),
+                                                  edges.size(),
+                                                  loops.data(),
+                                                  loops.size(),
+                                                  polys.data(),
                                                   poly_normals,
-                                                  polys_num,
+                                                  polys.size(),
                                                   wn_data->sharp_edges,
                                                   clnors);
 
@@ -408,19 +401,19 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     }
     else {
       loop_normals = static_cast<float(*)[3]>(
-          MEM_calloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
+          MEM_calloc_arrayN(size_t(loops.size()), sizeof(*loop_normals), __func__));
 
       BKE_mesh_normals_loop_split(positions,
                                   wn_data->vert_normals,
                                   verts_num,
-                                  medge,
-                                  edges_num,
-                                  mloop,
+                                  edges.data(),
+                                  edges.size(),
+                                  loops.data(),
                                   loop_normals,
-                                  loops_num,
-                                  mpoly,
+                                  loops.size(),
+                                  polys.data(),
                                   poly_normals,
-                                  polys_num,
+                                  polys.size(),
                                   true,
                                   split_angle,
                                   wn_data->sharp_edges,
@@ -428,8 +421,8 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                   nullptr,
                                   has_clnors ? clnors : nullptr);
 
-      for (int ml_index = 0; ml_index < loops_num; ml_index++) {
-        const int item_index = mloop[ml_index].v;
+      for (int ml_index = 0; ml_index < loops.size(); ml_index++) {
+        const int item_index = loops[ml_index].v;
         if (!is_zero_v3(items_data[item_index].normal)) {
           copy_v3_v3(loop_normals[ml_index], items_data[item_index].normal);
         }
@@ -438,14 +431,14 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       BKE_mesh_normals_loop_custom_set(positions,
                                        wn_data->vert_normals,
                                        verts_num,
-                                       medge,
-                                       edges_num,
-                                       mloop,
+                                       edges.data(),
+                                       edges.size(),
+                                       loops.data(),
                                        loop_normals,
-                                       loops_num,
-                                       mpoly,
+                                       loops.size(),
+                                       polys.data(),
                                        poly_normals,
-                                       polys_num,
+                                       polys.size(),
                                        wn_data->sharp_edges,
                                        clnors);
     }
@@ -459,25 +452,22 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
 static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *wn_data)
 {
-  const int polys_num = wn_data->polys_num;
-
   const float(*positions)[3] = wn_data->vert_positions;
-  const MLoop *mloop = wn_data->mloop;
-  const MPoly *mpoly = wn_data->mpoly;
+  const blender::Span<MPoly> polys = wn_data->polys;
+  const blender::Span<MLoop> loops = wn_data->loops;
 
-  const MPoly *mp;
   int mp_index;
 
   ModePair *face_area = static_cast<ModePair *>(
-      MEM_malloc_arrayN(size_t(polys_num), sizeof(*face_area), __func__));
+      MEM_malloc_arrayN(size_t(polys.size()), sizeof(*face_area), __func__));
 
   ModePair *f_area = face_area;
-  for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++, f_area++) {
-    f_area->val = BKE_mesh_calc_poly_area(mp, &mloop[mp->loopstart], positions);
+  for (const int i : polys.index_range()) {
+    f_area->val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
     f_area->index = mp_index;
   }
 
-  qsort(face_area, polys_num, sizeof(*face_area), modepair_cmp_by_val_inverse);
+  qsort(face_area, polys.size(), sizeof(*face_area), modepair_cmp_by_val_inverse);
 
   wn_data->mode_pair = face_area;
   apply_weights_vertex_normal(wnmd, wn_data);
@@ -485,29 +475,22 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
 
 static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData *wn_data)
 {
-  const int loops_num = wn_data->loops_num;
-  const int polys_num = wn_data->polys_num;
-
   const float(*positions)[3] = wn_data->vert_positions;
-  const MLoop *mloop = wn_data->mloop;
-  const MPoly *mpoly = wn_data->mpoly;
-
-  const MPoly *mp;
-  int mp_index;
+  const blender::Span<MPoly> polys = wn_data->polys;
+  const blender::Span<MLoop> loops = wn_data->loops;
 
   ModePair *corner_angle = static_cast<ModePair *>(
-      MEM_malloc_arrayN(size_t(loops_num), sizeof(*corner_angle), __func__));
+      MEM_malloc_arrayN(loops.size(), sizeof(*corner_angle), __func__));
 
-  for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
-    const MLoop *ml_start = &mloop[mp->loopstart];
-
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
     float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(mp->totloop), sizeof(*index_angle), __func__));
-    BKE_mesh_calc_poly_angles(mp, ml_start, positions, index_angle);
+        MEM_malloc_arrayN(poly.totloop, sizeof(*index_angle), __func__));
+    BKE_mesh_calc_poly_angles(&poly, &loops[poly.loopstart], positions, index_angle);
 
-    ModePair *c_angl = &corner_angle[mp->loopstart];
+    ModePair *c_angl = &corner_angle[poly.loopstart];
     float *angl = index_angle;
-    for (int ml_index = mp->loopstart; ml_index < mp->loopstart + mp->totloop;
+    for (int ml_index = poly.loopstart; ml_index < poly.loopstart + poly.totloop;
          ml_index++, c_angl++, angl++) {
       c_angl->val = float(M_PI) - *angl;
       c_angl->index = ml_index;
@@ -515,7 +498,7 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
     MEM_freeN(index_angle);
   }
 
-  qsort(corner_angle, loops_num, sizeof(*corner_angle), modepair_cmp_by_val_inverse);
+  qsort(corner_angle, loops.size(), sizeof(*corner_angle), modepair_cmp_by_val_inverse);
 
   wn_data->mode_pair = corner_angle;
   apply_weights_vertex_normal(wnmd, wn_data);
@@ -523,30 +506,23 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
 
 static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalData *wn_data)
 {
-  const int loops_num = wn_data->loops_num;
-  const int polys_num = wn_data->polys_num;
-
   const float(*positions)[3] = wn_data->vert_positions;
-  const MLoop *mloop = wn_data->mloop;
-  const MPoly *mpoly = wn_data->mpoly;
-
-  const MPoly *mp;
-  int mp_index;
+  const blender::Span<MPoly> polys = wn_data->polys;
+  const blender::Span<MLoop> loops = wn_data->loops;
 
   ModePair *combined = static_cast<ModePair *>(
-      MEM_malloc_arrayN(size_t(loops_num), sizeof(*combined), __func__));
+      MEM_malloc_arrayN(loops.size(), sizeof(*combined), __func__));
 
-  for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
-    const MLoop *ml_start = &mloop[mp->loopstart];
-
-    float face_area = BKE_mesh_calc_poly_area(mp, ml_start, positions);
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    float face_area = BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], positions);
     float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(mp->totloop), sizeof(*index_angle), __func__));
-    BKE_mesh_calc_poly_angles(mp, ml_start, positions, index_angle);
+        MEM_malloc_arrayN(size_t(poly.totloop), sizeof(*index_angle), __func__));
+    BKE_mesh_calc_poly_angles(&poly, &loops[poly.loopstart], positions, index_angle);
 
-    ModePair *cmbnd = &combined[mp->loopstart];
+    ModePair *cmbnd = &combined[poly.loopstart];
     float *angl = index_angle;
-    for (int ml_index = mp->loopstart; ml_index < mp->loopstart + mp->totloop;
+    for (int ml_index = poly.loopstart; ml_index < poly.loopstart + poly.totloop;
          ml_index++, cmbnd++, angl++) {
       /* In this case val is product of corner angle and face area. */
       cmbnd->val = (float(M_PI) - *angl) * face_area;
@@ -555,7 +531,7 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
     MEM_freeN(index_angle);
   }
 
-  qsort(combined, loops_num, sizeof(*combined), modepair_cmp_by_val_inverse);
+  qsort(combined, loops.size(), sizeof(*combined), modepair_cmp_by_val_inverse);
 
   wn_data->mode_pair = combined;
   apply_weights_vertex_normal(wnmd, wn_data);
@@ -587,13 +563,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
 
   const int verts_num = result->totvert;
-  const int edges_num = result->totedge;
-  const int loops_num = result->totloop;
-  const int polys_num = result->totpoly;
   const float(*positions)[3] = BKE_mesh_vert_positions(result);
-  const MEdge *medge = BKE_mesh_edges(result);
-  const MPoly *mpoly = BKE_mesh_polys(result);
-  const MLoop *mloop = BKE_mesh_loops(result);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   /* Right now:
    * If weight = 50 then all faces are given equal weight.
@@ -621,7 +594,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const bool has_clnors = clnors != nullptr;
   if (!clnors) {
     clnors = static_cast<short(*)[2]>(CustomData_add_layer(
-        &result->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops_num));
+        &result->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops.size()));
   }
 
   const MDeformVert *dvert;
@@ -637,22 +610,19 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   WeightedNormalData wn_data{};
   wn_data.verts_num = verts_num;
-  wn_data.edges_num = edges_num;
-  wn_data.loops_num = loops_num;
-  wn_data.polys_num = polys_num;
 
   wn_data.vert_positions = positions;
   wn_data.vert_normals = BKE_mesh_vertex_normals_ensure(result);
-  wn_data.medge = medge;
+  wn_data.edges = edges;
   wn_data.sharp_edges = sharp_edges.span.data();
 
-  wn_data.mloop = mloop;
+  wn_data.loops = loops;
   wn_data.loop_to_poly = loop_to_poly_map;
   wn_data.clnors = clnors;
   wn_data.has_clnors = has_clnors;
   wn_data.split_angle = split_angle;
 
-  wn_data.mpoly = mpoly;
+  wn_data.polys = polys;
   wn_data.poly_normals = BKE_mesh_poly_normals_ensure(mesh);
   wn_data.poly_strength = static_cast<const int *>(CustomData_get_layer_named(
       &result->pdata, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
