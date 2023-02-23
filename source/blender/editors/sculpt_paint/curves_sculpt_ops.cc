@@ -973,6 +973,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
   const uint siz3d = GPU_vertformat_attr_add(format3d, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+  GPU_program_point_size(true);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
   float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
