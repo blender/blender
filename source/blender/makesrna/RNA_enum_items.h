@@ -242,6 +242,7 @@ DEF_ENUM(rna_enum_particle_edit_hair_brush_items)
 DEF_ENUM(rna_enum_particle_edit_disconnected_hair_brush_items)
 
 DEF_ENUM(rna_enum_keyframe_paste_offset_items)
+DEF_ENUM(rna_enum_keyframe_paste_offset_value)
 DEF_ENUM(rna_enum_keyframe_paste_merge_items)
 
 DEF_ENUM(rna_enum_transform_pivot_items_full)

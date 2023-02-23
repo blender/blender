@@ -475,6 +475,7 @@ static short copy_graph_keys(bAnimContext *ac)
 
 static eKeyPasteError paste_graph_keys(bAnimContext *ac,
                                        const eKeyPasteOffset offset_mode,
+                                       const eKeyPasteValueOffset value_offset_mode,
                                        const eKeyMergeMode merge_mode,
                                        bool flip)
 {
@@ -495,7 +496,8 @@ static eKeyPasteError paste_graph_keys(bAnimContext *ac,
   }
 
   /* Paste keyframes. */
-  const eKeyPasteError ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode, flip);
+  const eKeyPasteError ok = paste_animedit_keys(
+      ac, &anim_data, offset_mode, value_offset_mode, merge_mode, flip);
 
   /* Clean up. */
   ANIM_animdata_freelist(&anim_data);
@@ -544,6 +546,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   const eKeyPasteOffset offset_mode = RNA_enum_get(op->ptr, "offset");
+  const eKeyPasteValueOffset value_offset_mode = RNA_enum_get(op->ptr, "value_offset");
   const eKeyMergeMode merge_mode = RNA_enum_get(op->ptr, "merge");
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
@@ -555,7 +558,8 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   /* Ac.reports by default will be the global reports list, which won't show warnings. */
   ac.reports = op->reports;
 
-  const eKeyPasteError kf_empty = paste_graph_keys(&ac, offset_mode, merge_mode, flipped);
+  const eKeyPasteError kf_empty = paste_graph_keys(
+      &ac, offset_mode, value_offset_mode, merge_mode, flipped);
   switch (kf_empty) {
     case KEYFRAME_PASTE_OK:
       break;
@@ -614,8 +618,14 @@ void GRAPH_OT_paste(wmOperatorType *ot)
                "offset",
                rna_enum_keyframe_paste_offset_items,
                KEYFRAME_PASTE_OFFSET_CFRA_START,
-               "Offset",
+               "Frame Offset",
                "Paste time offset of keys");
+  RNA_def_enum(ot->srna,
+               "value_offset",
+               rna_enum_keyframe_paste_offset_value,
+               KEYFRAME_PASTE_VALUE_OFFSET_NONE,
+               "Value Offset",
+               "Paste keys with a value offset");
   RNA_def_enum(ot->srna,
                "merge",
                rna_enum_keyframe_paste_merge_items,
