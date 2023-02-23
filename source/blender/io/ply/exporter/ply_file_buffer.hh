@@ -32,7 +32,6 @@ namespace blender::io::ply {
  * into the given file.
  */
 class FileBuffer : private NonMovable {
- private:
   using VectorChar = Vector<char>;
   Vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;

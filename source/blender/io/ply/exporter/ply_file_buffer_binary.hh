@@ -26,9 +26,9 @@
 
 namespace blender::io::ply {
 class FileBufferBinary : public FileBuffer {
- public:
   using FileBuffer::FileBuffer;
 
+ public:
   void write_vertex(float x, float y, float z) override;
 
   void write_UV(float u, float v) override;
