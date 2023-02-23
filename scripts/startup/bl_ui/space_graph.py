@@ -332,7 +332,7 @@ class GRAPH_MT_slider(Menu):
 
     def draw(self, _context):
         layout = self.layout
-
+        layout.operator_context = "INVOKE_DEFAULT"
         layout.operator("graph.breakdown", text="Breakdown")
         layout.operator("graph.blend_to_neighbor", text="Blend to Neighbor")
         layout.operator("graph.blend_to_default", text="Blend to Default Value")
