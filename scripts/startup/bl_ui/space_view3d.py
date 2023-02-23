@@ -6212,6 +6212,7 @@ class VIEW3D_PT_shading_compositor(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Compositor"
     bl_parent_id = 'VIEW3D_PT_shading'
+    bl_order = 10
 
     @classmethod
     def poll(cls, context):
