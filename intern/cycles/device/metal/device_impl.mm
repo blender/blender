@@ -299,7 +299,7 @@ bool MetalDevice::use_local_atomic_sort() const
   return DebugFlags().metal.use_local_atomic_sort;
 }
 
-void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
+string MetalDevice::preprocess_source(MetalPipelineType pso_type, const uint kernel_features, string* source)
 {
   string global_defines;
   if (use_adaptive_compilation()) {
@@ -339,43 +339,36 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
   global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
 
-  string &source = this->source[pso_type];
-  source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
-  source = path_source_replace_includes(source, path_get("source"));
-
-  /* Perform any required specialization on the source.
-   * With Metal function constants we can generate a single variant of the kernel source which can
-   * be repeatedly respecialized.
-   */
-  string baked_constants;
-
   /* Replace specific KernelData "dot" dereferences with a Metal function_constant identifier of
    * the same character length. Build a string of all active constant values which is then hashed
    * in order to identify the PSO.
    */
   if (pso_type != PSO_GENERIC) {
-    const double starttime = time_dt();
+    if (source) {
+      const double starttime = time_dt();
 
 #  define KERNEL_STRUCT_BEGIN(name, parent) \
-    string_replace_same_length(source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
+      string_replace_same_length(*source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
 
-    bool next_member_is_specialized = true;
+      bool next_member_is_specialized = true;
 
 #  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
-    /* Add constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    if (next_member_is_specialized) { \
-      baked_constants += string(#parent "." #name "=") + \
-                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
-    } \
-    else { \
-      string_replace( \
-          source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
-      next_member_is_specialized = true; \
-    }
+      if (!next_member_is_specialized) { \
+        string_replace( \
+            *source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
+        next_member_is_specialized = true; \
+      }
 
 #  include "kernel/data_template.h"
+
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+#  undef KERNEL_STRUCT_BEGIN
+
+      metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
+    }
 
     /* Opt in to all of available specializations. This can be made more granular for the
      * PSO_SPECIALIZED_INTERSECT case in order to minimize the number of specialization requests,
@@ -383,26 +376,33 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
      * serialized to disk via MTLBinaryArchives.
      */
     global_defines += "#define __KERNEL_USE_DATA_CONSTANTS__\n";
-
-    metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
   }
 
-  source = global_defines + source;
 #  if 0
-  metal_printf("================\n%s================\n\%s================\n",
-               global_defines.c_str(),
-               baked_constants.c_str());
+  metal_printf("================\n%s================\n",
+               global_defines.c_str());
 #  endif
 
-  /* Generate an MD5 from the source and include any baked constants. This is used when caching
-   * PSOs. */
-  MD5Hash md5;
-  md5.append(baked_constants);
-  md5.append(source);
-  if (use_metalrt) {
-    md5.append(std::to_string(kernel_features & METALRT_FEATURE_MASK));
+  if (source) {
+    *source = global_defines + *source;
   }
-  source_md5[pso_type] = md5.get_hex();
+
+  MD5Hash md5;
+  md5.append(global_defines);
+  return md5.get_hex();
+}
+
+void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
+{
+  string &source = this->source[pso_type];
+  source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
+  source = path_source_replace_includes(source, path_get("source"));
+  
+  /* Perform any required specialization on the source.
+   * With Metal function constants we can generate a single variant of the kernel source which can
+   * be repeatedly respecialized.
+   */
+  global_defines_md5[pso_type] = preprocess_source(pso_type, kernel_features, &source);
 }
 
 bool MetalDevice::load_kernels(const uint _kernel_features)
@@ -436,9 +436,45 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
 
 bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_type)
 {
-  if (this->source[pso_type].empty()) {
+  string defines_md5 = preprocess_source(pso_type, kernel_features);
+
+  /* Rebuild the source string if the injected block of #defines has changed. */
+  if (global_defines_md5[pso_type] != defines_md5) {
     make_source(pso_type, kernel_features);
   }
+
+  string constant_values;
+  if (pso_type != PSO_GENERIC) {
+    bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
+
+    /* Add specialization constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
+#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
+    if (next_member_is_specialized) { \
+      constant_values += string(#parent "." #name "=") + \
+                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
+    } \
+    else { \
+      next_member_is_specialized = true; \
+    }
+
+#  include "kernel/data_template.h"
+
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+
+#  if 0
+    metal_printf("================\n%s================\n",
+                constant_values.c_str());
+#  endif
+  }
+
+  MD5Hash md5;
+  md5.append(constant_values);
+  md5.append(source[pso_type]);
+  kernels_md5[pso_type] = md5.get_hex();
+
   return MetalDeviceKernels::should_load_kernels(this, pso_type);
 }
 
