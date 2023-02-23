@@ -19,6 +19,7 @@ class VKIndexBuffer;
 class VKShaderInterface;
 class VKStorageBuffer;
 class VKTexture;
+class VKUniformBuffer;
 class VKVertexBuffer;
 
 /**
@@ -57,9 +58,6 @@ class VKDescriptorSet : NonCopyable {
 
    public:
     Location() = default;
-    Location(const ShaderInput *shader_input) : binding(shader_input->location)
-    {
-    }
 
     bool operator==(const Location &other) const
     {
@@ -92,7 +90,7 @@ class VKDescriptorSet : NonCopyable {
 
     bool is_buffer() const
     {
-      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     }
 
     bool is_image() const
@@ -136,6 +134,7 @@ class VKDescriptorSet : NonCopyable {
   void bind_as_ssbo(VKVertexBuffer &buffer, Location location);
   void bind_as_ssbo(VKIndexBuffer &buffer, Location location);
   void bind(VKStorageBuffer &buffer, Location location);
+  void bind(VKUniformBuffer &buffer, Location location);
   void image_bind(VKTexture &texture, Location location);
 
   /**
