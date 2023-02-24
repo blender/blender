@@ -63,7 +63,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->co_stride = sizeof(float[3]);
   input->totco = mesh->totvert;
 
-  input->mloop = (DualConLoop)BKE_mesh_loops(mesh);
+  input->mloop = (DualConLoop)mesh->loops().data();
   input->loop_stride = sizeof(MLoop);
 
   input->looptri = (DualConTri)BKE_mesh_runtime_looptri_ensure(mesh);
@@ -95,8 +95,8 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
   output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
-  output->polys = BKE_mesh_polys_for_write(output->mesh);
-  output->loops = BKE_mesh_loops_for_write(output->mesh);
+  output->polys = output->mesh->polys_for_write().data();
+  output->loops = output->mesh->loops_for_write().data();
 
   return output;
 }
@@ -197,15 +197,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
     MEM_freeN(output);
   }
 
-  if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
-    MPoly *mpoly = BKE_mesh_polys_for_write(result);
-    int i, totpoly = result->totpoly;
-
-    /* Apply smooth shading to output faces */
-    for (i = 0; i < totpoly; i++) {
-      mpoly[i].flag |= ME_SMOOTH;
-    }
-  }
+  BKE_mesh_smooth_flag_set(result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);

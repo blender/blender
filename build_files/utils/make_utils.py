@@ -9,7 +9,9 @@ import re
 import shutil
 import subprocess
 import sys
+import os
 from pathlib import Path
+from urllib.parse import urljoin
 
 from typing import (
     Sequence,
@@ -19,7 +21,7 @@ from typing import (
 
 def call(cmd: Sequence[str], exit_on_error: bool = True, silent: bool = False) -> int:
     if not silent:
-        print(" ".join(cmd))
+        print(" ".join([str(x) for x in cmd]))
 
     # Flush to ensure correct order output on Windows.
     sys.stdout.flush()
@@ -55,8 +57,46 @@ def check_output(cmd: Sequence[str], exit_on_error: bool = True) -> str:
 def git_branch_exists(git_command: str, branch: str) -> bool:
     return (
         call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0 or
+        call([git_command, "rev-parse", "--verify", "remotes/upstream/" + branch], exit_on_error=False, silent=True) == 0 or
         call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
     )
+
+
+def git_get_remote_url(git_command: str, remote_name: str) -> bool:
+    return check_output((git_command, "ls-remote", "--get-url", remote_name))
+
+
+def git_remote_exist(git_command: str, remote_name: str) -> bool:
+    """Check whether there is a remote with the given name"""
+    # `git ls-remote --get-url upstream` will print an URL if there is such remote configured, and
+    # otherwise will print "upstream".
+    remote_url = check_output((git_command, "ls-remote", "--get-url", remote_name))
+    return remote_url != remote_name
+
+
+def git_get_resolved_submodule_url(git_command: str, blender_url: str, submodule_path: str) -> str:
+    git_root = check_output([git_command, "rev-parse", "--show-toplevel"])
+    dot_gitmodules = os.path.join(git_root, ".gitmodules")
+
+    submodule_key_prefix = f"submodule.{submodule_path}"
+    submodule_key_url = f"{submodule_key_prefix}.url"
+
+    gitmodule_url = git_get_config(
+        git_command, submodule_key_url, file=dot_gitmodules)
+
+    # A bit of a trickery to construct final URL.
+    # Only works for the relative submodule URLs.
+    #
+    # Note that unless the LHS URL ends up with a slash urljoin treats the last component as a
+    # file.
+    assert gitmodule_url.startswith('..')
+    return urljoin(blender_url + "/", gitmodule_url)
+
+
+def git_is_remote_repository(git_command: str, repo: str) -> bool:
+    """Returns true if the given repository is a valid/clonable git repo"""
+    exit_code = call((git_command, "ls-remote", repo, "HEAD"), exit_on_error=False, silent=True)
+    return exit_code == 0
 
 
 def git_branch(git_command: str) -> str:
@@ -68,6 +108,20 @@ def git_branch(git_command: str) -> str:
         sys.exit(1)
 
     return branch.strip().decode('utf8')
+
+
+def git_get_config(git_command: str, key: str, file: Optional[str] = None) -> str:
+    if file:
+        return check_output([git_command, "config", "--file", file, "--get", key])
+
+    return check_output([git_command, "config", "--get", key])
+
+
+def git_set_config(git_command: str, key: str, value: str, file: Optional[str] = None) -> str:
+    if file:
+        return check_output([git_command, "config", "--file", file, key, value])
+
+    return check_output([git_command, "config", key, value])
 
 
 def git_tag(git_command: str) -> Optional[str]:

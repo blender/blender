@@ -529,7 +529,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   Mesh *result;
-  if (BKE_mesh_edges(mesh) == BKE_mesh_edges((Mesh *)ob->data)) {
+  if (mesh->edges().data() == ((Mesh *)ob->data)->edges().data()) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
      * modify original mesh, see #43671. */
@@ -540,13 +540,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   const int verts_num = result->totvert;
-  const int edges_num = result->totedge;
-  const int loops_num = result->totloop;
-  const int polys_num = result->totpoly;
   const float(*positions)[3] = BKE_mesh_vert_positions(result);
-  const MEdge *edges = BKE_mesh_edges(result);
-  const MPoly *polys = BKE_mesh_polys(result);
-  MLoop *loops = BKE_mesh_loops_for_write(result);
+  const blender::Span<MEdge> edges = result->edges();
+  const blender::Span<MPoly> polys = result->polys();
+  blender::MutableSpan<MLoop> loops = result->loops_for_write();
 
   int defgrp_index;
   const MDeformVert *dvert;
@@ -563,24 +560,24 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
   short(*clnors)[2] = static_cast<short(*)[2]>(
-      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
+      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops.size()));
   if (use_current_clnors) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
+        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops.size()));
     loop_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
+        MEM_malloc_arrayN(loops.size(), sizeof(*loop_normals), __func__));
 
     BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 verts_num,
-                                edges,
-                                edges_num,
-                                loops,
+                                edges.data(),
+                                edges.size(),
+                                loops.data(),
                                 loop_normals,
-                                loops_num,
-                                polys,
+                                loops.size(),
+                                polys.data(),
                                 poly_normals,
-                                polys_num,
+                                polys.size(),
                                 true,
                                 result->smoothresh,
                                 sharp_edges.span.data(),
@@ -591,7 +588,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   if (clnors == nullptr) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops_num));
+        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops.size()));
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -612,13 +609,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  use_invert_vgroup,
                                  positions,
                                  verts_num,
-                                 edges,
-                                 edges_num,
+                                 edges.data(),
+                                 edges.size(),
                                  sharp_edges.span.data(),
-                                 loops,
-                                 loops_num,
-                                 polys,
-                                 polys_num);
+                                 loops.data(),
+                                 loops.size(),
+                                 polys.data(),
+                                 polys.size());
   }
   else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
     normalEditModifier_do_directional(enmd,
@@ -636,13 +633,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       use_invert_vgroup,
                                       positions,
                                       verts_num,
-                                      edges,
-                                      edges_num,
+                                      edges.data(),
+                                      edges.size(),
                                       sharp_edges.span.data(),
-                                      loops,
-                                      loops_num,
-                                      polys,
-                                      polys_num);
+                                      loops.data(),
+                                      loops.size(),
+                                      polys.data(),
+                                      polys.size());
   }
 
   MEM_SAFE_FREE(loop_normals);

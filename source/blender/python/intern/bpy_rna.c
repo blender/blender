@@ -5256,7 +5256,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
 
     target_tot = array_tot * (*r_attr_tot);
 
-    /* rna_access.c - rna_raw_access(...) uses this same method. */
+    /* rna_access.cc - rna_raw_access(...) uses this same method. */
     if (target_tot != (*r_tot)) {
       PyErr_Format(PyExc_TypeError,
                    "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",

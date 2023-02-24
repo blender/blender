@@ -45,9 +45,10 @@ void USDShapeReader::create_object(Main *bmain, double /*motionSampleTime*/)
 
 void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
 {
+  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+                                                           import_params_.mesh_read_flag);
   Mesh *mesh = (Mesh *)object_->data;
-  Mesh *read_mesh = this->read_mesh(
-      mesh, motionSampleTime, import_params_.mesh_read_flag, nullptr);
+  Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
 
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
@@ -124,8 +125,7 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
 }
 
 Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
-                                double motionSampleTime,
-                                int /*read_flag*/,
+                                const USDMeshReadParams params,
                                 const char ** /*err_str*/)
 {
   pxr::VtIntArray face_indices;
@@ -136,7 +136,8 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
   }
 
   /* Should have a good set of data by this point-- copy over. */
-  Mesh *active_mesh = mesh_from_prim(existing_mesh, motionSampleTime, face_indices, face_counts);
+  Mesh *active_mesh = mesh_from_prim(
+      existing_mesh, params.motion_sample_time, face_indices, face_counts);
   if (active_mesh == existing_mesh) {
     return existing_mesh;
   }

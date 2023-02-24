@@ -82,17 +82,17 @@ static void set_coarse_positions(Subdiv *subdiv,
                                  const float (*coarse_vertex_cos)[3])
 {
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
-  const MLoop *mloop = BKE_mesh_loops(mesh);
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
   /* Mark vertices which needs new coordinates. */
   /* TODO(sergey): This is annoying to calculate this on every update,
    * maybe it's better to cache this mapping. Or make it possible to have
    * OpenSubdiv's vertices match mesh ones? */
   BLI_bitmap *vertex_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &mpoly[poly_index];
+    const MPoly *poly = &polys[poly_index];
     for (int corner = 0; corner < poly->totloop; corner++) {
-      const MLoop *loop = &mloop[poly->loopstart + corner];
+      const MLoop *loop = &loops[poly->loopstart + corner];
       BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
     }
   }
@@ -126,7 +126,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
-  const MPoly *polys;
+  blender::Span<MPoly> polys;
   const float (*mloopuv)[2];
   float (*buffer)[2];
   int layer_index;
@@ -173,7 +173,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   ctx.layer_index = layer_index;
   ctx.mloopuv = mluv;
   ctx.mesh = mesh;
-  ctx.polys = BKE_mesh_polys(mesh);
+  ctx.polys = mesh->polys();
   ctx.buffer = buffer;
 
   TaskParallelSettings parallel_range_settings;

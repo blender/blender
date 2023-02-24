@@ -11,6 +11,10 @@ struct Main;
 struct bContext;
 struct bContextDataResult;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* internal exports only */
 
 typedef enum eScreenDir {
@@ -50,7 +54,7 @@ typedef enum eScreenAxis {
  */
 #define BORDERPADDING ((2.0f * U.dpi_fac) + U.pixelsize)
 
-/* area.c */
+/* area.cc */
 
 /**
  * We swap spaces for full-screen to keep all allocated data area vertices were set.
@@ -182,3 +186,7 @@ void SCREEN_OT_screenshot_area(struct wmOperatorType *ot);
 /* workspace_layout_edit.c */
 
 bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
+
+#ifdef __cplusplus
+}
+#endif

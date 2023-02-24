@@ -821,7 +821,7 @@ struct RenderInfo {
  * This was originally added for the historic render-daemon feature,
  * now write because it can be easily extracted without reading the whole blend file.
  *
- * See: `release/scripts/modules/blend_render_info.py`
+ * See: `scripts/modules/blend_render_info.py`
  */
 static void write_renderinfo(WriteData *wd, Main *mainvar)
 {

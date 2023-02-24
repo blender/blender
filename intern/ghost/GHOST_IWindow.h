@@ -217,7 +217,6 @@ class GHOST_IWindow {
    */
   virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
                                              void *framebuffer,
-                                             void *command_buffer,
                                              void *render_pass,
                                              void *extent,
                                              uint32_t *fb_id) = 0;

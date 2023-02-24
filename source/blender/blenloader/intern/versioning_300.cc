@@ -77,6 +77,7 @@
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
+#include "SEQ_retiming.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
@@ -685,6 +686,25 @@ static bool seq_speed_factor_set(Sequence *seq, void *user_data)
   return true;
 }
 
+static bool do_versions_sequencer_init_retiming_tool_data(Sequence *seq, void *user_data)
+{
+  const Scene *scene = static_cast<const Scene *>(user_data);
+
+  if (seq->speed_factor == 1 || !SEQ_retiming_is_allowed(seq)) {
+    return true;
+  }
+
+  const int content_length = SEQ_time_strip_length_get(scene, seq);
+
+  SEQ_retiming_data_ensure(scene, seq);
+
+  SeqRetimingHandle *handle = &seq->retiming_handles[seq->retiming_handle_num - 1];
+  handle->strip_frame_index = round_fl_to_int(content_length / seq->speed_factor);
+  seq->speed_factor = 0.0f;
+
+  return true;
+}
+
 static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *ntree)
 {
   using namespace blender;
@@ -1205,6 +1225,16 @@ void do_versions_after_linking_300(Main *bmain, ReportList * /*reports*/)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed == nullptr) {
+        continue;
+      }
+
+      SEQ_for_each_callback(
+          &scene->ed->seqbase, do_versions_sequencer_init_retiming_tool_data, scene);
+    }
   }
 }
 

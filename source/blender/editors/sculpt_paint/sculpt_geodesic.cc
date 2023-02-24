@@ -290,27 +290,26 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
     cos = SCULPT_mesh_deformed_positions_get(ss);
   }
 
-  const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, mesh->totedge, polys, mesh->totpoly, loops, mesh->totloop);
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  edges.size(),
+                                  polys.data(),
+                                  polys.size(),
+                                  loops.data(),
+                                  loops.size());
   }
   if (!ss->vemap) {
-    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh);
 
-    BKE_mesh_vert_edge_map_create(&ss->vemap,
-                                  &ss->vemap_mem,
-                                  vert_positions,
-                                  mesh->medge,
-                                  mesh->totvert,
-                                  mesh->totedge,
-                                  true);
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, cos, mesh->medge, mesh->totvert, mesh->totedge, true);
   }
 
   /* Both contain edge indices encoded as *void. */

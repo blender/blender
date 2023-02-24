@@ -154,8 +154,8 @@ static bool dependsOnNormals(ModifierData *md)
 
 struct GenerateOceanGeometryData {
   float (*vert_positions)[3];
-  MPoly *mpolys;
-  MLoop *mloops;
+  blender::MutableSpan<MPoly> polys;
+  blender::MutableSpan<MLoop> loops;
   float (*mloopuvs)[2];
 
   int res_x, res_y;
@@ -191,8 +191,8 @@ static void generate_ocean_geometry_polys(void *__restrict userdata,
   for (x = 0; x < gogd->res_x; x++) {
     const int fi = y * gogd->res_x + x;
     const int vi = y * (gogd->res_x + 1) + x;
-    MPoly *mp = &gogd->mpolys[fi];
-    MLoop *ml = &gogd->mloops[fi * 4];
+    MPoly *mp = &gogd->polys[fi];
+    MLoop *ml = &gogd->loops[fi * 4];
 
     ml->v = vi;
     ml++;
@@ -270,8 +270,8 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
   gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);
-  gogd.mpolys = BKE_mesh_polys_for_write(result);
-  gogd.mloops = BKE_mesh_loops_for_write(result);
+  gogd.polys = result->polys_for_write();
+  gogd.loops = result->loops_for_write();
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -363,19 +363,17 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  const MPoly *polys = BKE_mesh_polys(result);
+  const blender::Span<MPoly> polys = mesh->polys();
 
   /* Add vertex-colors before displacement: allows lookup based on position. */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-    const int polys_num = result->totpoly;
-    const int loops_num = result->totloop;
-    const MLoop *mloops = BKE_mesh_loops(result);
+    const blender::Span<MLoop> loops = result->loops();
     MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
                                                                              CD_PROP_BYTE_COLOR,
                                                                              CD_SET_DEFAULT,
                                                                              nullptr,
-                                                                             loops_num,
+                                                                             loops.size(),
                                                                              omd->foamlayername));
 
     MLoopCol *mloopcols_spray = nullptr;
@@ -384,23 +382,22 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
                                                                            CD_PROP_BYTE_COLOR,
                                                                            CD_SET_DEFAULT,
                                                                            nullptr,
-                                                                           loops_num,
+                                                                           loops.size(),
                                                                            omd->spraylayername));
     }
 
     if (mloopcols) { /* unlikely to fail */
-      const MPoly *mp;
 
-      for (i = 0, mp = polys; i < polys_num; i++, mp++) {
-        const MLoop *ml = &mloops[mp->loopstart];
-        MLoopCol *mlcol = &mloopcols[mp->loopstart];
+      for (const int i : polys.index_range()) {
+        const MLoop *ml = &loops[polys[i].loopstart];
+        MLoopCol *mlcol = &mloopcols[polys[i].loopstart];
 
         MLoopCol *mlcolspray = nullptr;
         if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-          mlcolspray = &mloopcols_spray[mp->loopstart];
+          mlcolspray = &mloopcols_spray[polys[i].loopstart];
         }
 
-        for (j = mp->totloop; j--; ml++, mlcol++) {
+        for (j = polys[i].totloop; j--; ml++, mlcol++) {
           const float *vco = positions[ml->v];
           const float u = OCEAN_CO(size_co_inv, vco[0]);
           const float v = OCEAN_CO(size_co_inv, vco[1]);

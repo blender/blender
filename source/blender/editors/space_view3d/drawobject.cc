@@ -70,16 +70,13 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     GPU_blend(GPU_BLEND_ALPHA);
 
     const float(*positions)[3] = BKE_mesh_vert_positions(me);
-    const MPoly *polys = BKE_mesh_polys(me);
-    const MLoop *loops = BKE_mesh_loops(me);
-
-    int mpoly_len = me->totpoly;
-    int mloop_len = me->totloop;
+    const blender::Span<MPoly> polys = me->polys();
+    const blender::Span<MLoop> loops = me->loops();
 
     facemap_data = static_cast<const int *>(CustomData_get_layer(&me->pdata, CD_FACEMAP));
 
     /* Make a batch and free it each time for now. */
-    const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
+    const int looptris_len = poly_to_tri_count(polys.size(), loops.size());
     const int vbo_len_capacity = looptris_len * 3;
     int vbo_len_used = 0;
 
@@ -93,13 +90,12 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     GPUVertBufRaw pos_step;
     GPU_vertbuf_attr_get_raw_data(vbo_pos, pos_id, &pos_step);
 
-    const MPoly *mp;
-    int i;
     if (BKE_mesh_runtime_looptri_ensure(me)) {
       const MLoopTri *mlt = BKE_mesh_runtime_looptri_ensure(me);
-      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
+      for (const int i : polys.index_range()) {
+        const MPoly &poly = polys[i];
         if (facemap_data[i] == facemap) {
-          for (int j = 2; j < mp->totloop; j++) {
+          for (int j = 2; j < poly.totloop; j++) {
             copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
                        positions[loops[mlt->tri[0]].v]);
             copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
@@ -111,18 +107,19 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
           }
         }
         else {
-          mlt += mp->totloop - 2;
+          mlt += poly.totloop - 2;
         }
       }
     }
     else {
       /* No tessellation data, fan-fill. */
-      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
+      for (const int i : polys.index_range()) {
+        const MPoly &poly = polys[i];
         if (facemap_data[i] == facemap) {
-          const MLoop *ml_start = &loops[mp->loopstart];
+          const MLoop *ml_start = &loops[poly.loopstart];
           const MLoop *ml_a = ml_start + 1;
           const MLoop *ml_b = ml_start + 2;
-          for (int j = 2; j < mp->totloop; j++) {
+          for (int j = 2; j < poly.totloop; j++) {
             copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
                        positions[ml_start->v]);
             copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)), positions[ml_a->v]);

@@ -1696,7 +1696,10 @@ static void sculpt_face_set_grow(Object *ob,
   }
 
   Mesh *mesh = BKE_mesh_from_object(ob);
-  for (int p = 0; p < mesh->totpoly; p++) {
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
+
+  for (const int p : polys.index_range()) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
@@ -1813,7 +1816,9 @@ static void sculpt_face_set_shrink(Object *ob,
   }
 
   Mesh *mesh = BKE_mesh_from_object(ob);
-  for (int p = 0; p < mesh->totpoly; p++) {
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
+  for (const int p : polys.index_range()) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }

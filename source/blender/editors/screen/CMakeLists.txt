@@ -24,7 +24,7 @@ set(INC_SYS
 )
 
 set(SRC
-  area.c
+  area.cc
   area_query.c
   area_utils.c
   glutil.c

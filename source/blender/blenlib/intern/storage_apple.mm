@@ -204,10 +204,10 @@ bool BLI_change_working_dir(const char* dir) {
   @autoreleasepool {
     NSString* path = [[NSString alloc] initWithUTF8String: dir];
     if ([[NSFileManager defaultManager] changeCurrentDirectoryPath: path] == YES) {
-      return false;
+      return true;
     }
     else {
-      return true;
+      return false;
     }
   }
 }

@@ -20,7 +20,7 @@
  * When adding new defaults for larger structs you may want to write-out the in-memory data.
  *
  * To create these defaults there is a GDB script which can be handy to get started:
- * `./source/tools/utils/gdb_struct_repr_c99.py`
+ * `./tools/utils/gdb_struct_repr_c99.py`
  *
  * Magic numbers should be replaced with flags before committing.
  *

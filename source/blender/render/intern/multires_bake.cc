@@ -488,15 +488,9 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   memcpy(temp_mesh->vert_positions_for_write().data(),
          positions,
          temp_mesh->totvert * sizeof(float[3]));
-  memcpy(BKE_mesh_edges_for_write(temp_mesh),
-         dm->getEdgeArray(dm),
-         temp_mesh->totedge * sizeof(MEdge));
-  memcpy(BKE_mesh_polys_for_write(temp_mesh),
-         dm->getPolyArray(dm),
-         temp_mesh->totpoly * sizeof(MPoly));
-  memcpy(BKE_mesh_loops_for_write(temp_mesh),
-         dm->getLoopArray(dm),
-         temp_mesh->totloop * sizeof(MLoop));
+  temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
+  temp_mesh->polys_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly});
+  temp_mesh->loops_for_write().copy_from({dm->getLoopArray(dm), temp_mesh->totloop});
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 

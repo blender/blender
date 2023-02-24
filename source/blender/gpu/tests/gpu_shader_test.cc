@@ -212,7 +212,7 @@ GPU_TEST(gpu_shader_compute_ibo)
 static void test_gpu_shader_compute_ssbo()
 {
 
-  if (!GPU_compute_shader_support()) {
+  if (!GPU_compute_shader_support() && !GPU_shader_storage_buffer_objects_support()) {
     /* We can't test as a the platform does not support compute shaders. */
     std::cout << "Skipping compute shader test: platform not supported";
     return;
@@ -221,14 +221,14 @@ static void test_gpu_shader_compute_ssbo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
-  /* Construct IBO. */
+  /* Construct SSBO. */
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
       SIZE * sizeof(uint32_t), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
-  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
+  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -240,7 +240,7 @@ static void test_gpu_shader_compute_ssbo()
   uint32_t data[SIZE];
   GPU_storagebuf_read(ssbo, data);
   for (int index = 0; index < SIZE; index++) {
-    uint32_t expected = index;
+    uint32_t expected = index * 4;
     EXPECT_EQ(data[index], expected);
   }
 

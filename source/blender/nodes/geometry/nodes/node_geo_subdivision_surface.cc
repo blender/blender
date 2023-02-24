@@ -9,7 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

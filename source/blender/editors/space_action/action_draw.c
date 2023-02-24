@@ -61,7 +61,8 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   const int height = ANIM_UI_get_channels_total_height(v2d, items);
-  v2d->tot.ymin = -height;
+  const float pad_bottom = BLI_listbase_is_empty(ac->markers) ? 0 : UI_MARKER_MARGIN_Y;
+  v2d->tot.ymin = -(height + pad_bottom);
 
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
   UI_view2d_sync(NULL, ac->area, v2d, V2D_LOCK_COPY);
@@ -195,7 +196,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   const int height = ANIM_UI_get_channels_total_height(v2d, items);
-  v2d->tot.ymin = -height;
+  const float pad_bottom = BLI_listbase_is_empty(ac->markers) ? 0 : UI_MARKER_MARGIN_Y;
+  v2d->tot.ymin = -(height + pad_bottom);
 
   /* Draw the manual frame ranges for actions in the background of the dopesheet.
    * The action editor has already drawn the range for its action so it's not needed. */

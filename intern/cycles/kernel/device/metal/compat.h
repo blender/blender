@@ -290,6 +290,10 @@ typedef metal::raytracing::intersector<triangle_data> metalrt_blas_intersector_t
 
 /* texture bindings and sampler setup */
 
+struct Buffer1DParamsMetal {
+  device float *buf;
+};
+
 struct Texture2DParamsMetal {
   texture2d<float, access::sample> tex;
 };
@@ -306,6 +310,7 @@ struct MetalRTBlasWrapper {
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
+  device Buffer1DParamsMetal *buffers;
 
 #ifdef __METALRT__
   metalrt_as_type accel_struct;

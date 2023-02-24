@@ -834,15 +834,21 @@ static void initialize_group_input(NodesModifierData &nmd,
   }
 }
 
-static const lf::FunctionNode &find_viewer_lf_node(const bNode &viewer_bnode)
+static const lf::FunctionNode *find_viewer_lf_node(const bNode &viewer_bnode)
 {
-  return *blender::nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree())
-              ->mapping.viewer_node_map.lookup(&viewer_bnode);
+  if (const blender::nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+          blender::nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree())) {
+    return lf_graph_info->mapping.viewer_node_map.lookup_default(&viewer_bnode, nullptr);
+  }
+  return nullptr;
 }
-static const lf::FunctionNode &find_group_lf_node(const bNode &group_bnode)
+static const lf::FunctionNode *find_group_lf_node(const bNode &group_bnode)
 {
-  return *blender::nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree())
-              ->mapping.group_node_map.lookup(&group_bnode);
+  if (const blender::nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+          blender::nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree())) {
+    return lf_graph_info->mapping.group_node_map.lookup_default(&group_bnode, nullptr);
+  }
+  return nullptr;
 }
 
 static void find_side_effect_nodes_for_viewer_path(
@@ -888,15 +894,22 @@ static void find_side_effect_nodes_for_viewer_path(
   if (found_viewer_node == nullptr) {
     return;
   }
+  const lf::FunctionNode *lf_viewer_node = find_viewer_lf_node(*found_viewer_node);
+  if (lf_viewer_node == nullptr) {
+    return;
+  }
 
   /* Not only mark the viewer node as having side effects, but also all group nodes it is contained
    * in. */
-  r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(),
-                                         &find_viewer_lf_node(*found_viewer_node));
+  r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(), lf_viewer_node);
   compute_context_builder.pop();
   while (!compute_context_builder.is_empty()) {
-    r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(),
-                                           &find_group_lf_node(*group_node_stack.pop()));
+    const lf::FunctionNode *lf_group_node = find_group_lf_node(*group_node_stack.pop());
+    if (lf_group_node == nullptr) {
+      return;
+    }
+
+    r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(), lf_group_node);
     compute_context_builder.pop();
   }
 }

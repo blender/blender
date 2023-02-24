@@ -746,7 +746,13 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
       MEM_freeN(prop);
     }
     else {
+      const bool overridable = prop_exist ?
+                                   (prop_exist->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0 :
+                                   false;
       IDP_ReplaceInGroup_ex(group, prop, prop_exist);
+      if (overridable) {
+        prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
+      }
     }
   }
 

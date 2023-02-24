@@ -1826,7 +1826,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (!window->m_mousePresent) {
             WINTAB_PRINTF("HWND %p mouse enter\n", window->getHWND());
             TRACKMOUSEEVENT tme = {sizeof(tme)};
-            tme.dwFlags = TME_LEAVE;
+            /* Request WM_MOUSELEAVE message when the cursor leaves the client area, and
+             * WM_MOUSEHOVER message after 50ms when in the client area. */
+            tme.dwFlags = TME_LEAVE | TME_HOVER;
+            tme.dwHoverTime = 50;
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);
             window->m_mousePresent = true;
@@ -1841,6 +1844,35 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           window->clientToScreen(UNPACK2(window_co), UNPACK2(screen_co));
           event = processCursorEvent(window, screen_co);
 
+          break;
+        }
+        case WM_MOUSEHOVER: {
+          /* Mouse Tracking is now off. TrackMouseEvent restarts in MouseMove. */
+          window->m_mousePresent = false;
+
+          /* Auto-focus only occurs within Blender windows, not with _other_ applications. */
+          HWND old_hwnd = ::GetFocus();
+          if (hwnd != old_hwnd) {
+            HWND new_parent = ::GetParent(hwnd);
+            HWND old_parent = ::GetParent(old_hwnd);
+            if (hwnd == old_parent || old_hwnd == new_parent) {
+              /* Child to its parent, parent to its child. */
+              ::SetFocus(hwnd);
+            }
+            else if (new_parent != HWND_DESKTOP && new_parent == old_parent) {
+              /* Between siblings of same parent. */
+              ::SetFocus(hwnd);
+            }
+            else if (!new_parent && !old_parent) {
+              /* Between main windows that don't overlap. */
+              RECT new_rect, old_rect, dest_rect;
+              ::GetWindowRect(hwnd, &new_rect);
+              ::GetWindowRect(old_hwnd, &old_rect);
+              if (!IntersectRect(&dest_rect, &new_rect, &old_rect)) {
+                ::SetFocus(hwnd);
+              }
+            }
+          }
           break;
         }
         case WM_MOUSEWHEEL: {

@@ -42,6 +42,12 @@ GPU_SHADER_CREATE_INFO(gpu_compute_vbo_test)
     .compute_source("gpu_compute_vbo_test.glsl")
     .do_static_compilation(true);
 
+GPU_SHADER_CREATE_INFO(gpu_compute_ssbo_test)
+    .local_group_size(1)
+    .storage_buf(0, Qualifier::WRITE, "int", "data_out[]")
+    .compute_source("gpu_compute_ssbo_test.glsl")
+    .do_static_compilation(true);
+
 GPU_SHADER_CREATE_INFO(gpu_compute_ssbo_binding_test)
     .local_group_size(1)
     .storage_buf(0, Qualifier::WRITE, "int", "data0[]")

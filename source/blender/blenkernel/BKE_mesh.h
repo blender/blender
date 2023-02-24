@@ -767,47 +767,6 @@ void BKE_mesh_polys_flip(const struct MPoly *mpoly,
                          struct CustomData *ldata,
                          int totpoly);
 
-/* Merge verts. */
-/* Enum for merge_mode of #BKE_mesh_merge_verts.
- * Refer to mesh_merge.c for details. */
-enum {
-  MESH_MERGE_VERTS_DUMP_IF_MAPPED,
-  MESH_MERGE_VERTS_DUMP_IF_EQUAL,
-};
-/**
- * Merge Verts
- *
- * This frees the given mesh and returns a new mesh.
- *
- * \param vtargetmap: The table that maps vertices to target vertices.  a value of -1
- * indicates a vertex is a target, and is to be kept.
- * This array is aligned with 'mesh->totvert'
- * \warning \a vtargetmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
- * this is not supported and will likely generate corrupted geometry.
- *
- * \param tot_vtargetmap: The number of non '-1' values in vtargetmap. (not the size)
- *
- * \param merge_mode: enum with two modes.
- * - #MESH_MERGE_VERTS_DUMP_IF_MAPPED
- * When called by the Mirror Modifier,
- * In this mode it skips any faces that have all vertices merged (to avoid creating pairs
- * of faces sharing the same set of vertices)
- * - #MESH_MERGE_VERTS_DUMP_IF_EQUAL
- * When called by the Array Modifier,
- * In this mode, faces where all vertices are merged are double-checked,
- * to see whether all target vertices actually make up a poly already.
- * Indeed it could be that all of a poly's vertices are merged,
- * but merged to vertices that do not make up a single poly,
- * in which case the original poly should not be dumped.
- * Actually this later behavior could apply to the Mirror Modifier as well,
- * but the additional checks are costly and not necessary in the case of mirror,
- * because each vertex is only merged to its own mirror.
- */
-struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
-                                  const int *vtargetmap,
-                                  int tot_vtargetmap,
-                                  int merge_mode);
-
 /**
  * Account for custom-data such as UVs becoming detached because of imprecision
  * in custom-data interpolation.

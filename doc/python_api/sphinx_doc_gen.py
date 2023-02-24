@@ -367,13 +367,13 @@ except ImportError:
 # Note that ".." is replaced by "__" in the RST files,
 # to avoid having to match Blender's source tree.
 EXTRA_SOURCE_FILES = (
-    "../../../release/scripts/templates_py/bmesh_simple.py",
-    "../../../release/scripts/templates_py/gizmo_operator.py",
-    "../../../release/scripts/templates_py/gizmo_operator_target.py",
-    "../../../release/scripts/templates_py/gizmo_simple.py",
-    "../../../release/scripts/templates_py/operator_simple.py",
-    "../../../release/scripts/templates_py/ui_panel_simple.py",
-    "../../../release/scripts/templates_py/ui_previews_custom_icon.py",
+    "../../../scripts/templates_py/bmesh_simple.py",
+    "../../../scripts/templates_py/gizmo_operator.py",
+    "../../../scripts/templates_py/gizmo_operator_target.py",
+    "../../../scripts/templates_py/gizmo_simple.py",
+    "../../../scripts/templates_py/operator_simple.py",
+    "../../../scripts/templates_py/ui_panel_simple.py",
+    "../../../scripts/templates_py/ui_previews_custom_icon.py",
     "../examples/bmesh.ops.1.py",
     "../examples/bpy.app.translations.py",
 )
@@ -1816,7 +1816,7 @@ def pyrna2sphinx(basepath):
 
     # operators
     def write_ops():
-        API_BASEURL = "https://projects.blender.org/blender/blender/src/branch/main/release/scripts"
+        API_BASEURL = "https://projects.blender.org/blender/blender/src/branch/main/scripts"
         API_BASEURL_ADDON = "https://projects.blender.org/blender/blender-addons"
         API_BASEURL_ADDON_CONTRIB = "https://projects.blender.org/blender/blender-addons-contrib"
 
