@@ -511,6 +511,7 @@ bool ED_mesh_color_ensure(Mesh *me, const char *name)
   }
 
   BKE_id_attributes_active_color_set(&me->id, unique_name);
+  BKE_id_attributes_default_color_set(&me->id, unique_name);
   BKE_mesh_tessface_clear(me);
   DEG_id_tag_update(&me->id, 0);
 
