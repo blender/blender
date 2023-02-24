@@ -47,7 +47,7 @@ bool IO_paneltype_set_parent(struct PanelType *panel) {
   assert(region);
 
   LISTBASE_FOREACH (PanelType *, pt, &region->paneltypes) {
-    if (stricmp(pt->idname, panel->parent_id) == 0) {
+    if (strcasecmp(pt->idname, panel->parent_id) == 0) {
       parent = pt;
       break;
     }
