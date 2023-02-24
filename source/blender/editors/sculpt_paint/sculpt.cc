@@ -81,6 +81,19 @@ using blender::MutableSpan;
 using blender::Set;
 using blender::Vector;
 
+static float sculpt_calc_radius(ViewContext *vc,
+                                const Brush *brush,
+                                const Scene *scene,
+                                const float3 location)
+{
+  if (!BKE_brush_use_locked_size(scene, brush)) {
+    return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(scene, brush));
+  }
+  else {
+    return BKE_brush_unprojected_radius_get(scene, brush);
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt PBVH Abstraction API
  *
@@ -4925,13 +4938,10 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+    cache->initial_radius = sculpt_calc_radius(cache->vc, brush, scene, cache->true_location);
+
     if (!BKE_brush_use_locked_size(scene, brush)) {
-      cache->initial_radius = paint_calc_object_space_radius(
-          cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
       BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
-    }
-    else {
-      cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush);
     }
   }
 
@@ -5281,6 +5291,19 @@ bool SCULPT_stroke_get_location(bContext *C,
                                 const float mval[2],
                                 bool force_original)
 {
+  const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+  bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
+
+  return SCULPT_stroke_get_location_ex(C, out, mval, force_original, check_closest, true);
+}
+
+bool SCULPT_stroke_get_location_ex(bContext *C,
+                                   float out[3],
+                                   const float mval[2],
+                                   bool force_original,
+                                   bool check_closest,
+                                   bool limit_closest_radius)
+{
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob;
   SculptSession *ss;
@@ -5329,11 +5352,7 @@ bool SCULPT_stroke_get_location(bContext *C,
     }
   }
 
-  if (hit) {
-    return hit;
-  }
-
-  if (!ELEM(brush->falloff_shape, PAINT_FALLOFF_SHAPE_TUBE)) {
+  if (hit || !check_closest) {
     return hit;
   }
 
@@ -5348,14 +5367,20 @@ bool SCULPT_stroke_get_location(bContext *C,
 
   BKE_pbvh_find_nearest_to_ray(
       ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd, ray_start, ray_normal, srd.original);
-  if (srd.hit) {
+  if (srd.hit && srd.dist_sq_to_ray) {
     hit = true;
     copy_v3_v3(out, ray_normal);
     mul_v3_fl(out, srd.depth);
     add_v3_v3(out, ray_start);
   }
 
-  return hit;
+  float closest_radius_sq = FLT_MAX;
+  if (limit_closest_radius) {
+    closest_radius_sq = sculpt_calc_radius(&vc, brush, CTX_data_scene(C), out);
+    closest_radius_sq *= closest_radius_sq;
+  }
+
+  return hit && srd.dist_sq_to_ray < closest_radius_sq;
 }
 
 static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
@@ -5620,7 +5645,12 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
 {
   float co_dummy[3];
-  return SCULPT_stroke_get_location(C, co_dummy, mval, false);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
+
+  return SCULPT_stroke_get_location_ex(C, co_dummy, mval, false, check_closest, true);
 }
 
 static void sculpt_stroke_undo_begin(const bContext *C, wmOperator *op)
@@ -5974,29 +6004,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bool started = op->customdata && paint_stroke_started((PaintStroke *)op->customdata);
-
-  int retval = paint_stroke_modal(C, op, event, (PaintStroke **)&op->customdata);
-
-  if (!started && ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-    /* Did the stroke never start? If so push a blank sculpt undo
-     * step to prevent a global undo step (which is triggered by the
-     * #OPTYPE_UNDO flag in #SCULPT_OT_brush_stroke).
-     *
-     * Having blank global undo steps interleaved with sculpt steps
-     * corrupts the DynTopo undo stack.
-     * See #101430.
-     *
-     * NOTE: simply returning #OPERATOR_CANCELLED was not
-     * sufficient to prevent this. */
-    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-    Brush *brush = BKE_paint_brush(&sd->paint);
-
-    sculpt_stroke_undo_begin(C, op);
-    sculpt_stroke_undo_end(C, brush);
-  }
-
-  return retval;
+  return paint_stroke_modal(C, op, event, (PaintStroke **)&op->customdata);
 }
 
 static void sculpt_redo_empty_ui(bContext * /*C*/, wmOperator * /*op*/)
