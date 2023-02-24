@@ -7,4 +7,10 @@
 
 #pragma once
 
+#include <stdbool.h>
+
+struct PanelType;
+
+
+bool IO_paneltype_set_parent(struct PanelType *panel);
 void ED_operatortypes_io(void);

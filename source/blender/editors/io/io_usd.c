@@ -14,6 +14,7 @@
 #  include "BKE_context.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
+#  include "BKE_screen.h"
 
 #  include "BLI_blenlib.h"
 #  include "BLI_path_util.h"
@@ -40,10 +41,16 @@
 
 #  include "DEG_depsgraph.h"
 
+#  include "IO_orientation.h"
+#  include "io_ops.h"
 #  include "io_usd.h"
 #  include "usd.h"
 
 #  include <stdio.h>
+
+
+static const char *WM_OT_USD_EXPORT_IDNAME = "WM_OT_usd_export";
+
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,
@@ -207,7 +214,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
   RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
-  ED_fileselect_ensure_default_filepath(C, op, ".usdc");
+  ED_fileselect_ensure_default_filepath(C, op, ".usd");
 
   WM_event_add_fileselect(C, op);
 
@@ -320,7 +327,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const eUSDXformOpMode xform_op_mode = RNA_enum_get(op->ptr, "xform_op_mode");
 
   const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");
-  
+
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
 
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
@@ -434,7 +441,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 static void wm_usd_export_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayout *box;
   struct PointerRNA *ptr = op->ptr;
 
   /* Conveniently set start and end frame to match the scene's frame range. */
@@ -447,150 +453,9 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     RNA_boolean_set(ptr, "init_scene_frame_range", false);
   }
 
-  uiLayoutSetPropSep(layout, true);
+  uiItemR(layout, ptr, "evaluation_mode", 0, NULL, ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("USD Export"), ICON_NONE);
-  uiItemR(box, ptr, "evaluation_mode", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "apply_subdiv", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "author_blender_name", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "selected_objects_only", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "visible_objects_only", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_animation", 0, NULL, ICON_NONE);
-  if (RNA_boolean_get(ptr, "export_animation")) {
-    uiItemR(box, ptr, "start", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "end", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "frame_step", 0, NULL, ICON_NONE);
-  }
-  uiItemR(box, ptr, "export_usd_kind", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_as_overs", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "merge_transform_and_shape", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_identity_transforms", 0, NULL, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "export_hair") || RNA_boolean_get(ptr, "export_particles")) {
-    uiItemR(box, ptr, "export_child_particles", 0, NULL, ICON_NONE);
-  }
-
-  if (RNA_boolean_get(ptr, "export_vertex_colors") ||
-      RNA_boolean_get(ptr, "export_vertex_groups")) {
-    uiItemR(box, ptr, "vertex_data_as_face_varying", 0, NULL, ICON_NONE);
-  }
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Attributes:"), ICON_NONE);
-  uiItemR(box, ptr, "export_blender_metadata", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_custom_properties", 0, NULL, ICON_NONE);
-  if (RNA_boolean_get(ptr, "export_custom_properties")) {
-    uiItemR(box, ptr, "add_properties_namespace", 0, NULL, ICON_NONE);
-  }
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Cycles Settings:"), ICON_NONE);
-  uiItemR(box, ptr, "override_shutter", 0, NULL, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "override_shutter")) {
-    uiItemR(box, ptr, "shutter_open", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "shutter_close", 0, NULL, ICON_NONE);
-  }
-
-  if (RNA_boolean_get(ptr, "export_meshes")) {
-    box = uiLayoutBox(layout);
-    uiItemL(box, IFACE_("Mesh Options:"), ICON_MESH_DATA);
-    uiItemR(box, ptr, "export_vertices", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_vertex_colors", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_vertex_groups", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_face_maps", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_uvmaps", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_normals", 0, NULL, ICON_NONE);
-
-    uiItemR(box, ptr, "triangulate_meshes", 0, NULL, ICON_NONE);
-
-    uiLayout *sub = uiLayoutColumn(box, false);
-    uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate_meshes"));
-    uiItemR(sub, ptr, "quad_method", 0, IFACE_("Method Quads"), ICON_NONE);
-    uiItemR(sub, ptr, "ngon_method", 0, IFACE_("Polygons"), ICON_NONE);
-  }
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Primitive Types:"), ICON_OBJECT_DATA);
-  uiItemR(box, ptr, "export_transforms", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_meshes", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_materials", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_lights", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_cameras", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_curves", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_hair", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_particles", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_armatures", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_blendshapes", 0, NULL, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Stage Options:"), ICON_SCENE_DATA);
-  uiItemR(box, ptr, "default_prim_path", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "root_prim_path", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "material_prim_path", 0, NULL, ICON_NONE);
-  if (RNA_boolean_get(ptr, "export_usd_kind")) {
-    uiItemR(box, ptr, "default_prim_kind", 0, NULL, ICON_NONE);
-    if (RNA_enum_get(ptr, "default_prim_kind") == USD_KIND_CUSTOM) {
-        uiItemR(box, ptr, "default_prim_custom_kind", 0, NULL, ICON_NONE);
-      }
-  }
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Conversion:"), ICON_ORIENTATION_GLOBAL);
-  uiItemR(box, ptr, "usdz_is_arkit", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "convert_orientation", 0, NULL, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "convert_orientation")) {
-    uiItemR(box, ptr, "export_global_forward_selection", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "export_global_up_selection", 0, NULL, ICON_NONE);
-  }
-
-  uiItemR(box, ptr, "convert_to_cm", 0, NULL, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "export_materials")) {
-    uiItemR(box, ptr, "generate_cycles_shaders", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "generate_preview_surface", 0, NULL, ICON_NONE);
-    if (USD_umm_module_loaded()) {
-      uiItemR(box, ptr, "generate_mdl", 0, NULL, ICON_NONE);
-    }
-  }
-
-  if (RNA_boolean_get(ptr, "export_lights")) {
-    uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "convert_light_to_nits", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
-    uiItemR(box, ptr, "convert_world_material", 0, NULL, ICON_NONE);
-  }
-
-  if (RNA_boolean_get(ptr, "export_uvmaps")) {
-    uiItemR(box, ptr, "convert_uv_to_st", 0, NULL, ICON_NONE);
-  }
-
-  uiItemR(box, ptr, "xform_op_mode", 0, NULL, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "export_materials")) {
-    box = uiLayoutBox(layout);
-    uiItemL(box, IFACE_("Textures:"), ICON_NONE);
-    uiItemR(box, ptr, "export_textures", 0, NULL, ICON_NONE);
-    if (RNA_boolean_get(ptr, "export_textures")) {
-      uiItemR(box, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
-    }
-
-    uiItemR(box, ptr, "usdz_downscale_size", 0, NULL, ICON_NONE);
-    if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
-      uiItemR(box, ptr, "usdz_downscale_custom_size", 0, NULL, ICON_NONE);
-    }
-  }
-
-  box = uiLayoutBox(layout);
-  uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
-  uiItemR(col, ptr, "relative_paths", 0, NULL, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
-  uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
+  /* Note: all other pertinent settings are shown through the panels below! */
 }
 
 static void free_operator_customdata(wmOperator *op)
@@ -612,7 +477,7 @@ static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", ".usdz", NULL)) {
-    BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
+    BLI_path_extension_ensure(filepath, FILE_MAX, ".usd");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
   }
@@ -620,11 +485,35 @@ static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
   return false;
 }
 
+static void forward_axis_update(struct Main *UNUSED(main),
+                                struct Scene *UNUSED(scene),
+                                struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
+  }
+}
+
+static void up_axis_update(struct Main *UNUSED(main),
+                           struct Scene *UNUSED(scene),
+                           struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
+  }
+}
+
 void WM_OT_usd_export(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Export USD";
   ot->description = "Export current scene in a USD archive";
-  ot->idname = "WM_OT_usd_export";
+  ot->idname = WM_OT_USD_EXPORT_IDNAME;
 
   ot->invoke = wm_usd_export_invoke;
   ot->exec = wm_usd_export_exec;
@@ -699,7 +588,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "When checked, all vertex colors are included in the export");
   RNA_def_boolean(ot->srna,
                   "export_vertex_groups",
-                  false,
+                  true,
                   "Vertex Groups",
                   "When checked, all vertex groups are included in the export");
   RNA_def_boolean(ot->srna,
@@ -790,7 +679,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                  "If set, all primitives will live under this path");
   RNA_def_string(ot->srna,
                  "material_prim_path",
-                 "/root/materials",
+                 "/Materials",
                  1024,
                  "Material Prim Path",
                  "This specifies where all generated USD Shade Materials and Shaders get placed");
@@ -824,6 +713,12 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   false,
                   "Convert Orientation",
                   "When checked, the USD exporter will convert orientation axis");
+
+  prop = RNA_def_enum(
+      ot->srna, "export_global_forward_selection", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "Global Forward axis for export");
+  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "export_global_up_selection", io_transform_axis, IO_AXIS_Y, "Up Axis", "Global Up axis for export");
+  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
 
   RNA_def_boolean(ot->srna,
                   "convert_to_cm",
@@ -875,7 +770,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
       "Add exported custom properties to the 'userProperties' USD attribute namespace");
   RNA_def_boolean(ot->srna,
                   "export_identity_transforms",
-                  false,
+                  true,
                   "Export Identity Transforms",
                   "If enabled, transforms (xforms) will always author a transform operation, "
                   "even if transform is identity/unit/zeroed.");
@@ -1546,5 +1441,398 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
       "File Name Collision",
       "Behavior when the name of an imported texture file conflicts with an existing file");
 }
+
+
+/* Panel Types */
+static wmOperator *get_named_operator(const bContext *C, const char *idname) {
+  SpaceFile *space = CTX_wm_space_file(C);
+  if (!space) {
+    return NULL;
+  }
+
+  wmOperator *op = space->op;
+  if (!op) {
+    return NULL;
+  }
+
+  if (stricmp(op->idname, idname) != 0) {
+    return NULL;
+  }
+
+    return op;
+}
+
+static bool usd_export_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+  return (bool)get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+}
+
+
+/* export panel - general */
+static void usd_export_panel_general_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemFullR(col, ptr, RNA_struct_find_property(ptr, "selected_objects_only"), 0, 0, 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "visible_objects_only", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "convert_orientation", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "convert_orientation")) {
+    uiItemR(col, ptr, "export_global_forward_selection", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "export_global_up_selection", 0, NULL, ICON_NONE);
+  }
+  uiItemR(col, ptr, "usdz_is_arkit", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "convert_to_cm", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(panel->layout, true, "External Files");
+  uiLayoutSetPropSep(col, true);
+  uiItemFullR(col, ptr, RNA_struct_find_property(ptr, "relative_paths"), 0, 0, 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_as_overs", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "merge_transform_and_shape", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiItemR(col, ptr, "xform_op_mode", 0, NULL, ICON_NONE);
+}
+
+
+static void usd_export_panel_geometry_draw(const bContext *C, Panel *panel) {
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+
+  uiLayoutSetPropSep(col, true);
+  uiItemR(col, ptr, "apply_subdiv", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_vertex_colors", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_vertex_groups", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_normals", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_uvmaps", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "export_uvmaps")) {
+    uiItemR(col, ptr, "convert_uv_to_st", 0, NULL, ICON_NONE);
+  }
+  uiItemR(col, ptr, "triangulate_meshes", 0, NULL, ICON_NONE);
+
+  uiLayout *sub = uiLayoutColumn(col, false);
+  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate_meshes"));
+  uiItemR(sub, ptr, "quad_method", 0, IFACE_("Method Quads"), ICON_NONE);
+  uiItemR(sub, ptr, "ngon_method", 0, IFACE_("Polygons"), ICON_NONE);
+}
+
+
+static void usd_export_panel_materials_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  const bool is_enabled = RNA_boolean_get(ptr, "export_materials");
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  uiItemFullR(col,
+              ptr,
+              RNA_struct_find_property(ptr, "generate_preview_surface"),
+              0,
+              0,
+              0,
+              NULL,
+              ICON_NONE);
+  uiItemR(col, ptr, "generate_cycles_shaders", 0, NULL, ICON_NONE);
+  if (USD_umm_module_loaded()) {
+    uiItemR(col, ptr, "generate_mdl", 0, NULL, ICON_NONE);
+  }
+
+  col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Textures: "));
+  uiLayoutSetEnabled(col, is_enabled);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemFullR(
+      col, ptr, RNA_struct_find_property(ptr, "export_textures"), 0, 0, 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "export_textures")) {
+    uiItemR(col, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
+  }
+
+  /* Without this column the spacing is off by a pixel or two */
+  col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  uiItemR(col, ptr, "usdz_downscale_size", 0, NULL, ICON_NONE);
+  if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
+    uiItemR(col, ptr, "usdz_downscale_custom_size", 0, NULL, ICON_NONE);
+  }
+}
+
+
+static void usd_export_panel_lights_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "export_lights"));
+
+  uiItemR(col, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "convert_light_to_nits", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "convert_world_material", 0, NULL, ICON_NONE);
+}
+
+
+static void usd_export_panel_stage_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "default_prim_path", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "root_prim_path", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "material_prim_path", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "default_prim_kind", 0, NULL, ICON_NONE);
+  if (RNA_enum_get(ptr, "default_prim_kind") == USD_KIND_CUSTOM) {
+    uiItemR(col, ptr, "default_prim_custom_kind", 0, NULL, ICON_NONE);
+  }
+}
+
+
+static void usd_export_panel_animation_draw_header(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiItemR(panel->layout, ptr, "export_animation", 0, NULL, ICON_NONE);
+}
+
+
+static void usd_export_panel_animation_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  const bool is_enabled = RNA_boolean_get(ptr, "export_animation");
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  col = uiLayoutColumn(col, true);
+  uiItemR(col, ptr, "start", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(col, ptr, "end", 0, IFACE_("End"), ICON_NONE);
+  uiItemR(col, ptr, "frame_step", 0, IFACE_("Frame Step"), ICON_NONE);
+
+  uiLayout *sub = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(sub, true);
+  uiLayoutSetEnabled(sub, is_enabled);
+}
+
+
+static void usd_export_panel_export_types_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "export_transforms", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_meshes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_materials", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_lights", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_cameras", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_curves", 0, NULL, ICON_NONE);
+}
+
+
+static void usd_export_panel_particles_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Particles: "));
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "export_particles", 0, "Export Particles", ICON_NONE);
+  uiItemR(col, ptr, "export_hair", 0, "Export Hair as Curves", ICON_NONE);
+  if (RNA_boolean_get(ptr, "export_hair") || RNA_boolean_get(ptr, "export_particles")) {
+    uiItemR(col, ptr, "export_child_particles", 0, NULL, ICON_NONE);
+  }
+
+  uiItemSpacer(col);
+
+  col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Instances: "));
+  uiLayoutSetPropSep(col, true);
+  uiItemR(col, ptr, "use_instancing", 0, "Export As Instances", ICON_NONE);
+}
+
+
+static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_EXPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Armatures: "));
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "export_armatures", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "export_armatures"));
+  uiItemR(col, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Shapes: "));
+  uiLayoutSetPropSep(col, true);
+  uiItemR(col, ptr, "export_blendshapes", 0, "Export Shape Keys", ICON_NONE);
+}
+
+
+void usd_export_panel_register(const char* idname,
+                               const char* label,
+                               int flag,
+                               bool (*poll)(const struct bContext *C, struct PanelType *pt),
+                               void (*draw)(const struct bContext *C, struct Panel *panel),
+                               void (*draw_header)(const struct bContext *C, struct Panel *panel)
+                               )
+{
+  PanelType *pt = MEM_callocN(sizeof(PanelType), idname);
+  strncpy(pt->idname, idname, BKE_ST_MAXNAME);
+  if (label) {
+    strncpy(pt->label, N_(label), BKE_ST_MAXNAME);
+  }
+  strncpy(pt->category, "View", BKE_ST_MAXNAME);
+  pt->region_type = RGN_TYPE_TOOL_PROPS;
+  pt->space_type = SPACE_FILE;
+  pt->flag = flag;
+  strncpy(pt->parent_id, "FILE_PT_operator", BKE_ST_MAXNAME);
+  strncpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  pt->draw = draw;
+  pt->draw_header = draw_header;
+  pt->poll = poll;
+
+  IO_paneltype_set_parent(pt);
+  WM_paneltype_add(pt);
+}
+
+
+void usd_export_panel_register_general() {
+  usd_export_panel_register("FILE_PT_usd_export_general",
+                            "General",
+                            0,
+                            usd_export_panel_poll,
+                            usd_export_panel_general_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_geometry() {
+  usd_export_panel_register("FILE_PT_usd_export_geometry",
+                            "Geometry",
+                            0,
+                            usd_export_panel_poll,
+                            usd_export_panel_geometry_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_materials() {
+  usd_export_panel_register("FILE_PT_usd_export_materials",
+                            "Materials",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_materials_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_lights() {
+  usd_export_panel_register("FILE_PT_usd_export_lights",
+                            "Lights",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_lights_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_stage() {
+  usd_export_panel_register("FILE_PT_usd_export_stage",
+                            "Stage",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_stage_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_animation() {
+  usd_export_panel_register("FILE_PT_usd_export_animation",
+                            NULL,
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_animation_draw,
+                            usd_export_panel_animation_draw_header
+                            );
+}
+
+
+void usd_export_panel_register_types() {
+  usd_export_panel_register("FILE_PT_usd_export_types",
+                            "Export Types",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_export_types_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_particles() {
+  usd_export_panel_register("FILE_PT_usd_export_particles",
+                            "Particles and Instancing",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_particles_draw,
+                            NULL
+                            );
+}
+
+
+void usd_export_panel_register_rigging() {
+  usd_export_panel_register("FILE_PT_usd_export_rigging",
+                            "Rigging",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_export_panel_poll,
+                            usd_export_panel_rigging_draw,
+                            NULL
+                            );
+}
+
+
+void WM_PT_USDExportPanelsRegister()
+{
+  usd_export_panel_register_general();
+  usd_export_panel_register_stage();
+  usd_export_panel_register_types();
+  usd_export_panel_register_geometry();
+  usd_export_panel_register_materials();
+  usd_export_panel_register_lights();
+  usd_export_panel_register_rigging();
+  usd_export_panel_register_animation();
+  usd_export_panel_register_particles();
+}
+
 
 #endif /* WITH_USD */
