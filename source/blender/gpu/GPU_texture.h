@@ -3,6 +3,10 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * A `GPUTexture` is a wrapper around backend specific texture objects.
+ * It allows, creation of diverse texture format and types, update, read, reference counting,
+ * internal sampler state tracking and texture binding.
  */
 
 #pragma once
@@ -13,41 +17,77 @@
 
 struct GPUVertBuf;
 
-/** Opaque type hiding blender::gpu::Texture. */
-typedef struct GPUTexture GPUTexture;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/** Opaque type hiding blender::gpu::PixelBuffer. */
-typedef struct GPUPixelBuffer GPUPixelBuffer;
+/* -------------------------------------------------------------------- */
+/** \name Enums
+ * \{ */
 
 /**
- * GPU Samplers state
- * - Specify the sampler state to bind a texture with.
- * - Internally used by textures.
- * - All states are created at startup to avoid runtime costs.
+ * A `eGPUSamplerState` specify the sampler state to bind a texture with.
+ * One is stored inside `GPUTexture` for default parameters.
+ *
+ * Some sampler states commonly set:
+ * - BORDER_COLOR is set to {0, 0, 0, 0}.
+ * - MIN_LOD is set to -1000.
+ * - MAX_LOD is set to 1000.
+ * - LOD_BIAS is set to 0.0.
+ */
+/**
+ * TODO(fclem): this enum needs to be split into multiple states. One for filtering. One for
+ * extension / wrap mode etc...
  */
 typedef enum eGPUSamplerState {
+  /**
+   * Default sampler state with all options off.
+   * It means no filtering, no mipmap, clamp to edge texel, no compare.
+   */
   GPU_SAMPLER_DEFAULT = 0,
+  /**
+   * Enables hardware linear filtering.
+   * Enables linear interpolation between mips if GPU_SAMPLER_MIPMAP is also set.
+   */
   GPU_SAMPLER_FILTER = (1 << 0),
+  /**
+   * Enables mipmap access through shader samplers.
+   * Enables linear interpolation between mips if GPU_SAMPLER_FILTER is also set, otherwise the mip
+   * interpolation will be set to nearest.
+   */
   GPU_SAMPLER_MIPMAP = (1 << 1),
+  /**
+   * Sets texture coordinate extension to repeat in X, Y and Z direction.
+   * If not set for some direction, either clamp to edge (texel) or border color (0,0,0,0) if
+   * `GPU_SAMPLER_CLAMP_BORDER` is set.
+   * If `GPU_SAMPLER_MIRROR_REPEAT` is set, any direction using `GPU_SAMPLER_REPEAT_*` will use a
+   * mirrored repeat coordinate extension.
+   */
   GPU_SAMPLER_REPEAT_S = (1 << 2),
   GPU_SAMPLER_REPEAT_T = (1 << 3),
   GPU_SAMPLER_REPEAT_R = (1 << 4),
-  GPU_SAMPLER_CLAMP_BORDER = (1 << 5), /* Clamp to border color instead of border texel. */
-  GPU_SAMPLER_COMPARE = (1 << 6),
-  GPU_SAMPLER_ANISO = (1 << 7),
-  GPU_SAMPLER_MIRROR_REPEAT = (1 << 8), /* Requires any REPEAT flag to be set. */
-  GPU_SAMPLER_ICON = (1 << 9),
-
   GPU_SAMPLER_REPEAT = (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R),
-} eGPUSamplerState;
+  /**
+   * Clamp to border color instead of border texel.
+   * Used for directions not using `GPU_SAMPLER_REPEAT_*`.
+   */
+  GPU_SAMPLER_CLAMP_BORDER = (1 << 5),
+  /**
+   * Enable compare mode for depth texture. The depth texture must then be bound to a shadow
+   * sampler.
+   */
+  GPU_SAMPLER_COMPARE = (1 << 6),
+  /** Enable Anisotropic filtering. This only has effect if `GPU_SAMPLER_MIPMAP` is set.
+   * The filtered result is implementation dependent.
+   * The maximum amount of samples is set
+   */
+  GPU_SAMPLER_ANISO = (1 << 7),
+  /** Enable mirror repeat extension mode for directions using the `GPU_SAMPLER_REPEAT_*` flag. */
+  GPU_SAMPLER_MIRROR_REPEAT = (1 << 8),
 
-#define GPU_TEXTURE_FREE_SAFE(texture) \
-  do { \
-    if (texture != NULL) { \
-      GPU_texture_free(texture); \
-      texture = NULL; \
-    } \
-  } while (0)
+  /** Special icon sampler with custom lod bias and interpolation mode. */
+  GPU_SAMPLER_ICON = (1 << 9),
+} eGPUSamplerState;
 
 /**
  * #GPU_SAMPLER_MAX is not a valid enum value, but only a limit.
@@ -61,33 +101,13 @@ static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
 
 ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
- * Update user defined sampler states.
+ * Types of texture internal storage. Defines how the data is stored inside the video memory.
+ * Be aware that some formats are not supported by render-buffers.
  */
-void GPU_samplers_update(void);
-
-/* GPU Texture
- * - always returns unsigned char RGBA textures
- * - if texture with non square dimensions is created, depending on the
- *   graphics card capabilities the texture may actually be stored in a
- *   larger texture with power of two dimensions.
- * - can use reference counting:
- *   - reference counter after GPU_texture_create is 1
- *   - GPU_texture_ref increases by one
- *   - GPU_texture_free decreases by one, and frees if 0
- * - if created with from_blender, will not free the texture
- */
-
 /**
- * Wrapper to supported OpenGL/Vulkan texture internal storage
- * If you need a type just un-comment it. Be aware that some formats
- * are not supported by render-buffers. All of the following formats
- * are part of the OpenGL 3.3 core
- * specification.
+ * TODO(fclem): Enable and implement all of them. Encouraging new usage and avoiding missing cases
+ * in switch statements.
  */
 typedef enum eGPUTextureFormat {
   /* Formats texture & render-buffer. */
@@ -176,18 +196,26 @@ typedef enum eGPUTextureFormat {
   GPU_DEPTH_COMPONENT16,
 } eGPUTextureFormat;
 
+/**
+ * Types of data for data specification.
+ * Used for formatting upload and download of data.
+ * When used with textures, they need to match or be compatible with the `eGPUTextureFormat` used.
+ * Check `validate_data_format` and `validate_data_format_mtl` for compatibility list.
+ */
 typedef enum eGPUDataFormat {
   GPU_DATA_FLOAT,
+  GPU_DATA_HALF_FLOAT,
   GPU_DATA_INT,
   GPU_DATA_UINT,
   GPU_DATA_UBYTE,
+  /** Special type used for depth-stencil textures. */
   GPU_DATA_UINT_24_8,
+  /** Special type used for packed 32bit per pixel textures. Data is stored in reverse order. */
   GPU_DATA_10_11_11_REV,
   GPU_DATA_2_10_10_10_REV,
-  GPU_DATA_HALF_FLOAT
 } eGPUDataFormat;
 
-/** Texture usage flags.
+/**
  * Texture usage flags allow backend implementations to contextually optimize texture resources.
  * Any texture with an explicit flag should not perform operations which are not explicitly
  * specified in the usage flags. If usage is unknown upfront, then GPU_TEXTURE_USAGE_GENERAL can be
@@ -216,12 +244,21 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 4),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 5),
+  /* Create a texture whose usage cannot be defined prematurely.
+   * This is unoptimized and should not be used. */
   GPU_TEXTURE_USAGE_GENERAL = 0xFF,
 } eGPUTextureUsage;
 
 ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);
 
-unsigned int GPU_texture_memory_usage_get(void);
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Creation
+ * \{ */
+
+/** Opaque type hiding blender::gpu::Texture. */
+typedef struct GPUTexture GPUTexture;
 
 /**
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
@@ -235,56 +272,28 @@ unsigned int GPU_texture_memory_usage_get(void);
  *
  * flag. \a mips is the number of mip level to allocate. It must be >= 1.
  */
-GPUTexture *GPU_texture_create_1d_ex(const char *name,
-                                     int w,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data);
-GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
-                                           int w,
-                                           int h,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data);
-GPUTexture *GPU_texture_create_2d_ex(const char *name,
-                                     int w,
-                                     int h,
-                                     int mips,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data);
-GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
-                                           int w,
-                                           int h,
-                                           int d,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data);
-GPUTexture *GPU_texture_create_3d_ex(const char *name,
-                                     int w,
-                                     int h,
-                                     int d,
-                                     int mip_len,
-                                     eGPUTextureFormat texture_format,
-                                     eGPUDataFormat data_format,
-                                     eGPUTextureUsage usage,
-                                     const void *data);
-GPUTexture *GPU_texture_create_cube_ex(const char *name,
-                                       int w,
-                                       int mip_len,
-                                       eGPUTextureFormat format,
-                                       eGPUTextureUsage usage,
-                                       const float *data);
-GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
-                                             int w,
-                                             int d,
-                                             int mip_len,
-                                             eGPUTextureFormat format,
-                                             eGPUTextureUsage usage,
-                                             const float *data);
+/* clang-format off */
+
+/* Extended texture functions. */
+GPUTexture *GPU_texture_create_1d_ex(
+    const char *name, int w, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_1d_array_ex(
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_2d_ex(
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_2d_array_ex(
+    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_3d_ex(
+    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat texture_format, eGPUDataFormat data_format, eGPUTextureUsage usage, const void *data);
+GPUTexture *GPU_texture_create_cube_ex(
+    const char *name, int w, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_cube_array_ex(
+    const char *name, int w, int d, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+/**
+ * DDS texture loading. Return NULL if support is not available.
+ * \a data should hold all the data for \a miplen mipmaps.
+ */
+GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name, int w, int h, int miplen, eGPUTextureFormat format, eGPUTextureUsage usage, const void *data);
 
 /* Standard texture functions. */
 GPUTexture *GPU_texture_create_1d(
@@ -292,59 +301,80 @@ GPUTexture *GPU_texture_create_1d(
 GPUTexture *GPU_texture_create_1d_array(
     const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d(
-    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_2d_array(const char *name,
-                                        int w,
-                                        int h,
-                                        int d,
-                                        int mip_len,
-                                        eGPUTextureFormat format,
-                                        const float *data);
-GPUTexture *GPU_texture_create_3d(const char *name,
-                                  int w,
-                                  int h,
-                                  int d,
-                                  int mip_len,
-                                  eGPUTextureFormat texture_format,
-                                  eGPUDataFormat data_format,
-                                  const void *data);
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_2d_array(
+    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_3d(
+    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat texture_format, eGPUDataFormat data_format, const void *data);
 GPUTexture *GPU_texture_create_cube(
     const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_cube_array(
     const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
-
-/* Fetch Usage. */
-eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
-
-/* Special textures. */
-
-GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
-/**
- * \a data should hold all the data for all mipmaps.
- */
 /**
  * DDS texture loading. Return NULL if support is not available.
+ * \a data should hold all the data for \a miplen mipmaps.
  */
-GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
-                                                int w,
-                                                int h,
-                                                int miplen,
-                                                eGPUTextureFormat format,
-                                                eGPUTextureUsage usage,
-                                                const void *data);
 GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
+/* clang-format on */
 
 /**
- * Create an error texture that will bind an invalid texture (pink) at draw time.
+ * Create a buffer texture that allow access to a buffer \a vert through a sampler of type
+ * `(FLOAT/INT/UINT)_BUFFER`.
+ */
+GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
+
+/**
+ * Create an error texture that will bind an pink texture at draw time.
  */
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Freeing
+ * \{ */
+
 /**
- * Create an alias of the source texture data.
- * If \a src is freed, the texture view will continue to be valid.
- * If \a mip_start or \a mip_len is bigger than available mips they will be clamped.
- * If \a cube_as_array is true, then the texture cube (array) becomes a 2D array texture.
- * TODO(@fclem): Target conversion is not implemented yet.
+ * Add a reference to this texture for usage.
+ * This internally increment the reference counter.
+ * This avoids the texture being free between the time it is referenced by the drawing logic and
+ * the time it is actually dereferenced.
+ */
+void GPU_texture_ref(GPUTexture *tex);
+
+/**
+ * Add a reference to this texture for usage.
+ * This internally decrement the reference counter.
+ * If the reference counter is 1 when calling this function the #GPUTexture will be freed.
+ */
+void GPU_texture_free(GPUTexture *tex);
+
+#define GPU_TEXTURE_FREE_SAFE(texture) \
+  do { \
+    if (texture != NULL) { \
+      GPU_texture_free(texture); \
+      texture = NULL; \
+    } \
+  } while (0)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture Views
+ * \{ */
+
+/**
+ * Create an alias of the source texture data. A view can cover the whole texture or only a range
+ * of mip levels and/or array layer range.
+ *
+ * \note If \a src is freed, the texture view will continue to be valid.
+ * \note If \a mip_start or \a mip_len is bigger than available mips they will be clamped to the
+ * source texture available range.
+ * \note If \a cube_as_array is true, then the created view will be a 2D array texture instead of a
+ * cube-map texture or cube-map-array texture.
+ *
+ * TODO(fclem): Target conversion is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
                                     const GPUTexture *src,
@@ -355,24 +385,42 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int layer_len,
                                     bool cube_as_array);
 
-GPUTexture *GPU_texture_create_single_layer_view(const char *name, const GPUTexture *src);
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modify & Update
+ * \{ */
 
 /**
- * Create an alias of the source texture as a texture array with only one layer.
- * Works for 1D, 2D and cube-map source texture.
- * If \a src is freed, the texture view will continue to be valid.
+ * Makes data interpretation aware of the source layout.
+ * Skipping pixels correctly when changing rows when doing partial update.
+ * This affects `GPU_texture_update`, `GPU_texture_update_sub`, `GPU_texture_update_mipmap`.
+ * TODO(fclem): replace this by pixel buffer updates using a custom utility to do the line shifting
+ * like Cycles does.
  */
-GPUTexture *GPU_texture_create_single_layer_array_view(const char *name, const GPUTexture *src);
-
-void GPU_texture_update_mipmap(GPUTexture *tex,
-                               int miplvl,
-                               eGPUDataFormat gpu_data_format,
-                               const void *pixels);
+void GPU_unpack_row_length_set(uint len);
 
 /**
- * \note Updates only mip 0.
+ * Update the content of a texture's base mip-map level (mip 0).
+ * \a data_format is the format of the \a data . It needs to be compatible with the internal
+ * texture storage.
+ * The \a data should be be the size of the entire mip 0 level.
+ * \note This function only update the content of mip 0. Either specify other mips or use
+ * `GPU_texture_generate_mipmap` to generate them if needed.
  */
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
+
+/**
+ * Update the content of a region of a texture's base mip-map level (mip 0).
+ * \a data_format is the format of the \a data . It needs to be compatible with the internal
+ * texture storage.
+ * The \a data should be be the size of the mip 0 level region.
+ * \note This function only update the content of mip 0. Either specify other mips or use
+ * `GPU_texture_generate_mipmap` to generate them if needed.
+ *
+ * \a offset_x , \a offset_y , \a offset_z specify the bottom left corner of the updated region.
+ * \a width , \a height , \a depth specify the extent of the updated region.
+ */
 void GPU_texture_update_sub(GPUTexture *tex,
                             eGPUDataFormat data_format,
                             const void *pixels,
@@ -383,23 +431,17 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int height,
                             int depth);
 
-/* Update from API Buffer. */
-void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
-                                              eGPUDataFormat data_format,
-                                              GPUPixelBuffer *pix_buf,
-                                              int offset_x,
-                                              int offset_y,
-                                              int offset_z,
-                                              int width,
-                                              int height,
-                                              int depth);
 /**
- * Makes data interpretation aware of the source layout.
- * Skipping pixels correctly when changing rows when doing partial update.
+ * Update the content of a texture's specific mip-map level.
+ * \a gpu_data_format is the format of the \a pixels . It needs to be compatible with the internal
+ * texture storage.
+ * The \a data should be be the size of the entire \a miplvl .
  */
-void GPU_unpack_row_length_set(uint len);
+void GPU_texture_update_mipmap(GPUTexture *tex,
+                               int miplvl,
+                               eGPUDataFormat gpu_data_format,
+                               const void *pixels);
 
-void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
 /**
  * Fills the whole texture with the same data for all pixels.
  * \warning Only work for 2D texture for now.
@@ -410,35 +452,144 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
  */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 
-void GPU_texture_free(GPUTexture *tex);
-
-void GPU_texture_ref(GPUTexture *tex);
-void GPU_texture_bind(GPUTexture *tex, int unit);
-void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, bool set_number);
-void GPU_texture_unbind(GPUTexture *tex);
-void GPU_texture_unbind_all(void);
-
-void GPU_texture_image_bind(GPUTexture *tex, int unit);
-void GPU_texture_image_unbind(GPUTexture *tex);
-void GPU_texture_image_unbind_all(void);
-
 /**
- * Copy a texture content to a similar texture. Only MIP 0 is copied.
+ * Copy a \a src texture content to a similar \a dst texture. Only MIP 0 is copied.
+ * Textures needs to match in size and format.
  */
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 
-void GPU_texture_generate_mipmap(GPUTexture *tex);
-void GPU_texture_anisotropic_filter(GPUTexture *tex, bool use_aniso);
-void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
-void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
-void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
-void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
-void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
 /**
- * Set depth stencil texture sampling behavior. Can work on texture views.
- * If stencil sampling is enabled, an unsigned integer sampler is required.
+ * Update the mip-map levels using the mip 0 data.
+ * \note this doesn't work on depth or compressed textures.
+ */
+void GPU_texture_generate_mipmap(GPUTexture *tex);
+
+/**
+ * Read the content of a \a miplvl from a \a tex and returns a copy of its data.
+ * \warning the texture must have been created using GPU_TEXTURE_USAGE_HOST_READ.
+ * \note synchronisation of shader writes via `imageStore()` needs to be explicitly done using
+ * `GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH)`.
+ */
+void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Binding
+ * \{ */
+
+/**
+ * Bind a texture to a texture sampling image units using the texture internal sampler state.
+ */
+void GPU_texture_bind(GPUTexture *tex, int unit);
+/**
+ * Bind a texture to a texture sampling image units using the explicit sampler state.
+ */
+void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, bool set_number);
+/**
+ * Unbind \a tex from a texture sampling image unit.
+ * \note this isn't strictly required but it is better for debugging purpose.
+ */
+void GPU_texture_unbind(GPUTexture *tex);
+/**
+ * Unbind all texture from all texture sampling image units.
+ */
+void GPU_texture_unbind_all(void);
+
+/**
+ * Bind \a tex to an arbitrary load/store image unit.
+ * It correspond to a `gpu::shader::ShaderCreateInfo::image()` declaration.
+ * \note this overrides any previous bind on the same unit.
+ */
+void GPU_texture_image_bind(GPUTexture *tex, int unit);
+/**
+ * Unbind \a tex from an arbitrary load/store image unit.
+ * \note this isn't strictly required but it is better for debugging purpose.
+ */
+void GPU_texture_image_unbind(GPUTexture *tex);
+/**
+ * Unbind all texture from all arbitrary load/store image units.
+ */
+void GPU_texture_image_unbind_all(void);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name State API
+ * \{ */
+
+/**
+ * Set anisotropic filter usage. Filter sample count is determined globally by
+ * `U.anisotropic_filter` and updated when `GPU_samplers_update` is called.
+ */
+void GPU_texture_anisotropic_filter(GPUTexture *tex, bool use_aniso);
+
+/**
+ * Set \a tex texture depth comparison mode. Only works on depth format.
+ */
+void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
+
+/**
+ * Set \a tex texture filter usage.
+ * If \a use_filter is true, the texture will use linear interpolation between neighboring texels.
+ * \note Does not work on non-normalized integer textures.
+ * \note Does not modify the mip-map usage state.
+ */
+void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
+
+/**
+ * Set \a tex texture filter and mip-map usage.
+ * If \a use_filter is true, the texture will use linear interpolation between neighboring texels.
+ * If \a use_mipmap is true, the texture will use mip-mapping as anti-aliasing method.
+ * If both are set to true, the texture will use linear interpolation between mip-map levels.
+ * \note Does not work on non-normalized integer textures.
+ */
+void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
+
+/**
+ * Set \a tex texture sampling method for coordinates outside of the [0..1] uv range.
+ *
+ * If \a use_repeat is true, sampling the texture outside of the [0..1] uv range will repeat to
+ * border color instead of the border texel value.
+ *
+ * If \a use_clamp is true, sampling the texture outside of the [0..1] uv range will clamp to the
+ * closest border texel value. If set to false, it will use the values (0, 0, 0, 0) instead.
+ */
+void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
+
+/**
+ * Set \a tex texture swizzle state for swizzling sample components.
+ *
+ * A texture sample always return 4 components in the shader. If the texture has less than 4
+ * components, the missing ones are replaced by the matching values in the following vector
+ * (0, 0, 0, 1).
+ *
+ * \a swizzle contains 1 char per component representing the source of the data for each of the
+ * component of a sample value. The possible values for each of these 4 characters are:
+ * - 'r' or 'x': use the texture first component.
+ * - 'g' or 'y': use the texture second component.
+ * - 'b' or 'z': use the texture third component.
+ * - 'a' or 'w': use the texture fourth component.
+ * - '0': will make the component value to always return 0.
+ * - '1': will make the component value to always return 1.
+ */
+void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
+
+/**
+ * Set a depth-stencil texture read mode.
+ *
+ * If \a use_stencil is true, the texture is expected to be bound to a UINT sampler and will return
+ * the stencil value (in a range of [0..255]) as the first component.
+ * If \a use_stencil is false, the texture is expected to be bound to a DEPTH sampler and will
+ * return the normalized depth value (in a range of [0..1])  as the first component.
  */
 void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Introspection API
+ * \{ */
 
 /**
  * Return the number of dimensions of the texture ignoring dimension of layers (1, 2 or 3).
@@ -446,43 +597,198 @@ void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
  */
 int GPU_texture_dimensions(const GPUTexture *tex);
 
+/**
+ * Return the width of \a tex .
+ */
 int GPU_texture_width(const GPUTexture *tex);
+
+/**
+ * Return the height of \a tex . Correspond to number of layers for 1D array texture.
+ */
 int GPU_texture_height(const GPUTexture *tex);
+
+/**
+ * Return the number of layers of \a tex . Return 1 if the texture is not layered.
+ */
 int GPU_texture_layer_count(const GPUTexture *tex);
+
+/**
+ * Return the number of mip-map level inside this texture.
+ */
 int GPU_texture_mip_count(const GPUTexture *tex);
+
+/**
+ * Return the texture format of \a tex .
+ */
+eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
+
+/**
+ * Return the usage flags of \a tex .
+ */
+eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
+
+/**
+ * Return true if the texture is an array texture type (has layers).
+ */
+bool GPU_texture_array(const GPUTexture *tex);
+
+/**
+ * Return true if the texture is an cube-map texture type.
+ */
+bool GPU_texture_cube(const GPUTexture *tex);
+
+/**
+ * Return true if the texture format has a depth component.
+ */
+bool GPU_texture_depth(const GPUTexture *tex);
+
+/**
+ * Return true if the texture format has a stencil component.
+ */
+bool GPU_texture_stencil(const GPUTexture *tex);
+
+/**
+ * Return true if the texture format is an integer type (non-normalized integers).
+ */
+bool GPU_texture_integer(const GPUTexture *tex);
+
+/**
+ * Returns the pixel dimensions of a texture's mip-map level.
+ * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
+ * (including the array dimension).
+ */
+void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Python API & meta-data
+ *
+ * These are not intrinsic properties of a texture but they are stored inside the gpu::Texture
+ * structure for tracking purpose.
+ * \{ */
+
+/**
+ * Width & Height (of source data), optional.
+ * WORKAROUND: Calling 'BKE_image_get_size' may free the texture. Store the source image size
+ * (before down-scaling) inside the #GPUTexture to retrieve the original size later (Ref #59347).
+ */
 int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
-eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
-const char *GPU_texture_format_description(eGPUTextureFormat texture_format);
-bool GPU_texture_array(const GPUTexture *tex);
-bool GPU_texture_cube(const GPUTexture *tex);
-bool GPU_texture_depth(const GPUTexture *tex);
-bool GPU_texture_stencil(const GPUTexture *tex);
-bool GPU_texture_integer(const GPUTexture *tex);
 
+/**
+ * Reference of a pointer that needs to be cleaned when deallocating the texture.
+ * Points to #BPyGPUTexture.tex
+ */
 #ifndef GPU_NO_USE_PY_REFERENCES
 void **GPU_texture_py_reference_get(GPUTexture *tex);
 void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref);
 #endif
 
+/**
+ * Return the backend handle of the texture.
+ * \note This is a legacy feature only working on OpenGL backend. It will be removed once we remove
+ * the python BGL module.
+ */
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
-void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
+/** \} */
 
-/* Utilities. */
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
 
+/**
+ * Returns the number of components in a texture format.
+ */
 size_t GPU_texture_component_len(eGPUTextureFormat format);
+
+/**
+ * Return the expected number of bytes for one pixel of \a data_format data.
+ */
 size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
 
-/* GPU Pixel Buffer. */
-GPUPixelBuffer *GPU_pixel_buffer_create(uint size);
+/**
+ * Return the texture format as a string for display purpose.
+ * Example: `GPU_RGBA8` returns as `"RGBA8"`.
+ */
+const char *GPU_texture_format_description(eGPUTextureFormat texture_format);
+
+/**
+ * Returns the memory usage of all currently allocated textures in bytes.
+ * \note that does not mean all of the textures are inside VRAM. Drivers can swap the texture
+ * memory back and forth depending on usage.
+ */
+unsigned int GPU_texture_memory_usage_get(void);
+
+/**
+ * Update sampler states depending on user settings.
+ */
+void GPU_samplers_update(void);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pixel Buffer
+ *
+ * Used for interfacing with other graphic APIs using graphic interoperability.
+ * It can also be used for more efficient partial update from CPU side.
+ * \{ */
+
+/** Opaque type hiding blender::gpu::PixelBuffer. */
+typedef struct GPUPixelBuffer GPUPixelBuffer;
+
+/**
+ * Creates a #GPUPixelBuffer object with \a byte_size worth of storage.
+ */
+GPUPixelBuffer *GPU_pixel_buffer_create(uint byte_size);
+
+/**
+ * Free a #GPUPixelBuffer object.
+ * The object should be unmapped before being freed.
+ */
 void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf);
 
+/**
+ * Maps a pixel buffer to RAM, giving back access rights to CPU.
+ * The returned pointer is only valid until `GPU_pixel_buffer_unmap` is called.
+ * A #GPUPixelBuffer needs to be unmapped before being used for GPU side operation (like texture
+ * update through `GPU_texture_update_sub_from_pixel_buffer`).
+ */
 void *GPU_pixel_buffer_map(GPUPixelBuffer *pix_buf);
+
+/**
+ * Unmap a pixel buffer from RAM, giving back access rights to GPU.
+ * Any pointer previously acquired by `GPU_pixel_buffer_map` becomes invalid.
+ */
 void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf);
+
+/**
+ * Return size in bytes of the \a pix_buf .
+ */
 uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf);
+
+/**
+ * Return the native handle of the \a pix_buf to use for graphic interoperability registration.
+ */
 int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pix_buf);
+
+/**
+ * Update a sub-region of a texture using the data from a #GPUPixelBuffer as source data.
+ * The \a pix_buf data is expected to be contiguous and big enough to fill the described
+ * sub-region.
+ */
+void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
+                                              eGPUDataFormat data_format,
+                                              GPUPixelBuffer *pix_buf,
+                                              int offset_x,
+                                              int offset_y,
+                                              int offset_z,
+                                              int width,
+                                              int height,
+                                              int depth);
+/** \} */
 
 #ifdef __cplusplus
 }

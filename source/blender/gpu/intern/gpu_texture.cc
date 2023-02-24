@@ -534,18 +534,6 @@ GPUTexture *GPU_texture_create_view(const char *name,
   return wrap(view);
 }
 
-GPUTexture *GPU_texture_create_single_layer_view(const char *name, const GPUTexture *src)
-{
-  eGPUTextureFormat format = unwrap(src)->format_get();
-  eGPUTextureType type = unwrap(src)->type_get();
-  BLI_assert(ELEM(type, GPU_TEXTURE_1D, GPU_TEXTURE_2D, GPU_TEXTURE_CUBE));
-  type |= GPU_TEXTURE_ARRAY;
-
-  Texture *view = GPUBackend::get()->texture_alloc(name);
-  view->init_view(src, format, type, 0, 9999, 0, 1, false);
-  return wrap(view);
-}
-
 /* ------ Usage ------ */
 eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture_)
 {
