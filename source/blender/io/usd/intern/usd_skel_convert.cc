@@ -99,13 +99,13 @@ void add_bezt(FCurve *fcu,
 }
 
 /* Generate dummy curve samples for testing. */
-void add_dummy_samples(FCurve *fcu)
-{
-  int totvert = fcu->totvert;
-  for (int i = 0; i < totvert; ++i) {
-    add_bezt(fcu, static_cast<float>(i+1), static_cast<float>(i) * 0.1f);
-  }
-}
+//void add_dummy_samples(FCurve *fcu)
+//{
+//  int totvert = fcu->totvert;
+//  for (int i = 0; i < totvert; ++i) {
+//    add_bezt(fcu, static_cast<float>(i+1), static_cast<float>(i) * 0.1f);
+//  }
+//}
 
 }  // End anonymous namespace.
 

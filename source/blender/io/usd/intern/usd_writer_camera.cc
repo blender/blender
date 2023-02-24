@@ -28,31 +28,31 @@ bool USDCameraWriter::is_supported(const HierarchyContext *context) const
   return camera->type == CAM_PERSP;
 }
 
-static void camera_sensor_size_for_render(const Camera *camera,
-                                          const struct RenderData *rd,
-                                          float *r_sensor_x,
-                                          float *r_sensor_y)
-{
-  /* Compute the final image size in pixels. */
-  float sizex = rd->xsch * rd->xasp;
-  float sizey = rd->ysch * rd->yasp;
-
-  int sensor_fit = BKE_camera_sensor_fit(camera->sensor_fit, sizex, sizey);
-
-  switch (sensor_fit) {
-    case CAMERA_SENSOR_FIT_HOR:
-      *r_sensor_x = camera->sensor_x;
-      *r_sensor_y = camera->sensor_x * sizey / sizex;
-      break;
-    case CAMERA_SENSOR_FIT_VERT:
-      *r_sensor_x = camera->sensor_y * sizex / sizey;
-      *r_sensor_y = camera->sensor_y;
-      break;
-    case CAMERA_SENSOR_FIT_AUTO:
-      BLI_assert_msg(0, "Camera fit should be either horizontal or vertical");
-      break;
-  }
-}
+//static void camera_sensor_size_for_render(const Camera *camera,
+//                                          const struct RenderData *rd,
+//                                          float *r_sensor_x,
+//                                          float *r_sensor_y)
+//{
+//  /* Compute the final image size in pixels. */
+//  float sizex = rd->xsch * rd->xasp;
+//  float sizey = rd->ysch * rd->yasp;
+//
+//  int sensor_fit = BKE_camera_sensor_fit(camera->sensor_fit, sizex, sizey);
+//
+//  switch (sensor_fit) {
+//    case CAMERA_SENSOR_FIT_HOR:
+//      *r_sensor_x = camera->sensor_x;
+//      *r_sensor_y = camera->sensor_x * sizey / sizex;
+//      break;
+//    case CAMERA_SENSOR_FIT_VERT:
+//      *r_sensor_x = camera->sensor_y * sizex / sizey;
+//      *r_sensor_y = camera->sensor_y;
+//      break;
+//    case CAMERA_SENSOR_FIT_AUTO:
+//      BLI_assert_msg(0, "Camera fit should be either horizontal or vertical");
+//      break;
+//  }
+//}
 
 void USDCameraWriter::do_write(HierarchyContext &context)
 {

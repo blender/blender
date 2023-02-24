@@ -101,21 +101,6 @@ static const pxr::TfToken vector("vector", pxr::TfToken::Immortal);
 
 namespace blender::io::usd {
 
-/* Replace backslaches with forward slashes.
- * Assumes buf is null terminated. */
-static void ensure_forward_slashes(char *buf, int size)
-{
-  if (!buf) {
-    return;
-  }
-  int i = 0;
-  for (char *p = buf; *p != '0' && i < size; ++p, ++i) {
-    if (*p == '\\') {
-      *p = '/';
-    }
-  }
-}
-
 /* Preview surface input specification. */
 struct InputSpec {
   pxr::TfToken input_name;
@@ -538,53 +523,6 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   }
 }
 
-/* Find an output node of the shader tree.
- *
- * NOTE: it will only return output which is NOT in the group, which isn't how
- * render engines works but it's how the GPU shader compilation works. This we
- * can change in the future and make it a generic function, but for now it stays
- * private here.
- */
-static bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
-{
-  /* Make sure we only have single node tagged as output. */
-  ntreeSetOutput(ntree);
-
-  /* Find output node that matches type and target. If there are
-   * multiple, we prefer exact target match and active nodes. */
-  bNode *output_node = NULL;
-
-  for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
-    if (!ELEM(node->type, SH_NODE_OUTPUT_MATERIAL, SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT)) {
-      continue;
-    }
-
-    if (node->custom1 == SHD_OUTPUT_ALL) {
-      if (output_node == NULL) {
-        output_node = node;
-      }
-      else if (output_node->custom1 == SHD_OUTPUT_ALL) {
-        if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-          output_node = node;
-        }
-      }
-    }
-    else if (node->custom1 == target) {
-      if (output_node == NULL) {
-        output_node = node;
-      }
-      else if (output_node->custom1 == SHD_OUTPUT_ALL) {
-        output_node = node;
-      }
-      else if ((node->flag & NODE_DO_OUTPUT) && !(output_node->flag & NODE_DO_OUTPUT)) {
-        output_node = node;
-      }
-    }
-  }
-
-  return output_node;
-}
-
 /* Find socket with a specified identifier. */
 static bNodeSocket *ntree_shader_node_find_socket(ListBase *sockets, const char *identifier)
 {
@@ -594,12 +532,6 @@ static bNodeSocket *ntree_shader_node_find_socket(ListBase *sockets, const char 
     }
   }
   return NULL;
-}
-
-/* Find input socket with a specified identifier. */
-static bNodeSocket *ntree_shader_node_find_input(bNode *node, const char *identifier)
-{
-  return ntree_shader_node_find_socket(&node->inputs, identifier);
 }
 
 /* Find output socket with a specified identifier. */

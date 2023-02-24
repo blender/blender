@@ -53,9 +53,6 @@ static const pxr::TfToken mdl("mdl", pxr::TfToken::Immortal);
 static PyObject *g_umm_module = nullptr;
 
 static const char *k_umm_module_name = "omni.universalmaterialmap.blender.material";
-static const char *k_omni_pbr_mdl_name = "OmniPBR.mdl";
-static const char *k_omni_pbr_name = "OmniPBR";
-static const char *k_udim_tag = "<UDIM>";
 
 using namespace blender::io::usd;
 
@@ -161,12 +158,12 @@ static eUMMNotification report_notification(PyObject *dict)
   }
 
   if (strcmp(notification_str, "incomplete_process") == 0) {
-    WM_reportf(RPT_WARNING, message_str);
+    WM_reportf(RPT_WARNING, "%s", message_str);
     return UMM_NOTIFICATION_FAILURE;
   }
 
   if (strcmp(notification_str, "unexpected_error") == 0) {
-    WM_reportf(RPT_ERROR, message_str);
+    WM_reportf(RPT_ERROR, "%s", message_str);
     return UMM_NOTIFICATION_FAILURE;
   }
 
@@ -252,89 +249,89 @@ static bool get_string_data(PyObject *tup, std::string &r_data)
   return false;
 }
 
-static bool get_float_data(PyObject *tup, float &r_data)
-{
-  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
-    return false;
-  }
-
-  PyObject *second = PyTuple_GetItem(tup, 1);
-
-  if (second && PyFloat_Check(second)) {
-    r_data = static_cast<float>(PyFloat_AsDouble(second));
-    return true;
-  }
-
-  return false;
-}
-
-static bool get_float3_data(PyObject *tup, float r_data[3])
-{
-  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
-    return false;
-  }
-
-  PyObject *second = PyTuple_GetItem(tup, 1);
-
-  if (second && PyTuple_Check(second) && PyTuple_Size(second) > 2) {
-    for (int i = 0; i < 3; ++i) {
-      PyObject *comp = PyTuple_GetItem(second, i);
-      if (comp && PyFloat_Check(comp)) {
-        r_data[i] = static_cast<float>(PyFloat_AsDouble(comp));
-      }
-      else {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  return false;
-}
-
-static bool get_rgba_data(PyObject *tup, float r_data[4])
-{
-  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
-    return false;
-  }
-
-  PyObject *second = PyTuple_GetItem(tup, 1);
-
-  if (!(second && PyTuple_Check(second))) {
-    return false;
-  }
-
-  Py_ssize_t size = PyTuple_Size(second);
-
-  if (size > 2) {
-    for (int i = 0; i < 3; ++i) {
-      PyObject *comp = PyTuple_GetItem(second, i);
-      if (comp && PyFloat_Check(comp)) {
-        r_data[i] = static_cast<float>(PyFloat_AsDouble(comp));
-      }
-      else {
-        return false;
-      }
-    }
-
-    if (size > 3) {
-      PyObject *alpha = PyTuple_GetItem(second, 3);
-      if (alpha && PyFloat_Check(alpha)) {
-        r_data[3] = static_cast<float>(PyFloat_AsDouble(alpha));
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      r_data[3] = 1.0;
-    }
-
-    return true;
-  }
-
-  return false;
-}
+//static bool get_float_data(PyObject *tup, float &r_data)
+//{
+//  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
+//    return false;
+//  }
+//
+//  PyObject *second = PyTuple_GetItem(tup, 1);
+//
+//  if (second && PyFloat_Check(second)) {
+//    r_data = static_cast<float>(PyFloat_AsDouble(second));
+//    return true;
+//  }
+//
+//  return false;
+//}
+//
+//static bool get_float3_data(PyObject *tup, float r_data[3])
+//{
+//  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
+//    return false;
+//  }
+//
+//  PyObject *second = PyTuple_GetItem(tup, 1);
+//
+//  if (second && PyTuple_Check(second) && PyTuple_Size(second) > 2) {
+//    for (int i = 0; i < 3; ++i) {
+//      PyObject *comp = PyTuple_GetItem(second, i);
+//      if (comp && PyFloat_Check(comp)) {
+//        r_data[i] = static_cast<float>(PyFloat_AsDouble(comp));
+//      }
+//      else {
+//        return false;
+//      }
+//    }
+//    return true;
+//  }
+//
+//  return false;
+//}
+//
+//static bool get_rgba_data(PyObject *tup, float r_data[4])
+//{
+//  if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
+//    return false;
+//  }
+//
+//  PyObject *second = PyTuple_GetItem(tup, 1);
+//
+//  if (!(second && PyTuple_Check(second))) {
+//    return false;
+//  }
+//
+//  Py_ssize_t size = PyTuple_Size(second);
+//
+//  if (size > 2) {
+//    for (int i = 0; i < 3; ++i) {
+//      PyObject *comp = PyTuple_GetItem(second, i);
+//      if (comp && PyFloat_Check(comp)) {
+//        r_data[i] = static_cast<float>(PyFloat_AsDouble(comp));
+//      }
+//      else {
+//        return false;
+//      }
+//    }
+//
+//    if (size > 3) {
+//      PyObject *alpha = PyTuple_GetItem(second, 3);
+//      if (alpha && PyFloat_Check(alpha)) {
+//        r_data[3] = static_cast<float>(PyFloat_AsDouble(alpha));
+//      }
+//      else {
+//        return false;
+//      }
+//    }
+//    else {
+//      r_data[3] = 1.0;
+//    }
+//
+//    return true;
+//  }
+//
+//  return false;
+//}
 
 /* Be sure to call PyGILState_Ensure() before calling this function. */
 static bool ensure_module_loaded(bool warn = true)
@@ -356,30 +353,30 @@ static bool ensure_module_loaded(bool warn = true)
   return g_umm_module != nullptr;
 }
 
-static void test_python()
-{
-  PyGILState_STATE gilstate = PyGILState_Ensure();
-
-  PyObject *mod = PyImport_ImportModule("omni.universalmaterialmap.core.converter.util");
-
-  if (mod) {
-    const char *func_name = "get_conversion_manifest";
-
-    if (PyObject_HasAttrString(mod, func_name)) {
-      if (PyObject *func = PyObject_GetAttrString(mod, func_name)) {
-        PyObject *ret = PyObject_CallObject(func, nullptr);
-        Py_DECREF(func);
-
-        if (ret) {
-          print_obj(ret);
-          Py_DECREF(ret);
-        }
-      }
-    }
-  }
-
-  PyGILState_Release(gilstate);
-}
+//static void test_python()
+//{
+//  PyGILState_STATE gilstate = PyGILState_Ensure();
+//
+//  PyObject *mod = PyImport_ImportModule("omni.universalmaterialmap.core.converter.util");
+//
+//  if (mod) {
+//    const char *func_name = "get_conversion_manifest";
+//
+//    if (PyObject_HasAttrString(mod, func_name)) {
+//      if (PyObject *func = PyObject_GetAttrString(mod, func_name)) {
+//        PyObject *ret = PyObject_CallObject(func, nullptr);
+//        Py_DECREF(func);
+//
+//        if (ret) {
+//          print_obj(ret);
+//          Py_DECREF(ret);
+//        }
+//      }
+//    }
+//  }
+//
+//  PyGILState_Release(gilstate);
+//}
 
 static PyObject *get_shader_source_data(const USDImportParams &params,
                                         const pxr::UsdShadeShader &usd_shader)

@@ -118,7 +118,6 @@ void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
   }
 
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
-  pxr::UsdTimeCode timecode = get_export_time_code();
 
   pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
 

@@ -639,7 +639,7 @@ bool USD_export(bContext *C,
   if (BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
     BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
   }
-  else if (BLI_path_extension_check_n(filepath, ".usdz")) {
+  else if (BLI_path_extension_check_n(filepath, ".usdz", NULL)) {
     create_temp_path_for_usdz_export(filepath, job);
     job->is_usdz_export = true;
   }
