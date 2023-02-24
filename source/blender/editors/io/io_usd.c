@@ -1114,7 +1114,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .convert_light_from_nits = convert_light_from_nits,
                                    .scale_light_radius = scale_light_radius,
                                    .create_background_shader = create_background_shader,
-                                   .mtl_name_collision_mode = mtl_name_collision_mode,
                                    .attr_import_mode = attr_import_mode,
                                    .import_defined_only = import_defined_only,
                                    .mtl_name_collision_mode = mtl_name_collision_mode,
@@ -1454,7 +1453,7 @@ static wmOperator *get_named_operator(const bContext *C, const char *idname) {
     return NULL;
   }
 
-  if (stricmp(op->idname, idname) != 0) {
+  if (strcasecmp(op->idname, idname) != 0) {
     return NULL;
   }
 
