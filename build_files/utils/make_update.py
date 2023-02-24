@@ -432,7 +432,10 @@ def external_scripts_update(args: argparse.Namespace,
             # Switch to branch and pull.
             if submodule_branch:
                 if make_utils.git_branch(args.git_command) != submodule_branch:
-                    call([args.git_command, "checkout", submodule_branch])
+                    if make_utils.git_remote_exist(args.git_command, "origin"):
+                        call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
+                    elif make_utils.git_remote_exist(args.git_command, "upstream"):
+                        call([args.git_command, "checkout", "-t", f"upstream/{submodule_branch}"])
                 # Don't use extra fetch since all remotes of interest have been already fetched
                 # some lines above.
                 skip_msg += work_tree_update(args, use_fetch=False)
