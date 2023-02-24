@@ -218,29 +218,17 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     MutableSpan<float3> bary_weights = params.uninitialized_single_output_if_required<float3>(
         3, "Barycentric Weights");
 
-    Array<ReverseUVSampler::Result> results(mask.min_array_size());
-    reverse_uv_sampler_->sample_many(sample_uvs, results);
-
-    if (!is_valid.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     is_valid.begin(),
-                     [](const ReverseUVSampler::Result &result) {
-                       return result.type == ReverseUVSampler::ResultType::Ok;
-                     });
-    }
-    if (!tri_index.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     tri_index.begin(),
-                     [](const ReverseUVSampler::Result &result) { return result.looptri_index; });
-    }
-
-    if (!bary_weights.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     bary_weights.begin(),
-                     [](const ReverseUVSampler::Result &result) { return result.bary_weights; });
+    for (const int i : mask) {
+      const ReverseUVSampler::Result result = reverse_uv_sampler_->sample(sample_uvs[i]);
+      if (!is_valid.is_empty()) {
+        is_valid[i] = result.type == ReverseUVSampler::ResultType::Ok;
+      }
+      if (!tri_index.is_empty()) {
+        tri_index[i] = result.looptri_index;
+      }
+      if (!bary_weights.is_empty()) {
+        bary_weights[i] = result.bary_weights;
+      }
     }
   }
 
