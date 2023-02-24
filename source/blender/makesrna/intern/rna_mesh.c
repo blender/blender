@@ -1143,8 +1143,65 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
 /* vertex_color_layers */
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_PROP_BYTE_COLOR)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(
-    vertex_color, ldata, CD_PROP_BYTE_COLOR, active, MeshLoopColorLayer)
+
+static PointerRNA rna_Mesh_vertex_color_active_get(PointerRNA *ptr)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
+
+  if (!layer || layer->type != CD_PROP_BYTE_COLOR ||
+      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_CORNER) {
+    return PointerRNA_NULL;
+  }
+
+  return rna_pointer_inherit_refine(ptr, &RNA_MeshLoopColorLayer, layer);
+}
+
+static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
+                                             const PointerRNA value,
+                                             ReportList *reports)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)value.data;
+
+  if (!layer) {
+    return;
+  }
+
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+}
+
+static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
+
+  if (!layer || layer->type != CD_PROP_BYTE_COLOR ||
+      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_CORNER) {
+    return 0;
+  }
+
+  CustomData *ldata = rna_mesh_ldata(ptr);
+  return layer - ldata->layers + CustomData_get_layer_index(ldata, CD_PROP_BYTE_COLOR);
+}
+
+static void rna_Mesh_vertex_color_active_index_set(PointerRNA *ptr, int value)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+  CustomData *ldata = rna_mesh_ldata(ptr);
+
+  if (value < 0 || value >= CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR)) {
+    fprintf(stderr, "Invalid loop byte attribute index %d\n", value);
+    return;
+  }
+
+  CustomDataLayer *layer = ldata->layers + CustomData_get_layer_index(ldata, CD_PROP_BYTE_COLOR) +
+                           value;
+
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+}
 
 static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -1160,35 +1217,98 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
   return (me->edit_mesh) ? 0 : me->totloop;
 }
 
-static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
+static bool rna_mesh_color_active_render_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
   return mesh->default_color_attribute && STREQ(mesh->default_color_attribute, layer->name);
 }
 
-static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
+static bool rna_mesh_color_active_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
   return mesh->active_color_attribute && STREQ(mesh->active_color_attribute, layer->name);
 }
 
-static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
+static void rna_mesh_color_active_render_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 1);
+  Mesh *mesh = (Mesh *)ptr->owner_id;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  BKE_id_attributes_default_color_set(&mesh->id, layer->name);
 }
 
-static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
+static void rna_mesh_color_active_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 0);
+  Mesh *mesh = (Mesh *)ptr->owner_id;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
 }
 
 /* sculpt_vertex_color_layers */
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(sculpt_vertex_color, vdata, CD_PROP_COLOR)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(
-    sculpt_vertex_color, vdata, CD_PROP_COLOR, active, MeshVertColorLayer)
+
+static PointerRNA rna_Mesh_sculpt_vertex_color_active_get(PointerRNA *ptr)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
+
+  if (!layer || layer->type != CD_PROP_COLOR ||
+      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_POINT) {
+    return PointerRNA_NULL;
+  }
+
+  return rna_pointer_inherit_refine(ptr, &RNA_MeshVertColorLayer, layer);
+}
+
+static void rna_Mesh_sculpt_vertex_color_active_set(PointerRNA *ptr,
+                                                    const PointerRNA value,
+                                                    ReportList *reports)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)value.data;
+
+  if (!layer) {
+    return;
+  }
+
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+}
+
+static int rna_Mesh_sculpt_vertex_color_active_index_get(PointerRNA *ptr)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
+  CustomData *vdata = rna_mesh_vdata(ptr);
+
+  if (!layer || layer->type != CD_PROP_COLOR ||
+      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_POINT) {
+    return 0;
+  }
+
+  return layer - vdata->layers + CustomData_get_layer_index(vdata, CD_PROP_COLOR);
+}
+
+static void rna_Mesh_sculpt_vertex_color_active_index_set(PointerRNA *ptr, int value)
+{
+  Mesh *mesh = (Mesh *)ptr->data;
+  CustomData *vdata = rna_mesh_vdata(ptr);
+
+  if (value < 0 || value >= CustomData_number_of_layers(vdata, CD_PROP_COLOR)) {
+    fprintf(stderr, "Invalid loop byte attribute index %d\n", value);
+    return;
+  }
+
+  CustomDataLayer *layer = vdata->layers + CustomData_get_layer_index(vdata, CD_PROP_COLOR) +
+                           value;
+
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+}
 
 static void rna_MeshVertColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -1202,30 +1322,6 @@ static int rna_MeshVertColorLayer_data_length(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   return (me->edit_mesh) ? 0 : me->totvert;
-}
-
-static bool rna_MeshVertColorLayer_active_render_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return mesh->default_color_attribute && STREQ(mesh->default_color_attribute, layer->name);
-}
-
-static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return mesh->active_color_attribute && STREQ(mesh->active_color_attribute, layer->name);
-}
-
-static void rna_MeshVertColorLayer_active_render_set(PointerRNA *ptr, bool value)
-{
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_vdata(ptr), value, CD_PROP_COLOR, 1);
-}
-
-static void rna_MeshVertColorLayer_active_set(PointerRNA *ptr, bool value)
-{
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_vdata(ptr), value, CD_PROP_COLOR, 0);
 }
 
 static int rna_float_layer_check(CollectionPropertyIterator *UNUSED(iter), void *data)
@@ -3019,16 +3115,14 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_MeshLoopColorLayer_active_get", "rna_MeshLoopColorLayer_active_set");
+  RNA_def_property_boolean_funcs(prop, "rna_mesh_color_active_get", "rna_mesh_color_active_set");
   RNA_def_property_ui_text(prop, "Active", "Sets the layer as active for display and editing");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "active_rnd", 0);
-  RNA_def_property_boolean_funcs(prop,
-                                 "rna_MeshLoopColorLayer_active_render_get",
-                                 "rna_MeshLoopColorLayer_active_render_set");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_mesh_color_active_render_get", "rna_mesh_color_active_render_set");
   RNA_def_property_ui_text(prop, "Active Render", "Sets the layer as active for rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -3080,17 +3174,15 @@ static void rna_def_MPropCol(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_MeshVertColorLayer_active_get", "rna_MeshVertColorLayer_active_set");
+  RNA_def_property_boolean_funcs(prop, "rna_mesh_color_active_get", "rna_mesh_color_active_set");
   RNA_def_property_ui_text(
       prop, "Active", "Sets the sculpt vertex color layer as active for display and editing");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "active_rnd", 0);
-  RNA_def_property_boolean_funcs(prop,
-                                 "rna_MeshVertColorLayer_active_render_get",
-                                 "rna_MeshVertColorLayer_active_render_set");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_mesh_color_active_render_get", "rna_mesh_color_active_render_set");
   RNA_def_property_ui_text(
       prop, "Active Render", "Sets the sculpt vertex color layer as active for rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
