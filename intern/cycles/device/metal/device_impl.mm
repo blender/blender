@@ -919,6 +919,11 @@ void MetalDevice::cancel()
 
 bool MetalDevice::is_ready(string &status) const
 {
+  if (!error_msg.empty()) {
+    /* Avoid hanging if we had an error. */
+    return true;
+  }
+
   int num_loaded = MetalDeviceKernels::get_loaded_kernel_count(this, PSO_GENERIC);
   if (num_loaded < DEVICE_KERNEL_NUM) {
     status = string_printf("%d / %d render kernels loaded (may take a few minutes the first time)",

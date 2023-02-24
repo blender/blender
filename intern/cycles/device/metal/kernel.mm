@@ -428,11 +428,12 @@ bool MetalKernelPipeline::should_use_binary_archive() const
         return false;
       }
     }
-
-    /* Workaround for Intel GPU having issue using Binary Archives */
-    MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
-    if (gpu_vendor == METAL_GPU_INTEL) {
-      return false;
+    else {
+      /* Workaround for issues using Binary Archives on non-Apple Silicon systems. */
+      MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
+      if (gpu_vendor != METAL_GPU_APPLE) {
+        return false;
+      }
     }
 
     if (pso_type == PSO_GENERIC) {
@@ -440,8 +441,10 @@ bool MetalKernelPipeline::should_use_binary_archive() const
       return true;
     }
 
-    if (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
-        device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) {
+    if ((device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
+         device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) ||
+        (device_kernel >= DEVICE_KERNEL_SHADER_EVAL_DISPLACE && 
+         device_kernel <= DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY)) {
       /* Archive all shade kernels - they take a long time to compile. */
       return true;
     }
