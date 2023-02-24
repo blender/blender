@@ -174,6 +174,12 @@ PyDoc_STRVAR(
     "   :type program: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
 {
+  //deprecation warning
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "calls to 'gpu.types.GPUBatch.program_set' is deprecated'",
+                 1);
+  
+  
   if (!BPyGPUShader_Check(py_shader)) {
     PyErr_Format(PyExc_TypeError, "Expected a GPUShader, got %s", Py_TYPE(py_shader)->tp_name);
     return NULL;
@@ -225,6 +231,17 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   }
   else if (self->batch->shader != py_program->shader) {
     GPU_batch_set_shader(self->batch, py_program->shader);
+  }
+
+//deprecation warning
+   if(args && self) 
+  {
+    continue;
+  }
+  else {
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "'GPU BATCH' program is deprecated. Please add a valid program parameter ",
+                 1);
   }
 
   GPU_batch_draw(self->batch);
@@ -322,7 +339,7 @@ PyTypeObject BPyGPUBatch_Type = {
     .tp_flags = Py_TPFLAGS_DEFAULT,
 #endif
     .tp_methods = pygpu_batch__tp_methods,
-    .tp_new = pygpu_batch__tp_new,
+    .tp_new = pygpu_batch__tp_new,mm
 };
 
 /** \} */
@@ -334,7 +351,7 @@ PyTypeObject BPyGPUBatch_Type = {
 PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch)
 {
   BPyGPUBatch *self;
-
+   
 #ifdef USE_GPU_PY_REFERENCES
   self = (BPyGPUBatch *)_PyObject_GC_New(&BPyGPUBatch_Type);
   self->references = NULL;
