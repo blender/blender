@@ -272,60 +272,129 @@ typedef struct GPUTexture GPUTexture;
  *
  * flag. \a mips is the number of mip level to allocate. It must be >= 1.
  */
-/* clang-format off */
-
 /* Extended texture functions. */
-GPUTexture *GPU_texture_create_1d_ex(
-    const char *name, int w, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
-GPUTexture *GPU_texture_create_1d_array_ex(
-    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
-GPUTexture *GPU_texture_create_2d_ex(
-    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
-GPUTexture *GPU_texture_create_2d_array_ex(
-    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
-GPUTexture *GPU_texture_create_3d_ex(
-    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat texture_format, eGPUDataFormat data_format, eGPUTextureUsage usage, const void *data);
-GPUTexture *GPU_texture_create_cube_ex(
-    const char *name, int w, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
-GPUTexture *GPU_texture_create_cube_array_ex(
-    const char *name, int w, int d, int mip_len, eGPUTextureFormat format, eGPUTextureUsage usage, const float *data);
+GPUTexture *GPU_texture_create_1d_ex(const char *name,
+                                     int width,
+                                     int mip_len,
+                                     eGPUTextureFormat format,
+                                     eGPUTextureUsage usage,
+                                     const float *data);
+GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
+                                           int width,
+                                           int layer_len,
+                                           int mip_len,
+                                           eGPUTextureFormat format,
+                                           eGPUTextureUsage usage,
+                                           const float *data);
+GPUTexture *GPU_texture_create_2d_ex(const char *name,
+                                     int width,
+                                     int height,
+                                     int mip_len,
+                                     eGPUTextureFormat format,
+                                     eGPUTextureUsage usage,
+                                     const float *data);
+GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
+                                           int width,
+                                           int height,
+                                           int layer_len,
+                                           int mip_len,
+                                           eGPUTextureFormat format,
+                                           eGPUTextureUsage usage,
+                                           const float *data);
+GPUTexture *GPU_texture_create_3d_ex(const char *name,
+                                     int width,
+                                     int height,
+                                     int depth,
+                                     int mip_len,
+                                     eGPUTextureFormat format,
+                                     eGPUDataFormat data_format,
+                                     eGPUTextureUsage usage,
+                                     const void *data);
+GPUTexture *GPU_texture_create_cube_ex(const char *name,
+                                       int width,
+                                       int mip_len,
+                                       eGPUTextureFormat format,
+                                       eGPUTextureUsage usage,
+                                       const float *data);
+GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
+                                             int width,
+                                             int layer_len,
+                                             int mip_len,
+                                             eGPUTextureFormat format,
+                                             eGPUTextureUsage usage,
+                                             const float *data);
 /**
  * DDS texture loading. Return NULL if support is not available.
- * \a data should hold all the data for \a miplen mipmaps.
+ * \a data should hold all the data for \a mip_len mipmaps.
  */
-GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name, int w, int h, int miplen, eGPUTextureFormat format, eGPUTextureUsage usage, const void *data);
+GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
+                                                int width,
+                                                int height,
+                                                int mip_len,
+                                                eGPUTextureFormat format,
+                                                eGPUTextureUsage usage,
+                                                const void *data);
 
 /* Standard texture functions. */
 GPUTexture *GPU_texture_create_1d(
-    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_1d_array(
-    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_2d(
-    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_2d_array(
-    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_3d(
-    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat texture_format, eGPUDataFormat data_format, const void *data);
+    const char *name, int width, int mip_len, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_1d_array(const char *name,
+                                        int width,
+                                        int layer_len,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        const float *data);
+GPUTexture *GPU_texture_create_2d(const char *name,
+                                  int width,
+                                  int height,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  const float *data);
+GPUTexture *GPU_texture_create_2d_array(const char *name,
+                                        int width,
+                                        int height,
+                                        int layer_len,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        const float *data);
+GPUTexture *GPU_texture_create_3d(const char *name,
+                                  int width,
+                                  int height,
+                                  int depth,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUDataFormat data_format,
+                                  const void *data);
 GPUTexture *GPU_texture_create_cube(
-    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_cube_array(
-    const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
+    const char *name, int width, int mip_len, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_cube_array(const char *name,
+                                          int width,
+                                          int layer_len,
+                                          int mip_len,
+                                          eGPUTextureFormat format,
+                                          const float *data);
 /**
- * DDS texture loading. Return NULL if support is not available.
- * \a data should hold all the data for \a miplen mipmaps.
+ * DDS texture loading. Return NULL if compressed texture support is not available.
+ * \a data should hold all the data for \a mip_len mipmaps.
+ * The data is expected to be in compressed form. This isn't going to compress un-compress data.
  */
-GPUTexture *GPU_texture_create_compressed_2d(
-    const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
-/* clang-format on */
+GPUTexture *GPU_texture_create_compressed_2d(const char *name,
+                                             int width,
+                                             int height,
+                                             int mip_len,
+                                             eGPUTextureFormat format,
+                                             const void *data);
 
 /**
- * Create a buffer texture that allow access to a buffer \a vert through a sampler of type
+ * Create a buffer texture that allow access to a buffer \a vertex_buf through a sampler of type
  * `(FLOAT/INT/UINT)_BUFFER`.
  */
-GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
+GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vertex_buf);
 
 /**
  * Create an error texture that will bind an pink texture at draw time.
+ * \a dimension is the number of number of dimension of the texture (1, 2, or 3).
+ * \a array if set to true, will make the texture be an array (layered).
  */
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
 
@@ -341,14 +410,13 @@ GPUTexture *GPU_texture_create_error(int dimension, bool array);
  * This avoids the texture being free between the time it is referenced by the drawing logic and
  * the time it is actually dereferenced.
  */
-void GPU_texture_ref(GPUTexture *tex);
+void GPU_texture_ref(GPUTexture *texture);
 
 /**
- * Add a reference to this texture for usage.
  * This internally decrement the reference counter.
  * If the reference counter is 1 when calling this function the #GPUTexture will be freed.
  */
-void GPU_texture_free(GPUTexture *tex);
+void GPU_texture_free(GPUTexture *texture);
 
 #define GPU_TEXTURE_FREE_SAFE(texture) \
   do { \
@@ -368,17 +436,22 @@ void GPU_texture_free(GPUTexture *tex);
  * Create an alias of the source texture data. A view can cover the whole texture or only a range
  * of mip levels and/or array layer range.
  *
- * \note If \a src is freed, the texture view will continue to be valid.
+ * \a view_format is the format in which the view will interpret the data of \a source_texture . It
+ * must match the format of \a source_texture in size (ex: RGBA8 can be reinterpreted as R32UI).
+ * See https://www.khronos.org/opengl/wiki/Texture_Storage#View_texture_aliases for an exhaustive
+ * list.
+ *
+ * \note If \a source_texture is freed, the texture view will continue to be valid.
  * \note If \a mip_start or \a mip_len is bigger than available mips they will be clamped to the
  * source texture available range.
  * \note If \a cube_as_array is true, then the created view will be a 2D array texture instead of a
  * cube-map texture or cube-map-array texture.
  *
- * TODO(fclem): Target conversion is not implemented yet.
+ * TODO(fclem): Target conversion (ex: Texture 2D as Texture 2D Array) is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
-                                    const GPUTexture *src,
-                                    eGPUTextureFormat format,
+                                    const GPUTexture *source_texture,
+                                    eGPUTextureFormat view_format,
                                     int mip_start,
                                     int mip_len,
                                     int layer_start,
@@ -408,7 +481,7 @@ void GPU_unpack_row_length_set(uint len);
  * \note This function only update the content of mip 0. Either specify other mips or use
  * `GPU_texture_generate_mipmap` to generate them if needed.
  */
-void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
+void GPU_texture_update(GPUTexture *texture, eGPUDataFormat data_format, const void *data);
 
 /**
  * Update the content of a region of a texture's base mip-map level (mip 0).
@@ -421,7 +494,7 @@ void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void 
  * \a offset_x , \a offset_y , \a offset_z specify the bottom left corner of the updated region.
  * \a width , \a height , \a depth specify the extent of the updated region.
  */
-void GPU_texture_update_sub(GPUTexture *tex,
+void GPU_texture_update_sub(GPUTexture *texture,
                             eGPUDataFormat data_format,
                             const void *pixels,
                             int offset_x,
@@ -433,13 +506,13 @@ void GPU_texture_update_sub(GPUTexture *tex,
 
 /**
  * Update the content of a texture's specific mip-map level.
- * \a gpu_data_format is the format of the \a pixels . It needs to be compatible with the internal
+ * \a data_format is the format of the \a pixels . It needs to be compatible with the internal
  * texture storage.
- * The \a data should be be the size of the entire \a miplvl .
+ * The \a data should be be the size of the entire \a mip_level .
  */
-void GPU_texture_update_mipmap(GPUTexture *tex,
-                               int miplvl,
-                               eGPUDataFormat gpu_data_format,
+void GPU_texture_update_mipmap(GPUTexture *texture,
+                               int mip_level,
+                               eGPUDataFormat data_format,
                                const void *pixels);
 
 /**
@@ -450,7 +523,7 @@ void GPU_texture_update_mipmap(GPUTexture *tex,
  * \note The format is float for UNORM textures.
  * \param data: 1 pixel worth of data to fill the texture with.
  */
-void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
+void GPU_texture_clear(GPUTexture *texture, eGPUDataFormat data_format, const void *data);
 
 /**
  * Copy a \a src texture content to a similar \a dst texture. Only MIP 0 is copied.
@@ -462,15 +535,15 @@ void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
  * Update the mip-map levels using the mip 0 data.
  * \note this doesn't work on depth or compressed textures.
  */
-void GPU_texture_generate_mipmap(GPUTexture *tex);
+void GPU_texture_generate_mipmap(GPUTexture *texture);
 
 /**
- * Read the content of a \a miplvl from a \a tex and returns a copy of its data.
+ * Read the content of a \a mip_level from a \a tex and returns a copy of its data.
  * \warning the texture must have been created using GPU_TEXTURE_USAGE_HOST_READ.
  * \note synchronisation of shader writes via `imageStore()` needs to be explicitly done using
  * `GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH)`.
  */
-void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
+void *GPU_texture_read(GPUTexture *texture, eGPUDataFormat data_format, int mip_level);
 
 /** \} */
 
@@ -481,16 +554,16 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
 /**
  * Bind a texture to a texture sampling image units using the texture internal sampler state.
  */
-void GPU_texture_bind(GPUTexture *tex, int unit);
+void GPU_texture_bind(GPUTexture *texture, int unit);
 /**
  * Bind a texture to a texture sampling image units using the explicit sampler state.
  */
-void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, bool set_number);
+void GPU_texture_bind_ex(GPUTexture *texture, eGPUSamplerState state, int unit, bool set_number);
 /**
  * Unbind \a tex from a texture sampling image unit.
  * \note this isn't strictly required but it is better for debugging purpose.
  */
-void GPU_texture_unbind(GPUTexture *tex);
+void GPU_texture_unbind(GPUTexture *texture);
 /**
  * Unbind all texture from all texture sampling image units.
  */
@@ -501,12 +574,12 @@ void GPU_texture_unbind_all(void);
  * It correspond to a `gpu::shader::ShaderCreateInfo::image()` declaration.
  * \note this overrides any previous bind on the same unit.
  */
-void GPU_texture_image_bind(GPUTexture *tex, int unit);
+void GPU_texture_image_bind(GPUTexture *texture, int unit);
 /**
  * Unbind \a tex from an arbitrary load/store image unit.
  * \note this isn't strictly required but it is better for debugging purpose.
  */
-void GPU_texture_image_unbind(GPUTexture *tex);
+void GPU_texture_image_unbind(GPUTexture *texture);
 /**
  * Unbind all texture from all arbitrary load/store image units.
  */
@@ -522,12 +595,12 @@ void GPU_texture_image_unbind_all(void);
  * Set anisotropic filter usage. Filter sample count is determined globally by
  * `U.anisotropic_filter` and updated when `GPU_samplers_update` is called.
  */
-void GPU_texture_anisotropic_filter(GPUTexture *tex, bool use_aniso);
+void GPU_texture_anisotropic_filter(GPUTexture *texture, bool use_aniso);
 
 /**
  * Set \a tex texture depth comparison mode. Only works on depth format.
  */
-void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
+void GPU_texture_compare_mode(GPUTexture *texture, bool use_compare);
 
 /**
  * Set \a tex texture filter usage.
@@ -535,7 +608,7 @@ void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
  * \note Does not work on non-normalized integer textures.
  * \note Does not modify the mip-map usage state.
  */
-void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
+void GPU_texture_filter_mode(GPUTexture *texture, bool use_filter);
 
 /**
  * Set \a tex texture filter and mip-map usage.
@@ -544,7 +617,7 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
  * If both are set to true, the texture will use linear interpolation between mip-map levels.
  * \note Does not work on non-normalized integer textures.
  */
-void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
+void GPU_texture_mipmap_mode(GPUTexture *texture, bool use_mipmap, bool use_filter);
 
 /**
  * Set \a tex texture sampling method for coordinates outside of the [0..1] uv range.
@@ -555,7 +628,7 @@ void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
  * If \a use_clamp is true, sampling the texture outside of the [0..1] uv range will clamp to the
  * closest border texel value. If set to false, it will use the values (0, 0, 0, 0) instead.
  */
-void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
+void GPU_texture_wrap_mode(GPUTexture *texture, bool use_repeat, bool use_clamp);
 
 /**
  * Set \a tex texture swizzle state for swizzling sample components.
@@ -573,7 +646,7 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
  * - '0': will make the component value to always return 0.
  * - '1': will make the component value to always return 1.
  */
-void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
+void GPU_texture_swizzle_set(GPUTexture *texture, const char swizzle[4]);
 
 /**
  * Set a depth-stencil texture read mode.
@@ -583,7 +656,7 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
  * If \a use_stencil is false, the texture is expected to be bound to a DEPTH sampler and will
  * return the normalized depth value (in a range of [0..1])  as the first component.
  */
-void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
+void GPU_texture_stencil_texture_mode_set(GPUTexture *texture, bool use_stencil);
 
 /** \} */
 
@@ -595,32 +668,32 @@ void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
  * Return the number of dimensions of the texture ignoring dimension of layers (1, 2 or 3).
  * Cube textures are considered 2D.
  */
-int GPU_texture_dimensions(const GPUTexture *tex);
+int GPU_texture_dimensions(const GPUTexture *texture);
 
 /**
  * Return the width of \a tex .
  */
-int GPU_texture_width(const GPUTexture *tex);
+int GPU_texture_width(const GPUTexture *texture);
 
 /**
  * Return the height of \a tex . Correspond to number of layers for 1D array texture.
  */
-int GPU_texture_height(const GPUTexture *tex);
+int GPU_texture_height(const GPUTexture *texture);
 
 /**
  * Return the number of layers of \a tex . Return 1 if the texture is not layered.
  */
-int GPU_texture_layer_count(const GPUTexture *tex);
+int GPU_texture_layer_count(const GPUTexture *texture);
 
 /**
  * Return the number of mip-map level inside this texture.
  */
-int GPU_texture_mip_count(const GPUTexture *tex);
+int GPU_texture_mip_count(const GPUTexture *texture);
 
 /**
  * Return the texture format of \a tex .
  */
-eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
+eGPUTextureFormat GPU_texture_format(const GPUTexture *texture);
 
 /**
  * Return the usage flags of \a tex .
@@ -630,34 +703,34 @@ eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
 /**
  * Return true if the texture is an array texture type (has layers).
  */
-bool GPU_texture_array(const GPUTexture *tex);
+bool GPU_texture_array(const GPUTexture *texture);
 
 /**
  * Return true if the texture is an cube-map texture type.
  */
-bool GPU_texture_cube(const GPUTexture *tex);
+bool GPU_texture_cube(const GPUTexture *texture);
 
 /**
  * Return true if the texture format has a depth component.
  */
-bool GPU_texture_depth(const GPUTexture *tex);
+bool GPU_texture_depth(const GPUTexture *texture);
 
 /**
  * Return true if the texture format has a stencil component.
  */
-bool GPU_texture_stencil(const GPUTexture *tex);
+bool GPU_texture_stencil(const GPUTexture *texture);
 
 /**
  * Return true if the texture format is an integer type (non-normalized integers).
  */
-bool GPU_texture_integer(const GPUTexture *tex);
+bool GPU_texture_integer(const GPUTexture *texture);
 
 /**
  * Returns the pixel dimensions of a texture's mip-map level.
  * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
  * (including the array dimension).
  */
-void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
+void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *size);
 
 /** \} */
 
@@ -673,17 +746,17 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
  * WORKAROUND: Calling 'BKE_image_get_size' may free the texture. Store the source image size
  * (before down-scaling) inside the #GPUTexture to retrieve the original size later (Ref #59347).
  */
-int GPU_texture_orig_width(const GPUTexture *tex);
-int GPU_texture_orig_height(const GPUTexture *tex);
-void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
+int GPU_texture_orig_width(const GPUTexture *texture);
+int GPU_texture_orig_height(const GPUTexture *texture);
+void GPU_texture_orig_size_set(GPUTexture *texture, int width, int height);
 
 /**
  * Reference of a pointer that needs to be cleaned when deallocating the texture.
  * Points to #BPyGPUTexture.tex
  */
 #ifndef GPU_NO_USE_PY_REFERENCES
-void **GPU_texture_py_reference_get(GPUTexture *tex);
-void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref);
+void **GPU_texture_py_reference_get(GPUTexture *texture);
+void GPU_texture_py_reference_set(GPUTexture *texture, void **py_ref);
 #endif
 
 /**
@@ -691,7 +764,7 @@ void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref);
  * \note This is a legacy feature only working on OpenGL backend. It will be removed once we remove
  * the python BGL module.
  */
-int GPU_texture_opengl_bindcode(const GPUTexture *tex);
+int GPU_texture_opengl_bindcode(const GPUTexture *texture);
 
 /** \} */
 
@@ -713,7 +786,7 @@ size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
  * Return the texture format as a string for display purpose.
  * Example: `GPU_RGBA8` returns as `"RGBA8"`.
  */
-const char *GPU_texture_format_description(eGPUTextureFormat texture_format);
+const char *GPU_texture_format_description(eGPUTextureFormat format);
 
 /**
  * Returns the memory usage of all currently allocated textures in bytes.
@@ -748,7 +821,7 @@ GPUPixelBuffer *GPU_pixel_buffer_create(uint byte_size);
  * Free a #GPUPixelBuffer object.
  * The object should be unmapped before being freed.
  */
-void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf);
+void GPU_pixel_buffer_free(GPUPixelBuffer *pixel_buf);
 
 /**
  * Maps a pixel buffer to RAM, giving back access rights to CPU.
@@ -756,32 +829,32 @@ void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf);
  * A #GPUPixelBuffer needs to be unmapped before being used for GPU side operation (like texture
  * update through `GPU_texture_update_sub_from_pixel_buffer`).
  */
-void *GPU_pixel_buffer_map(GPUPixelBuffer *pix_buf);
+void *GPU_pixel_buffer_map(GPUPixelBuffer *pixel_buf);
 
 /**
  * Unmap a pixel buffer from RAM, giving back access rights to GPU.
  * Any pointer previously acquired by `GPU_pixel_buffer_map` becomes invalid.
  */
-void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf);
+void GPU_pixel_buffer_unmap(GPUPixelBuffer *pixel_buf);
 
 /**
  * Return size in bytes of the \a pix_buf .
  */
-uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf);
+uint GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 
 /**
  * Return the native handle of the \a pix_buf to use for graphic interoperability registration.
  */
-int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pix_buf);
+int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf);
 
 /**
  * Update a sub-region of a texture using the data from a #GPUPixelBuffer as source data.
  * The \a pix_buf data is expected to be contiguous and big enough to fill the described
  * sub-region.
  */
-void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
+void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *texture,
                                               eGPUDataFormat data_format,
-                                              GPUPixelBuffer *pix_buf,
+                                              GPUPixelBuffer *pixel_buf,
                                               int offset_x,
                                               int offset_y,
                                               int offset_z,
