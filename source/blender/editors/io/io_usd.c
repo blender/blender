@@ -1179,7 +1179,6 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(box, ptr, "convert_light_from_nits", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "create_background_shader", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "attr_import_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
@@ -1198,7 +1197,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(row, ptr, "set_material_blend", 0, NULL, ICON_NONE);
   bool import_usd_preview = RNA_enum_get(op->ptr, import_shaders_mode_prop_name) ==
                             USD_IMPORT_USD_PREVIEW_SURFACE;
-  uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
+  uiLayoutSetEnabled(row, import_usd_preview);
   uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
