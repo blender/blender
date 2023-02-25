@@ -102,7 +102,8 @@ GPUTexture *DRW_texture_pool_query(DRWTexturePool *pool,
   pool->handles.append(handle);
   /* Doing filtering for depth does not make sense when not doing shadow mapping,
    * and enabling texture filtering on integer texture make them unreadable. */
-  bool do_filter = !GPU_texture_depth(handle.texture) && !GPU_texture_integer(handle.texture);
+  bool do_filter = !GPU_texture_has_depth_format(handle.texture) &&
+                   !GPU_texture_has_integer_format(handle.texture);
   GPU_texture_filter_mode(handle.texture, do_filter);
 
   return handle.texture;

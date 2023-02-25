@@ -83,12 +83,13 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
 
   if (new_attachment.tex) {
     if (new_attachment.layer > 0) {
-      BLI_assert(GPU_texture_cube(new_attachment.tex) || GPU_texture_array(new_attachment.tex));
+      BLI_assert(GPU_texture_is_cube(new_attachment.tex) ||
+                 GPU_texture_is_array(new_attachment.tex));
     }
-    if (GPU_texture_stencil(new_attachment.tex)) {
+    if (GPU_texture_has_stencil_format(new_attachment.tex)) {
       BLI_assert(ELEM(type, GPU_FB_DEPTH_STENCIL_ATTACHMENT));
     }
-    else if (GPU_texture_depth(new_attachment.tex)) {
+    else if (GPU_texture_has_depth_format(new_attachment.tex)) {
       BLI_assert(ELEM(type, GPU_FB_DEPTH_ATTACHMENT));
     }
   }
@@ -360,7 +361,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
     fb->attachment_set(GPU_FB_DEPTH_ATTACHMENT, depth_attachment);
   }
   else {
-    GPUAttachmentType type = GPU_texture_stencil(depth_attachment.tex) ?
+    GPUAttachmentType type = GPU_texture_has_stencil_format(depth_attachment.tex) ?
                                  GPU_FB_DEPTH_STENCIL_ATTACHMENT :
                                  GPU_FB_DEPTH_ATTACHMENT;
     fb->attachment_set(type, depth_attachment);
@@ -478,11 +479,12 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
   }
 
   if (blit_buffers & GPU_DEPTH_BIT) {
-    BLI_assert(GPU_texture_depth(read_tex) && GPU_texture_depth(write_tex));
+    BLI_assert(GPU_texture_has_depth_format(read_tex) && GPU_texture_has_depth_format(write_tex));
     BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
   }
   if (blit_buffers & GPU_STENCIL_BIT) {
-    BLI_assert(GPU_texture_stencil(read_tex) && GPU_texture_stencil(write_tex));
+    BLI_assert(GPU_texture_has_stencil_format(read_tex) &&
+               GPU_texture_has_stencil_format(write_tex));
     BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
   }
 #endif

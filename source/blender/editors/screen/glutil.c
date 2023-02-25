@@ -89,7 +89,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
 
   GPU_texture_filter_mode(tex, use_filter);
   if (use_mipmap) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
   }
   GPU_texture_wrap_mode(tex, false, true);

@@ -654,7 +654,7 @@ void GPU_texture_image_unbind_all()
   Context::get()->state_manager->image_unbind_all();
 }
 
-void GPU_texture_generate_mipmap(GPUTexture *tex)
+void GPU_texture_update_mipmap_chain(GPUTexture *tex)
 {
   reinterpret_cast<Texture *>(tex)->generate_mipmap();
 }
@@ -716,7 +716,7 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
 
 void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil)
 {
-  BLI_assert(GPU_texture_stencil(tex) || !use_stencil);
+  BLI_assert(GPU_texture_has_stencil_format(tex) || !use_stencil);
   reinterpret_cast<Texture *>(tex)->stencil_texture_mode_set(use_stencil);
 }
 
@@ -778,17 +778,17 @@ int GPU_texture_mip_count(const GPUTexture *tex)
   return reinterpret_cast<const Texture *>(tex)->mip_count();
 }
 
-int GPU_texture_orig_width(const GPUTexture *tex)
+int GPU_texture_original_width(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->src_w;
 }
 
-int GPU_texture_orig_height(const GPUTexture *tex)
+int GPU_texture_original_height(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->src_h;
 }
 
-void GPU_texture_orig_size_set(GPUTexture *tex_, int w, int h)
+void GPU_texture_original_size_set(GPUTexture *tex_, int w, int h)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   tex->src_w = w;
@@ -800,7 +800,7 @@ eGPUTextureFormat GPU_texture_format(const GPUTexture *tex)
   return reinterpret_cast<const Texture *>(tex)->format_get();
 }
 
-const char *GPU_texture_format_description(eGPUTextureFormat texture_format)
+const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
 {
   switch (texture_format) {
     case GPU_RGBA8UI:
@@ -906,27 +906,27 @@ const char *GPU_texture_format_description(eGPUTextureFormat texture_format)
   return "";
 }
 
-bool GPU_texture_depth(const GPUTexture *tex)
+bool GPU_texture_has_depth_format(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_DEPTH) != 0;
 }
 
-bool GPU_texture_stencil(const GPUTexture *tex)
+bool GPU_texture_has_stencil_format(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_STENCIL) != 0;
 }
 
-bool GPU_texture_integer(const GPUTexture *tex)
+bool GPU_texture_has_integer_format(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->format_flag_get() & GPU_FORMAT_INTEGER) != 0;
 }
 
-bool GPU_texture_cube(const GPUTexture *tex)
+bool GPU_texture_is_cube(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_CUBE) != 0;
 }
 
-bool GPU_texture_array(const GPUTexture *tex)
+bool GPU_texture_is_array(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_ARRAY) != 0;
 }

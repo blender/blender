@@ -479,7 +479,7 @@ void GPU_unpack_row_length_set(uint len);
  * texture storage.
  * The \a data should be be the size of the entire mip 0 level.
  * \note This function only update the content of mip 0. Either specify other mips or use
- * `GPU_texture_generate_mipmap` to generate them if needed.
+ * `GPU_texture_update_mipmap_chain` to generate them if needed.
  */
 void GPU_texture_update(GPUTexture *texture, eGPUDataFormat data_format, const void *data);
 
@@ -489,7 +489,7 @@ void GPU_texture_update(GPUTexture *texture, eGPUDataFormat data_format, const v
  * texture storage.
  * The \a data should be be the size of the mip 0 level region.
  * \note This function only update the content of mip 0. Either specify other mips or use
- * `GPU_texture_generate_mipmap` to generate them if needed.
+ * `GPU_texture_update_mipmap_chain` to generate them if needed.
  *
  * \a offset_x , \a offset_y , \a offset_z specify the bottom left corner of the updated region.
  * \a width , \a height , \a depth specify the extent of the updated region.
@@ -535,7 +535,7 @@ void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
  * Update the mip-map levels using the mip 0 data.
  * \note this doesn't work on depth or compressed textures.
  */
-void GPU_texture_generate_mipmap(GPUTexture *texture);
+void GPU_texture_update_mipmap_chain(GPUTexture *texture);
 
 /**
  * Read the content of a \a mip_level from a \a tex and returns a copy of its data.
@@ -703,27 +703,27 @@ eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
 /**
  * Return true if the texture is an array texture type (has layers).
  */
-bool GPU_texture_array(const GPUTexture *texture);
+bool GPU_texture_is_array(const GPUTexture *texture);
 
 /**
  * Return true if the texture is an cube-map texture type.
  */
-bool GPU_texture_cube(const GPUTexture *texture);
+bool GPU_texture_is_cube(const GPUTexture *texture);
 
 /**
  * Return true if the texture format has a depth component.
  */
-bool GPU_texture_depth(const GPUTexture *texture);
+bool GPU_texture_has_depth_format(const GPUTexture *texture);
 
 /**
  * Return true if the texture format has a stencil component.
  */
-bool GPU_texture_stencil(const GPUTexture *texture);
+bool GPU_texture_has_stencil_format(const GPUTexture *texture);
 
 /**
  * Return true if the texture format is an integer type (non-normalized integers).
  */
-bool GPU_texture_integer(const GPUTexture *texture);
+bool GPU_texture_has_integer_format(const GPUTexture *texture);
 
 /**
  * Returns the pixel dimensions of a texture's mip-map level.
@@ -746,9 +746,9 @@ void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *size);
  * WORKAROUND: Calling 'BKE_image_get_size' may free the texture. Store the source image size
  * (before down-scaling) inside the #GPUTexture to retrieve the original size later (Ref #59347).
  */
-int GPU_texture_orig_width(const GPUTexture *texture);
-int GPU_texture_orig_height(const GPUTexture *texture);
-void GPU_texture_orig_size_set(GPUTexture *texture, int width, int height);
+int GPU_texture_original_width(const GPUTexture *texture);
+int GPU_texture_original_height(const GPUTexture *texture);
+void GPU_texture_original_size_set(GPUTexture *texture, int width, int height);
 
 /**
  * Reference of a pointer that needs to be cleaned when deallocating the texture.
@@ -786,7 +786,7 @@ size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
  * Return the texture format as a string for display purpose.
  * Example: `GPU_RGBA8` returns as `"RGBA8"`.
  */
-const char *GPU_texture_format_description(eGPUTextureFormat format);
+const char *GPU_texture_format_name(eGPUTextureFormat format);
 
 /**
  * Returns the memory usage of all currently allocated textures in bytes.
