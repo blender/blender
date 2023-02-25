@@ -380,7 +380,6 @@ static bool addGPULut3D(OCIO_GPUTextures &textures,
                                          edgelen,
                                          1,
                                          GPU_RGB16F,
-                                         GPU_DATA_FLOAT,
                                          GPU_TEXTURE_USAGE_SHADER_READ,
                                          values);
   if (lut.texture == nullptr) {

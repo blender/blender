@@ -307,7 +307,6 @@ GPUTexture *GPU_texture_create_3d_ex(const char *name,
                                      int depth,
                                      int mip_len,
                                      eGPUTextureFormat format,
-                                     eGPUDataFormat data_format,
                                      eGPUTextureUsage usage,
                                      const void *data);
 GPUTexture *GPU_texture_create_cube_ex(const char *name,
@@ -363,7 +362,6 @@ GPUTexture *GPU_texture_create_3d(const char *name,
                                   int depth,
                                   int mip_len,
                                   eGPUTextureFormat format,
-                                  eGPUDataFormat data_format,
                                   const void *data);
 GPUTexture *GPU_texture_create_cube(
     const char *name, int width, int mip_len, eGPUTextureFormat format, const float *data);

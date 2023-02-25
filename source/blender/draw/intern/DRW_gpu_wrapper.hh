@@ -931,8 +931,7 @@ class Texture : NonCopyable {
         return GPU_texture_create_2d_array_ex(name_, w, h, d, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_3d_ex(
-            name_, w, h, d, mip_len, format, GPU_DATA_FLOAT, usage, data);
+        return GPU_texture_create_3d_ex(name_, w, h, d, mip_len, format, usage, data);
       }
     }
   }

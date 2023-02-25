@@ -562,7 +562,7 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
         tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, nullptr);
         break;
       case GPU_TEXTURE_3D:
-        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, GPU_DATA_UBYTE, nullptr);
+        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, nullptr);
         break;
       case GPU_TEXTURE_CUBE:
         tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, nullptr);

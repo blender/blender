@@ -224,14 +224,8 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
       }
     }
     else if (len == 3) {
-      tex = GPU_texture_create_3d(name,
-                                  size[0],
-                                  size[1],
-                                  size[2],
-                                  1,
-                                  pygpu_textureformat.value_found,
-                                  GPU_DATA_FLOAT,
-                                  data);
+      tex = GPU_texture_create_3d(
+          name, size[0], size[1], size[2], 1, pygpu_textureformat.value_found, data);
     }
     else if (len == 2) {
       tex = GPU_texture_create_2d(

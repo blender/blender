@@ -311,7 +311,6 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
                                                    UNPACK3(dense_grid.resolution),
                                                    1,
                                                    format,
-                                                   GPU_DATA_FLOAT,
                                                    GPU_TEXTURE_USAGE_SHADER_READ |
                                                        GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                                                    dense_grid.voxels);

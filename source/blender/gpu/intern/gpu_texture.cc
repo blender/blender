@@ -340,12 +340,11 @@ GPUTexture *GPU_texture_create_3d_ex(const char *name,
                                      int d,
                                      int mip_len,
                                      eGPUTextureFormat texture_format,
-                                     eGPUDataFormat data_format,
                                      eGPUTextureUsage usage,
                                      const void *data)
 {
   return gpu_texture_create(
-      name, w, h, d, GPU_TEXTURE_3D, mip_len, texture_format, data_format, usage, data);
+      name, w, h, d, GPU_TEXTURE_3D, mip_len, texture_format, GPU_DATA_FLOAT, usage, data);
 }
 
 GPUTexture *GPU_texture_create_cube_ex(const char *name,
@@ -441,11 +440,10 @@ GPUTexture *GPU_texture_create_3d(const char *name,
                                   int d,
                                   int mip_len,
                                   eGPUTextureFormat texture_format,
-                                  eGPUDataFormat data_format,
                                   const void *data)
 {
   return GPU_texture_create_3d_ex(
-      name, w, h, d, mip_len, texture_format, data_format, GPU_TEXTURE_USAGE_GENERAL, data);
+      name, w, h, d, mip_len, texture_format, GPU_TEXTURE_USAGE_GENERAL, data);
 }
 
 GPUTexture *GPU_texture_create_cube(
