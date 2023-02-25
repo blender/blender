@@ -85,7 +85,8 @@ void MorphologicalDistanceFeatherWeights::compute_weights(int radius)
     weights[i] /= sum;
   }
 
-  weights_texture_ = GPU_texture_create_1d("Weights", size, 1, GPU_R16F, weights.data());
+  weights_texture_ = GPU_texture_create_1d_ex(
+      "Weights", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
 }
 
 /* Computes a falloff that is equal to 1 at an input of zero and decrease to zero at an input of 1,
@@ -128,8 +129,8 @@ void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(int type, in
     falloffs[i] = compute_distance_falloff(type, i * scale);
   }
 
-  distance_falloffs_texture_ = GPU_texture_create_1d(
-      "Distance Factors", size, 1, GPU_R16F, falloffs.data());
+  distance_falloffs_texture_ = GPU_texture_create_1d_ex(
+      "Distance Factors", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, falloffs.data());
 }
 
 void MorphologicalDistanceFeatherWeights::bind_weights_as_texture(GPUShader *shader,

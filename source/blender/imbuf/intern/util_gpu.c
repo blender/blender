@@ -340,12 +340,13 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
       fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
     }
     else {
-      tex = GPU_texture_create_compressed_2d(name,
-                                             ibuf->x,
-                                             ibuf->y,
-                                             ibuf->dds_data.nummipmaps,
-                                             compressed_format,
-                                             ibuf->dds_data.data);
+      tex = GPU_texture_create_compressed_2d_ex(name,
+                                                ibuf->x,
+                                                ibuf->y,
+                                                ibuf->dds_data.nummipmaps,
+                                                compressed_format,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                ibuf->dds_data.data);
 
       if (tex != NULL) {
         return tex;

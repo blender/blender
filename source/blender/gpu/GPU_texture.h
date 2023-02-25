@@ -323,8 +323,9 @@ GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
                                              eGPUTextureUsage usage,
                                              const float *data);
 /**
- * DDS texture loading. Return NULL if support is not available.
+ * DDS texture loading. Return NULL if compressed texture support is not available.
  * \a data should hold all the data for \a mip_len mipmaps.
+ * The data is expected to be in compressed form. This isn't going to compress un-compress data.
  */
 GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
                                                 int width,
@@ -333,55 +334,6 @@ GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
                                                 eGPUTextureFormat format,
                                                 eGPUTextureUsage usage,
                                                 const void *data);
-
-/* Standard texture functions. */
-GPUTexture *GPU_texture_create_1d(
-    const char *name, int width, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_1d_array(const char *name,
-                                        int width,
-                                        int layer_len,
-                                        int mip_len,
-                                        eGPUTextureFormat format,
-                                        const float *data);
-GPUTexture *GPU_texture_create_2d(const char *name,
-                                  int width,
-                                  int height,
-                                  int mip_len,
-                                  eGPUTextureFormat format,
-                                  const float *data);
-GPUTexture *GPU_texture_create_2d_array(const char *name,
-                                        int width,
-                                        int height,
-                                        int layer_len,
-                                        int mip_len,
-                                        eGPUTextureFormat format,
-                                        const float *data);
-GPUTexture *GPU_texture_create_3d(const char *name,
-                                  int width,
-                                  int height,
-                                  int depth,
-                                  int mip_len,
-                                  eGPUTextureFormat format,
-                                  const void *data);
-GPUTexture *GPU_texture_create_cube(
-    const char *name, int width, int mip_len, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_cube_array(const char *name,
-                                          int width,
-                                          int layer_len,
-                                          int mip_len,
-                                          eGPUTextureFormat format,
-                                          const float *data);
-/**
- * DDS texture loading. Return NULL if compressed texture support is not available.
- * \a data should hold all the data for \a mip_len mipmaps.
- * The data is expected to be in compressed form. This isn't going to compress un-compress data.
- */
-GPUTexture *GPU_texture_create_compressed_2d(const char *name,
-                                             int width,
-                                             int height,
-                                             int mip_len,
-                                             eGPUTextureFormat format,
-                                             const void *data);
 
 /**
  * Create a buffer texture that allow access to a buffer \a vertex_buf through a sampler of type

@@ -216,8 +216,13 @@ class DisplayGPUTexture {
     height = texture_height;
 
     /* Texture must have a minimum size of 1x1. */
-    gpu_texture = GPU_texture_create_2d(
-        "CyclesBlitTexture", max(width, 1), max(height, 1), 1, GPU_RGBA16F, nullptr);
+    gpu_texture = GPU_texture_create_2d_ex("CyclesBlitTexture",
+                                           max(width, 1),
+                                           max(height, 1),
+                                           1,
+                                           GPU_RGBA16F,
+                                           GPU_TEXTURE_USAGE_GENERAL,
+                                           nullptr);
 
     if (!gpu_texture) {
       LOG(ERROR) << "Error creating texture.";

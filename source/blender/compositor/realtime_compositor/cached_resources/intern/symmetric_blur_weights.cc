@@ -93,7 +93,8 @@ SymmetricBlurWeights::SymmetricBlurWeights(int type, float2 radius)
     }
   }
 
-  texture_ = GPU_texture_create_2d("Weights", size.x, size.y, 1, GPU_R16F, weights.data());
+  texture_ = GPU_texture_create_2d_ex(
+      "Weights", size.x, size.y, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
 }
 
 SymmetricBlurWeights::~SymmetricBlurWeights()

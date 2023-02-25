@@ -504,9 +504,11 @@ static bool workbench_render_framebuffers_init(void)
    * the other views will reuse these buffers */
   if (dtxl->color == nullptr) {
     BLI_assert(dtxl->depth == nullptr);
-    dtxl->color = GPU_texture_create_2d("txl.color", size.x, size.y, 1, GPU_RGBA16F, nullptr);
-    dtxl->depth = GPU_texture_create_2d(
-        "txl.depth", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, nullptr);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
+    dtxl->color = GPU_texture_create_2d_ex(
+        "txl.color", size.x, size.y, 1, GPU_RGBA16F, usage, nullptr);
+    dtxl->depth = GPU_texture_create_2d_ex(
+        "txl.depth", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
   }
 
   if (!(dtxl->depth && dtxl->color)) {

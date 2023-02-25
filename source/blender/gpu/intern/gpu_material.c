@@ -233,13 +233,14 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
     return;
   }
 
-  mat->sky_tex = GPU_texture_create_2d_array("mat_sky",
-                                             GPU_SKY_WIDTH,
-                                             GPU_SKY_HEIGHT,
-                                             mat->sky_builder->current_layer,
-                                             1,
-                                             GPU_RGBA32F,
-                                             (float *)mat->sky_builder->pixels);
+  mat->sky_tex = GPU_texture_create_2d_array_ex("mat_sky",
+                                                GPU_SKY_WIDTH,
+                                                GPU_SKY_HEIGHT,
+                                                mat->sky_builder->current_layer,
+                                                1,
+                                                GPU_RGBA32F,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                (float *)mat->sky_builder->pixels);
 
   MEM_freeN(mat->sky_builder);
   mat->sky_builder = NULL;

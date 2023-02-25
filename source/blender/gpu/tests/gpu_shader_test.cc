@@ -42,8 +42,8 @@ static void test_gpu_shader_compute_2d()
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  GPUTexture *texture = GPU_texture_create_2d(
-      "gpu_shader_compute_2d", SIZE, SIZE, 1, GPU_RGBA32F, nullptr);
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      "gpu_shader_compute_2d", SIZE, SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -88,8 +88,8 @@ static void test_gpu_shader_compute_1d()
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
-  GPUTexture *texture = GPU_texture_create_1d(
-      "gpu_shader_compute_1d", SIZE, 1, GPU_RGBA32F, nullptr);
+  GPUTexture *texture = GPU_texture_create_1d_ex(
+      "gpu_shader_compute_1d", SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);

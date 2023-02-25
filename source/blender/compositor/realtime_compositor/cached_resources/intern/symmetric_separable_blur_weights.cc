@@ -70,7 +70,8 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(int type, float rad
     weights[i] /= sum;
   }
 
-  texture_ = GPU_texture_create_1d("Weights", size, 1, GPU_R16F, weights.data());
+  texture_ = GPU_texture_create_1d_ex(
+      "Weights", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
 }
 
 SymmetricSeparableBlurWeights::~SymmetricSeparableBlurWeights()

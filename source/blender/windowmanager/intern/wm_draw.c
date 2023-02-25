@@ -231,8 +231,9 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
   GPU_blend(GPU_BLEND_ALPHA);
 
   float gl_matrix[4][4];
-  GPUTexture *texture = GPU_texture_create_2d(
-      "softeare_cursor", bitmap->data_size[0], bitmap->data_size[1], 1, GPU_RGBA8, NULL);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      "softeare_cursor", bitmap->data_size[0], bitmap->data_size[1], 1, GPU_RGBA8, usage, NULL);
   GPU_texture_update(texture, GPU_DATA_UBYTE, bitmap->data);
   GPU_texture_filter_mode(texture, false);
 
