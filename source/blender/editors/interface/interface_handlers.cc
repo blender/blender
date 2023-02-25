@@ -9657,7 +9657,7 @@ static int ui_handle_viewlist_items_hover(const wmEvent *event, const ARegion *r
   bool has_item = false;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM,UI_BTYPE_LISTROW)) {
+      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM, UI_BTYPE_LISTROW)) {
         but->flag &= ~UI_ACTIVE;
         has_item = true;
       }

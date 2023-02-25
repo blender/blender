@@ -89,7 +89,7 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
    * picks the true var folder, not the alias, meaning the below
    * comparison always fails unless we prepend with the correct value. */
   test_temp_dir = "/private" + test_temp_dir;
-#endif // #ifdef __APPLE__
+#endif  // #ifdef __APPLE__
 
   ASSERT_EQ(BLI_path_cmp_normalized(cwd, test_temp_dir.c_str()), 0)
       << "the path of the current working directory should equal the path of the temporary "

@@ -194,7 +194,8 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
   Mesh *mesh = (Mesh *)object_->data;
 
   is_initial_load_ = true;
-  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime, import_params_.mesh_read_flag);
+  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+                                                           import_params_.mesh_read_flag);
 
   Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
 
@@ -850,7 +851,8 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     }
   }
 
-  read_mesh_sample(&settings, active_mesh, params.motion_sample_time, new_mesh || is_initial_load_);
+  read_mesh_sample(
+      &settings, active_mesh, params.motion_sample_time, new_mesh || is_initial_load_);
 
   if (new_mesh) {
     /* Here we assume that the number of materials doesn't change, i.e. that
@@ -862,7 +864,8 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
           attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
-      assign_facesets_to_material_indices(params.motion_sample_time, material_indices.span, &mat_map);
+      assign_facesets_to_material_indices(
+          params.motion_sample_time, material_indices.span, &mat_map);
       material_indices.finish();
     }
   }
