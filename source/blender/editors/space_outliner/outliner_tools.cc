@@ -3268,6 +3268,11 @@ static bool outliner_data_operation_poll(bContext *C)
   }
   const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const TreeElement *te = get_target_element(space_outliner);
+
+  if (te == nullptr) {
+    return false;
+  }
+
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
   return ELEM(datalevel,
