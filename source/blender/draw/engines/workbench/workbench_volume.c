@@ -28,7 +28,7 @@ void workbench_volume_engine_init(WORKBENCH_Data *vedata)
   WORKBENCH_TextureList *txl = vedata->txl;
 
   if (txl->dummy_volume_tx == NULL) {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
 
     const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
