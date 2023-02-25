@@ -612,10 +612,7 @@ void GPU_unpack_row_length_set(uint len)
 
 /* ------ Binding ------ */
 
-void GPU_texture_bind_ex(GPUTexture *tex_,
-                         eGPUSamplerState state,
-                         int unit,
-                         const bool /*set_number*/)
+void GPU_texture_bind_ex(GPUTexture *tex_, eGPUSamplerState state, int unit)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   state = (state >= GPU_SAMPLER_MAX) ? tex->sampler_state : state;

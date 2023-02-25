@@ -558,7 +558,7 @@ void GPU_texture_bind(GPUTexture *texture, int unit);
 /**
  * Bind a texture to a texture sampling image units using the explicit sampler state.
  */
-void GPU_texture_bind_ex(GPUTexture *texture, eGPUSamplerState state, int unit, bool set_number);
+void GPU_texture_bind_ex(GPUTexture *texture, eGPUSamplerState state, int unit);
 /**
  * Unbind \a tex from a texture sampling image unit.
  * \note this isn't strictly required but it is better for debugging purpose.
