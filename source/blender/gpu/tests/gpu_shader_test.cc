@@ -42,7 +42,7 @@ static void test_gpu_shader_compute_2d()
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  GPUTexture *texture = GPU_texture_create_2d_ex(
+  GPUTexture *texture = GPU_texture_create_2d(
       "gpu_shader_compute_2d", SIZE, SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
@@ -88,7 +88,7 @@ static void test_gpu_shader_compute_1d()
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
-  GPUTexture *texture = GPU_texture_create_1d_ex(
+  GPUTexture *texture = GPU_texture_create_1d(
       "gpu_shader_compute_1d", SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
@@ -278,9 +278,9 @@ static void test_gpu_texture_read()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *rgba32u = GPU_texture_create_2d_ex("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
-  GPUTexture *rgba16u = GPU_texture_create_2d_ex("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
-  GPUTexture *rgba32f = GPU_texture_create_2d_ex("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
+  GPUTexture *rgba32u = GPU_texture_create_2d("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
+  GPUTexture *rgba16u = GPU_texture_create_2d("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
+  GPUTexture *rgba32f = GPU_texture_create_2d("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
 
   const float4 fcol = {0.0f, 1.3f, -231.0f, 1000.0f};
   const uint4 ucol = {0, 1, 2, 12223};
@@ -432,7 +432,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   int test_output_px_len = divide_ceil_u(sizeof(TestOutput), 4 * 4);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_2d_ex(
+  GPUTexture *tex = GPU_texture_create_2d(
       "tx", test_output_px_len, test_count, 1, GPU_RGBA32UI, usage, nullptr);
   GPUFrameBuffer *fb = GPU_framebuffer_create("test_fb");
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});

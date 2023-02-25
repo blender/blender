@@ -625,10 +625,10 @@ GPUOffScreen *GPU_offscreen_create(
   width = max_ii(1, width);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-  ofs->color = GPU_texture_create_2d_ex("ofs_color", width, height, 1, format, usage, nullptr);
+  ofs->color = GPU_texture_create_2d("ofs_color", width, height, 1, format, usage, nullptr);
 
   if (depth) {
-    ofs->depth = GPU_texture_create_2d_ex(
+    ofs->depth = GPU_texture_create_2d(
         "ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
   }
 

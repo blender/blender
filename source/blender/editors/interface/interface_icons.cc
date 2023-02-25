@@ -912,20 +912,20 @@ void UI_icons_reload_internal_textures()
       icongltex.invw = 1.0f / b32buf->x;
       icongltex.invh = 1.0f / b32buf->y;
 
-      icongltex.tex[0] = GPU_texture_create_2d_ex(
+      icongltex.tex[0] = GPU_texture_create_2d(
           "icons", b32buf->x, b32buf->y, 2, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
       GPU_texture_update_mipmap(icongltex.tex[0], 0, GPU_DATA_UBYTE, b32buf->rect);
       GPU_texture_update_mipmap(icongltex.tex[0], 1, GPU_DATA_UBYTE, b16buf->rect);
     }
 
     if (need_icons_with_border && icongltex.tex[1] == nullptr) {
-      icongltex.tex[1] = GPU_texture_create_2d_ex("icons_border",
-                                                  b32buf_border->x,
-                                                  b32buf_border->y,
-                                                  2,
-                                                  GPU_RGBA8,
-                                                  GPU_TEXTURE_USAGE_SHADER_READ,
-                                                  nullptr);
+      icongltex.tex[1] = GPU_texture_create_2d("icons_border",
+                                               b32buf_border->x,
+                                               b32buf_border->y,
+                                               2,
+                                               GPU_RGBA8,
+                                               GPU_TEXTURE_USAGE_SHADER_READ,
+                                               nullptr);
       GPU_texture_update_mipmap(icongltex.tex[1], 0, GPU_DATA_UBYTE, b32buf_border->rect);
       GPU_texture_update_mipmap(icongltex.tex[1], 1, GPU_DATA_UBYTE, b16buf_border->rect);
     }

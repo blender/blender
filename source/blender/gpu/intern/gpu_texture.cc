@@ -286,97 +286,97 @@ static inline GPUTexture *gpu_texture_create(const char *name,
   return reinterpret_cast<GPUTexture *>(tex);
 }
 
-GPUTexture *GPU_texture_create_1d_ex(const char *name,
-                                     int w,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data)
+GPUTexture *GPU_texture_create_1d(const char *name,
+                                  int w,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUTextureUsage usage,
+                                  const float *data)
 {
   return gpu_texture_create(
       name, w, 0, 0, GPU_TEXTURE_1D, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
-                                           int w,
-                                           int h,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data)
+GPUTexture *GPU_texture_create_1d_array(const char *name,
+                                        int w,
+                                        int h,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const float *data)
 {
   return gpu_texture_create(
       name, w, h, 0, GPU_TEXTURE_1D_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_2d_ex(const char *name,
-                                     int w,
-                                     int h,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data)
+GPUTexture *GPU_texture_create_2d(const char *name,
+                                  int w,
+                                  int h,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUTextureUsage usage,
+                                  const float *data)
 {
   return gpu_texture_create(
       name, w, h, 0, GPU_TEXTURE_2D, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
-                                           int w,
-                                           int h,
-                                           int d,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data)
+GPUTexture *GPU_texture_create_2d_array(const char *name,
+                                        int w,
+                                        int h,
+                                        int d,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const float *data)
 {
   return gpu_texture_create(
       name, w, h, d, GPU_TEXTURE_2D_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_3d_ex(const char *name,
-                                     int w,
-                                     int h,
-                                     int d,
-                                     int mip_len,
-                                     eGPUTextureFormat texture_format,
-                                     eGPUTextureUsage usage,
-                                     const void *data)
+GPUTexture *GPU_texture_create_3d(const char *name,
+                                  int w,
+                                  int h,
+                                  int d,
+                                  int mip_len,
+                                  eGPUTextureFormat texture_format,
+                                  eGPUTextureUsage usage,
+                                  const void *data)
 {
   return gpu_texture_create(
       name, w, h, d, GPU_TEXTURE_3D, mip_len, texture_format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_cube_ex(const char *name,
-                                       int w,
-                                       int mip_len,
-                                       eGPUTextureFormat format,
-                                       eGPUTextureUsage usage,
-                                       const float *data)
+GPUTexture *GPU_texture_create_cube(const char *name,
+                                    int w,
+                                    int mip_len,
+                                    eGPUTextureFormat format,
+                                    eGPUTextureUsage usage,
+                                    const float *data)
 {
   return gpu_texture_create(
       name, w, w, 0, GPU_TEXTURE_CUBE, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
-                                             int w,
-                                             int d,
-                                             int mip_len,
-                                             eGPUTextureFormat format,
-                                             eGPUTextureUsage usage,
-                                             const float *data)
+GPUTexture *GPU_texture_create_cube_array(const char *name,
+                                          int w,
+                                          int d,
+                                          int mip_len,
+                                          eGPUTextureFormat format,
+                                          eGPUTextureUsage usage,
+                                          const float *data)
 {
   return gpu_texture_create(
       name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mip_len, format, GPU_DATA_FLOAT, usage, data);
 }
 
-GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
-                                                int w,
-                                                int h,
-                                                int miplen,
-                                                eGPUTextureFormat tex_format,
-                                                eGPUTextureUsage usage,
-                                                const void *data)
+GPUTexture *GPU_texture_create_compressed_2d(const char *name,
+                                             int w,
+                                             int h,
+                                             int miplen,
+                                             eGPUTextureFormat tex_format,
+                                             eGPUTextureUsage usage,
+                                             const void *data)
 {
   Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = tex->init_2D(w, h, 0, miplen, tex_format);

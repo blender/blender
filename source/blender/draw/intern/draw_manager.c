@@ -2339,7 +2339,7 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
 
   if (g_select_buffer.texture_depth == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+    g_select_buffer.texture_depth = GPU_texture_create_2d(
         "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(

@@ -513,14 +513,14 @@ void gpu::MTLTexture::update_sub_depth_2d(
   }
 
   /* Push contents into an r32_tex and render contents to depth using a shader. */
-  GPUTexture *r32_tex_tmp = GPU_texture_create_2d_ex("depth_intermediate_copy_tex",
-                                                     w_,
-                                                     h_,
-                                                     1,
-                                                     format,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ |
-                                                         GPU_TEXTURE_USAGE_ATTACHMENT,
-                                                     nullptr);
+  GPUTexture *r32_tex_tmp = GPU_texture_create_2d("depth_intermediate_copy_tex",
+                                                  w_,
+                                                  h_,
+                                                  1,
+                                                  format,
+                                                  GPU_TEXTURE_USAGE_SHADER_READ |
+                                                      GPU_TEXTURE_USAGE_ATTACHMENT,
+                                                  nullptr);
   GPU_texture_filter_mode(r32_tex_tmp, false);
   GPU_texture_wrap_mode(r32_tex_tmp, false, true);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(unwrap(r32_tex_tmp));

@@ -264,76 +264,73 @@ typedef struct GPUTexture GPUTexture;
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
  * the data is not in float format, use GPU_texture_update to upload the data with the right data
  * format.
- * NOTE: `_ex` variants of texture creation functions allow specification of explicit usage for
- * optimal performance. Using standard texture creation will use the `GPU_TEXTURE_USAGE_GENERAL`.
  *
  * Textures created via other means will either inherit usage from the source resource, or also
  * be initialized with `GPU_TEXTURE_USAGE_GENERAL`.
  *
  * flag. \a mips is the number of mip level to allocate. It must be >= 1.
  */
-/* Extended texture functions. */
-GPUTexture *GPU_texture_create_1d_ex(const char *name,
-                                     int width,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data);
-GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
-                                           int width,
-                                           int layer_len,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data);
-GPUTexture *GPU_texture_create_2d_ex(const char *name,
-                                     int width,
-                                     int height,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const float *data);
-GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
-                                           int width,
-                                           int height,
-                                           int layer_len,
-                                           int mip_len,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage,
-                                           const float *data);
-GPUTexture *GPU_texture_create_3d_ex(const char *name,
-                                     int width,
-                                     int height,
-                                     int depth,
-                                     int mip_len,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage,
-                                     const void *data);
-GPUTexture *GPU_texture_create_cube_ex(const char *name,
-                                       int width,
-                                       int mip_len,
-                                       eGPUTextureFormat format,
-                                       eGPUTextureUsage usage,
-                                       const float *data);
-GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
-                                             int width,
-                                             int layer_len,
-                                             int mip_len,
-                                             eGPUTextureFormat format,
-                                             eGPUTextureUsage usage,
-                                             const float *data);
+GPUTexture *GPU_texture_create_1d(const char *name,
+                                  int width,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUTextureUsage usage,
+                                  const float *data);
+GPUTexture *GPU_texture_create_1d_array(const char *name,
+                                        int width,
+                                        int layer_len,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const float *data);
+GPUTexture *GPU_texture_create_2d(const char *name,
+                                  int width,
+                                  int height,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUTextureUsage usage,
+                                  const float *data);
+GPUTexture *GPU_texture_create_2d_array(const char *name,
+                                        int width,
+                                        int height,
+                                        int layer_len,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const float *data);
+GPUTexture *GPU_texture_create_3d(const char *name,
+                                  int width,
+                                  int height,
+                                  int depth,
+                                  int mip_len,
+                                  eGPUTextureFormat format,
+                                  eGPUTextureUsage usage,
+                                  const void *data);
+GPUTexture *GPU_texture_create_cube(const char *name,
+                                    int width,
+                                    int mip_len,
+                                    eGPUTextureFormat format,
+                                    eGPUTextureUsage usage,
+                                    const float *data);
+GPUTexture *GPU_texture_create_cube_array(const char *name,
+                                          int width,
+                                          int layer_len,
+                                          int mip_len,
+                                          eGPUTextureFormat format,
+                                          eGPUTextureUsage usage,
+                                          const float *data);
 /**
  * DDS texture loading. Return NULL if compressed texture support is not available.
  * \a data should hold all the data for \a mip_len mipmaps.
  * The data is expected to be in compressed form. This isn't going to compress un-compress data.
  */
-GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
-                                                int width,
-                                                int height,
-                                                int mip_len,
-                                                eGPUTextureFormat format,
-                                                eGPUTextureUsage usage,
-                                                const void *data);
+GPUTexture *GPU_texture_create_compressed_2d(const char *name,
+                                             int width,
+                                             int height,
+                                             int mip_len,
+                                             eGPUTextureFormat format,
+                                             eGPUTextureUsage usage,
+                                             const void *data);
 
 /**
  * Create a buffer texture that allow access to a buffer \a vertex_buf through a sampler of type

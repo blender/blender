@@ -207,35 +207,34 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     if (is_cubemap) {
       if (layers) {
-        tex = GPU_texture_create_cube_array_ex(
+        tex = GPU_texture_create_cube_array(
             name, size[0], layers, 1, pygpu_textureformat.value_found, usage, data);
       }
       else {
-        tex = GPU_texture_create_cube_ex(
+        tex = GPU_texture_create_cube(
             name, size[0], 1, pygpu_textureformat.value_found, usage, data);
       }
     }
     else if (layers) {
       if (len == 2) {
-        tex = GPU_texture_create_2d_array_ex(
+        tex = GPU_texture_create_2d_array(
             name, size[0], size[1], layers, 1, pygpu_textureformat.value_found, usage, data);
       }
       else {
-        tex = GPU_texture_create_1d_array_ex(
+        tex = GPU_texture_create_1d_array(
             name, size[0], layers, 1, pygpu_textureformat.value_found, usage, data);
       }
     }
     else if (len == 3) {
-      tex = GPU_texture_create_3d_ex(
+      tex = GPU_texture_create_3d(
           name, size[0], size[1], size[2], 1, pygpu_textureformat.value_found, usage, data);
     }
     else if (len == 2) {
-      tex = GPU_texture_create_2d_ex(
+      tex = GPU_texture_create_2d(
           name, size[0], size[1], 1, pygpu_textureformat.value_found, usage, data);
     }
     else {
-      tex = GPU_texture_create_1d_ex(
-          name, size[0], 1, pygpu_textureformat.value_found, usage, data);
+      tex = GPU_texture_create_1d(name, size[0], 1, pygpu_textureformat.value_found, usage, data);
     }
   }
 

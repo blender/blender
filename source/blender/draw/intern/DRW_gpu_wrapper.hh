@@ -908,30 +908,30 @@ class Texture : NonCopyable {
                      bool cubemap)
   {
     if (h == 0) {
-      return GPU_texture_create_1d_ex(name_, w, mip_len, format, usage, data);
+      return GPU_texture_create_1d(name_, w, mip_len, format, usage, data);
     }
     else if (cubemap) {
       if (layered) {
-        return GPU_texture_create_cube_array_ex(name_, w, d, mip_len, format, usage, data);
+        return GPU_texture_create_cube_array(name_, w, d, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_cube_ex(name_, w, mip_len, format, usage, data);
+        return GPU_texture_create_cube(name_, w, mip_len, format, usage, data);
       }
     }
     else if (d == 0) {
       if (layered) {
-        return GPU_texture_create_1d_array_ex(name_, w, h, mip_len, format, usage, data);
+        return GPU_texture_create_1d_array(name_, w, h, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_2d_ex(name_, w, h, mip_len, format, usage, data);
+        return GPU_texture_create_2d(name_, w, h, mip_len, format, usage, data);
       }
     }
     else {
       if (layered) {
-        return GPU_texture_create_2d_array_ex(name_, w, h, d, mip_len, format, usage, data);
+        return GPU_texture_create_2d_array(name_, w, h, d, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_3d_ex(name_, w, h, d, mip_len, format, usage, data);
+        return GPU_texture_create_3d(name_, w, h, d, mip_len, format, usage, data);
       }
     }
   }

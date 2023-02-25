@@ -60,7 +60,7 @@ static void select_engine_framebuffer_setup(void)
 
   if (e_data.texture_u32 == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    e_data.texture_u32 = GPU_texture_create_2d_ex(
+    e_data.texture_u32 = GPU_texture_create_2d(
         "select_buf_ids", size[0], size[1], 1, GPU_R32UI, usage, NULL);
     GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, e_data.texture_u32, 0, 0);
 

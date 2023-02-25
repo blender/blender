@@ -106,7 +106,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /* Add default texture for cases where no other framebuffer is bound */
       if (!default_fbo_gputexture_) {
-        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(unwrap(GPU_texture_create_2d_ex(
+        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(unwrap(GPU_texture_create_2d(
             __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr)));
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
@@ -551,27 +551,25 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     switch (type) {
       case GPU_TEXTURE_1D:
-        tex = GPU_texture_create_1d_ex("Dummy 1D", 128, 1, format, usage, nullptr);
+        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_1D_ARRAY:
-        tex = GPU_texture_create_1d_array_ex("Dummy 1DArray", 128, 1, 1, format, usage, nullptr);
+        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_2D:
-        tex = GPU_texture_create_2d_ex("Dummy 2D", 128, 128, 1, format, usage, nullptr);
+        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_2D_ARRAY:
-        tex = GPU_texture_create_2d_array_ex(
-            "Dummy 2DArray", 128, 128, 1, 1, format, usage, nullptr);
+        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_3D:
-        tex = GPU_texture_create_3d_ex("Dummy 3D", 128, 128, 1, 1, format, usage, nullptr);
+        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_CUBE:
-        tex = GPU_texture_create_cube_ex("Dummy Cube", 128, 1, format, usage, nullptr);
+        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_CUBE_ARRAY:
-        tex = GPU_texture_create_cube_array_ex(
-            "Dummy CubeArray", 128, 1, 1, format, usage, nullptr);
+        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_BUFFER:
         if (!dummy_verts_[sampler_format]) {

@@ -215,13 +215,13 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
 
   GPUColorBandBuilder *builder = mat->coba_builder;
 
-  mat->coba_tex = GPU_texture_create_1d_array_ex("mat_ramp",
-                                                 CM_TABLE + 1,
-                                                 builder->current_layer,
-                                                 1,
-                                                 GPU_RGBA16F,
-                                                 GPU_TEXTURE_USAGE_SHADER_READ,
-                                                 (float *)builder->pixels);
+  mat->coba_tex = GPU_texture_create_1d_array("mat_ramp",
+                                              CM_TABLE + 1,
+                                              builder->current_layer,
+                                              1,
+                                              GPU_RGBA16F,
+                                              GPU_TEXTURE_USAGE_SHADER_READ,
+                                              (float *)builder->pixels);
 
   MEM_freeN(builder);
   mat->coba_builder = NULL;
@@ -233,14 +233,14 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
     return;
   }
 
-  mat->sky_tex = GPU_texture_create_2d_array_ex("mat_sky",
-                                                GPU_SKY_WIDTH,
-                                                GPU_SKY_HEIGHT,
-                                                mat->sky_builder->current_layer,
-                                                1,
-                                                GPU_RGBA32F,
-                                                GPU_TEXTURE_USAGE_GENERAL,
-                                                (float *)mat->sky_builder->pixels);
+  mat->sky_tex = GPU_texture_create_2d_array("mat_sky",
+                                             GPU_SKY_WIDTH,
+                                             GPU_SKY_HEIGHT,
+                                             mat->sky_builder->current_layer,
+                                             1,
+                                             GPU_RGBA32F,
+                                             GPU_TEXTURE_USAGE_GENERAL,
+                                             (float *)mat->sky_builder->pixels);
 
   MEM_freeN(mat->sky_builder);
   mat->sky_builder = NULL;
@@ -610,12 +610,12 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
       GPU_texture_free(material->sss_tex_profile);
     }
 
-    material->sss_tex_profile = GPU_texture_create_1d_ex("sss_tex_profile",
-                                                         64,
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         GPU_TEXTURE_USAGE_SHADER_READ,
-                                                         translucence_profile);
+    material->sss_tex_profile = GPU_texture_create_1d("sss_tex_profile",
+                                                      64,
+                                                      1,
+                                                      GPU_RGBA16F,
+                                                      GPU_TEXTURE_USAGE_SHADER_READ,
+                                                      translucence_profile);
 
     MEM_freeN(translucence_profile);
 

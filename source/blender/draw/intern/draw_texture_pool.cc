@@ -98,7 +98,7 @@ GPUTexture *DRW_texture_pool_query(DRWTexturePool *pool,
 
   DRWTexturePoolHandle handle;
   handle.users_bits = user_bit;
-  handle.texture = GPU_texture_create_2d_ex(name, width, height, 1, format, usage, nullptr);
+  handle.texture = GPU_texture_create_2d(name, width, height, 1, format, usage, nullptr);
   pool->handles.append(handle);
   /* Doing filtering for depth does not make sense when not doing shadow mapping,
    * and enabling texture filtering on integer texture make them unreadable. */
@@ -155,7 +155,7 @@ GPUTexture *DRW_texture_pool_texture_acquire(
       int texture_id = pool->handles.size();
       SNPRINTF(name, "DRW_tex_pool_%d", texture_id);
     }
-    tmp_tex = GPU_texture_create_2d_ex(name, width, height, 1, format, usage, nullptr);
+    tmp_tex = GPU_texture_create_2d(name, width, height, 1, format, usage, nullptr);
   }
 
   pool->tmp_tex_acquired.append(tmp_tex);

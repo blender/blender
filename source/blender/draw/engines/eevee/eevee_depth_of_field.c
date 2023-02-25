@@ -639,9 +639,9 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     /* Do not use texture pool because of needs mipmaps. */
     eGPUTextureUsage tex_flags = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                  GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
-    txl->dof_reduced_color = GPU_texture_create_2d_ex(
+    txl->dof_reduced_color = GPU_texture_create_2d(
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, tex_flags, NULL);
-    txl->dof_reduced_coc = GPU_texture_create_2d_ex(
+    txl->dof_reduced_coc = GPU_texture_create_2d(
         "dof_reduced_coc", UNPACK2(res), mip_count, GPU_R16F, tex_flags, NULL);
   }
 
