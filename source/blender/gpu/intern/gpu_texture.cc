@@ -735,6 +735,7 @@ eGPUTextureFormat GPU_texture_format(const GPUTexture *tex)
 const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
 {
   switch (texture_format) {
+    /* Formats texture & render-buffer */
     case GPU_RGBA8UI:
       return "RGBA8UI";
     case GPU_RGBA8I:
@@ -795,24 +796,57 @@ const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
       return "R16F";
     case GPU_R16:
       return "R16";
-
-    /* Special formats texture & render-buffer. */
+    /* Special formats texture & render-buffer */
     case GPU_RGB10_A2:
-      return "RGB10A2";
+      return "RGB10_A2";
+    case GPU_RGB10_A2UI:
+      return "RGB10_A2UI";
     case GPU_R11F_G11F_B10F:
-      return "R11FG11FB10F";
+      return "R11F_G11F_B10F";
     case GPU_DEPTH32F_STENCIL8:
-      return "DEPTH32FSTENCIL8";
+      return "DEPTH32F_STENCIL8";
     case GPU_DEPTH24_STENCIL8:
-      return "DEPTH24STENCIL8";
+      return "DEPTH24_STENCIL8";
     case GPU_SRGB8_A8:
-      return "SRGB8A8";
-
-    /* Texture only format */
-    case (GPU_RGB16F):
+      return "SRGB8_A8";
+    /* Texture only formats. */
+    case GPU_RGB16F:
       return "RGB16F";
-
-    /* Special formats texture only */
+    case GPU_RGB16_SNORM:
+      return "RGB16_SNORM";
+    case GPU_RGB16I:
+      return "RGB16I";
+    case GPU_RGB16UI:
+      return "RGB16UI";
+    case GPU_RGB16:
+      return "RGB16";
+    case GPU_RGBA16_SNORM:
+      return "RGBA16_SNORM";
+    case GPU_RGBA8_SNORM:
+      return "RGBA8_SNORM";
+    case GPU_RGB32F:
+      return "RGB32F";
+    case GPU_RGB32I:
+      return "RGB32I";
+    case GPU_RGB32UI:
+      return "RGB32UI";
+    case GPU_RGB8_SNORM:
+      return "RGB8_SNORM";
+    case GPU_RGB8:
+      return "RGB8";
+    case GPU_RGB8I:
+      return "RGB8I";
+    case GPU_RGB8UI:
+      return "RGB8UI";
+    case GPU_RG16_SNORM:
+      return "RG16_SNORM";
+    case GPU_RG8_SNORM:
+      return "RG8_SNORM";
+    case GPU_R16_SNORM:
+      return "R16_SNORM";
+    case GPU_R8_SNORM:
+      return "R8_SNORM";
+    /* Special formats, texture only. */
     case GPU_SRGB8_A8_DXT1:
       return "SRGB8_A8_DXT1";
     case GPU_SRGB8_A8_DXT3:
@@ -825,14 +859,17 @@ const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
       return "RGBA8_DXT3";
     case GPU_RGBA8_DXT5:
       return "RGBA8_DXT5";
-
-    /* Depth Formats */
+    case GPU_SRGB8:
+      return "SRGB8";
+    case GPU_RGB9_E5:
+      return "RGB9_E5";
+    /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
-      return "DEPTH32F";
+      return "DEPTH_COMPONENT32F";
     case GPU_DEPTH_COMPONENT24:
-      return "DEPTH24";
+      return "DEPTH_COMPONENT24";
     case GPU_DEPTH_COMPONENT16:
-      return "DEPTH16";
+      return "DEPTH_COMPONENT16";
   }
   BLI_assert_unreachable();
   return "";

@@ -105,92 +105,92 @@ ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
  * Types of texture internal storage. Defines how the data is stored inside the video memory.
  * Be aware that some formats are not supported by render-buffers.
  */
-/**
- * TODO(fclem): Enable and implement all of them. Encouraging new usage and avoiding missing cases
- * in switch statements.
- */
 typedef enum eGPUTextureFormat {
   /* Formats texture & render-buffer. */
+
   GPU_RGBA8UI,
   GPU_RGBA8I,
   GPU_RGBA8,
-  GPU_RGBA32UI,
-  GPU_RGBA32I,
-  GPU_RGBA32F,
   GPU_RGBA16UI,
   GPU_RGBA16I,
   GPU_RGBA16F,
   GPU_RGBA16,
+  GPU_RGBA32UI,
+  GPU_RGBA32I,
+  GPU_RGBA32F,
+
   GPU_RG8UI,
   GPU_RG8I,
   GPU_RG8,
-  GPU_RG32UI,
-  GPU_RG32I,
-  GPU_RG32F,
   GPU_RG16UI,
   GPU_RG16I,
   GPU_RG16F,
   GPU_RG16,
+  GPU_RG32UI,
+  GPU_RG32I,
+  GPU_RG32F,
+
   GPU_R8UI,
   GPU_R8I,
   GPU_R8,
-  GPU_R32UI,
-  GPU_R32I,
-  GPU_R32F,
   GPU_R16UI,
   GPU_R16I,
   GPU_R16F,
-  GPU_R16, /* Max texture buffer format. */
+  GPU_R16,
+  GPU_R32UI,
+  GPU_R32I,
+  GPU_R32F,
 
   /* Special formats texture & render-buffer. */
+
   GPU_RGB10_A2,
+  GPU_RGB10_A2UI,
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,
   GPU_DEPTH24_STENCIL8,
   GPU_SRGB8_A8,
-#if 0
-  GPU_RGB10_A2UI,
-#endif
 
-  /* Texture only format */
-  GPU_RGB16F,
-#if 0
-  GPU_RGBA16_SNORM,
+  /* Texture only formats. */
+
   GPU_RGBA8_SNORM,
-  GPU_RGB32F,
-  GPU_RGB32I,
-  GPU_RGB32UI,
-  GPU_RGB16_SNORM,
-  GPU_RGB16I,
-  GPU_RGB16UI,
-  GPU_RGB16,
-  GPU_RGB8_SNORM,
-  GPU_RGB8,
-  GPU_RGB8I,
-  GPU_RGB8UI,
-  GPU_RG16_SNORM,
-  GPU_RG8_SNORM,
-  GPU_R16_SNORM,
-  GPU_R8_SNORM,
-#endif
+  GPU_RGBA16_SNORM,
 
-  /* Special formats texture only */
-  GPU_SRGB8_A8_DXT1,
-  GPU_SRGB8_A8_DXT3,
-  GPU_SRGB8_A8_DXT5,
-  GPU_RGBA8_DXT1,
-  GPU_RGBA8_DXT3,
-  GPU_RGBA8_DXT5,
-#if 0
+  GPU_RGB8UI,
+  GPU_RGB8I,
+  GPU_RGB8,
+  GPU_RGB8_SNORM,
+  GPU_RGB16UI,
+  GPU_RGB16I,
+  GPU_RGB16F,
+  GPU_RGB16,
+  GPU_RGB16_SNORM,
+  GPU_RGB32UI,
+  GPU_RGB32I,
+  GPU_RGB32F,
+
+  GPU_RG8_SNORM,
+  GPU_RG16_SNORM,
+
+  GPU_R8_SNORM,
+  GPU_R16_SNORM,
+
+  /* Special formats, texture only. */
+  GPU_SRGB8_A8_DXT1, /* BC1 */
+  GPU_SRGB8_A8_DXT3, /* BC2 */
+  GPU_SRGB8_A8_DXT5, /* BC3 */
+  GPU_RGBA8_DXT1,    /* BC1 */
+  GPU_RGBA8_DXT3,    /* BC2 */
+  GPU_RGBA8_DXT5,    /* BC3 */
   GPU_SRGB8,
   GPU_RGB9_E5,
+#if 0 /* TODO: Add support for them. */
   GPU_COMPRESSED_RG_RGTC2,
   GPU_COMPRESSED_SIGNED_RG_RGTC2,
   GPU_COMPRESSED_RED_RGTC1,
   GPU_COMPRESSED_SIGNED_RED_RGTC1,
 #endif
 
-  /* Depth Formats */
+  /* Depth Formats. */
   GPU_DEPTH_COMPONENT32F,
   GPU_DEPTH_COMPONENT24,
   GPU_DEPTH_COMPONENT16,
@@ -200,7 +200,7 @@ typedef enum eGPUTextureFormat {
  * Types of data for data specification.
  * Used for formatting upload and download of data.
  * When used with textures, they need to match or be compatible with the `eGPUTextureFormat` used.
- * Check `validate_data_format` and `validate_data_format_mtl` for compatibility list.
+ * Check `validate_data_format` for compatibility list.
  */
 typedef enum eGPUDataFormat {
   GPU_DATA_FLOAT,
