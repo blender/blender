@@ -1617,12 +1617,12 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
     return;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_ICON_MULTI);
   GPU_shader_bind(shader);
 
-  const int data_binding = GPU_shader_get_ubo_binding(shader, "multi_rect_data");
+  const int data_binding = GPU_shader_get_ubo_binding(shader, "multi_icon_data");
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
-      sizeof(MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
+      sizeof(MultiIconCallData), texture_draw_calls->drawcall_cache, __func__);
   GPU_uniformbuf_bind(ubo, data_binding);
 
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
@@ -1798,7 +1798,7 @@ static void icon_draw_texture(float x,
   GPU_shader_bind(shader);
 
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
-  const int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
+  const int color_loc = GPU_shader_get_uniform(shader, "finalColor");
   const int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   const int rect_geom_loc = GPU_shader_get_uniform(shader, "rect_geom");
 
