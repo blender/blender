@@ -11,6 +11,7 @@
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
+#include <pxr/usd/usdUtils/dependencies.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -41,19 +42,86 @@ struct ExportJobData {
   Depsgraph *depsgraph;
   wmWindowManager *wm;
 
-  char filepath[FILE_MAX];
+  char unarchived_filepath[FILE_MAX]; /* unarchived_filepath is used for usda/usdc/usd export. */
+  char usdz_filepath[FILE_MAX];
   USDExportParams params;
 
   bool export_ok;
   timeit::TimePoint start_time;
+
+  bool targets_usdz() const
+  {
+    return usdz_filepath[0] != '\0';
+  }
+
+  const char *export_filepath() const
+  {
+    if (targets_usdz()) {
+      return usdz_filepath;
+    }
+    return unarchived_filepath;
+  }
 };
 
 static void report_job_duration(const ExportJobData *data)
 {
   timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
-  std::cout << "USD export of '" << data->filepath << "' took ";
+  const char *export_filepath = data->export_filepath();
+  std::cout << "USD export of '" << export_filepath << "' took ";
   timeit::print_duration(duration);
   std::cout << '\n';
+}
+
+/**
+ * For usdz export, we must first create a usd/a/c file and then covert it to usdz. In Blender's
+ * case, we first create a usdc file in Blender's temporary working directory, and store the path
+ * to the usdc file in `unarchived_filepath`. This function then does the conversion of that usdc
+ * file into usdz.
+ *
+ * \return true when the conversion from usdc to usdz is successful.
+ */
+static bool perform_usdz_conversion(const ExportJobData *data)
+{
+  char usdc_temp_dir[FILE_MAX], usdc_file[FILE_MAX];
+  BLI_split_dirfile(data->unarchived_filepath, usdc_temp_dir, usdc_file, FILE_MAX, FILE_MAX);
+
+  char usdz_file[FILE_MAX];
+  BLI_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
+
+  char original_working_dir_buff[FILE_MAX];
+  char *original_working_dir = BLI_current_working_dir(original_working_dir_buff,
+                                                       sizeof(original_working_dir_buff));
+  /* Buffer is expected to be returned by #BLI_current_working_dir, although in theory other
+   * returns are possible on some platforms, this is not handled by this code. */
+  BLI_assert(original_working_dir == original_working_dir_buff);
+
+  BLI_change_working_dir(usdc_temp_dir);
+
+  pxr::UsdUtilsCreateNewUsdzPackage(pxr::SdfAssetPath(usdc_file), usdz_file);
+  BLI_change_working_dir(original_working_dir);
+
+  char usdz_temp_full_path[FILE_MAX];
+  BLI_path_join(usdz_temp_full_path, FILE_MAX, usdc_temp_dir, usdz_file);
+
+  int result = 0;
+  if (BLI_exists(data->usdz_filepath)) {
+    result = BLI_delete(data->usdz_filepath, false, false);
+    if (result != 0) {
+      WM_reportf(
+          RPT_ERROR, "USD Export: Unable to delete existing usdz file %s", data->usdz_filepath);
+      return false;
+    }
+  }
+  result = BLI_path_move(usdz_temp_full_path, data->usdz_filepath);
+  if (result != 0) {
+    WM_reportf(RPT_ERROR,
+               "USD Export: Couldn't move new usdz file from temporary location %s to %s",
+               usdz_temp_full_path,
+               data->usdz_filepath);
+    return false;
+  }
+
+  return true;
 }
 
 static void export_startjob(void *customdata,
@@ -89,13 +157,14 @@ static void export_startjob(void *customdata,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = scene->r.cfra;
 
-  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filepath);
+  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->unarchived_filepath);
   if (!usd_stage) {
     /* This happens when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(
-        RPT_ERROR, "USD Export: unable to find suitable USD plugin to write %s", data->filepath);
+    WM_reportf(RPT_ERROR,
+               "USD Export: unable to find suitable USD plugin to write %s",
+               data->unarchived_filepath);
     return;
   }
 
@@ -159,9 +228,37 @@ static void export_startjob(void *customdata,
     BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
+  if (data->targets_usdz()) {
+    bool usd_conversion_success = perform_usdz_conversion(data);
+    if (!usd_conversion_success) {
+      data->export_ok = false;
+      *progress = 1.0f;
+      *do_update = true;
+      return;
+    }
+  }
+
   data->export_ok = true;
   *progress = 1.0f;
   *do_update = true;
+}
+
+static void export_endjob_usdz_cleanup(const ExportJobData *data)
+{
+  if (!BLI_exists(data->unarchived_filepath)) {
+    return;
+  }
+
+  char dir[FILE_MAX];
+  BLI_split_dir_part(data->unarchived_filepath, dir, FILE_MAX);
+
+  char usdc_temp_dir[FILE_MAX];
+  BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR);
+
+  BLI_assert_msg(BLI_strcasecmp(dir, usdc_temp_dir) == 0,
+                 "USD Export: Attempting to delete directory that doesn't match the expected "
+                 "temporary directory for usdz export.");
+  BLI_delete(usdc_temp_dir, true, true);
 }
 
 static void export_endjob(void *customdata)
@@ -170,8 +267,12 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
-  if (!data->export_ok && BLI_exists(data->filepath)) {
-    BLI_delete(data->filepath, false, false);
+  if (data->targets_usdz()) {
+    export_endjob_usdz_cleanup(data);
+  }
+
+  if (!data->export_ok && BLI_exists(data->unarchived_filepath)) {
+    BLI_delete(data->unarchived_filepath, false, false);
   }
 
   G.is_rendering = false;
@@ -182,6 +283,36 @@ static void export_endjob(void *customdata)
 }
 
 }  // namespace blender::io::usd
+
+/* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
+ * temporary files will be created in Blender's temporary session storage. The .usdz file will then
+ * be moved to job->usdz_filepath. */
+static void create_temp_path_for_usdz_export(const char *filepath,
+                                             blender::io::usd::ExportJobData *job)
+{
+  char file[FILE_MAX];
+  BLI_split_file_part(filepath, file, FILE_MAX);
+  char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
+
+  char usdc_temp_filepath[FILE_MAX];
+  BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file);
+
+  BLI_strncpy(job->unarchived_filepath, usdc_temp_filepath, strlen(usdc_temp_filepath) + 1);
+  BLI_strncpy(job->usdz_filepath, filepath, strlen(filepath) + 1);
+
+  MEM_freeN(usdc_file);
+}
+
+static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *filepath)
+{
+  if (BLI_path_extension_check_n(filepath, ".usdz", NULL)) {
+    create_temp_path_for_usdz_export(filepath, job);
+    return;
+  }
+
+  BLI_strncpy(job->unarchived_filepath, filepath, sizeof(job->unarchived_filepath));
+  job->usdz_filepath[0] = '\0';
+}
 
 bool USD_export(bContext *C,
                 const char *filepath,
@@ -197,7 +328,7 @@ bool USD_export(bContext *C,
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
   job->export_ok = false;
-  BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
+  set_job_filepath(job, filepath);
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
