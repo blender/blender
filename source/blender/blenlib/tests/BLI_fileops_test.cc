@@ -12,6 +12,12 @@ class ChangeWorkingDirectoryTest : public testing::Test {
  public:
   std::string test_temp_dir;
 
+  void SetUp() override
+  {
+    /* Must use because BLI_change_working_dir() checks that we are on the main thread. */
+    BLI_threadapi_init();
+  }
+
   void TearDown() override
   {
     if (!test_temp_dir.empty()) {
@@ -55,13 +61,15 @@ TEST(fileops, fstream_open_charptr_filename)
 
 TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
 {
-  /* Must use because BLI_change_working_dir() checks that we are on the main thread. */
-  BLI_threadapi_init();
+  char original_cwd_buff[FILE_MAX];
+  char *original_cwd = BLI_current_working_dir(original_cwd_buff, sizeof(original_cwd_buff));
 
-  char original_wd[FILE_MAX];
-  if (!BLI_current_working_dir(original_wd, FILE_MAX)) {
-    FAIL() << "unable to get the current working directory";
-  }
+  ASSERT_FALSE(original_cwd == nullptr) << "Unable to get the current working directory.";
+  /* While some implementation of `getcwd` (or similar) may return allocated memory in some cases,
+   * in the context of `BLI_current_working_dir` usages, this is not expected and should not
+   * happen. */
+  ASSERT_TRUE(original_cwd == original_cwd_buff)
+      << "Returned CWD path unexpectedly different than given char buffer.";
 
   std::string temp_file_name(std::tmpnam(nullptr));
   test_temp_dir = temp_file_name + "_новый";
@@ -79,10 +87,11 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
   ASSERT_TRUE(BLI_change_working_dir(test_temp_dir.c_str()))
       << "temporary directory should succeed changing directory.";
 
-  char cwd[FILE_MAX];
-  if (!BLI_current_working_dir(cwd, FILE_MAX)) {
-    FAIL() << "unable to get the current working directory";
-  }
+  char new_cwd_buff[FILE_MAX];
+  char *new_cwd = BLI_current_working_dir(new_cwd_buff, sizeof(new_cwd_buff));
+  ASSERT_FALSE(new_cwd == nullptr) << "Unable to get the current working directory.";
+  ASSERT_TRUE(new_cwd == new_cwd_buff)
+      << "Returned CWD path unexpectedly different than given char buffer.";
 
 #ifdef __APPLE__
   /* The name returned by std::tmpnam is fine but the Apple OS method
@@ -91,12 +100,21 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
   test_temp_dir = "/private" + test_temp_dir;
 #endif  // #ifdef __APPLE__
 
-  ASSERT_EQ(BLI_path_cmp_normalized(cwd, test_temp_dir.c_str()), 0)
+  ASSERT_EQ(BLI_path_cmp_normalized(new_cwd, test_temp_dir.c_str()), 0)
       << "the path of the current working directory should equal the path of the temporary "
          "directory that was created.";
 
-  ASSERT_TRUE(BLI_change_working_dir(original_wd))
+  ASSERT_TRUE(BLI_change_working_dir(original_cwd))
       << "changing directory back to the original working directory should succeed.";
+
+  char final_cwd_buff[FILE_MAX];
+  char *final_cwd = BLI_current_working_dir(final_cwd_buff, sizeof(final_cwd_buff));
+  ASSERT_FALSE(final_cwd == nullptr) << "Unable to get the current working directory.";
+  ASSERT_TRUE(final_cwd == final_cwd_buff)
+      << "Returned CWD path unexpectedly different than given char buffer.";
+
+  ASSERT_EQ(BLI_path_cmp_normalized(final_cwd, original_cwd), 0)
+      << "The final CWD path should be the same as the original CWD path.";
 }
 
 }  // namespace blender::tests
