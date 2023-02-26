@@ -379,6 +379,9 @@ void gpu_shader_create_info_init()
 
     /* EEVEE Volumetric Material */
     eevee_legacy_material_volumetric_vert = eevee_legacy_material_volumetric_vert_no_geom;
+
+    /* GPencil stroke. */
+    gpu_shader_gpencil_stroke = gpu_shader_gpencil_stroke_no_geom;
   }
 #endif
 

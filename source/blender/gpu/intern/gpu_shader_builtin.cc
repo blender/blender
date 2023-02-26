@@ -85,8 +85,7 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
     case GPU_SHADER_2D_NODELINK_INST:
       return "gpu_shader_2D_nodelink_inst";
     case GPU_SHADER_GPENCIL_STROKE:
-      return GPU_geometry_shader_support() ? "gpu_shader_gpencil_stroke_geom" :
-                                             "gpu_shader_gpencil_stroke_nogeom";
+      return "gpu_shader_gpencil_stroke";
     default:
       BLI_assert_unreachable();
       return "";
