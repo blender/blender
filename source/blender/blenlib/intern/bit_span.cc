@@ -6,6 +6,9 @@ namespace blender::bits {
 
 void MutableBitSpan::set_all()
 {
+  if (bit_range_.is_empty()) {
+    return;
+  }
   const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
   {
     BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
@@ -28,6 +31,9 @@ void MutableBitSpan::set_all()
 
 void MutableBitSpan::reset_all()
 {
+  if (bit_range_.is_empty()) {
+    return;
+  }
   const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
   {
     BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
