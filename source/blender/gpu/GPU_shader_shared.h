@@ -82,10 +82,10 @@ BLI_STATIC_ASSERT_ALIGN(struct SimpleLightingData, 16)
 
 #define MAX_CALLS 16
 
-struct MultiRectCallData {
+struct MultiIconCallData {
   float4 calls_data[MAX_CALLS * 3];
 };
-BLI_STATIC_ASSERT_ALIGN(struct MultiRectCallData, 16)
+BLI_STATIC_ASSERT_ALIGN(struct MultiIconCallData, 16)
 
 enum TestStatus {
   TEST_STATUS_NONE = 0,

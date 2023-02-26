@@ -5,9 +5,9 @@
 
 void main()
 {
-  vec4 rect = multi_rect_data.calls_data[gl_InstanceID * 3];
-  vec4 tex = multi_rect_data.calls_data[gl_InstanceID * 3 + 1];
-  finalColor = multi_rect_data.calls_data[gl_InstanceID * 3 + 2];
+  vec4 rect = multi_icon_data.calls_data[gl_InstanceID * 3];
+  vec4 tex = multi_icon_data.calls_data[gl_InstanceID * 3 + 1];
+  finalColor = multi_icon_data.calls_data[gl_InstanceID * 3 + 2];
 
   /* Use pos to select the right swizzle (instead of gl_VertexID)
    * in order to workaround an OSX driver bug. */

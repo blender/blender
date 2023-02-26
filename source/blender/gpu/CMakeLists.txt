@@ -348,7 +348,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_line_dashed_frag.glsl
   shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_2D_image_rect_vert.glsl
-  shaders/gpu_shader_2D_image_multi_rect_vert.glsl
+  shaders/gpu_shader_icon_multi_vert.glsl
   shaders/gpu_shader_icon_frag.glsl
   shaders/gpu_shader_icon_vert.glsl
   shaders/gpu_shader_image_frag.glsl
@@ -357,7 +357,6 @@ set(GLSL_SRC
   shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
   shaders/gpu_shader_image_shuffle_color_frag.glsl
   shaders/gpu_shader_image_color_frag.glsl
-  shaders/gpu_shader_image_varying_color_frag.glsl
   shaders/gpu_shader_3D_image_vert.glsl
   shaders/gpu_shader_3D_vert.glsl
   shaders/gpu_shader_3D_normal_vert.glsl
@@ -639,7 +638,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_diag_stripes_info.hh
   shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
   shaders/infos/gpu_shader_2D_image_info.hh
-  shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh
   shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
   shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
   shaders/infos/gpu_shader_2D_image_rect_color_info.hh
