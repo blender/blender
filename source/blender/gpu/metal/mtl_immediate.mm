@@ -239,6 +239,17 @@ void MTLImmediate::end()
     desc.vertex_descriptor.buffer_layouts[0].stride = this->vertex_format.stride;
     BLI_assert(this->vertex_format.stride > 0);
 
+    /* Emulate LineLoop using LineStrip. */
+    if (this->prim_type == GPU_PRIM_LINE_LOOP) {
+      /* Patch final vertex of line loop to close. Rendered using LineStrip.
+       * Note: vertex_len represents original length, however, allocated Metal
+       * buffer contains space for one extra vertex when LineLoop is used. */
+      uchar *buffer_data = reinterpret_cast<uchar *>(current_allocation_.data);
+      memcpy(buffer_data + (vertex_len)*vertex_format.stride, buffer_data, vertex_format.stride);
+      this->vertex_idx++;
+      this->prim_type = GPU_PRIM_LINE_STRIP;
+    }
+
     /* SSBO Vertex Fetch -- Verify Attributes. */
     if (active_mtl_shader->get_uses_ssbo_vertex_fetch()) {
       active_mtl_shader->ssbo_vertex_fetch_bind_attributes_end(rec);
@@ -336,16 +347,6 @@ void MTLImmediate::end()
               context_->main_command_buffer.register_draw_counters(fan_index_count);
             }
             rendered = true;
-          } break;
-          case GPU_PRIM_LINE_LOOP: {
-            /* Patch final vertex of line loop to close. Rendered using LineStrip.
-             * Note: vertex_len represents original length, however, allocated Metal
-             * buffer contains space for one extra vertex when LineLoop is used. */
-            uchar *buffer_data = reinterpret_cast<uchar *>(current_allocation_.data);
-            memcpy(buffer_data + (vertex_len)*vertex_format.stride,
-                   buffer_data,
-                   vertex_format.stride);
-            this->vertex_idx++;
           } break;
           default: {
             BLI_assert_unreachable();
