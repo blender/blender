@@ -17,6 +17,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 
 #include "BKE_customdata.h"
 #include "BKE_key.h"
@@ -67,6 +68,10 @@ struct SubdivMeshContext {
   /* Per-subdivided vertex counter of averaged values. */
   int *accumulated_counters;
   bool have_displacement;
+
+  /* Write optimal display edge tags into a boolean array rather than the final bit vector
+   * to avoid race conditions when setting bits. */
+  blender::Array<bool> subdiv_display_edges;
 
   /* Lazily initialize a map from vertices to connected edges. */
   std::mutex vert_to_edge_map_mutex;
@@ -537,8 +542,7 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
   subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.clear();
   subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.resize(num_vertices);
   if (subdiv_context->settings->use_optimal_display) {
-    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.clear();
-    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.resize(num_edges);
+    subdiv_context->subdiv_display_edges = blender::Array<bool>(num_edges, false);
   }
   return true;
 }
@@ -800,7 +804,7 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
   if (ctx->settings->use_optimal_display) {
-    ctx->subdiv_mesh->runtime->subsurf_optimal_display_edges[subdiv_edge_index].set();
+    ctx->subdiv_display_edges[subdiv_edge_index] = true;
   }
 }
 
@@ -1162,6 +1166,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
                          const SubdivToMeshSettings *settings,
                          const Mesh *coarse_mesh)
 {
+  using namespace blender;
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * it is refined for the new positions of coarse vertices. */
@@ -1200,6 +1205,20 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   BKE_subdiv_foreach_subdiv_geometry(subdiv, &foreach_context, settings, coarse_mesh);
   BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   Mesh *result = subdiv_context.subdiv_mesh;
+
+  /* Move the optimal display edge array to the final bit vector. */
+  if (!subdiv_context.subdiv_display_edges.is_empty()) {
+    const Span<bool> span = subdiv_context.subdiv_display_edges;
+    BitVector<> &bit_vector = result->runtime->subsurf_optimal_display_edges;
+    bit_vector.clear();
+    bit_vector.resize(subdiv_context.subdiv_display_edges.size());
+    threading::parallel_for_aligned(span.index_range(), 4096, 64, [&](const IndexRange range) {
+      for (const int i : range) {
+        bit_vector[i].set(span[i]);
+      }
+    });
+  }
+
   // BKE_mesh_validate(result, true, true);
   BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Using normals from the limit surface gives different results than Blender's vertex normal
