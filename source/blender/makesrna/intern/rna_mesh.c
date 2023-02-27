@@ -1233,14 +1233,19 @@ static bool rna_mesh_color_active_get(PointerRNA *ptr)
 
 static void rna_mesh_color_active_render_set(PointerRNA *ptr, bool value)
 {
+  if (!value) {
+    return;
+  }
   Mesh *mesh = (Mesh *)ptr->owner_id;
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
   BKE_id_attributes_default_color_set(&mesh->id, layer->name);
 }
 
 static void rna_mesh_color_active_set(PointerRNA *ptr, bool value)
 {
+  if (!value) {
+    return;
+  }
   Mesh *mesh = (Mesh *)ptr->owner_id;
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
