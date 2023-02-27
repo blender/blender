@@ -1014,6 +1014,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
+
+      /* Positions are not changed by the operation, so the bounds are the same. */
+      mesh_out->runtime->bounds_cache = mesh_in.runtime->bounds_cache;
       break;
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE: {
@@ -1070,6 +1073,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
+
+      /* Positions are not changed by the operation, so the bounds are the same. */
+      mesh_out->runtime->bounds_cache = mesh_in.runtime->bounds_cache;
       break;
     }
   }
