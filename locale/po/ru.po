@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2021\n"
 "Language-Team: Russian (https://www.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -43086,14 +43086,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Условия использования модели"
 
 
-msgid "Use Current Frame"
-msgstr "Использовать текущий кадр"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Экспортировать сцену на текущем кадре анимации"
-
-
 msgid "Draco mesh compression"
 msgstr "Сжатие меша Draco"
 
@@ -78288,10 +78280,6 @@ msgid "Render cryptomatte object pass, for isolating objects in compositing"
 msgstr "Рендерить проход объектов Сryptomatte, изолирующий объекты в постобработке"
 
 
-msgid "Unknown"
-msgstr "Неизвестно"
-
-
 msgid "Volume grid name"
 msgstr "Имя сетки у объёма"
 
@@ -80008,6 +79996,10 @@ msgstr "Ветка: %s"
 msgctxt "Operator"
 msgid "Load %d.%d Settings"
 msgstr "Загрузить настройки %d.%d"
+
+
+msgid "Unknown"
+msgstr "Неизвестно"
 
 
 msgid "Frame Numbers"
@@ -82980,11 +82972,6 @@ msgstr "Общее"
 msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -86633,10 +86620,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Значение:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(с гамма-коррекцией)"
 
@@ -89095,6 +89078,10 @@ msgstr "Выражение:"
 
 msgid "Add Input Variable"
 msgstr "Добавить входную переменную"
+
+
+msgid "Value:"
+msgstr "Значение:"
 
 
 msgid "Update Dependencies"

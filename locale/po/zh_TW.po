@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -53240,10 +53240,6 @@ msgid "Render stylized strokes in this Layer"
 msgstr "在此層中算繪樣式化筆觸"
 
 
-msgid "Unknown"
-msgstr "未知"
-
-
 msgid "Walk navigation settings"
 msgstr "步行導覽設定"
 
@@ -54308,6 +54304,10 @@ msgstr "找不到操作器：bpy.ops.%s"
 msgctxt "Operator"
 msgid "Manual"
 msgstr "手冊"
+
+
+msgid "Unknown"
+msgstr "未知"
 
 
 msgid "Frame Numbers"
@@ -57771,10 +57771,6 @@ msgid "Hex"
 msgstr "十六進位"
 
 
-msgid "Value:"
-msgstr "值："
-
-
 msgid "(Gamma Corrected)"
 msgstr "(伽瑪已校正)"
 
@@ -59169,6 +59165,10 @@ msgstr "驅動器值："
 
 msgid "Expression:"
 msgstr "表述式："
+
+
+msgid "Value:"
+msgstr "值："
 
 
 msgid "Update Dependencies"

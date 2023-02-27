@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -51542,10 +51542,6 @@ msgid "Render stylized strokes in this Layer"
 msgstr "Renderizza tratti stilizzati in questo livello"
 
 
-msgid "Unknown"
-msgstr "Sconosciuto"
-
-
 msgid "Walk navigation settings"
 msgstr "Impostazioni navigazione a camminata"
 
@@ -52678,6 +52674,10 @@ msgstr "Incorpora..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Manuale"
+
+
+msgid "Unknown"
+msgstr "Sconosciuto"
 
 
 msgid "Frame Numbers"
@@ -56885,10 +56885,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Valore:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Gamma Corretto)"
 
@@ -58465,6 +58461,10 @@ msgstr "Espressione:"
 
 msgid "Add Input Variable"
 msgstr "Aggiungi Variabile Ingresso"
+
+
+msgid "Value:"
+msgstr "Valore:"
 
 
 msgid "Update Dependencies"

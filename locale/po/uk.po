@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -46190,14 +46190,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Захищені законом права та умови для моделі"
 
 
-msgid "Use Current Frame"
-msgstr "Вжити Поточний Кадр"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Експортувати сцену у поточному кадрі анімації"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "Експорт Лише Деформувальних Кісток"
 
@@ -46212,10 +46204,6 @@ msgstr "Квантизація бітів для значень кольору (
 
 msgid "Generic quantization bits"
 msgstr "Узагальнені біти квантування"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "Біти квантування для узагальнених значень координат, як вагомості або суглоби (0 = без квантування)"
 
 
 msgid "Draco mesh compression"
@@ -46360,14 +46348,6 @@ msgstr "Тангенси Ключів Форм"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "Експортувати тангенси вершин з ключами форм (цілі морфа)"
-
-
-msgid "Group by NLA Track"
-msgstr "Група за Стежкою НЛА"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "При увімкненні багаторазові дії стають частиною однієї і тієї ж анімації glTF animation якщо вони виштовхані на стежки NLA з таким самим іменем. Коли вимкнено, то всі поточно призначені дії стають однією анімацією glTF"
 
 
 msgid "Export vertex normals with meshes"
@@ -87145,10 +87125,6 @@ msgid "Double precision"
 msgstr "Подвійна точність"
 
 
-msgid "Integer 64-bit"
-msgstr "Цілочислове 64-бітне"
-
-
 msgid "64-bit integer"
 msgstr "64-бітне цілочислове"
 
@@ -87157,40 +87133,20 @@ msgid "No data, boolean mask of active voxels"
 msgstr "Нема даних, булева маска активних вокселів"
 
 
-msgid "Float Vector"
-msgstr "Дійсночисловий Вектор"
-
-
 msgid "3D float vector"
 msgstr "3D дійсночисловий вектор"
-
-
-msgid "Double Vector"
-msgstr "Подвійний Вектор"
 
 
 msgid "3D double vector"
 msgstr "3D подвоєний вектор"
 
 
-msgid "Integer Vector"
-msgstr "Цілочисловий Вектор"
-
-
 msgid "3D integer vector"
 msgstr "3D цілочисловий вектор"
 
 
-msgid "Points (Unsupported)"
-msgstr "Точки (Непідтримуване)"
-
-
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Сітка точок, поточно не підтримується об'єктами об'єму"
-
-
-msgid "Unknown"
-msgstr "Невідомо"
 
 
 msgid "Unsupported data type"
@@ -89653,6 +89609,10 @@ msgstr "Тип \"%s\" неможливо знайти"
 
 msgid "Invalid regular expression (replace): "
 msgstr "Недійсний регулярний вираз (заміна):"
+
+
+msgid "Unknown"
+msgstr "Невідомо"
 
 
 msgid "Frame Numbers"
@@ -93354,11 +93314,6 @@ msgstr "Загальне"
 msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Універсальний Опис Сцени (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -97589,10 +97544,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Значення:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Гамму виправлено)"
 
@@ -100398,6 +100349,10 @@ msgstr "Вираз"
 
 msgid "Add Input Variable"
 msgstr "Додати Змінну Уводу"
+
+
+msgid "Value:"
+msgstr "Значення:"
 
 
 msgid "Update Dependencies"

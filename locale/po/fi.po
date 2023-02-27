@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6820,10 +6820,6 @@ msgid "Export vertex colors with meshes"
 msgstr "Vie kärkien värit muotojen kanssa"
 
 
-msgid "Use Current Frame"
-msgstr "Käytä nykyistä kehystä"
-
-
 msgid "No export"
 msgstr "Ei vientiä"
 
@@ -7710,16 +7706,8 @@ msgid "Node Name"
 msgstr "Noodin nimi"
 
 
-msgid "Float Vector"
-msgstr "Vektori, joka on liukuluku"
-
-
 msgid "3D float vector"
 msgstr "3D-vektori, joka on liukuluku"
-
-
-msgid "Integer Vector"
-msgstr "Vektori, joka on kokonaisluku"
 
 
 msgid "3D integer vector"
@@ -9349,10 +9337,6 @@ msgid "Lightness:"
 msgstr "Valoisuus:"
 
 
-msgid "Value:"
-msgstr "Arvo:"
-
-
 msgid "Alpha:"
 msgstr "Alfa:"
 
@@ -10167,6 +10151,10 @@ msgstr "Avainkehys"
 
 msgid "Driver Value:"
 msgstr "Ajuriarvo:"
+
+
+msgid "Value:"
+msgstr "Arvo:"
 
 
 msgid "Driver:"

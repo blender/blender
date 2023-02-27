@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2022\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38879,11 +38879,6 @@ msgstr "SVG როგორც ცვილის ფანქარი"
 
 
 msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "გამოსახულების რენდერი"
 
@@ -40981,10 +40976,6 @@ msgid "Hex"
 msgstr "ჰექს"
 
 
-msgid "Value:"
-msgstr "სიდიდე:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(გამა კორექტირებული)"
 
@@ -41739,6 +41730,10 @@ msgstr "კურსორი მონიშნულთან"
 
 msgid "Interpolation:"
 msgstr "ინტერპოლაცია:"
+
+
+msgid "Value:"
+msgstr "სიდიდე:"
 
 
 msgid "Can't Load Image"

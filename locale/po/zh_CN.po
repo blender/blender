@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -3625,6 +3625,14 @@ msgstr "曲线长度"
 
 msgid "Length of newly added curves when it is not interpolated from other curves"
 msgstr "未从其他曲线插值时，新添加的曲线的长度"
+
+
+msgid "Curve Parameter Falloff"
+msgstr "曲线参数衰减"
+
+
+msgid "Falloff that is applied from the tip to the root of each curve"
+msgstr "从尖端到每条曲线根部应用的衰减"
 
 
 msgid "Density Add Attempts"
@@ -8760,6 +8768,10 @@ msgid "Index"
 msgstr "编号"
 
 
+msgid "Index of this point"
+msgstr "该点的编号"
+
+
 msgid "Profile Path editor used to build a profile path"
 msgstr "用于生成轮廓路径的轮廓路径编辑器"
 
@@ -12984,8 +12996,20 @@ msgid "Filter Asset Types"
 msgstr "过滤资产类型"
 
 
+msgid "Import Method"
+msgstr "导入方法"
+
+
 msgid "Determine how the asset will be imported"
 msgstr "确定如何导入资产"
+
+
+msgid "Follow Preferences"
+msgstr "遵循偏好设置"
+
+
+msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
+msgstr "使用该资源库的偏好设置中设置的导入方法，不为此资源浏览器覆盖它"
 
 
 msgid "Link"
@@ -20491,6 +20515,10 @@ msgstr "锁定模拟衰减区域中顶点的位置，以避免缺陷，并创建
 
 msgid "Vector Displacement"
 msgstr "矢量置换"
+
+
+msgid "Handles each pixel color as individual vector for displacement. Works only with area plane mapping"
+msgstr "将每个像素颜色作为置换的单个矢量进行处理。仅适用于区域平面映射"
 
 
 msgid "Connected Only"
@@ -36276,8 +36304,16 @@ msgid "Original Coords"
 msgstr "原始坐标"
 
 
+msgid "Use base mesh vertex coordinates as the rest position"
+msgstr "使用基础网格顶点坐标作为静止位置"
+
+
 msgid "Bind Coords"
 msgstr "绑定坐标"
+
+
+msgid "Use bind vertex coordinates for rest position"
+msgstr "使用绑定顶点坐标作为静置位置"
 
 
 msgid "Compensate for scale applied by other modifiers"
@@ -37260,8 +37296,16 @@ msgid "Overwrite"
 msgstr "覆盖"
 
 
+msgid "Replace vertex coordinates with cached values"
+msgstr "将顶点坐标替换为缓存值"
+
+
 msgid "Integrate"
 msgstr "集成"
+
+
+msgid "Integrate deformation from this modifier's input with the mesh-cache coordinates (useful for shape keys)"
+msgstr "将此修改器输入的变形与网格缓存坐标集成(对于形态键很有用)"
 
 
 msgid "Evaluation Factor"
@@ -50374,6 +50418,15 @@ msgstr "笔刷大小的缩放依据系数"
 
 
 msgctxt "Operator"
+msgid "Curve Falloff Preset"
+msgstr "曲线衰减预设"
+
+
+msgid "Set Curve Falloff Preset"
+msgstr "设置曲线衰减预设"
+
+
+msgctxt "Operator"
 msgid "Stencil Brush Control"
 msgstr "镂板笔刷控制"
 
@@ -52227,6 +52280,10 @@ msgid "Add a new or update an existing hair particle system on the surface objec
 msgstr "在曲面物体上添加新的毛发粒子系统或更新现有毛发粒子系统"
 
 
+msgid "Remove selected control points or curves"
+msgstr "删除所选控制点或曲线"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
 msgstr "曲线雕刻模式切换"
@@ -54003,14 +54060,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "模型的法律权限和条款"
 
 
-msgid "Use Current Frame"
-msgstr "使用当前帧"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "导出当前动画帧中的场景"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "仅导出变形骨骼"
 
@@ -54029,10 +54078,6 @@ msgstr "颜色值的量化位(0 = 无量化)"
 
 msgid "Generic quantization bits"
 msgstr "一般量化位"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "用于一般坐标值(如权重或关节)量化位(0 = 无量化)"
 
 
 msgid "Draco mesh compression"
@@ -54205,14 +54250,6 @@ msgstr "形态键切向"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "导出带形态键的顶点切向 (变形目标)"
-
-
-msgid "Group by NLA Track"
-msgstr "按NLA轨道分组"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "启用时，如果多个动作被推上同名的NLA轨道，他们成为同一glTF动画的一部分。关闭后，所有当前分配的动作都变为一个glTF 动画"
 
 
 msgid "Merged Animation Name"
@@ -56890,6 +56927,10 @@ msgid "Reproject the selected strokes from the current viewpoint as if they had 
 msgstr "从当前视点重新投影所选笔画，就像它们是新绘制的一样(比如，修复3D光标意外移动或意外视口更改时的问题，或用于匹配变形几何体)"
 
 
+msgid "Keep original strokes and create a copy before reprojecting"
+msgstr "保留原始笔画，并在重新投影之前创建副本"
+
+
 msgid "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"
 msgstr "将笔画重置到场景几何体上，就像使用 \"曲面\" 位置绘制一样"
 
@@ -57283,6 +57324,10 @@ msgid "Set handle type"
 msgstr "设置控制柄类型"
 
 
+msgid "Set the type of an edit curve handle"
+msgstr "设置编辑曲线控制柄的类型"
+
+
 msgctxt "Operator"
 msgid "Enter curve edit mode"
 msgstr "进入曲线编辑模式"
@@ -57519,9 +57564,17 @@ msgid "Simplify Stroke"
 msgstr "简化笔画"
 
 
+msgid "Simplify selected strokes, reducing number of points"
+msgstr "简化选中笔画，减少点数"
+
+
 msgctxt "Operator"
 msgid "Simplify Fixed Stroke"
 msgstr "简化固定笔画"
+
+
+msgid "Simplify selected strokes, reducing number of points using fixed algorithm"
+msgstr "使用固定算法简化选定的笔画，减少点数"
 
 
 msgid "Number of simplify steps"
@@ -60170,6 +60223,15 @@ msgstr "随机选择融球元素"
 
 msgid "Select similar metaballs by property types"
 msgstr "根据属性类型选择相似的融球"
+
+
+msgctxt "Operator"
+msgid "Set Attribute"
+msgstr "设置属性"
+
+
+msgid "Set values of the active attribute for selected elements"
+msgstr "为所选元素设置活动属性的值"
 
 
 msgctxt "Operator"
@@ -101664,10 +101726,6 @@ msgid "Double precision"
 msgstr "双精度"
 
 
-msgid "Integer 64-bit"
-msgstr "整数64位"
-
-
 msgid "64-bit integer"
 msgstr "64位整型"
 
@@ -101676,40 +101734,20 @@ msgid "No data, boolean mask of active voxels"
 msgstr "无数据，活动体素的布尔遮罩"
 
 
-msgid "Float Vector"
-msgstr "浮点矢量"
-
-
 msgid "3D float vector"
 msgstr "三维浮点矢量"
-
-
-msgid "Double Vector"
-msgstr "双精度矢量"
 
 
 msgid "3D double vector"
 msgstr "三维双精度矢量"
 
 
-msgid "Integer Vector"
-msgstr "整数矢量"
-
-
 msgid "3D integer vector"
 msgstr "三维整数矢量"
 
 
-msgid "Points (Unsupported)"
-msgstr "点(不支持)"
-
-
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "点栅格，当前不受体积对象支持"
-
-
-msgid "Unknown"
-msgstr "未知"
 
 
 msgid "Unsupported data type"
@@ -106799,6 +106837,10 @@ msgid "Edit Bone(s)"
 msgstr "编辑骨骼"
 
 
+msgid "Unknown"
+msgstr "未知"
+
+
 msgid "Mix Vector"
 msgstr "混合矢量"
 
@@ -110996,11 +111038,6 @@ msgstr "Wavefront (.obj)"
 msgctxt "Operator"
 msgid "STL (.stl) (experimental)"
 msgstr "STL (.stl) (试验)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "通用场景描述 (.usd， .usdc， .usda)"
 
 
 msgctxt "Operator"
@@ -116483,10 +116520,6 @@ msgid "Lightness:"
 msgstr "亮度："
 
 
-msgid "Value:"
-msgstr "值:"
-
-
 msgid "Alpha:"
 msgstr "Alpha:"
 
@@ -119913,6 +119946,10 @@ msgstr "表达式:"
 
 msgid "Add Input Variable"
 msgstr "添加输入变量"
+
+
+msgid "Value:"
+msgstr "值:"
 
 
 msgid "Update Dependencies"
@@ -127603,10 +127640,6 @@ msgid "FBX format"
 msgstr "FBX 格式"
 
 
-msgid "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions"
-msgstr "FBX IO 网格, UV, 顶点颜色, 材质, 纹理, 摄像机, 灯光和动作"
-
-
 msgid "Import Images as Planes"
 msgstr "导入图像为平面"
 
@@ -127673,10 +127706,6 @@ msgstr "将 UV 布局导出为二维图形"
 
 msgid "Wavefront OBJ format (legacy)"
 msgstr "Wavefront OBJ 格式 (旧版)"
-
-
-msgid "Import-Export OBJ, Import OBJ mesh, UV's, materials and textures"
-msgstr "导入-导出 OBJ、导入 OBJ 网格、UV、材质和纹理"
 
 
 msgid "glTF 2.0 format"
