@@ -1559,6 +1559,24 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
         continue;
       }
 
+      /* In case the active scene was reloaded, the context pointers in
+       * `lapp_context->params->context` need to be updated before the old Scene ID is freed. */
+      if (old_id == &lapp_context->params->context.scene->id) {
+        BLI_assert(GS(old_id->name) == ID_SCE);
+        Scene *new_scene = (Scene *)item->new_id;
+        BLI_assert(new_scene != NULL);
+        lapp_context->params->context.scene = new_scene;
+        if (lapp_context->params->context.view_layer != NULL) {
+          ViewLayer *new_view_layer = BKE_view_layer_find(
+              new_scene, lapp_context->params->context.view_layer->name);
+          lapp_context->params->context.view_layer = (new_view_layer != NULL) ?
+                                                         new_view_layer :
+                                                         new_scene->view_layers.first;
+        }
+        /* lapp_context->params->context.v3d should never become invalid by newly linked data here.
+         */
+      }
+
       if (old_id->us == 0) {
         old_id->tag |= LIB_TAG_DOIT;
         item->userdata = NULL;
