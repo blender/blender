@@ -573,7 +573,7 @@ extern const float rna_default_quaternion[4];
 extern const float rna_default_scale_3d[3];
 
 /** Maximum size for dynamic defined type descriptors, this value is arbitrary. */
-#define RNA_DYN_DESCR_MAX 240
+#define RNA_DYN_DESCR_MAX 1024
 
 #ifdef __cplusplus
 }
