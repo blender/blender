@@ -16,6 +16,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_keyconfig.h"
+#include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "RNA_access.h"
@@ -1479,7 +1480,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
     char idname[OP_MAX_TYPENAME];
     char name[OP_MAX_TYPENAME];
     char description[RNA_DYN_DESCR_MAX];
-    char translation_context[RNA_DYN_DESCR_MAX];
+    char translation_context[BKE_ST_MAXNAME];
     char undo_group[OP_MAX_TYPENAME];
   } temp_buffers;
 
@@ -1633,7 +1634,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     char idname[OP_MAX_TYPENAME];
     char name[OP_MAX_TYPENAME];
     char description[RNA_DYN_DESCR_MAX];
-    char translation_context[RNA_DYN_DESCR_MAX];
+    char translation_context[BKE_ST_MAXNAME];
     char undo_group[OP_MAX_TYPENAME];
   } temp_buffers;
 
@@ -1792,7 +1793,7 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
       return BLI_strnlen(str ? str : "", len); \
     }
 
-OPERATOR_STR_MAYBE_NULL_GETSET(translation_context, RNA_DYN_DESCR_MAX)
+OPERATOR_STR_MAYBE_NULL_GETSET(translation_context, BKE_ST_MAXNAME)
 OPERATOR_STR_MAYBE_NULL_GETSET(description, RNA_DYN_DESCR_MAX)
 OPERATOR_STR_MAYBE_NULL_GETSET(undo_group, OP_MAX_TYPENAME)
 
@@ -1880,14 +1881,14 @@ static void rna_def_operator_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->name");
-  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+  RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER);
 
   prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
-  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
+  RNA_def_property_string_maxlength(prop, BKE_ST_MAXNAME); /* else it uses the pointer size! */
   RNA_def_property_string_funcs(prop,
                                 "rna_Operator_bl_translation_context_get",
                                 "rna_Operator_bl_translation_context_length",

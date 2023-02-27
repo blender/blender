@@ -881,10 +881,11 @@ typedef struct wmTimer {
 } wmTimer;
 
 typedef struct wmOperatorType {
-  /** Text for UI, undo. */
+  /** Text for UI, undo (should not exceed #OP_MAX_TYPENAME). */
   const char *name;
-  /** Unique identifier. */
+  /** Unique identifier (must not exceed #OP_MAX_TYPENAME). */
   const char *idname;
+  /** Translation context (must not exceed #BKE_ST_MAXNAME) */
   const char *translation_context;
   /** Use for tool-tips and Python docs. */
   const char *description;
