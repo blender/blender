@@ -1379,6 +1379,19 @@ const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);
 
+/* Path drag and drop. */
+/**
+ * \param path: The path to drag. Value will be copied into the drag data so the passed string may
+ *              be destructed.
+ */
+wmDragPath *WM_drag_create_path_data(const char *path);
+const char *WM_drag_get_path(const wmDrag *drag);
+/**
+ * Note that even though the enum return type uses bit-flags, this should never have multiple
+ * type-bits set, so `ELEM()` like comparison is possible.
+ */
+int /* eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
+
 /* Set OpenGL viewport and scissor */
 void wmViewport(const struct rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);

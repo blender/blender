@@ -1819,16 +1819,22 @@ void UI_but_drag_set_asset(uiBut *but,
                            struct ImBuf *imb,
                            float scale);
 void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
-void UI_but_drag_set_path(uiBut *but, const char *path, bool use_free);
+/**
+ * Enable dragging a path from this button.
+ * \param path: The path to drag. The passed string may be destructed, button keeps a copy.
+ */
+void UI_but_drag_set_path(uiBut *but, const char *path);
 void UI_but_drag_set_name(uiBut *but, const char *name);
 /**
  * Value from button itself.
  */
 void UI_but_drag_set_value(uiBut *but);
 
-/** Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged. */
-void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, bool use_free);
+/**
+ * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
+ * \param path: The path to drag. The passed string may be destructed, button keeps a copy.
+ */
+void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale);
 
 /* Panels
  *

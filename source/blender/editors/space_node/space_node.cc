@@ -670,8 +670,9 @@ static bool node_collection_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEv
 static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    return ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE);
+    const eFileSel_File_Types file_type = static_cast<eFileSel_File_Types>(
+        WM_drag_get_path_file_type(drag));
+    return ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE);
   }
   return WM_drag_is_ID_type(drag, ID_IM);
 }
@@ -702,10 +703,14 @@ static void node_id_path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *dr
   if (id) {
     RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
     RNA_struct_property_unset(drop->ptr, "filepath");
+    return;
   }
-  else if (drag->path[0]) {
-    RNA_string_set(drop->ptr, "filepath", drag->path);
+
+  const char *path = WM_drag_get_path(drag);
+  if (path) {
+    RNA_string_set(drop->ptr, "filepath", path);
     RNA_struct_property_unset(drop->ptr, "name");
+    return;
   }
 }
 

@@ -647,8 +647,8 @@ static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    return ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
+    return (ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE));
   }
 
   return WM_drag_is_ID_type(drag, ID_IM);
@@ -700,7 +700,8 @@ static bool view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 
 static bool view3d_volume_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return (drag->type == WM_DRAG_PATH) && (drag->icon == ICON_FILE_VOLUME);
+  const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
+  return (drag->type == WM_DRAG_PATH) && (file_type == FILE_TYPE_VOLUME);
 }
 
 static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -902,9 +903,11 @@ static void view3d_id_path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *
   if (id) {
     WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
     RNA_struct_property_unset(drop->ptr, "filepath");
+    return;
   }
-  else if (drag->path[0]) {
-    RNA_string_set(drop->ptr, "filepath", drag->path);
+  const char *path = WM_drag_get_path(drag);
+  if (path) {
+    RNA_string_set(drop->ptr, "filepath", path);
     RNA_struct_property_unset(drop->ptr, "image");
   }
 }

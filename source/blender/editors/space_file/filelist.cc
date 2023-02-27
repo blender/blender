@@ -2620,6 +2620,9 @@ static bool file_is_blend_backup(const char *str)
 
 int ED_path_extension_type(const char *path)
 {
+  /* ATTENTION: Never return OR'ed bit-flags here, always return a single enum value! Some code
+   * using this may do `ELEM()`-like checks. */
+
   if (BLO_has_bfile_extension(path)) {
     return FILE_TYPE_BLENDER;
   }

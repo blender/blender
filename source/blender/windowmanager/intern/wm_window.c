@@ -1445,8 +1445,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             printf("drop file %s\n", stra->strings[a]);
             /* try to get icon type from extension */
             int icon = ED_file_extension_icon((char *)stra->strings[a]);
-
-            WM_event_start_drag(C, icon, WM_DRAG_PATH, stra->strings[a], 0.0, WM_DRAG_NOP);
+            wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
+            WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
             /* void poin should point to string, it makes a copy */
             break; /* only one drop element supported now */
           }

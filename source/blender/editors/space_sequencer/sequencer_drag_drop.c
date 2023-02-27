@@ -78,7 +78,8 @@ static void generic_poll_operations(const wmEvent *event, uint8_t type)
 static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
       generic_poll_operations(event, TH_SEQ_IMAGE);
       return true;
     }
@@ -95,7 +96,8 @@ static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *ev
 static bool is_movie(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
       return true;
     }
   }
@@ -118,7 +120,8 @@ static bool movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *ev
 static bool is_sound(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
       return true;
     }
   }
@@ -240,17 +243,21 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       RNA_string_set(drop->ptr, "filepath", sound->filepath);
       RNA_struct_property_unset(drop->ptr, "name");
     }
+
+    return;
   }
+
+  const char *path = WM_drag_get_path(drag);
   /* Path dropped. */
-  else if (drag->path[0]) {
+  if (path) {
     if (RNA_struct_find_property(drop->ptr, "filepath")) {
-      RNA_string_set(drop->ptr, "filepath", drag->path);
+      RNA_string_set(drop->ptr, "filepath", path);
     }
     if (RNA_struct_find_property(drop->ptr, "directory")) {
       PointerRNA itemptr;
       char dir[FILE_MAX], file[FILE_MAX];
 
-      BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
+      BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
 
       RNA_string_set(drop->ptr, "directory", dir);
 
@@ -328,7 +335,7 @@ static void get_drag_path(wmDrag *drag, char r_path[FILE_MAX])
     BLI_path_abs(r_path, BKE_main_blendfile_path_from_global());
   }
   else {
-    BLI_strncpy(r_path, drag->path, FILE_MAX);
+    BLI_strncpy(r_path, WM_drag_get_path(drag), FILE_MAX);
   }
 }
 
@@ -682,7 +689,8 @@ static bool image_drop_preview_poll(bContext *UNUSED(C),
                                     const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
       return true;
     }
   }
@@ -695,7 +703,8 @@ static bool movie_drop_preview_poll(bContext *UNUSED(C),
                                     const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
       return true;
     }
   }
@@ -708,7 +717,8 @@ static bool sound_drop_preview_poll(bContext *UNUSED(C),
                                     const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
       return true;
     }
   }
