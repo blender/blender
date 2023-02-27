@@ -60,9 +60,7 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   int extent[3] = {1, 1, 1};
   mip_size_get(mip, extent);
   size_t sample_len = extent[0] * extent[1] * extent[2];
-  /* NOTE: to_bytesize returns number of bits. */
-  size_t device_memory_size = sample_len * to_component_len(format_) * to_bytesize(format_) / 8;
-  /* NOTE: to_bytesize returns number of bytes here. */
+  size_t device_memory_size = sample_len * to_bytesize(format_);
   size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
   staging_buffer.create(
