@@ -676,6 +676,9 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
       ED_mball_editmball_free(obedit);
     }
   }
+  else if (obedit->type == OB_CURVES) {
+    /* Curves don't have specific edit mode data, so pass. */
+  }
   else {
     return false;
   }
