@@ -35,11 +35,9 @@ void exporter_main(Main *bmain,
                    bContext *C,
                    const PLYExportParams &export_params)
 {
-  /* Load mesh data into PlyData struct. */
   std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, CTX_data_ensure_evaluated_depsgraph(C), export_params);
 
-  /* Get filebuffer. */
   std::unique_ptr<FileBuffer> buffer;
 
   if (export_params.ascii_format) {
@@ -49,19 +47,14 @@ void exporter_main(Main *bmain,
     buffer = std::make_unique<FileBufferBinary>(export_params.filepath);
   }
 
-  /* Generate and write header. */
   write_header(*buffer.get(), *plyData.get(), export_params);
 
-  /* Generate and write vertices. */
   write_vertices(*buffer.get(), *plyData.get());
 
-  /* Generate and write faces. */
   write_faces(*buffer.get(), *plyData.get());
 
-  /* Generate and write edges. */
   write_edges(*buffer.get(), *plyData.get());
 
-  /* Clean up. */
   buffer->close_file();
 }
 }  // namespace blender::io::ply

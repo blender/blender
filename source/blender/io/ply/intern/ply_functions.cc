@@ -4,13 +4,11 @@
  * \ingroup ply
  */
 
-#include <iostream>
-
 #include "ply_functions.hh"
 
 namespace blender::io::ply {
 
-line_ending safe_getline(std::ifstream &file, std::string &line)
+line_ending safe_getline(fstream &file, std::string &line)
 {
   line.clear();
   std::streambuf *sb = file.rdbuf();
@@ -19,7 +17,7 @@ line_ending safe_getline(std::ifstream &file, std::string &line)
   line_ending possible = UNSET;
   char c;
   while (sb->sgetc() != std::streambuf::traits_type::eof()) {
-    c = (char)sb->sgetc();
+    c = char(sb->sgetc());
     switch (c) {
       case '\n':
         if (possible == UNSET) {

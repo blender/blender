@@ -1,27 +1,14 @@
-#include "testing/testing.h"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_curve.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
-
-#include "BLI_math_vector_types.hh"
 
 #include "BLO_readfile.h"
 
-#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
-
-#include "DNA_curve_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "IO_ply.h"
 #include "ply_data.hh"
