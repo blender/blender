@@ -1563,7 +1563,7 @@ static void gizmo_3d_setup_draw_from_twtype(wmGizmo *axis, const int axis_idx, c
       float start;
       float end;
       gizmo_line_range(twtype, axis_type, &start, &end);
-      madd_v3_v3fl(axis->matrix_offset[3], axis->matrix_offset[2], start);
+      mul_v3_v3fl(axis->matrix_offset[3], axis->matrix_offset[2], start);
 
       RNA_float_set(axis->ptr, "length", end - start);
       WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);

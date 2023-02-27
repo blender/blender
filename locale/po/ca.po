@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3624,6 +3624,14 @@ msgid "Length of newly added curves when it is not interpolated from other curve
 msgstr "[Curve Length]: Longitud de les corbes recentment afegides quan no està interpolada des d'altres corbes"
 
 
+msgid "Curve Parameter Falloff"
+msgstr "Paràmetre decaïment de corba"
+
+
+msgid "Falloff that is applied from the tip to the root of each curve"
+msgstr "Decaïment aplicat a la punta de l'arrel de cada corba"
+
+
 msgid "Density Add Attempts"
 msgstr "Intents d'afegir amb densitat"
 
@@ -5641,7 +5649,7 @@ msgstr "[Outer Thickness]: Densitat de la cara exterior"
 
 
 msgid "Enabled"
-msgstr "Activar"
+msgstr "Activat"
 
 
 msgid "Enable this objects as a collider for physics systems"
@@ -5801,7 +5809,7 @@ msgstr "Quantitat de modificació gamma aplicada després de la transformació d
 
 
 msgid "Look"
-msgstr "Aspecte"
+msgstr "Aparença"
 
 
 msgid "Additional transform applied before view transform for artistic needs"
@@ -5813,7 +5821,7 @@ msgstr "No modifiquis la imatge de manera artística"
 
 
 msgid "Use Curves"
-msgstr "Utilitza Corbes"
+msgstr "Usar Corbes"
 
 
 msgid "Use RGB curved for pre-display transformation"
@@ -5861,11 +5869,11 @@ msgstr "Mescla"
 
 
 msgid "Darken"
-msgstr "Enfosqueix"
+msgstr "Enfosquir"
 
 
 msgid "Lighten"
-msgstr "Aclareix"
+msgstr "Aclarir"
 
 
 msgid "Screen"
@@ -5889,7 +5897,7 @@ msgstr "Diferència"
 
 
 msgid "Divide"
-msgstr "Divisió"
+msgstr "Dividir"
 
 
 msgid "Brightness"
@@ -5913,11 +5921,11 @@ msgstr "Ajusta el contrast de la textura"
 
 
 msgid "Adjust the saturation of colors in the texture"
-msgstr "Ajusta la saturació de colors de la textura"
+msgstr "Ajustar la saturació de colors de la textura"
 
 
 msgid "Use Color Ramp"
-msgstr "Utilitza rampa de color"
+msgstr "Usar rampa de color"
 
 
 msgid "Toggle color ramp operations"
@@ -8755,6 +8763,10 @@ msgstr "Punt de control de la corba"
 
 msgid "Index"
 msgstr "Índex"
+
+
+msgid "Index of this point"
+msgstr "Índex d'aquest punt"
 
 
 msgid "Profile Path editor used to build a profile path"
@@ -12981,8 +12993,20 @@ msgid "Filter Asset Types"
 msgstr "Filter de tipus de recurs"
 
 
+msgid "Import Method"
+msgstr "Mètode d'importació"
+
+
 msgid "Determine how the asset will be imported"
 msgstr "Determina com s'importarà el recurs"
+
+
+msgid "Follow Preferences"
+msgstr "Seguir preferències"
+
+
+msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
+msgstr "Usa el mètode d'importació que posa a les preferències d'aquesta biblioteca de recursos, no la sobreseeix per aquest navegador de recursos"
 
 
 msgid "Link"
@@ -20488,6 +20512,10 @@ msgstr "[Pin Simulation Boundary]: Bloqueja la posició dels vèrtexs en el deca
 
 msgid "Vector Displacement"
 msgstr "Desplaçament de vector"
+
+
+msgid "Handles each pixel color as individual vector for displacement. Works only with area plane mapping"
+msgstr "Gestiona cada color de píxel com a vector individual per al desplaçament. Només funciona amb el mapejat d'àrea de pla"
 
 
 msgid "Connected Only"
@@ -36273,8 +36301,16 @@ msgid "Original Coords"
 msgstr "Coordenades originals"
 
 
+msgid "Use base mesh vertex coordinates as the rest position"
+msgstr "[Original Coords]: Usa les coordenades de base dels vèrtexs de la malla com a posició de repòs"
+
+
 msgid "Bind Coords"
 msgstr "Coordenades de travat"
+
+
+msgid "Use bind vertex coordinates for rest position"
+msgstr "[Bind Coords]: Usa les coordenades dels vèrtexs travats per a la posició de descans"
 
 
 msgid "Compensate for scale applied by other modifiers"
@@ -37257,8 +37293,16 @@ msgid "Overwrite"
 msgstr "Sobreescriure"
 
 
+msgid "Replace vertex coordinates with cached values"
+msgstr "[Overwrite]: Substitueix les coordenades dels vèrtexs pels valors en memòria cau"
+
+
 msgid "Integrate"
 msgstr "Integrar"
+
+
+msgid "Integrate deformation from this modifier's input with the mesh-cache coordinates (useful for shape keys)"
+msgstr "[Integrate]: Integra la deformació a partir de la ingressió d'aquest modificador i amb les coordenades de la memòria cau de la malla (útil per a morfofites)"
 
 
 msgid "Evaluation Factor"
@@ -48258,7 +48302,7 @@ msgstr "Deseleccionar sobre res"
 
 
 msgid "Deselect all when nothing under the cursor"
-msgstr "[Deselect On Nothing]: Ho deselecciona tot quan sota el cursor no hi ha res"
+msgstr "[Deselect On Nothing]: Ho desselecciona tot quan sota el cursor no hi ha res"
 
 
 msgid "Extend Select"
@@ -48278,7 +48322,7 @@ msgstr "Ratolí Y"
 
 
 msgid "Wait to Deselect Others"
-msgstr "Espera per deseleccionar altres"
+msgstr "Espera per desseleccionar altres"
 
 
 msgctxt "Operator"
@@ -49056,7 +49100,7 @@ msgstr "Deselecciona en lloc de seleccionar elements"
 
 
 msgid "Extend selection instead of deselecting everything first"
-msgstr "Estén la selecció en lloc de deseleccionar-ho tot d'entrada"
+msgstr "Estén la selecció en lloc de desseleccionar-ho tot d'entrada"
 
 
 msgctxt "Operator"
@@ -50368,6 +50412,15 @@ msgstr "Escalar"
 
 msgid "Factor to scale brush size by"
 msgstr "[Scalar]: Factor per a escalar la mida del pinzell"
+
+
+msgctxt "Operator"
+msgid "Curve Falloff Preset"
+msgstr "Predefinit de decaïment de corba"
+
+
+msgid "Set Curve Falloff Preset"
+msgstr "Determina el valor per defecte de decaïment de corba"
 
 
 msgctxt "Operator"
@@ -52224,9 +52277,13 @@ msgid "Add a new or update an existing hair particle system on the surface objec
 msgstr "Afegeix un sistema de partícules de pèl nou o n'actualitza un d'existent en la superfície de l'objecte"
 
 
+msgid "Remove selected control points or curves"
+msgstr "Suprimir punts de control o corbes seleccionats"
+
+
 msgctxt "Operator"
 msgid "Curve Sculpt Mode Toggle"
-msgstr "Reversar mode d'escultura per corbes"
+msgstr "Revesar mode d'escultura per corbes"
 
 
 msgid "Enter/Exit sculpt mode for curves"
@@ -52533,7 +52590,7 @@ msgstr "Tipus de spline"
 
 
 msgid "Toggle Free/Align"
-msgstr "Reversar lliure/alineat"
+msgstr "Revesar lliure/alineat"
 
 
 msgid "Hide (un)selected control points"
@@ -53096,7 +53153,7 @@ msgstr "[Dynamic Paint Bake]: Superfície de seqüència d'imatge de pintura din
 
 msgctxt "Operator"
 msgid "Toggle Output Layer"
-msgstr "Reversar capa d'emissió"
+msgstr "Revesar capa d'emissió"
 
 
 msgid "Add or remove Dynamic Paint output data layer"
@@ -53104,7 +53161,7 @@ msgstr "[Toggle Output Layer]: Afegeix o elimina la capa de dades d'emissió de 
 
 
 msgid "Output Toggle"
-msgstr "Reversar emissió"
+msgstr "Revesar emissió"
 
 
 msgid "Output A"
@@ -53153,7 +53210,7 @@ msgstr "[Flush Edits]: Justifica les dades d'edició dels modes d'edició actius
 
 msgctxt "Operator"
 msgid "Toggle Fake User"
-msgstr "Reversar usador fals"
+msgstr "Revesar usador fals"
 
 
 msgctxt "Operator"
@@ -53185,7 +53242,7 @@ msgstr "[Load Custom Preview]: Tria una imatge per a ajudar a identificar visual
 
 msgctxt "Operator"
 msgid "Toggle Library Override Editable"
-msgstr "Reversar editabilitat del sobreseïment de biblioteca"
+msgstr "Revesar editabilitat del sobreseïment de biblioteca"
 
 
 msgid "Set if this library override data-block can be edited"
@@ -54000,14 +54057,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Drets i condicions legals del model"
 
 
-msgid "Use Current Frame"
-msgstr "Usar fotograma actual"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Exporta l'escena del fotograma d'animació present"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "Exportar només ossos de deformació"
 
@@ -54026,10 +54075,6 @@ msgstr "[Color quantization bits]: Bits de quantificació per als valors de colo
 
 msgid "Generic quantization bits"
 msgstr "Bits de quantificació genèrics"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "[Generic quantization bits]: Bits de quantificació per a valors de coordenades genèrics com influències o articulacions (0 = sense quantificació)"
 
 
 msgid "Draco mesh compression"
@@ -54202,14 +54247,6 @@ msgstr "Tangents de morfofites"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "[Shape Key Tangents]: Exporta les tangents de vèrtex amb morfofites (referents mòrfics)"
-
-
-msgid "Group by NLA Track"
-msgstr "Agrupar per pista ANL"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "[Group by NLA Track]: Quan està activat, múltiples accions esdevenen part de la mateixa animació glTF si se les empeny enver pista ANL del mateix nom. Quan està desactivat, totes les accions assignades presentment es converteixen en una sola animació glTF"
 
 
 msgid "Merged Animation Name"
@@ -54852,7 +54889,7 @@ msgstr "(Des)seleccionar tots els documents"
 
 
 msgid "Select or deselect all files"
-msgstr "Selecciona o deselecciona tots els documents"
+msgstr "Selecciona o desselecciona tots els documents"
 
 
 msgctxt "Operator"
@@ -56776,7 +56813,7 @@ msgstr "Mou els traços seleccionats a una altra capa"
 
 msgctxt "Operator"
 msgid "Strokes Paint Mode Toggle"
-msgstr "Reversar mode pintura de traç"
+msgstr "Revesar mode pintura de traç"
 
 
 msgid "Enter/Exit paint mode for Grease Pencil strokes"
@@ -56887,6 +56924,10 @@ msgid "Reproject the selected strokes from the current viewpoint as if they had 
 msgstr "Reprojecta els traços seleccionats des del punt de visió actual com si s'haguessin dibuixat recentment (p. ex. per a solucionar problemes des del moviment accidental del cursor 3D o canvis accidentals del mirador, o per coincidir amb geometria deformada)"
 
 
+msgid "Keep original strokes and create a copy before reprojecting"
+msgstr "Mantenir traços originals i crear-ne una còpia abans de reprojectar-los"
+
+
 msgid "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"
 msgstr "Reprojectar els traços a la geometria de l'escena, com si fossin dibuixats amb una ubicació de «superfície»"
 
@@ -56919,7 +56960,7 @@ msgstr "Introduir un mini «mode escultura» si està activat, en cas contrari, 
 
 msgctxt "Operator"
 msgid "Strokes Sculpt Mode Toggle"
-msgstr "Reversar mode escultura de traç"
+msgstr "Revesar mode escultura de traç"
 
 
 msgid "Enter/Exit sculpt mode for Grease Pencil strokes"
@@ -57277,7 +57318,11 @@ msgstr "Obrir-ho tot"
 
 msgctxt "Operator"
 msgid "Set handle type"
-msgstr "Estableix tipus de nansa"
+msgstr "Determinar tipus de nansa"
+
+
+msgid "Set the type of an edit curve handle"
+msgstr "[Set handle type]: Estableix el tipus de nansa d'edició de corba"
 
 
 msgctxt "Operator"
@@ -57516,9 +57561,17 @@ msgid "Simplify Stroke"
 msgstr "Simplificar traç"
 
 
+msgid "Simplify selected strokes, reducing number of points"
+msgstr "[Simplify Stroke]: Simplifica el traç seleccionat reduint el nombre de punts"
+
+
 msgctxt "Operator"
 msgid "Simplify Fixed Stroke"
 msgstr "Simplificar traç fix"
+
+
+msgid "Simplify selected strokes, reducing number of points using fixed algorithm"
+msgstr "[Simplify Fixed Stroke]: Simplifica els traços seleccionats reduint el nombre de punts en base a un algorisme fix"
 
 
 msgid "Number of simplify steps"
@@ -57868,7 +57921,7 @@ msgstr "[Stroke Vertex Paint]: Pinta els punts del traç amb un color"
 
 msgctxt "Operator"
 msgid "Strokes Vertex Mode Toggle"
-msgstr "Reversar mode vèrtex de traços"
+msgstr "Revesar mode vèrtex de traços"
 
 
 msgid "Enter/Exit vertex paint mode for Grease Pencil strokes"
@@ -57882,7 +57935,7 @@ msgstr "Pintat d'influència de traç"
 
 msgctxt "Operator"
 msgid "Strokes Weight Mode Toggle"
-msgstr "Reversar mode d'influència de traços"
+msgstr "Revesar mode d'influència de traços"
 
 
 msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
@@ -59565,7 +59618,7 @@ msgstr "Canviar la selecció de tots els informes visibles"
 
 
 msgid "Toggle box selection"
-msgstr "Reversar selecció de caixa"
+msgstr "Revesar selecció de caixa"
 
 
 msgctxt "Operator"
@@ -59821,7 +59874,7 @@ msgstr "[Copy Splines]: Copia els splines seleccionats al porta-retalls"
 
 
 msgid "Toggle cyclic for selected splines"
-msgstr "Reversar cíclicament els splines seleccionats"
+msgstr "Revesar cíclicament els splines seleccionats"
 
 
 msgid "Delete selected control points or splines"
@@ -60167,6 +60220,15 @@ msgstr "Seleccionar aleatòriament els elements de metabola"
 
 msgid "Select similar metaballs by property types"
 msgstr "Seleccionar metaboles similars per tipus de propietat"
+
+
+msgctxt "Operator"
+msgid "Set Attribute"
+msgstr "Determinar atribut"
+
+
+msgid "Set values of the active attribute for selected elements"
+msgstr "Estableix els valors de l'atribut actiu per als elements seleccionats"
 
 
 msgctxt "Operator"
@@ -63881,7 +63943,7 @@ msgstr "Aglutinar i ocultar borns no usats"
 
 
 msgid "Toggle collapsed nodes and hide unused sockets"
-msgstr "Reversa l'aglutinació de nodes i ocultació dels borns no usats"
+msgstr "Revesa l'aglutinació de nodes i ocultació dels borns no usats"
 
 
 msgctxt "Operator"
@@ -64234,7 +64296,7 @@ msgstr "Deslligar enllaços"
 
 msgctxt "Operator"
 msgid "Toggle Node Mute"
-msgstr "Reversar node silenciar"
+msgstr "Revesar node silenciar"
 
 
 msgid "Toggle muting of selected nodes"
@@ -64287,7 +64349,7 @@ msgstr "Copiar color a tots els nodes seleccionats"
 
 msgctxt "Operator"
 msgid "Toggle Node Options"
-msgstr "Reversar opcions de node"
+msgstr "Revesar opcions de node"
 
 
 msgid "Toggle option buttons display for selected nodes"
@@ -64875,6 +64937,10 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Corba des d'objectes malla o text"
 
 
+msgid "Mesh from Curve, Surface, Metaball, or Text objects"
+msgstr "Malla d'objectes corba, superfície, metabola o text"
+
+
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Llapis de greix a partir d'objectes corba o malla"
 
@@ -65222,7 +65288,7 @@ msgstr "Copia el grup actiu de nodes de geometria i l'assigna al modificador act
 
 msgctxt "Operator"
 msgid "Input Attribute Toggle"
-msgstr "Reversar atribut d'ingrés"
+msgstr "Revesar atribut d'ingrés"
 
 
 msgid "Switch between an attribute and a single value to define the data for every element"
@@ -65231,6 +65297,15 @@ msgstr "[Input Attribute Toggle]: Canvia entre un atribut i un valor únic per d
 
 msgid "Prop Path"
 msgstr "Camí de propietats"
+
+
+msgctxt "Operator"
+msgid "Move to Nodes"
+msgstr "Moure a nodes"
+
+
+msgid "Move inputs and outputs from in the modifier to a new node group"
+msgstr "Mou ingressos i emissions de l'interior del modificador a un nou grup de nodes"
 
 
 msgctxt "Operator"
@@ -65416,7 +65491,7 @@ msgstr "Estendre visibilitat"
 
 
 msgid "Toggle visibility"
-msgstr "Reversar visibilitat"
+msgstr "Revesar visibilitat"
 
 
 msgctxt "Operator"
@@ -66574,6 +66649,26 @@ msgstr "Velocitat enfora"
 msgctxt "Operator"
 msgid "Quick Fur"
 msgstr "Pellam ràpid"
+
+
+msgid "Add a fur setup to the selected objects"
+msgstr "[Quick Fur]: Afegeix una configuració de pèl als objectes seleccionats"
+
+
+msgid "Apply Hair Guides"
+msgstr "Aplicar guies de pèl"
+
+
+msgid "Hair Radius"
+msgstr "Radi de pèl"
+
+
+msgid "Frizz"
+msgstr "Encrespat"
+
+
+msgid "View Percentage"
+msgstr "Veure percentatge"
 
 
 msgctxt "Operator"
@@ -68468,11 +68563,11 @@ msgstr "Operació modificadora"
 
 
 msgid "Toggle Viewport Use"
-msgstr "Reversar ús de mirador"
+msgstr "Revesar ús de mirador"
 
 
 msgid "Toggle Render Use"
-msgstr "Reversar us de revelat"
+msgstr "Revesar us de revelat"
 
 
 msgctxt "Operator"
@@ -68613,7 +68708,7 @@ msgstr "Estendre la selecció en caminar"
 
 
 msgid "Toggle All"
-msgstr "Reversar tot"
+msgstr "Revesar tot"
 
 
 msgid "Toggle open/close hierarchy"
@@ -68816,7 +68911,7 @@ msgstr "[Create Missing]: Si el tipus de pinzell sol·licitat no existeix, crea 
 
 
 msgid "Toggle between two brushes rather than cycling"
-msgstr "Reversar entre dos pinzells en lloc de fer cicle"
+msgstr "Revesar entre dos pinzells en lloc de fer cicle"
 
 
 msgid "Change selection for all faces"
@@ -69018,7 +69113,7 @@ msgstr "[Mask Flood Fill]: Omple tota la màscara amb un valor donat, o invertei
 
 msgctxt "Operator"
 msgid "Mask Lasso Gesture"
-msgstr "Màscara gest de llaç"
+msgstr "Màscara de gest de llaç"
 
 
 msgid "Add mask within the lasso as you move the brush"
@@ -71019,13 +71114,2578 @@ msgstr "La ubicació pivot es troba a la posició de l'objecte seleccionat"
 
 
 msgctxt "Operator"
+msgid "Add Rigid Body Constraint"
+msgstr "Afegir restricció de cos rígid"
+
+
+msgid "Add Rigid Body Constraint to active object"
+msgstr "Afegeix una restricció de cos rígid a l'objecte actiu"
+
+
+msgid "Rigid Body Constraint Type"
+msgstr "Tipus de restricció de cos rígid"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body Constraint"
+msgstr "Eliminar restricció del cos rígid"
+
+
+msgid "Remove Rigid Body Constraint from Object"
+msgstr "Elimina la restricció de cos rígid de l'objecte"
+
+
+msgctxt "Operator"
+msgid "Calculate Mass"
+msgstr "Calcular massa"
+
+
+msgid "Automatically calculate mass values for Rigid Body Objects based on volume"
+msgstr "[Calculate Mass]: Calcula automàticament els valors de massa per als objectes de cos rígid en base al volum"
+
+
+msgid "Density value (kg/m^3), allows custom value if the 'Custom' preset is used"
+msgstr "Valor de densitat (kg/m^3), permet un valor personalitzat si s'utilitza «Personalitzat» com a predefinit"
+
+
+msgid "Material Preset"
+msgstr "Predefinit de material"
+
+
+msgid "Type of material that objects are made of (determines material density)"
+msgstr "Tipus de material de què els objectes són fets (determina la densitat del material)"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Body"
+msgstr "Afegir cos rígid"
+
+
+msgid "Add active object as Rigid Body"
+msgstr "[Add Rigid Body]: Afegeix l'objecte actiu com a cos rígid"
+
+
+msgid "Rigid Body Type"
+msgstr "Tipus de cos rígid"
+
+
+msgid "Object is directly controlled by simulation results"
+msgstr "[Rigid Body Type]: L'objecte controlat directament pels resultats de la simulació"
+
+
+msgid "Passive"
+msgstr "Passiu"
+
+
+msgid "Object is directly controlled by animation system"
+msgstr "L'objecte està controlat directament pel sistema d'animació"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body"
+msgstr "Eliminar cos rígid"
+
+
+msgid "Remove Rigid Body settings from Object"
+msgstr "Elimina la configuració del cos rígid de l'objecte"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Copiar configuració de cos rígid"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Copia la configuració de cos rígid des de l'objecte actiu a l'opció seleccionada"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Bodies"
+msgstr "Afegir cossos rígids"
+
+
+msgid "Add selected objects as Rigid Bodies"
+msgstr "Afegeix els objectes seleccionats com a cossos rígids"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Bodies"
+msgstr "Eliminar cossos rígids"
+
+
+msgid "Remove selected objects from Rigid Body simulation"
+msgstr "Elimina els objectes seleccionats de la simulació de cos rigid"
+
+
+msgctxt "Operator"
+msgid "Change Collision Shape"
+msgstr "Canviar forma de col·lisió"
+
+
+msgid "Change collision shapes for selected Rigid Body Objects"
+msgstr "Canvia les formes de col·lisió per als objectes de cos rigid seleccionats"
+
+
+msgid "Rigid Body Shape"
+msgstr "Forma de cos rígid"
+
+
+msgid "Box-like shapes (i.e. cubes), including planes (i.e. ground planes)"
+msgstr "[Rigid Body Shape]: Formes semblants a capses (és a dir, cubs), incloent-hi plans (és a dir, plans de terra)"
+
+
+msgid "A mesh-like surface encompassing (i.e. shrinkwrap over) all vertices (best results with fewer vertices)"
+msgstr "Una superfície semblant a una malla que engloba (és a dir, sobrecobreix) tots els vèrtexs (millor resultats com menys vèrtexs)"
+
+
+msgid "Mesh consisting of triangles only, allowing for more detailed interactions than convex hulls"
+msgstr "Malla consistent de triangles i prou, permetent interaccions més detallades que closques convexes"
+
+
+msgid "Compound Parent"
+msgstr "Pare compost"
+
+
+msgid "Combines all of its direct rigid body children into one rigid object"
+msgstr "[Compound Parent]: Combina tots els seus cossos rígids fills en un objecte rígid"
+
+
+msgctxt "Operator"
+msgid "Add Rigid Body World"
+msgstr "Afegir món de cos rígid"
+
+
+msgid "Add Rigid Body simulation world to the current scene"
+msgstr "[Add Rigid Body World]: Afegeix un món de simulació de cos rígid a l'escena actual"
+
+
+msgctxt "Operator"
+msgid "Remove Rigid Body World"
+msgstr "Eliminar món de cos rígid"
+
+
+msgid "Remove Rigid Body simulation world from the current scene"
+msgstr "Elimina el món de simulació de cos rígid de l'escena actual"
+
+
+msgctxt "Operator"
+msgid "Delete Scene"
+msgstr "Suprimir escena"
+
+
+msgid "Delete active scene"
+msgstr "Suprimeix l'escena activa"
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "Afegir marques de vora a joc de fites"
+
+
+msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
+msgstr "[Add Edge Marks to Keying Set]: Afegeix els camins de dades vers la propietat de camins de vores manual de les arestes seleccionades al conjunt de fites actiu"
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "Afegeix marques de cara al joc de fites"
+
+
+msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
+msgstr "[Add Face Marks to Keying Set]: Afegeix els camins de dades vers la propietat de camins de vores manual dels polígons seleccionats al conjunt de fites actiu"
+
+
+msgctxt "Operator"
+msgid "Add Alpha Transparency Modifier"
+msgstr "Afegir modificador de transparència alfa"
+
+
+msgid "Add an alpha transparency modifier to the line style associated with the active lineset"
+msgstr "Afegeix un modificador de transparència alfa a l'estil de línia associat amb el conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Add Line Color Modifier"
+msgstr "Afegir modificador de color de línia"
+
+
+msgid "Add a line color modifier to the line style associated with the active lineset"
+msgstr "Afegeix un modificador de color de línia a l'estil de línia associat amb el conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "Emplenar interval per selecció"
+
+
+msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object "
+msgstr "Omple les entrades mín/màx de l'interval amb la distància mín/màx entre els objectes de malla seleccionats i l'objecte d'origen"
+
+
+msgid "Name of the modifier to work on"
+msgstr "Nom del modificador a configurar"
+
+
+msgid "Type of the modifier to work on"
+msgstr "Tipus del modificador a configurar"
+
+
+msgid "Color modifier type"
+msgstr "Tipus de modificador de color"
+
+
+msgid "Alpha modifier type"
+msgstr "Tipus de modificador d'alfa"
+
+
+msgid "Thickness modifier type"
+msgstr "Tipus de modificador de gruix"
+
+
+msgctxt "Operator"
+msgid "Add Stroke Geometry Modifier"
+msgstr "Afegir modificador de geometria de traç"
+
+
+msgid "Add a stroke geometry modifier to the line style associated with the active lineset"
+msgstr "Afegeix un modificador de geometria del traç a l'estil de línia associat amb el conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Add Line Set"
+msgstr "Afegir conjunt de línies"
+
+
+msgid "Add a line set into the list of line sets"
+msgstr "[Add Line Set]: Afegeix un conjunt de línies a la llista de conjunts de línies"
+
+
+msgctxt "Operator"
+msgid "Copy Line Set"
+msgstr "Copiar conjunt de línies"
+
+
+msgid "Copy the active line set to a buffer"
+msgstr "Copia el conjunt de línies actiu a una memòria intermèdia"
+
+
+msgctxt "Operator"
+msgid "Move Line Set"
+msgstr "Moure conjunt de línies"
+
+
+msgid "Change the position of the active line set within the list of line sets"
+msgstr "Canvia la posició del conjunt de línies actiu establerta dins de la llista de conjunts de línies"
+
+
+msgid "Direction to move the active line set towards"
+msgstr "Direcció a la qual moure el conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Paste Line Set"
+msgstr "Enganxar conjunt de línies"
+
+
+msgid "Paste the buffer content to the active line set"
+msgstr "Enganxa el contingut de la memòria intermèdia al conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Remove Line Set"
+msgstr "Eliminar conjunt de línies"
+
+
+msgid "Remove the active line set from the list of line sets"
+msgstr "[Remove Line Set]: Elimina el conjunt de línies actiu de la llista de conjunts de línies"
+
+
+msgctxt "Operator"
+msgid "New Line Style"
+msgstr "Estil de línia nou"
+
+
+msgid "Create a new line style, reusable by multiple line sets"
+msgstr "[New Line Style]: Crea un nou estil de línia, reutilitzable per múltiples conjunts de línies"
+
+
+msgid "Duplicate the modifier within the list of modifiers"
+msgstr "Duplicar el modificador dins de la llista de modificadors"
+
+
+msgctxt "Operator"
+msgid "Move Modifier"
+msgstr "Moure modificador"
+
+
+msgid "Move the modifier within the list of modifiers"
+msgstr "Mou el modificador dins de la llista de modificadors"
+
+
+msgid "Direction to move the chosen modifier towards"
+msgstr "Direcció on moure el modificador escollit"
+
+
+msgid "Remove the modifier from the list of modifiers"
+msgstr "Suprimir el modificador de la llista de modificadors"
+
+
+msgctxt "Operator"
+msgid "Add Freestyle Module"
+msgstr "Afegir mòdul manual"
+
+
+msgid "Add a style module into the list of modules"
+msgstr "[Add Freestyle Module]: Afegeix un mòdul d'estil de línia a la llista de mòduls"
+
+
+msgctxt "Operator"
+msgid "Move Freestyle Module"
+msgstr "Moure mòdul manual"
+
+
+msgid "Change the position of the style module within in the list of style modules"
+msgstr "Canvia la posició del mòdul d'estil dins la llista de mòduls d'estil"
+
+
+msgid "Direction to move the chosen style module towards"
+msgstr "Direcció a on moure el mòdul d'estil escollit"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Obrir document de mòdul d'estil"
+
+
+msgid "Open a style module file"
+msgstr "[Open Style Module File]: Obre un document de mòdul d'estil"
+
+
+msgid "Make internal"
+msgstr "Fer intern"
+
+
+msgid "Make module file internal after loading"
+msgstr "Fa que el document del mòdul sigui intern després de carregar-lo"
+
+
+msgctxt "Operator"
+msgid "Remove Freestyle Module"
+msgstr "Eliminar mòdul manual"
+
+
+msgid "Remove the style module from the stack"
+msgstr "Suprimeix el mòdul d'estil de l'estiba"
+
+
+msgctxt "Operator"
+msgid "Create Freestyle Stroke Material"
+msgstr "Crea material de traç de manual"
+
+
+msgid "Create Freestyle stroke material for testing"
+msgstr "[Create Freestyle Stroke Material]: Crea material de traç de línia manual per fer proves"
+
+
+msgctxt "Operator"
+msgid "Add Line Thickness Modifier"
+msgstr "Afegeir modificador de gruix de línia"
+
+
+msgid "Add a line thickness modifier to the line style associated with the active lineset"
+msgstr "Afegeix un modificador de gruix de línia a l'estil de línia associat amb el conjunt de línies actiu"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Brush Preset"
+msgstr "Afegir predefinit de pinzell llapis de greix"
+
+
+msgid "Add or remove grease pencil brush preset"
+msgstr "Afegeix o elimina el predefinit de pinzell de llapis de greix"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Material Preset"
+msgstr "Afegir predefinit de material de llapis de greix"
+
+
+msgid "Add or remove grease pencil material preset"
+msgstr "Afegeix o elimina la preconfiguració prefefinida de material per al llapis de greix"
+
+
+msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Precuinar memòria cau de llum"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "[Bake Light Cache]: Precuina la il·luminació de la capa de visualització activa"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "Retard en mil·lisegons abans que s'iniciï el precuinat"
+
+
+msgid "Subset of probes to update"
+msgstr "Subconjunt de sondes a actualitzar"
+
+
+msgid "All Light Probes"
+msgstr "Totes les sondes de llum"
+
+
+msgid "Bake both irradiance grids and reflection cubemaps"
+msgstr "Precuinar tant les graelles d'irradiància com les cubografies de reflexió"
+
+
+msgid "Dirty Only"
+msgstr "Només ronyoses"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "[Dirty Only]: Només precuina sondes de llum marcades com a ronyoses"
+
+
+msgid "Cubemaps Only"
+msgstr "Només cubografies"
+
+
+msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
+msgstr "[Cubemaps Only]: Intenta de precuinar només cubografies de reflexió si les graelles d'irradiància estan actualitzades"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Suprimir memòria cau de llum"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "Suprimeix la il·luminació indirecta a la memòria cau"
+
+
+msgctxt "Operator"
+msgid "New Scene"
+msgstr "Nova escena"
+
+
+msgid "Add new scene by type"
+msgstr "Afegeix una escena nova per tipus"
+
+
+msgctxt "Scene"
+msgid "Type"
+msgstr "Tipus"
+
+
+msgctxt "Scene"
+msgid "New"
+msgstr "Nova"
+
+
+msgid "Add a new, empty scene with default settings"
+msgstr "Afegeix una escena nova i buida amb la configuració predeterminada"
+
+
+msgctxt "Scene"
+msgid "Copy Settings"
+msgstr "Copiar configuració"
+
+
+msgid "Add a new, empty scene, and copy settings from the current scene"
+msgstr "Afegeix una escena nova i buida i copia la configuració de l'escena actual"
+
+
+msgctxt "Scene"
+msgid "Linked Copy"
+msgstr "Còpia enllaçada"
+
+
+msgid "Link in the collections from the current scene (shallow copy)"
+msgstr "Enllaça a les col·leccions de l'escena actual (còpia superficial)"
+
+
+msgctxt "Scene"
+msgid "Full Copy"
+msgstr "Còpia completa"
+
+
+msgid "Make a full copy of the current scene"
+msgstr "Fa una còpia completa de l'escena actual"
+
+
+msgid "Add new scene by type in the sequence editor and assign to active strip"
+msgstr "Afegir una escena nova per tipus a l'editor de seqüències i assignar al segment actiu"
+
+
+msgid "Copy Settings"
+msgstr "Copiar configuració"
+
+
+msgid "Linked Copy"
+msgstr "Còpia enllaçada"
+
+
+msgid "Full Copy"
+msgstr "Còpia completa"
+
+
+msgctxt "Operator"
+msgid "Add Render View"
+msgstr "Afegir visualització de revelat"
+
+
+msgid "Add a render view"
+msgstr "Afegeix una vista de revelat"
+
+
+msgctxt "Operator"
+msgid "Remove Render View"
+msgstr "Suprimir visualització de revelat"
+
+
+msgid "Remove the selected render view"
+msgstr "Suprimeix la vista de revelat seleccionada"
+
+
+msgctxt "Operator"
+msgid "Add View Layer"
+msgstr "Afegir capa de visualització"
+
+
+msgid "Add a view layer"
+msgstr "Afegeix una capa de vista"
+
+
+msgid "Add a new view layer"
+msgstr "Afegir nova capa de visualització"
+
+
+msgid "Copy settings of current view layer"
+msgstr "Copiar la configuració de la capa de visualització actual"
+
+
+msgid "Add a new view layer with all collections disabled"
+msgstr "Afegeix una capa de vista nova amb totes les col·leccions inhabilitades"
+
+
+msgctxt "Operator"
 msgid "Add AOV"
 msgstr "Afegir VEA"
+
+
+msgid "Add a Shader AOV"
+msgstr "[Add AOV]: Afegeix un aspector VEA"
+
+
+msgctxt "Operator"
+msgid "Add Lightgroup"
+msgstr "Afegir grup de llum"
+
+
+msgid "Add a Light Group"
+msgstr "[Add Lightgroup]: Afegeix un grup de llum"
+
+
+msgid "Name of newly created lightgroup"
+msgstr "Nom del grup de llum nou creat"
+
+
+msgctxt "Operator"
+msgid "Add Used Lightgroups"
+msgstr "Afegeir grups de llum usats"
+
+
+msgid "Add all used Light Groups"
+msgstr "Afegeix tots els grups de llum utilitzats"
+
+
+msgctxt "Operator"
+msgid "Remove View Layer"
+msgstr "Suprimir capa de visualització"
+
+
+msgid "Remove the selected view layer"
+msgstr "Suprimeix la capa de vista seleccionada"
+
+
+msgctxt "Operator"
+msgid "Remove AOV"
+msgstr "Eliminar VEA"
+
+
+msgid "Remove Active AOV"
+msgstr "[Remove AOV]: Elimina el VEA actiu"
+
+
+msgctxt "Operator"
+msgid "Remove Lightgroup"
+msgstr "Eliminar grup de llum"
+
+
+msgid "Remove Active Lightgroup"
+msgstr "Elimina el grup de llum actiu"
+
+
+msgctxt "Operator"
+msgid "Remove Unused Lightgroups"
+msgstr "Eliminar grups de llum no utilitzats"
+
+
+msgid "Remove all unused Light Groups"
+msgstr "Elimina tots els grups de llum no utilitzats"
+
+
+msgctxt "Operator"
+msgid "Handle Area Action Zones"
+msgstr "Gestionar zones d'acció d'àrea"
+
+
+msgid "Handle area action zones for mouse actions/gestures"
+msgstr "Gestiona les zones d'acció de l'àrea per a les accions i gestos del ratolí"
+
+
+msgid "Modifier state"
+msgstr "Estat del modificador"
+
+
+msgctxt "Operator"
+msgid "Cancel Animation"
+msgstr "Cancel·lar animació"
+
+
+msgid "Cancel animation, returning to the original frame"
+msgstr "Cancel·la l'animació, tornant al fotograma original"
+
+
+msgid "Restore Frame"
+msgstr "Restaurar fotograma"
+
+
+msgid "Restore the frame when animation was initialized"
+msgstr "Restaura el fotograma de quan s'inicialitzà l'animació"
+
+
+msgctxt "Operator"
+msgid "Play Animation"
+msgstr "Reproduir animació"
+
+
+msgid "Play animation"
+msgstr "[Play animation]: Reprodueix l'animació"
+
+
+msgid "Play in Reverse"
+msgstr "Reproduir enrere"
+
+
+msgid "Animation is played backwards"
+msgstr "L'animació es reprodueix cap enrere"
+
+
+msgid "Sync"
+msgstr "Sincronització"
+
+
+msgid "Drop frames to maintain framerate"
+msgstr "Descarta fotogrames per a mantenir els fotogrames per segon"
+
+
+msgctxt "Operator"
+msgid "Animation Step"
+msgstr "Pas d'animació"
+
+
+msgid "Step through animation by position"
+msgstr "[Animation Step]: Pas dins l'animació per posició"
+
+
+msgctxt "Operator"
+msgid "Close Area"
+msgstr "Tancar àrea"
+
+
+msgid "Close selected area"
+msgstr "[Close Area]: Tanca l'àrea seleccionada"
+
+
+msgctxt "Operator"
+msgid "Duplicate Area into New Window"
+msgstr "Duplicar àrea en una finestra nova"
+
+
+msgid "Duplicate selected area into new window"
+msgstr "Duplica l'àrea seleccionada en una finestra nova"
+
+
+msgctxt "Operator"
+msgid "Join Area"
+msgstr "Unir àrea"
+
+
+msgid "Join selected areas into new window"
+msgstr "Uneix les àrees seleccionades en una finestra nova"
+
+
+msgctxt "Operator"
+msgid "Move Area Edges"
+msgstr "Moure vores de l'àrea"
+
+
+msgid "Move selected area edges"
+msgstr "[Move Area Edges]: Mou les vores de l'àrea seleccionada"
+
+
+msgctxt "Operator"
+msgid "Area Options"
+msgstr "Opcions d'àrea"
+
+
+msgid "Operations for splitting and merging"
+msgstr "Operacions per a dividir i fusionar"
+
+
+msgctxt "Operator"
+msgid "Split Area"
+msgstr "Dividir àrea"
+
+
+msgid "Split selected area into new windows"
+msgstr "Divideix l'àrea seleccionada en finestres noves"
+
+
+msgctxt "Operator"
+msgid "Swap Areas"
+msgstr "Intercanviar àrees"
+
+
+msgid "Swap selected areas screen positions"
+msgstr "Intercanvia les posicions en la pantalla de les àrees seleccionades"
+
+
+msgctxt "Operator"
+msgid "Back to Previous Screen"
+msgstr "Tornar a pantalla anterior"
+
+
+msgid "Revert back to the original screen layout, before fullscreen area overlay"
+msgstr "Torna a la disposició de pantalla original, abans de l'ocupació de l'àrea en pantalla completa"
+
+
+msgctxt "Operator"
+msgid "Delete Screen"
+msgstr "Suprimir pantalla"
+
+
+msgid "Delete active screen"
+msgstr "Suprimeix la pantalla activa"
+
+
+msgctxt "Operator"
+msgid "Show Drivers Editor"
+msgstr "Mostrar editor de controladors"
+
+
+msgid "Show drivers editor in a separate window"
+msgstr "Mostra l'editor de controladors en una finestra separada"
+
+
+msgctxt "Operator"
+msgid "Jump to Endpoint"
+msgstr "Saltar a punt extrem"
+
+
+msgid "Jump to first/last frame in frame range"
+msgstr "Salta al primer/últim fotograma de l'interval de fotogrames"
+
+
+msgid "Last Frame"
+msgstr "Últim fotograma"
+
+
+msgid "Jump to the last frame of the frame range"
+msgstr "Salta a l'últim fotograma de l'interval del fotograma"
+
+
+msgctxt "Operator"
+msgid "Frame Offset"
+msgstr "Desplaçament de fotograma"
+
+
+msgid "Move current frame forward/backward by a given number"
+msgstr "Mou el fotograma actual cap endavant/cap enrere en un nombre donat"
+
+
+msgctxt "Operator"
+msgid "Expand/Collapse Header Menus"
+msgstr "Expandir/replegar els menús de capçalera"
+
+
+msgid "Expand or collapse the header pulldown menus"
+msgstr "Expandeix o contrau els menús desplegables de la capçalera"
+
+
+msgctxt "Operator"
+msgid "Show Info Log"
+msgstr "Mostrar registre d'informació"
+
+
+msgid "Show info log in a separate window"
+msgstr "[Show Info Log]: Mostra el registre d'informació en una finestra separada"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Saltar al fotofita"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "[Jump to Keyframe]: Salta a la fotofita anterior/següent"
+
+
+msgctxt "Operator"
+msgid "Jump to Marker"
+msgstr "Saltar a marcador"
+
+
+msgid "Jump to previous/next marker"
+msgstr "Salta al marcador anterior/següent"
+
+
+msgid "Next Marker"
+msgstr "Marcador següent"
+
+
+msgctxt "Operator"
+msgid "New Screen"
+msgstr "Nova pantalla"
+
+
+msgid "Add a new screen"
+msgstr "Afegeix una pantalla nova"
+
+
+msgctxt "Operator"
+msgid "Redo Last"
+msgstr "Refer última"
+
+
+msgid "Display parameters for last action performed"
+msgstr "[Redo Last]: Mostra els paràmetres de la darrera acció realitzada"
+
+
+msgctxt "Operator"
+msgid "Region Alpha"
+msgstr "Regió alfa"
+
+
+msgid "Blend in and out overlapping region"
+msgstr "[Region Alpha]: Es fusionen les superposicions de regions"
+
+
+msgctxt "Operator"
+msgid "Region Context Menu"
+msgstr "Menú contextual de regió"
+
+
+msgid "Display region context menu"
+msgstr "Mostra el menú contextual de la regió"
+
+
+msgctxt "Operator"
+msgid "Flip Region"
+msgstr "Invertir regió"
+
+
+msgid "Toggle the region's alignment (left/right or top/bottom)"
+msgstr "Revesa l'alineació de la regió (esquerra/dreta o superior/inferior)"
+
+
+msgctxt "Operator"
+msgid "Toggle Quad View"
+msgstr "Revesar visualització de quads"
+
+
+msgid "Split selected area into camera, front, right, and top views"
+msgstr "Divideix l'àrea seleccionada en vistes de càmera, frontal, dreta i superior"
+
+
+msgctxt "Operator"
+msgid "Scale Region Size"
+msgstr "Escalar mida de regió"
+
+
+msgid "Scale selected area"
+msgstr "[Scale Region Size]: Escala l'àrea seleccionada"
+
+
+msgctxt "Operator"
+msgid "Toggle Region"
+msgstr "Revesar regió"
+
+
+msgid "Hide or unhide the region"
+msgstr "[Toggle Region]: Oculta o mostra la regió"
+
+
+msgid "Type of the region to toggle"
+msgstr "Tipus de regió a revesar"
+
+
+msgctxt "Operator"
+msgid "Repeat History"
+msgstr "Repetir historial"
+
+
+msgid "Display menu for previous actions performed"
+msgstr "[Repeat History]: Mostra el menú de les accions anteriors realitzades"
+
+
+msgctxt "Operator"
+msgid "Repeat Last"
+msgstr "Repetir última"
+
+
+msgid "Repeat last action"
+msgstr "[Repeat Last]: Repeteix l'última acció"
+
+
+msgctxt "Operator"
+msgid "Toggle Maximize Area"
+msgstr "Revesar maximitzar àrea"
+
+
+msgid "Toggle display selected area as fullscreen/maximized"
+msgstr "Alterna la presentació de l'àrea seleccionada com a pantalla completa/maximitzada"
+
+
+msgid "Hide Panels"
+msgstr "Amagar plafons"
+
+
+msgid "Hide all the panels"
+msgstr "[Hide Panels]: Amaga tots els plafons"
+
+
+msgctxt "Operator"
+msgid "Set Screen"
+msgstr "Triar pantalla"
+
+
+msgid "Cycle through available screens"
+msgstr "[Set Screen]: Recorre cíclicament les pantalles disponibles"
+
+
+msgctxt "Operator"
+msgid "Save Screenshot"
+msgstr "Desar pantallada"
+
+
+msgid "Capture a picture of the whole Blender window"
+msgstr "[Save Screenshot]: Captura una foto de la finestra sencera del Blender"
+
+
+msgctxt "Operator"
+msgid "Save Screenshot (Editor)"
+msgstr "Desar pantallada (editor)"
+
+
+msgid "Capture a picture of an editor"
+msgstr "Captura una foto d'un editor"
+
+
+msgctxt "Operator"
+msgid "Cycle Space Context"
+msgstr "Ciclar context d'espai"
+
+
+msgid "Cycle through the editor context by activating the next/previous one"
+msgstr "[Cycle Space Context]: Es mou cíclicament pel context d'editor activant següent/anterior"
+
+
+msgid "Direction to cycle through"
+msgstr "Direcció a recórrer"
+
+
+msgctxt "Operator"
+msgid "Cycle Space Type Set"
+msgstr "Cicle per fixar tipus d'espai"
+
+
+msgid "Set the space type or cycle subtype"
+msgstr "[Cycle Space Type Set]: Estableix el tipus d'espai o va ciclant pels subtipus"
+
+
+msgctxt "Operator"
+msgid "Clean Up Space Data"
+msgstr "Netejar dades d'espai"
+
+
+msgid "Remove unused settings for invisible editors"
+msgstr "Elimina els paràmetres no utilitzats per als editors invisibles"
+
+
+msgctxt "Operator"
+msgid "Open Preferences..."
+msgstr "Obrir preferències..."
+
+
+msgid "Edit user preferences and system settings"
+msgstr "Edita les preferències de la usuària i la configuració del sistema"
+
+
+msgid "Section to activate in the Preferences"
+msgstr "Secció a activar en les preferències"
+
+
+msgid "Interface"
+msgstr "Interfície"
+
+
+msgid "Themes"
+msgstr "Temes"
+
+
+msgid "Editing"
+msgstr "Edició"
+
+
+msgid "Add-ons"
+msgstr "Complements"
+
+
+msgid "Keymap"
+msgstr "Teclari"
+
+
+msgid "File Paths"
+msgstr "Camins de documents"
+
+
+msgid "Experimental"
+msgstr "Experimental"
+
+
+msgctxt "Operator"
+msgid "Cycle Workspace"
+msgstr "Ciclar espai de treball"
+
+
+msgid "Cycle through workspaces"
+msgstr "[Cycle Workspace]: Recorre en cicle els espais de treball"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "Executar predefinit en Python"
+
+
+msgid "Load a preset"
+msgstr "Carregar predefinit"
+
+
+msgid "Menu ID Name"
+msgstr "Nom d'ID de menú"
+
+
+msgid "ID name of the menu this was called from"
+msgstr "Nom d'ID del menú des del qual s'ha cridat"
+
+
+msgctxt "Operator"
+msgid "Run Python File"
+msgstr "Executar document Python"
+
+
+msgid "Run Python file"
+msgstr "Executa el document Python"
+
+
+msgctxt "Operator"
+msgid "Reload Scripts"
+msgstr "Recarregar protocols"
+
+
+msgid "Reload scripts"
+msgstr "[Reload Scripts]: Recarrega els protocols"
+
+
+msgctxt "Operator"
+msgid "Stroke Curves Sculpt"
+msgstr "Traçar corbes esculpides"
+
+
+msgid "Sculpt curves using a brush"
+msgstr "[Stroke Curves Sculpt]: Esculpeix corbes usant un pinzell"
+
+
+msgctxt "Operator"
+msgid "Edit Minimum Distance"
+msgstr "Editar distància mínima"
+
+
+msgid "Change the minimum distance used by the density brush"
+msgstr "Canvia la distància mínima utilitzada pel pinzell de densitat"
+
+
+msgctxt "Operator"
+msgid "Select Grow"
+msgstr "Selecció d'impregnació"
+
+
+msgid "Select curves which are close to curves that are selected already"
+msgstr "[Select Grow]: Selecciona corbes que ja estan properes a les corbes seleccionades"
+
+
+msgid "By how much to grow the selection"
+msgstr "Quant s'ha d'expandir la selecció"
+
+
+msgid "Constant per Curve"
+msgstr "Constant per corba"
+
+
+msgid "The generated random number is the same for every control point of a curve"
+msgstr "[Constant per Curve]: El nombre aleatori generat és el mateix per a cada punt de control d'una corba"
+
+
+msgid "Minimum value for the random selection"
+msgstr "Valor mínim per a la selecció aleatòria"
+
+
+msgid "Partial"
+msgstr "Parcial"
+
+
+msgid "Allow points or curves to be selected partially"
+msgstr "[Partial]: Permet seleccionar parcialment punts o corbes"
+
+
+msgctxt "Operator"
+msgid "Sculpt"
+msgstr "Esculpir"
+
+
+msgid "Sculpt a stroke into the geometry"
+msgstr "[Sculpt]: Esculpeix un traç en la geometria"
+
+
+msgid "Ignore Background Click"
+msgstr "Ignorar clic al rerefons"
+
+
+msgid "Clicks on the background do not start the stroke"
+msgstr "[Ignore Background Click]: Els clics sobre el rerefons no inicien el traç"
+
+
+msgctxt "Operator"
+msgid "Filter Cloth"
+msgstr "Tela filtre"
+
+
+msgid "Applies a cloth simulation deformation to the entire mesh"
+msgstr "[Filter Cloth]: Aplica una deformació de simulació de tela a tota la malla"
+
+
+msgid ""
+"Radius used for calculating area normal on initial click,\n"
+"in percentage of brush radius"
+msgstr ""
+"Radi utilitzat per calcular l'àrea normal al primer clic,\n"
+"en percentatge del radi del pinzell"
+
+
+msgid "Force Axis"
+msgstr "Força a eix"
+
+
+msgid "Apply the force in the selected axis"
+msgstr "[Force Axis]: Aplica la força a l'eix seleccionat"
+
+
+msgid "Apply force in the X axis"
+msgstr "Aplicar la força a l'eix X"
+
+
+msgid "Apply force in the Y axis"
+msgstr "Aplicar la força a l'eix Y"
+
+
+msgid "Apply force in the Z axis"
+msgstr "Aplicar la força a l'eix Z"
+
+
+msgid "Orientation of the axis to limit the filter force"
+msgstr "Orientació de l'eix per per limitar la força de filtre"
+
+
+msgid "Use the local axis to limit the force and set the gravity direction"
+msgstr "Usar l'eix local per limitar la força i establir la direcció de la gravetat"
+
+
+msgid "Use the global axis to limit the force and set the gravity direction"
+msgstr "Usar l'eix global per limitar la força i establir la direcció de la gravetat"
+
+
+msgid "Use the view axis to limit the force and set the gravity direction"
+msgstr "Usar l'eix de visualització per a limitar la força i establir la direcció de la gravetat"
+
+
+msgid "Filter strength"
+msgstr "Intensitat de filtre"
+
+
+msgid "Operation that is going to be applied to the mesh"
+msgstr "[Filter strength]: Operació que s'aplicarà a la malla"
+
+
+msgid "Applies gravity to the simulation"
+msgstr "Aplicar gravetat a la simulació"
+
+
+msgid "Inflates the cloth"
+msgstr "Inflar la tela"
+
+
+msgid "Expands the cloth's dimensions"
+msgstr "Expandir les dimensions de la tela"
+
+
+msgid "Pulls the cloth to the cursor's start position"
+msgstr "Estirar la tela fins a la posició inicial del cursor"
+
+
+msgid "Scales the mesh as a soft body using the origin of the object as scale"
+msgstr "Escalar la malla com un cos tou usant l'origen de l'objecte com a escala"
+
+
+msgid "Use Collisions"
+msgstr "Usar col·lisions"
+
+
+msgid "Collide with other collider objects in the scene"
+msgstr "[Use Collisions]: Topa amb altres objectes de col·lisió a l'escena"
+
+
+msgid "Use Face Sets"
+msgstr "Usar conjunts de cares"
+
+
+msgid "Apply the filter only to the Face Set under the cursor"
+msgstr "Aplica el filtre només al conjunt de cares de sota el cursor"
+
+
+msgctxt "Operator"
+msgid "Filter Color"
+msgstr "Filtrar color"
+
+
+msgid "Applies a filter to modify the active color attribute"
+msgstr "[Filter Color]: Aplica un filtre per a modificar l'atribut de color actiu"
+
+
+msgid "Fill with a specific color"
+msgstr "Emplenar amb un color específic"
+
+
+msgid "Change hue"
+msgstr "Canviar tonalitat"
+
+
+msgid "Change saturation"
+msgstr "Canviar saturació"
+
+
+msgid "Change value"
+msgstr "Canviar valor"
+
+
+msgid "Change brightness"
+msgstr "Canviar brillantor"
+
+
+msgid "Change contrast"
+msgstr "Canviar contrast"
+
+
+msgid "Smooth colors"
+msgstr "Suavitzar colors"
+
+
+msgid "Change red channel"
+msgstr "Canviar canal vermell"
+
+
+msgid "Change green channel"
+msgstr "Canviar canal verd"
+
+
+msgid "Change blue channel"
+msgstr "Canviar canal blau"
+
+
+msgctxt "Operator"
+msgid "Detail Flood Fill"
+msgstr "Emplenament complet amb detall"
+
+
+msgid "Flood fill the mesh with the selected detail setting"
+msgstr "[Detail Flood Fill]: Emplena completament la malla amb la configuració de detall seleccionada"
+
+
+msgctxt "Operator"
+msgid "Dynamic Topology Toggle"
+msgstr "Revesar topologia dinàmica"
+
+
+msgid "Dynamic topology alters the mesh topology while sculpting"
+msgstr "La topologia dinàmica altera la topologia de malla mentre s'esculpeix"
+
+
+msgctxt "Operator"
+msgid "Edit Dyntopo Detail Size"
+msgstr "Editar mida de detall del Dyntopo"
+
+
+msgid "Modify the detail size of dyntopo interactively"
+msgstr "[Edit Dyntopo Detail Size]: Modifica la mida del detall del dyntopo interactivament"
+
+
+msgctxt "Operator"
+msgid "Expand"
+msgstr "Expandir"
+
+
+msgid "Generic sculpt expand operator"
+msgstr "Operador gèneric d'expansió d'esculpit"
+
+
+msgid "Initial falloff of the expand operation"
+msgstr "Decaïment inicial de l'operació d'expansió"
+
+
+msgid "Geodesic"
+msgstr "Geodèsic"
+
+
+msgid "Topology Diagonals"
+msgstr "Diagonals de topologia"
+
+
+msgid "Boundary Topology"
+msgstr "Topologia de límit"
+
+
+msgid "Boundary Face Set"
+msgstr "Conjunt de cares de límit"
+
+
+msgid "Active Face Set"
+msgstr "Conjunt de cares actiu"
+
+
+msgid "Invert the expand active elements"
+msgstr "Invertir els elements actius d'expansió"
+
+
+msgid "Max Vertex Count for Geodesic Move Preview"
+msgstr "Nombre màxim de vèrtexs per a la previsualització del moviment geodèsic"
+
+
+msgid "Maximum number of vertices in the mesh for using geodesic falloff when moving the origin of expand. If the total number of vertices is greater than this value, the falloff will be set to spherical when moving"
+msgstr "[Max Vertex Count for Geodesic Move Preview]: Nombre màxim de vèrtexs de la malla per a usar decaïment geodèsic en moure l'origen de l'expansió. Si el nombre total de vèrtexs és més gran que aquest valor, el decaïment s'establirà a esfèric en moure's"
+
+
+msgid "Normal Smooth"
+msgstr "Suavitzat de normal"
+
+
+msgid "Blurring steps for normal falloff"
+msgstr "[Normal Smooth]: Difuminació de passos de decaïment de normals"
+
+
+msgid "Data Target"
+msgstr "Referent de les dades"
+
+
+msgid "Data that is going to be modified in the expand operation"
+msgstr "[Data Target]: Dades que es modificaran en l'operació d'expansió"
+
+
+msgid "Auto Create"
+msgstr "Autocrear"
+
+
+msgid "Fill in mask if nothing is already masked"
+msgstr "[Auto Create]: Emplena la màscara si no hi ha ja res emmascarat"
+
+
+msgid "Falloff Gradient"
+msgstr "Gradient de decaïment"
+
+
+msgid "Expand Using a linear falloff"
+msgstr "[Falloff Gradient]: S'expandeix usant un decaïment lineal"
+
+
+msgid "Preserve Previous"
+msgstr "Conservar l'anterior"
+
+
+msgid "Preserve the previous state of the target data"
+msgstr "Conserva l'estat anterior de les dades de referència"
+
+
+msgid "Modify Active"
+msgstr "Modificar actiu"
+
+
+msgid "Modify the active Face Set instead of creating a new one"
+msgstr "Modifica el conjunt de cares actiu en lloc de crear-ne un de nou"
+
+
+msgid "Reposition Pivot"
+msgstr "Reposicionar pivot"
+
+
+msgid "Reposition the sculpt transform pivot to the boundary of the expand active area"
+msgstr "[Reposition Pivot]: Reposiciona el pivot de la transformació d'escultura al límit de l'àrea activa d'expansió"
+
+
+msgctxt "Operator"
+msgid "Face Set Box Gesture"
+msgstr "Conjunt de cares amb el gest de capsa"
+
+
+msgid "Add face set within the box as you move the brush"
+msgstr "[Face Set Box Gesture]: Afegeix un conjunt de cares dins de la capsa a mesura que moveu el pinzell"
+
+
+msgctxt "Operator"
+msgid "Face Sets Visibility"
+msgstr "Visibilitat dels conjunts de cares"
+
+
+msgid "Change the visibility of the Face Sets of the sculpt"
+msgstr "Canvia la visibilitat dels conjunts de cares de l'escultura"
+
+
+msgid "Toggle Visibility"
+msgstr "Revesar visibilitat"
+
+
+msgid "Hide all Face Sets except for the active one"
+msgstr "Oculta tots els conjunts de cares excepte l'actiu"
+
+
+msgid "Show Active Face Set"
+msgstr "Mostrar conjunt de cares actiu"
+
+
+msgid "Hide Active Face Sets"
+msgstr "Ocultar conjunts de cares actius"
+
+
+msgid "Invert Face Set Visibility"
+msgstr "Invertir visibilitat del conjunt de cares"
+
+
+msgctxt "Operator"
+msgid "Edit Face Set"
+msgstr "Editar conjunt de cares"
+
+
+msgid "Edits the current active Face Set"
+msgstr "[Edit Face Set]: Edita el conjunt de cares actiu actual"
+
+
+msgid "Grow Face Set"
+msgstr "Impregnar conjunt de cares"
+
+
+msgid "Grows the Face Sets boundary by one face based on mesh topology"
+msgstr "[Grow Face Set]: Fa créixer d'una cara el límit dels conjunts de cares en base a la topologia de malla"
+
+
+msgid "Shrink Face Set"
+msgstr "Encongir conjunt de cares"
+
+
+msgid "Shrinks the Face Sets boundary by one face based on mesh topology"
+msgstr "[Shrink Face Set]: Redueix el límit dels conjunts de cares per una cara basada en la topologia de malla"
+
+
+msgid "Deletes the faces that are assigned to the Face Set"
+msgstr "Suprimir les cares assignades al conjunt de cares"
+
+
+msgid "Fair Positions"
+msgstr "Posicions raonables"
+
+
+msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex positions"
+msgstr "Crea un pedaç de geometria tant suau com es pot a partir del conjunt de cares tot minimitzant els canvis en les posicions dels vèrtexs"
+
+
+msgid "Fair Tangency"
+msgstr "Tangència raonable"
+
+
+msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex tangents"
+msgstr "Crea un pedaç de geometria tant suau com es pot a partir del conjunt de cares, tot minimitzant els canvis en les tangents de vèrtex"
+
+
+msgid "Modify Hidden"
+msgstr "Modificar ocults"
+
+
+msgid "Apply the edit operation to hidden Face Sets"
+msgstr "Aplica l'operació d'edició als conjunts de cares ocults"
+
+
+msgctxt "Operator"
+msgid "Face Set Lasso Gesture"
+msgstr "Conjunt de cares amb el gest de llaç"
+
+
+msgid "Add face set within the lasso as you move the brush"
+msgstr "[Face Set Lasso Gesture]: Afegeix un conjunt de cares dins del llaç mentre moveu el pinzell"
+
+
+msgctxt "Operator"
+msgid "Create Face Set"
+msgstr "Crear conjunt de cares"
+
+
+msgid "Create a new Face Set"
+msgstr "[Create Face Set]: Crea un nou conjunt de cares"
+
+
+msgid "Face Set from Masked"
+msgstr "Conjunt de cares des d'emmascarades"
+
+
+msgid "Create a new Face Set from the masked faces"
+msgstr "[Face Set from Masked]: Crea un conjunt de cares nou a partir de les cares emmascarades"
+
+
+msgid "Face Set from Visible"
+msgstr "Conjunt de cares des de visibles"
+
+
+msgid "Create a new Face Set from the visible vertices"
+msgstr "Crea un conjunt de cares nou a partir dels vèrtexs visibles"
+
+
+msgid "Face Set Full Mesh"
+msgstr "Conjunt de cares de malla completa"
+
+
+msgid "Create an unique Face Set with all faces in the sculpt"
+msgstr "Crea un conjunt de cares únic amb totes les cares a l'escultura"
+
+
+msgid "Face Set from Edit Mode Selection"
+msgstr "Conjunt de cares des del mode d'edició de selecció"
+
+
+msgid "Create an Face Set corresponding to the Edit Mode face selection"
+msgstr "Crea un conjunt de cares corresponent a la selecció de cares en mode d'edició"
+
+
+msgctxt "Operator"
+msgid "Init Face Sets"
+msgstr "Inicialitzar conjunts de cares"
+
+
+msgid "Initializes all Face Sets in the mesh"
+msgstr "[Init Face Sets]: Inicialitza tots els conjunts de cares a la malla"
+
+
+msgid "Face Sets from Loose Parts"
+msgstr "Conjunts de cares des parts soltes"
+
+
+msgid "Create a Face Set per loose part in the mesh"
+msgstr "Crea un conjunt de cares per cada part solta de la malla"
+
+
+msgid "Face Sets from Material Slots"
+msgstr "Conjunts de cares des d'epígrafs de materials"
+
+
+msgid "Create a Face Set per Material Slot"
+msgstr "Crea un conjunt de cares per cada epígraf de material"
+
+
+msgid "Face Sets from Mesh Normals"
+msgstr "Conjunts de cares des de normals de malla"
+
+
+msgid "Create Face Sets for Faces that have similar normal"
+msgstr "Crea conjunts de cares per a cares que tinguin una normal similar"
+
+
+msgid "Face Sets from UV Seams"
+msgstr "Conjunts de cares de costures UV"
+
+
+msgid "Create Face Sets using UV Seams as boundaries"
+msgstr "Crea conjunts de cares usant les costures UV com a límits"
+
+
+msgid "Face Sets from Edge Creases"
+msgstr "Conjunts de cares des d'arestes retingudes"
+
+
+msgid "Create Face Sets using Edge Creases as boundaries"
+msgstr "Crea conjunts de cares usant les arestes retingudes com a límits"
+
+
+msgid "Face Sets from Bevel Weight"
+msgstr "Conjunts de cares des d'influència de bisell"
+
+
+msgid "Create Face Sets using Bevel Weights as boundaries"
+msgstr "Crea conjunts de cares usant influències de bisells com a límits"
+
+
+msgid "Face Sets from Sharp Edges"
+msgstr "Conjunts de cares des de vores cantelludes"
+
+
+msgid "Create Face Sets using Sharp Edges as boundaries"
+msgstr "Crea conjunts de cares usant vores cantelludes com a límits"
+
+
+msgid "Face Sets from Face Maps"
+msgstr "Conjunts de cares des de mapes de cares"
+
+
+msgid "Create a Face Set per Face Map"
+msgstr "Crea un conjunt de cares per cada mapa de cares"
+
+
+msgid "Face Sets from Face Set Boundaries"
+msgstr "Conjunts de cares des de límits del conjunt de cares"
+
+
+msgid "Create a Face Set per isolated Face Set"
+msgstr "Crea un conjunt de cares per conjunt de cares aïllat"
+
+
+msgid "Minimum value to consider a certain attribute a boundary when creating the Face Sets"
+msgstr "Valor mínim per a considerar un cert atribut com a límit en crear els conjunts de cares"
+
+
+msgctxt "Operator"
+msgid "Randomize Face Sets Colors"
+msgstr "Aleatoritzar colors de conjunts de cares"
+
+
+msgid "Generates a new set of random colors to render the Face Sets in the viewport"
+msgstr "Genera un conjunt nou de colors aleatoris per a revelar els conjunts de cares al mirador"
+
+
+msgctxt "Operator"
+msgid "Mask by Color"
+msgstr "Màscara per color"
+
+
+msgid "Creates a mask based on the active color attribute"
+msgstr "Crea una màscara basada en l'atribut de color actiu"
+
+
+msgid "Contiguous"
+msgstr "Contigües"
+
+
+msgid "Mask only contiguous color areas"
+msgstr "[Contiguous]: Emmascara només les àrees de color contigües"
+
+
+msgid "Invert the generated mask"
+msgstr "Invertir la màscara generada"
+
+
+msgid "Preserve Previous Mask"
+msgstr "Conservar la màscara anterior"
+
+
+msgid "Preserve the previous mask and add or subtract the new one generated by the colors"
+msgstr "[Preserve Previous Mask]: Conserva la màscara anterior i suma o resta la nova generada pels colors"
+
+
+msgid "How much changes in color affect the mask generation"
+msgstr "Quants canvis de color afecten la generació de màscara"
+
+
+msgctxt "Operator"
+msgid "Mask Expand"
+msgstr "Expandir màscara"
+
+
+msgid "Expands a mask from the initial active vertex under the cursor"
+msgstr "[Mask Expand]: Expandeix una màscara des del vèrtex actiu inicial sota el cursor"
+
+
+msgid "Expand Face Mask"
+msgstr "Expandir màscara de cara"
+
+
+msgid "Expand a new Face Mask instead of the sculpt mask"
+msgstr "Expandeix una màscara de cara nova en lloc de la màscara d'escultura"
+
+
+msgid "Edge Detection Sensitivity"
+msgstr "Sensibilitat de detecció d'arestes"
+
+
+msgid "Sensitivity for expanding the mask across sculpted sharp edges when using normals to generate the mask"
+msgstr "[Edge Detection Sensitivity]: Sensibilitat per a expandir la màscara a través de vores esculpides cantelludes quan s'utilitzen normals per a generar la màscara"
+
+
+msgid "Invert the new mask"
+msgstr "Invertir la nova màscara"
+
+
+msgid "Keep Previous Mask"
+msgstr "Mantenir màscara anterior"
+
+
+msgid "Generate the new mask on top of the current one"
+msgstr "Genera la nova màscara damunt de l'actual"
+
+
+msgid "Mask Speed"
+msgstr "Rapidesa de màscara"
+
+
+msgid "Update Pivot Position"
+msgstr "Actualitzar posició del pivot"
+
+
+msgid "Set the pivot position to the mask border after creating the mask"
+msgstr "[Update Pivot Position]: Estableix la posició del pivot a la vora de la màscara després de crear la màscara"
+
+
+msgid "Use Cursor"
+msgstr "Usar cursor"
+
+
+msgid "Expand the mask to the cursor position"
+msgstr "Expandeix la màscara a la posició del cursor"
+
+
+msgid "Use Normals"
+msgstr "Usar normals"
+
+
+msgid "Generate the mask using the normals and curvature of the model"
+msgstr "Genera la màscara usant les normals i la curvatura del model"
+
+
+msgctxt "Operator"
+msgid "Mask Filter"
+msgstr "Filtre de màscara"
+
+
+msgid "Applies a filter to modify the current mask"
+msgstr "[Mask Filter]: Aplica un filtre per a modificar la màscara actual"
+
+
+msgid "Auto Iteration Count"
+msgstr "Nombre d'autoiteracions"
+
+
+msgid "Use a automatic number of iterations based on the number of vertices of the sculpt"
+msgstr "Usa un nombre automàtic d'iteracions basat en el nombre de vèrtexs de l'escultura"
+
+
+msgid "Filter that is going to be applied to the mask"
+msgstr "Filtre que s'aplicarà a la màscara"
+
+
+msgid "Smooth Mask"
+msgstr "Suavitzar màscara"
+
+
+msgid "Smooth mask"
+msgstr "[Smooth Mask]: Suavitza la màscara"
+
+
+msgid "Sharpen Mask"
+msgstr "Aguditzar màscara"
+
+
+msgid "Sharpen mask"
+msgstr "[Sharpen Mask]: Fa la màscara més aplanada"
+
+
+msgid "Grow Mask"
+msgstr "Acréixer màscara"
+
+
+msgid "Grow mask"
+msgstr "[Grow Mask]: Fa créixer la màscara"
+
+
+msgid "Shrink Mask"
+msgstr "Encongir màscara"
+
+
+msgid "Shrink mask"
+msgstr "[Shrink Mask]: Encongeix la màscara"
+
+
+msgid "Increase Contrast"
+msgstr "Augmentar contrast"
+
+
+msgid "Increase the contrast of the paint mask"
+msgstr "[Increase Contrast]: Augmenta el contrast de la màscara de pintura"
+
+
+msgid "Decrease Contrast"
+msgstr "Disminuir contrast"
+
+
+msgid "Decrease the contrast of the paint mask"
+msgstr "[Decrease Contrast]: Disminueix el contrast de la màscara de pintura"
+
+
+msgid "Number of times that the filter is going to be applied"
+msgstr "Nombre de vegades que s'aplicarà el filtre"
+
+
+msgctxt "Operator"
+msgid "Mask From Cavity"
+msgstr "Màscara des de cavitat"
+
+
+msgid "Creates a mask based on the curvature of the surface"
+msgstr "Crea una màscara basada en la curvatura de la superfície"
+
+
+msgid "Cavity (Inverted)"
+msgstr "Cavitat (invertida)"
+
+
+msgid "Mix mode"
+msgstr "Mode mescla"
+
+
+msgid "Use settings from here"
+msgstr "Usa la configuració des d'aquí"
+
+
+msgid "Operator"
+msgstr "Operador"
+
+
+msgid "Use settings from operator properties"
+msgstr "Usa els paràmetres de propietats de l'operador"
+
+
+msgid "Use settings from brush"
+msgstr "Usar la configuració del pinzell"
+
+
+msgid "Use settings from scene"
+msgstr "Usar la configuració de l'escena"
+
+
+msgctxt "Operator"
+msgid "Init Mask"
+msgstr "Iniciar màscara"
+
+
+msgid "Creates a new mask for the entire mesh"
+msgstr "[Init Mask]: Crea una màscara nova per a tota la malla"
+
+
+msgid "Random per Vertex"
+msgstr "Aleatòria per vèrtex"
+
+
+msgid "Random per Face Set"
+msgstr "Aleatòria per conjunt de cares"
+
+
+msgid "Random per Loose Part"
+msgstr "Aleatòria per part solta"
+
+
+msgctxt "Operator"
+msgid "Filter Mesh"
+msgstr "Filtrar malla"
+
+
+msgid "Applies a filter to modify the current mesh"
+msgstr "Aplica un filtre per a modificar la malla actual"
+
+
+msgid "Apply the deformation in the selected axis"
+msgstr "Aplicar la deformació a l'eix seleccionat"
+
+
+msgid "Deform in the X axis"
+msgstr "Deformar en l'eix X"
+
+
+msgid "Deform in the Y axis"
+msgstr "Deformar en l'eix Y"
+
+
+msgid "Deform in the Z axis"
+msgstr "Deformar en l'eix Z"
+
+
+msgid "Orientation of the axis to limit the filter displacement"
+msgstr "Orientació de l'eix per a limitar el desplaçament del filtre"
+
+
+msgid "Use the local axis to limit the displacement"
+msgstr "Usar l'eix local per a limitar el desplaçament"
+
+
+msgid "Use the global axis to limit the displacement"
+msgstr "Usar l'eix global per a limitar el desplaçament"
+
+
+msgid "Use the view axis to limit the displacement"
+msgstr "Usar l'eix de visualització per a limitar el desplaçament"
+
+
+msgid "Curvature Smooth Iterations"
+msgstr "Iteracions de suavització de curvatura"
+
+
+msgid "How much smooth the resulting shape is, ignoring high frequency details"
+msgstr "Quant de suau ha de ser la forma resultant, ignorant detalls d'alta freqüència"
+
+
+msgid "Intensify Details"
+msgstr "Intensificar detalls"
+
+
+msgid "How much creases and valleys are intensified"
+msgstr "Quantes retencions i valls s'intensifiquen"
+
+
+msgid "Smooth Ratio"
+msgstr "Relació de suavitzat"
+
+
+msgid "How much smoothing is applied to polished surfaces"
+msgstr "Quant de suavitzat s'aplica a les superfícies polides"
+
+
+msgid "Smooth mesh"
+msgstr "Suavitzar malla"
+
+
+msgid "Scale mesh"
+msgstr "Escalar malla"
+
+
+msgid "Inflate mesh"
+msgstr "Inflar malla"
+
+
+msgid "Morph into sphere"
+msgstr "Enformar-se en esfera"
+
+
+msgid "Randomize vertex positions"
+msgstr "Aleatoritzar posicions dels vèrtexs"
+
+
+msgid "Relax mesh"
+msgstr "Relaxar malla"
+
+
+msgid "Relax Face Sets"
+msgstr "[Relax mesh]: Relaxa els conjunts de cares"
+
+
+msgid "Smooth the edges of all the Face Sets"
+msgstr "Suavitzar les vores de tots els conjunts de cares"
+
+
+msgid "Surface Smooth"
+msgstr "Suavitzar superfície"
+
+
+msgid "Smooth the surface of the mesh, preserving the volume"
+msgstr "[Surface Smooth]: Suavitza la superfície de la malla, preservant el volum"
+
+
+msgid "Sharpen"
+msgstr "Fer agudes"
+
+
+msgid "Sharpen the cavities of the mesh"
+msgstr "[Sharpen]: Aguditza les cavitats de la malla"
+
+
+msgid "Enhance Details"
+msgstr "Afinar detalls"
+
+
+msgid "Enhance the high frequency surface detail"
+msgstr "[Enhance Details]: Millora el detall de la superfície d'alta freqüència"
+
+
+msgid "Erase Displacement"
+msgstr "Esborrar desplaçament"
+
+
+msgid "Deletes the displacement of the Multires Modifier"
+msgstr "[Erase Displacement]: Suprimeix el desplaçament del modificador Multires"
+
+
+msgctxt "Operator"
+msgid "Rebuild BVH"
+msgstr "Recompondre BVH"
+
+
+msgid "Recalculate the sculpt BVH to improve performance"
+msgstr "[Rebuild BVH]: Recalcula l'escultura BVH per millorar el rendiment"
+
+
+msgctxt "Operator"
+msgid "Project Line Gesture"
+msgstr "Projectar a línia amb el gest"
+
+
+msgid "Project the geometry onto a plane defined by a line"
+msgstr "[Project Line Gesture]: Projecta la geometria sobre un pla definit per una línia"
 
 
 msgctxt "Operator"
 msgid "Reveal All"
 msgstr "Evidenciar tot"
+
+
+msgid "Unhide all geometry"
+msgstr "[Reveal All]: Desoculta tota la geometria"
+
+
+msgid "Sample the vertex color of the active vertex"
+msgstr "Mostrejar el color de vèrtex del vèrtex actiu"
+
+
+msgctxt "Operator"
+msgid "Sample Detail Size"
+msgstr "Mostrejar mida del detall"
+
+
+msgid "Sample the mesh detail on clicked point"
+msgstr "[Sample Detail Size]: Mostreja el detall de la malla en el punt clicat"
+
+
+msgid "Screen coordinates of sampling"
+msgstr "Coordenades de pantalla del mostreig"
+
+
+msgid "Detail Mode"
+msgstr "Mode detall"
+
+
+msgid "Target sculpting workflow that is going to use the sampled size"
+msgstr "Flux de treball d'escultura buscat que farà servir la mida mostrejada"
+
+
+msgid "Dyntopo"
+msgstr "Dyntopo"
+
+
+msgid "Sample dyntopo detail"
+msgstr "Mostreja detalls del dyntopo"
+
+
+msgid "Sample mesh voxel size"
+msgstr "Mostrejar mida de vòxel de malla"
+
+
+msgctxt "Operator"
+msgid "Sculpt Mode"
+msgstr "Mode escultura"
+
+
+msgid "Toggle sculpt mode in 3D view"
+msgstr "Alterna el mode d'esculpir en la vista 3D"
+
+
+msgctxt "Operator"
+msgid "Set Detail Size"
+msgstr "Posar mida de detalls"
+
+
+msgid "Set the mesh detail (either relative or constant one, depending on current dyntopo mode)"
+msgstr "Estableix el detall de la malla (ja sigui relatiu o constant, depenent del mode activat de dyntopo)"
+
+
+msgctxt "Operator"
+msgid "Set Persistent Base"
+msgstr "Aplicar base persistent"
+
+
+msgid "Reset the copy of the mesh that is being sculpted on"
+msgstr "[Set Persistent Base]: Reinicia la còpia de la malla sobre la que s'esculpeix"
+
+
+msgctxt "Operator"
+msgid "Set Pivot Position"
+msgstr "Posar posició pivot"
+
+
+msgid "Sets the sculpt transform pivot position"
+msgstr "[Set Pivot Position]: Estableix la posició pivot de transformació d'esculpir"
+
+
+msgid "Sets the pivot to the origin of the sculpt"
+msgstr "Estableix el pivot a l'origen de l'esculpir"
+
+
+msgid "Unmasked"
+msgstr "Desmascarat"
+
+
+msgid "Sets the pivot position to the average position of the unmasked vertices"
+msgstr "[Unmasked]: Estableix la posició pivot a la posició mitjana dels vèrtexs no sense màscara"
+
+
+msgid "Mask Border"
+msgstr "Enmascarar límit"
+
+
+msgid "Sets the pivot position to the center of the border of the mask"
+msgstr "[Mask Border]: Estableix la posició pivot al centre del límit de la màscara"
+
+
+msgid "Active Vertex"
+msgstr "Vèrtex actiu"
+
+
+msgid "Sets the pivot position to the active vertex position"
+msgstr "Estableix la posició pivot a la posició del vèrtex actiu"
+
+
+msgid "Sets the pivot position to the surface under the cursor"
+msgstr "Estableix la posició pivot a la superfície de sota el cursor"
+
+
+msgid "Mouse Position X"
+msgstr "Posició de ratolí X"
+
+
+msgid "Position of the mouse used for \"Surface\" mode"
+msgstr "Posició del ratolí usada per al mode «superfície»"
+
+
+msgid "Mouse Position Y"
+msgstr "Posició de ratolí Y"
+
+
+msgid "Symmetrize the topology modifications"
+msgstr "Simmetritza les modificacions topològiques"
+
+
+msgid "Distance within which symmetrical vertices are merged"
+msgstr "Distància dins la qual es fusionen els vèrtexs simètrics"
+
+
+msgctxt "Operator"
+msgid "Trim Box Gesture"
+msgstr "Retoc de caixa per gest"
+
+
+msgid "Trims the mesh within the box as you move the brush"
+msgstr "Retoca la malla dins la caixa seguint el moviment del pinzell"
+
+
+msgid "Extrude Mode"
+msgstr "Mode extrudir"
+
+
+msgid "Project back faces when extruding"
+msgstr "Projecta les cares de la banda de darrera al extrudir"
+
+
+msgid "Extrude back faces by fixed amount"
+msgstr "Extrudir cares de darrera en una quantitat fixada"
+
+
+msgid "Trim Mode"
+msgstr "Mode retoc"
+
+
+msgid "Use a difference boolean operation"
+msgstr "Usa una operació booleana de diferencial"
+
+
+msgid "Use a union boolean operation"
+msgstr "Usar operació booleana d'union"
+
+
+msgid "Join the new mesh as separate geometry, without performing any boolean operation"
+msgstr "Uneix la malla nova com a geometria separada, sense realitzar cap operació booleana"
+
+
+msgid "Shape Orientation"
+msgstr "Orientació de forma"
+
+
+msgid "Use the view to orientate the trimming shape"
+msgstr "[Shape Orientation]: Usa la visualització per a orientar la forma de retoc"
+
+
+msgid "Use the surface normal to orientate the trimming shape"
+msgstr "Usar la normal de superfície per orientar la forma de retoc"
+
+
+msgid "Use Cursor for Depth"
+msgstr "Usar cursor per profunditat"
+
+
+msgid "Use cursor location and radius for the dimensions and position of the trimming shape"
+msgstr "[Use Cursor for Depth]: Usa la ubicació i el radi del cursor per a les dimensions i la posició de la forma de retoc"
+
+
+msgctxt "Operator"
+msgid "Trim Lasso Gesture"
+msgstr "Retoc de llaç per gest"
+
+
+msgid "Trims the mesh within the lasso as you move the brush"
+msgstr "[Trim Lasso Gesture]: Retoca la malla dins del llaç a mesura que mous el pinzell"
+
+
+msgctxt "Operator"
+msgid "Sculpt UVs"
+msgstr "Esculpir UVs"
+
+
+msgid "Sculpt UVs using a brush"
+msgstr "Esculpeix UVs usant un pinzell"
+
+
+msgid "Switch brush to relax mode for duration of stroke"
+msgstr "Intercanvir pinzell a modus distès mentre duri el traç"
+
+
+msgctxt "Operator"
+msgid "Change Effect Input"
+msgstr "Canviar ingressió d'efecte"
+
+
+msgid "The effect inputs to swap"
+msgstr "Ingressos d'efecte a intercanviar"
+
+
+msgid "A -> B"
+msgstr "A -> B"
+
+
+msgid "B -> C"
+msgstr "B -> C"
+
+
+msgid "A -> C"
+msgstr "A -> C"
+
+
+msgctxt "Operator"
+msgid "Change Effect Type"
+msgstr "Canviar tipus d'efecte"
+
+
+msgid "Sequencer effect type"
+msgstr "Seqüenciador del tipus d'efecte"
+
+
+msgid "Crossfade"
+msgstr "Transició"
+
+
+msgid "Crossfade effect strip type"
+msgstr "[Crossfade]: Tipus de segment amb efecte de transició gradual"
+
+
+msgid "Add effect strip type"
+msgstr "Tipus de segment efecte sumar"
+
+
+msgid "Subtract effect strip type"
+msgstr "Tipus de segment efecte restar"
+
+
+msgid "Alpha Over effect strip type"
+msgstr "Tipus de segment efecte  alfa a sobre"
+
+
+msgid "Alpha Under"
+msgstr "Alfa a sota"
+
+
+msgid "Alpha Under effect strip type"
+msgstr "[Alpha Under]: Tipus de segment efecte  alfa a sota"
+
+
+msgid "Gamma Cross"
+msgstr "Gamma transversal"
+
+
+msgid "Gamma Cross effect strip type"
+msgstr "[Gamma Cross]: Tipus de segment efecte gamma transversal"
+
+
+msgid "Multiply effect strip type"
+msgstr "Tipus de segment efecte multiplicar"
+
+
+msgid "Alpha Over Drop"
+msgstr "Llançar alfa a sobre"
+
+
+msgid "Alpha Over Drop effect strip type"
+msgstr "[Alpha Over Drop]: Tipus de segment efecte llançar alfa a sobre"
+
+
+msgid "Wipe"
+msgstr "Fregar"
+
+
+msgid "Wipe effect strip type"
+msgstr "[Wipe]: Tipus de segment efecte fregar"
+
+
+msgid "Glow"
+msgstr "Lluir"
+
+
+msgid "Glow effect strip type"
+msgstr "[Glow]: Tipus de segment efecte lluir"
+
+
+msgid "Transform effect strip type"
+msgstr "Tipus de segment efecte transformar"
+
+
+msgid "Color effect strip type"
+msgstr "Tipus de segment efecte color"
+
+
+msgid "Multicam Selector"
+msgstr "Selector multicàmera"
+
+
+msgid "Adjustment Layer"
+msgstr "Capa d'ajustament"
+
+
+msgid "Gaussian Blur"
+msgstr "Difuminat gaussià"
+
+
+msgid "Color Mix"
+msgstr "Mescla de color"
+
+
+msgctxt "Operator"
+msgid "Change Data/Files"
+msgstr "Canviar dades/documents"
+
+
+msgid "Use Placeholders"
+msgstr "Usar agafalls"
+
+
+msgid "Use placeholders for missing frames of the strip"
+msgstr "Utilitza agafalls per als fotogrames perduts del segment"
+
+
+msgctxt "Operator"
+msgid "Change Scene"
+msgstr "Canviar escena"
+
+
+msgid "Change Scene assigned to Strip"
+msgstr "Canvia l'escena assignada al segment"
+
+
+msgctxt "Operator"
+msgid "Copy"
+msgstr "Copiar"
+
+
+msgid "Copy selected strips to clipboard"
+msgstr "Copia els segments seleccionats al porta-retalls"
+
+
+msgctxt "Operator"
+msgid "Crossfade Sounds"
+msgstr "Transició de sons"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "[Crossfade Sounds]: Fa una transició gradual en una animació entre els volums de dos segments de so"
+
+
+msgid "Cursor location in normalized preview coordinates"
+msgstr "Ubicació del cursor en coordenades de previsualització normalitzades"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Desentrellaçar pel·lícules"
+
+
+msgid "Deinterlace all selected movie sources"
+msgstr "[Deinterlace Movies]: Desentrellaça totes les fonts de pel·lícules seleccionades"
+
+
+msgctxt "Operator"
+msgid "Erase Strips"
+msgstr "Esborrar segments"
+
+
+msgid "Erase selected strips from the sequencer"
+msgstr "[Erase Strips]: Esborra els segments seleccionats del seqüenciador"
+
+
+msgid "Delete Data"
+msgstr "Suprimir dades"
+
+
+msgid "After removing the Strip, delete the associated data also"
+msgstr "Després d'eliminar el segment, en suprimeix també les dades associades"
+
+
+msgid "Duplicate the selected strips"
+msgstr "Duplicar segments seleccionades"
+
+
+msgid "Slide a sequence strip in time"
+msgstr "Lliscar el segment de seqüència en el temps"
+
+
+msgctxt "Operator"
+msgid "Add Effect Strip"
+msgstr "Afegir segment d'efecte"
+
+
+msgid "Add an effect to the sequencer, most are applied on top of existing strips"
+msgstr "[Add Effect Strip]: Afegeix un efecte al seqüenciador, la majoria s'apliquen a sobre dels existents"
+
+
+msgid "Channel to place this strip into"
+msgstr "Canal on col·locar aquest segment"
+
+
+msgid "Initialize the strip with this color"
+msgstr "Inicialitzar segment d'aquest color"
+
+
+msgid "End frame for the color strip"
+msgstr "Fotograma final per al segment de color"
+
+
+msgid "Start frame of the sequence strip"
+msgstr "Fotograma inicial del segment de seqüència"
+
+
+msgid "Allow Overlap"
+msgstr "Permetre solapament"
+
+
+msgid "Don't correct overlap on new sequence strips"
+msgstr "[Allow Overlap]: No es corregeix la superposició en segments de seqüència nous"
+
+
+msgid "Override Overlap Shuffle Behavior"
+msgstr "Sobreseir mètode de reordenament de solapat"
+
+
+msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
+msgstr "[Override Overlap Shuffle Behavior]: Usa el paràmetre de l'eina overlap_mode per determinar com es recombinen els segments solapats"
+
+
+msgid "Replace Selection"
+msgstr "Substituir selecció"
+
+
+msgid "Replace the current selection"
+msgstr "Substitueix la selecció present"
+
+
+msgctxt "Operator"
+msgid "Set Selected Strip Proxies"
+msgstr "Definir segments seleccionats com simulacions"
+
+
+msgid "Enable selected proxies on all selected Movie and Image strips"
+msgstr "[Set Selected Strip Proxies]: Activa els intercessors seleccionats en tots els segments d'imatges i pel·lícules"
+
+
+msgctxt "Operator"
+msgid "Export Subtitles"
+msgstr "Exportar subtítols"
+
+
+msgid "Export .srt file containing text strips"
+msgstr "Exporta el document .srt que conté segments de text"
+
+
+msgctxt "Operator"
+msgid "Add Fades"
+msgstr "Afegir esvaïments"
+
+
+msgid "Adds or updates a fade animation for either visual or audio strips"
+msgstr "[Add Fades]: Afegeix o actualitza un esvaïment d'animació per a segments visuals o d'àudio"
+
+
+msgid "Fade Duration"
+msgstr "Durada d'esvaïment"
+
+
+msgid "Duration of the fade in seconds"
+msgstr "[Fade Duration]: Durada de l'esvaïment en segons"
+
+
+msgid "Fade Type"
+msgstr "Tipus d'esvaïment"
+
+
+msgid "Fade in, out, both in and out, to, or from the current frame. Default is both in and out"
+msgstr "Esvaïment d'entrada, de sortida, combinat d'entrada i sortida, envers o des del fotograma present. El valor predeterminat és combinar entrada i sortida"
+
+
+msgid "Fade In and Out"
+msgstr "Esvaïment d'entrada i sortida"
+
+
+msgid "Fade selected strips in and out"
+msgstr "[Fade In and Out]: Esvair segments seleccionats d'entrada i sortida"
+
+
+msgid "Fade In"
+msgstr "Esvair d'entrada"
+
+
+msgid "Fade in selected strips"
+msgstr "Esvair d'entrada els segments seleccionats"
+
+
+msgid "Fade Out"
+msgstr "Esvair de sortida"
+
+
+msgid "Fade out selected strips"
+msgstr "Esvaeix de sortida els segments seleccionats."
 
 
 msgid "Edge Pan"
@@ -72115,7 +74775,7 @@ msgstr "Tancar"
 
 msgctxt "Operator"
 msgid "Toggle Caps"
-msgstr "Reversar caps"
+msgstr "Revesar caps"
 
 
 msgid "Scale Thickness"

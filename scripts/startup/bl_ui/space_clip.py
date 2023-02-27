@@ -752,7 +752,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
 
         row = layout.row(align=True)
         row.prop(act_track, "use_custom_color", text="")
-        CLIP_PT_track_color_presets.draw_menu(row, 'Custom Color Presets')
+        CLIP_PT_track_color_presets.draw_menu(row, iface_('Custom Color Presets'))
         row.operator("clip.track_copy_color", icon='COPY_ID', text="")
 
         if act_track.use_custom_color:

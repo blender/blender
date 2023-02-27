@@ -1108,6 +1108,13 @@ typedef struct wmDragAssetListItem {
   bool is_external;
 } wmDragAssetListItem;
 
+typedef struct wmDragPath {
+  char *path;
+  /* Note that even though the enum type uses bit-flags, this should never have multiple type-bits
+   * set, so `ELEM()` like comparison is possible. */
+  int file_type; /* eFileSel_File_Types */
+} wmDragPath;
+
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDrag *,
                                       const int xy[2],
@@ -1145,7 +1152,6 @@ typedef struct wmDrag {
   /** See 'WM_DRAG_' defines above. */
   int type;
   void *poin;
-  char path[1024]; /* FILE_MAX */
   double value;
 
   /** If no icon but imbuf should be drawn around cursor. */

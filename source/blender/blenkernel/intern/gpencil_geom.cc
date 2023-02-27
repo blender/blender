@@ -1015,12 +1015,14 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
     return false;
   }
 
-  /* Overview of the algorithm here and in the following smooth functions:
-   *  The smooth functions return the new attribute in question for a single point.
-   *  The result is stored in r_gps->points[point_index], while the data is read from gps.
-   *  To get a correct result, duplicate the stroke point data and read from the copy,
-   *  while writing to the real stroke. Not doing that will result in acceptable, but
-   *  asymmetric results.
+  /* - Overview of the algorithm here and in the following smooth functions:
+   *
+   *   The smooth functions return the new attribute in question for a single point.
+   *   The result is stored in r_gps->points[point_index], while the data is read from gps.
+   *   To get a correct result, duplicate the stroke point data and read from the copy,
+   *   while writing to the real stroke. Not doing that will result in acceptable, but
+   *   asymmetric results.
+   *
    * This algorithm works as long as all points are being smoothed. If there is
    * points that should not get smoothed, use the old repeat smooth pattern with
    * the parameter "iterations" set to 1 or 2. (2 matches the old algorithm).
@@ -3237,7 +3239,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
         pts = new_stroke->points;
         for (j = 0; j < new_stroke->totpoints; j++, pts++) {
-          /* Some points have time = 0, so check to not get negative time values.*/
+          /* Some points have time = 0, so check to not get negative time values. */
           pts->time = max_ff(pts->time - delta, 0.0f);
           /* set flag for select again later */
           if (select == true) {

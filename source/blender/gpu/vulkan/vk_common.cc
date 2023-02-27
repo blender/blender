@@ -298,7 +298,7 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type)
 VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat /*format*/)
 {
   /* TODO: this should map to OpenGL defaults based on the eGPUTextureFormat. The implementation of
-   * this function will be implemented when implementing other parts of VKTexture.*/
+   * this function will be implemented when implementing other parts of VKTexture. */
   VkComponentMapping component_mapping;
   component_mapping.r = VK_COMPONENT_SWIZZLE_R;
   component_mapping.g = VK_COMPONENT_SWIZZLE_G;

@@ -105,11 +105,15 @@ struct SDefBindPoly {
   float weight_dist_proj;
   float weight_dist;
   float weight;
-  /** Distances from the centroid to edges flanking the corner vertex, used to penalize
-   *  small or long and narrow faces in favor of bigger and more square ones. */
+  /**
+   * Distances from the centroid to edges flanking the corner vertex, used to penalize
+   * small or long and narrow faces in favor of bigger and more square ones.
+   */
   float scales[2];
-  /** Distance weight from the corner vertex to the chord line, used to penalize
-   *  cases with the three consecutive vertices being nearly in line. */
+  /**
+   * Distance weight from the corner vertex to the chord line, used to penalize
+   * cases with the three consecutive vertices being nearly in line.
+   */
   float scale_mid;
   /** Center of `coords` */
   float centroid[3];
@@ -119,18 +123,24 @@ struct SDefBindPoly {
    * The calculated normal of coords (could be shared between faces).
    */
   float normal[3];
-  /** Vectors pointing from the centroid to the midpoints of the two edges
-   *  flanking the corner vertex. */
+  /**
+   * Vectors pointing from the centroid to the midpoints of the two edges
+   * flanking the corner vertex.
+   */
   float cent_edgemid_vecs_v2[2][2];
   /** Angle between the cent_edgemid_vecs_v2 vectors. */
   float edgemid_angle;
-  /** Angles between the centroid-to-point and cent_edgemid_vecs_v2 vectors.
-   *  Positive values measured towards the corner; clamped non-negative. */
+  /**
+   * Angles between the centroid-to-point and cent_edgemid_vecs_v2 vectors.
+   * Positive values measured towards the corner; clamped non-negative.
+   */
   float point_edgemid_angles[2];
   /** Angles between the centroid-to-corner and cent_edgemid_vecs_v2 vectors. */
   float corner_edgemid_angles[2];
-  /** Weight of the bind mode based on the corner and two adjacent vertices,
-   *  versus the one based on the centroid and the dominant edge. */
+  /**
+   * Weight of the bind mode based on the corner and two adjacent vertices,
+   * versus the one based on the centroid and the dominant edge.
+   */
   float dominant_angle_weight;
   /** Index of the input polygon. */
   uint index;

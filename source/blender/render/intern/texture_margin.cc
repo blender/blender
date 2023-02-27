@@ -574,7 +574,7 @@ static void generate_margin(ImBuf *ibuf,
 
   char *tmpmask = (char *)MEM_dupallocN(mask);
   /* Extend (with averaging) by 2 pixels. Those will be overwritten, but it
-   *  helps linear interpolations on the edges of polygons. */
+   * helps linear interpolations on the edges of polygons. */
   IMB_filter_extend(ibuf, tmpmask, 2);
   MEM_freeN(tmpmask);
 

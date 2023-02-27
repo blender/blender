@@ -129,6 +129,7 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 /* Generic contexts. */
 #define BLT_I18NCONTEXT_VIRTUAL_REALITY "Virtual reality"
 #define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
+#define BLT_I18NCONTEXT_COLOR "Color"
 
 /* Helper for bpy.app.i18n object... */
 typedef struct {
@@ -196,6 +197,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "editor_filebrowser"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_VIRTUAL_REALITY, "virtual_reality"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \
     { \
       NULL, NULL, NULL \
     } \

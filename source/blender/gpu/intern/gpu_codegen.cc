@@ -306,7 +306,7 @@ class GPUCodegen {
   bool should_optimize_heuristic() const
   {
     /* If each of the maximal attributes are exceeded, we can optimize, but we should also ensure
-     * the baseline is met.*/
+     * the baseline is met. */
     bool do_optimize = (nodes_total_ >= 60 || textures_total_ >= 4 || uniforms_total_ >= 64) &&
                        (textures_total_ >= 1 && uniforms_total_ >= 8 && nodes_total_ >= 4);
     return do_optimize;

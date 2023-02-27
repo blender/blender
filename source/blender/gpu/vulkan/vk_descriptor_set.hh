@@ -102,7 +102,7 @@ class VKDescriptorSet : NonCopyable {
   VkDescriptorPool vk_descriptor_pool_ = VK_NULL_HANDLE;
   VkDescriptorSet vk_descriptor_set_ = VK_NULL_HANDLE;
 
-  /** A list of bindings that needs to be updated.*/
+  /** A list of bindings that needs to be updated. */
   Vector<Binding> bindings_;
 
  public:

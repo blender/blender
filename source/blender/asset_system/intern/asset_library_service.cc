@@ -63,6 +63,9 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   switch (type) {
     case ASSET_LIBRARY_ESSENTIALS: {
       const StringRefNull root_path = essentials_directory_path();
+      if (root_path.is_empty()) {
+        return nullptr;
+      }
 
       AssetLibrary *library = get_asset_library_on_disk(root_path);
       library->import_method_ = ASSET_IMPORT_APPEND_REUSE;

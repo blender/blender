@@ -37,6 +37,7 @@
 #include "BLO_readfile.h"
 
 #include "ED_asset.h"
+#include "ED_fileselect.h"
 #include "ED_screen.h"
 
 #include "GPU_shader.h"
@@ -61,6 +62,7 @@
 static ListBase dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
+static void wm_drag_free_path_data(wmDragPath **path_data);
 
 /* drop box maps are stored global for now */
 /* these are part of blender's UI/space specs, and not like keymaps */
@@ -187,11 +189,8 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, int type, void *poin, double 
   drag->type = type;
   switch (type) {
     case WM_DRAG_PATH:
-      BLI_strncpy(drag->path, static_cast<const char *>(poin), FILE_MAX);
-      /* As the path is being copied, free it immediately as `drag` won't "own" the data. */
-      if (flags & WM_DRAG_FREE_DATA) {
-        MEM_freeN(poin);
-      }
+      drag->poin = poin;
+      drag->flags |= WM_DRAG_FREE_DATA;
       break;
     case WM_DRAG_ID:
       if (poin) {
@@ -297,12 +296,20 @@ void WM_drag_data_free(int dragtype, void *poin)
   }
 
   /* Not too nice, could become a callback. */
-  if (dragtype == WM_DRAG_ASSET) {
-    wmDragAsset *asset_data = static_cast<wmDragAsset *>(poin);
-    wm_drag_free_asset_data(&asset_data);
-  }
-  else {
-    MEM_freeN(poin);
+  switch (dragtype) {
+    case WM_DRAG_ASSET: {
+      wmDragAsset *asset_data = static_cast<wmDragAsset *>(poin);
+      wm_drag_free_asset_data(&asset_data);
+      break;
+    }
+    case WM_DRAG_PATH: {
+      wmDragPath *path_data = static_cast<wmDragPath *>(poin);
+      wm_drag_free_path_data(&path_data);
+      break;
+    }
+    default:
+      MEM_freeN(poin);
+      break;
   }
 }
 
@@ -743,6 +750,41 @@ const ListBase *WM_drag_asset_list_get(const wmDrag *drag)
   return &drag->asset_items;
 }
 
+wmDragPath *WM_drag_create_path_data(const char *path)
+{
+  wmDragPath *path_data = MEM_new<wmDragPath>("wmDragPath");
+  path_data->path = BLI_strdup(path);
+  path_data->file_type = ED_path_extension_type(path);
+  return path_data;
+}
+
+static void wm_drag_free_path_data(wmDragPath **path_data)
+{
+  MEM_freeN((*path_data)->path);
+  MEM_delete(*path_data);
+  *path_data = nullptr;
+}
+
+const char *WM_drag_get_path(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_PATH) {
+    return NULL;
+  }
+
+  const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
+  return path_data->path;
+}
+
+int WM_drag_get_path_file_type(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_PATH) {
+    return 0;
+  }
+
+  const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
+  return path_data->file_type;
+}
+
 /* ************** draw ***************** */
 
 static void wm_drop_operator_draw(const char *name, int x, int y)
@@ -792,9 +834,12 @@ const char *WM_drag_get_item_name(wmDrag *drag)
       const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
       return asset_drag->name;
     }
-    case WM_DRAG_PATH:
+    case WM_DRAG_PATH: {
+      const wmDragPath *path_drag_data = static_cast<const wmDragPath *>(drag->poin);
+      return path_drag_data->path;
+    }
     case WM_DRAG_NAME:
-      return drag->path;
+      return static_cast<const char *>(drag->poin);
   }
   return "";
 }

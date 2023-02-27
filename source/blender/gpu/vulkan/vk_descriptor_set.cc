@@ -18,7 +18,7 @@ namespace blender::gpu {
 VKDescriptorSet::~VKDescriptorSet()
 {
   if (vk_descriptor_set_ != VK_NULL_HANDLE) {
-    /* Handle should be given back to the pool.*/
+    /* Handle should be given back to the pool. */
     VKContext &context = *VKContext::get();
     context.descriptor_pools_get().free(*this);
     BLI_assert(vk_descriptor_set_ == VK_NULL_HANDLE);

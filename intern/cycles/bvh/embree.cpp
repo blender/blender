@@ -303,7 +303,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       int t_ = (t > t_mid) ? (t - 1) : t;
       verts = &attr_mP->data_float3()[t_ * num_verts];
     }
-    
+
     if (update) {
       rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
     }

@@ -534,7 +534,7 @@ void WM_window_set_dpi(const wmWindow *win)
   U.inv_dpi_fac = 1.0f / U.dpi_fac;
 
   /* Widget unit is 20 pixels at 1X scale. This consists of 18 user-scaled units plus
-   *  left and right borders of line-width (pixelsize). */
+   * left and right borders of line-width (pixel-size). */
   U.widget_unit = (int)roundf(18.0f * U.dpi_fac) + (2 * pixelsize);
 }
 
@@ -1445,8 +1445,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             printf("drop file %s\n", stra->strings[a]);
             /* try to get icon type from extension */
             int icon = ED_file_extension_icon((char *)stra->strings[a]);
-
-            WM_event_start_drag(C, icon, WM_DRAG_PATH, stra->strings[a], 0.0, WM_DRAG_NOP);
+            wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
+            WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
             /* void poin should point to string, it makes a copy */
             break; /* only one drop element supported now */
           }

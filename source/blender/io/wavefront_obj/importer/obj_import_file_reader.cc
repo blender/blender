@@ -175,11 +175,11 @@ static const char *parse_vertex_index(const char *p, const char *end, size_t n_e
 /**
  * Parse a polyline and add its line segments as loose edges.
  * We support the following polyline specifications:
- *  - "l v1/vt1 v2/vt2 ..."
- *  - "l v1 v2 ..."
- *  If a line only has one vertex (technically not allowed by the spec),
- *  no line is created, but the vertex will be added to
- *  the mesh even if it is unconnected.
+ * - "l v1/vt1 v2/vt2 ..."
+ * - "l v1 v2 ..."
+ * If a line only has one vertex (technically not allowed by the spec),
+ * no line is created, but the vertex will be added to
+ * the mesh even if it is unconnected.
  */
 static void geom_add_polyline(Geometry *geom,
                               const char *p,

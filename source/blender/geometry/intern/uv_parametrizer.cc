@@ -3724,13 +3724,14 @@ using GeoUVPinIndex = struct GeoUVPinIndex {
   ParamKey reindex;
 };
 
-/* Find a (mostly) unique ParamKey given a BMVert index and UV co-ordinates.
- * For each unique pinned UVs, return a unique ParamKey, starting with
- *  a very large number, and decreasing steadily from there.
- * For non-pinned UVs which share a BMVert with a pinned UV,
- *  return the index corresponding to the closest pinned UV.
- * For everything else, just return the BMVert index.
- * Note that ParamKeys will eventually be hashed, so they don't need to be contiguous.
+/**
+ * Find a (mostly) unique #ParamKey given a #BMVert index and UV co-ordinates.
+ * For each unique pinned UVs, return a unique #ParamKey, starting with
+ * a very large number, and decreasing steadily from there.
+ * For non-pinned UVs which share a #BMVert with a pinned UV,
+ * return the index corresponding to the closest pinned UV.
+ * For everything else, just return the #BMVert index.
+ * Note that #ParamKeys will eventually be hashed, so they don't need to be contiguous.
  */
 ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
 {

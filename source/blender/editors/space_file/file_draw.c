@@ -161,11 +161,11 @@ static void file_but_enable_drag(uiBut *but,
     }
   }
   else if (preview_image) {
-    UI_but_drag_set_image(but, BLI_strdup(path), icon, preview_image, scale, true);
+    UI_but_drag_set_image(but, path, icon, preview_image, scale);
   }
   else {
     /* path is no more static, cannot give it directly to but... */
-    UI_but_drag_set_path(but, BLI_strdup(path), true);
+    UI_but_drag_set_path(but, path);
   }
 }
 

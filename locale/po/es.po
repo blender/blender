@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -53440,14 +53440,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Derechos y condiciones legales para el modelo"
 
 
-msgid "Use Current Frame"
-msgstr "Usar fotograma actual"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Exportar la escena en el fotograma actual de la animación"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "Sólo huesos de deformación"
 
@@ -53466,10 +53458,6 @@ msgstr "Bits de cuantizado para valores de color (0 = sin cuantizado)"
 
 msgid "Generic quantization bits"
 msgstr "Bits cuantizado genéricos"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "Bits de cuantizado para valores genéricos de coordenadas como influencias o articulaciones (0 = sin cuantizado)"
 
 
 msgid "Draco mesh compression"
@@ -53630,14 +53618,6 @@ msgstr "Tangentes"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "Exportar tangentes a los vértices junto con las Formas clave (también llamados objetivos de metamorfosis)"
-
-
-msgid "Group by NLA Track"
-msgstr "Agrupar por pista de ANL"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "Cuando se encuentre activado, múltiples acciones formarán parte de la misma animación glTF, si hubieran sido empujadas sobre pistas de ANL con el mismo nombre. Cuando se encuentre desactivado, todas las acciones actualmente asignadas serán tomadas como una única animación glTF"
 
 
 msgid "Merged Animation Name"
@@ -100457,10 +100437,6 @@ msgid "Double precision"
 msgstr "Precisión doble"
 
 
-msgid "Integer 64-bit"
-msgstr "Entero de 64 bits"
-
-
 msgid "64-bit integer"
 msgstr "Entero de 64 bits"
 
@@ -100469,40 +100445,20 @@ msgid "No data, boolean mask of active voxels"
 msgstr "Sin datos, máscara booleana de vóxeles activos"
 
 
-msgid "Float Vector"
-msgstr "Vector decimal"
-
-
 msgid "3D float vector"
 msgstr "Vector 3D de punto flotante"
-
-
-msgid "Double Vector"
-msgstr "Vector doble"
 
 
 msgid "3D double vector"
 msgstr "Vector 3D doble"
 
 
-msgid "Integer Vector"
-msgstr "Vector entero"
-
-
 msgid "3D integer vector"
 msgstr "Vector 3D entero"
 
 
-msgid "Points (Unsupported)"
-msgstr "Puntos (no soportado)"
-
-
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Cuadrícula de puntos, actualmente no soportado en objetos volumétricos"
-
-
-msgid "Unknown"
-msgstr "Desconocido"
 
 
 msgid "Unsupported data type"
@@ -105536,6 +105492,10 @@ msgid "Edit Bone(s)"
 msgstr "Editar hueso(s)"
 
 
+msgid "Unknown"
+msgstr "Desconocido"
+
+
 msgid "Calculation Range"
 msgstr "Rango de cálculo"
 
@@ -109651,11 +109611,6 @@ msgstr "Wavefront (.obj)"
 msgctxt "Operator"
 msgid "STL (.stl) (experimental)"
 msgstr "STL (.stl) (experimental)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -115097,10 +115052,6 @@ msgid "Lightness:"
 msgstr "Luminosidad:"
 
 
-msgid "Value:"
-msgstr "Valor:"
-
-
 msgid "Alpha:"
 msgstr "Alfa:"
 
@@ -118439,6 +118390,10 @@ msgstr "Expresión:"
 
 msgid "Add Input Variable"
 msgstr "Agregar variable de entrada"
+
+
+msgid "Value:"
+msgstr "Valor:"
 
 
 msgid "Update Dependencies"
@@ -125905,10 +125860,6 @@ msgid "FBX format"
 msgstr "Formato FBX"
 
 
-msgid "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions"
-msgstr "FBX: mallas, UV, colores de vértices, materiales, texturas, cámaras, luces y acciones"
-
-
 msgid "Import Images as Planes"
 msgstr "Importar imágenes como planos"
 
@@ -125975,10 +125926,6 @@ msgstr "Exporta la organización de UV como una imagen 2D"
 
 msgid "Wavefront OBJ format (legacy)"
 msgstr "Formato OBJ de Wavefront (antiguo)"
-
-
-msgid "Import-Export OBJ, Import OBJ mesh, UV's, materials and textures"
-msgstr "Importa y exporta OBJ, importa mallas, UV, materiales y texturas"
 
 
 msgid "glTF 2.0 format"

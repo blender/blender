@@ -58,7 +58,7 @@ class VKTexture : public Texture {
   bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
-  /** Is this texture already allocated on device.*/
+  /** Is this texture already allocated on device. */
   bool is_allocated();
   /**
    * Allocate the texture of the device. Result is `true` when texture is successfully allocated

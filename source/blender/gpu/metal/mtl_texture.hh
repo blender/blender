@@ -353,8 +353,8 @@ class MTLTexture : public Texture {
    *
    *  blender::map<INPUT DEFINES STRUCT, compute PSO> update_2d_array_kernel_psos;
    * - Generate compute shader with configured kernel below with variable parameters depending
-   *  on input/output format configurations. Do not need to keep source or descriptors around,
-   *  just PSO, as same input defines will always generate the same code.
+   *   on input/output format configurations. Do not need to keep source or descriptors around,
+   *   just PSO, as same input defines will always generate the same code.
    *
    * - IF datatype IS an exact match e.g. :
    *    - Per-component size matches (e.g. GPU_DATA_UBYTE)

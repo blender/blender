@@ -25,7 +25,7 @@
 void main()
 {
   /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
-   * memory pressure.*/
+   * memory pressure. */
   const vec2 cornervec[36] = vec2[36](vec2(0.0, 1.0),
                                       vec2(0.02, 0.805),
                                       vec2(0.067, 0.617),

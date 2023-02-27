@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -5315,10 +5315,6 @@ msgid "Relationship Lines"
 msgstr "संबंध रेखाएँ"
 
 
-msgid "Unknown"
-msgstr "अज्ञात"
-
-
 msgid "Search"
 msgstr "खोज"
 
@@ -5567,6 +5563,10 @@ msgstr "व्यक्त..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "नियम पुस्तिका"
+
+
+msgid "Unknown"
+msgstr "अज्ञात"
 
 
 msgid "After"
@@ -6512,10 +6512,6 @@ msgid "Hex"
 msgstr "हेक्स"
 
 
-msgid "Value:"
-msgstr "मान:"
-
-
 msgid "Pos"
 msgstr "पीओएस"
 
@@ -6884,6 +6880,10 @@ msgstr "रद्द करें"
 
 msgid "File name"
 msgstr "संचिका का नाम"
+
+
+msgid "Value:"
+msgstr "मान:"
 
 
 msgid "Add Modifier"

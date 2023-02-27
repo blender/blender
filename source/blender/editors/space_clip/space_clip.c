@@ -590,8 +590,8 @@ static int /*eContextResult*/ clip_context(const bContext *C,
 static bool clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) {
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE)) {
       return true;
     }
   }
@@ -604,7 +604,7 @@ static void clip_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
   PointerRNA itemptr;
   char dir[FILE_MAX], file[FILE_MAX];
 
-  BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
+  BLI_split_dirfile(WM_drag_get_path(drag), dir, file, sizeof(dir), sizeof(file));
 
   RNA_string_set(drop->ptr, "directory", dir);
 

@@ -272,8 +272,10 @@ enum {
   /** User cannot change that override operation. */
   IDOVERRIDE_LIBRARY_FLAG_LOCKED = 1 << 1,
 
-  /** For overrides of ID pointers: this override still matches (follows) the hierarchy of the
-   *  reference linked data. */
+  /**
+   * For overrides of ID pointers: this override still matches (follows) the hierarchy of the
+   * reference linked data.
+   */
   IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE = 1 << 8,
 };
 
