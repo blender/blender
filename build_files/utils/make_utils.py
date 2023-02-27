@@ -54,9 +54,15 @@ def check_output(cmd: Sequence[str], exit_on_error: bool = True) -> str:
     return output.strip()
 
 
+def git_local_branch_exists(git_command: str, branch: str) -> bool:
+    return (
+        call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0
+    )
+
+
 def git_branch_exists(git_command: str, branch: str) -> bool:
     return (
-        call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0 or
+        git_local_branch_exists(git_command, branch) or
         call([git_command, "rev-parse", "--verify", "remotes/upstream/" + branch], exit_on_error=False, silent=True) == 0 or
         call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
     )

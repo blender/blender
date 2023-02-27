@@ -434,7 +434,13 @@ def external_scripts_update(args: argparse.Namespace,
             # Switch to branch and pull.
             if submodule_branch:
                 if make_utils.git_branch(args.git_command) != submodule_branch:
-                    if make_utils.git_remote_exist(args.git_command, "origin"):
+                    # If the local branch exists just check out to it.
+                    # If there is no local branch but only remote specify an explicit remote.
+                    # Without this explicit specification Git attempts to set-up tracking
+                    # automatically and fails when the branch is available in multiple remotes.
+                    if make_utils.git_local_branch_exists(args.git_command, submodule_branch):
+                        call([args.git_command, "checkout", submodule_branch])
+                    elif make_utils.git_remote_exist(args.git_command, "origin"):
                         call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
                     elif make_utils.git_remote_exist(args.git_command, "upstream"):
                         call([args.git_command, "checkout", "-t", f"upstream/{submodule_branch}"])
