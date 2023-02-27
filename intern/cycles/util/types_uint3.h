@@ -34,14 +34,16 @@ struct packed_uint3 {
 
   ccl_device_inline_method packed_uint3(){};
 
-  ccl_device_inline_method packed_uint3(const uint px, const uint py, const uint pz) : x(px), y(py), z(pz) {};
+  ccl_device_inline_method packed_uint3(const uint px, const uint py, const uint pz)
+      : x(px), y(py), z(pz){};
 
   ccl_device_inline_method packed_uint3(const uint3 &a) : x(a.x), y(a.y), z(a.z)
   {
   }
-  
-  ccl_device_inline_method operator uint3() const {
-    return make_uint3(x,y,z);
+
+  ccl_device_inline_method operator uint3() const
+  {
+    return make_uint3(x, y, z);
   }
 
   ccl_device_inline_method packed_uint3 &operator=(const uint3 &a)

@@ -767,8 +767,8 @@ void Mesh::pack_verts(packed_float3 *tri_verts,
     }
     for (size_t i = 0; i < triangles_size; i++) {
       tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
-					p_tris[off + 1] + vert_offset,
-					p_tris[off + 2] + vert_offset);
+                                        p_tris[off + 1] + vert_offset,
+                                        p_tris[off + 2] + vert_offset);
       tri_patch[i] = triangle_patch[i] * 8 + patch_offset;
       off += 3;
     }
