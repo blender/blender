@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -24732,10 +24732,6 @@ msgid "Alpha Threshold"
 msgstr "Праг провидности"
 
 
-msgid "Unknown"
-msgstr "Непознато"
-
-
 msgid "Jump Height"
 msgstr "Висина скакања"
 
@@ -25168,6 +25164,10 @@ msgstr "Отвори..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Упутство"
+
+
+msgid "Unknown"
+msgstr "Непознато"
 
 
 msgid "Frame Numbers"
@@ -26793,10 +26793,6 @@ msgid "Online Python Reference"
 msgstr "Python упутство на интернету"
 
 
-msgid "Value:"
-msgstr "Вредност"
-
-
 msgid "(Gamma Corrected)"
 msgstr "Исправка"
 
@@ -27525,6 +27521,10 @@ msgstr "Својство"
 
 msgid "Driver Value:"
 msgstr "Вредност возача:"
+
+
+msgid "Value:"
+msgstr "Вредност"
 
 
 msgid "Update Dependencies"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -65078,14 +65078,6 @@ msgid "Boxes"
 msgstr "Caixas"
 
 
-msgid "Integer Vector"
-msgstr "Vetor Inteiro"
-
-
-msgid "Unknown"
-msgstr "Desconhecido"
-
-
 msgid "Walk navigation settings"
 msgstr "Configurações de navegação em caminhada."
 
@@ -66558,6 +66550,10 @@ msgstr "Manual"
 msgctxt "Operator"
 msgid "Load %d.%d Settings"
 msgstr "Abrir Configurações %d.%d"
+
+
+msgid "Unknown"
+msgstr "Desconhecido"
 
 
 msgctxt "Operator"
@@ -68644,11 +68640,6 @@ msgstr "Geral"
 msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -71591,10 +71582,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Valor:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Usa correção de gama)"
 
@@ -73713,6 +73700,10 @@ msgstr "Propriedades:"
 
 msgid "Driver Value:"
 msgstr "Valor de controlador:"
+
+
+msgid "Value:"
+msgstr "Valor:"
 
 
 msgid "Update Dependencies"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6598,16 +6598,16 @@ msgid "Animated"
 msgstr "Animowana"
 
 
-msgid "Unknown"
-msgstr "Nieznany"
-
-
 msgid "3D View"
 msgstr "Widok 3D"
 
 
 msgid "Active object is not a mesh"
 msgstr "Aktywny obiekt nie jest siatką"
+
+
+msgid "Unknown"
+msgstr "Nieznany"
 
 
 msgctxt "Operator"
@@ -7690,10 +7690,6 @@ msgstr "Nie odnaleziono prawidłowego 'po' dla języka '%s' pod '%s'"
 
 msgid "Hex"
 msgstr "Hex"
-
-
-msgid "Value:"
-msgstr "Wartość:"
 
 
 msgid "(Gamma Corrected)"
@@ -9400,6 +9396,10 @@ msgstr "Prop:"
 
 msgid "Driver Value:"
 msgstr "Wartość Sterownika:"
+
+
+msgid "Value:"
+msgstr "Wartość:"
 
 
 msgid "Update Dependencies"

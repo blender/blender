@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -15652,10 +15652,6 @@ msgid "Export cameras"
 msgstr "Ekspor kamera"
 
 
-msgid "Use Current Frame"
-msgstr "Gunakan Frame Sekarang"
-
-
 msgid "Renderable Objects"
 msgstr "Objek yang Dapat Dirender"
 
@@ -25621,10 +25617,6 @@ msgid "Online Manual"
 msgstr "Material"
 
 
-msgid "Value:"
-msgstr "Nilai:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "lokasi"
 
@@ -26361,6 +26353,10 @@ msgstr "Nama dokumen"
 
 msgid "Cursor X"
 msgstr "Kursor X"
+
+
+msgid "Value:"
+msgstr "Nilai:"
 
 
 msgid "Active F-Curve is not editable"

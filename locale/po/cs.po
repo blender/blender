@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -43526,11 +43526,6 @@ msgstr "Alembic (.abc)"
 
 
 msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Render obrázku"
 
@@ -45529,10 +45524,6 @@ msgid "File '%s' cannot be opened"
 msgstr "Soubor '%s' nelze otevřít"
 
 
-msgid "Value:"
-msgstr "Hodnota:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "Odznačit spojené"
 
@@ -46918,6 +46909,10 @@ msgstr "Prop:"
 
 msgid "Driver Value:"
 msgstr "Driver Value:"
+
+
+msgid "Value:"
+msgstr "Hodnota:"
 
 
 msgid "Update Dependencies"

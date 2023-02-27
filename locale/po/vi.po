@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -52707,14 +52707,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Quyền luật pháp và điều kiện của mô hình"
 
 
-msgid "Use Current Frame"
-msgstr "Sử Dụng Bức Ảnh Hiện Tại"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Xuất cảnh trong bức ảnh hiện tại"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "Chỉ Xuất Xương Méo Hóa"
 
@@ -52733,10 +52725,6 @@ msgstr "Bit lượng tử hóa cho giá trị màn sắc (0 = không lượng t�
 
 msgid "Generic quantization bits"
 msgstr "Bit lượng tử hóa tổng quát"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "Bit lượng tử hóa cho các giá trị tọa độ như quyền lượng hay khớp (0 = không lượng tử hóa)"
 
 
 msgid "Draco mesh compression"
@@ -52897,14 +52885,6 @@ msgstr "Tiếp Tuyến Mẫu Dạng"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "Xuất tiếp tuyến đỉnh với dạng mẫu (mục đích biến dạng)"
-
-
-msgid "Group by NLA Track"
-msgstr "Nhom Hóa từng Rãnh NLA"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "Khi bật, nhiều hành động được gồm vào cùng hoạt hình glTF nếu được đẩy vào rãnh NLA có cùng tên. Khi tắt, tất cả hành động hiện tại đang được chỉ định hiện tại được trở thành một hoạt hình glTF"
 
 
 msgid "Merged Animation Name"
@@ -98661,10 +98641,6 @@ msgid "Double precision"
 msgstr "Số thật dấu phẩy động đôi"
 
 
-msgid "Integer 64-bit"
-msgstr "Số nguyên 64 bit"
-
-
 msgid "64-bit integer"
 msgstr "Số nguyên 64 bit"
 
@@ -98673,40 +98649,20 @@ msgid "No data, boolean mask of active voxels"
 msgstr "Không có dữ liệu, mặt nạ bool của thể tích hoạt động"
 
 
-msgid "Float Vector"
-msgstr "Vectơ Số Thật Dấu Phẩy Động"
-
-
 msgid "3D float vector"
 msgstr "Vectơ số thật dấu phẩy động đơn 3D"
-
-
-msgid "Double Vector"
-msgstr "Vectơ Đôi"
 
 
 msgid "3D double vector"
 msgstr "Vectơ số thật dấu phẩy động đôi 3D"
 
 
-msgid "Integer Vector"
-msgstr "Vectơ Số Thật"
-
-
 msgid "3D integer vector"
 msgstr "Vectơ số nguyên 3D"
 
 
-msgid "Points (Unsupported)"
-msgstr "Điểm (Chưa Hỗ Trợ)"
-
-
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Đồ thị điểm, hiện tại vật thể thể tích chưa hỗ trợ"
-
-
-msgid "Unknown"
-msgstr "Lạ"
 
 
 msgid "Unsupported data type"
@@ -103291,6 +103247,10 @@ msgid "Edit Bone(s)"
 msgstr "Biên Tập Xương"
 
 
+msgid "Unknown"
+msgstr "Lạ"
+
+
 msgid "Calculation Range"
 msgstr "Phạm Vi Tính Toán"
 
@@ -107347,11 +107307,6 @@ msgstr "Wavefront (.obj)"
 msgctxt "Operator"
 msgid "STL (.stl) (experimental)"
 msgstr "STL (.stl) (đồ thí nghiệm)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Mô Tả Cảnh Tổng Quát (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -112602,10 +112557,6 @@ msgid "Hex"
 msgstr "Thập Lục Phận"
 
 
-msgid "Value:"
-msgstr "Giá Trị:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Gama Được Chỉnh Sửa)"
 
@@ -115880,6 +115831,10 @@ msgstr "Biểu Thức:"
 
 msgid "Add Input Variable"
 msgstr "Thêm Biến Số Ngõ Vào"
+
+
+msgid "Value:"
+msgstr "Giá Trị:"
 
 
 msgid "Update Dependencies"

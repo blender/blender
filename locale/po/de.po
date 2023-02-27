@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-02-27 15:19:45\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -53173,44 +53173,20 @@ msgid "Double precision"
 msgstr "Doppelte Genauigkeit"
 
 
-msgid "Integer 64-bit"
-msgstr "Ganzzahl 64-bit"
-
-
 msgid "64-bit integer"
 msgstr "64-Bit Ganzzahl"
-
-
-msgid "Float Vector"
-msgstr "Gleitkomma Vektor"
 
 
 msgid "3D float vector"
 msgstr "3D Gleitkomma Vektor"
 
 
-msgid "Double Vector"
-msgstr "Vektor verdoppeln"
-
-
 msgid "3D double vector"
 msgstr "3D Verdoppelungsvektor"
 
 
-msgid "Integer Vector"
-msgstr "Ganzzahl Vektor"
-
-
 msgid "3D integer vector"
 msgstr "3D Ganzzahl Vektor"
-
-
-msgid "Points (Unsupported)"
-msgstr "Punkte (nicht unterstützt)"
-
-
-msgid "Unknown"
-msgstr "Unbekannt"
 
 
 msgid "Unsupported data type"
@@ -55515,6 +55491,10 @@ msgstr "Lade %d.%d Einstellungen"
 
 msgid "Type \"%s\" can not be found"
 msgstr "Typ \"%s\" konnte nicht gefunden werden"
+
+
+msgid "Unknown"
+msgstr "Unbekannt"
 
 
 msgctxt "Operator"
@@ -58629,11 +58609,6 @@ msgstr "SVG als Wachsstift"
 
 
 msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Bild rendern"
 
@@ -61724,10 +61699,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Wert:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Gamma korrigieren)"
 
@@ -63517,6 +63488,10 @@ msgstr "Ausdruck:"
 
 msgid "Add Input Variable"
 msgstr "Eingabewert hinzufügen"
+
+
+msgid "Value:"
+msgstr "Wert:"
 
 
 msgid "Update Dependencies"
