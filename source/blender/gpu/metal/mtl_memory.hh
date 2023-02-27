@@ -252,31 +252,32 @@ struct CompareMTLBuffer {
   }
 };
 
-/* An MTLSafeFreeList is a temporary list of gpu::MTLBuffers which have
+/**
+ * An #MTLSafeFreeList is a temporary list of #gpu::MTLBuffers which have
  * been freed by the high level backend, but are pending GPU work execution before
- * the gpu::MTLBuffers can be returned to the Memory manager pools.
+ * the #gpu::MTLBuffers can be returned to the Memory manager pools.
  * This list is implemented as a chunked linked-list.
  *
- * Only a single MTLSafeFreeList is active at one time and is associated with current command
- * buffer submissions. If an MTLBuffer is freed during the lifetime of a command buffer, it could
- * still possibly be in-use and as such, the MTLSafeFreeList will increment its reference count for
- * each command buffer submitted while the current pool is active.
+ * Only a single #MTLSafeFreeList is active at one time and is associated with current command
+ * buffer submissions. If an #MTLBuffer is freed during the lifetime of a command buffer, it could
+ * still possibly be in-use and as such, the #MTLSafeFreeList will increment its reference count
+ * for each command buffer submitted while the current pool is active.
  *
- * -- Reference count is incremented upon MTLCommandBuffer commit.
- * -- Reference count is decremented in the MTLCommandBuffer completion callback handler.
+ * - Reference count is incremented upon #MTLCommandBuffer commit.
+ * - Reference count is decremented in the #MTLCommandBuffer completion callback handler.
  *
- * A new MTLSafeFreeList will begin each render step (frame). This pooling of buffers, rather than
+ * A new #MTLSafeFreeList will begin each render step (frame). This pooling of buffers, rather than
  * individual buffer resource tracking reduces performance overhead.
  *
- *  * The reference count starts at 1 to ensure that the reference count cannot prematurely reach
- *  zero until any command buffers have been submitted. This additional decrement happens
- *  when the next MTLSafeFreeList is created, to allow the existing pool to be released once
- *  the reference count hits zero after submitted command buffers complete.
+ * - The reference count starts at 1 to ensure that the reference count cannot prematurely reach
+ *   zero until any command buffers have been submitted. This additional decrement happens
+ *   when the next #MTLSafeFreeList is created, to allow the existing pool to be released once
+ *   the reference count hits zero after submitted command buffers complete.
  *
  * NOTE: the Metal API independently tracks resources used by command buffers for the purpose of
  * keeping resources alive while in-use by the driver and CPU, however, this differs from the
- * MTLSafeFreeList mechanism in the Metal backend, which exists for the purpose of allowing
- * previously allocated MTLBuffer resources to be re-used. This allows us to save on the expensive
+ * #MTLSafeFreeList mechanism in the Metal backend, which exists for the purpose of allowing
+ * previously allocated #MTLBuffer resources to be re-used. This allows us to save on the expensive
  * cost of memory allocation.
  */
 class MTLSafeFreeList {

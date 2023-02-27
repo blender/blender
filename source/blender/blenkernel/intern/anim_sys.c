@@ -3287,7 +3287,7 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
  * sure why. Preferably, it would be as simple as checking for `(adt->act_Track == nlt)` but that
  * doesn't work either, neither does comparing indices.
  *
- *  This function is a temporary work around. The first disabled track is always the tweaked track.
+ * This function is a temporary work around. The first disabled track is always the tweaked track.
  */
 static NlaTrack *nlatrack_find_tweaked(const AnimData *adt)
 {

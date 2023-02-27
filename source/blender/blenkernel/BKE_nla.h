@@ -162,9 +162,9 @@ void BKE_nlastrips_sort_strips(ListBase *strips);
 void BKE_nlastrips_add_strip_unsafe(ListBase *strips, struct NlaStrip *strip);
 
 /**
- *  NULL checks incoming strip and verifies no overlap / invalid
- *  configuration against other strips in NLA Track before calling
- *  #BKE_nlastrips_add_strip_unsafe.
+ * NULL checks incoming strip and verifies no overlap / invalid
+ * configuration against other strips in NLA Track before calling
+ * #BKE_nlastrips_add_strip_unsafe.
  */
 bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 

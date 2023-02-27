@@ -1527,7 +1527,7 @@ void MTLContext::ensure_texture_bindings(
     int compute_arg_buffer_bind_index = -1;
 
     /* Argument buffers are used for samplers, when the limit of 16 is exceeded.
-     * NOTE: Compute uses vertex argument for arg buffer bind index.*/
+     * NOTE: Compute uses vertex argument for arg buffer bind index. */
     bool use_argument_buffer_for_samplers = shader_interface->uses_argument_buffer_for_samplers();
     compute_arg_buffer_bind_index = shader_interface->get_argument_buffer_bind_index(
         ShaderStage::COMPUTE);

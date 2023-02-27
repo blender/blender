@@ -2075,7 +2075,7 @@ static bool get_uv_index_and_layer(const PointerRNA *ptr,
     }
   }
   /* This can happen if the Customdata arrays were re-allocated between obtaining the
-   * python object and accessing it.*/
+   * Python object and accessing it. */
   return false;
 }
 

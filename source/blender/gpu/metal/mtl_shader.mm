@@ -1269,7 +1269,7 @@ bool MTLShader::bake_compute_pipeline_state(MTLContext *ctx)
      * specialization constant, customized per unique pipeline state permutation.
      *
      * For Compute shaders, this offset is always zero, but this needs setting as
-     * it is expected as part of the common Metal shader header.*/
+     * it is expected as part of the common Metal shader header. */
     int MTL_uniform_buffer_base_index = 0;
     [values setConstantValue:&MTL_uniform_buffer_base_index
                         type:MTLDataTypeInt

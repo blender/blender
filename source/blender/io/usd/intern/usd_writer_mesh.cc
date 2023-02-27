@@ -381,9 +381,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   }
 
   if (mesh_material_bound) {
-    /* USD will require that prims with material bindings have the MaterialBindingAPI applied
+    /* USD will require that prims with material bindings have the #MaterialBindingAPI applied
      * schema. While Bind() above will create the binding attribute, Apply() needs to be called as
-     * well to add the MaterialBindingAPI schema to the prim itself.*/
+     * well to add the #MaterialBindingAPI schema to the prim itself. */
     material_binding_api.Apply(mesh_prim);
   }
   else {
@@ -416,7 +416,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     auto subset_prim = usd_face_subset.GetPrim();
     auto subset_material_api = pxr::UsdShadeMaterialBindingAPI(subset_prim);
     subset_material_api.Bind(usd_material);
-    /* Apply the MaterialBindingAPI applied schema, as required by USD.*/
+    /* Apply the #MaterialBindingAPI applied schema, as required by USD. */
     subset_material_api.Apply(subset_prim);
   }
 }

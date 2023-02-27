@@ -254,9 +254,9 @@ void GPU_materials_free(struct Main *bmain);
 
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
-/* Return the most optimal shader configuration for the given material .*/
+/** Return the most optimal shader configuration for the given material. */
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
-/* Return the base un-optimized shader. */
+/** Return the base un-optimized shader. */
 struct GPUShader *GPU_material_get_shader_base(GPUMaterial *material);
 const char *GPU_material_get_name(GPUMaterial *material);
 

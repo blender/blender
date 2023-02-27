@@ -189,7 +189,7 @@ const char *BLI_expand_tilde(const char *path_with_tilde)
 
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
-  /* Can't just copy to the *dir pointer, as [path getCString gets grumpy.*/
+  /* Can't just copy to the *dir pointer, as [path getCString gets grumpy. */
   char path_expanded[PATH_MAX];
   @autoreleasepool {
     NSString *path = [[NSFileManager defaultManager] currentDirectoryPath];

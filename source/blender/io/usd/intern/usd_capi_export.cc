@@ -213,7 +213,7 @@ static void export_startjob(void *customdata,
   /* Set the default prim if it doesn't exist */
   if (!usd_stage->GetDefaultPrim()) {
     /* Use TraverseAll since it's guaranteed to be depth first and will get the first top level
-     * prim, and is less verbose than getting the PseudoRoot + iterating its children.*/
+     * prim, and is less verbose than getting the PseudoRoot + iterating its children. */
     for (auto prim : usd_stage->TraverseAll()) {
       usd_stage->SetDefaultPrim(prim);
       break;

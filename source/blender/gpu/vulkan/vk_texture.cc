@@ -52,7 +52,7 @@ void VKTexture::mip_range_set(int /*min*/, int /*max*/)
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
 {
-  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer.*/
+  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
   VKBuffer staging_buffer;
 
@@ -85,7 +85,7 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
 
   void *data = MEM_mallocN(host_memory_size, __func__);
 
-  /* TODO: add conversion when data format is different.*/
+  /* TODO: add conversion when data format is different. */
   BLI_assert_msg(device_memory_size == host_memory_size,
                  "Memory data conversions not implemented yet");
 
@@ -120,7 +120,7 @@ bool VKTexture::init_internal()
 {
   /* Initialization can only happen after the usage is known. By the current API this isn't set
    * at this moment, so we cannot initialize here. The initialization is postponed until the
-   * allocation of the texture on the device.*/
+   * allocation of the texture on the device. */
   return true;
 }
 
@@ -193,7 +193,7 @@ bool VKTexture::allocate()
     return false;
   }
 
-  /* Promote image to the correct layout.*/
+  /* Promote image to the correct layout. */
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;

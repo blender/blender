@@ -534,7 +534,7 @@ void WM_window_set_dpi(const wmWindow *win)
   U.inv_dpi_fac = 1.0f / U.dpi_fac;
 
   /* Widget unit is 20 pixels at 1X scale. This consists of 18 user-scaled units plus
-   *  left and right borders of line-width (pixelsize). */
+   * left and right borders of line-width (pixel-size). */
   U.widget_unit = (int)roundf(18.0f * U.dpi_fac) + (2 * pixelsize);
 }
 

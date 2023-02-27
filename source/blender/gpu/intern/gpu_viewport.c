@@ -155,7 +155,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
   /* Can be shared with GPUOffscreen. */
   if (viewport->depth_tx == NULL) {
-    /* Depth texture can be read back by gizmos #view3d_depths_create .*/
+    /* Depth texture can be read back by gizmos #view3d_depths_create. */
     viewport->depth_tx = GPU_texture_create_2d("dtxl_depth",
                                                UNPACK2(size),
                                                1,

@@ -1400,7 +1400,7 @@ struct GPUMaterial *EEVEE_material_get(
     case GPU_MAT_QUEUED: {
       vedata->stl->g_data->queued_shaders_count++;
       GPUMaterial *default_mat = EEVEE_material_default_get(scene, ma, options);
-      /* Mark pending material with its default material for future cache warming.*/
+      /* Mark pending material with its default material for future cache warming. */
       GPU_material_set_default(mat, default_mat);
       /* Return default material. */
       mat = default_mat;

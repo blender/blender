@@ -681,7 +681,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   }
 
   /* TODO we might need to move the actual pipeline construction to a later stage as the graphics
-   * pipeline requires more data before it can be constructed.*/
+   * pipeline requires more data before it can be constructed. */
   bool result;
   if (is_graphics_shader()) {
     BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||

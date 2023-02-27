@@ -535,7 +535,7 @@ static GHOST_TSuccess getGraphicQueueFamily(VkPhysicalDevice device, uint32_t *r
   for (const auto &queue_family : queue_families) {
     /* Every vulkan implementation by spec must have one queue family that support both graphics
      * and compute pipelines. We select this one; compute only queue family hints at async compute
-     * implementations.*/
+     * implementations. */
     if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
         (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
       return GHOST_kSuccess;

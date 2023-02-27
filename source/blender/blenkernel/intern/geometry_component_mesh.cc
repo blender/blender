@@ -211,7 +211,8 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
 
   /* Deselect loose vertices without corners that are still selected from the 'true' default. */
   /* The record fact says that the value is true.
-   *Writing to the array from different threads is okay because each thread sets the same value. */
+   * Writing to the array from different threads is okay because each thread sets the same value.
+   */
   threading::parallel_for(loose_verts.index_range(), 2048, [&](const IndexRange range) {
     for (const int vert_index : range) {
       if (loose_verts[vert_index]) {
