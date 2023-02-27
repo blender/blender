@@ -1160,7 +1160,7 @@ static PointerRNA rna_Mesh_vertex_color_active_get(PointerRNA *ptr)
 
 static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
                                              const PointerRNA value,
-                                             ReportList *reports)
+                                             ReportList *UNUSED(reports))
 {
   Mesh *mesh = (Mesh *)ptr->data;
   CustomDataLayer *layer = (CustomDataLayer *)value.data;
@@ -1272,7 +1272,7 @@ static PointerRNA rna_Mesh_sculpt_vertex_color_active_get(PointerRNA *ptr)
 
 static void rna_Mesh_sculpt_vertex_color_active_set(PointerRNA *ptr,
                                                     const PointerRNA value,
-                                                    ReportList *reports)
+                                                    ReportList *UNUSED(reports))
 {
   Mesh *mesh = (Mesh *)ptr->data;
   CustomDataLayer *layer = (CustomDataLayer *)value.data;
