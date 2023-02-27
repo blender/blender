@@ -123,7 +123,7 @@ static void seq_update_sound_bounds_recursive_impl(const Scene *scene,
   Sequence *seq;
 
   /* For sound we go over full meta tree to update bounds of the sound strips,
-   * since sound is played outside of evaluating the imbufs. */
+   * since sound is played outside of evaluating the image-buffers (#ImBuf). */
   for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_bounds_recursive_impl(

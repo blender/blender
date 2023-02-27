@@ -1406,7 +1406,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   calc.aux_target = DEG_get_evaluated_object(ctx->depsgraph, smd->auxTarget);
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
-    /* Setup arrays to get vertexs positions, normals and deform weights */
+    /* Setup arrays to get vertex positions, normals and deform weights */
     calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
     calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 

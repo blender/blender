@@ -189,7 +189,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
     }
   }
 
-  /* Add vertices used by outer edges on subdvided faces and loose edges. */
+  /* Add vertices used by outer edges on subdivided faces and loose edges. */
   ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge * coarse_mesh->totedge;
 
   ctx->num_subdiv_loops = ctx->num_subdiv_polygons * 4;

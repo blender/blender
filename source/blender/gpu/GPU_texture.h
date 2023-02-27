@@ -47,7 +47,7 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_DEFAULT = 0,
   /**
    * Enables hardware linear filtering.
-   * Enables linear interpolation between mips if GPU_SAMPLER_MIPMAP is also set.
+   * Enables linear interpolation between MIPS if GPU_SAMPLER_MIPMAP is also set.
    */
   GPU_SAMPLER_FILTER = (1 << 0),
   /**
@@ -85,7 +85,7 @@ typedef enum eGPUSamplerState {
   /** Enable mirror repeat extension mode for directions using the `GPU_SAMPLER_REPEAT_*` flag. */
   GPU_SAMPLER_MIRROR_REPEAT = (1 << 8),
 
-  /** Special icon sampler with custom lod bias and interpolation mode. */
+  /** Special icon sampler with custom LOD bias and interpolation mode. */
   GPU_SAMPLER_ICON = (1 << 9),
 } eGPUSamplerState;
 
@@ -487,7 +487,7 @@ void GPU_texture_update_mipmap_chain(GPUTexture *texture);
 /**
  * Read the content of a \a mip_level from a \a tex and returns a copy of its data.
  * \warning the texture must have been created using GPU_TEXTURE_USAGE_HOST_READ.
- * \note synchronisation of shader writes via `imageStore()` needs to be explicitly done using
+ * \note synchronization of shader writes via `imageStore()` needs to be explicitly done using
  * `GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH)`.
  */
 void *GPU_texture_read(GPUTexture *texture, eGPUDataFormat data_format, int mip_level);

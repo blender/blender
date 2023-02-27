@@ -34,7 +34,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
             const VkPipelineLayout vk_pipeline_layout,
             VkPipelineBindPoint bind_point);
   void dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
-  /* Copy the contents of a texture mip level to the dst buffer.*/
+  /** Copy the contents of a texture MIP level to the dst buffer. */
   void copy(VKBuffer &dst_buffer, VKTexture &src_texture, Span<VkBufferImageCopy> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);

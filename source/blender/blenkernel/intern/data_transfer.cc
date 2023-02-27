@@ -251,7 +251,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
 /* ********** */
 
 /**
- * When transfering color attributes, also transfer the active color attribute string.
+ * When transferring color attributes, also transfer the active color attribute string.
  * If a match can't be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
@@ -295,7 +295,7 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
 }
 
 /**
- * When transfering color attributes, also transfer the default color attribute string.
+ * When transferring color attributes, also transfer the default color attribute string.
  * If a match cant be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
@@ -1211,8 +1211,8 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
-      /* Make sure we have active/defaut color layers if none existed before.
-       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      /* Make sure we have active/default color layers if none existed before.
+       * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         data_transfer_mesh_attributes_transfer_active_color_string(
             me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
@@ -1259,8 +1259,8 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
-      /* Make sure we have active/defaut color layers if none existed before.
-       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      /* Make sure we have active/default color layers if none existed before.
+       * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         data_transfer_mesh_attributes_transfer_active_color_string(
             me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);

@@ -129,7 +129,7 @@ void VKCommandBuffer::encode_recorded_commands()
 {
   /* Intentionally not implemented. For the graphics pipeline we want to extract the
    * resources and its usages so we can encode multiple commands in the same command buffer with
-   * the correct synchorinzations. */
+   * the correct synchronizations. */
 }
 
 void VKCommandBuffer::submit_encoded_commands()

@@ -77,7 +77,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   rect.ymin = scirct->ymin - region->winrct.ymin;
   rect.ymax = scirct->ymax - region->winrct.ymin;
 
-  /* set transp line */
+  /* Set transparent line. */
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
@@ -1286,11 +1286,11 @@ static void region_rect_recursive(
     alignment = RGN_ALIGN_NONE;
   }
 
-  /* If both the ARegion.sizex/y and the prefsize are 0, the region is tagged as too small, even
-   * before the layout for dynamic regions is created. #wm_draw_window_offscreen() allows the
-   * layout to be created despite the RGN_FLAG_TOO_SMALL flag being set. But there may still be
-   * regions that don't have a separate ARegionType.layout callback. For those, set a default
-   * prefsize so they can become visible. */
+  /* If both the #ARegion.sizex/y and the #ARegionType.prefsizex/y are 0,
+   * the region is tagged as too small, even before the layout for dynamic regions is created.
+   * #wm_draw_window_offscreen() allows the layout to be created despite the #RGN_FLAG_TOO_SMALL
+   * flag being set. But there may still be regions that don't have a separate #ARegionType.layout
+   * callback. For those, set a default #ARegionType.prefsizex/y so they can become visible. */
   if ((region->flag & RGN_FLAG_DYNAMIC_SIZE) && !(region->type->layout)) {
     if ((region->sizex == 0) && (region->type->prefsizex == 0)) {
       region->type->prefsizex = AREAMINX;
@@ -1300,7 +1300,7 @@ static void region_rect_recursive(
     }
   }
 
-  /* prefsize, taking into account DPI */
+  /* `prefsizex/y`, taking into account DPI. */
   int prefsizex = UI_DPI_FAC *
                   ((region->sizex > 1) ? region->sizex + 0.5f : region->type->prefsizex);
   int prefsizey;
@@ -1523,7 +1523,7 @@ static void region_rect_recursive(
     region_overlap_fix(area, region);
   }
 
-  /* set winrect for azones */
+  /* Set `region->winrct` for action-zones. */
   if (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
     region->winrct = (region->overlap) ? *overlap_remainder : *remainder;
 
