@@ -141,7 +141,7 @@ float seq_retiming_evaluate(const Sequence *seq, const int frame_index)
 
   const int segment_length = next_handle->strip_frame_index - previous_handle->strip_frame_index;
   const int segment_frame_index = frame_index - previous_handle->strip_frame_index;
-  const float segment_fac = segment_frame_index / (float)segment_length;
+  const float segment_fac = segment_frame_index / float(segment_length);
 
   const float target_diff = next_handle->retiming_factor - previous_handle->retiming_factor;
   return previous_handle->retiming_factor + (target_diff * segment_fac);
@@ -242,6 +242,6 @@ float SEQ_retiming_handle_speed_get(const Scene *scene,
   const int fragment_length_retimed = frame_retimed - frame_retimed_prev;
   const int fragment_length_original = frame_index - frame_index_prev;
 
-  const float speed = (float)fragment_length_retimed / (float)fragment_length_original;
+  const float speed = float(fragment_length_retimed) / float(fragment_length_original);
   return speed;
 }

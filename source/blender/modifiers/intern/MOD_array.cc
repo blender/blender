@@ -778,7 +778,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
           *tmp, MutableSpan<int>{full_doubles_map, result->totvert}, tot_doubles);
-      BKE_id_free(NULL, tmp);
+      BKE_id_free(nullptr, tmp);
     }
     MEM_freeN(full_doubles_map);
   }

@@ -180,7 +180,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
                                         MutableSpan<int>{full_doubles_map, result->totvert},
                                         int(tot_doubles * (step_tot - 1)));
 
-    BKE_id_free(NULL, tmp);
+    BKE_id_free(nullptr, tmp);
     MEM_freeN(full_doubles_map);
   }
 

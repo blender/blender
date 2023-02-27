@@ -307,7 +307,7 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
   if (prop->magic == RNA_MAGIC) {
     int arraylen[RNA_MAX_ARRAY_DIMENSION];
     return (prop->getlength && ptr->data) ? prop->getlength(ptr, arraylen) :
-                                            (int)prop->totarraylength;
+                                            int(prop->totarraylength);
   }
   IDProperty *idprop = (IDProperty *)prop;
 
@@ -465,7 +465,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
     if (r_prop_rna_or_id->is_array) {
       int arraylen[RNA_MAX_ARRAY_DIMENSION];
       r_prop_rna_or_id->array_len = (prop->getlength && ptr->data) ?
-                                        (uint)prop->getlength(ptr, arraylen) :
+                                        uint(prop->getlength(ptr, arraylen)) :
                                         prop->totarraylength;
     }
 
@@ -503,12 +503,12 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 
     r_prop_rna_or_id->identifier = idprop->name;
     if (idprop->type == IDP_ARRAY) {
-      r_prop_rna_or_id->rnaprop = arraytypemap[(int)(idprop->subtype)];
+      r_prop_rna_or_id->rnaprop = arraytypemap[int(idprop->subtype)];
       r_prop_rna_or_id->is_array = true;
-      r_prop_rna_or_id->array_len = idprop_evaluated != nullptr ? (uint)idprop_evaluated->len : 0;
+      r_prop_rna_or_id->array_len = idprop_evaluated != nullptr ? uint(idprop_evaluated->len) : 0;
     }
     else {
-      r_prop_rna_or_id->rnaprop = typemap[(int)(idprop->type)];
+      r_prop_rna_or_id->rnaprop = typemap[int(idprop->type)];
     }
   }
 }
@@ -547,9 +547,9 @@ PropertyRNA *rna_ensure_property(PropertyRNA *prop)
     IDProperty *idprop = (IDProperty *)prop;
 
     if (idprop->type == IDP_ARRAY) {
-      return arraytypemap[(int)(idprop->subtype)];
+      return arraytypemap[int(idprop->subtype)];
     }
-    return typemap[(int)(idprop->type)];
+    return typemap[int(idprop->type)];
   }
 }
 
@@ -1300,8 +1300,8 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
     const IDProperty *idprop = (IDProperty *)prop;
     if (idprop->ui_data) {
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)idprop->ui_data;
-      *hardmin = (float)ui_data->min;
-      *hardmax = (float)ui_data->max;
+      *hardmin = float(ui_data->min);
+      *hardmax = float(ui_data->max);
     }
     else {
       *hardmin = -FLT_MAX;
@@ -1342,10 +1342,10 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
     const IDProperty *idprop = (IDProperty *)prop;
     if (idprop->ui_data) {
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)idprop->ui_data;
-      *softmin = (float)ui_data->soft_min;
-      *softmax = (float)ui_data->soft_max;
+      *softmin = float(ui_data->soft_min);
+      *softmax = float(ui_data->soft_max);
       *step = ui_data->step;
-      *precision = (float)ui_data->precision;
+      *precision = float(ui_data->precision);
     }
     else {
       *softmin = -FLT_MAX;
@@ -1379,7 +1379,7 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
   }
 
   *step = fprop->step;
-  *precision = (float)fprop->precision;
+  *precision = float(fprop->precision);
 }
 
 int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value)
@@ -2318,7 +2318,7 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
        * array property, since the boolean IDProperty type was added later. */
       int *values_src = static_cast<int *>(IDP_Array(idprop));
       for (uint i = 0; i < idprop->len; i++) {
-        values[i] = (bool)values_src[i];
+        values[i] = bool(values_src[i]);
       }
     }
     else if (idprop->subtype == IDP_BOOLEAN) {
@@ -2393,7 +2393,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
         RNA properties used to be stored with integer IDProperties. */
         int *values_dst = static_cast<int *>(IDP_Array(idprop));
         for (uint i = 0; i < idprop->len; i++) {
-          values_dst[i] = (int)values[i];
+          values_dst[i] = int(values[i]);
         }
       }
     }
@@ -2919,7 +2919,7 @@ float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop)
     if (idprop->type == IDP_FLOAT) {
       return IDP_Float(idprop);
     }
-    return (float)IDP_Double(idprop);
+    return float(IDP_Double(idprop));
   }
   if (fprop->get) {
     return fprop->get(ptr);
@@ -3000,11 +3000,11 @@ static void rna_property_float_fill_default_array_values_double(const double *de
   const int array_copy_len = MIN2(out_length, default_array_len);
 
   for (int i = 0; i < array_copy_len; i++) {
-    r_values[i] = (float)default_array[i];
+    r_values[i] = float(default_array[i]);
   }
 
   for (int i = array_copy_len; i < out_length; i++) {
-    r_values[i] = (float)default_value;
+    r_values[i] = float(default_value);
   }
 }
 
@@ -3039,7 +3039,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
     }
     else {
       for (i = 0; i < idprop->len; i++) {
-        values[i] = (float)(((double *)IDP_Array(idprop))[i]);
+        values[i] = float(((double *)IDP_Array(idprop))[i]);
       }
     }
   }
@@ -3214,7 +3214,7 @@ float RNA_property_float_get_default(PointerRNA * /*ptr*/, PropertyRNA *prop)
     if (idprop->ui_data) {
       BLI_assert(ELEM(idprop->type, IDP_FLOAT, IDP_DOUBLE));
       const IDPropertyUIDataFloat *ui_data = (const IDPropertyUIDataFloat *)idprop->ui_data;
-      return (float)ui_data->default_value;
+      return float(ui_data->default_value);
     }
   }
 
@@ -3231,7 +3231,7 @@ bool RNA_property_float_set_default(PropertyRNA *prop, float value)
   BLI_assert(idprop->type == IDP_FLOAT);
 
   IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(idprop);
-  ui_data->default_value = (double)value;
+  ui_data->default_value = double(value);
   return true;
 }
 
@@ -3418,7 +3418,7 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     IDP_ResizeArray(idprop, len);
-    memcpy(idprop->data.pointer, value, (size_t)len);
+    memcpy(idprop->data.pointer, value, size_t(len));
 
     rna_idproperty_touch(idprop);
   }
@@ -4433,22 +4433,22 @@ int RNA_property_collection_raw_array(PointerRNA *ptr,
   { \
     switch (raw.type) { \
       case PROP_RAW_CHAR: \
-        ((char *)raw.array)[a] = (char)var; \
+        ((char *)raw.array)[a] = char(var); \
         break; \
       case PROP_RAW_SHORT: \
-        ((short *)raw.array)[a] = (short)var; \
+        ((short *)raw.array)[a] = short(var); \
         break; \
       case PROP_RAW_INT: \
-        ((int *)raw.array)[a] = (int)var; \
+        ((int *)raw.array)[a] = int(var); \
         break; \
       case PROP_RAW_BOOLEAN: \
-        ((bool *)raw.array)[a] = (bool)var; \
+        ((bool *)raw.array)[a] = bool(var); \
         break; \
       case PROP_RAW_FLOAT: \
-        ((float *)raw.array)[a] = (float)var; \
+        ((float *)raw.array)[a] = float(var); \
         break; \
       case PROP_RAW_DOUBLE: \
-        ((double *)raw.array)[a] = (double)var; \
+        ((double *)raw.array)[a] = double(var); \
         break; \
       default: \
         break; \
@@ -5946,7 +5946,7 @@ const ListBase *RNA_function_defined_parameters(FunctionRNA *func)
 
 int RNA_parameter_flag(PropertyRNA *prop)
 {
-  return (int)rna_ensure_property(prop)->flag_parameter;
+  return int(rna_ensure_property(prop)->flag_parameter);
 }
 
 ParameterList *RNA_parameter_list_create(ParameterList *parms,
@@ -6285,7 +6285,7 @@ void RNA_parameter_dynamic_length_set_data(ParameterList * /*parms*/,
                                            int length)
 {
   if (parm->flag & PROP_DYNAMIC) {
-    ((ParameterDynAlloc *)data)->array_tot = (intptr_t)length;
+    ((ParameterDynAlloc *)data)->array_tot = intptr_t(length);
   }
 }
 

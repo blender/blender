@@ -1587,7 +1587,7 @@ static void region_rect_recursive(
 
 static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
 {
-  short px = (short)U.pixelsize;
+  short px = short(U.pixelsize);
 
   area->totrct.xmin = area->v1->vec.x;
   area->totrct.xmax = area->v4->vec.x;
@@ -2182,7 +2182,7 @@ static void region_align_info_from_area(ScrArea *area, RegionTypeAlignInfo *r_al
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     const int index = region->regiontype;
-    if ((uint)index < RGN_TYPE_NUM) {
+    if (uint(index) < RGN_TYPE_NUM) {
       r_align_info->by_type[index].alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
       r_align_info->by_type[index].hidden = (region->flag & RGN_FLAG_HIDDEN) != 0;
     }
@@ -2362,7 +2362,7 @@ static void region_align_info_to_area(
   ARegion *region_by_type[RGN_TYPE_NUM] = {nullptr};
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     const int index = region->regiontype;
-    if ((uint)index < RGN_TYPE_NUM) {
+    if (uint(index) < RGN_TYPE_NUM) {
       region_by_type[index] = region;
     }
   }
