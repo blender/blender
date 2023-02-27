@@ -43,7 +43,7 @@ void ResourceBind::execute() const
   }
   switch (type) {
     case ResourceBind::Type::Sampler:
-      GPU_texture_bind_ex(is_reference ? *texture_ref : texture, sampler, slot, false);
+      GPU_texture_bind_ex(is_reference ? *texture_ref : texture, sampler, slot);
       break;
     case ResourceBind::Type::BufferSampler:
       GPU_vertbuf_bind_as_texture(is_reference ? *vertex_buf_ref : vertex_buf, slot);

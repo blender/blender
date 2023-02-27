@@ -292,7 +292,7 @@ bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
     /* check whether the kernel has already been requested / cached */
     thread_scoped_lock lock(cache_mutex);
     for (auto &pipeline : pipelines[device_kernel]) {
-      if (pipeline->source_md5 == device->source_md5[pso_type]) {
+      if (pipeline->kernels_md5 == device->kernels_md5[pso_type]) {
         return false;
       }
     }
@@ -332,7 +332,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
   memcpy(&pipeline->kernel_data_, &device->launch_params.data, sizeof(pipeline->kernel_data_));
   pipeline->pso_type = pso_type;
   pipeline->mtlDevice = mtlDevice;
-  pipeline->source_md5 = device->source_md5[pso_type];
+  pipeline->kernels_md5 = device->kernels_md5[pso_type];
   pipeline->mtlLibrary = device->mtlLibrary[pso_type];
   pipeline->device_kernel = device_kernel;
   pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
@@ -392,8 +392,8 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
         }
 
         if (pipeline->pso_type != PSO_GENERIC) {
-          if (pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_INTERSECT] ||
-              pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_SHADE]) {
+          if (pipeline->kernels_md5 == device->kernels_md5[PSO_SPECIALIZED_INTERSECT] ||
+              pipeline->kernels_md5 == device->kernels_md5[PSO_SPECIALIZED_SHADE]) {
             best_pipeline = pipeline.get();
           }
         }
@@ -428,11 +428,12 @@ bool MetalKernelPipeline::should_use_binary_archive() const
         return false;
       }
     }
-
-    /* Workaround for Intel GPU having issue using Binary Archives */
-    MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
-    if (gpu_vendor == METAL_GPU_INTEL) {
-      return false;
+    else {
+      /* Workaround for issues using Binary Archives on non-Apple Silicon systems. */
+      MetalGPUVendor gpu_vendor = MetalInfo::get_device_vendor(mtlDevice);
+      if (gpu_vendor != METAL_GPU_APPLE) {
+        return false;
+      }
     }
 
     if (pso_type == PSO_GENERIC) {
@@ -440,8 +441,10 @@ bool MetalKernelPipeline::should_use_binary_archive() const
       return true;
     }
 
-    if (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
-        device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) {
+    if ((device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
+         device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) ||
+        (device_kernel >= DEVICE_KERNEL_SHADER_EVAL_DISPLACE &&
+         device_kernel <= DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY)) {
       /* Archive all shade kernels - they take a long time to compile. */
       return true;
     }
@@ -674,7 +677,7 @@ void MetalKernelPipeline::compile()
     NSProcessInfo *processInfo = [NSProcessInfo processInfo];
     string osVersion = [[processInfo operatingSystemVersionString] UTF8String];
     MD5Hash local_md5;
-    local_md5.append(source_md5);
+    local_md5.append(kernels_md5);
     local_md5.append(osVersion);
     local_md5.append((uint8_t *)&this->threads_per_threadgroup,
                      sizeof(this->threads_per_threadgroup));

@@ -201,7 +201,6 @@ set(SRC
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc
-  intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
   intern/mesh_normals.cc
@@ -470,8 +469,8 @@ set(SRC
   BKE_subdiv_ccg.h
   BKE_subdiv_deform.h
   BKE_subdiv_eval.h
-  BKE_subdiv_foreach.h
-  BKE_subdiv_mesh.h
+  BKE_subdiv_foreach.hh
+  BKE_subdiv_mesh.hh
   BKE_subdiv_modifier.h
   BKE_subdiv_topology.h
   BKE_subsurf.h

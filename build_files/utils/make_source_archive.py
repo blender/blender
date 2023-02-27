@@ -135,7 +135,7 @@ def submodules_to_manifest(
         submodule = line.split()[1]
 
         # Don't use native slashes as GIT for MS-Windows outputs forward slashes.
-        if skip_addon_contrib and submodule == "release/scripts/addons_contrib":
+        if skip_addon_contrib and submodule == "scripts/addons_contrib":
             continue
 
         for path in git_ls_files(blender_srcdir / submodule):

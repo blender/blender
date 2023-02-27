@@ -52,6 +52,7 @@ set(SRC
   intern/array_utils.cc
   intern/astar.c
   intern/atomic_disjoint_set.cc
+  intern/bit_span.cc
   intern/bitmap.c
   intern/bitmap_draw_2d.c
   intern/boxpack_2d.c

@@ -81,7 +81,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
   const int mip_len = use_mipmap ? 9999 : 1;
 
   GPUTexture *tex = GPU_texture_create_2d(
-      "immDrawPixels", img_w, img_h, mip_len, gpu_format, NULL);
+      "immDrawPixels", img_w, img_h, mip_len, gpu_format, GPU_TEXTURE_USAGE_GENERAL, NULL);
 
   const bool use_float_data = ELEM(gpu_format, GPU_RGBA16F, GPU_RGB16F, GPU_R16F);
   eGPUDataFormat gpu_data_format = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
@@ -89,7 +89,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
 
   GPU_texture_filter_mode(tex, use_filter);
   if (use_mipmap) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
   }
   GPU_texture_wrap_mode(tex, false, true);
@@ -170,7 +170,8 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
   eGPUDataFormat gpu_data = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   size_t stride = components * ((use_float_data) ? sizeof(float) : sizeof(uchar));
 
-  GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", tex_w, tex_h, 1, gpu_format, NULL);
+  GPUTexture *tex = GPU_texture_create_2d(
+      "immDrawPixels", tex_w, tex_h, 1, gpu_format, GPU_TEXTURE_USAGE_GENERAL, NULL);
 
   GPU_texture_filter_mode(tex, use_filter);
   GPU_texture_wrap_mode(tex, false, true);

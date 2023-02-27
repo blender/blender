@@ -9,6 +9,7 @@
 #include "vk_index_buffer.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
+#include "vk_uniform_buffer.hh"
 #include "vk_vertex_buffer.hh"
 
 #include "BLI_assert.h"
@@ -44,6 +45,14 @@ void VKDescriptorSet::bind_as_ssbo(VKVertexBuffer &buffer, const Location locati
   binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   binding.vk_buffer = buffer.vk_handle();
   binding.buffer_size = buffer.size_used_get();
+}
+
+void VKDescriptorSet::bind(VKUniformBuffer &buffer, const Location location)
+{
+  Binding &binding = ensure_location(location);
+  binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  binding.vk_buffer = buffer.vk_handle();
+  binding.buffer_size = buffer.size_in_bytes();
 }
 
 void VKDescriptorSet::bind_as_ssbo(VKIndexBuffer &buffer, const Location location)
@@ -118,6 +127,10 @@ void VKDescriptorSet::update(VkDevice vk_device)
     write_descriptor.pImageInfo = &image_infos.last();
     descriptor_writes.append(write_descriptor);
   }
+
+  BLI_assert_msg(image_infos.size() + buffer_infos.size() == descriptor_writes.size(),
+                 "Not all changes have been converted to a write descriptor. Check "
+                 "`Binding::is_buffer` and `Binding::is_image`.");
 
   vkUpdateDescriptorSets(
       vk_device, descriptor_writes.size(), descriptor_writes.data(), 0, nullptr);

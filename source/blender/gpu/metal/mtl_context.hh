@@ -768,6 +768,7 @@ class MTLContext : public Context {
   void texture_unbind_all();
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);
   id<MTLSamplerState> generate_sampler_from_state(MTLSamplerState state);
+  id<MTLSamplerState> generate_icon_sampler();
   id<MTLSamplerState> get_default_sampler_state();
 
   /* Metal Context pipeline state. */

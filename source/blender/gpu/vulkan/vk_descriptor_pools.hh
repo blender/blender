@@ -35,6 +35,7 @@ class VKDescriptorPools {
   static constexpr uint32_t POOL_SIZE_STORAGE_IMAGE = 1000;
   static constexpr uint32_t POOL_SIZE_COMBINED_IMAGE_SAMPLER = 1000;
   static constexpr uint32_t POOL_SIZE_UNIFORM_BUFFER = 1000;
+  static constexpr uint32_t POOL_SIZE_UNIFORM_TEXEL_BUFFER = 1000;
 
   VkDevice vk_device_ = VK_NULL_HANDLE;
   Vector<VkDescriptorPool> pools_;

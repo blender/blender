@@ -162,8 +162,10 @@ void SCULPT_filter_cache_init(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   ss->filter_cache->vc = vc;
-  copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
-  copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
+  if (vc.rv3d) {
+    copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
+    copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
+  }
 
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -171,7 +173,7 @@ void SCULPT_filter_cache_init(bContext *C,
   float co[3];
   float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
-  if (SCULPT_stroke_get_location(C, co, mval_fl, false)) {
+  if (vc.rv3d && SCULPT_stroke_get_location(C, co, mval_fl, false)) {
     PBVHNode **nodes;
     int totnode;
 
@@ -229,14 +231,16 @@ void SCULPT_filter_cache_init(bContext *C,
   float mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
 
-  ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
+  if (vc.rv3d) {
+    ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
 
-  invert_m4_m4(ob->world_to_object, ob->object_to_world);
-  copy_m3_m4(mat, vc.rv3d->viewinv);
-  mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob->world_to_object);
-  mul_m3_v3(mat, viewDir);
-  normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    copy_m3_m4(mat, vc.rv3d->viewinv);
+    mul_m3_v3(mat, viewDir);
+    copy_m3_m4(mat, ob->world_to_object);
+    mul_m3_v3(mat, viewDir);
+    normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
+  }
 }
 
 void SCULPT_filter_cache_free(SculptSession *ss)
@@ -796,7 +800,7 @@ static void sculpt_mesh_filter_end(bContext *C, wmOperator * /*op*/)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
-static void sculpt_mesh_filter_cancel(bContext *C, wmOperator *op)
+static void UNUSED_FUNCTION(sculpt_mesh_filter_cancel)(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;

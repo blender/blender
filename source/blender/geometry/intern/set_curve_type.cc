@@ -308,24 +308,23 @@ static bke::CurvesGeometry convert_curves_to_bezier(
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   MutableSpan<float3> dst_handles_l = dst_curves.handle_positions_left_for_write();
   MutableSpan<float3> dst_handles_r = dst_curves.handle_positions_right_for_write();
   MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
   MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
-  MutableSpan<float> dst_weights = dst_curves.nurbs_weights_for_write();
-  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+  Set<std::string> attributes_to_skip = {
+      "position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"};
+  if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
+    attributes_to_skip.add_new("nurbs_weight");
+  }
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
       propagation_info,
-      {"position",
-       "handle_type_left",
-       "handle_type_right",
-       "handle_right",
-       "handle_left",
-       "nurbs_weight"});
+      attributes_to_skip);
 
   auto catmull_rom_to_bezier = [&](IndexMask selection) {
     bke::curves::fill_points<int8_t>(
@@ -396,7 +395,6 @@ static bke::CurvesGeometry convert_curves_to_bezier(
         dst_points_by_curve, selection, BEZIER_HANDLE_ALIGN, dst_types_l);
     bke::curves::fill_points<int8_t>(
         dst_points_by_curve, selection, BEZIER_HANDLE_ALIGN, dst_types_r);
-    bke::curves::fill_points<float>(dst_points_by_curve, selection, 0.0f, dst_weights);
 
     threading::parallel_for(selection.index_range(), 64, [&](IndexRange range) {
       for (const int i : selection.slice(range)) {
@@ -513,7 +511,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(
        "nurbs_weight"});
 
   auto fill_weights_if_necessary = [&](const IndexMask selection) {
-    if (!src_curves.nurbs_weights().is_empty()) {
+    if (src_attributes.contains("nurbs_weight")) {
       bke::curves::fill_points(
           dst_points_by_curve, selection, 1.0f, dst_curves.nurbs_weights_for_write());
     }

@@ -47,7 +47,9 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
   /* Fetch vertex coordinates. */
   float3 verts[3], next_verts[3];
-  uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
+  uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
   /* Interpolate between steps. */

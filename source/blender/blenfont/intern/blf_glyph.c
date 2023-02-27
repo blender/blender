@@ -1199,7 +1199,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_2d_ex(
+      gc->texture = GPU_texture_create_2d(
           __func__, w, h, 1, GPU_R8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
 
       gc->bitmap_len_landed = 0;
@@ -1215,7 +1215,6 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
     rcti rect_test;
     blf_glyph_calc_rect_test(&rect_test, g, x, y);
     BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
-
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
     }

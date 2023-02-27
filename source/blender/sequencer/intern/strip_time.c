@@ -7,22 +7,31 @@
  * \ingroup bke
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BKE_fcurve.h"
 #include "BKE_movieclip.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_sound_types.h"
+
 #include "IMB_imbuf.h"
+
+#include "RNA_prototypes.h"
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
+#include "SEQ_retiming.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
@@ -44,9 +53,13 @@ float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence
   return seq->media_playback_rate / scene_playback_rate;
 }
 
-float seq_time_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
+int seq_time_strip_original_content_length_get(const Scene *scene, const Sequence *seq)
 {
-  return seq_time_media_playback_rate_factor_get(scene, seq) * seq->speed_factor;
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    return seq->len;
+  }
+
+  return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);
 }
 
 float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
@@ -54,6 +67,7 @@ float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
   float end = SEQ_time_content_end_frame_get(scene, seq) - 1;
+  const float length = seq_time_strip_original_content_length_get(scene, seq);
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     end = SEQ_time_right_handle_frame_get(scene, seq);
@@ -70,9 +84,15 @@ float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
     frame_index = timeline_frame - sta;
   }
 
-  /* Clamp frame index to strip frame range. */
-  frame_index = clamp_f(frame_index, 0, end - sta);
-  frame_index *= seq_time_playback_rate_factor_get(scene, seq);
+  if (SEQ_retiming_is_active(seq)) {
+    const float retiming_factor = seq_retiming_evaluate(seq, frame_index);
+    frame_index = retiming_factor * (length - 1);
+  }
+  else {
+    frame_index *= seq_time_media_playback_rate_factor_get(scene, seq);
+    /* Clamp frame index to strip frame range. */
+    frame_index = clamp_f(frame_index, 0, end - sta);
+  }
 
   if (seq->strobe < 1.0f) {
     seq->strobe = 1.0f;
@@ -103,7 +123,7 @@ static void seq_update_sound_bounds_recursive_impl(const Scene *scene,
   Sequence *seq;
 
   /* For sound we go over full meta tree to update bounds of the sound strips,
-   * since sound is played outside of evaluating the imbufs. */
+   * since sound is played outside of evaluating the image-buffers (#ImBuf). */
   for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_bounds_recursive_impl(
@@ -484,7 +504,13 @@ int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
     return seq->len;
   }
 
-  return seq->len / seq_time_playback_rate_factor_get(scene, seq);
+  if (SEQ_retiming_is_active(seq)) {
+    SeqRetimingHandle *handle_start = seq->retiming_handles;
+    SeqRetimingHandle *handle_end = seq->retiming_handles + (SEQ_retiming_handles_count(seq) - 1);
+    return handle_end->strip_frame_index - handle_start->strip_frame_index + 1;
+  }
+
+  return seq_time_strip_original_content_length_get(scene, seq);
 }
 
 float SEQ_time_start_frame_get(const Sequence *seq)

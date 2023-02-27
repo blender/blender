@@ -118,6 +118,12 @@ TEST(bit_span, Set)
             0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'1111'0000);
 }
 
+TEST(bit_span, SetEmpty)
+{
+  MutableBitSpan().set_all(true);
+  MutableBitSpan().set_all(false);
+}
+
 TEST(bit_span, SetSliced)
 {
   std::array<uint64_t, 10> data;

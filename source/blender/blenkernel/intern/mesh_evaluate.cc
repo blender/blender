@@ -329,21 +329,19 @@ bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
 
 bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
 {
-  int i = me->totpoly;
-  const MPoly *mpoly;
   float poly_area;
   float total_area = 0.0f;
   float poly_cent[3];
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MPoly *polys = BKE_mesh_polys(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const blender::Span<MPoly> polys = me->polys();
+  const blender::Span<MLoop> loops = me->loops();
 
   zero_v3(r_cent);
 
   /* calculate a weighted average of polygon centroids */
-  for (mpoly = polys; i--; mpoly++) {
+  for (const int i : polys.index_range()) {
     poly_area = mesh_calc_poly_area_centroid(
-        mpoly, loops + mpoly->loopstart, positions, poly_cent);
+        &polys[i], &loops[polys[i].loopstart], positions, poly_cent);
 
     madd_v3_v3fl(r_cent, poly_cent, poly_area);
     total_area += poly_area;
@@ -363,14 +361,12 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
 
 bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 {
-  int i = me->totpoly;
-  const MPoly *mpoly;
   float poly_volume;
   float total_volume = 0.0f;
   float poly_cent[3];
   const Span<float3> positions = me->vert_positions();
-  const MPoly *polys = BKE_mesh_polys(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const blender::Span<MPoly> polys = me->polys();
+  const blender::Span<MLoop> loops = me->loops();
 
   /* Use an initial center to avoid numeric instability of geometry far away from the center. */
   float init_cent[3];
@@ -379,9 +375,9 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
   zero_v3(r_cent);
 
   /* calculate a weighted average of polyhedron centroids */
-  for (mpoly = polys; i--; mpoly++) {
+  for (const int i : polys.index_range()) {
     poly_volume = mesh_calc_poly_volume_centroid_with_reference_center(
-        mpoly, loops + mpoly->loopstart, positions, init_cent, poly_cent);
+        &polys[i], &loops[polys[i].loopstart], positions, init_cent, poly_cent);
 
     /* poly_cent is already volume-weighted, so no need to multiply by the volume */
     add_v3_v3(r_cent, poly_cent);

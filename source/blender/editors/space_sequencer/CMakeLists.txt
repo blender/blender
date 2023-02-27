@@ -35,10 +35,13 @@ set(SRC
   sequencer_drag_drop.c
   sequencer_draw.c
   sequencer_edit.c
+  sequencer_gizmo_retime.cc
+  sequencer_gizmo_retime_type.cc
   sequencer_modifier.c
   sequencer_ops.c
   sequencer_preview.c
   sequencer_proxy.c
+  sequencer_retiming.cc
   sequencer_scopes.c
   sequencer_select.c
   sequencer_thumbnails.c

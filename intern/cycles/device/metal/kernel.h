@@ -76,7 +76,7 @@ struct MetalKernelPipeline {
 
   id<MTLLibrary> mtlLibrary = nil;
   MetalPipelineType pso_type;
-  string source_md5;
+  string kernels_md5;
   size_t usage_count = 0;
 
   KernelData kernel_data_;

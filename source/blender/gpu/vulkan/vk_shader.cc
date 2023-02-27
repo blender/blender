@@ -326,10 +326,10 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 }
 
 static void print_resource(std::ostream &os,
-                           const ShaderInput &shader_input,
+                           const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res)
 {
-  os << "layout(binding = " << shader_input.location;
+  os << "layout(binding = " << static_cast<uint32_t>(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
     os << ", " << to_string(res.image.format);
   }
@@ -379,12 +379,8 @@ static void print_resource(std::ostream &os,
                            const VKShaderInterface &shader_interface,
                            const ShaderCreateInfo::Resource &res)
 {
-  const ShaderInput *shader_input = shader_interface.shader_input_get(res);
-  if (shader_input == nullptr) {
-    BLI_assert_msg(shader_input, "Cannot find shader input for resource");
-    return;
-  }
-  print_resource(os, *shader_input, res);
+  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(res);
+  print_resource(os, location, res);
 }
 
 static void print_resource_alias(std::ostream &os, const ShaderCreateInfo::Resource &res)
@@ -762,14 +758,94 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   return true;
 }
 
-static VkDescriptorType descriptor_type(
-    const shader::ShaderCreateInfo::Resource::BindType bind_type)
+static VkDescriptorType storage_descriptor_type(const shader::ImageType &image_type)
 {
-  switch (bind_type) {
-    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+  switch (image_type) {
+    case shader::ImageType::FLOAT_1D:
+    case shader::ImageType::FLOAT_1D_ARRAY:
+    case shader::ImageType::FLOAT_2D:
+    case shader::ImageType::FLOAT_2D_ARRAY:
+    case shader::ImageType::FLOAT_3D:
+    case shader::ImageType::FLOAT_CUBE:
+    case shader::ImageType::FLOAT_CUBE_ARRAY:
+    case shader::ImageType::INT_1D:
+    case shader::ImageType::INT_1D_ARRAY:
+    case shader::ImageType::INT_2D:
+    case shader::ImageType::INT_2D_ARRAY:
+    case shader::ImageType::INT_3D:
+    case shader::ImageType::INT_CUBE:
+    case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::UINT_1D:
+    case shader::ImageType::UINT_1D_ARRAY:
+    case shader::ImageType::UINT_2D:
+    case shader::ImageType::UINT_2D_ARRAY:
+    case shader::ImageType::UINT_3D:
+    case shader::ImageType::UINT_CUBE:
+    case shader::ImageType::UINT_CUBE_ARRAY:
       return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+
+    case shader::ImageType::FLOAT_BUFFER:
+    case shader::ImageType::INT_BUFFER:
+    case shader::ImageType::UINT_BUFFER:
+      return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+
+    default:
+      BLI_assert_msg(false, "ImageType not supported.");
+  }
+
+  return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+}
+
+static VkDescriptorType sampler_descriptor_type(const shader::ImageType &image_type)
+{
+  switch (image_type) {
+    case shader::ImageType::FLOAT_1D:
+    case shader::ImageType::FLOAT_1D_ARRAY:
+    case shader::ImageType::FLOAT_2D:
+    case shader::ImageType::FLOAT_2D_ARRAY:
+    case shader::ImageType::FLOAT_3D:
+    case shader::ImageType::FLOAT_CUBE:
+    case shader::ImageType::FLOAT_CUBE_ARRAY:
+    case shader::ImageType::INT_1D:
+    case shader::ImageType::INT_1D_ARRAY:
+    case shader::ImageType::INT_2D:
+    case shader::ImageType::INT_2D_ARRAY:
+    case shader::ImageType::INT_3D:
+    case shader::ImageType::INT_CUBE:
+    case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::UINT_1D:
+    case shader::ImageType::UINT_1D_ARRAY:
+    case shader::ImageType::UINT_2D:
+    case shader::ImageType::UINT_2D_ARRAY:
+    case shader::ImageType::UINT_3D:
+    case shader::ImageType::UINT_CUBE:
+    case shader::ImageType::UINT_CUBE_ARRAY:
+    case shader::ImageType::SHADOW_2D:
+    case shader::ImageType::SHADOW_2D_ARRAY:
+    case shader::ImageType::SHADOW_CUBE:
+    case shader::ImageType::SHADOW_CUBE_ARRAY:
+    case shader::ImageType::DEPTH_2D:
+    case shader::ImageType::DEPTH_2D_ARRAY:
+    case shader::ImageType::DEPTH_CUBE:
+    case shader::ImageType::DEPTH_CUBE_ARRAY:
       return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+    case shader::ImageType::FLOAT_BUFFER:
+    case shader::ImageType::INT_BUFFER:
+    case shader::ImageType::UINT_BUFFER:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+  }
+
+  return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+}
+
+static VkDescriptorType descriptor_type(const shader::ShaderCreateInfo::Resource &resource)
+{
+  switch (resource.bind_type) {
+    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+      return storage_descriptor_type(resource.image.type);
+    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+      return sampler_descriptor_type(resource.sampler.type);
     case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
@@ -780,11 +856,11 @@ static VkDescriptorType descriptor_type(
 }
 
 static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
-    const ShaderInput &shader_input, const shader::ShaderCreateInfo::Resource &resource)
+    const VKDescriptorSet::Location location, const shader::ShaderCreateInfo::Resource &resource)
 {
   VkDescriptorSetLayoutBinding binding = {};
-  binding.binding = shader_input.location;
-  binding.descriptorType = descriptor_type(resource.bind_type);
+  binding.binding = location;
+  binding.descriptorType = descriptor_type(resource);
   binding.descriptorCount = 1;
   binding.stageFlags = VK_SHADER_STAGE_ALL;
   binding.pImmutableSamplers = nullptr;
@@ -798,13 +874,8 @@ static void add_descriptor_set_layout_bindings(
     Vector<VkDescriptorSetLayoutBinding> &r_bindings)
 {
   for (const shader::ShaderCreateInfo::Resource &resource : resources) {
-    const ShaderInput *shader_input = interface.shader_input_get(resource);
-    if (shader_input == nullptr) {
-      BLI_assert_msg(shader_input, "Cannot find shader input for resource.");
-      continue;
-    }
-
-    r_bindings.append(create_descriptor_set_layout_binding(*shader_input, resource));
+    const VKDescriptorSet::Location location = interface.descriptor_set_location(resource);
+    r_bindings.append(create_descriptor_set_layout_binding(location, resource));
   }
 }
 
@@ -834,9 +905,9 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   VK_ALLOCATION_CALLBACKS
 
   /* Currently we create a single descriptor set. The goal would be to create one descriptor set
-   * for Frequency::PASS/BATCH. This isn't possible as areas expect that the binding location is
-   * static and predictable (eevee-next) or the binding location can be mapped to a single number
-   * (python). */
+   * for #Frequency::PASS/BATCH. This isn't possible as areas expect that the binding location is
+   * static and predictable (EEVEE-NEXT) or the binding location can be mapped to a single number
+   * (Python). */
   Vector<ShaderCreateInfo::Resource> all_resources;
   all_resources.extend(info.pass_resources_);
   all_resources.extend(info.batch_resources_);
@@ -952,12 +1023,6 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
     ss << "layout(location = " << attr.index << ") ";
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
-  }
-  /* NOTE(D4490): Fix a bug where shader without any vertex attributes do not behave correctly.
-   */
-  if (GPU_type_matches_ex(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
-      info.vertex_inputs_.is_empty()) {
-    ss << "in float gpu_dummy_workaround;\n";
   }
   ss << "\n/* Interfaces. */\n";
   int location = 0;
@@ -1132,6 +1197,9 @@ VKPipeline &VKShader::pipeline_get()
 
 const VKShaderInterface &VKShader::interface_get() const
 {
+  BLI_assert_msg(interface != nullptr,
+                 "Unable to access the shader interface when finalizing the shader, use the "
+                 "instance created in the finalize method.");
   return *static_cast<const VKShaderInterface *>(interface);
 }
 

@@ -176,11 +176,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   const float(*me_positions)[3] = BKE_mesh_vert_positions(me);
-  const MEdge *me_edges = BKE_mesh_edges(me);
+  const blender::Span<MEdge> me_edges = me->edges();
   const float(*result_positions)[3] = BKE_mesh_vert_positions(result);
-  const MEdge *result_edges = BKE_mesh_edges(result);
+  const blender::Span<MEdge> result_edges = result->edges();
 
-  if (((result == me) || (me_positions == result_positions) || (me_edges == result_edges)) &&
+  if (((result == me) || (me_positions == result_positions) ||
+       (me_edges.data() == result_edges.data())) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see #43671. */

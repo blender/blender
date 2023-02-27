@@ -127,31 +127,27 @@ static void mesh_get_weights(const MDeformVert *dvert,
 
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
-  const MEdge *medge = BKE_mesh_edges(mesh);
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
-  const MLoop *mloop = BKE_mesh_loops(mesh);
-
-  const uint mpoly_num = uint(mesh->totpoly);
-  const uint medge_num = uint(mesh->totedge);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   /* Flag boundary edges so only boundaries are set to 1. */
   uint8_t *boundaries = static_cast<uint8_t *>(
-      MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__));
+      MEM_calloc_arrayN(size_t(edges.size()), sizeof(*boundaries), __func__));
 
-  for (uint i = 0; i < mpoly_num; i++) {
-    const MPoly *p = &mpoly[i];
-    const int totloop = p->totloop;
+  for (const int64_t i : polys.index_range()) {
+    const int totloop = polys[i].totloop;
     int j;
     for (j = 0; j < totloop; j++) {
-      uint8_t *e_value = &boundaries[mloop[p->loopstart + j].e];
+      uint8_t *e_value = &boundaries[loops[polys[i].loopstart + j].e];
       *e_value |= uint8_t((*e_value) + 1);
     }
   }
 
-  for (uint i = 0; i < medge_num; i++) {
+  for (const int64_t i : edges.index_range()) {
     if (boundaries[i] == 1) {
-      smooth_weights[medge[i].v1] = 0.0f;
-      smooth_weights[medge[i].v2] = 0.0f;
+      smooth_weights[edges[i].v1] = 0.0f;
+      smooth_weights[edges[i].v2] = 0.0f;
     }
   }
 
@@ -174,7 +170,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   uint i;
 
   const uint edges_num = uint(mesh->totedge);
-  const MEdge *edges = BKE_mesh_edges(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
 
   struct SmoothingData_Simple {
     float delta[3];
@@ -252,7 +248,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
-  const MEdge *edges = BKE_mesh_edges(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
   uint i;
 
   struct SmoothingData_Weighted {
@@ -437,19 +433,17 @@ static void calc_tangent_spaces(const Mesh *mesh,
                                 float *r_tangent_weights,
                                 float *r_tangent_weights_per_vertex)
 {
-  const uint mpoly_num = uint(mesh->totpoly);
   const uint mvert_num = uint(mesh->totvert);
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
-  const MLoop *mloop = BKE_mesh_loops(mesh);
-  uint i;
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   if (r_tangent_weights_per_vertex != nullptr) {
     copy_vn_fl(r_tangent_weights_per_vertex, int(mvert_num), 0.0f);
   }
 
-  for (i = 0; i < mpoly_num; i++) {
-    const MPoly *mp = &mpoly[i];
-    const MLoop *l_next = &mloop[mp->loopstart];
+  for (const int64_t i : polys.index_range()) {
+    const MPoly *mp = &polys[i];
+    const MLoop *l_next = &loops[mp->loopstart];
     const MLoop *l_term = l_next + mp->totloop;
     const MLoop *l_prev = l_term - 2;
     const MLoop *l_curr = l_term - 1;
@@ -462,7 +456,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
     normalize_v3(v_dir_prev);
 
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      uint l_index = uint(l_curr - mloop);
+      uint l_index = uint(l_curr - loops.data());
       float(*ts)[3] = r_tangent_spaces[l_index];
 
       /* re-use the previous value */
@@ -519,35 +513,34 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         const float (*rest_coords)[3],
                         uint verts_num)
 {
-  const MLoop *mloop = BKE_mesh_loops(mesh);
-  const uint loops_num = uint(mesh->totloop);
+  const blender::Span<MLoop> loops = mesh->loops();
 
   float(*smooth_vertex_coords)[3] = static_cast<float(*)[3]>(MEM_dupallocN(rest_coords));
 
   uint l_index;
 
   float(*tangent_spaces)[3][3] = static_cast<float(*)[3][3]>(
-      MEM_malloc_arrayN(loops_num, sizeof(float[3][3]), __func__));
+      MEM_malloc_arrayN(size_t(loops.size()), sizeof(float[3][3]), __func__));
 
-  if (csmd->delta_cache.deltas_num != loops_num) {
+  if (csmd->delta_cache.deltas_num != uint(loops.size())) {
     MEM_SAFE_FREE(csmd->delta_cache.deltas);
   }
 
   /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
   if (!csmd->delta_cache.deltas) {
-    csmd->delta_cache.deltas_num = loops_num;
+    csmd->delta_cache.deltas_num = uint(loops.size());
     csmd->delta_cache.deltas = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(loops_num, sizeof(float[3]), __func__));
+        MEM_malloc_arrayN(size_t(loops.size()), sizeof(float[3]), __func__));
   }
 
   smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords, verts_num);
 
   calc_tangent_spaces(mesh, smooth_vertex_coords, tangent_spaces, nullptr, nullptr);
 
-  copy_vn_fl(&csmd->delta_cache.deltas[0][0], int(loops_num) * 3, 0.0f);
+  copy_vn_fl(&csmd->delta_cache.deltas[0][0], int(loops.size()) * 3, 0.0f);
 
-  for (l_index = 0; l_index < loops_num; l_index++) {
-    const int v_index = int(mloop[l_index].v);
+  for (l_index = 0; l_index < loops.size(); l_index++) {
+    const int v_index = int(loops[l_index].v);
     float delta[3];
     sub_v3_v3v3(delta, rest_coords[v_index], smooth_vertex_coords[v_index]);
 
@@ -578,8 +571,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
-  const MLoop *mloop = BKE_mesh_loops(mesh);
-  const uint loops_num = uint(mesh->totloop);
+  const blender::Span<MLoop> loops = mesh->loops();
 
   bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
   const MDeformVert *dvert = nullptr;
@@ -644,7 +636,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   /* check to see if our deltas are still valid */
-  if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != loops_num) ||
+  if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != loops.size()) ||
       force_delta_cache_update) {
     const float(*rest_coords)[3];
     bool is_rest_coords_alloc = false;
@@ -693,22 +685,21 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   smooth_verts(csmd, mesh, dvert, defgrp_index, vertexCos, verts_num);
 
   {
-    uint l_index;
 
     const float scale = csmd->scale;
 
     float(*tangent_spaces)[3][3] = static_cast<float(*)[3][3]>(
-        MEM_malloc_arrayN(loops_num, sizeof(float[3][3]), __func__));
+        MEM_malloc_arrayN(size_t(loops.size()), sizeof(float[3][3]), __func__));
     float *tangent_weights = static_cast<float *>(
-        MEM_malloc_arrayN(loops_num, sizeof(float), __func__));
+        MEM_malloc_arrayN(size_t(loops.size()), sizeof(float), __func__));
     float *tangent_weights_per_vertex = static_cast<float *>(
         MEM_malloc_arrayN(verts_num, sizeof(float), __func__));
 
     calc_tangent_spaces(
         mesh, vertexCos, tangent_spaces, tangent_weights, tangent_weights_per_vertex);
 
-    for (l_index = 0; l_index < loops_num; l_index++) {
-      const uint v_index = mloop[l_index].v;
+    for (const int64_t l_index : loops.index_range()) {
+      const uint v_index = loops[l_index].v;
       const float weight = tangent_weights[l_index] / tangent_weights_per_vertex[v_index];
       if (UNLIKELY(!(weight > 0.0f))) {
         /* Catches zero & divide by zero. */

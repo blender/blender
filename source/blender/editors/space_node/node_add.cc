@@ -456,6 +456,22 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
+static char *node_add_group_asset_get_description(struct bContext *C,
+                                                  struct wmOperatorType * /*op*/,
+                                                  struct PointerRNA * /*values*/)
+{
+  bool is_valid;
+  const AssetHandle handle = CTX_wm_asset_handle(C, &is_valid);
+  if (!is_valid) {
+    return nullptr;
+  }
+  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&handle);
+  if (!asset_data.description) {
+    return nullptr;
+  }
+  return BLI_strdup(asset_data.description);
+}
+
 void NODE_OT_add_group_asset(wmOperatorType *ot)
 {
   ot->name = "Add Node Group Asset";
@@ -464,6 +480,7 @@ void NODE_OT_add_group_asset(wmOperatorType *ot)
 
   ot->invoke = node_add_group_asset_invoke;
   ot->poll = node_add_group_poll;
+  ot->get_description = node_add_group_asset_get_description;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }

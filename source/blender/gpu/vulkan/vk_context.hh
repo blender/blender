@@ -30,6 +30,9 @@ class VKContext : public Context {
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;
   VKDescriptorPools descriptor_pools_;
 
+  /** Limits of the device linked to this context. */
+  VkPhysicalDeviceLimits vk_physical_device_limits_;
+
   void *ghost_context_;
 
  public:
@@ -57,6 +60,11 @@ class VKContext : public Context {
   VkPhysicalDevice physical_device_get() const
   {
     return vk_physical_device_;
+  }
+
+  const VkPhysicalDeviceLimits &physical_device_limits_get() const
+  {
+    return vk_physical_device_limits_;
   }
 
   VkDevice device_get() const
@@ -88,6 +96,9 @@ class VKContext : public Context {
   {
     return mem_allocator_;
   }
+
+ private:
+  void init_physical_device_limits();
 };
 
 }  // namespace blender::gpu

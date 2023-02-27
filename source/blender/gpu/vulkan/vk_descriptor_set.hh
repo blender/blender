@@ -15,10 +15,12 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
-class VKStorageBuffer;
-class VKVertexBuffer;
 class VKIndexBuffer;
+class VKShaderInterface;
+class VKStorageBuffer;
 class VKTexture;
+class VKUniformBuffer;
+class VKVertexBuffer;
 
 /**
  * In vulkan shader resources (images and buffers) are grouped in descriptor sets.
@@ -26,7 +28,7 @@ class VKTexture;
  * The resources inside a descriptor set can be updated and bound per set.
  *
  * Currently Blender only supports a single descriptor set per shader, but it is planned to be able
- * to use 2 descriptor sets per shader. Only for each #blender::gpu::shader::Frequency.
+ * to use 2 descriptor sets per shader. One for each #blender::gpu::shader::Frequency.
  */
 class VKDescriptorSet : NonCopyable {
   struct Binding;
@@ -50,12 +52,12 @@ class VKDescriptorSet : NonCopyable {
      */
     uint32_t binding;
 
-    Location() = default;
-
-   public:
-    Location(const ShaderInput *shader_input) : binding(shader_input->location)
+    Location(uint32_t binding) : binding(binding)
     {
     }
+
+   public:
+    Location() = default;
 
     bool operator==(const Location &other) const
     {
@@ -68,6 +70,7 @@ class VKDescriptorSet : NonCopyable {
     }
 
     friend struct Binding;
+    friend class VKShaderInterface;
   };
 
  private:
@@ -87,7 +90,7 @@ class VKDescriptorSet : NonCopyable {
 
     bool is_buffer() const
     {
-      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     }
 
     bool is_image() const
@@ -131,6 +134,7 @@ class VKDescriptorSet : NonCopyable {
   void bind_as_ssbo(VKVertexBuffer &buffer, Location location);
   void bind_as_ssbo(VKIndexBuffer &buffer, Location location);
   void bind(VKStorageBuffer &buffer, Location location);
+  void bind(VKUniformBuffer &buffer, Location location);
   void image_bind(VKTexture &texture, Location location);
 
   /**

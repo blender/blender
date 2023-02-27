@@ -183,15 +183,15 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(const BLI_bitmap *old_hidde
 
 static void multires_output_hidden_to_ccgdm(CCGDerivedMesh *ccgdm, Mesh *me, int level)
 {
-  const MPoly *polys = BKE_mesh_polys(me);
+  const blender::Span<MPoly> polys = me->polys();
   const MDisps *mdisps = static_cast<const MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
   BLI_bitmap **grid_hidden = ccgdm->gridHidden;
   int *gridOffset;
-  int i, j;
+  int j;
 
   gridOffset = ccgdm->dm.getGridOffset(&ccgdm->dm);
 
-  for (i = 0; i < me->totpoly; i++) {
+  for (const int i : polys.index_range()) {
     for (j = 0; j < polys[i].totloop; j++) {
       int g = gridOffset[i] + j;
       const MDisps *md = &mdisps[g];
@@ -487,12 +487,12 @@ void multires_force_external_reload(Object *object)
 static int get_levels_from_disps(Object *ob)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const MPoly *polys = BKE_mesh_polys(me);
-  int i, j, totlvl = 0;
+  const blender::Span<MPoly> polys = me->polys();
+  int j, totlvl = 0;
 
   const MDisps *mdisp = static_cast<const MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
 
-  for (i = 0; i < me->totpoly; i++) {
+  for (const int i : polys.index_range()) {
     const MDisps *md = mdisp + polys[i].loopstart;
 
     for (j = 0; j < polys[i].totloop; j++, md++) {
@@ -657,7 +657,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, int level)
 static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 {
   Mesh *me = (Mesh *)ob->data;
-  const MPoly *polys = BKE_mesh_polys(me);
+  const blender::Span<MPoly> polys = me->polys();
   int levels = mmd->totlvl - lvl;
   MDisps *mdisps;
   GridPaintMask *gpm;
@@ -676,9 +676,9 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
       // MLoop *ml = me->mloop; /*UNUSED*/
       int nsize = multires_side_tot[lvl];
       int hsize = multires_side_tot[mmd->totlvl];
-      int i, j;
+      int j;
 
-      for (i = 0; i < me->totpoly; i++) {
+      for (const int i : polys.index_range()) {
         for (j = 0; j < polys[i].totloop; j++) {
           int g = polys[i].loopstart + j;
           MDisps *mdisp = &mdisps[g];
@@ -968,7 +968,7 @@ static void multiresModifier_disp_run(
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGElem **gridData, **subGridData;
   CCGKey key;
-  const MPoly *mpoly = BKE_mesh_polys(me);
+  const MPoly *mpoly = me->polys().data();
   MDisps *mdisps = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
   GridPaintMask *grid_paint_mask = nullptr;

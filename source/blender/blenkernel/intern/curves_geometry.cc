@@ -469,8 +469,12 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   const VArray<int> resolution = curves.resolution();
   const VArray<bool> cyclic = curves.cyclic();
 
-  const VArraySpan<int8_t> handle_types_left{curves.handle_types_left()};
-  const VArraySpan<int8_t> handle_types_right{curves.handle_types_right()};
+  VArraySpan<int8_t> handle_types_left;
+  VArraySpan<int8_t> handle_types_right;
+  if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    handle_types_left = curves.handle_types_left();
+    handle_types_right = curves.handle_types_right();
+  }
 
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   const VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
@@ -981,7 +985,6 @@ void CurvesGeometry::tag_normals_changed()
 }
 void CurvesGeometry::tag_radii_changed()
 {
-  this->runtime->bounds_cache.tag_dirty();
 }
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
@@ -1064,19 +1067,8 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
     return false;
   }
 
-  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
-    const Span<float3> positions = this->evaluated_positions();
-    if (this->attributes().contains("radius")) {
-      const VArraySpan<float> radii = this->attributes().lookup<float>("radius");
-      Array<float> evaluated_radii(this->evaluated_points_num());
-      this->ensure_can_interpolate_to_evaluated();
-      this->interpolate_to_evaluated(radii, evaluated_radii.as_mutable_span());
-      r_bounds = *bounds::min_max_with_radii(positions, evaluated_radii.as_span());
-    }
-    else {
-      r_bounds = *bounds::min_max(positions);
-    }
-  });
+  this->runtime->bounds_cache.ensure(
+      [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->evaluated_positions()); });
 
   const Bounds<float3> &bounds = this->runtime->bounds_cache.data();
   min = math::min(bounds.min, min);

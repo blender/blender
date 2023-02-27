@@ -996,7 +996,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
@@ -1057,7 +1056,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           &mesh_in, mesh_in.totvert, mesh_in.totedge, 0, selected_loops_num, selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       mesh_out->edges_for_write().copy_from(mesh_in.edges());
       copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
 
