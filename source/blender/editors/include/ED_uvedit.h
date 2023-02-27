@@ -26,6 +26,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
+struct UVPackIsland_Params;
 struct View2D;
 struct ViewLayer;
 struct bContext;
