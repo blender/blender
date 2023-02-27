@@ -648,7 +648,7 @@ static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   }
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    return (ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE));
+    return ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE);
   }
 
   return WM_drag_is_ID_type(drag, ID_IM);
