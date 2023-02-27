@@ -19,6 +19,8 @@
 
 #include "BLI_math_base.h"
 
+#include "BLT_translation.h"
+
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
     {VOLUME_GRID_FLOAT, "FLOAT", 0, "Float", "Single precision float"},
@@ -264,6 +266,7 @@ static void rna_def_volume_grid(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_VolumeGrid_data_type_get", NULL, NULL);
   RNA_def_property_enum_items(prop, rna_enum_volume_grid_data_type_items);
   RNA_def_property_ui_text(prop, "Data Type", "Data type of voxel values");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_VOLUME);
 
   prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
