@@ -366,6 +366,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDGE:
           cp = ts->edge;
           break;
+        case TH_EDGE_WIDTH:
+          cp = &ts->edge_width;
+          break;
         case TH_EDGE_SELECT:
           cp = ts->edge_select;
           break;
