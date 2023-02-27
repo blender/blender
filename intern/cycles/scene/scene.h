@@ -72,7 +72,7 @@ class DeviceScene {
   device_vector<packed_float3> tri_verts;
   device_vector<uint> tri_shader;
   device_vector<packed_float3> tri_vnormal;
-  device_vector<uint4> tri_vindex;
+  device_vector<packed_uint3> tri_vindex;
   device_vector<uint> tri_patch;
   device_vector<float2> tri_patch_uv;
 
