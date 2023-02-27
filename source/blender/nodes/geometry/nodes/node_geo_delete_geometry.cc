@@ -915,7 +915,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       mesh_out = BKE_mesh_new_nomain_from_template(&mesh_in,
                                                    selected_verts_num,
                                                    selected_edges_num,
-                                                   0,
                                                    selected_loops_num,
                                                    selected_polys_num);
 
@@ -988,12 +987,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           BLI_assert_unreachable();
           break;
       }
-      mesh_out = BKE_mesh_new_nomain_from_template(&mesh_in,
-                                                   mesh_in.totvert,
-                                                   selected_edges_num,
-                                                   0,
-                                                   selected_loops_num,
-                                                   selected_polys_num);
+      mesh_out = BKE_mesh_new_nomain_from_template(
+          &mesh_in, mesh_in.totvert, selected_edges_num, selected_loops_num, selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
@@ -1053,7 +1048,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           break;
       }
       mesh_out = BKE_mesh_new_nomain_from_template(
-          &mesh_in, mesh_in.totvert, mesh_in.totedge, 0, selected_loops_num, selected_polys_num);
+          &mesh_in, mesh_in.totvert, mesh_in.totedge, selected_loops_num, selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       mesh_out->edges_for_write().copy_from(mesh_in.edges());

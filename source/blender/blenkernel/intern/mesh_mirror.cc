@@ -195,7 +195,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   const int maxPolys = mesh->totpoly;
 
   result = BKE_mesh_new_nomain_from_template(
-      mesh, maxVerts * 2, maxEdges * 2, 0, maxLoops * 2, maxPolys * 2);
+      mesh, maxVerts * 2, maxEdges * 2, maxLoops * 2, maxPolys * 2);
 
   /* Copy custom-data to original geometry. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, maxVerts);

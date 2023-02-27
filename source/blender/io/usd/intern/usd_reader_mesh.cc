@@ -844,7 +844,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   if (topology_changed(existing_mesh, params.motion_sample_time)) {
     new_mesh = true;
     active_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
+        existing_mesh, positions_.size(), 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
       add_customdata_cb(active_mesh, token.GetText(), CD_PROP_FLOAT2);

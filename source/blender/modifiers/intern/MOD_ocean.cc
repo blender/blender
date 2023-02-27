@@ -266,7 +266,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   gogd.sx /= gogd.rx;
   gogd.sy /= gogd.ry;
 
-  result = BKE_mesh_new_nomain(verts_num, 0, 0, polys_num * 4, polys_num);
+  result = BKE_mesh_new_nomain(verts_num, 0, polys_num * 4, polys_num);
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
   gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);

@@ -312,7 +312,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     max_co = max[track];
   }
 
-  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, 0, maxloop, maxpoly);
+  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxloop, maxpoly);
 
   const blender::Span<MPoly> orig_polys = mesh->polys();
   const blender::Span<MLoop> orig_loops = mesh->loops();

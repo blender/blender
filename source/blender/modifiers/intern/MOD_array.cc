@@ -539,7 +539,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+      mesh, result_nverts, result_nedges, result_nloops, result_npolys);
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();

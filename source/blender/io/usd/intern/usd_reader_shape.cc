@@ -186,7 +186,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
   Mesh *active_mesh = nullptr;
   if (!position_counts_match || !poly_counts_match) {
     active_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions.size(), 0, 0, face_indices.size(), face_counts.size());
+        existing_mesh, positions.size(), 0, face_indices.size(), face_counts.size());
   }
   else {
     active_mesh = existing_mesh;

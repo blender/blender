@@ -127,7 +127,7 @@ static Mesh *get_quick_mesh(
   if (mesh_self->totpoly == 0 || mesh_operand_ob->totpoly == 0) {
     switch (operation) {
       case eBooleanModifierOp_Intersect:
-        result = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+        result = BKE_mesh_new_nomain(0, 0, 0, 0);
         break;
 
       case eBooleanModifierOp_Union:

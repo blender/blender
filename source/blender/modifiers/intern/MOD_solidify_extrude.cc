@@ -327,7 +327,6 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   result = BKE_mesh_new_nomain_from_template(mesh,
                                              int((verts_num * stride) + newVerts),
                                              int((edges_num * stride) + newEdges + rimVerts),
-                                             0,
                                              int((loops_num * stride) + newLoops),
                                              int((polys_num * stride) + newPolys));
 

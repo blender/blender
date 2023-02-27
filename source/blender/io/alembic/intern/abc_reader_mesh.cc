@@ -726,7 +726,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 
   if (topology_changed(existing_mesh, sample_sel)) {
     new_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
+        existing_mesh, positions->size(), 0, face_indices->size(), face_counts->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
   }
@@ -1059,7 +1059,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
   if (existing_mesh->totvert != positions->size()) {
     new_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
+        existing_mesh, positions->size(), 0, face_indices->size(), face_counts->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
   }

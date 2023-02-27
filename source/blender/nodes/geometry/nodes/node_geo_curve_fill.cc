@@ -79,7 +79,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
     loop_len += face.size();
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
+  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, loop_len, poly_len);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();

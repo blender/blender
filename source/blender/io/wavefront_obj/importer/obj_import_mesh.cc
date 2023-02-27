@@ -48,7 +48,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   const int64_t tot_face_elems{mesh_geometry_.face_elements_.size()};
   const int64_t tot_loops{mesh_geometry_.total_loops_};
 
-  Mesh *mesh = BKE_mesh_new_nomain(tot_verts_object, tot_edges, 0, tot_loops, tot_face_elems);
+  Mesh *mesh = BKE_mesh_new_nomain(tot_verts_object, tot_edges, tot_loops, tot_face_elems);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name.c_str());
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 

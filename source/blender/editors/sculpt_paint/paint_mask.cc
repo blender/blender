@@ -1143,8 +1143,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const int trim_totverts = tot_screen_points * 2;
   const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
-  trim_operation->mesh = BKE_mesh_new_nomain(
-      trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
+  trim_operation->mesh = BKE_mesh_new_nomain(trim_totverts, 0, trim_totpolys * 3, trim_totpolys);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 

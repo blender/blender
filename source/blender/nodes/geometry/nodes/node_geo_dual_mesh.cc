@@ -886,7 +886,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
     }
   }
   Mesh *mesh_out = BKE_mesh_new_nomain(
-      vertex_positions.size(), new_edges.size(), 0, loops.size(), loop_lengths.size());
+      vertex_positions.size(), new_edges.size(), loops.size(), loop_lengths.size());
 
   transfer_attributes(vertex_types,
                       keep_boundaries,

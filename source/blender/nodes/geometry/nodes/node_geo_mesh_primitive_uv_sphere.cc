@@ -308,7 +308,6 @@ static Mesh *create_uv_sphere_mesh(const float radius,
 {
   Mesh *mesh = BKE_mesh_new_nomain(sphere_vert_total(segments, rings),
                                    sphere_edge_total(segments, rings),
-                                   0,
                                    sphere_corner_total(segments, rings),
                                    sphere_face_total(segments, rings));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);

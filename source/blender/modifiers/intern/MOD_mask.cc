@@ -627,7 +627,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   /* Return empty or input mesh when there are no vertex groups. */
   const Span<MDeformVert> dverts = mesh->deform_verts();
   if (dverts.is_empty()) {
-    return invert_mask ? mesh : BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
+    return invert_mask ? mesh : BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0);
   }
 
   /* Quick test to see if we can return early. */
@@ -713,7 +713,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   Mesh *result = BKE_mesh_new_nomain_from_template(mesh,
                                                    verts_masked_num + verts_add_num,
                                                    edges_masked_num + edges_add_num,
-                                                   0,
                                                    loops_masked_num + loops_add_num,
                                                    polys_masked_num + polys_add_num);
 

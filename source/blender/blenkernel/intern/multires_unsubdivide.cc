@@ -1149,7 +1149,7 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
   context->num_total_levels = context->num_new_levels + context->num_original_levels;
 
   /* Store the new base-mesh as a mesh in context, free bmesh. */
-  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
 
   BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = true;
