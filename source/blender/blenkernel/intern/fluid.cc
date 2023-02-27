@@ -2092,8 +2092,8 @@ static void emit_from_mesh(
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    BKE_mesh_vertex_normals_ensure(me);
-    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
+    BKE_mesh_vert_normals_ensure(me);
+    float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
       mul_m4_v3(flow_ob->object_to_world, positions[i]);

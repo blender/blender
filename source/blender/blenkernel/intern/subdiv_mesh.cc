@@ -1226,7 +1226,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
    * calculation. Since vertex normals are supposed to be a consistent cache, don't bother
    * calculating them here. The work may have been pointless anyway if the mesh is deformed or
    * changed afterwards. */
-  BLI_assert(BKE_mesh_vertex_normals_are_dirty(result) || BKE_mesh_poly_normals_are_dirty(result));
+  BLI_assert(BKE_mesh_vert_normals_are_dirty(result) || BKE_mesh_poly_normals_are_dirty(result));
   /* Free used memory. */
   subdiv_mesh_context_free(&subdiv_context);
   return result;

@@ -300,7 +300,7 @@ static void mesh_merge_transform(Mesh *result,
 
   /* We have to correct normals too, if we do not tag them as dirty later! */
   if (!recalc_normals_later) {
-    float(*dst_vert_normals)[3] = BKE_mesh_vertex_normals_for_write(result);
+    float(*dst_vert_normals)[3] = BKE_mesh_vert_normals_for_write(result);
     for (i = 0; i < cap_nverts; i++) {
       mul_mat3_m4_v3(cap_offset, dst_vert_normals[cap_verts_index + i]);
       normalize_v3(dst_vert_normals[cap_verts_index + i]);
@@ -378,7 +378,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   int tot_doubles;
 
   const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
-  const bool use_recalc_normals = BKE_mesh_vertex_normals_are_dirty(mesh) || use_merge;
+  const bool use_recalc_normals = BKE_mesh_vert_normals_are_dirty(mesh) || use_merge;
   const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != nullptr);
 
   int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
@@ -565,9 +565,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   const float(*src_vert_normals)[3] = nullptr;
   float(*dst_vert_normals)[3] = nullptr;
   if (!use_recalc_normals) {
-    src_vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-    dst_vert_normals = BKE_mesh_vertex_normals_for_write(result);
-    BKE_mesh_vertex_normals_clear_dirty(result);
+    src_vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+    dst_vert_normals = BKE_mesh_vert_normals_for_write(result);
+    BKE_mesh_vert_normals_clear_dirty(result);
   }
 
   for (c = 1; c < count; c++) {

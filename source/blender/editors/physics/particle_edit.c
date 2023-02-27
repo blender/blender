@@ -1453,7 +1453,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   nor = vec + 3;
 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
     const MFace *mface = &mfaces[i];

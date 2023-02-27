@@ -685,7 +685,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
 
   /* Normals should not be stored in the undo mesh, so recalculate them. The edit
    * mesh is expected to have valid normals and there is no tracked dirty state. */
-  BLI_assert(BKE_mesh_vertex_normals_are_dirty(&um->me));
+  BLI_assert(BKE_mesh_vert_normals_are_dirty(&um->me));
 
   /* Calculate face normals and tessellation at once since it's multi-threaded. */
   BKE_editmesh_looptri_and_normals_calc(em);

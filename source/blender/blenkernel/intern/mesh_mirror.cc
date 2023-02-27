@@ -400,7 +400,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const bool *sharp_edges = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     BKE_mesh_normals_loop_split(BKE_mesh_vert_positions(result),
-                                BKE_mesh_vertex_normals_ensure(result),
+                                BKE_mesh_vert_normals_ensure(result),
                                 result->totvert,
                                 result->edges().data(),
                                 result->totedge,

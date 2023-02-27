@@ -229,10 +229,10 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *face_adjacency_offsets,
                                     struct GPUVertBuf *face_adjacency_lists,
                                     struct GPUVertBuf *vertex_loop_map,
-                                    struct GPUVertBuf *vertex_normals);
+                                    struct GPUVertBuf *vert_normals);
 
 void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
-                                  struct GPUVertBuf *vertex_normals,
+                                  struct GPUVertBuf *vert_normals,
                                   struct GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   struct GPUVertBuf *pos_nor);
 

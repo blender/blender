@@ -452,7 +452,7 @@ static void rna_MeshVertex_co_set(PointerRNA *ptr, const float *value)
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   const int index = rna_MeshVertex_index_get(ptr);
   copy_v3_v3(value, vert_normals[index]);
 }
@@ -1994,7 +1994,7 @@ int rna_Mesh_loops_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 static void rna_Mesh_vertex_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const float(*normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   rna_iterator_array_begin(iter, (void *)normals, sizeof(float[3]), mesh->totvert, false, NULL);
 }
 
@@ -2013,7 +2013,7 @@ int rna_Mesh_vertex_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r
   /* Casting away const is okay because this RNA type doesn't allow changing the value. */
   r_ptr->owner_id = (ID *)&mesh->id;
   r_ptr->type = &RNA_MeshNormalValue;
-  r_ptr->data = (float *)BKE_mesh_vertex_normals_ensure(mesh)[index];
+  r_ptr->data = (float *)BKE_mesh_vert_normals_ensure(mesh)[index];
   return true;
 }
 

@@ -119,10 +119,9 @@ class TriangleToEdgeMap {
 struct MeshData {
  public:
   const Span<MLoopTri> looptris;
-  const int64_t verts_num;
   const Span<MLoop> loops;
   const Span<float2> uv_map;
-  const Span<float3> vertex_positions;
+  const Span<float3> vert_positions;
 
   VertToEdgeMap vert_to_edge_map;
 
@@ -142,9 +141,8 @@ struct MeshData {
  public:
   explicit MeshData(Span<MLoopTri> looptris,
                     Span<MLoop> loops,
-                    const int verts_num,
                     const Span<float2> uv_map,
-                    const Span<float3> vertex_positions);
+                    const Span<float3> vert_positions);
 };
 
 struct UVVertex {

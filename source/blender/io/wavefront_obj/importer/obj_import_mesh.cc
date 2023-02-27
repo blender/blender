@@ -358,7 +358,7 @@ void MeshFromGeometry::create_materials(Main *bmain,
 void MeshFromGeometry::create_normals(Mesh *mesh)
 {
   /* No normal data: nothing to do. */
-  if (global_vertices_.vertex_normals.is_empty()) {
+  if (global_vertices_.vert_normals.is_empty()) {
     return;
   }
   /* Custom normals can only be stored on face corners. */
@@ -375,7 +375,7 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       int n_index = curr_corner.vertex_normal_index;
       float3 normal(0, 0, 0);
       if (n_index >= 0) {
-        normal = global_vertices_.vertex_normals[n_index];
+        normal = global_vertices_.vert_normals[n_index];
       }
       copy_v3_v3(loop_normals[tot_loop_idx], normal);
       tot_loop_idx++;

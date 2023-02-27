@@ -302,7 +302,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   const float(*vert_normals)[3] = nullptr;
   if (params->calc_vert_normal) {
-    vert_normals = BKE_mesh_vertex_normals_ensure(me);
+    vert_normals = BKE_mesh_vert_normals_ensure(me);
   }
 
   if (is_new) {

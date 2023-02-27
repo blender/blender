@@ -491,7 +491,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
   temp_mesh->polys_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly});
   temp_mesh->loops_for_write().copy_from({dm->getLoopArray(dm), temp_mesh->totloop});
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(temp_mesh);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
   if (require_tangent) {

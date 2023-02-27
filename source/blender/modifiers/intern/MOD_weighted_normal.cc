@@ -610,7 +610,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   wn_data.verts_num = verts_num;
 
   wn_data.vert_positions = positions;
-  wn_data.vert_normals = BKE_mesh_vertex_normals_ensure(result);
+  wn_data.vert_normals = BKE_mesh_vert_normals_ensure(result);
   wn_data.edges = edges;
   wn_data.sharp_edges = sharp_edges.span.data();
 

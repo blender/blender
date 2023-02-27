@@ -131,7 +131,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
   }
 
   /* normalize vertex normals and assign */
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   for (int i = 0; i < verts_num; i++) {
     if (normalize_v3(r_vert_nors[i]) == 0.0f) {
       copy_v3_v3(r_vert_nors[i], vert_normals[i]);
@@ -205,7 +205,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* array size is doubled in case of using a shell */
   const uint stride = do_shell ? 2 : 1;
 
-  const float(*mesh_vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*mesh_vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -972,7 +972,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
 
   /* must recalculate normals with vgroups since they can displace unevenly #26888. */
-  if (BKE_mesh_vertex_normals_are_dirty(mesh) || do_rim || dvert) {
+  if (BKE_mesh_vert_normals_are_dirty(mesh) || do_rim || dvert) {
     BKE_mesh_normals_tag_dirty(result);
   }
   else if (do_shell) {
@@ -1022,7 +1022,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #ifdef SOLIDIFY_SIDE_NORMALS
     /* NOTE(@sybren): due to the code setting normals dirty a few lines above,
      * do_side_normals is always false. */
-    const bool do_side_normals = !BKE_mesh_vertex_normals_are_dirty(result);
+    const bool do_side_normals = !BKE_mesh_vert_normals_are_dirty(result);
     /* annoying to allocate these since we only need the edge verts, */
     float(*edge_vert_nos)[3] = do_side_normals ? static_cast<float(*)[3]>(MEM_calloc_arrayN(
                                                      verts_num, sizeof(float[3]), __func__)) :

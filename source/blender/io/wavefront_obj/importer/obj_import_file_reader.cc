@@ -142,7 +142,7 @@ static void geom_add_vertex_normal(const char *p,
    * making them ever-so-slightly non unit length. Make sure they are
    * normalized. */
   normalize_v3(normal);
-  r_global_vertices.vertex_normals.append(normal);
+  r_global_vertices.vert_normals.append(normal);
 }
 
 static void geom_add_uv_vertex(const char *p, const char *end, GlobalVertices &r_global_vertices)
@@ -282,16 +282,16 @@ static void geom_add_polygon(Geometry *geom,
     /* Ignore corner normal index, if the geometry does not have any normals.
      * Some obj files out there do have face definitions that refer to normal indices,
      * without any normals being present (#98782). */
-    if (got_normal && !global_vertices.vertex_normals.is_empty()) {
+    if (got_normal && !global_vertices.vert_normals.is_empty()) {
       corner.vertex_normal_index += corner.vertex_normal_index < 0 ?
-                                        global_vertices.vertex_normals.size() :
+                                        global_vertices.vert_normals.size() :
                                         -1;
       if (corner.vertex_normal_index < 0 ||
-          corner.vertex_normal_index >= global_vertices.vertex_normals.size()) {
+          corner.vertex_normal_index >= global_vertices.vert_normals.size()) {
         fprintf(stderr,
                 "Invalid normal index %i (valid range [0, %zu)), ignoring face\n",
                 corner.vertex_normal_index,
-                size_t(global_vertices.vertex_normals.size()));
+                size_t(global_vertices.vert_normals.size()));
         face_valid = false;
       }
     }

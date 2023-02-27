@@ -1093,7 +1093,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   }
 
   /* Expect that normals aren't copied at all, since the destination mesh is new. */
-  BLI_assert(BKE_mesh_vertex_normals_are_dirty(me_dst));
+  BLI_assert(BKE_mesh_vert_normals_are_dirty(me_dst));
 
   return me_dst;
 }
@@ -1847,7 +1847,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   const Span<MLoop> loops = mesh->loops();
 
   BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(positions.data()),
-                              BKE_mesh_vertex_normals_ensure(mesh),
+                              BKE_mesh_vert_normals_ensure(mesh),
                               positions.size(),
                               edges.data(),
                               edges.size(),

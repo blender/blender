@@ -586,7 +586,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
-      BKE_mesh_vertex_normals_ensure(me_eval),
+      BKE_mesh_vert_normals_ensure(me_eval),
       BKE_mesh_poly_normals_ensure(me_eval),
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->ldata, CD_NORMAL)),
       /* may be nullptr */

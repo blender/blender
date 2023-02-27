@@ -342,7 +342,7 @@ void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
  * from a vertices surrounding faces, or the normalized position of vertices connected to no faces.
  * \warning May still return null if the mesh is empty.
  */
-const float (*BKE_mesh_vertex_normals_ensure(const struct Mesh *mesh))[3];
+const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
  * Return the normal direction of every polygon, which is defined by the winding direction of its
@@ -365,13 +365,13 @@ void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
  * calculated automatically.
  *
  * \note In order to clear the dirty flag, this function should be followed by a call to
- * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
+ * #BKE_mesh_vert_normals_clear_dirty. This is separate so that normals are still tagged dirty
  * while they are being assigned.
  *
  * \warning The memory returned by this function is not initialized if it was not previously
  * allocated.
  */
-float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
+float (*BKE_mesh_vert_normals_for_write(struct Mesh *mesh))[3];
 
 /**
  * Retrieve write access to the cached polygon normals, ensuring that they are allocated but *not*
@@ -390,7 +390,7 @@ float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
 /**
  * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.
  */
-void BKE_mesh_vertex_normals_clear_dirty(struct Mesh *mesh);
+void BKE_mesh_vert_normals_clear_dirty(struct Mesh *mesh);
 
 /**
  * Mark the mesh's poly normals non-dirty, for when they are calculated or assigned manually.
@@ -401,7 +401,7 @@ void BKE_mesh_poly_normals_clear_dirty(struct Mesh *mesh);
  * Return true if the mesh vertex normals either are not stored or are dirty.
  * This can be used to help decide whether to transfer them when copying a mesh.
  */
-bool BKE_mesh_vertex_normals_are_dirty(const struct Mesh *mesh);
+bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
 
 /**
  * Return true if the mesh polygon normals either are not stored or are dirty.
@@ -431,7 +431,7 @@ void BKE_mesh_calc_normals_poly(const float (*vert_positions)[3],
 /**
  * Calculate face and vertex normals directly into result arrays.
  *
- * \note Usually #BKE_mesh_vertex_normals_ensure is the preferred way to access vertex normals,
+ * \note Usually #BKE_mesh_vert_normals_ensure is the preferred way to access vertex normals,
  * since they may already be calculated and cached on the mesh.
  */
 void BKE_mesh_calc_normals_poly_and_vertex(const float (*vert_positions)[3],
@@ -447,7 +447,7 @@ void BKE_mesh_calc_normals_poly_and_vertex(const float (*vert_positions)[3],
  * Calculate vertex and face normals, storing the result in custom data layers on the mesh.
  *
  * \note It is usually preferable to calculate normals lazily with
- * #BKE_mesh_vertex_normals_ensure, but some areas (perhaps unnecessarily)
+ * #BKE_mesh_vert_normals_ensure, but some areas (perhaps unnecessarily)
  * can also calculate them eagerly.
  */
 void BKE_mesh_calc_normals(struct Mesh *me);
@@ -1060,9 +1060,9 @@ inline blender::Span<blender::float3> Mesh::poly_normals() const
           this->totpoly};
 }
 
-inline blender::Span<blender::float3> Mesh::vertex_normals() const
+inline blender::Span<blender::float3> Mesh::vert_normals() const
 {
-  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_vertex_normals_ensure(this)),
+  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_vert_normals_ensure(this)),
           this->totvert};
 }
 

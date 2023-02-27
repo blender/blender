@@ -2497,7 +2497,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   const Span<float3> vert_positions = me->vert_positions();
   const Span<MEdge> edges = me->edges();
   const Span<MDeformVert> dverts = me->deform_verts();
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */

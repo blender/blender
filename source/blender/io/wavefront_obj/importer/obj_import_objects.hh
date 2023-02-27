@@ -25,7 +25,7 @@ namespace blender::io::obj {
 struct GlobalVertices {
   Vector<float3> vertices;
   Vector<float2> uv_vertices;
-  Vector<float3> vertex_normals;
+  Vector<float3> vert_normals;
 
   /**
    * Vertex colors might not be present in the file at all, or only
