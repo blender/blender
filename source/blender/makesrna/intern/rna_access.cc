@@ -1467,7 +1467,8 @@ bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *v
 
     if (pprop->poll) {
       if (rna_idproperty_check(&prop, ptr)) {
-        return ((PropPointerPollFuncPy)pprop->poll)(ptr, *value, prop);
+        return reinterpret_cast<PropPointerPollFuncPy>(reinterpret_cast<void *>(pprop->poll))(
+            ptr, *value, prop);
       }
       return pprop->poll(ptr, *value);
     }
@@ -2095,7 +2096,7 @@ static void rna_property_update(
             ((ContextPropUpdateFunc)prop->update)(C, ptr, prop);
           }
           else {
-            ((ContextUpdateFunc)prop->update)(C, ptr);
+            (reinterpret_cast<ContextUpdateFunc>(reinterpret_cast<void *>(prop->update)))(C, ptr);
           }
         }
       }

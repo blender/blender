@@ -417,7 +417,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-static const char *sculpt_color_filter_get_name(wmOperatorType *ot, PointerRNA *ptr)
+static const char *sculpt_color_filter_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
   int mode = RNA_enum_get(ptr, "type");
   EnumPropertyItem *item = prop_color_filter_types;

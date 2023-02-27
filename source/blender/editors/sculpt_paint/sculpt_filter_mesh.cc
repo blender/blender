@@ -800,7 +800,7 @@ static void sculpt_mesh_filter_end(bContext *C, wmOperator * /*op*/)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
-static void sculpt_mesh_filter_cancel(bContext *C, wmOperator *op)
+static void UNUSED_FUNCTION(sculpt_mesh_filter_cancel)(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
