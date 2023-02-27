@@ -146,7 +146,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
       mesh_data.ceil_positions != nullptr &&
       mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, config.weight);
-    BKE_mesh_tag_coords_changed(config.mesh);
+    BKE_mesh_tag_positions_changed(config.mesh);
     return;
   }
 
@@ -161,7 +161,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
     copy_zup_from_yup(vert_positions[i], pos_in.getValue());
   }
-  BKE_mesh_tag_coords_changed(&mesh);
+  BKE_mesh_tag_positions_changed(&mesh);
 
   if (normals) {
     float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(&mesh);

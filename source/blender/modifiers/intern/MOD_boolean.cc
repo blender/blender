@@ -148,7 +148,7 @@ static Mesh *get_quick_mesh(
             mul_m4_v3(omat, positions[i]);
           }
 
-          BKE_mesh_tag_coords_changed(result);
+          BKE_mesh_tag_positions_changed(result);
         }
 
         break;

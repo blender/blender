@@ -1609,7 +1609,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
       mul_m3_v3(m3, *lnors);
     }
   }
-  BKE_mesh_tag_coords_changed(me);
+  BKE_mesh_tag_positions_changed(me);
 }
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
@@ -1628,7 +1628,7 @@ void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
       }
     }
   }
-  BKE_mesh_tag_coords_changed_uniformly(me);
+  BKE_mesh_tag_positions_changed_uniformly(me);
 }
 
 void BKE_mesh_tessface_clear(Mesh *mesh)
@@ -1794,7 +1794,7 @@ void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
   for (const int i : positions.index_range()) {
     copy_v3_v3(positions[i], vert_coords[i]);
   }
-  BKE_mesh_tag_coords_changed(mesh);
+  BKE_mesh_tag_positions_changed(mesh);
 }
 
 void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
@@ -1805,7 +1805,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
   for (const int i : positions.index_range()) {
     mul_v3_m4v3(positions[i], mat, vert_coords[i]);
   }
-  BKE_mesh_tag_coords_changed(mesh);
+  BKE_mesh_tag_positions_changed(mesh);
 }
 
 static float (*ensure_corner_normal_layer(Mesh &mesh))[3]

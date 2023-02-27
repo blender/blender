@@ -60,12 +60,12 @@ extern "C" {
 /**
  * Call after changing vertex positions to tag lazily calculated caches for recomputation.
  */
-void BKE_mesh_tag_coords_changed(struct Mesh *mesh);
+void BKE_mesh_tag_positions_changed(struct Mesh *mesh);
 
 /**
  * Call after moving every mesh vertex by the same translation.
  */
-void BKE_mesh_tag_coords_changed_uniformly(struct Mesh *mesh);
+void BKE_mesh_tag_positions_changed_uniformly(struct Mesh *mesh);
 
 void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
 

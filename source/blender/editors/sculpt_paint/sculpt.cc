@@ -5547,7 +5547,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   if (update_flags & SCULPT_UPDATE_COORDS && !ss->shapekey_active) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
-      BKE_mesh_tag_coords_changed(mesh);
+      BKE_mesh_tag_positions_changed(mesh);
       /* Update the mesh's bounds eagerly since the PBVH already has that information. */
       mesh->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
         BKE_pbvh_bounding_box(ob->sculpt->pbvh, r_bounds.min, r_bounds.max);

@@ -1185,7 +1185,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
   for (const int i : positions.index_range()) {
     positions[i] = verts[i].xrest;
   }
-  BKE_mesh_tag_coords_changed(new_mesh);
+  BKE_mesh_tag_positions_changed(new_mesh);
 
   return new_mesh;
 }

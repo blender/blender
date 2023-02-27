@@ -254,7 +254,7 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   }
 }
 
-void BKE_mesh_tag_coords_changed(Mesh *mesh)
+void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
   BKE_mesh_normals_tag_dirty(mesh);
   free_bvh_cache(*mesh->runtime);
@@ -262,7 +262,7 @@ void BKE_mesh_tag_coords_changed(Mesh *mesh)
   mesh->runtime->bounds_cache.tag_dirty();
 }
 
-void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
+void BKE_mesh_tag_positions_changed_uniformly(Mesh *mesh)
 {
   /* The normals and triangulation didn't change, since all verts moved by the same amount. */
   free_bvh_cache(*mesh->runtime);
