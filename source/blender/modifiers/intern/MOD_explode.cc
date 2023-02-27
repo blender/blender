@@ -739,13 +739,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     totfsplit += add_faces[*fs];
   }
 
-  split_m = BKE_mesh_new_nomain_from_template(mesh, totesplit, 0, 0, 0);
-  split_m->totface = totface + totfsplit;
-  CustomData_copy(
-      &split_m->fdata, &mesh->fdata, CD_MASK_EVERYTHING.fmask, CD_SET_DEFAULT, split_m->totface);
-  if (!CustomData_get_layer(&split_m->fdata, CD_MFACE)) {
-    CustomData_add_layer(&split_m->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, split_m->totface);
-  }
+  split_m = BKE_mesh_new_nomain_from_template_ex(
+      mesh, totesplit, 0, totface + totfsplit, 0, 0, CD_MASK_EVERYTHING);
 
   layers_num = CustomData_number_of_layers(&split_m->fdata, CD_MTFACE);
 
@@ -992,13 +987,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   BLI_edgehashIterator_free(ehi);
 
   /* the final duplicated vertices */
-  explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, 0, 0);
-  explode->totface = totface - delface;
-  CustomData_copy(
-      &explode->fdata, &mesh->fdata, CD_MASK_EVERYTHING.fmask, CD_SET_DEFAULT, explode->totface);
-  if (!CustomData_get_layer(&explode->fdata, CD_MFACE)) {
-    CustomData_add_layer(&explode->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, explode->totface);
-  }
+  explode = BKE_mesh_new_nomain_from_template_ex(
+      mesh, totdup, 0, totface - delface, 0, 0, CD_MASK_EVERYTHING);
 
   MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer_named_for_write(
       &explode->fdata, CD_MTFACE, emd->uvname, explode->totface));

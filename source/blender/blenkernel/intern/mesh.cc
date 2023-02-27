@@ -1054,17 +1054,21 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
                                            int verts_len,
                                            int edges_len,
+                                           int tessface_len,
                                            int loops_len,
                                            int polys_len,
                                            CustomData_MeshMasks mask)
 {
+  /* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
+  const bool do_tessface = (tessface_len || ((me_src->totface != 0) && (me_src->totpoly == 0)));
+
   Mesh *me_dst = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
   me_dst->totvert = verts_len;
   me_dst->totedge = edges_len;
-  me_dst->totface = 0;
+  me_dst->totface = tessface_len;
   me_dst->totloop = loops_len;
   me_dst->totpoly = polys_len;
 
@@ -1074,11 +1078,19 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
   CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
   CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
-  mesh_tessface_clear_intern(me_dst, false);
+  if (do_tessface) {
+    CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
+  }
+  else {
+    mesh_tessface_clear_intern(me_dst, false);
+  }
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
   mesh_ensure_cdlayers_primary(me_dst);
+  if (do_tessface && !CustomData_get_layer(&me_dst->fdata, CD_MFACE)) {
+    CustomData_add_layer(&me_dst->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, me_dst->totface);
+  }
 
   /* Expect that normals aren't copied at all, since the destination mesh is new. */
   BLI_assert(BKE_mesh_vertex_normals_are_dirty(me_dst));
@@ -1090,7 +1102,7 @@ Mesh *BKE_mesh_new_nomain_from_template(
     const Mesh *me_src, int verts_len, int edges_len, int loops_len, int polys_len)
 {
   return BKE_mesh_new_nomain_from_template_ex(
-      me_src, verts_len, edges_len, loops_len, polys_len, CD_MASK_EVERYTHING);
+      me_src, verts_len, edges_len, 0, loops_len, polys_len, CD_MASK_EVERYTHING);
 }
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
