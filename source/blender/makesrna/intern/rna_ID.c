@@ -1489,7 +1489,6 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   /* IDP_BOOLEAN */
   prop = RNA_def_property(srna, "bool", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  RNA_def_property_array(prop, 1);
 
   prop = RNA_def_property(srna, "bool_array", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
