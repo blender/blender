@@ -1,0 +1,75 @@
+diff --git a/source/blender/editors/interface/eyedroppers/eyedropper_gpencil_color.cc b/source/blender/editors/interface/eyedroppers/eyedropper_gpencil_color.cc
+index 0c33b9034ad..ee61fb0842c 100644
+--- a/source/blender/editors/interface/eyedroppers/eyedropper_gpencil_color.cc
++++ b/source/blender/editors/interface/eyedroppers/eyedropper_gpencil_color.cc
+@@ -60,6 +60,10 @@ struct EyedropperGPencil {
+   float color[3];
+   /** Mode */
+   eGP_EyeMode mode;
++
++  bool accum_start; /* has mouse been pressed */
++  float accum_col[3];
++  int accum_tot;
+ };
+ 
+ /* Helper: Draw status message while the user is running the operator */
+@@ -256,7 +260,24 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
+ /* Sample the color below cursor. */
+ static void eyedropper_gpencil_color_sample(bContext *C, EyedropperGPencil *eye, const int m_xy[2])
+ {
+-  eyedropper_color_sample_fl(C, m_xy, eye->color);
++  /* Accumulate color. */
++  float col[3];
++
++  eyedropper_color_sample_fl(C, m_xy, col);
++
++  add_v3_v3(eye->accum_col, col);
++  eye->accum_tot++;
++
++  /* Apply to property. */
++  float accum_col[3];
++  if (eye->accum_tot > 1) {
++    mul_v3_v3fl(accum_col, eye->accum_col, 1.0f / float(eye->accum_tot));
++  }
++  else {
++    copy_v3_v3(accum_col, eye->accum_col);
++  }
++
++  copy_v3_v3(eye->color, accum_col);
+ }
+ 
+ /* Cancel operator. */
+@@ -274,6 +295,10 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
+     case EVT_MODAL_MAP: {
+       switch (event->val) {
+         case EYE_MODAL_SAMPLE_BEGIN: {
++          eye->accum_start = true;
++          eye->accum_tot = 0;
++          zero_v3(eye->accum_col);
++          eyedropper_gpencil_color_sample(C, eye, event->xy);
+           return OPERATOR_RUNNING_MODAL;
+         }
+         case EYE_MODAL_CANCEL: {
+@@ -281,7 +306,9 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
+           return OPERATOR_CANCELLED;
+         }
+         case EYE_MODAL_SAMPLE_CONFIRM: {
+-          eyedropper_gpencil_color_sample(C, eye, event->xy);
++          if (eye->accum_tot == 0) {
++            eyedropper_gpencil_color_sample(C, eye, event->xy);
++          }
+ 
+           /* Create material. */
+           eyedropper_gpencil_color_set(C, event, eye);
+@@ -290,6 +317,11 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
+           eyedropper_gpencil_exit(C, op);
+           return OPERATOR_FINISHED;
+         }
++        case EYE_MODAL_SAMPLE_RESET:
++          eye->accum_tot = 0;
++          zero_v3(eye->accum_col);
++          eyedropper_gpencil_color_sample(C, eye, event->xy);
++          break;
+         default: {
+           break;
+         }
