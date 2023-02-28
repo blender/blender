@@ -194,7 +194,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     sys->eweights[i] = w1;
   }
 
-  for (i = 0; i < sys->polys.size(); i++) {
+  for (const int i : sys->polys.index_range()) {
     const MPoly *mp = &sys->polys[i];
     const MLoop *l_next = &sys->loops[mp->loopstart];
     const MLoop *l_term = l_next + mp->totloop;
@@ -249,7 +249,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   int i;
   uint idv1, idv2;
 
-  for (i = 0; i < sys->polys.size(); i++) {
+  for (const int i : sys->polys.index_range()) {
     const MPoly *mp = &sys->polys[i];
     const MLoop *l_next = &sys->loops[mp->loopstart];
     const MLoop *l_term = l_next + mp->totloop;
