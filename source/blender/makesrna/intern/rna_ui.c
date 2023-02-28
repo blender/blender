@@ -1116,17 +1116,17 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
   return is_visible;
 }
 
-static void rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   AssetShelfType *shelf_type = RNA_struct_blender_type_get(type);
 
   if (!shelf_type) {
-    return;
+    return false;
   }
 
   SpaceType *space_type = BKE_spacetype_from_id(shelf_type->space_type);
   if (!space_type) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
@@ -1136,6 +1136,8 @@ static void rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+
+  return true;
 }
 
 static StructRNA *rna_AssetShelf_register(Main *bmain,
@@ -1154,7 +1156,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   dummy_shelf.type = &dummy_shelf_type;
   RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_type_ptr);
 
-  int have_function[2];
+  bool have_function[2];
 
   /* validate the python class */
   if (validate(&dummy_shelf_type_ptr, data, have_function) != 0) {
