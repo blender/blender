@@ -461,8 +461,8 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
 
   ModePair *f_area = face_area;
   for (const int i : polys.index_range()) {
-    f_area->val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
-    f_area->index = i;
+    f_area[i].val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
+    f_area[i].index = i;
   }
 
   qsort(face_area, polys.size(), sizeof(*face_area), modepair_cmp_by_val_inverse);
