@@ -729,40 +729,6 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Gizmo
- * \{ */
-
-/* transform_gizmo.c */
-
-#define GIZMO_AXIS_LINE_WIDTH 2.0f
-
-bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
-bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
-
-/**
- * Set the #T_NO_GIZMO flag.
- *
- * \note This maintains the conventional behavior of not displaying the gizmo if the operator has
- * been triggered by shortcuts.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t);
-
-/**
- * Change the gizmo and its orientation to match the transform state.
- *
- * \note This used while the modal operator is running so changes to the constraint or mode show
- * the gizmo associated with that state, as if it had been the initial gizmo dragged.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t);
-
-/**
- * Restores the non-modal state of the gizmo.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name TransData Creation and General Handling
  * \{ */
 

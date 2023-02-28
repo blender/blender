@@ -49,6 +49,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_gizmo.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
