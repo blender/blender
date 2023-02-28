@@ -436,7 +436,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   PointerRNA dummy_gizmo_ptr;
 
   /* Two sets of functions. */
-  int have_function[8];
+  bool have_function[8];
 
   /* setup dummy gizmo & gizmo type to store static properties in */
   dummy_gizmo.type = &dummy_gt;
@@ -818,7 +818,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   PointerRNA wgptr;
 
   /* Two sets of functions. */
-  int have_function[6];
+  bool have_function[6];
 
   /* setup dummy gizmogroup & gizmogroup type to store static properties in */
   dummy_gizmo_group.type = &dummy_wgt;

@@ -337,7 +337,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   RenderEngineType *et, dummy_et = {NULL};
   RenderEngine dummy_engine = {NULL};
   PointerRNA dummy_engine_ptr;
-  int have_function[9];
+  bool have_function[9];
 
   /* setup dummy engine & engine type to store static properties in */
   dummy_engine.type = &dummy_et;

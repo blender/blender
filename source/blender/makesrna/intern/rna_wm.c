@@ -1142,7 +1142,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   wmKeyConfigPrefType_Runtime *kpt_rt, dummy_kpt_rt = {{'\0'}};
   wmKeyConfigPref dummy_kpt = {NULL};
   PointerRNA dummy_kpt_ptr;
-  // int have_function[1];
+  // bool have_function[1];
 
   /* setup dummy keyconf-prefs & keyconf-prefs type to store static properties in */
   RNA_pointer_create(NULL, &RNA_KeyConfigPreferences, &dummy_kpt, &dummy_kpt_ptr);
@@ -1488,7 +1488,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
   wmOperatorType dummy_ot = {NULL};
   wmOperator dummy_operator = {NULL};
   PointerRNA dummy_operator_ptr;
-  int have_function[8];
+  bool have_function[8];
 
   struct {
     char idname[OP_MAX_TYPENAME];
@@ -1654,7 +1654,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
   wmOperatorType dummy_ot = {NULL};
   wmOperator dummy_operator = {NULL};
   PointerRNA dummy_operator_ptr;
-  int have_function[4];
+  bool have_function[4];
 
   struct {
     char idname[OP_MAX_TYPENAME];

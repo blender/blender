@@ -1076,7 +1076,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   bNodeTreeType *nt, dummy_nt;
   bNodeTree dummy_ntree;
   PointerRNA dummy_ntree_ptr;
-  int have_function[4];
+  bool have_function[4];
 
   /* setup dummy tree & tree type to store static properties in */
   memset(&dummy_nt, 0, sizeof(bNodeTreeType));
@@ -1933,7 +1933,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   PointerRNA dummy_node_ptr;
   FunctionRNA *func;
   PropertyRNA *parm;
-  int have_function[10];
+  bool have_function[10];
 
   /* setup dummy node & node type to store static properties in */
   memset(&dummy_nt, 0, sizeof(bNodeType));
@@ -2777,7 +2777,7 @@ static StructRNA *rna_NodeSocket_register(Main *UNUSED(bmain),
   bNodeSocketType *st, dummy_st;
   bNodeSocket dummy_sock;
   PointerRNA dummy_sock_ptr;
-  int have_function[2];
+  bool have_function[2];
 
   /* setup dummy socket & socket type to store static properties in */
   memset(&dummy_st, 0, sizeof(bNodeSocketType));
@@ -3070,7 +3070,7 @@ static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),
   bNodeSocketType *st, dummy_st;
   bNodeSocket dummy_sock;
   PointerRNA dummy_sock_ptr;
-  int have_function[4];
+  bool have_function[4];
 
   /* setup dummy socket & socket type to store static properties in */
   memset(&dummy_st, 0, sizeof(bNodeSocketType));

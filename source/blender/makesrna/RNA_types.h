@@ -735,7 +735,7 @@ typedef enum StructFlag {
   STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
 } StructFlag;
 
-typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
+typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, bool *have_function);
 typedef int (*StructCallbackFunc)(struct bContext *C,
                                   struct PointerRNA *ptr,
                                   struct FunctionRNA *func,

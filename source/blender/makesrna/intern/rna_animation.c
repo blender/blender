@@ -286,7 +286,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   KeyingSetInfo dummy_ksi = {NULL};
   KeyingSetInfo *ksi;
   PointerRNA dummy_ksi_ptr = {NULL};
-  int have_function[3];
+  bool have_function[3];
 
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register

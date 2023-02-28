@@ -248,7 +248,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   PanelType *pt, *parent = NULL, dummy_pt = {NULL};
   Panel dummy_panel = {NULL};
   PointerRNA dummy_panel_ptr;
-  int have_function[4];
+  bool have_function[4];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   char _panel_descr[RNA_DYN_DESCR_MAX];
   size_t description_size = 0;
@@ -689,7 +689,7 @@ static StructRNA *rna_UIList_register(Main *bmain,
   uiListType *ult, dummy_ult = {NULL};
   uiList dummy_uilist = {NULL};
   PointerRNA dummy_ul_ptr;
-  int have_function[3];
+  bool have_function[3];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
 
   /* setup dummy menu & menu type to store static properties in */
@@ -817,7 +817,7 @@ static StructRNA *rna_Header_register(Main *bmain,
   HeaderType *ht, dummy_ht = {NULL};
   Header dummy_header = {NULL};
   PointerRNA dummy_header_ptr;
-  int have_function[1];
+  bool have_function[1];
 
   /* setup dummy header & header type to store static properties in */
   dummy_header.type = &dummy_ht;
@@ -967,7 +967,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   MenuType *mt, dummy_mt = {NULL};
   Menu dummy_menu = {NULL};
   PointerRNA dummy_menu_ptr;
-  int have_function[2];
+  bool have_function[2];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   size_t description_size = 0;
   char _menu_descr[RNA_DYN_DESCR_MAX];

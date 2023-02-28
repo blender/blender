@@ -8096,7 +8096,7 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
 static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
                                         StructRNA *srna,
                                         void *py_data,
-                                        int *have_function)
+                                        bool *have_function)
 {
   const ListBase *lb;
   Link *link;
@@ -8298,7 +8298,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   return 0;
 }
 
-static int bpy_class_validate(PointerRNA *dummy_ptr, void *py_data, int *have_function)
+static int bpy_class_validate(PointerRNA *dummy_ptr, void *py_data, bool *have_function)
 {
   return bpy_class_validate_recursive(dummy_ptr, dummy_ptr->type, py_data, have_function);
 }

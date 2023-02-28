@@ -822,7 +822,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   bAddonPrefType *apt, dummy_apt = {{'\0'}};
   bAddon dummy_addon = {NULL};
   PointerRNA dummy_addon_ptr;
-  // int have_function[1];
+  // bool have_function[1];
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
   RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_addon_ptr);
