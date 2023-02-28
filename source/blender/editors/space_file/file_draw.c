@@ -902,7 +902,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   int numfiles;
   int numfiles_layout;
   int offset;
-  int textwidth, textheight;
+  int column_width, textheight;
   int i;
   bool is_icon;
   eFontStyle_Align align;
@@ -936,9 +936,9 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   filelist_file_cache_slidingwindow_set(files, numfiles_layout);
 
-  textwidth = (FILE_IMGDISPLAY == params->display) ?
-                  layout->tile_w :
-                  round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width);
+  column_width = (FILE_IMGDISPLAY == params->display) ?
+                     layout->tile_w :
+                     round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width);
   textheight = (int)(layout->textheight * 3.0 / 2.0 + 0.5);
 
   align = (FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
@@ -1053,7 +1053,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (file_selflag & FILE_SEL_EDITING) {
       const short width = (params->display == FILE_IMGDISPLAY) ?
-                              textwidth :
+                              column_width :
                               layout->attribute_columns[COLUMN_NAME].width -
                                   ATTRIBUTE_COLUMN_PADDING;
 
@@ -1099,8 +1099,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                             tile_draw_rect.ymin + layout->tile_border_y + layout->textheight :
                             tile_draw_rect.ymax - layout->tile_border_y;
       const int twidth = (params->display == FILE_IMGDISPLAY) ?
-                             textwidth :
-                             textwidth - 1 - icon_ofs - padx - layout->tile_border_x;
+                             column_width :
+                             column_width - 1 - icon_ofs - padx - layout->tile_border_x;
       file_draw_string(txpos, typos, file->name, (float)twidth, textheight, align, text_col);
     }
 
