@@ -630,9 +630,10 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
   return (IDProperty **)&ptr->data;
 }
 
-void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
+bool rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   RNA_struct_free(&BLENDER_RNA, type);
+  return true;
 }
 
 StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),

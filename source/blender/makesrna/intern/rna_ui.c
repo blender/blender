@@ -178,16 +178,16 @@ static void panel_type_clear_recursive(Panel *panel, const PanelType *type)
   }
 }
 
-static void rna_Panel_unregister(Main *bmain, StructRNA *type)
+static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
 {
   ARegionType *art;
   PanelType *pt = RNA_struct_blender_type_get(type);
 
   if (!pt) {
-    return;
+    return false;
   }
   if (!(art = region_type_find(NULL, pt->space_type, pt->region_type))) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &pt->rna_ext);
@@ -232,6 +232,7 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_Panel_register(Main *bmain,
@@ -242,6 +243,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
+  const char *error_prefix = "Registering panel class:";
   ARegionType *art;
   PanelType *pt, *parent = NULL, dummypt = {NULL};
   Panel dummypanel = {NULL};
@@ -268,7 +270,8 @@ static StructRNA *rna_Panel_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummypt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering panel class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummypt.idname));
     return NULL;
@@ -279,8 +282,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
       /* Use a fallback, otherwise an empty value will draw the panel in every category. */
       strcpy(dummypt.category, PNL_CATEGORY_FALLBACK);
 #  ifndef NDEBUG
-      printf("Registering panel class: '%s' misses category, please update the script\n",
-             dummypt.idname);
+      printf("%s '%s' misses category, please update the script\n", error_prefix, dummypt.idname);
 #  endif
     }
   }
@@ -289,7 +291,8 @@ static StructRNA *rna_Panel_register(Main *bmain,
       if ((1 << dummypt.space_type) & WM_TOOLSYSTEM_SPACE_MASK) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Registering panel class: '%s' has category '%s' ",
+                    "%s '%s' has category '%s' ",
+                    error_prefix,
                     dummypt.idname,
                     dummypt.category);
         return NULL;
@@ -305,8 +308,16 @@ static StructRNA *rna_Panel_register(Main *bmain,
   for (pt = art->paneltypes.first; pt; pt = pt->next) {
     if (STREQ(pt->idname, dummypt.idname)) {
       PanelType *pt_next = pt->next;
-      if (pt->rna_ext.srna) {
-        rna_Panel_unregister(bmain, pt->rna_ext.srna);
+      StructRNA *srna = pt->rna_ext.srna;
+      if (srna) {
+        if (!rna_Panel_unregister(bmain, srna)) {
+          BKE_reportf(reports,
+                      RPT_ERROR,
+                      "%s '%s', bl_idname '%s' could not be unregistered",
+                      error_prefix,
+                      identifier,
+                      dummypt.idname);
+        }
       }
       else {
         BLI_freelinkN(&art->paneltypes, pt);
@@ -339,7 +350,8 @@ static StructRNA *rna_Panel_register(Main *bmain,
   if (dummypt.parent_id[0] && !parent) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering panel class: parent '%s' for '%s' not found",
+                "%s parent '%s' for '%s' not found",
+                error_prefix,
                 dummypt.parent_id,
                 dummypt.idname);
     return NULL;
@@ -647,12 +659,12 @@ static void uilist_filter_items(uiList *ui_list,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_UIList_unregister(Main *bmain, StructRNA *type)
+static bool rna_UIList_unregister(Main *bmain, StructRNA *type)
 {
   uiListType *ult = RNA_struct_blender_type_get(type);
 
   if (!ult) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &ult->rna_ext);
@@ -662,6 +674,7 @@ static void rna_UIList_unregister(Main *bmain, StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_UIList_register(Main *bmain,
@@ -672,6 +685,7 @@ static StructRNA *rna_UIList_register(Main *bmain,
                                       StructCallbackFunc call,
                                       StructFreeFunc free)
 {
+  const char *error_prefix = "Registering uilist class:";
   uiListType *ult, dummyult = {NULL};
   uiList dummyuilist = {NULL};
   PointerRNA dummyul_ptr;
@@ -690,7 +704,8 @@ static StructRNA *rna_UIList_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummyult.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering uilist class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummyult.idname));
     return NULL;
@@ -698,8 +713,18 @@ static StructRNA *rna_UIList_register(Main *bmain,
 
   /* Check if we have registered this UI-list type before, and remove it. */
   ult = WM_uilisttype_find(dummyult.idname, true);
-  if (ult && ult->rna_ext.srna) {
-    rna_UIList_unregister(bmain, ult->rna_ext.srna);
+  if (ult) {
+    StructRNA *srna = ult->rna_ext.srna;
+    if (!(srna && rna_UIList_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummyult.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
   if (!RNA_struct_available_or_report(reports, dummyult.idname)) {
     return NULL;
@@ -757,16 +782,16 @@ static void header_draw(const bContext *C, Header *hdr)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   ARegionType *art;
   HeaderType *ht = RNA_struct_blender_type_get(type);
 
   if (!ht) {
-    return;
+    return false;
   }
   if (!(art = region_type_find(NULL, ht->space_type, ht->region_type))) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &ht->rna_ext);
@@ -776,6 +801,7 @@ static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_Header_register(Main *bmain,
@@ -786,6 +812,7 @@ static StructRNA *rna_Header_register(Main *bmain,
                                       StructCallbackFunc call,
                                       StructFreeFunc free)
 {
+  const char *error_prefix = "Registering header class:";
   ARegionType *art;
   HeaderType *ht, dummyht = {NULL};
   Header dummyheader = {NULL};
@@ -805,7 +832,8 @@ static StructRNA *rna_Header_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummyht.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering header class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummyht.idname));
     return NULL;
@@ -816,14 +844,21 @@ static StructRNA *rna_Header_register(Main *bmain,
   }
 
   /* check if we have registered this header type before, and remove it */
-  for (ht = art->headertypes.first; ht; ht = ht->next) {
-    if (STREQ(ht->idname, dummyht.idname)) {
-      if (ht->rna_ext.srna) {
-        rna_Header_unregister(bmain, ht->rna_ext.srna);
-      }
-      break;
+  ht = BLI_findstring(&art->headertypes, dummyht.idname, offsetof(HeaderType, idname));
+  if (ht) {
+    StructRNA *srna = ht->rna_ext.srna;
+    if (!(srna && rna_Header_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummyht.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
     }
   }
+
   if (!RNA_struct_available_or_report(reports, dummyht.idname)) {
     return NULL;
   }
@@ -902,12 +937,12 @@ static void menu_draw(const bContext *C, Menu *menu)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   MenuType *mt = RNA_struct_blender_type_get(type);
 
   if (!mt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &mt->rna_ext);
@@ -917,6 +952,7 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_Menu_register(Main *bmain,
@@ -927,6 +963,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
                                     StructCallbackFunc call,
                                     StructFreeFunc free)
 {
+  const char *error_prefix = "Registering menu class:";
   MenuType *mt, dummymt = {NULL};
   Menu dummymenu = {NULL};
   PointerRNA dummymtr;
@@ -952,7 +989,8 @@ static StructRNA *rna_Menu_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummymt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering menu class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummymt.idname));
     return NULL;
@@ -960,8 +998,18 @@ static StructRNA *rna_Menu_register(Main *bmain,
 
   /* check if we have registered this menu type before, and remove it */
   mt = WM_menutype_find(dummymt.idname, true);
-  if (mt && mt->rna_ext.srna) {
-    rna_Menu_unregister(bmain, mt->rna_ext.srna);
+  if (mt) {
+    StructRNA *srna = mt->rna_ext.srna;
+    if (!(srna && rna_Menu_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummymt.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
   if (!RNA_struct_available_or_report(reports, dummymt.idname)) {
     return NULL;

@@ -415,7 +415,7 @@ static PointerRNA rna_Gizmo_group_get(PointerRNA *ptr)
 
 #  ifdef WITH_PYTHON
 
-static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type);
+static bool rna_Gizmo_unregister(struct Main *bmain, StructRNA *type);
 void BPY_RNA_gizmo_wrapper(wmGizmoType *gzgt, void *userdata);
 
 static StructRNA *rna_Gizmo_register(Main *bmain,
@@ -426,6 +426,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
+  const char *error_prefix = "Registering gizmo class:";
   struct {
     char idname[MAX_NAME];
   } temp_buffers;
@@ -453,7 +454,8 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering gizmo class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(temp_buffers.idname));
     return NULL;
@@ -462,8 +464,18 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   /* check if we have registered this gizmo type before, and remove it */
   {
     const wmGizmoType *gzt = WM_gizmotype_find(dummygt.idname, true);
-    if (gzt && gzt->rna_ext.srna) {
-      rna_Gizmo_unregister(bmain, gzt->rna_ext.srna);
+    if (gzt) {
+      StructRNA *srna = gzt->rna_ext.srna;
+      if (!(srna && rna_Gizmo_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummygt.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
   if (!RNA_struct_available_or_report(reports, dummygt.idname)) {
@@ -507,12 +519,12 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   return dummygt.rna_ext.srna;
 }
 
-static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
+static bool rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
 {
   wmGizmoType *gzt = RNA_struct_blender_type_get(type);
 
   if (!gzt) {
-    return;
+    return false;
   }
 
   WM_gizmotype_remove_ptr(NULL, bmain, gzt);
@@ -525,6 +537,7 @@ static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
   WM_gizmotype_free_ptr(gzt);
 
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  return true;
 }
 
 static void **rna_Gizmo_instance(PointerRNA *ptr)
@@ -784,7 +797,7 @@ static void rna_gizmogroup_invoke_prepare_cb(const bContext *C,
 }
 
 void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata);
-static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type);
+static bool rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type);
 
 static StructRNA *rna_GizmoGroup_register(Main *bmain,
                                           ReportList *reports,
@@ -794,6 +807,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
+  const char *error_prefix = "Registering gizmogroup class:";
   struct {
     char name[MAX_NAME];
     char idname[MAX_NAME];
@@ -824,7 +838,8 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering gizmogroup class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(temp_buffers.idname));
     return NULL;
@@ -838,15 +853,25 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
 
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&wmap_params);
   if (gzmap_type == NULL) {
-    BKE_report(reports, RPT_ERROR, "Area type does not support gizmos");
+    BKE_reportf(reports, RPT_ERROR, "%s area type does not support gizmos", error_prefix);
     return NULL;
   }
 
   /* check if we have registered this gizmogroup type before, and remove it */
   {
     wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(dummywgt.idname, true);
-    if (gzgt && gzgt->rna_ext.srna) {
-      rna_GizmoGroup_unregister(bmain, gzgt->rna_ext.srna);
+    if (gzgt) {
+      StructRNA *srna = gzgt->rna_ext.srna;
+      if (!(srna && rna_GizmoGroup_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummywgt.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
   if (!RNA_struct_available_or_report(reports, dummywgt.idname)) {
@@ -906,12 +931,12 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   return dummywgt.rna_ext.srna;
 }
 
-static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
+static bool rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
 {
   wmGizmoGroupType *gzgt = RNA_struct_blender_type_get(type);
 
   if (!gzgt) {
-    return;
+    return false;
   }
 
   WM_gizmo_group_type_remove_ptr(bmain, gzgt);
@@ -924,6 +949,7 @@ static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
   WM_gizmo_group_type_free_ptr(gzgt);
 
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  return true;
 }
 
 static void **rna_GizmoGroup_instance(PointerRNA *ptr)

@@ -1046,12 +1046,12 @@ static bool rna_NodeTree_valid_socket_type(bNodeTreeType *ntreetype, bNodeSocket
   return valid;
 }
 
-static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeTreeType *nt = RNA_struct_blender_type_get(type);
 
   if (!nt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &nt->rna_ext);
@@ -1061,6 +1061,7 @@ static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+  return true;
 }
 
 static StructRNA *rna_NodeTree_register(Main *bmain,
@@ -1071,6 +1072,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
+  const char *error_prefix = "Registering node tree class:";
   bNodeTreeType *nt, dummynt;
   bNodeTree dummyntree;
   PointerRNA dummyptr;
@@ -1090,7 +1092,8 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummynt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering node tree class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummynt.idname));
     return NULL;
@@ -1099,7 +1102,16 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   /* check if we have registered this tree type before, and remove it */
   nt = ntreeTypeFind(dummynt.idname);
   if (nt) {
-    rna_NodeTree_unregister(bmain, nt->rna_ext.srna);
+    /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for NULL. */
+    if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' could not be unregistered",
+                  error_prefix,
+                  identifier,
+                  dummynt.idname);
+      return NULL;
+    }
   }
 
   /* create a new node tree type */
@@ -1884,12 +1896,12 @@ static void rna_Node_is_registered_node_type_runtime(bContext *UNUSED(C),
   RNA_parameter_set_lookup(parms, "result", &result);
 }
 
-static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeType *nt = RNA_struct_blender_type_get(type);
 
   if (!nt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &nt->rna_ext);
@@ -1900,6 +1912,7 @@ static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+  return true;
 }
 
 /* Generic internal registration function.
@@ -1914,6 +1927,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
+  const char *error_prefix = "Registering node class:";
   bNodeType *nt, dummynt;
   bNode dummynode;
   PointerRNA dummyptr;
@@ -1938,7 +1952,8 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   if (strlen(identifier) >= sizeof(dummynt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering node class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummynt.idname));
     return NULL;
@@ -1947,7 +1962,16 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   /* check if we have registered this node type before, and remove it */
   nt = nodeTypeFind(dummynt.idname);
   if (nt) {
-    rna_Node_unregister(bmain, nt->rna_ext.srna);
+    /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for NULL. */
+    if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' could not be unregistered",
+                  error_prefix,
+                  identifier,
+                  dummynt.idname);
+      return NULL;
+    }
   }
 
   /* create a new node type */
@@ -2725,11 +2749,11 @@ static void rna_NodeSocket_draw_color(bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeSocket_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_NodeSocket_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeSocketType *st = RNA_struct_blender_type_get(type);
   if (!st) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &st->ext_socket);
@@ -2739,6 +2763,7 @@ static void rna_NodeSocket_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+  return true;
 }
 
 static StructRNA *rna_NodeSocket_register(Main *UNUSED(bmain),
@@ -3018,11 +3043,11 @@ static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeSocketInterface_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_NodeSocketInterface_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeSocketType *st = RNA_struct_blender_type_get(type);
   if (!st) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &st->ext_interface);
@@ -3031,6 +3056,7 @@ static void rna_NodeSocketInterface_unregister(Main *UNUSED(bmain), StructRNA *t
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+  return true;
 }
 
 static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),

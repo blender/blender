@@ -255,12 +255,12 @@ static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
   return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : &RNA_KeyingSetInfo;
 }
 
-static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
+static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 {
   KeyingSetInfo *ksi = RNA_struct_blender_type_get(type);
 
   if (ksi == NULL) {
-    return;
+    return false;
   }
 
   /* free RNA data referencing this */
@@ -271,6 +271,7 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 
   /* unlink Blender-side data */
   ANIM_keyingset_info_unregister(bmain, ksi);
+  return true;
 }
 
 static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
@@ -281,6 +282,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
                                              StructCallbackFunc call,
                                              StructFreeFunc free)
 {
+  const char *error_prefix = "Registering keying set info class:";
   KeyingSetInfo dummyksi = {NULL};
   KeyingSetInfo *ksi;
   PointerRNA dummyptr = {NULL};
@@ -299,7 +301,8 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummyksi.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering keying set info class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummyksi.idname));
     return NULL;
@@ -307,8 +310,18 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
 
   /* check if we have registered this info before, and remove it */
   ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
-  if (ksi && ksi->rna_ext.srna) {
-    rna_KeyingSetInfo_unregister(bmain, ksi->rna_ext.srna);
+  if (ksi) {
+    StructRNA *srna = ksi->rna_ext.srna;
+    if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummyksi.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
 
   /* create a new KeyingSetInfo type */
