@@ -5,6 +5,7 @@
  * \ingroup editor/io
  */
 
+
 #ifdef WITH_USD
 
 #  include "DNA_modifier_types.h"
@@ -203,6 +204,25 @@ enum { AS_BACKGROUND_JOB = 1 };
 typedef struct eUSDOperatorOptions {
   bool as_background_job;
 } eUSDOperatorOptions;
+
+/* Forward declarations */
+void usd_export_panel_register(const char* idname,
+                               const char* label,
+                               int flag,
+                               bool (*poll)(const struct bContext *C, struct PanelType *pt),
+                               void (*draw)(const struct bContext *C, struct Panel *panel),
+                               void (*draw_header)(const struct bContext *C, struct Panel *panel)
+                               );
+void usd_export_panel_register_general(void);
+void usd_export_panel_register_geometry(void);
+void usd_export_panel_register_materials(void);
+void usd_export_panel_register_lights(void);
+void usd_export_panel_register_stage(void);
+void usd_export_panel_register_animation(void);
+void usd_export_panel_register_types(void);
+void usd_export_panel_register_particles(void);
+void usd_export_panel_register_rigging(void);
+
 
 /* ====== USD Export ====== */
 
@@ -1701,16 +1721,16 @@ void usd_export_panel_register(const char* idname,
                                )
 {
   PanelType *pt = MEM_callocN(sizeof(PanelType), idname);
-  strncpy(pt->idname, idname, BKE_ST_MAXNAME);
+  BLI_strncpy(pt->idname, idname, BKE_ST_MAXNAME);
   if (label) {
-    strncpy(pt->label, N_(label), BKE_ST_MAXNAME);
+    BLI_strncpy(pt->label, N_(label), BKE_ST_MAXNAME);
   }
-  strncpy(pt->category, "View", BKE_ST_MAXNAME);
+  BLI_strncpy(pt->category, "View", BKE_ST_MAXNAME);
   pt->region_type = RGN_TYPE_TOOL_PROPS;
   pt->space_type = SPACE_FILE;
   pt->flag = flag;
-  strncpy(pt->parent_id, "FILE_PT_operator", BKE_ST_MAXNAME);
-  strncpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  BLI_strncpy(pt->parent_id, "FILE_PT_operator", BKE_ST_MAXNAME);
+  BLI_strncpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
   pt->draw = draw;
   pt->draw_header = draw_header;
   pt->poll = poll;
