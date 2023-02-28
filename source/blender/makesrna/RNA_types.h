@@ -748,8 +748,8 @@ typedef struct StructRNA *(*StructRegisterFunc)(struct Main *bmain,
                                                 StructValidateFunc validate,
                                                 StructCallbackFunc call,
                                                 StructFreeFunc free);
-
-typedef void (*StructUnregisterFunc)(struct Main *bmain, struct StructRNA *type);
+/** Return true when `type` was successfully unregistered & freed. */
+typedef bool (*StructUnregisterFunc)(struct Main *bmain, struct StructRNA *type);
 typedef void **(*StructInstanceFunc)(PointerRNA *ptr);
 
 typedef struct StructRNA StructRNA;

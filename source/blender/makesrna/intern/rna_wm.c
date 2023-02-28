@@ -1111,12 +1111,12 @@ static IDProperty **rna_wmKeyConfigPref_idprops(PointerRNA *ptr)
   return (IDProperty **)&ptr->data;
 }
 
-static void rna_wmKeyConfigPref_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_wmKeyConfigPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   wmKeyConfigPrefType_Runtime *kpt_rt = RNA_struct_blender_type_get(type);
 
   if (!kpt_rt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &kpt_rt->rna_ext);
@@ -1127,6 +1127,7 @@ static void rna_wmKeyConfigPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
@@ -1137,6 +1138,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
                                                StructCallbackFunc call,
                                                StructFreeFunc free)
 {
+  const char *error_prefix = "Registering key-config preferences class:";
   wmKeyConfigPrefType_Runtime *kpt_rt, dummy_kpt_rt = {{'\0'}};
   wmKeyConfigPref dummy_kpt = {NULL};
   PointerRNA dummy_ptr;
@@ -1154,7 +1156,8 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_kpt_rt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering key-config preferences class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummy_kpt_rt.idname));
     return NULL;
@@ -1162,8 +1165,18 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
 
   /* check if we have registered this keyconf-prefs type before, and remove it */
   kpt_rt = BKE_keyconfig_pref_type_find(dummy_kpt.idname, true);
-  if (kpt_rt && kpt_rt->rna_ext.srna) {
-    rna_wmKeyConfigPref_unregister(bmain, kpt_rt->rna_ext.srna);
+  if (kpt_rt) {
+    StructRNA *srna = kpt_rt->rna_ext.srna;
+    if (!(srna && rna_wmKeyConfigPref_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_kpt.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
 
   /* create a new keyconf-prefs type */
@@ -1456,7 +1469,7 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
   return result;
 }
 
-static void rna_Operator_unregister(struct Main *bmain, StructRNA *type);
+static bool rna_Operator_unregister(struct Main *bmain, StructRNA *type);
 
 /* bpy_operator_wrap.c */
 
@@ -1471,6 +1484,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
+  const char *error_prefix = "Registering operator class:";
   wmOperatorType dummyot = {NULL};
   wmOperator dummyop = {NULL};
   PointerRNA dummyotr;
@@ -1506,8 +1520,18 @@ static StructRNA *rna_Operator_register(Main *bmain,
   /* check if we have registered this operator type before, and remove it */
   {
     wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
-    if (ot && ot->rna_ext.srna) {
-      rna_Operator_unregister(bmain, ot->rna_ext.srna);
+    if (ot) {
+      StructRNA *srna = ot->rna_ext.srna;
+      if (!(srna && rna_Operator_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummyot.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
 
@@ -1580,14 +1604,14 @@ static StructRNA *rna_Operator_register(Main *bmain,
   return dummyot.rna_ext.srna;
 }
 
-static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
+static bool rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 {
   const char *idname;
   wmOperatorType *ot = RNA_struct_blender_type_get(type);
   wmWindowManager *wm;
 
   if (!ot) {
-    return;
+    return false;
   }
 
   /* update while blender is running */
@@ -1609,6 +1633,7 @@ static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
   RNA_struct_free(&BLENDER_RNA, type);
 
   MEM_freeN((void *)idname);
+  return true;
 }
 
 static void **rna_Operator_instance(PointerRNA *ptr)
@@ -1625,6 +1650,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
                                              StructCallbackFunc call,
                                              StructFreeFunc free)
 {
+  const char *error_prefix = "Registering operator macro class:";
   wmOperatorType dummyot = {NULL};
   wmOperator dummyop = {NULL};
   PointerRNA dummyotr;
@@ -1664,8 +1690,18 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
   /* check if we have registered this operator type before, and remove it */
   {
     wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
-    if (ot && ot->rna_ext.srna) {
-      rna_Operator_unregister(bmain, ot->rna_ext.srna);
+    if (ot) {
+      StructRNA *srna = ot->rna_ext.srna;
+      if (!(srna && rna_Operator_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummyot.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
 
