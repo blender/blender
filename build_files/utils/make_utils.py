@@ -68,7 +68,7 @@ def git_branch_exists(git_command: str, branch: str) -> bool:
     )
 
 
-def git_get_remote_url(git_command: str, remote_name: str) -> bool:
+def git_get_remote_url(git_command: str, remote_name: str) -> str:
     return check_output((git_command, "ls-remote", "--get-url", remote_name))
 
 
