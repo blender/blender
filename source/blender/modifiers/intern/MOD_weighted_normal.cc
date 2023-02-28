@@ -243,7 +243,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
     /* In this first loop, we assign each WeightedNormalDataAggregateItem
      * to its smooth fan of loops (aka lnor space). */
-    int item_index;
+    int item_index = 0;
     for (const int i : polys.index_range()) {
       for (const int ml_index : blender::IndexRange(polys[i].loopstart, polys[i].totloop)) {
         if (BLI_BITMAP_TEST(done_loops, ml_index)) {
