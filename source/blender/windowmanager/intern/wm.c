@@ -501,6 +501,14 @@ void WM_check(bContext *C)
 
     /* Case: no open windows at all, for old file reads. */
     wm_window_ghostwindows_ensure(wm);
+
+    /* It possible for a pre-250 file to have window but none set active. See #104726. */
+    if (wm->winactive == NULL) {
+      wm->winactive = (wmWindow *)wm->windows.first;
+      if (wm->winactive != NULL) {
+        wm->winactive->active = true;
+      }
+    }
   }
 
   /* Case: file-read. */
