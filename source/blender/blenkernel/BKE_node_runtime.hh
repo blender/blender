@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "BLI_cache_mutex.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_utility_mixins.hh"
@@ -150,6 +151,13 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   Vector<bNode *> root_frames;
   Vector<bNodeSocket *> interface_inputs;
   Vector<bNodeSocket *> interface_outputs;
+
+  /**
+   * The location of all sockets in the tree, calculated while drawing the nodes.
+   * Indexed with #bNodeSocket::index_in_tree(). In the node tree's "world space"
+   * (the same as #bNode::runtime::totr).
+   */
+  Vector<float2> all_socket_locations;
 };
 
 /**
