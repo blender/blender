@@ -299,7 +299,9 @@ bool MetalDevice::use_local_atomic_sort() const
   return DebugFlags().metal.use_local_atomic_sort;
 }
 
-string MetalDevice::preprocess_source(MetalPipelineType pso_type, const uint kernel_features, string* source)
+string MetalDevice::preprocess_source(MetalPipelineType pso_type,
+                                      const uint kernel_features,
+                                      string *source)
 {
   string global_defines;
   if (use_adaptive_compilation()) {
@@ -348,18 +350,18 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type, const uint ker
       const double starttime = time_dt();
 
 #  define KERNEL_STRUCT_BEGIN(name, parent) \
-      string_replace_same_length(*source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
+    string_replace_same_length(*source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
 
       bool next_member_is_specialized = true;
 
 #  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-      if (!next_member_is_specialized) { \
-        string_replace( \
-            *source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
-        next_member_is_specialized = true; \
-      }
+    if (!next_member_is_specialized) { \
+      string_replace( \
+          *source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
+      next_member_is_specialized = true; \
+    }
 
 #  include "kernel/data_template.h"
 
@@ -397,7 +399,7 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
-  
+
   /* Perform any required specialization on the source.
    * With Metal function constants we can generate a single variant of the kernel source which can
    * be repeatedly respecialized.
@@ -449,7 +451,8 @@ bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_
 
 #  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
-    /* Add specialization constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
+    /* Add specialization constants to md5 so that 'get_best_pipeline' is able to return a suitable
+     * match. */
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
     if (next_member_is_specialized) { \
       constant_values += string(#parent "." #name "=") + \

@@ -265,20 +265,24 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
   const char *active_color_src = BKE_id_attributes_active_color_name(&mesh_src->id);
 
   if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(&mesh_src->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+      !BKE_id_attribute_search(
+          &mesh_src->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(&mesh_src->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+           !BKE_id_attribute_search(
+               &mesh_src->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
   if ((data_type == CD_PROP_COLOR) &&
-      BKE_id_attribute_search(&mesh_dst->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+      BKE_id_attribute_search(
+          &mesh_dst->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           BKE_id_attribute_search(&mesh_dst->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+           BKE_id_attribute_search(
+               &mesh_dst->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
   }
   else {
@@ -305,20 +309,26 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
   const char *default_color_src = BKE_id_attributes_default_color_name(&mesh_src->id);
 
   if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(&mesh_src->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+      !BKE_id_attribute_search(
+          &mesh_src->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(&mesh_src->id, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  else if ((data_type == CD_PROP_BYTE_COLOR) && !BKE_id_attribute_search(&mesh_src->id,
+                                                                         default_color_src,
+                                                                         CD_MASK_PROP_BYTE_COLOR,
+                                                                         ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
   if ((data_type == CD_PROP_COLOR) &&
-      BKE_id_attribute_search(&mesh_dst->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+      BKE_id_attribute_search(
+          &mesh_dst->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
     mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           BKE_id_attribute_search(&mesh_dst->id, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  else if ((data_type == CD_PROP_BYTE_COLOR) && BKE_id_attribute_search(&mesh_dst->id,
+                                                                        default_color_src,
+                                                                        CD_MASK_PROP_BYTE_COLOR,
+                                                                        ATTR_DOMAIN_MASK_COLOR)) {
     mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
   }
   else {
