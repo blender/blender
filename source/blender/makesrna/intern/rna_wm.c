@@ -1141,14 +1141,14 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   const char *error_prefix = "Registering key-config preferences class:";
   wmKeyConfigPrefType_Runtime *kpt_rt, dummy_kpt_rt = {{'\0'}};
   wmKeyConfigPref dummy_kpt = {NULL};
-  PointerRNA dummy_ptr;
+  PointerRNA dummy_kpt_ptr;
   // int have_function[1];
 
   /* setup dummy keyconf-prefs & keyconf-prefs type to store static properties in */
-  RNA_pointer_create(NULL, &RNA_KeyConfigPreferences, &dummy_kpt, &dummy_ptr);
+  RNA_pointer_create(NULL, &RNA_KeyConfigPreferences, &dummy_kpt, &dummy_kpt_ptr);
 
   /* validate the python class */
-  if (validate(&dummy_ptr, data, NULL /* have_function */) != 0) {
+  if (validate(&dummy_kpt_ptr, data, NULL /* have_function */) != 0) {
     return NULL;
   }
 
@@ -1485,9 +1485,9 @@ static StructRNA *rna_Operator_register(Main *bmain,
                                         StructFreeFunc free)
 {
   const char *error_prefix = "Registering operator class:";
-  wmOperatorType dummyot = {NULL};
-  wmOperator dummyop = {NULL};
-  PointerRNA dummyotr;
+  wmOperatorType dummy_ot = {NULL};
+  wmOperator dummy_operator = {NULL};
+  PointerRNA dummy_operator_ptr;
   int have_function[8];
 
   struct {
@@ -1499,27 +1499,27 @@ static StructRNA *rna_Operator_register(Main *bmain,
   } temp_buffers;
 
   /* setup dummy operator & operator type to store static properties in */
-  dummyop.type = &dummyot;
-  dummyot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
-  dummyot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
-  dummyot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
-  dummyot.translation_context =
-      temp_buffers.translation_context;         /* only assign the pointer, string is NULL'd */
-  dummyot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
-  RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
+  dummy_operator.type = &dummy_ot;
+  dummy_ot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
+  dummy_ot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
+  dummy_ot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
+  dummy_ot.translation_context =
+      temp_buffers.translation_context;          /* only assign the pointer, string is NULL'd */
+  dummy_ot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
+  RNA_pointer_create(NULL, &RNA_Operator, &dummy_operator, &dummy_operator_ptr);
 
   /* clear in case they are left unset */
   temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] =
       temp_buffers.undo_group[0] = temp_buffers.translation_context[0] = '\0';
 
   /* validate the python class */
-  if (validate(&dummyotr, data, have_function) != 0) {
+  if (validate(&dummy_operator_ptr, data, have_function) != 0) {
     return NULL;
   }
 
   /* check if we have registered this operator type before, and remove it */
   {
-    wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
+    wmOperatorType *ot = WM_operatortype_find(dummy_ot.idname, true);
     if (ot) {
       StructRNA *srna = ot->rna_ext.srna;
       if (!(srna && rna_Operator_unregister(bmain, srna))) {
@@ -1528,19 +1528,19 @@ static StructRNA *rna_Operator_register(Main *bmain,
                     "%s '%s', bl_idname '%s' %s",
                     error_prefix,
                     identifier,
-                    dummyot.idname,
+                    dummy_ot.idname,
                     srna ? "is built-in" : "could not be unregistered");
         return NULL;
       }
     }
   }
 
-  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
+  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummy_ot.idname)) {
     return NULL;
   }
 
-  char idname_conv[sizeof(dummyop.idname)];
-  WM_operator_bl_idname(idname_conv, dummyot.idname); /* convert the idname from python */
+  char idname_conv[sizeof(dummy_operator.idname)];
+  WM_operator_bl_idname(idname_conv, dummy_ot.idname); /* convert the idname from python */
 
   if (!RNA_struct_available_or_report(reports, idname_conv)) {
     return NULL;
@@ -1565,11 +1565,11 @@ static StructRNA *rna_Operator_register(Main *bmain,
     BLI_string_join_array_by_sep_char_with_tableN(
         '\0', strings_table, strings, ARRAY_SIZE(strings));
 
-    dummyot.idname = strings_table[0]; /* allocated string stored here */
-    dummyot.name = strings_table[1];
-    dummyot.description = *strings_table[2] ? strings_table[2] : NULL;
-    dummyot.translation_context = strings_table[3];
-    dummyot.undo_group = strings_table[4];
+    dummy_ot.idname = strings_table[0]; /* allocated string stored here */
+    dummy_ot.name = strings_table[1];
+    dummy_ot.description = *strings_table[2] ? strings_table[2] : NULL;
+    dummy_ot.translation_context = strings_table[3];
+    dummy_ot.undo_group = strings_table[4];
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
@@ -1577,31 +1577,31 @@ static StructRNA *rna_Operator_register(Main *bmain,
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
-  dummyot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
+  dummy_ot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_ot.idname, &RNA_Operator);
 
   /* Operator properties are registered separately. */
-  RNA_def_struct_flag(dummyot.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
+  RNA_def_struct_flag(dummy_ot.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
 
-  RNA_def_struct_property_tags(dummyot.rna_ext.srna, rna_enum_operator_property_tags);
-  RNA_def_struct_translation_context(dummyot.rna_ext.srna, dummyot.translation_context);
-  dummyot.rna_ext.data = data;
-  dummyot.rna_ext.call = call;
-  dummyot.rna_ext.free = free;
+  RNA_def_struct_property_tags(dummy_ot.rna_ext.srna, rna_enum_operator_property_tags);
+  RNA_def_struct_translation_context(dummy_ot.rna_ext.srna, dummy_ot.translation_context);
+  dummy_ot.rna_ext.data = data;
+  dummy_ot.rna_ext.call = call;
+  dummy_ot.rna_ext.free = free;
 
-  dummyot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
-  dummyot.exec = (have_function[1]) ? rna_operator_execute_cb : NULL;
-  dummyot.check = (have_function[2]) ? rna_operator_check_cb : NULL;
-  dummyot.invoke = (have_function[3]) ? rna_operator_invoke_cb : NULL;
-  dummyot.modal = (have_function[4]) ? rna_operator_modal_cb : NULL;
-  dummyot.ui = (have_function[5]) ? rna_operator_draw_cb : NULL;
-  dummyot.cancel = (have_function[6]) ? rna_operator_cancel_cb : NULL;
-  dummyot.get_description = (have_function[7]) ? rna_operator_description_cb : NULL;
-  WM_operatortype_append_ptr(BPY_RNA_operator_wrapper, (void *)&dummyot);
+  dummy_ot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
+  dummy_ot.exec = (have_function[1]) ? rna_operator_execute_cb : NULL;
+  dummy_ot.check = (have_function[2]) ? rna_operator_check_cb : NULL;
+  dummy_ot.invoke = (have_function[3]) ? rna_operator_invoke_cb : NULL;
+  dummy_ot.modal = (have_function[4]) ? rna_operator_modal_cb : NULL;
+  dummy_ot.ui = (have_function[5]) ? rna_operator_draw_cb : NULL;
+  dummy_ot.cancel = (have_function[6]) ? rna_operator_cancel_cb : NULL;
+  dummy_ot.get_description = (have_function[7]) ? rna_operator_description_cb : NULL;
+  WM_operatortype_append_ptr(BPY_RNA_operator_wrapper, (void *)&dummy_ot);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
-  return dummyot.rna_ext.srna;
+  return dummy_ot.rna_ext.srna;
 }
 
 static bool rna_Operator_unregister(struct Main *bmain, StructRNA *type)
@@ -1651,9 +1651,9 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
                                              StructFreeFunc free)
 {
   const char *error_prefix = "Registering operator macro class:";
-  wmOperatorType dummyot = {NULL};
-  wmOperator dummyop = {NULL};
-  PointerRNA dummyotr;
+  wmOperatorType dummy_ot = {NULL};
+  wmOperator dummy_operator = {NULL};
+  PointerRNA dummy_operator_ptr;
   int have_function[4];
 
   struct {
@@ -1665,31 +1665,31 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
   } temp_buffers;
 
   /* setup dummy operator & operator type to store static properties in */
-  dummyop.type = &dummyot;
-  dummyot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
-  dummyot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
-  dummyot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
-  dummyot.translation_context =
-      temp_buffers.translation_context;         /* only assign the pointer, string is NULL'd */
-  dummyot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
-  RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
+  dummy_operator.type = &dummy_ot;
+  dummy_ot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
+  dummy_ot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
+  dummy_ot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
+  dummy_ot.translation_context =
+      temp_buffers.translation_context;          /* only assign the pointer, string is NULL'd */
+  dummy_ot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
+  RNA_pointer_create(NULL, &RNA_Macro, &dummy_operator, &dummy_operator_ptr);
 
   /* clear in case they are left unset */
   temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] =
       temp_buffers.undo_group[0] = temp_buffers.translation_context[0] = '\0';
 
   /* validate the python class */
-  if (validate(&dummyotr, data, have_function) != 0) {
+  if (validate(&dummy_operator_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
+  if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummy_ot.idname)) {
     return NULL;
   }
 
   /* check if we have registered this operator type before, and remove it */
   {
-    wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
+    wmOperatorType *ot = WM_operatortype_find(dummy_ot.idname, true);
     if (ot) {
       StructRNA *srna = ot->rna_ext.srna;
       if (!(srna && rna_Operator_unregister(bmain, srna))) {
@@ -1698,15 +1698,15 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
                     "%s '%s', bl_idname '%s' %s",
                     error_prefix,
                     identifier,
-                    dummyot.idname,
+                    dummy_ot.idname,
                     srna ? "is built-in" : "could not be unregistered");
         return NULL;
       }
     }
   }
 
-  char idname_conv[sizeof(dummyop.idname)];
-  WM_operator_bl_idname(idname_conv, dummyot.idname); /* convert the idname from python */
+  char idname_conv[sizeof(dummy_operator.idname)];
+  WM_operator_bl_idname(idname_conv, dummy_ot.idname); /* convert the idname from python */
 
   if (!RNA_struct_available_or_report(reports, idname_conv)) {
     return NULL;
@@ -1731,11 +1731,11 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     BLI_string_join_array_by_sep_char_with_tableN(
         '\0', strings_table, strings, ARRAY_SIZE(strings));
 
-    dummyot.idname = strings_table[0]; /* allocated string stored here */
-    dummyot.name = strings_table[1];
-    dummyot.description = *strings_table[2] ? strings_table[2] : NULL;
-    dummyot.translation_context = strings_table[3];
-    dummyot.undo_group = strings_table[4];
+    dummy_ot.idname = strings_table[0]; /* allocated string stored here */
+    dummy_ot.name = strings_table[1];
+    dummy_ot.description = *strings_table[2] ? strings_table[2] : NULL;
+    dummy_ot.translation_context = strings_table[3];
+    dummy_ot.undo_group = strings_table[4];
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
@@ -1743,21 +1743,21 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
-  dummyot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
-  RNA_def_struct_translation_context(dummyot.rna_ext.srna, dummyot.translation_context);
-  dummyot.rna_ext.data = data;
-  dummyot.rna_ext.call = call;
-  dummyot.rna_ext.free = free;
+  dummy_ot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_ot.idname, &RNA_Operator);
+  RNA_def_struct_translation_context(dummy_ot.rna_ext.srna, dummy_ot.translation_context);
+  dummy_ot.rna_ext.data = data;
+  dummy_ot.rna_ext.call = call;
+  dummy_ot.rna_ext.free = free;
 
-  dummyot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
-  dummyot.ui = (have_function[3]) ? rna_operator_draw_cb : NULL;
+  dummy_ot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
+  dummy_ot.ui = (have_function[3]) ? rna_operator_draw_cb : NULL;
 
-  WM_operatortype_append_macro_ptr(BPY_RNA_operator_macro_wrapper, (void *)&dummyot);
+  WM_operatortype_append_macro_ptr(BPY_RNA_operator_macro_wrapper, (void *)&dummy_ot);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
-  return dummyot.rna_ext.srna;
+  return dummy_ot.rna_ext.srna;
 }
 #  endif /* WITH_PYTHON */
 

@@ -1073,34 +1073,34 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructFreeFunc free)
 {
   const char *error_prefix = "Registering node tree class:";
-  bNodeTreeType *nt, dummynt;
-  bNodeTree dummyntree;
-  PointerRNA dummyptr;
+  bNodeTreeType *nt, dummy_nt;
+  bNodeTree dummy_ntree;
+  PointerRNA dummy_ntree_ptr;
   int have_function[4];
 
   /* setup dummy tree & tree type to store static properties in */
-  memset(&dummynt, 0, sizeof(bNodeTreeType));
-  memset(&dummyntree, 0, sizeof(bNodeTree));
-  dummyntree.typeinfo = &dummynt;
-  RNA_pointer_create(NULL, &RNA_NodeTree, &dummyntree, &dummyptr);
+  memset(&dummy_nt, 0, sizeof(bNodeTreeType));
+  memset(&dummy_ntree, 0, sizeof(bNodeTree));
+  dummy_ntree.typeinfo = &dummy_nt;
+  RNA_pointer_create(NULL, &RNA_NodeTree, &dummy_ntree, &dummy_ntree_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_ntree_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummynt.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummynt.idname));
+                (int)sizeof(dummy_nt.idname));
     return NULL;
   }
 
   /* check if we have registered this tree type before, and remove it */
-  nt = ntreeTypeFind(dummynt.idname);
+  nt = ntreeTypeFind(dummy_nt.idname);
   if (nt) {
     /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for NULL. */
     if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
@@ -1109,14 +1109,14 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                   "%s '%s', bl_idname '%s' could not be unregistered",
                   error_prefix,
                   identifier,
-                  dummynt.idname);
+                  dummy_nt.idname);
       return NULL;
     }
   }
 
   /* create a new node tree type */
   nt = MEM_mallocN(sizeof(bNodeTreeType), "node tree type");
-  memcpy(nt, &dummynt, sizeof(dummynt));
+  memcpy(nt, &dummy_nt, sizeof(dummy_nt));
 
   nt->type = NTREE_CUSTOM;
 
@@ -1928,39 +1928,39 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                                          StructFreeFunc free)
 {
   const char *error_prefix = "Registering node class:";
-  bNodeType *nt, dummynt;
-  bNode dummynode;
-  PointerRNA dummyptr;
+  bNodeType *nt, dummy_nt;
+  bNode dummy_node;
+  PointerRNA dummy_node_ptr;
   FunctionRNA *func;
   PropertyRNA *parm;
   int have_function[10];
 
   /* setup dummy node & node type to store static properties in */
-  memset(&dummynt, 0, sizeof(bNodeType));
+  memset(&dummy_nt, 0, sizeof(bNodeType));
   /* this does some additional initialization of default values */
-  node_type_base_custom(&dummynt, identifier, "", 0);
+  node_type_base_custom(&dummy_nt, identifier, "", 0);
 
-  memset(&dummynode, 0, sizeof(bNode));
-  dummynode.typeinfo = &dummynt;
-  RNA_pointer_create(NULL, basetype, &dummynode, &dummyptr);
+  memset(&dummy_node, 0, sizeof(bNode));
+  dummy_node.typeinfo = &dummy_nt;
+  RNA_pointer_create(NULL, basetype, &dummy_node, &dummy_node_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_node_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummynt.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummynt.idname));
+                (int)sizeof(dummy_nt.idname));
     return NULL;
   }
 
   /* check if we have registered this node type before, and remove it */
-  nt = nodeTypeFind(dummynt.idname);
+  nt = nodeTypeFind(dummy_nt.idname);
   if (nt) {
     /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for NULL. */
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
@@ -1969,14 +1969,14 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                   "%s '%s', bl_idname '%s' could not be unregistered",
                   error_prefix,
                   identifier,
-                  dummynt.idname);
+                  dummy_nt.idname);
       return NULL;
     }
   }
 
   /* create a new node type */
   nt = MEM_mallocN(sizeof(bNodeType), "node type");
-  memcpy(nt, &dummynt, sizeof(dummynt));
+  memcpy(nt, &dummy_nt, sizeof(dummy_nt));
   nt->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   nt->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, nt->idname, basetype);
@@ -2774,39 +2774,39 @@ static StructRNA *rna_NodeSocket_register(Main *UNUSED(bmain),
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
-  bNodeSocketType *st, dummyst;
-  bNodeSocket dummysock;
-  PointerRNA dummyptr;
+  bNodeSocketType *st, dummy_st;
+  bNodeSocket dummy_sock;
+  PointerRNA dummy_sock_ptr;
   int have_function[2];
 
   /* setup dummy socket & socket type to store static properties in */
-  memset(&dummyst, 0, sizeof(bNodeSocketType));
-  dummyst.type = SOCK_CUSTOM;
+  memset(&dummy_st, 0, sizeof(bNodeSocketType));
+  dummy_st.type = SOCK_CUSTOM;
 
-  memset(&dummysock, 0, sizeof(bNodeSocket));
-  dummysock.typeinfo = &dummyst;
-  RNA_pointer_create(NULL, &RNA_NodeSocket, &dummysock, &dummyptr);
+  memset(&dummy_sock, 0, sizeof(bNodeSocket));
+  dummy_sock.typeinfo = &dummy_st;
+  RNA_pointer_create(NULL, &RNA_NodeSocket, &dummy_sock, &dummy_sock_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_sock_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyst.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_st.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Registering node socket class: '%s' is too long, maximum length is %d",
                 identifier,
-                (int)sizeof(dummyst.idname));
+                (int)sizeof(dummy_st.idname));
     return NULL;
   }
 
   /* check if we have registered this socket type before */
-  st = nodeSocketTypeFind(dummyst.idname);
+  st = nodeSocketTypeFind(dummy_st.idname);
   if (!st) {
     /* create a new node socket type */
     st = MEM_mallocN(sizeof(bNodeSocketType), "node socket type");
-    memcpy(st, &dummyst, sizeof(dummyst));
+    memcpy(st, &dummy_st, sizeof(dummy_st));
 
     nodeRegisterSocketType(st);
   }
@@ -3067,32 +3067,32 @@ static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),
                                                    StructCallbackFunc call,
                                                    StructFreeFunc free)
 {
-  bNodeSocketType *st, dummyst;
-  bNodeSocket dummysock;
-  PointerRNA dummyptr;
+  bNodeSocketType *st, dummy_st;
+  bNodeSocket dummy_sock;
+  PointerRNA dummy_sock_ptr;
   int have_function[4];
 
   /* setup dummy socket & socket type to store static properties in */
-  memset(&dummyst, 0, sizeof(bNodeSocketType));
+  memset(&dummy_st, 0, sizeof(bNodeSocketType));
 
-  memset(&dummysock, 0, sizeof(bNodeSocket));
-  dummysock.typeinfo = &dummyst;
-  RNA_pointer_create(NULL, &RNA_NodeSocketInterface, &dummysock, &dummyptr);
+  memset(&dummy_sock, 0, sizeof(bNodeSocket));
+  dummy_sock.typeinfo = &dummy_st;
+  RNA_pointer_create(NULL, &RNA_NodeSocketInterface, &dummy_sock, &dummy_sock_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_sock_ptr, data, have_function) != 0) {
     return NULL;
   }
 
   /* check if we have registered this socket type before */
-  st = nodeSocketTypeFind(dummyst.idname);
+  st = nodeSocketTypeFind(dummy_st.idname);
   if (st) {
     /* basic socket type registered by a socket class before. */
   }
   else {
     /* create a new node socket type */
     st = MEM_mallocN(sizeof(bNodeSocketType), "node socket type");
-    memcpy(st, &dummyst, sizeof(dummyst));
+    memcpy(st, &dummy_st, sizeof(dummy_st));
 
     nodeRegisterSocketType(st);
   }

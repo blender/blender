@@ -283,33 +283,33 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
                                              StructFreeFunc free)
 {
   const char *error_prefix = "Registering keying set info class:";
-  KeyingSetInfo dummyksi = {NULL};
+  KeyingSetInfo dummy_ksi = {NULL};
   KeyingSetInfo *ksi;
-  PointerRNA dummyptr = {NULL};
+  PointerRNA dummy_ksi_ptr = {NULL};
   int have_function[3];
 
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummy_ksi, &dummy_ksi_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_ksi_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyksi.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_ksi.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummyksi.idname));
+                (int)sizeof(dummy_ksi.idname));
     return NULL;
   }
 
   /* check if we have registered this info before, and remove it */
-  ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
+  ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
   if (ksi) {
     StructRNA *srna = ksi->rna_ext.srna;
     if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
@@ -318,7 +318,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
                   "%s '%s', bl_idname '%s' %s",
                   error_prefix,
                   identifier,
-                  dummyksi.idname,
+                  dummy_ksi.idname,
                   srna ? "is built-in" : "could not be unregistered");
       return NULL;
     }
@@ -326,7 +326,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
 
   /* create a new KeyingSetInfo type */
   ksi = MEM_mallocN(sizeof(KeyingSetInfo), "python keying set info");
-  memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
+  memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
   ksi->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ksi->idname, &RNA_KeyingSetInfo);

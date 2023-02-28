@@ -245,68 +245,68 @@ static StructRNA *rna_Panel_register(Main *bmain,
 {
   const char *error_prefix = "Registering panel class:";
   ARegionType *art;
-  PanelType *pt, *parent = NULL, dummypt = {NULL};
-  Panel dummypanel = {NULL};
-  PointerRNA dummyptr;
+  PanelType *pt, *parent = NULL, dummy_pt = {NULL};
+  Panel dummy_panel = {NULL};
+  PointerRNA dummy_panel_ptr;
   int have_function[4];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   char _panel_descr[RNA_DYN_DESCR_MAX];
   size_t description_size = 0;
 
   /* setup dummy panel & panel type to store static properties in */
-  dummypanel.type = &dummypt;
+  dummy_panel.type = &dummy_pt;
   _panel_descr[0] = '\0';
-  dummypanel.type->description = _panel_descr;
-  RNA_pointer_create(NULL, &RNA_Panel, &dummypanel, &dummyptr);
+  dummy_panel.type->description = _panel_descr;
+  RNA_pointer_create(NULL, &RNA_Panel, &dummy_panel, &dummy_panel_ptr);
 
   /* We have to set default context! Else we get a void string... */
-  strcpy(dummypt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  strcpy(dummy_pt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_panel_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummypt.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_pt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummypt.idname));
+                (int)sizeof(dummy_pt.idname));
     return NULL;
   }
 
-  if ((1 << dummypt.region_type) & RGN_TYPE_HAS_CATEGORY_MASK) {
-    if (dummypt.category[0] == '\0') {
+  if ((1 << dummy_pt.region_type) & RGN_TYPE_HAS_CATEGORY_MASK) {
+    if (dummy_pt.category[0] == '\0') {
       /* Use a fallback, otherwise an empty value will draw the panel in every category. */
-      strcpy(dummypt.category, PNL_CATEGORY_FALLBACK);
+      strcpy(dummy_pt.category, PNL_CATEGORY_FALLBACK);
 #  ifndef NDEBUG
-      printf("%s '%s' misses category, please update the script\n", error_prefix, dummypt.idname);
+      printf("%s '%s' misses category, please update the script\n", error_prefix, dummy_pt.idname);
 #  endif
     }
   }
   else {
-    if (dummypt.category[0] != '\0') {
-      if ((1 << dummypt.space_type) & WM_TOOLSYSTEM_SPACE_MASK) {
+    if (dummy_pt.category[0] != '\0') {
+      if ((1 << dummy_pt.space_type) & WM_TOOLSYSTEM_SPACE_MASK) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "%s '%s' has category '%s' ",
                     error_prefix,
-                    dummypt.idname,
-                    dummypt.category);
+                    dummy_pt.idname,
+                    dummy_pt.category);
         return NULL;
       }
     }
   }
 
-  if (!(art = region_type_find(reports, dummypt.space_type, dummypt.region_type))) {
+  if (!(art = region_type_find(reports, dummy_pt.space_type, dummy_pt.region_type))) {
     return NULL;
   }
 
   /* check if we have registered this panel type before, and remove it */
   for (pt = art->paneltypes.first; pt; pt = pt->next) {
-    if (STREQ(pt->idname, dummypt.idname)) {
+    if (STREQ(pt->idname, dummy_pt.idname)) {
       PanelType *pt_next = pt->next;
       StructRNA *srna = pt->rna_ext.srna;
       if (srna) {
@@ -316,7 +316,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
                       "%s '%s', bl_idname '%s' could not be unregistered",
                       error_prefix,
                       identifier,
-                      dummypt.idname);
+                      dummy_pt.idname);
         }
       }
       else {
@@ -324,9 +324,9 @@ static StructRNA *rna_Panel_register(Main *bmain,
       }
 
       /* The order of panel types will be altered on re-registration. */
-      if (dummypt.parent_id[0] && (parent == NULL)) {
+      if (dummy_pt.parent_id[0] && (parent == NULL)) {
         for (pt = pt_next; pt; pt = pt->next) {
-          if (STREQ(pt->idname, dummypt.parent_id)) {
+          if (STREQ(pt->idname, dummy_pt.parent_id)) {
             parent = pt;
             break;
           }
@@ -336,24 +336,24 @@ static StructRNA *rna_Panel_register(Main *bmain,
       break;
     }
 
-    if (dummypt.parent_id[0] && STREQ(pt->idname, dummypt.parent_id)) {
+    if (dummy_pt.parent_id[0] && STREQ(pt->idname, dummy_pt.parent_id)) {
       parent = pt;
     }
   }
 
-  if (!RNA_struct_available_or_report(reports, dummypt.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_pt.idname)) {
     return NULL;
   }
-  if (!RNA_struct_bl_idname_ok_or_report(reports, dummypt.idname, "_PT_")) {
+  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_pt.idname, "_PT_")) {
     return NULL;
   }
-  if (dummypt.parent_id[0] && !parent) {
+  if (dummy_pt.parent_id[0] && !parent) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s parent '%s' for '%s' not found",
                 error_prefix,
-                dummypt.parent_id,
-                dummypt.idname);
+                dummy_pt.parent_id,
+                dummy_pt.idname);
     return NULL;
   }
 
@@ -363,7 +363,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
     over_alloc += description_size;
   }
   pt = MEM_callocN(sizeof(PanelType) + over_alloc, "python buttons panel");
-  memcpy(pt, &dummypt, sizeof(dummypt));
+  memcpy(pt, &dummy_pt, sizeof(dummy_pt));
 
   if (_panel_descr[0]) {
     char *buf = (char *)(pt + 1);
@@ -686,33 +686,33 @@ static StructRNA *rna_UIList_register(Main *bmain,
                                       StructFreeFunc free)
 {
   const char *error_prefix = "Registering uilist class:";
-  uiListType *ult, dummyult = {NULL};
-  uiList dummyuilist = {NULL};
-  PointerRNA dummyul_ptr;
+  uiListType *ult, dummy_ult = {NULL};
+  uiList dummy_uilist = {NULL};
+  PointerRNA dummy_ul_ptr;
   int have_function[3];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
 
   /* setup dummy menu & menu type to store static properties in */
-  dummyuilist.type = &dummyult;
-  RNA_pointer_create(NULL, &RNA_UIList, &dummyuilist, &dummyul_ptr);
+  dummy_uilist.type = &dummy_ult;
+  RNA_pointer_create(NULL, &RNA_UIList, &dummy_uilist, &dummy_ul_ptr);
 
   /* validate the python class */
-  if (validate(&dummyul_ptr, data, have_function) != 0) {
+  if (validate(&dummy_ul_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyult.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_ult.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummyult.idname));
+                (int)sizeof(dummy_ult.idname));
     return NULL;
   }
 
   /* Check if we have registered this UI-list type before, and remove it. */
-  ult = WM_uilisttype_find(dummyult.idname, true);
+  ult = WM_uilisttype_find(dummy_ult.idname, true);
   if (ult) {
     StructRNA *srna = ult->rna_ext.srna;
     if (!(srna && rna_UIList_unregister(bmain, srna))) {
@@ -721,21 +721,21 @@ static StructRNA *rna_UIList_register(Main *bmain,
                   "%s '%s', bl_idname '%s' %s",
                   error_prefix,
                   identifier,
-                  dummyult.idname,
+                  dummy_ult.idname,
                   srna ? "is built-in" : "could not be unregistered");
       return NULL;
     }
   }
-  if (!RNA_struct_available_or_report(reports, dummyult.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_ult.idname)) {
     return NULL;
   }
-  if (!RNA_struct_bl_idname_ok_or_report(reports, dummyult.idname, "_UL_")) {
+  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_ult.idname, "_UL_")) {
     return NULL;
   }
 
   /* create a new menu type */
   ult = MEM_callocN(sizeof(uiListType) + over_alloc, "python uilist");
-  memcpy(ult, &dummyult, sizeof(dummyult));
+  memcpy(ult, &dummy_ult, sizeof(dummy_ult));
 
   ult->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ult->idname, &RNA_UIList);
   ult->rna_ext.data = data;
@@ -814,37 +814,37 @@ static StructRNA *rna_Header_register(Main *bmain,
 {
   const char *error_prefix = "Registering header class:";
   ARegionType *art;
-  HeaderType *ht, dummyht = {NULL};
-  Header dummyheader = {NULL};
-  PointerRNA dummyhtr;
+  HeaderType *ht, dummy_ht = {NULL};
+  Header dummy_header = {NULL};
+  PointerRNA dummy_header_ptr;
   int have_function[1];
 
   /* setup dummy header & header type to store static properties in */
-  dummyheader.type = &dummyht;
-  dummyht.region_type = RGN_TYPE_HEADER; /* RGN_TYPE_HEADER by default, may be overridden */
-  RNA_pointer_create(NULL, &RNA_Header, &dummyheader, &dummyhtr);
+  dummy_header.type = &dummy_ht;
+  dummy_ht.region_type = RGN_TYPE_HEADER; /* RGN_TYPE_HEADER by default, may be overridden */
+  RNA_pointer_create(NULL, &RNA_Header, &dummy_header, &dummy_header_ptr);
 
   /* validate the python class */
-  if (validate(&dummyhtr, data, have_function) != 0) {
+  if (validate(&dummy_header_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyht.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_ht.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummyht.idname));
+                (int)sizeof(dummy_ht.idname));
     return NULL;
   }
 
-  if (!(art = region_type_find(reports, dummyht.space_type, dummyht.region_type))) {
+  if (!(art = region_type_find(reports, dummy_ht.space_type, dummy_ht.region_type))) {
     return NULL;
   }
 
   /* check if we have registered this header type before, and remove it */
-  ht = BLI_findstring(&art->headertypes, dummyht.idname, offsetof(HeaderType, idname));
+  ht = BLI_findstring(&art->headertypes, dummy_ht.idname, offsetof(HeaderType, idname));
   if (ht) {
     StructRNA *srna = ht->rna_ext.srna;
     if (!(srna && rna_Header_unregister(bmain, srna))) {
@@ -853,22 +853,22 @@ static StructRNA *rna_Header_register(Main *bmain,
                   "%s '%s', bl_idname '%s' %s",
                   error_prefix,
                   identifier,
-                  dummyht.idname,
+                  dummy_ht.idname,
                   srna ? "is built-in" : "could not be unregistered");
       return NULL;
     }
   }
 
-  if (!RNA_struct_available_or_report(reports, dummyht.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_ht.idname)) {
     return NULL;
   }
-  if (!RNA_struct_bl_idname_ok_or_report(reports, dummyht.idname, "_HT_")) {
+  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_ht.idname, "_HT_")) {
     return NULL;
   }
 
   /* create a new header type */
   ht = MEM_mallocN(sizeof(HeaderType), "python buttons header");
-  memcpy(ht, &dummyht, sizeof(dummyht));
+  memcpy(ht, &dummy_ht, sizeof(dummy_ht));
 
   ht->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ht->idname, &RNA_Header);
   ht->rna_ext.data = data;
@@ -964,40 +964,40 @@ static StructRNA *rna_Menu_register(Main *bmain,
                                     StructFreeFunc free)
 {
   const char *error_prefix = "Registering menu class:";
-  MenuType *mt, dummymt = {NULL};
-  Menu dummymenu = {NULL};
-  PointerRNA dummymtr;
+  MenuType *mt, dummy_mt = {NULL};
+  Menu dummy_menu = {NULL};
+  PointerRNA dummy_menu_ptr;
   int have_function[2];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   size_t description_size = 0;
   char _menu_descr[RNA_DYN_DESCR_MAX];
 
   /* setup dummy menu & menu type to store static properties in */
-  dummymenu.type = &dummymt;
+  dummy_menu.type = &dummy_mt;
   _menu_descr[0] = '\0';
-  dummymenu.type->description = _menu_descr;
-  RNA_pointer_create(NULL, &RNA_Menu, &dummymenu, &dummymtr);
+  dummy_menu.type->description = _menu_descr;
+  RNA_pointer_create(NULL, &RNA_Menu, &dummy_menu, &dummy_menu_ptr);
 
   /* We have to set default context! Else we get a void string... */
-  strcpy(dummymt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  strcpy(dummy_mt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   /* validate the python class */
-  if (validate(&dummymtr, data, have_function) != 0) {
+  if (validate(&dummy_menu_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummymt.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_mt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummymt.idname));
+                (int)sizeof(dummy_mt.idname));
     return NULL;
   }
 
   /* check if we have registered this menu type before, and remove it */
-  mt = WM_menutype_find(dummymt.idname, true);
+  mt = WM_menutype_find(dummy_mt.idname, true);
   if (mt) {
     StructRNA *srna = mt->rna_ext.srna;
     if (!(srna && rna_Menu_unregister(bmain, srna))) {
@@ -1006,15 +1006,15 @@ static StructRNA *rna_Menu_register(Main *bmain,
                   "%s '%s', bl_idname '%s' %s",
                   error_prefix,
                   identifier,
-                  dummymt.idname,
+                  dummy_mt.idname,
                   srna ? "is built-in" : "could not be unregistered");
       return NULL;
     }
   }
-  if (!RNA_struct_available_or_report(reports, dummymt.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_mt.idname)) {
     return NULL;
   }
-  if (!RNA_struct_bl_idname_ok_or_report(reports, dummymt.idname, "_MT_")) {
+  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_mt.idname, "_MT_")) {
     return NULL;
   }
 
@@ -1025,7 +1025,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   }
 
   mt = MEM_callocN(sizeof(MenuType) + over_alloc, "python buttons menu");
-  memcpy(mt, &dummymt, sizeof(dummymt));
+  memcpy(mt, &dummy_mt, sizeof(dummy_mt));
 
   if (_menu_descr[0]) {
     char *buf = (char *)(mt + 1);

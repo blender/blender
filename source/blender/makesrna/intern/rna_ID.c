@@ -644,13 +644,13 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
                                       StructCallbackFunc UNUSED(call),
                                       StructFreeFunc UNUSED(free))
 {
-  PointerRNA dummyptr;
+  PointerRNA dummy_ptr;
 
   /* create dummy pointer */
-  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummy_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, NULL) != 0) {
+  if (validate(&dummy_ptr, data, NULL) != 0) {
     return NULL;
   }
 

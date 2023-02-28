@@ -334,33 +334,33 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
                                             StructFreeFunc free)
 {
   const char *error_prefix = "Registering render engine class:";
-  RenderEngineType *et, dummyet = {NULL};
-  RenderEngine dummyengine = {NULL};
-  PointerRNA dummyptr;
+  RenderEngineType *et, dummy_et = {NULL};
+  RenderEngine dummy_engine = {NULL};
+  PointerRNA dummy_engine_ptr;
   int have_function[9];
 
   /* setup dummy engine & engine type to store static properties in */
-  dummyengine.type = &dummyet;
-  dummyet.flag |= RE_USE_SHADING_NODES_CUSTOM;
-  RNA_pointer_create(NULL, &RNA_RenderEngine, &dummyengine, &dummyptr);
+  dummy_engine.type = &dummy_et;
+  dummy_et.flag |= RE_USE_SHADING_NODES_CUSTOM;
+  RNA_pointer_create(NULL, &RNA_RenderEngine, &dummy_engine, &dummy_engine_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_engine_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyet.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_et.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummyet.idname));
+                (int)sizeof(dummy_et.idname));
     return NULL;
   }
 
   /* Check if we have registered this engine type before, and remove it. */
-  et = BLI_findstring(&R_engines, dummyet.idname, offsetof(RenderEngineType, idname));
+  et = BLI_findstring(&R_engines, dummy_et.idname, offsetof(RenderEngineType, idname));
   if (et) {
     StructRNA *srna = et->rna_ext.srna;
     if (!(srna && rna_RenderEngine_unregister(bmain, srna))) {
@@ -369,7 +369,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
                   "%s '%s', bl_idname '%s' %s",
                   error_prefix,
                   identifier,
-                  dummyet.idname,
+                  dummy_et.idname,
                   srna ? "is built-in" : "could not be unregistered");
       return NULL;
     }
@@ -377,7 +377,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
 
   /* create a new engine type */
   et = MEM_mallocN(sizeof(RenderEngineType), "python render engine");
-  memcpy(et, &dummyet, sizeof(dummyet));
+  memcpy(et, &dummy_et, sizeof(dummy_et));
 
   et->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, et->idname, &RNA_RenderEngine);
   et->rna_ext.data = data;
