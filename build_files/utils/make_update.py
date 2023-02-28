@@ -216,7 +216,7 @@ def use_upstream_workflow(args: argparse.Namespace) -> bool:
     return make_utils.git_remote_exist(args.git_command, "upstream")
 
 
-def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch=True) -> str:
+def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch: bool = True) -> str:
     """
     Update the Blender repository using the Github style of fork organization
 
@@ -240,7 +240,7 @@ def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch=True)
     return ""
 
 
-def work_tree_update(args: argparse.Namespace, use_fetch=True) -> str:
+def work_tree_update(args: argparse.Namespace, use_fetch: bool = True) -> str:
     """
     Update the Git working tree using the best strategy
 
@@ -295,7 +295,7 @@ def external_script_copy_old_submodule_over(args: argparse.Namespace, directory_
     shutil.copytree(bare_repo_dir, external_dir / ".git")
 
     git_config = external_dir / ".git" / "config"
-    call((args.git_command, "config", "--file", git_config, "--unset", "core.worktree"))
+    call((args.git_command, "config", "--file", str(git_config), "--unset", "core.worktree"))
 
 
 def external_script_initialize_if_needed(args: argparse.Namespace,
@@ -322,12 +322,12 @@ def external_script_initialize_if_needed(args: argparse.Namespace,
     blender_url = make_utils.git_get_remote_url(args.git_command, origin_name)
     external_url = resolve_external_url(blender_url, repo_name)
 
-    call((args.git_command, "clone", "--origin", origin_name, external_url, external_dir))
+    call((args.git_command, "clone", "--origin", origin_name, external_url, str(external_dir)))
 
 
 def external_script_add_origin_if_needed(args: argparse.Namespace,
                                          repo_name: str,
-                                         directory_name: str) -> str:
+                                         directory_name: str) -> None:
     """
     Add remote called 'origin' if there is a fork of the external repository available
 
@@ -335,7 +335,7 @@ def external_script_add_origin_if_needed(args: argparse.Namespace,
     """
 
     if not use_upstream_workflow(args):
-        return ""
+        return
 
     cwd = os.getcwd()
 
@@ -382,7 +382,7 @@ def external_script_add_origin_if_needed(args: argparse.Namespace,
     finally:
         os.chdir(cwd)
 
-    return ""
+    return
 
 
 def external_scripts_update(args: argparse.Namespace,

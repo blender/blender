@@ -115,7 +115,7 @@ bool BKE_shrinkwrap_init_tree(
 
   data->mesh = mesh;
   data->polys = mesh->polys().data();
-  data->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  data->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -296,7 +296,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   MEM_freeN(vert_status);
 
   /* Finalize average direction and compute normal. */
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     int bidx = vert_boundary_id[i];
 
@@ -1408,7 +1408,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertex positions, normals and deform weights */
     calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
-    calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    calc.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
 
     /* Using vertices positions/normals as if a subsurface was applied */
     if (smd->subsurfLevels) {
@@ -1569,7 +1569,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
   calc.vertexCos = vertexCos;
-  calc.vert_normals = BKE_mesh_vertex_normals_ensure(src_me);
+  calc.vert_normals = BKE_mesh_vert_normals_ensure(src_me);
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;

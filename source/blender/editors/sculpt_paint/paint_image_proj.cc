@@ -4071,7 +4071,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->mat_array[totmat - 1] = nullptr;
 
   ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
-  ps->vert_normals = BKE_mesh_vertex_normals_ensure(ps->me_eval);
+  ps->vert_normals = BKE_mesh_vert_normals_ensure(ps->me_eval);
   ps->edges_eval = ps->me_eval->edges();
   ps->polys_eval = ps->me_eval->polys();
   ps->loops_eval = ps->me_eval->loops();

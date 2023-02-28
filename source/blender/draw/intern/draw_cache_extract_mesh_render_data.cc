@@ -359,7 +359,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr->vert_normals = BKE_mesh_vertex_normals_ensure(mr->me);
+    mr->vert_normals = BKE_mesh_vert_normals_ensure(mr->me);
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
       mr->poly_normals = BKE_mesh_poly_normals_ensure(mr->me);
     }

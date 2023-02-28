@@ -106,7 +106,7 @@ void BKE_mesh_normals_tag_dirty(Mesh *mesh)
   mesh->runtime->poly_normals_dirty = true;
 }
 
-float (*BKE_mesh_vertex_normals_for_write(Mesh *mesh))[3]
+float (*BKE_mesh_vert_normals_for_write(Mesh *mesh))[3]
 {
   if (mesh->runtime->vert_normals == nullptr) {
     mesh->runtime->vert_normals = (float(*)[3])MEM_malloc_arrayN(
@@ -130,7 +130,7 @@ float (*BKE_mesh_poly_normals_for_write(Mesh *mesh))[3]
   return mesh->runtime->poly_normals;
 }
 
-void BKE_mesh_vertex_normals_clear_dirty(Mesh *mesh)
+void BKE_mesh_vert_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->vert_normals_dirty = false;
   BLI_assert(mesh->runtime->vert_normals || mesh->totvert == 0);
@@ -142,7 +142,7 @@ void BKE_mesh_poly_normals_clear_dirty(Mesh *mesh)
   BLI_assert(mesh->runtime->poly_normals || mesh->totpoly == 0);
 }
 
-bool BKE_mesh_vertex_normals_are_dirty(const Mesh *mesh)
+bool BKE_mesh_vert_normals_are_dirty(const Mesh *mesh)
 {
   return mesh->runtime->vert_normals_dirty;
 }
@@ -368,9 +368,9 @@ void BKE_mesh_calc_normals_poly_and_vertex(const float (*vert_positions)[3],
 /** \name Mesh Normal Calculation
  * \{ */
 
-const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
+const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
 {
-  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
+  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime->vert_normals != nullptr || mesh->totvert == 0);
     return mesh->runtime->vert_normals;
   }
@@ -380,7 +380,7 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
   }
 
   std::lock_guard lock{mesh->runtime->normals_mutex};
-  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
+  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime->vert_normals != nullptr);
     return mesh->runtime->vert_normals;
   }
@@ -395,7 +395,7 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     const Span<MPoly> polys = mesh_mutable.polys();
     const Span<MLoop> loops = mesh_mutable.loops();
 
-    vert_normals = BKE_mesh_vertex_normals_for_write(&mesh_mutable);
+    vert_normals = BKE_mesh_vert_normals_for_write(&mesh_mutable);
     poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
     BKE_mesh_calc_normals_poly_and_vertex(reinterpret_cast<const float(*)[3]>(positions.data()),
@@ -407,7 +407,7 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
                                           poly_normals,
                                           vert_normals);
 
-    BKE_mesh_vertex_normals_clear_dirty(&mesh_mutable);
+    BKE_mesh_vert_normals_clear_dirty(&mesh_mutable);
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
 
@@ -461,7 +461,7 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      BKE_mesh_vertex_normals_ensure(mesh);
+      BKE_mesh_vert_normals_ensure(mesh);
       BKE_mesh_poly_normals_ensure(mesh);
       break;
     case ME_WRAPPER_TYPE_BMESH: {
@@ -481,7 +481,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #ifdef DEBUG_TIME
   SCOPED_TIMER_AVERAGED(__func__);
 #endif
-  BKE_mesh_vertex_normals_ensure(mesh);
+  BKE_mesh_vert_normals_ensure(mesh);
 }
 
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
@@ -1932,7 +1932,7 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
   mesh_normals_loop_custom_set(reinterpret_cast<const float(*)[3]>(positions.data()),
-                               BKE_mesh_vertex_normals_ensure(mesh),
+                               BKE_mesh_vert_normals_ensure(mesh),
                                positions.size(),
                                edges.data(),
                                edges.size(),

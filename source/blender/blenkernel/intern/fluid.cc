@@ -2092,8 +2092,8 @@ static void emit_from_mesh(
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    BKE_mesh_vertex_normals_ensure(me);
-    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
+    BKE_mesh_vert_normals_ensure(me);
+    float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
       mul_m4_v3(flow_ob->object_to_world, positions[i]);
@@ -3248,7 +3248,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
 
-  me = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 3, num_faces);
+  me = BKE_mesh_new_nomain(num_verts, 0, num_faces * 3, num_faces);
   if (!me) {
     return nullptr;
   }
@@ -3386,7 +3386,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     return BKE_mesh_copy_for_eval(orgmesh, false);
   }
 
-  result = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 4, num_faces);
+  result = BKE_mesh_new_nomain(num_verts, 0, num_faces * 4, num_faces);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
   mpolys = BKE_mesh_polys_for_write(result);
   mloops = BKE_mesh_loops_for_write(result);

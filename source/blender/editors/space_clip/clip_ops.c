@@ -1307,15 +1307,15 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
   BLI_spin_lock(&queue->spin);
   if (!*queue->stop && queue->cfra <= queue->efra) {
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-    char name[FILE_MAX];
+    char filepath[FILE_MAX];
     size_t size;
     int file;
 
     user.framenr = queue->cfra;
 
-    BKE_movieclip_filename_for_frame(clip, &user, name);
+    BKE_movieclip_filepath_for_frame(clip, &user, filepath);
 
-    file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+    file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
     if (file < 0) {
       BLI_spin_unlock(&queue->spin);
       return NULL;

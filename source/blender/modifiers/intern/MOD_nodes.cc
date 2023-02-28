@@ -1378,7 +1378,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
   if (new_mesh == nullptr) {
-    return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+    return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
   return new_mesh;
 }

@@ -93,7 +93,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
     return nullptr;
   }
 
-  output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
+  output->mesh = BKE_mesh_new_nomain(totvert, 0, 4 * totquad, totquad);
   output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
   output->polys = output->mesh->polys_for_write().data();
   output->loops = output->mesh->loops_for_write().data();

@@ -283,7 +283,7 @@ typedef struct Mesh {
    * from a vertices surrounding faces, or the normalized position of vertices connected to no
    * faces.
    */
-  blender::Span<blender::float3> vertex_normals() const;
+  blender::Span<blender::float3> vert_normals() const;
 #endif
 } Mesh;
 

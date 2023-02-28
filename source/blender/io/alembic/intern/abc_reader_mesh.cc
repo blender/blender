@@ -146,7 +146,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
       mesh_data.ceil_positions != nullptr &&
       mesh_data.ceil_positions->size() == positions->size()) {
     read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, config.weight);
-    BKE_mesh_tag_coords_changed(config.mesh);
+    BKE_mesh_tag_positions_changed(config.mesh);
     return;
   }
 
@@ -161,15 +161,15 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
     copy_zup_from_yup(vert_positions[i], pos_in.getValue());
   }
-  BKE_mesh_tag_coords_changed(&mesh);
+  BKE_mesh_tag_positions_changed(&mesh);
 
   if (normals) {
-    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
+    float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(&mesh);
     for (const int64_t i : IndexRange(normals->size())) {
       Imath::V3f nor_in = (*normals)[i];
       copy_zup_from_yup(vert_normals[i], nor_in.getValue());
     }
-    BKE_mesh_vertex_normals_clear_dirty(&mesh);
+    BKE_mesh_vert_normals_clear_dirty(&mesh);
   }
 }
 
@@ -726,7 +726,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 
   if (topology_changed(existing_mesh, sample_sel)) {
     new_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
+        existing_mesh, positions->size(), 0, face_indices->size(), face_counts->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
   }
@@ -1059,7 +1059,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
   if (existing_mesh->totvert != positions->size()) {
     new_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions->size(), 0, 0, face_indices->size(), face_counts->size());
+        existing_mesh, positions->size(), 0, face_indices->size(), face_counts->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
   }

@@ -298,8 +298,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   }
 
   const float(*vert_normals)[3] = nullptr;
-  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
-    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
+    vert_normals = BKE_mesh_vert_normals_ensure(mesh);
   }
 
   for (i = 0; i < totvert; i++) {

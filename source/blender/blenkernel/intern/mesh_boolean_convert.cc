@@ -713,7 +713,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   }
   /* Will calculate edges later. */
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      mim.meshes[0], out_totvert, 0, 0, out_totloop, out_totpoly);
+      mim.meshes[0], out_totvert, 0, out_totloop, out_totpoly);
 
   merge_vertex_loop_poly_customdata_layers(result, mim);
   /* Set the vertex coordinate values and other data. */

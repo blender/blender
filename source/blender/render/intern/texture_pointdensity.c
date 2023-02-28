@@ -353,7 +353,7 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
 static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
   BLI_assert(data_color);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   memcpy(data_color, vert_normals, sizeof(float[3]) * mesh->totvert);
 }
 

@@ -291,20 +291,20 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPUVertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
         subdiv_cache->subdiv_loop_subdiv_vert_index, subdiv_cache->num_subdiv_loops);
 
-    GPUVertBuf *vertex_normals = GPU_vertbuf_calloc();
+    GPUVertBuf *vert_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_build_on_device(
-        vertex_normals, get_normals_format(), subdiv_cache->num_subdiv_verts);
+        vert_normals, get_normals_format(), subdiv_cache->num_subdiv_verts);
 
     draw_subdiv_accumulate_normals(subdiv_cache,
                                    vbo,
                                    subdiv_cache->subdiv_vertex_face_adjacency_offsets,
                                    subdiv_cache->subdiv_vertex_face_adjacency,
                                    subdiv_loop_subdiv_vert_index,
-                                   vertex_normals);
+                                   vert_normals);
 
-    draw_subdiv_finalize_normals(subdiv_cache, vertex_normals, subdiv_loop_subdiv_vert_index, vbo);
+    draw_subdiv_finalize_normals(subdiv_cache, vert_normals, subdiv_loop_subdiv_vert_index, vbo);
 
-    GPU_vertbuf_discard(vertex_normals);
+    GPU_vertbuf_discard(vert_normals);
     GPU_vertbuf_discard(subdiv_loop_subdiv_vert_index);
   }
 

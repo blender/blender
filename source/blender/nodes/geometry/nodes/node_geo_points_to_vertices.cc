@@ -49,7 +49,7 @@ static void geometry_set_points_to_vertices(
                                                  propagation_info,
                                                  attributes);
 
-  Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0);
   geometry_set.replace_mesh(mesh);
 
   const AttributeAccessor src_attributes = points->attributes();

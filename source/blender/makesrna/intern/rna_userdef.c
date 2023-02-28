@@ -792,12 +792,12 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
   }
 }
 
-static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bAddonPrefType *apt = RNA_struct_blender_type_get(type);
 
   if (!apt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &apt->rna_ext);
@@ -807,6 +807,7 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_AddonPref_register(Main *bmain,
@@ -817,16 +818,17 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
+  const char *error_prefix = "Registering add-on preferences class:";
   bAddonPrefType *apt, dummy_apt = {{'\0'}};
   bAddon dummy_addon = {NULL};
-  PointerRNA dummy_ptr;
-  // int have_function[1];
+  PointerRNA dummy_addon_ptr;
+  // bool have_function[1];
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
-  RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_ptr);
+  RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_addon_ptr);
 
   /* validate the python class */
-  if (validate(&dummy_ptr, data, NULL /* have_function */) != 0) {
+  if (validate(&dummy_addon_ptr, data, NULL /* have_function */) != 0) {
     return NULL;
   }
 
@@ -834,7 +836,8 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_apt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering add-on preferences class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummy_apt.idname));
     return NULL;
@@ -842,8 +845,19 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
 
   /* Check if we have registered this add-on preference type before, and remove it. */
   apt = BKE_addon_pref_type_find(dummy_addon.module, true);
-  if (apt && apt->rna_ext.srna) {
-    rna_AddonPref_unregister(bmain, apt->rna_ext.srna);
+  if (apt) {
+    StructRNA *srna = apt->rna_ext.srna;
+    if (!(srna && rna_AddonPref_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_apt.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+
+      return NULL;
+    }
   }
 
   /* Create a new add-on preference type. */
@@ -2200,6 +2214,11 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
       prop, "Wire Edit", "Color for wireframe when in edit mode, but edge selection is active");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "edge_width", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 1, 5);
+  RNA_def_property_ui_text(prop, "Edge Width", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* Grease Pencil */
 
   rna_def_userdef_theme_spaces_gpencil(srna);
@@ -3042,6 +3061,11 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "wire_edit", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Wire Edit", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "edge_width", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 1, 5);
+  RNA_def_property_ui_text(prop, "Edge Width", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "edge_select", PROP_FLOAT, PROP_COLOR_GAMMA);

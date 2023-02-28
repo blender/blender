@@ -639,7 +639,7 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
 
     /* Return an empty mesh instead of null. */
     if (mesh_output == nullptr) {
-      mesh_output = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+      mesh_output = BKE_mesh_new_nomain(0, 0, 0, 0);
       BKE_mesh_copy_parameters_for_eval(mesh_output, input_mesh);
     }
   }

@@ -630,9 +630,10 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
   return (IDProperty **)&ptr->data;
 }
 
-void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
+bool rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   RNA_struct_free(&BLENDER_RNA, type);
+  return true;
 }
 
 StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
@@ -643,13 +644,13 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
                                       StructCallbackFunc UNUSED(call),
                                       StructFreeFunc UNUSED(free))
 {
-  PointerRNA dummyptr;
+  PointerRNA dummy_ptr;
 
   /* create dummy pointer */
-  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummy_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, NULL) != 0) {
+  if (validate(&dummy_ptr, data, NULL) != 0) {
     return NULL;
   }
 

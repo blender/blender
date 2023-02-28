@@ -359,6 +359,7 @@ void ED_text_format_register_osl(void)
   tft.format_identifier = txtfmt_osl_format_identifier;
   tft.format_line = txtfmt_osl_format_line;
   tft.ext = ext;
+  tft.comment_line = "//";
 
   ED_text_format_register(&tft);
 }

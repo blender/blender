@@ -10,8 +10,6 @@
 #include "gpu_texture_private.hh"
 #include "vk_context.hh"
 
-#include "vk_mem_alloc.h"
-
 namespace blender::gpu {
 
 class VKTexture : public Texture {

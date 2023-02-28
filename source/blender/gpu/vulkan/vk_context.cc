@@ -8,6 +8,7 @@
 #include "vk_context.hh"
 
 #include "vk_backend.hh"
+#include "vk_framebuffer.hh"
 #include "vk_memory.hh"
 #include "vk_state_manager.hh"
 
@@ -48,6 +49,9 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   state_manager = new VKStateManager();
 
   VKBackend::capabilities_init(*this);
+
+  /* For offscreen contexts. Default framebuffer is empty. */
+  active_fb = back_left = new VKFrameBuffer("back_left");
 }
 
 VKContext::~VKContext()
@@ -65,6 +69,22 @@ void VKContext::init_physical_device_limits()
 
 void VKContext::activate()
 {
+  if (ghost_window_) {
+    VkImage image; /* TODO will be used for reading later... */
+    VkFramebuffer framebuffer;
+    VkRenderPass render_pass;
+    VkExtent2D extent;
+    uint32_t fb_id;
+
+    GHOST_GetVulkanBackbuffer(
+        (GHOST_WindowHandle)ghost_window_, &image, &framebuffer, &render_pass, &extent, &fb_id);
+
+    /* Recreate the gpu::VKFrameBuffer wrapper after every swap. */
+    delete back_left;
+
+    back_left = new VKFrameBuffer("back_left", framebuffer, render_pass, extent);
+    active_fb = back_left;
+  }
 }
 
 void VKContext::deactivate()

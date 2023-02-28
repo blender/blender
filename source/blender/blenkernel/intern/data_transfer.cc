@@ -383,7 +383,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"));
       BKE_mesh_normals_loop_split(positions_dst,
-                                  BKE_mesh_vertex_normals_ensure(me_dst),
+                                  BKE_mesh_vert_normals_ensure(me_dst),
                                   num_verts_dst,
                                   edges_dst.data(),
                                   edges_dst.size(),
@@ -442,7 +442,7 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
 
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     BKE_mesh_normals_loop_custom_set(positions_dst,
-                                     BKE_mesh_vertex_normals_ensure(me_dst),
+                                     BKE_mesh_vert_normals_ensure(me_dst),
                                      num_verts_dst,
                                      edges_dst.data(),
                                      edges_dst.size(),
@@ -1344,7 +1344,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
-    dirty_nors_dst = BKE_mesh_vertex_normals_are_dirty(me_dst);
+    dirty_nors_dst = BKE_mesh_vert_normals_are_dirty(me_dst);
     /* Never create needed custom layers on passed destination mesh
      * (assumed to *not* be ob_dst->data, aka modifier case). */
     use_create = false;

@@ -420,7 +420,12 @@ VFont *BKE_vfont_builtin_get(void)
     }
   }
 
-  return BKE_vfont_load(G_MAIN, FO_BUILTIN_NAME);
+  /* Newly loaded ID's have a user by default, in this case the caller is responsible
+   * for assigning a user, otherwise an additional user would be added, see: #100819. */
+  vfont = BKE_vfont_load(G_MAIN, FO_BUILTIN_NAME);
+  id_us_min(&vfont->id);
+  BLI_assert(vfont->id.us == 0);
+  return vfont;
 }
 
 static VChar *find_vfont_char(VFontData *vfd, uint character)

@@ -309,10 +309,10 @@ typedef struct ThemeSpace {
   unsigned char console_output[4], console_input[4], console_info[4], console_error[4];
   unsigned char console_cursor[4], console_select[4];
 
-  unsigned char vertex_size, outline_width, obcenter_dia, facedot_size;
+  unsigned char vertex_size, edge_width, outline_width, obcenter_dia, facedot_size;
   unsigned char noodle_curving;
   unsigned char grid_levels;
-  char _pad5[3];
+  char _pad5[2];
   float dash_alpha;
 
   /* Syntax for text-window and nodes. */

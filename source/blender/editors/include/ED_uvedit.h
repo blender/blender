@@ -26,6 +26,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
+struct UVPackIsland_Params;
 struct View2D;
 struct ViewLayer;
 struct bContext;
@@ -346,26 +347,6 @@ struct UVMapUDIM_Params {
   const struct Image *image;
   /** Copied from #SpaceImage.tile_grid_shape */
   int grid_shape[2];
-};
-
-typedef enum {
-  ED_UVPACK_MARGIN_SCALED = 0, /* Use scale of existing UVs to multiply margin. */
-  ED_UVPACK_MARGIN_ADD,        /* Just add the margin, ignoring any UV scale. */
-  ED_UVPACK_MARGIN_FRACTION,   /* Specify a precise fraction of final UV output. */
-} eUVPackIsland_MarginMethod;
-
-/** See also #UnwrapOptions. */
-struct UVPackIsland_Params {
-  uint rotate : 1;
-  uint only_selected_uvs : 1;
-  uint only_selected_faces : 1;
-  uint use_seams : 1;
-  uint correct_aspect : 1;
-  bool ignore_pinned;                       /* Ignore islands which have any pinned UVs. */
-  bool pin_unselected;                      /* Treat unselected UVs as if they were pinned. */
-  eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
-  float margin;                             /* Additional space to add around each island. */
-  float udim_base_offset[2];                /* Additional translation for bottom left corner. */
 };
 
 /**

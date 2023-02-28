@@ -440,7 +440,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   }
   else {
     /* Compute the loop normals based on the 'smooth' flag. */
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
     const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
     for (const int i : polys.index_range()) {
       const MPoly &poly = polys[i];

@@ -556,10 +556,10 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
     return;
   }
 
-  MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+  MutableSpan vert_normals{(float3 *)BKE_mesh_vert_normals_for_write(mesh), mesh->totvert};
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
   vert_normals.copy_from({(float3 *)normals_.data(), int64_t(normals_.size())});
-  BKE_mesh_vertex_normals_clear_dirty(mesh);
+  BKE_mesh_vert_normals_clear_dirty(mesh);
 }
 
 void USDMeshReader::process_normals_face_varying(Mesh *mesh)
@@ -651,7 +651,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     for (int i = 0; i < positions_.size(); i++) {
       vert_positions[i] = {positions_[i][0], positions_[i][1], positions_[i][2]};
     }
-    BKE_mesh_tag_coords_changed(mesh);
+    BKE_mesh_tag_positions_changed(mesh);
 
     read_vertex_creases(mesh, motionSampleTime);
   }
@@ -844,7 +844,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   if (topology_changed(existing_mesh, params.motion_sample_time)) {
     new_mesh = true;
     active_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
+        existing_mesh, positions_.size(), 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
       add_customdata_cb(active_mesh, token.GetText(), CD_PROP_FLOAT2);

@@ -1185,7 +1185,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
   for (const int i : positions.index_range()) {
     positions[i] = verts[i].xrest;
   }
-  BKE_mesh_tag_coords_changed(new_mesh);
+  BKE_mesh_tag_positions_changed(new_mesh);
 
   return new_mesh;
 }
@@ -1531,7 +1531,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(tmp_mesh ? tmp_mesh : mesh);
+    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(tmp_mesh ? tmp_mesh : mesh);
 
     for (int i = 0; i < mvert_num; i++) {
       if (find_internal_spring_target_vertex(

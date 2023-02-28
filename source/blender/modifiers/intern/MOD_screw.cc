@@ -261,7 +261,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* don't do anything? */
   if (!totvert) {
-    return BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
+    return BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0);
   }
 
   switch (ltmd->axis) {
@@ -390,7 +390,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const bool do_remove_doubles = (ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f);
 
   result = BKE_mesh_new_nomain_from_template(
-      mesh, int(maxVerts), int(maxEdges), 0, int(maxPolys) * 4, int(maxPolys));
+      mesh, int(maxVerts), int(maxEdges), int(maxPolys) * 4, int(maxPolys));
   /* The modifier doesn't support original index mapping on the edge or face domains. Remove
    * original index layers, since otherwise edges aren't displayed at all in wireframe view. */
   CustomData_free_layers(&result->edata, CD_ORIGINDEX, result->totedge);

@@ -120,7 +120,7 @@ static void panelRegister(ARegionType *region_type)
 
 static Mesh *create_empty_mesh(const Mesh *input_mesh)
 {
-  Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
   BKE_mesh_copy_parameters_for_eval(new_mesh, input_mesh);
   return new_mesh;
 }

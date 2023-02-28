@@ -1521,7 +1521,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int result_npolys = src_polys.size() - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      &mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+      &mesh, result_nverts, result_nedges, result_nloops, result_npolys);
   MutableSpan<MEdge> dst_edges = result->edges_for_write();
   MutableSpan<MPoly> dst_polys = result->polys_for_write();
   MutableSpan<MLoop> dst_loops = result->loops_for_write();

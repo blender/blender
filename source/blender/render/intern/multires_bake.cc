@@ -484,14 +484,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   void *bake_data = nullptr;
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
-      dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
+      dm->getNumVerts(dm), dm->getNumEdges(dm), dm->getNumLoops(dm), dm->getNumPolys(dm));
   memcpy(temp_mesh->vert_positions_for_write().data(),
          positions,
          temp_mesh->totvert * sizeof(float[3]));
   temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
   temp_mesh->polys_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly});
   temp_mesh->loops_for_write().copy_from({dm->getLoopArray(dm), temp_mesh->totloop});
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(temp_mesh);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
   if (require_tangent) {

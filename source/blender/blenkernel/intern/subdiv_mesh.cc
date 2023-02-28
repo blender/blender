@@ -1215,13 +1215,18 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
     });
   }
 
+  if (subdiv->settings.is_simple) {
+    /* In simple subdivision, min and max positions are not changed, avoid recomputing bounds. */
+    result->runtime->bounds_cache = coarse_mesh->runtime->bounds_cache;
+  }
+
   // BKE_mesh_validate(result, true, true);
   BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Using normals from the limit surface gives different results than Blender's vertex normal
    * calculation. Since vertex normals are supposed to be a consistent cache, don't bother
    * calculating them here. The work may have been pointless anyway if the mesh is deformed or
    * changed afterwards. */
-  BLI_assert(BKE_mesh_vertex_normals_are_dirty(result) || BKE_mesh_poly_normals_are_dirty(result));
+  BLI_assert(BKE_mesh_vert_normals_are_dirty(result) || BKE_mesh_poly_normals_are_dirty(result));
   /* Free used memory. */
   subdiv_mesh_context_free(&subdiv_context);
   return result;

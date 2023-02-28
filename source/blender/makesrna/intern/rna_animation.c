@@ -255,12 +255,12 @@ static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
   return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : &RNA_KeyingSetInfo;
 }
 
-static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
+static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 {
   KeyingSetInfo *ksi = RNA_struct_blender_type_get(type);
 
   if (ksi == NULL) {
-    return;
+    return false;
   }
 
   /* free RNA data referencing this */
@@ -271,6 +271,7 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 
   /* unlink Blender-side data */
   ANIM_keyingset_info_unregister(bmain, ksi);
+  return true;
 }
 
 static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
@@ -281,39 +282,51 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
                                              StructCallbackFunc call,
                                              StructFreeFunc free)
 {
-  KeyingSetInfo dummyksi = {NULL};
+  const char *error_prefix = "Registering keying set info class:";
+  KeyingSetInfo dummy_ksi = {NULL};
   KeyingSetInfo *ksi;
-  PointerRNA dummyptr = {NULL};
-  int have_function[3];
+  PointerRNA dummy_ksi_ptr = {NULL};
+  bool have_function[3];
 
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummy_ksi, &dummy_ksi_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_ksi_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyksi.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_ksi.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering keying set info class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
-                (int)sizeof(dummyksi.idname));
+                (int)sizeof(dummy_ksi.idname));
     return NULL;
   }
 
   /* check if we have registered this info before, and remove it */
-  ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
-  if (ksi && ksi->rna_ext.srna) {
-    rna_KeyingSetInfo_unregister(bmain, ksi->rna_ext.srna);
+  ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
+  if (ksi) {
+    StructRNA *srna = ksi->rna_ext.srna;
+    if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_ksi.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
 
   /* create a new KeyingSetInfo type */
   ksi = MEM_mallocN(sizeof(KeyingSetInfo), "python keying set info");
-  memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
+  memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
   ksi->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ksi->idname, &RNA_KeyingSetInfo);

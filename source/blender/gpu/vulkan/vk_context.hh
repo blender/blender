@@ -12,8 +12,6 @@
 #include "vk_command_buffer.hh"
 #include "vk_descriptor_pools.hh"
 
-#include "vk_mem_alloc.h"
-
 namespace blender::gpu {
 
 class VKContext : public Context {
