@@ -62,14 +62,6 @@ struct LaplacianSystem {
   float vert_centroid[3];
 };
 
-static void delete_laplacian_system(LaplacianSystem *sys);
-static void fill_laplacian_matrix(LaplacianSystem *sys);
-static void init_data(ModifierData *md);
-static void init_laplacian_matrix(LaplacianSystem *sys);
-static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag);
-static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border);
-
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
   MEM_SAFE_FREE(sys->eweights);
