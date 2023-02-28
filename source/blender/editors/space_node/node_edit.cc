@@ -1129,13 +1129,14 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   rctf rect;
   const float size_sock_padded = NODE_SOCKSIZE + 4;
 
-  snode.edittree->ensure_topology_cache();
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
-  if (socket_locations.size() != snode.edittree->all_sockets().size()) {
+  bNodeTree &node_tree = *snode.edittree;
+  node_tree.ensure_topology_cache();
+  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
+  if (socket_locations.size() != node_tree.all_sockets().size()) {
     /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
     return nullptr;
   }
-  const Span<bNode *> nodes = snode.edittree->all_nodes();
+  const Span<bNode *> nodes = node_tree.all_nodes();
   if (nodes.is_empty()) {
     return nullptr;
   }
