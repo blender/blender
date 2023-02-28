@@ -703,10 +703,10 @@ static uchar *prefetch_read_file_to_memory(
   user.render_size = render_size;
   user.render_flag = render_flag;
 
-  char name[FILE_MAX];
-  BKE_movieclip_filename_for_frame(clip, &user, name);
+  char filepath[FILE_MAX];
+  BKE_movieclip_filepath_for_frame(clip, &user, filepath);
 
-  int file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     return NULL;
   }
