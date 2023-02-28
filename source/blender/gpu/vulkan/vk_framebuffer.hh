@@ -9,13 +9,39 @@
 
 #include "gpu_framebuffer_private.hh"
 
+#include "vk_common.hh"
+
 namespace blender::gpu {
 
 class VKFrameBuffer : public FrameBuffer {
+ private:
+  /* Vulkan object handle. */
+  VkFramebuffer vk_framebuffer_ = VK_NULL_HANDLE;
+  /* Vulkan device who created the handle. */
+  VkDevice vk_device_ = VK_NULL_HANDLE;
+  /* Base render pass used for framebuffer creation. */
+  VkRenderPass render_pass_ = VK_NULL_HANDLE;
+  /* Number of layers if the attachments are layered textures. */
+  int depth_ = 1;
+  /** Internal frame-buffers are immutable. */
+  bool immutable_;
+
  public:
-  VKFrameBuffer(const char *name) : FrameBuffer(name)
-  {
-  }
+  /**
+   * Create a conventional framebuffer to attach texture to.
+   **/
+  VKFrameBuffer(const char *name);
+
+  /**
+   * Special frame-buffer encapsulating internal window frame-buffer.
+   * This just act as a wrapper, the actual allocations are done by GHOST_ContextVK.
+   **/
+  VKFrameBuffer(const char *name,
+                VkFramebuffer vk_framebuffer,
+                VkRenderPass vk_render_pass,
+                VkExtent2D vk_extent);
+
+  ~VKFrameBuffer();
 
   void bind(bool enabled_srgb) override;
   bool check(char err_out[256]) override;
