@@ -74,7 +74,7 @@ static void extract_tris_iter_poly_mesh(const MeshRenderData *mr,
 
   int tri_len = mp->totloop - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    const MLoopTri *mlt = &mr->mlooptri[tri_first_index_real + offs];
+    const MLoopTri *mlt = &mr->looptris[tri_first_index_real + offs];
     int tri_index = tri_first_index + offs;
     GPU_indexbuf_set_tri_verts(elb, tri_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
   }

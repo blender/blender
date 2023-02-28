@@ -231,15 +231,14 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   data->edge_is_boundary = edge_is_boundary;
 
   /* Build the boundary looptri bitmask. */
-  const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  int totlooptri = BKE_mesh_runtime_looptri_len(mesh);
+  const blender::Span<MLoopTri> looptris = mesh->looptris();
 
-  BLI_bitmap *looptri_has_boundary = BLI_BITMAP_NEW(totlooptri,
+  BLI_bitmap *looptri_has_boundary = BLI_BITMAP_NEW(looptris.size(),
                                                     "ShrinkwrapBoundaryData::looptri_is_boundary");
 
-  for (int i = 0; i < totlooptri; i++) {
+  for (const int64_t i : looptris.index_range()) {
     int real_edges[3];
-    BKE_mesh_looptri_get_real_edges(edges.data(), loops.data(), &mlooptri[i], real_edges);
+    BKE_mesh_looptri_get_real_edges(edges.data(), loops.data(), &looptris[i], real_edges);
 
     for (int j = 0; j < 3; j++) {
       if (real_edges[j] >= 0 && edge_mode[real_edges[j]]) {

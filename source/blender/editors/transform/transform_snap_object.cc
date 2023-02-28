@@ -1430,7 +1430,7 @@ struct Nearest2dUserData {
       const float (*vert_normals)[3];
       const MEdge *edge; /* only used for #BVHTreeFromMeshEdges */
       const MLoop *loop;
-      const MLoopTri *looptri;
+      const MLoopTri *looptris;
     };
   };
 
@@ -1481,7 +1481,7 @@ static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data
 {
   const MEdge *medge = data->edge;
   const MLoop *mloop = data->loop;
-  const MLoopTri *lt = &data->looptri[index];
+  const MLoopTri *lt = &data->looptris[index];
   for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
     const MEdge *ed = &medge[mloop[lt->tri[j]].e];
     const uint tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
@@ -1498,7 +1498,7 @@ static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data
 static void cb_mlooptri_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
 {
   const MLoop *loop = data->loop;
-  const MLoopTri *looptri = &data->looptri[index];
+  const MLoopTri *looptri = &data->looptris[index];
 
   r_v_index[0] = loop[looptri->tri[0]].v;
   r_v_index[1] = loop[looptri->tri[1]].v;
@@ -1719,7 +1719,7 @@ static void nearest2d_data_init_mesh(const Mesh *mesh,
   r_nearest2d->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
   r_nearest2d->edge = mesh->edges().data();
   r_nearest2d->loop = mesh->loops().data();
-  r_nearest2d->looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+  r_nearest2d->looptris = mesh->looptris().data();
 
   r_nearest2d->is_persp = is_persp;
   r_nearest2d->use_backface_culling = use_backface_culling;

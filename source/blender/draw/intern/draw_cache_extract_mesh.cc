@@ -387,7 +387,7 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
   int stop;
   switch (iter_type) {
     case MR_ITER_LOOPTRI:
-      range_data.elems = is_mesh ? mr->mlooptri : (void *)mr->edit_bmesh->looptris;
+      range_data.elems = is_mesh ? mr->looptris.data() : (void *)mr->edit_bmesh->looptris;
       func = is_mesh ? extract_range_iter_looptri_mesh : extract_range_iter_looptri_bm;
       stop = mr->tri_len;
       break;

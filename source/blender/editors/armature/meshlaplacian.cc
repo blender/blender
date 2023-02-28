@@ -928,7 +928,7 @@ typedef struct MeshDeformBind {
   struct {
     blender::Span<MPoly> polys;
     blender::Span<MLoop> loops;
-    const MLoopTri *looptri;
+    blender::Span<MLoopTri> looptris;
     const float (*poly_nors)[3];
   } cagemesh_cache;
 } MeshDeformBind;
@@ -959,13 +959,12 @@ static void harmonic_ray_callback(void *userdata,
   MeshRayCallbackData *data = static_cast<MeshRayCallbackData *>(userdata);
   MeshDeformBind *mdb = data->mdb;
   const blender::Span<MLoop> loops = mdb->cagemesh_cache.loops;
-  const MLoopTri *looptri = mdb->cagemesh_cache.looptri, *lt;
   const float(*poly_nors)[3] = mdb->cagemesh_cache.poly_nors;
   MeshDeformIsect *isec = data->isec;
   float no[3], co[3], dist;
   float *face[3];
 
-  lt = &looptri[index];
+  const MLoopTri *lt = &mdb->cagemesh_cache.looptris[index];
 
   face[0] = mdb->cagecos[loops[lt->tri[0]].v];
   face[1] = mdb->cagecos[loops[lt->tri[1]].v];
@@ -1034,7 +1033,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               &data,
                               BVH_RAYCAST_WATERTIGHT) != -1) {
     const blender::Span<MLoop> loops = mdb->cagemesh_cache.loops;
-    const MLoopTri *lt = &mdb->cagemesh_cache.looptri[hit.index];
+    const MLoopTri *lt = &mdb->cagemesh_cache.looptris[hit.index];
     const MPoly *mp = &mdb->cagemesh_cache.polys[lt->poly];
     const float(*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
@@ -1632,7 +1631,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
     Mesh *me = mdb->cagemesh;
     mdb->cagemesh_cache.polys = me->polys();
     mdb->cagemesh_cache.loops = me->loops();
-    mdb->cagemesh_cache.looptri = BKE_mesh_runtime_looptri_ensure(me);
+    mdb->cagemesh_cache.looptris = me->looptris();
     mdb->cagemesh_cache.poly_nors = BKE_mesh_poly_normals_ensure(me);
   }
 

@@ -339,7 +339,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      mr->mlooptri = BKE_mesh_runtime_looptri_ensure(mr->me);
+      mr->looptris = mr->me->looptris();
     }
   }
   else {

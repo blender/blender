@@ -597,7 +597,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     tris_high[i] = mesh_calc_tri_tessface(highpoly[i].me, false, nullptr);
 
     me_highpoly[i] = highpoly[i].me;
-    BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
 
     if (BKE_mesh_runtime_looptri_len(me_highpoly[i]) != 0) {
       /* Create a BVH-tree for each `highpoly` object. */

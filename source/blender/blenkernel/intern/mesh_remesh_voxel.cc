@@ -65,15 +65,14 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 {
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<MLoop> input_loops = input_mesh->loops();
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
+  const Span<MLoopTri> looptris = input_mesh->looptris();
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
-  MVertTri *verttri = (MVertTri *)MEM_callocN(
-      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
+  Array<MVertTri> verttri(looptris.size());
   BKE_mesh_runtime_verttri_from_looptri(
-      verttri, input_loops.data(), looptri, BKE_mesh_runtime_looptri_len(input_mesh));
+      verttri.data(), input_loops.data(), looptris.data(), looptris.size());
 
-  const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
+  const int totfaces = looptris.size();
   const int totverts = input_mesh->totvert;
   Array<int> faces(totfaces * 3);
 
@@ -104,8 +103,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   /* Run the remesher */
   QFLOW_quadriflow_remesh(&qrd, update_cb, update_cb_data);
-
-  MEM_freeN(verttri);
 
   if (qrd.out_faces == nullptr) {
     /* The remeshing was canceled */
@@ -335,7 +332,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const VArraySpan<int> src(src_face_sets);
   MutableSpan<int> dst = dst_face_sets.span;
 
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
+  const blender::Span<MLoopTri> looptris = source->looptris();
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
@@ -353,7 +350,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
-        dst[i] = src[looptri[nearest.index].poly];
+        dst[i] = src[looptris[nearest.index].poly];
       }
       else {
         dst[i] = 1;

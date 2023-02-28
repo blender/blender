@@ -83,7 +83,7 @@ struct MeshRenderData {
   BMFace *efa_act;
   BMFace *efa_act_uv;
   /* The triangulation of #Mesh polygons, owned by the mesh. */
-  const MLoopTri *mlooptri;
+  blender::Span<MLoopTri> looptris;
   const int *material_indices;
   const float (*vert_normals)[3];
   const float (*poly_normals)[3];
