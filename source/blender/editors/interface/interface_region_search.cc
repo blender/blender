@@ -833,8 +833,8 @@ static void ui_searchbox_region_layout_fn(const struct bContext *C, struct ARegi
     region->winrct.ymax = rect_i.ymax;
   }
 
-  region->winx = region->winrct.xmax - region->winrct.xmin;
-  region->winy = region->winrct.ymax - region->winrct.ymin;
+  region->winx = region->winrct.xmax - region->winrct.xmin + 1;
+  region->winy = region->winrct.ymax - region->winrct.ymin + 1;
 
   data->size_set = true;
 }
