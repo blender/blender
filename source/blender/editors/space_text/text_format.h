@@ -75,6 +75,9 @@ typedef struct TextFormatType {
   void (*format_line)(SpaceText *st, TextLine *line, bool do_next);
 
   const char **ext; /* NULL terminated extensions */
+
+  /** The prefix of a single-line line comment (without trailing space). */
+  const char *comment_line;
 } TextFormatType;
 
 enum {
