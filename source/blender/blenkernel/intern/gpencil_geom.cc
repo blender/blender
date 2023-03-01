@@ -2272,7 +2272,7 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       pt_final->uv_fac = interpf(pt->uv_fac, next->uv_fac, 0.5f);
       interp_v4_v4v4(pt_final->uv_fill, pt->uv_fill, next->uv_fill, 0.5f);
       CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
-      pt_final->time = interpf(pt->time, next->time, 0.5f);
+      pt_final->time = 0;
       pt_final->runtime.pt_orig = nullptr;
       pt_final->flag = 0;
       interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
