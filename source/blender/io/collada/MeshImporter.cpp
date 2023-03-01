@@ -545,7 +545,6 @@ uint MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh)
 void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 {
   CustomData edata;
-  MEdge *medge;
   int totedge;
 
   if (len == 0) {

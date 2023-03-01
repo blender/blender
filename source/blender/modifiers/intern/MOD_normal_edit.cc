@@ -181,7 +181,6 @@ static bool polygons_check_flip(blender::MutableSpan<MLoop> loops,
 {
   MDisps *mdisp = static_cast<MDisps *>(
       CustomData_get_layer_for_write(ldata, CD_MDISPS, loops.size()));
-  int i;
   bool flipped = false;
 
   for (const int i : polys.index_range()) {
