@@ -6,8 +6,6 @@
 
 #include "GEO_uv_parametrizer.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_array.hh"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
@@ -140,18 +138,15 @@ struct PChart {
   float area_uv;
   float area_3d;
 
+  float origin[2];
+
   union PChartUnion {
     struct PChartLscm {
       LinearSolver *context;
       float *abf_alpha;
       PVert *pin1, *pin2;
       PVert *single_pin;
-      float single_pin_uv[2];
     } lscm;
-    struct PChartPack {
-      float size[2];
-      float origin[2];
-    } pack;
   } u;
 
   bool has_pins;
@@ -3071,8 +3066,8 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
   }
 
   if (chart->u.lscm.single_pin) {
-    /* If only one pin, save pin location for transform later. */
-    copy_v2_v2(chart->u.lscm.single_pin_uv, chart->u.lscm.single_pin->uv);
+    /* If only one pin, save location as origin. */
+    copy_v2_v2(chart->origin, chart->u.lscm.single_pin->uv);
   }
 
   if (chart->u.lscm.pin1) {
@@ -3212,9 +3207,9 @@ static void p_chart_lscm_transform_single_pin(PChart *chart)
     }
   }
 
-  /* Translate to keep the pinned vertex in place. */
+  /* Translate to keep the pinned UV in place. */
   float offset[2];
-  sub_v2_v2v2(offset, chart->u.lscm.single_pin_uv, pin->uv);
+  sub_v2_v2v2(offset, chart->origin, pin->uv);
   p_chart_uv_translate(chart, offset);
 }
 
@@ -4267,8 +4262,9 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
       continue;
     }
 
+    /* Store original bounding box midpoint. */
     p_chart_uv_bbox(chart, minv, maxv);
-    mid_v2_v2v2(chart->u.pack.origin, minv, maxv);
+    mid_v2_v2v2(chart->origin, minv, maxv);
 
     if (scale_uv || shear) {
       /* It's possible that for some "bad" inputs, the following iteration will converge slowly or
@@ -4376,13 +4372,13 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
       /* Average scale. */
       p_chart_uv_scale(chart, sqrtf(fac / tot_fac));
 
-      /* Get the current island center. */
+      /* Get the current island bounding box. */
       p_chart_uv_bbox(chart, minv, maxv);
 
-      /* Move to original center. */
+      /* Move back to original midpoint. */
       mid_v2_v2v2(trans, minv, maxv);
-      negate_v2(trans);
-      add_v2_v2(trans, chart->u.pack.origin);
+      sub_v2_v2v2(trans, chart->origin, trans);
+
       p_chart_uv_translate(chart, trans);
     }
   }
