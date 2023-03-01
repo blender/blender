@@ -92,7 +92,7 @@ static std::vector<char> read_temp_file_in_vectorchar(const std::string &file_pa
   std::vector<char> res;
   std::ifstream infile(file_path, std::ios::binary);
   while (true) {
-    auto c = read(infile);
+    uint64_t c = read(infile);
     if (!infile.eof()) {
       res.push_back(c);
     }
