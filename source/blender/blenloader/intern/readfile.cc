@@ -344,11 +344,9 @@ void blo_join_main(ListBase *mainlist)
   }
 
   while ((tojoin = mainl->next)) {
-    if (tojoin->is_read_invalid) {
-      mainl->is_read_invalid = true;
-    }
     add_main_to_main(mainl, tojoin);
     BLI_remlink(mainlist, tojoin);
+    tojoin->next = tojoin->prev = nullptr;
     BKE_main_free(tojoin);
   }
 }
@@ -4673,13 +4671,18 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
     add_main_to_main(mainvar, main_newid);
 
     if (mainvar->is_read_invalid) {
-      return;
+      break;
     }
   }
 
   blo_join_main((*fd)->mainlist);
   mainvar = static_cast<Main *>((*fd)->mainlist->first);
   MEM_freeN((*fd)->mainlist);
+
+  if (mainvar->is_read_invalid) {
+    BKE_main_free(main_newid);
+    return;
+  }
 
   /* This does not take into account old, deprecated data, so we also have to do it after
    * `do_versions_after_linking()`. */
