@@ -92,7 +92,7 @@ set(SRC
   intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.c
-  intern/collision.c
+  intern/collision.cc
   intern/colorband.c
   intern/colortools.c
   intern/compute_contexts.cc

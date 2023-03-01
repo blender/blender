@@ -47,9 +47,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SmoothModifierData), modifier);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
 
@@ -76,18 +74,18 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 static void smoothModifier_do(
     SmoothModifierData *smd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
-  if (mesh == NULL) {
+  if (mesh == nullptr) {
     return;
   }
 
-  float(*accumulated_vecs)[3] = MEM_calloc_arrayN(
-      (size_t)verts_num, sizeof(*accumulated_vecs), __func__);
+  float(*accumulated_vecs)[3] = static_cast<float(*)[3]>(
+      MEM_calloc_arrayN((size_t)verts_num, sizeof(*accumulated_vecs), __func__));
   if (!accumulated_vecs) {
     return;
   }
 
-  uint *accumulated_vecs_count = MEM_calloc_arrayN(
-      (size_t)verts_num, sizeof(*accumulated_vecs_count), __func__);
+  uint *accumulated_vecs_count = static_cast<uint *>(
+      MEM_calloc_arrayN((size_t)verts_num, sizeof(*accumulated_vecs_count), __func__));
   if (!accumulated_vecs_count) {
     MEM_freeN(accumulated_vecs);
     return;
@@ -130,7 +128,7 @@ static void smoothModifier_do(
       for (int i = 0; i < verts_num; i++, dv++) {
         float *vco_orig = vertexCos[i];
         if (accumulated_vecs_count[i] > 0) {
-          mul_v3_fl(accumulated_vecs[i], 1.0f / (float)accumulated_vecs_count[i]);
+          mul_v3_fl(accumulated_vecs[i], 1.0f / float(accumulated_vecs_count[i]));
         }
         float *vco_new = accumulated_vecs[i];
 
@@ -157,7 +155,7 @@ static void smoothModifier_do(
       for (int i = 0; i < verts_num; i++) {
         float *vco_orig = vertexCos[i];
         if (accumulated_vecs_count[i] > 0) {
-          mul_v3_fl(accumulated_vecs[i], 1.0f / (float)accumulated_vecs_count[i]);
+          mul_v3_fl(accumulated_vecs[i], 1.0f / float(accumulated_vecs_count[i]));
         }
         float *vco_new = accumulated_vecs[i];
 
@@ -185,42 +183,42 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   BKE_mesh_wrapper_ensure_mdata(mesh_src);
 
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
@@ -232,15 +230,15 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "use_x", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_y", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_z", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_x", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_y", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_z", toggles_flag, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "factor", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "iterations", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "factor", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "iterations", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
@@ -263,23 +261,23 @@ ModifierTypeInfo modifierType_Smooth = {
     /*copyData*/ BKE_modifier_copydata_generic,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

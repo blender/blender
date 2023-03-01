@@ -51,7 +51,7 @@ set(SRC
   intern/MOD_explode.cc
   intern/MOD_fluid.c
   intern/MOD_hook.c
-  intern/MOD_laplaciandeform.c
+  intern/MOD_laplaciandeform.cc
   intern/MOD_laplaciansmooth.cc
   intern/MOD_lattice.c
   intern/MOD_mask.cc
@@ -75,8 +75,8 @@ set(SRC
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
   intern/MOD_simpledeform.c
-  intern/MOD_skin.c
-  intern/MOD_smooth.c
+  intern/MOD_skin.cc
+  intern/MOD_smooth.cc
   intern/MOD_softbody.c
   intern/MOD_solidify.cc
   intern/MOD_solidify_extrude.cc
