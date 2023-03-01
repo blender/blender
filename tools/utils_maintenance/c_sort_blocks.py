@@ -13,7 +13,7 @@ from typing import (
     Optional,
 )
 
-SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(PWD, "..", "..", ".."))))
+SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(PWD, "..", ".."))))
 
 # TODO, move to config file
 SOURCE_DIRS = (

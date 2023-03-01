@@ -23,7 +23,7 @@ sys.path.append(os.path.join(PWD, "modules"))
 
 from batch_edit_text import run
 
-SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(PWD, "..", "..", ".."))))
+SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(PWD, "..", ".."))))
 
 # TODO: move to configuration file.
 SOURCE_DIRS = (

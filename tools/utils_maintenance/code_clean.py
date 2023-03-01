@@ -48,7 +48,7 @@ VERBOSE_EDIT_ACTION = False
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-SOURCE_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "..", ".."))
+SOURCE_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", ".."))
 
 
 # -----------------------------------------------------------------------------

@@ -68,13 +68,13 @@ del sys
 
 source_dst = os.path.join(
     os.path.dirname(__file__),
-    "..", "..", "..",
+    "..", "..",
     "release", "datafiles", "userdef", "userdef_default_theme.c",
 )
 
 dna_rename_defs_h = os.path.join(
     os.path.dirname(__file__),
-    "..", "..", "..",
+    "..", "..",
     "source", "blender", "makesdna", "intern", "dna_rename_defs.h",
 )
 
