@@ -10,9 +10,9 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
+  ../../functions
   ../../geometry
   ../../gpu
-  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna

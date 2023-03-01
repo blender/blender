@@ -192,17 +192,17 @@ set(VULKAN_SRC
   vulkan/vk_backend.cc
   vulkan/vk_batch.cc
   vulkan/vk_buffer.cc
-  vulkan/vk_context.cc
   vulkan/vk_command_buffer.cc
   vulkan/vk_common.cc
+  vulkan/vk_context.cc
   vulkan/vk_descriptor_pools.cc
   vulkan/vk_descriptor_set.cc
   vulkan/vk_drawlist.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
-  vulkan/vk_pipeline.cc
   vulkan/vk_memory.cc
+  vulkan/vk_pipeline.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
@@ -217,17 +217,17 @@ set(VULKAN_SRC
   vulkan/vk_backend.hh
   vulkan/vk_batch.hh
   vulkan/vk_buffer.hh
-  vulkan/vk_context.hh
   vulkan/vk_command_buffer.hh
   vulkan/vk_common.hh
+  vulkan/vk_context.hh
   vulkan/vk_descriptor_pools.hh
   vulkan/vk_descriptor_set.hh
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
-  vulkan/vk_pipeline.hh
   vulkan/vk_memory.hh
+  vulkan/vk_pipeline.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
@@ -302,7 +302,7 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND INC
-    ../../../extern/vulkan_memory_allocator/
+    ../../../extern/vulkan_memory_allocator
   )
   list(APPEND INC_SYS
     ${VULKAN_INCLUDE_DIRS}
