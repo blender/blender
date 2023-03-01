@@ -559,7 +559,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         #     foobar(text="Foo", text_ctxt=i18n_ctxt.id_object)
         if type(node) == ast.Attribute:
             if node.attr in i18n_ctxt_ids:
-                #print(node, node.attr, getattr(i18n_contexts, node.attr))
+                # print(node, node.attr, getattr(i18n_contexts, node.attr))
                 return getattr(i18n_contexts, node.attr)
         return i18n_contexts.default
 

@@ -56,8 +56,8 @@ class App:
         self.doit = Button(frame2, text="Print", command=self.doit)
         self.doit.grid(row=0, column=1, pady=20)
 
-        #self.doitlab = Label(frame2, text="(Output to stdout)");
-        #self.doitlab.grid(row=1, column=1);
+        # self.doitlab = Label(frame2, text="(Output to stdout)");
+        # self.doitlab.grid(row=1, column=1);
 
         self.parse = Button(frame2, text="Parse", command=self.parsetext)
         self.parse.grid(row=0, column=2, pady=20)
@@ -117,7 +117,7 @@ class App:
         self.prev.config(width=self.size + 1, height=self.size + 1)
         for n in range(self.states):
             self.updateprev(n)
-        #self.prev.grid(row=0, column=4, padx=self.gridsz, pady=self.gridsz)
+        # self.prev.grid(row=0, column=4, padx=self.gridsz, pady=self.gridsz)
 
     def scrnclick1(self, event):
         self.scrnclick(event, 1)
@@ -264,7 +264,7 @@ class App:
                     m |= 1
                 if (self.state[(i * 8) + (7 - j)] == 1):
                     b |= 1
-                #print((i * 8) + (7 - j), self.state[(i * 8) + (7 - j)], m)
+                # print((i * 8) + (7 - j), self.state[(i * 8) + (7 - j)], m)
             mask.append(m)
             bitmap.append(b)
 
