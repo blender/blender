@@ -68,6 +68,7 @@ class Instance {
                                  resolution,
                                  GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                      GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+    resources.material_buf.clear();
 
     opaque_ps.sync(scene_state, resources);
     transparent_ps.sync(scene_state, resources);
@@ -202,12 +203,8 @@ class Instance {
             if (batches[i] == nullptr) {
               continue;
             }
-            /* TODO(fclem): This create a cull-able instance for each sub-object. This is done
-             * for simplicity to reduce complexity. But this increase the overhead per object.
-             * Instead, we should use an indirection buffer to the material buffer. */
-            ResourceHandle _handle = i == 0 ? handle : manager.resource_handle(ob_ref);
 
-            Material &mat = resources.material_buf.get_or_resize(_handle.resource_index());
+            Material mat;
 
             if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, i + 1)) {
               mat = Material(*_mat);
@@ -225,7 +222,7 @@ class Instance {
               get_material_image(ob_ref.object, i + 1, image, iuser, sampler_state);
             }
 
-            draw_mesh(ob_ref, mat, batches[i], _handle, image, sampler_state, iuser);
+            draw_mesh(ob_ref, mat, batches[i], handle, image, sampler_state, iuser);
           }
         }
       }
@@ -247,7 +244,7 @@ class Instance {
         }
 
         if (batch) {
-          Material &mat = resources.material_buf.get_or_resize(handle.resource_index());
+          Material mat;
 
           if (object_state.color_type == V3D_SHADING_OBJECT_COLOR) {
             mat = Material(*ob_ref.object);
@@ -291,9 +288,11 @@ class Instance {
                  ImageUser *iuser = nullptr)
   {
     const bool in_front = (ob_ref.object->dtx & OB_DRAW_IN_FRONT) != 0;
+    resources.material_buf.append(material);
+    int material_index = resources.material_buf.size() - 1;
 
     auto draw = [&](MeshPass &pass) {
-      pass.draw(ob_ref, batch, handle, image, sampler_state, iuser);
+      pass.draw(ob_ref, batch, handle, material_index, image, sampler_state, iuser);
     };
 
     if (scene_state.xray_mode || material.is_transparent()) {

@@ -184,6 +184,7 @@ class MeshPass : public PassMain {
   void draw(ObjectRef &ref,
             GPUBatch *batch,
             ResourceHandle handle,
+            uint material_index,
             ::Image *image = nullptr,
             eGPUSamplerState sampler_state = eGPUSamplerState::GPU_SAMPLER_DEFAULT,
             ImageUser *iuser = nullptr);

@@ -433,7 +433,8 @@ class DrawCommandBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandle handle)
+                   ResourceHandle handle,
+                   uint /*custom_id*/)
   {
     vertex_first = vertex_first != -1 ? vertex_first : 0;
     instance_len = instance_len != -1 ? instance_len : 1;
@@ -533,7 +534,8 @@ class DrawMultiBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandle handle)
+                   ResourceHandle handle,
+                   uint custom_id)
   {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
     const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
@@ -555,6 +557,7 @@ class DrawMultiBuf {
 
     DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
     draw.resource_handle = handle.raw;
+    draw.custom_id = custom_id;
     draw.instance_len = instance_len;
     draw.group_id = group_id;
 
@@ -594,7 +597,8 @@ class DrawMultiBuf {
             Vector<Undetermined, 0> &commands,
             VisibilityBuf &visibility_buf,
             int visibility_word_per_draw,
-            int view_len);
+            int view_len,
+            bool use_custom_ids);
 };
 
 /** \} */
