@@ -75,6 +75,11 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
 
 void BLI_freelistN(struct ListBase *listbase) ATTR_NONNULL(1);
 void BLI_addtail(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+/**
+ * Removes \a vlink from \a listbase. Assumes it is linked into there!
+ *
+ * \warning Does _not_ clear the `prev`/`next` pointers of the removed `vlink`.
+ */
 void BLI_remlink(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 bool BLI_remlink_safe(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 void *BLI_pophead(ListBase *listbase) ATTR_NONNULL(1);
