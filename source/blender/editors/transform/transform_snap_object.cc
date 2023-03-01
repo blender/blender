@@ -1786,7 +1786,7 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
     const MLoop *ml = &nearest2d.loop[poly->loopstart];
     if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
-      BLI_assert(nearest2d.edge != nullptr);
+      BLI_assert(nearest2d.edges != nullptr);
       for (int i = poly->totloop; i--; ml++) {
         cb_snap_edge(&nearest2d,
                      int(ml->e),
@@ -1939,7 +1939,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
                          v_pair[0],
                          v_pair[1],
                          &lambda)) {
-    /* do nothing */
+    /* Do nothing. */
   }
   else {
     short snap_to_flag = sctx->runtime.snap_to_flag;
@@ -2049,7 +2049,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
   if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE_RAYCAST) {
-    /* Currently only edge and vert */
+    /* Currently only edge and vert. */
     return retval;
   }
 
@@ -2064,7 +2064,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   const bool is_editmode = arm->edbo != nullptr;
 
   if (is_editmode == false) {
-    /* Test BoundBox */
+    /* Test BoundBox. */
     const BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
     if (bb && !snap_bound_box_check_dist(bb->vec[0],
                                          bb->vec[6],
@@ -2215,7 +2215,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
 {
   bool has_snap = false;
 
-  /* only vertex snapping mode (eg control points and handles) supported for now) */
+  /* Only vertex snapping mode (eg control points and handles) supported for now). */
   if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
     return SCE_SNAP_MODE_NONE;
   }
@@ -2334,7 +2334,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
           }
         }
         else {
-          /* curve is not visible outside editmode if nurb length less than two */
+          /* Curve is not visible outside editmode if nurb length less than two. */
           if (nu->pntsu > 1) {
             if (nu->bezt) {
               has_snap |= test_projected_vert_dist(&neasrest_precalc,
@@ -2389,7 +2389,7 @@ static eSnapMode snap_object_center(const SnapObjectContext *sctx,
     return retval;
   }
 
-  /* for now only vertex supported */
+  /* For now only vertex supported. */
   if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
     return retval;
   }
@@ -2603,7 +2603,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
     if (bvhtree[0]) {
-      /* snap to loose edges */
+      /* Snap to loose edges. */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2616,7 +2616,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* snap to looptris */
+      /* Snap to looptris. */
       BLI_bvhtree_find_nearest_projected(treedata.tree,
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2635,7 +2635,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   else {
     BLI_assert(sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX);
     if (bvhtree[0]) {
-      /* snap to loose edge verts */
+      /* Snap to loose edge verts. */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2648,7 +2648,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* snap to looptri verts */
+      /* Snap to looptri verts. */
       BLI_bvhtree_find_nearest_projected(treedata.tree,
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2719,7 +2719,7 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
 
   /* Test BoundBox */
 
-  /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+  /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!snap_bound_box_check_dist(
           sod->min, sod->max, lpmat, sctx->runtime.win_size, sctx->runtime.mval, dist_px_sq)) {
     return SCE_SNAP_MODE_NONE;
