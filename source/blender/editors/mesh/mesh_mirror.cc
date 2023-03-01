@@ -162,7 +162,6 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     BLI_assert(me == nullptr);
   }
   const bool is_editmode = (em != nullptr);
-  const MEdge *medge = nullptr, *med;
 
   /* Edit-mode variables. */
   BMEdge *eed;
@@ -229,8 +228,8 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
       }
     }
     else {
-      for (a = 0, med = medge; a < totedge; a++, med++) {
-        const uint i1 = med->v1, i2 = med->v2;
+      for (const MEdge &edge : me->edges()) {
+        const uint i1 = edge.v1, i2 = edge.v2;
         topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
         topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
         tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);
