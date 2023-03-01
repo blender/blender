@@ -1171,7 +1171,7 @@ static void do_version_fcurve_hide_viewport_fix(struct ID *UNUSED(id),
   fcu->rna_path = BLI_strdupn("hide_viewport", 13);
 }
 
-void do_versions_after_linking_280(FileData *UNUSED(fd), Main *bmain)
+void do_versions_after_linking_280(FileData *fd, Main *bmain)
 {
   bool use_collection_compat_28 = true;
 
@@ -1241,6 +1241,12 @@ void do_versions_after_linking_280(FileData *UNUSED(fd), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      BLO_read_assert_message(screen->scene == NULL,
+                              ,
+                              (BlendHandle *)fd,
+                              bmain,
+                              "No Screen data-block should ever have a NULL `scene` pointer");
+
       /* same render-layer as do_version_workspaces_after_lib_link will activate,
        * so same layer as BKE_view_layer_default_view would return */
       ViewLayer *layer = screen->scene->view_layers.first;
