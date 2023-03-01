@@ -137,17 +137,18 @@ struct PChart {
   PEdge *collapsed_edges;
   PFace *collapsed_faces;
 
+  float area_uv;
+  float area_3d;
+
   union PChartUnion {
     struct PChartLscm {
       LinearSolver *context;
       float *abf_alpha;
       PVert *pin1, *pin2;
       PVert *single_pin;
-      float single_pin_area;
       float single_pin_uv[2];
     } lscm;
     struct PChartPack {
-      float rescale, area;
       float size[2];
       float origin[2];
     } pack;
@@ -3020,7 +3021,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 #endif
 
     if (npins == 1) {
-      chart->u.lscm.single_pin_area = p_chart_uv_area(chart);
+      chart->area_uv = p_chart_uv_area(chart);
       for (v = chart->verts; v; v = v->nextlink) {
         if (v->flag & PVERT_PIN) {
           chart->u.lscm.single_pin = v;
@@ -3205,7 +3206,7 @@ static void p_chart_lscm_transform_single_pin(PChart *chart)
   /* If only one pin, keep UV area the same. */
   const float new_area = p_chart_uv_area(chart);
   if (new_area > 0.0f) {
-    const float scale = chart->u.lscm.single_pin_area / new_area;
+    const float scale = chart->area_uv / new_area;
     if (scale > 0.0f) {
       p_chart_uv_scale(chart, sqrtf(scale));
     }
@@ -3227,7 +3228,6 @@ static void p_chart_lscm_end(PChart *chart)
   chart->u.lscm.pin1 = nullptr;
   chart->u.lscm.pin2 = nullptr;
   chart->u.lscm.single_pin = nullptr;
-  chart->u.lscm.single_pin_area = 0.0f;
 }
 
 /* Stretch */
@@ -4251,10 +4251,9 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
                                  bool scale_uv,
                                  bool shear)
 {
-  PChart *chart;
   int i;
-  float tot_uvarea = 0.0f, tot_facearea = 0.0f;
-  float tot_fac, fac;
+  float tot_area_3d = 0.0f;
+  float tot_area_uv = 0.0f;
   float minv[2], maxv[2], trans[2];
 
   if (phandle->ncharts == 0) {
@@ -4262,7 +4261,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
   }
 
   for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
+    PChart *chart = phandle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       continue;
@@ -4345,34 +4344,34 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
       }
     }
 
-    chart->u.pack.area = 0.0f;    /* 3d area */
-    chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
+    chart->area_3d = 0.0f;
+    chart->area_uv = 0.0f;
 
     for (PFace *f = chart->faces; f; f = f->nextlink) {
-      chart->u.pack.area += p_face_area(f);
-      chart->u.pack.rescale += fabsf(p_face_uv_area_signed(f));
+      chart->area_3d += p_face_area(f);
+      chart->area_uv += fabsf(p_face_uv_area_signed(f));
     }
 
-    tot_facearea += chart->u.pack.area;
-    tot_uvarea += chart->u.pack.rescale;
+    tot_area_3d += chart->area_3d;
+    tot_area_uv += chart->area_uv;
   }
 
-  if (tot_facearea == tot_uvarea || tot_facearea == 0.0f || tot_uvarea == 0.0f) {
-    /* nothing to do */
+  if (tot_area_3d == 0.0f || tot_area_uv == 0.0f) {
+    /* Prevent divide by zero. */
     return;
   }
 
-  tot_fac = tot_facearea / tot_uvarea;
+  const float tot_fac = tot_area_3d / tot_area_uv;
 
   for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
+    PChart *chart = phandle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
-    if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
-      fac = chart->u.pack.area / chart->u.pack.rescale;
+    if (chart->area_3d != 0.0f && chart->area_uv != 0.0f) {
+      const float fac = chart->area_3d / chart->area_uv;
 
       /* Average scale. */
       p_chart_uv_scale(chart, sqrtf(fac / tot_fac));
