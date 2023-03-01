@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
@@ -18,6 +17,8 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
 #include "BLI_vector.hh"
+
+#include "GEO_uv_pack.hh"
 
 #include "eigen_capi.h"
 
@@ -4150,15 +4151,6 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
                               bool do_rotate,
                               bool ignore_pinned)
 {
-  /* box packing variables */
-  BoxPack *boxarray, *box;
-  float tot_width, tot_height, scale;
-
-  PChart *chart;
-  int i, unpacked = 0;
-  float trans[2];
-  double area = 0.0;
-
   if (handle->ncharts == 0) {
     return;
   }
@@ -4171,80 +4163,84 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   if (handle->aspx != handle->aspy) {
     GEO_uv_parametrizer_scale(handle, 1.0f / handle->aspx, 1.0f / handle->aspy);
   }
-
-  /* we may not use all these boxes */
-  boxarray = (BoxPack *)MEM_mallocN(handle->ncharts * sizeof(BoxPack), "BoxPack box");
-
-  for (i = 0; i < handle->ncharts; i++) {
-    chart = handle->charts[i];
+  blender::Vector<blender::geometry::PackIsland *> pack_island_vector;
+  int unpacked = 0;
+  for (int i = 0; i < handle->ncharts; i++) {
+    PChart *chart = handle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       unpacked++;
       continue;
     }
 
-    box = boxarray + (i - unpacked);
+    blender::geometry::PackIsland *pack_island = new blender::geometry::PackIsland();
+    pack_island_vector.append(pack_island);
 
-    p_chart_uv_bbox(chart, trans, chart->u.pack.size);
+    float minv[2];
+    float maxv[2];
+    p_chart_uv_bbox(chart, minv, maxv);
+    pack_island->bounds_rect.xmin = minv[0];
+    pack_island->bounds_rect.ymin = minv[1];
+    pack_island->bounds_rect.xmax = maxv[0];
+    pack_island->bounds_rect.ymax = maxv[1];
+  }
 
-    trans[0] = -trans[0];
-    trans[1] = -trans[1];
+  UVPackIsland_Params params{};
+  params.rotate = do_rotate;
+  params.only_selected_uvs = false;
+  params.only_selected_faces = false;
+  params.use_seams = false;
+  params.correct_aspect = false;
+  params.ignore_pinned = false;
+  params.pin_unselected = false;
+  params.margin = margin;
+  params.margin_method = ED_UVPACK_MARGIN_SCALED;
+  params.udim_base_offset[0] = 0.0f;
+  params.udim_base_offset[1] = 0.0f;
 
-    p_chart_uv_translate(chart, trans);
+  float scale[2] = {1.0f, 1.0f};
+  BoxPack *box_array = pack_islands(pack_island_vector, params, scale);
 
-    box->w = chart->u.pack.size[0] + trans[0];
-    box->h = chart->u.pack.size[1] + trans[1];
-    box->index = i; /* Warning this index skips chart->has_pins boxes. */
+  for (int64_t i : pack_island_vector.index_range()) {
+    BoxPack *box = box_array + i;
+    blender::geometry::PackIsland *pack_island = pack_island_vector[box->index];
+    pack_island->bounds_rect.xmin = box->x;
+    pack_island->bounds_rect.ymin = box->y;
+    pack_island->bounds_rect.xmax = box->x + box->w;
+    pack_island->bounds_rect.ymax = box->y + box->h;
+  }
 
-    if (margin > 0.0f) {
-      area += double(sqrtf(box->w * box->h));
+  unpacked = 0;
+  for (int i = 0; i < handle->ncharts; i++) {
+    PChart *chart = handle->charts[i];
+
+    if (ignore_pinned && chart->has_pins) {
+      unpacked++;
+      continue;
     }
-  }
+    blender::geometry::PackIsland *pack_island = pack_island_vector[i - unpacked];
 
-  if (margin > 0.0f) {
-    /* multiply the margin by the area to give predictable results not dependent on UV scale,
-     * ...Without using the area running pack multiple times also gives a bad feedback loop.
-     * multiply by 0.1 so the margin value from the UI can be from
-     * 0.0 to 1.0 but not give a massive margin */
-    margin = (margin * float(area)) * 0.1f;
-    unpacked = 0;
-    for (i = 0; i < handle->ncharts; i++) {
-      chart = handle->charts[i];
+    float minv[2];
+    float maxv[2];
+    p_chart_uv_bbox(chart, minv, maxv);
 
-      if (ignore_pinned && chart->has_pins) {
-        unpacked++;
-        continue;
-      }
-
-      box = boxarray + (i - unpacked);
-      trans[0] = margin;
-      trans[1] = margin;
-      p_chart_uv_translate(chart, trans);
-      box->w += margin * 2;
-      box->h += margin * 2;
+    /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
+    float m[2];
+    float b[2];
+    m[0] = scale[0];
+    m[1] = scale[1];
+    b[0] = pack_island->bounds_rect.xmin - minv[0];
+    b[1] = pack_island->bounds_rect.ymin - minv[1];
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
+      /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
+      v->uv[0] = m[0] * (v->uv[0] + b[0]);
+      v->uv[1] = m[1] * (v->uv[1] + b[1]);
     }
+
+    pack_island_vector[i - unpacked] = nullptr;
+    delete pack_island;
   }
-
-  BLI_box_pack_2d(boxarray, handle->ncharts - unpacked, &tot_width, &tot_height);
-
-  if (tot_height > tot_width) {
-    scale = tot_height != 0.0f ? (1.0f / tot_height) : 1.0f;
-  }
-  else {
-    scale = tot_width != 0.0f ? (1.0f / tot_width) : 1.0f;
-  }
-
-  for (i = 0; i < handle->ncharts - unpacked; i++) {
-    box = boxarray + i;
-    trans[0] = box->x;
-    trans[1] = box->y;
-
-    chart = handle->charts[box->index];
-    p_chart_uv_translate(chart, trans);
-    p_chart_uv_scale(chart, scale);
-  }
-  MEM_freeN(boxarray);
-
+  MEM_freeN(box_array);
   if (handle->aspx != handle->aspy) {
     GEO_uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
   }
