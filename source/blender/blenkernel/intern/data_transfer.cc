@@ -421,8 +421,8 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
     const int num_verts_dst = me_dst->totvert;
     const blender::Span<MEdge> edges_dst = me_dst->edges();
     blender::MutableSpan<MPoly> polys_dst = me_dst->polys_for_write();
-    MLoop *loops_dst = BKE_mesh_loops_for_write(me_dst);
-    const int num_loops_dst = me_dst->totloop;
+    blender::MutableSpan<MLoop> loops_dst = me_dst->loops_for_write();
+
     CustomData *ldata_dst = &me_dst->ldata;
 
     const float(*poly_nors_dst)[3] = BKE_mesh_poly_normals_ensure(me_dst);
@@ -433,7 +433,7 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
 
     if (!custom_nors_dst) {
       custom_nors_dst = static_cast<short(*)[2]>(CustomData_add_layer(
-          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, num_loops_dst));
+          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops_dst.size()));
     }
 
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
@@ -446,9 +446,9 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
                                      num_verts_dst,
                                      edges_dst.data(),
                                      edges_dst.size(),
-                                     loops_dst,
+                                     loops_dst.data(),
                                      loop_nors_dst,
-                                     num_loops_dst,
+                                     loops_dst.size(),
                                      polys_dst.data(),
                                      poly_nors_dst,
                                      polys_dst.size(),

@@ -95,8 +95,7 @@ static void smoothModifier_do(
   const float fac_orig = 1.0f - fac_new;
   const bool invert_vgroup = (smd->flag & MOD_SMOOTH_INVERT_VGROUP) != 0;
 
-  const MEdge *medges = BKE_mesh_edges(mesh);
-  const int edges_num = mesh->totedge;
+  const blender::Span<MEdge> edges = mesh->edges();
 
   const MDeformVert *dvert;
   int defgrp_index;
@@ -108,10 +107,10 @@ static void smoothModifier_do(
       memset(accumulated_vecs_count, 0, sizeof(*accumulated_vecs_count) * (size_t)verts_num);
     }
 
-    for (int i = 0; i < edges_num; i++) {
+for (const int i : edges.index_range()) {
       float fvec[3];
-      const uint idx1 = medges[i].v1;
-      const uint idx2 = medges[i].v2;
+      const uint idx1 = edges[i].v1;
+      const uint idx2 = edges[i].v2;
 
       mid_v3_v3v3(fvec, vertexCos[idx1], vertexCos[idx2]);
 

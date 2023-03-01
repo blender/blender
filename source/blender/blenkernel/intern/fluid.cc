@@ -938,7 +938,7 @@ struct ObstaclesFromDMData {
   FluidEffectorSettings *fes;
 
   const float (*vert_positions)[3];
-  const MLoop *mloop;
+  blender::Span<MLoop> loops;
   blender::Span<MLoopTri> looptris;
 
   BVHTreeFromMesh *tree;
@@ -973,7 +973,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
       /* Calculate object velocities. Result in bb->velocity. */
       update_velocities(data->fes,
                         data->vert_positions,
-                        data->mloop,
+                        data->loops.data(),
                         data->looptris.data(),
                         bb->velocity,
                         index,
@@ -1008,7 +1008,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     int min[3], max[3], res[3];
 
-    const MLoop *mloop = BKE_mesh_loops(me);
+    const blender::Span<MLoop> loops = me->loops();
     const blender::Span<MLoopTri> looptris = me->looptris();
     numverts = me->totvert;
 
@@ -1072,7 +1072,7 @@ static void obstacles_from_mesh(Object *coll_ob,
       ObstaclesFromDMData data{};
       data.fes = fes;
       data.vert_positions = positions;
-      data.mloop = mloop;
+      data.loops = loops;
       data.looptris = looptris;
       data.tree = &tree_data;
       data.bb = bb;
@@ -1981,7 +1981,7 @@ struct EmitFromDMData {
 
   const float (*vert_positions)[3];
   const float (*vert_normals)[3];
-  const MLoop *mloop;
+  blender::Span<MLoop> loops;
   blender::Span<MLoopTri> looptris;
   const float (*mloopuv)[2];
   const MDeformVert *dvert;
@@ -2015,7 +2015,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
         sample_mesh(data->ffs,
                     data->vert_positions,
                     data->vert_normals,
-                    data->mloop,
+                    data->loops.data(),
                     data->looptris.data(),
                     data->mloopuv,
                     bb->influence,
@@ -2065,7 +2065,7 @@ static void emit_from_mesh(
     Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, false);
     float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
 
-    const MLoop *mloop = BKE_mesh_loops(me);
+    const blender::Span<MLoop> loops = me->loops();
     const blender::Span<MLoopTri> looptris = me->looptris();
     const int numverts = me->totvert;
     const MDeformVert *dvert = BKE_mesh_deform_verts(me);
@@ -2142,7 +2142,7 @@ static void emit_from_mesh(
       data.ffs = ffs;
       data.vert_positions = positions;
       data.vert_normals = vert_normals;
-      data.mloop = mloop;
+      data.loops = loops;
       data.looptris = looptris;
       data.mloopuv = mloopuv;
       data.dvert = dvert;
@@ -3208,8 +3208,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
                                     Object *ob)
 {
   Mesh *me;
-  MPoly *mpolys;
-  MLoop *mloops;
   float min[3];
   float max[3];
   float size[3];
@@ -3252,8 +3250,8 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
-  mpolys = BKE_mesh_polys_for_write(me);
-  mloops = BKE_mesh_loops_for_write(me);
+  blender::MutableSpan<MPoly> polys = me->polys_for_write();
+  blender::MutableSpan<MLoop> loops = me->loops_for_write();
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3339,17 +3337,17 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   int *material_indices = BKE_mesh_material_indices_for_write(me);
 
   /* Loop for triangles. */
-  for (i = 0; i < num_faces; i++, mpolys++, mloops += 3) {
+  for (const int i : polys.index_range()) {
     /* Initialize from existing face. */
     material_indices[i] = mp_mat_nr;
-    mpolys->flag = mp_flag;
+    polys[i].flag = mp_flag;
 
-    mpolys->loopstart = i * 3;
-    mpolys->totloop = 3;
+    polys[i].loopstart = i * 3;
+    polys[i].totloop = 3;
 
-    mloops[0].v = manta_liquid_get_triangle_x_at(fds->fluid, i);
-    mloops[1].v = manta_liquid_get_triangle_y_at(fds->fluid, i);
-    mloops[2].v = manta_liquid_get_triangle_z_at(fds->fluid, i);
+    loops[i * 3 + 0].v = manta_liquid_get_triangle_x_at(fds->fluid, i);
+    loops[i * 3 + 1].v = manta_liquid_get_triangle_y_at(fds->fluid, i);
+    loops[i * 3 + 2].v = manta_liquid_get_triangle_z_at(fds->fluid, i);
 #  ifdef DEBUG_PRINT
     /* Debugging: Print mesh faces. */
     printf("mloops[0].v: %d, mloops[1].v: %d, mloops[2].v: %d\n",
@@ -3367,8 +3365,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Object *ob)
 {
   Mesh *result;
-  MPoly *mpolys;
-  MLoop *mloops;
   float min[3];
   float max[3];
   float *co;
@@ -3387,8 +3383,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces * 4, num_faces);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  mpolys = BKE_mesh_polys_for_write(result);
-  mloops = BKE_mesh_loops_for_write(result);
+  blender::MutableSpan<MPoly> polys = result->polys_for_write();
+  blender::MutableSpan<MLoop> loops = result->loops_for_write();
 
   if (num_verts) {
     /* Volume bounds. */
@@ -3433,8 +3429,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
     /* Create faces. */
     /* Top side. */
-    mp = &mpolys[0];
-    ml = &mloops[0 * 4];
+    mp = &polys[0];
+    ml = &loops[0 * 4];
     mp->loopstart = 0 * 4;
     mp->totloop = 4;
     ml[0].v = 0;
@@ -3442,8 +3438,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     ml[2].v = 2;
     ml[3].v = 3;
     /* Right side. */
-    mp = &mpolys[1];
-    ml = &mloops[1 * 4];
+    mp = &polys[1];
+    ml = &loops[1 * 4];
     mp->loopstart = 1 * 4;
     mp->totloop = 4;
     ml[0].v = 2;
@@ -3451,8 +3447,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     ml[2].v = 5;
     ml[3].v = 6;
     /* Bottom side. */
-    mp = &mpolys[2];
-    ml = &mloops[2 * 4];
+    mp = &polys[2];
+    ml = &loops[2 * 4];
     mp->loopstart = 2 * 4;
     mp->totloop = 4;
     ml[0].v = 7;
@@ -3460,8 +3456,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     ml[2].v = 5;
     ml[3].v = 4;
     /* Left side. */
-    mp = &mpolys[3];
-    ml = &mloops[3 * 4];
+    mp = &polys[3];
+    ml = &loops[3 * 4];
     mp->loopstart = 3 * 4;
     mp->totloop = 4;
     ml[0].v = 0;
@@ -3469,8 +3465,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     ml[2].v = 7;
     ml[3].v = 4;
     /* Front side. */
-    mp = &mpolys[4];
-    ml = &mloops[4 * 4];
+    mp = &polys[4];
+    ml = &loops[4 * 4];
     mp->loopstart = 4 * 4;
     mp->totloop = 4;
     ml[0].v = 3;
@@ -3478,8 +3474,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     ml[2].v = 6;
     ml[3].v = 7;
     /* Back side. */
-    mp = &mpolys[5];
-    ml = &mloops[5 * 4];
+    mp = &polys[5];
+    ml = &loops[5 * 4];
     mp->loopstart = 5 * 4;
     mp->totloop = 4;
     ml[0].v = 1;

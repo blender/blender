@@ -446,8 +446,11 @@ static void merge_frame_corners(Frame **frames, int totframe)
   }
 }
 
-static Frame **collect_hull_frames(
-    int v, SkinNode *frames, const MeshElemMap *emap, const MEdge *medge, int *tothullframe)
+static Frame **collect_hull_frames(int v,
+                                   SkinNode *frames,
+                                   const MeshElemMap *emap,
+                                   const blender::Span<MEdge> medge,
+                                   int *tothullframe)
 {
   SkinNode *f;
   Frame **hull_frames;
@@ -714,7 +717,7 @@ static void build_emats_stack(BLI_Stack *stack,
                               BLI_bitmap *visited_e,
                               EMat *emat,
                               const MeshElemMap *emap,
-                              const MEdge *medge,
+                              const blender::Span<MEdge> medge,
                               const MVertSkin *vs,
                               const float (*vert_positions)[3])
 {
@@ -769,9 +772,8 @@ static void build_emats_stack(BLI_Stack *stack,
 static EMat *build_edge_mats(const MVertSkin *vs,
                              const float (*vert_positions)[3],
                              const int verts_num,
-                             const MEdge *medge,
+                             const blender::Span<MEdge> medge,
                              const MeshElemMap *emap,
-                             const int edges_num,
                              bool *has_valid_root)
 {
   BLI_Stack *stack;
@@ -782,8 +784,8 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
   stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
-  visited_e = BLI_BITMAP_NEW(edges_num, "build_edge_mats.visited_e");
-  emat = MEM_cnew_array<EMat>(edges_num, __func__);
+  visited_e = BLI_BITMAP_NEW(medge.size(), "build_edge_mats.visited_e");
+  emat = MEM_cnew_array<EMat>(medge.size(), __func__);
 
   /* Edge matrices are built from the root nodes, add all roots with
    * children to the stack */
@@ -803,7 +805,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
         *has_valid_root = true;
       }
-      else if (edges_num == 0) {
+      else if (medge.size() == 0) {
         /* Vertex-only mesh is valid, mark valid root as well (will display error otherwise). */
         *has_valid_root = true;
         break;
@@ -894,7 +896,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   const MVertSkin *orignode = static_cast<const MVertSkin *>(
       CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN));
   const float(*orig_vert_positions)[3] = BKE_mesh_vert_positions(orig);
-  const MEdge *origedge = BKE_mesh_edges(orig);
+  const blender::Span<MEdge> origedge = orig->edges();
   const MDeformVert *origdvert = BKE_mesh_deform_verts(orig);
   int orig_vert_num = orig->totvert;
   int orig_edge_num = orig->totedge;
@@ -921,7 +923,7 @@ static Mesh *subdivide_base(const Mesh *orig)
       orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0);
 
   float(*out_vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  MEdge *outedge = BKE_mesh_edges_for_write(result);
+  blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   MVertSkin *outnode = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&result->vdata, CD_MVERT_SKIN, result->totvert));
   MDeformVert *outdvert = nullptr;
@@ -933,6 +935,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   CustomData_copy_data(&orig->vdata, &result->vdata, 0, 0, orig_vert_num);
 
   /* Subdivide edges */
+  int result_edge_i = 0;
   for (i = 0, v = orig_vert_num; i < orig_edge_num; i++) {
     struct VGroupData {
       /* Vertex group number */
@@ -979,7 +982,7 @@ static Mesh *subdivide_base(const Mesh *orig)
     }
 
     /* Add vertices and edge segments */
-    for (j = 0; j < edge_subd[i]; j++, v++, outedge++) {
+    for (j = 0; j < edge_subd[i]; j++, v++) {
       float r = (j + 1) / float(edge_subd[i] + 1);
       float t = powf(r, radrat);
 
@@ -1002,8 +1005,9 @@ static Mesh *subdivide_base(const Mesh *orig)
         }
       }
 
-      outedge->v1 = u;
-      outedge->v2 = v;
+      result_edges[result_edge_i].v1 = u;
+      result_edges[result_edge_i].v2 = v;
+      result_edge_i++;
       u = v;
     }
 
@@ -1012,9 +1016,9 @@ static Mesh *subdivide_base(const Mesh *orig)
     }
 
     /* Link up to final vertex */
-    outedge->v1 = u;
-    outedge->v2 = e->v2;
-    outedge++;
+    result_edges[result_edge_i].v1 = u;
+    result_edges[result_edge_i].v2 = e->v2;
+    result_edge_i++;
   }
 
   MEM_freeN(edge_subd);
@@ -1561,7 +1565,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
                                          int verts_num,
                                          const MeshElemMap *emap,
-                                         const MEdge *medge)
+                                         const blender::Span<MEdge> medge)
 {
   Frame **hull_frames;
   int v, tothullframe;
@@ -1673,12 +1677,9 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int vert
 
 static void skin_output_connections(SkinOutput *so,
                                     SkinNode *skin_nodes,
-                                    const MEdge *medge,
-                                    int edges_num)
+                                    const blender::Span<MEdge> medge)
 {
-  int e;
-
-  for (e = 0; e < edges_num; e++) {
+  for (const int e : medge.index_range()) {
     SkinNode *a, *b;
     a = &skin_nodes[medge[e].v1];
     b = &skin_nodes[medge[e].v2];
@@ -1786,7 +1787,7 @@ static bool skin_output_branch_hulls(SkinOutput *so,
                                      SkinNode *skin_nodes,
                                      int verts_num,
                                      const MeshElemMap *emap,
-                                     const MEdge *medge)
+                                     const blender::Span<MEdge> medge)
 {
   bool result = true;
   int v;
@@ -1820,8 +1821,7 @@ ENUM_OPERATORS(eSkinErrorFlag, SKIN_ERROR_HULL);
 static BMesh *build_skin(SkinNode *skin_nodes,
                          int verts_num,
                          const MeshElemMap *emap,
-                         const MEdge *medge,
-                         int edges_num,
+                         const blender::Span<MEdge> medge,
                          const MDeformVert *input_dvert,
                          SkinModifierData *smd,
                          eSkinErrorFlag *r_error)
@@ -1881,7 +1881,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
   skin_smooth_hulls(so.bm, skin_nodes, verts_num, smd);
 
   skin_output_end_nodes(&so, skin_nodes, verts_num);
-  skin_output_connections(&so, skin_nodes, medge, edges_num);
+  skin_output_connections(&so, skin_nodes, medge);
   hull_merge_triangles(&so, smd);
 
   bmesh_edit_end(so.bm, BMOpTypeFlag(0));
@@ -1911,29 +1911,25 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   SkinNode *skin_nodes;
   MeshElemMap *emap;
   int *emapmem;
-  const MEdge *medge;
   const MDeformVert *dvert;
-  int verts_num, edges_num;
   bool has_valid_root = false;
 
   const MVertSkin *nodes = static_cast<const MVertSkin *>(
       CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN));
 
   const float(*vert_positions)[3] = BKE_mesh_vert_positions(origmesh);
+  const blender::Span<MEdge> edges = origmesh->edges();
   dvert = BKE_mesh_deform_verts(origmesh);
-  medge = BKE_mesh_edges(origmesh);
-  verts_num = origmesh->totvert;
-  edges_num = origmesh->totedge;
+  const int verts_num = origmesh->totvert;
 
-  BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, verts_num, edges_num);
+  BKE_mesh_vert_edge_map_create(&emap, &emapmem, edges.data(), verts_num, edges.size());
 
-  emat = build_edge_mats(
-      nodes, vert_positions, verts_num, medge, emap, edges_num, &has_valid_root);
+  emat = build_edge_mats(nodes, vert_positions, verts_num, edges, emap, &has_valid_root);
   skin_nodes = build_frames(vert_positions, verts_num, nodes, emap, emat);
   MEM_freeN(emat);
   emat = nullptr;
 
-  bm = build_skin(skin_nodes, verts_num, emap, medge, edges_num, dvert, smd, r_error);
+  bm = build_skin(skin_nodes, verts_num, emap, edges, dvert, smd, r_error);
 
   MEM_freeN(skin_nodes);
   MEM_freeN(emap);

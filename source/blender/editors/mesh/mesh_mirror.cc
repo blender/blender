@@ -204,11 +204,9 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   }
   else {
     totedge = me->totedge;
-    medge = BKE_mesh_edges(me);
-    for (a = 0, med = medge; a < totedge; a++, med++) {
-      const uint i1 = med->v1, i2 = med->v2;
-      topo_hash[i1]++;
-      topo_hash[i2]++;
+    for (const MEdge &edge : me->edges()) {
+      topo_hash[edge.v1]++;
+      topo_hash[edge.v2]++;
     }
   }
 

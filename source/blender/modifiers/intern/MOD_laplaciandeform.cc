@@ -139,35 +139,34 @@ static void deleteLaplacianSystem(LaplacianSystem *sys)
 }
 
 static void createFaceRingMap(const int mvert_tot,
-                              const MLoopTri *mlooptri,
-                              const int mtri_tot,
-                              const MLoop *mloop,
+                              blender::Span<MLoopTri> looptris,
+                              blender::Span<MLoop> loops,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
-  int i, j, indices_num = 0;
+  int indices_num = 0;
   int *indices, *index_iter;
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(mvert_tot, __func__);
-  const MLoopTri *mlt;
 
-  for (i = 0, mlt = mlooptri; i < mtri_tot; i++, mlt++) {
-
-    for (j = 0; j < 3; j++) {
-      const uint v_index = mloop[mlt->tri[j]].v;
+  for (const int i : looptris.index_range()) {
+    const MLoopTri &mlt = looptris[i];
+    for (int j = 0; j < 3; j++) {
+      const uint v_index = loops[mlt.tri[j]].v;
       map[v_index].count++;
       indices_num++;
     }
   }
   indices = MEM_cnew_array<int>(indices_num, __func__);
   index_iter = indices;
-  for (i = 0; i < mvert_tot; i++) {
+  for (int i = 0; i < mvert_tot; i++) {
     map[i].indices = index_iter;
     index_iter += map[i].count;
     map[i].count = 0;
   }
-  for (i = 0, mlt = mlooptri; i < mtri_tot; i++, mlt++) {
-    for (j = 0; j < 3; j++) {
-      const uint v_index = mloop[mlt->tri[j]].v;
+  for (const int i : looptris.index_range()) {
+    const MLoopTri &mlt = looptris[i];
+    for (int j = 0; j < 3; j++) {
+      const uint v_index = loops[mlt.tri[j]].v;
       map[v_index].indices[map[v_index].count] = i;
       map[v_index].count++;
     }
@@ -177,19 +176,17 @@ static void createFaceRingMap(const int mvert_tot,
 }
 
 static void createVertRingMap(const int mvert_tot,
-                              const MEdge *medge,
-                              const int medge_tot,
+                              const blender::Span<MEdge> edges,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(mvert_tot, __func__);
   int i, vid[2], indices_num = 0;
   int *indices, *index_iter;
-  const MEdge *me;
 
-  for (i = 0, me = medge; i < medge_tot; i++, me++) {
-    vid[0] = me->v1;
-    vid[1] = me->v2;
+  for (const int i : edges.index_range()) {
+    vid[0] = edges[i].v1;
+    vid[1] = edges[i].v2;
     map[vid[0]].count++;
     map[vid[1]].count++;
     indices_num += 2;
@@ -201,9 +198,9 @@ static void createVertRingMap(const int mvert_tot,
     index_iter += map[i].count;
     map[i].count = 0;
   }
-  for (i = 0, me = medge; i < medge_tot; i++, me++) {
-    vid[0] = me->v1;
-    vid[1] = me->v2;
+  for (const int i : edges.index_range()) {
+    vid[0] = edges[i].v1;
+    vid[1] = edges[i].v2;
     map[vid[0]].indices[map[vid[0]].count] = vid[1];
     map[vid[0]].count++;
     map[vid[1]].indices[map[vid[1]].count] = vid[0];
@@ -533,8 +530,6 @@ static void initSystem(
   if (isValidVertexGroup(lmd, ob, mesh)) {
     int *index_anchors = static_cast<int *>(
         MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* over-alloc */
-    const MLoopTri *mlooptri;
-    const MLoop *mloop;
 
     STACK_DECLARE(index_anchors);
 
@@ -552,13 +547,13 @@ static void initSystem(
       }
     }
 
+    const blender::Span<MEdge> edges = mesh->edges();
+    const blender::Span<MLoop> loops = mesh->loops();
+    const blender::Span<MLoopTri> looptris = mesh->looptris();
+
     anchors_num = STACK_SIZE(index_anchors);
-    lmd->cache_system = initLaplacianSystem(verts_num,
-                                            mesh->totedge,
-                                            BKE_mesh_runtime_looptri_len(mesh),
-                                            anchors_num,
-                                            lmd->anchor_grp_name,
-                                            lmd->repeat);
+    lmd->cache_system = initLaplacianSystem(
+        verts_num, edges.size(), looptris.size(), anchors_num, lmd->anchor_grp_name, lmd->repeat);
     sys = (LaplacianSystem *)lmd->cache_system;
     memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
@@ -567,22 +562,13 @@ static void initSystem(
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
 
-    createFaceRingMap(mesh->totvert,
-                      BKE_mesh_runtime_looptri_ensure(mesh),
-                      BKE_mesh_runtime_looptri_len(mesh),
-                      BKE_mesh_loops(mesh),
-                      &sys->ringf_map,
-                      &sys->ringf_indices);
-    createVertRingMap(
-        mesh->totvert, BKE_mesh_edges(mesh), mesh->totedge, &sys->ringv_map, &sys->ringv_indices);
-
-    mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-    mloop = BKE_mesh_loops(mesh);
+    createFaceRingMap(mesh->totvert, looptris, loops, &sys->ringf_map, &sys->ringf_indices);
+    createVertRingMap(mesh->totvert, edges, &sys->ringv_map, &sys->ringv_indices);
 
     for (i = 0; i < sys->tris_num; i++) {
-      sys->tris[i][0] = mloop[mlooptri[i].tri[0]].v;
-      sys->tris[i][1] = mloop[mlooptri[i].tri[1]].v;
-      sys->tris[i][2] = mloop[mlooptri[i].tri[2]].v;
+      sys->tris[i][0] = loops[looptris[i].tri[0]].v;
+      sys->tris[i][1] = loops[looptris[i].tri[1]].v;
+      sys->tris[i][2] = loops[looptris[i].tri[2]].v;
     }
   }
 }
