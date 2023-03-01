@@ -1,0 +1,16 @@
+leak:_PyObject_Malloc
+leak:_PyObject_Realloc
+leak:PyThread_allocate_lock
+leak:libpython*
+leak:imb_exitopenexr
+leak:imb_filetypes_exit
+leak:libIlm*
+leak:<unknown module>
+leak:libX11*
+leak:libglib*
+leak:libnvidia*
+leak:i965_dri
+leak:libdrm*
+leak:radeon*
+leak:libGLX*
+leak:libasan*
