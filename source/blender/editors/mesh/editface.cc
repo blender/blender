@@ -224,7 +224,6 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 {
   using namespace blender;
   const Span<MPoly> polys = mesh.polys();
-  const Span<MEdge> edges = mesh.edges();
   const Span<MLoop> loops = mesh.loops();
 
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -275,7 +274,6 @@ static void paintface_select_linked_faces(Mesh &mesh,
   build_poly_connections(islands, mesh);
 
   const Span<MPoly> polys = mesh.polys();
-  const Span<MEdge> edges = mesh.edges();
   const Span<MLoop> loops = mesh.loops();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
