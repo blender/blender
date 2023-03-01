@@ -104,10 +104,9 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
   const BitSpan optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
 
-  const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+    const MLoop *ml = &mr->loops[ml_index];
 
     if (data->use_edge_render) {
       data->vbo_data[ml_index] = optimal_display_edges[ml->e] ? 255 : 0;
@@ -122,7 +121,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
         /* Manifold */
         const int ml_index_last = mp->totloop + mp->loopstart - 1;
         const int ml_index_other = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
-        const MLoop *ml_next = &mr->mloop[ml_index_other];
+        const MLoop *ml_next = &mr->loops[ml_index_other];
         float ratio = loop_edge_factor_get(mr->poly_normals[mp_index],
                                            mr->vert_positions[ml->v],
                                            mr->vert_normals[ml->v],

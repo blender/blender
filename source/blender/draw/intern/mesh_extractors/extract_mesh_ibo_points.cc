@@ -74,10 +74,9 @@ static void extract_points_iter_poly_mesh(const MeshRenderData *mr,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+    const MLoop *ml = &mr->loops[ml_index];
     vert_set_mesh(elb, mr, ml->v, ml_index);
   }
 }

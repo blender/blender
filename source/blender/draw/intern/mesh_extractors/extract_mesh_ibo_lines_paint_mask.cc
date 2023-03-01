@@ -41,10 +41,9 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
                                                     void *_data)
 {
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
-  const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+    const MLoop *ml = &mr->loops[ml_index];
 
     const int e_index = ml->e;
     if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[e_index]) ||
@@ -110,7 +109,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
   int *subdiv_loop_subdiv_edge_index = subdiv_cache->subdiv_loop_subdiv_edge_index;
 
-  const int coarse_quad_index = coarse_quad - mr->mpoly;
+  const int coarse_quad_index = coarse_quad - mr->polys.data();
 
   uint start_loop_idx = subdiv_quad_index * 4;
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;

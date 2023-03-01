@@ -392,19 +392,19 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       stop = mr->tri_len;
       break;
     case MR_ITER_POLY:
-      range_data.elems = is_mesh ? mr->mpoly : (void *)mr->bm->ftable;
+      range_data.elems = is_mesh ? mr->polys.data() : (void *)mr->bm->ftable;
       func = is_mesh ? extract_range_iter_poly_mesh : extract_range_iter_poly_bm;
       stop = mr->poly_len;
       break;
     case MR_ITER_LEDGE:
       range_data.loose_elems = mr->ledges;
-      range_data.elems = is_mesh ? mr->medge : (void *)mr->bm->etable;
+      range_data.elems = is_mesh ? mr->edges.data() : (void *)mr->bm->etable;
       func = is_mesh ? extract_range_iter_ledge_mesh : extract_range_iter_ledge_bm;
       stop = mr->edge_loose_len;
       break;
     case MR_ITER_LVERT:
       range_data.loose_elems = mr->lverts;
-      range_data.elems = is_mesh ? mr->vert_positions : (void *)mr->bm->vtable;
+      range_data.elems = is_mesh ? mr->vert_positions.data() : (void *)mr->bm->vtable;
       func = is_mesh ? extract_range_iter_lvert_mesh : extract_range_iter_lvert_bm;
       stop = mr->vert_loose_len;
       break;
@@ -885,7 +885,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
           /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
            * based on the subdivision loops. */
           const int poly_origindex = subdiv_loop_poly_index[i * 4];
-          const MPoly *mp = &mr->mpoly[poly_origindex];
+          const MPoly *mp = &mr->polys[poly_origindex];
           extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, mp);
         }
       }

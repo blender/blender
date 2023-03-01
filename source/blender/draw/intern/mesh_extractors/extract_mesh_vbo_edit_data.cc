@@ -151,10 +151,9 @@ static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
 
-  const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+    const MLoop *ml = &mr->loops[ml_index];
     EditLoopData *data = vbo_data + ml_index;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, mp_index);
@@ -299,7 +298,7 @@ static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cach
                                                uint subdiv_quad_index,
                                                const MPoly *coarse_quad)
 {
-  const int coarse_quad_index = int(coarse_quad - mr->mpoly);
+  const int coarse_quad_index = int(coarse_quad - mr->polys.data());
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edit_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }

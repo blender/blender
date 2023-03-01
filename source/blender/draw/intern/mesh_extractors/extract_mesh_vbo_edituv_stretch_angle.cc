@@ -173,8 +173,8 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
                                      av,
                                      data->uv[ml_index_last],
                                      data->uv[l_next_tmp],
-                                     mr->vert_positions[mr->mloop[ml_index_last].v],
-                                     mr->vert_positions[mr->mloop[l_next_tmp].v]);
+                                     mr->vert_positions[mr->loops[ml_index_last].v],
+                                     mr->vert_positions[mr->loops[l_next_tmp].v]);
       /* Save last edge. */
       copy_v2_v2(last_auv, auv[1]);
       copy_v3_v3(last_av, av[1]);
@@ -193,8 +193,8 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
                                      av,
                                      data->uv[ml_index],
                                      data->uv[l_next],
-                                     mr->vert_positions[mr->mloop[ml_index].v],
-                                     mr->vert_positions[mr->mloop[l_next].v]);
+                                     mr->vert_positions[mr->loops[ml_index].v],
+                                     mr->vert_positions[mr->loops[l_next].v]);
     }
     edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[ml_index]);
   }

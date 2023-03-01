@@ -74,10 +74,10 @@ struct MeshRenderData {
   int freestyle_face_ofs;
   /** Mesh */
   Mesh *me;
-  const blender::float3 *vert_positions;
-  const MEdge *medge;
-  const MLoop *mloop;
-  const MPoly *mpoly;
+  blender::Span<blender::float3> vert_positions;
+  blender::Span<MEdge> edges;
+  blender::Span<MPoly> polys;
+  blender::Span<MLoop> loops;
   BMVert *eve_act;
   BMEdge *eed_act;
   BMFace *efa_act;
@@ -85,8 +85,8 @@ struct MeshRenderData {
   /* The triangulation of #Mesh polygons, owned by the mesh. */
   blender::Span<MLoopTri> looptris;
   const int *material_indices;
-  const float (*vert_normals)[3];
-  const float (*poly_normals)[3];
+  blender::Span<blender::float3> vert_normals;
+  blender::Span<blender::float3> poly_normals;
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;

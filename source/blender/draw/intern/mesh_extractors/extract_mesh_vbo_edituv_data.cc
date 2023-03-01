@@ -75,10 +75,9 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
                                                void *_data)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
-  const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+    const MLoop *ml = &mr->loops[ml_index];
 
     EditLoopData *eldata = &data->vbo_data[ml_index];
     memset(eldata, 0x0, sizeof(*eldata));
@@ -98,7 +97,7 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
            * For this, we check if the previous loop was on an edge. */
           const int ml_index_last = mp->loopstart + mp->totloop - 1;
           const int l_prev = (ml_index == mp->loopstart) ? ml_index_last : (ml_index - 1);
-          const MLoop *ml_prev = &mr->mloop[l_prev];
+          const MLoop *ml_prev = &mr->loops[l_prev];
           eed = bm_original_edge_get(mr, ml_prev->e);
         }
         if (eed) {
@@ -173,7 +172,7 @@ static void extract_edituv_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_ca
                                                  uint subdiv_quad_index,
                                                  const MPoly *coarse_quad)
 {
-  const int coarse_quad_index = int(coarse_quad - mr->mpoly);
+  const int coarse_quad_index = int(coarse_quad - mr->polys.data());
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edituv_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }

@@ -88,7 +88,7 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   else {
     int mp_loop = 0;
     for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
-      const MPoly *p = &mr->mpoly[mp_index];
+      const MPoly *p = &mr->polys[mp_index];
       for (int l = 0; l < p->totloop; l++) {
         float v_mask = 0.0f;
         if (cd_mask) {
