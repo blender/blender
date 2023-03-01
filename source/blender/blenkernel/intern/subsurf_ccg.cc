@@ -911,11 +911,10 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
 }
 
 /* utility function */
-BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2, const short flag)
+BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2)
 {
   med->v1 = v1;
   med->v2 = v2;
-  med->flag = flag;
 }
 
 static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
@@ -927,7 +926,6 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   int gridSize = ccgSubSurf_getGridSize(ss);
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
   uint i = 0;
-  short *edgeFlags = ccgdm->edgeFlags;
 
   totface = ccgSubSurf_getNumFaces(ss);
   for (index = 0; index < totface; index++) {
@@ -938,20 +936,17 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
       for (x = 0; x < gridSize - 1; x++) {
         ccgDM_to_MEdge(&medge[i++],
                        getFaceIndex(ss, f, S, x, 0, edgeSize, gridSize),
-                       getFaceIndex(ss, f, S, x + 1, 0, edgeSize, gridSize),
-                       0);
+                       getFaceIndex(ss, f, S, x + 1, 0, edgeSize, gridSize));
       }
 
       for (x = 1; x < gridSize - 1; x++) {
         for (y = 0; y < gridSize - 1; y++) {
           ccgDM_to_MEdge(&medge[i++],
                          getFaceIndex(ss, f, S, x, y, edgeSize, gridSize),
-                         getFaceIndex(ss, f, S, x, y + 1, edgeSize, gridSize),
-                         0);
+                         getFaceIndex(ss, f, S, x, y + 1, edgeSize, gridSize));
           ccgDM_to_MEdge(&medge[i++],
                          getFaceIndex(ss, f, S, y, x, edgeSize, gridSize),
-                         getFaceIndex(ss, f, S, y + 1, x, edgeSize, gridSize),
-                         0);
+                         getFaceIndex(ss, f, S, y + 1, x, edgeSize, gridSize));
         }
       }
     }
@@ -960,21 +955,9 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   totedge = ccgSubSurf_getNumEdges(ss);
   for (index = 0; index < totedge; index++) {
     CCGEdge *e = ccgdm->edgeMap[index].edge;
-    short ed_flag = 0;
-    int x;
-    int edgeIdx = POINTER_AS_INT(ccgSubSurf_getEdgeEdgeHandle(e));
-
-    if (edgeFlags) {
-      if (edgeIdx != -1) {
-        ed_flag |= (edgeFlags[index] & ME_SEAM);
-      }
-    }
-
-    for (x = 0; x < edgeSize - 1; x++) {
-      ccgDM_to_MEdge(&medge[i++],
-                     getEdgeIndex(ss, e, x, edgeSize),
-                     getEdgeIndex(ss, e, x + 1, edgeSize),
-                     ed_flag);
+    for (int x = 0; x < edgeSize - 1; x++) {
+      ccgDM_to_MEdge(
+          &medge[i++], getEdgeIndex(ss, e, x, edgeSize), getEdgeIndex(ss, e, x + 1, edgeSize));
     }
   }
 }
@@ -1170,7 +1153,6 @@ static void ccgDM_release(DerivedMesh *dm)
     if (ccgdm->pmap_mem) {
       MEM_freeN(ccgdm->pmap_mem);
     }
-    MEM_freeN(ccgdm->edgeFlags);
     MEM_freeN(ccgdm->faceFlags);
     MEM_freeN(ccgdm->vertMap);
     MEM_freeN(ccgdm->edgeMap);
@@ -1539,7 +1521,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   int index;
   int i;
   int vertNum = 0, edgeNum = 0, faceNum = 0;
-  short *edgeFlags = ccgdm->edgeFlags;
   DMFlagMat *faceFlags = ccgdm->faceFlags;
   int *polyidx = nullptr;
   blender::Vector<int, 16> loopidx;
@@ -1551,7 +1532,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   int gridSideEdges;
   int gridInternalEdges;
   WeightTable wtable = {nullptr};
-  MEdge *medge = nullptr;
   bool has_edge_cd;
 
   edgeSize = ccgSubSurf_getEdgeSize(ss);
@@ -1561,8 +1541,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   // gridInternalVerts = gridSideVerts * gridSideVerts; /* As yet, unused. */
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
-
-  medge = dm->getEdgeArray(dm);
 
   const MPoly *mpoly = static_cast<const MPoly *>(CustomData_get_layer(&dm->polyData, CD_MPOLY));
   const int *material_indices = static_cast<const int *>(
@@ -1742,10 +1720,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     ccgdm->edgeMap[index].startVert = vertNum;
     ccgdm->edgeMap[index].startEdge = edgeNum;
 
-    if (edgeIdx >= 0 && edgeFlags) {
-      edgeFlags[edgeIdx] = medge[edgeIdx].flag;
-    }
-
     /* set the edge base vert */
     *((int *)ccgSubSurf_getEdgeUserData(ss, e)) = vertNum;
 
@@ -1827,6 +1801,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
   CCGDerivedMesh *ccgdm = MEM_cnew<CCGDerivedMesh>(__func__);
 
   BLI_assert(totedge == ccgSubSurf_getNumEdges(ss));
+  UNUSED_VARS_NDEBUG(totedge);
   BLI_assert(totface == ccgSubSurf_getNumFaces(ss));
   DM_from_template(&ccgdm->dm,
                    dm,
@@ -1849,7 +1824,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
   ccgdm->useSubsurfUv = useSubsurfUv;
 
   /* CDDM hack. */
-  ccgdm->edgeFlags = static_cast<short *>(MEM_callocN(sizeof(short) * totedge, "edgeFlags"));
   ccgdm->faceFlags = static_cast<DMFlagMat *>(
       MEM_callocN(sizeof(DMFlagMat) * totface, "faceFlags"));
 

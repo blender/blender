@@ -1745,6 +1745,32 @@ static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
   sharp_edge[index] = value;
 }
 
+static bool rna_MeshEdge_use_seam_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *seam_edge = (const bool *)CustomData_get_layer_named(
+      &mesh->edata, CD_PROP_BOOL, ".uv_seam");
+  const int index = rna_MeshEdge_index_get(ptr);
+  return seam_edge == NULL ? false : seam_edge[index];
+}
+
+static void rna_MeshEdge_use_seam_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *seam_edge = (bool *)CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_BOOL, ".uv_seam", mesh->totedge);
+  if (!seam_edge) {
+    if (!value) {
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
+      return;
+    }
+    seam_edge = (bool *)CustomData_add_layer_named(
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, ".uv_seam");
+  }
+  const int index = rna_MeshEdge_index_get(ptr);
+  seam_edge[index] = value;
+}
+
 static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -2718,7 +2744,7 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "use_seam", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SEAM);
+  RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_use_seam_get", "rna_MeshEdge_use_seam_set");
   RNA_def_property_ui_text(prop, "Seam", "Seam edge for UV unwrapping");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 

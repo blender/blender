@@ -120,8 +120,6 @@ static void make_edges_mdata_extend(Mesh &mesh)
          BLI_edgehashIterator_step(ehi), ++medge, e_index++) {
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
-
-      medge->flag = 0;
     }
     BLI_edgehashIterator_free(ehi);
 

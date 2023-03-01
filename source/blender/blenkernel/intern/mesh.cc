@@ -272,6 +272,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
       BKE_mesh_legacy_sharp_edges_to_flags(mesh);
+      BKE_mesh_legacy_uv_seam_to_flags(mesh);
       BKE_mesh_legacy_attribute_strings_to_flags(mesh);
       mesh->active_color_attribute = nullptr;
       mesh->default_color_attribute = nullptr;

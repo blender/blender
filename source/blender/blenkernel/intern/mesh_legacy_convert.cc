@@ -476,7 +476,7 @@ static void convert_mfaces_to_mpolys(ID *id,
 
     /* unrelated but avoid having the FGON flag enabled,
      * so we can reuse it later for something else */
-    me->flag &= ~ME_FGON;
+    me->flag_legacy &= ~ME_FGON;
   }
 
   polyindex = (int *)CustomData_get_layer(fdata, CD_ORIGINDEX);
@@ -1379,13 +1379,13 @@ void BKE_mesh_legacy_sharp_edges_to_flags(Mesh *mesh)
           CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"))) {
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
-        SET_FLAG_FROM_TEST(edges[i].flag, sharp_edges[i], ME_SHARP);
+        SET_FLAG_FROM_TEST(edges[i].flag_legacy, sharp_edges[i], ME_SHARP);
       }
     });
   }
   else {
     for (const int i : edges.index_range()) {
-      edges[i].flag &= ~ME_SHARP;
+      edges[i].flag_legacy &= ~ME_SHARP;
     }
   }
 }
@@ -1399,16 +1399,65 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
   if (attributes.contains("sharp_edge")) {
     return;
   }
-  if (std::any_of(
-          edges.begin(), edges.end(), [](const MEdge &edge) { return edge.flag & ME_SHARP; })) {
+  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
+        return edge.flag_legacy & ME_SHARP;
+      })) {
     SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
         "sharp_edge", ATTR_DOMAIN_EDGE);
     threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
-        sharp_edges.span[i] = edges[i].flag & ME_SHARP;
+        sharp_edges.span[i] = edges[i].flag_legacy & ME_SHARP;
       }
     });
     sharp_edges.finish();
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Seam Conversion
+ * \{ */
+
+void BKE_mesh_legacy_uv_seam_to_flags(Mesh *mesh)
+{
+  using namespace blender;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  if (const bool *uv_seams = static_cast<const bool *>(
+          CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, ".uv_seam"))) {
+    threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        SET_FLAG_FROM_TEST(edges[i].flag_legacy, uv_seams[i], ME_SEAM);
+      }
+    });
+  }
+  else {
+    for (const int i : edges.index_range()) {
+      edges[i].flag_legacy &= ~ME_SEAM;
+    }
+  }
+}
+
+void BKE_mesh_legacy_uv_seam_from_flags(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const Span<MEdge> edges = mesh->edges();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (attributes.contains(".uv_seam")) {
+    return;
+  }
+  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
+        return edge.flag_legacy & ME_SEAM;
+      })) {
+    SpanAttributeWriter<bool> uv_seams = attributes.lookup_or_add_for_write_only_span<bool>(
+        ".uv_seam", ATTR_DOMAIN_EDGE);
+    threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        uv_seams.span[i] = edges[i].flag_legacy & ME_SEAM;
+      }
+    });
+    uv_seams.finish();
   }
 }
 
@@ -1438,7 +1487,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
       ".hide_edge", ATTR_DOMAIN_EDGE, false);
   threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(edges[i].flag, hide_edge[i], ME_HIDE);
+      SET_FLAG_FROM_TEST(edges[i].flag_legacy, hide_edge[i], ME_HIDE);
     }
   });
 
@@ -1476,13 +1525,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   }
 
   const Span<MEdge> edges = mesh->edges();
-  if (std::any_of(
-          edges.begin(), edges.end(), [](const MEdge &edge) { return edge.flag & ME_HIDE; })) {
+  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
+        return edge.flag_legacy & ME_HIDE;
+      })) {
     SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_edge", ATTR_DOMAIN_EDGE);
     threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_edge.span[i] = edges[i].flag & ME_HIDE;
+        hide_edge.span[i] = edges[i].flag_legacy & ME_HIDE;
       }
     });
     hide_edge.finish();
@@ -1755,7 +1805,7 @@ void BKE_mesh_legacy_convert_selection_layers_to_flags(Mesh *mesh)
       ".select_edge", ATTR_DOMAIN_EDGE, false);
   threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(edges[i].flag, select_edge[i], SELECT);
+      SET_FLAG_FROM_TEST(edges[i].flag_legacy, select_edge[i], SELECT);
     }
   });
 
@@ -1794,13 +1844,14 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   }
 
   const Span<MEdge> edges = mesh->edges();
-  if (std::any_of(
-          edges.begin(), edges.end(), [](const MEdge &edge) { return edge.flag & SELECT; })) {
+  if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
+        return edge.flag_legacy & SELECT;
+      })) {
     SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
         ".select_edge", ATTR_DOMAIN_EDGE);
     threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        select_edge.span[i] = edges[i].flag & SELECT;
+        select_edge.span[i] = edges[i].flag_legacy & SELECT;
       }
     });
     select_edge.finish();
@@ -1836,12 +1887,12 @@ void BKE_mesh_legacy_convert_loose_edges_to_flag(Mesh *mesh)
   threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
     if (loose_edges.count == 0) {
       for (const int64_t i : range) {
-        edges[i].flag &= ~ME_LOOSEEDGE;
+        edges[i].flag_legacy &= ~ME_LOOSEEDGE;
       }
     }
     else {
       for (const int64_t i : range) {
-        SET_FLAG_FROM_TEST(edges[i].flag, loose_edges.is_loose_bits[i], ME_LOOSEEDGE);
+        SET_FLAG_FROM_TEST(edges[i].flag_legacy, loose_edges.is_loose_bits[i], ME_LOOSEEDGE);
       }
     }
   });

@@ -104,9 +104,9 @@ class MeshesToIMeshInfo {
   void input_mvert_for_orig_index(int orig_index,
                                   const Mesh **r_orig_mesh,
                                   int *r_index_in_orig_mesh) const;
-  const MEdge *input_medge_for_orig_index(int orig_index,
-                                          const Mesh **r_orig_mesh,
-                                          int *r_index_in_orig_mesh) const;
+  void input_medge_for_orig_index(int orig_index,
+                                  const Mesh **r_orig_mesh,
+                                  int *r_index_in_orig_mesh) const;
 };
 
 /* Given an index `imesh_v` in the `IMesh`, return the index of the
@@ -199,24 +199,21 @@ void MeshesToIMeshInfo::input_mvert_for_orig_index(int orig_index,
 }
 
 /* Similarly for edges. */
-const MEdge *MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
-                                                           const Mesh **r_orig_mesh,
-                                                           int *r_index_in_orig_mesh) const
+void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
+                                                   const Mesh **r_orig_mesh,
+                                                   int *r_index_in_orig_mesh) const
 {
   int orig_mesh_index = input_mesh_for_imesh_edge(orig_index);
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());
   const Mesh *me = meshes[orig_mesh_index];
-  const Span<MEdge> edges = me->edges();
   int index_in_mesh = orig_index - mesh_edge_offset[orig_mesh_index];
   BLI_assert(0 <= index_in_mesh && index_in_mesh < me->totedge);
-  const MEdge *medge = &edges[index_in_mesh];
   if (r_orig_mesh) {
     *r_orig_mesh = me;
   }
   if (r_index_in_orig_mesh) {
     *r_index_in_orig_mesh = index_in_mesh;
   }
-  return medge;
 }
 
 /**
@@ -434,13 +431,10 @@ static void copy_poly_attributes(Mesh *dest_mesh,
 
 /* Similar to copy_vert_attributes but for edge attributes. */
 static void copy_edge_attributes(Mesh *dest_mesh,
-                                 MEdge *medge,
-                                 const MEdge *orig_medge,
                                  const Mesh *orig_me,
                                  int medge_index,
                                  int index_in_orig_me)
 {
-  medge->flag = orig_medge->flag;
   CustomData *target_cd = &dest_mesh->edata;
   const CustomData *source_cd = &orig_me->edata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
@@ -777,7 +771,6 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 
   /* Now that the MEdges are populated, we can copy over the required attributes and custom layers.
    */
-  MutableSpan<MEdge> edges = result->edges_for_write();
   for (int fi : im->face_index_range()) {
     const Face *f = im->face(fi);
     const MPoly *mp = &dst_polys[fi];
@@ -785,11 +778,9 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
       if (f->edge_orig[j] != NO_INDEX) {
         const Mesh *orig_me;
         int index_in_orig_me;
-        const MEdge *orig_medge = mim.input_medge_for_orig_index(
-            f->edge_orig[j], &orig_me, &index_in_orig_me);
+        mim.input_medge_for_orig_index(f->edge_orig[j], &orig_me, &index_in_orig_me);
         int e_index = dst_loops[mp->loopstart + j].e;
-        MEdge *medge = &edges[e_index];
-        copy_edge_attributes(result, medge, orig_medge, orig_me, e_index, index_in_orig_me);
+        copy_edge_attributes(result, orig_me, e_index, index_in_orig_me);
       }
     }
   }

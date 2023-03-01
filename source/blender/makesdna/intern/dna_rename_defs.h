@@ -89,6 +89,7 @@ DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_m
 DNA_STRUCT_RENAME_ELEM(MDefCell, totinfluence, influences_num)
 DNA_STRUCT_RENAME_ELEM(MEdge, bweight, bweight_legacy)
 DNA_STRUCT_RENAME_ELEM(MEdge, crease, crease_legacy)
+DNA_STRUCT_RENAME_ELEM(MEdge, flag, flag_legacy)
 DNA_STRUCT_RENAME_ELEM(MPoly, mat_nr, mat_nr_legacy)
 DNA_STRUCT_RENAME_ELEM(MVert, bweight, bweight_legacy)
 DNA_STRUCT_RENAME_ELEM(MVert, co, co_legacy)

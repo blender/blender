@@ -449,7 +449,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   for (uint i = 0; i < totedge; i++, med_orig++, med_new++) {
     med_new->v1 = med_orig->v1;
     med_new->v2 = med_orig->v2;
-    med_new->flag = med_orig->flag;
   }
 
   /* build polygon -> edge map */
@@ -801,7 +800,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* add the new edge */
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = 0;
       med_new++;
     }
   }
@@ -819,7 +817,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (uint i = 0; i < totvert; i++) {
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
-      med_new->flag = 0;
       med_new++;
     }
   }
@@ -948,7 +945,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         if (step) { /* The first set is already done */
           med_new->v1 = i1;
           med_new->v2 = i2;
-          med_new->flag = med_new_firstloop->flag;
           med_new++;
         }
         i1 += totvert;
@@ -975,7 +971,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* new vertical edge */
     med_new->v1 = i1;
     med_new->v2 = i2;
-    med_new->flag = med_new_firstloop->flag;
     med_new++;
   }
 

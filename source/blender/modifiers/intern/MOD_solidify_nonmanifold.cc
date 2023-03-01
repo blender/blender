@@ -2073,7 +2073,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             BLI_assert(v2 != MOD_SOLIDIFY_EMPTY_TAG);
             edges[insert].v1 = v1;
             edges[insert].v2 = v2;
-            edges[insert].flag = orig_edges[(*l)->old_edge].flag;
             if (result_edge_crease) {
               result_edge_crease[insert] = orig_edge_crease ? orig_edge_crease[(*l)->old_edge] :
                                                               0.0f;
@@ -2162,14 +2161,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         float max_bweight;
         float last_max_bweight = 0.0f;
         float first_max_bweight = 0.0f;
-        short flag;
-        short last_flag = 0;
-        short first_flag = 0;
         for (uint j = 0; g->valid; g++) {
           if ((do_rim && !g->is_orig_closed) || (do_shell && g->split)) {
             max_crease = 0;
             max_bweight = 0;
-            flag = 0;
 
             BLI_assert(g->edges_len >= 2);
 
@@ -2187,7 +2182,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             else {
               for (uint k = 1; k < g->edges_len - 1; k++) {
                 const uint orig_edge_index = g->edges[k]->old_edge;
-                const MEdge *ed = &orig_edges[orig_edge_index];
                 if (result_edge_crease) {
                   if (orig_edge_crease && orig_edge_crease[orig_edge_index] > max_crease) {
                     max_crease = orig_edge_crease[orig_edge_index];
@@ -2201,7 +2195,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                     }
                   }
                 }
-                flag |= ed->flag;
               }
             }
 
@@ -2222,7 +2215,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               first_g = g;
               first_max_crease = max_crease;
               first_max_bweight = max_bweight;
-              first_flag = flag;
             }
             else {
               last_g->open_face_edge = edge_index;
@@ -2236,7 +2228,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               }
               edges[edge_index].v1 = last_g->new_vert;
               edges[edge_index].v2 = g->new_vert;
-              edges[edge_index].flag = ((last_flag | flag) & ME_SEAM);
               if (result_edge_crease) {
                 result_edge_crease[edge_index] = max_ff(mv_crease,
                                                         min_ff(last_max_crease, max_crease));
@@ -2250,7 +2241,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             last_g = g;
             last_max_crease = max_crease;
             last_max_bweight = max_bweight;
-            last_flag = flag;
             j++;
           }
           if (!(g + 1)->valid || g->topo_group != (g + 1)->topo_group) {
@@ -2269,7 +2259,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               last_g->open_face_edge = edge_index;
               edges[edge_index].v1 = last_g->new_vert;
               edges[edge_index].v2 = first_g->new_vert;
-              edges[edge_index].flag = ((last_flag | first_flag) & ME_SEAM);
               if (result_edge_crease) {
                 result_edge_crease[edge_index] = max_ff(mv_crease,
                                                         min_ff(last_max_crease, first_max_crease));
@@ -2373,8 +2362,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             first_max_crease = 0;
             last_max_bweight = 0;
             first_max_bweight = 0;
-            last_flag = 0;
-            first_flag = 0;
           }
         }
       }

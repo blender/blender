@@ -32,23 +32,23 @@ typedef struct MEdge {
    * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
    */
   char bweight_legacy;
-  short flag;
+  short flag_legacy;
 } MEdge;
 
+#ifdef DNA_DEPRECATED_ALLOW
 /** #MEdge.flag */
 enum {
   /** Deprecated selection status. Now stored in ".select_edge" attribute. */
   /*  SELECT = (1 << 0), */
   ME_SEAM = (1 << 2),
-/** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-/*  ME_HIDE = (1 << 4), */
-#ifdef DNA_DEPRECATED_ALLOW
+  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
+  /*  ME_HIDE = (1 << 4), */
   /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
   /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
   ME_SHARP = (1 << 9),
-#endif
 };
+#endif
 
 /**
  * Mesh Faces.
