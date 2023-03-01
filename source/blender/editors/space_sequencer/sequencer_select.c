@@ -1641,8 +1641,10 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
   const bool handles = RNA_boolean_get(op->ptr, "include_handles");
   const bool select = (sel_op != SEL_OP_SUB);
 
+  bool changed = false;
+
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_sequencer_deselect_all(scene);
+    changed |= ED_sequencer_deselect_all(scene);
   }
 
   rctf rectf;
@@ -1680,6 +1682,8 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
             }
             seq->flag &= ~SEQ_RIGHTSEL;
           }
+
+          changed = true;
         }
         /* Left handle. */
         if (rectf.xmin < (SEQ_time_left_handle_frame_get(scene, seq) + handsize)) {
@@ -1694,14 +1698,21 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
             seq->flag &= ~SEQ_LEFTSEL;
           }
         }
+
+        changed = true;
       }
 
       /* Regular box selection. */
       else {
         SET_FLAG_FROM_TEST(seq->flag, select, SELECT);
         seq->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+        changed = true;
       }
     }
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
   }
 
   sequencer_select_do_updates(C, scene);
