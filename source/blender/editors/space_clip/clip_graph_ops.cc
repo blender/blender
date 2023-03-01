@@ -92,13 +92,13 @@ typedef struct {
 
 static void find_nearest_tracking_segment_cb(void *userdata,
                                              MovieTrackingTrack *track,
-                                             MovieTrackingMarker *UNUSED(marker),
+                                             MovieTrackingMarker * /*marker*/,
                                              eClipCurveValueSource value_source,
                                              int scene_framenr,
                                              float val)
 {
-  MouseSelectUserData *data = userdata;
-  const float co[2] = {scene_framenr, val};
+  MouseSelectUserData *data = static_cast<MouseSelectUserData *>(userdata);
+  const float co[2] = {float(scene_framenr), val};
 
   if (!clip_graph_value_visible(data->sc, value_source)) {
     return;
@@ -107,7 +107,7 @@ static void find_nearest_tracking_segment_cb(void *userdata,
   if (data->has_prev) {
     float dist_sq = dist_squared_to_line_segment_v2(data->mouse_co, data->prev_co, co);
 
-    if (data->track == NULL || dist_sq < data->min_dist_sq) {
+    if (data->track == nullptr || dist_sq < data->min_dist_sq) {
       data->track = track;
       data->min_dist_sq = dist_sq;
       data->value_source = value_source;
@@ -120,9 +120,9 @@ static void find_nearest_tracking_segment_cb(void *userdata,
 }
 
 static void find_nearest_tracking_segment_end_cb(void *userdata,
-                                                 eClipCurveValueSource UNUSED(source_value))
+                                                 eClipCurveValueSource /*source_value*/)
 {
-  MouseSelectUserData *data = userdata;
+  MouseSelectUserData *data = static_cast<MouseSelectUserData *>(userdata);
 
   data->has_prev = false;
 }
@@ -134,7 +134,7 @@ static void find_nearest_tracking_knot_cb(void *userdata,
                                           int scene_framenr,
                                           float val)
 {
-  MouseSelectUserData *data = userdata;
+  MouseSelectUserData *data = static_cast<MouseSelectUserData *>(userdata);
   const float mdiff[2] = {scene_framenr - data->mouse_co[0], val - data->mouse_co[1]};
   float dist_sq = len_squared_v2(mdiff);
 
@@ -142,8 +142,8 @@ static void find_nearest_tracking_knot_cb(void *userdata,
     return;
   }
 
-  if (data->marker == NULL || dist_sq < data->min_dist_sq) {
-    const float co[2] = {scene_framenr, val};
+  if (data->marker == nullptr || dist_sq < data->min_dist_sq) {
+    const float co[2] = {float(scene_framenr), val};
 
     data->track = track;
     data->marker = marker;
@@ -177,7 +177,7 @@ static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
 
     mouse_select_init_data(C, &userdata, co);
     clip_graph_tracking_values_iterate_track(
-        sc, active_track, &userdata, find_nearest_tracking_knot_cb, NULL, NULL);
+        sc, active_track, &userdata, find_nearest_tracking_knot_cb, nullptr, nullptr);
 
     if (userdata.marker) {
       int x1, y1, x2, y2;
@@ -234,7 +234,7 @@ static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
                                      (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
                                      &userdata,
                                      find_nearest_tracking_segment_cb,
-                                     NULL,
+                                     nullptr,
                                      find_nearest_tracking_segment_end_cb);
 
   if (userdata.track) {
@@ -242,7 +242,7 @@ static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
       if (active_track == userdata.track) {
         /* currently only single curve can be selected
          * (selected curve represents active track) */
-        active_track = NULL;
+        active_track = nullptr;
       }
     }
     else if (active_track != userdata.track) {
@@ -280,7 +280,7 @@ static int mouse_select(bContext *C, float co[2], bool extend)
   }
 
   if (sel) {
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -328,7 +328,7 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
   RNA_def_float_vector(ot->srna,
                        "location",
                        2,
-                       NULL,
+                       nullptr,
                        -FLT_MAX,
                        FLT_MAX,
                        "Location",
@@ -351,7 +351,7 @@ typedef struct BoxSelectuserData {
 } BoxSelectuserData;
 
 static void box_select_cb(void *userdata,
-                          MovieTrackingTrack *UNUSED(track),
+                          MovieTrackingTrack * /*track*/,
                           MovieTrackingMarker *marker,
                           eClipCurveValueSource value_source,
                           int scene_framenr,
@@ -396,7 +396,7 @@ static int box_select_graph_exec(bContext *C, wmOperator *op)
   BoxSelectuserData userdata;
   rctf rect;
 
-  if (active_track == NULL) {
+  if (active_track == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -408,10 +408,11 @@ static int box_select_graph_exec(bContext *C, wmOperator *op)
   userdata.select = !RNA_boolean_get(op->ptr, "deselect");
   userdata.extend = RNA_boolean_get(op->ptr, "extend");
 
-  clip_graph_tracking_values_iterate_track(sc, active_track, &userdata, box_select_cb, NULL, NULL);
+  clip_graph_tracking_values_iterate_track(
+      sc, active_track, &userdata, box_select_cb, nullptr, nullptr);
 
   if (userdata.changed) {
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
 
     return OPERATOR_FINISHED;
   }
@@ -482,7 +483,7 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
     }
   }
 
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -506,7 +507,7 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 
 /******************** delete curve operator ********************/
 
-static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
+static int delete_curve_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -540,7 +541,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 
 /******************** delete knot operator ********************/
 
-static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
+static int delete_knot_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -587,10 +588,10 @@ typedef struct {
 } ViewAllUserData;
 
 static void view_all_cb(void *userdata,
-                        MovieTrackingTrack *UNUSED(track),
-                        MovieTrackingMarker *UNUSED(marker),
-                        eClipCurveValueSource UNUSED(value_source),
-                        int UNUSED(scene_framenr),
+                        MovieTrackingTrack * /*track*/,
+                        MovieTrackingMarker * /*marker*/,
+                        eClipCurveValueSource /*value_source*/,
+                        int /*scene_framenr*/,
                         float val)
 {
   ViewAllUserData *data = (ViewAllUserData *)userdata;
@@ -604,7 +605,7 @@ static void view_all_cb(void *userdata,
   }
 }
 
-static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
@@ -621,8 +622,8 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
                                      (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
                                      &userdata,
                                      view_all_cb,
-                                     NULL,
-                                     NULL);
+                                     nullptr,
+                                     nullptr);
 
   /* set extents of view to start/end frames */
   v2d->cur.xmin = (float)scene->r.sfra;
@@ -675,7 +676,7 @@ void ED_clip_graph_center_current_frame(Scene *scene, ARegion *region)
   v2d->cur.xmax = (float)scene->r.cfra + extra;
 }
 
-static int center_current_frame_exec(bContext *C, wmOperator *UNUSED(op))
+static int center_current_frame_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
@@ -742,7 +743,7 @@ void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
       {0, "DISABLE", 0, "Disable", "Disable selected markers"},
       {1, "ENABLE", 0, "Enable", "Enable selected markers"},
       {2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

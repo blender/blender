@@ -102,7 +102,7 @@ typedef struct StabContext {
 static TrackStabilizationBase *access_stabilization_baseline_data(StabContext *ctx,
                                                                   MovieTrackingTrack *track)
 {
-  return BLI_ghash_lookup(ctx->private_track_data, track);
+  return static_cast<TrackStabilizationBase *>(BLI_ghash_lookup(ctx->private_track_data, track));
 }
 
 static void attach_stabilization_baseline_data(StabContext *ctx,
@@ -114,7 +114,7 @@ static void attach_stabilization_baseline_data(StabContext *ctx,
 
 static void discard_stabilization_baseline_data(void *val)
 {
-  if (val != NULL) {
+  if (val != nullptr) {
     MEM_freeN(val);
   }
 }
@@ -128,12 +128,12 @@ static FCurve *retrieve_stab_animation(MovieClip *clip, const char *data_path, i
                              &RNA_MovieTrackingStabilization,
                              data_path,
                              idx,
-                             NULL);
+                             nullptr);
 }
 
 static FCurve *retrieve_track_weight_animation(MovieClip *clip, MovieTrackingTrack *track)
 {
-  return id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack, "weight_stab", 0, NULL);
+  return id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack, "weight_stab", 0, nullptr);
 }
 
 static float fetch_from_fcurve(FCurve *animationCurve,
@@ -192,7 +192,7 @@ static float get_animated_weight(StabContext *ctx, MovieTrackingTrack *track, in
 
 static void use_values_from_fcurves(StabContext *ctx, bool toggle)
 {
-  if (ctx != NULL) {
+  if (ctx != nullptr) {
     ctx->use_animation = toggle;
   }
 }
@@ -202,7 +202,7 @@ static void use_values_from_fcurves(StabContext *ctx, bool toggle)
  */
 static StabContext *init_stabilization_working_context(MovieClip *clip)
 {
-  StabContext *ctx = MEM_callocN(sizeof(StabContext), "2D stabilization animation runtime data");
+  StabContext *ctx = MEM_cnew<StabContext>("2D stabilization animation runtime data");
   ctx->clip = clip;
   ctx->tracking = &clip->tracking;
   ctx->stab = &clip->tracking.stabilization;
@@ -228,8 +228,8 @@ static StabContext *init_stabilization_working_context(MovieClip *clip)
  */
 static void discard_stabilization_working_context(StabContext *ctx)
 {
-  if (ctx != NULL) {
-    BLI_ghash_free(ctx->private_track_data, NULL, discard_stabilization_baseline_data);
+  if (ctx != nullptr) {
+    BLI_ghash_free(ctx->private_track_data, nullptr, discard_stabilization_baseline_data);
     MEM_freeN(ctx);
   }
 }
@@ -237,7 +237,7 @@ static void discard_stabilization_working_context(StabContext *ctx)
 static bool is_init_for_stabilization(StabContext *ctx, MovieTrackingTrack *track)
 {
   TrackStabilizationBase *working_data = access_stabilization_baseline_data(ctx, track);
-  return (working_data != NULL && working_data->is_init_for_stabilization);
+  return (working_data != nullptr && working_data->is_init_for_stabilization);
 }
 
 static bool is_usable_for_stabilization(StabContext *ctx, MovieTrackingTrack *track)
@@ -342,14 +342,14 @@ static MovieTrackingMarker *get_tracking_data_point(StabContext *ctx,
                                                     float *r_weight)
 {
   MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
-  if (marker != NULL && !(marker->flag & MARKER_DISABLED)) {
+  if (marker != nullptr && !(marker->flag & MARKER_DISABLED)) {
     *r_weight = get_animated_weight(ctx, track, framenr);
     return marker;
   }
 
   /* No marker at this frame (=gap) or marker disabled. */
   *r_weight = 0.0f;
-  return NULL;
+  return nullptr;
 }
 
 /* Define the reference point for rotation/scale measurement and compensation.
@@ -538,7 +538,7 @@ static bool average_track_contributions(StabContext *ctx,
       if (marker) {
         TrackStabilizationBase *stabilization_base = access_stabilization_baseline_data(ctx,
                                                                                         track);
-        BLI_assert(stabilization_base != NULL);
+        BLI_assert(stabilization_base != nullptr);
         float offset[2];
         weight_sum += weight;
         translation_contribution(stabilization_base, marker, offset);
@@ -576,7 +576,7 @@ static bool average_track_contributions(StabContext *ctx,
       if (marker) {
         TrackStabilizationBase *stabilization_base = access_stabilization_baseline_data(ctx,
                                                                                         track);
-        BLI_assert(stabilization_base != NULL);
+        BLI_assert(stabilization_base != nullptr);
         float rotation, scale, quality;
         quality = rotation_contribution(
             stabilization_base, marker, aspect, r_pivot, &rotation, &scale);
@@ -747,7 +747,7 @@ static int establish_track_initialization_order(StabContext *ctx, TrackInitOrder
     MovieTrackingMarker *marker;
     order[tracknr].data = track;
     marker = get_closest_marker(ctx, track, anchor_frame);
-    if (marker != NULL && (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT))) {
+    if (marker != nullptr && (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT))) {
       order[tracknr].sort_value = abs(marker->framenr - anchor_frame);
       order[tracknr].reference_frame = marker->framenr;
       tracknr++;
@@ -826,8 +826,8 @@ static void init_track_for_stabilization(StabContext *ctx,
   /* Logic for initialization order ensures there *is* a marker on that
    * very frame.
    */
-  BLI_assert(marker != NULL);
-  BLI_assert(local_data != NULL);
+  BLI_assert(marker != nullptr);
+  BLI_assert(local_data != nullptr);
 
   /* Per track baseline value for translation. */
   sub_v2_v2v2(local_data->stabilization_offset_base, average_translation, marker->pos);
@@ -867,11 +867,10 @@ static void init_all_tracks(StabContext *ctx, float aspect)
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_camera_object->tracks) {
     TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
     if (!local_data) {
-      local_data = MEM_callocN(sizeof(TrackStabilizationBase),
-                               "2D stabilization per track baseline data");
+      local_data = MEM_cnew<TrackStabilizationBase>("2D stabilization per track baseline data");
       attach_stabilization_baseline_data(ctx, track, local_data);
     }
-    BLI_assert(local_data != NULL);
+    BLI_assert(local_data != nullptr);
     local_data->track_weight_curve = retrieve_track_weight_animation(clip, track);
     local_data->is_init_for_stabilization = false;
 
@@ -881,7 +880,7 @@ static void init_all_tracks(StabContext *ctx, float aspect)
     return;
   }
 
-  order = MEM_mallocN(track_len * sizeof(TrackInitOrder), "stabilization track order");
+  order = MEM_cnew_array<TrackInitOrder>(track_len, "stabilization track order");
   if (!order) {
     return;
   }
@@ -1129,7 +1128,8 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
   for (int cfra = sfra; cfra <= efra; cfra++) {
     float translation[2], pivot[2], angle, tmp_scale;
     float mat[4][4];
-    const float points[4][2] = {{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
+    const float points[4][2] = {
+        {0.0f, 0.0f}, {0.0f, float(height)}, {float(width), float(height)}, {float(width), 0.0f}};
     const bool do_compensate = true;
     /* Calculate stabilization parameters for the current frame. */
     stabilization_determine_offset_for_frame(
@@ -1230,7 +1230,7 @@ static float calculate_autoscale_factor(StabContext *ctx, int size, float aspect
 static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 {
   StabContext *ctx = init_stabilization_working_context(clip);
-  BLI_assert(ctx != NULL);
+  BLI_assert(ctx != nullptr);
   init_all_tracks(ctx, aspect);
   if (ctx->stab->flag & TRACKING_AUTOSCALE) {
     ctx->stab->scale = 1.0;
@@ -1251,7 +1251,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
                                          float *scale,
                                          float *angle)
 {
-  StabContext *ctx = NULL;
+  StabContext *ctx = nullptr;
   MovieTracking *tracking = &clip->tracking;
   bool enabled = (tracking->stabilization.flag & TRACKING_2D_STABILIZATION);
   /* Might become a parameter of a stabilization compositor node. */
@@ -1290,10 +1290,12 @@ typedef struct TrackingStabilizeFrameInterpolationData {
   interpolation_func interpolation;
 } TrackingStabilizeFrameInterpolationData;
 
-static void tracking_stabilize_frame_interpolation_cb(
-    void *__restrict userdata, const int j, const TaskParallelTLS *__restrict UNUSED(tls))
+static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
+                                                      const int j,
+                                                      const TaskParallelTLS *__restrict /*tls*/)
 {
-  TrackingStabilizeFrameInterpolationData *data = userdata;
+  TrackingStabilizeFrameInterpolationData *data =
+      static_cast<TrackingStabilizeFrameInterpolationData *>(userdata);
   ImBuf *ibuf = data->ibuf;
   ImBuf *tmpibuf = data->tmpibuf;
   float(*mat)[4] = data->mat;
@@ -1301,7 +1303,7 @@ static void tracking_stabilize_frame_interpolation_cb(
   interpolation_func interpolation = data->interpolation;
 
   for (int i = 0; i < tmpibuf->x; i++) {
-    float vec[3] = {i, j, 0.0f};
+    float vec[3] = {float(i), float(j), 0.0f};
 
     mul_v3_m4v3(vec, mat, vec);
 
@@ -1320,7 +1322,7 @@ ImBuf *BKE_tracking_stabilize_frame(
   float pixel_aspect = tracking->camera.pixel_aspect;
   float mat[4][4];
   int filter = tracking->stabilization.filter;
-  interpolation_func interpolation = NULL;
+  interpolation_func interpolation = nullptr;
   int ibuf_flags;
 
   if (translation) {
@@ -1384,12 +1386,11 @@ ImBuf *BKE_tracking_stabilize_frame(
     interpolation = nearest_interpolation;
   }
 
-  TrackingStabilizeFrameInterpolationData data = {
-      .ibuf = ibuf,
-      .tmpibuf = tmpibuf,
-      .mat = mat,
-      .interpolation = interpolation,
-  };
+  TrackingStabilizeFrameInterpolationData data = {};
+  data.ibuf = ibuf;
+  data.tmpibuf = tmpibuf;
+  data.mat = mat;
+  data.interpolation = interpolation;
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);

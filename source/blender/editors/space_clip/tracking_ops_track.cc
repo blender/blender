@@ -61,7 +61,7 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip, const int framenr
   int tot = 0;
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != NULL) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
     if (selected && (track->flag & TRACK_LOCKED) == 0) {
       MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
       if (!marker || (marker->flag & MARKER_DISABLED) == 0) {
@@ -79,11 +79,11 @@ static void track_init_markers(SpaceClip *sc,
 {
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   int frames_limit = 0;
-  if (sc != NULL) {
+  if (sc != nullptr) {
     clip_tracking_clear_invisible_track_selection(sc, clip);
   }
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != NULL) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
     if (selected) {
       if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
         BKE_tracking_marker_ensure(track, framenr);
@@ -267,11 +267,11 @@ static void track_markers_updatejob(void *tmv)
 static void track_markers_endjob(void *tmv)
 {
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
-  wmWindowManager *wm = tmj->main->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(tmj->main->wm.first);
 
-  tmj->clip->tracking_context = NULL;
+  tmj->clip->tracking_context = nullptr;
   tmj->scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(tmj->clip, tmj->lastfra);
-  if (wm != NULL) {
+  if (wm != nullptr) {
     /* XXX */
     // ED_update_for_newframe(tmj->main, tmj->scene);
   }
@@ -286,7 +286,7 @@ static void track_markers_endjob(void *tmv)
 static void track_markers_freejob(void *tmv)
 {
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
-  tmj->clip->tracking_context = NULL;
+  tmj->clip->tracking_context = nullptr;
   WM_set_locked_interface(tmj->wm, false);
   BKE_autotrack_context_free(tmj->context);
   MEM_freeN(tmj);
@@ -315,7 +315,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     return OPERATOR_CANCELLED;
   }
 
-  tmj = MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
+  tmj = MEM_cnew<TrackMarkersJob>("TrackMarkersJob data");
   if (!track_markers_initjob(C, tmj, backwards, sequence)) {
     track_markers_freejob(tmj);
     return OPERATOR_CANCELLED;
@@ -343,7 +343,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     }
 
     WM_jobs_callbacks(
-        wm_job, track_markers_startjob, NULL, track_markers_updatejob, track_markers_endjob);
+        wm_job, track_markers_startjob, nullptr, track_markers_updatejob, track_markers_endjob);
 
     G.is_break = false;
 
@@ -369,12 +369,12 @@ static int track_markers_exec(bContext *C, wmOperator *op)
   return track_markers(C, op, false);
 }
 
-static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   return track_markers(C, op, true);
 }
 
-static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int track_markers_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running tracking, remove handler and pass through. */
   if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
@@ -390,7 +390,7 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
   return OPERATOR_PASS_THROUGH;
 }
 
-static char *track_markers_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op), PointerRNA *ptr)
+static char *track_markers_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
 {
   const bool backwards = RNA_boolean_get(ptr, "backwards");
   const bool sequence = RNA_boolean_get(ptr, "sequence");
@@ -409,7 +409,7 @@ static char *track_markers_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op),
   }
 
   /* Use default description. */
-  return NULL;
+  return nullptr;
 }
 
 void CLIP_OT_track_markers(wmOperatorType *ot)

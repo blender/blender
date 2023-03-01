@@ -192,7 +192,7 @@ static void clip_graph_tracking_values_iterate_track_reprojection_error_values(
      * 2D position is not known. */
     if (marker->flag & MARKER_DISABLED) {
       if (is_segment_open) {
-        if (segment_end != NULL) {
+        if (segment_end != nullptr) {
           segment_end(userdata, CLIP_VALUE_SOURCE_REPROJECTION_ERROR);
         }
         is_segment_open = false;
@@ -202,7 +202,7 @@ static void clip_graph_tracking_values_iterate_track_reprojection_error_values(
 
     /* Begin new segment if it is not open yet. */
     if (!is_segment_open) {
-      if (segment_start != NULL) {
+      if (segment_start != nullptr) {
         if ((marker_index + 1) == track->markersnr) {
           segment_start(userdata, track, CLIP_VALUE_SOURCE_REPROJECTION_ERROR, true);
         }
@@ -216,7 +216,7 @@ static void clip_graph_tracking_values_iterate_track_reprojection_error_values(
       is_segment_open = true;
     }
 
-    if (func != NULL) {
+    if (func != nullptr) {
       const int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
       const float reprojection_error = calculate_reprojection_error_at_marker(
           clip, tracking, tracking_object, track, marker, clip_width, clip_height, scene_framenr);
@@ -229,7 +229,7 @@ static void clip_graph_tracking_values_iterate_track_reprojection_error_values(
     }
   }
 
-  if (is_segment_open && segment_end != NULL) {
+  if (is_segment_open && segment_end != nullptr) {
     segment_end(userdata, CLIP_VALUE_SOURCE_REPROJECTION_ERROR);
   }
 }
@@ -313,7 +313,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
   const bool used_for_stabilization = (track->flag &
                                        (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT)) != 0;
   if (track == tracking_object->active_track) {
-    tracking_object->active_track = NULL;
+    tracking_object->active_track = nullptr;
   }
   /* Handle reconstruction display in 3d viewport. */
   if (track->flag & TRACK_HAS_BUNDLE) {
@@ -339,7 +339,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
   /* Inform dependency graph. */
   DEG_id_tag_update(&clip->id, 0);
   if (has_bundle) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
   }
 }
 
@@ -364,7 +364,7 @@ void clip_delete_plane_track(bContext *C, MovieClip *clip, MovieTrackingPlaneTra
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
   if (plane_track == tracking_object->active_plane_track) {
-    tracking_object->active_plane_track = NULL;
+    tracking_object->active_plane_track = nullptr;
   }
 
   /* Delete f-curves associated with the track (such as weight, i.e.) */
@@ -456,7 +456,7 @@ static bool tracking_has_selection(SpaceClip *space_clip)
       continue;
     }
     const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-    if (marker != NULL) {
+    if (marker != nullptr) {
       return true;
     }
   }
@@ -467,7 +467,7 @@ static bool tracking_has_selection(SpaceClip *space_clip)
 static bool mask_has_selection(const bContext *C)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  if (mask == NULL) {
+  if (mask == nullptr) {
     return false;
   }
 
@@ -536,7 +536,7 @@ bool clip_view_calculate_view_selection(
   int frame_width, frame_height;
   ED_space_clip_get_size(sc, &frame_width, &frame_height);
 
-  if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL)) {
+  if ((frame_width == 0) || (frame_height == 0) || (sc->clip == nullptr)) {
     return false;
   }
 

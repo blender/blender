@@ -417,7 +417,7 @@ static int track_to_path_segment(SpaceClip *sc,
   const MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, current_frame);
   /* Check whether there is marker at exact current frame.
    * If not, we don't have anything to be put to path. */
-  if (marker == NULL || (marker->flag & MARKER_DISABLED)) {
+  if (marker == nullptr || (marker->flag & MARKER_DISABLED)) {
     return 0;
   }
   /* Index inside of path array where we write data to. */
@@ -430,7 +430,7 @@ static int track_to_path_segment(SpaceClip *sc,
     point_index += direction;
     current_frame += direction;
     marker = BKE_tracking_marker_get_exact(track, current_frame);
-    if (marker == NULL || (marker->flag & MARKER_DISABLED)) {
+    if (marker == nullptr || (marker->flag & MARKER_DISABLED)) {
       /* Reached end of tracked segment. */
       break;
     }
@@ -485,7 +485,7 @@ static void draw_track_path_lines(const TrackPathPoint *path,
   immEnd();
 }
 
-static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
+static void draw_track_path(SpaceClip *sc, MovieClip * /*clip*/, MovieTrackingTrack *track)
 {
 #define MAX_STATIC_PATH 64
 
@@ -501,8 +501,9 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 
   /* Try to use stack allocated memory when possibly, only use heap allocation
    * for really long paths. */
-  path = (count < MAX_STATIC_PATH) ? path_static :
-                                     MEM_mallocN(sizeof(*path) * (count + 1) * 2, "path");
+  path = (count < MAX_STATIC_PATH) ?
+             path_static :
+             MEM_cnew_array<TrackPathPoint>(sizeof(*path) * (count + 1) * 2, "path");
   /* Collect path information. */
   const int num_points_before = track_to_path_segment(sc, track, -1, path);
   const int num_points_after = track_to_path_segment(sc, track, 1, path);
@@ -1027,7 +1028,7 @@ static void draw_marker_texts(SpaceClip *sc,
 {
   char str[128] = {0}, state[64] = {0};
   float dx = 0.0f, dy = 0.0f, fontsize, pos[3];
-  uiStyle *style = U.uistyles.first;
+  uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
   int fontid = style->widget.uifont_id;
 
   if (!TRACK_VIEW_SELECTED(sc, track)) {
@@ -1170,11 +1171,11 @@ static void draw_plane_marker_image(Scene *scene,
   ImBuf *ibuf;
   void *lock;
 
-  if (image == NULL) {
+  if (image == nullptr) {
     return;
   }
 
-  ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
 
   if (ibuf) {
     void *cache_handle;
@@ -1202,7 +1203,7 @@ static void draw_plane_marker_image(Scene *scene,
                                                   1,
                                                   GPU_RGBA8,
                                                   GPU_TEXTURE_USAGE_SHADER_READ,
-                                                  NULL);
+                                                  nullptr);
       GPU_texture_update(texture, GPU_DATA_UBYTE, display_buffer);
       GPU_texture_filter_mode(texture, false);
 
@@ -1265,8 +1266,8 @@ static void draw_plane_marker_ex(SpaceClip *sc,
 {
   bool tiny = (sc->flag & SC_SHOW_TINY_MARKER) != 0;
   bool is_selected_track = (plane_track->flag & SELECT) != 0;
-  const bool has_image = plane_track->image != NULL &&
-                         BKE_image_has_ibuf(plane_track->image, NULL);
+  const bool has_image = plane_track->image != nullptr &&
+                         BKE_image_has_ibuf(plane_track->image, nullptr);
   const bool draw_plane_quad = !has_image || plane_track->image_opacity == 0.0f;
   float px[2];
   float color[3], selected_color[3];
@@ -1441,7 +1442,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
   /*const*/ MovieTrackingPlaneTrack *active_plane_track = tracking_object->active_plane_track;
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
   const int undistort = sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
-  float *marker_pos = NULL, *fp, *active_pos = NULL, cur_pos[2];
+  float *marker_pos = nullptr, *fp, *active_pos = nullptr, cur_pos[2];
 
   /* ** find window pixel coordinates of origin ** */
 
@@ -1486,7 +1487,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
     /* undistort */
     if (count) {
-      marker_pos = MEM_callocN(sizeof(float[2]) * count, "draw_tracking_tracks marker_pos");
+      marker_pos = MEM_cnew_array<float>(2 * count, "draw_tracking_tracks marker_pos");
 
       fp = marker_pos;
       LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
@@ -1682,7 +1683,7 @@ static void draw_distortion(SpaceClip *sc,
   const int n = 10;
   float tpos[2], grid[11][11][2];
   MovieTracking *tracking = &clip->tracking;
-  bGPdata *gpd = NULL;
+  bGPdata *gpd = nullptr;
   float aspy = 1.0f / tracking->camera.pixel_aspect;
   float dx = (float)width / n, dy = (float)height / n * aspy;
   float offsx = 0.0f, offsy = 0.0f;
@@ -1800,10 +1801,10 @@ static void draw_distortion(SpaceClip *sc,
   }
 
   if (sc->flag & SC_MANUAL_CALIBRATION && gpd) {
-    bGPDlayer *layer = gpd->layers.first;
+    bGPDlayer *layer = static_cast<bGPDlayer *>(gpd->layers.first);
 
     while (layer) {
-      bGPDframe *frame = layer->frames.first;
+      bGPDframe *frame = static_cast<bGPDframe *>(layer->frames.first);
 
       if (layer->flag & GP_LAYER_HIDE) {
         layer = layer->next;
@@ -1816,7 +1817,7 @@ static void draw_distortion(SpaceClip *sc,
       GPU_point_size((float)(layer->thickness + 2));
 
       while (frame) {
-        bGPDstroke *stroke = frame->strokes.first;
+        bGPDstroke *stroke = static_cast<bGPDstroke *>(frame->strokes.first);
 
         while (stroke) {
           if (stroke->flag & GP_STROKE_2DSPACE) {
@@ -1881,7 +1882,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *region)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   Scene *scene = CTX_data_scene(C);
-  ImBuf *ibuf = NULL;
+  ImBuf *ibuf = nullptr;
   int width, height;
   float zoomx, zoomy;
 
@@ -1903,7 +1904,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *region)
       ibuf = ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
     }
 
-    if (ibuf != NULL && width != ibuf->x) {
+    if (ibuf != nullptr && width != ibuf->x) {
       mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
     }
     else {

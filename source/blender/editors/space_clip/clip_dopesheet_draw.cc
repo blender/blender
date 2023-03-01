@@ -71,10 +71,9 @@ static void clip_draw_dopesheet_background(ARegion *region, MovieClip *clip, uin
   View2D *v2d = &region->v2d;
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
-  MovieTrackingDopesheetCoverageSegment *coverage_segment;
 
-  for (coverage_segment = dopesheet->coverage_segments.first; coverage_segment;
-       coverage_segment = coverage_segment->next) {
+  LISTBASE_FOREACH (
+      MovieTrackingDopesheetCoverageSegment *, coverage_segment, &dopesheet->coverage_segments) {
     if (coverage_segment->coverage < TRACKING_COVERAGE_OK) {
       int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip,
                                                                 coverage_segment->start_frame);
@@ -103,7 +102,6 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
   if (clip) {
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
-    MovieTrackingDopesheetChannel *channel;
     float strip[4], selected_strip[4];
     float height = (dopesheet->tot_channel * CHANNEL_STEP) + CHANNEL_HEIGHT;
 
@@ -131,7 +129,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
     clip_draw_dopesheet_background(region, clip, pos_id);
 
-    for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+    LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
       float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
       float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
 
@@ -221,7 +219,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       immAttr1u(flags_id, 0);
 
       y = (float)CHANNEL_FIRST; /* start again at the top */
-      for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+      LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
         float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
         float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
 
@@ -303,7 +301,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
-  UI_view2d_sync(NULL, area, v2d, V2D_LOCK_COPY);
+  UI_view2d_sync(nullptr, area, v2d, V2D_LOCK_COPY);
 
   /* loop through channels, and set up drawing depending on their type
    * first pass: just the standard GL-drawing for backdrop + text
@@ -315,8 +313,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  MovieTrackingDopesheetChannel *channel;
-  for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
     float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
 
@@ -325,7 +322,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
         IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
       MovieTrackingTrack *track = channel->track;
       float color[3];
-      track_channel_color(track, NULL, color);
+      track_channel_color(track, nullptr, color);
       immUniformColor3fv(color);
 
       immRectf(pos,
@@ -345,7 +342,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   BLF_size(fontid, 11.0f * U.dpi_fac);
 
-  for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
     float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
 
@@ -375,7 +372,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   BLI_assert(chan_prop_lock);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
     float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
     float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
 
@@ -404,7 +401,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
                          0,
                          0,
                          0,
-                         NULL);
+                         nullptr);
       UI_block_emboss_set(block, UI_EMBOSS);
     }
 

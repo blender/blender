@@ -49,10 +49,10 @@ static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
 /* Check whether point is inside any stroke of grease pencil layer. */
 static bool check_point_in_layer(bGPDlayer *layer, float x, float y)
 {
-  bGPDframe *frame = layer->frames.first;
+  bGPDframe *frame = static_cast<bGPDframe *>(layer->frames.first);
 
   while (frame) {
-    bGPDstroke *stroke = frame->strokes.first;
+    bGPDstroke *stroke = static_cast<bGPDstroke *>(frame->strokes.first);
 
     while (stroke) {
       if (check_point_in_stroke(stroke, x, y)) {
@@ -115,7 +115,7 @@ static void run_configured_detector(MovieTracking *tracking,
                                     bool place_outside_layer,
                                     libmv_DetectOptions *options)
 {
-  struct libmv_Features *features = NULL;
+  struct libmv_Features *features = nullptr;
 
   if (ibuf->rect_float) {
     features = libmv_detectFeaturesFloat(ibuf->rect_float, ibuf->x, ibuf->y, 4, options);
@@ -124,7 +124,7 @@ static void run_configured_detector(MovieTracking *tracking,
     features = libmv_detectFeaturesByte((uchar *)ibuf->rect, ibuf->x, ibuf->y, 4, options);
   }
 
-  if (features != NULL) {
+  if (features != nullptr) {
     detect_retrieve_libmv_features(
         tracking, tracksbase, features, framenr, ibuf->x, ibuf->y, layer, place_outside_layer);
 

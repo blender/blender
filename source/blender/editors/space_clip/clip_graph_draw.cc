@@ -40,8 +40,8 @@ typedef struct TrackMotionCurveUserData {
 } TrackMotionCurveUserData;
 
 static void tracking_segment_point_cb(void *userdata,
-                                      MovieTrackingTrack *UNUSED(track),
-                                      MovieTrackingMarker *UNUSED(marker),
+                                      MovieTrackingTrack * /*track*/,
+                                      MovieTrackingMarker * /*marker*/,
                                       eClipCurveValueSource value_source,
                                       int scene_framenr,
                                       float val)
@@ -171,8 +171,8 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
                                        (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
                                        &userdata,
                                        tracking_segment_knot_cb,
-                                       NULL,
-                                       NULL);
+                                       nullptr,
+                                       nullptr);
   }
 
   /* Draw graph lines. */
@@ -194,8 +194,8 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
                                        (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
                                        &userdata,
                                        tracking_segment_knot_cb,
-                                       NULL,
-                                       NULL);
+                                       nullptr,
+                                       nullptr);
   }
 }
 

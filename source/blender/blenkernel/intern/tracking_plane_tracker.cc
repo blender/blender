@@ -25,8 +25,8 @@ static int point_markers_correspondences_on_both_image(
 {
   Vec2 *x1, *x2;
 
-  *r_x1 = x1 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x1");
-  *r_x2 = x2 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x2");
+  *r_x1 = x1 = MEM_cnew_array<Vec2>(plane_track->point_tracksnr, "point correspondences x1");
+  *r_x2 = x2 = MEM_cnew_array<Vec2>(plane_track->point_tracksnr, "point correspondences x2");
 
   int correspondence_index = 0;
   for (int i = 0; i < plane_track->point_tracksnr; i++) {
@@ -36,7 +36,7 @@ static int point_markers_correspondences_on_both_image(
     point_marker1 = BKE_tracking_marker_get_exact(point_track, frame1);
     point_marker2 = BKE_tracking_marker_get_exact(point_track, frame2);
 
-    if (point_marker1 != NULL && point_marker2 != NULL) {
+    if (point_marker1 != nullptr && point_marker2 != nullptr) {
       /* Here conversion from float to double happens. */
       x1[correspondence_index][0] = point_marker1->pos[0];
       x1[correspondence_index][1] = point_marker1->pos[1];
@@ -59,7 +59,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 {
   MovieTrackingPlaneMarker *start_plane_marker = BKE_tracking_plane_marker_get(plane_track,
                                                                                start_frame);
-  MovieTrackingPlaneMarker *keyframe_plane_marker = NULL;
+  MovieTrackingPlaneMarker *keyframe_plane_marker = nullptr;
   MovieTrackingPlaneMarker new_plane_marker;
   int frame_delta = direction > 0 ? 1 : -1;
 
@@ -69,7 +69,7 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
       MovieTrackingPlaneMarker *next_plane_marker = BKE_tracking_plane_marker_get_exact(
           plane_track, current_frame + frame_delta);
 
-      if (next_plane_marker == NULL) {
+      if (next_plane_marker == nullptr) {
         break;
       }
 
@@ -173,7 +173,7 @@ static MovieTrackingPlaneMarker *find_plane_keyframe(MovieTrackingPlaneTrack *pl
     plane_marker += frame_delta;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void BKE_tracking_retrack_plane_from_existing_motion_at_segment(
@@ -184,17 +184,17 @@ void BKE_tracking_retrack_plane_from_existing_motion_at_segment(
   prev_plane_keyframe = find_plane_keyframe(plane_track, start_frame, -1);
   next_plane_keyframe = find_plane_keyframe(plane_track, start_frame, 1);
 
-  if (prev_plane_keyframe != NULL && next_plane_keyframe != NULL) {
+  if (prev_plane_keyframe != nullptr && next_plane_keyframe != nullptr) {
     /* First we track from left keyframe to the right one without any blending. */
     track_plane_from_existing_motion(plane_track, prev_plane_keyframe->framenr, 1, true);
 
     /* And then we track from the right keyframe to the left one, so shape blends in nicely */
     track_plane_from_existing_motion(plane_track, next_plane_keyframe->framenr, -1, false);
   }
-  else if (prev_plane_keyframe != NULL) {
+  else if (prev_plane_keyframe != nullptr) {
     track_plane_from_existing_motion(plane_track, prev_plane_keyframe->framenr, 1, true);
   }
-  else if (next_plane_keyframe != NULL) {
+  else if (next_plane_keyframe != nullptr) {
     track_plane_from_existing_motion(plane_track, next_plane_keyframe->framenr, -1, true);
   }
 }

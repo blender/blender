@@ -47,7 +47,7 @@
 
 /* Panels */
 
-static bool metadata_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool metadata_panel_context_poll(const bContext *C, PanelType * /*pt*/)
 {
   return ED_space_clip_poll((bContext *)C);
 }
@@ -61,7 +61,7 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
    * Ideally we need to query metadata from an original image or movie without
    * reading actual pixels to speed up the process. */
   ImBuf *ibuf = ED_space_clip_get_buffer(space_clip);
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     ED_region_image_metadata_panel_draw(ibuf, panel->layout);
     IMB_freeImBuf(ibuf);
   }
@@ -71,7 +71,7 @@ void ED_clip_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel metadata");
+  pt = MEM_cnew<PanelType>("spacetype clip panel metadata");
   strcpy(pt->idname, "CLIP_PT_metadata");
   strcpy(pt->label, N_("Metadata"));
   strcpy(pt->category, "Footage");
@@ -107,7 +107,7 @@ void uiTemplateMovieClip(
   }
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
-  MovieClip *clip = clipptr.data;
+  MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
 
   uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
@@ -116,18 +116,19 @@ void uiTemplateMovieClip(
                  C,
                  ptr,
                  propname,
-                 NULL,
+                 nullptr,
                  "CLIP_OT_open",
-                 NULL,
+                 nullptr,
                  UI_TEMPLATE_ID_FILTER_ALL,
                  false,
-                 NULL);
+                 nullptr);
   }
 
   if (clip) {
     uiLayout *row = uiLayoutRow(layout, false);
     uiBlock *block = uiLayoutGetBlock(row);
-    uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
+    uiDefBut(
+        block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, 0, 0, "");
 
     row = uiLayoutRow(layout, false);
     uiLayout *split = uiLayoutSplit(row, 0.0f, false);
@@ -249,7 +250,7 @@ static void to_pixel_space(float r[2], const float a[2], int width, int height)
   r[1] *= height;
 }
 
-static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
+static void marker_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {
   MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
 
@@ -261,7 +262,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   MovieTrackingMarker *marker = BKE_tracking_marker_ensure(cb->track, clip_framenr);
   marker->flag = cb->marker_flag;
 
-  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, nullptr);
 }
 
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
@@ -281,7 +282,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
     /* to update position of "parented" objects */
     DEG_id_tag_update(&cb->clip->id, 0);
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
     ok = true;
   }
@@ -364,7 +365,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
     /* to update position of "parented" objects */
     DEG_id_tag_update(&cb->clip->id, 0);
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
     ok = true;
   }
@@ -402,13 +403,13 @@ void uiTemplateMarker(uiLayout *layout,
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
   MovieClip *clip = (MovieClip *)clipptr.data;
-  MovieClipUser *user = userptr->data;
-  MovieTrackingTrack *track = trackptr->data;
+  MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
+  MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(trackptr->data);
 
   int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
 
-  MarkerUpdateCb *cb = MEM_callocN(sizeof(MarkerUpdateCb), "uiTemplateMarker update_cb");
+  MarkerUpdateCb *cb = MEM_cnew<MarkerUpdateCb>("uiTemplateMarker update_cb");
   cb->compact = compact;
   cb->clip = clip;
   cb->user = user;
@@ -443,7 +444,7 @@ void uiTemplateMarker(uiLayout *layout,
                                  1,
                                  0,
                                  tip);
-    UI_but_funcN_set(bt, marker_update_cb, cb, NULL);
+    UI_but_funcN_set(bt, marker_update_cb, cb, nullptr);
     UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
   }
   else {
@@ -462,7 +463,7 @@ void uiTemplateMarker(uiLayout *layout,
                0,
                UI_UNIT_X * 15.0f,
                UI_UNIT_Y,
-               NULL,
+               nullptr,
                0,
                0,
                0,
@@ -493,7 +494,7 @@ void uiTemplateMarker(uiLayout *layout,
 
     uiBlock *block = uiLayoutAbsoluteBlock(layout);
     UI_block_func_handle_set(block, marker_block_handler, cb);
-    UI_block_funcN_set(block, marker_update_cb, cb, NULL);
+    UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
 
     const char *tip;
     int step = 100;
@@ -536,7 +537,7 @@ void uiTemplateMarker(uiLayout *layout,
              10 * UI_UNIT_Y,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -583,7 +584,7 @@ void uiTemplateMarker(uiLayout *layout,
              8 * UI_UNIT_Y,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -630,7 +631,7 @@ void uiTemplateMarker(uiLayout *layout,
              6 * UI_UNIT_Y,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -677,7 +678,7 @@ void uiTemplateMarker(uiLayout *layout,
              3 * UI_UNIT_Y,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -779,8 +780,8 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   }
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
-  MovieClip *clip = (MovieClip *)clipptr.data;
-  MovieClipUser *user = userptr->data;
+  MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
+  MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
@@ -822,7 +823,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       }
     }
 
-    if (clip->anim != NULL) {
+    if (clip->anim != nullptr) {
       short frs_sec;
       float frs_sec_base;
       if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {

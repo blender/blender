@@ -120,7 +120,7 @@ bool ED_space_clip_maskedit_mask_poll(bContext *C)
     if (clip) {
       SpaceClip *sc = CTX_wm_space_clip(C);
 
-      return sc->mask_info.mask != NULL;
+      return sc->mask_info.mask != nullptr;
     }
   }
 
@@ -252,7 +252,7 @@ ImBuf *ED_space_clip_get_buffer(const SpaceClip *sc)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
@@ -275,7 +275,7 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool ED_space_clip_get_position(const SpaceClip *sc,
@@ -344,13 +344,13 @@ bool ED_space_clip_color_sample(const SpaceClip *sc,
 void ED_clip_update_frame(const Main *mainp, int cfra)
 {
   /* image window, compo node users */
-  for (wmWindowManager *wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+  LISTBASE_FOREACH (wmWindowManager *, wm, &mainp->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       bScreen *screen = WM_window_get_active_screen(win);
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_CLIP) {
-          SpaceClip *sc = area->spacedata.first;
+          SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
 
           sc->scopes.ok = false;
 
@@ -361,7 +361,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
   }
 }
 
-bool ED_clip_view_selection(const bContext *C, const ARegion *UNUSED(region), bool fit)
+bool ED_clip_view_selection(const bContext *C, const ARegion * /*region*/, bool fit)
 {
   float offset_x, offset_y;
   float zoom;
@@ -594,11 +594,8 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
   id_us_ensure_real((ID *)sc->clip);
 
   if (screen && sc->view == SC_VIEW_CLIP) {
-    ScrArea *area;
-    SpaceLink *sl;
-
-    for (area = screen->areabase.first; area; area = area->next) {
-      for (sl = area->spacedata.first; sl; sl = sl->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == SPACE_CLIP) {
           SpaceClip *cur_sc = (SpaceClip *)sl;
 
@@ -609,7 +606,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
               }
             }
             else {
-              if (ELEM(cur_sc->clip, old_clip, NULL)) {
+              if (ELEM(cur_sc->clip, old_clip, nullptr)) {
                 cur_sc->clip = clip;
               }
             }
@@ -708,25 +705,25 @@ static uchar *prefetch_read_file_to_memory(
 
   int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    return NULL;
+    return nullptr;
   }
 
   const size_t size = BLI_file_descriptor_size(file);
   if (size < 1) {
     close(file);
-    return NULL;
+    return nullptr;
   }
 
-  uchar *mem = MEM_mallocN(size, "movieclip prefetch memory file");
-  if (mem == NULL) {
+  uchar *mem = MEM_cnew_array<uchar>(size, "movieclip prefetch memory file");
+  if (mem == nullptr) {
     close(file);
-    return NULL;
+    return nullptr;
   }
 
   if (read(file, mem, size) != size) {
     close(file);
     MEM_freeN(mem);
-    return NULL;
+    return nullptr;
   }
 
   *r_size = size;
@@ -778,7 +775,7 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
                                          size_t *r_size,
                                          int *r_current_frame)
 {
-  uchar *mem = NULL;
+  uchar *mem = nullptr;
 
   BLI_spin_lock(&queue->spin);
   if (!*queue->stop && !check_prefetch_break() &&
@@ -848,7 +845,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
     int flag = IB_rect | IB_multilayer | IB_alphamode_detect | IB_metadata;
     int result;
-    char *colorspace_name = NULL;
+    char *colorspace_name = nullptr;
     const bool use_proxy = (clip->flag & MCLIP_USE_PROXY) &&
                            (queue->render_size != MCLIP_PROXY_RENDER_SIZE_FULL);
 
@@ -862,7 +859,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
     }
 
     ibuf = IMB_ibImageFromMemory(mem, size, flag, colorspace_name, "prefetch frame");
-    if (ibuf == NULL) {
+    if (ibuf == nullptr) {
       continue;
     }
     BKE_movieclip_convert_multilayer_ibuf(ibuf);
@@ -911,7 +908,7 @@ static void start_prefetch_threads(MovieClip *clip,
 
   TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
   for (int i = 0; i < tot_thread; i++) {
-    BLI_task_pool_push(task_pool, prefetch_task_func, clip, false, NULL);
+    BLI_task_pool_push(task_pool, prefetch_task_func, clip, false, nullptr);
   }
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
@@ -1002,7 +999,7 @@ static void do_prefetch_movie(MovieClip *clip,
 
 static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
-  PrefetchJob *pj = pjv;
+  PrefetchJob *pj = static_cast<PrefetchJob *>(pjv);
 
   if (pj->clip->source == MCLIP_SRC_SEQUENCE) {
     /* read sequence files in multiple threads */
@@ -1036,10 +1033,10 @@ static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *pro
 
 static void prefetch_freejob(void *pjv)
 {
-  PrefetchJob *pj = pjv;
+  PrefetchJob *pj = static_cast<PrefetchJob *>(pjv);
 
   MovieClip *clip_local = pj->clip_local;
-  if (clip_local != NULL) {
+  if (clip_local != nullptr) {
     BKE_libblock_free_datablock(&clip_local->id, 0);
     BKE_libblock_free_data(&clip_local->id, false);
     BLI_assert(!clip_local->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
@@ -1081,7 +1078,7 @@ static bool prefetch_check_early_out(const bContext *C)
   int first_uncached_frame, end_frame;
   int clip_len;
 
-  if (clip == NULL) {
+  if (clip == nullptr) {
     return true;
   }
 
@@ -1125,7 +1122,7 @@ void clip_start_prefetch_job(const bContext *C)
                        WM_JOB_TYPE_CLIP_PREFETCH);
 
   /* create new job */
-  pj = MEM_callocN(sizeof(PrefetchJob), "prefetch job");
+  pj = MEM_cnew<PrefetchJob>("prefetch job");
   pj->clip = ED_space_clip_get_clip(sc);
   pj->start_frame = prefetch_get_start_frame(C);
   pj->current_frame = sc->user.framenr;
@@ -1136,12 +1133,12 @@ void clip_start_prefetch_job(const bContext *C)
   /* Create a local copy of the clip, so that video file (clip->anim) access can happen without
    * acquiring the lock which will interfere with the main thread. */
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
-    BKE_id_copy_ex(NULL, (ID *)&pj->clip->id, (ID **)&pj->clip_local, LIB_ID_COPY_LOCALIZE);
+    BKE_id_copy_ex(nullptr, (ID *)&pj->clip->id, (ID **)&pj->clip_local, LIB_ID_COPY_LOCALIZE);
   }
 
   WM_jobs_customdata_set(wm_job, pj, prefetch_freejob);
   WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
-  WM_jobs_callbacks(wm_job, prefetch_startjob, NULL, NULL, NULL);
+  WM_jobs_callbacks(wm_job, prefetch_startjob, nullptr, nullptr, nullptr);
 
   G.is_break = false;
 
@@ -1152,7 +1149,7 @@ void clip_start_prefetch_job(const bContext *C)
 void ED_clip_view_lock_state_store(const bContext *C, ClipViewLockState *state)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  BLI_assert(space_clip != NULL);
+  BLI_assert(space_clip != nullptr);
 
   state->offset_x = space_clip->xof;
   state->offset_y = space_clip->yof;
@@ -1177,7 +1174,7 @@ void ED_clip_view_lock_state_store(const bContext *C, ClipViewLockState *state)
 void ED_clip_view_lock_state_restore_no_jump(const bContext *C, const ClipViewLockState *state)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  BLI_assert(space_clip != NULL);
+  BLI_assert(space_clip != nullptr);
 
   if ((space_clip->flag & SC_LOCK_SELECTION) == 0) {
     return;
