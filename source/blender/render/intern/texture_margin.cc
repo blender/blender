@@ -54,7 +54,7 @@ class TextureMarginMap {
   uint32_t value_to_store_;
   char *mask_;
 
-  MPoly const *mpoly_;
+  MPoly const *polys_;
   MLoop const *mloop_;
   float2 const *mloopuv_;
   int totpoly_;
@@ -65,7 +65,7 @@ class TextureMarginMap {
   TextureMarginMap(size_t w,
                    size_t h,
                    const float uv_offset[2],
-                   MPoly const *mpoly,
+                   MPoly const *polys,
                    MLoop const *mloop,
                    float2 const *mloopuv,
                    int totpoly,
@@ -73,7 +73,7 @@ class TextureMarginMap {
                    int totedge)
       : w_(w),
         h_(h),
-        mpoly_(mpoly),
+        polys_(polys),
         mloop_(mloop),
         mloopuv_(mloopuv),
         totpoly_(totpoly),
@@ -290,7 +290,7 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map({mpoly_, totpoly_},
+    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map({polys_, totpoly_},
                                                                             totloop_);
 
     loop_adjacency_map_.resize(totloop_, -1);
@@ -326,8 +326,8 @@ class TextureMarginMap {
       return true;
     }
 
-    int loopstart = mpoly_[*r_start_poly].loopstart;
-    int totloop = mpoly_[*r_start_poly].totloop;
+    int loopstart = polys_[*r_start_poly].loopstart;
+    int totloop = polys_[*r_start_poly].totloop;
 
     float destx, desty;
     int foundpoly;
@@ -384,11 +384,11 @@ class TextureMarginMap {
 
     /* Find the closest edge on which the point x,y can be projected.
      */
-    for (size_t i = 0; i < mpoly_[src_poly].totloop; i++) {
-      int l1 = mpoly_[src_poly].loopstart + i;
+    for (size_t i = 0; i < polys_[src_poly].totloop; i++) {
+      int l1 = polys_[src_poly].loopstart + i;
       int l2 = l1 + 1;
-      if (l2 >= mpoly_[src_poly].loopstart + mpoly_[src_poly].totloop) {
-        l2 = mpoly_[src_poly].loopstart;
+      if (l2 >= polys_[src_poly].loopstart + polys_[src_poly].totloop) {
+        l2 = polys_[src_poly].loopstart;
       }
       /* edge points */
       float2 edgepoint1 = uv_to_xy(mloopuv_[l1]);
@@ -423,7 +423,7 @@ class TextureMarginMap {
           /* Stother_ab the info of the closest edge so far. */
           found_dist = reflectLen;
           found_t = t;
-          found_edge = i + mpoly_[src_poly].loopstart;
+          found_edge = i + polys_[src_poly].loopstart;
         }
       }
     }
@@ -448,8 +448,8 @@ class TextureMarginMap {
     }
 
     int other_edge2 = other_edge + 1;
-    if (other_edge2 >= mpoly_[dst_poly].loopstart + mpoly_[dst_poly].totloop) {
-      other_edge2 = mpoly_[dst_poly].loopstart;
+    if (other_edge2 >= polys_[dst_poly].loopstart + polys_[dst_poly].totloop) {
+      other_edge2 = polys_[dst_poly].loopstart;
     }
 
     float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
@@ -487,7 +487,7 @@ static void generate_margin(ImBuf *ibuf,
                             const float uv_offset[2])
 {
 
-  const MPoly *mpoly;
+  const MPoly *polys;
   const MLoop *mloop;
   const float2 *mloopuv;
   int totpoly, totloop, totedge;
@@ -501,7 +501,7 @@ static void generate_margin(ImBuf *ibuf,
     totpoly = me->totpoly;
     totloop = me->totloop;
     totedge = me->totedge;
-    mpoly = me->polys().data();
+    polys = me->polys().data();
     mloop = me->loops().data();
 
     if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
@@ -516,7 +516,7 @@ static void generate_margin(ImBuf *ibuf,
     tottri = poly_to_tri_count(me->totpoly, me->totloop);
     looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
     BKE_mesh_recalc_looptri(mloop,
-                            mpoly,
+                            polys,
                             reinterpret_cast<const float(*)[3]>(me->vert_positions().data()),
                             me->totloop,
                             me->totpoly,
@@ -529,7 +529,7 @@ static void generate_margin(ImBuf *ibuf,
     totpoly = dm->getNumPolys(dm);
     totedge = dm->getNumEdges(dm);
     totloop = dm->getNumLoops(dm);
-    mpoly = dm->getPolyArray(dm);
+    polys = dm->getPolyArray(dm);
     mloop = dm->getLoopArray(dm);
     mloopuv = static_cast<const float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
 
@@ -538,7 +538,7 @@ static void generate_margin(ImBuf *ibuf,
   }
 
   TextureMarginMap map(
-      ibuf->x, ibuf->y, uv_offset, mpoly, mloop, mloopuv, totpoly, totloop, totedge);
+      ibuf->x, ibuf->y, uv_offset, polys, mloop, mloopuv, totpoly, totloop, totedge);
 
   bool draw_new_mask = false;
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`

@@ -344,11 +344,11 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
         }
         else {
           if (ED_mesh_pick_face(C, vc.obact, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-            const MPoly *mp = &polys[index];
-            uint fidx = mp->totloop - 1;
+            const MPoly *poly = &polys[index];
+            uint fidx = poly->totloop - 1;
 
             do {
-              const MDeformVert *dvert = &dverts[loops[mp->loopstart + fidx].v];
+              const MDeformVert *dvert = &dverts[loops[poly->loopstart + fidx].v];
               found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
             } while (fidx--);
           }

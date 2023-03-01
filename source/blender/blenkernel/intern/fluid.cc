@@ -3215,11 +3215,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
   /* Assign material + flags to new mesh.
    * If there are no faces in original mesh, keep materials and flags unchanged. */
-  MPoly *mpoly;
   MPoly mp_example = {0};
-  mpoly = BKE_mesh_polys_for_write(orgmesh);
-  if (mpoly) {
-    mp_example = *mpoly;
+  if (MPoly *polys = BKE_mesh_polys_for_write(orgmesh)) {
+    mp_example = *polys;
   }
 
   const int *orig_material_indices = BKE_mesh_material_indices(orgmesh);
@@ -3368,7 +3366,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   float min[3];
   float max[3];
   float *co;
-  MPoly *mp;
+  MPoly *poly;
   MLoop *ml;
 
   int num_verts = 8;
@@ -3429,55 +3427,55 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
     /* Create faces. */
     /* Top side. */
-    mp = &polys[0];
+    poly = &polys[0];
     ml = &loops[0 * 4];
-    mp->loopstart = 0 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 0 * 4;
+    poly->totloop = 4;
     ml[0].v = 0;
     ml[1].v = 1;
     ml[2].v = 2;
     ml[3].v = 3;
     /* Right side. */
-    mp = &polys[1];
+    poly = &polys[1];
     ml = &loops[1 * 4];
-    mp->loopstart = 1 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 1 * 4;
+    poly->totloop = 4;
     ml[0].v = 2;
     ml[1].v = 1;
     ml[2].v = 5;
     ml[3].v = 6;
     /* Bottom side. */
-    mp = &polys[2];
+    poly = &polys[2];
     ml = &loops[2 * 4];
-    mp->loopstart = 2 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 2 * 4;
+    poly->totloop = 4;
     ml[0].v = 7;
     ml[1].v = 6;
     ml[2].v = 5;
     ml[3].v = 4;
     /* Left side. */
-    mp = &polys[3];
+    poly = &polys[3];
     ml = &loops[3 * 4];
-    mp->loopstart = 3 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 3 * 4;
+    poly->totloop = 4;
     ml[0].v = 0;
     ml[1].v = 3;
     ml[2].v = 7;
     ml[3].v = 4;
     /* Front side. */
-    mp = &polys[4];
+    poly = &polys[4];
     ml = &loops[4 * 4];
-    mp->loopstart = 4 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 4 * 4;
+    poly->totloop = 4;
     ml[0].v = 3;
     ml[1].v = 2;
     ml[2].v = 6;
     ml[3].v = 7;
     /* Back side. */
-    mp = &polys[5];
+    poly = &polys[5];
     ml = &loops[5 * 4];
-    mp->loopstart = 5 * 4;
-    mp->totloop = 4;
+    poly->loopstart = 5 * 4;
+    poly->totloop = 4;
     ml[0].v = 1;
     ml[1].v = 0;
     ml[2].v = 4;

@@ -725,9 +725,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-    for (int l = 0; l < p->totloop; l++) {
-      const MLoop *loop = &ss->mloop[p->loopstart + l];
+    const MPoly *poly = &ss->polys[vert_map->indices[i]];
+    for (int l = 0; l < poly->totloop; l++) {
+      const MLoop *loop = &ss->mloop[poly->loopstart + l];
       if (loop->v == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -769,7 +769,7 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->mloop, ss->polys, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
@@ -888,9 +888,9 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    const MPoly *poly = &ss->polys[vert_map->indices[i]];
     int f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(p, ss->mloop, vertex.i, f_adj_v) != -1) {
+    if (poly_get_adj_loops_from_vert(poly, ss->mloop, vertex.i, f_adj_v) != -1) {
       for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
         if (f_adj_v[j] != vertex.i) {
           sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
@@ -1004,7 +1004,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->mloop, ss->polys, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);

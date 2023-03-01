@@ -231,10 +231,10 @@ static int getFaceIndex(
 }
 
 static void get_face_uv_map_vert(
-    UvVertMap *vmap, MPoly *mpoly, MLoop *ml, int fi, CCGVertHDL *fverts)
+    UvVertMap *vmap, MPoly *polys, MLoop *ml, int fi, CCGVertHDL *fverts)
 {
   UvMapVert *v, *nv;
-  int j, nverts = mpoly[fi].totloop;
+  int j, nverts = polys[fi].totloop;
 
   for (j = 0; j < nverts; j++) {
     for (nv = v = BKE_mesh_uv_vert_map_get_vert(vmap, ml[j].v); v; v = v->next) {
@@ -246,7 +246,7 @@ static void get_face_uv_map_vert(
       }
     }
 
-    fverts[j] = POINTER_FROM_UINT(mpoly[nv->poly_index].loopstart + nv->loop_of_poly_index);
+    fverts[j] = POINTER_FROM_UINT(polys[nv->poly_index].loopstart + nv->loop_of_poly_index);
   }
 }
 
@@ -255,7 +255,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
                            DerivedMesh *dm,
                            const float (*mloopuv)[2])
 {
-  MPoly *mpoly = dm->getPolyArray(dm);
+  MPoly *polys = dm->getPolyArray(dm);
   MLoop *mloop = dm->getLoopArray(dm);
   int totvert = dm->getNumVerts(dm);
   int totface = dm->getNumPolys(dm);
@@ -273,7 +273,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(
-      mpoly, nullptr, nullptr, mloop, mloopuv, totface, totvert, limit, false, true);
+      polys, nullptr, nullptr, mloop, mloopuv, totface, totvert, limit, false, true);
   if (!vmap) {
     return 0;
   }
@@ -297,7 +297,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
       if (v->separate) {
         CCGVert *ssv;
-        int loopid = mpoly[v->poly_index].loopstart + v->loop_of_poly_index;
+        int loopid = polys[v->poly_index].loopstart + v->loop_of_poly_index;
         CCGVertHDL vhdl = POINTER_FROM_INT(loopid);
 
         copy_v2_v2(uv, mloopuv[loopid]);
@@ -311,16 +311,16 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
   eset = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totface));
 
   for (i = 0; i < totface; i++) {
-    MPoly *mp = &mpoly[i];
-    int nverts = mp->totloop;
+    MPoly *poly = &polys[i];
+    int nverts = poly->totloop;
     int j, j_next;
     CCGFace *origf = ccgSubSurf_getFace(origss, POINTER_FROM_INT(i));
-    // uint *fv = &mp->v1;
-    MLoop *ml = mloop + mp->loopstart;
+    // uint *fv = &poly->v1;
+    MLoop *ml = mloop + poly->loopstart;
 
     fverts.reinitialize(nverts);
 
-    get_face_uv_map_vert(vmap, mpoly, ml, i, fverts.data());
+    get_face_uv_map_vert(vmap, polys, ml, i, fverts.data());
 
     for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
       uint v0 = POINTER_AS_UINT(fverts[j_next]);
@@ -328,7 +328,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
 
       if (BLI_edgeset_add(eset, v0, v1)) {
         CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
-        CCGEdgeHDL ehdl = POINTER_FROM_INT(mp->loopstart + j_next);
+        CCGEdgeHDL ehdl = POINTER_FROM_INT(poly->loopstart + j_next);
         float crease = ccgSubSurf_getEdgeCrease(orige);
 
         ccgSubSurf_syncEdge(ss, ehdl, fverts[j_next], fverts[j], crease, &e);
@@ -340,14 +340,14 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
 
   /* create faces */
   for (i = 0; i < totface; i++) {
-    MPoly *mp = &mpoly[i];
-    MLoop *ml = &mloop[mp->loopstart];
-    int nverts = mp->totloop;
+    MPoly *poly = &polys[i];
+    MLoop *ml = &mloop[poly->loopstart];
+    int nverts = poly->totloop;
     CCGFace *f;
 
     fverts.reinitialize(nverts);
 
-    get_face_uv_map_vert(vmap, mpoly, ml, i, fverts.data());
+    get_face_uv_map_vert(vmap, polys, ml, i, fverts.data());
     ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), nverts, fverts.data(), &f);
   }
 
@@ -540,10 +540,10 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
   float creaseFactor = float(ccgSubSurf_getSubdivisionLevels(ss));
   blender::Vector<CCGVertHDL, 16> fverts;
   float(*positions)[3] = (float(*)[3])dm->getVertArray(dm);
-  MEdge *medge = dm->getEdgeArray(dm);
-  MEdge *me;
+  MEdge *edges = dm->getEdgeArray(dm);
+  MEdge *edge;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
-  MPoly *mpoly = dm->getPolyArray(dm), *mp;
+  MPoly *polys = dm->getPolyArray(dm), *poly;
   int totvert = dm->getNumVerts(dm);
   int totedge = dm->getNumEdges(dm);
   int i, j;
@@ -565,30 +565,30 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
     ((int *)ccgSubSurf_getVertUserData(ss, v))[1] = (index) ? *index++ : i;
   }
 
-  me = medge;
+  edge = edges;
   index = (int *)dm->getEdgeDataArray(dm, CD_ORIGINDEX);
   const float *creases = (const float *)dm->getEdgeDataArray(dm, CD_CREASE);
-  for (i = 0; i < totedge; i++, me++) {
+  for (i = 0; i < totedge; i++, edge++) {
     CCGEdge *e;
     float crease;
 
     crease = useFlatSubdiv ? creaseFactor : (creases ? creases[i] * creaseFactor : 0.0f);
 
     ccgSubSurf_syncEdge(
-        ss, POINTER_FROM_INT(i), POINTER_FROM_UINT(me->v1), POINTER_FROM_UINT(me->v2), crease, &e);
+        ss, POINTER_FROM_INT(i), POINTER_FROM_UINT(edge->v1), POINTER_FROM_UINT(edge->v2), crease, &e);
 
     ((int *)ccgSubSurf_getEdgeUserData(ss, e))[1] = (index) ? *index++ : i;
   }
 
-  mp = mpoly;
+  poly = polys;
   index = (int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
-  for (i = 0; i < dm->numPolyData; i++, mp++) {
+  for (i = 0; i < dm->numPolyData; i++, poly++) {
     CCGFace *f;
 
-    fverts.reinitialize(mp->totloop);
+    fverts.reinitialize(poly->totloop);
 
-    ml = mloop + mp->loopstart;
-    for (j = 0; j < mp->totloop; j++, ml++) {
+    ml = mloop + poly->loopstart;
+    for (j = 0; j < poly->totloop; j++, ml++) {
       fverts[j] = POINTER_FROM_UINT(ml->v);
     }
 
@@ -596,7 +596,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
      * it is not really possible to continue without modifying
      * other parts of code significantly to handle missing faces.
      * since this really shouldn't even be possible we just bail. */
-    if (ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), mp->totloop, fverts.data(), &f) ==
+    if (ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), poly->totloop, fverts.data(), &f) ==
         eCCGError_InvalidValue) {
       static int hasGivenError = 0;
 
@@ -911,13 +911,13 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
 }
 
 /* utility function */
-BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2)
+BLI_INLINE void ccgDM_to_MEdge(MEdge *edge, const int v1, const int v2)
 {
-  med->v1 = v1;
-  med->v2 = v2;
+  edge->v1 = v1;
+  edge->v2 = v2;
 }
 
-static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
+static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *edges)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
@@ -934,17 +934,17 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 
     for (S = 0; S < numVerts; S++) {
       for (x = 0; x < gridSize - 1; x++) {
-        ccgDM_to_MEdge(&medge[i++],
+        ccgDM_to_MEdge(&edges[i++],
                        getFaceIndex(ss, f, S, x, 0, edgeSize, gridSize),
                        getFaceIndex(ss, f, S, x + 1, 0, edgeSize, gridSize));
       }
 
       for (x = 1; x < gridSize - 1; x++) {
         for (y = 0; y < gridSize - 1; y++) {
-          ccgDM_to_MEdge(&medge[i++],
+          ccgDM_to_MEdge(&edges[i++],
                          getFaceIndex(ss, f, S, x, y, edgeSize, gridSize),
                          getFaceIndex(ss, f, S, x, y + 1, edgeSize, gridSize));
-          ccgDM_to_MEdge(&medge[i++],
+          ccgDM_to_MEdge(&edges[i++],
                          getFaceIndex(ss, f, S, y, x, edgeSize, gridSize),
                          getFaceIndex(ss, f, S, y + 1, x, edgeSize, gridSize));
         }
@@ -957,7 +957,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
     CCGEdge *e = ccgdm->edgeMap[index].edge;
     for (int x = 0; x < edgeSize - 1; x++) {
       ccgDM_to_MEdge(
-          &medge[i++], getEdgeIndex(ss, e, x, edgeSize), getEdgeIndex(ss, e, x + 1, edgeSize));
+          &edges[i++], getEdgeIndex(ss, e, x, edgeSize), getEdgeIndex(ss, e, x + 1, edgeSize));
     }
   }
 }
@@ -1022,14 +1022,14 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
   if (!ccgdm->ehash) {
     BLI_mutex_lock(&ccgdm->loops_cache_lock);
     if (!ccgdm->ehash) {
-      MEdge *medge;
+      MEdge *edges;
       EdgeHash *ehash;
 
       ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
-      medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
+      edges = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
       for (int i = 0; i < ccgdm->dm.numEdgeData; i++) {
-        BLI_edgehash_insert(ehash, medge[i].v1, medge[i].v2, POINTER_FROM_INT(i));
+        BLI_edgehash_insert(ehash, edges[i].v1, edges[i].v2, POINTER_FROM_INT(i));
       }
 
       atomic_cas_ptr((void **)&ccgdm->ehash, ccgdm->ehash, ehash);
@@ -1058,7 +1058,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
       0, ccgSubSurf_getNumFaces(ss), &data, copyFinalLoopArray_task_cb, &settings);
 }
 
-static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
+static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *polys)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
@@ -1078,11 +1078,11 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
     for (S = 0; S < numVerts; S++) {
       for (y = 0; y < gridSize - 1; y++) {
         for (x = 0; x < gridSize - 1; x++) {
-          MPoly *mp = &mpoly[i];
+          MPoly *poly = &polys[i];
 
-          mp->flag = flag;
-          mp->loopstart = k;
-          mp->totloop = 4;
+          poly->flag = flag;
+          poly->loopstart = k;
+          poly->totloop = 4;
 
           k += 4;
           i++;
@@ -1542,7 +1542,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
 
-  const MPoly *mpoly = static_cast<const MPoly *>(CustomData_get_layer(&dm->polyData, CD_MPOLY));
+  const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&dm->polyData, CD_MPOLY));
   const int *material_indices = static_cast<const int *>(
       CustomData_get_layer_named(&dm->polyData, CD_MPOLY, "material_index"));
   const int *base_polyOrigIndex = static_cast<const int *>(
@@ -1570,7 +1570,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     ccgdm->faceMap[index].startEdge = edgeNum;
     ccgdm->faceMap[index].startFace = faceNum;
 
-    faceFlags->flag = mpoly ? mpoly[origIndex].flag : 0;
+    faceFlags->flag = polys ? polys[origIndex].flag : 0;
     faceFlags->mat_nr = material_indices ? material_indices[origIndex] : 0;
     faceFlags++;
 

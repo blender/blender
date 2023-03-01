@@ -1224,16 +1224,16 @@ static bool vgroup_normalize(Object *ob)
  * count is an int passed by reference so it can be assigned the value of the length here. */
 static blender::Vector<int> getSurroundingVerts(Mesh *me, int vert)
 {
-  const MPoly *mp = me->polys().data();
+  const MPoly *poly = me->polys().data();
   const MLoop *loops = me->loops().data();
   int i = me->totpoly;
 
   blender::Vector<int> verts;
 
   while (i--) {
-    int j = mp->totloop;
-    int first_l = mp->totloop - 1;
-    const MLoop *ml = &loops[mp->loopstart];
+    int j = poly->totloop;
+    int first_l = poly->totloop - 1;
+    const MLoop *ml = &loops[poly->loopstart];
     while (j--) {
       /* XXX This assume a vert can only be once in a poly, even though
        *     it seems logical to me, not totally sure of that. */
@@ -1247,7 +1247,7 @@ static blender::Vector<int> getSurroundingVerts(Mesh *me, int vert)
         else if (!j) {
           /* We are on the last corner. */
           a = (ml - 1)->v;
-          b = loops[mp->loopstart].v;
+          b = loops[poly->loopstart].v;
         }
         else {
           a = (ml - 1)->v;
@@ -1277,7 +1277,7 @@ static blender::Vector<int> getSurroundingVerts(Mesh *me, int vert)
       }
       ml++;
     }
-    mp++;
+    poly++;
   }
 
   return verts;
@@ -1992,8 +1992,8 @@ static void vgroup_smooth_subset(Object *ob,
     for (int i = 0; i < dvert_tot; i++) {
       if (IS_ME_VERT_WRITE(i)) {
         for (int j = 0; j < emap[i].count; j++) {
-          const MEdge *e = &edges[emap[i].indices[j]];
-          const int i_other = (e->v1 == i) ? e->v2 : e->v1;
+          const MEdge *edge = &edges[emap[i].indices[j]];
+          const int i_other = (edge->v1 == i) ? edge->v2 : edge->v1;
           if (IS_ME_VERT_READ(i_other)) {
             STACK_PUSH(verts_used, i);
             break;
@@ -2071,8 +2071,8 @@ static void vgroup_smooth_subset(Object *ob,
           BLI_assert(IS_ME_VERT_WRITE(i));
 
           for (j = 0; j < emap[i].count; j++) {
-            const MEdge *e = &edges[emap[i].indices[j]];
-            const int i_other = (e->v1 == i ? e->v2 : e->v1);
+            const MEdge *edge = &edges[emap[i].indices[j]];
+            const int i_other = (edge->v1 == i ? edge->v2 : edge->v1);
             if (IS_ME_VERT_READ(i_other)) {
               WEIGHT_ACCUMULATE;
             }

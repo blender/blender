@@ -24,7 +24,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*loop_normals)[3],
                                           const float (*loopuv)[2],
                                           int numLoops,
-                                          const struct MPoly *mpolys,
+                                          const struct MPoly *polys,
                                           int numPolys,
                                           struct ReportList *reports);
 /**
@@ -42,8 +42,8 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   const struct MPoly *mpoly,
-                                   uint mpoly_len,
+                                   const struct MPoly *polys,
+                                   uint polys_len,
                                    const struct MLoop *mloop,
                                    const struct MLoopTri *looptri,
                                    uint looptri_len,

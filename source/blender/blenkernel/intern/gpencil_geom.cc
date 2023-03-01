@@ -2519,18 +2519,18 @@ static void gpencil_generate_edgeloops(Object *ob,
   GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
   GpEdge *gped = nullptr;
   for (int i = 0; i < me->totedge; i++) {
-    const MEdge *ed = &edges[i];
+    const MEdge *edge = &edges[i];
     gped = &gp_edges[i];
-    copy_v3_v3(gped->n1, vert_normals[ed->v1]);
+    copy_v3_v3(gped->n1, vert_normals[edge->v1]);
 
-    gped->v1 = ed->v1;
-    copy_v3_v3(gped->v1_co, vert_positions[ed->v1]);
+    gped->v1 = edge->v1;
+    copy_v3_v3(gped->v1_co, vert_positions[edge->v1]);
 
-    copy_v3_v3(gped->n2, vert_normals[ed->v2]);
-    gped->v2 = ed->v2;
-    copy_v3_v3(gped->v2_co, vert_positions[ed->v2]);
+    copy_v3_v3(gped->n2, vert_normals[edge->v2]);
+    gped->v2 = edge->v2;
+    copy_v3_v3(gped->v2_co, vert_positions[edge->v2]);
 
-    sub_v3_v3v3(gped->vec, vert_positions[ed->v1], vert_positions[ed->v2]);
+    sub_v3_v3v3(gped->vec, vert_positions[edge->v1], vert_positions[edge->v2]);
 
     /* If use seams, mark as done if not a seam. */
     if ((use_seams) && !uv_seams[i]) {
@@ -2715,7 +2715,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   const Span<float3> positions = me_eval->vert_positions();
   const Span<MPoly> polys = me_eval->polys();
   const Span<MLoop> loops = me_eval->loops();
-  int mpoly_len = me_eval->totpoly;
+  int polys_len = me_eval->totpoly;
   char element_name[200];
 
   /* Need at least an edge. */
@@ -2739,7 +2739,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   }
 
   /* Export faces as filled strokes. */
-  if (use_faces && mpoly_len > 0) {
+  if (use_faces && polys_len > 0) {
     /* Read all polygons and create fill for each. */
     make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
     /* Create Layer and Frame. */
@@ -2753,8 +2753,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
     const VArray<int> mesh_material_indices = me_eval->attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
-    for (i = 0; i < mpoly_len; i++) {
-      const MPoly *mp = &polys[i];
+    for (i = 0; i < polys_len; i++) {
+      const MPoly *poly = &polys[i];
 
       /* Find material. */
       int mat_idx = 0;
@@ -2774,19 +2774,19 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
       }
 
-      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, mp->totloop, 10, false);
+      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, poly->totloop, 10, false);
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
       const Span<MDeformVert> dverts = me_eval->deform_verts();
       if (use_vgroups && !dverts.is_empty()) {
-        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * mp->totloop,
+        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * poly->totloop,
                                                      "gp_fill_dverts");
       }
 
       /* Add points to strokes. */
-      for (int j = 0; j < mp->totloop; j++) {
-        const MLoop *ml = &loops[mp->loopstart + j];
+      for (int j = 0; j < poly->totloop; j++) {
+        const MLoop *ml = &loops[poly->loopstart + j];
 
         bGPDspoint *pt = &gps_fill->points[j];
         copy_v3_v3(&pt->x, positions[ml->v]);
@@ -2808,7 +2808,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         }
       }
       /* If has only 3 points subdivide. */
-      if (mp->totloop == 3) {
+      if (poly->totloop == 3) {
         BKE_gpencil_stroke_subdivide(gpd, gps_fill, 1, GP_SUBDIV_SIMPLE);
       }
 

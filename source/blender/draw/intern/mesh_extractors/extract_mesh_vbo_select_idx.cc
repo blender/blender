@@ -110,42 +110,42 @@ static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
 }
 
 static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int mp_index,
+                                            const MPoly *poly,
+                                            const int poly_index,
                                             void *data)
 {
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+    (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[poly_index] : poly_index;
   }
 }
 
 static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int /*mp_index*/,
+                                            const MPoly *poly,
+                                            const int /*poly_index*/,
                                             void *data)
 {
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mr->loops[ml_index];
     (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
   }
 }
 
 static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int /*mp_index*/,
+                                            const MPoly *poly,
+                                            const int /*poly_index*/,
                                             void *data)
 {
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mr->loops[ml_index];
     (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
   }
 }
 
 static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge * /*med*/,
+                                             const MEdge * /*edge*/,
                                              const int ledge_index,
                                              void *data)
 {
@@ -156,12 +156,12 @@ static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge *med,
+                                             const MEdge *edge,
                                              const int ledge_index,
                                              void *data)
 {
-  int v1_orig = (mr->v_origindex) ? mr->v_origindex[med->v1] : med->v1;
-  int v2_orig = (mr->v_origindex) ? mr->v_origindex[med->v2] : med->v2;
+  int v1_orig = (mr->v_origindex) ? mr->v_origindex[edge->v1] : edge->v1;
+  int v2_orig = (mr->v_origindex) ? mr->v_origindex[edge->v2] : edge->v2;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
 }
@@ -379,15 +379,15 @@ static void extract_fdot_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly * /*mp*/,
-                                            const int mp_index,
+                                            const MPoly * /*poly*/,
+                                            const int poly_index,
                                             void *data)
 {
   if (mr->p_origindex != nullptr) {
-    (*(int32_t **)data)[mp_index] = mr->p_origindex[mp_index];
+    (*(int32_t **)data)[poly_index] = mr->p_origindex[poly_index];
   }
   else {
-    (*(int32_t **)data)[mp_index] = mp_index;
+    (*(int32_t **)data)[poly_index] = poly_index;
   }
 }
 

@@ -237,10 +237,10 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
   else {
     for (int i = 0; i < mr->poly_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const MPoly *mp = &mr->polys[i];
+        const MPoly *poly = &mr->polys[i];
         const int mat = min_ii(mr->material_indices ? mr->material_indices[i] : 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += mp->totloop - 2;
+        mat_tri_offs[mat] += poly->totloop - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -275,10 +275,10 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
-  const MPoly *mp = &mr->polys[iter];
+  const MPoly *poly = &mr->polys[iter];
   if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mr->material_indices ? mr->material_indices[iter] : 0, mr->mat_len - 1);
-    mat_tri_len[mat] += mp->totloop - 2;
+    mat_tri_len[mat] += poly->totloop - 2;
   }
 }
 
@@ -371,7 +371,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
       BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions.data()),
                                   reinterpret_cast<const float(*)[3]>(mr->vert_normals.data()),
-                                  mr->vert_len,
+                                  mr->vert_positions.size(),
                                   mr->edges.data(),
                                   mr->edges.size(),
                                   mr->loops.data(),

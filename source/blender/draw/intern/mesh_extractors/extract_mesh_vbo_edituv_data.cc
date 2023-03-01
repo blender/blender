@@ -70,18 +70,18 @@ static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
-                                               const MPoly *mp,
-                                               const int mp_index,
+                                               const MPoly *poly,
+                                               const int poly_index,
                                                void *_data)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mr->loops[ml_index];
 
     EditLoopData *eldata = &data->vbo_data[ml_index];
     memset(eldata, 0x0, sizeof(*eldata));
-    BMFace *efa = bm_original_face_get(mr, mp_index);
+    BMFace *efa = bm_original_face_get(mr, poly_index);
     if (efa) {
       BMEdge *eed = bm_original_edge_get(mr, ml->e);
       BMVert *eve = bm_original_vert_get(mr, ml->v);
@@ -95,8 +95,8 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
         if (eed == nullptr) {
           /* Find if the loop's vert is not part of an edit edge.
            * For this, we check if the previous loop was on an edge. */
-          const int ml_index_last = mp->loopstart + mp->totloop - 1;
-          const int l_prev = (ml_index == mp->loopstart) ? ml_index_last : (ml_index - 1);
+          const int ml_index_last = poly->loopstart + poly->totloop - 1;
+          const int l_prev = (ml_index == poly->loopstart) ? ml_index_last : (ml_index - 1);
           const MLoop *ml_prev = &mr->loops[l_prev];
           eed = bm_original_edge_get(mr, ml_prev->e);
         }

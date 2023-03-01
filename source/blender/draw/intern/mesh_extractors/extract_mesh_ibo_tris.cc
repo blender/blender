@@ -60,19 +60,19 @@ static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_tris_iter_poly_mesh(const MeshRenderData *mr,
-                                        const MPoly *mp,
-                                        const int mp_index,
+                                        const MPoly *poly,
+                                        const int poly_index,
                                         void *_data)
 {
-  int tri_first_index = mr->poly_sorted.tri_first_index[mp_index];
+  int tri_first_index = mr->poly_sorted.tri_first_index[poly_index];
   if (tri_first_index == -1) {
     return;
   }
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  int tri_first_index_real = poly_to_tri_count(mp_index, mp->loopstart);
+  int tri_first_index_real = poly_to_tri_count(poly_index, poly->loopstart);
 
-  int tri_len = mp->totloop - 2;
+  int tri_len = poly->totloop - 2;
   for (int offs = 0; offs < tri_len; offs++) {
     const MLoopTri *mlt = &mr->looptris[tri_first_index_real + offs];
     int tri_index = tri_first_index + offs;

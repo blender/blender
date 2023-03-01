@@ -209,13 +209,13 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               float (*vert_positions)[3],
                               uint totvert,
-                              MEdge *medges,
+                              MEdge *edges,
                               uint totedge,
                               MFace *mfaces,
                               uint totface,
                               MLoop *mloops,
                               uint totloop,
-                              MPoly *mpolys,
+                              MPoly *polys,
                               uint totpoly,
                               MDeformVert *dverts, /* assume totvert length */
                               const bool do_verbose,
@@ -247,9 +247,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
-  MEdge *me;
+  MEdge *edge;
   MLoop *ml;
-  MPoly *mp;
+  MPoly *poly;
   uint i, j;
   int *v;
 
@@ -343,40 +343,40 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
-  for (i = 0, me = medges; i < totedge; i++, me++) {
+  for (i = 0, edge = edges; i < totedge; i++, edge++) {
     bool remove = false;
 
-    if (me->v1 == me->v2) {
-      PRINT_ERR("\tEdge %u: has matching verts, both %u", i, me->v1);
+    if (edge->v1 == edge->v2) {
+      PRINT_ERR("\tEdge %u: has matching verts, both %u", i, edge->v1);
       remove = do_fixes;
     }
-    if (me->v1 >= totvert) {
-      PRINT_ERR("\tEdge %u: v1 index out of range, %u", i, me->v1);
+    if (edge->v1 >= totvert) {
+      PRINT_ERR("\tEdge %u: v1 index out of range, %u", i, edge->v1);
       remove = do_fixes;
     }
-    if (me->v2 >= totvert) {
-      PRINT_ERR("\tEdge %u: v2 index out of range, %u", i, me->v2);
+    if (edge->v2 >= totvert) {
+      PRINT_ERR("\tEdge %u: v2 index out of range, %u", i, edge->v2);
       remove = do_fixes;
     }
 
-    if ((me->v1 != me->v2) && BLI_edgehash_haskey(edge_hash, me->v1, me->v2)) {
+    if ((edge->v1 != edge->v2) && BLI_edgehash_haskey(edge_hash, edge->v1, edge->v2)) {
       PRINT_ERR("\tEdge %u: is a duplicate of %d",
                 i,
-                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, me->v1, me->v2)));
+                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, edge->v1, edge->v2)));
       remove = do_fixes;
     }
 
     if (remove == false) {
-      if (me->v1 != me->v2) {
-        BLI_edgehash_insert(edge_hash, me->v1, me->v2, POINTER_FROM_INT(i));
+      if (edge->v1 != edge->v2) {
+        BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, POINTER_FROM_INT(i));
       }
     }
     else {
-      REMOVE_EDGE_TAG(me);
+      REMOVE_EDGE_TAG(edge);
     }
   }
 
-  if (mfaces && !mpolys) {
+  if (mfaces && !polys) {
 #define REMOVE_FACE_TAG(_mf) \
   { \
     _mf->v3 = 0; \
@@ -560,7 +560,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     SortPoly *prev_sp, *sp = sort_polys;
     int prev_end;
 
-    for (i = 0, mp = mpolys; i < totpoly; i++, mp++, sp++) {
+    for (i = 0, poly = polys; i < totpoly; i++, poly++, sp++) {
       sp->index = i;
 
       /* Material index, isolated from other tests here. While large indices are clamped,
@@ -573,22 +573,22 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
       }
 
-      if (mp->loopstart < 0 || mp->totloop < 3) {
+      if (poly->loopstart < 0 || poly->totloop < 3) {
         /* Invalid loop data. */
         PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)",
                   sp->index,
-                  mp->loopstart,
-                  mp->totloop);
+                  poly->loopstart,
+                  poly->totloop);
         sp->invalid = true;
       }
-      else if (mp->loopstart + mp->totloop > totloop) {
+      else if (poly->loopstart + poly->totloop > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
             "\tPoly %u uses loops out of range "
             "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
-            mp->loopstart,
-            mp->loopstart + mp->totloop - 1,
+            poly->loopstart,
+            poly->loopstart + poly->totloop - 1,
             totloop - 1);
         sp->invalid = true;
       }
@@ -596,21 +596,21 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         /* Poly itself is valid, for now. */
         int v1, v2; /* v1 is prev loop vert idx, v2 is current loop one. */
         sp->invalid = false;
-        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * mp->totloop, "Vert idx of SortPoly");
-        sp->numverts = mp->totloop;
-        sp->loopstart = mp->loopstart;
+        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * poly->totloop, "Vert idx of SortPoly");
+        sp->numverts = poly->totloop;
+        sp->loopstart = poly->loopstart;
 
         /* Ideally we would only have to do that once on all vertices
          * before we start checking each poly, but several polys can use same vert,
          * so we have to ensure here all verts of current poly are cleared. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++) {
+        for (j = 0, ml = &mloops[sp->loopstart]; j < poly->totloop; j++, ml++) {
           if (ml->v < totvert) {
             BLI_BITMAP_DISABLE(vert_tag, ml->v);
           }
         }
 
         /* Test all poly's loops' vert idx. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++, v++) {
+        for (j = 0, ml = &mloops[sp->loopstart]; j < poly->totloop; j++, ml++, v++) {
           if (ml->v >= totvert) {
             /* Invalid vert idx. */
             PRINT_ERR("\tLoop %u has invalid vert reference (%u)", sp->loopstart + j, ml->v);
@@ -631,9 +631,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         /* Test all poly's loops. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++) {
+        for (j = 0, ml = &mloops[sp->loopstart]; j < poly->totloop; j++, ml++) {
           v1 = ml->v;
-          v2 = mloops[sp->loopstart + (j + 1) % mp->totloop].v;
+          v2 = mloops[sp->loopstart + (j + 1) % poly->totloop].v;
           if (!BLI_edgehash_haskey(edge_hash, v1, v2)) {
             /* Edge not existing. */
             PRINT_ERR("\tPoly %u needs missing edge (%d, %d)", sp->index, v1, v2);
@@ -662,9 +662,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
             }
           }
           else {
-            me = &medges[ml->e];
-            if (IS_REMOVED_EDGE(me) ||
-                !((me->v1 == v1 && me->v2 == v2) || (me->v1 == v2 && me->v2 == v1))) {
+            edge = &edges[ml->e];
+            if (IS_REMOVED_EDGE(edge) ||
+                !((edge->v1 == v1 && edge->v2 == v2) || (edge->v1 == v2 && edge->v2 == v1))) {
               /* The pointed edge is invalid (tagged as removed, or vert idx mismatch),
                * and we already know from previous test that a valid one exists,
                * use it (if allowed)! */
@@ -677,7 +677,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                     "%u",
                     sp->index,
                     prev_e,
-                    IS_REMOVED_EDGE(me),
+                    IS_REMOVED_EDGE(edge),
                     ml->e);
               }
               else {
@@ -747,7 +747,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
        */
       if (sp->invalid) {
         if (do_fixes) {
-          REMOVE_POLY_TAG((&mpolys[sp->index]));
+          REMOVE_POLY_TAG((&polys[sp->index]));
           /* DO NOT REMOVE ITS LOOPS!!!
            * As already invalid polys are at the end of the SortPoly list, the loops they
            * were the only users have already been tagged as "to remove" during previous
@@ -777,7 +777,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                     prev_end,
                     sp->index);
           if (do_fixes) {
-            REMOVE_POLY_TAG((&mpolys[sp->index]));
+            REMOVE_POLY_TAG((&polys[sp->index]));
             /* DO NOT REMOVE ITS LOOPS!!!
              * They might be used by some next, valid poly!
              * Just not updating prev_end/prev_sp vars is enough to ensure the loops
@@ -1210,18 +1210,18 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
-  MPoly *p;
+  MPoly *poly;
   MLoop *l;
   int a, b;
   /* New loops idx! */
   int *new_idx = (int *)MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
-  for (a = b = 0, p = polys.data(); a < me->totpoly; a++, p++) {
+  for (a = b = 0, poly = polys.data(); a < me->totpoly; a++, poly++) {
     bool invalid = false;
-    int i = p->loopstart;
-    int stop = i + p->totloop;
+    int i = poly->loopstart;
+    int stop = i + poly->totloop;
 
-    if (stop > me->totloop || stop < i || p->loopstart < 0) {
+    if (stop > me->totloop || stop < i || poly->loopstart < 0) {
       invalid = true;
     }
     else {
@@ -1236,9 +1236,9 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
       }
     }
 
-    if (p->totloop >= 3 && !invalid) {
+    if (poly->totloop >= 3 && !invalid) {
       if (a != b) {
-        memcpy(&polys[b], p, sizeof(polys[b]));
+        memcpy(&polys[b], poly, sizeof(polys[b]));
         CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
       }
       b++;
@@ -1349,13 +1349,13 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
 
-  MEdge *med = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
+  MEdge *ege = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
   int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
-       BLI_edgesetIterator_step(ehi), i++, med++, index++) {
-    BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
+       BLI_edgesetIterator_step(ehi), i++, ege++, index++) {
+    BLI_edgesetIterator_getKey(ehi, &ege->v1, &ege->v2);
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

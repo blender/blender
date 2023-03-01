@@ -173,9 +173,9 @@ enum {
  *
  * \code{.c}
  * // loop over all looptri's for a given polygon: i
- * MPoly *mp = &mpoly[i];
- * MLoopTri *lt = &looptri[poly_to_tri_count(i, mp->loopstart)];
- * int j, lt_tot = ME_POLY_TRI_TOT(mp);
+ * MPoly *poly = &polys[i];
+ * MLoopTri *lt = &looptri[poly_to_tri_count(i, poly->loopstart)];
+ * int j, lt_tot = ME_POLY_TRI_TOT(poly);
  *
  * for (j = 0; j < lt_tot; j++, lt++) {
  *     unsigned int vtri[3] = {
@@ -409,12 +409,12 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-#define ME_POLY_LOOP_PREV(mloop, mp, i) \
-  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
-#define ME_POLY_LOOP_NEXT(mloop, mp, i) (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+#define ME_POLY_LOOP_PREV(mloop, poly, i) \
+  (&(mloop)[(poly)->loopstart + (((i) + (poly)->totloop - 1) % (poly)->totloop)])
+#define ME_POLY_LOOP_NEXT(mloop, poly, i) (&(mloop)[(poly)->loopstart + (((i) + 1) % (poly)->totloop)])
 
 /** Number of tri's that make up this polygon once tessellated. */
-#define ME_POLY_TRI_TOT(mp) ((mp)->totloop - 2)
+#define ME_POLY_TRI_TOT(poly) ((poly)->totloop - 2)
 
 /**
  * Check out-of-bounds material, note that this is nearly always prevented,

@@ -666,7 +666,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   /* Prepare and feed faces to the solver */
   for (const int i : subsurf_polys.index_range()) {
-    const MPoly *mpoly = &subsurf_polys[i];
+    const MPoly *poly = &subsurf_polys[i];
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -685,10 +685,10 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const MLoop *mloop = &subsurf_loops[mpoly->loopstart];
+    const MLoop *mloop = &subsurf_loops[poly->loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
-    BLI_assert(mpoly->totloop == 4);
+    BLI_assert(poly->totloop == 4);
     key = (ParamKey)i;
     vkeys[0] = (ParamKey)mloop[0].v;
     vkeys[1] = (ParamKey)mloop[1].v;

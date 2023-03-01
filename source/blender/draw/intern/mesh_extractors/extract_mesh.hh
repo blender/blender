@@ -254,15 +254,15 @@ using ExtractPolyBMeshFn = void(const MeshRenderData *mr,
                                 int f_index,
                                 void *data);
 using ExtractPolyMeshFn = void(const MeshRenderData *mr,
-                               const MPoly *mp,
-                               int mp_index,
+                               const MPoly *poly,
+                               int poly_index,
                                void *data);
 using ExtractLEdgeBMeshFn = void(const MeshRenderData *mr,
                                  const BMEdge *eed,
                                  int ledge_index,
                                  void *data);
 using ExtractLEdgeMeshFn = void(const MeshRenderData *mr,
-                                const MEdge *med,
+                                const MEdge *edge,
                                 int ledge_index,
                                 void *data);
 using ExtractLVertBMeshFn = void(const MeshRenderData *mr,

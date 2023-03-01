@@ -314,7 +314,7 @@ void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]
  * Calculate tessellation into #MLoopTri which exist only for this purpose.
  */
 void BKE_mesh_recalc_looptri(const struct MLoop *mloop,
-                             const struct MPoly *mpoly,
+                             const struct MPoly *polys,
                              const float (*vert_positions)[3],
                              int totloop,
                              int totpoly,
@@ -328,7 +328,7 @@ void BKE_mesh_recalc_looptri(const struct MLoop *mloop,
  * to be calculated which aren't needed for tessellation.
  */
 void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
-                                          const struct MPoly *mpoly,
+                                          const struct MPoly *polys,
                                           const float (*vert_positions)[3],
                                           int totloop,
                                           int totpoly,
@@ -409,7 +409,7 @@ bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
  */
 bool BKE_mesh_poly_normals_are_dirty(const struct Mesh *mesh);
 
-void BKE_mesh_calc_poly_normal(const struct MPoly *mpoly,
+void BKE_mesh_calc_poly_normal(const struct MPoly *polys,
                                const struct MLoop *loopstart,
                                const float (*vert_positions)[3],
                                float r_no[3]);
@@ -424,8 +424,8 @@ void BKE_mesh_calc_normals_poly(const float (*vert_positions)[3],
                                 int mvert_len,
                                 const struct MLoop *mloop,
                                 int mloop_len,
-                                const struct MPoly *mpoly,
-                                int mpoly_len,
+                                const struct MPoly *polys,
+                                int polys_len,
                                 float (*r_poly_normals)[3]);
 
 /**
@@ -438,8 +438,8 @@ void BKE_mesh_calc_normals_poly_and_vertex(const float (*vert_positions)[3],
                                            int mvert_len,
                                            const struct MLoop *mloop,
                                            int mloop_len,
-                                           const struct MPoly *mpoly,
-                                           int mpoly_len,
+                                           const struct MPoly *polys,
+                                           int polys_len,
                                            float (*r_poly_normals)[3],
                                            float (*r_vert_normals)[3]);
 
@@ -466,7 +466,7 @@ void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
 void BKE_edges_sharp_from_angle_set(int numEdges,
                                     const struct MLoop *mloops,
                                     int numLoops,
-                                    const struct MPoly *mpolys,
+                                    const struct MPoly *polys,
                                     const float (*poly_normals)[3],
                                     int numPolys,
                                     float split_angle,
@@ -589,12 +589,12 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
 void BKE_mesh_normals_loop_split(const float (*vert_positions)[3],
                                  const float (*vert_normals)[3],
                                  int numVerts,
-                                 const struct MEdge *medges,
+                                 const struct MEdge *edges,
                                  int numEdges,
                                  const struct MLoop *mloops,
                                  float (*r_loop_normals)[3],
                                  int numLoops,
-                                 const struct MPoly *mpolys,
+                                 const struct MPoly *polys,
                                  const float (*poly_normals)[3],
                                  int numPolys,
                                  bool use_split_normals,
@@ -607,12 +607,12 @@ void BKE_mesh_normals_loop_split(const float (*vert_positions)[3],
 void BKE_mesh_normals_loop_custom_set(const float (*vert_positions)[3],
                                       const float (*vert_normals)[3],
                                       int numVerts,
-                                      const struct MEdge *medges,
+                                      const struct MEdge *edges,
                                       int numEdges,
                                       const struct MLoop *mloops,
                                       float (*r_custom_loop_normals)[3],
                                       int numLoops,
-                                      const struct MPoly *mpolys,
+                                      const struct MPoly *polys,
                                       const float (*poly_normals)[3],
                                       int numPolys,
                                       bool *sharp_edges,
@@ -621,11 +621,11 @@ void BKE_mesh_normals_loop_custom_from_verts_set(const float (*vert_positions)[3
                                                  const float (*vert_normals)[3],
                                                  float (*r_custom_vert_normals)[3],
                                                  int numVerts,
-                                                 const struct MEdge *medges,
+                                                 const struct MEdge *edges,
                                                  int numEdges,
                                                  const struct MLoop *mloops,
                                                  int numLoops,
-                                                 const struct MPoly *mpolys,
+                                                 const struct MPoly *polys,
                                                  const float (*poly_normals)[3],
                                                  int numPolys,
                                                  bool *sharp_edges,
@@ -679,16 +679,16 @@ void BKE_mesh_set_custom_normals_from_verts(struct Mesh *mesh, float (*r_custom_
 
 /* *** mesh_evaluate.cc *** */
 
-void BKE_mesh_calc_poly_center(const struct MPoly *mpoly,
+void BKE_mesh_calc_poly_center(const struct MPoly *poly,
                                const struct MLoop *loopstart,
                                const float (*vert_positions)[3],
                                float r_cent[3]);
 /* NOTE: passing poly-normal is only a speedup so we can skip calculating it. */
-float BKE_mesh_calc_poly_area(const struct MPoly *mpoly,
+float BKE_mesh_calc_poly_area(const struct MPoly *poly,
                               const struct MLoop *loopstart,
                               const float (*vert_positions)[3]);
 float BKE_mesh_calc_area(const struct Mesh *me);
-void BKE_mesh_calc_poly_angles(const struct MPoly *mpoly,
+void BKE_mesh_calc_poly_angles(const struct MPoly *poly,
                                const struct MLoop *loopstart,
                                const float (*vert_positions)[3],
                                float angles[]);
@@ -735,20 +735,20 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
 void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
 
 /**
- * Flip (invert winding of) the given \a mpoly, i.e. reverse order of its loops
+ * Flip (invert winding of) the given \a poly, i.e. reverse order of its loops
  * (keeping the same vertex as 'start point').
  *
- * \param mpoly: the polygon to flip.
+ * \param poly: the polygon to flip.
  * \param mloop: the full loops array.
  * \param ldata: the loops custom data.
  */
-void BKE_mesh_polygon_flip_ex(const struct MPoly *mpoly,
+void BKE_mesh_polygon_flip_ex(const struct MPoly *poly,
                               struct MLoop *mloop,
                               struct CustomData *ldata,
                               float (*lnors)[3],
                               struct MDisps *mdisp,
                               bool use_loop_mdisp_flip);
-void BKE_mesh_polygon_flip(const struct MPoly *mpoly,
+void BKE_mesh_polygon_flip(const struct MPoly *poly,
                            struct MLoop *mloop,
                            struct CustomData *ldata,
                            int totloop);
@@ -757,7 +757,7 @@ void BKE_mesh_polygon_flip(const struct MPoly *mpoly,
  *
  * \note Invalidates tessellation, caller must handle that.
  */
-void BKE_mesh_polys_flip(const struct MPoly *mpoly,
+void BKE_mesh_polys_flip(const struct MPoly *polys,
                          struct MLoop *mloop,
                          struct CustomData *ldata,
                          int totpoly);
@@ -793,7 +793,7 @@ void BKE_mesh_flush_select_from_verts(struct Mesh *me);
  * \param vert_cos_org: reference for the output location.
  * \param vert_cos_new: resulting coords.
  */
-void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
+void BKE_mesh_calc_relative_deform(const struct MPoly *polys,
                                    int totpoly,
                                    const struct MLoop *mloop,
                                    int totvert,
@@ -841,13 +841,13 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
                               unsigned int totvert,
-                              struct MEdge *medges,
+                              struct MEdge *edges,
                               unsigned int totedge,
                               struct MFace *mfaces,
                               unsigned int totface,
                               struct MLoop *mloops,
                               unsigned int totloop,
-                              struct MPoly *mpolys,
+                              struct MPoly *polys,
                               unsigned int totpoly,
                               struct MDeformVert *dverts, /* assume totvert length */
                               bool do_verbose,

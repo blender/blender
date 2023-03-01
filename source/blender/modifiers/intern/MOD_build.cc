@@ -96,7 +96,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* if there's at least one face, build based on faces */
   if (faces_dst_num) {
-    const MPoly *mpoly, *mp;
+    const MPoly *polys, *poly;
     const MLoop *ml, *mloop;
     uintptr_t hash_num, hash_num_alt;
 
@@ -107,14 +107,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* get the set of all vert indices that will be in the final mesh,
      * mapped to the new indices
      */
-    mpoly = polys_src.data();
+    polys = polys_src.data();
     mloop = loops_src.data();
     hash_num = 0;
     for (i = 0; i < faces_dst_num; i++) {
-      mp = mpoly + faceMap[i];
-      ml = mloop + mp->loopstart;
+      poly = polys + faceMap[i];
+      ml = mloop + poly->loopstart;
 
-      for (j = 0; j < mp->totloop; j++, ml++) {
+      for (j = 0; j < poly->totloop; j++, ml++) {
         void **val_p;
         if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(ml->v), &val_p)) {
           *val_p = (void *)hash_num;
@@ -122,7 +122,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         }
       }
 
-      loops_dst_num += mp->totloop;
+      loops_dst_num += poly->totloop;
     }
     BLI_assert(hash_num == BLI_ghash_len(vertHash));
 
@@ -132,10 +132,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     hash_num = 0;
     hash_num_alt = 0;
     for (i = 0; i < edges_src.size(); i++, hash_num_alt++) {
-      const MEdge *me = edges_src.data() + i;
+      const MEdge *edge = edges_src.data() + i;
 
-      if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v1)) &&
-          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v2))) {
+      if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge->v1)) &&
+          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge->v2))) {
         BLI_ghash_insert(edgeHash, (void *)hash_num, (void *)hash_num_alt);
         BLI_ghash_insert(edgeHash2, (void *)hash_num_alt, (void *)hash_num);
         hash_num++;
@@ -144,7 +144,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_assert(hash_num == BLI_ghash_len(edgeHash));
   }
   else if (edges_dst_num) {
-    const MEdge *medge, *me;
+    const MEdge *edge;
     uintptr_t hash_num;
 
     if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
@@ -154,18 +154,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* get the set of all vert indices that will be in the final mesh,
      * mapped to the new indices
      */
-    medge = edges_src.data();
+    const MEdge *edges = edges_src.data();
     hash_num = 0;
     BLI_assert(hash_num == BLI_ghash_len(vertHash));
     for (i = 0; i < edges_dst_num; i++) {
       void **val_p;
-      me = medge + edgeMap[i];
+      edge = edges + edgeMap[i];
 
-      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(me->v1), &val_p)) {
+      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge->v1), &val_p)) {
         *val_p = (void *)hash_num;
         hash_num++;
       }
-      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(me->v2), &val_p)) {
+      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge->v2), &val_p)) {
         *val_p = (void *)hash_num;
         hash_num++;
       }

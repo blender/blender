@@ -139,8 +139,8 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const MPoly *mpoly = &ctx->polys[face_index];
-  const float(*mluv)[2] = &ctx->mloopuv[mpoly->loopstart];
+  const MPoly *poly = &ctx->polys[face_index];
+  const float(*mluv)[2] = &ctx->mloopuv[poly->loopstart];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.

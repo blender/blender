@@ -567,11 +567,11 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 static int count_mesh_quads(Mesh *me)
 {
   int a, result = 0;
-  const MPoly *mp = BKE_mesh_polys(me);
+  const MPoly *poly = BKE_mesh_polys(me);
 
-  if (mp) {
-    for (a = me->totpoly; a > 0; a--, mp++) {
-      if (mp->totloop == 4) {
+  if (poly) {
+    for (a = me->totpoly; a > 0; a--, poly++) {
+      if (poly->totloop == 4) {
         result++;
       }
     }
@@ -592,7 +592,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
     nofquads = count_mesh_quads(me);
     if (nofquads) {
       const MLoop *mloop = BKE_mesh_loops(me);
-      const MPoly *mp = BKE_mesh_polys(me);
+      const MPoly *poly = BKE_mesh_polys(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -603,14 +603,14 @@ static void add_mesh_quad_diag_springs(Object *ob)
       a = 0;
       bs = &ob->soft->bspring[ob->soft->totspring];
       // bp = ob->soft->bpoint; /* UNUSED */
-      for (a = me->totpoly; a > 0; a--, mp++) {
-        if (mp->totloop == 4) {
-          bs->v1 = mloop[mp->loopstart + 0].v;
-          bs->v2 = mloop[mp->loopstart + 2].v;
+      for (a = me->totpoly; a > 0; a--, poly++) {
+        if (poly->totloop == 4) {
+          bs->v1 = mloop[poly->loopstart + 0].v;
+          bs->v2 = mloop[poly->loopstart + 2].v;
           bs->springtype = SB_STIFFQUAD;
           bs++;
-          bs->v1 = mloop[mp->loopstart + 1].v;
-          bs->v2 = mloop[mp->loopstart + 3].v;
+          bs->v1 = mloop[poly->loopstart + 1].v;
+          bs->v2 = mloop[poly->loopstart + 3].v;
           bs->springtype = SB_STIFFQUAD;
           bs++;
         }
@@ -2663,7 +2663,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
-  const MEdge *medge = BKE_mesh_edges(me);
+  const MEdge *edge = BKE_mesh_edges(me);
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;
@@ -2718,11 +2718,11 @@ static void mesh_to_softbody(Object *ob)
 
   /* but we only optionally add body edge springs */
   if (ob->softflag & OB_SB_EDGES) {
-    if (medge) {
+    if (edge) {
       bs = sb->bspring;
-      for (a = me->totedge; a > 0; a--, medge++, bs++) {
-        bs->v1 = medge->v1;
-        bs->v2 = medge->v2;
+      for (a = me->totedge; a > 0; a--, edge++, bs++) {
+        bs->v1 = edge->v1;
+        bs->v2 = edge->v2;
         bs->springtype = SB_EDGE;
       }
 

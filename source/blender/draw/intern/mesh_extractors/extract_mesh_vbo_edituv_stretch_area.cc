@@ -75,8 +75,8 @@ static void compute_area_ratio(const MeshRenderData *mr,
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
     const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
-    for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
-      const MPoly &poly = mr->polys[mp_index];
+    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+      const MPoly &poly = mr->polys[poly_index];
       float area = BKE_mesh_calc_poly_area(
           &poly,
           &mr->loops[poly.loopstart],
@@ -85,7 +85,7 @@ static void compute_area_ratio(const MeshRenderData *mr,
                                   poly.totloop);
       tot_area += area;
       tot_uv_area += uvarea;
-      r_area_ratio[mp_index] = area_ratio_get(area, uvarea);
+      r_area_ratio[poly_index] = area_ratio_get(area, uvarea);
     }
   }
 
@@ -117,10 +117,10 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    const MPoly *mp = mr->polys.data();
-    for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      for (int i = 0; i < mp->totloop; i++, l_index++) {
-        loop_stretch[l_index] = area_ratio[mp_index];
+    const MPoly *poly = mr->polys.data();
+    for (int poly_index = 0, l_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
+      for (int i = 0; i < poly->totloop; i++, l_index++) {
+        loop_stretch[l_index] = area_ratio[poly_index];
       }
     }
   }

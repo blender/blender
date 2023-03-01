@@ -85,24 +85,24 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   Array<float3> uv(loops.size(), float3(0));
 
   ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
-  for (const int mp_index : selection) {
-    const MPoly &mp = polys[mp_index];
-    Array<ParamKey, 16> mp_vkeys(mp.totloop);
-    Array<bool, 16> mp_pin(mp.totloop);
-    Array<bool, 16> mp_select(mp.totloop);
-    Array<const float *, 16> mp_co(mp.totloop);
-    Array<float *, 16> mp_uv(mp.totloop);
-    for (const int i : IndexRange(mp.totloop)) {
-      const MLoop &ml = loops[mp.loopstart + i];
+  for (const int poly_index : selection) {
+    const MPoly &poly = polys[poly_index];
+    Array<ParamKey, 16> mp_vkeys(poly.totloop);
+    Array<bool, 16> mp_pin(poly.totloop);
+    Array<bool, 16> mp_select(poly.totloop);
+    Array<const float *, 16> mp_co(poly.totloop);
+    Array<float *, 16> mp_uv(poly.totloop);
+    for (const int i : IndexRange(poly.totloop)) {
+      const MLoop &ml = loops[poly.loopstart + i];
       mp_vkeys[i] = ml.v;
       mp_co[i] = positions[ml.v];
-      mp_uv[i] = uv[mp.loopstart + i];
+      mp_uv[i] = uv[poly.loopstart + i];
       mp_pin[i] = false;
       mp_select[i] = false;
     }
     GEO_uv_parametrizer_face_add(handle,
-                                 mp_index,
-                                 mp.totloop,
+                                 poly_index,
+                                 poly.totloop,
                                  mp_vkeys.data(),
                                  mp_co.data(),
                                  mp_uv.data(),

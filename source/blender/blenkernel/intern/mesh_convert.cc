@@ -82,7 +82,7 @@ static CLG_LogRef LOG = {"bke.mesh_convert"};
 static void make_edges_mdata_extend(Mesh &mesh)
 {
   int totedge = mesh.totedge;
-  const MPoly *mp;
+  const MPoly *poly;
   int i;
 
   const Span<MPoly> polys = mesh.polys();
@@ -112,22 +112,22 @@ static void make_edges_mdata_extend(Mesh &mesh)
     CustomData_realloc(&mesh.edata, totedge, totedge + totedge_new);
     mesh.totedge += totedge_new;
     MutableSpan<MEdge> edges = mesh.edges_for_write();
-    MEdge *medge = &edges[totedge];
+    MEdge *edge = &edges[totedge];
 
     EdgeHashIterator *ehi;
     uint e_index = totedge;
     for (ehi = BLI_edgehashIterator_new(eh); BLI_edgehashIterator_isDone(ehi) == false;
-         BLI_edgehashIterator_step(ehi), ++medge, e_index++) {
-      BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
+         BLI_edgehashIterator_step(ehi), ++edge, e_index++) {
+      BLI_edgehashIterator_getKey(ehi, &edge->v1, &edge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
     }
     BLI_edgehashIterator_free(ehi);
 
-    for (i = 0, mp = polys.data(); i < mesh.totpoly; i++, mp++) {
-      MLoop *l = &loops[mp->loopstart];
-      MLoop *l_prev = (l + (mp->totloop - 1));
+    for (i = 0, poly = polys.data(); i < mesh.totpoly; i++, poly++) {
+      MLoop *l = &loops[poly->loopstart];
+      MLoop *l_prev = (l + (poly->totloop - 1));
       int j;
-      for (j = 0; j < mp->totloop; j++, l++) {
+      for (j = 0; j < poly->totloop; j++, l++) {
         /* lookup hashed edge index */
         l_prev->e = POINTER_AS_UINT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
         l_prev = l;
@@ -457,11 +457,11 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
-  const MEdge *med;
-  const MPoly *mp;
+  const MEdge *edge;
+  const MPoly *poly;
 
-  int medge_len = me->totedge;
-  int mpoly_len = me->totpoly;
+  int edges_len = me->totedge;
+  int polys_len = me->totpoly;
   int totedges = 0;
   int i;
 
@@ -471,21 +471,21 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   ListBase edges = {nullptr, nullptr};
 
   /* get boundary edges */
-  edge_users = (int *)MEM_calloc_arrayN(medge_len, sizeof(int), __func__);
-  for (i = 0, mp = polys.data(); i < mpoly_len; i++, mp++) {
-    const MLoop *ml = &loops[mp->loopstart];
+  edge_users = (int *)MEM_calloc_arrayN(edges_len, sizeof(int), __func__);
+  for (i = 0, poly = polys.data(); i < polys_len; i++, poly++) {
+    const MLoop *ml = &loops[poly->loopstart];
     int j;
-    for (j = 0; j < mp->totloop; j++, ml++) {
+    for (j = 0; j < poly->totloop; j++, ml++) {
       edge_users[ml->e]++;
     }
   }
 
   /* create edges from all faces (so as to find edges not in any faces) */
-  med = mesh_edges.data();
-  for (i = 0; i < medge_len; i++, med++) {
+  edge = mesh_edges.data();
+  for (i = 0; i < edges_len; i++, edge++) {
     if (edge_users[i] == edge_users_test) {
       EdgeLink *edl = MEM_cnew<EdgeLink>("EdgeLink");
-      edl->edge = med;
+      edl->edge = edge;
 
       BLI_addtail(&edges, edl);
       totedges++;
@@ -500,9 +500,9 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       ListBase polyline = {nullptr, nullptr}; /* store a list of VertLink's */
       bool closed = false;
       int totpoly = 0;
-      MEdge *med_current = (MEdge *)((EdgeLink *)edges.last)->edge;
-      uint startVert = med_current->v1;
-      uint endVert = med_current->v2;
+      MEdge *edge_current = (MEdge *)((EdgeLink *)edges.last)->edge;
+      uint startVert = edge_current->v1;
+      uint endVert = edge_current->v2;
       bool ok = true;
 
       appendPolyLineVert(&polyline, startVert);
@@ -518,34 +518,34 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         while (edl) {
           EdgeLink *edl_prev = edl->prev;
 
-          med = (MEdge *)edl->edge;
+          edge = (MEdge *)edl->edge;
 
-          if (med->v1 == endVert) {
-            endVert = med->v2;
-            appendPolyLineVert(&polyline, med->v2);
+          if (edge->v1 == endVert) {
+            endVert = edge->v2;
+            appendPolyLineVert(&polyline, edge->v2);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             totedges--;
             ok = true;
           }
-          else if (med->v2 == endVert) {
-            endVert = med->v1;
+          else if (edge->v2 == endVert) {
+            endVert = edge->v1;
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             totedges--;
             ok = true;
           }
-          else if (med->v1 == startVert) {
-            startVert = med->v2;
+          else if (edge->v1 == startVert) {
+            startVert = edge->v2;
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             totedges--;
             ok = true;
           }
-          else if (med->v2 == startVert) {
-            startVert = med->v1;
+          else if (edge->v2 == startVert) {
+            startVert = edge->v1;
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);

@@ -164,7 +164,7 @@ const MPoly *MeshesToIMeshInfo::input_mpoly_for_orig_index(int orig_index,
   const Span<MPoly> polys = me->polys();
   int index_in_mesh = orig_index - mesh_poly_offset[orig_mesh_index];
   BLI_assert(0 <= index_in_mesh && index_in_mesh < me->totpoly);
-  const MPoly *mp = &polys[index_in_mesh];
+  const MPoly *poly = &polys[index_in_mesh];
   if (r_orig_mesh) {
     *r_orig_mesh = me;
   }
@@ -174,7 +174,7 @@ const MPoly *MeshesToIMeshInfo::input_mpoly_for_orig_index(int orig_index,
   if (r_index_in_orig_mesh) {
     *r_index_in_orig_mesh = index_in_mesh;
   }
-  return mp;
+  return poly;
 }
 
 /* Given an index of an original vertex in the `IMesh`, find out the input
@@ -391,15 +391,15 @@ static void copy_vert_attributes(Mesh *dest_mesh,
 
 /* Similar to copy_vert_attributes but for poly attributes. */
 static void copy_poly_attributes(Mesh *dest_mesh,
-                                 MPoly *mp,
-                                 const MPoly *orig_mp,
+                                 MPoly *poly,
+                                 const MPoly *orig_poly,
                                  const Mesh *orig_me,
-                                 int mp_index,
+                                 int poly_index,
                                  int index_in_orig_me,
                                  Span<short> material_remap,
                                  MutableSpan<int> dst_material_indices)
 {
-  mp->flag = orig_mp->flag;
+  poly->flag = orig_poly->flag;
   CustomData *target_cd = &dest_mesh->pdata;
   const CustomData *source_cd = &orig_me->pdata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
@@ -411,7 +411,7 @@ static void copy_poly_attributes(Mesh *dest_mesh,
     int target_layer_i = CustomData_get_named_layer_index(target_cd, ty, name);
     if (target_layer_i != -1) {
       CustomData_copy_data_layer(
-          source_cd, target_cd, source_layer_i, target_layer_i, index_in_orig_me, mp_index, 1);
+          source_cd, target_cd, source_layer_i, target_layer_i, index_in_orig_me, poly_index, 1);
     }
   }
 
@@ -421,12 +421,12 @@ static void copy_poly_attributes(Mesh *dest_mesh,
   const int src_index = src_material_indices[index_in_orig_me];
   if (material_remap.index_range().contains(src_index)) {
     const int remapped_index = material_remap[src_index];
-    dst_material_indices[mp_index] = remapped_index >= 0 ? remapped_index : src_index;
+    dst_material_indices[poly_index] = remapped_index >= 0 ? remapped_index : src_index;
   }
   else {
-    dst_material_indices[mp_index] = src_index;
+    dst_material_indices[poly_index] = src_index;
   }
-  BLI_assert(dst_material_indices[mp_index] >= 0);
+  BLI_assert(dst_material_indices[poly_index] >= 0);
 }
 
 /* Similar to copy_vert_attributes but for edge attributes. */
@@ -452,17 +452,17 @@ static void copy_edge_attributes(Mesh *dest_mesh,
 }
 
 /**
- * For #IMesh face `f`, with corresponding output Mesh poly `mp`,
- * where the original Mesh poly is `orig_mp`, coming from the Mesh
+ * For #IMesh face `f`, with corresponding output Mesh poly `poly`,
+ * where the original Mesh poly is `orig_poly`, coming from the Mesh
  * `orig_me`, which has index `orig_me_index` in `mim`:
  * fill in the `orig_loops` Array with corresponding indices of MLoops from `orig_me`
  * where they have the same start and end vertices; for cases where that is
  * not true, put -1 in the `orig_loops` slot.
- * For now, we only try to do this if `mp` and `orig_mp` have the same size.
+ * For now, we only try to do this if `poly` and `orig_poly` have the same size.
  * Return the number of non-null MLoops filled in.
  */
 static int fill_orig_loops(const Face *f,
-                           const MPoly *orig_mp,
+                           const MPoly *orig_poly,
                            const Mesh *orig_me,
                            int orig_me_index,
                            MeshesToIMeshInfo &mim,
@@ -471,7 +471,7 @@ static int fill_orig_loops(const Face *f,
   r_orig_loops.fill(-1);
   const Span<MLoop> orig_loops = orig_me->loops();
 
-  int orig_mplen = orig_mp->totloop;
+  int orig_mplen = orig_poly->totloop;
   if (f->size() != orig_mplen) {
     return 0;
   }
@@ -496,7 +496,7 @@ static int fill_orig_loops(const Face *f,
   /* Assume all vertices in an mpoly are unique. */
   int offset = -1;
   for (int i = 0; i < orig_mplen; ++i) {
-    int loop_i = i + orig_mp->loopstart;
+    int loop_i = i + orig_poly->loopstart;
     if (orig_loops[loop_i].v == first_orig_v_in_orig_me) {
       offset = i;
       break;
@@ -508,7 +508,7 @@ static int fill_orig_loops(const Face *f,
   int num_orig_loops_found = 0;
   for (int mp_loop_index = 0; mp_loop_index < orig_mplen; ++mp_loop_index) {
     int orig_mp_loop_index = (mp_loop_index + offset) % orig_mplen;
-    const MLoop *l = &orig_loops[orig_mp->loopstart + orig_mp_loop_index];
+    const MLoop *l = &orig_loops[orig_poly->loopstart + orig_mp_loop_index];
     int fv_orig = f->vert[mp_loop_index]->orig;
     if (fv_orig != NO_INDEX) {
       fv_orig -= orig_me_vert_offset;
@@ -518,7 +518,7 @@ static int fill_orig_loops(const Face *f,
     }
     if (l->v == fv_orig) {
       const MLoop *lnext =
-          &orig_loops[orig_mp->loopstart + ((orig_mp_loop_index + 1) % orig_mplen)];
+          &orig_loops[orig_poly->loopstart + ((orig_mp_loop_index + 1) % orig_mplen)];
       int fvnext_orig = f->vert[(mp_loop_index + 1) % orig_mplen]->orig;
       if (fvnext_orig != NO_INDEX) {
         fvnext_orig -= orig_me_vert_offset;
@@ -527,7 +527,7 @@ static int fill_orig_loops(const Face *f,
         }
       }
       if (lnext->v == fvnext_orig) {
-        r_orig_loops[mp_loop_index] = orig_mp->loopstart + orig_mp_loop_index;
+        r_orig_loops[mp_loop_index] = orig_poly->loopstart + orig_mp_loop_index;
         ++num_orig_loops_found;
       }
     }
@@ -535,24 +535,24 @@ static int fill_orig_loops(const Face *f,
   return num_orig_loops_found;
 }
 
-/* Fill `cos_2d` with the 2d coordinates found by projection MPoly `mp` along
+/* Fill `cos_2d` with the 2d coordinates found by projection MPoly `poly` along
  * its normal. Also fill in r_axis_mat with the matrix that does that projection.
  * But before projecting, also transform the 3d coordinate by multiplying by trans_mat.
- * `cos_2d` should have room for `mp->totloop` entries. */
+ * `cos_2d` should have room for `poly->totloop` entries. */
 static void get_poly2d_cos(const Mesh *me,
-                           const MPoly *mp,
+                           const MPoly *poly,
                            float (*cos_2d)[2],
                            const float4x4 &trans_mat,
                            float r_axis_mat[3][3])
 {
   const Span<float3> positions = me->vert_positions();
   const Span<MLoop> loops = me->loops();
-  const Span<MLoop> poly_loops = loops.slice(mp->loopstart, mp->totloop);
+  const Span<MLoop> poly_loops = loops.slice(poly->loopstart, poly->totloop);
 
   /* Project coordinates to 2d in cos_2d, using normal as projection axis. */
   float axis_dominant[3];
-  BKE_mesh_calc_poly_normal(mp,
-                            &loops[mp->loopstart],
+  BKE_mesh_calc_poly_normal(poly,
+                            &loops[poly->loopstart],
                             reinterpret_cast<const float(*)[3]>(positions.data()),
                             axis_dominant);
   axis_dominant_v3_to_m3(r_axis_mat, axis_dominant);
@@ -563,41 +563,41 @@ static void get_poly2d_cos(const Mesh *me,
   }
 }
 
-/* For the loops of `mp`, see if the face is unchanged from `orig_mp`, and if so,
+/* For the loops of `poly`, see if the face is unchanged from `orig_poly`, and if so,
  * copy the Loop attributes from corresponding loops to corresponding loops.
- * Otherwise, interpolate the Loop attributes in the face `orig_mp`. */
+ * Otherwise, interpolate the Loop attributes in the face `orig_poly`. */
 static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
                                            const Face *f,
-                                           MPoly *mp,
-                                           const MPoly *orig_mp,
+                                           MPoly *poly,
+                                           const MPoly *orig_poly,
                                            const Mesh *orig_me,
                                            int orig_me_index,
                                            MeshesToIMeshInfo &mim)
 {
-  Array<int> orig_loops(mp->totloop);
-  int norig = fill_orig_loops(f, orig_mp, orig_me, orig_me_index, mim, orig_loops);
+  Array<int> orig_loops(poly->totloop);
+  int norig = fill_orig_loops(f, orig_poly, orig_me, orig_me_index, mim, orig_loops);
   /* We may need these arrays if we have to interpolate Loop attributes rather than just copy.
    * Right now, trying Array<float[2]> complains, so declare cos_2d a different way. */
   float(*cos_2d)[2];
   Array<float> weights;
   Array<const void *> src_blocks_ofs;
   float axis_mat[3][3];
-  if (norig != mp->totloop) {
-    /* We will need to interpolate. Make `cos_2d` hold 2d-projected coordinates of `orig_mp`,
+  if (norig != poly->totloop) {
+    /* We will need to interpolate. Make `cos_2d` hold 2d-projected coordinates of `orig_poly`,
      * which are transformed into object 0's local space before projecting.
      * At this point we cannot yet calculate the interpolation weights, as they depend on
      * the coordinate where interpolation is to happen, but we can allocate the needed arrays,
      * so they don't have to be allocated per-layer. */
-    cos_2d = (float(*)[2])BLI_array_alloca(cos_2d, orig_mp->totloop);
-    weights = Array<float>(orig_mp->totloop);
-    src_blocks_ofs = Array<const void *>(orig_mp->totloop);
-    get_poly2d_cos(orig_me, orig_mp, cos_2d, mim.to_target_transform[orig_me_index], axis_mat);
+    cos_2d = (float(*)[2])BLI_array_alloca(cos_2d, orig_poly->totloop);
+    weights = Array<float>(orig_poly->totloop);
+    src_blocks_ofs = Array<const void *>(orig_poly->totloop);
+    get_poly2d_cos(orig_me, orig_poly, cos_2d, mim.to_target_transform[orig_me_index], axis_mat);
   }
   CustomData *target_cd = &dest_mesh->ldata;
   const Span<float3> dst_positions = dest_mesh->vert_positions();
   const Span<MLoop> dst_loops = dest_mesh->loops();
-  for (int i = 0; i < mp->totloop; ++i) {
-    int loop_index = mp->loopstart + i;
+  for (int i = 0; i < poly->totloop; ++i) {
+    int loop_index = poly->loopstart + i;
     int orig_loop_index = norig > 0 ? orig_loops[i] : -1;
     const CustomData *source_cd = &orig_me->ldata;
     if (orig_loop_index == -1) {
@@ -606,7 +606,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
        * coordinates were. The `dest_mesh` coordinates are already in object 0 local space. */
       float co[2];
       mul_v2_m3v3(co, axis_mat, dst_positions[dst_loops[loop_index].v]);
-      interp_weights_poly_v2(weights.data(), cos_2d, orig_mp->totloop, co);
+      interp_weights_poly_v2(weights.data(), cos_2d, orig_poly->totloop, co);
     }
     for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
       int ty = source_cd->layers[source_layer_i].type;
@@ -635,9 +635,9 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
         int source_layer_type_index = source_layer_i - source_cd->typemap[ty];
         BLI_assert(target_layer_type_index != -1 && source_layer_type_index >= 0);
         const int size = CustomData_sizeof(ty);
-        for (int j = 0; j < orig_mp->totloop; ++j) {
+        for (int j = 0; j < orig_poly->totloop; ++j) {
           const void *layer = CustomData_get_layer_n(source_cd, ty, source_layer_type_index);
-          src_blocks_ofs[j] = POINTER_OFFSET(layer, size * (orig_mp->loopstart + j));
+          src_blocks_ofs[j] = POINTER_OFFSET(layer, size * (orig_poly->loopstart + j));
         }
         void *dst_layer = CustomData_get_layer_n_for_write(
             target_cd, ty, target_layer_type_index, dest_mesh->totloop);
@@ -646,7 +646,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
                                   src_blocks_ofs.data(),
                                   weights.data(),
                                   nullptr,
-                                  orig_mp->totloop,
+                                  orig_poly->totloop,
                                   dst_block_ofs,
                                   target_layer_i);
       }
@@ -737,11 +737,11 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
     const Mesh *orig_me;
     int index_in_orig_me;
     int orig_me_index;
-    const MPoly *orig_mp = mim.input_mpoly_for_orig_index(
+    const MPoly *orig_poly = mim.input_mpoly_for_orig_index(
         f->orig, &orig_me, &orig_me_index, &index_in_orig_me);
-    MPoly *mp = &dst_polys[fi];
-    mp->totloop = f->size();
-    mp->loopstart = cur_loop_index;
+    MPoly *poly = &dst_polys[fi];
+    poly->totloop = f->size();
+    poly->loopstart = cur_loop_index;
     for (int j : f->index_range()) {
       const Vert *vf = f->vert[j];
       const int vfi = im->lookup_vert(vf);
@@ -751,8 +751,8 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
     }
 
     copy_poly_attributes(result,
-                         mp,
-                         orig_mp,
+                         poly,
+                         orig_poly,
                          orig_me,
                          fi,
                          index_in_orig_me,
@@ -760,7 +760,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
                              mim.material_remaps[orig_me_index].as_span() :
                              Span<short>(),
                          dst_material_indices.span);
-    copy_or_interp_loop_attributes(result, f, mp, orig_mp, orig_me, orig_me_index, mim);
+    copy_or_interp_loop_attributes(result, f, poly, orig_poly, orig_me, orig_me_index, mim);
   }
   dst_material_indices.finish();
 
@@ -773,13 +773,13 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
    */
   for (int fi : im->face_index_range()) {
     const Face *f = im->face(fi);
-    const MPoly *mp = &dst_polys[fi];
+    const MPoly *poly = &dst_polys[fi];
     for (int j : f->index_range()) {
       if (f->edge_orig[j] != NO_INDEX) {
         const Mesh *orig_me;
         int index_in_orig_me;
         mim.input_medge_for_orig_index(f->edge_orig[j], &orig_me, &index_in_orig_me);
-        int e_index = dst_loops[mp->loopstart + j].e;
+        int e_index = dst_loops[poly->loopstart + j].e;
         copy_edge_attributes(result, orig_me, e_index, index_in_orig_me);
       }
     }

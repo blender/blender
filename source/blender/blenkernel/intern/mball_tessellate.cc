@@ -1468,7 +1468,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   process.co = nullptr;
 
   mesh->totpoly = int(process.curindex);
-  MPoly *mpoly = static_cast<MPoly *>(
+  MPoly *polys = static_cast<MPoly *>(
       CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, nullptr, mesh->totpoly));
   MLoop *mloop = static_cast<MLoop *>(
       CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, nullptr, mesh->totpoly * 4));
@@ -1478,9 +1478,9 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
     const int *indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
-    mpoly[i].loopstart = loop_offset;
-    mpoly[i].totloop = count;
-    mpoly[i].flag = ME_SMOOTH;
+    polys[i].loopstart = loop_offset;
+    polys[i].totloop = count;
+    polys[i].flag = ME_SMOOTH;
 
     mloop[loop_offset].v = uint32_t(indices[0]);
     mloop[loop_offset + 1].v = uint32_t(indices[1]);
