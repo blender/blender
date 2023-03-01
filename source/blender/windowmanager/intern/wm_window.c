@@ -2099,6 +2099,17 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
   return win_other;
 }
 
+wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area)
+{
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    bScreen *sc = WM_window_get_active_screen(win);
+    if (BLI_findindex(&sc->areabase, area) != -1) {
+      return win;
+    }
+  }
+  return NULL;
+}
+
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],

@@ -143,6 +143,13 @@ void WM_reinit_gizmomap_all(struct Main *bmain);
 void WM_script_tag_reload(void);
 
 wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
+
+/**
+ * Knowing the area, return it's screen.
+ * \note This should typically be avoided, only use when the context is not available.
+ */
+wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area);
+
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],
