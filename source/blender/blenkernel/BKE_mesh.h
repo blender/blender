@@ -871,15 +871,6 @@ bool BKE_mesh_validate_all_customdata(struct CustomData *vdata,
                                       bool *r_change);
 
 void BKE_mesh_strip_loose_faces(struct Mesh *me);
-/**
- * Works on both loops and polys!
- *
- * \note It won't try to guess which loops of an invalid poly to remove!
- * this is the work of the caller, to mark those loops.
- * See e.g. #BKE_mesh_validate_arrays().
- */
-void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
-void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
 /**
  * Calculate edges from polygons.
@@ -921,7 +912,7 @@ void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
 
 /**
  * \return The material index for each polygon. May be null.
- * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ * \note In C++ code, prefer using the attribute API (#AttributeAccessor).
  */
 BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
 {
@@ -930,7 +921,7 @@ BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
 
 /**
  * \return The material index for each polygon. Create the layer if it doesn't exist.
- * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor).
  */
 BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
 {

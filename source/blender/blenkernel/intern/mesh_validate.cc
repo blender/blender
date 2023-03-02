@@ -42,6 +42,9 @@ using blender::Span;
 
 static CLG_LogRef LOG = {"bke.mesh"};
 
+void mesh_strip_polysloops(Mesh *me);
+void mesh_strip_edges(Mesh *me);
+
 /* -------------------------------------------------------------------- */
 /** \name Internal functions
  * \{ */
@@ -862,11 +865,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     if (free_flag.polyloops) {
-      BKE_mesh_strip_loose_polysloops(mesh);
+      mesh_strip_polysloops(mesh);
     }
 
     if (free_flag.edges) {
-      BKE_mesh_strip_loose_edges(mesh);
+      mesh_strip_edges(mesh);
     }
 
     if (recalc_flag.edges) {
@@ -1205,7 +1208,7 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   }
 }
 
-void BKE_mesh_strip_loose_polysloops(Mesh *me)
+void mesh_strip_polysloops(Mesh *me)
 {
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
@@ -1279,7 +1282,7 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
   MEM_freeN(new_idx);
 }
 
-void BKE_mesh_strip_loose_edges(Mesh *me)
+void mesh_strip_edges(Mesh *me)
 {
   MEdge *e;
   int a, b;
