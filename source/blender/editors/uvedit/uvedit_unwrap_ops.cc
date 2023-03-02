@@ -69,6 +69,9 @@
 
 #include "uvedit_intern.h"
 
+using blender::geometry::ParamHandle;
+using blender::geometry::ParamKey;
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -335,7 +338,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
     if (pin) {
       int bmvertindex = BM_elem_index_get(l->v);
       const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-      GEO_uv_prepare_pin_index(handle, bmvertindex, luv);
+      blender::geometry::uv_prepare_pin_index(handle, bmvertindex, luv);
     }
   }
 }
@@ -343,7 +346,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
 static void construct_param_handle_face_add(ParamHandle *handle,
                                             const Scene *scene,
                                             BMFace *efa,
-                                            ParamKey face_index,
+                                            blender::geometry::ParamKey face_index,
                                             const UnwrapOptions *options,
                                             const BMUVOffsets offsets)
 {
@@ -362,7 +365,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
   BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
     float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
 
-    vkeys[i] = GEO_uv_find_pin_index(handle, BM_elem_index_get(l->v), luv);
+    vkeys[i] = blender::geometry::uv_find_pin_index(handle, BM_elem_index_get(l->v), luv);
     co[i] = l->v->co;
     uv[i] = luv;
     pin[i] = BM_ELEM_CD_GET_BOOL(l, offsets.pin);
@@ -372,7 +375,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
     }
   }
 
-  GEO_uv_parametrizer_face_add(
+  blender::geometry::uv_parametrizer_face_add(
       handle, face_index, i, vkeys.data(), co.data(), uv.data(), pin.data(), select.data());
 }
 
@@ -406,11 +409,12 @@ static void construct_param_edge_set_seams(ParamHandle *handle,
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
       float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, offsets.uv);
       ParamKey vkeys[2];
-      vkeys[0] = GEO_uv_find_pin_index(handle, BM_elem_index_get(l->v), luv);
-      vkeys[1] = GEO_uv_find_pin_index(handle, BM_elem_index_get(l->next->v), luv_next);
+      vkeys[0] = blender::geometry::uv_find_pin_index(handle, BM_elem_index_get(l->v), luv);
+      vkeys[1] = blender::geometry::uv_find_pin_index(
+          handle, BM_elem_index_get(l->next->v), luv_next);
 
       /* Set the seam. */
-      GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
+      blender::geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
     }
   }
 }
@@ -428,7 +432,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   BMIter iter;
   int i;
 
-  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -436,7 +440,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
     ED_uvedit_get_aspect(ob, &aspx, &aspy);
 
     if (aspx != aspy) {
-      GEO_uv_parametrizer_aspect_ratio(handle, aspx, aspy);
+      blender::geometry::uv_parametrizer_aspect_ratio(handle, aspx, aspy);
     }
   }
 
@@ -458,10 +462,11 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 
   construct_param_edge_set_seams(handle, bm, options);
 
-  GEO_uv_parametrizer_construct_end(handle,
-                                    options->fill_holes,
-                                    options->topology_from_uvs,
-                                    result_info ? &result_info->count_failed : nullptr);
+  blender::geometry::uv_parametrizer_construct_end(handle,
+                                                   options->fill_holes,
+                                                   options->topology_from_uvs,
+                                                   result_info ? &result_info->count_failed :
+                                                                 nullptr);
 
   return handle;
 }
@@ -478,7 +483,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
   BMIter iter;
   int i;
 
-  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     Object *ob = objects[0];
@@ -486,7 +491,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 
     ED_uvedit_get_aspect(ob, &aspx, &aspy);
     if (aspx != aspy) {
-      GEO_uv_parametrizer_aspect_ratio(handle, aspx, aspy);
+      blender::geometry::uv_parametrizer_aspect_ratio(handle, aspx, aspy);
     }
   }
 
@@ -523,7 +528,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
     offset += bm->totface;
   }
 
-  GEO_uv_parametrizer_construct_end(
+  blender::geometry::uv_parametrizer_construct_end(
       handle, options->fill_holes, options->topology_from_uvs, nullptr);
 
   return handle;
@@ -607,7 +612,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
-  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -615,7 +620,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     ED_uvedit_get_aspect(ob, &aspx, &aspy);
 
     if (aspx != aspy) {
-      GEO_uv_parametrizer_aspect_ratio(handle, aspx, aspy);
+      blender::geometry::uv_parametrizer_aspect_ratio(handle, aspx, aspy);
     }
   }
 
@@ -712,7 +717,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     texface_from_original_index(
         scene, offsets, origFace, origVertIndices[mloop[3].v], &uv[3], &pin[3], &select[3]);
 
-    GEO_uv_parametrizer_face_add(handle, key, 4, vkeys, co, uv, pin, select);
+    blender::geometry::uv_parametrizer_face_add(handle, key, 4, vkeys, co, uv, pin, select);
   }
 
   /* these are calculated from original mesh too */
@@ -722,14 +727,15 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       ParamKey vkeys[2];
       vkeys[0] = (ParamKey)edge->v1;
       vkeys[1] = (ParamKey)edge->v2;
-      GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
+      blender::geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
     }
   }
 
-  GEO_uv_parametrizer_construct_end(handle,
-                                    options->fill_holes,
-                                    options->topology_from_uvs,
-                                    result_info ? &result_info->count_failed : nullptr);
+  blender::geometry::uv_parametrizer_construct_end(handle,
+                                                   options->fill_holes,
+                                                   options->topology_from_uvs,
+                                                   result_info ? &result_info->count_failed :
+                                                                 nullptr);
 
   /* cleanup */
   MEM_freeN(faceMap);
@@ -787,9 +793,9 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
   ms->handle = construct_param_handle_multi(scene, objects, objects_len, &options);
   ms->lasttime = PIL_check_seconds_timer();
 
-  GEO_uv_parametrizer_stretch_begin(ms->handle);
+  blender::geometry::uv_parametrizer_stretch_begin(ms->handle);
   if (ms->blend != 0.0f) {
-    GEO_uv_parametrizer_stretch_blend(ms->handle, ms->blend);
+    blender::geometry::uv_parametrizer_stretch_blend(ms->handle, ms->blend);
   }
 
   op->customdata = ms;
@@ -805,8 +811,8 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
-  GEO_uv_parametrizer_stretch_blend(ms->handle, ms->blend);
-  GEO_uv_parametrizer_stretch_iter(ms->handle);
+  blender::geometry::uv_parametrizer_stretch_blend(ms->handle, ms->blend);
+  blender::geometry::uv_parametrizer_stretch_iter(ms->handle);
 
   ms->i++;
   RNA_int_set(op->ptr, "iterations", ms->i);
@@ -814,7 +820,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
   if (interactive && (PIL_check_seconds_timer() - ms->lasttime > 0.5)) {
     char str[UI_MAX_DRAW_STR];
 
-    GEO_uv_parametrizer_flush(ms->handle);
+    blender::geometry::uv_parametrizer_flush(ms->handle);
 
     if (area) {
       BLI_snprintf(str, sizeof(str), TIP_("Minimize Stretch. Blend %.2f"), ms->blend);
@@ -854,14 +860,14 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
   }
 
   if (cancel) {
-    GEO_uv_parametrizer_flush_restore(ms->handle);
+    blender::geometry::uv_parametrizer_flush_restore(ms->handle);
   }
   else {
-    GEO_uv_parametrizer_flush(ms->handle);
+    blender::geometry::uv_parametrizer_flush(ms->handle);
   }
 
-  GEO_uv_parametrizer_stretch_end(ms->handle);
-  GEO_uv_parametrizer_delete(ms->handle);
+  blender::geometry::uv_parametrizer_stretch_end(ms->handle);
+  blender::geometry::uv_parametrizer_delete(ms->handle);
 
   for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
     Object *obedit = ms->objects_edit[ob_index];
@@ -1175,9 +1181,9 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
   const bool shear = RNA_boolean_get(op->ptr, "shear");
 
   ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, &options);
-  GEO_uv_parametrizer_average(handle, false, scale_uv, shear);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
+  blender::geometry::uv_parametrizer_average(handle, false, scale_uv, shear);
+  blender::geometry::uv_parametrizer_flush(handle);
+  blender::geometry::uv_parametrizer_delete(handle);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -1250,7 +1256,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
     handle = construct_param_handle(scene, obedit, em->bm, &options, nullptr);
   }
 
-  GEO_uv_parametrizer_lscm_begin(handle, true, abf);
+  blender::geometry::uv_parametrizer_lscm_begin(handle, true, abf);
 
   /* Create or increase size of g_live_unwrap.handles array */
   if (g_live_unwrap.handles == nullptr) {
@@ -1272,8 +1278,8 @@ void ED_uvedit_live_unwrap_re_solve(void)
 {
   if (g_live_unwrap.handles) {
     for (int i = 0; i < g_live_unwrap.len; i++) {
-      GEO_uv_parametrizer_lscm_solve(g_live_unwrap.handles[i], nullptr, nullptr);
-      GEO_uv_parametrizer_flush(g_live_unwrap.handles[i]);
+      blender::geometry::uv_parametrizer_lscm_solve(g_live_unwrap.handles[i], nullptr, nullptr);
+      blender::geometry::uv_parametrizer_flush(g_live_unwrap.handles[i]);
     }
   }
 }
@@ -1282,11 +1288,11 @@ void ED_uvedit_live_unwrap_end(short cancel)
 {
   if (g_live_unwrap.handles) {
     for (int i = 0; i < g_live_unwrap.len; i++) {
-      GEO_uv_parametrizer_lscm_end(g_live_unwrap.handles[i]);
+      blender::geometry::uv_parametrizer_lscm_end(g_live_unwrap.handles[i]);
       if (cancel) {
-        GEO_uv_parametrizer_flush_restore(g_live_unwrap.handles[i]);
+        blender::geometry::uv_parametrizer_flush_restore(g_live_unwrap.handles[i]);
       }
-      GEO_uv_parametrizer_delete(g_live_unwrap.handles[i]);
+      blender::geometry::uv_parametrizer_delete(g_live_unwrap.handles[i]);
     }
     MEM_freeN(g_live_unwrap.handles);
     g_live_unwrap.handles = nullptr;
@@ -1807,17 +1813,19 @@ static void uvedit_unwrap(const Scene *scene,
     handle = construct_param_handle(scene, obedit, em->bm, options, result_info);
   }
 
-  GEO_uv_parametrizer_lscm_begin(handle, false, scene->toolsettings->unwrapper == 0);
-  GEO_uv_parametrizer_lscm_solve(handle,
-                                 result_info ? &result_info->count_changed : nullptr,
-                                 result_info ? &result_info->count_failed : nullptr);
-  GEO_uv_parametrizer_lscm_end(handle);
+  blender::geometry::uv_parametrizer_lscm_begin(
+      handle, false, scene->toolsettings->unwrapper == 0);
+  blender::geometry::uv_parametrizer_lscm_solve(
+      handle,
+      result_info ? &result_info->count_changed : nullptr,
+      result_info ? &result_info->count_failed : nullptr);
+  blender::geometry::uv_parametrizer_lscm_end(handle);
 
-  GEO_uv_parametrizer_average(handle, true, false, false);
+  blender::geometry::uv_parametrizer_average(handle, true, false, false);
 
-  GEO_uv_parametrizer_flush(handle);
+  blender::geometry::uv_parametrizer_flush(handle);
 
-  GEO_uv_parametrizer_delete(handle);
+  blender::geometry::uv_parametrizer_delete(handle);
 }
 
 static void uvedit_unwrap_multi(const Scene *scene,

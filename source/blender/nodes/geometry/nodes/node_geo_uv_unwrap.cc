@@ -84,10 +84,10 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 
   Array<float3> uv(loops.size(), float3(0));
 
-  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
+  geometry::ParamHandle *handle = geometry::uv_parametrizer_construct_begin();
   for (const int poly_index : selection) {
     const MPoly &poly = polys[poly_index];
-    Array<ParamKey, 16> mp_vkeys(poly.totloop);
+    Array<geometry::ParamKey, 16> mp_vkeys(poly.totloop);
     Array<bool, 16> mp_pin(poly.totloop);
     Array<bool, 16> mp_select(poly.totloop);
     Array<const float *, 16> mp_co(poly.totloop);
@@ -100,31 +100,32 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
       mp_pin[i] = false;
       mp_select[i] = false;
     }
-    GEO_uv_parametrizer_face_add(handle,
-                                 poly_index,
-                                 poly.totloop,
-                                 mp_vkeys.data(),
-                                 mp_co.data(),
-                                 mp_uv.data(),
-                                 mp_pin.data(),
-                                 mp_select.data());
+    geometry::uv_parametrizer_face_add(handle,
+                                       poly_index,
+                                       poly.totloop,
+                                       mp_vkeys.data(),
+                                       mp_co.data(),
+                                       mp_uv.data(),
+                                       mp_pin.data(),
+                                       mp_select.data());
   }
   for (const int i : seam) {
     const MEdge &edge = edges[i];
-    ParamKey vkeys[2]{edge.v1, edge.v2};
-    GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
+    geometry::ParamKey vkeys[2]{edge.v1, edge.v2};
+    geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
   }
   /* TODO: once field input nodes are able to emit warnings (#94039), emit a
    * warning if we fail to solve an island. */
-  GEO_uv_parametrizer_construct_end(handle, fill_holes, false, nullptr);
+  geometry::uv_parametrizer_construct_end(handle, fill_holes, false, nullptr);
 
-  GEO_uv_parametrizer_lscm_begin(handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED);
-  GEO_uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
-  GEO_uv_parametrizer_lscm_end(handle);
-  GEO_uv_parametrizer_average(handle, true, false, false);
-  GEO_uv_parametrizer_pack(handle, margin, true, true);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
+  geometry::uv_parametrizer_lscm_begin(
+      handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED);
+  geometry::uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
+  geometry::uv_parametrizer_lscm_end(handle);
+  geometry::uv_parametrizer_average(handle, true, false, false);
+  geometry::uv_parametrizer_pack(handle, margin, true, true);
+  geometry::uv_parametrizer_flush(handle);
+  geometry::uv_parametrizer_delete(handle);
 
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);

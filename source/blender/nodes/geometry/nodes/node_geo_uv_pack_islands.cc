@@ -56,10 +56,10 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());
   evaluator.evaluate();
 
-  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
+  geometry::ParamHandle *handle = geometry::uv_parametrizer_construct_begin();
   for (const int poly_index : selection) {
     const MPoly &poly = polys[poly_index];
-    Array<ParamKey, 16> mp_vkeys(poly.totloop);
+    Array<geometry::ParamKey, 16> mp_vkeys(poly.totloop);
     Array<bool, 16> mp_pin(poly.totloop);
     Array<bool, 16> mp_select(poly.totloop);
     Array<const float *, 16> mp_co(poly.totloop);
@@ -72,20 +72,20 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
       mp_pin[i] = false;
       mp_select[i] = false;
     }
-    GEO_uv_parametrizer_face_add(handle,
-                                 poly_index,
-                                 poly.totloop,
-                                 mp_vkeys.data(),
-                                 mp_co.data(),
-                                 mp_uv.data(),
-                                 mp_pin.data(),
-                                 mp_select.data());
+    geometry::uv_parametrizer_face_add(handle,
+                                       poly_index,
+                                       poly.totloop,
+                                       mp_vkeys.data(),
+                                       mp_co.data(),
+                                       mp_uv.data(),
+                                       mp_pin.data(),
+                                       mp_select.data());
   }
-  GEO_uv_parametrizer_construct_end(handle, true, true, nullptr);
+  geometry::uv_parametrizer_construct_end(handle, true, true, nullptr);
 
-  GEO_uv_parametrizer_pack(handle, margin, rotate, true);
-  GEO_uv_parametrizer_flush(handle);
-  GEO_uv_parametrizer_delete(handle);
+  geometry::uv_parametrizer_pack(handle, margin, rotate, true);
+  geometry::uv_parametrizer_flush(handle);
+  geometry::uv_parametrizer_delete(handle);
 
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);

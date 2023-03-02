@@ -466,7 +466,7 @@ static bool island_has_pins(const Scene *scene,
 /* -------------------------------------------------------------------- */
 /** \name Public UV Island Packing
  *
- * \note This behavior loosely follows #GEO_uv_parametrizer_pack.
+ * \note This behavior loosely follows #geometry::uv_parametrizer_pack.
  * \{ */
 
 void ED_uvedit_pack_islands_multi(const Scene *scene,

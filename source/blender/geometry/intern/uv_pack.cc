@@ -152,7 +152,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
 static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_vector,
                                               const UVPackIsland_Params &params)
 {
-  /* Logic matches behavior from #GEO_uv_parametrizer_pack.
+  /* Logic matches behavior from #geometry::uv_parametrizer_pack.
    * Attempt to give predictable results not dependent on current UV scale by using
    * `aabb_length_sum` (was "`area`") to multiply the margin by the length (was "area"). */
   double aabb_length_sum = 0.0f;
