@@ -2985,9 +2985,53 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
   return changed || found;
 }
 
-static int view3d_select_exec(bContext *C, wmOperator *op)
+/**
+ * Cursor selection for the Curves object.
+ * 
+ * \returns true if the selection changed.
+ */
+static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPick_Params &params)
 {
   using namespace blender;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
+  ViewContext vc;
+  /* Setup view context for argument to callbacks. */
+  ED_view3d_viewcontext_init(&C, &vc, depsgraph);
+
+  uint bases_len;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d, &bases_len);
+
+  bool changed = false;
+  ed::curves::FindClosestData closest_data;
+  for (uint base_index = 0; base_index < bases_len; base_index++) {
+    Base *base = bases[base_index];
+    Object *curves_ob = base->object;
+    Curves &curves_id = *static_cast<Curves *>(curves_ob->data);
+    bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+
+    if (ed::curves::select_pick(vc,
+                                *curves_ob,
+                                curves,
+                                eAttrDomain(curves_id.selection_domain),
+                                params,
+                                mval,
+                                closest_data)) {
+      changed = true;
+      /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+       * generic attribute for now. */
+      DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
+    }
+  }
+
+  MEM_freeN(bases);
+
+  return changed;
+}
+
+static int view3d_select_exec(bContext *C, wmOperator *op)
+{
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
@@ -3077,16 +3121,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
       changed = ED_curve_editfont_select_pick(C, mval, &params);
     }
     else if (obedit->type == OB_CURVES) {
-      Curves &curves_id = *static_cast<Curves *>(obact->data);
-      bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-      changed = ed::curves::select_pick(
-          vc, curves, eAttrDomain(curves_id.selection_domain), params, mval);
-      if (changed) {
-        /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-         * generic attribute for now. */
-        DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
-        WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
-      }
+      changed = ed_curves_select_pick(*C, mval, params);
     }
   }
   else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {

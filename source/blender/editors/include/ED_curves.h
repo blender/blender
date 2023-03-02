@@ -149,13 +149,23 @@ void select_random(bke::CurvesGeometry &curves,
                    float probability);
 
 /**
+ * Helper struct for `select_pick`.
+ */
+struct FindClosestData {
+  int index = -1;
+  float distance = FLT_MAX;
+};
+
+/**
  * Select point or curve at a (screen-space) point.
  */
 bool select_pick(const ViewContext &vc,
+                 const Object &object,
                  bke::CurvesGeometry &curves,
                  eAttrDomain selection_domain,
                  const SelectPick_Params &params,
-                 int2 coord);
+                 int2 coord,
+                 FindClosestData initial = {});
 
 /**
  * Select points or curves in a (screen-space) rectangle.
