@@ -555,7 +555,7 @@ static int startffmpeg(struct anim *anim)
   avcodec_parameters_to_context(pCodecCtx, video_stream->codecpar);
   pCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
 
-  if (pCodec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+  if (pCodec->capabilities & AV_CODEC_CAP_OTHER_THREADS) {
     pCodecCtx->thread_count = 0;
   }
   else {
