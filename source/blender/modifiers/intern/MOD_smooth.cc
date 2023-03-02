@@ -107,7 +107,7 @@ static void smoothModifier_do(
       memset(accumulated_vecs_count, 0, sizeof(*accumulated_vecs_count) * (size_t)verts_num);
     }
 
-for (const int i : edges.index_range()) {
+    for (const int i : edges.index_range()) {
       float fvec[3];
       const uint idx1 = edges[i].v1;
       const uint idx2 = edges[i].v2;

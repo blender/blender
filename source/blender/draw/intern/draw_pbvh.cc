@@ -346,7 +346,8 @@ struct PBVHBatches {
 
         if (!(poly->flag & ME_SMOOTH)) {
           smooth = true;
-          BKE_mesh_calc_poly_normal(poly, args->mloop + poly->loopstart, args->vert_positions, fno);
+          BKE_mesh_calc_poly_normal(
+              poly, args->mloop + poly->loopstart, args->vert_positions, fno);
           normal_float_to_short_v3(no, fno);
         }
         else {
