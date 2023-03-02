@@ -522,6 +522,12 @@ void WM_window_set_dpi(const wmWindow *win)
 /**
  * When windows are activated, simulate modifier press/release to match the current state of
  * held modifier keys, see #40317.
+ *
+ * NOTE(@ideasman42): There is a bug in Windows11 where Alt-Tab sends an Alt-press event
+ * to the window after it's deactivated, this means window de-activation is not a fool-proof
+ * way of ensuring modifier keys are cleared for inactive windows. So any event added to an
+ * inactive window must run #wm_window_update_eventstate_modifiers first to ensure no modifier
+ * keys are held. See: #105277.
  */
 static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow *win)
 {
@@ -1395,6 +1401,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventDraggingDropDone: {
         GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
 
+        /* Ensure the event state matches modifiers (window was inactive). */
+        wm_window_update_eventstate_modifiers(wm, win);
         /* Entering window, update mouse position (without sending an event). */
         wm_window_update_eventstate(win);
 
@@ -1492,6 +1500,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         if (win->active == 0) {
           /* Entering window, update cursor/tablet state & modifiers.
            * (ghost sends win-activate *after* the mouse-click in window!) */
+          wm_window_update_eventstate_modifiers(wm, win);
           wm_window_update_eventstate(win);
         }
 
