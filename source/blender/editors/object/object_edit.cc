@@ -146,7 +146,7 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
   ID *id_pin = nullptr;
   const bool use_objects_in_mode = (ob_active != nullptr) &&
                                    (ob_active->mode & (OB_MODE_EDIT | OB_MODE_POSE));
-  const char space_type = area ? area->spacetype : SPACE_EMPTY;
+  const eSpace_Type space_type = area ? eSpace_Type(area->spacetype) : SPACE_EMPTY;
   Object **objects;
 
   Object *ob = nullptr;

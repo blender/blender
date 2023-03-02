@@ -1205,35 +1205,47 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 /** \name Module & Type definition
  * \{ */
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef py_bvhtree_methods[] = {
-    {"ray_cast", (PyCFunction)py_bvhtree_ray_cast, METH_VARARGS, py_bvhtree_ray_cast_doc},
+    {"ray_cast",
+     reinterpret_cast<PyCFunction>(py_bvhtree_ray_cast),
+     METH_VARARGS,
+     py_bvhtree_ray_cast_doc},
     {"find_nearest",
-     (PyCFunction)py_bvhtree_find_nearest,
+     reinterpret_cast<PyCFunction>(py_bvhtree_find_nearest),
      METH_VARARGS,
      py_bvhtree_find_nearest_doc},
     {"find_nearest_range",
-     (PyCFunction)py_bvhtree_find_nearest_range,
+     reinterpret_cast<PyCFunction>(py_bvhtree_find_nearest_range),
      METH_VARARGS,
      py_bvhtree_find_nearest_range_doc},
-    {"overlap", (PyCFunction)py_bvhtree_overlap, METH_O, py_bvhtree_overlap_doc},
+    {"overlap", reinterpret_cast<PyCFunction>(py_bvhtree_overlap), METH_O, py_bvhtree_overlap_doc},
 
     /* class methods */
     {"FromPolygons",
-     (PyCFunction)C_BVHTree_FromPolygons,
+     reinterpret_cast<PyCFunction>(C_BVHTree_FromPolygons),
      METH_VARARGS | METH_KEYWORDS | METH_CLASS,
      C_BVHTree_FromPolygons_doc},
 #ifndef MATH_STANDALONE
     {"FromBMesh",
-     (PyCFunction)C_BVHTree_FromBMesh,
+     reinterpret_cast<PyCFunction>(C_BVHTree_FromBMesh),
      METH_VARARGS | METH_KEYWORDS | METH_CLASS,
      C_BVHTree_FromBMesh_doc},
     {"FromObject",
-     (PyCFunction)C_BVHTree_FromObject,
+     reinterpret_cast<PyCFunction>(C_BVHTree_FromObject),
      METH_VARARGS | METH_KEYWORDS | METH_CLASS,
      C_BVHTree_FromObject_doc},
 #endif
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
 PyTypeObject PyBVHTree_Type = {
     PyVarObject_HEAD_INIT(nullptr, 0)

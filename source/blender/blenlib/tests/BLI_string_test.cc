@@ -373,7 +373,7 @@ TEST(string, StrFormatUint64Grouped)
   BLI_str_format_uint64_grouped(number_str, number = 1000);
   EXPECT_STREQ("1,000", number_str);
 
-  BLI_str_format_uint64_grouped(number_str, number = 18446744073709551615);
+  BLI_str_format_uint64_grouped(number_str, number = 18446744073709551615u);
   EXPECT_STREQ("18,446,744,073,709,551,615", number_str);
 }
 
