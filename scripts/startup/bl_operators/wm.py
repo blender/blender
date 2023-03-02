@@ -1894,7 +1894,6 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "max_float")
 
             col = layout.column()
-            col.prop(self, "is_overridable_library")
             col.prop(self, "use_soft_limits")
 
             col = layout.column(align=True)
@@ -1923,7 +1922,6 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "max_int")
 
             col = layout.column()
-            col.prop(self, "is_overridable_library")
             col.prop(self, "use_soft_limits")
 
             col = layout.column(align=True)
@@ -1948,6 +1946,8 @@ class WM_OT_properties_edit(Operator):
             layout.prop(self, "eval_string")
         else:
             layout.prop(self, "description")
+
+        layout.prop(self, "is_overridable_library")
 
 
 # Edit the value of a custom property with the given name on the RNA struct at the given data path.
