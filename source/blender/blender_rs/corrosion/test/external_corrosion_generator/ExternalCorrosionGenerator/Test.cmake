@@ -1,0 +1,14 @@
+set(CORROSION_DIR ${CMAKE_ARGV3})
+set(CORROSION_INSTALL ${CMAKE_ARGV4})
+
+execute_process(
+    COMMAND
+        ${CMAKE_COMMAND} .
+            -DCORROSION_GENERATOR_EXECUTABLE=${CORROSION_INSTALL}/libexec/corrosion-generator
+    COMMAND_ECHO STDOUT
+    RESULT_VARIABLE SUCCESS
+)
+
+if (NOT SUCCESS EQUAL 0)
+    message(FATAL_ERROR)
+endif()

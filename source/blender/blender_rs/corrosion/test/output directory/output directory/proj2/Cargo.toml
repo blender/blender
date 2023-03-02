@@ -1,0 +1,11 @@
+[package]
+name = "rust_package2"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "rust_lib2"
+crate-type=["staticlib", "cdylib"]
+
+[[bin]]
+name = "rust_bin2"

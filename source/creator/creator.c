@@ -18,6 +18,8 @@
 #  pragma comment(linker, "/include:__TBB_malloc_proxy")
 #endif
 
+#include "blender_rs.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
@@ -293,6 +295,8 @@ int main(int argc,
 #endif
 
   /* --- end declarations --- */
+
+  rs_c_init();
 
   /* Ensure we free data on early-exit. */
   struct CreatorAtExitData app_init_data = {NULL};

@@ -1,0 +1,8 @@
+[package]
+name = "member1"
+version = "0.1.0"
+edition = "2018"
+description = "descr;\"hello\\"
+
+[lib]
+crate-type = [ "lib", "cdylib" ]

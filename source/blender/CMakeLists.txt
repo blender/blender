@@ -183,3 +183,5 @@ endif()
 if(WITH_FREESTYLE)
   add_subdirectory(freestyle)
 endif()
+
+add_subdirectory(blender_rs)

@@ -1,0 +1,9 @@
+[package]
+name = "rust-lib-requiring-envvar"
+version = "0.1.0"
+authors = ["Olivier Goffart <ogoffart@sixtyfps.io>"]
+edition = "2018"
+build = "build.rs"
+
+[lib]
+crate-type = [ "lib", "cdylib" ]

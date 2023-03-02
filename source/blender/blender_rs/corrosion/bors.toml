@@ -1,0 +1,5 @@
+status = [
+    "bors-ci-status",
+]
+
+timeout_sec = 1800

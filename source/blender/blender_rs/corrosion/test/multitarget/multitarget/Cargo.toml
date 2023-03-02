@@ -1,0 +1,19 @@
+[package]
+name = "multitarget-crate"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+
+[lib]
+name = "multitarget_lib"
+crate-type=["lib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "bin1"
+
+[[bin]]
+name = "bin2"
+
+[[bin]]
+name = "bin3"

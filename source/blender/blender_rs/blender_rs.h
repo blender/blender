@@ -1,0 +1,1 @@
+extern void rs_c_init(void);

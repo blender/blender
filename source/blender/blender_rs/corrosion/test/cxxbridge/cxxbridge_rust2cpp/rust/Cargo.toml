@@ -1,0 +1,10 @@
+[package]
+name = "cxxbridge-crate"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+cxx = "1.0"

@@ -1,0 +1,24 @@
+[package]
+name = "custom-profiles-lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type=["staticlib"]
+
+# Test if neither release or debug where selected by only disabling debug-assertions in the inherited profile.
+[profile.release]
+debug-assertions = true
+
+[profile.dev-without-dbg]
+inherits = "dev"
+debug-assertions = false
+
+[profile.release-without-dbg]
+inherits = "release"
+debug-assertions = false
+
+[profile.custom-without-dbg]
+inherits = "release"
+opt-level = 1
+debug-assertions = false

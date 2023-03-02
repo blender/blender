@@ -1,0 +1,18 @@
+[package]
+name = "rust-feature-lib"
+version = "0.1.0"
+authors = ["Andrew Gaspar <andrew.gaspar@outlook.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+
+[lib]
+crate-type=["staticlib"]
+
+[features]
+default = ["compile-breakage"]
+myfeature = []
+secondfeature = []
+thirdfeature = []
+compile-breakage = []

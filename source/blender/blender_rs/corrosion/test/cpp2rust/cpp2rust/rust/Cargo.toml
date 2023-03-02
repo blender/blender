@@ -1,0 +1,9 @@
+[package]
+name = "rust-exe"
+version = "0.1.0"
+authors = ["Andrew Gaspar <andrew.gaspar@outlook.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+rust-dependency = { path = "rust_dependency" }

@@ -4,6 +4,15 @@ linking to external resources instead of including content in-line.
 See 'release/text/readme.html' for the end user read-me.
 -->
 
+Blender_RS
+==========
+
+Fork of Blender introducing a Rust crate to experiment with Rust<->Blender InterOp.
+
+Building:
+ * `cargo install just`
+ * `just build-lite`
+ 
 Blender
 =======
 

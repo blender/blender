@@ -1,0 +1,10 @@
+[package]
+name = "rust_bin"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "cxxbridge_lib"
+
+[dependencies]
+cxx = "1.0"
