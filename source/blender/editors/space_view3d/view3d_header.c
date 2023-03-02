@@ -38,10 +38,6 @@
 
 #include "view3d_intern.h"
 
-#define B_SEL_VERT 110
-#define B_SEL_EDGE 111
-#define B_SEL_FACE 112
-
 /* -------------------------------------------------------------------- */
 /** \name Toggle Matcap Flip Operator
  * \{ */

@@ -223,11 +223,6 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
 /** \name General UI Callbacks and Drawing
  * \{ */
 
-/* XXX! -------------------------------- */
-/* Temporary definition for limits of float number buttons
- * (FLT_MAX tends to infinity with old system). */
-#define UI_FLT_MAX 10000.0f
-
 #define B_REDR 1
 #define B_FMODIFIER_REDRAW 20
 

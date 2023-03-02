@@ -45,9 +45,6 @@
 
 #include "CCGSubSurf.h"
 
-/* assumes MLoop's are laid out 4 for each poly, in order */
-#define USE_LOOP_LAYOUT_FAST
-
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          int drawInteriorEdges,
                                          int useSubsurfUv,
