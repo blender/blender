@@ -106,7 +106,7 @@ void AssetView::build_items()
 
   ED_assetlist_iterate(library_ref_, [&](AssetHandle asset) {
     if (!asset_shelf_asset_poll(*space_type, evil_C_, asset)) {
-      //      return true;
+      return true;
     }
 
     const AssetMetaData *asset_data = ED_asset_handle_get_metadata(&asset);
