@@ -3706,8 +3706,8 @@ void BKE_ptcache_update_info(PTCacheID *pid)
   }
   else {
     PTCacheMem *pm = cache->mem_cache.first;
-    char formatted_tot[16];
-    char formatted_mem[15];
+    char formatted_tot[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
+    char formatted_mem[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
     long long int bytes = 0.0f;
     int i;
 

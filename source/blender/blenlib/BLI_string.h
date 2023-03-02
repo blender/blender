@@ -17,6 +17,22 @@
 extern "C" {
 #endif
 
+
+/* Buffer size of maximum `uint64` plus commas and terminator. */
+#define BLI_STR_FORMAT_UINT64_GROUPED_SIZE 27
+
+/* Buffer size of maximum `int32` with commas and terminator. */
+#define BLI_STR_FORMAT_INT32_GROUPED_SIZE 16
+
+/* Buffer size of maximum `int64` formatted as byte size (with GiB for example). */
+#define BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE 15
+
+/* Buffer size of maximum `int32` formatted as compact decimal size ("15.6M" for example). */
+#define BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE 7
+
+/* Buffer size of maximum `int32` formatted as very short decimal size ("15B" for example). */
+#define BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE 5
+
 /**
  * Duplicates the first \a len bytes of cstring \a str
  * into a newly mallocN'd string and returns it. \a str
@@ -276,7 +292,8 @@ const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
  * \param num: Number to format
  * \return The length of \a dst
  */
-size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
+size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
+    ATTR_NONNULL();
 /**
  * Format uint64_t with decimal grouping.
  * 1000 -> 1,000
@@ -285,7 +302,8 @@ size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
  * \param num: Number to format
  * \return The length of \a dst
  */
-size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
+size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
+    ATTR_NONNULL();
 /**
  * Format a size in bytes using binary units.
  * 1000 -> 1 KB
@@ -296,7 +314,9 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
  * \param bytes: Number to format.
  * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
  */
-void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) ATTR_NONNULL();
+void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
+                              long long int bytes,
+                              bool base_10) ATTR_NONNULL();
 /**
  * Format a count to up to 6 places (plus '\0' terminator) string using long number
  * names abbreviations. Used to produce a compact representation of large numbers.
@@ -315,7 +335,8 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) A
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
  */
-void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
+                                 int number_to_format) ATTR_NONNULL();
 /**
  * Format a count to up to 3 places (plus minus sign, plus '\0' terminator) string using long
  * number names abbreviations. Used to produce a compact representation of large numbers as
@@ -337,7 +358,8 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL
  *
  * Length of 5 is the maximum of the resulting string, for example, `-15K\0`.
  */
-void BLI_str_format_integer_unit(char dst[5], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
+                                 int number_to_format) ATTR_NONNULL();
 /**
  * Compare two strings without regard to case.
  *

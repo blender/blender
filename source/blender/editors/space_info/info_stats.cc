@@ -61,8 +61,6 @@
 
 ENUM_OPERATORS(eUserpref_StatusBar_Flag, STATUSBAR_SHOW_VERSION)
 
-#define MAX_INFO_NUM_LEN 16
-
 struct SceneStats {
   uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
@@ -76,15 +74,19 @@ struct SceneStats {
 
 struct SceneStatsFmt {
   /* Totals */
-  char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN], totvertsculpt[MAX_INFO_NUM_LEN];
-  char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
-  char totedge[MAX_INFO_NUM_LEN], totedgesel[MAX_INFO_NUM_LEN], totfacesculpt[MAX_INFO_NUM_LEN];
-  char totbone[MAX_INFO_NUM_LEN], totbonesel[MAX_INFO_NUM_LEN];
-  char totobj[MAX_INFO_NUM_LEN], totobjsel[MAX_INFO_NUM_LEN];
-  char totlamp[MAX_INFO_NUM_LEN], totlampsel[MAX_INFO_NUM_LEN];
-  char tottri[MAX_INFO_NUM_LEN];
-  char totgplayer[MAX_INFO_NUM_LEN], totgpframe[MAX_INFO_NUM_LEN];
-  char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
+  char totvert[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totvertsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totvertsculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totface[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totfacesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totedge[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totedgesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totfacesculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totbone[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totbonesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totobj[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totobjsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totlamp[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totlampsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char tottri[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totgplayer[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totgpframe[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totgpstroke[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totgppoint[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
 };
 
 static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *stats)
@@ -599,7 +601,7 @@ static const char *info_statusbar_string(Main *bmain,
                                          ViewLayer *view_layer,
                                          char statusbar_flag)
 {
-  char formatted_mem[15];
+  char formatted_mem[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
   size_t ofs = 0;
   static char info[256];
   int len = sizeof(info);
