@@ -10,9 +10,9 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
+  ../../functions
   ../../geometry
   ../../gpu
-  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna
@@ -54,7 +54,7 @@ set(SRC
   editmesh_undo.cc
   editmesh_utils.c
   mesh_data.cc
-  mesh_mirror.c
+  mesh_mirror.cc
   mesh_ops.c
   meshtools.cc
 

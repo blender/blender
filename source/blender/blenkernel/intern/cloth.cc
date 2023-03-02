@@ -836,9 +836,8 @@ static bool cloth_from_object(
 static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mesh)
 {
   const blender::Span<MLoop> loops = mesh->loops();
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+  const blender::Span<MLoopTri> looptris = mesh->looptris();
   const uint mvert_num = mesh->totvert;
-  const uint looptri_num = BKE_mesh_runtime_looptri_len(mesh);
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
@@ -853,14 +852,14 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 
   /* save face information */
   if (clmd->hairdata == nullptr) {
-    clmd->clothObject->primitive_num = looptri_num;
+    clmd->clothObject->primitive_num = looptris.size();
   }
   else {
     clmd->clothObject->primitive_num = mesh->totedge;
   }
 
   clmd->clothObject->tri = static_cast<MVertTri *>(
-      MEM_malloc_arrayN(looptri_num, sizeof(MVertTri), __func__));
+      MEM_malloc_arrayN(looptris.size(), sizeof(MVertTri), __func__));
   if (clmd->clothObject->tri == nullptr) {
     cloth_free_modifier(clmd);
     BKE_modifier_set_error(
@@ -869,7 +868,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
     return;
   }
   BKE_mesh_runtime_verttri_from_looptri(
-      clmd->clothObject->tri, loops.data(), looptri, looptri_num);
+      clmd->clothObject->tri, loops.data(), looptris.data(), looptris.size());
 
   clmd->clothObject->edges = mesh->edges().data();
 

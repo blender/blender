@@ -5,7 +5,7 @@
  *
  * Utilities for manipulating UV islands.
  *
- * \note This is similar to `GEO_uv_parametrizer.h`,
+ * \note This is similar to `GEO_uv_parametrizer.hh`,
  * however the data structures there don't support arbitrary topology
  * such as an edge with 3 or more faces using it.
  * This API uses #BMesh data structures and doesn't have limitations for manifold meshes.
@@ -466,7 +466,7 @@ static bool island_has_pins(const Scene *scene,
 /* -------------------------------------------------------------------- */
 /** \name Public UV Island Packing
  *
- * \note This behavior loosely follows #GEO_uv_parametrizer_pack.
+ * \note This behavior loosely follows #geometry::uv_parametrizer_pack.
  * \{ */
 
 void ED_uvedit_pack_islands_multi(const Scene *scene,

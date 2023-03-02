@@ -186,7 +186,8 @@ void Manager::submit(PassMain &pass, View &view)
                                pass.commands_,
                                view.get_visibility_buffer(),
                                view.visibility_word_per_draw(),
-                               view.view_len_);
+                               view.view_len_,
+                               pass.use_custom_ids);
 
   resource_bind();
 

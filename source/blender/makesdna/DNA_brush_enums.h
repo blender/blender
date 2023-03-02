@@ -650,7 +650,6 @@ typedef enum eBrushCurvesSculptDensityMode {
 } eBrushCurvesSculptDensityMode;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
-#define GP_MAX_BRUSH_PIXEL_RADIUS 1000
 
 #ifdef __cplusplus
 }

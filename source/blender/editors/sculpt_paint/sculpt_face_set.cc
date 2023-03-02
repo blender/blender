@@ -132,10 +132,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap[vd.index];
       for (int j = 0; j < ss->pmap[vd.index].count; j++) {
-        const MPoly *p = &ss->mpoly[vert_map->indices[j]];
+        const MPoly *poly = &ss->polys[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], positions, poly_center);
+        BKE_mesh_calc_poly_center(poly, &ss->mloop[poly->loopstart], positions, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -680,10 +680,11 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
     }
     case SCULPT_FACE_SETS_FROM_UV_SEAMS: {
-      const Span<MEdge> edges = mesh->edges();
+      const VArraySpan<bool> uv_seams = mesh->attributes().lookup_or_default<bool>(
+          ".uv_seam", ATTR_DOMAIN_EDGE, false);
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return (edges[edge].flag & ME_SEAM) == 0;
+            return !uv_seams[edge];
           });
       break;
     }

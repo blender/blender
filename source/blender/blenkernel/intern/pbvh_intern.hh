@@ -157,7 +157,7 @@ struct PBVH {
   float (*vert_normals)[3];
   bool *hide_vert;
   float (*vert_positions)[3];
-  const MPoly *mpoly;
+  const MPoly *polys;
   bool *hide_poly;
   /** Material indices. Only valid for polygon meshes. */
   const int *material_indices;

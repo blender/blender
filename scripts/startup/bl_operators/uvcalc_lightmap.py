@@ -165,9 +165,9 @@ class prettyface:
             def set_uv(f, p1, p2, p3):
 
                 # cos =
-                #v1 = cos[0]-cos[1]
-                #v2 = cos[1]-cos[2]
-                #v3 = cos[2]-cos[0]
+                # v1 = cos[0]-cos[1]
+                # v2 = cos[1]-cos[2]
+                # v3 = cos[2]-cos[0]
 
                 # angles_co = get_tri_angles(*[v.co for v in f])
                 angles_co = get_tri_angles(*[f.id_data.vertices[v].co for v in f.vertices])  # XXX25

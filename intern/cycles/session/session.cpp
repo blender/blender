@@ -706,6 +706,12 @@ void Session::update_status_time(bool show_pause, bool show_done)
                               string_printf("Sample %d/%d", current_sample, num_samples));
   }
 
+  /* Append any device-specific status (such as background kernel optimization) */
+  string device_status;
+  if (device->is_ready(device_status) && !device_status.empty()) {
+    substatus += string_printf(" (%s)", device_status.c_str());
+  }
+
   /* TODO(sergey): Denoising status from the path trace. */
 
   if (show_pause) {

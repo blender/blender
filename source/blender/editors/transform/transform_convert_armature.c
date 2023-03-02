@@ -35,6 +35,7 @@
 #include "RNA_prototypes.h"
 
 #include "transform.h"
+#include "transform_orientations.h"
 #include "transform_snap.h"
 
 /* Own include. */

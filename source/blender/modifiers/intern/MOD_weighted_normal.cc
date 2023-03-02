@@ -106,11 +106,11 @@ struct WeightedNormalData {
  */
 static bool check_item_poly_strength(WeightedNormalData *wn_data,
                                      WeightedNormalDataAggregateItem *item_data,
-                                     const int mp_index)
+                                     const int poly_index)
 {
   BLI_assert(wn_data->poly_strength != nullptr);
 
-  const int mp_strength = wn_data->poly_strength[mp_index];
+  const int mp_strength = wn_data->poly_strength[poly_index];
 
   if (mp_strength > item_data->curr_strength) {
     item_data->curr_strength = mp_strength;
@@ -126,7 +126,7 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
                                   WeightedNormalData *wn_data,
                                   WeightedNormalDataAggregateItem *item_data,
                                   const int mv_index,
-                                  const int mp_index,
+                                  const int poly_index,
                                   const float curr_val,
                                   const bool use_face_influence)
 {
@@ -149,7 +149,7 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
     return;
   }
 
-  if (use_face_influence && !check_item_poly_strength(wn_data, item_data, mp_index)) {
+  if (use_face_influence && !check_item_poly_strength(wn_data, item_data, poly_index)) {
     return;
   }
 
@@ -174,7 +174,7 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
                                       cached_inverse_powers_of_weight[loops_num] :
                                       1.0f / powf(weight, loops_num);
 
-  madd_v3_v3fl(item_data->normal, poly_normals[mp_index], curr_val * inverted_n_weight);
+  madd_v3_v3fl(item_data->normal, poly_normals[poly_index], curr_val * inverted_n_weight);
 }
 
 static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
@@ -243,13 +243,9 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
     /* In this first loop, we assign each WeightedNormalDataAggregateItem
      * to its smooth fan of loops (aka lnor space). */
-    int mp_index;
-    int item_index;
-    for (mp_index = 0, item_index = 0; mp_index < polys.size(); mp_index++) {
-      int ml_index = polys[mp_index].loopstart;
-      const int ml_end_index = ml_index + polys[mp_index].totloop;
-
-      for (; ml_index < ml_end_index; ml_index++) {
+    int item_index = 0;
+    for (const int i : polys.index_range()) {
+      for (const int ml_index : blender::IndexRange(polys[i].loopstart, polys[i].totloop)) {
         if (BLI_BITMAP_TEST(done_loops, ml_index)) {
           /* Smooth fan of this loop has already been processed, skip it. */
           continue;
@@ -292,12 +288,12 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
   switch (mode) {
     case MOD_WEIGHTEDNORMAL_MODE_FACE:
-      for (int i = 0; i < polys.size(); i++) {
-        const int mp_index = mode_pair[i].index;
+      for (const int i : polys.index_range()) {
+        const int poly_index = mode_pair[i].index;
         const float mp_val = mode_pair[i].val;
 
-        int ml_index = polys[mp_index].loopstart;
-        const int ml_index_end = ml_index + polys[mp_index].totloop;
+        int ml_index = polys[poly_index].loopstart;
+        const int ml_index_end = ml_index + polys[poly_index].totloop;
         for (; ml_index < ml_index_end; ml_index++) {
           const int mv_index = loops[ml_index].v;
           WeightedNormalDataAggregateItem *item_data =
@@ -306,17 +302,17 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                            &items_data[mv_index];
 
           aggregate_item_normal(
-              wnmd, wn_data, item_data, mv_index, mp_index, mp_val, use_face_influence);
+              wnmd, wn_data, item_data, mv_index, poly_index, mp_val, use_face_influence);
         }
       }
       break;
     case MOD_WEIGHTEDNORMAL_MODE_ANGLE:
     case MOD_WEIGHTEDNORMAL_MODE_FACE_ANGLE:
-      for (int i = 0; i < loops.size(); i++) {
+      for (const int i : loops.index_range()) {
         const int ml_index = mode_pair[i].index;
         const float ml_val = mode_pair[i].val;
 
-        const int mp_index = loop_to_poly[ml_index];
+        const int poly_index = loop_to_poly[ml_index];
         const int mv_index = loops[ml_index].v;
         WeightedNormalDataAggregateItem *item_data =
             keep_sharp ? static_cast<WeightedNormalDataAggregateItem *>(
@@ -324,7 +320,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                          &items_data[mv_index];
 
         aggregate_item_normal(
-            wnmd, wn_data, item_data, mv_index, mp_index, ml_val, use_face_influence);
+            wnmd, wn_data, item_data, mv_index, poly_index, ml_val, use_face_influence);
       }
       break;
     default:
@@ -461,8 +457,8 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
 
   ModePair *f_area = face_area;
   for (const int i : polys.index_range()) {
-    f_area->val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
-    f_area->index = i;
+    f_area[i].val = BKE_mesh_calc_poly_area(&polys[i], &loops[polys[i].loopstart], positions);
+    f_area[i].index = i;
   }
 
   qsort(face_area, polys.size(), sizeof(*face_area), modepair_cmp_by_val_inverse);

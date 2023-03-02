@@ -121,7 +121,11 @@ static void pick_input_link_by_link_intersect(const bContext &C,
                                               const float2 &cursor)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
-  const Span<float2> socket_locations = snode->runtime->all_socket_locations;
+  bNodeTree &node_tree = *snode->edittree;
+  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
+  if (socket_locations.is_empty()) {
+    return;
+  }
 
   float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
@@ -132,7 +136,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   const float cursor_link_touch_distance = 12.5f * UI_DPI_FAC;
 
   bNodeLink *link_to_pick = nullptr;
-  clear_picking_highlight(&snode->edittree->links);
+  clear_picking_highlight(&node_tree.links);
   for (bNodeLink *link : socket->directly_linked_links()) {
     /* Test if the cursor is near a link. */
     std::array<float2, NODE_LINK_RESOL + 1> coords;
@@ -643,7 +647,7 @@ static int view_socket(const bContext &C,
   }
   if (viewer_node == nullptr) {
     const float2 socket_location =
-        snode.runtime->all_socket_locations[bsocket_to_view.index_in_tree()];
+        btree.runtime->all_socket_locations[bsocket_to_view.index_in_tree()];
     const int viewer_type = get_default_viewer_type(&C);
     const float2 location{socket_location.x / UI_DPI_FAC + 100, socket_location.y / UI_DPI_FAC};
     viewer_node = add_static_node(C, viewer_type, location);
@@ -1072,7 +1076,12 @@ static void node_link_cancel(bContext *C, wmOperator *op)
 static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cursor)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
+  bNodeTree &node_tree = *snode.edittree;
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op.customdata);
+  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
+  if (socket_locations.is_empty()) {
+    return;
+  }
 
   if (nldrag.in_out == SOCK_OUT) {
     if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
@@ -1103,8 +1112,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
           continue;
         }
         if (tsock && tsock->is_multi_input()) {
-          sort_multi_input_socket_links_with_drag(
-              snode.runtime->all_socket_locations, *tsock, link, cursor);
+          sort_multi_input_socket_links_with_drag(socket_locations, *tsock, link, cursor);
         }
       }
     }
@@ -1477,7 +1485,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
+  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
 
   Set<bNodeLink *> links_to_remove;
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
@@ -1563,7 +1571,7 @@ static int mute_links_exec(bContext *C, wmOperator *op)
   SpaceNode &snode = *CTX_wm_space_node(C);
   const ARegion &region = *CTX_wm_region(C);
   bNodeTree &ntree = *snode.edittree;
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
+  const Span<float2> socket_locations = ntree.runtime->all_socket_locations;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -2046,7 +2054,10 @@ void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
 {
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
+  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
+  if (socket_locations.is_empty()) {
+    return;
+  }
 
   node_insert_on_link_flags_clear(node_tree);
 

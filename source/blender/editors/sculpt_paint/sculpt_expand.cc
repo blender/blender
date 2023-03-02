@@ -148,7 +148,7 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const int f)
 {
-  const MLoop *loop = &ss->mloop[ss->mpoly[f].loopstart];
+  const MLoop *loop = &ss->mloop[ss->polys[f].loopstart];
   return sculpt_expand_is_vert_in_active_component(ss, expand_cache, BKE_pbvh_make_vref(loop->v));
 }
 
@@ -712,9 +712,9 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
     for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
-      const MPoly *p = &ss->mpoly[ss->pmap[v_next_i].indices[j]];
-      for (int l = 0; l < p->totloop; l++) {
-        const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(ss->mloop[p->loopstart + l].v);
+      const MPoly *poly = &ss->polys[ss->pmap[v_next_i].indices[j]];
+      for (int l = 0; l < poly->totloop; l++) {
+        const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(ss->mloop[poly->loopstart + l].v);
         if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
           continue;
         }
@@ -1116,7 +1116,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   }
 
   for (int p = 0; p < totface; p++) {
-    const MPoly *poly = &ss->mpoly[p];
+    const MPoly *poly = &ss->polys[p];
     bool any_disabled = false;
     for (int l = 0; l < poly->totloop; l++) {
       const MLoop *loop = &ss->mloop[l + poly->loopstart];

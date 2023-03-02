@@ -138,7 +138,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   const ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
+  const Span<float2> socket_locations = ntree.runtime->all_socket_locations;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {

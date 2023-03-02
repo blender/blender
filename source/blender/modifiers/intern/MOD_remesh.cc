@@ -66,7 +66,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->mloop = (DualConLoop)mesh->loops().data();
   input->loop_stride = sizeof(MLoop);
 
-  input->looptri = (DualConTri)BKE_mesh_runtime_looptri_ensure(mesh);
+  input->looptri = (DualConTri)mesh->looptris().data();
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 

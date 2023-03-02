@@ -175,7 +175,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
 static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
-  MPoly *mpolys = config.mpoly;
+  MPoly *polys = config.polys;
   MLoop *mloops = config.mloop;
   float2 *mloopuvs = config.mloopuv;
 
@@ -197,7 +197,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   for (int i = 0; i < face_counts->size(); i++) {
     const int face_size = (*face_counts)[i];
 
-    MPoly &poly = mpolys[i];
+    MPoly &poly = polys[i];
     poly.loopstart = loop_index;
     poly.totloop = face_size;
 
@@ -270,13 +270,13 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  MPoly *mpoly = mesh->polys_for_write().data();
+  MPoly *poly = mesh->polys_for_write().data();
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
-  for (int i = 0, e = mesh->totpoly; i < e; i++, mpoly++) {
+  for (int i = 0, e = mesh->totpoly; i < e; i++, poly++) {
     /* As usual, ABC orders the loops in reverse. */
-    for (int j = mpoly->totloop - 1; j >= 0; j--, abc_index++) {
-      int blender_index = mpoly->loopstart + j;
+    for (int j = poly->totloop - 1; j >= 0; j--, abc_index++) {
+      int blender_index = poly->loopstart + j;
       copy_zup_from_yup(lnors[blender_index], loop_normals[abc_index].getValue());
     }
   }
@@ -519,7 +519,7 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
   config.mesh = mesh;
   config.positions = mesh->vert_positions_for_write().data();
   config.mloop = mesh->loops_for_write().data();
-  config.mpoly = mesh->polys_for_write().data();
+  config.polys = mesh->polys_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
   config.totpoly = mesh->totpoly;

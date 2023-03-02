@@ -32,23 +32,23 @@ typedef struct MEdge {
    * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
    */
   char bweight_legacy;
-  short flag;
+  short flag_legacy;
 } MEdge;
 
+#ifdef DNA_DEPRECATED_ALLOW
 /** #MEdge.flag */
 enum {
   /** Deprecated selection status. Now stored in ".select_edge" attribute. */
   /*  SELECT = (1 << 0), */
   ME_SEAM = (1 << 2),
-/** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-/*  ME_HIDE = (1 << 4), */
-#ifdef DNA_DEPRECATED_ALLOW
+  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
+  /*  ME_HIDE = (1 << 4), */
   /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
   /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
   ME_SHARP = (1 << 9),
-#endif
 };
+#endif
 
 /**
  * Mesh Faces.
@@ -173,9 +173,9 @@ enum {
  *
  * \code{.c}
  * // loop over all looptri's for a given polygon: i
- * MPoly *mp = &mpoly[i];
- * MLoopTri *lt = &looptri[poly_to_tri_count(i, mp->loopstart)];
- * int j, lt_tot = ME_POLY_TRI_TOT(mp);
+ * MPoly *poly = &polys[i];
+ * MLoopTri *lt = &looptri[poly_to_tri_count(i, poly->loopstart)];
+ * int j, lt_tot = ME_POLY_TRI_TOT(poly);
  *
  * for (j = 0; j < lt_tot; j++, lt++) {
  *     unsigned int vtri[3] = {
@@ -409,12 +409,13 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-#define ME_POLY_LOOP_PREV(mloop, mp, i) \
-  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
-#define ME_POLY_LOOP_NEXT(mloop, mp, i) (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+#define ME_POLY_LOOP_PREV(mloop, poly, i) \
+  (&(mloop)[(poly)->loopstart + (((i) + (poly)->totloop - 1) % (poly)->totloop)])
+#define ME_POLY_LOOP_NEXT(mloop, poly, i) \
+  (&(mloop)[(poly)->loopstart + (((i) + 1) % (poly)->totloop)])
 
 /** Number of tri's that make up this polygon once tessellated. */
-#define ME_POLY_TRI_TOT(mp) ((mp)->totloop - 2)
+#define ME_POLY_TRI_TOT(poly) ((poly)->totloop - 2)
 
 /**
  * Check out-of-bounds material, note that this is nearly always prevented,

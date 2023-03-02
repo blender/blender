@@ -139,6 +139,13 @@ typedef struct Main {
   bool is_locked_for_linking;
 
   /**
+   * When set, indicates that an unrecoverable error/data corruption was detected.
+   * Should only be set by readfile code, and used by upper-level code (typically #setup_app_data)
+   * to cancel a file reading operation.
+   */
+  bool is_read_invalid;
+
+  /**
    * True if this main is the 'GMAIN' of current Blender.
    *
    * \note There should always be only one global main, all others generated temporarily for

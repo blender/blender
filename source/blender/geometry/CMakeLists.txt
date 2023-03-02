@@ -49,7 +49,7 @@ set(SRC
   GEO_subdivide_curves.hh
   GEO_trim_curves.hh
   GEO_uv_pack.hh
-  GEO_uv_parametrizer.h
+  GEO_uv_parametrizer.hh
 )
 
 set(LIB

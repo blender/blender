@@ -968,19 +968,19 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  */
 static bool multires_unsubdivide_flip_grid_x_axis(const blender::Span<MPoly> polys,
                                                   const blender::Span<MLoop> loops,
-                                                  int poly,
+                                                  int poly_index,
                                                   int loop,
                                                   int v_x)
 {
-  const MPoly *p = &polys[poly];
+  const MPoly *poly = &polys[poly_index];
 
-  const MLoop *l_first = &loops[p->loopstart];
-  if ((loop == (p->loopstart + (p->totloop - 1))) && l_first->v == v_x) {
+  const MLoop *l_first = &loops[poly->loopstart];
+  if ((loop == (poly->loopstart + (poly->totloop - 1))) && l_first->v == v_x) {
     return true;
   }
 
   int next_l_index = loop + 1;
-  if (next_l_index < p->loopstart + p->totloop) {
+  if (next_l_index < poly->loopstart + poly->totloop) {
     const MLoop *l_next = &loops[next_l_index];
     if (l_next->v == v_x) {
       return true;

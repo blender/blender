@@ -252,7 +252,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   MPoly *mp_new;
   MLoop *ml_new;
-  MEdge *med_new, *med_new_firstloop;
+  MEdge *edge_new, *med_new_firstloop;
   Object *ob_axis = ltmd->ob_axis;
 
   ScrewVertConnect *vc, *vc_tmp, *vert_connect = nullptr;
@@ -444,12 +444,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Set the locations of the first set of verts */
 
   /* Copy the first set of edges */
-  const MEdge *med_orig = edges_orig.data();
-  med_new = edges_new.data();
-  for (uint i = 0; i < totedge; i++, med_orig++, med_new++) {
-    med_new->v1 = med_orig->v1;
-    med_new->v2 = med_orig->v2;
-    med_new->flag = med_orig->flag;
+  const MEdge *edge_orig = edges_orig.data();
+  edge_new = edges_new.data();
+  for (uint i = 0; i < totedge; i++, edge_orig++, edge_new++) {
+    edge_new->v1 = edge_orig->v1;
+    edge_new->v2 = edge_orig->v2;
   }
 
   /* build polygon -> edge map */
@@ -497,7 +496,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     if (totedge != 0) {
       // printf("\n\n\n\n\nStarting Modifier\n");
       /* set edge users */
-      med_new = edges_new.data();
+      edge_new = edges_new.data();
 
       if (ob_axis != nullptr) {
         /* `mtx_tx` is initialized early on. */
@@ -537,31 +536,31 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
 
       /* this loop builds connectivity info for verts */
-      for (uint i = 0; i < totedge; i++, med_new++) {
-        vc = &vert_connect[med_new->v1];
+      for (uint i = 0; i < totedge; i++, edge_new++) {
+        vc = &vert_connect[edge_new->v1];
 
         if (vc->v[0] == SV_UNUSED) { /* unused */
-          vc->v[0] = med_new->v2;
-          vc->e[0] = med_new;
+          vc->v[0] = edge_new->v2;
+          vc->e[0] = edge_new;
         }
         else if (vc->v[1] == SV_UNUSED) {
-          vc->v[1] = med_new->v2;
-          vc->e[1] = med_new;
+          vc->v[1] = edge_new->v2;
+          vc->e[1] = edge_new;
         }
         else {
           vc->v[0] = vc->v[1] = SV_INVALID; /* error value  - don't use, 3 edges on vert */
         }
 
-        vc = &vert_connect[med_new->v2];
+        vc = &vert_connect[edge_new->v2];
 
         /* same as above but swap v1/2 */
         if (vc->v[0] == SV_UNUSED) { /* unused */
-          vc->v[0] = med_new->v1;
-          vc->e[0] = med_new;
+          vc->v[0] = edge_new->v1;
+          vc->e[0] = edge_new;
         }
         else if (vc->v[1] == SV_UNUSED) {
-          vc->v[1] = med_new->v1;
-          vc->e[1] = med_new;
+          vc->v[1] = edge_new->v1;
+          vc->e[1] = edge_new;
         }
         else {
           vc->v[0] = vc->v[1] = SV_INVALID; /* error value  - don't use, 3 edges on vert */
@@ -799,10 +798,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
 
       /* add the new edge */
-      med_new->v1 = varray_stride + j;
-      med_new->v2 = med_new->v1 - totvert;
-      med_new->flag = 0;
-      med_new++;
+      edge_new->v1 = varray_stride + j;
+      edge_new->v2 = edge_new->v1 - totvert;
+      edge_new++;
     }
   }
 
@@ -817,10 +815,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     const uint varray_stride = (step_tot - 1) * totvert;
 
     for (uint i = 0; i < totvert; i++) {
-      med_new->v1 = i;
-      med_new->v2 = varray_stride + i;
-      med_new->flag = 0;
-      med_new++;
+      edge_new->v1 = i;
+      edge_new->v2 = varray_stride + i;
+      edge_new++;
     }
   }
 
@@ -946,10 +943,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
         /* new vertical edge */
         if (step) { /* The first set is already done */
-          med_new->v1 = i1;
-          med_new->v2 = i2;
-          med_new->flag = med_new_firstloop->flag;
-          med_new++;
+          edge_new->v1 = i1;
+          edge_new->v2 = i2;
+          edge_new++;
         }
         i1 += totvert;
         i2 += totvert;
@@ -973,10 +969,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     /* new vertical edge */
-    med_new->v1 = i1;
-    med_new->v2 = i2;
-    med_new->flag = med_new_firstloop->flag;
-    med_new++;
+    edge_new->v1 = i1;
+    edge_new->v2 = i2;
+    edge_new++;
   }
 
 /* validate loop edges */

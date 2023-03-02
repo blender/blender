@@ -38,7 +38,6 @@
 /* own includes */
 #include "../gizmo_library_intern.h"
 
-#define GIZMO_RESIZER_SIZE 10.0f
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
 static void gizmo_calc_matrix_final_no_offset(const wmGizmo *gz,

@@ -58,25 +58,24 @@ static void extract_lnor_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
-                                        const MPoly *mp,
-                                        const int mp_index,
+                                        const MPoly *poly,
+                                        const int poly_index,
                                         void *data)
 {
-  const bool hidden = mr->hide_poly && mr->hide_poly[mp_index];
+  const bool hidden = mr->hide_poly && mr->hide_poly[poly_index];
 
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+    const MLoop *ml = &mr->loops[ml_index];
     GPUPackedNormal *lnor_data = &(*(GPUPackedNormal **)data)[ml_index];
     if (mr->loop_normals) {
       *lnor_data = GPU_normal_convert_i10_v3(mr->loop_normals[ml_index]);
     }
-    else if (mp->flag & ME_SMOOTH) {
+    else if (poly->flag & ME_SMOOTH) {
       *lnor_data = GPU_normal_convert_i10_v3(mr->vert_normals[ml->v]);
     }
     else {
-      *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[mp_index]);
+      *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[poly_index]);
     }
 
     /* Flag for paint mode overlay.
@@ -86,7 +85,7 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
         (mr->edit_bmesh && (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
-    else if (mr->select_poly && mr->select_poly[mp_index]) {
+    else if (mr->select_poly && mr->select_poly[poly_index]) {
       lnor_data->w = 1;
     }
     else {
@@ -183,25 +182,24 @@ static void extract_lnor_hq_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
-                                           const MPoly *mp,
-                                           const int mp_index,
+                                           const MPoly *poly,
+                                           const int poly_index,
                                            void *data)
 {
-  const bool hidden = mr->hide_poly && mr->hide_poly[mp_index];
+  const bool hidden = mr->hide_poly && mr->hide_poly[poly_index];
 
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+    const MLoop *ml = &mr->loops[ml_index];
     gpuHQNor *lnor_data = &(*(gpuHQNor **)data)[ml_index];
     if (mr->loop_normals) {
       normal_float_to_short_v3(&lnor_data->x, mr->loop_normals[ml_index]);
     }
-    else if (mp->flag & ME_SMOOTH) {
+    else if (poly->flag & ME_SMOOTH) {
       normal_float_to_short_v3(&lnor_data->x, mr->vert_normals[ml->v]);
     }
     else {
-      normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[mp_index]);
+      normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[poly_index]);
     }
 
     /* Flag for paint mode overlay.
@@ -211,7 +209,7 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
         (mr->edit_bmesh && (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
-    else if (mr->select_poly && mr->select_poly[mp_index]) {
+    else if (mr->select_poly && mr->select_poly[poly_index]) {
       lnor_data->w = 1;
     }
     else {

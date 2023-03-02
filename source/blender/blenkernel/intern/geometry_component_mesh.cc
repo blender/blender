@@ -913,14 +913,14 @@ static void tag_component_positions_changed(void *owner)
   }
 }
 
-static bool get_shade_smooth(const MPoly &mpoly)
+static bool get_shade_smooth(const MPoly &poly)
 {
-  return mpoly.flag & ME_SMOOTH;
+  return poly.flag & ME_SMOOTH;
 }
 
-static void set_shade_smooth(MPoly &mpoly, bool value)
+static void set_shade_smooth(MPoly &poly, bool value)
 {
-  SET_FLAG_FROM_TEST(mpoly.flag, value, ME_SMOOTH);
+  SET_FLAG_FROM_TEST(poly.flag, value, ME_SMOOTH);
 }
 
 static float get_crease(const float &crease)

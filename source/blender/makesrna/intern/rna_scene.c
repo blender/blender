@@ -7224,7 +7224,7 @@ static void rna_def_scene_display(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
-  prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(
       prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
   RNA_def_property_range(prop, 0.0f, 100000.0f);

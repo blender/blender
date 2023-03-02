@@ -411,11 +411,11 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   /* <p> */
   int texindex = 0;
   for (const int i : polys.index_range()) {
-    const MPoly *p = &polys[i];
-    int loop_count = p->totloop;
+    const MPoly *poly = &polys[i];
+    int loop_count = poly->totloop;
 
     if (material_indices[i] == material_index) {
-      const MLoop *l = &loops[p->loopstart];
+      const MLoop *l = &loops[poly->loopstart];
       BCPolygonNormalsIndices normal_indices = norind[i];
 
       for (int j = 0; j < loop_count; j++) {
@@ -565,9 +565,9 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
       source.prepareToAppendValues();
 
       for (const int i : polys.index_range()) {
-        const MPoly *mpoly = &polys[i];
-        const blender::float2 *mloop = uv_map + mpoly->loopstart;
-        for (int j = 0; j < mpoly->totloop; j++) {
+        const MPoly *poly = &polys[i];
+        const blender::float2 *mloop = uv_map + poly->loopstart;
+        for (int j = 0; j < poly->totloop; j++) {
           source.appendValues(mloop[j][0], mloop[j][1]);
         }
       }
@@ -632,15 +632,15 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   }
 
   for (const int poly_index : polys.index_range()) {
-    const MPoly *mpoly = &polys[poly_index];
-    bool use_vert_normals = use_custom_normals || mpoly->flag & ME_SMOOTH;
+    const MPoly *poly = &polys[poly_index];
+    bool use_vert_normals = use_custom_normals || poly->flag & ME_SMOOTH;
 
     if (!use_vert_normals) {
       /* For flat faces use face normal as vertex normal: */
 
       float vector[3];
-      BKE_mesh_calc_poly_normal(mpoly,
-                                &loops[mpoly->loopstart],
+      BKE_mesh_calc_poly_normal(poly,
+                                &loops[poly->loopstart],
                                 reinterpret_cast<const float(*)[3]>(positions.data()),
                                 vector);
 
@@ -650,8 +650,8 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
     }
 
     BCPolygonNormalsIndices poly_indices;
-    for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-      uint loop_idx = mpoly->loopstart + loop_index;
+    for (int loop_index = 0; loop_index < poly->totloop; loop_index++) {
+      uint loop_idx = poly->loopstart + loop_index;
       if (use_vert_normals) {
         float normalized[3];
 

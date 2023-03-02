@@ -85,11 +85,11 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
     view_layer->active_collection = nullptr;
   }
 
-  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, nlc, &lc->layer_collections) {
     layer_collection_free(view_layer, nlc);
+    MEM_freeN(nlc);
   }
-
-  BLI_freelistN(&lc->layer_collections);
+  BLI_listbase_clear(&lc->layer_collections);
 }
 
 static Base *object_base_new(Object *ob)
@@ -254,10 +254,11 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
     BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
   }
 
-  LISTBASE_FOREACH (LayerCollection *, lc, &view_layer->layer_collections) {
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, &view_layer->layer_collections) {
     layer_collection_free(view_layer, lc);
+    MEM_freeN(lc);
   }
-  BLI_freelistN(&view_layer->layer_collections);
+  BLI_listbase_clear(&view_layer->layer_collections);
 
   LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
     if (sled->storage) {

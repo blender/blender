@@ -476,6 +476,13 @@ void BKE_blendfile_read_setup_ex(bContext *C,
                                  const bool startup_update_defaults,
                                  const char *startup_app_template)
 {
+  if (bfd->main->is_read_invalid) {
+    BKE_reports_prepend(reports->reports,
+                        "File could not be read, critical data corruption detected");
+    BLO_blendfiledata_free(bfd);
+    return;
+  }
+
   if (startup_update_defaults) {
     if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
       BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
@@ -503,6 +510,10 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
   }
 
   BlendFileData *bfd = BLO_read_from_file(filepath, eBLOReadSkip(params->skip_flags), reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     handle_subversion_warning(bfd->main, reports);
   }
@@ -519,6 +530,10 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
 {
   BlendFileData *bfd = BLO_read_from_memory(
       filebuf, filelength, eBLOReadSkip(params->skip_flags), reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     /* Pass. */
   }
@@ -535,6 +550,10 @@ struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
 {
   BlendFileData *bfd = BLO_read_from_memfile(
       bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     /* Removing the unused workspaces, screens and wm is useless here, setup_app_data will switch
      * those lists with the ones from old bmain, which freeing is much more efficient than

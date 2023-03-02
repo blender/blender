@@ -123,9 +123,9 @@ static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
   if (hidden) {
     return;
   }
-  lines_adjacency_triangle(mr->mloop[mlt->tri[0]].v,
-                           mr->mloop[mlt->tri[1]].v,
-                           mr->mloop[mlt->tri[2]].v,
+  lines_adjacency_triangle(mr->loops[mlt->tri[0]].v,
+                           mr->loops[mlt->tri[1]].v,
+                           mr->loops[mlt->tri[2]].v,
                            mlt->tri[0],
                            mlt->tri[1],
                            mlt->tri[2],

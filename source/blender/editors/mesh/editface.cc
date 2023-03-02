@@ -224,10 +224,11 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 {
   using namespace blender;
   const Span<MPoly> polys = mesh.polys();
-  const Span<MEdge> edges = mesh.edges();
   const Span<MLoop> loops = mesh.loops();
 
-  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
+      ".uv_seam", ATTR_DOMAIN_EDGE, false);
   const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
 
@@ -243,7 +244,7 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 
       for (const int poly_loop_index : poly_loops.index_range()) {
         const MLoop &outer_mloop = poly_loops[poly_loop_index];
-        if (skip_seams && (edges[outer_mloop.e].flag & ME_SEAM) != 0) {
+        if (skip_seams && uv_seams[outer_mloop.e]) {
           continue;
         }
 
@@ -252,7 +253,7 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
           if (&outer_mloop == &inner_mloop) {
             continue;
           }
-          if (skip_seams && (edges[inner_mloop.e].flag & ME_SEAM) != 0) {
+          if (skip_seams && uv_seams[inner_mloop.e]) {
             continue;
           }
           islands.join(inner_mloop.e, outer_mloop.e);
@@ -273,10 +274,11 @@ static void paintface_select_linked_faces(Mesh &mesh,
   build_poly_connections(islands, mesh);
 
   const Span<MPoly> polys = mesh.polys();
-  const Span<MEdge> edges = mesh.edges();
   const Span<MLoop> loops = mesh.loops();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
+      ".uv_seam", ATTR_DOMAIN_EDGE, false);
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
 
@@ -284,7 +286,7 @@ static void paintface_select_linked_faces(Mesh &mesh,
   for (const int i : face_indices) {
     const MPoly &poly = polys[i];
     for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      if ((edges[loop.e].flag & ME_SEAM) != 0) {
+      if (uv_seams[loop.e]) {
         continue;
       }
       const int root = islands.find_root(loop.e);

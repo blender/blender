@@ -25,6 +25,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_path.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -279,11 +280,12 @@ static void mesh_merge_transform(Mesh *result,
                                  int remap_len,
                                  const bool recalc_normals_later)
 {
+  using namespace blender;
   int *index_orig;
   int i;
-  MEdge *me;
+  MEdge *edge;
   MLoop *ml;
-  MPoly *mp;
+  MPoly *poly;
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
@@ -314,16 +316,16 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* adjust cap edge vertex indices */
-  me = &result_edges[cap_edges_index];
-  for (i = 0; i < cap_nedges; i++, me++) {
-    me->v1 += cap_verts_index;
-    me->v2 += cap_verts_index;
+  edge = &result_edges[cap_edges_index];
+  for (i = 0; i < cap_nedges; i++, edge++) {
+    edge->v1 += cap_verts_index;
+    edge->v2 += cap_verts_index;
   }
 
   /* adjust cap poly loopstart indices */
-  mp = &result_polys[cap_polys_index];
-  for (i = 0; i < cap_npolys; i++, mp++) {
-    mp->loopstart += cap_loops_index;
+  poly = &result_polys[cap_polys_index];
+  for (i = 0; i < cap_npolys; i++, poly++) {
+    poly->loopstart += cap_loops_index;
   }
 
   /* adjust cap loop vertex and edge indices */
@@ -331,6 +333,17 @@ static void mesh_merge_transform(Mesh *result,
   for (i = 0; i < cap_nloops; i++, ml++) {
     ml->v += cap_verts_index;
     ml->e += cap_edges_index;
+  }
+
+  const bke::AttributeAccessor cap_attributes = cap_mesh->attributes();
+  if (const VArray<int> cap_material_indices = cap_attributes.lookup<int>("material_index",
+                                                                          ATTR_DOMAIN_FACE)) {
+    bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
+    bke::SpanAttributeWriter<int> result_material_indices =
+        result_attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
+    cap_material_indices.materialize(
+        result_material_indices.span.slice(cap_polys_index, cap_npolys));
+    result_material_indices.finish();
   }
 
   /* Set #CD_ORIGINDEX. */
@@ -363,9 +376,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    const ModifierEvalContext *ctx,
                                    const Mesh *mesh)
 {
-  MEdge *me;
+  MEdge *edge;
   MLoop *ml;
-  MPoly *mp;
+  MPoly *poly;
   int i, j, c, count;
   float length = amd->length;
   /* offset matrix */
@@ -596,15 +609,15 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
 
     /* adjust edge vertex indices */
-    me = &result_edges[c * chunk_nedges];
-    for (i = 0; i < chunk_nedges; i++, me++) {
-      me->v1 += c * chunk_nverts;
-      me->v2 += c * chunk_nverts;
+    edge = &result_edges[c * chunk_nedges];
+    for (i = 0; i < chunk_nedges; i++, edge++) {
+      edge->v1 += c * chunk_nverts;
+      edge->v2 += c * chunk_nverts;
     }
 
-    mp = &result_polys[c * chunk_npolys];
-    for (i = 0; i < chunk_npolys; i++, mp++) {
-      mp->loopstart += c * chunk_nloops;
+    poly = &result_polys[c * chunk_npolys];
+    for (i = 0; i < chunk_npolys; i++, poly++) {
+      poly->loopstart += c * chunk_nloops;
     }
 
     /* adjust loop vertex and edge indices */

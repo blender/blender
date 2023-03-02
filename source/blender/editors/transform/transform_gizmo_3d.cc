@@ -8,31 +8,15 @@
  * Used for 3D View
  */
 
-#include <cfloat>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
-#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.hh"
 #include "BKE_curve.h"
-#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -41,12 +25,10 @@
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-
-#include "DEG_depsgraph.h"
+#include "BLI_array_utils.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
-#include "WM_types.h"
 
 #include "ED_armature.h"
 #include "ED_curves.h"
@@ -56,9 +38,7 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "RNA_access.h"
@@ -67,11 +47,8 @@
 /* local module include */
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_gizmo.h"
 #include "transform_snap.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "GPU_state.h"
 
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
@@ -525,101 +502,6 @@ static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *e
   if (ebo->flag & BONE_EDITMODE_LOCKED) {
     protectflag_to_drawflags(OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE, &rv3d->twdrawflag);
   }
-}
-
-/* could move into BLI_math however this is only useful for display/editing purposes */
-static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
-{
-  /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */
-
-  float cross_vec[3];
-  float quat[4];
-
-  /* this is an un-scientific method to get a vector to cross with
-   * XYZ intentionally YZX */
-  cross_vec[0] = axis[1];
-  cross_vec[1] = axis[2];
-  cross_vec[2] = axis[0];
-
-  /* X-axis */
-  cross_v3_v3v3(gmat[0], cross_vec, axis);
-  normalize_v3(gmat[0]);
-  axis_angle_to_quat(quat, axis, angle);
-  mul_qt_v3(quat, gmat[0]);
-
-  /* Y-axis */
-  axis_angle_to_quat(quat, axis, M_PI_2);
-  copy_v3_v3(gmat[1], gmat[0]);
-  mul_qt_v3(quat, gmat[1]);
-
-  /* Z-axis */
-  copy_v3_v3(gmat[2], axis);
-
-  normalize_m3(gmat);
-}
-
-static bool test_rotmode_euler(short rotmode)
-{
-  return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? 0 : 1;
-}
-
-bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
-{
-  float mat[3][3], tmat[3][3], obmat[3][3];
-  if (test_rotmode_euler(pchan->rotmode)) {
-    eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
-  }
-  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-    axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
-  }
-  else { /* quat */
-    return 0;
-  }
-
-  /* apply bone transformation */
-  mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
-
-  if (pchan->parent) {
-    float parent_mat[3][3];
-
-    copy_m3_m4(parent_mat,
-               (pchan->bone->flag & BONE_HINGE) ? pchan->parent->bone->arm_mat :
-                                                  pchan->parent->pose_mat);
-    mul_m3_m3m3(mat, parent_mat, tmat);
-
-    /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->object_to_world);
-    mul_m3_m3m3(gmat, obmat, mat);
-  }
-  else {
-    /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->object_to_world);
-    mul_m3_m3m3(gmat, obmat, tmat);
-  }
-
-  normalize_m3(gmat);
-  return true;
-}
-
-bool gimbal_axis_object(Object *ob, float gmat[3][3])
-{
-  if (test_rotmode_euler(ob->rotmode)) {
-    eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
-  }
-  else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-    axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
-  }
-  else { /* quat */
-    return 0;
-  }
-
-  if (ob->parent) {
-    float parent_mat[3][3];
-    copy_m3_m4(parent_mat, ob->parent->object_to_world);
-    normalize_m3(parent_mat);
-    mul_m3_m3m3(gmat, parent_mat, gmat);
-  }
-  return 1;
 }
 
 int ED_transform_calc_gizmo_stats(const bContext *C,
@@ -1117,9 +999,7 @@ static void gizmo_get_idot(const RegionView3D *rv3d, float r_idot[3])
   }
 }
 
-static void gizmo_prepare_mat(const bContext *C,
-                              RegionView3D *rv3d,
-                              const TransformBounds *tbounds)
+void gizmo_prepare_mat(const bContext *C, RegionView3D *rv3d, const TransformBounds *tbounds)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1197,13 +1077,13 @@ static void gizmo_line_range(const int twtype, const short axis_type, float *r_s
   }
 }
 
-static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
-                                          wmMsgBus *mbus,
-                                          Scene *scene,
-                                          bScreen *screen,
-                                          ScrArea *area,
-                                          ARegion *region,
-                                          void (*type_fn)(wmGizmoGroupType *))
+void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
+                                   wmMsgBus *mbus,
+                                   Scene *scene,
+                                   bScreen *screen,
+                                   ScrArea *area,
+                                   ARegion *region,
+                                   void (*type_fn)(wmGizmoGroupType *))
 {
   /* Subscribe to view properties */
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh{};
@@ -2333,437 +2213,6 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
   gzgt->invoke_prepare = WIDGETGROUP_gizmo_invoke_prepare;
 
   g_GGT_xform_gizmo_context = gzgt;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Scale Cage Gizmo
- * \{ */
-
-struct XFormCageWidgetGroup {
-  wmGizmo *gizmo;
-  /* Only for view orientation. */
-  struct {
-    float viewinv_m3[3][3];
-  } prev;
-};
-
-static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-  if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
-    return false;
-  }
-  View3D *v3d = CTX_wm_view3d(C);
-  if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
-    return false;
-  }
-  if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) {
-    return false;
-  }
-  return true;
-}
-
-static void WIDGETGROUP_xform_cage_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
-{
-  XFormCageWidgetGroup *xgzgroup = static_cast<XFormCageWidgetGroup *>(
-      MEM_mallocN(sizeof(XFormCageWidgetGroup), __func__));
-  const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
-  xgzgroup->gizmo = WM_gizmo_new_ptr(gzt_cage, gzgroup, nullptr);
-  wmGizmo *gz = xgzgroup->gizmo;
-
-  RNA_enum_set(
-      gz->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE);
-
-  gz->color[0] = 1;
-  gz->color_hi[0] = 1;
-
-  gzgroup->customdata = xgzgroup;
-
-  {
-    wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
-    PointerRNA *ptr;
-
-    /* assign operator */
-    PropertyRNA *prop_release_confirm = nullptr;
-    PropertyRNA *prop_constraint_axis = nullptr;
-
-    int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
-    for (int x = 0; x < 3; x++) {
-      for (int y = 0; y < 3; y++) {
-        for (int z = 0; z < 3; z++) {
-          const bool constraint[3] = {x != 1, y != 1, z != 1};
-          ptr = WM_gizmo_operator_set(gz, i, ot_resize, nullptr);
-          if (prop_release_confirm == nullptr) {
-            prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
-            prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
-          }
-          RNA_property_boolean_set(ptr, prop_release_confirm, true);
-          RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint);
-          i++;
-        }
-      }
-    }
-  }
-}
-
-static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgroup)
-{
-  ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  Scene *scene = CTX_data_scene(C);
-
-  XFormCageWidgetGroup *xgzgroup = static_cast<XFormCageWidgetGroup *>(gzgroup->customdata);
-  wmGizmo *gz = xgzgroup->gizmo;
-
-  TransformBounds tbounds;
-
-  const int orient_index = BKE_scene_orientation_get_index_from_flag(scene, SCE_ORIENT_SCALE);
-
-  TransformCalcParams calc_params{};
-  calc_params.use_local_axis = true;
-  calc_params.orientation_index = orient_index + 1;
-  if ((ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds) == 0) ||
-      equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max)) {
-    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
-  }
-  else {
-    if (tbounds.use_matrix_space) {
-      copy_m4_m4(gz->matrix_space, tbounds.matrix_space);
-    }
-    else {
-      unit_m4(gz->matrix_space);
-    }
-
-    gizmo_prepare_mat(C, rv3d, &tbounds);
-
-    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-    WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
-
-    float dims[3];
-    sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);
-    RNA_float_set_array(gz->ptr, "dimensions", dims);
-    mul_v3_fl(dims, 0.5f);
-
-    copy_m4_m3(gz->matrix_offset, rv3d->tw_axis_matrix);
-    mid_v3_v3v3(gz->matrix_offset[3], rv3d->tw_axis_max, rv3d->tw_axis_min);
-    mul_m3_v3(rv3d->tw_axis_matrix, gz->matrix_offset[3]);
-
-    float matrix_offset_global[4][4];
-    mul_m4_m4m4(matrix_offset_global, gz->matrix_space, gz->matrix_offset);
-
-    PropertyRNA *prop_center_override = nullptr;
-    float center[3];
-    float center_global[3];
-    int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
-    for (int x = 0; x < 3; x++) {
-      center[0] = float(1 - x) * dims[0];
-      for (int y = 0; y < 3; y++) {
-        center[1] = float(1 - y) * dims[1];
-        for (int z = 0; z < 3; z++) {
-          center[2] = float(1 - z) * dims[2];
-          wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, i);
-          if (prop_center_override == nullptr) {
-            prop_center_override = RNA_struct_find_property(&gzop->ptr, "center_override");
-          }
-          mul_v3_m4v3(center_global, matrix_offset_global, center);
-          RNA_property_float_set_array(&gzop->ptr, prop_center_override, center_global);
-          i++;
-        }
-      }
-    }
-  }
-
-  /* Needed to test view orientation changes. */
-  copy_m3_m4(xgzgroup->prev.viewinv_m3, rv3d->viewinv);
-}
-
-static void WIDGETGROUP_xform_cage_message_subscribe(const bContext *C,
-                                                     wmGizmoGroup *gzgroup,
-                                                     wmMsgBus *mbus)
-{
-  Scene *scene = CTX_data_scene(C);
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, area, region, VIEW3D_GGT_xform_cage);
-}
-
-static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
-{
-  XFormCageWidgetGroup *xgzgroup = static_cast<XFormCageWidgetGroup *>(gzgroup->customdata);
-
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  {
-    Scene *scene = CTX_data_scene(C);
-    const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene,
-                                                                                 SCE_ORIENT_SCALE);
-    switch (orient_slot->type) {
-      case V3D_ORIENT_VIEW: {
-        float viewinv_m3[3][3];
-        copy_m3_m4(viewinv_m3, rv3d->viewinv);
-        if (!equals_m3m3(viewinv_m3, xgzgroup->prev.viewinv_m3)) {
-          /* Take care calling refresh from draw_prepare,
-           * this should be OK because it's only adjusting the cage orientation. */
-          WIDGETGROUP_xform_cage_refresh(C, gzgroup);
-        }
-        break;
-      }
-    }
-  }
-}
-
-void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
-{
-  gzgt->name = "Transform Cage";
-  gzgt->idname = "VIEW3D_GGT_xform_cage";
-
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
-                WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
-
-  gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
-  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
-
-  gzgt->poll = WIDGETGROUP_xform_cage_poll;
-  gzgt->setup = WIDGETGROUP_xform_cage_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->refresh = WIDGETGROUP_xform_cage_refresh;
-  gzgt->message_subscribe = WIDGETGROUP_xform_cage_message_subscribe;
-  gzgt->draw_prepare = WIDGETGROUP_xform_cage_draw_prepare;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform Shear Gizmo
- * \{ */
-
-struct XFormShearWidgetGroup {
-  wmGizmo *gizmo[3][2];
-  /** View aligned gizmos. */
-  wmGizmo *gizmo_view[4];
-
-  /* Only for view orientation. */
-  struct {
-    float viewinv_m3[3][3];
-  } prev;
-};
-
-static bool WIDGETGROUP_xform_shear_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-  if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
-    return false;
-  }
-  View3D *v3d = CTX_wm_view3d(C);
-  if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
-    return false;
-  }
-  return true;
-}
-
-static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
-{
-  XFormShearWidgetGroup *xgzgroup = static_cast<XFormShearWidgetGroup *>(
-      MEM_mallocN(sizeof(XFormShearWidgetGroup), __func__));
-  const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
-  wmOperatorType *ot_shear = WM_operatortype_find("TRANSFORM_OT_shear", true);
-
-  float axis_color[3][3];
-  for (int i = 0; i < 3; i++) {
-    UI_GetThemeColor3fv(TH_AXIS_X + i, axis_color[i]);
-  }
-
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
-      RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
-      const int i_ortho_a = (i + j + 1) % 3;
-      const int i_ortho_b = (i + (1 - j) + 1) % 3;
-      interp_v3_v3v3(gz->color, axis_color[i_ortho_a], axis_color[i_ortho_b], 0.75f);
-      gz->color[3] = 0.5f;
-      PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-      RNA_boolean_set(ptr, "release_confirm", 1);
-      xgzgroup->gizmo[i][j] = gz;
-    }
-  }
-
-  for (int i = 0; i < 4; i++) {
-    wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
-    RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
-    RNA_enum_set(gz->ptr, "draw_options", 0); /* No stem. */
-    copy_v3_fl(gz->color, 1.0f);
-    gz->color[3] = 0.5f;
-    WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_OFFSET_SCALE, true);
-    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-    RNA_boolean_set(ptr, "release_confirm", 1);
-    xgzgroup->gizmo_view[i] = gz;
-
-    /* Unlike the other gizmos, this never changes so can be set on setup. */
-    wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
-    RNA_enum_set(&gzop->ptr, "orient_type", V3D_ORIENT_VIEW);
-
-    RNA_enum_set(&gzop->ptr, "orient_axis", 2);
-    RNA_enum_set(&gzop->ptr, "orient_axis_ortho", ((i % 2) ? 0 : 1));
-  }
-
-  gzgroup->customdata = xgzgroup;
-}
-
-static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzgroup)
-{
-  Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-  XFormShearWidgetGroup *xgzgroup = static_cast<XFormShearWidgetGroup *>(gzgroup->customdata);
-  TransformBounds tbounds;
-
-  /* Needed to test view orientation changes. */
-  copy_m3_m4(xgzgroup->prev.viewinv_m3, rv3d->viewinv);
-
-  TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
-      scene, SCE_ORIENT_ROTATE);
-  const int orient_index = BKE_scene_orientation_slot_get_index(orient_slot);
-
-  TransformCalcParams calc_params{};
-  calc_params.use_local_axis = false;
-  calc_params.orientation_index = orient_index + 1;
-  if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds) == 0) {
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 2; j++) {
-        wmGizmo *gz = xgzgroup->gizmo[i][j];
-        WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
-      }
-    }
-
-    for (int i = 0; i < 4; i++) {
-      wmGizmo *gz = xgzgroup->gizmo_view[i];
-      WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
-    }
-  }
-  else {
-    gizmo_prepare_mat(C, rv3d, &tbounds);
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 2; j++) {
-        wmGizmo *gz = xgzgroup->gizmo[i][j];
-        WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-        WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
-
-        wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
-        const int i_ortho_a = (i + j + 1) % 3;
-        const int i_ortho_b = (i + (1 - j) + 1) % 3;
-        WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho_a], rv3d->twmat[i]);
-        WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
-
-        RNA_float_set_array(&gzop->ptr, "orient_matrix", &tbounds.axis[0][0]);
-        RNA_enum_set(&gzop->ptr, "orient_type", orient_slot->type);
-
-        RNA_enum_set(&gzop->ptr, "orient_axis", i_ortho_b);
-        RNA_enum_set(&gzop->ptr, "orient_axis_ortho", i_ortho_a);
-
-        mul_v3_fl(gz->matrix_basis[0], 0.5f);
-        mul_v3_fl(gz->matrix_basis[1], 6.0f);
-      }
-    }
-
-    for (int i = 0; i < 4; i++) {
-      wmGizmo *gz = xgzgroup->gizmo_view[i];
-      WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-    }
-  }
-}
-
-static void WIDGETGROUP_xform_shear_message_subscribe(const bContext *C,
-                                                      wmGizmoGroup *gzgroup,
-                                                      wmMsgBus *mbus)
-{
-  Scene *scene = CTX_data_scene(C);
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  gizmo_xform_message_subscribe(
-      gzgroup, mbus, scene, screen, area, region, VIEW3D_GGT_xform_shear);
-}
-
-static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
-{
-  XFormShearWidgetGroup *xgzgroup = static_cast<XFormShearWidgetGroup *>(gzgroup->customdata);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  {
-    Scene *scene = CTX_data_scene(C);
-    /* Shear is like rotate, use the rotate setting. */
-    const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(
-        scene, SCE_ORIENT_ROTATE);
-    switch (orient_slot->type) {
-      case V3D_ORIENT_VIEW: {
-        float viewinv_m3[3][3];
-        copy_m3_m4(viewinv_m3, rv3d->viewinv);
-        if (!equals_m3m3(viewinv_m3, xgzgroup->prev.viewinv_m3)) {
-          /* Take care calling refresh from draw_prepare,
-           * this should be OK because it's only adjusting the cage orientation. */
-          WIDGETGROUP_xform_shear_refresh(C, gzgroup);
-        }
-        break;
-      }
-    }
-  }
-
-  for (int i = 0; i < 4; i++) {
-    const float outer_thin = 0.3f;
-    const float outer_offset = 1.0f / 0.3f;
-    wmGizmo *gz = xgzgroup->gizmo_view[i];
-    WM_gizmo_set_matrix_rotation_from_yz_axis(
-        gz, rv3d->viewinv[(i + 1) % 2], rv3d->viewinv[i % 2]);
-    if (i >= 2) {
-      negate_v3(gz->matrix_basis[1]);
-      negate_v3(gz->matrix_basis[2]);
-    }
-
-    /* No need for depth with view aligned gizmos. */
-    mul_v3_fl(gz->matrix_basis[0], 0.0f);
-    mul_v3_fl(gz->matrix_basis[1], 20.0f + ((1.0f / outer_thin) * 1.8f));
-    mul_v3_fl(gz->matrix_basis[2], outer_thin);
-    WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
-    gz->matrix_offset[3][2] = outer_offset;
-  }
-
-  /* Basic ordering for drawing only. */
-  {
-    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-      /* Since we have two pairs of each axis,
-       * bias the values so gizmos that are orthogonal to the view get priority.
-       * This means we never default to shearing along
-       * the view axis in the case of an overlap. */
-      float axis_order[3], axis_bias[3];
-      copy_v3_v3(axis_order, gz->matrix_basis[2]);
-      copy_v3_v3(axis_bias, gz->matrix_basis[1]);
-      if (dot_v3v3(axis_bias, rv3d->viewinv[2]) < 0.0f) {
-        negate_v3(axis_bias);
-      }
-      madd_v3_v3fl(axis_order, axis_bias, 0.01f);
-      gz->temp.f = dot_v3v3(rv3d->viewinv[2], axis_order);
-    }
-    BLI_listbase_sort(&gzgroup->gizmos, WM_gizmo_cmp_temp_fl_reverse);
-  }
-}
-
-void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt)
-{
-  gzgt->name = "Transform Shear";
-  gzgt->idname = "VIEW3D_GGT_xform_shear";
-
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
-                WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
-
-  gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
-  gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
-
-  gzgt->poll = WIDGETGROUP_xform_shear_poll;
-  gzgt->setup = WIDGETGROUP_xform_shear_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->refresh = WIDGETGROUP_xform_shear_refresh;
-  gzgt->message_subscribe = WIDGETGROUP_xform_shear_message_subscribe;
-  gzgt->draw_prepare = WIDGETGROUP_xform_shear_draw_prepare;
 }
 
 /** \} */

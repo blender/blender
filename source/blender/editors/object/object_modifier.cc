@@ -658,7 +658,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
 
   blender::MutableSpan<float3> positions = me->vert_positions_for_write();
   blender::MutableSpan<MEdge> edges = me->edges_for_write();
-  MEdge *medge = edges.data();
+  MEdge *edge = edges.data();
 
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
@@ -673,9 +673,9 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       positions[vert_index] = key->co;
       if (k) {
-        medge->v1 = cvert - 1;
-        medge->v2 = cvert;
-        medge++;
+        edge->v1 = cvert - 1;
+        edge->v2 = cvert;
+        edge++;
       }
       else {
         /* cheap trick to select the roots */
@@ -691,9 +691,9 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       copy_v3_v3(positions[vert_index], key->co);
       if (k) {
-        medge->v1 = cvert - 1;
-        medge->v2 = cvert;
-        medge++;
+        edge->v1 = cvert - 1;
+        edge->v2 = cvert;
+        edge++;
       }
       else {
         /* cheap trick to select the roots */
@@ -2882,7 +2882,7 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 
 static void skin_armature_bone_create(Object *skin_ob,
                                       const Span<float3> positions,
-                                      const MEdge *medge,
+                                      const MEdge *edges,
                                       bArmature *arm,
                                       BLI_bitmap *edges_visited,
                                       const MeshElemMap *emap,
@@ -2891,7 +2891,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 {
   for (int i = 0; i < emap[parent_v].count; i++) {
     int endx = emap[parent_v].indices[i];
-    const MEdge *e = &medge[endx];
+    const MEdge *edge = &edges[endx];
 
     /* ignore edge if already visited */
     if (BLI_BITMAP_TEST(edges_visited, endx)) {
@@ -2899,7 +2899,7 @@ static void skin_armature_bone_create(Object *skin_ob,
     }
     BLI_BITMAP_ENABLE(edges_visited, endx);
 
-    int v = (e->v1 == parent_v ? e->v2 : e->v1);
+    int v = (edge->v1 == parent_v ? edge->v2 : edge->v1);
 
     EditBone *bone = ED_armature_ebone_add(arm, "Bone");
 
@@ -2920,7 +2920,7 @@ static void skin_armature_bone_create(Object *skin_ob,
       ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
     }
 
-    skin_armature_bone_create(skin_ob, positions, medge, arm, edges_visited, emap, bone, v);
+    skin_armature_bone_create(skin_ob, positions, edges, arm, edges_visited, emap, bone, v);
   }
 }
 

@@ -60,4 +60,22 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                 }.get(item_event.get("type")):
                     item_event["type"] = ty_new
 
+    if keyconfig_version <= (3, 6, 0):
+        # The modal keys "Vert/Edge Slide" and "TrackBall" didn't exist until then.
+        # The operator reused the "Move" and "Rotate" respectively.
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for km_name, _km_parms, km_items_data in keyconfig_data:
+            if km_name == "Transform Modal Map":
+                km_items = km_items_data["items"]
+                for (item_modal, item_event, _item_prop) in km_items:
+                    if item_modal == 'TRANSLATE':
+                        km_items.append(('VERT_EDGE_SLIDE', item_event, None))
+                    elif item_modal == 'ROTATE':
+                        km_items.append(('TRACKBALL', item_event, None))
+
+                break
+
     return keyconfig_data

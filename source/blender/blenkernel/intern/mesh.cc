@@ -272,6 +272,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
       BKE_mesh_legacy_sharp_edges_to_flags(mesh);
+      BKE_mesh_legacy_uv_seam_to_flags(mesh);
       BKE_mesh_legacy_attribute_strings_to_flags(mesh);
       mesh->active_color_attribute = nullptr;
       mesh->default_color_attribute = nullptr;
@@ -1534,13 +1535,13 @@ int poly_get_adj_loops_from_vert(const MPoly *poly, const MLoop *mloop, int vert
   return corner;
 }
 
-int BKE_mesh_edge_other_vert(const MEdge *e, int v)
+int BKE_mesh_edge_other_vert(const MEdge *edge, int v)
 {
-  if (e->v1 == v) {
-    return e->v2;
+  if (edge->v1 == v) {
+    return edge->v2;
   }
-  if (e->v2 == v) {
-    return e->v1;
+  if (edge->v2 == v) {
+    return edge->v1;
   }
 
   return -1;
@@ -1553,9 +1554,10 @@ void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
 {
   for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
     const MLoop *l1 = &loops[tri->tri[i]], *l2 = &loops[tri->tri[i_next]];
-    const MEdge *e = &edges[l1->e];
+    const MEdge *edge = &edges[l1->e];
 
-    bool is_real = (l1->v == e->v1 && l2->v == e->v2) || (l1->v == e->v2 && l2->v == e->v1);
+    bool is_real = (l1->v == edge->v1 && l2->v == edge->v2) ||
+                   (l1->v == edge->v2 && l2->v == edge->v1);
 
     r_edges[i] = is_real ? l1->e : -1;
   }

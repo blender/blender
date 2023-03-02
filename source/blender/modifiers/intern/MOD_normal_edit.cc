@@ -125,10 +125,9 @@ static void mix_normals(const float mix_factor,
                         const float mix_limit,
                         const short mix_mode,
                         const int verts_num,
-                        const MLoop *mloop,
+                        const blender::Span<MLoop> loops,
                         float (*nos_old)[3],
-                        float (*nos_new)[3],
-                        const int loops_num)
+                        float (*nos_new)[3])
 {
   /* Mix with org normals... */
   float *facs = nullptr, *wfac;
@@ -136,12 +135,12 @@ static void mix_normals(const float mix_factor,
   int i;
 
   if (dvert) {
-    facs = static_cast<float *>(MEM_malloc_arrayN(size_t(loops_num), sizeof(*facs), __func__));
+    facs = static_cast<float *>(MEM_malloc_arrayN(size_t(loops.size()), sizeof(*facs), __func__));
     BKE_defvert_extract_vgroup_to_loopweights(
-        dvert, defgrp_index, verts_num, mloop, loops_num, use_invert_vgroup, facs);
+        dvert, defgrp_index, verts_num, loops.data(), loops.size(), use_invert_vgroup, facs);
   }
 
-  for (i = loops_num, no_new = nos_new, no_old = nos_old, wfac = facs; i--;
+  for (i = loops.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;
        no_new++, no_old++, wfac++) {
     const float fac = facs ? *wfac * mix_factor : mix_factor;
 
@@ -174,25 +173,23 @@ static void mix_normals(const float mix_factor,
 
 /* Check poly normals and new loop normals are compatible, otherwise flip polygons
  * (and invert matching poly normals). */
-static bool polygons_check_flip(MLoop *mloop,
+static bool polygons_check_flip(blender::MutableSpan<MLoop> loops,
                                 float (*nos)[3],
                                 CustomData *ldata,
-                                const int totloop,
-                                const MPoly *mpoly,
-                                float (*poly_normals)[3],
-                                const int polys_num)
+                                const blender::Span<MPoly> polys,
+                                float (*poly_normals)[3])
 {
-  const MPoly *mp;
-  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer_for_write(ldata, CD_MDISPS, totloop));
-  int i;
+  MDisps *mdisp = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(ldata, CD_MDISPS, loops.size()));
   bool flipped = false;
 
-  for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
     float norsum[3] = {0.0f};
     float(*no)[3];
     int j;
 
-    for (j = 0, no = &nos[mp->loopstart]; j < mp->totloop; j++, no++) {
+    for (j = 0, no = &nos[poly.loopstart]; j < poly.totloop; j++, no++) {
       add_v3_v3(norsum, *no);
     }
 
@@ -202,7 +199,7 @@ static bool polygons_check_flip(MLoop *mloop,
 
     /* If average of new loop normals is opposed to polygon normal, flip polygon. */
     if (dot_v3v3(poly_normals[i], norsum) < 0.0f) {
-      BKE_mesh_polygon_flip_ex(mp, mloop, ldata, nos, mdisp, true);
+      BKE_mesh_polygon_flip_ex(&poly, loops.data(), ldata, nos, mdisp, true);
       negate_v3(poly_normals[i]);
       flipped = true;
     }
@@ -226,13 +223,10 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const bool use_invert_vgroup,
                                          const float (*vert_positions)[3],
                                          const int verts_num,
-                                         const MEdge *medge,
-                                         const int edges_num,
+                                         const blender::Span<MEdge> edges,
                                          bool *sharp_edges,
-                                         MLoop *mloop,
-                                         const int loops_num,
-                                         const MPoly *mpoly,
-                                         const int polys_num)
+                                         blender::MutableSpan<MLoop> loops,
+                                         const blender::Span<MPoly> polys)
 {
   Object *ob_target = enmd->target;
 
@@ -242,7 +236,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   float(*cos)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(size_t(verts_num), sizeof(*cos), __func__));
   float(*nos)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(size_t(loops_num), sizeof(*nos), __func__));
+      MEM_malloc_arrayN(size_t(loops.size()), sizeof(*nos), __func__));
   float size[3];
 
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(verts_num), __func__);
@@ -289,7 +283,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     float(*no)[3];
 
     /* We reuse cos to now store the ellipsoid-normal of the verts! */
-    for (i = loops_num, ml = mloop, no = nos; i--; ml++, no++) {
+    for (i = loops.size(), ml = loops.data(), no = nos; i--; ml++, no++) {
       const int vidx = ml->v;
       float *co = cos[vidx];
 
@@ -320,19 +314,14 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 mix_limit,
                 mix_mode,
                 verts_num,
-                mloop,
+                loops,
                 loop_normals,
-                nos,
-                loops_num);
+                nos);
   }
 
-  if (do_polynors_fix && polygons_check_flip(mloop,
-                                             nos,
-                                             &mesh->ldata,
-                                             mesh->totloop,
-                                             mpoly,
-                                             BKE_mesh_poly_normals_for_write(mesh),
-                                             polys_num)) {
+  if (do_polynors_fix &&
+      polygons_check_flip(
+          loops, nos, &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
     /* We need to recompute vertex normals! */
     BKE_mesh_normals_tag_dirty(mesh);
   }
@@ -340,14 +329,14 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   BKE_mesh_normals_loop_custom_set(vert_positions,
                                    BKE_mesh_vert_normals_ensure(mesh),
                                    verts_num,
-                                   medge,
-                                   edges_num,
-                                   mloop,
+                                   edges.data(),
+                                   edges.size(),
+                                   loops.data(),
                                    nos,
-                                   loops_num,
-                                   mpoly,
+                                   loops.size(),
+                                   polys.data(),
                                    poly_normals,
-                                   polys_num,
+                                   polys.size(),
                                    sharp_edges,
                                    clnors);
 
@@ -371,13 +360,10 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const bool use_invert_vgroup,
                                               const float (*positions)[3],
                                               const int verts_num,
-                                              const MEdge *medge,
-                                              const int edges_num,
+                                              const blender::Span<MEdge> edges,
                                               bool *sharp_edges,
-                                              MLoop *mloop,
-                                              const int loops_num,
-                                              const MPoly *mpoly,
-                                              const int polys_num)
+                                              blender::MutableSpan<MLoop> loops,
+                                              const blender::Span<MPoly> polys)
 {
   Object *ob_target = enmd->target;
 
@@ -385,7 +371,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
   float(*nos)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(size_t(loops_num), sizeof(*nos), __func__));
+      MEM_malloc_arrayN(loops.size(), sizeof(*nos), __func__));
 
   float target_co[3];
   int i;
@@ -403,7 +389,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     sub_v3_v3v3(no, target_co, enmd->offset);
     normalize_v3(no);
 
-    for (i = loops_num; i--;) {
+    for (i = loops.size(); i--;) {
       copy_v3_v3(nos[i], no);
     }
   }
@@ -417,7 +403,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     float(*no)[3];
 
     /* We reuse cos to now store the 'to target' normal of the verts! */
-    for (i = loops_num, no = nos, ml = mloop; i--; no++, ml++) {
+    for (i = loops.size(), no = nos, ml = loops.data(); i--; no++, ml++) {
       const int vidx = ml->v;
       float *co = cos[vidx];
 
@@ -443,33 +429,28 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 mix_limit,
                 mix_mode,
                 verts_num,
-                mloop,
+                loops,
                 loop_normals,
-                nos,
-                loops_num);
+                nos);
   }
 
-  if (do_polynors_fix && polygons_check_flip(mloop,
-                                             nos,
-                                             &mesh->ldata,
-                                             mesh->totloop,
-                                             mpoly,
-                                             BKE_mesh_poly_normals_for_write(mesh),
-                                             polys_num)) {
+  if (do_polynors_fix &&
+      polygons_check_flip(
+          loops, nos, &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
   BKE_mesh_normals_loop_custom_set(positions,
                                    BKE_mesh_vert_normals_ensure(mesh),
                                    verts_num,
-                                   medge,
-                                   edges_num,
-                                   mloop,
+                                   edges.data(),
+                                   edges.size(),
+                                   loops.data(),
                                    nos,
-                                   loops_num,
-                                   mpoly,
+                                   loops.size(),
+                                   polys.data(),
                                    poly_normals,
-                                   polys_num,
+                                   polys.size(),
                                    sharp_edges,
                                    clnors);
 
@@ -609,13 +590,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  use_invert_vgroup,
                                  positions,
                                  verts_num,
-                                 edges.data(),
-                                 edges.size(),
+                                 edges,
                                  sharp_edges.span.data(),
-                                 loops.data(),
-                                 loops.size(),
-                                 polys.data(),
-                                 polys.size());
+                                 loops,
+                                 polys);
   }
   else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
     normalEditModifier_do_directional(enmd,
@@ -633,13 +611,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       use_invert_vgroup,
                                       positions,
                                       verts_num,
-                                      edges.data(),
-                                      edges.size(),
+                                      edges,
                                       sharp_edges.span.data(),
-                                      loops.data(),
-                                      loops.size(),
-                                      polys.data(),
-                                      polys.size());
+                                      loops,
+                                      polys);
   }
 
   MEM_SAFE_FREE(loop_normals);

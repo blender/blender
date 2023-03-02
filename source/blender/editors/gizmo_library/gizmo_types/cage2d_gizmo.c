@@ -1174,21 +1174,30 @@ static int gizmo_cage2d_modal(bContext *C,
       }
     }
 
+    float scale[2] = {1.0f, 1.0f};
+    for (int i = 0; i < 2; i++) {
+      if (size_orig[i] == 0) {
+        size_orig[i] = 1.0f;
+        gz->matrix_offset[i][i] = 1.0f;
+      }
+      scale[i] = size_new[i] / size_orig[i];
+    }
+
     if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM) {
       if (constrain_axis[0] == false && constrain_axis[1] == false) {
         if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
           /* So that the cursor lies on the circle. */
-          size_new[1] = size_new[0] = len_v2(size_new);
+          scale[1] = scale[0] = len_v2(scale);
         }
         else {
-          size_new[1] = size_new[0] = (size_new[1] + size_new[0]) / 2.0f;
+          scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
         }
       }
       else if (constrain_axis[0] == false) {
-        size_new[1] = size_new[0];
+        scale[1] = scale[0];
       }
       else if (constrain_axis[1] == false) {
-        size_new[0] = size_new[1];
+        scale[0] = scale[1];
       }
       else {
         BLI_assert(0);
@@ -1196,18 +1205,11 @@ static int gizmo_cage2d_modal(bContext *C,
     }
 
     /* Scale around pivot. */
-    float scale[2];
     float matrix_scale[4][4];
     unit_m4(matrix_scale);
 
-    for (int i = 0; i < 2; i++) {
-      if (size_orig[i] == 0) {
-        size_orig[i] = 1.0f;
-        gz->matrix_offset[i][i] = 1.0f;
-      }
-      scale[i] = size_new[i] / size_orig[i];
-      mul_v3_fl(matrix_scale[i], scale[i]);
-    }
+    mul_v3_fl(matrix_scale[0], scale[0]);
+    mul_v3_fl(matrix_scale[1], scale[1]);
 
     transform_pivot_set_m4(matrix_scale, (const float[3]){UNPACK2(pivot), 0.0f});
     mul_m4_m4_post(gz->matrix_offset, matrix_scale);

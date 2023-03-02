@@ -4,12 +4,9 @@
  * \ingroup eduv
  */
 
-#include "GEO_uv_parametrizer.h"
-
-#include "MEM_guardedalloc.h"
+#include "GEO_uv_parametrizer.hh"
 
 #include "BLI_array.hh"
-#include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
@@ -19,9 +16,13 @@
 #include "BLI_rand.h"
 #include "BLI_vector.hh"
 
+#include "GEO_uv_pack.hh"
+
 #include "eigen_capi.h"
 
 /* Utils */
+
+namespace blender::geometry {
 
 #define param_assert(condition) \
   if (!(condition)) { /* `printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();` */ \
@@ -32,18 +33,18 @@
 
 /* Special Purpose Hash */
 
-typedef uintptr_t PHashKey;
+using PHashKey = uintptr_t;
 
-typedef struct PHashLink {
+struct PHashLink {
   struct PHashLink *next;
   PHashKey key;
-} PHashLink;
+};
 
-typedef struct PHash {
+struct PHash {
   PHashLink **list;
   PHashLink **buckets;
   int size, cursize, cursize_id;
-} PHash;
+};
 
 /* Simplices */
 
@@ -136,20 +137,18 @@ struct PChart {
   PEdge *collapsed_edges;
   PFace *collapsed_faces;
 
+  float area_uv;
+  float area_3d;
+
+  float origin[2];
+
   union PChartUnion {
     struct PChartLscm {
       LinearSolver *context;
       float *abf_alpha;
       PVert *pin1, *pin2;
       PVert *single_pin;
-      float single_pin_area;
-      float single_pin_uv[2];
     } lscm;
-    struct PChartPack {
-      float rescale, area;
-      float size[2];
-      float origin[2];
-    } pack;
   } u;
 
   bool has_pins;
@@ -173,7 +172,7 @@ struct ParamHandle {
   PHash *hash_edges;
   PHash *hash_faces;
 
-  struct GHash *pin_hash;
+  GHash *pin_hash;
   int unique_pin_count;
 
   PChart **charts;
@@ -1191,7 +1190,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
   PEdge *e, *e1, *e2;
 
   PFace *f;
-  struct Heap *heap = BLI_heap_new();
+  Heap *heap = BLI_heap_new();
   float angle;
 
   e = be;
@@ -2266,7 +2265,7 @@ static void p_chart_simplify(PChart *chart)
 
 #define ABF_MAX_ITER 20
 
-using PAbfSystem = struct PAbfSystem {
+struct PAbfSystem {
   int ninterior, nfaces, nangles;
   float *alpha, *beta, *sine, *cosine, *weight;
   float *bAlpha, *bTriangle, *bInterior;
@@ -3019,7 +3018,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 #endif
 
     if (npins == 1) {
-      chart->u.lscm.single_pin_area = p_chart_uv_area(chart);
+      chart->area_uv = p_chart_uv_area(chart);
       for (v = chart->verts; v; v = v->nextlink) {
         if (v->flag & PVERT_PIN) {
           chart->u.lscm.single_pin = v;
@@ -3069,8 +3068,8 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
   }
 
   if (chart->u.lscm.single_pin) {
-    /* If only one pin, save pin location for transform later. */
-    copy_v2_v2(chart->u.lscm.single_pin_uv, chart->u.lscm.single_pin->uv);
+    /* If only one pin, save location as origin. */
+    copy_v2_v2(chart->origin, chart->u.lscm.single_pin->uv);
   }
 
   if (chart->u.lscm.pin1) {
@@ -3204,15 +3203,15 @@ static void p_chart_lscm_transform_single_pin(PChart *chart)
   /* If only one pin, keep UV area the same. */
   const float new_area = p_chart_uv_area(chart);
   if (new_area > 0.0f) {
-    const float scale = chart->u.lscm.single_pin_area / new_area;
+    const float scale = chart->area_uv / new_area;
     if (scale > 0.0f) {
       p_chart_uv_scale(chart, sqrtf(scale));
     }
   }
 
-  /* Translate to keep the pinned vertex in place. */
+  /* Translate to keep the pinned UV in place. */
   float offset[2];
-  sub_v2_v2v2(offset, chart->u.lscm.single_pin_uv, pin->uv);
+  sub_v2_v2v2(offset, chart->origin, pin->uv);
   p_chart_uv_translate(chart, offset);
 }
 
@@ -3226,7 +3225,6 @@ static void p_chart_lscm_end(PChart *chart)
   chart->u.lscm.pin1 = nullptr;
   chart->u.lscm.pin2 = nullptr;
   chart->u.lscm.single_pin = nullptr;
-  chart->u.lscm.single_pin_area = 0.0f;
 }
 
 /* Stretch */
@@ -3658,7 +3656,7 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
 
 /* Exported */
 
-ParamHandle *GEO_uv_parametrizer_construct_begin()
+ParamHandle *uv_parametrizer_construct_begin()
 {
   ParamHandle *handle = new ParamHandle();
   handle->construction_chart = (PChart *)MEM_callocN(sizeof(PChart), "PChart");
@@ -3676,13 +3674,13 @@ ParamHandle *GEO_uv_parametrizer_construct_begin()
   return handle;
 }
 
-void GEO_uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float aspy)
+void uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float aspy)
 {
   phandle->aspx = aspx;
   phandle->aspy = aspy;
 }
 
-void GEO_uv_parametrizer_delete(ParamHandle *phandle)
+void uv_parametrizer_delete(ParamHandle *phandle)
 {
   if (!phandle) {
     return;
@@ -3718,7 +3716,7 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   delete phandle;
 }
 
-using GeoUVPinIndex = struct GeoUVPinIndex {
+struct GeoUVPinIndex {
   struct GeoUVPinIndex *next;
   float uv[2];
   ParamKey reindex;
@@ -3733,7 +3731,7 @@ using GeoUVPinIndex = struct GeoUVPinIndex {
  * For everything else, just return the #BMVert index.
  * Note that #ParamKeys will eventually be hashed, so they don't need to be contiguous.
  */
-ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
 {
   if (!handle->pin_hash) {
     return bmvertindex; /* No verts pinned. */
@@ -3769,7 +3767,7 @@ static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2]
   return pinuv;
 }
 
-void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+void uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
 {
   if (!handle->pin_hash) {
     handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
@@ -3852,20 +3850,20 @@ static void p_add_ngon(ParamHandle *handle,
     bool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
     bool tri_select[3] = {select[v0], select[v1], select[v2]};
 
-    GEO_uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
+    uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
   }
 
   BLI_memarena_clear(arena);
 }
 
-void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
-                                  const ParamKey key,
-                                  const int nverts,
-                                  const ParamKey *vkeys,
-                                  const float **co,
-                                  float **uv,
-                                  const bool *pin,
-                                  const bool *select)
+void uv_parametrizer_face_add(ParamHandle *phandle,
+                              const ParamKey key,
+                              const int nverts,
+                              const ParamKey *vkeys,
+                              const float **co,
+                              float **uv,
+                              const bool *pin,
+                              const bool *select)
 {
   BLI_assert(nverts >= 3);
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
@@ -3874,7 +3872,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
     /* Protect against (manifold) geometry which has a non-manifold triangulation.
      * See #102543. */
 
-    blender::Vector<int, 32> permute;
+    Vector<int, 32> permute;
     permute.reserve(nverts);
     for (int i = 0; i < nverts; i++) {
       permute.append_unchecked(i);
@@ -3898,7 +3896,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
 
       /* An existing triangle has already been inserted.
        * As a heuristic, attempt to add the *previous* triangle.
-       * NOTE: Should probably call `GEO_uv_parametrizer_face_add`
+       * NOTE: Should probably call `uv_parametrizer_face_add`
        * instead of `p_face_add_construct`. */
       int iprev = permute[(i + pm - 1) % pm];
       p_face_add_construct(phandle, key, vkeys, co, uv, iprev, i0, i1, pin, select);
@@ -3911,11 +3909,11 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
     if (permute.size() != nverts) {
       int pm = permute.size();
       /* Add the remaining pm-gon. */
-      blender::Array<ParamKey> vkeys_sub(pm);
-      blender::Array<const float *> co_sub(pm);
-      blender::Array<float *> uv_sub(pm);
-      blender::Array<bool> pin_sub(pm);
-      blender::Array<bool> select_sub(pm);
+      Array<ParamKey> vkeys_sub(pm);
+      Array<const float *> co_sub(pm);
+      Array<float *> uv_sub(pm);
+      Array<bool> pin_sub(pm);
+      Array<bool> select_sub(pm);
       for (int i = 0; i < pm; i++) {
         int j = permute[i];
         vkeys_sub[i] = vkeys[j];
@@ -3946,7 +3944,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
   }
 }
 
-void GEO_uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
+void uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
 {
   PEdge *e;
 
@@ -3958,10 +3956,10 @@ void GEO_uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
   }
 }
 
-void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
-                                       bool fill,
-                                       bool topology_from_uvs,
-                                       int *count_fail)
+void uv_parametrizer_construct_end(ParamHandle *phandle,
+                                   bool fill,
+                                   bool topology_from_uvs,
+                                   int *count_fail)
 {
   PChart *chart = phandle->construction_chart;
   int i, j;
@@ -4011,7 +4009,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
+void uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 {
   param_assert(phandle->state == PHANDLE_STATE_CONSTRUCTED);
   phandle->state = PHANDLE_STATE_LSCM;
@@ -4024,7 +4022,7 @@ void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
   }
 }
 
-void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *count_failed)
+void uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *count_failed)
 {
   param_assert(phandle->state == PHANDLE_STATE_LSCM);
 
@@ -4060,7 +4058,7 @@ void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, in
   }
 }
 
-void GEO_uv_parametrizer_lscm_end(ParamHandle *phandle)
+void uv_parametrizer_lscm_end(ParamHandle *phandle)
 {
   BLI_assert(phandle->state == PHANDLE_STATE_LSCM);
 
@@ -4074,7 +4072,7 @@ void GEO_uv_parametrizer_lscm_end(ParamHandle *phandle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void GEO_uv_parametrizer_stretch_begin(ParamHandle *phandle)
+void uv_parametrizer_stretch_begin(ParamHandle *phandle)
 {
   PChart *chart;
   PVert *v;
@@ -4103,13 +4101,13 @@ void GEO_uv_parametrizer_stretch_begin(ParamHandle *phandle)
   }
 }
 
-void GEO_uv_parametrizer_stretch_blend(ParamHandle *phandle, float blend)
+void uv_parametrizer_stretch_blend(ParamHandle *phandle, float blend)
 {
   param_assert(phandle->state == PHANDLE_STATE_STRETCH);
   phandle->blend = blend;
 }
 
-void GEO_uv_parametrizer_stretch_iter(ParamHandle *phandle)
+void uv_parametrizer_stretch_iter(ParamHandle *phandle)
 {
   PChart *chart;
   int i;
@@ -4122,7 +4120,7 @@ void GEO_uv_parametrizer_stretch_iter(ParamHandle *phandle)
   }
 }
 
-void GEO_uv_parametrizer_stretch_end(ParamHandle *phandle)
+void uv_parametrizer_stretch_end(ParamHandle *phandle)
 {
   param_assert(phandle->state == PHANDLE_STATE_STRETCH);
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
@@ -4145,20 +4143,8 @@ static void GEO_uv_parametrizer_pack_rotate(ParamHandle *phandle, bool ignore_pi
   }
 }
 
-void GEO_uv_parametrizer_pack(ParamHandle *handle,
-                              float margin,
-                              bool do_rotate,
-                              bool ignore_pinned)
+void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
 {
-  /* box packing variables */
-  BoxPack *boxarray, *box;
-  float tot_width, tot_height, scale;
-
-  PChart *chart;
-  int i, unpacked = 0;
-  float trans[2];
-  double area = 0.0;
-
   if (handle->ncharts == 0) {
     return;
   }
@@ -4169,96 +4155,96 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   }
 
   if (handle->aspx != handle->aspy) {
-    GEO_uv_parametrizer_scale(handle, 1.0f / handle->aspx, 1.0f / handle->aspy);
+    uv_parametrizer_scale(handle, 1.0f / handle->aspx, 1.0f / handle->aspy);
   }
-
-  /* we may not use all these boxes */
-  boxarray = (BoxPack *)MEM_mallocN(handle->ncharts * sizeof(BoxPack), "BoxPack box");
-
-  for (i = 0; i < handle->ncharts; i++) {
-    chart = handle->charts[i];
+  Vector<PackIsland *> pack_island_vector;
+  int unpacked = 0;
+  for (int i = 0; i < handle->ncharts; i++) {
+    PChart *chart = handle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       unpacked++;
       continue;
     }
 
-    box = boxarray + (i - unpacked);
+    geometry::PackIsland *pack_island = new geometry::PackIsland();
+    pack_island_vector.append(pack_island);
 
-    p_chart_uv_bbox(chart, trans, chart->u.pack.size);
+    float minv[2];
+    float maxv[2];
+    p_chart_uv_bbox(chart, minv, maxv);
+    pack_island->bounds_rect.xmin = minv[0];
+    pack_island->bounds_rect.ymin = minv[1];
+    pack_island->bounds_rect.xmax = maxv[0];
+    pack_island->bounds_rect.ymax = maxv[1];
+  }
 
-    trans[0] = -trans[0];
-    trans[1] = -trans[1];
+  UVPackIsland_Params params{};
+  params.rotate = do_rotate;
+  params.only_selected_uvs = false;
+  params.only_selected_faces = false;
+  params.use_seams = false;
+  params.correct_aspect = false;
+  params.ignore_pinned = false;
+  params.pin_unselected = false;
+  params.margin = margin;
+  params.margin_method = ED_UVPACK_MARGIN_SCALED;
+  params.udim_base_offset[0] = 0.0f;
+  params.udim_base_offset[1] = 0.0f;
 
-    p_chart_uv_translate(chart, trans);
+  float scale[2] = {1.0f, 1.0f};
+  BoxPack *box_array = pack_islands(pack_island_vector, params, scale);
 
-    box->w = chart->u.pack.size[0] + trans[0];
-    box->h = chart->u.pack.size[1] + trans[1];
-    box->index = i; /* Warning this index skips chart->has_pins boxes. */
+  for (int64_t i : pack_island_vector.index_range()) {
+    BoxPack *box = box_array + i;
+    PackIsland *pack_island = pack_island_vector[box->index];
+    pack_island->bounds_rect.xmin = box->x;
+    pack_island->bounds_rect.ymin = box->y;
+    pack_island->bounds_rect.xmax = box->x + box->w;
+    pack_island->bounds_rect.ymax = box->y + box->h;
+  }
 
-    if (margin > 0.0f) {
-      area += double(sqrtf(box->w * box->h));
+  unpacked = 0;
+  for (int i = 0; i < handle->ncharts; i++) {
+    PChart *chart = handle->charts[i];
+
+    if (ignore_pinned && chart->has_pins) {
+      unpacked++;
+      continue;
     }
-  }
+    PackIsland *pack_island = pack_island_vector[i - unpacked];
 
-  if (margin > 0.0f) {
-    /* multiply the margin by the area to give predictable results not dependent on UV scale,
-     * ...Without using the area running pack multiple times also gives a bad feedback loop.
-     * multiply by 0.1 so the margin value from the UI can be from
-     * 0.0 to 1.0 but not give a massive margin */
-    margin = (margin * float(area)) * 0.1f;
-    unpacked = 0;
-    for (i = 0; i < handle->ncharts; i++) {
-      chart = handle->charts[i];
+    float minv[2];
+    float maxv[2];
+    p_chart_uv_bbox(chart, minv, maxv);
 
-      if (ignore_pinned && chart->has_pins) {
-        unpacked++;
-        continue;
-      }
-
-      box = boxarray + (i - unpacked);
-      trans[0] = margin;
-      trans[1] = margin;
-      p_chart_uv_translate(chart, trans);
-      box->w += margin * 2;
-      box->h += margin * 2;
+    /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
+    float m[2];
+    float b[2];
+    m[0] = scale[0];
+    m[1] = scale[1];
+    b[0] = pack_island->bounds_rect.xmin - minv[0];
+    b[1] = pack_island->bounds_rect.ymin - minv[1];
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
+      /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
+      v->uv[0] = m[0] * (v->uv[0] + b[0]);
+      v->uv[1] = m[1] * (v->uv[1] + b[1]);
     }
+
+    pack_island_vector[i - unpacked] = nullptr;
+    delete pack_island;
   }
-
-  BLI_box_pack_2d(boxarray, handle->ncharts - unpacked, &tot_width, &tot_height);
-
-  if (tot_height > tot_width) {
-    scale = tot_height != 0.0f ? (1.0f / tot_height) : 1.0f;
-  }
-  else {
-    scale = tot_width != 0.0f ? (1.0f / tot_width) : 1.0f;
-  }
-
-  for (i = 0; i < handle->ncharts - unpacked; i++) {
-    box = boxarray + i;
-    trans[0] = box->x;
-    trans[1] = box->y;
-
-    chart = handle->charts[box->index];
-    p_chart_uv_translate(chart, trans);
-    p_chart_uv_scale(chart, scale);
-  }
-  MEM_freeN(boxarray);
-
+  MEM_freeN(box_array);
   if (handle->aspx != handle->aspy) {
-    GEO_uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
+    uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
   }
 }
 
-void GEO_uv_parametrizer_average(ParamHandle *phandle,
-                                 bool ignore_pinned,
-                                 bool scale_uv,
-                                 bool shear)
+void uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned, bool scale_uv, bool shear)
 {
-  PChart *chart;
   int i;
-  float tot_uvarea = 0.0f, tot_facearea = 0.0f;
-  float tot_fac, fac;
+  float tot_area_3d = 0.0f;
+  float tot_area_uv = 0.0f;
   float minv[2], maxv[2], trans[2];
 
   if (phandle->ncharts == 0) {
@@ -4266,14 +4252,15 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
   }
 
   for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
+    PChart *chart = phandle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
+    /* Store original bounding box midpoint. */
     p_chart_uv_bbox(chart, minv, maxv);
-    mid_v2_v2v2(chart->u.pack.origin, minv, maxv);
+    mid_v2_v2v2(chart->origin, minv, maxv);
 
     if (scale_uv || shear) {
       /* It's possible that for some "bad" inputs, the following iteration will converge slowly or
@@ -4349,51 +4336,51 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
       }
     }
 
-    chart->u.pack.area = 0.0f;    /* 3d area */
-    chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
+    chart->area_3d = 0.0f;
+    chart->area_uv = 0.0f;
 
     for (PFace *f = chart->faces; f; f = f->nextlink) {
-      chart->u.pack.area += p_face_area(f);
-      chart->u.pack.rescale += fabsf(p_face_uv_area_signed(f));
+      chart->area_3d += p_face_area(f);
+      chart->area_uv += fabsf(p_face_uv_area_signed(f));
     }
 
-    tot_facearea += chart->u.pack.area;
-    tot_uvarea += chart->u.pack.rescale;
+    tot_area_3d += chart->area_3d;
+    tot_area_uv += chart->area_uv;
   }
 
-  if (tot_facearea == tot_uvarea || tot_facearea == 0.0f || tot_uvarea == 0.0f) {
-    /* nothing to do */
+  if (tot_area_3d == 0.0f || tot_area_uv == 0.0f) {
+    /* Prevent divide by zero. */
     return;
   }
 
-  tot_fac = tot_facearea / tot_uvarea;
+  const float tot_fac = tot_area_3d / tot_area_uv;
 
   for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
+    PChart *chart = phandle->charts[i];
 
     if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
-    if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
-      fac = chart->u.pack.area / chart->u.pack.rescale;
+    if (chart->area_3d != 0.0f && chart->area_uv != 0.0f) {
+      const float fac = chart->area_3d / chart->area_uv;
 
       /* Average scale. */
       p_chart_uv_scale(chart, sqrtf(fac / tot_fac));
 
-      /* Get the current island center. */
+      /* Get the current island bounding box. */
       p_chart_uv_bbox(chart, minv, maxv);
 
-      /* Move to original center. */
+      /* Move back to original midpoint. */
       mid_v2_v2v2(trans, minv, maxv);
-      negate_v2(trans);
-      add_v2_v2(trans, chart->u.pack.origin);
+      sub_v2_v2v2(trans, chart->origin, trans);
+
       p_chart_uv_translate(chart, trans);
     }
   }
 }
 
-void GEO_uv_parametrizer_scale(ParamHandle *phandle, float x, float y)
+void uv_parametrizer_scale(ParamHandle *phandle, float x, float y)
 {
   PChart *chart;
   int i;
@@ -4404,7 +4391,7 @@ void GEO_uv_parametrizer_scale(ParamHandle *phandle, float x, float y)
   }
 }
 
-void GEO_uv_parametrizer_flush(ParamHandle *phandle)
+void uv_parametrizer_flush(ParamHandle *phandle)
 {
   PChart *chart;
   int i;
@@ -4420,7 +4407,7 @@ void GEO_uv_parametrizer_flush(ParamHandle *phandle)
   }
 }
 
-void GEO_uv_parametrizer_flush_restore(ParamHandle *phandle)
+void uv_parametrizer_flush_restore(ParamHandle *phandle)
 {
   PChart *chart;
   PFace *f;
@@ -4434,3 +4421,5 @@ void GEO_uv_parametrizer_flush_restore(ParamHandle *phandle)
     }
   }
 }
+
+}  // namespace blender::geometry

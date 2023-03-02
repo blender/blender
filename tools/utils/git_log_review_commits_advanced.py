@@ -347,7 +347,7 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate
                                 main_cat = sub_cats_to_main_cats.get(main_cat, None)
                             else:
                                 sub_cat = None
-                            #~ print("hl MAINCAT:", hl, main_cat, " | ", sub_cat)
+                            # print("hl MAINCAT:", hl, main_cat, " | ", sub_cat)
                             break
                         header.append(hl)
 
@@ -372,7 +372,7 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate
                         sub_cat = None
                     else:
                         main_cat = None
-                    #~ print("l SUBCAT:", l, main_cat, " | ", sub_cat)
+                    # print("l SUBCAT:", l, main_cat, " | ", sub_cat)
                 elif l.startswith("=="):
                     main_cat = l.strip(" =")
                     if main_cat not in main_cats:
@@ -380,18 +380,18 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate
                         main_cat = sub_cats_to_main_cats.get(main_cat, None)
                     else:
                         sub_cat = None
-                    #~ print("l MAINCAT:", l, main_cat, " | ", sub_cat)
+                    # print("l MAINCAT:", l, main_cat, " | ", sub_cat)
                 elif "Fix " in l:
                     if "Fix {{BugReport|" in l:
                         main_cat_data, _ = release_log.setdefault(main_cat, ({}, {}))
                         main_cat_data.setdefault(sub_cat, []).append(l)
                         count[0] += 1
-                        #~ print("l REPORTED:", l)
+                        # print("l REPORTED:", l)
                     else:
                         _, main_cat_data_unreported = release_log.setdefault(main_cat, ({}, {}))
                         main_cat_data_unreported.setdefault(sub_cat, []).append(l)
                         count[1] += 1
-                        #~ print("l UNREPORTED:", l)
+                        # print("l UNREPORTED:", l)
                     l_rstate = l.strip("* ")
                     if l_rstate.startswith("["):
                         end = l_rstate.find("]")

@@ -169,15 +169,15 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void mesh_uv_reset_mface(const MPoly *mp, float2 *mloopuv)
+static void mesh_uv_reset_mface(const MPoly *poly, float2 *mloopuv)
 {
-  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(mp->totloop);
+  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(poly->totloop);
 
-  for (int i = 0; i < mp->totloop; i++) {
-    fuv[i] = mloopuv[mp->loopstart + i];
+  for (int i = 0; i < poly->totloop; i++) {
+    fuv[i] = mloopuv[poly->loopstart + i];
   }
 
-  mesh_uv_reset_array(fuv.data(), mp->totloop);
+  mesh_uv_reset_array(fuv.data(), poly->totloop);
 }
 
 void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
