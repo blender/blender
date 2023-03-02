@@ -227,7 +227,7 @@ static AdrBit2Path ob_layer_bits[] = {
   } \
   (void)0
 
-/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+/* This function checks if a `blocktype+adrcode` combination, returning a mapping table. */
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
   /* Object layers */

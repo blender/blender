@@ -212,21 +212,21 @@ static void createVertRingMap(const int mvert_tot,
 
 /**
  * This method computes the Laplacian Matrix and Differential Coordinates
- * for all vertex in the mesh..
+ * for all vertex in the mesh.
  * The Linear system is LV = d
  * Where L is Laplacian Matrix, V as the vertices in Mesh, d is the differential coordinates
- * The Laplacian Matrix is computes as a
- * Lij = sum(Wij) (if i == j)
- * Lij = Wij (if i != j)
- * Wij is weight between vertex Vi and vertex Vj, we use cotangent weight
+ * The Laplacian Matrix is computes as a:
+ * `Lij = sum(Wij) (if i == j)`
+ * `Lij = Wij (if i != j)`
+ * `Wij` is weight between vertex Vi and vertex Vj, we use cotangent weight
  *
- * The Differential Coordinate is computes as a
- * di = Vi * sum(Wij) - sum(Wij * Vj)
- * Where :
+ * The Differential Coordinate is computes as a:
+ * `di = Vi * sum(Wij) - sum(Wij * Vj)`
+ * Where:
  * di is the Differential Coordinate i
- * sum (Wij) is the sum of all weights between vertex Vi and its vertices neighbors (Vj)
- * sum (Wij * Vj) is the sum of the product between vertex neighbor Vj and weight Wij
- *                for all neighborhood.
+ * `sum (Wij)` is the sum of all weights between vertex Vi and its vertices neighbors (`Vj`).
+ * `sum (Wij * Vj)` is the sum of the product between vertex neighbor `Vj` and weight `Wij`
+ *                  for all neighborhood.
  *
  * This Laplacian Matrix is described in the paper:
  * Desbrun M. et.al, Implicit fairing of irregular meshes using diffusion and curvature flow,

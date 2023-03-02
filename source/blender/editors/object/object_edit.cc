@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <math.h>
-#include <stddef.h> /* for offsetof */
+#include <stddef.h> /* For `offsetof`. */
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -231,7 +231,7 @@ int ED_object_in_mode_to_index(const Scene *scene,
   BLI_assert(ob != nullptr);
   /* NOTE: the `v3d` is always nullptr because the purpose of this function is to return
    * a reusable index, using the `v3d` only increases the chance the index may become
-   * invalidparams. */
+   * invalid-parameters. */
   int index = -1;
   int i = 0;
   FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, nullptr, -1, mode, base_iter) {

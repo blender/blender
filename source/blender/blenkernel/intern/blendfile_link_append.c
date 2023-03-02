@@ -1399,7 +1399,7 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
            * reference to be indirectly linked.
            *
            * This is more of an heuristic for 'as best as possible' user feedback in the UI
-           * (Outliner), which is expected to be valid in almost all practical usecases. Direct or
+           * (Outliner), which is expected to be valid in almost all practical use-cases. Direct or
            * indirect linked status is properly checked before saving .blend file. */
           id->tag &= ~LIB_TAG_EXTERN;
           id->tag |= LIB_TAG_INDIRECT;

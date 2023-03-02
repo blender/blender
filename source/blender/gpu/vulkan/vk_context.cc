@@ -50,7 +50,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
 
   VKBackend::capabilities_init(*this);
 
-  /* For offscreen contexts. Default framebuffer is empty. */
+  /* For off-screen contexts. Default frame-buffer is empty. */
   active_fb = back_left = new VKFrameBuffer("back_left");
 }
 

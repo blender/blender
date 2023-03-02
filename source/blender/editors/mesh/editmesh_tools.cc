@@ -8725,7 +8725,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
       params.calc_looptri = true;
       params.calc_normals = false;
       params.is_destructive = false;
-      /* Recheck bools. */
+      /* Recheck booleans. */
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);
 
       point_normals_update_header(C, op);

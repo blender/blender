@@ -54,6 +54,7 @@ dict_custom = {
     "canonicalizing",
     "catadioptric",
     "checksums",
+    "chrominance",
     "clearcoat",
     "codecs",
     "collapser",
