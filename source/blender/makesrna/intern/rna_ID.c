@@ -1016,7 +1016,12 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 
 static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool UNUSED(clear_proxy))
 {
-  BKE_lib_id_make_local(bmain, self, 0);
+  if (ID_IS_LINKED(self)) {
+    BKE_lib_id_make_local(bmain, self, 0);
+  }
+  else if (ID_IS_OVERRIDE_LIBRARY_REAL(self)) {
+    BKE_lib_override_library_make_local(self);
+  }
 
   ID *ret_id = self->newid ? self->newid : self;
   BKE_id_newptr_and_tag_clear(self);
