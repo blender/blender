@@ -31,18 +31,18 @@
 
 /* Special Purpose Hash */
 
-typedef uintptr_t PHashKey;
+using PHashKey = uintptr_t;
 
-typedef struct PHashLink {
+struct PHashLink {
   struct PHashLink *next;
   PHashKey key;
-} PHashLink;
+};
 
-typedef struct PHash {
+struct PHash {
   PHashLink **list;
   PHashLink **buckets;
   int size, cursize, cursize_id;
-} PHash;
+};
 
 /* Simplices */
 
@@ -170,7 +170,7 @@ struct ParamHandle {
   PHash *hash_edges;
   PHash *hash_faces;
 
-  struct GHash *pin_hash;
+  GHash *pin_hash;
   int unique_pin_count;
 
   PChart **charts;
@@ -1188,7 +1188,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
   PEdge *e, *e1, *e2;
 
   PFace *f;
-  struct Heap *heap = BLI_heap_new();
+  Heap *heap = BLI_heap_new();
   float angle;
 
   e = be;
@@ -2263,7 +2263,7 @@ static void p_chart_simplify(PChart *chart)
 
 #define ABF_MAX_ITER 20
 
-using PAbfSystem = struct PAbfSystem {
+struct PAbfSystem {
   int ninterior, nfaces, nangles;
   float *alpha, *beta, *sine, *cosine, *weight;
   float *bAlpha, *bTriangle, *bInterior;
@@ -3714,7 +3714,7 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   delete phandle;
 }
 
-using GeoUVPinIndex = struct GeoUVPinIndex {
+struct GeoUVPinIndex {
   struct GeoUVPinIndex *next;
   float uv[2];
   ParamKey reindex;
