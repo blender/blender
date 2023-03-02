@@ -17,12 +17,11 @@
 extern "C" {
 #endif
 
-
 /* Buffer size of maximum `uint64` plus commas and terminator. */
 #define BLI_STR_FORMAT_UINT64_GROUPED_SIZE 27
 
 /* Buffer size of maximum `int32` with commas and terminator. */
-#define BLI_STR_FORMAT_INT32_GROUPED_SIZE 16
+#define BLI_STR_FORMAT_INT32_GROUPED_SIZE 15
 
 /* Buffer size of maximum `int64` formatted as byte size (with GiB for example). */
 #define BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE 15
