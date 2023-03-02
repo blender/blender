@@ -108,9 +108,8 @@
 static CLG_LogRef LOG = {"ed.object.edit"};
 
 /* prototypes */
-typedef struct MoveToCollectionData MoveToCollectionData;
-static void move_to_collection_menus_items(struct uiLayout *layout,
-                                           struct MoveToCollectionData *menu);
+struct MoveToCollectionData;
+static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu);
 static ListBase selected_objects_get(bContext *C);
 
 /* -------------------------------------------------------------------- */
@@ -119,12 +118,12 @@ static ListBase selected_objects_get(bContext *C);
 
 Object *ED_object_context(const bContext *C)
 {
-  return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+  return static_cast<Object *>(CTX_data_pointer_get_type(C, "object", &RNA_Object).data);
 }
 
 Object *ED_object_active_context(const bContext *C)
 {
-  Object *ob = NULL;
+  Object *ob = nullptr;
   if (C) {
     ob = ED_object_context(C);
     if (!ob) {
@@ -144,17 +143,17 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
-  ID *id_pin = NULL;
-  const bool use_objects_in_mode = (ob_active != NULL) &&
+  ID *id_pin = nullptr;
+  const bool use_objects_in_mode = (ob_active != nullptr) &&
                                    (ob_active->mode & (OB_MODE_EDIT | OB_MODE_POSE));
   const char space_type = area ? area->spacetype : SPACE_EMPTY;
   Object **objects;
 
-  Object *ob = NULL;
+  Object *ob = nullptr;
   bool use_ob = true;
 
   if (space_type == SPACE_PROPERTIES) {
-    SpaceProperties *sbuts = area->spacedata.first;
+    SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
     id_pin = sbuts->pinid;
   }
 
@@ -182,21 +181,23 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
   }
 
   if (use_ob) {
-    if ((ob != NULL) && !filter_fn(ob, filter_user_data)) {
-      ob = NULL;
+    if ((ob != nullptr) && !filter_fn(ob, filter_user_data)) {
+      ob = nullptr;
     }
-    *r_objects_len = (ob != NULL) ? 1 : 0;
-    objects = MEM_mallocN(sizeof(*objects) * *r_objects_len, __func__);
-    if (ob != NULL) {
+    *r_objects_len = (ob != nullptr) ? 1 : 0;
+    objects = static_cast<Object **>(MEM_mallocN(sizeof(*objects) * *r_objects_len, __func__));
+    if (ob != nullptr) {
       objects[0] = ob;
     }
   }
   else {
-    const View3D *v3d = (space_type == SPACE_VIEW3D) ? area->spacedata.first : NULL;
+    const View3D *v3d = (space_type == SPACE_VIEW3D) ?
+                            static_cast<const View3D *>(area->spacedata.first) :
+                            nullptr;
     /* When in a mode that supports multiple active objects, use "objects in mode"
      * instead of the object's selection. */
     if (use_objects_in_mode) {
-      struct ObjectsInModeParams params = {0};
+      ObjectsInModeParams params = {0};
       params.object_mode = ob_active->mode;
       params.no_dup_data = true;
       params.filter_fn = filter_fn;
@@ -205,11 +206,12 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
           scene, view_layer, v3d, r_objects_len, &params);
     }
     else {
-      objects = BKE_view_layer_array_selected_objects(
-          view_layer,
-          v3d,
-          r_objects_len,
-          {.no_dup_data = true, .filter_fn = filter_fn, .filter_userdata = filter_user_data});
+      ObjectsInViewLayerParams params{};
+      params.no_dup_data = true;
+      params.filter_fn = filter_fn;
+      params.filter_userdata = filter_user_data;
+      objects = BKE_view_layer_array_selected_objects_params(
+          view_layer, v3d, r_objects_len, &params);
     }
   }
   return objects;
@@ -226,12 +228,13 @@ int ED_object_in_mode_to_index(const Scene *scene,
                                const eObjectMode mode,
                                const Object *ob)
 {
-  BLI_assert(ob != NULL);
-  /* NOTE: the `v3d` is always NULL because the purpose of this function is to return
-   * a reusable index, using the `v3d` only increases the chance the index may become invalid. */
+  BLI_assert(ob != nullptr);
+  /* NOTE: the `v3d` is always nullptr because the purpose of this function is to return
+   * a reusable index, using the `v3d` only increases the chance the index may become
+   * invalidparams. */
   int index = -1;
   int i = 0;
-  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, nullptr, -1, mode, base_iter) {
     if (base_iter->object == ob) {
       index = i;
       break;
@@ -248,9 +251,9 @@ Object *ED_object_in_mode_from_index(const Scene *scene,
                                      int index)
 {
   BLI_assert(index >= 0);
-  Object *ob = NULL;
+  Object *ob = nullptr;
   int i = 0;
-  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, nullptr, -1, mode, base_iter) {
     if (index == i) {
       ob = base_iter->object;
       break;
@@ -269,7 +272,7 @@ Object *ED_object_in_mode_from_index(const Scene *scene,
 
 static bool object_hide_poll(bContext *C)
 {
-  if (CTX_wm_space_outliner(C) != NULL) {
+  if (CTX_wm_space_outliner(C) != nullptr) {
     return ED_outliner_collections_editor_poll(C);
   }
   return ED_operator_view3d_active(C);
@@ -324,7 +327,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop = RNA_def_boolean(ot->srna, "select", true, "Select", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
@@ -385,7 +388,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(
       ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 static int object_hide_collection_exec(bContext *C, wmOperator *op)
@@ -433,7 +436,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  LayerCollection *lc_scene = view_layer->layer_collections.first;
+  LayerCollection *lc_scene = static_cast<LayerCollection *>(view_layer->layer_collections.first);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 
@@ -466,7 +469,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
   }
 }
 
-static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* Immediately execute if collection index was specified. */
   int index = RNA_int_get(op->ptr, "collection_index");
@@ -512,11 +515,11 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
                      "Index of the collection to change visibility",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle visibility");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend visibility");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */
@@ -559,13 +562,13 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
 {
   BLI_assert(load_data || free_data);
 
-  if (obedit == NULL) {
+  if (obedit == nullptr) {
     return false;
   }
 
   if (obedit->type == OB_MESH) {
-    Mesh *me = obedit->data;
-    if (me->edit_mesh == NULL) {
+    Mesh *me = static_cast<Mesh *>(obedit->data);
+    if (me->edit_mesh == nullptr) {
       return false;
     }
 
@@ -585,7 +588,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     if (free_data) {
       EDBM_mesh_free_data(me->edit_mesh);
       MEM_freeN(me->edit_mesh);
-      me->edit_mesh = NULL;
+      me->edit_mesh = nullptr;
     }
     /* will be recalculated as needed. */
     {
@@ -594,22 +597,22 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    const bArmature *arm = obedit->data;
-    if (arm->edbo == NULL) {
+    const bArmature *arm = static_cast<const bArmature *>(obedit->data);
+    if (arm->edbo == nullptr) {
       return false;
     }
 
     if (load_data) {
-      ED_armature_from_edit(bmain, obedit->data);
+      ED_armature_from_edit(bmain, static_cast<bArmature *>(obedit->data));
     }
 
     if (free_data) {
-      ED_armature_edit_free(obedit->data);
+      ED_armature_edit_free(static_cast<bArmature *>(obedit->data));
 
       if (load_data == false) {
         /* Don't keep unused pose channels created by duplicating bones
          * which may have been deleted/undone, see: #87631. */
-        if (obedit->pose != NULL) {
+        if (obedit->pose != nullptr) {
           BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
         }
       }
@@ -621,8 +624,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     DEG_relations_tag_update(bmain);
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    const Curve *cu = obedit->data;
-    if (cu->editnurb == NULL) {
+    const Curve *cu = static_cast<const Curve *>(obedit->data);
+    if (cu->editnurb == nullptr) {
       return false;
     }
 
@@ -635,8 +638,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
   }
   else if (obedit->type == OB_FONT) {
-    const Curve *cu = obedit->data;
-    if (cu->editfont == NULL) {
+    const Curve *cu = static_cast<const Curve *>(obedit->data);
+    if (cu->editfont == nullptr) {
       return false;
     }
 
@@ -649,8 +652,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    const Lattice *lt = obedit->data;
-    if (lt->editlatt == NULL) {
+    const Lattice *lt = static_cast<const Lattice *>(obedit->data);
+    if (lt->editlatt == nullptr) {
       return false;
     }
 
@@ -663,8 +666,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
   }
   else if (obedit->type == OB_MBALL) {
-    const MetaBall *mb = obedit->data;
-    if (mb->editelems == NULL) {
+    const MetaBall *mb = static_cast<const MetaBall *>(obedit->data);
+    if (mb->editelems == nullptr) {
       return false;
     }
 
@@ -684,7 +687,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
   }
 
   if (load_data) {
-    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(obedit->data);
+    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(
+        static_cast<ID *>(obedit->data));
     if (needs_flush_ptr) {
       *needs_flush_ptr = false;
     }
@@ -757,7 +761,7 @@ bool ED_object_editmode_exit_multi_ex(Main *bmain, Scene *scene, ViewLayer *view
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
-  if (obedit == NULL) {
+  if (obedit == nullptr) {
     return false;
   }
   bool changed = false;
@@ -785,7 +789,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 {
   bool ok = false;
 
-  if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
@@ -810,7 +814,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
   if (ob->type == OB_MESH) {
     ok = true;
 
-    const bool use_key_index = mesh_needs_keyindex(bmain, ob->data);
+    const bool use_key_index = mesh_needs_keyindex(bmain, static_cast<const Mesh *>(ob->data));
 
     EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
@@ -819,10 +823,10 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
       BKE_editmesh_looptri_and_normals_calc(em);
     }
 
-    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, NULL);
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, nullptr);
   }
   else if (ob->type == OB_ARMATURE) {
-    bArmature *arm = ob->data;
+    bArmature *arm = static_cast<bArmature *>(ob->data);
     ok = true;
     ED_armature_to_edit(arm);
     /* To ensure all goes in rest-position and without striding. */
@@ -841,7 +845,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_TEXT, scene);
   }
   else if (ob->type == OB_MBALL) {
-    MetaBall *mb = ob->data;
+    MetaBall *mb = static_cast<MetaBall *>(ob->data);
 
     ok = true;
     ED_mball_editmball_make(ob);
@@ -901,10 +905,10 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   const int mode_flag = OB_MODE_EDIT;
   const bool is_mode_set = (obact->mode & mode_flag) != 0;
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, obact, mode_flag, op->reports)) {
+    if (!ED_object_mode_compat_set(C, obact, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -947,7 +951,7 @@ static bool editmode_toggle_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   /* Covers liboverrides too. */
-  if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
+  if (ELEM(nullptr, ob, ob->data) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
@@ -984,14 +988,14 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-  struct Main *bmain = CTX_data_main(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Base *base = CTX_data_active_base(C);
 
-  /* If the base is NULL it means we have an active object, but the object itself is hidden. */
-  if (base == NULL) {
+  /* If the base is nullptr it means we have an active object, but the object itself is hidden. */
+  if (base == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1000,7 +1004,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
   bool is_mode_set = (obact->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, obact, mode_flag, op->reports)) {
+    if (!ED_object_mode_compat_set(C, obact, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -1083,23 +1087,23 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
     if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) &&
         !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
       if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVES_LEGACY)) {
-        ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
+        ED_object_modifier_add(nullptr, bmain, scene, object, nullptr, eModifierType_Surface);
       }
     }
   }
   else {
     if (!pd || (pd->shape != PFIELD_SHAPE_SURFACE) ||
         ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
-      ED_object_modifier_remove(NULL, bmain, scene, object, md);
+      ED_object_modifier_remove(nullptr, bmain, scene, object, md);
     }
   }
 }
 
-static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+static int forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob->pd == NULL) {
+  if (ob->pd == nullptr) {
     ob->pd = BKE_partdeflect_new(PFIELD_FORCE);
   }
   else if (ob->pd->forcefield == 0) {
@@ -1155,7 +1159,7 @@ static eAnimvizCalcRange object_path_convert_range(eObjectPathCalcRange range)
 
 void ED_objects_recalculate_paths_selected(bContext *C, Scene *scene, eObjectPathCalcRange range)
 {
-  ListBase selected_objects = {NULL, NULL};
+  ListBase selected_objects = {nullptr, nullptr};
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     BLI_addtail(&selected_objects, BLI_genericNodeN(ob));
   }
@@ -1168,7 +1172,7 @@ void ED_objects_recalculate_paths_selected(bContext *C, Scene *scene, eObjectPat
 
 void ED_objects_recalculate_paths_visible(bContext *C, Scene *scene, eObjectPathCalcRange range)
 {
-  ListBase visible_objects = {NULL, NULL};
+  ListBase visible_objects = {nullptr, nullptr};
   CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
     BLI_addtail(&visible_objects, BLI_genericNodeN(ob));
   }
@@ -1195,16 +1199,16 @@ void ED_objects_recalculate_paths(bContext *C,
                                   ListBase *ld_objects)
 {
   /* Transform doesn't always have context available to do update. */
-  if (C == NULL) {
+  if (C == nullptr) {
     return;
   }
 
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  ListBase targets = {NULL, NULL};
+  ListBase targets = {nullptr, nullptr};
   LISTBASE_FOREACH (LinkData *, link, ld_objects) {
-    Object *ob = link->data;
+    Object *ob = static_cast<Object *>(link->data);
 
     /* set flag to force recalc, then grab path(s) from object */
     if (has_object_motion_paths(ob)) {
@@ -1242,7 +1246,7 @@ void ED_objects_recalculate_paths(bContext *C,
     /* Tag objects for copy on write - so paths will draw/redraw
      * For currently frame only we update evaluated object directly. */
     LISTBASE_FOREACH (LinkData *, link, ld_objects) {
-      Object *ob = link->data;
+      Object *ob = static_cast<Object *>(link->data);
 
       if (has_object_motion_paths(ob) || has_pose_motion_paths(ob)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -1257,11 +1261,11 @@ void ED_objects_recalculate_paths(bContext *C,
 }
 
 /* show popup to determine settings */
-static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1293,7 +1297,7 @@ static int object_calculate_paths_exec(bContext *C, wmOperator *op)
     animviz_motionpath_compute_range(ob, scene);
 
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, NULL);
+    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1301,10 +1305,10 @@ static int object_calculate_paths_exec(bContext *C, wmOperator *op)
   ED_objects_recalculate_paths_selected(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
   /* NOTE: the notifier below isn't actually correct, but kept around just to be on the safe side.
    * If further testing shows it's not necessary (for both bones and objects) removal is fine. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1359,13 +1363,13 @@ static int object_update_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
-  if (scene == NULL) {
+  if (scene == nullptr) {
     return OPERATOR_CANCELLED;
   }
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     animviz_motionpath_compute_range(ob, scene);
     /* verify that the selected object has the appropriate settings */
-    animviz_verify_motionpaths(op->reports, scene, ob, NULL);
+    animviz_verify_motionpaths(op->reports, scene, ob, nullptr);
   }
   CTX_DATA_END;
 
@@ -1373,10 +1377,10 @@ static int object_update_paths_exec(bContext *C, wmOperator *op)
   ED_objects_recalculate_paths_selected(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
   /* NOTE: the notifier below isn't actually correct, but kept around just to be on the safe side.
    * If further testing shows it's not necessary (for both bones and objects) removal is fine. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1402,22 +1406,22 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
 /** \name Update All Motion Paths Operator
  * \{ */
 
-static bool object_update_all_paths_poll(bContext *UNUSED(C))
+static bool object_update_all_paths_poll(bContext * /*C*/)
 {
   return true;
 }
 
-static int object_update_all_paths_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_update_all_paths_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
-  if (scene == NULL) {
+  if (scene == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
   ED_objects_recalculate_paths_visible(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1448,7 +1452,7 @@ static void object_clear_mpath(Object *ob)
 {
   if (ob->mpath) {
     animviz_free_motionpath(ob->mpath);
-    ob->mpath = NULL;
+    ob->mpath = nullptr;
     ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 
     /* tag object for copy on write - so removed paths don't still show */
@@ -1483,14 +1487,14 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
   ED_objects_clear_paths(C, only_selected);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
 
-static char *object_clear_paths_description(struct bContext *UNUSED(C),
-                                            struct wmOperatorType *UNUSED(ot),
-                                            struct PointerRNA *ptr)
+static char *object_clear_paths_description(bContext * /*C*/,
+                                            wmOperatorType * /*ot*/,
+                                            PointerRNA *ptr)
 {
   const bool only_selected = RNA_boolean_get(ptr, "only_selected");
   if (only_selected) {
@@ -1534,8 +1538,8 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   bool changed_multi = false;
   bool has_linked_data = false;
 
-  ListBase ctx_objects = {NULL, NULL};
-  CollectionPointerLink ctx_ob_single_active = {NULL};
+  ListBase ctx_objects = {nullptr, nullptr};
+  CollectionPointerLink ctx_ob_single_active = {nullptr};
 
   /* For modes that only use an active object, don't handle the whole selection. */
   {
@@ -1554,9 +1558,9 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
-    Object *ob = ctx_ob->ptr.data;
-    ID *data = ob->data;
-    if (data != NULL) {
+    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
+    ID *data = static_cast<ID *>(ob->data);
+    if (data != nullptr) {
       data->tag |= LIB_TAG_DOIT;
     }
   }
@@ -1564,9 +1568,9 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
     /* Always un-tag all object data-blocks irrespective of our ability to operate on them. */
-    Object *ob = ctx_ob->ptr.data;
-    ID *data = ob->data;
-    if ((data == NULL) || ((data->tag & LIB_TAG_DOIT) == 0)) {
+    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
+    ID *data = static_cast<ID *>(ob->data);
+    if ((data == nullptr) || ((data->tag & LIB_TAG_DOIT) == 0)) {
       continue;
     }
     data->tag &= ~LIB_TAG_DOIT;
@@ -1579,17 +1583,18 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      BKE_mesh_smooth_flag_set(ob->data, use_smooth);
+      BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), use_smooth);
       if (use_smooth) {
         const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
         const float auto_smooth_angle = RNA_float_get(op->ptr, "auto_smooth_angle");
-        BKE_mesh_auto_smooth_flag_set(ob->data, use_auto_smooth, auto_smooth_angle);
+        BKE_mesh_auto_smooth_flag_set(
+            static_cast<Mesh *>(ob->data), use_auto_smooth, auto_smooth_angle);
       }
-      BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
     else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
-      BKE_curve_smooth_flag_set(ob->data, use_smooth);
+      BKE_curve_smooth_flag_set(static_cast<Curve *>(ob->data), use_smooth);
       changed = true;
     }
 
@@ -1618,9 +1623,9 @@ static bool shade_poll(bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
-  if (obact != NULL) {
+  if (obact != nullptr) {
     /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
-    if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == NULL ||
+    if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == nullptr ||
         ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data)) {
       return false;
     }
@@ -1684,12 +1689,12 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem *object_mode_set_itemf(bContext *C,
-                                                     PointerRNA *UNUSED(ptr),
-                                                     PropertyRNA *UNUSED(prop),
+                                                     PointerRNA * /*ptr*/,
+                                                     PropertyRNA * /*prop*/,
                                                      bool *r_free)
 {
   const EnumPropertyItem *input = rna_enum_object_mode_items;
-  EnumPropertyItem *item = NULL;
+  EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
   if (!C) { /* needed for docs */
@@ -1699,7 +1704,7 @@ static const EnumPropertyItem *object_mode_set_itemf(bContext *C,
   const Object *ob = CTX_data_active_object(C);
   if (ob) {
     while (input->identifier) {
-      if (ED_object_mode_compat_test(ob, input->value)) {
+      if (ED_object_mode_compat_test(ob, eObjectMode(input->value))) {
         RNA_enum_item_add(&item, &totitem, input);
       }
       input++;
@@ -1728,7 +1733,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
   const bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
   Object *ob = CTX_data_active_object(C);
-  eObjectMode mode = RNA_enum_get(op->ptr, "mode");
+  eObjectMode mode = eObjectMode(RNA_enum_get(op->ptr, "mode"));
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
   /* by default the operator assume is a mesh, but if gp object change mode */
@@ -1764,7 +1769,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    const eObjectMode mode_prev = ob->mode;
+    const eObjectMode mode_prev = eObjectMode(ob->mode);
     /* When toggling object mode, we always use the restore mode,
      * otherwise there is nothing to do. */
     if (mode == OB_MODE_OBJECT) {
@@ -1776,7 +1781,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
       }
       else {
         if (ob->restore_mode != OB_MODE_OBJECT) {
-          ED_object_mode_set_ex(C, ob->restore_mode, true, op->reports);
+          ED_object_mode_set_ex(C, eObjectMode(ob->restore_mode), true, op->reports);
         }
       }
     }
@@ -1791,7 +1796,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
       }
       else {
         if (ob->restore_mode != OB_MODE_OBJECT) {
-          ED_object_mode_set_ex(C, ob->restore_mode, true, op->reports);
+          ED_object_mode_set_ex(C, eObjectMode(ob->restore_mode), true, op->reports);
         }
         else {
           ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports);
@@ -1855,7 +1860,7 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_enum_flag(
       ot->srna, "mesh_select_mode", rna_enum_mesh_select_mode_items, 0, "Mesh Mode", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -1866,9 +1871,9 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
 
 static ListBase selected_objects_get(bContext *C)
 {
-  ListBase objects = {NULL};
+  ListBase objects = {nullptr};
 
-  if (CTX_wm_space_outliner(C) != NULL) {
+  if (CTX_wm_space_outliner(C) != nullptr) {
     ED_outliner_selected_objects_get(C, &objects);
   }
   else {
@@ -1883,7 +1888,7 @@ static ListBase selected_objects_get(bContext *C)
 
 static bool move_to_collection_poll(bContext *C)
 {
-  if (CTX_wm_space_outliner(C) != NULL) {
+  if (CTX_wm_space_outliner(C) != nullptr) {
     return ED_outliner_collections_editor_poll(C);
   }
   return ED_operator_objectmode(C);
@@ -1904,7 +1909,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 
   int collection_index = RNA_property_int_get(op->ptr, prop);
   Collection *collection = BKE_collection_from_index(scene, collection_index);
-  if (collection == NULL) {
+  if (collection == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
     return OPERATOR_CANCELLED;
   }
@@ -1922,10 +1927,12 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
     collection = BKE_collection_add(bmain, collection, new_collection_name);
   }
 
-  Object *single_object = BLI_listbase_is_single(&objects) ? ((LinkData *)objects.first)->data :
-                                                             NULL;
+  Object *single_object = BLI_listbase_is_single(&objects) ?
+                              static_cast<Object *>(((LinkData *)objects.first)->data) :
+                              nullptr;
 
-  if ((single_object != NULL) && is_link && BKE_collection_has_object(collection, single_object)) {
+  if ((single_object != nullptr) && is_link &&
+      BKE_collection_has_object(collection, single_object)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "%s already in %s",
@@ -1936,10 +1943,10 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (LinkData *, link, &objects) {
-    Object *ob = link->data;
+    Object *ob = static_cast<Object *>(link->data);
 
     if (!is_link) {
-      BKE_collection_object_move(bmain, scene, collection, NULL, ob);
+      BKE_collection_object_move(bmain, scene, collection, nullptr, ob);
     }
     else {
       BKE_collection_object_add(bmain, collection, ob);
@@ -1948,7 +1955,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   BLI_freelistN(&objects);
 
   if (is_link) {
-    if (single_object != NULL) {
+    if (single_object != nullptr) {
       BKE_reportf(op->reports,
                   RPT_INFO,
                   "%s linked to %s",
@@ -1961,7 +1968,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    if (single_object != NULL) {
+    if (single_object != nullptr) {
       BKE_reportf(op->reports,
                   RPT_INFO,
                   "%s moved to %s",
@@ -1985,12 +1992,12 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 }
 
 struct MoveToCollectionData {
-  struct MoveToCollectionData *next, *prev;
+  MoveToCollectionData *next, *prev;
   int index;
-  struct Collection *collection;
-  struct ListBase submenus;
+  Collection *collection;
+  ListBase submenus;
   PointerRNA ptr;
-  struct wmOperatorType *ot;
+  wmOperatorType *ot;
 };
 
 static int move_to_collection_menus_create(wmOperator *op, MoveToCollectionData *menu)
@@ -1998,7 +2005,7 @@ static int move_to_collection_menus_create(wmOperator *op, MoveToCollectionData 
   int index = menu->index;
   LISTBASE_FOREACH (CollectionChild *, child, &menu->collection->children) {
     Collection *collection = child->collection;
-    MoveToCollectionData *submenu = MEM_callocN(sizeof(MoveToCollectionData), __func__);
+    MoveToCollectionData *submenu = MEM_cnew<MoveToCollectionData>(__func__);
     BLI_addtail(&menu->submenus, submenu);
     submenu->collection = collection;
     submenu->index = ++index;
@@ -2018,18 +2025,18 @@ static void move_to_collection_menus_free_recursive(MoveToCollectionData *menu)
 
 static void move_to_collection_menus_free(MoveToCollectionData **menu)
 {
-  if (*menu == NULL) {
+  if (*menu == nullptr) {
     return;
   }
 
   move_to_collection_menus_free_recursive(*menu);
   MEM_freeN(*menu);
-  *menu = NULL;
+  *menu = nullptr;
 }
 
 static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *menu_v)
 {
-  MoveToCollectionData *menu = menu_v;
+  MoveToCollectionData *menu = static_cast<MoveToCollectionData *>(menu_v);
   const char *name = BKE_collection_ui_name_get(menu->collection);
 
   UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
@@ -2042,10 +2049,10 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
                   menu->ot,
                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
                   ICON_ADD,
-                  menu->ptr.data,
+                  static_cast<IDProperty *>(menu->ptr.data),
                   WM_OP_INVOKE_DEFAULT,
                   0,
-                  NULL);
+                  nullptr);
 
   uiItemS(layout);
 
@@ -2078,9 +2085,9 @@ static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionDat
 }
 
 /* This is allocated statically because we need this available for the menus creation callback. */
-static MoveToCollectionData *master_collection_menu = NULL;
+static MoveToCollectionData *master_collection_menu = nullptr;
 
-static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -2122,9 +2129,9 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
    * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
    *
    * So we are left with a memory that will necessarily leak. It's a small leak though. */
-  if (master_collection_menu == NULL) {
-    master_collection_menu = MEM_callocN(sizeof(MoveToCollectionData),
-                                         "MoveToCollectionData menu - expected eventual memleak");
+  if (master_collection_menu == nullptr) {
+    master_collection_menu = MEM_cnew<MoveToCollectionData>(
+        "MoveToCollectionData menu - expected eventual memleak");
   }
 
   master_collection_menu->collection = master_collection;
@@ -2174,12 +2181,12 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
                      "Index of the collection to move to",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
-                        NULL,
+                        nullptr,
                         MAX_NAME,
                         "Name",
                         "Name of the newly added collection");
@@ -2213,12 +2220,12 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
                      "Index of the collection to move to",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
-                        NULL,
+                        nullptr,
                         MAX_NAME,
                         "Name",
                         "Name of the newly added collection");

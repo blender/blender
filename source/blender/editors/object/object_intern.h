@@ -72,7 +72,7 @@ void OBJECT_OT_drop_geometry_nodes(struct wmOperatorType *ot);
  */
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
-/* object_edit.c */
+/* object_edit.cc */
 
 void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
 void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);

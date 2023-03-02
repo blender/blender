@@ -230,7 +230,7 @@ void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
 
 extern struct EnumPropertyItem *corner_type_items;
 
-/* *** editmesh_tools.c *** */
+/* *** editmesh_tools.cc *** */
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_subdivide_edgering(struct wmOperatorType *ot);
 void MESH_OT_unsubdivide(struct wmOperatorType *ot);
