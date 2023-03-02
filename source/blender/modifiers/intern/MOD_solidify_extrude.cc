@@ -465,10 +465,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
     }
 
-    MEdge *ed;
-    for (i = 0, ed = &edges[edges_num]; i < edges_num; i++, ed++) {
-      ed->v1 += verts_num;
-      ed->v2 += verts_num;
+    for (MEdge &edge : edges.slice(edges_num, edges_num)) {
+      edge.v1 += verts_num;
+      edge.v2 += verts_num;
     }
   }
 
@@ -1047,10 +1046,11 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     origindex_edge = static_cast<int *>(
         CustomData_get_layer_for_write(&result->edata, CD_ORIGINDEX, result->totedge));
     orig_ed = (origindex_edge) ? &origindex_edge[(edges_num * stride) + newEdges] : nullptr;
-    MEdge *ed = &edges[(edges_num * stride) + newEdges]; /* start after copied edges */
-    for (i = 0; i < rimVerts; i++, ed++) {
-      ed->v1 = new_vert_arr[i];
-      ed->v2 = (do_shell ? new_vert_arr[i] : i) + verts_num;
+    /* Start after copied edges. */
+    int new_edge_index = int(edges_num * stride + newEdges);
+    for (i = 0; i < rimVerts; i++) {
+      edges[new_edge_index].v1 = new_vert_arr[i];
+      edges[new_edge_index].v2 = (do_shell ? new_vert_arr[i] : i) + verts_num;
 
       if (orig_ed) {
         *orig_ed = ORIGINDEX_NONE;
@@ -1058,15 +1058,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
 
       if (crease_rim) {
-        result_edge_crease[ed - edges.data()] = crease_rim;
+        result_edge_crease[new_edge_index] = crease_rim;
       }
+      new_edge_index++;
     }
 
     /* faces */
-    MPoly *poly = &polys[polys_num * stride];
-    MLoop *ml = &loops[loops_num * stride];
+    int new_poly_index = int(polys_num * stride);
+    blender::MutableSpan<MLoop> new_loops = loops.drop_front(loops_num * stride);
     j = 0;
-    for (i = 0; i < newPolys; i++, poly++) {
+    for (i = 0; i < newPolys; i++) {
       uint eidx = new_edge_arr[i];
       uint pidx = edge_users[eidx];
       int k1, k2;
@@ -1080,24 +1081,25 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         flip = false;
       }
 
-      ed = &edges[eidx];
+      const MEdge &edge = edges[eidx];
 
       /* copy most of the face settings */
       CustomData_copy_data(
           &mesh->pdata, &result->pdata, int(pidx), int((polys_num * stride) + i), 1);
-      poly->loopstart = int(j + (loops_num * stride));
-      poly->flag = polys[pidx].flag;
+      polys[new_poly_index].loopstart = int(j + (loops_num * stride));
+      polys[new_poly_index].flag = polys[pidx].flag;
 
-      /* notice we use 'poly->totloop' which is later overwritten,
+      /* notice we use 'polys[new_poly_index].totloop' which is later overwritten,
        * we could lookup the original face but there's no point since this is a copy
        * and will have the same value, just take care when changing order of assignment */
 
       /* prev loop */
-      k1 = polys[pidx].loopstart + (((edge_order[eidx] - 1) + poly->totloop) % poly->totloop);
+      k1 = polys[pidx].loopstart + (((edge_order[eidx] - 1) + polys[new_poly_index].totloop) %
+                                    polys[new_poly_index].totloop);
 
       k2 = polys[pidx].loopstart + (edge_order[eidx]);
 
-      poly->totloop = 4;
+      polys[new_poly_index].totloop = 4;
 
       CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 0), 1);
       CustomData_copy_data(&mesh->ldata, &result->ldata, k1, int((loops_num * stride) + j + 1), 1);
@@ -1105,45 +1107,45 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
-        ml[j].v = ed->v1;
-        ml[j++].e = eidx;
+        new_loops[j].v = edge.v1;
+        new_loops[j++].e = eidx;
 
-        ml[j].v = ed->v2;
-        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v2] + newEdges;
+        new_loops[j].v = edge.v2;
+        new_loops[j++].e = (edges_num * stride) + old_vert_arr[edge.v2] + newEdges;
 
-        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + verts_num;
-        ml[j++].e = (do_shell ? eidx : i) + edges_num;
+        new_loops[j].v = (do_shell ? edge.v2 : old_vert_arr[edge.v2]) + verts_num;
+        new_loops[j++].e = (do_shell ? eidx : i) + edges_num;
 
-        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + verts_num;
-        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v1] + newEdges;
+        new_loops[j].v = (do_shell ? edge.v1 : old_vert_arr[edge.v1]) + verts_num;
+        new_loops[j++].e = (edges_num * stride) + old_vert_arr[edge.v1] + newEdges;
       }
       else {
-        ml[j].v = ed->v2;
-        ml[j++].e = eidx;
+        new_loops[j].v = edge.v2;
+        new_loops[j++].e = eidx;
 
-        ml[j].v = ed->v1;
-        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v1] + newEdges;
+        new_loops[j].v = edge.v1;
+        new_loops[j++].e = (edges_num * stride) + old_vert_arr[edge.v1] + newEdges;
 
-        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + verts_num;
-        ml[j++].e = (do_shell ? eidx : i) + edges_num;
+        new_loops[j].v = (do_shell ? edge.v1 : old_vert_arr[edge.v1]) + verts_num;
+        new_loops[j++].e = (do_shell ? eidx : i) + edges_num;
 
-        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + verts_num;
-        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v2] + newEdges;
+        new_loops[j].v = (do_shell ? edge.v2 : old_vert_arr[edge.v2]) + verts_num;
+        new_loops[j++].e = (edges_num * stride) + old_vert_arr[edge.v2] + newEdges;
       }
 
       if (origindex_edge) {
-        origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
-        origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
+        origindex_edge[new_loops[j - 3].e] = ORIGINDEX_NONE;
+        origindex_edge[new_loops[j - 1].e] = ORIGINDEX_NONE;
       }
 
       /* use the next material index if option enabled */
       if (mat_ofs_rim) {
-        dst_material_index[poly - polys.data()] += mat_ofs_rim;
-        CLAMP(dst_material_index[poly - polys.data()], 0, mat_nr_max);
+        dst_material_index[new_poly_index] += mat_ofs_rim;
+        CLAMP(dst_material_index[new_poly_index], 0, mat_nr_max);
       }
       if (crease_outer) {
         /* crease += crease_outer; without wrapping */
-        float *cr = &(result_edge_crease[ed - edges.data()]);
+        float *cr = &(result_edge_crease[eidx]);
         float tcr = *cr + crease_outer;
         *cr = tcr > 1.0f ? 1.0f : tcr;
       }
@@ -1158,34 +1160,36 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #ifdef SOLIDIFY_SIDE_NORMALS
       if (do_side_normals) {
         normal_quad_v3(nor,
-                       vert_positions[ml[j - 4].v],
-                       vert_positions[ml[j - 3].v],
-                       vert_positions[ml[j - 2].v],
-                       vert_positions[ml[j - 1].v]);
+                       vert_positions[new_loops[j - 4].v],
+                       vert_positions[new_loops[j - 3].v],
+                       vert_positions[new_loops[j - 2].v],
+                       vert_positions[new_loops[j - 1].v]);
 
-        add_v3_v3(edge_vert_nos[ed->v1], nor);
-        add_v3_v3(edge_vert_nos[ed->v2], nor);
+        add_v3_v3(edge_vert_nos[edge.v1], nor);
+        add_v3_v3(edge_vert_nos[edge.v2], nor);
       }
 #endif
+
+      new_poly_index++;
     }
 
 #ifdef SOLIDIFY_SIDE_NORMALS
     if (do_side_normals) {
-      const MEdge *edge_orig = edges.data();
-      ed = &edges[edges_num * stride];
-      for (i = 0; i < rimVerts; i++, ed++, edge_orig++) {
+      for (i = 0; i < rimVerts; i++) {
+        const MEdge &edge_orig = edges[i];
+        const MEdge &edge = edges[edges_num * stride + i];
         float nor_cpy[3];
         int k;
 
         /* NOTE: only the first vertex (lower half of the index) is calculated. */
-        BLI_assert(ed->v1 < verts_num);
-        normalize_v3_v3(nor_cpy, edge_vert_nos[edge_orig->v1]);
+        BLI_assert(edge.v1 < verts_num);
+        normalize_v3_v3(nor_cpy, edge_vert_nos[edge_orig.v1]);
 
         for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
-          copy_v3_v3(nor, mesh_vert_normals[*(&ed->v1 + k)]);
+          copy_v3_v3(nor, mesh_vert_normals[*(&edge.v1 + k)]);
           add_v3_v3(nor, nor_cpy);
           normalize_v3(nor);
-          copy_v3_v3((float *)mesh_vert_normals[*(&ed->v1 + k)], nor);
+          copy_v3_v3((float *)mesh_vert_normals[*(&edge.v1 + k)], nor);
         }
       }
 
