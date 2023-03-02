@@ -38,12 +38,15 @@ void ED_asset_handle_get_full_library_path(
 
 #ifdef __cplusplus
 
+#  include "BLI_string_ref.hh"
 #  include <optional>
 
 /** The asset library may have an import method (e.g. append vs. link) defined to use. If so, this
  * returns it. Otherwise a reasonable method should be used, usually "Append (Reuse Data)". */
 std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const struct AssetHandle *asset);
+
+blender::StringRefNull ED_asset_handle_get_relative_path(const AssetHandle &asset);
 
 namespace blender::ed::asset {
 

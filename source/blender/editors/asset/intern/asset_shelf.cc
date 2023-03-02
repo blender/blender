@@ -24,6 +24,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.h"
 #include "UI_tree_view.hh"
+#include "UI_view2d.h"
 
 #include "WM_api.h"
 
@@ -77,6 +78,16 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
   }
 }
 
+void ED_asset_shelf_region_init(ARegion *region)
+{
+  View2D &v2d = region->v2d;
+
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  /* Only allow scrolling in vertical direction. */
+  v2d.scroll = V2D_SCROLL_RIGHT;
+  v2d.keepofs = V2D_LOCKOFS_X;
+}
+
 /**
  * Check if there is any asset shelf type returning true in it's poll. If not, no asset shelf
  * region should be displayed.
@@ -96,30 +107,45 @@ static bool asset_shelf_region_header_type_poll(const bContext *C, HeaderType * 
   return false;
 }
 
-void ED_asset_shelf_region_draw(const bContext *C, ARegion *region)
+void ED_asset_shelf_region_draw(const bContext *C,
+                                ARegion *region,
+                                AssetShelfSettings *shelf_settings)
 {
-  ED_region_header(C, region);
-}
+  AssetLibraryReference all_library_ref = {};
+  all_library_ref.type = ASSET_LIBRARY_ALL;
+  all_library_ref.custom_library_index = -1;
 
-static void asset_shelf_region_draw(const bContext *C, Header *header)
-{
-  uiLayout *layout = header->layout;
-  AssetFilterSettings dummy_filter_settings{0};
+  UI_ThemeClearColor(TH_BACK);
 
-  uiTemplateAssetShelf(layout, C, &dummy_filter_settings);
-}
+  /* Set view2d view matrix for scrolling. */
+  UI_view2d_view_ortho(&region->v2d);
 
-void ED_asset_shelf_region_register(ARegionType *region_type,
-                                    const char *idname,
-                                    const int space_type)
-{
-  HeaderType *ht = MEM_cnew<HeaderType>(__func__);
-  strcpy(ht->idname, idname);
-  ht->space_type = space_type;
-  ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
-  ht->draw = asset_shelf_region_draw;
-  ht->poll = asset_shelf_region_header_type_poll;
-  BLI_addtail(&region_type->headertypes, ht);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+
+  const uiStyle *style = UI_style_get();
+  const float padding = style->panelouter;
+  UI_block_layout(block,
+                  UI_LAYOUT_VERTICAL,
+                  UI_LAYOUT_PANEL,
+                  padding,
+                  -padding,
+                  region->winx - 2 * padding,
+                  1,
+                  0,
+                  style);
+
+  shelf::build_asset_view(block, all_library_ref, shelf_settings, *C, *region);
+
+  int layout_width, layout_height;
+  UI_block_layout_resolve(block, &layout_width, &layout_height);
+  UI_view2d_totRect_set(&region->v2d, layout_width, layout_height);
+  UI_view2d_curRect_validate(&region->v2d);
+
+  UI_block_end(C, block);
+  UI_block_draw(C, block);
+
+  /* Restore view matrix. */
+  UI_view2d_view_restore(C);
 }
 
 void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)

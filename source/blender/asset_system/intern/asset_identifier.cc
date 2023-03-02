@@ -24,4 +24,9 @@ std::string AssetIdentifier::full_path() const
   return path;
 }
 
+StringRefNull AssetIdentifier::relative_path() const
+{
+  return relative_asset_path_;
+}
+
 }  // namespace blender::asset_system

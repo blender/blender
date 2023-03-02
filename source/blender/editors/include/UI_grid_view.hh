@@ -45,7 +45,7 @@ class AbstractGridViewItem : public AbstractViewItem {
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
-  const AbstractGridView &get_view() const;
+  AbstractGridView &get_view() const;
 
  protected:
   AbstractGridViewItem(StringRef identifier);
@@ -124,6 +124,8 @@ class AbstractGridView : public AbstractView {
   template<class ItemT, typename... Args> inline ItemT &add_item(Args &&...args);
   const GridViewStyle &get_style() const;
   int get_item_count() const;
+
+  void set_tile_size(int tile_width, int tile_height);
 
  protected:
   virtual void build_items() = 0;

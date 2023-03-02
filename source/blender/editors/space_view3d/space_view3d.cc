@@ -304,7 +304,6 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for view3d");
@@ -1916,6 +1915,21 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels_ex(C, region, contexts);
 }
 
+static void view3d_asset_shelf_region_draw(const bContext *C, ARegion *region)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  ED_asset_shelf_region_draw(C, region, v3d->asset_shelf);
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void view3d_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
+  ED_asset_shelf_region_init(region);
+}
+
 /* area (not region) level listener */
 static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
@@ -2245,10 +2259,9 @@ void ED_spacetype_view3d()
                     ED_KEYMAP_HEADER;
   art->listener = ED_asset_shelf_region_listen;
   art->context = view3d_asset_shelf_context;
-  art->init = view3d_header_region_init;
-  art->draw = ED_asset_shelf_region_draw;
+  art->init = view3d_asset_shelf_region_init;
+  art->draw = view3d_asset_shelf_region_draw;
   BLI_addhead(&st->regiontypes, art);
-  ED_asset_shelf_region_register(art, "VIEW3D_HT_asset_shelf_main", SPACE_VIEW3D);
 
   /* regions: asset shelf footer */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf footer region");

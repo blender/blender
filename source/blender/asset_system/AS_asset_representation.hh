@@ -92,6 +92,8 @@ class AssetRepresentation {
 /* C-Handle */
 struct AssetRepresentation;
 
+const blender::StringRefNull AS_asset_representation_relative_path_get(
+    const AssetRepresentation *asset_handle);
 const std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
     const ::AssetRepresentation *asset_handle);

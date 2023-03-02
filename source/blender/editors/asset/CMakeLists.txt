@@ -33,6 +33,7 @@ set(SRC
   intern/asset_mark_clear.cc
   intern/asset_ops.cc
   intern/asset_shelf.cc
+  intern/asset_shelf_asset_view.cc
   intern/asset_shelf_catalog_selector.cc
   intern/asset_shelf_settings.cc
   intern/asset_temp_id_consumer.cc

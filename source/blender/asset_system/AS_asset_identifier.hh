@@ -13,6 +13,8 @@
 #include <memory>
 #include <string>
 
+#include "BLI_string_ref.hh"
+
 namespace blender::asset_system {
 
 class AssetIdentifier {
@@ -25,6 +27,10 @@ class AssetIdentifier {
   AssetIdentifier(const AssetIdentifier &) = default;
 
   std::string full_path() const;
+  /**
+   * Get the identifier to locate the asset within the asset library.
+   */
+  StringRefNull relative_path() const;
 };
 
 }  // namespace blender::asset_system
