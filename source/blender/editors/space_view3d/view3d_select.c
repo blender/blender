@@ -2876,6 +2876,15 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
 
+  if (obact && obact->type == OB_GPENCIL && GPENCIL_ANY_MODE((bGPdata *)obact->data)) {
+    /* Prevent acting on Grease Pencil (when not in object mode), it implements its own selection
+     * operator in other modes. We might still fall trough to here (because that operator uses
+     * OPERATOR_PASS_THROUGH to make tweak work) but if we dont stop here code below assumes we are
+     * in object mode it might falsely toggle object selection. Alternatively, this could be put in
+     * the poll funtion instead. */
+    return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+  }
+
   struct SelectPick_Params params = {0};
   ED_select_pick_params_from_operator(op->ptr, &params);
 
