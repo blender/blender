@@ -48,7 +48,7 @@
 #include "DEG_depsgraph.h"
 
 #include "GEO_uv_pack.hh"
-#include "GEO_uv_parametrizer.h"
+#include "GEO_uv_parametrizer.hh"
 
 #include "PIL_time.h"
 

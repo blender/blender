@@ -8,12 +8,8 @@
  * \ingroup geo
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct ParamHandle ParamHandle; /* Handle to an array of charts. */
-typedef uintptr_t ParamKey;             /* Key (hash) for identifying verts and faces. */
+struct ParamHandle;         /* Handle to an array of charts. */
+using ParamKey = uintptr_t; /* Key (hash) for identifying verts and faces. */
 #define PARAM_KEY_MAX UINTPTR_MAX
 
 /* -------------------------------------------------------------------- */
@@ -31,7 +27,7 @@ typedef uintptr_t ParamKey;             /* Key (hash) for identifying verts and 
  *
  * \{ */
 
-ParamHandle *GEO_uv_parametrizer_construct_begin(void);
+ParamHandle *GEO_uv_parametrizer_construct_begin();
 
 void GEO_uv_parametrizer_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
 
@@ -126,7 +122,3 @@ void GEO_uv_parametrizer_flush(ParamHandle *handle);
 void GEO_uv_parametrizer_flush_restore(ParamHandle *handle);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

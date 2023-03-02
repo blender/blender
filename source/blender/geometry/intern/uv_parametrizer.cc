@@ -4,7 +4,7 @@
  * \ingroup eduv
  */
 
-#include "GEO_uv_parametrizer.h"
+#include "GEO_uv_parametrizer.hh"
 
 #include "BLI_array.hh"
 #include "BLI_convexhull_2d.h"
