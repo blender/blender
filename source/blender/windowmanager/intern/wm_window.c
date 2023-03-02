@@ -83,26 +83,6 @@
 #  include "BLI_threads.h"
 #endif
 
-/**
- * When windows are activated, simulate modifier press/release to match the current state of
- * held modifier keys, see #40317.
- */
-#define USE_WIN_ACTIVATE
-
-/**
- * When the window is de-activated, release all held modifiers.
- *
- * Needed so events generated over unfocused (non-active) windows don't have modifiers held.
- * Since modifier press/release events aren't send to unfocused windows it's best to assume
- * modifiers are not pressed. This means when modifiers *are* held, events will incorrectly
- * reported as not being held. Since this is standard behavior for Linux/MS-Window,
- * opt to use this.
- *
- * NOTE(@ideasman42): Events generated for non-active windows are rare,
- * this happens when using the mouse-wheel over an unfocused window, see: #103722.
- */
-#define USE_WIN_DEACTIVATE
-
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 #if !(defined(WIN32) || defined(__APPLE__))
@@ -172,6 +152,7 @@ enum ModSide {
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
 static bool wm_window_timer(const bContext *C);
+static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
 void wm_get_screensize(int *r_width, int *r_height)
 {
@@ -536,6 +517,100 @@ void WM_window_set_dpi(const wmWindow *win)
   /* Widget unit is 20 pixels at 1X scale. This consists of 18 user-scaled units plus
    *  left and right borders of line-width (pixelsize). */
   U.widget_unit = (int)roundf(18.0f * U.dpi_fac) + (2 * pixelsize);
+}
+
+/**
+ * When windows are activated, simulate modifier press/release to match the current state of
+ * held modifier keys, see #40317.
+ */
+static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow *win)
+{
+  const uint8_t keymodifier_sided[2] = {
+      wm_ghost_modifier_query(MOD_SIDE_LEFT),
+      wm_ghost_modifier_query(MOD_SIDE_RIGHT),
+  };
+  const uint8_t keymodifier = keymodifier_sided[0] | keymodifier_sided[1];
+  const uint8_t keymodifier_eventstate = win->eventstate->modifier;
+  if (keymodifier != keymodifier_eventstate) {
+    GHOST_TEventKeyData kdata = {
+        .key = GHOST_kKeyUnknown,
+        .utf8_buf = {'\0'},
+        .is_repeat = false,
+    };
+    for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
+      if (keymodifier_eventstate & g_modifier_table[i].flag) {
+        if ((keymodifier & g_modifier_table[i].flag) == 0) {
+          for (int side = 0; side < 2; side++) {
+            if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
+              kdata.key = g_modifier_table[i].ghost_key_pair[side];
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+              /* Only ever send one release event
+               * (currently releasing multiple isn't needed and only confuses logic). */
+              break;
+            }
+          }
+        }
+      }
+      else {
+        if (keymodifier & g_modifier_table[i].flag) {
+          for (int side = 0; side < 2; side++) {
+            if (keymodifier_sided[side] & g_modifier_table[i].flag) {
+              kdata.key = g_modifier_table[i].ghost_key_pair[side];
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * When the window is de-activated, release all held modifiers.
+ *
+ * Needed so events generated over unfocused (non-active) windows don't have modifiers held.
+ * Since modifier press/release events aren't send to unfocused windows it's best to assume
+ * modifiers are not pressed. This means when modifiers *are* held, events will incorrectly
+ * reported as not being held. Since this is standard behavior for Linux/MS-Window,
+ * opt to use this.
+ *
+ * NOTE(@ideasman42): Events generated for non-active windows are rare,
+ * this happens when using the mouse-wheel over an unfocused window, see: #103722.
+ */
+static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmWindow *win)
+{
+  /* Release all held modifiers before de-activating the window. */
+  if (win->eventstate->modifier != 0) {
+    const uint8_t keymodifier_eventstate = win->eventstate->modifier;
+    const uint8_t keymodifier_l = wm_ghost_modifier_query(MOD_SIDE_LEFT);
+    const uint8_t keymodifier_r = wm_ghost_modifier_query(MOD_SIDE_RIGHT);
+    /* NOTE(@ideasman42): when non-zero, there are modifiers held in
+     * `win->eventstate` which are not considered held by the GHOST internal state.
+     * While this should not happen, it's important all modifier held in event-state
+     * receive release events. Without this, so any events generated while the window
+     * is *not* active will have modifiers held. */
+    const uint8_t keymodifier_unhandled = keymodifier_eventstate &
+                                          ~(keymodifier_l | keymodifier_r);
+    const uint8_t keymodifier_sided[2] = {
+        keymodifier_l | keymodifier_unhandled,
+        keymodifier_r,
+    };
+    GHOST_TEventKeyData kdata = {
+        .key = GHOST_kKeyUnknown,
+        .utf8_buf = {'\0'},
+        .is_repeat = false,
+    };
+    for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
+      if (keymodifier_eventstate & g_modifier_table[i].flag) {
+        for (int side = 0; side < 2; side++) {
+          if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
+            kdata.key = g_modifier_table[i].ghost_key_pair[side];
+            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+          }
+        }
+      }
+    }
+  }
 }
 
 static void wm_window_update_eventstate(wmWindow *win)
@@ -1144,40 +1219,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
     switch (type) {
       case GHOST_kEventWindowDeactivate: {
-#ifdef USE_WIN_DEACTIVATE
-        /* Release all held modifiers before de-activating the window. */
-        if (win->eventstate->modifier != 0) {
-          const uint8_t keymodifier_eventstate = win->eventstate->modifier;
-          const uint8_t keymodifier_l = wm_ghost_modifier_query(MOD_SIDE_LEFT);
-          const uint8_t keymodifier_r = wm_ghost_modifier_query(MOD_SIDE_RIGHT);
-          /* NOTE(@ideasman42): when non-zero, there are modifiers held in
-           * `win->eventstate` which are not considered held by the GHOST internal state.
-           * While this should not happen, it's important all modifier held in event-state
-           * receive release events. Without this, so any events generated while the window
-           * is *not* active will have modifiers held. */
-          const uint8_t keymodifier_unhandled = keymodifier_eventstate &
-                                                ~(keymodifier_l | keymodifier_r);
-          const uint8_t keymodifier_sided[2] = {
-              keymodifier_l | keymodifier_unhandled,
-              keymodifier_r,
-          };
-          GHOST_TEventKeyData kdata = {
-              .key = GHOST_kKeyUnknown,
-              .utf8_buf = {'\0'},
-              .is_repeat = false,
-          };
-          for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
-            if (keymodifier_eventstate & g_modifier_table[i].flag) {
-              for (int side = 0; side < 2; side++) {
-                if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
-                  kdata.key = g_modifier_table[i].ghost_key_pair[side];
-                  wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-                }
-              }
-            }
-          }
-        }
-#endif /* USE_WIN_DEACTIVATE */
+        wm_window_update_eventstate_modifiers_clear(wm, win);
 
         wm_event_add_ghostevent(wm, win, type, data);
         win->active = 0;
@@ -1185,61 +1227,17 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       }
       case GHOST_kEventWindowActivate: {
 
-        /* No context change! C->wm->windrawable is drawable, or for area queues. */
+        /* Ensure the event state matches modifiers (window was inactive). */
+        wm_window_update_eventstate_modifiers(wm, win);
+        /* Entering window, update mouse position (without sending an event). */
+        wm_window_update_eventstate(win);
+
+        /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
         wm->winactive = win;
-
         win->active = 1;
-
-        /* bad ghost support for modifier keys... so on activate we set the modifiers again */
-
-        const uint8_t keymodifier_sided[2] = {
-            wm_ghost_modifier_query(MOD_SIDE_LEFT),
-            wm_ghost_modifier_query(MOD_SIDE_RIGHT),
-        };
-        const uint8_t keymodifier = keymodifier_sided[0] | keymodifier_sided[1];
-        const uint8_t keymodifier_eventstate = win->eventstate->modifier;
-        if (keymodifier != keymodifier_eventstate) {
-          GHOST_TEventKeyData kdata = {
-              .key = GHOST_kKeyUnknown,
-              .utf8_buf = {'\0'},
-              .is_repeat = false,
-          };
-          for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
-            if (keymodifier_eventstate & g_modifier_table[i].flag) {
-              if ((keymodifier & g_modifier_table[i].flag) == 0) {
-                for (int side = 0; side < 2; side++) {
-                  if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
-                    kdata.key = g_modifier_table[i].ghost_key_pair[side];
-                    wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-                    /* Only ever send one release event
-                     * (currently releasing multiple isn't needed and only confuses logic). */
-                    break;
-                  }
-                }
-              }
-            }
-#ifdef USE_WIN_ACTIVATE
-            else {
-              if (keymodifier & g_modifier_table[i].flag) {
-                for (int side = 0; side < 2; side++) {
-                  if (keymodifier_sided[side] & g_modifier_table[i].flag) {
-                    kdata.key = g_modifier_table[i].ghost_key_pair[side];
-                    wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
-                  }
-                }
-              }
-            }
-#endif
-
-#undef USE_WIN_ACTIVATE
-          }
-        }
 
         /* keymodifier zero, it hangs on hotkeys that open windows otherwise */
         win->eventstate->keymodifier = 0;
-
-        /* entering window, update mouse pos. but no event */
-        wm_window_update_eventstate(win);
 
         win->addmousemove = 1; /* enables highlighted buttons */
 
@@ -1397,7 +1395,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventDraggingDropDone: {
         GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
 
-        /* entering window, update mouse pos */
+        /* Entering window, update mouse position (without sending an event). */
         wm_window_update_eventstate(win);
 
         wmEvent event;
@@ -1418,9 +1416,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         event.flag = 0;
 
-        /* No context change! C->wm->windrawable is drawable, or for area queues. */
+        /* No context change! `C->wm->windrawable` is drawable, or for area queues. */
         wm->winactive = win;
-
         win->active = 1;
 
         wm_event_add(win, &event);
@@ -1493,7 +1490,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventButtonDown:
       case GHOST_kEventButtonUp: {
         if (win->active == 0) {
-          /* Entering window, update cursor and tablet state.
+          /* Entering window, update cursor/tablet state & modifiers.
            * (ghost sends win-activate *after* the mouse-click in window!) */
           wm_window_update_eventstate(win);
         }
