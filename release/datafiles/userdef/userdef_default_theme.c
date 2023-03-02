@@ -329,6 +329,7 @@ const bTheme U_theme_default = {
     .edge_bevel = RGBA(0x00a5ffff),
     .face = RGBA(0xffffff02),
     .face_select = RGBA(0xffa5522e),
+    .face_retopology = RGBA(0x50c8ff0f),
     .face_back = RGBA(0xff0000b3),
     .face_front = RGBA(0x0000ffb3),
     .face_dot = RGBA(0xff8a00ff),

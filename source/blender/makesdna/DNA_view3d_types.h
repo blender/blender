@@ -214,7 +214,6 @@ typedef struct View3DOverlay {
   /** Armature edit/pose mode settings. */
   float xray_alpha_bone;
   float bone_wire_alpha;
-  char _pad1[4];
 
   /** Darken Inactive. */
   float fade_alpha;
@@ -222,6 +221,7 @@ typedef struct View3DOverlay {
   /** Other settings. */
   float wireframe_threshold;
   float wireframe_opacity;
+  float retopology_offset;
 
   /** Grease pencil settings. */
   float gpencil_paper_opacity;
@@ -560,7 +560,7 @@ enum {
   V3D_OVERLAY_EDIT_LOOP_NORMALS = (1 << 1),
   V3D_OVERLAY_EDIT_FACE_NORMALS = (1 << 2),
 
-  V3D_OVERLAY_EDIT_OCCLUDE_WIRE = (1 << 3),
+  V3D_OVERLAY_EDIT_RETOPOLOGY = (1 << 3),
 
   V3D_OVERLAY_EDIT_WEIGHT = (1 << 4),
 
