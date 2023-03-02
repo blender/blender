@@ -3643,7 +3643,7 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
 /** \name View Channel Operator
  * \{ */
 
-static void get_normalized_fcurve_bounds(FCurve *fcu,
+static bool get_normalized_fcurve_bounds(FCurve *fcu,
                                          bAnimContext *ac,
                                          const bAnimListElem *ale,
                                          const bool include_handles,
@@ -3651,14 +3651,18 @@ static void get_normalized_fcurve_bounds(FCurve *fcu,
                                          rctf *r_bounds)
 {
   const bool fcu_selection_only = false;
-  BKE_fcurve_calc_bounds(fcu,
-                         &r_bounds->xmin,
-                         &r_bounds->xmax,
-                         &r_bounds->ymin,
-                         &r_bounds->ymax,
-                         fcu_selection_only,
-                         include_handles,
-                         range);
+  const bool found_bounds = BKE_fcurve_calc_bounds(fcu,
+                                                   &r_bounds->xmin,
+                                                   &r_bounds->xmax,
+                                                   &r_bounds->ymin,
+                                                   &r_bounds->ymax,
+                                                   fcu_selection_only,
+                                                   include_handles,
+                                                   range);
+  if (!found_bounds) {
+    return false;
+  }
+
   const short mapping_flag = ANIM_get_normalization_flags(ac);
 
   float offset;
@@ -3674,9 +3678,10 @@ static void get_normalized_fcurve_bounds(FCurve *fcu,
     r_bounds->ymin -= (min_height - height) / 2;
     r_bounds->ymax += (min_height - height) / 2;
   }
+  return true;
 }
 
-static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
+static bool get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
 {
   bool found_start = false;
   int start_frame = 0;
@@ -3698,6 +3703,8 @@ static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bou
   r_bounds->xmax = end_frame;
   r_bounds->ymin = 0;
   r_bounds->ymax = 1;
+
+  return found_start;
 }
 
 static bool get_channel_bounds(bAnimContext *ac,
@@ -3710,14 +3717,12 @@ static bool get_channel_bounds(bAnimContext *ac,
   switch (ale->datatype) {
     case ALE_GPFRAME: {
       bGPDlayer *gpl = (bGPDlayer *)ale->data;
-      get_gpencil_bounds(gpl, range, r_bounds);
-      found_bounds = true;
+      found_bounds = get_gpencil_bounds(gpl, range, r_bounds);
       break;
     }
     case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
-      get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
-      found_bounds = true;
+      found_bounds = get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
       break;
     }
   }
@@ -3806,6 +3811,7 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   if (!valid_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on.");
     return OPERATOR_CANCELLED;
   }
 
@@ -3892,6 +3898,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   if (!found_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on.");
     return OPERATOR_CANCELLED;
   }
 
