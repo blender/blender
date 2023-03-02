@@ -54,11 +54,8 @@ void main()
 
   vec3 loc = infos.orco_add;  /* Box center. */
   vec3 size = infos.orco_mul; /* Box half-extent. */
-  /* This is what the original computation looks like.
-   * Simplify to a nice MADD in shading code. */
-  // orco = (pos - loc) / size;
-  // orco = pos * (1.0 / size) + (-loc / size);
-  vec3 size_inv = safe_rcp(size);
-  infos_buf[resource_id].orco_add = -loc * size_inv;
-  infos_buf[resource_id].orco_mul = size_inv;
+  vec3 orco_mul = safe_rcp(size * 2.0);
+  vec3 orco_add = (loc - size) * -orco_mul;
+  infos_buf[resource_id].orco_add = orco_add;
+  infos_buf[resource_id].orco_mul = orco_mul;
 }
