@@ -48,20 +48,15 @@
 /** \name Tracks Map
  * \{ */
 
-TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size)
+TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
   TracksMap *map = MEM_callocN(sizeof(TracksMap), "TrackingsMap");
 
   BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
 
   map->num_tracks = num_tracks;
-  map->customdata_size = customdata_size;
 
   map->tracks = MEM_callocN(sizeof(MovieTrackingTrack) * num_tracks, "TrackingsMap tracks");
-
-  if (customdata_size) {
-    map->customdata = MEM_callocN(customdata_size * num_tracks, "TracksMap customdata");
-  }
 
   map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
@@ -75,29 +70,13 @@ int tracks_map_get_size(TracksMap *map)
   return map->num_tracks;
 }
 
-void tracks_map_get_indexed_element(TracksMap *map,
-                                    int index,
-                                    MovieTrackingTrack **track,
-                                    void **customdata)
-{
-  *track = &map->tracks[index];
-
-  if (map->customdata) {
-    *customdata = &map->customdata[index * map->customdata_size];
-  }
-}
-
-void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customdata)
+void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track)
 {
   MovieTrackingTrack new_track = *track;
 
   new_track.markers = MEM_dupallocN(new_track.markers);
 
   map->tracks[map->ptr] = new_track;
-
-  if (customdata) {
-    memcpy(&map->customdata[map->ptr * map->customdata_size], customdata, map->customdata_size);
-  }
 
   BLI_ghash_insert(map->hash, &map->tracks[map->ptr], track);
 
@@ -195,20 +174,12 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   *old_tracks = new_tracks;
 }
 
-void tracks_map_free(TracksMap *map, void (*customdata_free)(void *customdata))
+void tracks_map_free(TracksMap *map)
 {
   BLI_ghash_free(map->hash, NULL, NULL);
 
   for (int i = 0; i < map->num_tracks; i++) {
-    if (map->customdata && customdata_free) {
-      customdata_free(&map->customdata[i * map->customdata_size]);
-    }
-
     BKE_tracking_track_free(&map->tracks[i]);
-  }
-
-  if (map->customdata) {
-    MEM_freeN(map->customdata);
   }
 
   MEM_freeN(map->tracks);

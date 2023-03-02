@@ -342,7 +342,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
   tracking_cameraIntrinscisOptionsFromTracking(
       tracking, width, height, &context->camera_intrinsics_options);
 
-  context->tracks_map = tracks_map_new(context->object_name, num_tracks, 0);
+  context->tracks_map = tracks_map_new(context->object_name, num_tracks);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     int first = 0, last = track->markersnr - 1;
@@ -369,7 +369,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
       efra = max_ii(efra, last_marker->framenr);
     }
 
-    tracks_map_insert(context->tracks_map, track, NULL);
+    tracks_map_insert(context->tracks_map, track);
   }
 
   context->sfra = sfra;
@@ -408,7 +408,7 @@ void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 
   libmv_tracksDestroy(context->tracks);
 
-  tracks_map_free(context->tracks_map, NULL);
+  tracks_map_free(context->tracks_map);
 
   MEM_freeN(context);
 }
