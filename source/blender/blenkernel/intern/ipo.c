@@ -2005,7 +2005,8 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
         /* trying to add to the current failed (no space),
          * so add a new track to the stack, and add to that...
          */
-        nlt = BKE_nlatrack_add(adt, NULL, false);
+        nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, false);
+        BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
         BKE_nlatrack_add_strip(nlt, strip, false);
       }
 

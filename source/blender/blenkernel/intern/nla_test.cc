@@ -94,12 +94,10 @@ TEST(nla_track, BKE_nlatrack_remove_strip)
 TEST(nla_track, BKE_nlatrack_remove_and_free)
 {
   AnimData adt{};
-  NlaTrack *track1;
-  NlaTrack *track2;
 
   /* Add NLA tracks to the Animation Data. */
-  track1 = BKE_nlatrack_add(&adt, NULL, false);
-  track2 = BKE_nlatrack_add(&adt, track1, false);
+  NlaTrack *track1 = BKE_nlatrack_new_tail(&adt.nla_tracks, false);
+  NlaTrack *track2 = BKE_nlatrack_new_tail(&adt.nla_tracks, false);
 
   /* Ensure we have 2 tracks in the track. */
   EXPECT_EQ(2, BLI_listbase_count(&adt.nla_tracks));
@@ -114,6 +112,37 @@ TEST(nla_track, BKE_nlatrack_remove_and_free)
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, track1, false);
   EXPECT_EQ(0, BLI_listbase_count(&adt.nla_tracks));
   EXPECT_EQ(-1, BLI_findindex(&adt.nla_tracks, track1));
+}
+
+TEST(nla_track, BKE_nlatrack_new_tail)
+{
+  AnimData adt{};
+  NlaTrack *trackB = BKE_nlatrack_new_tail(&adt.nla_tracks, false);
+  NlaTrack *trackA = BKE_nlatrack_new_tail(&adt.nla_tracks, false);
+
+  // Expect that Track B was added before track A
+  EXPECT_EQ(1, BLI_findindex(&adt.nla_tracks, trackA));
+  EXPECT_EQ(0, BLI_findindex(&adt.nla_tracks, trackB));
+ 
+  // Free the tracks
+  BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackA, false);
+  BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackB, false);
+}
+
+TEST(nla_track, BKE_nlatrack_new_head)
+{
+  AnimData adt{};
+  NlaTrack *trackB = BKE_nlatrack_new_head(&adt.nla_tracks, false);
+  NlaTrack *trackA = BKE_nlatrack_new_head(&adt.nla_tracks, false);
+
+  // Expect that Track A was added before track B
+  EXPECT_EQ(0, BLI_findindex(&adt.nla_tracks, trackA));
+  EXPECT_EQ(1, BLI_findindex(&adt.nla_tracks, trackB));
+
+  // Free the tracks
+  BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackA, false);
+  BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackB, false);
+
 }
 
 }  // namespace blender::bke::tests
