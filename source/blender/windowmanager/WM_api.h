@@ -544,6 +544,8 @@ struct wmTimer *WM_event_add_timer_notifier(struct wmWindowManager *wm,
                                             struct wmWindow *win,
                                             unsigned int type,
                                             double timestep);
+/** Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
+ * internally by the window manager code. */
 void WM_event_remove_timer(struct wmWindowManager *wm,
                            struct wmWindow *win,
                            struct wmTimer *timer);

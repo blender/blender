@@ -231,6 +231,9 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
   /* end running jobs, a job end also removes its timer */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+      continue;
+    }
     if (wt->win == win && wt->event_type == TIMERJOBS) {
       wm_jobs_timer_end(wm, wt);
     }
@@ -238,10 +241,14 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
   /* timer removing, need to call this api function */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+      continue;
+    }
     if (wt->win == win) {
       WM_event_remove_timer(wm, win, wt);
     }
   }
+  wm_window_delete_removed_timers(wm);
 
   if (win->eventstate) {
     MEM_freeN(win->eventstate);
@@ -1547,6 +1554,9 @@ static bool wm_window_timer(const bContext *C)
 
   /* Mutable in case the timer gets removed. */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+      continue;
+    }
     wmWindow *win = wt->win;
 
     if (wt->sleep != 0) {
@@ -1588,6 +1598,10 @@ static bool wm_window_timer(const bContext *C)
       }
     }
   }
+
+  /* Effectively delete all timers marked for removal. */
+  wm_window_delete_removed_timers(wm);
+
   return has_event;
 }
 
@@ -1832,6 +1846,9 @@ void WM_event_timer_sleep(wmWindowManager *wm,
                           bool do_sleep)
 {
   LISTBASE_FOREACH (wmTimer *, wt, &wm->timers) {
+    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+      continue;
+    }
     if (wt == timer) {
       wt->sleep = do_sleep;
       break;
@@ -1878,37 +1895,47 @@ wmTimer *WM_event_add_timer_notifier(wmWindowManager *wm,
   return wt;
 }
 
+void wm_window_delete_removed_timers(wmWindowManager *wm)
+{
+  LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
+    if ((wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) == 0) {
+      continue;
+    }
+
+    /* Actual removal and freeing of the timer. */
+    BLI_remlink(&wm->timers, wt);
+    MEM_freeN(wt);
+  }
+}
+
 void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
-  /* extra security check */
-  wmTimer *wt = NULL;
-  LISTBASE_FOREACH (wmTimer *, timer_iter, &wm->timers) {
-    if (timer_iter == timer) {
-      wt = timer_iter;
-    }
-  }
-  if (wt == NULL) {
+  /* Extra security check. */
+  if (BLI_findindex(&wm->timers, timer) < 0) {
     return;
   }
 
-  if (wm->reports.reporttimer == wt) {
+  timer->flags |= WM_TIMER_TAGGED_FOR_REMOVAL;
+
+  /* Clear existing references to the timer. */
+  if (wm->reports.reporttimer == timer) {
     wm->reports.reporttimer = NULL;
   }
-
-  BLI_remlink(&wm->timers, wt);
-  if (wt->customdata != NULL && (wt->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
-    MEM_freeN(wt->customdata);
-  }
-  MEM_freeN(wt);
-
-  /* there might be events in queue with this timer as customdata */
+  /* There might be events in queue with this timer as customdata. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmEvent *, event, &win->event_queue) {
-      if (event->customdata == wt) {
+      if (event->customdata == timer) {
         event->customdata = NULL;
         event->type = EVENT_NONE; /* Timer users customdata, don't want `NULL == NULL`. */
       }
     }
+  }
+
+  /* Immediately free customdata if requested, so that invalid usages of that data after
+   * calling `WM_event_remove_timer` can be easily spotted (through ASAN errors e.g.). */
+  if (timer->customdata != NULL && (timer->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
+    MEM_freeN(timer->customdata);
+    timer->customdata = NULL;
   }
 }
 
