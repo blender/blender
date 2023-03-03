@@ -253,7 +253,7 @@ static void replace_outvars(std::string &str)
   char *current_str_end = &*str.end();
 
   for (char *c = current_str_begin + 2; c < current_str_end - 6; c++) {
-    char *start = strstr(c, "out");
+    char *start = strstr(c, "out ");
     if (start == nullptr) {
       return;
     }
