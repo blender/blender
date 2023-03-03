@@ -885,8 +885,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
           /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
            * based on the subdivision loops. */
           const int poly_origindex = subdiv_loop_poly_index[i * 4];
-          const MPoly *poly = &mr->polys[poly_origindex];
-          extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, poly);
+          const MPoly &poly = mr->polys[poly_origindex];
+          extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, &poly);
         }
       }
     }

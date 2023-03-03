@@ -1034,16 +1034,16 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               BVH_RAYCAST_WATERTIGHT) != -1) {
     const blender::Span<MLoop> loops = mdb->cagemesh_cache.loops;
     const MLoopTri *lt = &mdb->cagemesh_cache.looptris[hit.index];
-    const MPoly *poly = &mdb->cagemesh_cache.polys[lt->poly];
+    const MPoly &poly = mdb->cagemesh_cache.polys[lt->poly];
     const float(*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
     MDefBoundIsect *isect;
 
-    blender::Array<blender::float3, 64> mp_cagecos(poly->totloop);
+    blender::Array<blender::float3, 64> mp_cagecos(poly.totloop);
 
     /* create MDefBoundIsect, and extra for 'poly_weights[]' */
     isect = static_cast<MDefBoundIsect *>(
-        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * poly->totloop)));
+        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * poly.totloop)));
 
     /* compute intersection coordinate */
     madd_v3_v3v3fl(isect->co, co1, isect_mdef.vec, len);
@@ -1055,13 +1055,13 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
 
     /* compute mean value coordinates for interpolation */
-    for (int i = 0; i < poly->totloop; i++) {
-      copy_v3_v3(mp_cagecos[i], cagecos[loops[poly->loopstart + i].v]);
+    for (int i = 0; i < poly.totloop; i++) {
+      copy_v3_v3(mp_cagecos[i], cagecos[loops[poly.loopstart + i].v]);
     }
 
     interp_weights_poly_v3(isect->poly_weights,
                            reinterpret_cast<float(*)[3]>(mp_cagecos.data()),
-                           poly->totloop,
+                           poly.totloop,
                            isect->co);
 
     return isect;
@@ -1226,10 +1226,10 @@ static float meshdeform_boundary_phi(const MeshDeformBind *mdb,
                                      int cagevert)
 {
   const blender::Span<MLoop> loops = mdb->cagemesh_cache.loops;
-  const MPoly *poly = &mdb->cagemesh_cache.polys[isect->poly_index];
+  const MPoly &poly = mdb->cagemesh_cache.polys[isect->poly_index];
 
-  for (int i = 0; i < poly->totloop; i++) {
-    if (loops[poly->loopstart + i].v == cagevert) {
+  for (int i = 0; i < poly.totloop; i++) {
+    if (loops[poly.loopstart + i].v == cagevert) {
       return isect->poly_weights[i];
     }
   }

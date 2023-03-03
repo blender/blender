@@ -2754,7 +2754,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
     const VArray<int> mesh_material_indices = me_eval->attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
     for (i = 0; i < polys_len; i++) {
-      const MPoly *poly = &polys[i];
+      const MPoly &poly = polys[i];
 
       /* Find material. */
       int mat_idx = 0;
@@ -2774,19 +2774,19 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
       }
 
-      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, poly->totloop, 10, false);
+      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, poly.totloop, 10, false);
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
       const Span<MDeformVert> dverts = me_eval->deform_verts();
       if (use_vgroups && !dverts.is_empty()) {
-        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * poly->totloop,
+        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * poly.totloop,
                                                      "gp_fill_dverts");
       }
 
       /* Add points to strokes. */
-      for (int j = 0; j < poly->totloop; j++) {
-        const MLoop *ml = &loops[poly->loopstart + j];
+      for (int j = 0; j < poly.totloop; j++) {
+        const MLoop *ml = &loops[poly.loopstart + j];
 
         bGPDspoint *pt = &gps_fill->points[j];
         copy_v3_v3(&pt->x, positions[ml->v]);
@@ -2808,7 +2808,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         }
       }
       /* If has only 3 points subdivide. */
-      if (poly->totloop == 3) {
+      if (poly.totloop == 3) {
         BKE_gpencil_stroke_subdivide(gpd, gps_fill, 1, GP_SUBDIV_SIMPLE);
       }
 

@@ -207,10 +207,10 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
 
   /* Count number of polys for each vertex */
   for (i = 0; i < totpoly; i++) {
-    const MPoly *poly = &polys[i];
+    const MPoly &poly = polys[i];
 
-    for (j = 0; j < poly->totloop; j++) {
-      map[mloop[poly->loopstart + j].v].count++;
+    for (j = 0; j < poly.totloop; j++) {
+      map[mloop[poly.loopstart + j].v].count++;
     }
   }
 
@@ -225,12 +225,12 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
 
   /* Find the users */
   for (i = 0; i < totpoly; i++) {
-    const MPoly *poly = &polys[i];
+    const MPoly &poly = polys[i];
 
-    for (j = 0; j < poly->totloop; j++) {
-      uint v = mloop[poly->loopstart + j].v;
+    for (j = 0; j < poly.totloop; j++) {
+      uint v = mloop[poly.loopstart + j].v;
 
-      map[v].indices[map[v].count] = do_loops ? poly->loopstart + j : i;
+      map[v].indices[map[v].count] = do_loops ? poly.loopstart + j : i;
       map[v].count++;
     }
   }
@@ -1132,9 +1132,9 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
       if (poly_groups[p_idx] != grp_idx) {
         continue;
       }
-      const MPoly *poly = &polys[p_idx];
+      const MPoly &poly = polys[p_idx];
       poly_indices[num_pidx++] = p_idx;
-      for (l_idx = poly->loopstart, pl_idx = 0; pl_idx < poly->totloop; l_idx++, pl_idx++) {
+      for (l_idx = poly.loopstart, pl_idx = 0; pl_idx < poly.totloop; l_idx++, pl_idx++) {
         const MLoop *ml = &loops[l_idx];
         loop_indices[num_lidx++] = l_idx;
         if (num_edge_borders && BLI_BITMAP_TEST(edge_borders, ml->e) &&

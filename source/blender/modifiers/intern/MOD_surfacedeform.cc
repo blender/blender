@@ -383,7 +383,6 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   nearest.dist_sq = FLT_MAX;
   nearest.index = -1;
 
-  const MPoly *poly;
   const MEdge *edge;
   const MLoop *loop;
   float t_point[3];
@@ -396,10 +395,10 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   BLI_bvhtree_find_nearest(
       data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
 
-  poly = &data->polys[data->looptris[nearest.index].poly];
-  loop = &data->loops[poly->loopstart];
+  const MPoly &poly = data->polys[data->looptris[nearest.index].poly];
+  loop = &data->loops[poly.loopstart];
 
-  for (int i = 0; i < poly->totloop; i++, loop++) {
+  for (int i = 0; i < poly.totloop; i++, loop++) {
     edge = &data->edges[loop->e];
     dist = dist_squared_to_line_segment_v3(
         point_co, data->targetCos[edge->v1], data->targetCos[edge->v2]);
@@ -489,7 +488,6 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   const SDefEdgePolys *const edge_polys = data->edge_polys;
 
   const SDefAdjacency *vedge;
-  const MPoly *poly;
   const MLoop *loop;
 
   SDefBindWeightData *bwdata;
@@ -547,14 +545,14 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->coords_v2 = nullptr;
 
         /* Copy poly data */
-        poly = &data->polys[bpoly->index];
-        loop = &data->loops[poly->loopstart];
+        const MPoly &poly = data->polys[bpoly->index];
+        loop = &data->loops[poly.loopstart];
 
-        bpoly->verts_num = poly->totloop;
-        bpoly->loopstart = poly->loopstart;
+        bpoly->verts_num = poly.totloop;
+        bpoly->loopstart = poly.loopstart;
 
         bpoly->coords = static_cast<float(*)[3]>(
-            MEM_malloc_arrayN(poly->totloop, sizeof(*bpoly->coords), "SDefBindPolyCoords"));
+            MEM_malloc_arrayN(poly.totloop, sizeof(*bpoly->coords), "SDefBindPolyCoords"));
         if (bpoly->coords == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
@@ -562,30 +560,30 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         }
 
         bpoly->coords_v2 = static_cast<float(*)[2]>(
-            MEM_malloc_arrayN(poly->totloop, sizeof(*bpoly->coords_v2), "SDefBindPolyCoords_v2"));
+            MEM_malloc_arrayN(poly.totloop, sizeof(*bpoly->coords_v2), "SDefBindPolyCoords_v2"));
         if (bpoly->coords_v2 == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
           return nullptr;
         }
 
-        for (int j = 0; j < poly->totloop; j++, loop++) {
+        for (int j = 0; j < poly.totloop; j++, loop++) {
           copy_v3_v3(bpoly->coords[j], data->targetCos[loop->v]);
 
           /* Find corner and edge indices within poly loop array */
           if (loop->v == nearest) {
             bpoly->corner_ind = j;
-            bpoly->edge_vert_inds[0] = (j == 0) ? (poly->totloop - 1) : (j - 1);
-            bpoly->edge_vert_inds[1] = (j == poly->totloop - 1) ? (0) : (j + 1);
+            bpoly->edge_vert_inds[0] = (j == 0) ? (poly.totloop - 1) : (j - 1);
+            bpoly->edge_vert_inds[1] = (j == poly.totloop - 1) ? (0) : (j + 1);
 
-            bpoly->edge_inds[0] = data->loops[poly->loopstart + bpoly->edge_vert_inds[0]].e;
+            bpoly->edge_inds[0] = data->loops[poly.loopstart + bpoly->edge_vert_inds[0]].e;
             bpoly->edge_inds[1] = loop->e;
           }
         }
 
         /* Compute polygons parametric data. */
-        mid_v3_v3_array(bpoly->centroid, bpoly->coords, poly->totloop);
-        normal_poly_v3(bpoly->normal, bpoly->coords, poly->totloop);
+        mid_v3_v3_array(bpoly->centroid, bpoly->coords, poly.totloop);
+        normal_poly_v3(bpoly->normal, bpoly->coords, poly.totloop);
 
         /* Compute poly skew angle and axis */
         angle = angle_normalized_v3v3(bpoly->normal, world);
@@ -597,12 +595,12 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         map_to_plane_axis_angle_v2_v3v3fl(bpoly->point_v2, point_co, axis, angle);
 
         zero_v2(bpoly->centroid_v2);
-        for (int j = 0; j < poly->totloop; j++) {
+        for (int j = 0; j < poly.totloop; j++) {
           map_to_plane_axis_angle_v2_v3v3fl(bpoly->coords_v2[j], bpoly->coords[j], axis, angle);
-          madd_v2_v2fl(bpoly->centroid_v2, bpoly->coords_v2[j], 1.0f / poly->totloop);
+          madd_v2_v2fl(bpoly->centroid_v2, bpoly->coords_v2[j], 1.0f / poly.totloop);
         }
 
-        is_poly_valid = isPolyValid(bpoly->coords_v2, poly->totloop);
+        is_poly_valid = isPolyValid(bpoly->coords_v2, poly.totloop);
 
         if (is_poly_valid != MOD_SDEF_BIND_RESULT_SUCCESS) {
           freeBindData(bwdata);
@@ -611,7 +609,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         }
 
         bpoly->inside = isect_point_poly_v2(
-            bpoly->point_v2, bpoly->coords_v2, poly->totloop, false);
+            bpoly->point_v2, bpoly->coords_v2, poly.totloop, false);
 
         /* Initialize weight components */
         bpoly->weight_angular = 1.0f;

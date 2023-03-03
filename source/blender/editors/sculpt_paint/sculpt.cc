@@ -725,9 +725,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *poly = &ss->polys[vert_map->indices[i]];
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &ss->mloop[poly->loopstart + l];
+    const MPoly &poly = ss->polys[vert_map->indices[i]];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &ss->mloop[poly.loopstart + l];
       if (loop->v == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -888,9 +888,9 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const MPoly *poly = &ss->polys[vert_map->indices[i]];
+    const MPoly &poly = ss->polys[vert_map->indices[i]];
     int f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(poly, ss->mloop, vertex.i, f_adj_v) != -1) {
+    if (poly_get_adj_loops_from_vert(&poly, ss->mloop, vertex.i, f_adj_v) != -1) {
       for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
         if (f_adj_v[j] != vertex.i) {
           sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
@@ -6211,9 +6211,9 @@ void SCULPT_boundary_info_ensure(Object *object)
       MEM_calloc_arrayN(base_mesh->totedge, sizeof(int), "Adjacent face edge count"));
 
   for (const int p : polys.index_range()) {
-    const MPoly *poly = &polys[p];
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &loops[l + poly->loopstart];
+    const MPoly &poly = polys[p];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &loops[l + poly.loopstart];
       adjacent_faces_edge_count[loop->e]++;
     }
   }

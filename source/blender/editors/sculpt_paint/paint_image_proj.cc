@@ -1721,10 +1721,10 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
   if (ps->do_mask_normal) {
     const MLoopTri *lt = &ps->looptris_eval[tri_index];
     const int lt_vtri[3] = {PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt)};
-    const MPoly *poly = &ps->polys_eval[lt->poly];
+    const MPoly &poly = ps->polys_eval[lt->poly];
     float no[3], angle_cos;
 
-    if (poly->flag & ME_SMOOTH) {
+    if (poly.flag & ME_SMOOTH) {
       const float *no1, *no2, *no3;
       no1 = ps->vert_normals[lt_vtri[0]];
       no2 = ps->vert_normals[lt_vtri[1]];
@@ -4388,11 +4388,11 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
             if (prev_poly != looptris[tri_index].poly) {
               int iloop;
               bool culled = true;
-              const MPoly *poly = &ps->polys_eval[looptris[tri_index].poly];
-              int poly_loops = poly->totloop;
+              const MPoly &poly = ps->polys_eval[looptris[tri_index].poly];
+              int poly_loops = poly.totloop;
               prev_poly = looptris[tri_index].poly;
               for (iloop = 0; iloop < poly_loops; iloop++) {
-                if (!(ps->vertFlags[ps->loops_eval[poly->loopstart + iloop].v] & PROJ_VERT_CULL)) {
+                if (!(ps->vertFlags[ps->loops_eval[poly.loopstart + iloop].v] & PROJ_VERT_CULL)) {
                   culled = false;
                   break;
                 }

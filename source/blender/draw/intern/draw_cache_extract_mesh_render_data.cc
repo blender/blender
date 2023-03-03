@@ -237,10 +237,10 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
   else {
     for (int i = 0; i < mr->poly_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const MPoly *poly = &mr->polys[i];
+        const MPoly &poly = mr->polys[i];
         const int mat = min_ii(mr->material_indices ? mr->material_indices[i] : 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += poly->totloop - 2;
+        mat_tri_offs[mat] += poly.totloop - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -275,10 +275,10 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
-  const MPoly *poly = &mr->polys[iter];
+  const MPoly &poly = mr->polys[iter];
   if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mr->material_indices ? mr->material_indices[iter] : 0, mr->mat_len - 1);
-    mat_tri_len[mat] += poly->totloop - 2;
+    mat_tri_len[mat] += poly.totloop - 2;
   }
 }
 
