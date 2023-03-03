@@ -913,7 +913,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
   }
 
   auto to_string = [](int value) {
-    char str[16];
+    char str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(str, value);
     return std::string(str);
   };

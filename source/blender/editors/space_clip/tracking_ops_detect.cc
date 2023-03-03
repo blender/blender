@@ -32,15 +32,16 @@
 
 static bGPDlayer *detect_get_layer(MovieClip *clip)
 {
-  if (clip->gpd == NULL) {
-    return NULL;
+  if (clip->gpd == nullptr) {
+    return nullptr;
   }
-  for (bGPDlayer *layer = clip->gpd->layers.first; layer != NULL; layer = layer->next) {
+
+  LISTBASE_FOREACH (bGPDlayer *, layer, &clip->gpd->layers) {
     if (layer->flag & GP_LAYER_ACTIVE) {
       return layer;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static int detect_features_exec(bContext *C, wmOperator *op)
@@ -56,7 +57,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
   const int min_distance = RNA_int_get(op->ptr, "min_distance");
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
-  bGPDlayer *layer = NULL;
+  bGPDlayer *layer = nullptr;
   int place_outside_layer = 0;
 
   if (!ibuf) {
@@ -86,7 +87,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
   IMB_freeImBuf(ibuf);
 
   BKE_tracking_dopesheet_tag_update(tracking);
-  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -105,7 +106,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
        0,
        "Outside Annotated Area",
        "Place markers only outside areas outlined with the Annotation tool"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

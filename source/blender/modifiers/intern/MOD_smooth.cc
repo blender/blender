@@ -79,13 +79,13 @@ static void smoothModifier_do(
   }
 
   float(*accumulated_vecs)[3] = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN((size_t)verts_num, sizeof(*accumulated_vecs), __func__));
+      MEM_calloc_arrayN(size_t(verts_num), sizeof(*accumulated_vecs), __func__));
   if (!accumulated_vecs) {
     return;
   }
 
   uint *accumulated_vecs_count = static_cast<uint *>(
-      MEM_calloc_arrayN((size_t)verts_num, sizeof(*accumulated_vecs_count), __func__));
+      MEM_calloc_arrayN(size_t(verts_num), sizeof(*accumulated_vecs_count), __func__));
   if (!accumulated_vecs_count) {
     MEM_freeN(accumulated_vecs);
     return;
@@ -103,8 +103,8 @@ static void smoothModifier_do(
 
   for (int j = 0; j < smd->repeat; j++) {
     if (j != 0) {
-      memset(accumulated_vecs, 0, sizeof(*accumulated_vecs) * (size_t)verts_num);
-      memset(accumulated_vecs_count, 0, sizeof(*accumulated_vecs_count) * (size_t)verts_num);
+      memset(accumulated_vecs, 0, sizeof(*accumulated_vecs) * size_t(verts_num));
+      memset(accumulated_vecs_count, 0, sizeof(*accumulated_vecs_count) * size_t(verts_num));
     }
 
     for (const int i : edges.index_range()) {

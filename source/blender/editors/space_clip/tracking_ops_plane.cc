@@ -41,7 +41,7 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
   plane_track = BKE_tracking_plane_track_add(
       tracking, &tracking_object->plane_tracks, &tracking_object->tracks, framenr);
 
-  if (plane_track == NULL) {
+  if (plane_track == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Need at least 4 selected point tracks to create a plane");
     return OPERATOR_CANCELLED;
   }
@@ -49,7 +49,7 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
   BKE_tracking_tracks_deselect_all(&tracking_object->tracks);
 
   plane_track->flag |= SELECT;
-  tracking_object->active_track = NULL;
+  tracking_object->active_track = nullptr;
   tracking_object->active_plane_track = plane_track;
 
   /* Compute homoraphies and apply them on marker's corner, so we've got
@@ -111,30 +111,30 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
 
   if (ed_tracking_plane_track_pick_empty(&track_pick) ||
       !ed_tracking_plane_track_pick_can_slide(&track_pick)) {
-    return NULL;
+    return nullptr;
   }
 
-  if (r_corner != NULL) {
+  if (r_corner != nullptr) {
     *r_corner = track_pick.corner_index;
   }
 
   return track_pick.plane_track;
 }
 
-static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
+static SlidePlaneMarkerData *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
   MovieTrackingPlaneTrack *plane_track;
   int width, height;
   float co[2];
-  SlidePlaneMarkerData *customdata = NULL;
+  SlidePlaneMarkerData *customdata = nullptr;
   int framenr = ED_space_clip_get_clip_frame_number(sc);
   int corner;
 
   ED_space_clip_get_size(sc, &width, &height);
   if (width == 0 || height == 0) {
-    return NULL;
+    return nullptr;
   }
 
   ED_clip_mouse_pos(sc, region, event->mval, co);
@@ -143,7 +143,7 @@ static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
   if (plane_track) {
     MovieTrackingPlaneMarker *plane_marker;
 
-    customdata = MEM_callocN(sizeof(SlidePlaneMarkerData), "slide plane marker data");
+    customdata = MEM_cnew<SlidePlaneMarkerData>("slide plane marker data");
 
     customdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
@@ -178,14 +178,14 @@ static int slide_plane_marker_invoke(bContext *C, wmOperator *op, const wmEvent 
     MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
     tracking_object->active_plane_track = slidedata->plane_track;
-    tracking_object->active_track = NULL;
+    tracking_object->active_track = nullptr;
 
     op->customdata = slidedata;
 
     clip_tracking_hide_cursor(C);
     WM_event_add_modal_handler(C, op);
 
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
 
     return OPERATOR_RUNNING_MODAL;
   }
@@ -290,7 +290,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
       copy_v2_v2(data->previous_corner, data->corner);
 
       DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
-      WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
+      WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, nullptr);
 
       break;
 
@@ -302,7 +302,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
 
         slide_plane_marker_update_homographies(sc, data);
 
-        free_slide_plane_marker_data(op->customdata);
+        free_slide_plane_marker_data(data);
 
         clip_tracking_show_cursor(C);
 
@@ -315,9 +315,9 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
       break;
 
     case EVT_ESCKEY:
-      cancel_mouse_slide_plane_marker(op->customdata);
+      cancel_mouse_slide_plane_marker(data);
 
-      free_slide_plane_marker_data(op->customdata);
+      free_slide_plane_marker_data(data);
 
       clip_tracking_show_cursor(C);
 

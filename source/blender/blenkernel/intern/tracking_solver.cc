@@ -72,10 +72,10 @@ static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
   MovieTrackingTrack *track;
   struct libmv_Tracks *tracks = libmv_tracksNew();
 
-  track = tracksbase->first;
+  track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
     FCurve *weight_fcurve = id_data_find_fcurve(
-        &clip->id, track, &RNA_MovieTrackingTrack, "weight", 0, NULL);
+        &clip->id, track, &RNA_MovieTrackingTrack, "weight", 0, nullptr);
 
     for (int a = 0; a < track->markersnr; a++) {
       MovieTrackingMarker *marker = &track->markers[a];
@@ -164,10 +164,10 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   }
 
   reconstruction->camnr = 0;
-  reconstruction->cameras = NULL;
+  reconstruction->cameras = nullptr;
 
-  MovieReconstructedCamera *reconstructed_cameras = MEM_callocN(
-      (efra - sfra + 1) * sizeof(MovieReconstructedCamera), "temp reconstructed camera");
+  MovieReconstructedCamera *reconstructed_cameras = MEM_cnew_array<MovieReconstructedCamera>(
+      (efra - sfra + 1), "temp reconstructed camera");
 
   for (int a = sfra; a <= efra; a++) {
     double matd[4][4];
@@ -217,7 +217,8 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
 
   if (reconstruction->camnr) {
     const size_t size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
-    reconstruction->cameras = MEM_mallocN(size, "reconstructed camera");
+    reconstruction->cameras = MEM_cnew_array<MovieReconstructedCamera>(reconstruction->camnr,
+                                                                       "reconstructed camera");
     memcpy(reconstruction->cameras, reconstructed_cameras, size);
   }
 
@@ -327,8 +328,8 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
     int height)
 {
   MovieTracking *tracking = &clip->tracking;
-  MovieReconstructContext *context = MEM_callocN(sizeof(MovieReconstructContext),
-                                                 "MovieReconstructContext data");
+  MovieReconstructContext *context = MEM_cnew<MovieReconstructContext>(
+      "MovieReconstructContext data");
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
   const int num_tracks = BLI_listbase_count(&tracking_object->tracks);
   int sfra = INT_MAX, efra = INT_MIN;
@@ -342,7 +343,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
   tracking_cameraIntrinscisOptionsFromTracking(
       tracking, width, height, &context->camera_intrinsics_options);
 
-  context->tracks_map = tracks_map_new(context->object_name, num_tracks, 0);
+  context->tracks_map = tracks_map_new(context->object_name, num_tracks);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     int first = 0, last = track->markersnr - 1;
@@ -369,7 +370,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
       efra = max_ii(efra, last_marker->framenr);
     }
 
-    tracks_map_insert(context->tracks_map, track, NULL);
+    tracks_map_insert(context->tracks_map, track);
   }
 
   context->sfra = sfra;
@@ -408,7 +409,7 @@ void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 
   libmv_tracksDestroy(context->tracks);
 
-  tracks_map_free(context->tracks_map, NULL);
+  tracks_map_free(context->tracks_map);
 
   MEM_freeN(context);
 }
@@ -416,7 +417,7 @@ void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 /* Callback which is called from libmv side to update progress in the interface. */
 static void reconstruct_update_solve_cb(void *customdata, double progress, const char *message)
 {
-  ReconstructProgressData *progressdata = customdata;
+  ReconstructProgressData *progressdata = static_cast<ReconstructProgressData *>(customdata);
 
   if (progressdata->progress) {
     *progressdata->progress = progress;

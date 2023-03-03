@@ -43,7 +43,7 @@
 
 BLI_INLINE PointTrackPick point_track_pick_make_null(void)
 {
-  PointTrackPick pick = {NULL};
+  PointTrackPick pick = {nullptr};
 
   pick.area = TRACK_AREA_NONE;
   pick.area_detail = TRACK_PICK_AREA_DETAIL_NONE;
@@ -328,11 +328,11 @@ PointTrackPick ed_tracking_pick_point_track(const TrackPickOptions *options,
 bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
                                             const PointTrackPick *pick)
 {
-  if (pick->track == NULL) {
+  if (pick->track == nullptr) {
     return false;
   }
 
-  BLI_assert(pick->marker != NULL);
+  BLI_assert(pick->marker != nullptr);
 
   if (!TRACK_VIEW_SELECTED(space_clip, pick->track)) {
     return false;
@@ -356,7 +356,7 @@ bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
 
 BLI_INLINE PlaneTrackPick plane_track_pick_make_null(void)
 {
-  PlaneTrackPick result = {NULL};
+  PlaneTrackPick result = {nullptr};
 
   result.corner_index = -1;
   result.distance_px_squared = FLT_MAX;
@@ -438,11 +438,11 @@ PlaneTrackPick ed_tracking_pick_plane_track(const TrackPickOptions *options,
 
 bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 {
-  if (pick->plane_track == NULL) {
+  if (pick->plane_track == nullptr) {
     return false;
   }
 
-  BLI_assert(pick->plane_marker != NULL);
+  BLI_assert(pick->plane_marker != nullptr);
 
   if (!PLANE_TRACK_VIEW_SELECTED(pick->plane_track)) {
     return false;
@@ -472,10 +472,10 @@ static bool tracking_should_prefer_point_track(bContext *C,
                                                const PlaneTrackPick *plane_track_pick)
 {
   /* Simple case: one of the pick results is empty, so prefer the other one. */
-  if (point_track_pick->track == NULL) {
+  if (point_track_pick->track == nullptr) {
     return false;
   }
-  if (plane_track_pick->plane_track == NULL) {
+  if (plane_track_pick->plane_track == nullptr) {
     return true;
   }
 
@@ -524,17 +524,14 @@ TrackingPick ed_tracking_pick_closest(const TrackPickOptions *options,
 
 void ed_tracking_deselect_all_tracks(ListBase *tracks_base)
 {
-  MovieTrackingTrack *track;
-  for (track = tracks_base->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_base) {
     BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
   }
 }
 
 void ed_tracking_deselect_all_plane_tracks(ListBase *plane_tracks_base)
 {
-  MovieTrackingPlaneTrack *plane_track;
-  for (plane_track = plane_tracks_base->first; plane_track != NULL;
-       plane_track = plane_track->next) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     plane_track->flag &= ~SELECT;
   }
 }
@@ -572,16 +569,16 @@ static int select_exec(bContext *C, wmOperator *op)
    * selection will be lost which causes inconvenience for the VFX artist. */
   const bool activate_selected = !extend;
   if (activate_selected && ed_tracking_pick_can_slide(sc, &pick)) {
-    if (pick.point_track_pick.track != NULL) {
+    if (pick.point_track_pick.track != nullptr) {
       tracking_object->active_track = pick.point_track_pick.track;
-      tracking_object->active_plane_track = NULL;
+      tracking_object->active_plane_track = nullptr;
     }
     else {
-      tracking_object->active_track = NULL;
+      tracking_object->active_track = nullptr;
       tracking_object->active_plane_track = pick.plane_track_pick.plane_track;
     }
 
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
     DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
     return OPERATOR_PASS_THROUGH;
@@ -590,7 +587,7 @@ static int select_exec(bContext *C, wmOperator *op)
   ClipViewLockState lock_state;
   ED_clip_view_lock_state_store(C, &lock_state);
 
-  if (pick.point_track_pick.track != NULL) {
+  if (pick.point_track_pick.track != nullptr) {
     if (!extend) {
       ed_tracking_deselect_all_plane_tracks(&tracking_object->plane_tracks);
     }
@@ -608,7 +605,7 @@ static int select_exec(bContext *C, wmOperator *op)
       }
       else {
         tracking_object->active_track = track;
-        tracking_object->active_plane_track = NULL;
+        tracking_object->active_plane_track = nullptr;
       }
     }
     else {
@@ -618,10 +615,10 @@ static int select_exec(bContext *C, wmOperator *op)
 
       BKE_tracking_track_select(&tracking_object->tracks, track, area, extend);
       tracking_object->active_track = track;
-      tracking_object->active_plane_track = NULL;
+      tracking_object->active_plane_track = nullptr;
     }
   }
-  else if (pick.plane_track_pick.plane_track != NULL) {
+  else if (pick.plane_track_pick.plane_track != nullptr) {
     if (!extend) {
       ed_tracking_deselect_all_tracks(&tracking_object->tracks);
     }
@@ -637,7 +634,7 @@ static int select_exec(bContext *C, wmOperator *op)
       plane_track->flag |= SELECT;
     }
 
-    tracking_object->active_track = NULL;
+    tracking_object->active_track = nullptr;
     tracking_object->active_plane_track = plane_track;
   }
   else if (deselect_all) {
@@ -649,7 +646,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
   BKE_tracking_dopesheet_tag_update(tracking);
 
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
   DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
   /* This is a bit implicit, but when the selection operator is used from a LMB Add Marker and
@@ -719,7 +716,7 @@ void CLIP_OT_select(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",
@@ -754,10 +751,10 @@ static int box_select_exec(bContext *C, wmOperator *op)
   ED_clip_point_stable_pos(sc, region, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
   ED_clip_point_stable_pos(sc, region, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
-  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_clip_select_all(sc, SEL_DESELECT, NULL);
+    ED_clip_select_all(sc, SEL_DESELECT, nullptr);
     changed = true;
   }
 
@@ -806,7 +803,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
   if (changed) {
     BKE_tracking_dopesheet_tag_update(&clip->tracking);
 
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
     DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
     return OPERATOR_FINISHED;
@@ -916,7 +913,7 @@ static int do_lasso_select_marker(bContext *C,
   if (changed) {
     BKE_tracking_dopesheet_tag_update(&clip->tracking);
 
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
     DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
   }
 
@@ -929,11 +926,11 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
   if (mcoords) {
-    const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+    const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
     const bool select = (sel_op != SEL_OP_SUB);
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
       SpaceClip *sc = CTX_wm_space_clip(C);
-      ED_clip_select_all(sc, SEL_DESELECT, NULL);
+      ED_clip_select_all(sc, SEL_DESELECT, nullptr);
     }
 
     do_lasso_select_marker(C, mcoords, mcoords_len, select);
@@ -1006,11 +1003,12 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   const int y = RNA_int_get(op->ptr, "y");
   const int radius = RNA_int_get(op->ptr, "radius");
 
-  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
-                                              WM_gesture_is_modal_first(op->customdata));
+  const eSelectOp sel_op = ED_select_op_modal(
+      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_clip_select_all(sc, SEL_DESELECT, NULL);
+    ED_clip_select_all(sc, SEL_DESELECT, nullptr);
     changed = true;
   }
 
@@ -1068,7 +1066,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   if (changed) {
     BKE_tracking_dopesheet_tag_update(&clip->tracking);
 
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
     DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
     return OPERATOR_FINISHED;
@@ -1121,7 +1119,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   BKE_tracking_dopesheet_tag_update(tracking);
 
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
   DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
   return OPERATOR_FINISHED;
@@ -1222,7 +1220,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
        "Tracks with Same Color",
        "Select all tracks with same color as active track"},
       {6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

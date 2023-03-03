@@ -32,9 +32,9 @@
 
 #include <iostream>
 
-/* TfToken objects are not cheap to construct, so we do it once. */
+/* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
-// Materials
+/* Materials. */
 static const pxr::TfToken clearcoat("clearcoat", pxr::TfToken::Immortal);
 static const pxr::TfToken clearcoatRoughness("clearcoatRoughness", pxr::TfToken::Immortal);
 static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);

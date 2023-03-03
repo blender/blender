@@ -730,6 +730,7 @@ GPUShader *OVERLAY_shader_edit_gpencil_wire(void);
 GPUShader *OVERLAY_shader_edit_lattice_point(void);
 GPUShader *OVERLAY_shader_edit_lattice_wire(void);
 GPUShader *OVERLAY_shader_edit_mesh_analysis(void);
+GPUShader *OVERLAY_shader_edit_mesh_depth(void);
 GPUShader *OVERLAY_shader_edit_mesh_edge(bool use_flat_interp);
 GPUShader *OVERLAY_shader_edit_mesh_face(void);
 GPUShader *OVERLAY_shader_edit_mesh_facedot(void);

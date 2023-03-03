@@ -514,10 +514,6 @@ struct Object *BKE_view_layer_non_active_selected_object(const struct Scene *sce
                                                          struct ViewLayer *view_layer,
                                                          const struct View3D *v3d);
 
-#define BKE_view_layer_array_selected_objects(view_layer, v3d, r_len, ...) \
-  BKE_view_layer_array_selected_objects_params( \
-      view_layer, v3d, r_len, &(const struct ObjectsInViewLayerParams)__VA_ARGS__)
-
 struct ObjectsInModeParams {
   int object_mode;
   uint no_dup_data : 1;

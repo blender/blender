@@ -3201,7 +3201,6 @@ class VIEW3D_MT_paint_weight(Menu):
             props.data_type = 'VGROUP_WEIGHTS'
 
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
-        layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
         if not is_editmode:
             layout.separator()
@@ -6550,7 +6549,11 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
         col = layout.column()
         col.active = display_all
 
-        col.prop(overlay, "show_occlude_wire")
+        row = col.row(align=True)
+        row.prop(overlay, "show_retopology", text="")
+        sub = row.row()
+        sub.active = overlay.show_retopology
+        sub.prop(overlay, "retopology_offset", text="Retopology")
 
         col.prop(overlay, "show_weight", text="Vertex Group Weights")
         if overlay.show_weight:

@@ -38,11 +38,11 @@ ARegion *ED_clip_has_properties_region(ScrArea *area)
   region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
   /* is error! */
-  if (region == NULL) {
-    return NULL;
+  if (region == nullptr) {
+    return nullptr;
   }
 
-  arnew = MEM_callocN(sizeof(ARegion), "clip properties region");
+  arnew = MEM_cnew<ARegion>("clip properties region");
 
   BLI_insertlinkafter(&area->regionbase, region, arnew);
   arnew->regiontype = RGN_TYPE_UI;

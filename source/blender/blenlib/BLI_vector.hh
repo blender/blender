@@ -974,7 +974,7 @@ class Vector {
     std::cout << "  Capacity: " << (capacity_end_ - begin_) << "\n";
     std::cout << "  Inline Capacity: " << InlineBufferCapacity << "\n";
 
-    char memory_size_str[15];
+    char memory_size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
     BLI_str_format_byte_unit(memory_size_str, sizeof(*this), true);
     std::cout << "  Size on Stack: " << memory_size_str << "\n";
   }

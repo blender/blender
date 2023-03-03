@@ -48,20 +48,15 @@
 /** \name Tracks Map
  * \{ */
 
-TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size)
+TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
-  TracksMap *map = MEM_callocN(sizeof(TracksMap), "TrackingsMap");
+  TracksMap *map = MEM_cnew<TracksMap>("TrackingsMap");
 
   BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
 
   map->num_tracks = num_tracks;
-  map->customdata_size = customdata_size;
 
-  map->tracks = MEM_callocN(sizeof(MovieTrackingTrack) * num_tracks, "TrackingsMap tracks");
-
-  if (customdata_size) {
-    map->customdata = MEM_callocN(customdata_size * num_tracks, "TracksMap customdata");
-  }
+  map->tracks = MEM_cnew_array<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
   map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
@@ -75,29 +70,13 @@ int tracks_map_get_size(TracksMap *map)
   return map->num_tracks;
 }
 
-void tracks_map_get_indexed_element(TracksMap *map,
-                                    int index,
-                                    MovieTrackingTrack **track,
-                                    void **customdata)
-{
-  *track = &map->tracks[index];
-
-  if (map->customdata) {
-    *customdata = &map->customdata[index * map->customdata_size];
-  }
-}
-
-void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customdata)
+void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track)
 {
   MovieTrackingTrack new_track = *track;
 
-  new_track.markers = MEM_dupallocN(new_track.markers);
+  new_track.markers = static_cast<MovieTrackingMarker *>(MEM_dupallocN(new_track.markers));
 
   map->tracks[map->ptr] = new_track;
-
-  if (customdata) {
-    memcpy(&map->customdata[map->ptr * map->customdata_size], customdata, map->customdata_size);
-  }
 
   BLI_ghash_insert(map->hash, &map->tracks[map->ptr], track);
 
@@ -107,7 +86,7 @@ void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customda
 void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
   MovieTrackingTrack *track;
-  ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
+  ListBase tracks = {nullptr, nullptr}, new_tracks = {nullptr, nullptr};
   ListBase *old_tracks;
 
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, map->object_name);
@@ -129,7 +108,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
     track = &map->tracks[a];
 
     /* find original of operating track in list of previously displayed tracks */
-    old_track = BLI_ghash_lookup(map->hash, track);
+    old_track = static_cast<MovieTrackingTrack *>(BLI_ghash_lookup(map->hash, track));
     if (old_track) {
       if (BLI_findindex(old_tracks, old_track) != -1) {
         BLI_remlink(old_tracks, old_track);
@@ -144,7 +123,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
         /* Copy all the rest settings back from the map to the actual tracks. */
         MEM_freeN(old_track->markers);
         *old_track = *track;
-        old_track->markers = MEM_dupallocN(old_track->markers);
+        old_track->markers = static_cast<MovieTrackingMarker *>(MEM_dupallocN(old_track->markers));
 
         BLI_spin_unlock(&map->spin_lock);
 
@@ -158,14 +137,14 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
       MovieTrackingTrack *new_track = BKE_tracking_track_duplicate(track);
 
       /* Update old-new track mapping */
-      BLI_ghash_reinsert(map->hash, track, new_track, NULL, NULL);
+      BLI_ghash_reinsert(map->hash, track, new_track, nullptr, nullptr);
 
       BLI_addtail(&tracks, new_track);
     }
   }
 
   /* move all tracks, which aren't operating */
-  track = old_tracks->first;
+  track = static_cast<MovieTrackingTrack *>(old_tracks->first);
   while (track) {
     MovieTrackingTrack *next = track->next;
     BLI_addtail(&new_tracks, track);
@@ -173,13 +152,13 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   }
 
   /* now move all tracks which are currently operating and keep their names unique */
-  track = tracks.first;
+  track = static_cast<MovieTrackingTrack *>(tracks.first);
   while (track) {
     MovieTrackingTrack *next = track->next;
 
     BLI_remlink(&tracks, track);
 
-    track->next = track->prev = NULL;
+    track->next = track->prev = nullptr;
     BLI_addtail(&new_tracks, track);
 
     BLI_uniquename(&new_tracks,
@@ -195,20 +174,12 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   *old_tracks = new_tracks;
 }
 
-void tracks_map_free(TracksMap *map, void (*customdata_free)(void *customdata))
+void tracks_map_free(TracksMap *map)
 {
-  BLI_ghash_free(map->hash, NULL, NULL);
+  BLI_ghash_free(map->hash, nullptr, nullptr);
 
   for (int i = 0; i < map->num_tracks; i++) {
-    if (map->customdata && customdata_free) {
-      customdata_free(&map->customdata[i * map->customdata_size]);
-    }
-
     BKE_tracking_track_free(&map->tracks[i]);
-  }
-
-  if (map->customdata) {
-    MEM_freeN(map->customdata);
   }
 
   MEM_freeN(map->tracks);
@@ -265,8 +236,8 @@ void tracking_get_search_origin_frame_pixel(int frame_width,
   /* Get the lower left coordinate of the search window and snap to pixel coordinates */
   marker_unified_to_frame_pixel_coordinates(
       frame_width, frame_height, marker, marker->search_min, frame_pixel);
-  frame_pixel[0] = (int)frame_pixel[0];
-  frame_pixel[1] = (int)frame_pixel[1];
+  frame_pixel[0] = int(frame_pixel[0]);
+  frame_pixel[1] = int(frame_pixel[1]);
 }
 
 static void pixel_to_unified(int frame_width,
@@ -378,8 +349,8 @@ void tracking_principal_point_normalized_to_pixel(const float principal_point_no
                                                   const int frame_height,
                                                   float r_principal_point_pixel[2])
 {
-  const float frame_center_x = ((float)frame_width) / 2;
-  const float frame_center_y = ((float)frame_height) / 2;
+  const float frame_center_x = (float(frame_width)) / 2;
+  const float frame_center_y = (float(frame_height)) / 2;
 
   r_principal_point_pixel[0] = frame_center_x + principal_point_normalized[0] * frame_center_x;
   r_principal_point_pixel[1] = frame_center_y + principal_point_normalized[1] * frame_center_y;
@@ -390,8 +361,8 @@ void tracking_principal_point_pixel_to_normalized(const float principal_point_pi
                                                   const int frame_height,
                                                   float r_principal_point_normalized[2])
 {
-  const float frame_center_x = ((float)frame_width) / 2;
-  const float frame_center_y = ((float)frame_height) / 2;
+  const float frame_center_x = (float(frame_width)) / 2;
+  const float frame_center_y = (float(frame_height)) / 2;
 
   r_principal_point_normalized[0] = (principal_point_pixel[0] - frame_center_x) / frame_center_x;
   r_principal_point_normalized[1] = (principal_point_pixel[1] - frame_center_y) / frame_center_y;
@@ -532,7 +503,7 @@ void tracking_cameraIntrinscisOptionsFromTracking(
   distortion_model_parameters_from_tracking(camera, camera_intrinsics_options);
 
   camera_intrinsics_options->image_width = calibration_width;
-  camera_intrinsics_options->image_height = (int)(calibration_height * aspy);
+  camera_intrinsics_options->image_height = int(calibration_height * aspy);
 }
 
 void tracking_trackingCameraFromIntrinscisOptions(
@@ -544,8 +515,8 @@ void tracking_trackingCameraFromIntrinscisOptions(
 
   /* NOTE: The image size stored in the `camera_intrinsics_options` is aspect-ratio corrected,
    * so there is no need to "un-apply" it from the principal point. */
-  const float principal_px[2] = {camera_intrinsics_options->principal_point_x,
-                                 camera_intrinsics_options->principal_point_y};
+  const float principal_px[2] = {float(camera_intrinsics_options->principal_point_x),
+                                 float(camera_intrinsics_options->principal_point_y)};
 
   tracking_principal_point_pixel_to_normalized(principal_px,
                                                camera_intrinsics_options->image_width,
@@ -559,15 +530,15 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
                                                    int current_frame,
                                                    bool backwards)
 {
-  MovieTrackingMarker *marker_keyed = NULL;
-  MovieTrackingMarker *marker_keyed_fallback = NULL;
+  MovieTrackingMarker *marker_keyed = nullptr;
+  MovieTrackingMarker *marker_keyed_fallback = nullptr;
   int a = BKE_tracking_marker_get(track, current_frame) - track->markers;
 
   while (a >= 0 && a < track->markersnr) {
     int next = backwards ? a + 1 : a - 1;
     bool is_keyframed = false;
     MovieTrackingMarker *cur_marker = &track->markers[a];
-    MovieTrackingMarker *next_marker = NULL;
+    MovieTrackingMarker *next_marker = nullptr;
 
     if (next >= 0 && next < track->markersnr) {
       next_marker = &track->markers[next];
@@ -578,19 +549,19 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
        * fallback to the first marker in current tracked segment
        * as a keyframe.
        */
-      if (next_marker == NULL) {
+      if (next_marker == nullptr) {
         /* Could happen when trying to get reference marker for the fist
          * one on the segment which isn't surrounded by disabled markers.
          *
          * There's no really good choice here, just use the reference
          * marker which looks correct..
          */
-        if (marker_keyed_fallback == NULL) {
+        if (marker_keyed_fallback == nullptr) {
           marker_keyed_fallback = cur_marker;
         }
       }
       else if (next_marker->flag & MARKER_DISABLED) {
-        if (marker_keyed_fallback == NULL) {
+        if (marker_keyed_fallback == nullptr) {
           marker_keyed_fallback = cur_marker;
         }
       }
@@ -607,7 +578,7 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
     a = next;
   }
 
-  if (marker_keyed == NULL) {
+  if (marker_keyed == nullptr) {
     marker_keyed = marker_keyed_fallback;
   }
 
@@ -652,9 +623,10 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    *
    * Will generalize it later.
    */
-  const size_t size = (size_t)grayscale->x * (size_t)grayscale->y * sizeof(float);
+  const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
-  if ((grayscale->rect_float = MEM_callocN(size, "tracking grayscale image")) != NULL) {
+  if ((grayscale->rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image")) !=
+      nullptr) {
     grayscale->mall |= IB_rectfloat;
     grayscale->flags |= IB_rectfloat;
 
@@ -670,7 +642,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
 
 static void ibuf_to_float_image(const ImBuf *ibuf, libmv_FloatImage *float_image)
 {
-  BLI_assert(ibuf->rect_float != NULL);
+  BLI_assert(ibuf->rect_float != nullptr);
   float_image->buffer = ibuf->rect_float;
   float_image->width = ibuf->x;
   float_image->height = ibuf->y;
@@ -680,13 +652,14 @@ static void ibuf_to_float_image(const ImBuf *ibuf, libmv_FloatImage *float_image
 static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
 {
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
-  size_t size = (size_t)ibuf->x * (size_t)ibuf->y * float_image->channels * sizeof(float);
+  size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
-  if ((ibuf->rect_float = MEM_callocN(size, "tracking grayscale image")) != NULL) {
+  if ((ibuf->rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image")) !=
+      nullptr) {
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
 
-    memcpy(ibuf->rect_float, float_image->buffer, size);
+    memcpy(ibuf->rect_float, float_image->buffer, num_total_channels * sizeof(float));
   }
   return ibuf;
 }
@@ -703,29 +676,29 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
   CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
   /* And now we do postprocessing of the original frame. */
   ImBuf *orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
-  if (orig_ibuf == NULL) {
-    return NULL;
+  if (orig_ibuf == nullptr) {
+    return nullptr;
   }
   ImBuf *final_ibuf;
   /* Cut a region if requested. */
-  if (region != NULL) {
+  if (region != nullptr) {
     int width = region->max[0] - region->min[0], height = region->max[1] - region->min[1];
 
     /* If the requested region goes outside of the actual frame we still
      * return the requested region size, but only fill it's partially with
      * the data we can.
      */
-    int clamped_origin_x = max_ii((int)region->min[0], 0),
-        clamped_origin_y = max_ii((int)region->min[1], 0);
-    int dst_offset_x = clamped_origin_x - (int)region->min[0],
-        dst_offset_y = clamped_origin_y - (int)region->min[1];
+    int clamped_origin_x = max_ii(int(region->min[0]), 0),
+        clamped_origin_y = max_ii(int(region->min[1]), 0);
+    int dst_offset_x = clamped_origin_x - int(region->min[0]),
+        dst_offset_y = clamped_origin_y - int(region->min[1]);
     int clamped_width = width - dst_offset_x, clamped_height = height - dst_offset_y;
     clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
     clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);
 
     final_ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat);
 
-    if (orig_ibuf->rect_float != NULL) {
+    if (orig_ibuf->rect_float != nullptr) {
       IMB_rectcpy(final_ibuf,
                   orig_ibuf,
                   dst_offset_x,
@@ -772,7 +745,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     IMB_scaleImBuf(final_ibuf, orig_ibuf->x / (1 << downscale), orig_ibuf->y / (1 << downscale));
   }
   /* Apply possible transformation. */
-  if (transform != NULL) {
+  if (transform != nullptr) {
     libmv_FloatImage input_image, output_image;
     ibuf_to_float_image(final_ibuf, &input_image);
     libmv_frameAccessorgetTransformRun(transform, &input_image, &output_image);
@@ -835,7 +808,7 @@ static libmv_CacheKey accessor_get_image_callback(struct libmv_FrameAccessorUser
     *channels = ibuf->channels;
   }
   else {
-    *destination = NULL;
+    *destination = nullptr;
     *width = 0;
     *height = 0;
     *channels = 0;
@@ -866,7 +839,7 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
   MovieTrackingTrack *track = accessor->tracks[track_index];
   /* Early output, track does not use mask. */
   if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) == 0) {
-    return NULL;
+    return nullptr;
   }
   MovieClip *clip = accessor->clips[clip_index];
   /* Construct fake user so we can access movie clip. */
@@ -899,7 +872,7 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
 
 static void accessor_release_mask_callback(libmv_CacheKey cache_key)
 {
-  if (cache_key != NULL) {
+  if (cache_key != nullptr) {
     float *mask = (float *)cache_key;
     MEM_freeN(mask);
   }
@@ -910,16 +883,14 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    MovieTrackingTrack **tracks,
                                                    int num_tracks)
 {
-  TrackingImageAccessor *accessor = MEM_callocN(sizeof(TrackingImageAccessor),
-                                                "tracking image accessor");
+  TrackingImageAccessor *accessor = MEM_cnew<TrackingImageAccessor>("tracking image accessor");
 
   BLI_assert(num_clips <= MAX_ACCESSOR_CLIP);
 
   memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
   accessor->num_clips = num_clips;
 
-  accessor->tracks = MEM_malloc_arrayN(
-      num_tracks, sizeof(MovieTrackingTrack *), "image accessor tracks");
+  accessor->tracks = MEM_cnew_array<MovieTrackingTrack *>(num_tracks, "image accessor tracks");
   memcpy(accessor->tracks, tracks, num_tracks * sizeof(MovieTrackingTrack *));
   accessor->num_tracks = num_tracks;
 

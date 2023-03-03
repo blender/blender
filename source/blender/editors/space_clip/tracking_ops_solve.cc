@@ -76,7 +76,7 @@ static bool solve_camera_initjob(
                                                          width,
                                                          height);
 
-  tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
+  tracking->stats = MEM_cnew<MovieTrackingStats>("solve camera stats");
 
   WM_set_locked_interface(scj->wm, true);
 
@@ -108,7 +108,7 @@ static void solve_camera_freejob(void *scv)
 
   /* WindowManager is missing in the job when initialization is incomplete.
    * In this case the interface is not locked either. */
-  if (scj->wm != NULL) {
+  if (scj->wm != nullptr) {
     WM_set_locked_interface(scj->wm, false);
   }
 
@@ -138,14 +138,14 @@ static void solve_camera_freejob(void *scv)
   }
 
   /* Set currently solved clip as active for scene. */
-  if (scene->clip != NULL) {
+  if (scene->clip != nullptr) {
     id_us_min(&clip->id);
   }
   scene->clip = clip;
   id_us_plus(&clip->id);
 
   /* Set blender camera focal length so result would look fine there. */
-  if (scene->camera != NULL && scene->camera->data &&
+  if (scene->camera != nullptr && scene->camera->data &&
       GS(((ID *)scene->camera->data)->name) == ID_CA) {
     Camera *camera = (Camera *)scene->camera->data;
     int width, height;
@@ -156,12 +156,12 @@ static void solve_camera_freejob(void *scv)
   }
 
   MEM_freeN(tracking->stats);
-  tracking->stats = NULL;
+  tracking->stats = nullptr;
 
   DEG_id_tag_update(&clip->id, 0);
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EVALUATED, clip);
-  WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, nullptr);
 
   /* Update active clip displayed in scene buttons. */
   WM_main_add_notifier(NC_SCENE, scene);
@@ -174,7 +174,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 {
   SolveCameraJob *scj;
   char error_msg[256] = "\0";
-  scj = MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+  scj = MEM_cnew<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -182,12 +182,12 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
     solve_camera_freejob(scj);
     return OPERATOR_CANCELLED;
   }
-  solve_camera_startjob(scj, NULL, NULL, NULL);
+  solve_camera_startjob(scj, nullptr, nullptr, nullptr);
   solve_camera_freejob(scj);
   return OPERATOR_FINISHED;
 }
 
-static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SolveCameraJob *scj;
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -203,7 +203,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     return OPERATOR_CANCELLED;
   }
 
-  scj = MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+  scj = MEM_cnew<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -229,7 +229,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
                        WM_JOB_TYPE_CLIP_SOLVE_CAMERA);
   WM_jobs_customdata_set(wm_job, scj, solve_camera_freejob);
   WM_jobs_timer(wm_job, 0.1, NC_MOVIECLIP | NA_EVALUATED, 0);
-  WM_jobs_callbacks(wm_job, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
+  WM_jobs_callbacks(wm_job, solve_camera_startjob, nullptr, solve_camera_updatejob, nullptr);
 
   G.is_break = false;
 
@@ -242,7 +242,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int solve_camera_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* No running solver, remove handler and pass through. */
   if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
@@ -277,7 +277,7 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 
 /********************** clear solution operator *********************/
 
-static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
+static int clear_solution_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -296,7 +296,7 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
   DEG_id_tag_update(&clip->id, 0);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
   return OPERATOR_FINISHED;
 }

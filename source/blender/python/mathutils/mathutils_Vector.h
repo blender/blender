@@ -6,6 +6,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject vector_Type;
 
 #define VectorObject_Check(v) PyObject_TypeCheck((v), &vector_Type)
@@ -47,3 +51,7 @@ PyObject *Vector_CreatePyObject_alloc(float *vec,
                                       int vec_num,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
+
+#ifdef __cplusplus
+}
+#endif
