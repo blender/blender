@@ -42,7 +42,8 @@ struct ExportJobData {
   Depsgraph *depsgraph;
   wmWindowManager *wm;
 
-  char unarchived_filepath[FILE_MAX]; /* unarchived_filepath is used for usda/usdc/usd export. */
+  /** Unarchived_filepath is used for USDA/USDC/USD export. */
+  char unarchived_filepath[FILE_MAX];
   char usdz_filepath[FILE_MAX];
   USDExportParams params;
 

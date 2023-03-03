@@ -2987,7 +2987,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             enum { V3D_OCCLUDE_WIRE = (1 << 14) };
             View3D *v3d = (View3D *)sl;
             if (v3d->flag2 & V3D_OCCLUDE_WIRE) {
-              v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_OCCLUDE_WIRE;
+              v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_RETOPOLOGY;
               v3d->flag2 &= ~V3D_OCCLUDE_WIRE;
             }
           }

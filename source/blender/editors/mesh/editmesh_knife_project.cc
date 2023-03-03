@@ -52,7 +52,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
   if (ob->type == OB_MESH || ob->runtime.data_eval) {
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (me_eval == NULL) {
+    if (me_eval == nullptr) {
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
       me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
     }
@@ -64,26 +64,26 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     me_eval_needs_free = true;
   }
   else {
-    me_eval = NULL;
+    me_eval = nullptr;
   }
 
   if (me_eval) {
-    ListBase nurbslist = {NULL, NULL};
+    ListBase nurbslist = {nullptr, nullptr};
     float projmat[4][4];
 
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 0); /* wire */
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 1); /* boundary */
 
-    ED_view3d_ob_project_mat_get(region->regiondata, ob, projmat);
+    ED_view3d_ob_project_mat_get(static_cast<RegionView3D *>(region->regiondata), ob, projmat);
 
     if (nurbslist.first) {
-      Nurb *nu;
-      for (nu = nurbslist.first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &nurbslist) {
         if (nu->bp) {
           int a;
           BPoint *bp;
           bool is_cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-          float(*mval)[2] = MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__);
+          float(*mval)[2] = static_cast<float(*)[2]>(
+              MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__));
 
           for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
             ED_view3d_project_float_v2_m4(region, bp->vec, mval[a], projmat);
@@ -100,7 +100,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     BKE_nurbList_free(&nurbslist);
 
     if (me_eval_needs_free) {
-      BKE_id_free(NULL, (ID *)me_eval);
+      BKE_id_free(nullptr, (ID *)me_eval);
     }
   }
 
@@ -112,7 +112,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const bool cut_through = RNA_boolean_get(op->ptr, "cut_through");
 
-  LinkNode *polys = NULL;
+  LinkNode *polys = nullptr;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (BKE_object_is_in_editmode(ob)) {
@@ -122,7 +122,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  if (polys == NULL) {
+  if (polys == nullptr) {
     BKE_report(op->reports,
                RPT_ERROR,
                "No other selected objects have wire or boundary edges to use for projection");

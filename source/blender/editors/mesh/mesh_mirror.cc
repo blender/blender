@@ -110,10 +110,10 @@ struct MirrTopoVert_t {
 
 static int mirrtopo_hash_sort(const void *l1, const void *l2)
 {
-  if ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) {
+  if (MirrTopoHash_t(intptr_t(l1)) > MirrTopoHash_t(intptr_t(l2))) {
     return 1;
   }
-  if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) {
+  if (MirrTopoHash_t(intptr_t(l1)) < MirrTopoHash_t(intptr_t(l2))) {
     return -1;
   }
   return 0;
@@ -298,13 +298,13 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
         const int match_count = a - last;
         if (match_count == 2) {
           const int j = topo_pairs[a - 1].v_index, k = topo_pairs[a - 2].v_index;
-          index_lookup[j] = (intptr_t)vtable[k];
-          index_lookup[k] = (intptr_t)vtable[j];
+          index_lookup[j] = intptr_t(vtable[k]);
+          index_lookup[k] = intptr_t(vtable[j]);
         }
         else if (match_count == 1) {
           /* Center vertex. */
           const int j = topo_pairs[a - 1].v_index;
-          index_lookup[j] = (intptr_t)vtable[j];
+          index_lookup[j] = intptr_t(vtable[j]);
         }
         last = a;
       }

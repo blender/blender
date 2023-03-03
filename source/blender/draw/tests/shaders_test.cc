@@ -219,6 +219,7 @@ static void test_overlay_glsl_shaders()
     EXPECT_NE(OVERLAY_shader_edit_lattice_point(), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_lattice_wire(), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_mesh_analysis(), nullptr);
+    EXPECT_NE(OVERLAY_shader_edit_mesh_depth(), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_mesh_edge(false), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_mesh_edge(true), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_mesh_face(), nullptr);

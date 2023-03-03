@@ -98,7 +98,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
     current_channel_index++;
   }
 
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -134,7 +134,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
   RNA_def_float_vector(ot->srna,
                        "location",
                        2,
-                       NULL,
+                       nullptr,
                        -FLT_MAX,
                        FLT_MAX,
                        "Location",
@@ -150,7 +150,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
 
 /********************** View All operator *********************/
 
-static int dopesheet_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int dopesheet_view_all_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
@@ -158,10 +158,9 @@ static int dopesheet_view_all_exec(bContext *C, wmOperator *UNUSED(op))
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
-  MovieTrackingDopesheetChannel *channel;
   int frame_min = INT_MAX, frame_max = INT_MIN;
 
-  for (channel = dopesheet->channels.first; channel; channel = channel->next) {
+  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
     frame_min = min_ii(frame_min, channel->segments[0]);
     frame_max = max_ii(frame_max, channel->segments[channel->tot_segment]);
   }

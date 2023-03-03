@@ -155,7 +155,8 @@ static void pointdensity_cache_psys(
   ParticleSimulationData sim = {NULL};
   ParticleData *pa = NULL;
   float cfra = BKE_scene_ctime_get(scene);
-  int i /*, Childexists*/ /* UNUSED */;
+  int i;
+  // int childexists = 0; /* UNUSED */
   int total_particles;
   int data_used;
   float *data_vel, *data_life;

@@ -1899,7 +1899,6 @@ url_manual_mapping = (
     ("bpy.ops.object.shape_key_remove*", "animation/shape_keys/shape_keys_panel.html#bpy-ops-object-shape-key-remove"),
     ("bpy.ops.object.shape_key_retime*", "animation/shape_keys/shape_keys_panel.html#bpy-ops-object-shape-key-retime"),
     ("bpy.ops.object.vertex_group_add*", "modeling/meshes/properties/vertex_groups/vertex_groups.html#bpy-ops-object-vertex-group-add"),
-    ("bpy.ops.object.vertex_group_fix*", "sculpt_paint/weight_paint/editing.html#bpy-ops-object-vertex-group-fix"),
     ("bpy.ops.outliner.collection_new*", "editors/outliner/editing.html#bpy-ops-outliner-collection-new"),
     ("bpy.ops.outliner.show_hierarchy*", "editors/outliner/editing.html#bpy-ops-outliner-show-hierarchy"),
     ("bpy.ops.outliner.show_one_level*", "editors/outliner/editing.html#bpy-ops-outliner-show-one-level"),

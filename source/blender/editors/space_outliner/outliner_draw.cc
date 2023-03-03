@@ -1747,7 +1747,7 @@ static void outliner_draw_userbuts(uiBlock *block,
     uiBut *bt;
     ID *id = tselem->id;
     const char *tip = nullptr;
-    char buf[16] = "";
+    char buf[BLI_STR_FORMAT_INT32_GROUPED_SIZE] = "";
     int but_flag = UI_BUT_DRAG_LOCK;
 
     if (ID_IS_LINKED(id)) {

@@ -7082,7 +7082,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   PyObject_SetAttr(newclass, bpy_intern_str_bl_rna, item);
   Py_DECREF(item);
 
-  /* Add staticmethods and classmethods. */
+  /* Add `staticmethod` and `classmethod` functions. */
   {
     const PointerRNA func_ptr = {NULL, srna, NULL};
     const ListBase *lb;
@@ -7092,7 +7092,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
     for (link = lb->first; link; link = link->next) {
       FunctionRNA *func = (FunctionRNA *)link;
       const int flag = RNA_function_flag(func);
-      if ((flag & FUNC_NO_SELF) &&         /* Is staticmethod or classmethod. */
+      if ((flag & FUNC_NO_SELF) &&         /* Is `staticmethod` or `classmethod`. */
           (flag & FUNC_REGISTER) == false) /* Is not for registration. */
       {
         /* We may want to set the type of this later. */

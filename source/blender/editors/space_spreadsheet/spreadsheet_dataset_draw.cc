@@ -143,7 +143,7 @@ void GeometryDataSetTreeViewItem::build_row(uiLayout &row)
   if (const std::optional<int> count = this->count()) {
     /* Using the tree row button instead of a separate right aligned button gives padding
      * to the right side of the number, which it didn't have with the button. */
-    char element_count[7];
+    char element_count[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE];
     BLI_str_format_decimal_unit(element_count, *count);
     UI_but_hint_drawstr_set((uiBut *)this->view_item_button(), element_count);
   }
