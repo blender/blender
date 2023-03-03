@@ -2821,7 +2821,7 @@ static void uv_map_mirror(BMFace *efa,
  * \note Even though `atan2(a+bi, c+di)` is now (multiply) defined for all
  * complex inputs, we will only evaluate it with `b==0` and `d==0`.
  */
-struct uv_face_branch {
+struct UV_FaceBranch {
   BMFace *efa;
   float branch;
 };
@@ -2852,11 +2852,11 @@ static float uv_sphere_project(const Scene *scene,
   }
 
   /* Similar to #BM_mesh_calc_face_groups with added connectivity information. */
-  blender::Vector<uv_face_branch> stack;
+  blender::Vector<UV_FaceBranch> stack;
   stack.append({efa_init, branch_init});
 
   while (stack.size()) {
-    uv_face_branch face_branch = stack.pop_last();
+    UV_FaceBranch face_branch = stack.pop_last();
     BMFace *efa = face_branch.efa;
 
     if (use_seams) {
@@ -3030,12 +3030,12 @@ static float uv_cylinder_project(const Scene *scene,
 
   /* Similar to BM_mesh_calc_face_groups with added connectivity information. */
 
-  blender::Vector<uv_face_branch> stack;
+  blender::Vector<UV_FaceBranch> stack;
 
   stack.append({efa_init, branch_init});
 
   while (stack.size()) {
-    uv_face_branch face_branch = stack.pop_last();
+    UV_FaceBranch face_branch = stack.pop_last();
     BMFace *efa = face_branch.efa;
 
     if (use_seams) {

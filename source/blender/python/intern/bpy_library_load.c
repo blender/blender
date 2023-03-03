@@ -141,9 +141,14 @@ static PyTypeObject bpy_lib_Type = {
 
 PyDoc_STRVAR(
     bpy_lib_load_doc,
-    ".. method:: load(filepath, link=False, relative=False, assets_only=False,\n"
-    "                 create_liboverrides=False, reuse_liboverrides=False,\n"
-    "                 create_liboverrides_runtime=False)\n"
+    ".. method:: load("
+    "filepath, "
+    "link=False, "
+    "relative=False, "
+    "assets_only=False, "
+    "create_liboverrides=False, "
+    "reuse_liboverrides=False, "
+    "create_liboverrides_runtime=False)\n"
     "\n"
     "   Returns a context manager which exposes 2 library objects on entering.\n"
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
