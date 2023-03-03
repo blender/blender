@@ -163,13 +163,6 @@ int BLF_load_unique(const char *name)
 
   FontBLF *font = blf_font_new(name, filepath);
 
-  /* XXX: Temporarily disable kerning in our main font. Kerning had been accidentally removed from
-   * our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the same
-   * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
-  if (font && BLI_str_endswith(filepath, BLF_DEFAULT_PROPORTIONAL_FONT)) {
-    font->face_flags &= ~FT_FACE_FLAG_KERNING;
-  }
-
   MEM_freeN(filepath);
 
   if (!font) {
