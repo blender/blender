@@ -144,8 +144,7 @@ float seq_retiming_evaluate(const Scene *scene, const Sequence *seq, const int f
   const float segment_fac = segment_frame_index / float(segment_length);
 
   const float target_diff = next_handle->retiming_factor - previous_handle->retiming_factor;
-  return previous_handle->retiming_factor +
-         (target_diff * segment_fac) * seq_time_media_playback_rate_factor_get(scene, seq);
+  return previous_handle->retiming_factor + (target_diff * segment_fac);
 }
 
 SeqRetimingHandle *SEQ_retiming_add_handle(Scene *scene, Sequence *seq, const int timeline_frame)
