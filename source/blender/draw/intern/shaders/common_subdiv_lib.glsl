@@ -21,9 +21,6 @@ layout(std140) uniform shader_data
   /* Subdiv topology information. */
   uint num_subdiv_loops;
 
-  /* Subdivision settings. */
-  bool optimal_display;
-
   /* Sculpt data. */
   bool has_sculpt_mask;
 

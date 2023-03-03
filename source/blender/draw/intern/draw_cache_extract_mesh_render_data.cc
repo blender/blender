@@ -459,6 +459,9 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
 
+    /* If there is no distinct cage, hide unmapped edges that can't be selected. */
+    mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
+
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
       if (emd->vertexCos) {
@@ -521,6 +524,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = me;
     mr->edit_bmesh = nullptr;
     mr->extract_type = MR_EXTRACT_MESH;
+    mr->hide_unmapped_edges = false;
 
     if (is_paint_mode && mr->me) {
       mr->v_origindex = static_cast<const int *>(

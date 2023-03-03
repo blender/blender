@@ -223,23 +223,23 @@ static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   /* Create a temporary buffer for the edge original indices if it was not requested. */
   const bool has_edge_idx = edge_idx != nullptr;
-  GPUVertBuf *loop_edge_idx = nullptr;
+  GPUVertBuf *loop_edge_draw_flag = nullptr;
   if (has_edge_idx) {
-    loop_edge_idx = edge_idx;
+    loop_edge_draw_flag = edge_idx;
   }
   else {
-    loop_edge_idx = GPU_vertbuf_calloc();
+    loop_edge_draw_flag = GPU_vertbuf_calloc();
     draw_subdiv_init_origindex_buffer(
-        loop_edge_idx,
-        static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache->edges_orig_index)),
+        loop_edge_draw_flag,
+        static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache->edges_draw_flag)),
         subdiv_cache->num_subdiv_loops,
         0);
   }
 
-  draw_subdiv_build_edge_fac_buffer(subdiv_cache, pos_nor, loop_edge_idx, vbo);
+  draw_subdiv_build_edge_fac_buffer(subdiv_cache, pos_nor, loop_edge_draw_flag, vbo);
 
   if (!has_edge_idx) {
-    GPU_vertbuf_discard(loop_edge_idx);
+    GPU_vertbuf_discard(loop_edge_draw_flag);
   }
 }
 
