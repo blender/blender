@@ -1709,7 +1709,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, GPU_SAMPLER_DEFAULT, 0, 1);
   }
 
-  if (clipping_ubo_location) {
+  if (clipping_ubo_location != -1) {
     drw_shgroup_uniform_create_ex(shgroup,
                                   clipping_ubo_location,
                                   DRW_UNIFORM_BLOCK,
