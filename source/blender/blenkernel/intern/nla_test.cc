@@ -123,7 +123,7 @@ TEST(nla_track, BKE_nlatrack_new_tail)
   // Expect that Track B was added before track A
   EXPECT_EQ(1, BLI_findindex(&adt.nla_tracks, trackA));
   EXPECT_EQ(0, BLI_findindex(&adt.nla_tracks, trackB));
- 
+
   // Free the tracks
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackA, false);
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackB, false);
@@ -142,7 +142,6 @@ TEST(nla_track, BKE_nlatrack_new_head)
   // Free the tracks
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackA, false);
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, trackB, false);
-
 }
 
 }  // namespace blender::bke::tests
