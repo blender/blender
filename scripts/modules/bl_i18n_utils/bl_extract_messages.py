@@ -692,6 +692,15 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                 else:
                     continue
 
+                # Skip function if it's marked as not translatable.
+                do_translate = True
+                for kw in node.keywords:
+                    if kw.arg == "translate" and not kw.value.value:
+                        do_translate = False
+                        break
+                if not do_translate:
+                    continue
+
                 func_args = func_translate_args.get(func_id, {})
 
                 # First try to get i18n contexts, for every possible msgid id.
