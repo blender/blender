@@ -444,15 +444,6 @@ void BKE_mesh_calc_normals_poly_and_vertex(const float (*vert_positions)[3],
                                            float (*r_vert_normals)[3]);
 
 /**
- * Calculate vertex and face normals, storing the result in custom data layers on the mesh.
- *
- * \note It is usually preferable to calculate normals lazily with
- * #BKE_mesh_vert_normals_ensure, but some areas (perhaps unnecessarily)
- * can also calculate them eagerly.
- */
-void BKE_mesh_calc_normals(struct Mesh *me);
-
-/**
  * Called after calculating all modifiers.
  */
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);

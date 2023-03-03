@@ -476,14 +476,6 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
   }
 }
 
-void BKE_mesh_calc_normals(Mesh *mesh)
-{
-#ifdef DEBUG_TIME
-  SCOPED_TIMER_AVERAGED(__func__);
-#endif
-  BKE_mesh_vert_normals_ensure(mesh);
-}
-
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
                             const int numLoops,
                             const char data_type)
