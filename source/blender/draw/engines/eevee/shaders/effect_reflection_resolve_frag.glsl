@@ -39,7 +39,13 @@ vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
     color = textureLod(probePlanars, vec3(uv, planar_index), mip).rgb;
   }
   else {
+
+    /* Do not sample scene buffer if running probe pass in split reflection mode. */
+#ifndef RESOLVE_PROBE
     color = textureLod(colorBuffer, uv * hizUvScale.xy, mip).rgb;
+#else
+    color = vec3(0.0);
+#endif
   }
 
   /* Clamped brightness. */
@@ -223,10 +229,26 @@ CLOSURE_EVAL_FUNCTION_DECLARE_1(ssr_resolve, Glossy)
 void main()
 {
   float depth = textureLod(maxzBuffer, uvcoordsvar.xy * hizUvScale.xy, 0.0).r;
-
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+  float factor = 1.0f;
+#endif
   if (depth == 1.0) {
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+    /* Divergent code execution (and sampling) causes corruption due to undefined
+     * derivative/sampling behaviour, on Intel GPUs. Using a mask factor to ensure shaders do not
+     * diverge and only the final result is masked. */
+    factor = 0.0f;
+#else
+    /* Note: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
+     * produce undefined behaviour. This is especially prominent with derivatives if control-flow
+     * divergence is present.
+     *
+     * Adding a return call eliminates undefined behaviour and a later out-of-bounds read causing
+     * a crash on AMD platforms.
+     * This behaviour can also affect OpenGL on certain devices. */
     discard;
     return;
+#endif
   }
 
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -235,8 +257,12 @@ void main()
   float roughness = speccol_roughness.a;
 
   if (max_v3(brdf) <= 0.0) {
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+    factor = 0.0f;
+#else
     discard;
     return;
+#endif
   }
 
   FragDepth = depth;
@@ -258,5 +284,11 @@ void main()
    * passed as specular color. */
   CLOSURE_EVAL_FUNCTION_1(ssr_resolve, Glossy);
 
+  /* Default single pass resolve */
   fragColor = vec4(out_Glossy_0.radiance * brdf, 1.0);
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+  /* Due to non-uniform control flow with discard, Intel on macOS requires blending factor
+   * to discard unwanted fragments. */
+  fragColor *= factor;
+#endif
 }
