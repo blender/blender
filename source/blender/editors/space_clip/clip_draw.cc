@@ -1685,7 +1685,7 @@ static void draw_distortion(SpaceClip *sc,
   MovieTracking *tracking = &clip->tracking;
   bGPdata *gpd = nullptr;
   float aspy = 1.0f / tracking->camera.pixel_aspect;
-  float dx = (float)width / n, dy = (float)height / n * aspy;
+  float dx = float(width) / n, dy = float(height) / n * aspy;
   float offsx = 0.0f, offsy = 0.0f;
 
   if (!tracking->camera.focal) {
@@ -1814,7 +1814,7 @@ static void draw_distortion(SpaceClip *sc,
       immUniformColor4fv(layer->color);
 
       GPU_line_width(layer->thickness);
-      GPU_point_size((float)(layer->thickness + 2));
+      GPU_point_size(float(layer->thickness + 2));
 
       while (frame) {
         bGPDstroke *stroke = static_cast<bGPDstroke *>(frame->strokes.first);
@@ -1905,7 +1905,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *region)
     }
 
     if (ibuf != nullptr && width != ibuf->x) {
-      mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
+      mul_v2_v2fl(translation, sc->loc, float(width) / ibuf->x);
     }
     else {
       copy_v2_v2(translation, sc->loc);

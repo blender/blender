@@ -382,11 +382,11 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
                                         float mat[4][4])
 {
   MovieReconstructedCamera *camera;
-  float lens = tracking->camera.focal * tracking->camera.sensor_width / (float)winx;
+  float lens = tracking->camera.focal * tracking->camera.sensor_width / float(winx);
   float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
   float winmat[4][4];
   float ycor = 1.0f / tracking->camera.pixel_aspect;
-  float shiftx, shifty, winside = (float)min_ii(winx, winy);
+  float shiftx, shifty, winside = float(min_ii(winx, winy));
 
   BKE_tracking_camera_shift_get(tracking, winx, winy, &shiftx, &shifty);
 
@@ -402,10 +402,10 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
 
   pixsize = clipsta / viewfac;
 
-  left = -0.5f * (float)winx + shiftx * winside;
-  bottom = -0.5f * (ycor) * (float)winy + shifty * winside;
-  right = 0.5f * (float)winx + shiftx * winside;
-  top = 0.5f * (ycor) * (float)winy + shifty * winside;
+  left = -0.5f * float(winx) + shiftx * winside;
+  bottom = -0.5f * (ycor) * float(winy) + shifty * winside;
+  right = 0.5f * float(winx) + shiftx * winside;
+  top = 0.5f * (ycor) * float(winy) + shifty * winside;
 
   left *= pixsize;
   right *= pixsize;
@@ -976,7 +976,7 @@ static void tracking_average_markers(MovieTrackingTrack *dst_track,
     if (!counters[frame_index]) {
       continue;
     }
-    const float multiplier = 1.0f / (float)counters[frame_index];
+    const float multiplier = 1.0f / float(counters[frame_index]);
     multiply_marker(&accumulator[frame_index], multiplier);
     /* Store the result. */
     BKE_tracking_marker_insert(dst_track, &accumulator[frame_index]);
@@ -1081,8 +1081,8 @@ typedef struct TrackMaskSetPixelData {
 static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
 {
   TrackMaskSetPixelData *data = (TrackMaskSetPixelData *)user_data;
-  size_t index = (size_t)y * data->mask_width + x;
-  size_t index_end = (size_t)y * data->mask_width + x_end;
+  size_t index = size_t(y) * data->mask_width + x;
+  size_t index_end = size_t(y) * data->mask_width + x_end;
   do {
     data->mask[index] = 1.0f;
   } while (++index != index_end);
@@ -1466,7 +1466,7 @@ bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
     return true;
   }
 
-  const float factor = (float)(framenr - left_marker->framenr) /
+  const float factor = float(framenr - left_marker->framenr) /
                        (right_marker->framenr - left_marker->framenr);
 
   interp_v2_v2v2(r_marker->pos, left_marker->pos, right_marker->pos, factor);
@@ -1510,7 +1510,7 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track,
                                                float framenr,
                                                float pos[2])
 {
-  MovieTrackingMarker *marker = BKE_tracking_marker_get(track, (int)framenr);
+  MovieTrackingMarker *marker = BKE_tracking_marker_get(track, int(framenr));
   MovieTrackingMarker *marker_last = track->markers + (track->markersnr - 1);
 
   if (marker != marker_last) {
@@ -1522,7 +1522,7 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track,
        * tracked segments
        */
 
-      float fac = (framenr - (int)framenr) / (marker_next->framenr - marker->framenr);
+      float fac = (framenr - int(framenr)) / (marker_next->framenr - marker->framenr);
 
       interp_v2_v2v2(pos, marker->pos, marker_next->pos, fac);
     }
@@ -1872,12 +1872,12 @@ void BKE_tracking_plane_marker_get_subframe_corners(MovieTrackingPlaneTrack *pla
                                                     float framenr,
                                                     float corners[4][2])
 {
-  MovieTrackingPlaneMarker *marker = BKE_tracking_plane_marker_get(plane_track, (int)framenr);
+  MovieTrackingPlaneMarker *marker = BKE_tracking_plane_marker_get(plane_track, int(framenr));
   MovieTrackingPlaneMarker *marker_last = plane_track->markers + (plane_track->markersnr - 1);
   if (marker != marker_last) {
     MovieTrackingPlaneMarker *marker_next = marker + 1;
     if (marker_next->framenr == marker->framenr + 1) {
-      float fac = (framenr - (int)framenr) / (marker_next->framenr - marker->framenr);
+      float fac = (framenr - int(framenr)) / (marker_next->framenr - marker->framenr);
       for (int i = 0; i < 4; i++) {
         interp_v2_v2v2(corners[i], marker->corners[i], marker_next->corners[i], fac);
       }
@@ -2156,7 +2156,7 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking * /*trackin
   MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
   MovieReconstructedCamera *cameras = reconstruction->cameras;
 
-  int a = reconstructed_camera_index_get(reconstruction, (int)framenr, true);
+  int a = reconstructed_camera_index_get(reconstruction, int(framenr), true);
 
   if (a == -1) {
     unit_m4(mat);
@@ -2164,7 +2164,7 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking * /*trackin
   }
 
   if (cameras[a].framenr != framenr && a < reconstruction->camnr - 1) {
-    float t = ((float)framenr - cameras[a].framenr) /
+    float t = (float(framenr) - cameras[a].framenr) /
               (cameras[a + 1].framenr - cameras[a].framenr);
     blend_m4_m4m4(mat, cameras[a].mat, cameras[a + 1].mat, t);
   }
@@ -2354,8 +2354,8 @@ void BKE_tracking_distortion_undistort_v2(MovieDistortion *distortion,
   libmv_cameraIntrinsicsInvert(distortion->intrinsics, x, y, &x, &y);
 
   const float aspy = 1.0f / distortion->pixel_aspect;
-  r_co[0] = (float)x * distortion->focal + distortion->principal_px[0];
-  r_co[1] = (float)y * distortion->focal + distortion->principal_px[1] * aspy;
+  r_co[0] = float(x) * distortion->focal + distortion->principal_px[0];
+  r_co[1] = float(y) * distortion->focal + distortion->principal_px[1] * aspy;
 }
 
 void BKE_tracking_distortion_free(MovieDistortion *distortion)
@@ -2411,8 +2411,8 @@ void BKE_tracking_undistort_v2(
   tracking_principal_point_normalized_to_pixel(
       tracking->camera.principal_point, image_width, image_height, principal_px);
 
-  r_co[0] = (float)x * camera->focal + principal_px[0];
-  r_co[1] = (float)y * camera->focal + principal_px[1] * aspy;
+  r_co[0] = float(x) * camera->focal + principal_px[0];
+  r_co[1] = float(y) * camera->focal + principal_px[1] * aspy;
 }
 
 ImBuf *BKE_tracking_undistort_frame(MovieTracking *tracking,
@@ -2590,10 +2590,10 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
    */
   if (from_anchor) {
     for (int a = 0; a < 5; a++) {
-      src_pixel_x[a] += (double)((track->offset[0] * frame_width) -
-                                 (int)(track->offset[0] * frame_width));
-      src_pixel_y[a] += (double)((track->offset[1] * frame_height) -
-                                 (int)(track->offset[1] * frame_height));
+      src_pixel_x[a] += double((track->offset[0] * frame_width) -
+                               int(track->offset[0] * frame_width));
+      src_pixel_y[a] += double((track->offset[1] * frame_height) -
+                               int(track->offset[1] * frame_height));
 
       /* when offset is negative, rounding happens in opposite direction */
       if (track->offset[0] < 0.0f) {

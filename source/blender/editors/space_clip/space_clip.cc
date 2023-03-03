@@ -66,8 +66,8 @@ static void init_preview_region(const Scene *scene,
 
   if (sc->view == SC_VIEW_DOPESHEET) {
     region->v2d.tot.xmin = -10.0f;
-    region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
-    region->v2d.tot.xmax = (float)(area->winx);
+    region->v2d.tot.ymin = float(-area->winy) / 3.0f;
+    region->v2d.tot.xmax = float(area->winx);
     region->v2d.tot.ymax = 0.0f;
 
     region->v2d.cur = region->v2d.tot;
@@ -90,7 +90,7 @@ static void init_preview_region(const Scene *scene,
   else {
     region->v2d.tot.xmin = 0.0f;
     region->v2d.tot.ymin = -10.0f;
-    region->v2d.tot.xmax = (float)scene->r.efra;
+    region->v2d.tot.xmax = float(scene->r.efra);
     region->v2d.tot.ymax = 10.0f;
 
     region->v2d.cur = region->v2d.tot;
@@ -766,12 +766,12 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *region)
   y1 -= sc->zoom * sc->yof;
 
   /* relative display right */
-  region->v2d.cur.xmin = (region->winrct.xmin - (float)x1) / sc->zoom;
-  region->v2d.cur.xmax = region->v2d.cur.xmin + ((float)winx / sc->zoom);
+  region->v2d.cur.xmin = (region->winrct.xmin - float(x1)) / sc->zoom;
+  region->v2d.cur.xmax = region->v2d.cur.xmin + (float(winx) / sc->zoom);
 
   /* relative display left */
-  region->v2d.cur.ymin = (region->winrct.ymin - (float)y1) / sc->zoom;
-  region->v2d.cur.ymax = region->v2d.cur.ymin + ((float)winy / sc->zoom);
+  region->v2d.cur.ymin = (region->winrct.ymin - float(y1)) / sc->zoom;
+  region->v2d.cur.ymax = region->v2d.cur.ymin + (float(winy) / sc->zoom);
 
   /* normalize 0.0..1.0 */
   region->v2d.cur.xmin /= w;

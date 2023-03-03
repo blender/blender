@@ -662,7 +662,7 @@ struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void)
 
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void)
 {
-  if (e_data.reflection_resolve_probe == NULL) {
+  if (e_data.reflection_resolve_probe == nullptr) {
     e_data.reflection_resolve_probe = DRW_shader_create_from_info_name(
         "eevee_legacy_effect_reflection_resolve_probe");
   }
@@ -671,7 +671,7 @@ struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void)
 
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_refl_sh_get(void)
 {
-  if (e_data.reflection_resolve_raytrace == NULL) {
+  if (e_data.reflection_resolve_raytrace == nullptr) {
     e_data.reflection_resolve_raytrace = DRW_shader_create_from_info_name(
         "eevee_legacy_effect_reflection_resolve_ssr");
   }

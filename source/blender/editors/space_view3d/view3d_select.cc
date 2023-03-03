@@ -2987,7 +2987,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
 /**
  * Cursor selection for the Curves object.
- * 
+ *
  * \returns true if the selection changed.
  */
 static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPick_Params &params)

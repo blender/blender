@@ -201,7 +201,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.8f),
+                short(UI_UNIT_Y * 0.8f),
                 &scopes->track_preview_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -828,7 +828,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       float frs_sec_base;
       if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
         ofs += BLI_snprintf_rlen(
-            str + ofs, sizeof(str) - ofs, TIP_(", %.2f fps"), (float)frs_sec / frs_sec_base);
+            str + ofs, sizeof(str) - ofs, TIP_(", %.2f fps"), float(frs_sec) / frs_sec_base);
       }
     }
   }

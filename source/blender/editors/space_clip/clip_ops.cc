@@ -631,10 +631,10 @@ static void view_zoom_apply(
 
   if (U.viewzoom != USER_ZOOM_SCALE) {
     if (U.uiflag & USER_ZOOM_HORIZ) {
-      delta = (float)(event->xy[0] - vpd->x);
+      delta = float(event->xy[0] - vpd->x);
     }
     else {
-      delta = (float)(event->xy[1] - vpd->y);
+      delta = float(event->xy[1] - vpd->y);
     }
   }
   else {
@@ -650,7 +650,7 @@ static void view_zoom_apply(
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     SpaceClip *sclip = CTX_wm_space_clip(C);
     double time = PIL_check_seconds_timer();
-    float time_step = (float)(time - vpd->timer_lastdraw);
+    float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
 
     zfac = 1.0f + ((delta / 20.0f) * time_step);
@@ -863,8 +863,8 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
   sclip_zoom_set(C, RNA_float_get(op->ptr, "ratio"), nullptr, false);
 
   /* ensure pixel exact locations for draw */
-  sc->xof = (int)sc->xof;
-  sc->yof = (int)sc->yof;
+  sc->xof = int(sc->xof);
+  sc->yof = int(sc->yof);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -929,15 +929,15 @@ static int view_all_exec(bContext *C, wmOperator *op)
   if (fit_view) {
     const int margin = 5; /* margin from border */
 
-    zoomx = (float)width / (w + 2 * margin);
-    zoomy = (float)height / (h + 2 * margin);
+    zoomx = float(width) / (w + 2 * margin);
+    zoomy = float(height) / (h + 2 * margin);
 
     sclip_zoom_set(C, min_ff(zoomx, zoomy), nullptr, false);
   }
   else {
     if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-      zoomx = (float)width / w;
-      zoomy = (float)height / h;
+      zoomx = float(width) / w;
+      zoomy = float(height) / h;
 
       /* find the zoom value that will fit the image in the image space */
       sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), nullptr, false);
@@ -1261,7 +1261,7 @@ static void do_movie_proxy(void *pjv,
     }
 
     *do_update = true;
-    *progress = ((float)cfra - sfra) / (efra - sfra);
+    *progress = (float(cfra) - sfra) / (efra - sfra);
   }
 
   if (distortion) {
@@ -1344,7 +1344,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     close(file);
 
     *queue->do_update = true;
-    *queue->progress = (float)(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
+    *queue->progress = float(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
   }
   BLI_spin_unlock(&queue->spin);
 

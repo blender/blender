@@ -236,8 +236,8 @@ void tracking_get_search_origin_frame_pixel(int frame_width,
   /* Get the lower left coordinate of the search window and snap to pixel coordinates */
   marker_unified_to_frame_pixel_coordinates(
       frame_width, frame_height, marker, marker->search_min, frame_pixel);
-  frame_pixel[0] = (int)frame_pixel[0];
-  frame_pixel[1] = (int)frame_pixel[1];
+  frame_pixel[0] = int(frame_pixel[0]);
+  frame_pixel[1] = int(frame_pixel[1]);
 }
 
 static void pixel_to_unified(int frame_width,
@@ -349,8 +349,8 @@ void tracking_principal_point_normalized_to_pixel(const float principal_point_no
                                                   const int frame_height,
                                                   float r_principal_point_pixel[2])
 {
-  const float frame_center_x = ((float)frame_width) / 2;
-  const float frame_center_y = ((float)frame_height) / 2;
+  const float frame_center_x = (float(frame_width)) / 2;
+  const float frame_center_y = (float(frame_height)) / 2;
 
   r_principal_point_pixel[0] = frame_center_x + principal_point_normalized[0] * frame_center_x;
   r_principal_point_pixel[1] = frame_center_y + principal_point_normalized[1] * frame_center_y;
@@ -361,8 +361,8 @@ void tracking_principal_point_pixel_to_normalized(const float principal_point_pi
                                                   const int frame_height,
                                                   float r_principal_point_normalized[2])
 {
-  const float frame_center_x = ((float)frame_width) / 2;
-  const float frame_center_y = ((float)frame_height) / 2;
+  const float frame_center_x = (float(frame_width)) / 2;
+  const float frame_center_y = (float(frame_height)) / 2;
 
   r_principal_point_normalized[0] = (principal_point_pixel[0] - frame_center_x) / frame_center_x;
   r_principal_point_normalized[1] = (principal_point_pixel[1] - frame_center_y) / frame_center_y;
@@ -503,7 +503,7 @@ void tracking_cameraIntrinscisOptionsFromTracking(
   distortion_model_parameters_from_tracking(camera, camera_intrinsics_options);
 
   camera_intrinsics_options->image_width = calibration_width;
-  camera_intrinsics_options->image_height = (int)(calibration_height * aspy);
+  camera_intrinsics_options->image_height = int(calibration_height * aspy);
 }
 
 void tracking_trackingCameraFromIntrinscisOptions(
@@ -623,7 +623,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    *
    * Will generalize it later.
    */
-  const size_t num_pixels = (size_t)grayscale->x * (size_t)grayscale->y;
+  const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
   if ((grayscale->rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image")) !=
       nullptr) {
@@ -652,7 +652,7 @@ static void ibuf_to_float_image(const ImBuf *ibuf, libmv_FloatImage *float_image
 static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
 {
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
-  size_t num_total_channels = (size_t)ibuf->x * (size_t)ibuf->y * float_image->channels;
+  size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
   if ((ibuf->rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image")) !=
       nullptr) {
@@ -688,10 +688,10 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
      * return the requested region size, but only fill it's partially with
      * the data we can.
      */
-    int clamped_origin_x = max_ii((int)region->min[0], 0),
-        clamped_origin_y = max_ii((int)region->min[1], 0);
-    int dst_offset_x = clamped_origin_x - (int)region->min[0],
-        dst_offset_y = clamped_origin_y - (int)region->min[1];
+    int clamped_origin_x = max_ii(int(region->min[0]), 0),
+        clamped_origin_y = max_ii(int(region->min[1]), 0);
+    int dst_offset_x = clamped_origin_x - int(region->min[0]),
+        dst_offset_y = clamped_origin_y - int(region->min[1]);
     int clamped_width = width - dst_offset_x, clamped_height = height - dst_offset_y;
     clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
     clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);

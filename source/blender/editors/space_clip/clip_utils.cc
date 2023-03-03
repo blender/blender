@@ -575,8 +575,8 @@ bool clip_view_calculate_view_selection(
     width = BLI_rcti_size_x(&region->winrct) + 1;
     height = BLI_rcti_size_y(&region->winrct) + 1;
 
-    zoomx = (float)width / w / aspx;
-    zoomy = (float)height / h / aspy;
+    zoomx = float(width) / w / aspx;
+    zoomy = float(height) / h / aspy;
 
     newzoom = 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy));
 
@@ -614,8 +614,8 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)scene->r.sfra, v2d->cur.ymax);
-  immRectf(pos, (float)scene->r.efra, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(scene->r.sfra), v2d->cur.ymax);
+  immRectf(pos, float(scene->r.efra), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -625,10 +625,10 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
   GPU_line_width(1.0f);
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymin);
-  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymax);
-  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymin);
-  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymax);
+  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymin);
+  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymax);
+  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymin);
+  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymax);
   immEnd();
 
   immUnbindProgram();

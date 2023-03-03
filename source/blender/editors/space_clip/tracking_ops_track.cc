@@ -92,7 +92,7 @@ static void track_init_markers(SpaceClip *sc,
             frames_limit = track->frames_limit;
           }
           else {
-            frames_limit = min_ii(frames_limit, (int)track->frames_limit);
+            frames_limit = min_ii(frames_limit, int(track->frames_limit));
           }
         }
       }
@@ -232,8 +232,8 @@ static void track_markers_startjob(
       }
 
       exec_time = PIL_check_seconds_timer() - start_time;
-      if (tmj->delay > (float)exec_time) {
-        PIL_sleep_ms(tmj->delay - (float)exec_time);
+      if (tmj->delay > float(exec_time)) {
+        PIL_sleep_ms(tmj->delay - float(exec_time));
       }
     }
     else if (!BKE_autotrack_context_step(tmj->context)) {
@@ -241,7 +241,7 @@ static void track_markers_startjob(
     }
 
     *do_update = true;
-    *progress = (float)(framenr - tmj->sfra) / (tmj->efra - tmj->sfra);
+    *progress = float(framenr - tmj->sfra) / (tmj->efra - tmj->sfra);
 
     if (tmj->backwards) {
       framenr--;

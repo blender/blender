@@ -114,9 +114,9 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     /* don't use totrect set, as the width stays the same
      * (NOTE: this is ok here, the configuration is pretty straightforward)
      */
-    v2d->tot.ymin = (float)(-height);
+    v2d->tot.ymin = float(-height);
 
-    float y = (float)CHANNEL_FIRST;
+    float y = float(CHANNEL_FIRST);
 
     /* setup colors for regular and selected strips */
     UI_GetThemeColor3fv(TH_STRIP, strip);
@@ -130,8 +130,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     clip_draw_dopesheet_background(region, clip, pos_id);
 
     LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-      float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
-      float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
+      float yminc = float(y - CHANNEL_HEIGHT_HALF);
+      float ymaxc = float(y + CHANNEL_HEIGHT_HALF);
 
       /* check if visible */
       if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -150,9 +150,9 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
           immRectf(pos_id,
                    v2d->cur.xmin,
-                   (float)y - CHANNEL_HEIGHT_HALF,
+                   float(y) - CHANNEL_HEIGHT_HALF,
                    v2d->cur.xmax + EXTRA_SCROLL_PAD,
-                   (float)y + CHANNEL_HEIGHT_HALF);
+                   float(y) + CHANNEL_HEIGHT_HALF);
         }
 
         /* tracked segments */
@@ -167,9 +167,9 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
           if (start_frame != end_frame) {
             immRectf(pos_id,
                      start_frame,
-                     (float)y - STRIP_HEIGHT_HALF,
+                     float(y) - STRIP_HEIGHT_HALF,
                      end_frame,
-                     (float)y + STRIP_HEIGHT_HALF);
+                     float(y) + STRIP_HEIGHT_HALF);
             keyframe_len += 2;
           }
           else {
@@ -218,10 +218,10 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       immAttr4ub(outline_color_id, 0, 0, 0, 255);
       immAttr1u(flags_id, 0);
 
-      y = (float)CHANNEL_FIRST; /* start again at the top */
+      y = float(CHANNEL_FIRST); /* start again at the top */
       LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-        float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
-        float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
+        float yminc = float(y - CHANNEL_HEIGHT_HALF);
+        float ymaxc = float(y + CHANNEL_HEIGHT_HALF);
 
         /* check if visible */
         if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -296,7 +296,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     /* don't use totrect set, as the width stays the same
      * (NOTE: this is ok here, the configuration is pretty straightforward)
      */
-    v2d->tot.ymin = (float)(-height);
+    v2d->tot.ymin = float(-height);
   }
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
@@ -306,7 +306,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   /* loop through channels, and set up drawing depending on their type
    * first pass: just the standard GL-drawing for backdrop + text
    */
-  float y = (float)CHANNEL_FIRST;
+  float y = float(CHANNEL_FIRST);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -314,8 +314,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-    float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
-    float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
+    float yminc = float(y - CHANNEL_HEIGHT_HALF);
+    float ymaxc = float(y + CHANNEL_HEIGHT_HALF);
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -327,9 +327,9 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
       immRectf(pos,
                v2d->cur.xmin,
-               (float)y - CHANNEL_HEIGHT_HALF,
+               float(y) - CHANNEL_HEIGHT_HALF,
                v2d->cur.xmax + EXTRA_SCROLL_PAD,
-               (float)y + CHANNEL_HEIGHT_HALF);
+               float(y) + CHANNEL_HEIGHT_HALF);
     }
 
     /* adjust y-position for next one */
@@ -338,13 +338,13 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   immUnbindProgram();
 
   /* second pass: text */
-  y = (float)CHANNEL_FIRST;
+  y = float(CHANNEL_FIRST);
 
   BLF_size(fontid, 11.0f * U.dpi_fac);
 
   LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-    float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
-    float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
+    float yminc = float(y - CHANNEL_HEIGHT_HALF);
+    float ymaxc = float(y + CHANNEL_HEIGHT_HALF);
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -365,7 +365,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   /* third pass: widgets */
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  y = (float)CHANNEL_FIRST;
+  y = float(CHANNEL_FIRST);
 
   /* get RNA properties (once) */
   PropertyRNA *chan_prop_lock = RNA_struct_type_find_property(&RNA_MovieTrackingTrack, "lock");
@@ -373,8 +373,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   GPU_blend(GPU_BLEND_ALPHA);
   LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-    float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
-    float ymaxc = (float)(y + CHANNEL_HEIGHT_HALF);
+    float yminc = float(y - CHANNEL_HEIGHT_HALF);
+    float ymaxc = float(y + CHANNEL_HEIGHT_HALF);
 
     /* check if visible */
     if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||

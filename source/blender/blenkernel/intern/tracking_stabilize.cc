@@ -700,7 +700,7 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
   BLI_assert(frame_a <= framenr);
   BLI_assert(framenr <= frame_b);
 
-  t = ((float)framenr - frame_a) / (frame_b - frame_a);
+  t = (float(framenr) - frame_a) / (frame_b - frame_a);
   s = 1.0f - t;
 
   success = average_track_contributions(
@@ -1038,10 +1038,10 @@ static void stabilization_calculate_data(StabContext *ctx,
   }
 
   /* Convert from relative to absolute coordinates, square pixels. */
-  r_translation[0] *= (float)size * aspect;
-  r_translation[1] *= (float)size;
-  r_pivot[0] *= (float)size * aspect;
-  r_pivot[1] *= (float)size;
+  r_translation[0] *= float(size) * aspect;
+  r_translation[1] *= float(size);
+  r_pivot[0] *= float(size) * aspect;
+  r_pivot[1] *= float(size);
 
   /* Output measured data, or inverse of the measured values for
    * compensation?
@@ -1258,7 +1258,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   bool do_compensate = true;
   float scale_step = 0.0f;
   float pixel_aspect = tracking->camera.pixel_aspect;
-  float aspect = (float)width * pixel_aspect / height;
+  float aspect = float(width) * pixel_aspect / height;
   int size = height;
   float pivot[2];
 

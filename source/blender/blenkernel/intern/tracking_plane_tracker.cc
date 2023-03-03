@@ -131,8 +131,8 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
     if (!retrack && keyframe_plane_marker && next_plane_marker &&
         (plane_track->flag & PLANE_TRACK_AUTOKEY)) {
-      float fac = ((float)next_plane_marker->framenr - start_plane_marker->framenr) /
-                  ((float)keyframe_plane_marker->framenr - start_plane_marker->framenr);
+      float fac = (float(next_plane_marker->framenr) - start_plane_marker->framenr) /
+                  (float(keyframe_plane_marker->framenr) - start_plane_marker->framenr);
 
       fac = 3 * fac * fac - 2 * fac * fac * fac;
 

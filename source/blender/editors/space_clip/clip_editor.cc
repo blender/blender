@@ -167,9 +167,9 @@ void ED_space_clip_get_zoom(const SpaceClip *sc, const ARegion *region, float *z
 
   ED_space_clip_get_size(sc, &width, &height);
 
-  *zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+  *zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
            (BLI_rctf_size_x(&region->v2d.cur) * width);
-  *zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
+  *zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) /
            (BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
@@ -215,8 +215,8 @@ void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *aspx, 
   ED_space_clip_get_aspect(sc, aspx, aspy);
   BKE_movieclip_get_size(sc->clip, &sc->user, &w, &h);
 
-  *aspx *= (float)w;
-  *aspy *= (float)h;
+  *aspx *= float(w);
+  *aspy *= float(h);
 
   if (*aspx < *aspy) {
     *aspy = *aspy / *aspx;
@@ -318,7 +318,7 @@ bool ED_space_clip_color_sample(const SpaceClip *sc,
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+    int x = int(fx * ibuf->x), y = int(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -541,8 +541,8 @@ void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
   /* untested */
   mul_v3_m4v3(pos, sc->stabmat, pos);
 
-  r_co[0] = (pos[0] * width * zoomx) + (float)sx;
-  r_co[1] = (pos[1] * height * zoomy) + (float)sy;
+  r_co[0] = (pos[0] * width * zoomx) + float(sx);
+  r_co[1] = (pos[1] * height * zoomy) + float(sy);
 }
 
 void ED_clip_mouse_pos(const SpaceClip *sc, const ARegion *region, const int mval[2], float co[2])
@@ -824,7 +824,7 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
       }
 
       *queue->do_update = true;
-      *queue->progress = (float)frames_processed / (queue->end_frame - queue->start_frame);
+      *queue->progress = float(frames_processed) / (queue->end_frame - queue->start_frame);
     }
   }
   BLI_spin_unlock(&queue->spin);
@@ -981,7 +981,7 @@ static void do_prefetch_movie(MovieClip *clip,
     frames_processed++;
 
     *do_update = true;
-    *progress = (float)frames_processed / (end_frame - start_frame);
+    *progress = float(frames_processed) / (end_frame - start_frame);
   }
 
   /* read frames starting from current frame up to scene start frame */
@@ -993,7 +993,7 @@ static void do_prefetch_movie(MovieClip *clip,
     frames_processed++;
 
     *do_update = true;
-    *progress = (float)frames_processed / (end_frame - start_frame);
+    *progress = float(frames_processed) / (end_frame - start_frame);
   }
 }
 
