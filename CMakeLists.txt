@@ -331,7 +331,6 @@ option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" ON)
 
 # Image format support
-option(WITH_OPENIMAGEIO         "Enable OpenImageIO Support (http://www.openimageio.org)" ON)
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
 option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
@@ -892,8 +891,6 @@ set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
-  set(WITH_OPENIMAGEIO ON)
-
   # auto enable llvm for cycles_osl
   if(WITH_CYCLES_OSL)
     set(WITH_LLVM ON CACHE BOOL "" FORCE)
@@ -1085,13 +1082,6 @@ if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
 endif()
 
 if(WITH_CYCLES)
-  if(NOT WITH_OPENIMAGEIO)
-    message(
-      FATAL_ERROR
-      "Cycles requires WITH_OPENIMAGEIO, the library may not have been found. "
-      "Configure OIIO or disable WITH_CYCLES"
-    )
-  endif()
   if(WITH_CYCLES_OSL)
     if(NOT WITH_LLVM)
       message(
@@ -1942,8 +1932,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_IMAGE_OPENEXR)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
   info_cfg_option(WITH_IMAGE_TIFF)
-  info_cfg_option(WITH_OPENIMAGEIO)
-
+  
   info_cfg_text("Audio:")
   info_cfg_option(WITH_CODEC_AVI)
   info_cfg_option(WITH_CODEC_FFMPEG)

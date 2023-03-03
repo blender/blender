@@ -11,6 +11,7 @@ set(INC
   ../../editors/include
   ../../gpu
   ../../imbuf
+  ../../imbuf/intern/oiio
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -219,10 +220,6 @@ if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG)
 endif()
@@ -348,13 +345,6 @@ if(WITH_USD)
   add_definitions(-DWITH_USD)
   list(APPEND INC
     ../../io/usd
-  )
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-  list(APPEND INC
-    ../../imbuf/intern/oiio
   )
 endif()
 
