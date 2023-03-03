@@ -644,7 +644,7 @@ static SeqRetimingHandle *rna_Sequence_retiming_handles_add(ID *id,
 {
   Scene *scene = (Scene *)id;
 
-  SeqRetimingHandle *handle = SEQ_retiming_add_handle(seq, timeline_frame);
+  SeqRetimingHandle *handle = SEQ_retiming_add_handle(scene, seq, timeline_frame);
 
   SEQ_relations_invalidate_cache_raw(scene, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);

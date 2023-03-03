@@ -126,7 +126,7 @@ bool SEQ_retiming_is_allowed(const Sequence *seq)
               SEQ_TYPE_MASK);
 }
 
-float seq_retiming_evaluate(const Sequence *seq, const int frame_index)
+float seq_retiming_evaluate(const Scene *scene, const Sequence *seq, const int frame_index)
 {
   const SeqRetimingHandle *previous_handle = retiming_find_segment_start_handle(seq, frame_index);
   const SeqRetimingHandle *next_handle = previous_handle + 1;
@@ -144,13 +144,15 @@ float seq_retiming_evaluate(const Sequence *seq, const int frame_index)
   const float segment_fac = segment_frame_index / float(segment_length);
 
   const float target_diff = next_handle->retiming_factor - previous_handle->retiming_factor;
-  return previous_handle->retiming_factor + (target_diff * segment_fac);
+  return previous_handle->retiming_factor +
+         (target_diff * segment_fac) * seq_time_media_playback_rate_factor_get(scene, seq);
 }
 
-SeqRetimingHandle *SEQ_retiming_add_handle(Sequence *seq, const int timeline_frame)
+SeqRetimingHandle *SEQ_retiming_add_handle(Scene *scene, Sequence *seq, const int timeline_frame)
 {
-  float frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
-  float value = seq_retiming_evaluate(seq, frame_index);
+  float frame_index = (timeline_frame - SEQ_time_start_frame_get(seq)) *
+                      seq_time_media_playback_rate_factor_get(scene, seq);
+  float value = seq_retiming_evaluate(scene, seq, frame_index);
 
   const SeqRetimingHandle *closest_handle = retiming_find_segment_start_handle(seq, frame_index);
   if (closest_handle->strip_frame_index == frame_index) {
@@ -195,7 +197,7 @@ void SEQ_retiming_offset_handle(const Scene *scene,
 
   MutableSpan handles = SEQ_retiming_handles_get(seq);
   for (; handle < handles.end(); handle++) {
-    handle->strip_frame_index += offset;
+    handle->strip_frame_index += offset * seq_time_media_playback_rate_factor_get(scene, seq);
   }
 
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
@@ -244,4 +246,12 @@ float SEQ_retiming_handle_speed_get(const Scene *scene,
 
   const float speed = float(fragment_length_retimed) / float(fragment_length_original);
   return speed;
+}
+
+float SEQ_retiming_handle_timeline_frame_get(const Scene *scene,
+                                             const Sequence *seq,
+                                             const SeqRetimingHandle *handle)
+{
+  return SEQ_time_start_frame_get(seq) +
+         handle->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq);
 }

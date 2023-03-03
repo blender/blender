@@ -26,7 +26,9 @@ bool SEQ_retiming_is_allowed(const struct Sequence *seq);
  * This function always reallocates memory, so when function is used all stored pointers will
  * become invalid.
  */
-struct SeqRetimingHandle *SEQ_retiming_add_handle(struct Sequence *seq, const int timeline_frame);
+struct SeqRetimingHandle *SEQ_retiming_add_handle(struct Scene *scene,
+                                                  struct Sequence *seq,
+                                                  const int timeline_frame);
 struct SeqRetimingHandle *SEQ_retiming_last_handle_get(const struct Sequence *seq);
 void SEQ_retiming_remove_handle(struct Sequence *seq, struct SeqRetimingHandle *handle);
 void SEQ_retiming_offset_handle(const struct Scene *scene,
@@ -38,6 +40,9 @@ float SEQ_retiming_handle_speed_get(const struct Scene *scene,
                                     const struct SeqRetimingHandle *handle);
 int SEQ_retiming_handle_index_get(const struct Sequence *seq,
                                   const struct SeqRetimingHandle *handle);
+float SEQ_retiming_handle_timeline_frame_get(const struct Scene *scene,
+                                             const struct Sequence *seq,
+                                             const struct SeqRetimingHandle *handle);
 #ifdef __cplusplus
 }
 #endif
