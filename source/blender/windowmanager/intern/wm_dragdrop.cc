@@ -768,7 +768,7 @@ static void wm_drag_free_path_data(wmDragPath **path_data)
 const char *WM_drag_get_path(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_PATH) {
-    return NULL;
+    return nullptr;
   }
 
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);

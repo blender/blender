@@ -8800,7 +8800,7 @@ static bool point_normals_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 
   /* Only show strength option if spherize is enabled. */
   if (STREQ(prop_id, "spherize_strength")) {
-    return (bool)RNA_boolean_get(ptr, "spherize");
+    return RNA_boolean_get(ptr, "spherize");
   }
 
   /* Else, show it! */

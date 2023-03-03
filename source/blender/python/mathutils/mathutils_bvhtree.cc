@@ -986,7 +986,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
         copy_v3_v3(orig_normal[i], f->no);
         BM_elem_index_set(f, int(i)); /* set_inline */
       }
-      bm->elem_index_dirty &= (char)~(BM_VERT | BM_FACE);
+      bm->elem_index_dirty &= char(~(BM_VERT | BM_FACE));
 
       for (i = 0; i < tris_len; i++) {
         float co[3][3];
