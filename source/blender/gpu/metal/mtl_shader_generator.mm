@@ -1779,6 +1779,12 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           BLI_assert(res.uniformbuf.name.size() > 0);
           int64_t array_offset = res.uniformbuf.name.find_first_of("[");
 
+          /* UBO should either use an existing declared UBO bind slot, or automatically resolve
+           * index. */
+          ubo.slot = (create_info_->auto_resource_location_) ? uniform_blocks.size() : res.slot;
+          BLI_assert(ubo.slot >= 0 && ubo.slot < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+          max_ubo_slot = max_ii(max_ubo_slot, ubo.slot);
+
           ubo.type_name = res.uniformbuf.type_name;
           ubo.is_array = (array_offset > -1);
           if (ubo.is_array) {
@@ -1872,8 +1878,9 @@ uint32_t MSLGeneratorInterface::get_sampler_argument_buffer_bind_index(ShaderSta
   if (sampler_argument_buffer_bind_index[get_shader_stage_index(stage)] >= 0) {
     return sampler_argument_buffer_bind_index[get_shader_stage_index(stage)];
   }
-  sampler_argument_buffer_bind_index[get_shader_stage_index(stage)] =
-      (this->uniform_blocks.size() + 1);
+
+  /* Sampler argument buffer to follow UBOs and PushConstantBlock. */
+  sampler_argument_buffer_bind_index[get_shader_stage_index(stage)] = (max_ubo_slot + 2);
   return sampler_argument_buffer_bind_index[get_shader_stage_index(stage)];
 }
 
@@ -2205,7 +2212,6 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
 void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream &out,
                                                                ShaderStage stage)
 {
-  int ubo_index = 0;
   for (const MSLUniformBlock &ubo : this->uniform_blocks) {
     if (bool(ubo.stage & stage)) {
       /* For literal/existing global types, we do not need the class name-space accessor. */
@@ -2218,9 +2224,8 @@ void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream
        * MTL_uniform_buffer_base_index is an offset depending on the number of unique VBOs
        * bound for the current PSO specialization. */
       out << ubo.type_name << "* " << ubo.name << "[[buffer(MTL_uniform_buffer_base_index+"
-          << (ubo_index + 1) << ")]]";
+          << (ubo.slot + 1) << ")]]";
     }
-    ubo_index++;
   }
 }
 
@@ -3256,7 +3261,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
                             this->uniform_blocks[uniform_block].name.c_str(),
                             name_buffer_size,
                             name_buffer_offset),
-        uniform_block,
+        this->uniform_blocks[uniform_block].slot,
         0,
         this->uniform_blocks[uniform_block].stage);
   }

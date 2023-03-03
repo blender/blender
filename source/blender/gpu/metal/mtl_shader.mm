@@ -836,7 +836,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
      * However, it is more efficient to simply offset the uniform buffer base index to the
      * maximal number of VBO bind-points, as then UBO bind-points for similar draw calls
      * will align and avoid the requirement for additional binding. */
-    int MTL_uniform_buffer_base_index = GPU_BATCH_VBO_MAX_LEN;
+    int MTL_uniform_buffer_base_index = pipeline_descriptor.vertex_descriptor.num_vert_buffers + 1;
 
     /* Null buffer index is used if an attribute is not found in the
      * bound VBOs #VertexFormat. */
@@ -989,11 +989,15 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
     /* Transform feedback constant.
      * Ensure buffer is placed after existing buffers, including default buffers. */
-    int MTL_transform_feedback_buffer_index = (this->transform_feedback_type_ !=
-                                               GPU_SHADER_TFB_NONE) ?
-                                                  MTL_uniform_buffer_base_index +
-                                                      mtl_interface->get_max_ubo_index() + 2 :
-                                                  -1;
+    int MTL_transform_feedback_buffer_index = -1;
+    if (this->transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
+      /* If using argument buffers, insert index after argument buffer index. Otherwise, insert
+       * after uniform buffer bindings. */
+      MTL_transform_feedback_buffer_index =
+          (mtl_interface->uses_argument_buffer_for_samplers()) ?
+              (mtl_interface->get_argument_buffer_bind_index(ShaderStage::VERTEX) + 1) :
+              (MTL_uniform_buffer_base_index + mtl_interface->get_max_ubo_index() + 2);
+    }
 
     if (this->transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
       [values setConstantValue:&MTL_transform_feedback_buffer_index
@@ -1120,6 +1124,28 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     }
     desc.depthAttachmentPixelFormat = pipeline_descriptor.depth_attachment_format;
     desc.stencilAttachmentPixelFormat = pipeline_descriptor.stencil_attachment_format;
+
+    /* Bind-point range validation.
+     * We need to ensure that the PSO will have valid bind-point ranges, or is using the
+     * appropriate bindless fallback path if any bind limits are exceeded. */
+#ifdef NDEBUG
+    /* Ensure UBO and PushConstantBlock bindings are within range. */
+    BLI_assert_msg((MTL_uniform_buffer_base_index + get_max_ubo_index() + 2) <
+                       MTL_MAX_BUFFER_BINDINGS,
+                   "UBO bindings exceed the fragment bind table limit.");
+
+    /* Transform feedback buffer. */
+    if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
+      BLI_assert_msg(MTL_transform_feedback_buffer_index < MTL_MAX_BUFFER_BINDINGS,
+                     "Transform feedback buffer binding exceeds the fragment bind table limit.");
+    }
+
+    /* Argument buffer. */
+    if (mtl_interface->uses_argument_buffer_for_samplers()) {
+      BLI_assert_msg(mtl_interface->get_argument_buffer_bind_index() < MTL_MAX_BUFFER_BINDINGS,
+                     "Argument buffer binding exceeds the fragment bind table limit.");
+    }
+#endif
 
     /* Compile PSO */
     MTLAutoreleasedRenderPipelineReflection reflection_data;
