@@ -530,7 +530,7 @@ class TestBlendLibDataLibrariesLoad(TestBlendLibLinkHelper):
 
         # Simple link of a single Object, and reload.
         self.reset_blender()
-        
+
         return output_lib_path
 
     def do_libload(self, **load_kwargs):
@@ -639,7 +639,6 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.collections[1].override_library is not None
         assert bpy.data.collections[1].override_library.reference == bpy.data.collections[-1]
 
-
     def test_libload_liboverride_runtime(self):
         output_lib_path = self.do_libload_init()
         self.do_libload(filepath=output_lib_path, link=True,
@@ -657,7 +656,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
-        assert bpy.data.collections[0].is_runtime_data == True
+        assert bpy.data.collections[0].is_runtime_data is True
         assert bpy.data.collections[0].override_library is not None
         assert bpy.data.collections[0].override_library.reference == bpy.data.collections[-1]
 
@@ -679,7 +678,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
-        assert bpy.data.collections[0].is_runtime_data == True
+        assert bpy.data.collections[0].is_runtime_data is True
         assert bpy.data.collections[0].override_library is not None
         assert bpy.data.collections[0].override_library.reference == bpy.data.collections[-1]
 

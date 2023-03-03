@@ -1070,7 +1070,7 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
       strip->start = (p1 * nLen) + mstrip->start;
       strip->end = (p2 * nLen) + mstrip->start;
 
-      // Recompute the playback scale, given the new start & end frame of the strip.
+      /* Recompute the playback scale, given the new start & end frame of the strip. */
       const double action_len = strip->actend - strip->actstart;
       const double repeated_len = action_len * strip->repeat;
       const double strip_len = strip->end - strip->start;
