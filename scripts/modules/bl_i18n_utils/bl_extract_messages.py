@@ -501,9 +501,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
         evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
         """
-        # New in py 3.8: all constants are of type 'ast.Constant'.
-        # 'ast.Str' will have to be removed when we officially switch to this version.
-        if type(node) in {ast.Str, getattr(ast, "Constant", None)}:
+        if type(node) == ast.Constant:
             eval_str = ast.literal_eval(node)
             if eval_str and type(eval_str) == str:
                 yield (is_split, eval_str, (node,))
