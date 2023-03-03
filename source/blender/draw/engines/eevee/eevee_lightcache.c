@@ -713,12 +713,14 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
   lbake->cube_prb = MEM_callocN(sizeof(LightProbe *) * lbake->cube_len, "EEVEE Cube visgroup ptr");
   lbake->grid_prb = MEM_callocN(sizeof(LightProbe *) * lbake->grid_len, "EEVEE Grid visgroup ptr");
 
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                           GPU_TEXTURE_USAGE_HOST_READ;
+
   lbake->grid_prev = DRW_texture_create_2d_array_ex(lbake->irr_size[0],
                                                     lbake->irr_size[1],
                                                     lbake->irr_size[2],
                                                     IRRADIANCE_FORMAT,
-                                                    GPU_TEXTURE_USAGE_SHADER_READ |
-                                                        GPU_TEXTURE_USAGE_ATTACHMENT,
+                                                    usage,
                                                     DRW_TEX_FILTER,
                                                     NULL);
 
@@ -1001,11 +1003,14 @@ static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *
 
   /* Copy texture by reading back and re-uploading it. */
   float *tex = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_FLOAT, 0);
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                           GPU_TEXTURE_USAGE_HOST_READ;
   lbake->grid_prev = DRW_texture_create_2d_array_ex(lbake->irr_size[0],
                                                     lbake->irr_size[1],
                                                     lbake->irr_size[2],
                                                     IRRADIANCE_FORMAT,
-                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    usage,
                                                     DRW_TEX_FILTER,
                                                     tex);
 
