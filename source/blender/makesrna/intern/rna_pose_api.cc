@@ -47,6 +47,24 @@ static float rna_PoseBone_do_envelope(bPoseChannel *chan, const float vec[3])
                             bone->dist * scale);
 }
 
+static void rna_PoseBone_bbone_segment_index(
+    bPoseChannel *pchan, ReportList *reports, const float pt[3], int *r_index, float *r_blend_next)
+{
+  if (!pchan->bone || pchan->bone->segments <= 1) {
+    BKE_reportf(reports, RPT_ERROR, "Bone '%s' is not a B-Bone!", pchan->name);
+    return;
+  }
+  if (pchan->runtime.bbone_segments != pchan->bone->segments) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Bone '%s' has out of date B-Bone segment data - depsgraph update required!",
+                pchan->name);
+    return;
+  }
+
+  BKE_pchan_bbone_deform_segment_index(pchan, pt, r_index, r_blend_next);
+}
+
 static void rna_PoseBone_bbone_segment_matrix(
     bPoseChannel *pchan, ReportList *reports, float mat_ret[16], int index, bool rest)
 {
@@ -55,7 +73,10 @@ static void rna_PoseBone_bbone_segment_matrix(
     return;
   }
   if (pchan->runtime.bbone_segments != pchan->bone->segments) {
-    BKE_reportf(reports, RPT_ERROR, "Bone '%s' has out of date B-Bone segment data!", pchan->name);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Bone '%s' has out of date B-Bone segment data - depsgraph update required!",
+                pchan->name);
     return;
   }
   if (index < 0 || index > pchan->runtime.bbone_segments) {
@@ -270,6 +291,30 @@ void RNA_api_pose_channel(StructRNA *srna)
   parm = RNA_def_float(
       func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
   RNA_def_function_return(func, parm);
+
+  /* B-Bone segment index from point */
+  func = RNA_def_function(srna, "bbone_segment_index", "rna_PoseBone_bbone_segment_index");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(
+      func, "Retrieve the index and blend factor of the B-Bone segments based on vertex position");
+  parm = RNA_def_float_vector_xyz(func,
+                                  "point",
+                                  3,
+                                  nullptr,
+                                  -FLT_MAX,
+                                  FLT_MAX,
+                                  "Point",
+                                  "Vertex position in armature pose space",
+                                  -FLT_MAX,
+                                  FLT_MAX);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  /* outputs */
+  parm = RNA_def_property(func, "index", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(parm, "", "The index of the first segment joint affecting the point");
+  RNA_def_function_output(func, parm);
+  parm = RNA_def_property(func, "blend_next", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(parm, "", "The blend factor between the given and the following joint");
+  RNA_def_function_output(func, parm);
 
   /* B-Bone segment matrices */
   func = RNA_def_function(srna, "bbone_segment_matrix", "rna_PoseBone_bbone_segment_matrix");

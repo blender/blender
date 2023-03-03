@@ -729,7 +729,7 @@ static void constraint_target_to_mat4(Object *ob,
         int index;
 
         /* figure out which segment(s) the headtail value falls in */
-        BKE_pchan_bbone_deform_segment_index(pchan, headtail, &index, &fac);
+        BKE_pchan_bbone_deform_clamp_segment_index(pchan, headtail, &index, &fac);
 
         /* apply full transformation of the segment if requested */
         if (full_bbone) {
@@ -2631,18 +2631,12 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
   if (bone->segments > 1 && bone->segments == pchan->runtime.bbone_segments) {
     Mat4 *b_bone_mats = pchan->runtime.bbone_deform_mats;
     Mat4 *b_bone_rest_mats = pchan->runtime.bbone_rest_mats;
-    float(*iamat)[4] = b_bone_mats[0].mat;
     float basemat[4][4];
-
-    /* The target is a B-Bone:
-     * FIRST: find the segment (see b_bone_deform in `armature.cc`)
-     * Need to transform co back to bone-space, only need y. */
-    float y = iamat[0][1] * co[0] + iamat[1][1] * co[1] + iamat[2][1] * co[2] + iamat[3][1];
 
     /* Blend the matrix. */
     int index;
     float blend;
-    BKE_pchan_bbone_deform_segment_index(pchan, y / bone->length, &index, &blend);
+    BKE_pchan_bbone_deform_segment_index(pchan, co, &index, &blend);
 
     if (r_sum_dq != nullptr) {
       /* Compute the object space rest matrix of the segment. */
