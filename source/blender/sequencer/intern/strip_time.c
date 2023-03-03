@@ -77,6 +77,10 @@ float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
     return -1;
   }
 
+  if (seq->len == 1 && seq->type == SEQ_TYPE_IMAGE) {
+    return 0;
+  }
+
   if (seq->flag & SEQ_REVERSE_FRAMES) {
     frame_index = end - timeline_frame;
   }
@@ -92,7 +96,6 @@ float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
     const float retiming_factor = seq_retiming_evaluate(scene, seq, frame_index);
     frame_index = retiming_factor * (length - 1);
   }
-
   /* Clamp frame index to strip content frame range. */
   frame_index = clamp_f(frame_index, 0, length);
 
