@@ -1430,6 +1430,14 @@ bool blf_ensure_face(FontBLF *font)
 
   font->face_flags = font->face->face_flags;
 
+  /* XXX: Temporarily disable kerning in our main font. Kerning had been accidentally removed
+   * from our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the
+   * same
+   * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
+  if (font && font->filepath && BLI_str_endswith(font->filepath, BLF_DEFAULT_PROPORTIONAL_FONT)) {
+    font->face_flags &= ~FT_FACE_FLAG_KERNING;
+  }
+
   if (FT_HAS_MULTIPLE_MASTERS(font)) {
     FT_Get_MM_Var(font->face, &(font->variations));
   }
