@@ -1155,11 +1155,11 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const float scale_fac,
 
                                          /* Mesh variables. */
-                                         const MPoly *polys,
+                                         const MPoly &poly,
                                          const MLoop *mloopstart,
                                          const Span<float3> vert_positions)
 {
-  const int coords_len = polys->totloop;
+  const int coords_len = poly.totloop;
   Array<float3, 64> coords(coords_len);
 
   const MLoop *ml = mloopstart;
@@ -1206,13 +1206,12 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                               Object *inst_ob)
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
-  const MPoly *polys = fdd->polys, *poly;
+  const MPoly *polys = fdd->polys;
   const MLoop *mloop = fdd->mloop;
   const float(*orco)[3] = fdd->orco;
   const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
-  int a;
 
   float child_imat[4][4];
 
@@ -1221,8 +1220,9 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
   const float scale_fac = ctx->object->instance_faces_scale;
 
-  for (a = 0, poly = polys; a < totface; a++, poly++) {
-    const MLoop *loopstart = mloop + poly->loopstart;
+  for (const int a : blender::IndexRange(totface)) {
+    const MPoly &poly = polys[a];
+    const MLoop *loopstart = mloop + poly.loopstart;
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
                                             child_imat,
@@ -1233,15 +1233,15 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                             loopstart,
                                             fdd->vert_positions);
 
-    const float w = 1.0f / float(poly->totloop);
+    const float w = 1.0f / float(poly.totloop);
     if (orco) {
-      for (int j = 0; j < poly->totloop; j++) {
+      for (int j = 0; j < poly.totloop; j++) {
         madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
       }
     }
     if (mloopuv) {
-      for (int j = 0; j < poly->totloop; j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[poly->loopstart + j], w);
+      for (int j = 0; j < poly.totloop; j++) {
+        madd_v2_v2fl(dob->uv, mloopuv[poly.loopstart + j], w);
       }
     }
   }

@@ -540,7 +540,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
   MEdge *edges = dm->getEdgeArray(dm);
   MEdge *edge;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
-  MPoly *polys = dm->getPolyArray(dm), *poly;
+  MPoly *polys = dm->getPolyArray(dm);
   int totvert = dm->getNumVerts(dm);
   int totedge = dm->getNumEdges(dm);
   int i, j;
@@ -581,15 +581,15 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
     ((int *)ccgSubSurf_getEdgeUserData(ss, e))[1] = (index) ? *index++ : i;
   }
 
-  poly = polys;
   index = (int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
-  for (i = 0; i < dm->numPolyData; i++, poly++) {
+  for (i = 0; i < dm->numPolyData; i++) {
+    const MPoly &poly = polys[i];
     CCGFace *f;
 
-    fverts.reinitialize(poly->totloop);
+    fverts.reinitialize(poly.totloop);
 
-    ml = mloop + poly->loopstart;
-    for (j = 0; j < poly->totloop; j++, ml++) {
+    ml = mloop + poly.loopstart;
+    for (j = 0; j < poly.totloop; j++, ml++) {
       fverts[j] = POINTER_FROM_UINT(ml->v);
     }
 
@@ -597,7 +597,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
      * it is not really possible to continue without modifying
      * other parts of code significantly to handle missing faces.
      * since this really shouldn't even be possible we just bail. */
-    if (ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), poly->totloop, fverts.data(), &f) ==
+    if (ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), poly.totloop, fverts.data(), &f) ==
         eCCGError_InvalidValue) {
       static int hasGivenError = 0;
 

@@ -100,7 +100,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
   float3 *vert_positions = *vert_positions_pp;
   MEdge *edge = *medge_pp;
   MLoop *mloop = *mloop_pp;
-  MPoly *poly = *mpoly_pp;
 
   if (me->totvert) {
     /* standard data */
@@ -266,8 +265,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    for (a = 0; a < me->totpoly; a++, poly++) {
-      poly->loopstart += *loopofs;
+    for (const int i : blender::IndexRange(me->totpoly)) {
+      (*mpoly_pp)[i].loopstart += *loopofs;
     }
 
     /* Face maps. */

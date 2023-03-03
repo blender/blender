@@ -567,11 +567,10 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 static int count_mesh_quads(Mesh *me)
 {
   int a, result = 0;
-  const MPoly *poly = BKE_mesh_polys(me);
-
-  if (poly) {
-    for (a = me->totpoly; a > 0; a--, poly++) {
-      if (poly->totloop == 4) {
+  const MPoly *polys = BKE_mesh_polys(me);
+  if (polys) {
+    for (a = me->totpoly; a > 0; a--) {
+      if (polys[a].totloop == 4) {
         result++;
       }
     }
@@ -583,8 +582,6 @@ static void add_mesh_quad_diag_springs(Object *ob)
 {
   Mesh *me = ob->data;
   // BodyPoint *bp; /* UNUSED */
-  int a;
-
   if (ob->soft) {
     int nofquads;
     // float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
@@ -592,7 +589,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
     nofquads = count_mesh_quads(me);
     if (nofquads) {
       const MLoop *mloop = BKE_mesh_loops(me);
-      const MPoly *poly = BKE_mesh_polys(me);
+      const MPoly *polys = BKE_mesh_polys(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -600,10 +597,10 @@ static void add_mesh_quad_diag_springs(Object *ob)
                                         sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2));
 
       /* fill the tail */
-      a = 0;
       bs = &ob->soft->bspring[ob->soft->totspring];
       // bp = ob->soft->bpoint; /* UNUSED */
-      for (a = me->totpoly; a > 0; a--, poly++) {
+      for (int a = 0; a < me->totpoly; a++) {
+        const MPoly *poly = &polys[a];
         if (poly->totloop == 4) {
           bs->v1 = mloop[poly->loopstart + 0].v;
           bs->v2 = mloop[poly->loopstart + 2].v;
