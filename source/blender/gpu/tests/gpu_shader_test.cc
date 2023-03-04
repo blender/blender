@@ -288,7 +288,7 @@ static void test_gpu_texture_read()
   GPU_texture_clear(rgba16u, GPU_DATA_UINT, ucol);
   GPU_texture_clear(rgba32f, GPU_DATA_FLOAT, fcol);
 
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   uint4 *rgba32u_data = (uint4 *)GPU_texture_read(rgba32u, GPU_DATA_UINT, 0);
   uint4 *rgba16u_data = (uint4 *)GPU_texture_read(rgba16u, GPU_DATA_UINT, 0);
