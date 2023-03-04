@@ -723,6 +723,12 @@ static float paint_space_stroke_spacing(bContext *C,
 
 static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
 {
+  /* Avoid division by small numbers, can happen
+   * on some pen setups. See #105341.
+   */
+
+  spacing = max_ff(spacing, 0.1f);
+
   const int n = 100 / spacing;
   const float h = spacing / 50.0f;
   const float x0 = x - 1;
