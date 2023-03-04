@@ -377,7 +377,7 @@ static void retime_speed_text_draw(const bContext *C,
     return; /* Label out of strip bounds. */
   }
 
-  const float speed = SEQ_retiming_handle_speed_get(scene, seq, next_handle);
+  const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
 
   char label_str[20];
   const size_t label_len = BLI_snprintf_rlen(
@@ -412,7 +412,7 @@ static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(CTX_data_scene(C), seq);
+  SEQ_retiming_data_ensure(seq);
   MutableSpan handles = SEQ_retiming_handles_get(seq);
 
   for (const SeqRetimingHandle &handle : handles) {
@@ -439,7 +439,7 @@ static int gizmo_retime_handle_test_select(bContext *C, wmGizmo *gz, const int m
   gizmo->mouse_over_seq = nullptr;
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(CTX_data_scene(C), seq);
+  SEQ_retiming_data_ensure(seq);
   const SeqRetimingHandle *handle = mouse_over_handle_get(
       scene, seq, UI_view2d_fromcontext(C), mval);
   const int handle_index = SEQ_retiming_handle_index_get(seq, handle);
@@ -514,7 +514,7 @@ static int gizmo_retime_remove_test_select(bContext *C, wmGizmo *gz, const int m
   Scene *scene = CTX_data_scene(C);
   Sequence *seq = active_seq_from_context(C);
 
-  SEQ_retiming_data_ensure(CTX_data_scene(C), seq);
+  SEQ_retiming_data_ensure(seq);
   const SeqRetimingHandle *handle = mouse_over_handle_get(
       scene, seq, UI_view2d_fromcontext(C), mval);
   const int handle_index = SEQ_retiming_handle_index_get(seq, handle);

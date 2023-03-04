@@ -17,7 +17,7 @@ struct SeqRetimingHandle;
 
 int SEQ_retiming_handles_count(const struct Sequence *seq);
 bool SEQ_retiming_is_active(const struct Sequence *seq);
-void SEQ_retiming_data_ensure(const struct Scene *scene, struct Sequence *seq);
+void SEQ_retiming_data_ensure(struct Sequence *seq);
 void SEQ_retiming_data_clear(struct Sequence *seq);
 bool SEQ_retiming_is_allowed(const struct Sequence *seq);
 
@@ -35,8 +35,7 @@ void SEQ_retiming_offset_handle(const struct Scene *scene,
                                 struct Sequence *seq,
                                 struct SeqRetimingHandle *handle,
                                 const int offset);
-float SEQ_retiming_handle_speed_get(const struct Scene *scene,
-                                    const struct Sequence *seq,
+float SEQ_retiming_handle_speed_get(const struct Sequence *seq,
                                     const struct SeqRetimingHandle *handle);
 int SEQ_retiming_handle_index_get(const struct Sequence *seq,
                                   const struct SeqRetimingHandle *handle);
