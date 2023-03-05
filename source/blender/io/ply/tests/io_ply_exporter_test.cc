@@ -107,7 +107,7 @@ TEST_F(PlyExportTest, WriteHeaderAscii)
   PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -145,7 +145,7 @@ TEST_F(PlyExportTest, WriteHeaderBinary)
   PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -183,7 +183,7 @@ TEST_F(PlyExportTest, WriteVerticesAscii)
   PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -215,7 +215,7 @@ TEST_F(PlyExportTest, WriteVerticesBinary)
   PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -257,7 +257,7 @@ TEST_F(PlyExportTest, WriteFacesAscii)
   PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -287,7 +287,7 @@ TEST_F(PlyExportTest, WriteFacesBinary)
   PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -330,7 +330,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsAscii)
   PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = true;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -362,7 +362,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsBinary)
   PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = true;
-  _params.export_colors = false;
+  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -446,6 +446,7 @@ TEST_F(ply_exporter_ply_data_test, SuzanneLoadPLYDataUV)
 {
   PLYExportParams params;
   params.export_uv = true;
+  params.vertex_colors = PLY_VERTEX_COLOR_SRGB;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/suzanne_all_data.blend",
                                                  params);
   EXPECT_EQ(plyData.UV_coordinates.size(), 542);

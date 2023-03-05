@@ -36,6 +36,20 @@
 #  include "IO_ply.h"
 #  include "io_ply_ops.h"
 
+static const EnumPropertyItem ply_vertex_colors_mode[] = {
+    {PLY_VERTEX_COLOR_NONE, "NONE", 0, "None", "Do not import/export color attributes"},
+    {PLY_VERTEX_COLOR_SRGB,
+     "SRGB",
+     0,
+     "sRGB",
+     "Vertex colors in the file are in sRGB color space"},
+    {PLY_VERTEX_COLOR_LINEAR,
+     "LINEAR",
+     0,
+     "Linear",
+     "Vertex colors in the file are in linear color space"},
+    {0, NULL, 0, NULL, NULL}};
+
 static int wm_ply_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   ED_fileselect_ensure_default_filepath(C, op, ".ply");
@@ -63,7 +77,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
-  export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
+  export_params.vertex_colors = RNA_enum_get(op->ptr, "export_colors");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
 
@@ -200,15 +214,20 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   false,
                   "Export Selected Objects",
                   "Export only selected objects instead of all supported objects");
-  RNA_def_boolean(ot->srna, "export_uv", false, "Export UVs", "");
+  RNA_def_boolean(ot->srna, "export_uv", true, "Export UVs", "");
   RNA_def_boolean(
       ot->srna,
       "export_normals",
       false,
       "Export Vertex Normals",
       "Export specific vertex normals if available, export calculated normals otherwise");
-  RNA_def_boolean(
-      ot->srna, "export_colors", true, "Export Vertex Colors", "Export per-vertex colors");
+  RNA_def_enum(ot->srna,
+               "export_colors",
+               ply_vertex_colors_mode,
+               PLY_VERTEX_COLOR_SRGB,
+               "Export Vertex Colors",
+               "Export vertex color attributes");
+
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
@@ -240,6 +259,7 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
+  params.vertex_colors = RNA_enum_get(op->ptr, "import_colors");
 
   int files_len = RNA_collection_length(op->ptr, "files");
 
@@ -319,6 +339,12 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
   RNA_def_boolean(ot->srna, "merge_verts", false, "Merge Vertices", "Merges vertices by distance");
+  RNA_def_enum(ot->srna,
+               "import_colors",
+               ply_vertex_colors_mode,
+               PLY_VERTEX_COLOR_SRGB,
+               "Import Vertex Colors",
+               "Import vertex color attributes");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

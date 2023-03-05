@@ -41,6 +41,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
     params.merge_verts = false;
+    params.vertex_colors = PLY_VERTEX_COLOR_NONE;
 
     /* Import the test file. */
     std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;

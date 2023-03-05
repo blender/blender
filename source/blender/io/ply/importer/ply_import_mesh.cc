@@ -69,15 +69,24 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   }
 
   /* Vertex colors */
-  if (!data.vertex_colors.is_empty()) {
+  if (!data.vertex_colors.is_empty() && params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
     /* Create a data layer for vertex colors and set them. */
     bke::SpanAttributeWriter<ColorGeometry4f> colors =
         attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
-    for (int i = 0; i < data.vertex_colors.size(); i++) {
-      copy_v4_v4(colors.span[i], data.vertex_colors[i]);
+
+    if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
+      for (int i = 0; i < data.vertex_colors.size(); i++) {
+        srgb_to_linearrgb_v4(colors.span[i], data.vertex_colors[i]);
+      }
+    }
+    else {
+      for (int i = 0; i < data.vertex_colors.size(); i++) {
+        copy_v4_v4(colors.span[i], data.vertex_colors[i]);
+      }
     }
     colors.finish();
     BKE_id_attributes_active_color_set(&mesh->id, "Col");
+    BKE_id_attributes_default_color_set(&mesh->id, "Col");
   }
 
   /* Uvmap */

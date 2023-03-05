@@ -16,6 +16,12 @@
 extern "C" {
 #endif
 
+typedef enum {
+  PLY_VERTEX_COLOR_NONE = 0,
+  PLY_VERTEX_COLOR_SRGB = 1,
+  PLY_VERTEX_COLOR_LINEAR = 2,
+} ePLYVertexColorMode;
+
 struct PLYExportParams {
   /** Full path to the destination .PLY file. */
   char filepath[FILE_MAX];
@@ -38,7 +44,7 @@ struct PLYExportParams {
   bool apply_modifiers;
   bool export_uv;
   bool export_normals;
-  bool export_colors;
+  ePLYVertexColorMode vertex_colors;
   bool export_triangulated_mesh;
 };
 
@@ -49,6 +55,7 @@ struct PLYImportParams {
   eIOAxis up_axis;
   bool use_scene_unit;
   float global_scale;
+  ePLYVertexColorMode vertex_colors;
   bool merge_verts;
 };
 

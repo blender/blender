@@ -180,7 +180,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     /* Colors */
-    if (export_params.export_colors) {
+    if (export_params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
       const StringRef name = mesh->active_color_attribute;
       if (!name.is_empty()) {
         const bke::AttributeAccessor attributes = mesh->attributes();
@@ -191,6 +191,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         for (int i = 0; i < vertex_map.size(); i++) {
           ColorGeometry4f colorGeometry = color_attribute[mesh_vertex_index_LUT[i]];
           float4 vertColor(colorGeometry.r, colorGeometry.g, colorGeometry.b, colorGeometry.a);
+          if (export_params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
+            linearrgb_to_srgb_v4(vertColor, vertColor);
+          }
           plyData.vertex_colors.append(vertColor);
         }
       }
@@ -219,8 +222,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 }
 
 Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
-                                                     const float2 *uv_map,
-                                                     const PLYExportParams &export_params)
+                                            const float2 *uv_map,
+                                            const PLYExportParams &export_params)
 {
 
   Map<UV_vertex_key, int> vertex_map;
