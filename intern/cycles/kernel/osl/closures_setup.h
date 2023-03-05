@@ -16,8 +16,6 @@
 #include "kernel/closure/bsdf_microfacet.h"
 #include "kernel/closure/bsdf_microfacet_multi.h"
 #include "kernel/closure/bsdf_oren_nayar.h"
-#include "kernel/closure/bsdf_reflection.h"
-#include "kernel/closure/bsdf_refraction.h"
 #include "kernel/closure/bsdf_transparent.h"
 #include "kernel/closure/bsdf_ashikhmin_shirley.h"
 #include "kernel/closure/bsdf_toon.h"
@@ -205,23 +203,44 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   bsdf->ior = closure->ior;
   bsdf->T = closure->T;
 
-  /* GGX */
-  if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
-      closure->distribution == make_string("default", 4430693559278735917ull)) {
-    if (!closure->refract) {
-      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+  /* Beckmann */
+  if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
+    if (closure->refract == 1) {
+      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+    }
+    else if (closure->refract == 2) {
+      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
     }
     else {
-      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
-    }
-  }
-  /* Beckmann */
-  else {
-    if (!closure->refract) {
       sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
+  }
+  /* Sharp */
+  else if (closure->distribution == make_string("sharp", 1870681295563127462ull)) {
+    if (closure->refract == 1) {
+      sd->flag |= bsdf_refraction_setup(bsdf);
+    }
+    else if (closure->refract == 2) {
+      sd->flag |= bsdf_sharp_glass_setup(bsdf);
+    }
     else {
-      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+      sd->flag |= bsdf_reflection_setup(bsdf);
+    }
+  }
+  /* Ashikhmin-Shirley */
+  else if (closure->distribution == make_string("ashikhmin_shirley", 11318482998918370922ull)) {
+    sd->flag |= bsdf_ashikhmin_shirley_setup(bsdf);
+  }
+  /* GGX */
+  else {
+    if (closure->refract == 1) {
+      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+    }
+    else if (closure->refract == 2) {
+      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+    }
+    else {
+      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
     }
   }
 }

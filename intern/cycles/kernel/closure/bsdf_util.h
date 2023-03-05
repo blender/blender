@@ -10,12 +10,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float fresnel_dielectric(float eta,
-                                    const float3 N,
-                                    const float3 I,
-                                    ccl_private float3 *R,
-                                    ccl_private float3 *T,
-                                    ccl_private bool *is_inside)
+ccl_device float fresnel_dielectric(
+    float eta, const float3 N, const float3 I, ccl_private float3 *T, ccl_private bool *is_inside)
 {
   float cos = dot(N, I), neta;
   float3 Nn;
@@ -34,9 +30,6 @@ ccl_device float fresnel_dielectric(float eta,
     Nn = -N;
     *is_inside = true;
   }
-
-  // compute reflection
-  *R = (2 * cos) * Nn - I;
 
   float arg = 1 - (neta * neta * (1 - (cos * cos)));
   if (arg < 0) {

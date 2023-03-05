@@ -14,49 +14,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure Nodes */
 
-ccl_device void svm_node_glass_setup(ccl_private ShaderData *sd,
-                                     ccl_private MicrofacetBsdf *bsdf,
-                                     int type,
-                                     float eta,
-                                     float roughness,
-                                     bool refract)
-{
-  if (type == CLOSURE_BSDF_SHARP_GLASS_ID) {
-    if (refract) {
-      bsdf->alpha_y = 0.0f;
-      bsdf->alpha_x = 0.0f;
-      bsdf->ior = eta;
-      sd->flag |= bsdf_refraction_setup(bsdf);
-    }
-    else {
-      bsdf->alpha_y = 0.0f;
-      bsdf->alpha_x = 0.0f;
-      bsdf->ior = eta;
-      sd->flag |= bsdf_reflection_setup(bsdf);
-    }
-  }
-  else if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {
-    bsdf->alpha_x = roughness;
-    bsdf->alpha_y = roughness;
-    bsdf->ior = eta;
-
-    if (refract)
-      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
-    else
-      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
-  }
-  else {
-    bsdf->alpha_x = roughness;
-    bsdf->alpha_y = roughness;
-    bsdf->ior = eta;
-
-    if (refract)
-      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
-    else
-      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-  }
-}
-
 ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, uint type)
 {
   if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
@@ -627,52 +584,39 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
 #ifdef __CAUSTICS_TRICKS__
       if (!kernel_data.integrator.caustics_reflective &&
-          !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE)) {
+          !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
         break;
-      }
 #endif
       Spectrum weight = sd->svm_closure_weight * mix_weight;
+      ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+          sd, sizeof(MicrofacetBsdf), weight);
 
-      /* index of refraction */
-      float eta = fmaxf(param2, 1e-5f);
-      eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
+      if (bsdf) {
+        bsdf->N = N;
+        bsdf->T = zero_float3();
+        bsdf->extra = NULL;
 
-      /* fresnel */
-      float cosNI = dot(N, sd->wi);
-      float fresnel = fresnel_dielectric_cos(cosNI, eta);
-      float roughness = sqr(param1);
+        float eta = fmaxf(param2, 1e-5f);
+        eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
-      /* reflection */
-#ifdef __CAUSTICS_TRICKS__
-      if (kernel_data.integrator.caustics_reflective || (path_flag & PATH_RAY_DIFFUSE) == 0)
-#endif
-      {
-        ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-            sd, sizeof(MicrofacetBsdf), weight * fresnel);
+        /* setup bsdf */
+        if (type == CLOSURE_BSDF_SHARP_GLASS_ID) {
+          bsdf->alpha_x = 0.0f;
+          bsdf->alpha_y = 0.0f;
+          bsdf->ior = eta;
 
-        if (bsdf) {
-          bsdf->N = N;
-          bsdf->T = zero_float3();
-          bsdf->extra = NULL;
-          svm_node_glass_setup(sd, bsdf, type, eta, roughness, false);
+          sd->flag |= bsdf_sharp_glass_setup(bsdf);
         }
-      }
+        else {
+          float roughness = sqr(param1);
+          bsdf->alpha_x = roughness;
+          bsdf->alpha_y = roughness;
+          bsdf->ior = eta;
 
-      /* refraction */
-#ifdef __CAUSTICS_TRICKS__
-      if (kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0)
-#endif
-      {
-        /* This is to prevent MNEE from receiving a null BSDF. */
-        float refraction_fresnel = fmaxf(0.0001f, 1.0f - fresnel);
-        ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-            sd, sizeof(MicrofacetBsdf), weight * refraction_fresnel);
-
-        if (bsdf) {
-          bsdf->N = N;
-          bsdf->T = zero_float3();
-          bsdf->extra = NULL;
-          svm_node_glass_setup(sd, bsdf, type, eta, roughness, true);
+          if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID)
+            sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
+          else
+            sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
         }
       }
 

@@ -640,14 +640,14 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
   *sampled_roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
-    float3 R, T;
+    float3 T;
     bool inside;
-    float fresnel = fresnel_dielectric(bsdf->ior, Z, wi, &R, &T, &inside);
+    float fresnel = fresnel_dielectric(bsdf->ior, Z, wi, &T, &inside);
 
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
     if (randu < fresnel) {
-      *wo = R;
+      *wo = 2 * dot(Z, wi) * Z - wi;
       return LABEL_REFLECT | LABEL_SINGULAR;
     }
     else {

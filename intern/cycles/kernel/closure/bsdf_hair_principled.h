@@ -338,6 +338,7 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            float randu,
                                            float randv,
+                                           float randw,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *wo,
                                            ccl_private float *pdf,
@@ -359,8 +360,8 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 
   float2 u[2];
   u[0] = make_float2(randu, randv);
-  u[1].x = lcg_step_float(&sd->lcg_state);
-  u[1].y = lcg_step_float(&sd->lcg_state);
+  u[1].x = randw;
+  u[1].y = hash_float3_to_float(make_float3(randu, randv, randw));
 
   const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
