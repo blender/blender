@@ -150,18 +150,18 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 
 /* Debug defines */
 #if defined(__SYCL_DEVICE_ONLY__)
-#  define CONSTANT __attribute__((opencl_constant))
+#  define CCL_ONEAPI_CONSTANT __attribute__((opencl_constant))
 #else
-#  define CONSTANT
+#  define CCL_ONEAPI_CONSTANT
 #endif
 
 #define sycl_printf(format, ...) {               \
-    static const CONSTANT char fmt[] = format;               \
+    static const CCL_ONEAPI_CONSTANT char fmt[] = format;          \
     sycl::ext::oneapi::experimental::printf(fmt, __VA_ARGS__ );    \
   }
 
 #define sycl_printf_(format) {               \
-    static const CONSTANT char fmt[] = format;               \
+    static const CCL_ONEAPI_CONSTANT char fmt[] = format;          \
     sycl::ext::oneapi::experimental::printf(fmt);                  \
   }
 
