@@ -130,7 +130,7 @@ static void wm_ply_export_draw(bContext *UNUSED(C), wmOperator *op)
 /**
  * Return true if any property in the UI is changed.
  */
-static bool wm_ply_export_check(bContext *C, wmOperator *op)
+static bool wm_ply_export_check(bContext *UNUSED(C), wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool changed = false;
