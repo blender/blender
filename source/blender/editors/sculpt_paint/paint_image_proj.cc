@@ -6985,7 +6985,7 @@ void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Simple UVs";
-  ot->description = "Add cube map uvs on mesh";
+  ot->description = "Add cube map UVs on mesh";
   ot->idname = "PAINT_OT_add_simple_uvs";
 
   /* api callbacks */
