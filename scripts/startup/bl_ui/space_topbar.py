@@ -475,6 +475,8 @@ class TOPBAR_MT_file_import(Menu):
 
         if bpy.app.build_options.io_wavefront_obj:
             self.layout.operator("wm.obj_import", text="Wavefront (.obj)")
+        if bpy.app.build_options.io_ply:
+            self.layout.operator("wm.ply_import", text="PLY (.ply) (experimental)")
         if bpy.app.build_options.io_stl:
             self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")
 
@@ -503,6 +505,8 @@ class TOPBAR_MT_file_export(Menu):
 
         if bpy.app.build_options.io_wavefront_obj:
             self.layout.operator("wm.obj_export", text="Wavefront (.obj)")
+        if bpy.app.build_options.io_ply:
+            self.layout.operator("wm.ply_export", text="PLY (.ply) (experimental)")
 
 
 class TOPBAR_MT_file_external_data(Menu):
