@@ -31,6 +31,11 @@
 
 #  include "RNA_access.h"
 
+static char *rna_AssetMetaData_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("asset_data");
+}
+
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
                                                      const AssetMetaData *asset_data,
                                                      const char **r_info)
@@ -54,6 +59,12 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, asset_data, r_info) ?
              PROP_EDITABLE :
              0;
+}
+
+static char *rna_AssetTag_path(const PointerRNA *ptr)
+{
+  const AssetTag *asset_tag = ptr->data;
+  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -310,6 +321,7 @@ static void rna_def_asset_tag(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetTag", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetTag_path");
   RNA_def_struct_ui_text(srna, "Asset Tag", "User defined tag (name token)");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -361,6 +373,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetMetaData", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetMetaData_path");
   RNA_def_struct_ui_text(srna, "Asset Data", "Additional data stored for an asset data-block");
   //  RNA_def_struct_ui_icon(srna, ICON_ASSET); /* TODO: Icon doesn't exist! */
   /* The struct has custom properties, but no pointer properties to other IDs! */

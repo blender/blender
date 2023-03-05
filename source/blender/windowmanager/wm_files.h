@@ -16,7 +16,7 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/* wm_files.c */
+/* wm_files.cc */
 
 void wm_history_file_read(void);
 
@@ -69,7 +69,7 @@ void wm_homefile_read(struct bContext *C,
 
 /**
  * Special case, support deferred execution of #wm_file_read_post,
- * Needed when loading for the first time to workaround order of initialization bug, see T89046.
+ * Needed when loading for the first time to workaround order of initialization bug, see #89046.
  */
 void wm_homefile_read_post(struct bContext *C,
                            const struct wmFileReadPost_Params *params_file_read_post);

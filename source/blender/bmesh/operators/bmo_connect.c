@@ -104,7 +104,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
     BMLoop *l_new;
     BMLoop *l_pair[2];
 
-    /* Note that duplicate edges in this case is very unlikely but it can happen, see T70287. */
+    /* Note that duplicate edges in this case is very unlikely but it can happen, see #70287. */
     bool edge_exists = (BM_edge_exists(verts_pair[i][0], verts_pair[i][1]) != NULL);
     if ((l_pair[0] = BM_face_vert_share_loop(f, verts_pair[i][0])) &&
         (l_pair[1] = BM_face_vert_share_loop(f, verts_pair[i][1]))) {

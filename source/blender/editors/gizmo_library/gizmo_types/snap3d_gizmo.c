@@ -41,17 +41,6 @@ typedef struct SnapGizmo3D {
   V3DSnapCursorState *snap_state;
 } SnapGizmo3D;
 
-static void snap_gizmo_snap_elements_update(SnapGizmo3D *snap_gizmo)
-{
-  wmGizmoProperty *gz_prop_snap;
-  gz_prop_snap = WM_gizmo_target_property_find(&snap_gizmo->gizmo, "snap_elements");
-
-  if (gz_prop_snap->prop) {
-    V3DSnapCursorState *snap_state = snap_gizmo->snap_state;
-    snap_state->snap_elem_force |= RNA_property_enum_get(&gz_prop_snap->ptr, gz_prop_snap->prop);
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /** \name ED_gizmo_library specific API
  * \{ */
@@ -238,32 +227,75 @@ static void gizmo_snap_rna_snap_elem_index_get_fn(struct PointerRNA *UNUSED(ptr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Snap Cursor Utils
+ * \{ */
+
+static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
+{
+  if (snap_gizmo->snap_state) {
+    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
+    snap_gizmo->snap_state = NULL;
+  }
+}
+
+/* XXX: Delayed snap cursor removal. */
+static bool snap_cursor_poll(ARegion *region, void *data)
+{
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)data;
+  if (!(snap_gizmo->gizmo.state & WM_GIZMO_STATE_HIGHLIGHT) &&
+      !(snap_gizmo->gizmo.flag & WM_GIZMO_DRAW_VALUE)) {
+    return false;
+  }
+
+  if (snap_gizmo->gizmo.flag & WM_GIZMO_HIDDEN) {
+    snap_cursor_free(snap_gizmo);
+    return false;
+  }
+
+  if (!WM_gizmomap_group_find_ptr(region->gizmo_map, snap_gizmo->gizmo.parent_gzgroup->type)) {
+    /* Wrong viewport. */
+    snap_cursor_free(snap_gizmo);
+    return false;
+  }
+  return true;
+}
+
+static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
+{
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
+  snap_gizmo->snap_state->draw_point = true;
+  snap_gizmo->snap_state->draw_plane = false;
+
+  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, snap_gizmo->gizmo.color);
+
+  snap_gizmo->snap_state->poll = snap_cursor_poll;
+  snap_gizmo->snap_state->poll_data = snap_gizmo;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name GIZMO_GT_snap_3d
  * \{ */
 
 static void snap_gizmo_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
-  snap_gizmo->snap_state->gzgrp_type = gz->parent_gzgroup->type;
-  snap_gizmo->snap_state->draw_point = true;
-  snap_gizmo->snap_state->draw_plane = false;
-
-  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, gz->color);
+  snap_cursor_init((SnapGizmo3D *)gz);
 }
 
-static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
+static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *gz)
 {
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (snap_gizmo->snap_state == NULL) {
+    snap_cursor_init(snap_gizmo);
+  }
   /* All drawing is handled at the paint cursor. */
 }
 
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-
-  /* Snap Elements can change while the gizmo is active. Need to be updated somewhere. */
-  snap_gizmo_snap_elements_update(snap_gizmo);
 
   /* Snap values are updated too late at the cursor. Be sure to update ahead of time. */
   int x, y;
@@ -306,10 +338,7 @@ static int snap_gizmo_invoke(bContext *UNUSED(C),
 
 static void snap_gizmo_free(wmGizmo *gz)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  if (snap_gizmo->snap_state) {
-    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
-  }
+  snap_cursor_free((SnapGizmo3D *)gz);
 }
 
 static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
@@ -404,9 +433,6 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
                             INT_MAX);
   RNA_def_property_int_array_funcs_runtime(
       prop, gizmo_snap_rna_snap_elem_index_get_fn, NULL, NULL);
-
-  /* Read/Write. */
-  WM_gizmotype_target_property_def(gzt, "snap_elements", PROP_ENUM, 1);
 }
 
 void ED_gizmotypes_snap_3d(void)

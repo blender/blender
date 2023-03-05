@@ -41,11 +41,6 @@ static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairBSDF),
 static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairExtra),
               "PrincipledHairExtra is too large!");
 
-ccl_device_inline float cos_from_sin(const float s)
-{
-  return safe_sqrtf(1.0f - s * s);
-}
-
 /* Gives the change in direction in the normal plane for the given angles and p-th-order
  * scattering. */
 ccl_device_inline float delta_phi(int p, float gamma_o, float gamma_t)
@@ -179,7 +174,7 @@ ccl_device int bsdf_principled_hair_setup(ccl_private ShaderData *sd,
 
   /* Compute local frame, aligned to curve tangent and ray direction. */
   float3 X = safe_normalize(sd->dPdu);
-  float3 Y = safe_normalize(cross(X, sd->I));
+  float3 Y = safe_normalize(cross(X, sd->wi));
   float3 Z = safe_normalize(cross(X, Y));
 
   /* h -1..0..1 means the rays goes from grazing the hair, to hitting it at
@@ -259,7 +254,7 @@ ccl_device_inline void hair_alpha_angles(float sin_theta_i,
 ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
                                               ccl_private const ShaderData *sd,
                                               ccl_private const ShaderClosure *sc,
-                                              const float3 omega_in,
+                                              const float3 wo,
                                               ccl_private float *pdf)
 {
   kernel_assert(isfinite_safe(sd->P) && isfinite_safe(sd->ray_length));
@@ -271,12 +266,13 @@ ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
   kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
   const float3 Z = safe_normalize(cross(X, Y));
 
-  const float3 wo = make_float3(dot(sd->I, X), dot(sd->I, Y), dot(sd->I, Z));
-  const float3 wi = make_float3(dot(omega_in, X), dot(omega_in, Y), dot(omega_in, Z));
+  /* local_I is the illumination direction. */
+  const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
+  const float3 local_I = make_float3(dot(wo, X), dot(wo, Y), dot(wo, Z));
 
-  const float sin_theta_o = wo.x;
+  const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
-  const float phi_o = atan2f(wo.z, wo.y);
+  const float phi_o = atan2f(local_O.z, local_O.y);
 
   const float sin_theta_t = sin_theta_o / bsdf->eta;
   const float cos_theta_t = cos_from_sin(sin_theta_t);
@@ -295,9 +291,9 @@ ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
   hair_attenuation(
       kg, fresnel_dielectric_cos(cos_theta_o * cos_gamma_o, bsdf->eta), T, Ap, Ap_energy);
 
-  const float sin_theta_i = wi.x;
+  const float sin_theta_i = local_I.x;
   const float cos_theta_i = cos_from_sin(sin_theta_i);
-  const float phi_i = atan2f(wi.z, wi.y);
+  const float phi_i = atan2f(local_I.z, local_I.y);
 
   const float phi = phi_i - phi_o;
 
@@ -343,7 +339,7 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
                                            float randu,
                                            float randv,
                                            ccl_private Spectrum *eval,
-                                           ccl_private float3 *omega_in,
+                                           ccl_private float3 *wo,
                                            ccl_private float *pdf,
                                            ccl_private float2 *sampled_roughness,
                                            ccl_private float *eta)
@@ -359,16 +355,16 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
   kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
   const float3 Z = safe_normalize(cross(X, Y));
 
-  const float3 wo = make_float3(dot(sd->I, X), dot(sd->I, Y), dot(sd->I, Z));
+  const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
 
   float2 u[2];
   u[0] = make_float2(randu, randv);
   u[1].x = lcg_step_float(&sd->lcg_state);
   u[1].y = lcg_step_float(&sd->lcg_state);
 
-  const float sin_theta_o = wo.x;
+  const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
-  const float phi_o = atan2f(wo.z, wo.y);
+  const float phi_o = atan2f(local_O.z, local_O.y);
 
   const float sin_theta_t = sin_theta_o / bsdf->eta;
   const float cos_theta_t = cos_from_sin(sin_theta_t);
@@ -458,7 +454,7 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
   *eval = F;
   *pdf = F_energy;
 
-  *omega_in = X * sin_theta_i + Y * cos_theta_i * cosf(phi_i) + Z * cos_theta_i * sinf(phi_i);
+  *wo = X * sin_theta_i + Y * cos_theta_i * cosf(phi_i) + Z * cos_theta_i * sinf(phi_i);
 
   return LABEL_GLOSSY | ((p == 0) ? LABEL_REFLECT : LABEL_TRANSMIT);
 }
@@ -482,10 +478,18 @@ ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
   return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
 }
 
-ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderClosure *sc)
+ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderData *sd,
+                                                ccl_private const ShaderClosure *sc)
 {
   ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
-  return exp(-sqrt(bsdf->sigma) * bsdf_principled_hair_albedo_roughness_scale(bsdf->v));
+
+  const float cos_theta_o = cos_from_sin(dot(sd->wi, safe_normalize(sd->dPdu)));
+  const float cos_gamma_o = cos_from_sin(bsdf->extra->geom.w);
+  const float f = fresnel_dielectric_cos(cos_theta_o * cos_gamma_o, bsdf->eta);
+
+  const float roughness_scale = bsdf_principled_hair_albedo_roughness_scale(bsdf->v);
+  /* TODO(lukas): Adding the Fresnel term here as a workaround until the proper refactor. */
+  return exp(-sqrt(bsdf->sigma) * roughness_scale) + make_spectrum(f);
 }
 
 ccl_device_inline Spectrum

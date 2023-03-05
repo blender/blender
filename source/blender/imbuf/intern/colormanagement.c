@@ -671,17 +671,7 @@ void colormanagement_init(void)
     if (configdir) {
       BLI_path_join(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
 
-#ifdef WIN32
-      {
-        /* Quite a hack to support loading configuration from path with non-ACII symbols. */
-
-        char short_name[256];
-        BLI_get_short_name(short_name, configfile);
-        config = OCIO_configCreateFromFile(short_name);
-      }
-#else
       config = OCIO_configCreateFromFile(configfile);
-#endif
     }
   }
 
@@ -2064,7 +2054,7 @@ void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer,
   if (STREQ(from_colorspace, to_colorspace)) {
     /* Because this function always takes a byte buffer and returns a float buffer, it must
      * always do byte-to-float conversion of some kind. To avoid threading overhead
-     * IMB_buffer_float_from_byte is used when color spaces are identical. See T51002.
+     * IMB_buffer_float_from_byte is used when color spaces are identical. See #51002.
      */
     IMB_buffer_float_from_byte(float_buffer,
                                byte_buffer,

@@ -51,7 +51,7 @@ short select_id_get_object_select_mode(Scene *scene, Object *ob)
      * we need to be in SCE_SELECT_FACE mode so select_cache_init() correctly sets up
      * a shgroup with select_id_flat.
      * Note this is not working correctly for vertex-paint (yet), but has been discussed
-     * in T66645 and there is a solution by @mano-wii in P1032.
+     * in #66645 and there is a solution by @mano-wii in P1032.
      * So OB_MODE_VERTEX_PAINT is already included here [required for P1032 I guess]. */
     Mesh *me_orig = DEG_get_original_object(ob)->data;
     if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
@@ -130,7 +130,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
   }
   else {
     /* Note that `r_vert_offset` is calculated from `r_edge_offset`.
-     * Otherwise the first vertex is never selected, see: T53512. */
+     * Otherwise the first vertex is never selected, see: #53512. */
     *r_edge_offset = *r_face_offset;
   }
 

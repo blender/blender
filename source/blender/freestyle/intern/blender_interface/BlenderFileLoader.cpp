@@ -14,6 +14,7 @@
 
 #include <sstream>
 
+using blender::float3;
 using blender::Span;
 
 namespace Freestyle {
@@ -49,7 +50,7 @@ NodeGroup *BlenderFileLoader::Load()
     // Adjust clipping start/end and set up a Z offset when the viewport preview
     // is used with the orthographic view.  In this case, _re->clip_start is negative,
     // while Freestyle assumes that imported mesh data are in the camera coordinate
-    // system with the view point located at origin [bug T36009].
+    // system with the view point located at origin [bug #36009].
     _z_near = -0.001f;
     _z_offset = _re->clip_start + _z_near;
     _z_far = -_re->clip_end + _z_offset;
@@ -201,7 +202,7 @@ void BlenderFileLoader::clipTriangle(int numTris,
                                      float n1[3],
                                      float n2[3],
                                      float n3[3],
-                                     bool edgeMarks[],
+                                     bool edgeMarks[5],
                                      bool em1,
                                      bool em2,
                                      bool em3,
@@ -401,27 +402,33 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 {
   char *name = ob->id.name + 2;
 
-  const Span<MVert> mesh_verts = me->verts();
+  const Span<float3> vert_positions = me->vert_positions();
   const Span<MPoly> mesh_polys = me->polys();
   const Span<MLoop> mesh_loops = me->loops();
 
   // Compute loop triangles
   int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  BKE_mesh_recalc_looptri(
-      mesh_loops.data(), mesh_polys.data(), mesh_verts.data(), me->totloop, me->totpoly, mlooptri);
+  BKE_mesh_recalc_looptri(mesh_loops.data(),
+                          mesh_polys.data(),
+                          reinterpret_cast<const float(*)[3]>(vert_positions.data()),
+                          me->totloop,
+                          me->totpoly,
+                          mlooptri);
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
   const float(*lnors)[3] = nullptr;
 
   if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
-    lnors = (float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
+    lnors = (const float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
   }
 
   // Get other mesh data
-  const FreestyleEdge *fed = (FreestyleEdge *)CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (FreestyleFace *)CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edata,
+                                                                         CD_FREESTYLE_EDGE);
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->pdata,
+                                                                         CD_FREESTYLE_FACE);
 
   // Compute view matrix
   Object *ob_camera_eval = DEG_get_evaluated_object(_depsgraph, RE_GetCamera(_re));
@@ -444,9 +451,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
 
-    copy_v3_v3(v1, mesh_verts[mesh_loops[lt->tri[0]].v].co);
-    copy_v3_v3(v2, mesh_verts[mesh_loops[lt->tri[1]].v].co);
-    copy_v3_v3(v3, mesh_verts[mesh_loops[lt->tri[2]].v].co);
+    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
+    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
+    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);
@@ -517,9 +524,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     const MPoly *mp = &mesh_polys[lt->poly];
     Material *mat = BKE_object_material_get(ob, material_indices[lt->poly] + 1);
 
-    copy_v3_v3(v1, mesh_verts[mesh_loops[lt->tri[0]].v].co);
-    copy_v3_v3(v2, mesh_verts[mesh_loops[lt->tri[1]].v].co);
-    copy_v3_v3(v3, mesh_verts[mesh_loops[lt->tri[2]].v].co);
+    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
+    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
+    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);

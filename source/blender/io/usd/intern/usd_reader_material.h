@@ -6,6 +6,8 @@
 
 #include <pxr/usd/usdShade/material.h>
 
+#include <map>
+
 struct Main;
 struct Material;
 struct bNode;
@@ -128,5 +130,33 @@ class USDMaterialReader {
                                          int column,
                                          NodePlacementContext *r_ctx) const;
 };
+
+/* Utility functions. */
+
+/**
+ * Returns a map containing all the Blender materials which allows a fast
+ * lookup of the material by name.  Note that the material name key
+ * might be modified to be a valid USD identifier, to match material
+ * names in the imported USD.
+ */
+void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map);
+
+/**
+ * Returns an existing Blender material that corresponds to the USD material with the given path.
+ * Returns null if no such material exists.
+ *
+ * \param mat_map Map a material name to a Blender material.  Note that the name key
+ *  might be the Blender material name modified to be a valid USD identifier,
+ *  to match the material names in the imported USD.
+ * \param usd_path_to_mat_name Map a USD material path to the imported Blender material name.
+ *
+ * The usd_path_to_mat_name is needed to determine the name of the Blender
+ * material imported from a USD path in the case when a unique name was generated
+ * for the material due to a name collision.
+ */
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const std::map<std::string, Material *> &mat_map,
+                                 const std::map<std::string, std::string> &usd_path_to_mat_name);
 
 }  // namespace blender::io::usd

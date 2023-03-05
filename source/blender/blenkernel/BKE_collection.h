@@ -154,6 +154,14 @@ bool BKE_collection_object_remove(struct Main *bmain,
                                   struct Object *object,
                                   bool free_us);
 /**
+ * Replace one object with another in a collection (managing user counts).
+ */
+bool BKE_collection_object_replace(struct Main *bmain,
+                                   struct Collection *collection,
+                                   struct Object *ob_old,
+                                   struct Object *ob_new);
+
+/**
  * Move object from a collection into another
  *
  * If source collection is NULL move it from all the existing collections.

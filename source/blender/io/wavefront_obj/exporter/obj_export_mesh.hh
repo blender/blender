@@ -8,12 +8,9 @@
 
 #include <optional>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
-
-#include "bmesh.h"
-#include "bmesh_tools.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -39,7 +36,7 @@ class OBJMesh : NonCopyable {
   const Mesh *export_mesh_;
   /** A mesh owned here, if created or modified for the export. May be null. */
   Mesh *owned_export_mesh_ = nullptr;
-  Span<MVert> mesh_verts_;
+  Span<float3> mesh_positions_;
   Span<MEdge> mesh_edges_;
   Span<MPoly> mesh_polys_;
   Span<MLoop> mesh_loops_;

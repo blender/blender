@@ -13,8 +13,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void colorfn(
-    float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/, short /*thread*/)
 {
   float x = p->co[0];
   float y = p->co[1];
@@ -34,8 +33,8 @@ static void colorfn(
       ysize = ibuf->y / 2;
       xoff = yoff = -1;
 
-      px = (int)((x - xoff) * xsize);
-      py = (int)((y - yoff) * ysize);
+      px = int((x - xoff) * xsize);
+      py = int((y - yoff) * ysize);
 
       if ((!xsize) || (!ysize)) {
         return;
@@ -71,7 +70,7 @@ static void colorfn(
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -80,7 +79,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_cnew<ImageUser>("node image user");
   node->storage = iuser;
@@ -88,7 +87,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   iuser->flag |= IMA_ANIM_ALWAYS;
 }
 
-void register_node_type_tex_image(void)
+void register_node_type_tex_image()
 {
   static bNodeType ntype;
 

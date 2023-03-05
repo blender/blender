@@ -184,7 +184,7 @@ void version_node_socket_index_animdata(Main *bmain,
 
   /* The for loop for the input ids is at the top level otherwise we lose the animation
    * keyframe data. Not sure what causes that, so I (Sybren) moved the code here from
-   * versioning_290.c as-is (structure-wise). */
+   * versioning_290.cc as-is (structure-wise). */
   for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
        input_index--) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
@@ -219,15 +219,15 @@ void version_socket_update_is_used(bNodeTree *ntree)
 {
   for (bNode *node : ntree->all_nodes()) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->flag &= ~SOCK_IN_USE;
+      socket->flag &= ~SOCK_IS_LINKED;
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->flag &= ~SOCK_IN_USE;
+      socket->flag &= ~SOCK_IS_LINKED;
     }
   }
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    link->fromsock->flag |= SOCK_IN_USE;
-    link->tosock->flag |= SOCK_IN_USE;
+    link->fromsock->flag |= SOCK_IS_LINKED;
+    link->tosock->flag |= SOCK_IS_LINKED;
   }
 }
 

@@ -32,7 +32,6 @@ struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
 struct MPoly;
-struct MVert;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
@@ -71,22 +70,44 @@ struct PBVHPublic {
 
 /* A generic PBVH vertex.
  *
- * Note: in PBVH_GRIDS we consider the final grid points
+ * NOTE: in PBVH_GRIDS we consider the final grid points
  * to be vertices.  This is not true of edges or faces which are pulled from
  * the base mesh.
  */
+
+#ifdef __cplusplus
+/* A few C++ methods to play nice with sets and maps. */
+#  define PBVH_REF_CXX_METHODS(Class) \
+    bool operator==(const Class b) const \
+    { \
+      return i == b.i; \
+    } \
+    uint64_t hash() const \
+    { \
+      return i; \
+    }
+#else
+#  define PBVH_REF_CXX_METHODS(cls)
+#endif
+
 typedef struct PBVHVertRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHVertRef;
 
-/* Note: edges in PBVH_GRIDS are always pulled from the base mesh.*/
+/* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
 typedef struct PBVHEdgeRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHEdgeRef;
 
-/* Note: faces in PBVH_GRIDS are always puled from the base mesh.*/
+/* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
 typedef struct PBVHFaceRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHFaceRef;
 
 #define PBVH_REF_NONE -1LL
@@ -142,9 +163,11 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
-  PBVH_TopologyUpdated = 1 << 16, /* Used internally by pbvh_bmesh.c */
+  PBVH_TexLeaf = 1 << 16,
+  PBVH_TopologyUpdated = 1 << 17, /* Used internally by pbvh_bmesh.c */
 
 } PBVHNodeFlags;
+ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
 typedef struct PBVHFrustumPlanes {
   float (*planes)[4];
@@ -267,7 +290,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
-                         struct MVert *verts,
+                         float (*vert_positions)[3],
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
@@ -316,7 +339,12 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
 
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-
+void BKE_pbvh_search_gather_ex(PBVH *pbvh,
+                               BKE_pbvh_SearchCallback scb,
+                               void *search_data,
+                               PBVHNode ***r_array,
+                               int *r_tot,
+                               PBVHNodeFlags leaf_flag);
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
@@ -414,7 +442,8 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, struct Mesh *me);
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
-                              int gridsize);
+                              int gridsize,
+                              int display_gridsize);
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.
@@ -477,10 +506,7 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              int *gridsize,
                              struct CCGElem ***r_griddata);
 void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int *r_totvert);
-void BKE_pbvh_node_get_verts(PBVH *pbvh,
-                             PBVHNode *node,
-                             const int **r_vert_indices,
-                             struct MVert **r_verts);
+const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
@@ -586,12 +612,13 @@ typedef struct PBVHVertexIter {
   int gridsize;
 
   /* mesh */
-  struct MVert *mverts;
+  float (*vert_positions)[3];
   float (*vert_normals)[3];
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
   float *vmask;
+  bool is_mesh;
 
   /* bmesh */
   struct GSetIterator bm_unique_verts;
@@ -601,7 +628,6 @@ typedef struct PBVHVertexIter {
 
   /* result: these are all computed in the macro, but we assume
    * that compiler optimization's will skip the ones we don't use */
-  struct MVert *mvert;
   struct BMVert *bm_vert;
   float *co;
   float *no;
@@ -646,8 +672,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             } \
           } \
         } \
-        else if (vi.mverts) { \
-          vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
+        else if (vi.vert_positions) { \
           if (vi.respect_hide) { \
             vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
             if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
@@ -657,7 +682,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           else { \
             BLI_assert(vi.visible); \
           } \
-          vi.co = vi.mvert->co; \
+          vi.co = vi.vert_positions[vi.vert_indices[vi.gx]]; \
           vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
           vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
@@ -750,7 +775,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
 /**
  * \note doing a full search on all vertices here seems expensive,
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
- * GPU (which is far more expensive!) See: T47232.
+ * GPU (which is far more expensive!) See: #47232.
  */
 bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
@@ -769,7 +794,7 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
 
-struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
+float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3];
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
 bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);

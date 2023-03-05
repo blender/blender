@@ -19,7 +19,13 @@ struct bContext;
 void ED_sequencer_select_sequence_single(struct Scene *scene,
                                          struct Sequence *seq,
                                          bool deselect_all);
-void ED_sequencer_deselect_all(struct Scene *scene);
+/**
+ * Iterates over a scene's sequences and deselects all of them.
+ *
+ * \param scene: scene containing sequences to be deselected.
+ * \return true if any sequences were deselected; false otherwise.
+ */
+bool ED_sequencer_deselect_all(struct Scene *scene);
 
 bool ED_space_sequencer_maskedit_mask_poll(struct bContext *C);
 bool ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene *scene);

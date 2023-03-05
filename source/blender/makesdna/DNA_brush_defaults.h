@@ -94,7 +94,7 @@
     .automasking_cavity_blur_steps = 0,\
     .automasking_cavity_factor = 1.0f,\
  \
-    /* A kernel radius of 1 has almost no effect (T63233). */ \
+    /* A kernel radius of 1 has almost no effect (#63233). */ \
     .blur_kernel_radius = 2, \
  \
     .mtex = _DNA_DEFAULT_MTex, \

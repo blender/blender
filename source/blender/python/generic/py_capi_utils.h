@@ -105,14 +105,14 @@ void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void PyC_List_Fill(PyObject *list, PyObject *value);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
-PyObject *PyC_UnicodeFromByte(const char *str);
-PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
-const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+PyObject *PyC_UnicodeFromBytes(const char *str);
+PyObject *PyC_UnicodeFromBytesAndSize(const char *str, Py_ssize_t size);
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
 /**
  * String conversion, escape non-unicode chars
  * \param coerce: must be set to NULL.
  */
-const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
 /**
  * Description: This function creates a new Python dictionary object.

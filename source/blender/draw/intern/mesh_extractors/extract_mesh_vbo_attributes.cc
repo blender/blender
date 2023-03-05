@@ -10,14 +10,14 @@
 #include <functional>
 
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_mesh.h"
 
-#include "draw_attributes.h"
+#include "draw_attributes.hh"
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"
 

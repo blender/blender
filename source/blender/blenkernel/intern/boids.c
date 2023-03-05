@@ -25,6 +25,8 @@
 #include "BKE_particle.h"
 #include "BLI_kdopbvh.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_modifier.h"
 
 #include "RNA_enum_types.h"
@@ -1127,7 +1129,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
   /* decide on jumping & liftoff */
   if (bpa->data.mode == eBoidMode_OnLand) {
-    /* fuzziness makes boids capable of misjudgement */
+    /* Fuzziness makes boids capable of misjudgment. */
     float mul = 1.0f + state->rule_fuzziness;
 
     if (boids->options & BOID_ALLOW_FLIGHT && bbd->wanted_co[2] > 0.0f) {
@@ -1607,7 +1609,7 @@ BoidRule *boid_new_rule(int type)
 
   rule->type = type;
   rule->flag |= BOIDRULE_IN_AIR | BOIDRULE_ON_LAND;
-  BLI_strncpy(rule->name, rna_enum_boidrule_type_items[type - 1].name, sizeof(rule->name));
+  BLI_strncpy(rule->name, DATA_(rna_enum_boidrule_type_items[type - 1].name), sizeof(rule->name));
 
   return rule;
 }

@@ -1493,7 +1493,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
        * like, MX or NZ, which is basically has structure of
        *   <pass_prefix><component>
        *
-       * This is a bit silly, but see file from T35658.
+       * This is a bit silly, but see file from #35658.
        *
        * Here we do some magic to distinguish such cases.
        */

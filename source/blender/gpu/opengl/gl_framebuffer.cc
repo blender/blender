@@ -280,7 +280,7 @@ void GLFrameBuffer::bind(bool enabled_srgb)
     else {
       glDisable(GL_FRAMEBUFFER_SRGB);
     }
-    GPU_shader_set_framebuffer_srgb_target(enabled_srgb && srgb_);
+    Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   }
 
   if (context_->active_fb != this) {

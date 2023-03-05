@@ -11,7 +11,6 @@
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_mesh_inset.hh"
 #include "BLI_set.hh"
@@ -45,17 +44,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(false)
       .description(N_("Combine adjacent faces into regions and inset regions as a whole"))
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES; });
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
-static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryBevelMesh *data = MEM_cnew<NodeGeometryBevelMesh>(__func__);
   data->mode = GEO_NODE_BEVEL_MESH_EDGES;
@@ -134,9 +133,9 @@ class MeshTopology {
     return mesh_.totpoly;
   }
 
-  float3 vert_co(int v) const
+  blender::float3 vert_co(int v) const
   {
-    return float3(mesh_.verts()[v].co);
+    return mesh_.vert_positions()[v];
   }
 
   int edge_v1(int e) const
@@ -160,7 +159,6 @@ MeshTopology::MeshTopology(const Mesh &mesh) : mesh_(mesh)
       &vert_edge_map_, &vert_edge_map_mem_, BKE_mesh_edges(&mesh), mesh.totvert, mesh.totedge);
   BKE_mesh_edge_poly_map_create(&edge_poly_map_,
                                 &edge_poly_map_mem_,
-                                BKE_mesh_edges(&mesh),
                                 mesh.totedge,
                                 BKE_mesh_polys(&mesh),
                                 mesh.totpoly,
@@ -322,7 +320,7 @@ class MeshDelta {
   Set<int> edge_deletes_;
   Set<int> poly_deletes_;
   Set<int> loop_deletes_;
-  Vector<MVert> new_verts_;
+  Vector<float3> new_vert_positions_;
   Vector<MEdge> new_edges_;
   Vector<MPoly> new_polys_;
   Vector<MLoop> new_loops_;
@@ -364,7 +362,7 @@ class MeshDelta {
   }
 
   /* Return a new Mesh, the result of applying delta to mesh_. */
-  Mesh *apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component);
+  Mesh *apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component, const AnonymousAttributePropagationInfo &propagation_info);
 
   void print(const std::string &label) const;
 };
@@ -382,9 +380,7 @@ MeshDelta::MeshDelta(const Mesh &mesh, const MeshTopology &topo)
 int MeshDelta::new_vert(const float3 &co, int rep)
 {
   int v = vert_alloc_.alloc();
-  MVert mvert;
-  copy_v3_v3(mvert.co, co);
-  new_verts_.append(mvert);
+  new_vert_positions_.append(co);
   new_vert_rep_.append(rep);
   return v;
 }
@@ -395,7 +391,7 @@ int MeshDelta::new_edge(int v1, int v2, int rep)
   MEdge medge;
   medge.v1 = v1;
   medge.v2 = v2;
-  medge.flag = ME_EDGEDRAW;
+  medge.flag = 0;
   new_edges_.append(medge);
   new_edge_rep_.append(rep);
   new_edge_map_.add_new(CanonVertPair(v1, v2), e);
@@ -486,8 +482,8 @@ static std::ostream &operator<<(std::ostream &os, const Mesh *mesh)
   os << "Mesh, totvert=" << mesh->totvert << " totedge=" << mesh->totedge
      << " totpoly=" << mesh->totpoly << " totloop=" << mesh->totloop << "\n";
   for (int v : IndexRange(mesh->totvert)) {
-    os << "v" << v << " at (" << mesh->verts()[v].co[0] << "," << mesh->verts()[v].co[1] << ","
-       << mesh->verts()[v].co[2] << ")\n";
+    os << "v" << v << " at (" << mesh->vert_positions()[v][0] << "," << mesh->vert_positions()[v][1] << ","
+       << mesh->vert_positions()[v][2] << ")\n";
   }
   for (int e : IndexRange(mesh->totedge)) {
     os << "e" << e << " = (v" << mesh->edges()[e].v1 << ", v" << mesh->edges()[e].v2 << ")\n";
@@ -529,8 +525,8 @@ static void init_map_from_keeps(Array<int> &map, const Vector<int> &keeps)
 /** Copy the vertices whose indices are in `src_verts_map` from `src` to a continous range in
  * `dst`. The `src_verts_map` takes old vertex indices to new ones.
  */
-static void copy_vertices_based_on_map(Span<MVert> src,
-                                       MutableSpan<MVert> dst,
+static void copy_vert_positions_based_on_map(Span<float3> src,
+                                       MutableSpan<float3> dst,
                                        Span<int> src_verts_map)
 {
   for (const int src_v_index : src_verts_map.index_range()) {
@@ -541,7 +537,7 @@ static void copy_vertices_based_on_map(Span<MVert> src,
 }
 
 /** Copy from `src` to `dst`. */
-static void copy_vertices(Span<MVert> src, MutableSpan<MVert> dst)
+static void copy_vert_positions(Span<float3> src, MutableSpan<float3> dst)
 {
   for (const int i : src.index_range()) {
     dst[i] = src[i];
@@ -737,7 +733,7 @@ static void copy_attributes_based_on_fn(Map<AttributeIDRef, AttributeKind> &attr
   }
 }
 
-Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component)
+Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component, const AnonymousAttributePropagationInfo &propagation_info)
 {
   constexpr int dbglevel = 0;
   if (dbglevel > 0) {
@@ -768,14 +764,14 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
 
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, attributes);
+      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, propagation_info, attributes);
 
-  int out_totvert = keep_vertices.size() + new_verts_.size();
+  int out_totvert = keep_vertices.size() + new_vert_positions_.size();
   int out_totedge = keep_edges.size() + new_edges_.size();
   int out_totpoly = keep_polys.size() + new_polys_.size();
   int out_totloop = keep_loops.size() + new_loops_.size();
 
-  Span<MVert> mesh_verts = mesh_.verts();
+  Span<float3> mesh_vert_positions = mesh_.vert_positions();
   Span<MEdge> mesh_edges = mesh_.edges();
   Span<MLoop> mesh_loops = mesh_.loops();
   Span<MPoly> mesh_polys = mesh_.polys();
@@ -786,7 +782,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
   MeshComponent out_component;
   out_component.replace(mesh_out, GeometryOwnershipType::Editable);
 
-  MutableSpan<MVert> mesh_out_verts = mesh_out->verts_for_write();
+  MutableSpan<float3> mesh_out_vert_positions = mesh_out->vert_positions_for_write();
   MutableSpan<MEdge> mesh_out_edges = mesh_out->edges_for_write();
   MutableSpan<MLoop> mesh_out_loops = mesh_out->loops_for_write();
   MutableSpan<MPoly> mesh_out_polys = mesh_out->polys_for_write();
@@ -795,7 +791,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
    * indices in each of those elements to their new positions.
    */
 
-  copy_vertices_based_on_map(mesh_verts, mesh_out_verts, keep_vertices);
+  copy_vert_positions_based_on_map(mesh_vert_positions, mesh_out_vert_positions, keep_vertices);
   copy_mapped_edges_based_on_map(mesh_edges, mesh_out_edges, keep_edges, vertex_map);
   copy_mapped_loops_based_on_map(mesh_loops, mesh_out_loops, keep_loops, vertex_map, edge_map);
   copy_mapped_polys_based_on_map(mesh_polys, mesh_out_polys, keep_polys, loop_map);
@@ -829,7 +825,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
     }
   };
 
-  copy_vertices(new_verts_.as_span(), mesh_out_verts.drop_front(keep_vertices.size()));
+  copy_vert_positions(new_vert_positions_.as_span(), mesh_out_vert_positions.drop_front(keep_vertices.size()));
   copy_mapped_edges(new_edges_.as_span(), mesh_out_edges.drop_front(keep_edges.size()), vmapfn);
   copy_mapped_loops(
       new_loops_.as_span(), mesh_out_loops.drop_front(keep_loops.size()), vmapfn, emapfn);
@@ -883,8 +879,8 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
       attributes, in_component, out_component, ATTR_DOMAIN_CORNER, lrepmapfn);
 
   /* Fix coordinates of new vertices. */
-  for (const int v : new_verts_.index_range()) {
-    copy_v3_v3(mesh_out->verts_for_write()[v + keep_vertices.size()].co, new_verts_[v].co);
+  for (const int v : new_vert_positions_.index_range()) {
+    mesh_out->vert_positions_for_write()[v + keep_vertices.size()] = new_vert_positions_[v];
   }
 
   BKE_mesh_runtime_clear_cache(mesh_out);
@@ -902,9 +898,9 @@ void MeshDelta::print(const std::string &label) const
   std::cout << "MeshDelta\n";
   std::cout << "new vertices:\n";
   const int voff = vert_alloc_.start();
-  for (int i : new_verts_.index_range()) {
-    const MVert &mv = new_verts_[i];
-    std::cout << "v" << voff + i << ": (" << mv.co[0] << "," << mv.co[1] << "," << mv.co[2]
+  for (int i : new_vert_positions_.index_range()) {
+    const float3 &mv = new_vert_positions_[i];
+    std::cout << "v" << voff + i << ": (" << mv[0] << "," << mv[1] << "," << mv[2]
               << ")\n";
   }
   std::cout << "new edeges:\n";
@@ -1576,7 +1572,7 @@ class BevelData {
   void calculate_face_bevel();
 
   /* Return the Mesh that is the result of applying mesh_delta_ to mesh_. */
-  Mesh *get_output_mesh(GeometrySet geometry_set, const MeshComponent &component);
+  Mesh *get_output_mesh(GeometrySet geometry_set, const MeshComponent &component, const AnonymousAttributePropagationInfo &propagation_info);
 
  private:
   /* Initial calculation of vertex bevels. */
@@ -1842,7 +1838,7 @@ void BevelData::calculate_face_bevel()
     std::cout << "TODO: Implement use_regions";
   }
   Span<MPoly> faces = mesh_->polys();
-  Span<MVert> verts = mesh_->verts();
+  Span<float3> vert_positions = mesh_->vert_positions();
   Span<MLoop> loops = mesh_->loops();
   const IndexMask &to_bevel = spec_->to_bevel;
   for (const int i : to_bevel.index_range()) {
@@ -1855,7 +1851,7 @@ void BevelData::calculate_face_bevel()
     for (const int l : IndexRange(n)) {
       const MLoop &loop = loops[face.loopstart + l];
       const int v_index = loop.v;
-      vert_co[l] = verts[v_index].co;
+      vert_co[l] = vert_positions[v_index];
       mi_vert_to_mesh_vert[l] = v_index;
       face_vert.append(l);
     }
@@ -1900,15 +1896,16 @@ void BevelData::calculate_face_bevel()
   }
 }
 
-Mesh *BevelData::get_output_mesh(GeometrySet geometry_set, const MeshComponent &component)
+Mesh *BevelData::get_output_mesh(GeometrySet geometry_set, const MeshComponent &component, const AnonymousAttributePropagationInfo &propagation_info)
 {
-  return mesh_delta_.apply_delta_to_mesh(geometry_set, component);
+  return mesh_delta_.apply_delta_to_mesh(geometry_set, component, propagation_info);
 }
 
 static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
                                  const MeshComponent &component,
                                  const Field<bool> &selection_field,
-                                 const Field<float> &amount_field)
+                                 const Field<float> &amount_field,
+                                 const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &mesh = *component.get_for_read();
   int orig_vert_size = mesh.totvert;
@@ -1923,13 +1920,14 @@ static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
   MeshTopology topo(mesh);
   BevelData bdata(&mesh, &spec, &topo);
   bdata.calculate_vertex_bevel();
-  return bdata.get_output_mesh(geometry_set, component);
+  return bdata.get_output_mesh(geometry_set, component, propagation_info);
 }
 
 static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
                               const MeshComponent &component,
                               const Field<bool> selection_field,
-                              const Field<float> amount_field)
+                              const Field<float> amount_field,
+                              const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &mesh = *component.get_for_read();
   int orig_edge_size = mesh.totedge;
@@ -1944,7 +1942,7 @@ static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
   MeshTopology topo(mesh);
   BevelData bdata(&mesh, &spec, &topo);
   bdata.calculate_edge_bevel();
-  return bdata.get_output_mesh(geometry_set, component);
+  return bdata.get_output_mesh(geometry_set, component, propagation_info);
 }
 
 static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
@@ -1952,7 +1950,8 @@ static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
                               const Field<bool> &selection_field,
                               const Field<float> &amount_field,
                               const Field<float> &slope_field,
-                              bool use_regions)
+                              bool use_regions,
+                              const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &mesh = *component.get_for_read();
   bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
@@ -1968,7 +1967,7 @@ static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
   MeshTopology topo(mesh);
   BevelData bdata(&mesh, &spec, &topo);
   bdata.calculate_face_bevel();
-  return bdata.get_output_mesh(geometry_set, component);
+  return bdata.get_output_mesh(geometry_set, component, propagation_info);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -1978,6 +1977,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> amount_field = params.extract_input<Field<float>>("Amount");
   const NodeGeometryBevelMesh &storage = node_storage(params.node());
   GeometryNodeBevelMeshMode mode = static_cast<GeometryNodeBevelMeshMode>(storage.mode);
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info("Mesh");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
@@ -1985,16 +1985,16 @@ static void node_geo_exec(GeoNodeExecParams params)
       Mesh *mesh_out = nullptr;
       switch (mode) {
         case GEO_NODE_BEVEL_MESH_VERTICES:
-          mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field);
+          mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field, propagation_info);
           break;
         case GEO_NODE_BEVEL_MESH_EDGES: {
-          mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
+          mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field, propagation_info);
         } break;
         case GEO_NODE_BEVEL_MESH_FACES: {
           Field<float> slope_field = params.extract_input<Field<float>>("Slope");
           bool use_regions = params.get_input<bool>("Use Regions");
           mesh_out = bevel_mesh_faces(
-              geometry_set, component, selection_field, amount_field, slope_field, use_regions);
+              geometry_set, component, selection_field, amount_field, slope_field, use_regions, propagation_info);
         } break;
       }
       BLI_assert(BKE_mesh_is_valid(mesh_out));

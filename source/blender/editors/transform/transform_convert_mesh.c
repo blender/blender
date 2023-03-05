@@ -556,7 +556,7 @@ static void tc_mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tc
        *
        * Since we only need to check if the vertex is in this corner,
        * its not important _which_ loop - as long as its not overlapping
-       * 'sv->co_orig_3d', see: T45096. */
+       * 'sv->co_orig_3d', see: #45096. */
       project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
       while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
                       ((l_prev = l_prev->prev) != l->next))) {
@@ -843,7 +843,8 @@ void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
     MEM_freeN(group_index);
   }
 
-  /* for PET we need islands of 1 so connected vertices can use it with V3D_AROUND_LOCAL_ORIGINS */
+  /* for proportional editing we need islands of 1 so connected vertices can use it with
+   * V3D_AROUND_LOCAL_ORIGINS */
   if (calc_single_islands) {
     BMIter viter;
     BMVert *v;
@@ -1320,7 +1321,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
      * correction with \a quats, relative to the coordinates after
      * the modifiers that support deform matrices \a defcos. */
 
-#if 0 /* TODO(@campbellbarton): fix crazy-space & extrude so it can be enabled for general use. \
+#if 0 /* TODO(@ideasman42): fix crazy-space & extrude so it can be enabled for general use. \
        */
       if ((totleft > 0) || (totleft == -1))
 #else
@@ -1484,7 +1485,8 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
      * transform data is created by selected vertices.
      */
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }
@@ -1506,7 +1508,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
     }
 
     /* Snap rotation along normal needs a common axis for whole islands,
-     * otherwise one get random crazy results, see T59104.
+     * otherwise one get random crazy results, see #59104.
      * However, we do not want to use the island center for the pivot/translation reference. */
     const bool is_snap_rotate = ((t->mode == TFM_TRANSLATION) &&
                                  /* There is not guarantee that snapping
@@ -1515,7 +1517,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
                                   (t->settings->snap_flag & SCE_SNAP_ROTATE) != 0) &&
                                  (t->around != V3D_AROUND_LOCAL_ORIGINS));
 
-    /* Even for translation this is needed because of island-orientation, see: T51651. */
+    /* Even for translation this is needed because of island-orientation, see: #51651. */
     const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
     if (is_island_center) {
       /* In this specific case, near-by vertices will need to know
@@ -1561,7 +1563,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
 
       if (mirror_data.vert_map) {
         tc->data_mirror_len = mirror_data.mirror_elem_len;
-        tc->data_mirror = MEM_mallocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror),
+        tc->data_mirror = MEM_callocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror),
                                       __func__);
 
         BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
@@ -1893,7 +1895,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
       partial_for_looptri = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Translation can rotate when snapping to normal. */
-      if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+      if (transform_snap_is_active(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
         partial_for_normals = PARTIAL_TYPE_ALL;
       }
       break;
@@ -1924,7 +1926,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
   }
 
   /* With projection, transform isn't affine. */
-  if (activeSnap_SnappingIndividual(t)) {
+  if (transform_snap_project_individual_is_active(t)) {
     if (partial_for_looptri == PARTIAL_TYPE_GROUP) {
       partial_for_looptri = PARTIAL_TYPE_ALL;
     }
@@ -2040,11 +2042,11 @@ static void recalcData_mesh(TransInfo *t)
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
   if (!is_canceling) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
 
     bool do_mirror = !(t->flag & T_NO_MIRROR);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      /* Apply clipping after so we never project past the clip plane T25423. */
+      /* Apply clipping after so we never project past the clip plane #25423. */
       transform_convert_clip_mirror_modifier_apply(tc);
 
       if (do_mirror) {
@@ -2129,7 +2131,7 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     /* table needs to be created for each edit command, since vertices can move etc */
     ED_mesh_mirror_spatial_table_end(tc->obedit);
-    /* TODO(@campbellbarton): xform: We need support for many mirror objects at once! */
+    /* TODO(@ideasman42): xform: We need support for many mirror objects at once! */
     break;
   }
 }
@@ -2137,8 +2139,8 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Mesh = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransEditVerts,
-    /* recalcData */ recalcData_mesh,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransEditVerts,
+    /*recalcData*/ recalcData_mesh,
+    /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };

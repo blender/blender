@@ -21,6 +21,11 @@ vec3 displacement_exec();
 /* Return new shading normal. */
 vec3 displacement_bump()
 {
+#  ifdef HAIR_SHADER
+  /* Not supported. */
+  return normalize(g_data.N);
+#  else
+
   vec2 dHd;
   dF_branch(dot(displacement_exec(), g_data.N + dF_impl(g_data.N)), dHd);
 
@@ -38,6 +43,7 @@ vec3 displacement_bump()
 
   float facing = FrontFacing ? 1.0 : -1.0;
   return normalize(abs(det) * g_data.N - facing * sign(det) * surfgrad);
+#  endif
 }
 
 #endif
@@ -139,7 +145,7 @@ void main()
 /* Only supported attrib for world/background shaders. */
 vec3 attr_load_orco(vec4 orco)
 {
-  /* Retain precision better than g_data.P (see T99128). */
+  /* Retain precision better than g_data.P (see #99128). */
   return -normal_view_to_world(viewCameraVec(viewPosition));
 }
 /* Unsupported. */

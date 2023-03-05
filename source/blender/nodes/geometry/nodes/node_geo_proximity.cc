@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -23,8 +24,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
   b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_output<decl::Vector>(N_("Position")).dependent_field();
-  b.add_output<decl::Float>(N_("Distance")).dependent_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field().reference_pass_all();
+  b.add_output<decl::Float>(N_("Distance")).dependent_field().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -129,7 +130,7 @@ static bool calculate_pointcloud_proximity(const VArray<float3> &positions,
   return true;
 }
 
-class ProximityFunction : public fn::MultiFunction {
+class ProximityFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
   GeometryNodeProximityTargetType type_;
@@ -138,20 +139,18 @@ class ProximityFunction : public fn::MultiFunction {
   ProximityFunction(GeometrySet target, GeometryNodeProximityTargetType type)
       : target_(std::move(target)), type_(type)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Geometry Proximity", signature};
+      builder.single_input<float3>("Source Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Distance");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_output<float3>("Position");
-    signature.single_output<float>("Distance");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
                                                                                "Source Position");

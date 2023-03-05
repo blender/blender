@@ -5,7 +5,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_node_types.h"
 

@@ -8,7 +8,6 @@
  * Common field utilities and field definitions for geometry components.
  */
 
-#include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
 
 #include "FN_field.hh"
@@ -261,18 +260,14 @@ class NormalFieldInput : public GeometryFieldInput {
 
 class AnonymousAttributeFieldInput : public GeometryFieldInput {
  private:
-  /**
-   * A strong reference is required to make sure that the referenced attribute is not removed
-   * automatically.
-   */
-  StrongAnonymousAttributeID anonymous_id_;
+  AutoAnonymousAttributeID anonymous_id_;
   std::string producer_name_;
 
  public:
-  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id,
+  AnonymousAttributeFieldInput(AutoAnonymousAttributeID anonymous_id,
                                const CPPType &type,
                                std::string producer_name)
-      : GeometryFieldInput(type, anonymous_id.debug_name()),
+      : GeometryFieldInput(type, anonymous_id->user_name()),
         anonymous_id_(std::move(anonymous_id)),
         producer_name_(producer_name)
   {
@@ -280,12 +275,17 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
   }
 
   template<typename T>
-  static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id, std::string producer_name)
+  static fn::Field<T> Create(AutoAnonymousAttributeID anonymous_id, std::string producer_name)
   {
     const CPPType &type = CPPType::get<T>();
     auto field_input = std::make_shared<AnonymousAttributeFieldInput>(
         std::move(anonymous_id), type, std::move(producer_name));
     return fn::Field<T>{field_input};
+  }
+
+  const AutoAnonymousAttributeID &anonymous_id() const
+  {
+    return anonymous_id_;
   }
 
   GVArray get_varray_for_context(const GeometryFieldContext &context,
@@ -312,6 +312,12 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
                                    const eAttrDomain domain,
+                                   const fn::GField &field);
+
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::Field<bool> &selection,
                                    const fn::GField &field);
 
 /**

@@ -185,6 +185,89 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
  * \note The default value needs special handling because for array IDProperties it can
  * be a single value or an array, but for non-array properties it can only be a value.
  */
+static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
+                                               IDPropertyUIDataBool *ui_data,
+                                               PyObject *default_value)
+{
+  if (PySequence_Check(default_value)) {
+    if (idprop->type != IDP_ARRAY) {
+      PyErr_SetString(PyExc_TypeError, "Only array properties can have array default values");
+      return false;
+    }
+
+    Py_ssize_t len = PySequence_Size(default_value);
+    int8_t *new_default_array = (int8_t *)MEM_malloc_arrayN(len, sizeof(int8_t), __func__);
+    if (PyC_AsArray(new_default_array,
+                    sizeof(int8_t),
+                    default_value,
+                    len,
+                    &PyBool_Type,
+                    "ui_data_update") == -1) {
+      MEM_freeN(new_default_array);
+      return false;
+    }
+
+    ui_data->default_array_len = len;
+    ui_data->default_array = new_default_array;
+  }
+  else {
+    const int value = PyC_Long_AsBool(default_value);
+    if ((value == -1) && PyErr_Occurred()) {
+      PyErr_SetString(PyExc_ValueError, "Error converting \"default\" argument to integer");
+      return false;
+    }
+    ui_data->default_value = (value != 0);
+  }
+
+  return true;
+}
+
+/**
+ * \return False when parsing fails, in which case caller should return NULL.
+ */
+static bool idprop_ui_data_update_bool(IDProperty *idprop, PyObject *args, PyObject *kwargs)
+{
+  const char *rna_subtype = NULL;
+  const char *description = NULL;
+  PyObject *default_value = NULL;
+  const char *kwlist[] = {"default", "subtype", "description", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwargs,
+                                   "|$Ozz:update",
+                                   (char **)kwlist,
+                                   &default_value,
+                                   &rna_subtype,
+                                   &description)) {
+    return false;
+  }
+
+  /* Write to a temporary copy of the UI data in case some part of the parsing fails. */
+  IDPropertyUIDataBool *ui_data_orig = (IDPropertyUIDataBool *)idprop->ui_data;
+  IDPropertyUIDataBool ui_data = *ui_data_orig;
+
+  if (!idprop_ui_data_update_base(&ui_data.base, rna_subtype, description)) {
+    IDP_ui_data_free_unique_contents(&ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
+    return false;
+  }
+
+  if (!ELEM(default_value, NULL, Py_None)) {
+    if (!idprop_ui_data_update_bool_default(idprop, &ui_data, default_value)) {
+      IDP_ui_data_free_unique_contents(
+          &ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
+      return false;
+    }
+  }
+
+  /* Write back to the property's UI data. */
+  IDP_ui_data_free_unique_contents(&ui_data_orig->base, IDP_ui_data_type(idprop), &ui_data.base);
+  *ui_data_orig = ui_data;
+  return true;
+}
+
+/**
+ * \note The default value needs special handling because for array IDProperties it can
+ * be a single value or an array, but for non-array properties it can only be a value.
+ */
 static bool idprop_ui_data_update_float_default(IDProperty *idprop,
                                                 IDPropertyUIDataFloat *ui_data,
                                                 PyObject *default_value)
@@ -403,6 +486,12 @@ static PyObject *BPy_IDPropertyUIManager_update(BPy_IDPropertyUIManager *self,
         return NULL;
       }
       Py_RETURN_NONE;
+    case IDP_UI_DATA_TYPE_BOOLEAN:
+      IDP_ui_data_ensure(property);
+      if (!idprop_ui_data_update_bool(property, args, kwargs)) {
+        return NULL;
+      }
+      Py_RETURN_NONE;
     case IDP_UI_DATA_TYPE_FLOAT:
       IDP_ui_data_ensure(property);
       if (!idprop_ui_data_update_float(property, args, kwargs)) {
@@ -461,6 +550,25 @@ static void idprop_ui_data_to_dict_int(IDProperty *property, PyObject *dict)
   }
   else {
     PyDict_SetItemString(dict, "default", item = PyLong_FromLong(ui_data->default_value));
+    Py_DECREF(item);
+  }
+}
+
+static void idprop_ui_data_to_dict_bool(IDProperty *property, PyObject *dict)
+{
+  IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)property->ui_data;
+  PyObject *item;
+
+  if (property->type == IDP_ARRAY) {
+    PyObject *list = PyList_New(ui_data->default_array_len);
+    for (int i = 0; i < ui_data->default_array_len; i++) {
+      PyList_SET_ITEM(list, i, PyBool_FromLong(ui_data->default_array[i]));
+    }
+    PyDict_SetItemString(dict, "default", list);
+    Py_DECREF(list);
+  }
+  else {
+    PyDict_SetItemString(dict, "default", item = PyBool_FromLong(ui_data->default_value));
     Py_DECREF(item);
   }
 }
@@ -546,6 +654,9 @@ static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self
       break;
     case IDP_UI_DATA_TYPE_INT:
       idprop_ui_data_to_dict_int(property, dict);
+      break;
+    case IDP_UI_DATA_TYPE_BOOLEAN:
+      idprop_ui_data_to_dict_bool(property, dict);
       break;
     case IDP_UI_DATA_TYPE_FLOAT:
       idprop_ui_data_to_dict_float(property, dict);

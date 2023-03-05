@@ -59,7 +59,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
   }
 
   /* don't draw cursor in paint modes, but with a few exceptions */
-  if (draw_ctx->object_mode & OB_MODE_ALL_PAINT) {
+  if ((draw_ctx->object_mode & (OB_MODE_ALL_PAINT | OB_MODE_SCULPT_CURVES)) != 0) {
     /* exception: object is in weight paint and has deforming armature in pose mode */
     if (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
       if (BKE_object_pose_armature_get(draw_ctx->obact) != NULL) {

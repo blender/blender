@@ -238,8 +238,7 @@ class DOPESHEET_HT_editor_buttons:
         # Layer management
         if st.mode == 'GPENCIL':
             ob = context.active_object
-            selected = st.dopesheet.show_only_selected
-            enable_but = selected and ob is not None and ob.type == 'GPENCIL'
+            enable_but = ob is not None and ob.type == 'GPENCIL'
 
             row = layout.row(align=True)
             row.enabled = enable_but
@@ -475,6 +474,9 @@ class DOPESHEET_MT_channel(Menu):
         layout.separator()
         layout.operator("anim.channels_fcurves_enable")
 
+        layout.separator()
+        layout.operator("anim.channels_view_selected")
+
 
 class DOPESHEET_MT_key(Menu):
     bl_label = "Key"
@@ -551,7 +553,7 @@ class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_category = "Action"
     bl_region_type = 'UI'
-    bl_context = 'data'
+    bl_context = "data"
     _context_path = "active_action"
     _property_type = bpy.types.Action
 
@@ -601,6 +603,9 @@ class DOPESHEET_MT_gpencil_channel(Menu):
 
         layout.separator()
         layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+
+        layout.separator()
+        layout.operator("anim.channels_view_selected")
 
 
 class DOPESHEET_MT_gpencil_key(Menu):
@@ -690,6 +695,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         # This menu is used from the graph editor too.
         is_graph_editor = context.area.type == 'GRAPH_EDITOR'
 
+        layout.separator()
+        layout.operator("anim.channels_view_selected")
+
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
@@ -708,6 +716,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         else:
             operator = "action.extrapolation_type"
         layout.operator_menu_enum(operator, "type", text="Extrapolation Mode")
+
+        if is_graph_editor:
+            layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
 
         layout.separator()
         layout.operator("anim.channels_expand")

@@ -791,9 +791,14 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
  * \{ */
 
 /* Cleanup temp custom-data. */
-static void view_zoomstep_exit(wmOperator *op)
+static void view_zoomstep_exit(bContext *C, wmOperator *op)
 {
-  UI_view2d_zoom_cache_reset();
+  ScrArea *area = CTX_wm_area(C);
+  /* Some areas change font sizes when zooming, so clear glyph cache. */
+  if (area && !ELEM(area->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
+    UI_view2d_zoom_cache_reset();
+  }
+
   v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
@@ -816,7 +821,7 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
   /* apply movement, then we're done */
   view_zoomstep_apply(C, op);
 
-  view_zoomstep_exit(op);
+  view_zoomstep_exit(C, op);
 
   return OPERATOR_FINISHED;
 }
@@ -880,7 +885,7 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
   /* apply movement, then we're done */
   view_zoomstep_apply(C, op);
 
-  view_zoomstep_exit(op);
+  view_zoomstep_exit(C, op);
 
   return OPERATOR_FINISHED;
 }
@@ -1477,7 +1482,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     view_zoomstep_apply_ex(
         C, vzd, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
 
-    view_zoomstep_exit(op);
+    view_zoomstep_exit(C, op);
   }
 
   return OPERATOR_FINISHED;
@@ -1853,7 +1858,7 @@ static void scroller_activate_init(bContext *C,
   UI_view2d_scrollers_calc(v2d, nullptr, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
-   * moving the scroll bars has far too little effect and the view can get stuck T31476. */
+   * moving the scroll bars has far too little effect and the view can get stuck #31476. */
   rctf tot_cur_union = v2d->tot;
   BLI_rctf_union(&tot_cur_union, &v2d->cur);
 

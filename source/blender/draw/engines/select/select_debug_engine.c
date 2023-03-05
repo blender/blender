@@ -105,7 +105,7 @@ DrawEngineType draw_engine_debug_select_type = {
     &select_debug_data_size,
     &select_debug_engine_init,
     &select_debug_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     NULL,
     NULL,
     NULL,

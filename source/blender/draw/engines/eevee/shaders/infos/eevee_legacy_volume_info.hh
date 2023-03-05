@@ -1,8 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "gpu_shader_create_info.hh"
 
 #pragma once
 
-/* Voluemtric iface. */
+/* Volumetric iface. */
 GPU_SHADER_INTERFACE_INFO(legacy_volume_vert_geom_iface, "volumetric_vert_iface")
     .smooth(Type::VEC4, "vPos");
 

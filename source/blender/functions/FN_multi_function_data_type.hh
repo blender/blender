@@ -5,16 +5,16 @@
 /** \file
  * \ingroup fn
  *
- * A MFDataType describes what type of data a multi-function gets as input, outputs or mutates.
+ * A DataType describes what type of data a multi-function gets as input, outputs or mutates.
  * Currently, only individual elements or vectors of elements are supported. Adding more data types
  * is possible when necessary.
  */
 
 #include "BLI_cpp_type.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-class MFDataType {
+class DataType {
  public:
   enum Category {
     Single,
@@ -25,31 +25,31 @@ class MFDataType {
   Category category_;
   const CPPType *type_;
 
-  MFDataType(Category category, const CPPType &type) : category_(category), type_(&type)
+  DataType(Category category, const CPPType &type) : category_(category), type_(&type)
   {
   }
 
  public:
-  MFDataType() = default;
+  DataType() = default;
 
-  static MFDataType ForSingle(const CPPType &type)
+  static DataType ForSingle(const CPPType &type)
   {
-    return MFDataType(Single, type);
+    return DataType(Single, type);
   }
 
-  static MFDataType ForVector(const CPPType &type)
+  static DataType ForVector(const CPPType &type)
   {
-    return MFDataType(Vector, type);
+    return DataType(Vector, type);
   }
 
-  template<typename T> static MFDataType ForSingle()
+  template<typename T> static DataType ForSingle()
   {
-    return MFDataType::ForSingle(CPPType::get<T>());
+    return DataType::ForSingle(CPPType::get<T>());
   }
 
-  template<typename T> static MFDataType ForVector()
+  template<typename T> static DataType ForVector()
   {
-    return MFDataType::ForVector(CPPType::get<T>());
+    return DataType::ForVector(CPPType::get<T>());
   }
 
   bool is_single() const
@@ -79,8 +79,8 @@ class MFDataType {
     return *type_;
   }
 
-  friend bool operator==(const MFDataType &a, const MFDataType &b);
-  friend bool operator!=(const MFDataType &a, const MFDataType &b);
+  friend bool operator==(const DataType &a, const DataType &b);
+  friend bool operator!=(const DataType &a, const DataType &b);
 
   std::string to_string() const
   {
@@ -100,14 +100,14 @@ class MFDataType {
   }
 };
 
-inline bool operator==(const MFDataType &a, const MFDataType &b)
+inline bool operator==(const DataType &a, const DataType &b)
 {
   return a.category_ == b.category_ && a.type_ == b.type_;
 }
 
-inline bool operator!=(const MFDataType &a, const MFDataType &b)
+inline bool operator!=(const DataType &a, const DataType &b)
 {
   return !(a == b);
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

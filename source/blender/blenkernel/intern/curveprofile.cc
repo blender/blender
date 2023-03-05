@@ -760,6 +760,7 @@ static void create_samples(CurveProfile *profile,
   }
 
   BLI_assert(n_added == n_segments); /* n_added is just used for this assert, could remove it. */
+  UNUSED_VARS_NDEBUG(n_added);
 
   /* Sample the points and add them to the locations table. */
   for (int i_sample = 0, i = 0; i < totedges; i++) {

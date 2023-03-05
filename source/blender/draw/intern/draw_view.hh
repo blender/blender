@@ -32,7 +32,7 @@ using VisibilityBuf = StorageArrayBuffer<uint, 4, true>;
 class View {
   friend Manager;
 
- private:
+ protected:
   /** TODO(fclem): Maybe try to reduce the minimum cost if the number of view is lower. */
 
   UniformArrayBuffer<ViewMatrices, DRW_VIEW_MAX> data_;
@@ -51,25 +51,36 @@ class View {
   bool do_visibility_ = true;
   bool dirty_ = true;
   bool frozen_ = false;
+  bool procedural_ = false;
 
  public:
-  View(const char *name, int view_len = 1)
-      : visibility_buf_(name), debug_name_(name), view_len_(view_len)
+  View(const char *name, int view_len = 1, bool procedural = false)
+      : visibility_buf_(name), debug_name_(name), view_len_(view_len), procedural_(procedural)
   {
-    BLI_assert(view_len < DRW_VIEW_MAX);
+    BLI_assert(view_len <= DRW_VIEW_MAX);
   }
 
   /* For compatibility with old system. Will be removed at some point. */
   View(const char *name, const DRWView *view)
       : visibility_buf_(name), debug_name_(name), view_len_(1)
   {
-    float4x4 view_mat, win_mat;
-    DRW_view_viewmat_get(view, view_mat.ptr(), false);
-    DRW_view_winmat_get(view, win_mat.ptr(), false);
-    this->sync(view_mat, win_mat);
+    this->sync(view);
   }
 
   void sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id = 0);
+
+  /* For compatibility with old system. Will be removed at some point. */
+  void sync(const DRWView *view);
+
+  /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
+  void disable(IndexRange range);
+
+  /**
+   * Update culling data using a compute shader.
+   * This is to be used if the matrices were updated externally
+   * on the GPU (not using the `sync()` method).
+   **/
+  void compute_procedural_bounds();
 
   bool is_persp(int view_id = 0) const
   {
@@ -131,16 +142,23 @@ class View {
     return (view_len_ == 1) ? 0 : divide_ceil_u(view_len_, 32);
   }
 
- private:
+  UniformArrayBuffer<ViewMatrices, DRW_VIEW_MAX> &matrices_ubo_get()
+  {
+    return data_;
+  }
+
+ protected:
   /** Called from draw manager. */
   void bind();
-  void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual VisibilityBuf &get_visibility_buffer();
 
   void update_viewport_size();
 
-  void frustum_boundbox_calc(BoundBox &bbox, int view_id);
+  /* WARNING: These 3 functions must be called in order */
+  void frustum_boundbox_calc(int view_id);
   void frustum_culling_planes_calc(int view_id);
-  void frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bsphere, int view_id);
+  void frustum_culling_sphere_calc(int view_id);
 };
 
 }  // namespace blender::draw

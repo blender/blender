@@ -1,0 +1,44 @@
+name: Bug Report
+about: File a bug report
+labels:
+  - "type::Report"
+  - "status::Needs Triage"
+  - "priority::Normal"
+body:
+  - type: markdown
+    attributes:
+      value: |
+                ### Instructions
+                First time reporting? See [tips](https://wiki.blender.org/wiki/Process/Bug_Reports).
+
+                * Use **Help > Report a Bug** in Blender to fill system information and exact Blender version.
+                * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
+                * Test [previous versions](https://download.blender.org/release/) to find an older working version.
+                * For feature requests, feedback, questions or build issues, see [communication channels](https://wiki.blender.org/wiki/Communication/Contact#User_Feedback_and_Requests).
+                * If there are multiple bugs, make multiple bug reports.
+
+  - type: textarea
+    id: body
+    attributes:
+      label: "Description"
+      hide_label: true
+      value: |
+               **System Information**
+               Operating system:
+               Graphics card:
+
+               **Blender Version**
+               Broken: (example: 2.80, edbf15d3c044, master, 2018-11-28, as found on the splash screen)
+               Worked: (newest version of Blender that worked as expected)
+
+               **Short description of error**
+
+               **Exact steps for others to reproduce the error**
+               Based on the default startup or an attached .blend file (as simple as possible).
+
+  - type: markdown
+    attributes:
+      value: |
+                ### Help the developers
+
+                Bug fixing is important, the developers will handle reports swiftly. For that reason, carefully provide exact steps and a **small and simple .blend file** to reproduce the problem. You do your half of the work, then we do our half!

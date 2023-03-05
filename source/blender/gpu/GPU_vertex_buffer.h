@@ -64,13 +64,10 @@ GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageTyp
   GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
 
 /**
- * (Download and) return a pointer containing the data of a vertex buffer.
- *
- * Note that the returned pointer is still owned by the driver. To get an
- * local copy, use `GPU_vertbuf_unmap` after calling `GPU_vertbuf_read`.
+ * (Download and) fill data with the data from the vertex buffer.
+ * NOTE: caller is responsible to reserve enough memory of the data parameter.
  */
-const void *GPU_vertbuf_read(GPUVertBuf *verts);
-void *GPU_vertbuf_unmap(const GPUVertBuf *verts, const void *mapped_data);
+void GPU_vertbuf_read(GPUVertBuf *verts, void *data);
 /** Same as discard but does not free. */
 void GPU_vertbuf_clear(GPUVertBuf *verts);
 void GPU_vertbuf_discard(GPUVertBuf *);
@@ -141,7 +138,9 @@ GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 {
   unsigned char *data = a->data;
   a->data += a->stride;
+#ifdef DEBUG
   BLI_assert(data < a->_data_end);
+#endif
   return (void *)data;
 }
 

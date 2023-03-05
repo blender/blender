@@ -11,8 +11,8 @@
 
 #include "RNA_access.h"
 
-static bool node_undefined_poll(bNodeType * /*ntype*/,
-                                bNodeTree * /*nodetree*/,
+static bool node_undefined_poll(const bNodeType * /*ntype*/,
+                                const bNodeTree * /*nodetree*/,
                                 const char ** /*r_disabled_hint*/)
 {
   /* this type can not be added deliberately, it's just a placeholder */

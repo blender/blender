@@ -644,13 +644,13 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
                               float surface_nor[3],
                               float surface_vel[3])
 {
+  BVHTreeFromMesh *bvhtree = surmd->runtime.bvhtree;
   BVHTreeNearest nearest;
 
   nearest.index = -1;
   nearest.dist_sq = FLT_MAX;
 
-  BLI_bvhtree_find_nearest(
-      surmd->bvhtree->tree, co, &nearest, surmd->bvhtree->nearest_callback, surmd->bvhtree);
+  BLI_bvhtree_find_nearest(bvhtree->tree, co, &nearest, bvhtree->nearest_callback, bvhtree);
 
   if (nearest.index != -1) {
     copy_v3_v3(surface_co, nearest.co);
@@ -660,12 +660,12 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
     }
 
     if (surface_vel) {
-      const MLoop *mloop = surmd->bvhtree->loop;
-      const MLoopTri *lt = &surmd->bvhtree->looptri[nearest.index];
+      const MLoop *mloop = bvhtree->loop;
+      const MLoopTri *lt = &bvhtree->looptri[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->v[mloop[lt->tri[0]].v].co);
-      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[1]].v].co);
-      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[2]].v].co);
+      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[0]].v]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[1]].v]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[2]].v]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
@@ -683,8 +683,9 @@ bool get_effector_data(EffectorCache *eff,
   bool ret = false;
 
   /* In case surface object is in Edit mode when loading the .blend,
-   * surface modifier is never executed and bvhtree never built, see T48415. */
-  if (eff->pd && eff->pd->shape == PFIELD_SHAPE_SURFACE && eff->surmd && eff->surmd->bvhtree) {
+   * surface modifier is never executed and bvhtree never built, see #48415. */
+  if (eff->pd && eff->pd->shape == PFIELD_SHAPE_SURFACE && eff->surmd &&
+      eff->surmd->runtime.bvhtree) {
     /* closest point in the object surface is an effector */
     float vec[3];
 
@@ -701,10 +702,10 @@ bool get_effector_data(EffectorCache *eff,
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    const MVert *verts = BKE_mesh_verts(me_eval);
+    const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     if (me_eval != NULL) {
-      copy_v3_v3(efd->loc, verts[*efd->index].co);
+      copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
       mul_m4_v3(eff->ob->object_to_world, efd->loc);
@@ -771,7 +772,7 @@ bool get_effector_data(EffectorCache *eff,
       if (eff->pd->forcefield == PFIELD_VORTEX || eff->pd->shape == PFIELD_SHAPE_LINE) {
         add_v3_v3v3(efd->loc, ob->object_to_world[3], translate);
       }
-      else { /* normally efd->loc is closest point on effector xy-plane */
+      else { /* Normally `efd->loc` is closest point on effector XY-plane. */
         sub_v3_v3v3(efd->loc, point->loc, translate);
       }
     }
@@ -1121,34 +1122,34 @@ void BKE_effectors_apply(ListBase *effectors,
                          float *wind_force,
                          float *impulse)
 {
-  /* WARNING(@campbellbarton): historic comment?
+  /* WARNING(@ideasman42): historic comment?
    * Many of these parameters don't exist!
    *
-   * scene        = scene where it runs in, for time and stuff.
-   * lb           = listbase with objects that take part in effecting.
-   * opco         = global coord, as input.
-   * force        = accumulator for force.
-   * wind_force   = accumulator for force only acting perpendicular to a surface.
-   * speed        = actual current speed which can be altered.
-   * cur_time     = "external" time in frames, is constant for static particles.
-   * loc_time     = "local" time in frames, range <0-1> for the lifetime of particle.
-   * par_layer    = layer the caller is in.
-   * flags        = only used for soft-body wind now.
-   * guide        = old speed of particle.
+   * `scene`      = scene where it runs in, for time and stuff.
+   * `lb`         = listbase with objects that take part in effecting.
+   * `opco`       = global coord, as input.
+   * `force`      = accumulator for force.
+   * `wind_force` = accumulator for force only acting perpendicular to a surface.
+   * `speed`      = actual current speed which can be altered.
+   * `cur_time`   = "external" time in frames, is constant for static particles.
+   * `loc_time`   = "local" time in frames, range <0-1> for the lifetime of particle.
+   * `par_layer`  = layer the caller is in.
+   * `flags`      = only used for soft-body wind now.
+   * `guide`      = old speed of particle.
    */
 
   /*
    * Modifies the force on a particle according to its
    * relation with the effector object
    * Different kind of effectors include:
-   *     Force-fields: Gravity-like attractor
-   *     (force power is related to the inverse of distance to the power of a falloff value)
-   *     Vortex fields: swirling effectors
-   *     (particles rotate around Z-axis of the object. otherwise, same relation as)
-   *     (Force-fields, but this is not done through a force/acceleration)
-   *     Guide: particles on a path
-   *     (particles are guided along a curve bezier or old nurbs)
-   *     (is independent of other effectors)
+   * - Force-fields: Gravity-like attractor
+   *   (force power is related to the inverse of distance to the power of a falloff value)
+   * - Vortex fields: swirling effectors
+   *   (particles rotate around Z-axis of the object. otherwise, same relation as)
+   *   (Force-fields, but this is not done through a force/acceleration)
+   * - Guide: particles on a path
+   *   (particles are guided along a curve bezier or old nurbs)
+   *   (is independent of other effectors)
    */
   EffectorCache *eff;
   EffectorData efd;

@@ -39,8 +39,16 @@ uchar *MTLImmediate::begin()
   metal_primitive_mode_ = mtl_prim_type_to_topology_class(metal_primitive_type_);
   has_begun_ = true;
 
+  /* If prim type is line loop, add an extra vertex at the end for placing the closing line,
+   * as metal does not support this primitive type. We treat this as a Line strip with one
+   * extra value. */
+  int vertex_alloc_length = vertex_len;
+  if (prim_type == GPU_PRIM_LINE_LOOP) {
+    vertex_alloc_length++;
+  }
+
   /* Allocate a range of data and return host-accessible pointer. */
-  const size_t bytes_needed = vertex_buffer_size(&vertex_format, vertex_len);
+  const size_t bytes_needed = vertex_buffer_size(&vertex_format, vertex_alloc_length);
   current_allocation_ = context_->get_scratchbuffer_manager()
                             .scratch_buffer_allocate_range_aligned(bytes_needed, 256);
   [current_allocation_.metal_buffer retain];
@@ -101,11 +109,11 @@ void MTLImmediate::end()
 
     /* Reset vertex descriptor to default state. */
     desc.reset_vertex_descriptor();
-
-    desc.vertex_descriptor.num_attributes = interface->get_total_attributes();
+    desc.vertex_descriptor.total_attributes = interface->get_total_attributes();
+    desc.vertex_descriptor.max_attribute_value = interface->get_total_attributes() - 1;
     desc.vertex_descriptor.num_vert_buffers = 1;
 
-    for (int i = 0; i < desc.vertex_descriptor.num_attributes; i++) {
+    for (int i = 0; i < desc.vertex_descriptor.total_attributes; i++) {
       desc.vertex_descriptor.attributes[i].format = MTLVertexFormatInvalid;
     }
     desc.vertex_descriptor.uses_ssbo_vertex_fetch =
@@ -240,16 +248,16 @@ void MTLImmediate::end()
                      "ssbo_input_prim_type uniform location invalid!");
       BLI_assert_msg(active_mtl_shader->uni_ssbo_input_vert_count_loc != -1,
                      "ssbo_input_vert_count uniform location invalid!");
-      GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
-                                    active_mtl_shader->uni_ssbo_input_prim_type_loc,
-                                    1,
-                                    1,
-                                    (const int *)(&this->prim_type));
-      GPU_shader_uniform_vector_int(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
-                                    active_mtl_shader->uni_ssbo_input_vert_count_loc,
-                                    1,
-                                    1,
-                                    (const int *)(&this->vertex_idx));
+      GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
+                                active_mtl_shader->uni_ssbo_input_prim_type_loc,
+                                1,
+                                1,
+                                (const int *)(&this->prim_type));
+      GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_mtl_shader)),
+                                active_mtl_shader->uni_ssbo_input_vert_count_loc,
+                                1,
+                                1,
+                                (const int *)(&this->vertex_idx));
     }
 
     MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
@@ -266,71 +274,88 @@ void MTLImmediate::end()
        * For immediate mode, generating these is currently very cheap, as we use
        * fast scratch buffer allocations. Though we may benefit from caching of
        * frequently used buffer sizes. */
+      bool rendered = false;
       if (mtl_needs_topology_emulation(this->prim_type)) {
 
-        /* Debug safety check for SSBO FETCH MODE. */
-        if (active_mtl_shader->get_uses_ssbo_vertex_fetch()) {
-          BLI_assert(false && "Topology emulation not supported with SSBO Vertex Fetch mode");
-        }
-
         /* Emulate Tri-fan. */
-        if (this->prim_type == GPU_PRIM_TRI_FAN) {
-          /* Prepare Triangle-Fan emulation index buffer on CPU based on number of input
-           * vertices. */
-          uint32_t base_vert_count = this->vertex_idx;
-          uint32_t num_triangles = max_ii(base_vert_count - 2, 0);
-          uint32_t fan_index_count = num_triangles * 3;
-          BLI_assert(num_triangles > 0);
+        switch (this->prim_type) {
+          case GPU_PRIM_TRI_FAN: {
+            /* Debug safety check for SSBO FETCH MODE. */
+            if (active_mtl_shader->get_uses_ssbo_vertex_fetch()) {
+              BLI_assert(
+                  false &&
+                  "Topology emulation for TriangleFan not supported with SSBO Vertex Fetch mode");
+            }
 
-          uint32_t alloc_size = sizeof(uint32_t) * fan_index_count;
-          uint32_t *index_buffer = nullptr;
+            /* Prepare Triangle-Fan emulation index buffer on CPU based on number of input
+             * vertices. */
+            uint32_t base_vert_count = this->vertex_idx;
+            uint32_t num_triangles = max_ii(base_vert_count - 2, 0);
+            uint32_t fan_index_count = num_triangles * 3;
+            BLI_assert(num_triangles > 0);
 
-          MTLTemporaryBuffer allocation =
-              context_->get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(
-                  alloc_size, 128);
-          index_buffer = (uint32_t *)allocation.data;
+            uint32_t alloc_size = sizeof(uint32_t) * fan_index_count;
+            uint32_t *index_buffer = nullptr;
 
-          int a = 0;
-          for (int i = 0; i < num_triangles; i++) {
-            index_buffer[a++] = 0;
-            index_buffer[a++] = i + 1;
-            index_buffer[a++] = i + 2;
-          }
+            MTLTemporaryBuffer allocation =
+                context_->get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(
+                    alloc_size, 128);
+            index_buffer = (uint32_t *)allocation.data;
 
-          @autoreleasepool {
+            int a = 0;
+            for (int i = 0; i < num_triangles; i++) {
+              index_buffer[a++] = 0;
+              index_buffer[a++] = i + 1;
+              index_buffer[a++] = i + 2;
+            }
 
-            id<MTLBuffer> index_buffer_mtl = nil;
-            uint32_t index_buffer_offset = 0;
+            @autoreleasepool {
 
-            /* Region of scratch buffer used for topology emulation element data.
-             * NOTE(Metal): We do not need to manually flush as the entire scratch
-             * buffer for current command buffer is flushed upon submission. */
-            index_buffer_mtl = allocation.metal_buffer;
-            index_buffer_offset = allocation.buffer_offset;
+              id<MTLBuffer> index_buffer_mtl = nil;
+              uint32_t index_buffer_offset = 0;
 
-            /* Set depth stencil state (requires knowledge of primitive type). */
-            context_->ensure_depth_stencil_state(MTLPrimitiveTypeTriangle);
+              /* Region of scratch buffer used for topology emulation element data.
+               * NOTE(Metal): We do not need to manually flush as the entire scratch
+               * buffer for current command buffer is flushed upon submission. */
+              index_buffer_mtl = allocation.metal_buffer;
+              index_buffer_offset = allocation.buffer_offset;
 
-            /* Bind Vertex Buffer. */
-            rps.bind_vertex_buffer(
-                current_allocation_.metal_buffer, current_allocation_.buffer_offset, 0);
+              /* Set depth stencil state (requires knowledge of primitive type). */
+              context_->ensure_depth_stencil_state(MTLPrimitiveTypeTriangle);
 
-            /* Draw. */
-            [rec drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                            indexCount:fan_index_count
-                             indexType:MTLIndexTypeUInt32
-                           indexBuffer:index_buffer_mtl
-                     indexBufferOffset:index_buffer_offset];
-          }
-        }
-        else {
-          /* TODO(Metal): Topology emulation for line loop.
-           * NOTE(Metal): This is currently not used anywhere and modified at the high
-           * level for efficiency in such cases. */
-          BLI_assert_msg(false, "LineLoop requires emulation support in immediate mode.");
+              /* Bind Vertex Buffer. */
+              rps.bind_vertex_buffer(
+                  current_allocation_.metal_buffer, current_allocation_.buffer_offset, 0);
+
+              /* Draw. */
+              [rec drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                              indexCount:fan_index_count
+                               indexType:MTLIndexTypeUInt32
+                             indexBuffer:index_buffer_mtl
+                       indexBufferOffset:index_buffer_offset];
+              context_->main_command_buffer.register_draw_counters(fan_index_count);
+            }
+            rendered = true;
+          } break;
+          case GPU_PRIM_LINE_LOOP: {
+            /* Patch final vertex of line loop to close. Rendered using LineStrip.
+             * NOTE: vertex_len represents original length, however, allocated Metal
+             * buffer contains space for one extra vertex when LineLoop is used. */
+            uchar *buffer_data = reinterpret_cast<uchar *>(current_allocation_.data);
+            memcpy(buffer_data + (vertex_len)*vertex_format.stride,
+                   buffer_data,
+                   vertex_format.stride);
+            this->vertex_idx++;
+          } break;
+          default: {
+            BLI_assert_unreachable();
+          } break;
         }
       }
-      else {
+
+      /* If not yet rendered, run through main render path. LineLoop primitive topology emulation
+       * will simply amend original data passed into default rendering path. */
+      if (!rendered) {
         MTLPrimitiveType primitive_type = metal_primitive_type_;
         int vertex_count = this->vertex_idx;
 

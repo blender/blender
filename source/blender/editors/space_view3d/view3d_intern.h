@@ -28,7 +28,6 @@ struct wmGizmoGroupType;
 struct wmGizmoType;
 struct wmKeyConfig;
 struct wmOperatorType;
-struct wmWindowManager;
 
 /* view3d_header.c */
 
@@ -213,6 +212,7 @@ extern const char *view3d_context_dir[]; /* doc access */
 /* view3d_widgets.c */
 
 void VIEW3D_GGT_light_spot(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_point(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_light_area(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_light_target(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_camera(struct wmGizmoGroupType *gzgt);
@@ -236,7 +236,7 @@ void VIEW3D_GT_navigate_rotate(struct wmGizmoType *gzt);
 void VIEW3D_GGT_placement(struct wmGizmoGroupType *gzgt);
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
- * between view border calculation in 2D/3D space, workaround for bug T28037.
+ * between view border calculation in 2D/3D space, workaround for bug #28037.
  * without this define we get the old behavior which is to try and align them
  * both which _mostly_ works fine, but when the camera moves beyond ~1000 in
  * any direction it starts to fail */

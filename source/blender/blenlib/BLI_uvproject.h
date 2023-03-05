@@ -40,7 +40,7 @@ void BLI_uvproject_from_view(float target[2],
                              float winy);
 
 /**
- * Apply orthographic UV's.
+ * Apply orthographic UVs.
  */
 void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4]);
 

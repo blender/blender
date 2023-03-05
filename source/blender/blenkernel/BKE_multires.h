@@ -24,10 +24,7 @@ struct Object;
 struct Scene;
 struct SubdivCCG;
 
-struct MLoop;
-struct MLoopTri;
 struct MPoly;
-struct MVert;
 
 /**
  * Delete mesh mdisps and grid paint masks.
@@ -44,7 +41,7 @@ void multires_flush_sculpt_updates(struct Object *object);
 void multires_force_sculpt_rebuild(struct Object *object);
 void multires_force_external_reload(struct Object *object);
 
-/* internal, only called in subsurf_ccg.c */
+/* internal, only called in subsurf_ccg.cc */
 void multires_modifier_update_mdisps(struct DerivedMesh *dm, struct Scene *scene);
 void multires_modifier_update_hidden(struct DerivedMesh *dm);
 
@@ -159,7 +156,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float
 int mdisp_rot_face_to_crn(
     struct MPoly *mpoly, int face_side, float u, float v, float *x, float *y);
 
-/* Reshaping, define in multires_reshape.c */
+/* Reshaping, define in multires_reshape.cc */
 
 bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
                                          struct Object *object,
@@ -207,7 +204,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
                                          int top_level,
                                          eMultiresSubdivideModeType mode);
 
-/* Subdivision integration, defined in multires_subdiv.c */
+/* Subdivision integration, defined in multires_subdiv.cc */
 
 struct SubdivSettings;
 struct SubdivToMeshSettings;

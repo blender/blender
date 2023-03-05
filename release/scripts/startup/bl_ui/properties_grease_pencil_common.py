@@ -69,11 +69,8 @@ class GreasePencilDisplayPanel:
         ob = context.active_object
         brush = context.tool_settings.gpencil_paint.brush
         if ob and ob.type == 'GPENCIL' and brush:
-            if context.mode == 'PAINT_GPENCIL':
-                return brush.gpencil_tool != 'ERASE'
-            else:
-                # GP Sculpt, Vertex and Weight Paint always have Brush Tip panel.
-                return True
+            return True
+
         return False
 
     def draw_header(self, context):
@@ -117,11 +114,10 @@ class GreasePencilDisplayPanel:
                 row = layout.row(align=True)
                 row.prop(settings, "show_brush", text="Display Cursor")
 
-            col = layout.column(align=True)
-            col.active = settings.show_brush
-
             if brush.gpencil_tool == 'DRAW':
-                col.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
+                row = layout.row(align=True)
+                row.active = settings.show_brush
+                row.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
 
         elif ob.mode == 'SCULPT_GPENCIL':
             col = layout.column(align=True)
@@ -210,12 +206,12 @@ class GPENCIL_MT_snap_pie(Menu):
         pie.operator(
             "gpencil.snap_to_cursor",
             text="Selection to Cursor",
-            icon='RESTRICT_SELECT_OFF'
+            icon='RESTRICT_SELECT_OFF',
         ).use_offset = False
         pie.operator(
             "gpencil.snap_to_cursor",
             text="Selection to Cursor (Keep Offset)",
-            icon='RESTRICT_SELECT_OFF'
+            icon='RESTRICT_SELECT_OFF',
         ).use_offset = True
         pie.separator()
         pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
@@ -256,7 +252,7 @@ class GPENCIL_MT_layer_active(Menu):
 
         gpd = context.gpencil_data
         if gpd:
-            layout.operator("gpencil.layer_add", text="New Layer", icon='ADD')
+            layout.operator("gpencil.layer_add", text="New Layer", icon='ADD').layer = -1
 
             layout.separator()
 
@@ -330,7 +326,7 @@ class GPENCIL_MT_cleanup(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicated Frames")
+        layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicate Frames")
         layout.operator("gpencil.recalc_geometry", text="Recalculate Geometry")
         if ob.mode != 'PAINT_GPENCIL':
             layout.operator("gpencil.reproject")
@@ -569,9 +565,11 @@ class GreasePencilMaterialsPanel:
 
             if is_view3d and ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
-                if gpcolor.stroke_style == 'SOLID':
-                    row = layout.row()
-                    row.prop(gpcolor, "color", text="Stroke Color")
+                col = layout.column(align=True)
+                if gpcolor.show_stroke and gpcolor.stroke_style == 'SOLID':
+                    col.prop(gpcolor, "color", text="Stroke Color")
+                if gpcolor.show_fill and gpcolor.fill_style == 'SOLID':
+                    col.prop(gpcolor, "fill_color", text="Fill Color")
 
         else:
             space = context.space_data

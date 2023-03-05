@@ -73,16 +73,55 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_s
   return new_value.float_value;
 }
 
-#    define atomic_fetch_and_add_uint32(p, x) \
-      atomic_fetch_add_explicit((device atomic_uint *)p, x, memory_order_relaxed)
-#    define atomic_fetch_and_sub_uint32(p, x) \
-      atomic_fetch_sub_explicit((device atomic_uint *)p, x, memory_order_relaxed)
-#    define atomic_fetch_and_inc_uint32(p) \
-      atomic_fetch_add_explicit((device atomic_uint *)p, 1, memory_order_relaxed)
-#    define atomic_fetch_and_dec_uint32(p) \
-      atomic_fetch_sub_explicit((device atomic_uint *)p, 1, memory_order_relaxed)
-#    define atomic_fetch_and_or_uint32(p, x) \
-      atomic_fetch_or_explicit((device atomic_uint *)p, x, memory_order_relaxed)
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(device T *p, int x)
+{
+  return atomic_fetch_add_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(device T *p, int x)
+{
+  return atomic_fetch_sub_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_inc_uint32(device T *p)
+{
+  return atomic_fetch_add_explicit((device atomic_uint *)p, 1, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(device T *p)
+{
+  return atomic_fetch_sub_explicit((device atomic_uint *)p, 1, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(device T *p, int x)
+{
+  return atomic_fetch_or_explicit((device atomic_uint *)p, x, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(threadgroup T *p, int x)
+{
+  return atomic_fetch_add_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(threadgroup T *p, int x)
+{
+  return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_inc_uint32(threadgroup T *p)
+{
+  return atomic_fetch_add_explicit((threadgroup atomic_uint *)p, 1, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(threadgroup T *p)
+{
+  return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, 1, memory_order_relaxed);
+}
+
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(threadgroup T *p, int x)
+{
+  return atomic_fetch_or_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
+}
 
 ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float *dest,
                                                       const float old_val,

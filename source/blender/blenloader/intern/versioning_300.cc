@@ -28,6 +28,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_light_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
@@ -50,6 +51,7 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
@@ -246,6 +248,7 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
       case IDP_UI_DATA_TYPE_FLOAT:
         version_idproperty_move_data_float((IDPropertyUIDataFloat *)ui_data, prop_ui_data);
         break;
+      case IDP_UI_DATA_TYPE_BOOLEAN:
       case IDP_UI_DATA_TYPE_UNSUPPORTED:
         BLI_assert_unreachable();
         break;
@@ -820,6 +823,99 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
     /* The storage must be freed manually because the node type isn't defined anymore. */
     MEM_freeN(node->storage);
     nodeRemoveNode(nullptr, ntree, node, false);
+  }
+}
+
+/**
+ * The mesh primitive nodes created a uv map with a hardcoded name. Now they are outputting the uv
+ * map as a socket instead. The versioning just inserts a Store Named Attribute node after
+ * primitive nodes.
+ */
+static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
+{
+  blender::Vector<bNode *> new_nodes;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (!ELEM(node->type,
+              GEO_NODE_MESH_PRIMITIVE_CONE,
+              GEO_NODE_MESH_PRIMITIVE_CUBE,
+              GEO_NODE_MESH_PRIMITIVE_CYLINDER,
+              GEO_NODE_MESH_PRIMITIVE_GRID,
+              GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE,
+              GEO_NODE_MESH_PRIMITIVE_UV_SPHERE)) {
+      continue;
+    }
+    bNodeSocket *primitive_output_socket = nullptr;
+    bNodeSocket *uv_map_output_socket = nullptr;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      if (STREQ(socket->name, "UV Map")) {
+        uv_map_output_socket = socket;
+      }
+      if (socket->type == SOCK_GEOMETRY) {
+        primitive_output_socket = socket;
+      }
+    }
+    if (uv_map_output_socket != nullptr) {
+      continue;
+    }
+    uv_map_output_socket = nodeAddStaticSocket(
+        &ntree, node, SOCK_OUT, SOCK_VECTOR, PROP_NONE, "UV Map", "UV Map");
+
+    bNode *store_attribute_node = nodeAddStaticNode(
+        nullptr, &ntree, GEO_NODE_STORE_NAMED_ATTRIBUTE);
+    new_nodes.append(store_attribute_node);
+    store_attribute_node->parent = node->parent;
+    store_attribute_node->locx = node->locx + 25;
+    store_attribute_node->locy = node->locy;
+    store_attribute_node->offsetx = node->offsetx;
+    store_attribute_node->offsety = node->offsety;
+    NodeGeometryStoreNamedAttribute &storage = *static_cast<NodeGeometryStoreNamedAttribute *>(
+        store_attribute_node->storage);
+    storage.domain = ATTR_DOMAIN_CORNER;
+    /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
+     * releases and would make the file crash when trying to open it. */
+    storage.data_type = CD_PROP_FLOAT3;
+
+    bNodeSocket *store_attribute_geometry_input = static_cast<bNodeSocket *>(
+        store_attribute_node->inputs.first);
+    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next->next;
+    bNodeSocket *store_attribute_value_input = nullptr;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &store_attribute_node->inputs) {
+      if (socket->type == SOCK_VECTOR) {
+        store_attribute_value_input = socket;
+        break;
+      }
+    }
+    bNodeSocket *store_attribute_geometry_output = static_cast<bNodeSocket *>(
+        store_attribute_node->outputs.first);
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+      if (link->fromsock == primitive_output_socket) {
+        link->fromnode = store_attribute_node;
+        link->fromsock = store_attribute_geometry_output;
+      }
+    }
+
+    bNodeSocketValueString *name_value = static_cast<bNodeSocketValueString *>(
+        store_attribute_name_input->default_value);
+    const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
+                                                                                 "uv_map";
+    BLI_strncpy(name_value->value, uv_map_name, sizeof(name_value->value));
+
+    nodeAddLink(&ntree,
+                node,
+                primitive_output_socket,
+                store_attribute_node,
+                store_attribute_geometry_input);
+    nodeAddLink(
+        &ntree, node, uv_map_output_socket, store_attribute_node, store_attribute_value_input);
+  }
+
+  /* Move nodes to the front so that they are drawn behind existing nodes. */
+  for (bNode *node : new_nodes) {
+    BLI_remlink(&ntree.nodes, node);
+    BLI_addhead(&ntree.nodes, node);
+  }
+  if (!new_nodes.is_empty()) {
+    nodeRebuildIDVector(&ntree);
   }
 }
 
@@ -1505,6 +1601,12 @@ static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static bool version_fix_delete_flag(Sequence *seq, void * /*user_data*/)
+{
+  seq->flag &= ~SEQ_FLAG_DELETE;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -2155,7 +2257,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 9)) {
     /* Fix a bug where reordering FCurves and bActionGroups could cause some corruption. Just
      * reconstruct all the action groups & ensure that the FCurves of a group are continuously
-     * stored (i.e. not mixed with other groups) to be sure. See T89435. */
+     * stored (i.e. not mixed with other groups) to be sure. See #89435. */
     LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
       BKE_action_groups_reconstruct(act);
     }
@@ -2267,7 +2369,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /* Font names were copied directly into ID names, see: T90417. */
+  /* Font names were copied directly into ID names, see: #90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
@@ -3104,10 +3206,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }
@@ -3269,10 +3371,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }
@@ -3510,7 +3612,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
-    /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
+    /* Fix for #98925 - remove channels region, that was initialized in incorrect editor types. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3540,7 +3642,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
-     * outline implementation. See T95933. */
+     * outline implementation. See #95933. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type == OB_CURVES) {
         ob->dtx &= ~OB_DRAWBOUNDOX;
@@ -3642,7 +3744,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 304, 5)) {
-    /* Fix for T101622 - update flags of sequence editor regions that were not initialized
+    /* Fix for #101622 - update flags of sequence editor regions that were not initialized
      * properly. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -3683,20 +3785,11 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 305, 1)) {
-    /* Reset edge visibility flag, since the base is meant to be "true" for original meshes. */
-    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-      for (MEdge &edge : mesh->edges_for_write()) {
-        edge.flag |= ME_EDGEDRAW;
-      }
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 305, 2)) {
     LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
       MovieTracking *tracking = &clip->tracking;
 
-      const float frame_center_x = (float(clip->lastsize[0])) / 2;
+      const float frame_center_x = float(clip->lastsize[0]) / 2;
       const float frame_center_y = float(clip->lastsize[1]) / 2;
 
       tracking->camera.principal_point[0] = (tracking->camera.principal_legacy[0] -
@@ -3705,6 +3798,178 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       tracking->camera.principal_point[1] = (tracking->camera.principal_legacy[1] -
                                              frame_center_y) /
                                             frame_center_y;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 4)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
+      }
+    }
+
+    /* UVSeam fixing distance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+      LISTBASE_FOREACH (Image *, image, &bmain->images) {
+        image->seam_margin = 8;
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_primitive_uv_maps(*ntree);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 6)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag |= int(V3D_OVERLAY_SCULPT_SHOW_MASK |
+                                     V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 7)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->radius = light->area_size;
+    }
+    /* Grease Pencil Build modifier:
+     * Set default value for new natural draw-speed factor and maximum gap. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
+        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+          if (md->type == eGpencilModifierType_Build) {
+            BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+            mmd->speed_fac = 1.2f;
+            mmd->speed_maxgap = 0.5f;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 8)) {
+    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+    }
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
+      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
+    }
+
+    /* Toggle the Invert Vertex Group flag on Armature modifiers in some cases. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      bool after_armature = false;
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->multi) {
+            /* Toggle the invert vertex group flag on operational Multi Modifier entries. */
+            if (after_armature && amd->defgrp_name[0]) {
+              amd->deformflag ^= ARM_DEF_INVERT_VGROUP;
+            }
+          }
+          else {
+            /* Disabled multi modifiers don't reset propagation, but non-multi ones do. */
+            after_armature = false;
+          }
+          /* Multi Modifier is only valid and operational after an active Armature modifier. */
+          if (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
+            after_armature = true;
+          }
+        }
+        else if (ELEM(md->type, eModifierType_Lattice, eModifierType_MeshDeform)) {
+          /* These modifiers will also allow a following Multi Modifier to work. */
+          after_armature = (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) != 0;
+        }
+        else {
+          after_armature = false;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 9)) {
+    /* Enable legacy normal and rotation outputs in Distribute Points on Faces node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_DISTRIBUTE_POINTS_ON_FACES) {
+          continue;
+        }
+        node->custom2 = true;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 10)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (!sfile->asset_params) {
+            continue;
+          }
+
+          /* When an asset browser uses the default import method, make it follow the new
+           * preference setting. This means no effective default behavior change. */
+          if (sfile->asset_params->import_type == FILE_ASSET_IMPORT_APPEND_REUSE) {
+            sfile->asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+          }
+        }
+      }
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "shadow_pool_size")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.flag |= SCE_EEVEE_SHADOW_ENABLED;
+        scene->eevee.shadow_pool_size = 512;
+        scene->r.simplify_shadows = 1.0f;
+        scene->r.simplify_shadows_render = 1.0f;
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag |= V3D_OVERLAY_SCULPT_CURVES_CAGE;
+            v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
+          }
+        }
+      }
+    }
+
+    /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode == OB_MODE_SCULPT_CURVES) {
+        if (brush->curves_sculpt_settings->curve_parameter_falloff == nullptr) {
+          brush->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_add(
+              1, 0.0f, 0.0f, 1.0f, 1.0f);
+        }
+      }
     }
   }
 
@@ -3719,18 +3984,5 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
-      }
-    }
-
-    /* UVSeam fixing distance. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
-      LISTBASE_FOREACH (Image *, image, &bmain->images) {
-        image->seam_margin = 8;
-      }
-    }
   }
 }

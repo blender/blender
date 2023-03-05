@@ -24,7 +24,7 @@
 
 AUD_NAMESPACE_BEGIN
 ConvolverReader::ConvolverReader(std::shared_ptr<IReader> reader, std::shared_ptr<ImpulseResponse> ir, std::shared_ptr<ThreadPool> threadPool, std::shared_ptr<FFTPlan> plan) :
-	m_reader(reader), m_ir(ir), m_N(plan->getSize()), m_eosReader(false), m_eosTail(false), m_inChannels(reader->getSpecs().channels), m_irChannels(ir->getSpecs().channels), m_threadPool(threadPool), m_position(0)
+	m_position(0), m_reader(reader), m_ir(ir), m_N(plan->getSize()), m_eosReader(false), m_eosTail(false), m_inChannels(reader->getSpecs().channels), m_irChannels(ir->getSpecs().channels), m_threadPool(threadPool)
 {
 	m_nChannelThreads = std::min((int)threadPool->getNumOfThreads(), m_inChannels);
 	m_futures.resize(m_nChannelThreads);

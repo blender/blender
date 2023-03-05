@@ -193,6 +193,14 @@ typedef struct Object_Runtime {
   struct Mesh *object_as_temp_mesh;
 
   /**
+   * Backup of the object's pose (might be a subset, i.e. not contain all bones).
+   *
+   * Created by `BKE_pose_backup_create_on_object()`. This memory is owned by the Object.
+   * It is freed along with the object, or when `BKE_pose_backup_clear()` is called.
+   */
+  struct PoseBackup *pose_backup;
+
+  /**
    * This is a curve representation of corresponding object.
    * It created when Python calls `object.to_curve()`.
    */
@@ -200,6 +208,7 @@ typedef struct Object_Runtime {
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;
+  void *_pad4;
 
   unsigned short local_collections_bits;
   short _pad2[3];
@@ -488,7 +497,7 @@ typedef struct ObHook {
 enum {
   OB_EMPTY = 0,
   OB_MESH = 1,
-  /** Curve object is still used but replaced by "Curves" for the future (see T95355). */
+  /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
   OB_CURVES_LEGACY = 2,
   OB_SURF = 3,
   OB_FONT = 4,
@@ -547,8 +556,7 @@ enum {
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
 #define OB_DATA_SUPPORT_EDITMODE(_type) \
-  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR) || \
-   (U.experimental.use_new_curves_tools && (_type) == ID_CV))
+  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \

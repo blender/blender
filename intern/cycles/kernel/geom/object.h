@@ -201,6 +201,11 @@ ccl_device_inline void object_normal_transform(KernelGlobals kg,
   *N = normalize(transform_direction_transposed(&tfm, *N));
 }
 
+ccl_device_inline bool object_negative_scale_applied(const int object_flag)
+{
+  return ((object_flag & SD_OBJECT_NEGATIVE_SCALE) && (object_flag & SD_OBJECT_TRANSFORM_APPLIED));
+}
+
 /* Transform direction vector from object to world space */
 
 ccl_device_inline void object_dir_transform(KernelGlobals kg,

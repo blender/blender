@@ -38,10 +38,10 @@ void main()
   finalColor = EDIT_MESH_vertex_color(m_data.y, vertexCrease);
   gl_PointSize = sizeVertex * ((vertexCrease > 0.0) ? 3.0 : 2.0);
   /* Make selected and active vertex always on top. */
-  if ((data.x & VERT_SELECTED) != 0) {
+  if ((data.x & VERT_SELECTED) != 0u) {
     gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
-  if ((data.x & VERT_ACTIVE) != 0) {
+  if ((data.x & VERT_ACTIVE) != 0u) {
     gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
 

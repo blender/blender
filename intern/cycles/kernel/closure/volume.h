@@ -49,18 +49,18 @@ ccl_device int volume_henyey_greenstein_setup(ccl_private HenyeyGreensteinVolume
 }
 
 ccl_device Spectrum volume_henyey_greenstein_eval_phase(ccl_private const ShaderVolumeClosure *svc,
-                                                        const float3 I,
-                                                        float3 omega_in,
+                                                        const float3 wi,
+                                                        float3 wo,
                                                         ccl_private float *pdf)
 {
   float g = svc->g;
 
-  /* note that I points towards the viewer */
+  /* note that wi points towards the viewer */
   if (fabsf(g) < 1e-3f) {
     *pdf = M_1_PI_F * 0.25f;
   }
   else {
-    float cos_theta = dot(-I, omega_in);
+    float cos_theta = dot(-wi, wo);
     *pdf = single_peaked_henyey_greenstein(cos_theta, g);
   }
 
@@ -88,7 +88,7 @@ henyey_greenstrein_sample(float3 D, float g, float randu, float randv, ccl_priva
     }
   }
 
-  float sin_theta = safe_sqrtf(1.0f - cos_theta * cos_theta);
+  float sin_theta = sin_from_cos(cos_theta);
   float phi = M_2PI_F * randv;
   float3 dir = make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
 
@@ -100,17 +100,17 @@ henyey_greenstrein_sample(float3 D, float g, float randu, float randv, ccl_priva
 }
 
 ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderVolumeClosure *svc,
-                                               float3 I,
+                                               float3 wi,
                                                float randu,
                                                float randv,
                                                ccl_private Spectrum *eval,
-                                               ccl_private float3 *omega_in,
+                                               ccl_private float3 *wo,
                                                ccl_private float *pdf)
 {
   float g = svc->g;
 
-  /* note that I points towards the viewer and so is used negated */
-  *omega_in = henyey_greenstrein_sample(-I, g, randu, randv, pdf);
+  /* note that wi points towards the viewer and so is used negated */
+  *wo = henyey_greenstrein_sample(-wi, g, randu, randv, pdf);
   *eval = make_spectrum(*pdf); /* perfect importance sampling */
 
   return LABEL_VOLUME_SCATTER;
@@ -120,10 +120,10 @@ ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderVolumeClo
 
 ccl_device Spectrum volume_phase_eval(ccl_private const ShaderData *sd,
                                       ccl_private const ShaderVolumeClosure *svc,
-                                      float3 omega_in,
+                                      float3 wo,
                                       ccl_private float *pdf)
 {
-  return volume_henyey_greenstein_eval_phase(svc, sd->I, omega_in, pdf);
+  return volume_henyey_greenstein_eval_phase(svc, sd->wi, wo, pdf);
 }
 
 ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
@@ -131,10 +131,10 @@ ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
                                    float randu,
                                    float randv,
                                    ccl_private Spectrum *eval,
-                                   ccl_private float3 *omega_in,
+                                   ccl_private float3 *wo,
                                    ccl_private float *pdf)
 {
-  return volume_henyey_greenstein_sample(svc, sd->I, randu, randv, eval, omega_in, pdf);
+  return volume_henyey_greenstein_sample(svc, sd->wi, randu, randv, eval, wo, pdf);
 }
 
 /* Volume sampling utilities. */

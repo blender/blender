@@ -10,6 +10,7 @@
 #include "BLI_compiler_attrs.h"
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
+#include "DNA_windowmanager_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +36,6 @@ struct bContext;
 struct bFaceMap;
 struct bPoseChannel;
 struct uiLayout;
-struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
@@ -240,6 +240,9 @@ struct Base *ED_object_add_duplicate(struct Main *bmain,
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 char *ED_object_ot_drop_named_material_tooltip(struct bContext *C,
                                                const char *name,
+                                               const int mval[2]);
+char *ED_object_ot_drop_geometry_nodes_tooltip(struct bContext *C,
+                                               struct PointerRNA *properties,
                                                const int mval[2]);
 
 /* bitflags for enter/exit editmode */
@@ -475,7 +478,7 @@ void ED_object_constraint_copy_for_pose(struct Main *bmain,
                                         struct bPoseChannel *pchan,
                                         struct bConstraint *con);
 
-/* object_modes.c */
+/* object_modes.cc */
 
 /**
  * Checks the mode to be set is compatible with the object
@@ -508,6 +511,31 @@ void ED_object_posemode_set_for_weight_paint(struct bContext *C,
                                              struct Object *ob,
                                              bool is_mode_set);
 
+/**
+ * Return the index of an object in a mode (typically edit/pose mode).
+ *
+ * Useful for operators with multi-mode editing to be able to redo an action on an object
+ * by it's index which (unlike pointers) the operator can store for redo.
+ *
+ * The indices aren't intended to be useful from Python scripts,
+ * although they are not prevented from passing them in, this is mainly to enable redo.
+ * For scripts it's more convenient to set the object active before operating on it.
+ *
+ * \note The active object is always index 0.
+ */
+int ED_object_in_mode_to_index(const struct Scene *scene,
+                               struct ViewLayer *view_layer,
+                               eObjectMode mode,
+                               const struct Object *ob);
+
+/**
+ * Access the object from the index returned by #ED_object_in_mode_to_index.
+ */
+Object *ED_object_in_mode_from_index(const struct Scene *scene,
+                                     struct ViewLayer *view_layer,
+                                     eObjectMode mode,
+                                     int index);
+
 /* object_modifier.c */
 
 enum {
@@ -534,15 +562,19 @@ bool ED_object_modifier_remove(struct ReportList *reports,
                                struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Scene *scene, struct Object *ob);
 bool ED_object_modifier_move_down(struct ReportList *reports,
+                                  eReportType error_type,
                                   struct Object *ob,
                                   struct ModifierData *md);
 bool ED_object_modifier_move_up(struct ReportList *reports,
+                                eReportType error_type,
                                 struct Object *ob,
                                 struct ModifierData *md);
 bool ED_object_modifier_move_to_index(struct ReportList *reports,
+                                      eReportType error_type,
                                       struct Object *ob,
                                       struct ModifierData *md,
-                                      int index);
+                                      int index,
+                                      bool allow_partial);
 
 bool ED_object_modifier_convert_psys_to_mesh(struct ReportList *reports,
                                              struct Main *bmain,

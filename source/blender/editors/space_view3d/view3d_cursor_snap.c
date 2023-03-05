@@ -524,7 +524,7 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
   const int snap_on = data_intern->snap_on;
 
   wmKeyMap *keymap = WM_keymap_active(wm, data_intern->keymap);
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
     }
@@ -826,14 +826,10 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
     return false;
   };
 
+  /* Call this callback last and don't reuse the `state` as the caller can free the cursor. */
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
-  if (state->gzgrp_type) {
-    /* Check the respective gizmo group is in the region. */
-    wmGizmoMap *gzmap = region->gizmo_map;
-    if (WM_gizmomap_group_find_ptr(gzmap, state->gzgrp_type) == NULL) {
-      /* Wrong viewport. */
-      return false;
-    }
+  if (state->poll && !state->poll(region, state->poll_data)) {
+    return false;
   }
 
   return true;
@@ -959,10 +955,11 @@ void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
   /* These values are temporarily set by the tool.
    * They are not convenient as default values.
    * So reset to null. */
-  g_data_intern.state_default.gzgrp_type = NULL;
   g_data_intern.state_default.prevpoint = NULL;
   g_data_intern.state_default.draw_plane = false;
   g_data_intern.state_default.draw_box = false;
+  g_data_intern.state_default.poll = NULL;
+  g_data_intern.state_default.poll_data = NULL;
 }
 
 V3DSnapCursorState *ED_view3d_cursor_snap_active(void)

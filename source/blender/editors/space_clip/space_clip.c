@@ -897,7 +897,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   /* callback */
   /* TODO(sergey): For being consistent with space image the projection needs to be configured
    * the way how the commented out code does it. This works correct for tracking data, but it
-   * causes wrong aspect correction for mask editor (see T84990). */
+   * causes wrong aspect correction for mask editor (see #84990). */
   // GPU_matrix_push_projection();
   // wmOrtho2(region->v2d.cur.xmin, region->v2d.cur.xmax, region->v2d.cur.ymin,
   //          region->v2d.cur.ymax);

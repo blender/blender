@@ -762,7 +762,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
  *
  * While we could call this, then create vertex & face arrays,
  * it requires looping over geometry connectivity twice,
- * this slows down edit-mesh separate by loose parts, see: T70864.
+ * this slows down edit-mesh separate by loose parts, see: #70864.
  */
 int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
                                        BMVert **verts,

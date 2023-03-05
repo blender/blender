@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "gpu_shader_create_info.hh"
 
 /* effect_minmaxz_frag permutation inputs. */

@@ -367,8 +367,10 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       mr->loop_normals = static_cast<float(*)[3]>(
           MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
       short(*clnors)[2] = static_cast<short(*)[2]>(
-          CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL));
-      BKE_mesh_normals_loop_split(mr->mvert,
+          CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
+      const bool *sharp_edges = static_cast<const bool *>(
+          CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
+      BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions),
                                   mr->vert_normals,
                                   mr->vert_len,
                                   mr->medge,
@@ -381,6 +383,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                   mr->poly_len,
                                   is_auto_smooth,
                                   split_angle,
+                                  sharp_edges,
                                   nullptr,
                                   nullptr,
                                   clnors);
@@ -426,23 +429,8 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
                                             const Mesh &mesh)
 {
   const Mesh *mesh_final = editmesh_final_or_this(&object, &mesh);
-  const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(mesh_final);
-  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(mesh_final);
-
-  /* Necessary because which attributes are active/default is stored in #CustomData. */
-  Mesh me_query = blender::dna::shallow_zero_initialize();
-  BKE_id_attribute_copy_domains_temp(
-      ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
-
-  mr.active_color_name = nullptr;
-  mr.default_color_name = nullptr;
-
-  if (const CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id)) {
-    mr.active_color_name = active->name;
-  }
-  if (const CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id)) {
-    mr.default_color_name = render->name;
-  }
+  mr.active_color_name = mesh_final->active_color_attribute;
+  mr.default_color_name = mesh_final->default_color_attribute;
 }
 
 MeshRenderData *mesh_render_data_create(Object *object,
@@ -557,7 +545,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = mr->me->totpoly;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
 
-    mr->mvert = BKE_mesh_verts(mr->me);
+    mr->vert_positions = mr->me->vert_positions().data();
     mr->medge = BKE_mesh_edges(mr->me);
     mr->mpoly = BKE_mesh_polys(mr->me);
     mr->mloop = BKE_mesh_loops(mr->me);

@@ -17,7 +17,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
-#include "BLI_set.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -64,6 +63,12 @@ bool AS_asset_library_has_any_unsaved_catalogs()
 {
   AssetLibraryService *service = AssetLibraryService::get();
   return service->has_any_unsaved_catalogs();
+}
+
+std::string AS_asset_library_root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  return AssetLibraryService::root_path_from_library_ref(library_reference);
 }
 
 std::string AS_asset_library_find_suitable_root_path_from_path(
@@ -115,9 +120,11 @@ void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_li
 void AS_asset_library_remap_ids(const IDRemapper *mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  service->foreach_loaded_asset_library([mappings](asset_system::AssetLibrary &library) {
-    library.remap_ids_and_remove_invalid(*mappings);
-  });
+  service->foreach_loaded_asset_library(
+      [mappings](asset_system::AssetLibrary &library) {
+        library.remap_ids_and_remove_invalid(*mappings);
+      },
+      true);
 }
 
 namespace blender::asset_system {
@@ -136,6 +143,13 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
+void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
+                                  const bool include_all_library)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  service->foreach_loaded_asset_library(fn, include_all_library);
+}
+
 void AssetLibrary::load_catalogs()
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
@@ -145,7 +159,9 @@ void AssetLibrary::load_catalogs()
 
 void AssetLibrary::refresh()
 {
-  this->catalog_service->reload_catalogs();
+  if (on_refresh_) {
+    on_refresh_(*this);
+  }
 }
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,
@@ -153,13 +169,14 @@ AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_p
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
   AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
-  return asset_storage_->add_external_asset(std::move(identifier), name, std::move(metadata));
+  return asset_storage_->add_external_asset(
+      std::move(identifier), name, std::move(metadata), *this);
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
 {
   AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
-  return asset_storage_->add_local_id_asset(std::move(identifier), id);
+  return asset_storage_->add_local_id_asset(std::move(identifier), id, *this);
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
@@ -243,6 +260,12 @@ StringRefNull AssetLibrary::root_path() const
 Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
+  {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = -1;
+    library_ref.type = ASSET_LIBRARY_ESSENTIALS;
+    result.append(library_ref);
+  }
   int i;
   LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
     if (!BLI_is_dir(asset_library->path)) {

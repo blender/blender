@@ -40,7 +40,7 @@ static const EnumPropertyItem space_items[] = {
      "LOCAL_WITH_PARENT",
      0,
      "Local With Parent",
-     "The rest pose local space of a bone (thus matrix includes parent transforms)"},
+     "The rest pose local space of a bone (this matrix includes parent transforms)"},
     {CONSTRAINT_SPACE_LOCAL, "LOCAL", 0, "Local Space", "The local space of an object/bone"},
     {0, NULL, 0, NULL, NULL},
 };

@@ -77,6 +77,11 @@ template<> uint convert_type<uint>(float val)
   return uint(val * float(0xFFFFFFFFu));
 }
 
+template<typename D, typename S> uint pack_depth_stencil(D depth, S stencil)
+{
+  return (((uint(depth)) << 8) & (~(0xFFu - 1))) | (uint(stencil) & (0xFFu - 1));
+}
+
 struct TextureReadParams {
   int mip_index;
   int extent[3];
@@ -118,8 +123,14 @@ kernel void compute_texture_read(constant TextureReadParams &params [[buffer(0)]
 
   /* Read data */
 #  if IS_DEPTH_FORMAT == 1
-  output_data[index] = denormalize<OUTPUT_DATA_TYPE>(
+  OUTPUT_DATA_TYPE value = denormalize<OUTPUT_DATA_TYPE>(
       read_tex.sample(pixelSampler, float2(params.offset[0], params.offset[1]) + float2(xx, yy)));
+#    if IS_DEPTHSTENCIL_24_8 == 1
+  /* Shift depth value into 24 bit region and mask out 8 bit stencil.
+   * NOTE: Stencil currently not read as no use cases exist for this. */
+  value = pack_depth_stencil(value, 0);
+#    endif
+  output_data[index] = value;
 #  else
   read_colour = read_tex.read(uint2(params.offset[0], params.offset[1]) + uint2(xx, yy));
 #  endif
@@ -156,10 +167,16 @@ kernel void compute_texture_read(constant TextureReadParams &params [[buffer(0)]
 
   /* Read data */
 #  if IS_DEPTH_FORMAT == 1
-  output_data[index] = denormalize<OUTPUT_DATA_TYPE>(
+  OUTPUT_DATA_TYPE value = denormalize<OUTPUT_DATA_TYPE>(
       read_tex.sample(pixelSampler,
                       float2(params.offset[0], params.offset[1]) + float2(xx, yy),
                       uint(params.offset[2] + layer)));
+#    if IS_DEPTHSTENCIL_24_8 == 1
+  /* Shift depth value into 24 bit region and mask out 8 bit stencil.
+   * NOTE: Stencil currently not read as no use cases exist for this. */
+  value = pack_depth_stencil(value, 0);
+#    endif
+  output_data[index] = value;
 #  else
   read_colour = read_tex.read(uint2(params.offset[0], params.offset[1]) + uint2(xx, yy),
                               uint(params.offset[2] + layer));

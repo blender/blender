@@ -66,6 +66,8 @@
 
 namespace blender {
 
+template<typename T> uint64_t get_default_hash(const T &v);
+
 /**
  * References an array of type T that is owned by someone else. The data in the array cannot be
  * modified.
@@ -152,7 +154,7 @@ template<typename T> class Span {
 
   /**
    * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
-   * is negative. Clamps the size of the new new span so it fits in the current one.
+   * is negative. Clamps the size of the new span so it fits in the current one.
    */
   constexpr Span slice_safe(const int64_t start, const int64_t size) const
   {
@@ -418,6 +420,15 @@ template<typename T> class Span {
     return IndexRange(size_);
   }
 
+  constexpr uint64_t hash() const
+  {
+    uint64_t hash = 0;
+    for (const T &value : *this) {
+      hash = hash * 33 ^ get_default_hash(value);
+    }
+    return hash;
+  }
+
   /**
    * Returns a new Span to the same underlying memory buffer. No conversions are done.
    */
@@ -608,7 +619,7 @@ template<typename T> class MutableSpan {
 
   /**
    * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
-   * is negative. Clamps the size of the new new span so it fits in the current one.
+   * is negative. Clamps the size of the new span so it fits in the current one.
    */
   constexpr MutableSpan slice_safe(const int64_t start, const int64_t size) const
   {

@@ -20,7 +20,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   float offset[3], new_co[3];
   TexParams np = *p;
@@ -35,7 +35,7 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
   tex_input_rgba(out, in[0], &np, thread);
 }
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,

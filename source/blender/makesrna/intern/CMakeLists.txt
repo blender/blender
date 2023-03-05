@@ -178,6 +178,7 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn.c
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
+  ../../../../intern/guardedalloc/intern/memory_usage.cc
 
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
@@ -270,15 +271,16 @@ if(WITH_IMAGE_WEBP)
 endif()
 
 if(WITH_AUDASPACE)
-  add_definitions(-DWITH_AUDASPACE)
-
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${AUDASPACE_C_LIBRARIES}
-    ${AUDASPACE_PY_LIBRARIES}
-  )
+  if(WITH_SYSTEM_AUDASPACE)
+    list(APPEND LIB
+      ${AUDASPACE_C_LIBRARIES}
+      ${AUDASPACE_PY_LIBRARIES}
+    )
+  endif()
+  add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -404,7 +406,9 @@ target_link_libraries(makesrna bf_dna)
 target_link_libraries(makesrna bf_dna_blenlib)
 
 if(WIN32 AND NOT UNIX)
-  target_link_libraries(makesrna ${PTHREADS_LIBRARIES})
+  if(DEFINED PTHREADS_LIBRARIES)
+    target_link_libraries(makesrna ${PTHREADS_LIBRARIES})
+  endif()
 endif()
 
 # Output `rna_*_gen.c`.
@@ -412,7 +416,7 @@ endif()
 # `valgrind --leak-check=full --track-origins=yes`
 add_custom_command(
   OUTPUT ${GENSRC}
-  COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/  ${CMAKE_CURRENT_BINARY_DIR}/../
+  COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
   DEPENDS makesrna
 )
 

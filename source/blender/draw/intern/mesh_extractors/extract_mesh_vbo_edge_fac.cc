@@ -60,15 +60,8 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
 
   if (mr->extract_type == MR_EXTRACT_MESH) {
     data->edge_loop_count = MEM_cnew_array<uint8_t>(mr->edge_len, __func__);
-
-    /* HACK(@fclem): Detecting the need for edge render.
-     * We could have a flag in the mesh instead or check the modifier stack. */
-    const MEdge *med = mr->medge;
-    for (int e_index = 0; e_index < mr->edge_len; e_index++, med++) {
-      if ((med->flag & ME_EDGEDRAW) == 0) {
-        data->use_edge_render = true;
-        break;
-      }
+    if (!mr->me->runtime->subsurf_optimal_display_edges.is_empty()) {
+      data->use_edge_render = true;
     }
   }
   else {
@@ -109,6 +102,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
                                             void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
+  const BitSpan optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
 
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
@@ -116,8 +110,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
     const MLoop *ml = &mloop[ml_index];
 
     if (data->use_edge_render) {
-      const MEdge *med = &mr->medge[ml->e];
-      data->vbo_data[ml_index] = (med->flag & ME_EDGEDRAW) ? 255 : 0;
+      data->vbo_data[ml_index] = optimal_display_edges[ml->e] ? 255 : 0;
     }
     else {
 
@@ -130,10 +123,10 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
         const int ml_index_last = mp->totloop + mp->loopstart - 1;
         const int ml_index_other = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
         const MLoop *ml_next = &mr->mloop[ml_index_other];
-        const MVert *v1 = &mr->mvert[ml->v];
-        const MVert *v2 = &mr->mvert[ml_next->v];
-        float ratio = loop_edge_factor_get(
-            mr->poly_normals[mp_index], v1->co, mr->vert_normals[ml->v], v2->co);
+        float ratio = loop_edge_factor_get(mr->poly_normals[mp_index],
+                                           mr->vert_positions[ml->v],
+                                           mr->vert_normals[ml->v],
+                                           mr->vert_positions[ml_next->v]);
         data->vbo_data[ml_index] = ratio * 253 + 1;
       }
       else {

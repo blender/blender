@@ -36,9 +36,7 @@
 #include "uvedit_clipboard_graph_iso.hh"
 #include "uvedit_intern.h" /* linker, extern "C" */
 
-extern "C" {
-void UV_clipboard_free(void);
-}
+void UV_clipboard_free();
 
 class UV_ClipboardBuffer {
  public:
@@ -157,8 +155,8 @@ void UV_ClipboardBuffer::append(UvElementMap *element_map, const int cd_loop_uv_
       if (!element->separate) {
         continue;
       }
-      MLoopUV *luv = static_cast<MLoopUV *>(BM_ELEM_CD_GET_VOID_P(element->l, cd_loop_uv_offset));
-      uv.append(std::make_pair(luv->uv[0], luv->uv[1]));
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(element->l, cd_loop_uv_offset);
+      uv.append(std::make_pair(luv[0], luv[1]));
     }
   }
 }
@@ -183,9 +181,9 @@ void UV_ClipboardBuffer::write_uvs(UvElementMap *element_map,
     BLI_assert(unique_uv < label.size());
     const std::pair<float, float> &source_uv = uv_clipboard->uv[label[unique_uv]];
     while (element) {
-      MLoopUV *luv = static_cast<MLoopUV *>(BM_ELEM_CD_GET_VOID_P(element->l, cd_loop_uv_offset));
-      luv->uv[0] = source_uv.first;
-      luv->uv[1] = source_uv.second;
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(element->l, cd_loop_uv_offset);
+      luv[0] = source_uv.first;
+      luv[1] = source_uv.second;
       element = element->next;
       if (!element || element->separate) {
         break;
@@ -282,7 +280,7 @@ static int uv_copy_exec(bContext *C, wmOperator * /*op*/)
     UvElementMap *element_map = BM_uv_element_map_create(
         em->bm, scene, true, false, use_seams, true);
     if (element_map) {
-      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+      const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
       uv_clipboard->append(element_map, cd_loop_uv_offset);
     }
     BM_uv_element_map_free(element_map);
@@ -313,7 +311,7 @@ static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
 
     const bool use_seams = false;
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
     UvElementMap *dest_element_map = BM_uv_element_map_create(
         em->bm, scene, true, false, use_seams, true);

@@ -6,9 +6,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_atomic_disjoint_set.hh"
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_task.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -379,13 +381,13 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   float vec[3], bmat[3][3];
 
   const Mesh *me = BKE_mesh_from_object(ob);
-  if (!me || !CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+  if (!me || !CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
     return ok;
   }
 
   copy_m3_m4(bmat, ob->object_to_world);
 
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
   bke::AttributeAccessor attributes = me->attributes();
@@ -402,7 +404,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     const MPoly &poly = polys[i];
     const MLoop *ml = &loops[poly.loopstart];
     for (int b = 0; b < poly.totloop; b++, ml++) {
-      mul_v3_m3v3(vec, bmat, verts[ml->v].co);
+      mul_v3_m3v3(vec, bmat, positions[ml->v]);
       add_v3_v3v3(vec, vec, ob->object_to_world[3]);
       minmax_v3v3_v3(r_min, r_max, vec);
     }
@@ -534,6 +536,92 @@ void paintvert_flush_flags(Object *ob)
   select_vert_eval.finish();
 
   BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
+}
+
+static void paintvert_select_linked_vertices(bContext *C,
+                                             Object *ob,
+                                             const blender::Span<int> vertex_indices,
+                                             const bool select)
+{
+  using namespace blender;
+
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == nullptr || mesh->totpoly == 0) {
+    return;
+  }
+
+  /* AtomicDisjointSet is used to store connection information in vertex indices. */
+  AtomicDisjointSet islands(mesh->totvert);
+  const Span<MEdge> edges = mesh->edges();
+
+  /* By calling join() on the vertices of all edges, the AtomicDisjointSet contains information on
+   * which parts of the mesh are connected. */
+  threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
+    for (const MEdge &edge : edges.slice(range)) {
+      islands.join(edge.v1, edge.v2);
+    }
+  });
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+
+  Set<int> selected_roots;
+
+  for (const int i : vertex_indices) {
+    const int root = islands.find_root(i);
+    selected_roots.add(root);
+  }
+
+  threading::parallel_for(select_vert.span.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int root = islands.find_root(i);
+      if (selected_roots.contains(root)) {
+        select_vert.span[i] = select;
+      }
+    }
+  });
+
+  select_vert.finish();
+
+  paintvert_flush_flags(ob);
+  paintvert_tag_select_update(C, ob);
+}
+
+void paintvert_select_linked_pick(bContext *C,
+                                  Object *ob,
+                                  const int region_coordinates[2],
+                                  const bool select)
+{
+  uint index = uint(-1);
+  if (!ED_mesh_pick_vert(
+          C, ob, region_coordinates, ED_MESH_PICK_DEFAULT_VERT_DIST, true, &index)) {
+    return;
+  }
+
+  paintvert_select_linked_vertices(C, ob, {int(index)}, select);
+}
+
+void paintvert_select_linked(bContext *C, Object *ob)
+{
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == nullptr || mesh->totpoly == 0) {
+    return;
+  }
+
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::SpanAttributeWriter<bool> select_vert =
+      attributes.lookup_or_add_for_write_span<bool>(".select_vert", ATTR_DOMAIN_POINT);
+
+  blender::Vector<int> indices;
+  for (const int i : select_vert.span.index_range()) {
+    if (!select_vert.span[i]) {
+      continue;
+    }
+    indices.append(i);
+  }
+  select_vert.finish();
+  paintvert_select_linked_vertices(C, ob, indices, true);
 }
 
 void paintvert_tag_select_update(bContext *C, Object *ob)

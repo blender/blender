@@ -396,7 +396,7 @@ class UVMapExportTest(AbstractAlembicTest):
     def test_uvmap_export(self, tempdir: pathlib.Path):
         """Minimal test for exporting multiple UV maps on an animated mesh.
 
-        This covers the issue reported in T77021.
+        This covers the issue reported in #77021.
         """
         basename = 'T77021-multiple-uvmaps-animated-mesh'
         abc = tempdir / f'{basename}.abc'

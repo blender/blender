@@ -217,4 +217,7 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
 void workbench_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
+  if ((view_layer->passflag & SCE_PASS_Z) != 0) {
+    RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_Z, 1, "Z", SOCK_FLOAT);
+  }
 }

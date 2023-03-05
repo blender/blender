@@ -92,8 +92,8 @@ typedef struct TexDelegate {
   int type;
 } TexDelegate;
 
-bool tex_node_poll_default(struct bNodeType *ntype,
-                           struct bNodeTree *ntree,
+bool tex_node_poll_default(const struct bNodeType *ntype,
+                           const struct bNodeTree *ntree,
                            const char **r_disabled_hint);
 void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 

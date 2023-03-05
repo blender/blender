@@ -1225,7 +1225,7 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
 
       /* When 'd' approaches zero, float precision lets non-overlapping co-linear segments
        * detect as an intersection. So re-calculate 'v' to ensure the point overlaps both.
-       * see T45123 */
+       * see #45123 */
 
       /* inline since we have most vars already */
 #if 0
@@ -1667,7 +1667,7 @@ bool isect_ray_tri_v3(const float ray_origin[3],
                       float *r_lambda,
                       float r_uv[2])
 {
-  /* NOTE(@campbellbarton): these values were 0.000001 in 2.4x but for projection snapping on
+  /* NOTE(@ideasman42): these values were 0.000001 in 2.4x but for projection snapping on
    * a human head `(1BU == 1m)`, subdivision-surface level 2, this gave many errors. */
   const float epsilon = 0.00000001f;
   float p[3], s[3], e1[3], e2[3], q[3];
@@ -2887,7 +2887,7 @@ int isect_line_line_epsilon_v3(const float v1[3],
   d = dot_v3v3(c, ab);
   div = dot_v3v3(ab, ab);
 
-  /* important not to use an epsilon here, see: T45919 */
+  /* important not to use an epsilon here, see: #45919 */
   /* test zero length line */
   if (UNLIKELY(div == 0.0f)) {
     return 0;
@@ -2962,7 +2962,7 @@ bool isect_line_line_strict_v3(const float v1[3],
   d = dot_v3v3(c, ab);
   div = dot_v3v3(ab, ab);
 
-  /* important not to use an epsilon here, see: T45919 */
+  /* important not to use an epsilon here, see: #45919 */
   /* test zero length line */
   if (UNLIKELY(div == 0.0f)) {
     return false;
@@ -3773,7 +3773,7 @@ void barycentric_weights_v2_quad(const float v1[2],
                                  const float co[2],
                                  float w[4])
 {
-  /* NOTE(@campbellbarton): fabsf() here is not needed for convex quads
+  /* NOTE(@ideasman42): fabsf() here is not needed for convex quads
    * (and not used in #interp_weights_poly_v2).
    * But in the case of concave/bow-tie quads for the mask rasterizer it
    * gives unreliable results without adding `absf()`. If this becomes an issue for more general
@@ -4034,7 +4034,7 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
   float cross[3];
   cross_v3_v3v3(cross, d_curr->dir, d_next->dir);
   const float area = len_v3(cross);
-  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
   if (LIKELY(area != 0.0f)) {
     const float dot = dot_v3v3(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
@@ -4060,7 +4060,7 @@ static double mean_value_half_tan_v2_db(const struct Double2_Len *d_curr,
 {
   /* Different from the 3d version but still correct. */
   const double area = cross_v2v2_db(d_curr->dir, d_next->dir);
-  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
   if (LIKELY(area != 0.0)) {
     const double dot = dot_v2v2_db(d_curr->dir, d_next->dir);
     const double len = d_curr->len * d_next->len;
@@ -4914,39 +4914,59 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 
 /********************************** Mapping **********************************/
 
-void map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z)
+static float snap_coordinate(float u)
 {
-  float len;
-
-  *r_v = (z + 1.0f) / 2.0f;
-
-  len = sqrtf(x * x + y * y);
-  if (len > 0.0f) {
-    *r_u = (1.0f - (atan2f(x / len, y / len) / (float)M_PI)) / 2.0f;
+  /* Adjust a coordinate value `u` to obtain a value inside the (closed) unit interval.
+   *   i.e. 0.0 <= snap_coordinate(u) <= 1.0.
+   * Due to round-off errors, it is possible that the value of `u` may be close to the boundary of
+   * the unit interval, but not exactly on it. In order to handle these cases, `snap_coordinate`
+   * checks whether `u` is within `epsilon` of the boundary, and if so, it snaps the return value
+   * to the boundary. */
+  if (u < 0.0f) {
+    u += 1.0f; /* Get back into the unit interval. */
   }
-  else {
-    *r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
+  BLI_assert(0.0f <= u);
+  BLI_assert(u <= 1.0f);
+  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  if (u < epsilon) {
+    return 0.0f; /* `u` is close to 0, just return 0. */
   }
+  if (1.0f - epsilon < u) {
+    return 1.0f; /* `u` is close to 1, just return 1. */
+  }
+  return u;
 }
 
-void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z)
+bool map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z)
 {
-  float len;
-
-  len = sqrtf(x * x + y * y + z * z);
-  if (len > 0.0f) {
-    if (UNLIKELY(x == 0.0f && y == 0.0f)) {
-      *r_u = 0.0f; /* Otherwise domain error. */
-    }
-    else {
-      *r_u = (1.0f - atan2f(x, y) / (float)M_PI) / 2.0f;
-    }
-
-    *r_v = 1.0f - saacos(z / len) / (float)M_PI;
+  bool regular = true;
+  if (x * x + y * y < 1e-6f * 1e-6f) {
+    regular = false; /* We're too close to the cylinder's axis. */
+    *r_u = 0.5f;
   }
   else {
-    *r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
+    /* The "Regular" case, just compute the coordinate. */
+    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
   }
+  *r_v = (z + 1.0f) / 2.0f;
+  return regular;
+}
+
+bool map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z)
+{
+  bool regular = true;
+  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  const float len_xy = sqrtf(x * x + y * y);
+  if (len_xy <= fabsf(z) * epsilon) {
+    regular = false; /* We're on the line that runs through the north and south poles. */
+    *r_u = 0.5f;
+  }
+  else {
+    /* The "Regular" case, just compute the coordinate. */
+    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
+  }
+  *r_v = snap_coordinate(atan2f(len_xy, -z) / (float)M_PI);
+  return regular;
 }
 
 void map_to_plane_v2_v3v3(float r_co[2], const float co[3], const float no[3])

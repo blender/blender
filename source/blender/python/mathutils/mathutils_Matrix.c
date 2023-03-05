@@ -3795,7 +3795,7 @@ PyTypeObject matrix_access_Type = {
     /*tp_doc*/ NULL,
     /*tp_traverse*/ (traverseproc)MatrixAccess_traverse,
     /*tp_clear*/ (inquiry)MatrixAccess_clear,
-    /*tp_richcompare*/ NULL /* MatrixAccess_richcmpr */ /* TODO*/,
+    /*tp_richcompare*/ NULL /* MatrixAccess_richcmpr */ /* TODO */,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ (getiterfunc)MatrixAccess_iter,
     /*tp_iternext*/ NULL,

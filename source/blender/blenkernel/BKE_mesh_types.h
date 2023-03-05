@@ -16,7 +16,7 @@
 #  include "BLI_array.hh"
 #  include "BLI_bit_vector.hh"
 #  include "BLI_bounds_types.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
 
@@ -25,6 +25,7 @@
 
 struct BVHCache;
 struct EditMeshData;
+struct Mesh;
 struct MLoopTri;
 struct ShrinkwrapBoundaryData;
 struct SubdivCCG;
@@ -47,7 +48,7 @@ typedef enum eMeshBatchDirtyMode {
 
 /** #MeshRuntime.wrapper_type */
 typedef enum eMeshWrapperType {
-  /** Use mesh data (#Mesh.mvert, #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
+  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,
@@ -131,7 +132,7 @@ struct MeshRuntime {
    *
    * Modifiers that edit the mesh data in-place must set this to false
    * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
-   * data will be used for drawing, missing changes from modifiers. See T79517.
+   * data will be used for drawing, missing changes from modifiers. See #79517.
    */
   bool is_original_bmesh = false;
 
@@ -167,10 +168,18 @@ struct MeshRuntime {
   SharedCache<LooseEdgeCache> loose_edges_cache;
 
   /**
-   * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the
-   * subdivision surface modifier and used by drawing code instead of polygon center face dots.
+   * A bit vector the size of the number of vertices, set to true for the center vertices of
+   * subdivided polygons. The values are set by the subdivision surface modifier and used by
+   * drawing code instead of polygon center face dots. Otherwise this will be empty.
    */
-  uint32_t *subsurf_face_dot_tags = nullptr;
+  BitVector<> subsurf_face_dot_tags;
+
+  /**
+   * A bit vector the size of the number of edges, set to true for edges that should be drawn in
+   * the viewport. Created by the "Optimal Display" feature of the subdivision surface modifier.
+   * Otherwise it will be empty.
+   */
+  BitVector<> subsurf_optimal_display_edges;
 
   MeshRuntime() = default;
   ~MeshRuntime();

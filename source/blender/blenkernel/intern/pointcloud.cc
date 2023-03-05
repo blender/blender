@@ -166,33 +166,33 @@ static void pointcloud_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_PT = {
-    /* id_code */ ID_PT,
-    /* id_filter */ FILTER_ID_PT,
-    /* main_listbase_index */ INDEX_ID_PT,
-    /* struct_size */ sizeof(PointCloud),
-    /* name */ "PointCloud",
-    /* name_plural */ "pointclouds",
-    /* translation_context */ BLT_I18NCONTEXT_ID_POINTCLOUD,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_PT,
+    /*id_filter*/ FILTER_ID_PT,
+    /*main_listbase_index*/ INDEX_ID_PT,
+    /*struct_size*/ sizeof(PointCloud),
+    /*name*/ "PointCloud",
+    /*name_plural*/ "pointclouds",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_POINTCLOUD,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ pointcloud_init_data,
-    /* copy_data */ pointcloud_copy_data,
-    /* free_data */ pointcloud_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ pointcloud_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ pointcloud_init_data,
+    /*copy_data*/ pointcloud_copy_data,
+    /*free_data*/ pointcloud_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ pointcloud_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ pointcloud_blend_write,
-    /* blend_read_data */ pointcloud_blend_read_data,
-    /* blend_read_lib */ pointcloud_blend_read_lib,
-    /* blend_read_expand */ pointcloud_blend_read_expand,
+    /*blend_write*/ pointcloud_blend_write,
+    /*blend_read_data*/ pointcloud_blend_read_data,
+    /*blend_read_lib*/ pointcloud_blend_read_lib,
+    /*blend_read_expand*/ pointcloud_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)
@@ -379,6 +379,8 @@ static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
     }
+
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (mti->modifyGeometrySet) {
       mti->modifyGeometrySet(md, &mectx, &geometry_set);

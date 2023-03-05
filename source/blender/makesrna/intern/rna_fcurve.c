@@ -267,7 +267,7 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 
 /* ----------- */
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_DriverTarget_id_set(PointerRNA *ptr,
                                     PointerRNA value,
                                     struct ReportList *UNUSED(reports))
@@ -714,7 +714,7 @@ static void rna_FModifier_start_frame_range(PointerRNA *UNUSED(ptr),
   // FModifier *fcm = (FModifier *)ptr->data;
 
   /* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that,
-   * or else it becomes tricky to adjust the range, see: T36844.
+   * or else it becomes tricky to adjust the range, see: #36844.
    *
    * NOTE: we do not set soft-limits on lower bounds, as it's too confusing when you
    *       can't easily use the slider to set things here
@@ -729,7 +729,7 @@ static void rna_FModifier_end_frame_range(
   FModifier *fcm = (FModifier *)ptr->data;
 
   /* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that,
-   * or else it becomes tricky to adjust the range, see: T36844. */
+   * or else it becomes tricky to adjust the range, see: #36844. */
   *min = MINAFRAMEF;
   *softmin = (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) ? fcm->sfra : MINAFRAMEF;
 
@@ -951,7 +951,7 @@ static void rna_FModifierStepped_frame_start_set(PointerRNA *ptr, float value)
   value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
 
   /* Need to set both step-data's start/end and the start/end on the base-data,
-   * or else Restrict-Range doesn't work due to RNA-property shadowing (T52009)
+   * or else Restrict-Range doesn't work due to RNA-property shadowing (#52009)
    */
   data->start_frame = value;
   fcm->sfra = value;
@@ -968,7 +968,7 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
   value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
 
   /* Need to set both step-data's start/end and the start/end on the base-data,
-   * or else Restrict-Range doesn't work due to RNA-property shadowing (T52009)
+   * or else Restrict-Range doesn't work due to RNA-property shadowing (#52009)
    */
   data->end_frame = value;
   fcm->efra = value;

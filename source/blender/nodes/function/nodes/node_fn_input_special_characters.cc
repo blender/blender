@@ -10,23 +10,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>(N_("Tab"));
 }
 
-class MF_SpecialCharacters : public fn::MultiFunction {
+class MF_SpecialCharacters : public mf::MultiFunction {
  public:
   MF_SpecialCharacters()
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Special Characters", signature};
+      builder.single_output<std::string>("Line Break");
+      builder.single_output<std::string>("Tab");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Special Characters"};
-    signature.single_output<std::string>("Line Break");
-    signature.single_output<std::string>("Tab");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     MutableSpan<std::string> lb = params.uninitialized_single_output<std::string>(0, "Line Break");
     MutableSpan<std::string> tab = params.uninitialized_single_output<std::string>(1, "Tab");

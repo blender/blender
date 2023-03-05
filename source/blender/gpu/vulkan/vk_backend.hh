@@ -9,9 +9,21 @@
 
 #include "gpu_backend.hh"
 
+#ifdef __APPLE__
+#  include <MoltenVK/vk_mvk_moltenvk.h>
+#else
+#  include <vulkan/vulkan.h>
+#endif
+#include "shaderc/shaderc.hpp"
+
 namespace blender::gpu {
 
+class VKContext;
+
 class VKBackend : public GPUBackend {
+ private:
+  shaderc::Compiler shaderc_compiler_;
+
  public:
   VKBackend()
   {
@@ -49,6 +61,10 @@ class VKBackend : public GPUBackend {
   void render_begin() override;
   void render_end() override;
   void render_step() override;
+
+  shaderc::Compiler &get_shaderc_compiler();
+
+  static void capabilities_init(VKContext &context);
 
  private:
   static void init_platform();

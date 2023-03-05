@@ -142,7 +142,7 @@ class GHOST_Context : public GHOST_IContext {
   virtual GHOST_TSuccess getVulkanHandles(void * /*r_instance*/,
                                           void * /*r_physical_device*/,
                                           void * /*r_device*/,
-                                          uint32_t * /*r_graphic_queue_familly*/) override
+                                          uint32_t * /*r_graphic_queue_family*/) override
   {
     return GHOST_kFailure;
   };

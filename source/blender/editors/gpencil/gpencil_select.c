@@ -2487,7 +2487,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
           /* check if point is inside */
           if (pt_distance <= radius_squared) {
-            /* only use this point if it is a better match than the current hit - T44685 */
+            /* only use this point if it is a better match than the current hit - #44685 */
             if (pt_distance < hit_distance) {
               hit_layer = gpl;
               hit_stroke = gps_active;

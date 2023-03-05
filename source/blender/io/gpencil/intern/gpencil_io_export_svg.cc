@@ -198,7 +198,8 @@ void GpencilExporterSVG::export_gpencil_layers()
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
         /* Apply object scale to thickness. */
-        gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
+        const float scalef = mat4_to_scale(ob->object_to_world);
+        gps_duplicate->thickness = ceilf(float(gps_duplicate->thickness) * scalef);
         CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
         const bool is_normalized = ((params_.flag & GP_EXPORT_NORM_THICKNESS) != 0) ||
@@ -218,7 +219,7 @@ void GpencilExporterSVG::export_gpencil_layers()
           }
           else {
             bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-                rv3d_->viewmat, gpd_, gpl, gps_duplicate, 3, diff_mat_.values, 0.0f);
+                rv3d_->viewmat, gpd_, gpl, gps_duplicate, 3, diff_mat_.ptr(), 0.0f);
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {
@@ -308,7 +309,9 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
   color_string_set(gpl, gps, node_gps, do_fill);
 
   if (is_stroke && !do_fill) {
-    node_gps.append_attribute("stroke-width").set_value((radius * 2.0f) - gpl->line_change);
+    const float width = MAX2(
+        MAX2(gps->thickness + gpl->line_change, (radius * 2.0f) + gpl->line_change), 1.0f);
+    node_gps.append_attribute("stroke-width").set_value(width);
   }
 
   std::string txt;

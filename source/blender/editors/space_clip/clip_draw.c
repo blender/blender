@@ -978,7 +978,7 @@ static void draw_marker_slide_zones(SpaceClip *sc,
 
   if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
     float pat_min[2], pat_max[2];
-    /*      float dx = 12.0f / width, dy = 12.0f / height;*/ /* XXX UNUSED */
+    // float dx = 12.0f / width, dy = 12.0f / height; /*UNUSED*/
     float tilt_ctrl[2];
 
     if (!outline) {

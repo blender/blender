@@ -274,7 +274,7 @@ class GHOST_IWindow {
    */
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
 
-  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) = 0;
+  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const = 0;
 
   virtual void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                                   GHOST_TAxisFlag &axis_flag,

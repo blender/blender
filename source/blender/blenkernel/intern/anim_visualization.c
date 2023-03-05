@@ -128,7 +128,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
     dst = &ob->mpath;
   }
 
-  /* avoid 0 size allocs */
+  /* Avoid 0 size allocations. */
   if (avs->path_sf >= avs->path_ef) {
     BKE_reportf(reports,
                 RPT_ERROR,

@@ -63,9 +63,7 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
-  flags.cpu.avx = get_boolean(cscene, "debug_use_cpu_avx");
   flags.cpu.sse41 = get_boolean(cscene, "debug_use_cpu_sse41");
-  flags.cpu.sse3 = get_boolean(cscene, "debug_use_cpu_sse3");
   flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
@@ -96,7 +94,7 @@ void python_thread_state_restore(void **python_thread_state)
   *python_thread_state = NULL;
 }
 
-static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
+static const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
 {
   const char *result = PyUnicode_AsUTF8(py_str);
   if (result) {
@@ -133,8 +131,8 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
   }
 
   PyObject *path_coerce = nullptr, *user_path_coerce = nullptr;
-  path_init(PyC_UnicodeAsByte(path, &path_coerce),
-            PyC_UnicodeAsByte(user_path, &user_path_coerce));
+  path_init(PyC_UnicodeAsBytes(path, &path_coerce),
+            PyC_UnicodeAsBytes(user_path, &user_path_coerce));
   Py_XDECREF(path_coerce);
   Py_XDECREF(user_path_coerce);
 
@@ -754,7 +752,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene), &sceneptr);
   BL::Scene b_scene(sceneptr);
 
-  DeviceInfo device = blender_device_info(b_preferences, b_scene, true);
+  DeviceInfo device = blender_device_info(b_preferences, b_scene, true, true);
 
   /* Get denoising parameters from view layer. */
   PointerRNA viewlayerptr;

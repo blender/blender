@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
@@ -36,8 +36,6 @@
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
-
-#include "bmesh.h"
 
 #define BEND_EPS 0.000001f
 
@@ -170,7 +168,7 @@ static void simpleDeform_bend(const float factor,
   cost = cosf(theta);
 
   /* NOTE: the operations below a susceptible to float precision errors
-   * regarding the order of operations, take care when changing, see: T85470 */
+   * regarding the order of operations, take care when changing, see: #85470 */
   switch (axis) {
     case 0:
       r_co[0] = x;
@@ -476,7 +474,7 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
+  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -561,37 +559,37 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_SimpleDeform = {
-    /* name */ N_("SimpleDeform"),
-    /* structName */ "SimpleDeformModifierData",
-    /* structSize */ sizeof(SimpleDeformModifierData),
-    /* srna */ &RNA_SimpleDeformModifier,
-    /* type */ eModifierTypeType_OnlyDeform,
+    /*name*/ N_("SimpleDeform"),
+    /*structName*/ "SimpleDeformModifierData",
+    /*structSize*/ sizeof(SimpleDeformModifierData),
+    /*srna*/ &RNA_SimpleDeformModifier,
+    /*type*/ eModifierTypeType_OnlyDeform,
 
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_AcceptsVertexCosOnly | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_SIMPLEDEFORM,
+    /*icon*/ ICON_MOD_SIMPLEDEFORM,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ deformVertsEM,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ deformVerts,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ deformVertsEM,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ NULL,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ NULL,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ NULL,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ NULL,
 };

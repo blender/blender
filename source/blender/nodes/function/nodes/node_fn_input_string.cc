@@ -23,7 +23,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   const bNode &bnode = builder.node();
   NodeInputString *node_storage = static_cast<NodeInputString *>(bnode.storage);
   std::string string = std::string((node_storage->string) ? node_storage->string : "");
-  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<std::string>>(std::move(string));
+  builder.construct_and_set_matching_fn<mf::CustomMF_Constant<std::string>>(std::move(string));
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

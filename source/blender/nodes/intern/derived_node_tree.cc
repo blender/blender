@@ -115,7 +115,7 @@ Vector<DOutputSocket> DInputSocket::get_corresponding_group_input_sockets() cons
   BLI_assert(child_context != nullptr);
 
   const bNodeTree &child_tree = child_context->btree();
-  Span<const bNode *> group_input_nodes = child_tree.nodes_by_type("NodeGroupInput");
+  Span<const bNode *> group_input_nodes = child_tree.group_input_nodes();
   const int socket_index = bsocket_->index();
   Vector<DOutputSocket> sockets;
   for (const bNode *group_input_node : group_input_nodes) {
@@ -236,8 +236,8 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
       path_info.sockets.pop_last();
     }
     else if (linked_node->is_muted()) {
-      for (const bNodeLink *internal_link : linked_node->internal_links()) {
-        if (internal_link->fromsock != linked_socket.bsocket()) {
+      for (const bNodeLink &internal_link : linked_node->internal_links()) {
+        if (internal_link.fromsock != linked_socket.bsocket()) {
           continue;
         }
         /* The internal link only forwards the first incoming link. */
@@ -247,7 +247,7 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
           }
         }
         const DInputSocket mute_input = linked_socket;
-        const DOutputSocket mute_output{context_, internal_link->tosock};
+        const DOutputSocket mute_output{context_, internal_link.tosock};
         path_info.sockets.append(mute_input);
         path_info.sockets.append(mute_output);
         mute_output.foreach_target_socket(target_fn, path_info);
@@ -344,27 +344,26 @@ std::string DerivedNodeTree::to_dot() const
     dot_node.set_parent_cluster(cluster);
     dot_node.set_background_color("white");
 
-    Vector<std::string> input_names;
-    Vector<std::string> output_names;
+    dot::NodeWithSockets dot_node_with_sockets;
     for (const bNodeSocket *socket : node->input_sockets()) {
       if (socket->is_available()) {
-        input_names.append(socket->name);
+        dot_node_with_sockets.add_input(socket->name);
       }
     }
     for (const bNodeSocket *socket : node->output_sockets()) {
       if (socket->is_available()) {
-        output_names.append(socket->name);
+        dot_node_with_sockets.add_output(socket->name);
       }
     }
 
-    dot::NodeWithSocketsRef dot_node_with_sockets = dot::NodeWithSocketsRef(
-        dot_node, node->name, input_names, output_names);
+    dot::NodeWithSocketsRef dot_node_with_sockets_ref = dot::NodeWithSocketsRef(
+        dot_node, dot_node_with_sockets);
 
     int input_index = 0;
     for (const bNodeSocket *socket : node->input_sockets()) {
       if (socket->is_available()) {
         dot_input_sockets.add_new(DInputSocket{node.context(), socket},
-                                  dot_node_with_sockets.input(input_index));
+                                  dot_node_with_sockets_ref.input(input_index));
         input_index++;
       }
     }
@@ -372,7 +371,7 @@ std::string DerivedNodeTree::to_dot() const
     for (const bNodeSocket *socket : node->output_sockets()) {
       if (socket->is_available()) {
         dot_output_sockets.add_new(DOutputSocket{node.context(), socket},
-                                   dot_node_with_sockets.output(output_index));
+                                   dot_node_with_sockets_ref.output(output_index));
         output_index++;
       }
     }

@@ -56,6 +56,13 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
+  std::function<void(AssetLibrary &self)> on_refresh_;
+
+  std::optional<eAssetImportMethod> import_method_;
+  /** Assets owned by this library may be imported with a different method than set in
+   * #import_method_ above, it's just a default. */
+  bool may_override_import_method_ = false;
+
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
@@ -65,12 +72,25 @@ class AssetLibrary {
 
   std::unique_ptr<AssetCatalogService> catalog_service;
 
+  friend class AssetLibraryService;
+  friend class AssetRepresentation;
+
  public:
   /**
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
   AssetLibrary(StringRef root_path = "");
   ~AssetLibrary();
+
+  /**
+   * Execute \a fn for every asset library that is loaded. The asset library is passed to the
+   * \a fn call.
+   *
+   * \param skip_all_library: When true, the \a fn will also be executed for the "All" asset
+   *                          library. This is just a combination of the other ones, so usually
+   *                          iterating over it is redundant.
+   */
+  static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   void load_catalogs();
 
@@ -128,9 +148,6 @@ class AssetLibrary {
   AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
   StringRefNull root_path() const;
-
- private:
-  std::optional<int> find_asset_index(const AssetRepresentation &asset);
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
@@ -138,11 +155,21 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs();
 }  // namespace blender::asset_system
 
 /**
+ * Load the data for an asset library, but not the asset representations themselves (loading these
+ * is currently not done in the asset system).
+ *
+ * For the "All" asset library (#ASSET_LIBRARY_ALL), every other known asset library will be
+ * loaded as well. So a call to #AssetLibrary::foreach_loaded() can be expected to iterate over all
+ * libraries.
+ *
  * \warning Catalogs are reloaded, invalidating catalog pointers. Do not store catalog pointers,
  *          store CatalogIDs instead and lookup the catalog where needed.
  */
 blender::asset_system::AssetLibrary *AS_asset_library_load(
     const Main *bmain, const AssetLibraryReference &library_reference);
+
+std::string AS_asset_library_root_path_from_library_ref(
+    const AssetLibraryReference &library_reference);
 
 /**
  * Try to find an appropriate location for an asset library root from a file or directory path.

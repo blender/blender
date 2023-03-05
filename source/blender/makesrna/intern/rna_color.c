@@ -332,7 +332,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
-      /* ColorRamp for particle display is owned by the object (see T54422) */
+      /* ColorRamp for particle display is owned by the object (see #54422) */
       case ID_OB:
       case ID_PA: {
         ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
@@ -626,6 +626,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     Image *ima = (Image *)id;
 
     DEG_id_tag_update(&ima->id, 0);
+    DEG_id_tag_update(&ima->id, ID_RECALC_SOURCE);
 
     BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 

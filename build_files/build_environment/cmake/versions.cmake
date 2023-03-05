@@ -195,15 +195,18 @@ set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_CPE "cpe:2.3:a:libtiff:libtiff:${TIFF_VERSION}:*:*:*:*:*:*:*")
 
-set(OSL_VERSION 1.12.7.1)
-set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/v${OSL_VERSION}.tar.gz)
-set(OSL_HASH 53211da86c34ba6e0344998c1a6d219c)
+# Recent commit from 1.13.0.2 under development, which includes string table
+# changes that make the Cycles OptiX implementation work. Official 1.12 OSL
+# releases should also build but without OptiX support.
+set(OSL_VERSION 1a7670600c8b08c2443a78d03c8c27e9a1149140)
+set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/${OSL_VERSION}.tar.gz)
+set(OSL_HASH 7b6d6716b05d1addb92a8f47280bf77f)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
 # NOTE: When updating the python version, it's required to check the versions of
 # it wants to use in PCbuild/get_externals.bat for the following dependencies:
-# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance 
+# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance
 # reasons there can be no exceptions to this.
 
 set(PYTHON_VERSION 3.10.9)
@@ -229,20 +232,34 @@ set(OPENVDB_HASH 64301c737e16b26c8f3085a31e6397e9)
 set(OPENVDB_HASH_TYPE MD5)
 set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 
+# ------------------------------------------------------------------------------
+# Python Modules
+
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(IDNA_VERSION 3.3)
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(CHARSET_NORMALIZER_VERSION 2.0.10)
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(URLLIB3_VERSION 1.26.8)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
+# Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
 set(CERTIFI_VERSION 2021.10.8)
+# Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
 set(REQUESTS_VERSION 2.27.1)
+# Needed by: Python's `numpy` module (used by some add-ons).
 set(CYTHON_VERSION 0.29.30)
-# The version of the zstd library used to build the Python package should match ZSTD_VERSION
+# Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
+# The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
 # defined below. At this time of writing, 0.17.0 was already released,
-# but built against zstd 1.5.1, while we use 1.5.0.
+# but built against ZSTD 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
+# Auto-format Python source (developer tool, not used by Blender at run-time).
 set(AUTOPEP8_VERSION 1.6.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(PYCODESTYLE_VERSION 2.8.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(TOML_VERSION 0.10.2)
+# Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
 set(NUMPY_VERSION 1.23.5)
@@ -342,7 +359,7 @@ set(SNDFILE_VERSION 1.1.0)
 set(SNDFILE_URI https://github.com/libsndfile/libsndfile/releases/download/1.1.0/libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_HASH e63dead2b4f0aaf323687619d007ee6a)
 set(SNDFILE_HASH_TYPE MD5)
-set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.gz)
+set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_CPE "cpe:2.3:a:libsndfile_project:libsndfile:${SNDFILE_VERSION}:*:*:*:*:*:*:*")
 
 set(WEBP_VERSION 1.2.2)
@@ -352,9 +369,9 @@ set(WEBP_HASH_TYPE MD5)
 set(WEBP_FILE libwebp-${WEBP_VERSION}.tar.gz)
 set(WEBP_CPE "cpe:2.3:a:webmproject:libwebp:${WEBP_VERSION}:*:*:*:*:*:*:*")
 
-set(SPNAV_VERSION 0.2.3)
-set(SPNAV_URI http://downloads.sourceforge.net/project/spacenav/spacenav%20library%20%28SDK%29/libspnav%20${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
-set(SPNAV_HASH 44d840540d53326d4a119c0f1aa7bf0a)
+set(SPNAV_VERSION 1.1)
+set(SPNAV_URI https://github.com/FreeSpacenav/libspnav/releases/download/v${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
+set(SPNAV_HASH 7c0032034672dfba3c4bb9b49a440e70)
 set(SPNAV_HASH_TYPE MD5)
 set(SPNAV_FILE libspnav-${SPNAV_VERSION}.tar.gz)
 
@@ -651,9 +668,9 @@ set(SPIRV_HEADERS_FILE SPIR-V-Headers-${SPIRV_HEADERS_VERSION}.tar.gz)
 # compiler, the versions used are taken from the following location
 # https://github.com/intel/intel-graphics-compiler/releases
 
-set(IGC_VERSION 1.0.12149.1)
+set(IGC_VERSION 1.0.13064.7)
 set(IGC_URI https://github.com/intel/intel-graphics-compiler/archive/refs/tags/igc-${IGC_VERSION}.tar.gz)
-set(IGC_HASH 44f67f24e3bc5130f9f062533abf8154782a9d0a992bc19b498639a8521ae836)
+set(IGC_HASH a929abd4cca2b293961ec0437ee4b3b2147bd3b2c8a3c423af78c0c359b2e5ae)
 set(IGC_HASH_TYPE SHA256)
 set(IGC_FILE igc-${IGC_VERSION}.tar.gz)
 
@@ -673,15 +690,15 @@ set(IGC_LLVM_FILE ${IGC_LLVM_VERSION}.tar.gz)
 #
 # WARNING WARNING WARNING
 
-set(IGC_OPENCL_CLANG_VERSION 363a5262d8c7cff3fb28f3bdb5d85c8d7e91c1bb)
+set(IGC_OPENCL_CLANG_VERSION ee31812ea8b89d08c2918f045d11a19bd33525c5)
 set(IGC_OPENCL_CLANG_URI https://github.com/intel/opencl-clang/archive/${IGC_OPENCL_CLANG_VERSION}.tar.gz)
-set(IGC_OPENCL_CLANG_HASH aa8cf72bb239722ce8ce44f79413c6887ecc8ca18477dd520aa5c4809756da9a)
+set(IGC_OPENCL_CLANG_HASH 1db6735bbcfaa31e8a9ba39f121d6bafa806ea8919e9f56782d6aaa67771ddda)
 set(IGC_OPENCL_CLANG_HASH_TYPE SHA256)
 set(IGC_OPENCL_CLANG_FILE opencl-clang-${IGC_OPENCL_CLANG_VERSION}.tar.gz)
 
-set(IGC_VCINTRINSICS_VERSION v0.5.0)
+set(IGC_VCINTRINSICS_VERSION v0.11.0)
 set(IGC_VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/refs/tags/${IGC_VCINTRINSICS_VERSION}.tar.gz)
-set(IGC_VCINTRINSICS_HASH 70bb47c5e32173cf61514941e83ae7c7eb4485e6d2fca60cfa1f50d4f42c41f2)
+set(IGC_VCINTRINSICS_HASH e5acd5626ce7fa6d41ce154c50ac805eda734ee66af94ef28e680ac2ad81bb9f)
 set(IGC_VCINTRINSICS_HASH_TYPE SHA256)
 set(IGC_VCINTRINSICS_FILE vc-intrinsics-${IGC_VCINTRINSICS_VERSION}.tar.gz)
 
@@ -697,9 +714,9 @@ set(IGC_SPIRV_TOOLS_HASH 6e19900e948944243024aedd0a201baf3854b377b9cc7a386553bc1
 set(IGC_SPIRV_TOOLS_HASH_TYPE SHA256)
 set(IGC_SPIRV_TOOLS_FILE SPIR-V-Tools-${IGC_SPIRV_TOOLS_VERSION}.tar.gz)
 
-set(IGC_SPIRV_TRANSLATOR_VERSION a31ffaeef77e23d500b3ea3d35e0c42ff5648ad9)
+set(IGC_SPIRV_TRANSLATOR_VERSION d739c01d65ec00dee64dedd40deed805216a7193)
 set(IGC_SPIRV_TRANSLATOR_URI https://github.com/KhronosGroup/SPIRV-LLVM-Translator/archive/${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
-set(IGC_SPIRV_TRANSLATOR_HASH 9e26c96a45341b8f8af521bacea20e752623346340addd02af95d669f6e89252)
+set(IGC_SPIRV_TRANSLATOR_HASH ddc0cc9ccbe59dadeaf291012d59de142b2e9f2b124dbb634644d39daddaa13e)
 set(IGC_SPIRV_TRANSLATOR_HASH_TYPE SHA256)
 set(IGC_SPIRV_TRANSLATOR_FILE SPIR-V-Translator-${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
 
@@ -707,15 +724,15 @@ set(IGC_SPIRV_TRANSLATOR_FILE SPIR-V-Translator-${IGC_SPIRV_TRANSLATOR_VERSION}.
 ### Intel Graphics Compiler DEPS END ###
 ########################################
 
-set(GMMLIB_VERSION intel-gmmlib-22.1.8)
+set(GMMLIB_VERSION intel-gmmlib-22.3.0)
 set(GMMLIB_URI https://github.com/intel/gmmlib/archive/refs/tags/${GMMLIB_VERSION}.tar.gz)
-set(GMMLIB_HASH bf23e9a3742b4fb98c7666c9e9b29f3219e4b2fb4d831aaf4eed71f5e2d17368)
+set(GMMLIB_HASH c1f33e1519edfc527127baeb0436b783430dfd256c643130169a3a71dc86aff9)
 set(GMMLIB_HASH_TYPE SHA256)
 set(GMMLIB_FILE ${GMMLIB_VERSION}.tar.gz)
 
-set(OCLOC_VERSION 22.38.24278)
+set(OCLOC_VERSION 22.49.25018.21)
 set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC_VERSION}.tar.gz)
-set(OCLOC_HASH db0c542fccd651e6404b15a74d46027f1ce0eda8dc9e25a40cbb6c0faef257ee)
+set(OCLOC_HASH 92362dae08b503a34e5d3820ed284198c452bcd5e7504d90eb69887b20492c06)
 set(OCLOC_HASH_TYPE SHA256)
 set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)
 

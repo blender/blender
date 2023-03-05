@@ -143,7 +143,7 @@ bool ED_space_clip_maskedit_mask_visible_splines_poll(bContext *C)
 /** \name Common Editing Functions
  * \{ */
 
-void ED_space_clip_get_size(SpaceClip *sc, int *width, int *height)
+void ED_space_clip_get_size(const SpaceClip *sc, int *width, int *height)
 {
   if (sc->clip) {
     BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
@@ -153,7 +153,7 @@ void ED_space_clip_get_size(SpaceClip *sc, int *width, int *height)
   }
 }
 
-void ED_space_clip_get_size_fl(SpaceClip *sc, float size[2])
+void ED_space_clip_get_size_fl(const SpaceClip *sc, float size[2])
 {
   int size_i[2];
   ED_space_clip_get_size(sc, &size_i[0], &size_i[1]);
@@ -161,7 +161,7 @@ void ED_space_clip_get_size_fl(SpaceClip *sc, float size[2])
   size[1] = size_i[1];
 }
 
-void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *region, float *zoomx, float *zoomy)
+void ED_space_clip_get_zoom(const SpaceClip *sc, const ARegion *region, float *zoomx, float *zoomy)
 {
   int width, height;
 
@@ -173,7 +173,7 @@ void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *region, float *zoomx, float 
            (BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
-void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
+void ED_space_clip_get_aspect(const SpaceClip *sc, float *aspx, float *aspy)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
@@ -194,7 +194,7 @@ void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
   }
 }
 
-void ED_space_clip_get_aspect_dimension_aware(SpaceClip *sc, float *aspx, float *aspy)
+void ED_space_clip_get_aspect_dimension_aware(const SpaceClip *sc, float *aspx, float *aspy)
 {
   int w, h;
 
@@ -228,15 +228,15 @@ void ED_space_clip_get_aspect_dimension_aware(SpaceClip *sc, float *aspx, float 
   }
 }
 
-int ED_space_clip_get_clip_frame_number(SpaceClip *sc)
+int ED_space_clip_get_clip_frame_number(const SpaceClip *sc)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
-  /* Caller must ensure space does have a valid clip, otherwise it will crash, see T45017. */
+  /* Caller must ensure space does have a valid clip, otherwise it will crash, see #45017. */
   return BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
 }
 
-ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
+ImBuf *ED_space_clip_get_buffer(const SpaceClip *sc)
 {
   if (sc->clip) {
     ImBuf *ibuf;
@@ -255,7 +255,10 @@ ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
   return NULL;
 }
 
-ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale, float *angle)
+ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
+                                       float loc[2],
+                                       float *scale,
+                                       float *angle)
 {
   if (sc->clip) {
     ImBuf *ibuf;
@@ -275,8 +278,8 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
   return NULL;
 }
 
-bool ED_space_clip_get_position(struct SpaceClip *sc,
-                                struct ARegion *region,
+bool ED_space_clip_get_position(const SpaceClip *sc,
+                                const ARegion *region,
                                 int mval[2],
                                 float fpos[2])
 {
@@ -292,7 +295,10 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
   return true;
 }
 
-bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, const int mval[2], float r_col[3])
+bool ED_space_clip_color_sample(const SpaceClip *sc,
+                                const ARegion *region,
+                                const int mval[2],
+                                float r_col[3])
 {
   ImBuf *ibuf;
   float fx, fy, co[2];
@@ -355,7 +361,7 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
   }
 }
 
-bool ED_clip_view_selection(const bContext *C, ARegion *UNUSED(region), bool fit)
+bool ED_clip_view_selection(const bContext *C, const ARegion *UNUSED(region), bool fit)
 {
   float offset_x, offset_y;
   float zoom;
@@ -371,7 +377,7 @@ bool ED_clip_view_selection(const bContext *C, ARegion *UNUSED(region), bool fit
   return true;
 }
 
-void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
+void ED_clip_select_all(const SpaceClip *sc, int action, bool *r_has_selection)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
@@ -460,7 +466,7 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
   }
 }
 
-void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[2])
+void ED_clip_point_undistorted_pos(const SpaceClip *sc, const float co[2], float r_co[2])
 {
   copy_v2_v2(r_co, co);
 
@@ -482,7 +488,7 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[
 }
 
 void ED_clip_point_stable_pos(
-    SpaceClip *sc, ARegion *region, float x, float y, float *xr, float *yr)
+    const SpaceClip *sc, const ARegion *region, float x, float y, float *xr, float *yr)
 {
   int sx, sy, width, height;
   float zoomx, zoomy, pos[3], imat[4][4];
@@ -515,8 +521,8 @@ void ED_clip_point_stable_pos(
   }
 }
 
-void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
-                                       ARegion *region,
+void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
+                                       const ARegion *region,
                                        const float co[2],
                                        float r_co[2])
 {
@@ -539,12 +545,12 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
   r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
-void ED_clip_mouse_pos(SpaceClip *sc, ARegion *region, const int mval[2], float co[2])
+void ED_clip_mouse_pos(const SpaceClip *sc, const ARegion *region, const int mval[2], float co[2])
 {
   ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &co[0], &co[1]);
 }
 
-bool ED_space_clip_check_show_trackedit(SpaceClip *sc)
+bool ED_space_clip_check_show_trackedit(const SpaceClip *sc)
 {
   if (sc) {
     return sc->mode == SC_MODE_TRACKING;
@@ -553,7 +559,7 @@ bool ED_space_clip_check_show_trackedit(SpaceClip *sc)
   return false;
 }
 
-bool ED_space_clip_check_show_maskedit(SpaceClip *sc)
+bool ED_space_clip_check_show_maskedit(const SpaceClip *sc)
 {
   if (sc) {
     return sc->mode == SC_MODE_MASKEDIT;
@@ -568,7 +574,7 @@ bool ED_space_clip_check_show_maskedit(SpaceClip *sc)
 /** \name Clip Editing Functions
  * \{ */
 
-MovieClip *ED_space_clip_get_clip(SpaceClip *sc)
+MovieClip *ED_space_clip_get_clip(const SpaceClip *sc)
 {
   return sc->clip;
 }
@@ -629,7 +635,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 /** \name Masking Editing Functions
  * \{ */
 
-Mask *ED_space_clip_get_mask(SpaceClip *sc)
+Mask *ED_space_clip_get_mask(const SpaceClip *sc)
 {
   return sc->mask_info.mask;
 }

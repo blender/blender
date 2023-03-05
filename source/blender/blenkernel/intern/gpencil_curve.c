@@ -971,7 +971,7 @@ static float *gpencil_stroke_points_from_editcurve_adaptive_resolu(
   MEM_freeN(segment_point_lengths);
 
   *r_points_len = points_len;
-  return (float(*))r_points;
+  return (float *)r_points;
 }
 
 /**
@@ -1012,7 +1012,7 @@ static float *gpencil_stroke_points_from_editcurve_fixed_resolu(bGPDcurve_point 
   }
 
   *r_points_len = points_len;
-  return (float(*))r_points;
+  return (float *)r_points;
 }
 
 void BKE_gpencil_stroke_update_geometry_from_editcurve(bGPDstroke *gps,

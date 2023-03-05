@@ -66,13 +66,13 @@ typedef struct EdgeSlideData {
 
   int mval_start[2], mval_end[2];
   int curr_sv_index;
-
-  /** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
-  int curr_side_unclamp;
 } EdgeSlideData;
 
 typedef struct EdgeSlideParams {
   float perc;
+
+  /** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
+  int curr_side_unclamp;
 
   bool use_even;
   bool flipped;
@@ -429,7 +429,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
         continue;
       }
 
-      /* This test is only relevant if object is not wire-drawn! See T32068. */
+      /* This test is only relevant if object is not wire-drawn! See #32068. */
       bool is_visible = !use_occlude_geometry ||
                         BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, region, v3d, tc->obedit);
 
@@ -617,7 +617,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
      * which calculates the direction to slide based on clever checks.
      *
      * otherwise we simply use 'e_dir' as an edge-rail.
-     * (which is better when the attached edge is a boundary, see: T40422)
+     * (which is better when the attached edge is a boundary, see: #40422)
      */
 #define EDGESLIDE_VERT_IS_INNER(v, e_dir) \
   ((BM_edge_is_boundary(e_dir) == false) && (BM_vert_edge_count_nonwire(v) == 2))
@@ -717,7 +717,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
       BMVert *v_prev;
       BMEdge *e_prev;
 
-      /* XXX, 'sv' will initialize multiple times, this is suspicious. see T34024. */
+      /* XXX, 'sv' will initialize multiple times, this is suspicious. see #34024. */
       BLI_assert(v != NULL);
       BLI_assert(sv_table[BM_elem_index_get(v)] != INDEX_INVALID);
       sv = SV_FROM_VERT(v);
@@ -1198,7 +1198,7 @@ void drawEdgeSlide(TransInfo *t)
     immEnd();
   }
   else if (is_clamp == false) {
-    const int side_index = sld->curr_side_unclamp;
+    const int side_index = slp->curr_side_unclamp;
     TransDataEdgeSlideVert *sv;
     int i;
     const int alpha_shade = -160;
@@ -1207,7 +1207,7 @@ void drawEdgeSlide(TransInfo *t)
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBegin(GPU_PRIM_LINES, sld->totsv * 2);
 
-    /* TODO(@campbellbarton): Loop over all verts. */
+    /* TODO(@ideasman42): Loop over all verts. */
     sv = sld->sv;
     for (i = 0; i < sld->totsv; i++, sv++) {
       float a[3], b[3];
@@ -1235,7 +1235,7 @@ void drawEdgeSlide(TransInfo *t)
     const int alpha_shade = -160;
 
     float co_dir[3];
-    add_v3_v3v3(co_dir, curr_sv->v_co_orig, curr_sv->dir_side[sld->curr_side_unclamp]);
+    add_v3_v3v3(co_dir, curr_sv->v_co_orig, curr_sv->dir_side[slp->curr_side_unclamp]);
 
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
@@ -1272,7 +1272,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   }
 
   getSnapPoint(t, dvec);
-  sub_v3_v3(dvec, t->tsnap.snapTarget);
+  sub_v3_v3(dvec, t->tsnap.snap_source);
   add_v3_v3v3(snap_point, co_orig, dvec);
 
   float perc = *value;
@@ -1284,7 +1284,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
       side_index = perc < 0.0f;
     }
     else {
-      side_index = sld_active->curr_side_unclamp;
+      side_index = slp->curr_side_unclamp;
     }
   }
   else {
@@ -1336,57 +1336,30 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   *value = perc;
 }
 
-static void doEdgeSlide(TransInfo *t, float perc)
+static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
+                                  const float fac,
+                                  const float curr_length_fac,
+                                  const int curr_side_unclamp,
+                                  const bool use_clamp,
+                                  const bool use_even,
+                                  const bool use_flip,
+                                  float r_co[3])
 {
-  EdgeSlideParams *slp = t->custom.mode.data;
-  EdgeSlideData *sld_active = edgeSlideFirstGet(t);
+  copy_v3_v3(r_co, sv->v_co_orig);
 
-  slp->perc = perc;
-
-  if (slp->use_even == false) {
-    const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
-    if (is_clamp) {
-      const int side_index = (perc < 0.0f);
-      const float perc_final = fabsf(perc);
-      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        EdgeSlideData *sld = tc->custom.mode.data;
-
-        if (sld == NULL) {
-          continue;
-        }
-
-        TransDataEdgeSlideVert *sv = sld->sv;
-        for (int i = 0; i < sld->totsv; i++, sv++) {
-          madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, sv->dir_side[side_index], perc_final);
-        }
-        sld->curr_side_unclamp = side_index;
-      }
+  if (use_even == false) {
+    if (use_clamp) {
+      const int side_index = (fac < 0.0f);
+      const float fac_final = fabsf(fac);
+      madd_v3_v3fl(r_co, sv->dir_side[side_index], fac_final);
     }
     else {
-      const float perc_init = fabsf(perc) *
-                              ((sld_active->curr_side_unclamp == (perc < 0.0f)) ? 1 : -1);
-      const int side_index = sld_active->curr_side_unclamp;
-      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        EdgeSlideData *sld = tc->custom.mode.data;
-
-        if (sld == NULL) {
-          continue;
-        }
-
-        TransDataEdgeSlideVert *sv = sld->sv;
-        for (int i = 0; i < sld->totsv; i++, sv++) {
-          float dir_flip[3];
-          float perc_final = perc_init;
-          if (!is_zero_v3(sv->dir_side[side_index])) {
-            copy_v3_v3(dir_flip, sv->dir_side[side_index]);
-          }
-          else {
-            copy_v3_v3(dir_flip, sv->dir_side[!side_index]);
-            perc_final *= -1;
-          }
-          madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, dir_flip, perc_final);
-        }
+      int side_index = curr_side_unclamp;
+      if (is_zero_v3(sv->dir_side[side_index])) {
+        side_index = !side_index;
       }
+      const float fac_final = (side_index == (fac < 0.0f) ? fabsf(fac) : -fabsf(fac));
+      madd_v3_v3fl(r_co, sv->dir_side[side_index], fac_final);
     }
   }
   else {
@@ -1400,36 +1373,55 @@ static void doEdgeSlide(TransInfo *t, float perc)
      * is the same as the distance between the original vert locations,
      * same goes for the lines below.
      */
-    TransDataEdgeSlideVert *curr_sv = &sld_active->sv[sld_active->curr_sv_index];
-    const float curr_length_perc = curr_sv->edge_len *
-                                   (((slp->flipped ? perc : -perc) + 1.0f) / 2.0f);
+    if (sv->edge_len > FLT_EPSILON) {
+      float co_a[3], co_b[3];
+      const float fac_final = min_ff(sv->edge_len, curr_length_fac) / sv->edge_len;
 
-    float co_a[3];
-    float co_b[3];
+      add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
+      add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
 
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      EdgeSlideData *sld = tc->custom.mode.data;
-
-      if (sld == NULL) {
-        continue;
+      if (use_flip) {
+        interp_line_v3_v3v3v3(r_co, co_b, sv->v_co_orig, co_a, fac_final);
       }
-
-      TransDataEdgeSlideVert *sv = sld->sv;
-      for (int i = 0; i < sld->totsv; i++, sv++) {
-        if (sv->edge_len > FLT_EPSILON) {
-          const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
-
-          add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
-          add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
-
-          if (slp->flipped) {
-            interp_line_v3_v3v3v3(sv->v->co, co_b, sv->v_co_orig, co_a, fac);
-          }
-          else {
-            interp_line_v3_v3v3v3(sv->v->co, co_a, sv->v_co_orig, co_b, fac);
-          }
-        }
+      else {
+        interp_line_v3_v3v3v3(r_co, co_a, sv->v_co_orig, co_b, fac_final);
       }
+    }
+  }
+}
+
+static void doEdgeSlide(TransInfo *t, float perc)
+{
+  EdgeSlideParams *slp = t->custom.mode.data;
+  EdgeSlideData *sld_active = edgeSlideFirstGet(t);
+
+  slp->perc = perc;
+
+  const bool use_clamp = !(t->flag & T_ALT_TRANSFORM);
+  const bool use_even = slp->use_even;
+  const bool use_flip = slp->flipped;
+
+  const int curr_side_unclamp = slp->curr_side_unclamp;
+  float curr_length_fac = 0.0f;
+  if (use_even) {
+    TransDataEdgeSlideVert *sv_active = &sld_active->sv[sld_active->curr_sv_index];
+    curr_length_fac = sv_active->edge_len * (((use_flip ? perc : -perc) + 1.0f) / 2.0f);
+  }
+  else if (use_clamp) {
+    slp->curr_side_unclamp = (perc < 0.0f);
+  }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    EdgeSlideData *sld = tc->custom.mode.data;
+
+    if (sld == NULL) {
+      continue;
+    }
+
+    TransDataEdgeSlideVert *sv = sld->sv;
+    for (int i = 0; i < sld->totsv; i++, sv++) {
+      edge_slide_apply_elem(
+          sv, perc, curr_length_fac, curr_side_unclamp, use_clamp, use_even, use_flip, sv->v->co);
     }
   }
 }
@@ -1447,7 +1439,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnappingAsGroup(t, &final);
+  transform_snap_mixed_apply(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }
@@ -1498,8 +1490,9 @@ void initEdgeSlide_ex(
   t->mode = TFM_EDGE_SLIDE;
   t->transform = applyEdgeSlide;
   t->handleEvent = handleEventEdgeSlide;
-  t->tsnap.applySnap = edge_slide_snap_apply;
-  t->tsnap.distance = transform_snap_distance_len_squared_fn;
+  t->transform_matrix = NULL;
+  t->tsnap.snap_mode_apply_fn = edge_slide_snap_apply;
+  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   {
     EdgeSlideParams *slp = MEM_callocN(sizeof(*slp), __func__);

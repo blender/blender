@@ -88,13 +88,6 @@ light_sample_shader_eval(KernelGlobals kg,
   return eval;
 }
 
-/* Test if light sample is from a light or emission from geometry. */
-ccl_device_inline bool light_sample_is_light(ccl_private const LightSample *ccl_restrict ls)
-{
-  /* return if it's a lamp for shadow pass */
-  return (ls->prim == PRIM_NONE && ls->type != LIGHT_BACKGROUND);
-}
-
 /* Early path termination of shadow rays. */
 ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
                                               ccl_private const LightSample *ccl_restrict ls,
@@ -324,7 +317,8 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
  * Uses either a flat distribution or light tree. */
 
 ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
-                                                        float randu,
+                                                        const float randn,
+                                                        const float randu,
                                                         const float randv,
                                                         const float time,
                                                         const float3 P,
@@ -337,17 +331,19 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     return light_tree_sample<true>(
-        kg, randu, randv, time, P, D, t, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
+        kg, randn, randu, randv, time, P, D, t, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
   }
   else
 #endif
   {
-    return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
+    return light_distribution_sample<true>(
+        kg, randn, randu, randv, time, P, bounce, path_flag, ls);
   }
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            ccl_private const RNGState *rng_state,
+                                           const float randn,
                                            const float randu,
                                            const float randv,
                                            const float time,
@@ -361,12 +357,13 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     return light_tree_sample<false>(
-        kg, randu, randv, time, P, N, 0, shader_flags, bounce, path_flag, ls);
+        kg, randn, randu, randv, time, P, N, 0, shader_flags, bounce, path_flag, ls);
   }
   else
 #endif
   {
-    return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
+    return light_distribution_sample<false>(
+        kg, randn, randu, randv, time, P, bounce, path_flag, ls);
   }
 }
 

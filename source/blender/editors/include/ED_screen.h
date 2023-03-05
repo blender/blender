@@ -217,7 +217,8 @@ void ED_area_tag_refresh(ScrArea *area);
 void ED_area_do_refresh(struct bContext *C, ScrArea *area);
 struct AZone *ED_area_azones_update(ScrArea *area, const int mouse_xy[2]);
 /**
- * Use NULL to disable it.
+ * Show the given text in the area's header, instead of its regular contents.
+ * Use NULL to disable this and show the regular header contents again.
  */
 void ED_area_status_text(ScrArea *area, const char *str);
 /**

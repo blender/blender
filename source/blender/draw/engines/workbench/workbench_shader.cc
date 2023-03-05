@@ -67,7 +67,6 @@ static const char *workbench_lighting_mode_to_str(int light)
       return "_matcap";
     case V3D_LIGHTING_FLAT:
       return "_flat";
-      return "";
   }
 }
 

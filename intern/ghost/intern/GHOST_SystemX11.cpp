@@ -46,7 +46,7 @@
 
 #ifdef WITH_X11_XFIXES
 #  include <X11/extensions/Xfixes.h>
-/* Workaround for XWayland grab glitch: T53004. */
+/* Workaround for XWayland grab glitch: #53004. */
 #  define WITH_XWAYLAND_HACK
 #endif
 
@@ -71,11 +71,11 @@
 #  define USE_XINPUT_HOTPLUG
 #endif
 
-/* see T34039 Fix Alt key glitch on Unity desktop */
+/* see #34039 Fix Alt key glitch on Unity desktop */
 #define USE_UNITY_WORKAROUND
 
 /* Fix 'shortcut' part of keyboard reading code only ever using first defined key-map
- * instead of active one. See T47228 and D1746 */
+ * instead of active one. See #47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
 static uchar bit_is_on(const uchar *ptr, int bit)
@@ -275,24 +275,16 @@ uint8_t GHOST_SystemX11::getNumDisplays() const
   return uint8_t(1);
 }
 
-/**
- * Returns the dimensions of the main display on this system.
- * \return The dimension of the main display.
- */
 void GHOST_SystemX11::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   if (m_display) {
-    /* NOTE(@campbellbarton): for this to work as documented,
+    /* NOTE(@ideasman42): for this to work as documented,
      * we would need to use Xinerama check r54370 for code that did this,
      * we've since removed since its not worth the extra dependency. */
     getAllDisplayDimensions(width, height);
   }
 }
 
-/**
- * Returns the dimensions of the main display on this system.
- * \return The dimension of the main display.
- */
 void GHOST_SystemX11::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   if (m_display) {
@@ -301,22 +293,6 @@ void GHOST_SystemX11::getAllDisplayDimensions(uint32_t &width, uint32_t &height)
   }
 }
 
-/**
- * Create a new window.
- * The new window is added to the list of windows managed.
- * Never explicitly delete the window, use #disposeWindow() instead.
- * \param title: The name of the window
- * (displayed in the title bar of the window if the OS supports it).
- * \param left: The coordinate of the left edge of the window.
- * \param top: The coordinate of the top edge of the window.
- * \param width: The width the window.
- * \param height: The height the window.
- * \param state: The state of the window when opened.
- * \param glSettings: Misc OpenGL settings.
- * \param exclusive: Use to show the window on top and ignore others (used full-screen).
- * \param parentWindow: Parent window.
- * \return The new window (or 0 if creation failed).
- */
 GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              int32_t left,
                                              int32_t top,
@@ -417,11 +393,7 @@ static GHOST_Context *create_glx_context(Display *display,
 
   return nullptr;
 }
-/**
- * Create a new off-screen context.
- * Never explicitly delete the context, use #disposeContext() instead.
- * \return The new context (or 0 if creation failed).
- */
+
 GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
 {
   /* During development:
@@ -479,11 +451,6 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
   return nullptr;
 }
 
-/**
- * Dispose of a context.
- * \param context: Pointer to the context to be disposed.
- * \return Indication of success.
- */
 GHOST_TSuccess GHOST_SystemX11::disposeContext(GHOST_IContext *context)
 {
   delete context;
@@ -960,8 +927,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           if (window->getCursorGrabMode() == GHOST_kGrabHide) {
             window->getClientBounds(bounds);
 
-            /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
-             * on every motion event, see: D16557 (alternative fix for T102346). */
+            /* TODO(@ideasman42): warp the cursor to `window->getCursorGrabInitPos`,
+             * on every motion event, see: D16557 (alternative fix for #102346). */
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
             const int32_t center[2] = {
@@ -997,7 +964,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         if (x_new != xme.x_root || y_new != xme.y_root) {
           /* Use time of last event to avoid wrapping several times on the 'same' actual wrap.
            * Note that we need to deal with X and Y separately as those might wrap at the same time
-           * but still in two different events (corner case, see T74918).
+           * but still in two different events (corner case, see #74918).
            * We also have to add a few extra milliseconds of 'padding', as sometimes we get two
            * close events that will generate extra wrap on the same axis within those few
            * milliseconds. */
@@ -1061,7 +1028,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* XXX: Code below is kinda awfully convoluted... Issues are:
        * - In keyboards like Latin ones, numbers need a 'Shift' to be accessed but key_sym
        *   is unmodified (or anyone swapping the keys with `xmodmap`).
-       * - #XLookupKeysym seems to always use first defined key-map (see T47228), which generates
+       * - #XLookupKeysym seems to always use first defined key-map (see #47228), which generates
        *   key-codes unusable by ghost_key_from_keysym for non-Latin-compatible key-maps.
        *
        * To address this, we:
@@ -1748,7 +1715,7 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 
 #if defined(WITH_X11_XINPUT) && defined(USE_X11_XINPUT_WARP)
   if ((m_xinput_version.present) && (m_xinput_version.major_version >= 2)) {
-    /* Needed to account for XInput "Coordinate Transformation Matrix", see T48901 */
+    /* Needed to account for XInput "Coordinate Transformation Matrix", see #48901 */
     int device_id;
     if (XIGetClientPointer(m_display, None, &device_id) != False) {
       XIWarpPointer(m_display, device_id, None, None, 0, 0, 0, 0, relx, rely);
@@ -2048,8 +2015,8 @@ void GHOST_SystemX11::getClipboard_xcout(
         return;
       }
 
-      /* if it's not incr, and not format == 8, then there's
-       * nothing in the selection (that xclip understands, anyway) */
+      /* If it's not INCR, and not `format == 8`, then there's
+       * nothing in the selection (that `xclip` understands, anyway). */
 
       if (pty_format != 8) {
         *context = XCLIB_XCOUT_NONE;

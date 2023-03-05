@@ -5,11 +5,11 @@
 /** \file
  * \ingroup fn
  *
- * A #MFProcedure optimization pass takes an existing procedure and changes it in a way that
+ * A #Procedure optimization pass takes an existing procedure and changes it in a way that
  * improves its performance when executed.
  *
  * Oftentimes it would also be possible to implement a specific optimization directly during
- * construction of the initial #MFProcedure. There is a trade-off between doing that or just
+ * construction of the initial #Procedure. There is a trade-off between doing that or just
  * building a "simple" procedure and then optimizing it uses separate optimization passes.
  * - Doing optimizations directly during construction is typically faster than doing it as a
  *   separate pass. However, it would be much harder to turn the optimization off when it is not
@@ -23,10 +23,10 @@
 
 #include "FN_multi_function_procedure.hh"
 
-namespace blender::fn::procedure_optimization {
+namespace blender::fn::multi_function::procedure_optimization {
 
 /**
- * When generating a procedure, destruct instructions (#MFDestructInstruction) have to be inserted
+ * When generating a procedure, destruct instructions (#DestructInstruction) have to be inserted
  * for all variables that are not outputs. Often the simplest approach is to add these instructions
  * at the very end. However, when the procedure is executed this is not optimal, because many more
  * variables are initialized at the same time than necessary. This inhibits the reuse of memory
@@ -42,6 +42,6 @@ namespace blender::fn::procedure_optimization {
  * \param block_end_instr: The instruction that points to the last instruction within a linear
  * chain of instructions. The algorithm moves instructions backward starting at this instruction.
  */
-void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr);
+void move_destructs_up(Procedure &procedure, Instruction &block_end_instr);
 
-}  // namespace blender::fn::procedure_optimization
+}  // namespace blender::fn::multi_function::procedure_optimization

@@ -25,6 +25,7 @@
 #include "BKE_shrinkwrap.h"
 #include "BKE_subdiv_ccg.h"
 
+using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -104,7 +105,6 @@ MeshRuntime::~MeshRuntime()
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(this->subsurf_face_dot_tags);
 }
 
 }  // namespace blender::bke
@@ -143,20 +143,24 @@ void Mesh::loose_edges_tag_none() const
 blender::Span<MLoopTri> Mesh::looptris() const
 {
   this->runtime->looptris_cache.ensure([&](blender::Array<MLoopTri> &r_data) {
-    const Span<MVert> verts = this->verts();
+    const Span<float3> positions = this->vert_positions();
     const Span<MPoly> polys = this->polys();
     const Span<MLoop> loops = this->loops();
 
     r_data.reinitialize(poly_to_tri_count(polys.size(), loops.size()));
 
     if (BKE_mesh_poly_normals_are_dirty(this)) {
-      BKE_mesh_recalc_looptri(
-          loops.data(), polys.data(), verts.data(), loops.size(), polys.size(), r_data.data());
+      BKE_mesh_recalc_looptri(loops.data(),
+                              polys.data(),
+                              reinterpret_cast<const float(*)[3]>(positions.data()),
+                              loops.size(),
+                              polys.size(),
+                              r_data.data());
     }
     else {
       BKE_mesh_recalc_looptri_with_normals(loops.data(),
                                            polys.data(),
-                                           verts.data(),
+                                           reinterpret_cast<const float(*)[3]>(positions.data()),
                                            loops.size(),
                                            polys.size(),
                                            r_data.data(),
@@ -225,10 +229,11 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->looptris_cache.tag_dirty();
+  mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
 }
 
 void BKE_mesh_tag_edges_split(struct Mesh *mesh)
@@ -240,10 +245,11 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   free_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->loose_edges_cache.tag_dirty();
+  mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
-  MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
 }
 
 void BKE_mesh_tag_coords_changed(Mesh *mesh)
@@ -317,7 +323,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
     printf("MESH: %s\n", me_eval->id.name + 2);
   }
 
-  MutableSpan<MVert> verts = me_eval->verts_for_write();
+  MutableSpan<float3> positions = me_eval->vert_positions_for_write();
   MutableSpan<MEdge> edges = me_eval->edges_for_write();
   MutableSpan<MPoly> polys = me_eval->polys_for_write();
   MutableSpan<MLoop> loops = me_eval->loops_for_write();
@@ -336,22 +342,22 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
       do_fixes,
       &changed);
 
-  is_valid &= BKE_mesh_validate_arrays(
-      me_eval,
-      verts.data(),
-      verts.size(),
-      edges.data(),
-      edges.size(),
-      static_cast<MFace *>(CustomData_get_layer(&me_eval->fdata, CD_MFACE)),
-      me_eval->totface,
-      loops.data(),
-      loops.size(),
-      polys.data(),
-      polys.size(),
-      me_eval->deform_verts_for_write().data(),
-      do_verbose,
-      do_fixes,
-      &changed);
+  is_valid &= BKE_mesh_validate_arrays(me_eval,
+                                       reinterpret_cast<float(*)[3]>(positions.data()),
+                                       positions.size(),
+                                       edges.data(),
+                                       edges.size(),
+                                       static_cast<MFace *>(CustomData_get_layer_for_write(
+                                           &me_eval->fdata, CD_MFACE, me_eval->totface)),
+                                       me_eval->totface,
+                                       loops.data(),
+                                       loops.size(),
+                                       polys.data(),
+                                       polys.size(),
+                                       me_eval->deform_verts_for_write().data(),
+                                       do_verbose,
+                                       do_fixes,
+                                       &changed);
 
   BLI_assert(changed == false);
 

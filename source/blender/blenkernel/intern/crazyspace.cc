@@ -188,7 +188,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
   BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
@@ -214,9 +214,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
           co_next = origcos[ml_next->v];
         }
         else {
-          co_prev = verts[ml_prev->v].co;
-          co_curr = verts[ml_curr->v].co;
-          co_next = verts[ml_next->v].co;
+          co_prev = positions[ml_prev->v];
+          co_curr = positions[ml_curr->v];
+          co_next = positions[ml_next->v];
         }
 
         set_crazy_vertex_quat(
@@ -398,7 +398,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
       }
       else {
         /* More complex handling will continue in BKE_crazyspace_build_sculpt.
-         * Exiting the loop on a non-deform modifier causes issues - T71213. */
+         * Exiting the loop on a non-deform modifier causes issues - #71213. */
         BLI_assert(crazyspace_modifier_supports_deform(md));
         break;
       }
@@ -596,19 +596,17 @@ void BKE_crazyspace_api_eval_clear(Object *object)
 
 namespace blender::bke::crazyspace {
 
-GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
-                                                     const Object &ob_orig)
+GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, const Object &ob_orig)
 {
   BLI_assert(ob_orig.type == OB_CURVES);
   const Curves &curves_id_orig = *static_cast<const Curves *>(ob_orig.data);
-  const CurvesGeometry &curves_orig = CurvesGeometry::wrap(curves_id_orig.geometry);
+  const CurvesGeometry &curves_orig = curves_id_orig.geometry.wrap();
   const int points_num = curves_orig.points_num();
 
   GeometryDeformation deformation;
   /* Use the undeformed positions by default. */
   deformation.positions = curves_orig.positions();
 
-  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
   if (ob_eval == nullptr) {
     return deformation;
   }
@@ -643,7 +641,7 @@ GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
     if (curves_component_eval != nullptr) {
       const Curves *curves_id_eval = curves_component_eval->get_for_read();
       if (curves_id_eval != nullptr) {
-        const CurvesGeometry &curves_eval = CurvesGeometry::wrap(curves_id_eval->geometry);
+        const CurvesGeometry &curves_eval = curves_id_eval->geometry.wrap();
         if (curves_eval.points_num() == points_num) {
           deformation.positions = curves_eval.positions();
         }
@@ -651,6 +649,13 @@ GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
     }
   }
   return deformation;
+}
+
+GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
+                                                     const Object &ob_orig)
+{
+  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
+  return get_evaluated_curves_deformation(ob_eval, ob_orig);
 }
 
 }  // namespace blender::bke::crazyspace

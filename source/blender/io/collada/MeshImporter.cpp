@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -33,6 +34,7 @@
 #include "MeshImporter.h"
 #include "collada_utils.h"
 
+using blender::float3;
 using blender::MutableSpan;
 
 /* get node name, or fall back to original id if not present (name is optional) */
@@ -244,7 +246,7 @@ void MeshImporter::set_vcol(MLoopCol *mloopcol,
   }
 }
 
-void MeshImporter::set_face_uv(MLoopUV *mloopuv,
+void MeshImporter::set_face_uv(blender::float2 *mloopuv,
                                UVDataWrapper &uvs,
                                int start_index,
                                COLLADAFW::IndexList &index_list,
@@ -255,7 +257,7 @@ void MeshImporter::set_face_uv(MLoopUV *mloopuv,
 
   for (int index = 0; index < count; index++) {
     int uv_index = indices[index + start_index];
-    uvs.getUV(uv_index, mloopuv[index].uv);
+    uvs.getUV(uv_index, mloopuv[index]);
   }
 }
 
@@ -349,10 +351,11 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
-  MutableSpan<MVert> verts = me->verts_for_write();
-  for (const int i : verts.index_range()) {
-    get_vector(verts[i].co, pos, i, stride);
+  CustomData_add_layer_named(
+      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  MutableSpan<float3> positions = me->vert_positions_for_write();
+  for (const int i : positions.index_range()) {
+    get_vector(positions[i], pos, i, stride);
   }
 }
 
@@ -471,10 +474,10 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         COLLADAFW::String &uvname = info->mName;
         /* Allocate space for UV_data */
         CustomData_add_layer_named(
-            &me->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, me->totloop, uvname.c_str());
+            &me->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, me->totloop, uvname.c_str());
       }
       /* activate the first uv map */
-      CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, 0);
+      CustomData_set_layer_active(&me->ldata, CD_PROP_FLOAT2, 0);
     }
 
     int totcolset = collada_mesh->getColors().getInputInfosArray().getCount();
@@ -486,7 +489,8 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         CustomData_add_layer_named(
             &me->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, me->totloop, colname.c_str());
       }
-      CustomData_set_layer_active(&me->ldata, CD_PROP_BYTE_COLOR, 0);
+      BKE_id_attributes_active_color_set(
+          &me->id, CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, 0));
     }
   }
 }
@@ -558,15 +562,6 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edata;
-
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-
-  /* set default flags */
-  medge = &edges[mesh->totedge];
-  for (int i = 0; i < len; i++, medge++) {
-    medge->flag = ME_EDGEDRAW;
-  }
-
   mesh->totedge = totedge;
 }
 
@@ -650,8 +645,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
       uint grouped_vertex_count = mp->getGroupedVertexElementsCount();
       for (uint group_index = 0; group_index < grouped_vertex_count; group_index++) {
-        uint first_vertex = position_indices[0]; /* Store first trifan vertex */
-        uint first_normal = normal_indices[0];   /* Store first trifan vertex normal */
+        uint first_vertex = position_indices[0]; /* Store first triangle-fan vertex. */
+        uint first_normal = normal_indices[0];   /* Store first triangle-fan vertex normal. */
         uint vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
         for (uint vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
@@ -713,10 +708,10 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
         for (uint uvset_index = 0; uvset_index < index_list_array_uvcoord.getCount();
              uvset_index++) {
-          /* get mtface by face index and uv set index */
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
-          MLoopUV *mloopuv = (MLoopUV *)CustomData_get_layer_named(
-              &me->ldata, CD_MLOOPUV, index_list.getName().c_str());
+          blender::float2 *mloopuv = static_cast<blender::float2 *>(
+              CustomData_get_layer_named_for_write(
+                  &me->ldata, CD_PROP_FLOAT2, index_list.getName().c_str(), me->totloop));
           if (mloopuv == nullptr) {
             fprintf(stderr,
                     "Collada import: Mesh [%s] : Unknown reference to TEXCOORD [#%s].\n",
@@ -758,8 +753,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
             COLLADAFW::IndexList &color_index_list = *mp->getColorIndices(vcolor_index);
             COLLADAFW::String colname = extract_vcolname(color_index_list.getName());
-            MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_named(
-                &me->ldata, CD_PROP_BYTE_COLOR, colname.c_str());
+            MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_named_for_write(
+                &me->ldata, CD_PROP_BYTE_COLOR, colname.c_str(), me->totloop);
             if (mloopcol == nullptr) {
               fprintf(stderr,
                       "Collada import: Mesh [%s] : Unknown reference to VCOLOR [#%s].\n",

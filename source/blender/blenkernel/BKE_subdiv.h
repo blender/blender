@@ -88,13 +88,13 @@ typedef enum eSubdivStatsValue {
 typedef struct SubdivStats {
   union {
     struct {
-      /* Time spend on creating topology refiner, which includes time
+      /* Time spent on creating topology refiner, which includes time
        * spend on conversion from Blender data to OpenSubdiv data, and
-       * time spend on topology orientation on OpenSubdiv C-API side. */
+       * time spent on topology orientation on OpenSubdiv C-API side. */
       double topology_refiner_creation_time;
       /* Total time spent in BKE_subdiv_to_mesh(). */
       double subdiv_to_mesh_time;
-      /* Geometry (MVert and co) creation time during SUBDIV_TYO_MESH. */
+      /* Geometry (mesh vertices) creation time during SUBDIV_TYO_MESH. */
       double subdiv_to_mesh_geometry_time;
       /* Time spent on evaluator creation from topology refiner. */
       double evaluator_creation_time;

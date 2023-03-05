@@ -983,13 +983,6 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
   const float tab_size_x = 0.7f * U.widget_unit;
   const float tab_size_y = 0.4f * U.widget_unit;
 
-  int tot = 0;
-  LISTBASE_FOREACH (AZone *, azt, &area->actionzones) {
-    if (azt->edge == az->edge) {
-      tot++;
-    }
-  }
-
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT: {
       int add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;
@@ -1517,7 +1510,7 @@ static void region_rect_recursive(
       }
 
       /* Fix any negative dimensions. This can happen when a quad split 3d view gets too small.
-       * (see T72200). */
+       * (see #72200). */
       BLI_rcti_sanitize(&region->winrct);
 
       quad++;
@@ -1629,7 +1622,7 @@ static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
   /* Although the following asserts are correct they lead to a very unstable Blender.
    * And the asserts would fail even in 2.7x
    * (they were added in 2.8x as part of the top-bar commit).
-   * For more details see T54864. */
+   * For more details see #54864. */
 #if 0
   BLI_assert(area->totrct.xmin >= 0);
   BLI_assert(area->totrct.xmax >= 0);
@@ -1745,7 +1738,7 @@ static void ed_default_handlers(
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
 
-  /* Keep last because of LMB/RMB handling, see: T57527. */
+  /* Keep last because of LMB/RMB handling, see: #57527. */
   if (flag & ED_KEYMAP_GPENCIL) {
     /* grease pencil */
     /* NOTE: This is now 4 keymaps - One for basic functionality,
@@ -2089,7 +2082,7 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
   if (region->flag & RGN_FLAG_HIDDEN) {
     WM_event_remove_handlers(C, &region->handlers);
     /* Needed to close any open pop-overs which would otherwise remain open,
-     * crashing on attempting to refresh. See: T93410.
+     * crashing on attempting to refresh. See: #93410.
      *
      * When #ED_area_init frees buttons via #UI_blocklist_free a NULL context
      * is passed, causing the free not to remove menus or their handlers. */
@@ -2437,7 +2430,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
      * changing the header-type is jarring (especially when using Ctrl-MouseWheel).
      *
      * However, add-on install for example, forces the header to the top which shouldn't
-     * be applied back to the previous space type when closing - see: T57724
+     * be applied back to the previous space type when closing - see: #57724
      *
      * Newly-created windows won't have any space data, use the alignment
      * the space type defaults to in this case instead
@@ -2953,7 +2946,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     margin_x = category_tabs_width;
   }
 
-  const int width_no_header = BLI_rctf_size_x(&v2d->cur) - margin_x;
+  const int max_panel_width = BLI_rctf_size_x(&v2d->cur) - margin_x;
   /* Works out to 10 * UI_UNIT_X or 20 * UI_UNIT_X. */
   const int em = (region->type->prefsizex) ? 10 : 20;
 
@@ -2981,22 +2974,14 @@ void ED_region_panels_layout_ex(const bContext *C,
         continue;
       }
     }
-    const int width = panel_draw_width_from_max_width_get(region, pt, width_no_header);
+    const int width = panel_draw_width_from_max_width_get(region, pt, max_panel_width);
 
     if (panel && UI_panel_is_dragging(panel)) {
       /* Prevent View2d.tot rectangle size changes while dragging panels. */
       update_tot_size = false;
     }
 
-    ed_panel_draw(C,
-                  region,
-                  &region->panels,
-                  pt,
-                  panel,
-                  (pt->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
-                  em,
-                  NULL,
-                  search_filter);
+    ed_panel_draw(C, region, &region->panels, pt, panel, width, em, NULL, search_filter);
   }
 
   /* Draw "poly-instantiated" panels that don't have a 1 to 1 correspondence with their types. */
@@ -3012,7 +2997,7 @@ void ED_region_panels_layout_ex(const bContext *C,
           !STREQ(category, panel->type->category)) {
         continue;
       }
-      const int width = panel_draw_width_from_max_width_get(region, panel->type, width_no_header);
+      const int width = panel_draw_width_from_max_width_get(region, panel->type, max_panel_width);
 
       if (panel && UI_panel_is_dragging(panel)) {
         /* Prevent View2d.tot rectangle size changes while dragging panels. */
@@ -3028,7 +3013,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                     &region->panels,
                     panel->type,
                     panel,
-                    (panel->type->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
+                    width,
                     em,
                     unique_panel_str,
                     search_filter);
@@ -3377,7 +3362,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
     UI_block_end(C, block);
 
     /* In most cases there is only ever one header, it never makes sense to draw more than one
-     * header in the same region, this results in overlapping buttons, see: T60195. */
+     * header in the same region, this results in overlapping buttons, see: #60195. */
     break;
   }
 
@@ -3530,6 +3515,9 @@ void ED_region_info_draw_multiline(ARegion *region,
 
   /* background box */
   rcti rect = *ED_region_visible_rect(region);
+
+  /* Needed in case scripts leave the font size at an unexpected value, see: #102213. */
+  BLF_size(fontid, style->widget.points * U.dpi_fac);
 
   /* Box fill entire width or just around text. */
   if (!full_redraw) {

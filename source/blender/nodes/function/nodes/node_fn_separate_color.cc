@@ -37,26 +37,24 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-class SeparateRGBAFunction : public fn::MultiFunction {
+class SeparateRGBAFunction : public mf::MultiFunction {
  public:
   SeparateRGBAFunction()
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Red", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Green", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Blue", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Separate Color"};
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<float>("Red");
-    signature.single_output<float>("Green");
-    signature.single_output<float>("Blue");
-    signature.single_output<float>("Alpha");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -98,26 +96,24 @@ class SeparateRGBAFunction : public fn::MultiFunction {
   }
 };
 
-class SeparateHSVAFunction : public fn::MultiFunction {
+class SeparateHSVAFunction : public mf::MultiFunction {
  public:
   SeparateHSVAFunction()
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Hue");
+      builder.single_output<float>("Saturation");
+      builder.single_output<float>("Value");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Separate Color"};
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<float>("Hue");
-    signature.single_output<float>("Saturation");
-    signature.single_output<float>("Value");
-    signature.single_output<float>("Alpha");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -138,26 +134,24 @@ class SeparateHSVAFunction : public fn::MultiFunction {
   }
 };
 
-class SeparateHSLAFunction : public fn::MultiFunction {
+class SeparateHSLAFunction : public mf::MultiFunction {
  public:
   SeparateHSLAFunction()
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Hue");
+      builder.single_output<float>("Saturation");
+      builder.single_output<float>("Lightness");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Separate Color"};
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<float>("Hue");
-    signature.single_output<float>("Saturation");
-    signature.single_output<float>("Lightness");
-    signature.single_output<float>("Alpha");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");

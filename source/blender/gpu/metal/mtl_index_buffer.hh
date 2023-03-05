@@ -48,7 +48,7 @@ class MTLIndexBuf : public IndexBuf {
   ~MTLIndexBuf();
 
   void bind_as_ssbo(uint32_t binding) override;
-  const uint32_t *read() const override;
+  void read(uint32_t *data) const override;
 
   void upload_data() override;
   void update_sub(uint32_t start, uint32_t len, const void *data) override;

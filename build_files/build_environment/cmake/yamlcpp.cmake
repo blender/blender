@@ -10,7 +10,8 @@ if(WIN32)
   set(YAMLCPP_EXTRA_ARGS
     ${YAMLCPP_EXTRA_ARGS}
     -DBUILD_GMOCK=OFF
-    -DYAML_MSVC_SHARED_RT=ON)
+    -DYAML_MSVC_SHARED_RT=ON
+  )
 endif()
 
 ExternalProject_Add(external_yamlcpp

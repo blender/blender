@@ -247,7 +247,7 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEv
 
   BLI_rcti_rctf_copy(&rect, &but->rect);
 
-  if (but->imb || but->type == UI_BTYPE_COLOR) {
+  if (but->dragflag & UI_BUT_DRAG_FULL_BUT) {
     /* use button size itself */
   }
   else if (but->drawflag & UI_BUT_ICON_LEFT) {
@@ -815,7 +815,7 @@ ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 /** \name Manage Internal State
  * \{ */
 
-void ui_interface_tag_script_reload_queries(void)
+void ui_interface_tag_script_reload_queries()
 {
   g_ot_tool_set_by_id = nullptr;
 }

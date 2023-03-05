@@ -769,7 +769,7 @@ static void draw_seq_outline(Scene *scene,
   immUniformColor3ubv(col);
 
   /* 2px wide outline for selected strips. */
-  /* XXX: some platforms don't support OpenGL lines wider than 1px (see T57570),
+  /* XXX: some platforms don't support OpenGL lines wider than 1px (see #57570),
    * draw outline as four boxes instead. */
   if (seq->flag & SELECT) {
     /* Left */
@@ -978,7 +978,8 @@ static void draw_sequence_extensions_overlay(
     immUniformColor4ubv(col);
     immRectf(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
 
-    /* Outline. */ immUniformColor3ubv(blend_col);
+    /* Outline. */
+    immUniformColor3ubv(blend_col);
     imm_draw_box_wire_2d(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
   }
   GPU_blend(GPU_BLEND_NONE);
@@ -2679,7 +2680,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   Editing *ed = SEQ_editing_get(scene);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
-  float col[3];
 
   seq_prefetch_wm_notify(C, scene);
 
@@ -2688,8 +2688,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
   GPU_depth_test(GPU_DEPTH_NONE);
 
-  UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0f);
+  UI_ThemeClearColor(TH_BACK);
 
   UI_view2d_view_ortho(v2d);
   draw_seq_timeline_channels(v2d);

@@ -90,7 +90,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     tone_range = max_tone - min_tone
 
     if tone_range < 0.0001:
-        # weak, don't cancel, see T43345
+        # weak, don't cancel, see #43345
         tone_range = 0.0
     else:
         tone_range = 1.0 / tone_range

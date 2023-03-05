@@ -21,8 +21,7 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-Evaluator::Evaluator(Context &context, bNodeTree &node_tree)
-    : context_(context), node_tree_(node_tree)
+Evaluator::Evaluator(Context &context) : context_(context)
 {
 }
 
@@ -67,7 +66,7 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_ = std::make_unique<DerivedNodeTree>(node_tree_);
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(*context_.get_scene()->nodetree);
 
   if (!validate_node_tree()) {
     return;
@@ -162,7 +161,7 @@ void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_s
 void Evaluator::map_shader_operation_inputs_to_their_results(ShaderOperation *operation,
                                                              CompileState &compile_state)
 {
-  for (const auto &item : operation->get_inputs_to_linked_outputs_map().items()) {
+  for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {
     Result &result = compile_state.get_result_from_output_socket(item.value);
     operation->map_input_to_result(item.key, &result);
   }

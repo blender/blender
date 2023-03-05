@@ -1548,7 +1548,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
@@ -1702,7 +1702,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     BLI_assert(ARRAY_SIZE(strings) == 5);
   }
 
-  /* XXX, this doubles up with the operator name T29666.
+  /* XXX, this doubles up with the operator name #29666.
    * for now just remove from dir(bpy.types) */
 
   /* create a new operator type */
@@ -2752,7 +2752,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed, -1 for any state");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
-  /* XXX(@campbellbarton): the `*_ui` suffix is only for the UI, may be removed,
+  /* XXX(@ideasman42): the `*_ui` suffix is only for the UI, may be removed,
    * since this is only exposed so the UI can show these settings as toggle-buttons. */
   prop = RNA_def_property(srna, "shift_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);
@@ -2804,6 +2804,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Expanded", "Show key map event and property details in the user interface");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "propvalue");

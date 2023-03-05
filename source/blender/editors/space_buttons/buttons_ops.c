@@ -233,7 +233,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     ED_undo_push(C, undostr);
   }
 
-  /* Special annoying exception, filesel on redo panel T26618. */
+  /* Special annoying exception, filesel on redo panel #26618. */
   {
     wmOperator *redo_op = WM_operator_last_redo(C);
     if (redo_op) {
@@ -268,8 +268,9 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   FileBrowseOp *fbo;
   char *str;
 
-  if (CTX_wm_space_file(C)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot activate a file selector, one already open");
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  if (sfile && sfile->op) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot activate a file selector dialog, one already open");
     return OPERATOR_CANCELLED;
   }
 

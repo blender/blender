@@ -234,12 +234,28 @@ uniform mat4 ModelMatrixInverse;
   (ProjectionMatrix * (ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)))
 #define point_object_to_view(p) ((ViewMatrix * vec4((ModelMatrix * vec4(p, 1.0)).xyz, 1.0)).xyz)
 #define point_object_to_world(p) ((ModelMatrix * vec4(p, 1.0)).xyz)
-#define point_view_to_ndc(p) (ProjectionMatrix * vec4(p, 1.0))
 #define point_view_to_object(p) ((ModelMatrixInverse * (ViewMatrixInverse * vec4(p, 1.0))).xyz)
-#define point_view_to_world(p) ((ViewMatrixInverse * vec4(p, 1.0)).xyz)
-#define point_world_to_ndc(p) (ProjectionMatrix * (ViewMatrix * vec4(p, 1.0)))
 #define point_world_to_object(p) ((ModelMatrixInverse * vec4(p, 1.0)).xyz)
-#define point_world_to_view(p) ((ViewMatrix * vec4(p, 1.0)).xyz)
+
+vec4 point_view_to_ndc(vec3 p)
+{
+  return ProjectionMatrix * vec4(p, 1.0);
+}
+
+vec3 point_view_to_world(vec3 p)
+{
+  return (ViewMatrixInverse * vec4(p, 1.0)).xyz;
+}
+
+vec4 point_world_to_ndc(vec3 p)
+{
+  return ProjectionMatrix * (ViewMatrix * vec4(p, 1.0));
+}
+
+vec3 point_world_to_view(vec3 p)
+{
+  return (ViewMatrix * vec4(p, 1.0)).xyz;
+}
 
 /* Due to some shader compiler bug, we somewhat need to access gl_VertexID
  * to make vertex shaders work. even if it's actually dead code. */

@@ -25,7 +25,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   const bNode &bnode = builder.node();
   NodeInputVector *node_storage = static_cast<NodeInputVector *>(bnode.storage);
   float3 vector(node_storage->vector);
-  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<float3>>(vector);
+  builder.construct_and_set_matching_fn<mf::CustomMF_Constant<float3>>(vector);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

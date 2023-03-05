@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Keep non-manifold boundaries of the input mesh in place by avoiding the dual "
           "transformation there");
-  b.add_output<decl::Geometry>("Dual Mesh");
+  b.add_output<decl::Geometry>("Dual Mesh").propagate_all();
 }
 
 enum class EdgeType : int8_t {
@@ -132,14 +132,17 @@ static void transfer_attributes(
     const Span<int> new_to_old_edges_map,
     const Span<int> new_to_old_face_corners_map,
     const Span<std::pair<int, int>> boundary_vertex_to_relevant_face_map,
+    const AnonymousAttributePropagationInfo &propagation_info,
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes)
 {
   /* Retrieve all attributes except for position which is handled manually.
-   * Remove anonymous attributes that don't need to be propagated.*/
+   * Remove anonymous attributes that don't need to be propagated. */
   Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
-  attribute_ids.remove_if([](const AttributeIDRef &id) { return !id.should_be_kept(); });
+  attribute_ids.remove_if([&](const AttributeIDRef &id) {
+    return id.is_anonymous() && !propagation_info.propagate(id.anonymous_id());
+  });
 
   for (const AttributeIDRef &id : attribute_ids) {
     GAttributeReader src_attribute = src_attributes.lookup(id);
@@ -537,7 +540,7 @@ static bool vertex_needs_dissolving(const int vertex,
  * used in the data-structures derived from the mesh. For each pair of polygons which has such a
  * vertex, an edge is created for the dual mesh between the centers of those two polygons. All
  * edges in the input mesh which contain such a vertex are marked as 'done' to prevent duplicate
- * edges being created. (See T94144)
+ * edges being created. (See #94144)
  */
 static void dissolve_redundant_verts(const Span<MEdge> edges,
                                      const Span<MPoly> polys,
@@ -606,9 +609,11 @@ static void dissolve_redundant_verts(const Span<MEdge> edges,
  *
  * Some special cases are needed for boundaries and non-manifold geometry.
  */
-static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
+static Mesh *calc_dual_mesh(const Mesh &src_mesh,
+                            const bool keep_boundaries,
+                            const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Span<MVert> src_verts = src_mesh.verts();
+  const Span<float3> src_positions = src_mesh.vert_positions();
   const Span<MEdge> src_edges = src_mesh.edges();
   const Span<MPoly> src_polys = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
@@ -620,7 +625,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
    * over in order of their indices, the polygon's indices will be sorted in ascending order.
    * (This can change once they are sorted using `sort_vertex_polys`). */
   Array<Vector<int>> vert_to_poly_map = bke::mesh_topology::build_vert_to_poly_map(
-      src_polys, src_loops, src_verts.size());
+      src_polys, src_loops, src_positions.size());
   Array<Array<int>> vertex_shared_edges(src_mesh.totvert);
   Array<Array<int>> vertex_corners(src_mesh.totvert);
   threading::parallel_for(vert_to_poly_map.index_range(), 512, [&](IndexRange range) {
@@ -672,8 +677,10 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
   Vector<float3> vertex_positions(src_mesh.totpoly);
   for (const int i : IndexRange(src_mesh.totpoly)) {
     const MPoly &poly = src_polys[i];
-    BKE_mesh_calc_poly_center(
-        &poly, &src_loops[poly.loopstart], src_verts.data(), vertex_positions[i]);
+    BKE_mesh_calc_poly_center(&poly,
+                              &src_loops[poly.loopstart],
+                              reinterpret_cast<const float(*)[3]>(src_positions.data()),
+                              vertex_positions[i]);
   }
 
   Array<int> boundary_edge_midpoint_index;
@@ -683,9 +690,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
     /* We need to add vertices at the centers of boundary edges. */
     for (const int i : IndexRange(src_mesh.totedge)) {
       if (edge_types[i] == EdgeType::Boundary) {
-        float3 mid;
         const MEdge &edge = src_edges[i];
-        mid_v3_v3v3(mid, src_verts[edge.v1].co, src_verts[edge.v2].co);
+        const float3 mid = math::midpoint(src_positions[edge.v1], src_positions[edge.v2]);
         boundary_edge_midpoint_index[i] = vertex_positions.size();
         vertex_positions.append(mid);
       }
@@ -836,7 +842,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
       new_to_old_face_corners_map.append(sorted_corners.first());
       boundary_vertex_to_relevant_face_map.append(
           std::pair(loop_indices.last(), last_face_center));
-      vertex_positions.append(src_verts[i].co);
+      vertex_positions.append(src_positions[i]);
       const int boundary_vertex = loop_indices.last();
       add_edge(src_edges,
                edge1,
@@ -887,10 +893,11 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
                       new_to_old_edges_map,
                       new_to_old_face_corners_map,
                       boundary_vertex_to_relevant_face_map,
+                      propagation_info,
                       src_mesh.attributes(),
                       mesh_out->attributes_for_write());
 
-  MutableSpan<MVert> dst_verts = mesh_out->verts_for_write();
+  mesh_out->vert_positions_for_write().copy_from(vertex_positions);
   MutableSpan<MEdge> dst_edges = mesh_out->edges_for_write();
   MutableSpan<MPoly> dst_polys = mesh_out->polys_for_write();
   MutableSpan<MLoop> dst_loops = mesh_out->loops_for_write();
@@ -905,9 +912,6 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
     dst_loops[i].v = loops[i];
     dst_loops[i].e = loop_edges[i];
   }
-  for (const int i : IndexRange(mesh_out->totvert)) {
-    copy_v3_v3(dst_verts[i].co, vertex_positions[i]);
-  }
   dst_edges.copy_from(new_edges);
   return mesh_out;
 }
@@ -918,7 +922,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool keep_boundaries = params.extract_input<bool>("Keep Boundaries");
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-      Mesh *new_mesh = calc_dual_mesh(*mesh, keep_boundaries);
+      Mesh *new_mesh = calc_dual_mesh(
+          *mesh, keep_boundaries, params.get_output_propagation_info("Dual Mesh"));
       geometry_set.replace_mesh(new_mesh);
     }
   });

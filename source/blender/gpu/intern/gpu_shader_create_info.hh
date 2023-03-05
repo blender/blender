@@ -845,7 +845,7 @@ struct ShaderCreateInfo {
   /* -------------------------------------------------------------------- */
   /** \name Transform feedback properties
    *
-   * Transform feedback enablement and output binding assignmnt.
+   * Transform feedback enablement and output binding assignment.
    * \{ */
 
   Self &transform_feedback_mode(eGPUShaderTFBType tf_mode)

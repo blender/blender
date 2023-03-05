@@ -643,9 +643,9 @@ void GLStateManager::issue_barrier(eGPUBarrier barrier_bits)
 
 GLFence::~GLFence()
 {
-  if (gl_sync_ != 0) {
+  if (gl_sync_ != nullptr) {
     glDeleteSync(gl_sync_);
-    gl_sync_ = 0;
+    gl_sync_ = nullptr;
   }
 }
 
@@ -663,7 +663,7 @@ void GLFence::signal()
 void GLFence::wait()
 {
   /* Do not wait if fence does not yet exist. */
-  if (gl_sync_ == 0) {
+  if (gl_sync_ == nullptr) {
     return;
   }
   glWaitSync(gl_sync_, 0, GL_TIMEOUT_IGNORED);

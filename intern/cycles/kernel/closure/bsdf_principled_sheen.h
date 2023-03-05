@@ -54,25 +54,25 @@ ccl_device int bsdf_principled_sheen_setup(ccl_private const ShaderData *sd,
                                            ccl_private PrincipledSheenBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_SHEEN_ID;
-  bsdf->avg_value = calculate_avg_principled_sheen_brdf(bsdf->N, sd->I);
+  bsdf->avg_value = calculate_avg_principled_sheen_brdf(bsdf->N, sd->wi);
   bsdf->sample_weight *= bsdf->avg_value;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
 ccl_device Spectrum bsdf_principled_sheen_eval(ccl_private const ShaderClosure *sc,
-                                               const float3 I,
-                                               const float3 omega_in,
+                                               const float3 wi,
+                                               const float3 wo,
                                                ccl_private float *pdf)
 {
   ccl_private const PrincipledSheenBsdf *bsdf = (ccl_private const PrincipledSheenBsdf *)sc;
   const float3 N = bsdf->N;
 
-  if (dot(N, omega_in) > 0.0f) {
-    const float3 V = I;         // outgoing
-    const float3 L = omega_in;  // incoming
+  if (dot(N, wo) > 0.0f) {
+    const float3 V = wi;
+    const float3 L = wo;
     const float3 H = normalize(L + V);
 
-    *pdf = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
+    *pdf = fmaxf(dot(N, wo), 0.0f) * M_1_PI_F;
     return calculate_principled_sheen_brdf(N, V, L, H, pdf);
   }
   else {
@@ -83,23 +83,23 @@ ccl_device Spectrum bsdf_principled_sheen_eval(ccl_private const ShaderClosure *
 
 ccl_device int bsdf_principled_sheen_sample(ccl_private const ShaderClosure *sc,
                                             float3 Ng,
-                                            float3 I,
+                                            float3 wi,
                                             float randu,
                                             float randv,
                                             ccl_private Spectrum *eval,
-                                            ccl_private float3 *omega_in,
+                                            ccl_private float3 *wo,
                                             ccl_private float *pdf)
 {
   ccl_private const PrincipledSheenBsdf *bsdf = (ccl_private const PrincipledSheenBsdf *)sc;
 
   float3 N = bsdf->N;
 
-  sample_cos_hemisphere(N, randu, randv, omega_in, pdf);
+  sample_cos_hemisphere(N, randu, randv, wo, pdf);
 
-  if (dot(Ng, *omega_in) > 0) {
-    float3 H = normalize(I + *omega_in);
+  if (dot(Ng, *wo) > 0) {
+    float3 H = normalize(wi + *wo);
 
-    *eval = calculate_principled_sheen_brdf(N, I, *omega_in, H, pdf);
+    *eval = calculate_principled_sheen_brdf(N, wi, *wo, H, pdf);
   }
   else {
     *eval = zero_spectrum();

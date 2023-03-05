@@ -376,7 +376,7 @@ PyObject *BPy_CurvePoint_from_CurvePoint(CurvePoint &cp)
   // member whose value is mutable upon iteration over different CurvePoints.
   // It is likely that such a mutable reference is passed to this function,
   // so that a new allocated CurvePoint instance is created here to avoid
-  // nasty bugs (cf. T41464).
+  // nasty bugs (cf. #41464).
   ((BPy_CurvePoint *)py_cp)->cp = new CurvePoint(cp);
   ((BPy_CurvePoint *)py_cp)->py_if0D.if0D = ((BPy_CurvePoint *)py_cp)->cp;
   ((BPy_CurvePoint *)py_cp)->py_if0D.borrowed = false;

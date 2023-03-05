@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -9,7 +10,7 @@ typedef struct CommonUniformBlock CommonUniformBlock;
 #endif
 
 #ifdef GPU_SHADER
-/* Catch for non-create info cass. */
+/* Catch for non-create info case. */
 #  ifndef BLI_STATIC_ASSERT_ALIGN
 #    define BLI_STATIC_ASSERT_ALIGN(type, alignment)
 #  endif

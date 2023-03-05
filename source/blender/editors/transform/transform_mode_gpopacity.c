@@ -73,7 +73,7 @@ static void applyGPOpacity(TransInfo *t, const int UNUSED(mval[2]))
 
       if (td->val) {
         *td->val = td->ival * ratio;
-        /* apply PET */
+        /* Apply proportional editing. */
         *td->val = interpf(*td->val, td->ival, td->factor);
         CLAMP(*td->val, 0.0f, 1.0f);
       }

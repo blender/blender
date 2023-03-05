@@ -42,7 +42,6 @@ typedef struct BlendWriter BlendWriter;
 
 struct BlendFileReadReport;
 struct Main;
-struct ReportList;
 
 /* -------------------------------------------------------------------- */
 /** \name Blend Write API
@@ -162,6 +161,7 @@ void blo_write_id_struct(BlendWriter *writer,
  * Write raw data.
  */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);
+void BLO_write_int8_array(BlendWriter *writer, uint num, const int8_t *data_ptr);
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr);
 void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr);
 void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr);
@@ -228,6 +228,7 @@ void BLO_read_list(BlendDataReader *reader, struct ListBase *list);
 
 /* Update data pointers and correct byte-order if necessary. */
 
+void BLO_read_int8_array(BlendDataReader *reader, int array_size, int8_t **ptr_p);
 void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p);
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p);
 void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p);
@@ -287,7 +288,7 @@ void BLO_expand_id(BlendExpander *expander, struct ID *id);
  * This function ensures that reports are printed,
  * in the case of library linking errors this is important!
  *
- * NOTE(@campbellbarton) a kludge but better than doubling up on prints,
+ * NOTE(@ideasman42) a kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing.
  */
 void BLO_reportf_wrap(struct BlendFileReadReport *reports,

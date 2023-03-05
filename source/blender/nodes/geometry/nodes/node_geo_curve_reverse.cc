@@ -11,8 +11,8 @@ namespace blender::nodes::node_geo_curve_reverse_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -26,7 +26,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+    const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
     bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator selection_evaluator{field_context, src_curves.curves_num()};
@@ -38,7 +38,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     Curves &curves_id = *geometry_set.get_curves_for_write();
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     curves.reverse_curves(selection);
   });
 

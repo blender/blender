@@ -57,6 +57,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_pose_backup.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
@@ -81,7 +82,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -661,7 +661,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
     rv = RE_RenderViewGetById(&rres, 0);
   }
   else {
-    /* possible the job clears the views but we're still drawing T45496 */
+    /* possible the job clears the views but we're still drawing #45496 */
     rv = nullptr;
   }
 
@@ -955,7 +955,7 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
 
   /* Create a backup of the current pose. */
   struct bAction *action = (struct bAction *)preview->id;
-  struct PoseBackup *pose_backup = ED_pose_backup_create_all_bones(object, action);
+  struct PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
@@ -974,8 +974,8 @@ static void action_preview_render_cleanup(IconPreview *preview, struct PoseBacku
   if (pose_backup == nullptr) {
     return;
   }
-  ED_pose_backup_restore(pose_backup);
-  ED_pose_backup_free(pose_backup);
+  BKE_pose_backup_restore(pose_backup);
+  BKE_pose_backup_free(pose_backup);
 
   DEG_id_tag_update(&preview->active_object->id, ID_RECALC_GEOMETRY);
 }
@@ -1372,7 +1372,7 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     scaledy = float(h);
   }
 
-  /* Scaling down must never assign zero width/height, see: T89868. */
+  /* Scaling down must never assign zero width/height, see: #89868. */
   ex = MAX2(1, short(scaledx));
   ey = MAX2(1, short(scaledy));
 

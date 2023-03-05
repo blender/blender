@@ -282,15 +282,15 @@ ListBase find_fcurve_segments(FCurve *fcu)
   return segments;
 }
 
-static BezTriple fcurve_segment_start_get(FCurve *fcu, int index)
+static const BezTriple *fcurve_segment_start_get(FCurve *fcu, int index)
 {
-  BezTriple start_bezt = index - 1 >= 0 ? fcu->bezt[index - 1] : fcu->bezt[index];
+  const BezTriple *start_bezt = index - 1 >= 0 ? &fcu->bezt[index - 1] : &fcu->bezt[index];
   return start_bezt;
 }
 
-static BezTriple fcurve_segment_end_get(FCurve *fcu, int index)
+static const BezTriple *fcurve_segment_end_get(FCurve *fcu, int index)
 {
-  BezTriple end_bezt = index < fcu->totvert ? fcu->bezt[index] : fcu->bezt[index - 1];
+  const BezTriple *end_bezt = index < fcu->totvert ? &fcu->bezt[index] : &fcu->bezt[index - 1];
   return end_bezt;
 }
 
@@ -299,7 +299,7 @@ static BezTriple fcurve_segment_end_get(FCurve *fcu, int index)
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   const float blend_factor = fabs(factor * 2 - 1);
-  BezTriple target_bezt;
+  const BezTriple *target_bezt;
   /* Find which key to blend towards. */
   if (factor < 0.5f) {
     target_bezt = fcurve_segment_start_get(fcu, segment->start_index);
@@ -309,7 +309,7 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const
   }
   /* Blend each key individually. */
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    fcu->bezt[i].vec[1][1] = interpf(target_bezt.vec[1][1], fcu->bezt[i].vec[1][1], blend_factor);
+    fcu->bezt[i].vec[1][1] = interpf(target_bezt->vec[1][1], fcu->bezt[i].vec[1][1], blend_factor);
   }
 }
 
@@ -377,13 +377,54 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
 
 /* ---------------- */
 
-void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
-  BezTriple left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
-  BezTriple right_bezt = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+  const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const float left_x = left_key->vec[1][0];
+  const float left_y = left_key->vec[1][1];
+
+  const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  const float key_x_range = right_key->vec[1][0] - left_x;
+  const float key_y_range = right_key->vec[1][1] - left_y;
+
+  /* Happens if there is only 1 key on the FCurve. Needs to be skipped because it
+   * would be a divide by 0. */
+  if (IS_EQF(key_x_range, 0.0f)) {
+    return;
+  }
+
+  /* In order to have a curve that favors the right key, the curve needs to be mirrored in x and y.
+   * Having an exponent that is a fraction of 1 would produce a similar but inferior result. */
+  const bool inverted = factor > 0.5;
+  const float exponent = 1 + fabs(factor * 2 - 1) * 4;
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    fcu->bezt[i].vec[1][1] = interpf(right_bezt.vec[1][1], left_bezt.vec[1][1], factor);
+    /* For easy calculation of the curve, the  values are normalized. */
+    const float normalized_x = (fcu->bezt[i].vec[1][0] - left_x) / key_x_range;
+
+    float normalized_y = 0;
+    if (inverted) {
+      normalized_y = 1 - pow(1 - normalized_x, exponent);
+    }
+    else {
+      normalized_y = pow(normalized_x, exponent);
+    }
+
+    fcu->bezt[i].vec[1][1] = left_y + normalized_y * key_y_range;
+  }
+}
+
+/* ---------------- */
+
+void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple *left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
+  const BezTriple *right_bezt = fcurve_segment_end_get(fcu,
+                                                       segment->start_index + segment->length);
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    fcu->bezt[i].vec[1][1] = interpf(right_bezt->vec[1][1], left_bezt->vec[1][1], factor);
   }
 }
 
@@ -638,7 +679,7 @@ void sample_fcurve(FCurve *fcu)
         /* If next bezt is also selected, don't start sampling yet,
          * but instead wait for that one to reconsider, to avoid
          * changing the curve when sampling consecutive segments
-         * (T53229)
+         * (#53229)
          */
         if (i < fcu->totvert - 1) {
           BezTriple *next = &fcu->bezt[i + 1];

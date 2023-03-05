@@ -59,7 +59,7 @@ Base *ED_armature_base_and_ebone_from_select_buffer(Base **bases,
   const uint hit_object = select_id & 0xFFFF;
   Base *base = NULL;
   EditBone *ebone = NULL;
-  /* TODO(@campbellbarton): optimize, eg: sort & binary search. */
+  /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     if (bases[base_index]->object->runtime.select_id == hit_object) {
       base = bases[base_index];
@@ -83,7 +83,7 @@ Object *ED_armature_object_and_ebone_from_select_buffer(Object **objects,
   const uint hit_object = select_id & 0xFFFF;
   Object *ob = NULL;
   EditBone *ebone = NULL;
-  /* TODO(@campbellbarton): optimize, eg: sort & binary search. */
+  /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     if (objects[ob_index]->runtime.select_id == hit_object) {
       ob = objects[ob_index];
@@ -107,7 +107,7 @@ Base *ED_armature_base_and_pchan_from_select_buffer(Base **bases,
   const uint hit_object = select_id & 0xFFFF;
   Base *base = NULL;
   bPoseChannel *pchan = NULL;
-  /* TODO(@campbellbarton): optimize, eg: sort & binary search. */
+  /* TODO(@ideasman42): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     if (bases[base_index]->object->runtime.select_id == hit_object) {
       base = bases[base_index];
@@ -1451,7 +1451,7 @@ static void armature_select_more_less(Object *ob, bool more)
   bArmature *arm = (bArmature *)ob->data;
   EditBone *ebone;
 
-  /* XXX(@campbellbarton): eventually we shouldn't need this. */
+  /* XXX(@ideasman42): eventually we shouldn't need this. */
   ED_armature_edit_sync_selection(arm->edbo);
 
   /* count bones & store selection state */

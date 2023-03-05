@@ -16,12 +16,19 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
                                                                   ccl_global float *ccl_restrict
                                                                       render_buffer)
 {
-  if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DENOISING_FEATURES)) {
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  if (!(path_flag & PATH_RAY_DENOISING_FEATURES)) {
     return;
   }
 
   /* Skip implicitly transparent surfaces. */
   if (sd->flag & SD_HAS_ONLY_VOLUME) {
+    return;
+  }
+
+  /* Don't write denoising passes for paths that were split off for shadow catchers
+   * to avoid double-counting. */
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
     return;
   }
 
@@ -51,23 +58,7 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
     normal += sc->N * sc->sample_weight;
     sum_weight += sc->sample_weight;
 
-    Spectrum closure_albedo = sc->weight;
-    /* Closures that include a Fresnel term typically have weights close to 1 even though their
-     * actual contribution is significantly lower.
-     * To account for this, we scale their weight by the average fresnel factor (the same is also
-     * done for the sample weight in the BSDF setup, so we don't need to scale that here). */
-    if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(sc->type)) {
-      ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)sc;
-      closure_albedo *= bsdf->extra->fresnel_color;
-    }
-    else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
-      ccl_private PrincipledSheenBsdf *bsdf = (ccl_private PrincipledSheenBsdf *)sc;
-      closure_albedo *= bsdf->avg_value;
-    }
-    else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
-      closure_albedo *= bsdf_principled_hair_albedo(sc);
-    }
-    else if (sc->type == CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID) {
+    if (sc->type == CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID) {
       /* BSSRDF already accounts for weight, retro-reflection would double up. */
       ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)
           sc;
@@ -76,6 +67,7 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
       }
     }
 
+    Spectrum closure_albedo = bsdf_albedo(sd, sc);
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
       diffuse_albedo += closure_albedo;
       sum_nonspecular_weight += sc->sample_weight;

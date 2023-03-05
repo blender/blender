@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "eevee_legacy_volume_info.hh"
 #include "gpu_shader_create_info.hh"
 
@@ -57,7 +59,9 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_vert_common)
     .additional_info("eevee_legacy_material_empty_base")
     .additional_info("draw_resource_id_varying")
     .additional_info("eevee_legacy_common_utiltex_lib")
-    .additional_info("eevee_legacy_closure_eval_surface_lib");
+    .additional_info("eevee_legacy_closure_eval_surface_lib")
+    /* Planar reflections assigns to gl_ClipDistance via surface_vert.glsl. */
+    .define("USE_CLIP_PLANES");
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_vert)
     .additional_info("eevee_legacy_material_surface_vert_common")

@@ -322,7 +322,7 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only)
 int bc_get_active_UVLayer(Object *ob)
 {
   Mesh *me = (Mesh *)ob->data;
-  return CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+  return CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
 }
 
 std::string bc_url_encode(std::string data)
@@ -718,6 +718,9 @@ float bc_get_property(Bone *bone, std::string key, float def)
       case IDP_DOUBLE:
         result = float(IDP_Double(property));
         break;
+      case IDP_BOOLEAN:
+        result = (float)(IDP_Bool(property));
+        break;
       default:
         result = def;
     }
@@ -1071,9 +1074,9 @@ void bc_copy_m4d_v44(double (&r)[4][4], std::vector<std::vector<double>> &a)
  */
 static std::string bc_get_active_uvlayer_name(Mesh *me)
 {
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (num_layers) {
-    char *layer_name = bc_CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV);
+    const char *layer_name = bc_CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
     if (layer_name) {
       return std::string(layer_name);
     }
@@ -1096,9 +1099,9 @@ static std::string bc_get_active_uvlayer_name(Object *ob)
  */
 static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 {
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (num_layers && layer < num_layers) {
-    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, layer);
+    const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, layer);
     if (layer_name) {
       return std::string(layer_name);
     }

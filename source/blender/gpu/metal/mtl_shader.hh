@@ -36,7 +36,7 @@ class MTLShaderInterface;
 class MTLContext;
 
 /* Debug control. */
-#define MTL_SHADER_DEBUG_EXPORT_SOURCE 1
+#define MTL_SHADER_DEBUG_EXPORT_SOURCE 0
 #define MTL_SHADER_TRANSLATION_DEBUG_OUTPUT 0
 
 /* Separate print used only during development and debugging. */
@@ -70,10 +70,14 @@ struct MTLRenderPipelineStateInstance {
   /* Base bind index for binding uniform buffers, offset based on other
    * bound buffers such as vertex buffers, as the count can vary. */
   int base_uniform_buffer_index;
+  /* Base bind index for binding storage buffers. */
+  int base_ssbo_buffer_index;
   /* buffer bind slot used for null attributes (-1 if not needed). */
   int null_attribute_buffer_index;
   /* buffer bind used for transform feedback output buffer. */
   int transform_feedback_buffer_index;
+  /* Topology class. */
+  MTLPrimitiveTopologyClass prim_type;
 
   /** Reflection Data.
    * Currently used to verify whether uniform buffers of incorrect sizes being bound, due to left
@@ -86,14 +90,43 @@ struct MTLRenderPipelineStateInstance {
   blender::Vector<MTLBufferArgumentData> buffer_bindings_reflection_data_frag;
 };
 
+/* Metal COmpute Pipeline State instance. */
+struct MTLComputePipelineStateInstance {
+  /* Function instances with specialization.
+   * Required for argument encoder construction. */
+  id<MTLFunction> compute = nil;
+  /* PSO handle. */
+  id<MTLComputePipelineState> pso = nil;
+  /* Base bind index for binding uniform buffers, offset based on other
+   * bound buffers such as vertex buffers, as the count can vary. */
+  int base_uniform_buffer_index = -1;
+  /* Base bind index for binding storage buffers. */
+  int base_ssbo_buffer_index = -1;
+
+  int threadgroup_x_len = 1;
+  int threadgroup_y_len = 1;
+  int threadgroup_z_len = 1;
+
+  inline void set_compute_workgroup_size(int workgroup_size_x,
+                                         int workgroup_size_y,
+                                         int workgroup_size_z)
+  {
+    this->threadgroup_x_len = workgroup_size_x;
+    this->threadgroup_y_len = workgroup_size_y;
+    this->threadgroup_z_len = workgroup_size_z;
+  }
+};
+
 /* #MTLShaderBuilder source wrapper used during initial compilation. */
 struct MTLShaderBuilder {
   NSString *msl_source_vert_ = @"";
   NSString *msl_source_frag_ = @"";
+  NSString *msl_source_compute_ = @"";
 
   /* Generated GLSL source used during compilation. */
   std::string glsl_vertex_source_ = "";
   std::string glsl_fragment_source_ = "";
+  std::string glsl_compute_source_ = "";
 
   /* Indicates whether source code has been provided via MSL directly. */
   bool source_from_msl_ = false;
@@ -141,10 +174,12 @@ class MTLShader : public Shader {
   MTLShaderBuilder *shd_builder_ = nullptr;
   NSString *vertex_function_name_ = @"";
   NSString *fragment_function_name_ = @"";
+  NSString *compute_function_name_ = @"";
 
   /** Compiled shader resources. */
   id<MTLLibrary> shader_library_vert_ = nil;
   id<MTLLibrary> shader_library_frag_ = nil;
+  id<MTLLibrary> shader_library_compute_ = nil;
   bool valid_ = false;
 
   /** Render pipeline state and PSO caching. */
@@ -155,6 +190,10 @@ class MTLShader : public Shader {
   MTLRenderPipelineStateDescriptor current_pipeline_state_;
   /* Cache of compiled PipelineStateObjects. */
   blender::Map<MTLRenderPipelineStateDescriptor, MTLRenderPipelineStateInstance *> pso_cache_;
+  std::mutex pso_cache_lock_;
+
+  /** Compute pipeline state and Compute PSO caching. */
+  MTLComputePipelineStateInstance compute_pso_instance_;
 
   /* True to enable multi-layered rendering support. */
   bool uses_mtl_array_index_ = false;
@@ -219,6 +258,8 @@ class MTLShader : public Shader {
 
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
+  bool finalize_compute(const shader::ShaderCreateInfo *info);
+  void warm_cache(int limit) override;
 
   /* Utility. */
   bool is_valid()
@@ -289,11 +330,21 @@ class MTLShader : public Shader {
 
   /* Metal shader properties and source mapping. */
   void set_vertex_function_name(NSString *vetex_function_name);
-  void set_fragment_function_name(NSString *fragment_function_name_);
+  void set_fragment_function_name(NSString *fragment_function_name);
+  void set_compute_function_name(NSString *compute_function_name);
   void shader_source_from_msl(NSString *input_vertex_source, NSString *input_fragment_source);
+  void shader_compute_source_from_msl(NSString *input_compute_source);
   void set_interface(MTLShaderInterface *interface);
+
   MTLRenderPipelineStateInstance *bake_current_pipeline_state(MTLContext *ctx,
                                                               MTLPrimitiveTopologyClass prim_type);
+  MTLRenderPipelineStateInstance *bake_pipeline_state(
+      MTLContext *ctx,
+      MTLPrimitiveTopologyClass prim_type,
+      const MTLRenderPipelineStateDescriptor &pipeline_descriptor);
+
+  bool bake_compute_pipeline_state(MTLContext *ctx);
+  const MTLComputePipelineStateInstance &get_compute_pipeline_state();
 
   /* Transform Feedback. */
   GPUVertBuf *get_transform_feedback_active_buffer();
@@ -302,6 +353,7 @@ class MTLShader : public Shader {
  private:
   /* Generate MSL shader from GLSL source. */
   bool generate_msl_from_glsl(const shader::ShaderCreateInfo *info);
+  bool generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *info);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLShader");
 };
@@ -637,15 +689,15 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
             out_vert_format = MTLVertexFormatChar4;
           }
           else if (shader_attrib_format == MTLVertexFormatInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3)*/
+            /* Same as above case for matching length and signage (Len=3). */
             out_vert_format = MTLVertexFormatChar3;
           }
           else if (shader_attrib_format == MTLVertexFormatInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2)*/
+            /* Same as above case for matching length and signage (Len=2). */
             out_vert_format = MTLVertexFormatChar2;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1)*/
+            /* Same as above case for matching length and signage (Len=1). */
             out_vert_format = MTLVertexFormatChar;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {
@@ -718,15 +770,15 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
             out_vert_format = MTLVertexFormatUChar4;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3)*/
+            /* Same as above case for matching length and signage (Len=3). */
             out_vert_format = MTLVertexFormatUChar3;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2)*/
+            /* Same as above case for matching length and signage (Len=2). */
             out_vert_format = MTLVertexFormatUChar2;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1)*/
+            /* Same as above case for matching length and signage (Len=1). */
             out_vert_format = MTLVertexFormatUChar;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {

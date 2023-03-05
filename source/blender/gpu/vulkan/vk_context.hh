@@ -25,7 +25,7 @@ class VKContext : public Context {
   VkInstance instance_ = VK_NULL_HANDLE;
   VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
   VkDevice device_ = VK_NULL_HANDLE;
-  uint32_t graphic_queue_familly_ = 0;
+  uint32_t graphic_queue_family_ = 0;
 
   /** Allocator used for texture and buffers and other resources. */
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;
@@ -46,6 +46,16 @@ class VKContext : public Context {
 
   void debug_group_begin(const char *, int) override;
   void debug_group_end() override;
+
+  static VKContext *get(void)
+  {
+    return static_cast<VKContext *>(Context::get());
+  }
+
+  VkDevice device_get() const
+  {
+    return device_;
+  }
 
   VmaAllocator mem_allocator_get() const
   {

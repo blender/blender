@@ -14,10 +14,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           N_("The corner to retrieve data from. Defaults to the corner from the context"));
   b.add_output<decl::Int>(N_("Face Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("The index of the face the corner is a part of"));
   b.add_output<decl::Int>(N_("Index in Face"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("The index of the corner starting from the first corner in the face"));
 }
 

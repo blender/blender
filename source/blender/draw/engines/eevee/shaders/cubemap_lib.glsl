@@ -1,12 +1,7 @@
 
-#ifdef GPU_ARB_texture_cube_map_array
-
-#  define textureLod_cubemapArray(tex, co, lod) textureLod(tex, co, lod)
-
-#else
-
-/* Fallback implementation for hardware not supporting cubemap arrays. */
-#  define samplerCubeArray sampler2DArray
+/* Fallback implementation for hardware not supporting cubemap arrays.
+ * `samplerCubeArray` fallback declaration as sampler2DArray in `glsl_shader_defines.glsl`*/
+#ifndef GPU_ARB_texture_cube_map_array
 
 float cubemap_face_index(vec3 P)
 {

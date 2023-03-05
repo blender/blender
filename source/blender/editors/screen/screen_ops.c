@@ -2586,21 +2586,21 @@ typedef struct RegionMoveData {
 
 } RegionMoveData;
 
-static int area_max_regionsize(ScrArea *area, ARegion *scalear, AZEdge edge)
+static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge)
 {
   int dist;
 
   /* regions in regions. */
-  if (scalear->alignment & RGN_SPLIT_PREV) {
-    const int align = RGN_ALIGN_ENUM_FROM_MASK(scalear->alignment);
+  if (scale_region->alignment & RGN_SPLIT_PREV) {
+    const int align = RGN_ALIGN_ENUM_FROM_MASK(scale_region->alignment);
 
     if (ELEM(align, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
-      ARegion *region = scalear->prev;
-      dist = region->winy + scalear->winy - U.pixelsize;
+      ARegion *region = scale_region->prev;
+      dist = region->winy + scale_region->winy - U.pixelsize;
     }
     else /* if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) */ {
-      ARegion *region = scalear->prev;
-      dist = region->winx + scalear->winx - U.pixelsize;
+      ARegion *region = scale_region->prev;
+      dist = region->winx + scale_region->winx - U.pixelsize;
     }
   }
   else {
@@ -2614,23 +2614,23 @@ static int area_max_regionsize(ScrArea *area, ARegion *scalear, AZEdge edge)
     /* Subtract the width of regions on opposite side
      * prevents dragging regions into other opposite regions. */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region == scalear) {
+      if (region == scale_region) {
         continue;
       }
 
-      if (scalear->alignment == RGN_ALIGN_LEFT && region->alignment == RGN_ALIGN_RIGHT) {
+      if (scale_region->alignment == RGN_ALIGN_LEFT && region->alignment == RGN_ALIGN_RIGHT) {
         dist -= region->winx;
       }
-      else if (scalear->alignment == RGN_ALIGN_RIGHT && region->alignment == RGN_ALIGN_LEFT) {
+      else if (scale_region->alignment == RGN_ALIGN_RIGHT && region->alignment == RGN_ALIGN_LEFT) {
         dist -= region->winx;
       }
-      else if (scalear->alignment == RGN_ALIGN_TOP &&
+      else if (scale_region->alignment == RGN_ALIGN_TOP &&
                (region->alignment == RGN_ALIGN_BOTTOM ||
                 ELEM(
                     region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
         dist -= region->winy;
       }
-      else if (scalear->alignment == RGN_ALIGN_BOTTOM &&
+      else if (scale_region->alignment == RGN_ALIGN_BOTTOM &&
                (region->alignment == RGN_ALIGN_TOP ||
                 ELEM(
                     region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
@@ -2742,7 +2742,7 @@ static void region_scale_validate_size(RegionMoveData *rmd)
 static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 {
   /* hidden areas may have bad 'View2D.cur' value,
-   * correct before displaying. see T45156 */
+   * correct before displaying. see #45156 */
   if (rmd->region->flag & RGN_FLAG_HIDDEN) {
     UI_view2d_curRect_validate(&rmd->region->v2d);
   }
@@ -2951,6 +2951,11 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   int delta = RNA_int_get(op->ptr, "delta");
 
+  /* In order to jump from e.g. 1.5 to 1 the delta needs to be incremented by 1 since the sub-frame
+   * is always zeroed. Otherwise it would jump to 0. */
+  if (delta < 0 && scene->r.subframe > 0) {
+    delta += 1;
+  }
   scene->r.cfra += delta;
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
   scene->r.subframe = 0.0f;
@@ -3062,7 +3067,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  float cfra = (float)(scene->r.cfra);
+  const float cfra = BKE_scene_frame_get(scene);
 
   /* Initialize binary-tree-list for getting keyframes. */
   struct AnimKeylist *keylist = ED_keylist_create();
@@ -3096,25 +3101,26 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
   /* find matching keyframe in the right direction */
   const ActKeyColumn *ak;
+
   if (next) {
     ak = ED_keylist_find_next(keylist, cfra);
-  }
-  else {
-    ak = ED_keylist_find_prev(keylist, cfra);
+    while ((ak != NULL) && (done == false)) {
+      if (cfra < ak->cfra) {
+        BKE_scene_frame_set(scene, ak->cfra);
+        done = true;
+      }
+      else {
+        ak = ak->next;
+      }
+    }
   }
 
-  while ((ak != NULL) && (done == false)) {
-    if (scene->r.cfra != (int)ak->cfra) {
-      /* this changes the frame, so set the frame and we're done */
-      const int whole_frame = (int)ak->cfra;
-      scene->r.cfra = whole_frame;
-      scene->r.subframe = ak->cfra - whole_frame;
-      done = true;
-    }
-    else {
-      /* take another step... */
-      if (next) {
-        ak = ak->next;
+  else {
+    ak = ED_keylist_find_prev(keylist, cfra);
+    while ((ak != NULL) && (done == false)) {
+      if (cfra > ak->cfra) {
+        BKE_scene_frame_set(scene, ak->cfra);
+        done = true;
       }
       else {
         ak = ak->prev;
@@ -3940,7 +3946,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
       rv3d->viewlock_quad = RV3D_VIEWLOCK_INIT;
       rv3d->viewlock = 0;
 
-      /* FIXME: This fixes missing update to workbench TAA. (see T76216)
+      /* FIXME: This fixes missing update to workbench TAA. (see #76216)
        * However, it would be nice if the tagging should be done in a more conventional way. */
       rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
 
@@ -3982,7 +3988,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 
       /* run ED_view3d_lock() so the correct 'rv3d->viewquat' is set,
        * otherwise when restoring rv3d->localvd the 'viewquat' won't
-       * match the 'view', set on entering localview See: T26315,
+       * match the 'view', set on entering localview See: #26315,
        *
        * We could avoid manipulating rv3d->localvd here if exiting
        * localview with a 4-split would assign these view locks */
@@ -4812,28 +4818,19 @@ bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm)
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
   bScreen *screen = CTX_wm_screen(C);
+  Scene *scene = CTX_data_scene(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(CTX_data_ensure_evaluated_depsgraph(C));
 
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     /* stop playback now */
     ED_screen_animation_timer(C, 0, 0, 0);
-    Main *bmain = CTX_data_main(C);
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-        Depsgraph *graph = BKE_scene_get_depsgraph(scene, view_layer);
-        if (graph) {
-          Scene *scene_eval = DEG_get_evaluated_scene(graph);
-          /* The audio handles are preserved throughout the dependency graph evaluation.
-           * Checking for scene->playback_handle even for non-evaluated scene should be okay. */
-          BKE_sound_stop_scene(scene_eval);
-          WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-        }
-      }
-    }
+    BKE_sound_stop_scene(scene_eval);
+
+    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }
   else {
     /* these settings are currently only available from a menu in the TimeLine */
     if (mode == 1) { /* XXX only play audio forwards!? */
-      Scene *scene_eval = DEG_get_evaluated_scene(CTX_data_ensure_evaluated_depsgraph(C));
       BKE_sound_play_scene(scene_eval);
     }
 

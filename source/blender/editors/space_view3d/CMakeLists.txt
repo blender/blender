@@ -25,9 +25,11 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
 
 set(SRC
-  drawobject.c
+  drawobject.cc
   space_view3d.cc
   view3d_buttons.c
   view3d_camera_control.c
@@ -71,6 +73,7 @@ set(SRC
 )
 
 set(LIB
+  bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
 )

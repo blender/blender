@@ -7,9 +7,16 @@ This script shows simple operator which prints a message.
 Since the operator only has an :class:`Operator.execute` function it takes no
 user input.
 
+The function should return ``{'FINISHED'}`` or ``{'CANCELLED'}``, the latter
+meaning that operator execution was aborted without making any changes, and
+saving an undo entry isn't neccesary. If an error is detected after some changes
+have already been made, use the ``{'FINISHED'}`` return code, or the behavior
+of undo will be confusing for the user.
+
 .. note::
 
    Operator subclasses must be registered before accessing them from blender.
+
 """
 import bpy
 

@@ -34,6 +34,11 @@ template<typename T> inline T abs(const T &a)
   return std::abs(a);
 }
 
+template<typename T> inline T sign(const T &a)
+{
+  return (T(0) < a) - (a < T(0));
+}
+
 template<typename T> inline T min(const T &a, const T &b)
 {
   return std::min(a, b);
@@ -59,13 +64,12 @@ template<typename T> inline T clamp(const T &a, const T &min, const T &max)
   return std::clamp(a, min, max);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T mod(const T &a, const T &b)
+template<typename T> inline T mod(const T &a, const T &b)
 {
   return std::fmod(a, b);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_mod(const T &a, const T &b)
+template<typename T> inline T safe_mod(const T &a, const T &b)
 {
   return (b != 0) ? std::fmod(a, b) : 0;
 }
@@ -76,18 +80,17 @@ template<typename T> inline void min_max(const T &value, T &min, T &max)
   max = math::max(value, max);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_divide(const T &a, const T &b)
+template<typename T> inline T safe_divide(const T &a, const T &b)
 {
   return (b != 0) ? a / b : T(0.0f);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T floor(const T &a)
+template<typename T> inline T floor(const T &a)
 {
   return std::floor(a);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T ceil(const T &a)
+template<typename T> inline T ceil(const T &a)
 {
   return std::ceil(a);
 }
@@ -97,7 +100,7 @@ template<typename T> inline T distance(const T &a, const T &b)
   return std::abs(a - b);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T fract(const T &a)
+template<typename T> inline T fract(const T &a)
 {
   return a - std::floor(a);
 }
@@ -142,10 +145,12 @@ template<typename T> inline T atan2(const T &y, const T &x)
   return std::atan2(y, x);
 }
 
-template<typename T,
-         typename FactorT,
-         BLI_ENABLE_IF((std::is_arithmetic_v<T>)),
-         BLI_ENABLE_IF((is_math_float_type<FactorT>))>
+template<typename T> inline T hypot(const T &y, const T &x)
+{
+  return std::hypot(y, x);
+}
+
+template<typename T, typename FactorT>
 inline T interpolate(const T &a, const T &b, const FactorT &t)
 {
   auto result = a * (1 - t) + b * t;

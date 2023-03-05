@@ -179,6 +179,7 @@ void imm_draw_circle_wire_aspect_2d(
 {
   imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, radius_x, radius_y, nsegments);
 }
+
 void imm_draw_circle_fill_aspect_2d(
     uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments)
 {
@@ -329,19 +330,24 @@ void imm_draw_disk_partial_fill_3d(uint pos,
       GPU_PRIM_TRI_STRIP, pos, x, y, z, rad_inner, rad_outer, nsegments, start, sweep);
 }
 
-static void imm_draw_circle_3D(
-    GPUPrimType prim_type, uint pos, float x, float y, float radius, int nsegments)
+static void imm_draw_circle_3D(GPUPrimType prim_type,
+                               uint pos,
+                               float x,
+                               float y,
+                               float radius_x,
+                               float radius_y,
+                               int nsegments)
 {
   if (prim_type == GPU_PRIM_LINE_LOOP) {
     /* NOTE(Metal/AMD): For small primitives, line list more efficient than line strip. */
     immBegin(GPU_PRIM_LINES, nsegments * 2);
 
     const float angle = (float)(2 * M_PI) / (float)nsegments;
-    float xprev = cosf(-angle) * radius;
-    float yprev = sinf(-angle) * radius;
+    float xprev = cosf(-angle) * radius_x;
+    float yprev = sinf(-angle) * radius_y;
     const float alpha = 2.0f * cosf(angle);
 
-    float xr = radius;
+    float xr = radius_x;
     float yr = 0;
 
     for (int i = 0; i < nsegments; i++) {
@@ -349,21 +355,23 @@ static void imm_draw_circle_3D(
       if (i) {
         immVertex3f(pos, x + xr, y + yr, 0.0f);
       }
+      /* `cos[(n + 1)a] = 2cos(a)cos(na) - cos[(n - 1)a]`. */
       const float xnext = alpha * xr - xprev;
+      /* `sin[(n + 1)a] = 2cos(a)sin(na) - sin[(n - 1)a]`. */
       const float ynext = alpha * yr - yprev;
       xprev = xr;
       yprev = yr;
       xr = xnext;
       yr = ynext;
     }
-    immVertex3f(pos, x + radius, y, 0.0f);
+    immVertex3f(pos, x + radius_x, y, 0.0f);
     immEnd();
   }
   else {
     immBegin(prim_type, nsegments);
     for (int i = 0; i < nsegments; i++) {
       float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
-      immVertex3f(pos, x + radius * cosf(angle), y + radius * sinf(angle), 0.0f);
+      immVertex3f(pos, x + radius_x * cosf(angle), y + radius_y * sinf(angle), 0.0f);
     }
     immEnd();
   }
@@ -371,17 +379,29 @@ static void imm_draw_circle_3D(
 
 void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, pos, x, y, radius, nsegments);
+  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, pos, x, y, radius, radius, nsegments);
+}
+
+void imm_draw_circle_wire_aspect_3d(
+    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments)
+{
+  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, radius_x, radius_y, nsegments);
 }
 
 void imm_draw_circle_dashed_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_LINES, pos, x, y, radius, nsegments / 2);
+  imm_draw_circle_3D(GPU_PRIM_LINES, pos, x, y, radius, radius, nsegments / 2);
 }
 
 void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius, nsegments);
+  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius, radius, nsegments);
+}
+
+void imm_draw_circle_fill_aspect_3d(
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments)
+{
+  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius_x, radius_y, nsegments);
 }
 
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)

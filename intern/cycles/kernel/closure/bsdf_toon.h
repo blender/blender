@@ -50,17 +50,17 @@ ccl_device float bsdf_toon_get_sample_angle(float max_angle, float smooth)
 }
 
 ccl_device Spectrum bsdf_diffuse_toon_eval(ccl_private const ShaderClosure *sc,
-                                           const float3 I,
-                                           const float3 omega_in,
+                                           const float3 wi,
+                                           const float3 wo,
                                            ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
-  float cosNI = dot(bsdf->N, omega_in);
+  float cosNO = dot(bsdf->N, wo);
 
-  if (cosNI >= 0.0f) {
+  if (cosNO >= 0.0f) {
     float max_angle = bsdf->size * M_PI_2_F;
     float smooth = bsdf->smooth * M_PI_2_F;
-    float angle = safe_acosf(fmaxf(cosNI, 0.0f));
+    float angle = safe_acosf(fmaxf(cosNO, 0.0f));
 
     float eval = bsdf_toon_get_intensity(max_angle, smooth, angle);
 
@@ -78,11 +78,11 @@ ccl_device Spectrum bsdf_diffuse_toon_eval(ccl_private const ShaderClosure *sc,
 
 ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
                                         float3 Ng,
-                                        float3 I,
+                                        float3 wi,
                                         float randu,
                                         float randv,
                                         ccl_private Spectrum *eval,
-                                        ccl_private float3 *omega_in,
+                                        ccl_private float3 *wo,
                                         ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
@@ -92,9 +92,9 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
   float angle = sample_angle * randu;
 
   if (sample_angle > 0.0f) {
-    sample_uniform_cone(bsdf->N, sample_angle, randu, randv, omega_in, pdf);
+    sample_uniform_cone(bsdf->N, sample_angle, randu, randv, wo, pdf);
 
-    if (dot(Ng, *omega_in) > 0.0f) {
+    if (dot(Ng, *wo) > 0.0f) {
       *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
     }
     else {
@@ -122,22 +122,22 @@ ccl_device int bsdf_glossy_toon_setup(ccl_private ToonBsdf *bsdf)
 }
 
 ccl_device Spectrum bsdf_glossy_toon_eval(ccl_private const ShaderClosure *sc,
-                                          const float3 I,
-                                          const float3 omega_in,
+                                          const float3 wi,
+                                          const float3 wo,
                                           ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
   float max_angle = bsdf->size * M_PI_2_F;
   float smooth = bsdf->smooth * M_PI_2_F;
-  float cosNI = dot(bsdf->N, omega_in);
-  float cosNO = dot(bsdf->N, I);
+  float cosNI = dot(bsdf->N, wi);
+  float cosNO = dot(bsdf->N, wo);
 
   if (cosNI > 0 && cosNO > 0) {
     /* reflect the view vector */
-    float3 R = (2 * cosNO) * bsdf->N - I;
-    float cosRI = dot(R, omega_in);
+    float3 R = (2 * cosNI) * bsdf->N - wi;
+    float cosRO = dot(R, wo);
 
-    float angle = safe_acosf(fmaxf(cosRI, 0.0f));
+    float angle = safe_acosf(fmaxf(cosRO, 0.0f));
 
     float eval = bsdf_toon_get_intensity(max_angle, smooth, angle);
     float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
@@ -151,32 +151,32 @@ ccl_device Spectrum bsdf_glossy_toon_eval(ccl_private const ShaderClosure *sc,
 
 ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
-                                       float3 I,
+                                       float3 wi,
                                        float randu,
                                        float randv,
                                        ccl_private Spectrum *eval,
-                                       ccl_private float3 *omega_in,
+                                       ccl_private float3 *wo,
                                        ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
   float max_angle = bsdf->size * M_PI_2_F;
   float smooth = bsdf->smooth * M_PI_2_F;
-  float cosNO = dot(bsdf->N, I);
+  float cosNI = dot(bsdf->N, wi);
 
-  if (cosNO > 0) {
+  if (cosNI > 0) {
     /* reflect the view vector */
-    float3 R = (2 * cosNO) * bsdf->N - I;
+    float3 R = (2 * cosNI) * bsdf->N - wi;
 
     float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
     float angle = sample_angle * randu;
 
-    sample_uniform_cone(R, sample_angle, randu, randv, omega_in, pdf);
+    sample_uniform_cone(R, sample_angle, randu, randv, wo, pdf);
 
-    if (dot(Ng, *omega_in) > 0.0f) {
-      float cosNI = dot(bsdf->N, *omega_in);
+    if (dot(Ng, *wo) > 0.0f) {
+      float cosNO = dot(bsdf->N, *wo);
 
       /* make sure the direction we chose is still in the right hemisphere */
-      if (cosNI > 0) {
+      if (cosNO > 0) {
         *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
       }
       else {

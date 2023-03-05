@@ -217,6 +217,7 @@ void Object::tag_update(Scene *scene)
 
     if (is_shadow_catcher_is_modified()) {
       scene->tag_shadow_catcher_modified();
+      flag |= ObjectManager::VISIBILITY_MODIFIED;
     }
   }
 
@@ -433,6 +434,10 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   if (geom->get_use_motion_blur()) {
     state->have_motion = true;
+  }
+
+  if (transform_negative_scale(tfm)) {
+    flag |= SD_OBJECT_NEGATIVE_SCALE;
   }
 
   if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::POINTCLOUD) {
@@ -970,8 +975,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
         }
 
         object_flag[i] |= SD_OBJECT_TRANSFORM_APPLIED;
-        if (geom->transform_negative_scaled)
-          object_flag[i] |= SD_OBJECT_NEGATIVE_SCALE_APPLIED;
       }
     }
 

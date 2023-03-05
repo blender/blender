@@ -24,7 +24,7 @@ import os
 import re
 import platform
 import string
-import setuptools  # type: ignore
+import setuptools
 import sys
 
 from typing import (
@@ -58,7 +58,7 @@ Each Blender release supports one Python version, and the package is only compat
 ## Source Code
 
 * [Releases](https://download.blender.org/source/)
-* Repository: [git.blender.org/blender.git](https://git.blender.org/gitweb/gitweb.cgi/blender.git)
+* Repository: [projects.blender.org/blender/blender.git](https://projects.blender.org/blender/blender)
 
 ## Credits
 
@@ -208,7 +208,7 @@ def main() -> None:
         return paths
 
     # Ensure this wheel is marked platform specific.
-    class BinaryDistribution(setuptools.dist.Distribution):  # type: ignore
+    class BinaryDistribution(setuptools.dist.Distribution):
         def has_ext_modules(self) -> bool:
             return True
 

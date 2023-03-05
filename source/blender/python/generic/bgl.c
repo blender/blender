@@ -12,16 +12,61 @@
 
 #include <Python.h>
 
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
+#include "GPU_context.h"
 #include "GPU_state.h"
+
+#include "py_capi_utils.h"
+
+#include "BKE_global.h"
 
 #include "../generic/py_capi_utils.h"
 
 #include <epoxy/gl.h>
 
 #include "bgl.h"
+
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bgl"};
+
+/* -------------------------------------------------------------------- */
+/** \name Local utility defines for wrapping OpenGL
+ * \{ */
+
+static void report_deprecated_call(const char *function_name)
+{
+  /* Only report first 100 deprecated calls. BGL is typically used inside an handler that is
+   * triggered at refresh. */
+  static int times = 0;
+  while (times >= 100) {
+    return;
+  }
+  char message[256];
+  SNPRINTF(message,
+           "'bgl.gl%s' is deprecated and will be removed in Blender 3.7. Report or update your "
+           "script to use 'gpu' module.",
+           function_name);
+  CLOG_WARN(&LOG, "%s", message);
+  PyErr_WarnEx(PyExc_DeprecationWarning, message, 1);
+  times++;
+}
+
+static void report_deprecated_call_to_user(void)
+{
+  /* Only report the first deprecated usage. */
+  if (G.opengl_deprecation_usage_detected) {
+    return;
+  }
+  G.opengl_deprecation_usage_detected = true;
+  PyC_FileAndNum(&G.opengl_deprecation_usage_filename, &G.opengl_deprecation_usage_lineno);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Local utility defines for wrapping OpenGL
@@ -366,14 +411,17 @@ typedef struct BufferOrOffset {
 
 #define ret_def_void
 #define ret_set_void
+#define ret_default_void
 #define ret_ret_void return Py_INCREF(Py_None), Py_None
 
 #define ret_def_GLint int ret_int
 #define ret_set_GLint ret_int =
+#define ret_default_GLint -1
 #define ret_ret_GLint return PyLong_FromLong(ret_int)
 
 #define ret_def_GLuint uint ret_uint
 #define ret_set_GLuint ret_uint =
+#define ret_default_GLuint 0
 #define ret_ret_GLuint return PyLong_FromLong((long)ret_uint)
 
 #if 0
@@ -390,14 +438,19 @@ typedef struct BufferOrOffset {
 
 #define ret_def_GLenum uint ret_uint
 #define ret_set_GLenum ret_uint =
+#define ret_default_GLenum 0
 #define ret_ret_GLenum return PyLong_FromLong((long)ret_uint)
 
 #define ret_def_GLboolean uchar ret_bool
 #define ret_set_GLboolean ret_bool =
+#define ret_default_GLboolean GL_FALSE
 #define ret_ret_GLboolean return PyLong_FromLong((long)ret_bool)
 
-#define ret_def_GLstring const uchar *ret_str
+#define ret_def_GLstring \
+  const char *default_GLstring = ""; \
+  const uchar *ret_str
 #define ret_set_GLstring ret_str =
+#define ret_default_GLstring (const uchar *)default_GLstring
 
 #define ret_ret_GLstring \
   if (ret_str) { \
@@ -1071,11 +1124,19 @@ static PyObject *Buffer_repr(Buffer *self)
     { \
       arg_def arg_list; \
       ret_def_##ret; \
+      report_deprecated_call(#funcname); \
       if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) { \
         return NULL; \
       } \
-      GPU_bgl_start(); \
-      ret_set_##ret gl##funcname(arg_var arg_list); \
+      const bool has_opengl_backend = GPU_backend_get_type() == GPU_BACKEND_OPENGL; \
+      if (has_opengl_backend) { \
+        GPU_bgl_start(); \
+        ret_set_##ret gl##funcname(arg_var arg_list); \
+      } \
+      else { \
+        report_deprecated_call_to_user(); \
+        ret_set_##ret ret_default_##ret; \
+      } \
       ret_ret_##ret; \
     }
 #else
@@ -2587,6 +2648,12 @@ PyObject *BPyInit_bgl(void)
 
   if (PyType_Ready(&BGL_bufferType) < 0) {
     return NULL; /* should never happen */
+  }
+
+  if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
+    CLOG_WARN(&LOG,
+              "'bgl' imported without an OpenGL backend. Please update your add-ons to use the "
+              "'gpu' module. In Blender 3.7 'bgl' will be removed.");
   }
 
   PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);

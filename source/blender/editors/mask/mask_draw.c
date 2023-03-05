@@ -722,7 +722,7 @@ void ED_mask_draw_region(
       GPU_matrix_mul(stabmat);
     }
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-    GPU_shader_uniform_vector(
+    GPU_shader_uniform_float_ex(
         state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, buf_col);
 
     if (overlay_mode == MASK_OVERLAY_COMBINED) {

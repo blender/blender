@@ -89,7 +89,7 @@ class EvalOutputAPI::EvalOutput {
   // The following interfaces are dependant on the actual evaluator type (CPU, OpenGL, etc.) which
   // have slightly different APIs to access patch arrays, as well as different types for their
   // data structure. They need to be overridden in the specific instances of the EvalOutput derived
-  // classes if needed, while the interfaces above are overriden through VolatileEvalOutput.
+  // classes if needed, while the interfaces above are overridden through VolatileEvalOutput.
 
   virtual void fillPatchArraysBuffer(OpenSubdiv_Buffer * /*patch_arrays_buffer*/)
   {

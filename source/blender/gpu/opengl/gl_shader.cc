@@ -486,9 +486,9 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
     }
     ss << ";\n";
   }
-#if 0 /* T95278: This is not be enough to prevent some compilers think it is recursive. */
+#if 0 /* #95278: This is not be enough to prevent some compilers think it is recursive. */
   for (const ShaderCreateInfo::PushConst &uniform : info.push_constants_) {
-    /* T95278: Double macro to avoid some compilers think it is recursive. */
+    /* #95278: Double macro to avoid some compilers think it is recursive. */
     ss << "#define " << uniform.name << "_ " << uniform.name << "\n";
     ss << "#define " << uniform.name << " (" << uniform.name << "_)\n";
   }
@@ -817,7 +817,7 @@ static char *glsl_patch_default_get()
   if (GLContext::texture_gather_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
     /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
-     * support in the shader so double check the preprocessor define (see T56544). */
+     * support in the shader so double check the preprocessor define (see #56544). */
     STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#endif\n");

@@ -15,11 +15,11 @@ static bNodeSocketTemplate inputs[] = {
 };
 
 static void exec(void *data,
-                 int UNUSED(thread),
-                 bNode *UNUSED(node),
-                 bNodeExecData *UNUSED(execdata),
+                 int /*thread*/,
+                 bNode * /*node*/,
+                 bNodeExecData * /*execdata*/,
                  bNodeStack **in,
-                 bNodeStack **UNUSED(out))
+                 bNodeStack ** /*out*/)
 {
   TexCallData *cdata = (TexCallData *)data;
 

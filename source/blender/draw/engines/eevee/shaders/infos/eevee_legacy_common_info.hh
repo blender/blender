@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
@@ -21,7 +22,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_irradiance_lib)
 GPU_SHADER_CREATE_INFO(eevee_legacy_common_utiltex_lib)
     .sampler(2, ImageType::FLOAT_2D_ARRAY, "utilTex");
 
-/* Raytrace lib. */
+/* Ray-trace lib. */
 GPU_SHADER_CREATE_INFO(eevee_legacy_raytrace_lib)
     .additional_info("draw_view")
     .additional_info("eevee_legacy_common_lib")
@@ -33,7 +34,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_ambient_occlusion_lib)
     .additional_info("eevee_legacy_raytrace_lib")
     .sampler(5, ImageType::FLOAT_2D, "horizonBuffer");
 
-/* Lightprobe lib. */
+/* Light-probe lib. */
 GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_lib)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("eevee_legacy_common_utiltex_lib")
@@ -128,7 +129,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_surface_lib_hair)
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_surface_lib_pointcloud)
     .define("USE_SURFACE_LIB_POINTCLOUD")
-    /* Pointcloud still uses the common interface as well. */
+    /* Point-cloud still uses the common interface as well. */
     .additional_info("eevee_legacy_surface_lib_common")
     .vertex_out(eevee_legacy_surface_point_cloud_iface);
 
@@ -199,7 +200,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_closure_eval_translucent_lib)
     .additional_info("eevee_legacy_closure_eval_lib")
     .additional_info("eevee_legacy_renderpass_lib");
 
-/* eevee_legacy_closure_eval_surface_lib*/
+/* eevee_legacy_closure_eval_surface_lib */
 GPU_SHADER_CREATE_INFO(eevee_legacy_closure_eval_surface_lib)
     .additional_info("eevee_legacy_closure_eval_diffuse_lib")
     .additional_info("eevee_legacy_closure_eval_glossy_lib")

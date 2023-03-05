@@ -110,7 +110,7 @@ ScrArea *area_split(const wmWindow *win,
     return NULL;
   }
 
-  /* NOTE(@campbellbarton): regarding (fac > 0.5f) checks below.
+  /* NOTE(@ideasman42): regarding (fac > 0.5f) checks below.
    * normally it shouldn't matter which is used since the copy should match the original
    * however with viewport rendering and python console this isn't the case. */
 
@@ -377,7 +377,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     return false;
   }
 
-  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See T100772.  */
+  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772.  */
   if (SCREEN_DIR_IS_VERTICAL(dir)) {
     const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
     const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
@@ -1531,7 +1531,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     /* After we've restored back to SCREENNORMAL, we have to wait with
      * screen handling as it uses the area coords which aren't updated yet.
      * Without doing so, the screen handling gets wrong area coords,
-     * which in worst case can lead to crashes (see T43139) */
+     * which in worst case can lead to crashes (see #43139) */
     screen->skip_handling = true;
   }
   else {
@@ -1555,7 +1555,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
   /* Setting the area is only needed for Python scripts that call
    * operators in succession before returning to the main event loop.
    * Without this, scripts can't run any operators that require
-   * an area after toggling full-screen for example (see: T89526).
+   * an area after toggling full-screen for example (see: #89526).
    * NOTE: an old comment stated this was "bad code",
    * however it doesn't cause problems so leave as-is. */
   CTX_wm_area_set(C, screen->areabase.first);

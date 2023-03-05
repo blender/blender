@@ -50,15 +50,15 @@ static bool lib_id_preview_editing_poll(bContext *C)
     return false;
   }
   if (ID_IS_LINKED(id)) {
-    CTX_wm_operator_poll_msg_set(C, TIP_("Can't edit external library data"));
+    CTX_wm_operator_poll_msg_set(C, "Can't edit external library data");
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
-    CTX_wm_operator_poll_msg_set(C, TIP_("Can't edit previews of overridden library data"));
+    CTX_wm_operator_poll_msg_set(C, "Can't edit previews of overridden library data");
     return false;
   }
   if (!BKE_previewimg_id_get_p(id)) {
-    CTX_wm_operator_poll_msg_set(C, TIP_("Data-block does not support previews"));
+    CTX_wm_operator_poll_msg_set(C, "Data-block does not support previews");
     return false;
   }
 
@@ -118,7 +118,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   const ID *id = (ID *)idptr.data;
   if (GS(id->name) == ID_NT) {
-    CTX_wm_operator_poll_msg_set(C, TIP_("Can't generate automatic preview for node group"));
+    CTX_wm_operator_poll_msg_set(C, "Can't generate automatic preview for node group");
     return false;
   }
 

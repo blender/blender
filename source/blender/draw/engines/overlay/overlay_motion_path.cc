@@ -95,7 +95,7 @@ static void motion_path_get_frame_range_to_draw(bAnimVizSettings *avs,
   }
 
   if (start > end) {
-    SWAP(int, start, end);
+    std::swap(start, end);
   }
 
   CLAMP(start, mpath->start_frame, mpath->end_frame);

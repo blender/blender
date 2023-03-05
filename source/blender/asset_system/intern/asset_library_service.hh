@@ -14,6 +14,7 @@
 #include <memory>
 
 struct AssetLibraryReference;
+struct bUserAssetLibrary;
 
 namespace blender::asset_system {
 
@@ -40,6 +41,8 @@ class AssetLibraryService {
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
    * above should be used. */
   std::unique_ptr<AssetLibrary> current_file_library_;
+  /** The "all" asset library, merging all other libraries into one. */
+  std::unique_ptr<AssetLibrary> all_library_;
 
   /* Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
@@ -55,6 +58,10 @@ class AssetLibraryService {
   /** Destroy the AssetLibraryService singleton. It will be reallocated by #get() if necessary. */
   static void destroy();
 
+  static std::string root_path_from_library_ref(const AssetLibraryReference &library_reference);
+  static bUserAssetLibrary *find_custom_asset_library_from_library_ref(
+      const AssetLibraryReference &library_reference);
+
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
 
@@ -66,10 +73,15 @@ class AssetLibraryService {
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file();
 
+  /** Get the "All" asset library, which loads all others and merges them into one. */
+  AssetLibrary *get_asset_library_all(const Main *bmain);
+
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;
 
-  void foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const;
+  /** See AssetLibrary::foreach_loaded(). */
+  void foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn,
+                                    bool include_all_library) const;
 
  protected:
   /** Allocate a new instance of the service and assign it to `instance_`. */

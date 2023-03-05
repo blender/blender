@@ -281,7 +281,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
       effects->taa_total_sample = 1;
     }
 
-    /* Motion blur steps could reset the sampling when camera is animated (see T79970). */
+    /* Motion blur steps could reset the sampling when camera is animated (see #79970). */
     if (!DRW_state_is_scene_render()) {
       DRW_view_persmat_get(NULL, persmat, false);
       view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
@@ -309,7 +309,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
     }
     else {
       const bool all_shaders_compiled = stl->g_data->queued_shaders_count_prev == 0;
-      /* Fix Texture painting (see T79370) and shader compilation (see T78520). */
+      /* Fix Texture painting (see #79370) and shader compilation (see #78520). */
       if (DRW_state_is_navigating() || !all_shaders_compiled) {
         effects->taa_current_sample = 1;
       }

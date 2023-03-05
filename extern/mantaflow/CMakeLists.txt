@@ -13,10 +13,12 @@ endif()
 
 # Exporting functions from the blender binary gives linker warnings on Apple arm64 systems.
 # Silence them here.
-if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
-  if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    string(APPEND CMAKE_C_FLAGS " -fvisibility=hidden")
-    string(APPEND CMAKE_CXX_FLAGS " -fvisibility=hidden")
+if(APPLE)
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+    if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+      string(APPEND CMAKE_C_FLAGS " -fvisibility=hidden")
+      string(APPEND CMAKE_CXX_FLAGS " -fvisibility=hidden")
+    endif()
   endif()
 endif()
 
@@ -261,9 +263,11 @@ set(LIB
 
 blender_add_lib(extern_mantaflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# The VDB libs above are only added to as INTERFACE libs by blender_add_lib,
-# meaning extern_mantaflow itself actually does not have a dependency on the
-# openvdb libraries, and CMAKE is free to link the vdb libs before
-# extern_mantaflow causing linker errors on linux. By explicitly declaring
-# a dependency here, cmake will do the right thing.
-target_link_libraries(extern_mantaflow PRIVATE ${OPENVDB_LIBRARIES})
+if(WITH_OPENVDB)
+  # The VDB libs above are only added to as INTERFACE libs by blender_add_lib,
+  # meaning extern_mantaflow itself actually does not have a dependency on the
+  # openvdb libraries, and CMAKE is free to link the vdb libs before
+  # extern_mantaflow causing linker errors on linux. By explicitly declaring
+  # a dependency here, cmake will do the right thing.
+  target_link_libraries(extern_mantaflow PRIVATE ${OPENVDB_LIBRARIES})
+endif()

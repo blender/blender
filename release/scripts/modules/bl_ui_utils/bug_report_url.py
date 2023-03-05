@@ -30,7 +30,7 @@ def url_prefill_from_blender(*, addon_info=None):
         "**Blender Version**\n"
     )
     fh.write(
-        "Broken: version: %s, branch: %s, commit date: %s %s, hash: `rB%s`\n" % (
+        "Broken: version: %s, branch: %s, commit date: %s %s, hash: `%s`\n" % (
             bpy.app.version_string,
             bpy.app.build_branch.decode('utf-8', 'replace'),
             bpy.app.build_commit_date.decode('utf-8', 'replace'),
@@ -59,10 +59,8 @@ def url_prefill_from_blender(*, addon_info=None):
         "\n"
     )
 
-    fh.seek(0)
-
     form_number = 2 if addon_info else 1
     return (
         "https://developer.blender.org/maniphest/task/edit/form/%i?description=" % form_number +
-        urllib.parse.quote(fh.read())
+        urllib.parse.quote(fh.getvalue())
     )

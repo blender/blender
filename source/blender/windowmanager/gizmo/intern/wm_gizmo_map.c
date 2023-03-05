@@ -259,7 +259,7 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
  * \param poll: Polling function for excluding gizmos.
  * \param data: Custom data passed to \a poll
  *
- * TODO(@campbellbarton): this uses unreliable order,
+ * TODO(@ideasman42): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
 static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
@@ -430,7 +430,7 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBas
     return;
   }
 
-  /* TODO(@campbellbarton): This will need it own shader probably?
+  /* TODO(@ideasman42): This will need it own shader probably?
    * Don't think it can be handled from that point though. */
   // const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0;
 
@@ -501,7 +501,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
                                       bool *r_use_select_bias)
 {
 
-  /* TODO(@campbellbarton): this depends on depth buffer being written to,
+  /* TODO(@ideasman42): this depends on depth buffer being written to,
    * currently broken for the 3D view. */
   bool is_depth_prev = false;
   bool is_depth_skip_prev = false;
@@ -576,7 +576,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
 
   /* TODO: waiting for the GPU in the middle of the event loop for every
    * mouse move is bad for performance, we need to find a solution to not
-   * use the GPU or draw something once. (see T61474) */
+   * use the GPU or draw something once. (see #61474) */
   GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
   /* do the drawing */
   gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
@@ -1062,7 +1062,7 @@ void wm_gizmomap_modal_set(
     gzmap->gzmap_context.modal = gz;
 
     if ((gz->flag & WM_GIZMO_MOVE_CURSOR) && (event->tablet.is_motion_absolute == false)) {
-      WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, true, NULL);
+      WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, NULL, true);
       copy_v2_v2_int(gzmap->gzmap_context.event_xy, event->xy);
       gzmap->gzmap_context.event_grabcursor = win->grabcursor;
     }
@@ -1119,9 +1119,28 @@ void wm_gizmomap_modal_set(
   }
 
   if (do_refresh) {
+    const int update_flag = GIZMOMAP_IS_REFRESH_CALLBACK;
     const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(
         gz->parent_gzgroup);
-    gzmap->update_flag[step] |= GIZMOMAP_IS_REFRESH_CALLBACK;
+    gzmap->update_flag[step] |= update_flag;
+
+    /* Ensure the update flag is set for gizmos that were hidden while modal, see #104817. */
+    for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
+      const eWM_GizmoFlagMapDrawStep step_iter = (eWM_GizmoFlagMapDrawStep)i;
+      if (step_iter == step) {
+        continue;
+      }
+      if ((gzmap->update_flag[i] & update_flag) == update_flag) {
+        continue;
+      }
+      LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
+        if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) &&
+            wm_gizmogroup_is_visible_in_drawstep(gzgroup, step_iter)) {
+          gzmap->update_flag[i] |= update_flag;
+          break;
+        }
+      }
+    }
   }
 }
 

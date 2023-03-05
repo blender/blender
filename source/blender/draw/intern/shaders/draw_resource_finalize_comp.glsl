@@ -46,7 +46,7 @@ void main()
           -bounds_buf[resource_id].bounding_corners[1].xyz;
     }
 
-    /* TODO: Bypass test for very large objects (see T67319). */
+    /* TODO: Bypass test for very large objects (see #67319). */
     if (bounds_buf[resource_id].bounding_sphere.w > 1e12) {
       bounds_buf[resource_id].bounding_sphere.w = -1.0;
     }

@@ -22,7 +22,7 @@ endif()
 
 # Used for: `source/blender/blenlib/intern/system.c`.
 # `execinfo` is not available on non-GLIBC systems (at least not on MUSL-LIBC),
-# so check the presence of the header before including it and  using the it for back-trace.
+# so check the presence of the header before including it and using the it for back-trace.
 set(HAVE_EXECINFO_H OFF)
 if(NOT MSVC)
   include(CheckIncludeFiles)

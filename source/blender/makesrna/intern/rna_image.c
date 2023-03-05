@@ -194,7 +194,7 @@ static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), Poin
   Image *ima = (Image *)ptr->owner_id;
   BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
   DEG_id_tag_update(&ima->id, 0);
-  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
+  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
   WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }
@@ -203,7 +203,7 @@ static void rna_Image_alpha_mode_update(Main *bmain, Scene *scene, PointerRNA *p
 {
   Image *ima = (Image *)ptr->owner_id;
   /* When operating on a generated image, avoid re-generating when changing the alpha-mode
-   * as it doesn't impact generated images, causing them to reload pixel data, see T82785. */
+   * as it doesn't impact generated images, causing them to reload pixel data, see #82785. */
   if (ima->source == IMA_SRC_GENERATED) {
     return;
   }

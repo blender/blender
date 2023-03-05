@@ -26,7 +26,6 @@ extern "C" {
 
 struct ARegion;
 struct AssetHandle;
-struct AssetLibraryReference;
 struct GHashIterator;
 struct GPUViewport;
 struct ID;
@@ -39,7 +38,6 @@ struct MenuType;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
-struct SelectPick_Params;
 struct View3D;
 struct ViewLayer;
 struct bContext;
@@ -125,6 +123,15 @@ void WM_init_opengl(void);
  * see: #GHOST_ISystem::getSystemBackend for details.
  */
 const char *WM_ghost_backend(void);
+
+typedef enum eWM_CapabilitiesFlag {
+  /** Ability to warp the cursor (set it's location). */
+  WM_CAPABILITY_CURSOR_WARP = (1 << 0),
+  /** Ability to access window positions & move them. */
+  WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+} eWM_CapabilitiesFlag;
+
+eWM_CapabilitiesFlag WM_capabilities_flag(void);
 
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
@@ -267,7 +274,7 @@ void WM_window_set_dpi(const wmWindow *win);
 
 bool WM_stereo3d_enabled(struct wmWindow *win, bool only_fullscreen_test);
 
-/* wm_files.c */
+/* wm_files.cc */
 
 void WM_file_autoexec_init(const char *filepath);
 bool WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
@@ -312,9 +319,22 @@ void WM_cursor_modal_restore(struct wmWindow *win);
  */
 void WM_cursor_wait(bool val);
 /**
- * \param bounds: can be NULL
+ * Enable cursor grabbing, optionally hiding the cursor and wrapping cursor-motion
+ * within a sub-region of the window.
+ *
+ * \param wrap: an enum (#WM_CURSOR_WRAP_NONE, #WM_CURSOR_WRAP_XY... etc).
+ * \param wrap_region: Window-relative region for cursor wrapping (when `wrap` is
+ * #WM_CURSOR_WRAP_XY). When NULL, the window bounds are used for wrapping.
+ *
+ * \note The current grab state can be accessed by #wmWindowManager.grabcursor although.
  */
-void WM_cursor_grab_enable(struct wmWindow *win, int wrap, bool hide, int bounds[4]);
+void WM_cursor_grab_enable(struct wmWindow *win,
+                           eWM_CursorWrapAxis wrap,
+                           const struct rcti *wrap_region,
+                           bool hide);
+/**
+ *
+ */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.
@@ -335,7 +355,10 @@ void WM_paint_cursor_remove_by_type(struct wmWindowManager *wm,
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 /**
- * This function requires access to the GHOST_SystemHandle (g_system).
+ * Set the cursor location in window coordinates (compatible with #wmEvent.xy).
+ *
+ * \note Some platforms don't support this, check: #WM_CAPABILITY_WINDOW_POSITION
+ * before relying on this functionality.
  */
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
 
@@ -599,7 +622,7 @@ int WM_operator_props_popup_confirm(struct bContext *C,
 /**
  * Same as #WM_operator_props_popup but call the operator first,
  * This way - the button values correspond to the result of the operator.
- * Without this, first access to a button will make the result jump, see T32452.
+ * Without this, first access to a button will make the result jump, see #32452.
  */
 int WM_operator_props_popup_call(struct bContext *C,
                                  struct wmOperator *op,
@@ -649,7 +672,7 @@ bool WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, sho
  * \param store: Store properties for re-use when an operator has finished
  * (unless #PROP_SKIP_SAVE is set).
  *
- * \warning do not use this within an operator to call itself! T29537.
+ * \warning do not use this within an operator to call itself! #29537.
  */
 int WM_operator_call_ex(struct bContext *C, struct wmOperator *op, bool store);
 int WM_operator_call(struct bContext *C, struct wmOperator *op);
@@ -1234,7 +1257,26 @@ void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int e
 void WM_operator_region_active_win_set(struct bContext *C);
 
 /**
- * Only finish + pass through for press events (allowing press-tweak).
+ * Indented for use in a selection (picking) operators #wmOperatorType::invoke callback
+ * to implement click-drag, where the initial click selects and the drag action
+ * grabs or performs box-select (for example).
+ *
+ * - In this case, returning `OPERATOR_FINISHED` causes the PRESS event
+ *   to be handled and prevents further CLICK (on release) or DRAG (on cursor motion)
+ *   from being generated & handled.
+ *
+ * - Returning `OPERATOR_FINISHED | OPERATOR_PASS_THROUGH` allows for CLICK/DRAG but only makes
+ *   sense if the event's value is PRESS. If the operator was already mapped to a CLICK/DRAG event,
+ *   a single CLICK/DRAG could invoke multiple operators.
+ *
+ * This function handles the details of checking the operator return value,
+ * clearing #OPERATOR_PASS_THROUGH when the #wmEvent::val is not #KM_PRESS.
+ *
+ * \note Combining selection with other actions should only be used
+ * in situations where selecting doesn't change the visibility of other items.
+ * Since it means for example click-drag to box select could hide-show elements the user
+ * intended to box-select. In this case it's preferred to select on CLICK instead of PRESS
+ * (see the Outliner use of click-drag).
  */
 int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event);
 
@@ -1303,7 +1345,7 @@ bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
  */
 wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
                                        const char *path,
-                                       int import_type);
+                                       int /* #eAssetImportMethod */ import_type);
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int idcode);
 /**
@@ -1577,7 +1619,7 @@ char WM_event_utf8_to_ascii(const struct wmEvent *event) ATTR_NONNULL(1) ATTR_WA
  * \param mval: Region relative coordinates, call with (-1, -1) resets the last cursor location.
  * \returns True when there was motion since last called.
  *
- * NOTE(@campbellbarton): The logic used here isn't foolproof.
+ * NOTE(@ideasman42): The logic used here isn't foolproof.
  * It's possible that users move the cursor past #WM_EVENT_CURSOR_MOTION_THRESHOLD then back to
  * a position within the threshold (between mouse clicks).
  * In practice users never reported this since the threshold is very small (a few pixels).

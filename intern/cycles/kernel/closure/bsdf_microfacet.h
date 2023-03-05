@@ -16,10 +16,13 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum MicrofacetType {
+  BECKMANN,
+  GGX,
+};
+
 typedef struct MicrofacetExtra {
   Spectrum color, cspec0;
-  Spectrum fresnel_color;
-  float clearcoat;
 } MicrofacetExtra;
 
 typedef struct MicrofacetBsdf {
@@ -32,190 +35,99 @@ typedef struct MicrofacetBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
 
-/* Beckmann and GGX microfacet importance sampling. */
+/* Beckmann VNDF importance sampling algorithm from:
+ * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
+ * Eric Heitz and Eugene d'Eon, EGSR 2014.
+ * https://hal.inria.fr/hal-00996995v2/document */
 
-ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
-                                                         const float cos_theta_i,
-                                                         const float sin_theta_i,
-                                                         float randu,
-                                                         float randv,
-                                                         ccl_private float *slope_x,
-                                                         ccl_private float *slope_y,
-                                                         ccl_private float *G1i)
+ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
+                                                              const float alpha_x,
+                                                              const float alpha_y,
+                                                              const float randu,
+                                                              const float randv)
 {
-  /* special case (normal incidence) */
-  if (cos_theta_i >= 0.99999f) {
+  /* 1. stretch wi */
+  float3 wi_ = make_float3(alpha_x * wi.x, alpha_y * wi.y, wi.z);
+  wi_ = normalize(wi_);
+
+  /* 2. sample P22_{wi}(x_slope, y_slope, 1, 1) */
+  float slope_x, slope_y;
+  float cos_phi_i = 1.0f;
+  float sin_phi_i = 0.0f;
+
+  if (wi_.z >= 0.99999f) {
+    /* Special case (normal incidence). */
     const float r = sqrtf(-logf(randu));
     const float phi = M_2PI_F * randv;
-    *slope_x = r * cosf(phi);
-    *slope_y = r * sinf(phi);
-    *G1i = 1.0f;
-    return;
-  }
-
-  /* precomputations */
-  const float tan_theta_i = sin_theta_i / cos_theta_i;
-  const float inv_a = tan_theta_i;
-  const float cot_theta_i = 1.0f / tan_theta_i;
-  const float erf_a = fast_erff(cot_theta_i);
-  const float exp_a2 = expf(-cot_theta_i * cot_theta_i);
-  const float SQRT_PI_INV = 0.56418958354f;
-  const float Lambda = 0.5f * (erf_a - 1.0f) + (0.5f * SQRT_PI_INV) * (exp_a2 * inv_a);
-  const float G1 = 1.0f / (1.0f + Lambda); /* masking */
-
-  *G1i = G1;
-
-#if defined(__KERNEL_GPU__)
-  /* Based on paper from Wenzel Jakob
-   * An Improved Visible Normal Sampling Routine for the Beckmann Distribution
-   *
-   * http://www.mitsuba-renderer.org/~wenzel/files/visnormal.pdf
-   *
-   * Reformulation from OpenShadingLanguage which avoids using inverse
-   * trigonometric functions.
-   */
-
-  /* Sample slope X.
-   *
-   * Compute a coarse approximation using the approximation:
-   *   exp(-ierf(x)^2) ~= 1 - x * x
-   *   solve y = 1 + b + K * (1 - b * b)
-   */
-  float K = tan_theta_i * SQRT_PI_INV;
-  float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
-  float y_exact = randu * (1.0f + erf_a + K * exp_a2);
-  float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
-
-  /* Perform newton step to refine toward the true root. */
-  float inv_erf = fast_ierff(b);
-  float value = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
-  /* Check if we are close enough already,
-   * this also avoids NaNs as we get close to the root.
-   */
-  if (fabsf(value) > 1e-6f) {
-    b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 1. */
-    inv_erf = fast_ierff(b);
-    value = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
-    b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 2. */
-    /* Compute the slope from the refined value. */
-    *slope_x = fast_ierff(b);
+    slope_x = r * cosf(phi);
+    slope_y = r * sinf(phi);
   }
   else {
-    /* We are close enough already. */
-    *slope_x = inv_erf;
-  }
-  *slope_y = fast_ierff(2.0f * randv - 1.0f);
-#else
-  /* Use precomputed table on CPU, it gives better performance. */
-  int beckmann_table_offset = kernel_data.tables.beckmann_offset;
+    /* Precomputations. */
+    const float cos_theta_i = wi_.z;
+    const float sin_theta_i = sin_from_cos(cos_theta_i);
+    const float tan_theta_i = sin_theta_i / cos_theta_i;
+    const float cot_theta_i = 1.0f / tan_theta_i;
+    const float erf_a = fast_erff(cot_theta_i);
+    const float exp_a2 = expf(-cot_theta_i * cot_theta_i);
+    const float SQRT_PI_INV = 0.56418958354f;
 
-  *slope_x = lookup_table_read_2D(
-      kg, randu, cos_theta_i, beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
-  *slope_y = fast_ierff(2.0f * randv - 1.0f);
-#endif
-}
+    float invlen = 1.0f / sin_theta_i;
+    cos_phi_i = wi_.x * invlen;
+    sin_phi_i = wi_.y * invlen;
 
-/* GGX microfacet importance sampling from:
- *
- * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
- * E. Heitz and E. d'Eon, EGSR 2014
- */
+    /* Based on paper from Wenzel Jakob
+     * An Improved Visible Normal Sampling Routine for the Beckmann Distribution
+     *
+     * http://www.mitsuba-renderer.org/~wenzel/files/visnormal.pdf
+     *
+     * Reformulation from OpenShadingLanguage which avoids using inverse
+     * trigonometric functions.
+     */
 
-ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
-                                                    const float sin_theta_i,
-                                                    float randu,
-                                                    float randv,
-                                                    ccl_private float *slope_x,
-                                                    ccl_private float *slope_y,
-                                                    ccl_private float *G1i)
-{
-  /* special case (normal incidence) */
-  if (cos_theta_i >= 0.99999f) {
-    const float r = sqrtf(randu / (1.0f - randu));
-    const float phi = M_2PI_F * randv;
-    *slope_x = r * cosf(phi);
-    *slope_y = r * sinf(phi);
-    *G1i = 1.0f;
+    /* Sample slope X.
+     *
+     * Compute a coarse approximation using the approximation:
+     *   exp(-ierf(x)^2) ~= 1 - x * x
+     *   solve y = 1 + b + K * (1 - b * b)
+     */
+    const float K = tan_theta_i * SQRT_PI_INV;
+    const float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
+    const float y_exact = randu * (1.0f + erf_a + K * exp_a2);
+    float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
 
-    return;
-  }
+    float inv_erf = fast_ierff(b);
+    float2 begin = make_float2(-1.0f, -y_exact);
+    float2 end = make_float2(erf_a, 1.0f + erf_a + K * exp_a2 - y_exact);
+    float2 current = make_float2(b, 1.0f + b + K * expf(-sqr(inv_erf)) - y_exact);
 
-  /* precomputations */
-  const float tan_theta_i = sin_theta_i / cos_theta_i;
-  const float G1_inv = 0.5f * (1.0f + safe_sqrtf(1.0f + tan_theta_i * tan_theta_i));
+    /* Find root in a monotonic interval using newton method, under given precision and maximal
+     * iterations. Falls back to bisection if newton step produces results outside of the valid
+     * interval.*/
+    const float precision = 1e-6f;
+    const int max_iter = 3;
+    int iter = 0;
+    while (fabsf(current.y) > precision && iter++ < max_iter) {
+      if (signf(begin.y) == signf(current.y)) {
+        begin.x = current.x;
+        begin.y = current.y;
+      }
+      else {
+        end.x = current.x;
+      }
+      const float newton_x = current.x - current.y / (1.0f - inv_erf * tan_theta_i);
+      current.x = (newton_x >= begin.x && newton_x <= end.x) ? newton_x : 0.5f * (begin.x + end.x);
+      inv_erf = fast_ierff(current.x);
+      current.y = 1.0f + current.x + K * expf(-sqr(inv_erf)) - y_exact;
+    }
 
-  *G1i = 1.0f / G1_inv;
-
-  /* sample slope_x */
-  const float A = 2.0f * randu * G1_inv - 1.0f;
-  const float AA = A * A;
-  const float tmp = 1.0f / (AA - 1.0f);
-  const float B = tan_theta_i;
-  const float BB = B * B;
-  const float D = safe_sqrtf(BB * (tmp * tmp) - (AA - BB) * tmp);
-  const float slope_x_1 = B * tmp - D;
-  const float slope_x_2 = B * tmp + D;
-  *slope_x = (A < 0.0f || slope_x_2 * tan_theta_i > 1.0f) ? slope_x_1 : slope_x_2;
-
-  /* sample slope_y */
-  float S;
-
-  if (randv > 0.5f) {
-    S = 1.0f;
-    randv = 2.0f * (randv - 0.5f);
-  }
-  else {
-    S = -1.0f;
-    randv = 2.0f * (0.5f - randv);
-  }
-
-  const float z = (randv * (randv * (randv * 0.27385f - 0.73369f) + 0.46341f)) /
-                  (randv * (randv * (randv * 0.093073f + 0.309420f) - 1.000000f) + 0.597999f);
-  *slope_y = S * z * safe_sqrtf(1.0f + (*slope_x) * (*slope_x));
-}
-
-ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
-                                                          const float3 omega_i,
-                                                          const float alpha_x,
-                                                          const float alpha_y,
-                                                          const float randu,
-                                                          const float randv,
-                                                          bool beckmann,
-                                                          ccl_private float *G1i)
-{
-  /* 1. stretch omega_i */
-  float3 omega_i_ = make_float3(alpha_x * omega_i.x, alpha_y * omega_i.y, omega_i.z);
-  omega_i_ = normalize(omega_i_);
-
-  /* get polar coordinates of omega_i_ */
-  float costheta_ = 1.0f;
-  float sintheta_ = 0.0f;
-  float cosphi_ = 1.0f;
-  float sinphi_ = 0.0f;
-
-  if (omega_i_.z < 0.99999f) {
-    costheta_ = omega_i_.z;
-    sintheta_ = safe_sqrtf(1.0f - costheta_ * costheta_);
-
-    float invlen = 1.0f / sintheta_;
-    cosphi_ = omega_i_.x * invlen;
-    sinphi_ = omega_i_.y * invlen;
-  }
-
-  /* 2. sample P22_{omega_i}(x_slope, y_slope, 1, 1) */
-  float slope_x, slope_y;
-
-  if (beckmann) {
-    microfacet_beckmann_sample_slopes(
-        kg, costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
-  }
-  else {
-    microfacet_ggx_sample_slopes(costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
+    slope_x = inv_erf;
+    slope_y = fast_ierff(2.0f * randv - 1.0f);
   }
 
   /* 3. rotate */
-  float tmp = cosphi_ * slope_x - sinphi_ * slope_y;
-  slope_y = sinphi_ * slope_x + cosphi_ * slope_y;
+  float tmp = cos_phi_i * slope_x - sin_phi_i * slope_y;
+  slope_y = sin_phi_i * slope_x + cos_phi_i * slope_y;
   slope_x = tmp;
 
   /* 4. unstretch */
@@ -226,6 +138,43 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
   return normalize(make_float3(-slope_x, -slope_y, 1.0f));
 }
 
+/* GGX VNDF importance sampling algorithm from:
+ * Sampling the GGX Distribution of Visible Normals.
+ * Eric Heitz, JCGT Vol. 7, No. 4, 2018.
+ * https://jcgt.org/published/0007/04/01/ */
+ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
+                                                         const float alpha_x,
+                                                         const float alpha_y,
+                                                         const float randu,
+                                                         const float randv)
+{
+  /* Section 3.2: Transforming the view direction to the hemisphere configuration. */
+  float3 wi_ = normalize(make_float3(alpha_x * wi.x, alpha_y * wi.y, wi.z));
+
+  /* Section 4.1: Orthonormal basis. */
+  float lensq = sqr(wi_.x) + sqr(wi_.y);
+  float3 T1, T2;
+  if (lensq > 1e-7f) {
+    T1 = make_float3(-wi_.y, wi_.x, 0.0f) * inversesqrtf(lensq);
+    T2 = cross(wi_, T1);
+  }
+  else {
+    /* Normal incidence, any basis is fine. */
+    T1 = make_float3(1.0f, 0.0f, 0.0f);
+    T2 = make_float3(0.0f, 1.0f, 0.0f);
+  }
+
+  /* Section 4.2: Parameterization of the projected area. */
+  float2 t = concentric_sample_disk(randu, randv);
+  t.y = mix(safe_sqrtf(1.0f - sqr(t.x)), t.y, 0.5f * (1.0f + wi_.z));
+
+  /* Section 4.3: Reprojection onto hemisphere. */
+  float3 H_ = t.x * T1 + t.y * T2 + safe_sqrtf(1.0f - len_squared(t)) * wi_;
+
+  /* Section 3.4: Transforming the normal back to the ellipsoid configuration. */
+  return normalize(make_float3(alpha_x * H_.x, alpha_y * H_.y, max(0.0f, H_.z)));
+}
+
 /* Calculate the reflection color
  *
  * If fresnel is used, the color is an interpolation of the F0 color and white
@@ -233,45 +182,316 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
  *
  * Else it is simply white
  */
-ccl_device_forceinline Spectrum reflection_color(ccl_private const MicrofacetBsdf *bsdf,
-                                                 float3 L,
-                                                 float3 H)
+ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetBsdf *bsdf,
+                                                   float3 wi,
+                                                   float3 H)
 {
-  Spectrum F = one_spectrum();
-  bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
-                      bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
-  if (use_fresnel) {
-    float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
-
-    F = interpolate_fresnel_color(L, H, bsdf->ior, F0, bsdf->extra->cspec0);
+  if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(bsdf->type)) {
+    return interpolate_fresnel_color(wi, H, bsdf->ior, bsdf->extra->cspec0);
   }
-
-  return F;
+  else if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
+    return make_spectrum(fresnel_dielectric_cos(dot(wi, H), bsdf->ior));
+  }
+  else {
+    return one_spectrum();
+  }
 }
 
-ccl_device_forceinline float D_GTR1(float NdotH, float alpha)
+ccl_device_forceinline void bsdf_microfacet_adjust_weight(ccl_private const ShaderData *sd,
+                                                          ccl_private MicrofacetBsdf *bsdf)
 {
-  if (alpha >= 1.0f)
+  bsdf->sample_weight *= average(microfacet_fresnel(bsdf, sd->wi, bsdf->N));
+}
+
+/* Generalized Trowbridge-Reitz for clearcoat. */
+ccl_device_forceinline float bsdf_clearcoat_D(float alpha2, float cos_NH)
+{
+  if (alpha2 >= 1.0f) {
     return M_1_PI_F;
-  float alpha2 = alpha * alpha;
-  float t = 1.0f + (alpha2 - 1.0f) * NdotH * NdotH;
+  }
+
+  const float t = 1.0f + (alpha2 - 1.0f) * cos_NH * cos_NH;
   return (alpha2 - 1.0f) / (M_PI_F * logf(alpha2) * t);
 }
 
-ccl_device_forceinline void bsdf_microfacet_fresnel_color(ccl_private const ShaderData *sd,
-                                                          ccl_private MicrofacetBsdf *bsdf)
+/* Smith shadowing-masking term, here in the non-separable form.
+ * For details, see:
+ * Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs.
+ * Eric Heitz, JCGT Vol. 3, No. 2, 2014.
+ * https://jcgt.org/published/0003/02/03/ */
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
 {
-  kernel_assert(CLOSURE_IS_BSDF_MICROFACET_FRESNEL(bsdf->type));
+  if (m_type == MicrofacetType::GGX) {
+    /* Equation 72. */
+    return 0.5f * (sqrtf(1.0f + sqr_alpha_tan_n) - 1.0f);
+  }
+  else {
+    /* m_type == MicrofacetType::BECKMANN
+     * Approximation from below Equation 69. */
+    if (sqr_alpha_tan_n < 0.39f) {
+      /* Equivalent to a >= 1.6f, but also handles sqr_alpha_tan_n == 0.0f cleanly. */
+      return 0.0f;
+    }
 
-  float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
-  bsdf->extra->fresnel_color = interpolate_fresnel_color(
-      sd->I, bsdf->N, bsdf->ior, F0, bsdf->extra->cspec0);
+    const float a = inversesqrtf(sqr_alpha_tan_n);
+    return ((0.396f * a - 1.259f) * a + 1.0f) / ((2.181f * a + 3.535f) * a);
+  }
+}
 
-  if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-    bsdf->extra->fresnel_color *= 0.25f * bsdf->extra->clearcoat;
+template<MicrofacetType m_type> ccl_device_inline float bsdf_lambda(float alpha2, float cos_N)
+{
+  return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(alpha2 * fmaxf(1.0f / sqr(cos_N) - 1.0f, 0.0f));
+}
+
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_aniso_lambda(float alpha_x, float alpha_y, float3 V)
+{
+  const float sqr_alpha_tan_n = (sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) / sqr(V.z);
+  return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(sqr_alpha_tan_n);
+}
+
+/* Combined shadowing-masking term. */
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
+{
+  return 1.0f / (1.0f + bsdf_lambda<m_type>(alpha2, cos_NI) + bsdf_lambda<m_type>(alpha2, cos_NO));
+}
+
+/* Normal distribution function. */
+template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
+{
+  const float cos_NH2 = sqr(cos_NH);
+
+  if (m_type == MicrofacetType::BECKMANN) {
+    return expf((1.0f - 1.0f / cos_NH2) / alpha2) / (M_PI_F * alpha2 * sqr(cos_NH2));
+  }
+  else {
+    /* m_type == MicrofacetType::GGX */
+    return alpha2 / (M_PI_F * sqr(1.0f + (alpha2 - 1.0f) * cos_NH2));
+  }
+}
+
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
+{
+  H /= make_float3(alpha_x, alpha_y, 1.0f);
+
+  const float cos_NH2 = sqr(H.z);
+  const float alpha2 = alpha_x * alpha_y;
+
+  if (m_type == MicrofacetType::BECKMANN) {
+    return expf(-(sqr(H.x) + sqr(H.y)) / cos_NH2) / (M_PI_F * alpha2 * sqr(cos_NH2));
+  }
+  else {
+    /* m_type == MicrofacetType::GGX */
+    return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
+  }
+}
+
+template<MicrofacetType m_type>
+ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
+                                         const float3 Ng,
+                                         const float3 wi,
+                                         const float3 wo,
+                                         ccl_private float *pdf)
+{
+  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const bool m_refractive = (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) ||
+                            (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+
+  const float3 N = bsdf->N;
+  const float cos_NI = dot(N, wi);
+  const float cos_NO = dot(N, wo);
+  const float cos_NgO = dot(Ng, wo);
+
+  const float alpha_x = bsdf->alpha_x;
+  const float alpha_y = bsdf->alpha_y;
+
+  if ((cos_NI <= 0) || ((cos_NgO < 0.0f) != m_refractive) || ((cos_NO < 0.0f) != m_refractive) ||
+      (alpha_x * alpha_y <= 1e-7f)) {
+    *pdf = 0.0f;
+    return zero_spectrum();
   }
 
-  bsdf->sample_weight *= average(bsdf->extra->fresnel_color);
+  /* Compute half vector. */
+  float3 H = m_refractive ? -(bsdf->ior * wo + wi) : (wi + wo);
+  const float inv_len_H = 1.0f / len(H);
+  H *= inv_len_H;
+
+  const float cos_NH = dot(N, H);
+  float D, lambdaI, lambdaO;
+
+  /* TODO: add support for anisotropic transmission. */
+  if (alpha_x == alpha_y || m_refractive) { /* Isotropic. */
+    float alpha2 = alpha_x * alpha_y;
+
+    if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
+      D = bsdf_clearcoat_D(alpha2, cos_NH);
+
+      /* The masking-shadowing term for clearcoat has a fixed alpha of 0.25
+       * => alpha2 = 0.25 * 0.25 */
+      alpha2 = 0.0625f;
+    }
+    else {
+      D = bsdf_D<m_type>(alpha2, cos_NH);
+    }
+
+    lambdaI = bsdf_lambda<m_type>(alpha2, cos_NI);
+    lambdaO = bsdf_lambda<m_type>(alpha2, cos_NO);
+  }
+  else { /* Anisotropic. */
+    float3 X, Y;
+    make_orthonormals_tangent(N, bsdf->T, &X, &Y);
+
+    const float3 local_H = make_float3(dot(X, H), dot(Y, H), cos_NH);
+    const float3 local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
+    const float3 local_O = make_float3(dot(X, wo), dot(Y, wo), cos_NO);
+
+    D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
+
+    lambdaI = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_I);
+    lambdaO = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_O);
+  }
+
+  const float common = D / cos_NI *
+                       (m_refractive ?
+                            sqr(bsdf->ior * inv_len_H) * fabsf(dot(H, wi) * dot(H, wo)) :
+                            0.25f);
+
+  *pdf = common / (1.0f + lambdaI);
+
+  const Spectrum F = microfacet_fresnel(bsdf, wo, H);
+  return F * common / (1.0f + lambdaO + lambdaI);
+}
+
+template<MicrofacetType m_type>
+ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
+                                      float3 Ng,
+                                      float3 wi,
+                                      float randu,
+                                      float randv,
+                                      ccl_private Spectrum *eval,
+                                      ccl_private float3 *wo,
+                                      ccl_private float *pdf,
+                                      ccl_private float2 *sampled_roughness,
+                                      ccl_private float *eta)
+{
+  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+
+  const float m_eta = bsdf->ior;
+  const bool m_refractive = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) ||
+                            (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
+  int label = m_refractive ? LABEL_TRANSMIT : LABEL_REFLECT;
+
+  const float3 N = bsdf->N;
+  const float cos_NI = dot(N, wi);
+  if (cos_NI <= 0) {
+    return label | LABEL_GLOSSY;
+  }
+
+  float3 X, Y;
+  const float alpha_x = bsdf->alpha_x;
+  const float alpha_y = bsdf->alpha_y;
+  if (alpha_x == alpha_y) {
+    make_orthonormals(N, &X, &Y);
+  }
+  else {
+    make_orthonormals_tangent(N, bsdf->T, &X, &Y);
+  }
+
+  /* Importance sampling with distribution of visible normals. Vectors are transformed to local
+   * space before and after sampling. */
+  const float3 local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
+  float3 local_H;
+  if (m_type == MicrofacetType::GGX) {
+    local_H = microfacet_ggx_sample_vndf(local_I, alpha_x, alpha_y, randu, randv);
+  }
+  else {
+    /* m_type == MicrofacetType::BECKMANN */
+    local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, randu, randv);
+  }
+
+  const float3 H = X * local_H.x + Y * local_H.y + N * local_H.z;
+  const float cos_NH = local_H.z;
+  const float cos_HI = dot(H, wi);
+
+  bool valid = false;
+  if (m_refractive) {
+    float3 R, T;
+    bool inside;
+
+    float fresnel = fresnel_dielectric(m_eta, H, wi, &R, &T, &inside);
+    *wo = T;
+
+    valid = !inside && fresnel != 1.0f;
+  }
+  else {
+    /* Eq. 39 - compute actual reflected direction */
+    *wo = 2 * cos_HI * H - wi;
+
+    valid = dot(Ng, *wo) > 0;
+  }
+
+  if (!valid) {
+    *eval = zero_spectrum();
+    *pdf = 0.0f;
+    return label | LABEL_GLOSSY;
+  }
+
+  if (alpha_x * alpha_y <= 1e-7f || (m_refractive && fabsf(m_eta - 1.0f) < 1e-4f)) {
+    label |= LABEL_SINGULAR;
+    /* Some high number for MIS. */
+    *pdf = 1e6f;
+    *eval = make_spectrum(1e6f) * microfacet_fresnel(bsdf, *wo, H);
+  }
+  else {
+    label |= LABEL_GLOSSY;
+    float cos_NO = dot(N, *wo);
+    float D, lambdaI, lambdaO;
+
+    /* TODO: add support for anisotropic transmission. */
+    if (alpha_x == alpha_y || m_refractive) { /* Isotropic. */
+      float alpha2 = alpha_x * alpha_y;
+
+      if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
+        D = bsdf_clearcoat_D(alpha2, cos_NH);
+
+        /* The masking-shadowing term for clearcoat has a fixed alpha of 0.25
+         * => alpha2 = 0.25 * 0.25 */
+        alpha2 = 0.0625f;
+      }
+      else {
+        D = bsdf_D<m_type>(alpha2, cos_NH);
+      }
+
+      lambdaO = bsdf_lambda<m_type>(alpha2, cos_NO);
+      lambdaI = bsdf_lambda<m_type>(alpha2, cos_NI);
+    }
+    else { /* Anisotropic. */
+      const float3 local_O = make_float3(dot(X, *wo), dot(Y, *wo), cos_NO);
+
+      D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
+
+      lambdaO = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_O);
+      lambdaI = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_I);
+    }
+
+    const float cos_HO = dot(H, *wo);
+    const float common = D / cos_NI *
+                         (m_refractive ? fabsf(cos_HI * cos_HO) / sqr(cos_HO + cos_HI / m_eta) :
+                                         0.25f);
+
+    *pdf = common / (1.0f + lambdaI);
+
+    Spectrum F = microfacet_fresnel(bsdf, *wo, H);
+    *eval = F * common / (1.0f + lambdaI + lambdaO);
+  }
+
+  *sampled_roughness = make_float2(alpha_x, alpha_y);
+  *eta = m_refractive ? 1.0f / m_eta : m_eta;
+
+  return label;
 }
 
 /* GGX microfacet with Smith shadow-masking from:
@@ -299,14 +519,6 @@ ccl_device int bsdf_microfacet_ggx_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-/* Required to maintain OSL interface. */
-ccl_device int bsdf_microfacet_ggx_isotropic_setup(ccl_private MicrofacetBsdf *bsdf)
-{
-  bsdf->alpha_y = bsdf->alpha_x;
-
-  return bsdf_microfacet_ggx_setup(bsdf);
-}
-
 ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsdf,
                                                  ccl_private const ShaderData *sd)
 {
@@ -317,7 +529,7 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsd
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -325,14 +537,12 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsd
 ccl_device int bsdf_microfacet_ggx_clearcoat_setup(ccl_private MicrofacetBsdf *bsdf,
                                                    ccl_private const ShaderData *sd)
 {
-  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
-
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -357,395 +567,28 @@ ccl_device void bsdf_microfacet_ggx_blur(ccl_private ShaderClosure *sc, float ro
   bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
 }
 
-ccl_device Spectrum bsdf_microfacet_ggx_eval_reflect(ccl_private const MicrofacetBsdf *bsdf,
-                                                     const float3 N,
-                                                     const float3 I,
-                                                     const float3 omega_in,
-                                                     ccl_private float *pdf,
-                                                     const float alpha_x,
-                                                     const float alpha_y,
-                                                     const float cosNO,
-                                                     const float cosNI)
-{
-  if (!(cosNI > 0 && cosNO > 0)) {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
-
-  /* get half vector */
-  float3 m = normalize(omega_in + I);
-  float alpha2 = alpha_x * alpha_y;
-  float D, G1o, G1i;
-
-  if (alpha_x == alpha_y) {
-    /* isotropic
-     * eq. 20: (F*G*D)/(4*in*on)
-     * eq. 33: first we calculate D(m) */
-    float cosThetaM = dot(N, m);
-    float cosThetaM2 = cosThetaM * cosThetaM;
-    float cosThetaM4 = cosThetaM2 * cosThetaM2;
-    float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
-
-    if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-      /* use GTR1 for clearcoat */
-      D = D_GTR1(cosThetaM, bsdf->alpha_x);
-
-      /* the alpha value for clearcoat is a fixed 0.25 => alpha2 = 0.25 * 0.25 */
-      alpha2 = 0.0625f;
-    }
-    else {
-      /* use GTR2 otherwise */
-      D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-    }
-
-    /* eq. 34: now calculate G1(i,m) and G1(o,m) */
-    G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
-    G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
-  }
-  else {
-    /* anisotropic */
-    float3 X, Y, Z = N;
-    make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
-
-    /* distribution */
-    float3 local_m = make_float3(dot(X, m), dot(Y, m), dot(Z, m));
-    float slope_x = -local_m.x / (local_m.z * alpha_x);
-    float slope_y = -local_m.y / (local_m.z * alpha_y);
-    float slope_len = 1 + slope_x * slope_x + slope_y * slope_y;
-
-    float cosThetaM = local_m.z;
-    float cosThetaM2 = cosThetaM * cosThetaM;
-    float cosThetaM4 = cosThetaM2 * cosThetaM2;
-
-    D = 1 / ((slope_len * slope_len) * M_PI_F * alpha2 * cosThetaM4);
-
-    /* G1(i,m) and G1(o,m) */
-    float tanThetaO2 = (1 - cosNO * cosNO) / (cosNO * cosNO);
-    float cosPhiO = dot(I, X);
-    float sinPhiO = dot(I, Y);
-
-    float alphaO2 = (cosPhiO * cosPhiO) * (alpha_x * alpha_x) +
-                    (sinPhiO * sinPhiO) * (alpha_y * alpha_y);
-    alphaO2 /= cosPhiO * cosPhiO + sinPhiO * sinPhiO;
-
-    G1o = 2 / (1 + safe_sqrtf(1 + alphaO2 * tanThetaO2));
-
-    float tanThetaI2 = (1 - cosNI * cosNI) / (cosNI * cosNI);
-    float cosPhiI = dot(omega_in, X);
-    float sinPhiI = dot(omega_in, Y);
-
-    float alphaI2 = (cosPhiI * cosPhiI) * (alpha_x * alpha_x) +
-                    (sinPhiI * sinPhiI) * (alpha_y * alpha_y);
-    alphaI2 /= cosPhiI * cosPhiI + sinPhiI * sinPhiI;
-
-    G1i = 2 / (1 + safe_sqrtf(1 + alphaI2 * tanThetaI2));
-  }
-
-  float G = G1o * G1i;
-
-  /* eq. 20 */
-  float common = D * 0.25f / cosNO;
-
-  Spectrum F = reflection_color(bsdf, omega_in, m);
-  if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-    F *= 0.25f * bsdf->extra->clearcoat;
-  }
-
-  Spectrum out = F * G * common;
-
-  /* eq. 2 in distribution of visible normals sampling
-   * `pm = Dw = G1o * dot(m, I) * D / dot(N, I);` */
-
-  /* eq. 38 - but see also:
-   * eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-   * `pdf = pm * 0.25 / dot(m, I);` */
-  *pdf = G1o * common;
-
-  return out;
-}
-
-ccl_device Spectrum bsdf_microfacet_ggx_eval_transmit(ccl_private const MicrofacetBsdf *bsdf,
-                                                      const float3 N,
-                                                      const float3 I,
-                                                      const float3 omega_in,
-                                                      ccl_private float *pdf,
-                                                      const float alpha_x,
-                                                      const float alpha_y,
-                                                      const float cosNO,
-                                                      const float cosNI)
-{
-  if (cosNO <= 0 || cosNI >= 0) {
-    *pdf = 0.0f;
-    return zero_spectrum(); /* vectors on same side -- not possible */
-  }
-  /* compute half-vector of the refraction (eq. 16) */
-  float m_eta = bsdf->ior;
-  float3 ht = -(m_eta * omega_in + I);
-  float3 Ht = normalize(ht);
-  float cosHO = dot(Ht, I);
-  float cosHI = dot(Ht, omega_in);
-
-  float D, G1o, G1i;
-
-  /* eq. 33: first we calculate D(m) with m=Ht: */
-  float alpha2 = alpha_x * alpha_y;
-  float cosThetaM = dot(N, Ht);
-  float cosThetaM2 = cosThetaM * cosThetaM;
-  float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
-  float cosThetaM4 = cosThetaM2 * cosThetaM2;
-  D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-
-  /* eq. 34: now calculate G1(i,m) and G1(o,m) */
-  G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
-  G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
-
-  float G = G1o * G1i;
-
-  /* probability */
-  float Ht2 = dot(ht, ht);
-
-  /* eq. 2 in distribution of visible normals sampling
-   * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
-
-  /* out = fabsf(cosHI * cosHO) * (m_eta * m_eta) * G * D / (cosNO * Ht2)
-   * pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2 */
-  float common = D * (m_eta * m_eta) / (cosNO * Ht2);
-  float out = G * fabsf(cosHI * cosHO) * common;
-  *pdf = G1o * fabsf(cosHO * cosHI) * common;
-
-  return make_spectrum(out);
-}
-
 ccl_device Spectrum bsdf_microfacet_ggx_eval(ccl_private const ShaderClosure *sc,
-                                             const float3 I,
-                                             const float3 omega_in,
+                                             const float3 Ng,
+                                             const float3 wi,
+                                             const float3 wo,
                                              ccl_private float *pdf)
 {
-  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
-  const float alpha_x = bsdf->alpha_x;
-  const float alpha_y = bsdf->alpha_y;
-  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-  const float3 N = bsdf->N;
-  const float cosNO = dot(N, I);
-  const float cosNI = dot(N, omega_in);
-
-  if (((cosNI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
-
-  return (cosNI < 0.0f) ? bsdf_microfacet_ggx_eval_transmit(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI) :
-                          bsdf_microfacet_ggx_eval_reflect(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI);
+  return bsdf_microfacet_eval<MicrofacetType::GGX>(sc, Ng, wi, wo, pdf);
 }
 
-ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
-                                          ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
                                           float3 Ng,
-                                          float3 I,
+                                          float3 wi,
                                           float randu,
                                           float randv,
                                           ccl_private Spectrum *eval,
-                                          ccl_private float3 *omega_in,
+                                          ccl_private float3 *wo,
                                           ccl_private float *pdf,
                                           ccl_private float2 *sampled_roughness,
                                           ccl_private float *eta)
 {
-  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
-  float alpha_x = bsdf->alpha_x;
-  float alpha_y = bsdf->alpha_y;
-  bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-
-  *sampled_roughness = make_float2(alpha_x, alpha_y);
-  *eta = m_refractive ? 1.0f / bsdf->ior : bsdf->ior;
-
-  float3 N = bsdf->N;
-  int label;
-
-  float cosNO = dot(N, I);
-  if (cosNO > 0) {
-    float3 X, Y, Z = N;
-
-    if (alpha_x == alpha_y)
-      make_orthonormals(Z, &X, &Y);
-    else
-      make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
-
-    /* importance sampling with distribution of visible normals. vectors are
-     * transformed to local space before and after */
-    float3 local_I = make_float3(dot(X, I), dot(Y, I), cosNO);
-    float3 local_m;
-    float G1o;
-
-    local_m = microfacet_sample_stretched(
-        kg, local_I, alpha_x, alpha_y, randu, randv, false, &G1o);
-
-    float3 m = X * local_m.x + Y * local_m.y + Z * local_m.z;
-    float cosThetaM = local_m.z;
-
-    /* reflection or refraction? */
-    if (!m_refractive) {
-      float cosMO = dot(m, I);
-      label = LABEL_REFLECT | LABEL_GLOSSY;
-
-      if (cosMO > 0) {
-        /* eq. 39 - compute actual reflected direction */
-        *omega_in = 2 * cosMO * m - I;
-
-        if (dot(Ng, *omega_in) > 0) {
-          if (alpha_x * alpha_y <= 1e-7f) {
-            /* some high number for MIS */
-            *pdf = 1e6f;
-            *eval = make_spectrum(1e6f);
-
-            bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
-                                bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
-
-            /* if fresnel is used, calculate the color with reflection_color(...) */
-            if (use_fresnel) {
-              *eval *= reflection_color(bsdf, *omega_in, m);
-            }
-
-            label = LABEL_REFLECT | LABEL_SINGULAR;
-          }
-          else {
-            /* microfacet normal is visible to this ray */
-            /* eq. 33 */
-            float alpha2 = alpha_x * alpha_y;
-            float D, G1i;
-
-            if (alpha_x == alpha_y) {
-              /* isotropic */
-              float cosThetaM2 = cosThetaM * cosThetaM;
-              float cosThetaM4 = cosThetaM2 * cosThetaM2;
-              float tanThetaM2 = 1 / (cosThetaM2)-1;
-
-              /* eval BRDF*cosNI */
-              float cosNI = dot(N, *omega_in);
-
-              if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-                /* use GTR1 for clearcoat */
-                D = D_GTR1(cosThetaM, bsdf->alpha_x);
-
-                /* the alpha value for clearcoat is a fixed 0.25 => alpha2 = 0.25 * 0.25 */
-                alpha2 = 0.0625f;
-
-                /* recalculate G1o */
-                G1o = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNO * cosNO) / (cosNO * cosNO)));
-              }
-              else {
-                /* use GTR2 otherwise */
-                D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-              }
-
-              /* eq. 34: now calculate G1(i,m) */
-              G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
-            }
-            else {
-              /* anisotropic distribution */
-              float3 local_m = make_float3(dot(X, m), dot(Y, m), dot(Z, m));
-              float slope_x = -local_m.x / (local_m.z * alpha_x);
-              float slope_y = -local_m.y / (local_m.z * alpha_y);
-              float slope_len = 1 + slope_x * slope_x + slope_y * slope_y;
-
-              float cosThetaM = local_m.z;
-              float cosThetaM2 = cosThetaM * cosThetaM;
-              float cosThetaM4 = cosThetaM2 * cosThetaM2;
-
-              D = 1 / ((slope_len * slope_len) * M_PI_F * alpha2 * cosThetaM4);
-
-              /* calculate G1(i,m) */
-              float cosNI = dot(N, *omega_in);
-
-              float tanThetaI2 = (1 - cosNI * cosNI) / (cosNI * cosNI);
-              float cosPhiI = dot(*omega_in, X);
-              float sinPhiI = dot(*omega_in, Y);
-
-              float alphaI2 = (cosPhiI * cosPhiI) * (alpha_x * alpha_x) +
-                              (sinPhiI * sinPhiI) * (alpha_y * alpha_y);
-              alphaI2 /= cosPhiI * cosPhiI + sinPhiI * sinPhiI;
-
-              G1i = 2 / (1 + safe_sqrtf(1 + alphaI2 * tanThetaI2));
-            }
-
-            /* see eval function for derivation */
-            float common = (G1o * D) * 0.25f / cosNO;
-            *pdf = common;
-
-            Spectrum F = reflection_color(bsdf, *omega_in, m);
-
-            *eval = G1i * common * F;
-          }
-
-          if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-            *eval *= 0.25f * bsdf->extra->clearcoat;
-          }
-        }
-        else {
-          *eval = zero_spectrum();
-          *pdf = 0.0f;
-        }
-      }
-    }
-    else {
-      label = LABEL_TRANSMIT | LABEL_GLOSSY;
-
-      /* CAUTION: the i and o variables are inverted relative to the paper
-       * eq. 39 - compute actual refractive direction */
-      float3 R, T;
-      float m_eta = bsdf->ior, fresnel;
-      bool inside;
-
-      fresnel = fresnel_dielectric(m_eta, m, I, &R, &T, &inside);
-
-      if (!inside && fresnel != 1.0f) {
-        *omega_in = T;
-
-        if (alpha_x * alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
-          /* some high number for MIS */
-          *pdf = 1e6f;
-          *eval = make_spectrum(1e6f);
-          label = LABEL_TRANSMIT | LABEL_SINGULAR;
-        }
-        else {
-          /* eq. 33 */
-          float alpha2 = alpha_x * alpha_y;
-          float cosThetaM2 = cosThetaM * cosThetaM;
-          float cosThetaM4 = cosThetaM2 * cosThetaM2;
-          float tanThetaM2 = 1 / (cosThetaM2)-1;
-          float D = alpha2 / (M_PI_F * cosThetaM4 * (alpha2 + tanThetaM2) * (alpha2 + tanThetaM2));
-
-          /* eval BRDF*cosNI */
-          float cosNI = dot(N, *omega_in);
-
-          /* eq. 34: now calculate G1(i,m) */
-          float G1i = 2 / (1 + safe_sqrtf(1 + alpha2 * (1 - cosNI * cosNI) / (cosNI * cosNI)));
-
-          /* eq. 21 */
-          float cosHI = dot(m, *omega_in);
-          float cosHO = dot(m, I);
-          float Ht2 = m_eta * cosHI + cosHO;
-          Ht2 *= Ht2;
-
-          /* see eval function for derivation */
-          float common = (G1o * D) * (m_eta * m_eta) / (cosNO * Ht2);
-          float out = G1i * fabsf(cosHI * cosHO) * common;
-          *pdf = cosHO * fabsf(cosHI) * common;
-
-          *eval = make_spectrum(out);
-        }
-      }
-      else {
-        *eval = zero_spectrum();
-        *pdf = 0.0f;
-      }
-    }
-  }
-  else {
-    label = (m_refractive) ? LABEL_TRANSMIT | LABEL_GLOSSY : LABEL_REFLECT | LABEL_GLOSSY;
-  }
-  return label;
+  return bsdf_microfacet_sample<MicrofacetType::GGX>(
+      sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
 /* Beckmann microfacet with Smith shadow-masking from:
@@ -760,14 +603,6 @@ ccl_device int bsdf_microfacet_beckmann_setup(ccl_private MicrofacetBsdf *bsdf)
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-/* Required to maintain OSL interface. */
-ccl_device int bsdf_microfacet_beckmann_isotropic_setup(ccl_private MicrofacetBsdf *bsdf)
-{
-  bsdf->alpha_y = bsdf->alpha_x;
-
-  return bsdf_microfacet_beckmann_setup(bsdf);
 }
 
 ccl_device int bsdf_microfacet_beckmann_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
@@ -787,353 +622,28 @@ ccl_device void bsdf_microfacet_beckmann_blur(ccl_private ShaderClosure *sc, flo
   bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
 }
 
-ccl_device_inline float bsdf_beckmann_G1(float alpha, float cos_n)
-{
-  cos_n *= cos_n;
-  float invA = alpha * safe_sqrtf((1.0f - cos_n) / cos_n);
-  if (invA < 0.625f) {
-    return 1.0f;
-  }
-
-  float a = 1.0f / invA;
-  return ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
-}
-
-ccl_device_inline float bsdf_beckmann_aniso_G1(
-    float alpha_x, float alpha_y, float cos_n, float cos_phi, float sin_phi)
-{
-  cos_n *= cos_n;
-  sin_phi *= sin_phi;
-  cos_phi *= cos_phi;
-  alpha_x *= alpha_x;
-  alpha_y *= alpha_y;
-
-  float alphaO2 = (cos_phi * alpha_x + sin_phi * alpha_y) / (cos_phi + sin_phi);
-  float invA = safe_sqrtf(alphaO2 * (1 - cos_n) / cos_n);
-  if (invA < 0.625f) {
-    return 1.0f;
-  }
-
-  float a = 1.0f / invA;
-  return ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
-}
-
-ccl_device Spectrum bsdf_microfacet_beckmann_eval_reflect(ccl_private const MicrofacetBsdf *bsdf,
-                                                          const float3 N,
-                                                          const float3 I,
-                                                          const float3 omega_in,
-                                                          ccl_private float *pdf,
-                                                          const float alpha_x,
-                                                          const float alpha_y,
-                                                          const float cosNO,
-                                                          const float cosNI)
-{
-  if (!(cosNO > 0 && cosNI > 0)) {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
-
-  /* get half vector */
-  float3 m = normalize(omega_in + I);
-
-  float alpha2 = alpha_x * alpha_y;
-  float D, G1o, G1i;
-
-  if (alpha_x == alpha_y) {
-    /* isotropic
-     * eq. 20: (F*G*D)/(4*in*on)
-     * eq. 25: first we calculate D(m) */
-    float cosThetaM = dot(N, m);
-    float cosThetaM2 = cosThetaM * cosThetaM;
-    float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
-    float cosThetaM4 = cosThetaM2 * cosThetaM2;
-    D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 * cosThetaM4);
-
-    /* eq. 26, 27: now calculate G1(i,m) and G1(o,m) */
-    G1o = bsdf_beckmann_G1(alpha_x, cosNO);
-    G1i = bsdf_beckmann_G1(alpha_x, cosNI);
-  }
-  else {
-    /* anisotropic */
-    float3 X, Y, Z = N;
-    make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
-
-    /* distribution */
-    float3 local_m = make_float3(dot(X, m), dot(Y, m), dot(Z, m));
-    float slope_x = -local_m.x / (local_m.z * alpha_x);
-    float slope_y = -local_m.y / (local_m.z * alpha_y);
-
-    float cosThetaM = local_m.z;
-    float cosThetaM2 = cosThetaM * cosThetaM;
-    float cosThetaM4 = cosThetaM2 * cosThetaM2;
-
-    D = expf(-slope_x * slope_x - slope_y * slope_y) / (M_PI_F * alpha2 * cosThetaM4);
-
-    /* G1(i,m) and G1(o,m) */
-    G1o = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNO, dot(I, X), dot(I, Y));
-    G1i = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNI, dot(omega_in, X), dot(omega_in, Y));
-  }
-
-  float G = G1o * G1i;
-
-  /* eq. 20 */
-  float common = D * 0.25f / cosNO;
-  float out = G * common;
-
-  /* eq. 2 in distribution of visible normals sampling
-   * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
-
-  /* eq. 38 - but see also:
-   * eq. 17 in http://www.graphics.cornell.edu/~bjw/wardnotes.pdf
-   * pdf = pm * 0.25 / dot(m, I); */
-  *pdf = G1o * common;
-
-  return make_spectrum(out);
-}
-
-ccl_device Spectrum bsdf_microfacet_beckmann_eval_transmit(ccl_private const MicrofacetBsdf *bsdf,
-                                                           const float3 N,
-                                                           const float3 I,
-                                                           const float3 omega_in,
-                                                           ccl_private float *pdf,
-                                                           const float alpha_x,
-                                                           const float alpha_y,
-                                                           const float cosNO,
-                                                           const float cosNI)
-{
-  if (cosNO <= 0 || cosNI >= 0) {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
-
-  const float m_eta = bsdf->ior;
-  /* compute half-vector of the refraction (eq. 16) */
-  float3 ht = -(m_eta * omega_in + I);
-  float3 Ht = normalize(ht);
-  float cosHO = dot(Ht, I);
-  float cosHI = dot(Ht, omega_in);
-
-  /* eq. 25: first we calculate D(m) with m=Ht: */
-  float alpha2 = alpha_x * alpha_y;
-  float cosThetaM = min(dot(N, Ht), 1.0f);
-  float cosThetaM2 = cosThetaM * cosThetaM;
-  float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
-  float cosThetaM4 = cosThetaM2 * cosThetaM2;
-  float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 * cosThetaM4);
-
-  /* eq. 26, 27: now calculate G1(i,m) and G1(o,m) */
-  float G1o = bsdf_beckmann_G1(alpha_x, cosNO);
-  float G1i = bsdf_beckmann_G1(alpha_x, cosNI);
-  float G = G1o * G1i;
-
-  /* probability */
-  float Ht2 = dot(ht, ht);
-
-  /* eq. 2 in distribution of visible normals sampling
-   * pm = Dw = G1o * dot(m, I) * D / dot(N, I); */
-
-  /* out = fabsf(cosHI * cosHO) * (m_eta * m_eta) * G * D / (cosNO * Ht2)
-   * pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2 */
-  float common = D * (m_eta * m_eta) / (cosNO * Ht2);
-  float out = G * fabsf(cosHI * cosHO) * common;
-  *pdf = G1o * fabsf(cosHO * cosHI) * common;
-
-  return make_spectrum(out);
-}
-
 ccl_device Spectrum bsdf_microfacet_beckmann_eval(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
+                                                  const float3 Ng,
+                                                  const float3 wi,
+                                                  const float3 wo,
                                                   ccl_private float *pdf)
 {
-  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
-  const float alpha_x = bsdf->alpha_x;
-  const float alpha_y = bsdf->alpha_y;
-  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-  const float3 N = bsdf->N;
-  const float cosNO = dot(N, I);
-  const float cosNI = dot(N, omega_in);
-
-  if (((cosNI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
-
-  return (cosNI < 0.0f) ? bsdf_microfacet_beckmann_eval_transmit(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI) :
-                          bsdf_microfacet_beckmann_eval_reflect(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI);
+  return bsdf_microfacet_eval<MicrofacetType::BECKMANN>(sc, Ng, wi, wo, pdf);
 }
 
-ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
-                                               ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *sc,
                                                float3 Ng,
-                                               float3 I,
+                                               float3 wi,
                                                float randu,
                                                float randv,
                                                ccl_private Spectrum *eval,
-                                               ccl_private float3 *omega_in,
+                                               ccl_private float3 *wo,
                                                ccl_private float *pdf,
                                                ccl_private float2 *sampled_roughness,
                                                ccl_private float *eta)
 {
-  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
-  float alpha_x = bsdf->alpha_x;
-  float alpha_y = bsdf->alpha_y;
-  bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-  float3 N = bsdf->N;
-  int label;
-
-  *sampled_roughness = make_float2(alpha_x, alpha_y);
-  *eta = m_refractive ? 1.0f / bsdf->ior : bsdf->ior;
-
-  float cosNO = dot(N, I);
-  if (cosNO > 0) {
-    float3 X, Y, Z = N;
-
-    if (alpha_x == alpha_y)
-      make_orthonormals(Z, &X, &Y);
-    else
-      make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
-
-    /* importance sampling with distribution of visible normals. vectors are
-     * transformed to local space before and after */
-    float3 local_I = make_float3(dot(X, I), dot(Y, I), cosNO);
-    float3 local_m;
-    float G1o;
-
-    local_m = microfacet_sample_stretched(kg, local_I, alpha_x, alpha_x, randu, randv, true, &G1o);
-
-    float3 m = X * local_m.x + Y * local_m.y + Z * local_m.z;
-    float cosThetaM = local_m.z;
-
-    /* reflection or refraction? */
-    if (!m_refractive) {
-      label = LABEL_REFLECT | LABEL_GLOSSY;
-      float cosMO = dot(m, I);
-
-      if (cosMO > 0) {
-        /* eq. 39 - compute actual reflected direction */
-        *omega_in = 2 * cosMO * m - I;
-
-        if (dot(Ng, *omega_in) > 0) {
-          if (alpha_x * alpha_y <= 1e-7f) {
-            /* some high number for MIS */
-            *pdf = 1e6f;
-            *eval = make_spectrum(1e6f);
-            label = LABEL_REFLECT | LABEL_SINGULAR;
-          }
-          else {
-            /* microfacet normal is visible to this ray
-             * eq. 25 */
-            float alpha2 = alpha_x * alpha_y;
-            float D, G1i;
-
-            if (alpha_x == alpha_y) {
-              /* Isotropic distribution. */
-              float cosThetaM2 = cosThetaM * cosThetaM;
-              float cosThetaM4 = cosThetaM2 * cosThetaM2;
-              float tanThetaM2 = 1 / (cosThetaM2)-1;
-              D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 * cosThetaM4);
-
-              /* eval BRDF*cosNI */
-              float cosNI = dot(N, *omega_in);
-
-              /* eq. 26, 27: now calculate G1(i,m) */
-              G1i = bsdf_beckmann_G1(alpha_x, cosNI);
-            }
-            else {
-              /* anisotropic distribution */
-              float3 local_m = make_float3(dot(X, m), dot(Y, m), dot(Z, m));
-              float slope_x = -local_m.x / (local_m.z * alpha_x);
-              float slope_y = -local_m.y / (local_m.z * alpha_y);
-
-              float cosThetaM = local_m.z;
-              float cosThetaM2 = cosThetaM * cosThetaM;
-              float cosThetaM4 = cosThetaM2 * cosThetaM2;
-
-              D = expf(-slope_x * slope_x - slope_y * slope_y) / (M_PI_F * alpha2 * cosThetaM4);
-
-              /* G1(i,m) */
-              G1i = bsdf_beckmann_aniso_G1(
-                  alpha_x, alpha_y, dot(*omega_in, N), dot(*omega_in, X), dot(*omega_in, Y));
-            }
-
-            float G = G1o * G1i;
-
-            /* see eval function for derivation */
-            float common = D * 0.25f / cosNO;
-            float out = G * common;
-            *pdf = G1o * common;
-
-            *eval = make_spectrum(out);
-          }
-        }
-        else {
-          *eval = zero_spectrum();
-          *pdf = 0.0f;
-        }
-      }
-    }
-    else {
-      label = LABEL_TRANSMIT | LABEL_GLOSSY;
-
-      /* CAUTION: the i and o variables are inverted relative to the paper
-       * eq. 39 - compute actual refractive direction */
-      float3 R, T;
-      float m_eta = bsdf->ior, fresnel;
-      bool inside;
-
-      fresnel = fresnel_dielectric(m_eta, m, I, &R, &T, &inside);
-
-      if (!inside && fresnel != 1.0f) {
-        *omega_in = T;
-
-        if (alpha_x * alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
-          /* some high number for MIS */
-          *pdf = 1e6f;
-          *eval = make_spectrum(1e6f);
-          label = LABEL_TRANSMIT | LABEL_SINGULAR;
-        }
-        else {
-          /* eq. 33 */
-          float alpha2 = alpha_x * alpha_y;
-          float cosThetaM2 = cosThetaM * cosThetaM;
-          float cosThetaM4 = cosThetaM2 * cosThetaM2;
-          float tanThetaM2 = 1 / (cosThetaM2)-1;
-          float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 * cosThetaM4);
-
-          /* eval BRDF*cosNI */
-          float cosNI = dot(N, *omega_in);
-
-          /* eq. 26, 27: now calculate G1(i,m) */
-          float G1i = bsdf_beckmann_G1(alpha_x, cosNI);
-          float G = G1o * G1i;
-
-          /* eq. 21 */
-          float cosHI = dot(m, *omega_in);
-          float cosHO = dot(m, I);
-          float Ht2 = m_eta * cosHI + cosHO;
-          Ht2 *= Ht2;
-
-          /* see eval function for derivation */
-          float common = D * (m_eta * m_eta) / (cosNO * Ht2);
-          float out = G * fabsf(cosHI * cosHO) * common;
-          *pdf = G1o * cosHO * fabsf(cosHI) * common;
-
-          *eval = make_spectrum(out);
-        }
-      }
-      else {
-        *eval = zero_spectrum();
-        *pdf = 0.0f;
-      }
-    }
-  }
-  else {
-    label = (m_refractive) ? LABEL_TRANSMIT | LABEL_GLOSSY : LABEL_REFLECT | LABEL_GLOSSY;
-  }
-  return label;
+  return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
+      sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
 CCL_NAMESPACE_END

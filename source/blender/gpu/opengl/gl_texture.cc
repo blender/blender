@@ -326,13 +326,13 @@ void GLTexture::update_sub(int offset[3],
   switch (dimensions) {
     default:
     case 1:
-      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, 0);
+      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, nullptr);
       break;
     case 2:
-      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, 0);
+      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, nullptr);
       break;
     case 3:
-      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, 0);
+      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, nullptr);
       break;
   }
 
@@ -353,7 +353,7 @@ void GLTexture::generate_mipmap()
     return;
   }
 
-  /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see T56789).
+  /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see #56789).
    * In this case we just create a complete texture with mipmaps manually without
    * down-sampling. You must initialize the texture levels using other methods like
    * #GPU_framebuffer_recursive_downsample(). */
@@ -448,7 +448,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
   size_t texture_size = sample_len * sample_size;
 
   /* AMD Pro driver have a bug that write 8 bytes past buffer size
-   * if the texture is big. (see T66573) */
+   * if the texture is big. (see #66573) */
   void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
 
   GLenum gl_format = to_gl_data_format(format_);
@@ -548,12 +548,13 @@ GLuint GLTexture::samplers_[GPU_SAMPLER_MAX] = {0};
 void GLTexture::samplers_init()
 {
   glGenSamplers(GPU_SAMPLER_MAX, samplers_);
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
-    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
-    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;
-    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? GL_REPEAT : clamp_type;
+    GLenum repeat_type = (state & GPU_SAMPLER_MIRROR_REPEAT) ? GL_MIRRORED_REPEAT : GL_REPEAT;
+    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? repeat_type : clamp_type;
+    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? repeat_type : clamp_type;
+    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? repeat_type : clamp_type;
     GLenum mag_filter = (state & GPU_SAMPLER_FILTER) ? GL_LINEAR : GL_NEAREST;
     GLenum min_filter = (state & GPU_SAMPLER_FILTER) ?
                             ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
@@ -577,7 +578,7 @@ void GLTexture::samplers_init()
 
     char sampler_name[128] = "\0\0";
     SNPRINTF(sampler_name,
-             "%s%s%s%s%s%s%s%s%s%s",
+             "%s%s%s%s%s%s%s%s%s%s%s",
              (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
              (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
              (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
@@ -585,6 +586,7 @@ void GLTexture::samplers_init()
              (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
              (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
              (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
+             (state & GPU_SAMPLER_MIRROR_REPEAT) ? "-mirror" : "",
              (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
              (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
              (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
@@ -612,7 +614,7 @@ void GLTexture::samplers_update()
 
   float aniso_filter = min_ff(max_anisotropy, U.anisotropic_filter);
 
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     if ((state & GPU_SAMPLER_ANISO) && (state & GPU_SAMPLER_MIPMAP)) {
       glSamplerParameterf(samplers_[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);
@@ -675,17 +677,17 @@ bool GLTexture::proxy_check(int mip)
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
-     * (see T55888, T56185, T59351).
+     * (see #55888, #56185, #59351).
      * Checking with `GL_PROXY_TEXTURE_..` doesn't prevent `Out Of Memory` issue,
      * it just states that the OGL implementation can support the texture.
      * So we already manually check the maximum size and maximum number of layers.
-     * Same thing happens on Nvidia/macOS 10.15 (T78175). */
+     * Same thing happens on Nvidia/macOS 10.15 (#78175). */
     return true;
   }
 
   if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
       GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
-    /* Special fix for T79703. */
+    /* Special fix for #79703. */
     return true;
   }
 
@@ -792,7 +794,7 @@ GLPixelBuffer::GLPixelBuffer(uint size) : PixelBuffer(size)
   size = max_ii(size, 32);
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
@@ -825,7 +827,7 @@ void GLPixelBuffer::unmap()
 
 int64_t GLPixelBuffer::get_native_handle()
 {
-  return (int64_t)gl_id_;
+  return int64_t(gl_id_);
 }
 
 uint GLPixelBuffer::get_size()

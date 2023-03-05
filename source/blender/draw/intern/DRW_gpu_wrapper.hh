@@ -63,7 +63,7 @@
 #include "draw_manager.h"
 #include "draw_texture_pool.h"
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
@@ -366,6 +366,14 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   {
     return this->len_;
   }
+
+  static void swap(StorageArrayBuffer &a, StorageArrayBuffer &b)
+  {
+    SWAP(T *, a.data_, b.data_);
+    SWAP(GPUStorageBuf *, a.ssbo_, b.ssbo_);
+    SWAP(int64_t, a.len_, b.len_);
+    SWAP(const char *, a.name_, b.name_);
+  }
 };
 
 template<
@@ -426,6 +434,12 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
 
   /* Avoid confusion with the other clear. */
   void clear_to_zero() = delete;
+
+  static void swap(StorageVectorBuffer &a, StorageVectorBuffer &b)
+  {
+    StorageArrayBuffer<T, len, false>::swap(a, b);
+    SWAP(int64_t, a.item_len_, b.item_len_);
+  }
 };
 
 template<
@@ -445,6 +459,13 @@ class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> 
   {
     *static_cast<T *>(this) = other;
     return *this;
+  }
+
+  static void swap(StorageBuffer<T> &a, StorageBuffer<T> &b)
+  {
+    /* Swap content, but not `data_` pointers since they point to `this`. */
+    SWAP(T, static_cast<T>(a), static_cast<T>(b));
+    std::swap(a.ssbo_, b.ssbo_);
   }
 };
 
@@ -546,10 +567,20 @@ class Texture : NonCopyable {
 
   Texture &operator=(Texture &&a)
   {
-    if (*this != a) {
+    if (this != std::addressof(a)) {
+      this->free();
+
       this->tx_ = a.tx_;
       this->name_ = a.name_;
+      this->stencil_view_ = a.stencil_view_;
+      this->mip_views_ = std::move(a.mip_views_);
+      this->layer_views_ = std::move(a.layer_views_);
+
       a.tx_ = nullptr;
+      a.name_ = nullptr;
+      a.stencil_view_ = nullptr;
+      a.mip_views_.clear();
+      a.layer_views_.clear();
     }
     return *this;
   }
@@ -671,6 +702,9 @@ class Texture : NonCopyable {
 
   GPUTexture *mip_view(int miplvl)
   {
+    BLI_assert_msg(miplvl < mip_views_.size(),
+                   "Incorrect mip level requested. "
+                   "Might be missing call to ensure_mip_views().");
     return mip_views_[miplvl];
   }
 
@@ -766,7 +800,7 @@ class Texture : NonCopyable {
 
   int3 size(int miplvl = 0) const
   {
-    int3 size(0);
+    int3 size(1);
     GPU_texture_get_mipmap_size(tx_, miplvl, size);
     return size;
   }
@@ -849,7 +883,8 @@ class Texture : NonCopyable {
     /* TODO(@fclem): In the future, we need to check if mip_count did not change.
      * For now it's ok as we always define all MIP level. */
     if (tx_) {
-      int3 size = this->size();
+      int3 size(0);
+      GPU_texture_get_mipmap_size(tx_, 0, size);
       if (size != int3(w, h, d) || GPU_texture_format(tx_) != format ||
           GPU_texture_cube(tx_) != cubemap || GPU_texture_array(tx_) != layered) {
         free();
@@ -1048,8 +1083,33 @@ class Framebuffer : NonCopyable {
               GPUAttachment color7 = GPU_ATTACHMENT_NONE,
               GPUAttachment color8 = GPU_ATTACHMENT_NONE)
   {
-    GPU_framebuffer_ensure_config(
-        &fb_, {depth, color1, color2, color3, color4, color5, color6, color7, color8});
+    if (fb_ == NULL) {
+      fb_ = GPU_framebuffer_create(name_);
+    }
+    GPUAttachment config[] = {
+        depth, color1, color2, color3, color4, color5, color6, color7, color8};
+    GPU_framebuffer_config_array(fb_, config, sizeof(config) / sizeof(GPUAttachment));
+  }
+
+  /**
+   * Empty frame-buffer configuration.
+   */
+  void ensure(int2 target_size)
+  {
+    if (fb_ == NULL) {
+      fb_ = GPU_framebuffer_create(name_);
+    }
+    GPU_framebuffer_default_size(fb_, UNPACK2(target_size));
+  }
+
+  void bind()
+  {
+    GPU_framebuffer_bind(fb_);
+  }
+
+  void clear_depth(float depth)
+  {
+    GPU_framebuffer_clear_depth(fb_, depth);
   }
 
   Framebuffer &operator=(Framebuffer &&a)
@@ -1107,6 +1167,11 @@ template<typename T, int64_t len> class SwapChain {
         T::swap(chain_[i], chain_[i_next]);
       }
     }
+  }
+
+  constexpr int64_t size()
+  {
+    return len;
   }
 
   T &current()

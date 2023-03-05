@@ -1486,7 +1486,7 @@ static void draw_axes(ArmatureDrawContext *ctx,
 
   if (pchan && pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
     /* Special case: Custom bones can have different scale than the bone.
-     * Recompute display matrix without the custom scaling applied. (T65640). */
+     * Recompute display matrix without the custom scaling applied. (#65640). */
     float axis_mat[4][4];
     float length = pchan->bone->length;
     copy_m4_m4(axis_mat, pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat);
@@ -2096,7 +2096,7 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
 /* -------------------------------------------------------------------- */
 /** \name Pose Bone Culling
  *
- * Used for selection since drawing many bones can be slow, see: T91253.
+ * Used for selection since drawing many bones can be slow, see: #91253.
  *
  * Bounding spheres are used with margins added to ensure bones are included.
  * An added margin is needed because #BKE_pchan_minmax only returns the bounds
@@ -2229,9 +2229,9 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const bool show_text = DRW_state_show_text();
 
   const Object *ob_orig = DEG_get_original_object(ob);
-  /* FIXME(@campbellbarton): We should be able to use the CoW object,
+  /* FIXME(@ideasman42): We should be able to use the CoW object,
    * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
-   * for now we can draw from the original armature. See: T66773. */
+   * for now we can draw from the original armature. See: #66773. */
   // bArmature *arm = ob->data;
   bArmature *arm = static_cast<bArmature *>(ob_orig->data);
 

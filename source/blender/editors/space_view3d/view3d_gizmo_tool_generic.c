@@ -50,7 +50,7 @@ static bool WIDGETGROUP_tool_generic_poll(const bContext *C, wmGizmoGroupType *g
     return false;
   }
 
-  /* Without this, refreshing the gizmo jitters in some cases with edit-mesh smooth. See T72948. */
+  /* Without this, refreshing the gizmo jitters in some cases with edit-mesh smooth. See #72948. */
   if (G.moving & G_TRANSFORM_EDIT) {
     return false;
   }

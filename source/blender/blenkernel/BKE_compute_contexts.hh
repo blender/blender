@@ -6,6 +6,8 @@
  * This file implements some specific compute contexts for concepts in Blender.
  */
 
+#include <optional>
+
 #include "BLI_compute_context.hh"
 
 struct bNode;
@@ -41,7 +43,9 @@ class NodeGroupComputeContext : public ComputeContext {
 #endif
 
  public:
-  NodeGroupComputeContext(const ComputeContext *parent, int32_t node_id);
+  NodeGroupComputeContext(const ComputeContext *parent,
+                          int32_t node_id,
+                          const std::optional<ComputeContextHash> &cached_hash = {});
   NodeGroupComputeContext(const ComputeContext *parent, const bNode &node);
 
   int32_t node_id() const

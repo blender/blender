@@ -294,8 +294,8 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", hair_rad_tip);
   DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);
   if (gpu_material) {
-    /* \note: This needs to happen before the drawcall to allow correct attribute extraction.
-     * (see T101896) */
+    /* NOTE: This needs to happen before the drawcall to allow correct attribute extraction.
+     * (see #101896) */
     DRW_shgroup_add_material_resources(shgrp, gpu_material);
   }
   /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass
@@ -311,7 +311,7 @@ void DRW_hair_update()
   if (!GPU_transform_feedback_support()) {
     /**
      * Workaround to transform feedback not working on mac.
-     * On some system it crashes (see T58489) and on some other it renders garbage (see T60171).
+     * On some system it crashes (see #58489) and on some other it renders garbage (see #60171).
      *
      * So instead of using transform feedback we render to a texture,
      * read back the result to system memory and re-upload as VBO data.
@@ -386,7 +386,7 @@ void DRW_hair_update()
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
     if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-      if (!GPU_compute_shader_support()) {
+      if (!(GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support())) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
         /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */

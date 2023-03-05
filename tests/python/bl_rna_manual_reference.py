@@ -4,12 +4,14 @@
 #  ./blender.bin --background -noaudio --python tests/python/bl_rna_manual_reference.py
 #
 # 1) test_data()              -- ensure the data we have is correct format
-# 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path
+# 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path and all patterns are used.
 # 3) test_urls()              -- ensure all the URL's are correct
 # 4) test_language_coverage() -- ensure language lookup table is complete
 #
 
 import bpy
+
+VERBOSE = False
 
 
 def test_data():
@@ -26,6 +28,21 @@ def test_data():
             import traceback
             traceback.print_exc()
             raise
+
+
+def lookup_rna_url(rna_id, visit_indices):
+    """
+    A local version of ``WM_OT_doc_view_manual._lookup_rna_url``
+    that tracks which matches are found.
+    """
+    import rna_manual_reference
+    from fnmatch import fnmatchcase
+    rna_id = rna_id.lower()
+    for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
+        if fnmatchcase(rna_id, pattern):
+            visit_indices.add(i)
+            return rna_manual_reference.url_manual_prefix + url_suffix
+    return None
 
 
 # a stripped down version of api_dump() in rna_info_dump.py
@@ -51,13 +68,34 @@ def test_lookup_coverage():
     set_group_all = set()
     set_group_doc = set()
 
+    visit_indices = set()
+
+    print("")
+    print("----------------------------------")
+    print("RNA Patterns Unknown to the Manual")
+
     for rna_group, rna_id in rna_ids():
-        url = wm.WM_OT_doc_view_manual._lookup_rna_url(rna_id, verbose=False)
-        print(rna_id, "->", url)
+        # Correct but slower & doesn't track usage.
+        # url = wm.WM_OT_doc_view_manual._lookup_rna_url(rna_id, verbose=False)
+        url = lookup_rna_url(rna_id, visit_indices)
+
+        if VERBOSE:
+            print(rna_id, "->", url)
+        else:
+            print(rna_id)
 
         set_group_all.add(rna_group)
         if url is not None:
             set_group_doc.add(rna_group)
+
+    print("")
+    print("---------------------------------------")
+    print("Unused RNA Patterns Known to the Manual")
+
+    import rna_manual_reference
+    for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
+        if i not in visit_indices:
+            print(pattern, url_suffix)
 
     # finally report undocumented groups
     print("")
@@ -103,13 +141,16 @@ def test_urls():
     if LOCAL_PREFIX:
         for url in sorted(urls):
             url_full = os.path.join(LOCAL_PREFIX, url.partition("#")[0])
-            print("  %s ... " % url_full, end="")
             if os.path.exists(url_full):
-                print(color_green + "OK" + color_normal)
+                if VERBOSE:
+                    print("  %s ... " % url_full, end="")
+                    print(color_green + "OK" + color_normal)
             else:
+                print("  %s ... " % url_full, end="")
                 print(color_red + "FAIL!" + color_normal)
                 urls_fail.append(url)
-    else:
+    elif False:
+        # URL lookups are too slow to be practical.
         for url in sorted(urls):
             url_full = prefix + url
             print("  %s ... " % url_full, end="")
@@ -120,6 +161,8 @@ def test_urls():
             except urllib.error.HTTPError:
                 print(color_red + "FAIL!" + color_normal)
                 urls_fail.append(url)
+    else:
+        print("Skipping URL lookups, define LOCAL_PREFIX env variable, and point it to a manual build!")
 
     if urls_fail:
         urls_len = "%d" % len(urls_fail)

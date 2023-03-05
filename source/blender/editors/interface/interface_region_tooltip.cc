@@ -7,7 +7,7 @@
  * ToolTip Region and Construction
  */
 
-/* TODO(@campbellbarton):
+/* TODO(@ideasman42):
  * We may want to have a higher level API that initializes a timer,
  * checks for mouse motion and clears the tool-tip afterwards.
  * We never want multiple tool-tips at once
@@ -135,7 +135,8 @@ static uiTooltipField *text_field_add(uiTooltipData *data,
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
-  field->format.color_id = color, field->format.is_pad = is_pad;
+  field->format.color_id = color;
+  field->format.is_pad = is_pad;
   return field;
 }
 
@@ -995,7 +996,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 {
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
-  /* TODO(@campbellbarton): a way for gizmos to have their own descriptions (low priority). */
+  /* TODO(@ideasman42): a way for gizmos to have their own descriptions (low priority). */
 
   /* Operator Actions */
   {
@@ -1057,7 +1058,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
   if (gz->type->target_property_defs_len) {
     wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
     for (int i = 0; i < gz->type->target_property_defs_len; i++) {
-      /* TODO(@campbellbarton): function callback descriptions. */
+      /* TODO(@ideasman42): function callback descriptions. */
       wmGizmoProperty *gz_prop = &gz_prop_array[i];
       if (gz_prop->prop != nullptr) {
         const char *info = RNA_property_ui_description(gz_prop->prop);

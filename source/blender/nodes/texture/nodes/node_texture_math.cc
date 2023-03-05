@@ -140,7 +140,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       break;
     }
     case NODE_MATH_ROUND: {
-      *out = (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
+      *out = (in0 < 0) ? int(in0 - 0.5f) : int(in0 + 0.5f);
       break;
     }
 
@@ -306,7 +306,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -315,7 +315,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &valuefn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_math(void)
+void register_node_type_tex_math()
 {
   static bNodeType ntype;
 

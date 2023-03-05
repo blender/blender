@@ -7,7 +7,6 @@
 
 #pragma once
 
-struct ListBase;
 struct Render;
 struct RenderData;
 struct RenderLayer;

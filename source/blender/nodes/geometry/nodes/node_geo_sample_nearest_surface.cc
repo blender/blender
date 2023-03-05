@@ -23,11 +23,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
 
   b.add_input<decl::Vector>(N_("Sample Position")).implicit_field(implicit_field_inputs::position);
 
@@ -81,8 +81,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(2));
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -116,7 +116,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
  * function could be called many times, calculate the data from the source geometry once and store
  * it for later.
  */
-class SampleNearestSurfaceFunction : public fn::MultiFunction {
+class SampleNearestSurfaceFunction : public mf::MultiFunction {
   GeometrySet source_;
   GField src_field_;
 
@@ -128,7 +128,7 @@ class SampleNearestSurfaceFunction : public fn::MultiFunction {
    */
   eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -139,20 +139,15 @@ class SampleNearestSurfaceFunction : public fn::MultiFunction {
       : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    signature_ = this->create_signature();
-    this->set_signature(&signature_);
     this->evaluate_source_field();
+
+    mf::SignatureBuilder builder{"Sample Nearest Surface", signature_};
+    builder.single_input<float3>("Position");
+    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
+    this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Nearest Surface"};
-    signature.single_input<float3>("Position");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
     GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Value");

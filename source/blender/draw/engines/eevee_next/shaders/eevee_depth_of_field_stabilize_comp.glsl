@@ -22,17 +22,24 @@
 struct DofSample {
   vec4 color;
   float coc;
+
+#ifdef GPU_METAL
+  /* Explicit constructors -- To support GLSL syntax. */
+  inline DofSample() = default;
+  inline DofSample(vec4 in_color, float in_coc) : color(in_color), coc(in_coc)
+  {
+  }
+#endif
 };
 
 /* -------------------------------------------------------------------- */
 /** \name LDS Cache
  * \{ */
-
-const uint cache_size = gl_WorkGroupSize.x + 2;
+#define cache_size (gl_WorkGroupSize.x + 2)
 shared vec4 color_cache[cache_size][cache_size];
 shared float coc_cache[cache_size][cache_size];
 /* Need 2 pixel border for depth. */
-const uint cache_depth_size = gl_WorkGroupSize.x + 4;
+#define cache_depth_size (gl_WorkGroupSize.x + 4)
 shared float depth_cache[cache_depth_size][cache_depth_size];
 
 void dof_cache_init()
@@ -146,6 +153,14 @@ DofSample dof_spatial_filtering()
 struct DofNeighborhoodMinMax {
   DofSample min;
   DofSample max;
+
+#ifdef GPU_METAL
+  /* Explicit constructors -- To support GLSL syntax. */
+  inline DofNeighborhoodMinMax() = default;
+  inline DofNeighborhoodMinMax(DofSample in_min, DofSample in_max) : min(in_min), max(in_max)
+  {
+  }
+#endif
 };
 
 /* Return history clipping bounding box in YCoCg color space. */
@@ -216,7 +231,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 DofSample dof_sample_history(vec2 input_texel)
 {
 #if 1 /* Bilinar. */
-  vec2 uv = vec2(input_texel + 0.5) / textureSize(in_history_tx, 0);
+  vec2 uv = vec2(input_texel + 0.5) / vec2(textureSize(in_history_tx, 0));
   vec4 color = textureLod(in_history_tx, uv, 0.0);
 
 #else /* Catmull Rom interpolation. 5 Bilinear Taps. */
@@ -308,7 +323,7 @@ float dof_history_blend_factor(
     blend = 1.0;
   }
   /* Discard history if invalid. */
-  if (use_history == false) {
+  if (u_use_history == false) {
     blend = 1.0;
   }
   return blend;

@@ -27,6 +27,9 @@
 
 #include "obj_export_mesh.hh"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
 namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {
@@ -37,7 +40,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
   if (export_mesh_) {
-    mesh_verts_ = export_mesh_->verts();
+    mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
     mesh_polys_ = export_mesh_->polys();
     mesh_loops_ = export_mesh_->loops();
@@ -69,7 +72,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   }
   owned_export_mesh_ = mesh;
   export_mesh_ = owned_export_mesh_;
-  mesh_verts_ = mesh->verts();
+  mesh_positions_ = mesh->vert_positions();
   mesh_edges_ = mesh->edges();
   mesh_polys_ = mesh->polys();
   mesh_loops_ = mesh->loops();
@@ -183,18 +186,20 @@ int OBJMesh::ith_smooth_group(const int poly_index) const
 
 void OBJMesh::ensure_mesh_normals() const
 {
-  /* Const cast can be removed when calculating face corner normals lazily is possible. */
+  /* Constant cast can be removed when calculating face corner normals lazily is possible. */
   BKE_mesh_calc_normals_split(const_cast<Mesh *>(export_mesh_));
 }
 
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
-  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.data(),
-                                                   mesh_edges_.size(),
+  const bool *sharp_edges = static_cast<const bool *>(
+      CustomData_get_layer_named(&export_mesh_->edata, CD_PROP_BOOL, "sharp_edge"));
+  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_polys_.data(),
                                                    mesh_polys_.size(),
                                                    mesh_loops_.data(),
                                                    mesh_loops_.size(),
+                                                   sharp_edges,
                                                    &tot_smooth_groups_,
                                                    use_bitflags);
 }
@@ -264,8 +269,7 @@ const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
 
 float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scale) const
 {
-  float3 r_coords;
-  copy_v3_v3(r_coords, mesh_verts_[vert_index].co);
+  float3 r_coords = mesh_positions_[vert_index];
   mul_m4_v3(world_and_axes_transform_, r_coords);
   mul_v3_fl(r_coords, global_scale);
   return r_coords;
@@ -286,24 +290,28 @@ Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 void OBJMesh::store_uv_coords_and_indices()
 {
   const int totvert = export_mesh_->totvert;
-  const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-      CustomData_get_layer(&export_mesh_->ldata, CD_MLOOPUV));
-  if (!mloopuv) {
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->ldata,
+                                                                    CD_PROP_FLOAT2);
+  if (active_uv_name.is_empty()) {
     tot_uv_vertices_ = 0;
     return;
   }
+  const bke::AttributeAccessor attributes = export_mesh_->attributes();
+  const VArraySpan<float2> uv_map = attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
 
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(mesh_polys_.data(),
-                                                       nullptr,
-                                                       nullptr,
-                                                       mesh_loops_.data(),
-                                                       mloopuv,
-                                                       mesh_polys_.size(),
-                                                       totvert,
-                                                       limit,
-                                                       false,
-                                                       false);
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
+      mesh_polys_.data(),
+      nullptr,
+      nullptr,
+      mesh_loops_.data(),
+      reinterpret_cast<const float(*)[2]>(uv_map.data()),
+      mesh_polys_.size(),
+      totvert,
+      limit,
+      false,
+      false);
 
   uv_indices_.resize(mesh_polys_.size());
   /* At least total vertices of a mesh will be present in its texture map. So
@@ -322,7 +330,7 @@ void OBJMesh::store_uv_coords_and_indices()
       /* Store UV vertex coordinates. */
       uv_coords_.resize(tot_uv_vertices_);
       const int loopstart = mesh_polys_[uv_vert->poly_index].loopstart;
-      Span<float> vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv, 2);
+      Span<float> vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index], 2);
       uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
 
       /* Store UV vertex indices. */
@@ -348,8 +356,10 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   float3 r_poly_normal;
   const MPoly &poly = mesh_polys_[poly_index];
-  BKE_mesh_calc_poly_normal(
-      &poly, &mesh_loops_[poly.loopstart], mesh_verts_.data(), r_poly_normal);
+  BKE_mesh_calc_poly_normal(&poly,
+                            &mesh_loops_[poly.loopstart],
+                            reinterpret_cast<const float(*)[3]>(mesh_positions_.data()),
+                            r_poly_normal);
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;

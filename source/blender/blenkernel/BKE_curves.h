@@ -15,7 +15,6 @@ extern "C" {
 
 struct BoundBox;
 struct Curves;
-struct CustomDataLayer;
 struct Depsgraph;
 struct Main;
 struct Object;

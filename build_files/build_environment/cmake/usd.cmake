@@ -29,12 +29,13 @@ elseif(UNIX)
   set(USD_PLATFORM_FLAGS
     -DPYTHON_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}/
     -DPYTHON_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
-   )
+  )
 
   if(APPLE)
     set(USD_SHARED_LINKER_FLAGS "-Xlinker -undefined -Xlinker dynamic_lookup")
     list(APPEND USD_PLATFORM_FLAGS
-      -DCMAKE_SHARED_LINKER_FLAGS=${USD_SHARED_LINKER_FLAGS})
+      -DCMAKE_SHARED_LINKER_FLAGS=${USD_SHARED_LINKER_FLAGS}
+    )
   endif()
 endif()
 
@@ -112,7 +113,7 @@ add_dependencies(
 # Since USD 21.11 the libraries are prefixed with "usd_", i.e. "libusd_m.a" became "libusd_usd_m.a".
 # See https://github.com/PixarAnimationStudios/USD/blob/release/CHANGELOG.md#2111---2021-11-01
 if(NOT WIN32)
-  if (USD_VERSION VERSION_LESS 21.11)
+  if(USD_VERSION VERSION_LESS 21.11)
     set(PXR_LIB_PREFIX "")
   else()
     set(PXR_LIB_PREFIX "usd_")

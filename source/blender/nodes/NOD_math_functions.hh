@@ -51,8 +51,8 @@ inline bool try_dispatch_float_math_fl_to_fl(const int operation, Callback &&cal
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just an utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -118,8 +118,8 @@ inline bool try_dispatch_float_math_fl_fl_to_fl(const int operation, Callback &&
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just an utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -180,21 +180,21 @@ inline bool try_dispatch_float_math_fl_fl_fl_to_fl(const int operation, Callback
 
   switch (operation) {
     case NODE_MATH_MULTIPLY_ADD:
-      return dispatch(fn::CustomMF_presets::AllSpanOrSingle(),
+      return dispatch(mf::build::exec_presets::AllSpanOrSingle(),
                       [](float a, float b, float c) { return a * b + c; });
     case NODE_MATH_COMPARE:
-      return dispatch(fn::CustomMF_presets::SomeSpanOrSingle<0, 1>(),
+      return dispatch(mf::build::exec_presets::SomeSpanOrSingle<0, 1>(),
                       [](float a, float b, float c) -> float {
                         return ((a == b) || (fabsf(a - b) <= fmaxf(c, FLT_EPSILON))) ? 1.0f : 0.0f;
                       });
     case NODE_MATH_SMOOTH_MIN:
-      return dispatch(fn::CustomMF_presets::SomeSpanOrSingle<0, 1>(),
+      return dispatch(mf::build::exec_presets::SomeSpanOrSingle<0, 1>(),
                       [](float a, float b, float c) { return smoothminf(a, b, c); });
     case NODE_MATH_SMOOTH_MAX:
-      return dispatch(fn::CustomMF_presets::SomeSpanOrSingle<0, 1>(),
+      return dispatch(mf::build::exec_presets::SomeSpanOrSingle<0, 1>(),
                       [](float a, float b, float c) { return -smoothminf(-a, -b, c); });
     case NODE_MATH_WRAP:
-      return dispatch(fn::CustomMF_presets::SomeSpanOrSingle<0>(),
+      return dispatch(mf::build::exec_presets::SomeSpanOrSingle<0>(),
                       [](float a, float b, float c) { return wrapf(a, b, c); });
   }
   return false;
@@ -214,8 +214,8 @@ inline bool try_dispatch_float_math_fl3_fl3_to_fl3(const NodeVectorMathOperation
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -269,7 +269,7 @@ inline bool try_dispatch_float_math_fl3_fl3_to_fl(const NodeVectorMathOperation 
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -302,8 +302,8 @@ inline bool try_dispatch_float_math_fl3_fl3_fl3_to_fl3(const NodeVectorMathOpera
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -341,7 +341,7 @@ inline bool try_dispatch_float_math_fl3_fl3_fl_to_fl3(const NodeVectorMathOperat
     return false;
   }
 
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -373,7 +373,7 @@ inline bool try_dispatch_float_math_fl3_to_fl(const NodeVectorMathOperation oper
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -402,7 +402,7 @@ inline bool try_dispatch_float_math_fl3_fl_to_fl3(const NodeVectorMathOperation 
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {
@@ -433,8 +433,8 @@ inline bool try_dispatch_float_math_fl3_to_fl3(const NodeVectorMathOperation ope
     return false;
   }
 
-  static auto exec_preset_fast = fn::CustomMF_presets::AllSpanOrSingle();
-  static auto exec_preset_slow = fn::CustomMF_presets::Materialized();
+  static auto exec_preset_fast = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_slow = mf::build::exec_presets::Materialized();
 
   /* This is just a utility function to keep the individual cases smaller. */
   auto dispatch = [&](auto exec_preset, auto math_function) -> bool {

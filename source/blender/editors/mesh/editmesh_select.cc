@@ -266,8 +266,8 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                            *dist_px_manhattan_p);
+    uint dist_px_manhattan_test = uint(
+        ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
     uint index;
     BMVert *eve;
 
@@ -492,8 +492,8 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                            *dist_px_manhattan_p);
+    uint dist_px_manhattan_test = uint(
+        ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
     uint index;
     BMEdge *eed;
 
@@ -713,8 +713,8 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     {
       uint dist_px_manhattan_test = 0;
       if (*dist_px_manhattan_p != 0.0f && (use_zbuf_single_px == false)) {
-        dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                           *dist_px_manhattan_p);
+        dist_px_manhattan_test = uint(
+            ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
       }
 
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
@@ -3048,7 +3048,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
             /* Only for predictable results that don't depend on the order of radial loops,
              * not essential. */
             if (i_a > i_b) {
-              SWAP(int, i_a, i_b);
+              std::swap(i_a, i_b);
             }
 
             /* Merge the groups. */
@@ -3211,7 +3211,7 @@ static int select_linked_delimit_default_from_op(wmOperator *op, const int selec
 static void select_linked_delimit_validate(BMesh *bm, int *delimit)
 {
   if ((*delimit) & BMO_DELIM_UV) {
-    if (!CustomData_has_layer(&bm->ldata, CD_MLOOPUV)) {
+    if (!CustomData_has_layer(&bm->ldata, CD_PROP_FLOAT2)) {
       (*delimit) &= ~BMO_DELIM_UV;
     }
   }
@@ -3222,7 +3222,7 @@ static void select_linked_delimit_begin(BMesh *bm, int delimit)
   DelimitData delimit_data = {0};
 
   if (delimit & BMO_DELIM_UV) {
-    delimit_data.cd_loop_type = CD_MLOOPUV;
+    delimit_data.cd_loop_type = CD_PROP_FLOAT2;
     delimit_data.cd_loop_offset = CustomData_get_offset(&bm->ldata, delimit_data.cd_loop_type);
     if (delimit_data.cd_loop_offset == -1) {
       delimit &= ~BMO_DELIM_UV;
@@ -5203,7 +5203,7 @@ static int verg_radial(const void *va, const void *vb)
  * This function leaves faces tagged which are a part of the new region.
  *
  * \note faces already tagged are ignored, to avoid finding the same regions twice:
- * important when we have regions with equal face counts, see: T40309
+ * important when we have regions with equal face counts, see: #40309
  */
 static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 {

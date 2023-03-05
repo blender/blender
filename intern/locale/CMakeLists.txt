@@ -20,7 +20,7 @@ set(LIB
 if(WIN32)
   # This is set in platform_win32.cmake, will exist for 3.4+ library
   # folders which are dynamic, but not for 3.3 which will be static.
-  if (EXISTS ${BOOST_34_TRIGGER_FILE})
+  if(EXISTS ${BOOST_34_TRIGGER_FILE})
     add_definitions (-DBOOST_ALL_DYN_LINK=1)
   endif()
 endif()

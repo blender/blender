@@ -75,17 +75,30 @@ typedef struct tSlider {
   /** Last mouse cursor position used for mouse movement delta calculation. */
   float last_cursor[2];
 
-  /** Enable range beyond 0-100%. */
+  /** Allow negative values as well.
+   * This is set by the code that uses the slider, as not all operations support
+   * negative values. */
+  bool is_bidirectional;
+
+  /** Enable range beyond 0-100%.
+   * This is set by the code that uses the slider, as not all operations support
+   * extrapolation. */
   bool allow_overshoot;
 
-  /** Allow overshoot or clamp between 0% and 100%. */
+  /** Allow overshoot or clamp between 0% and 100%.
+   * This is set by the artist while using the slider. */
   bool overshoot;
+
+  /** Whether keeping CTRL pressed will snap to 10% increments.
+   * Default is true. Set to false if the CTRL key is needed for other means. */
+  bool allow_increments;
 
   /** Move factor in 10% steps. */
   bool increments;
 
   /** Reduces factor delta from mouse movement. */
   bool precision;
+
 } tSlider;
 
 static void draw_overshoot_triangle(const uint8_t color[4],
@@ -276,13 +289,18 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
       .ymax = line_y + line_width / 2,
   };
   float line_start_factor = 0;
-  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
-
+  int handle_pos_x;
   if (slider->overshoot) {
     main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
     main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
     line_start_factor = slider->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
     handle_pos_x = region->winx / 2;
+  }
+  else if (slider->is_bidirectional) {
+    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * (slider->factor / 2 + 0.5f);
+  }
+  else {
+    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
   }
 
   draw_backdrop(fontid, &main_line_rect, color_bg, slider->region_header->winy, base_tick_height);
@@ -347,7 +365,10 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 
   if (!slider->overshoot) {
-    slider->factor = clamp_f(slider->factor, 0, 1);
+    slider->factor = clamp_f(slider->factor, -1, 1);
+  }
+  if (!slider->is_bidirectional) {
+    slider->factor = max_ff(slider->factor, 0);
   }
 
   if (slider->increments) {
@@ -364,6 +385,7 @@ tSlider *ED_slider_create(struct bContext *C)
 
   /* Default is true, caller needs to manually set to false. */
   slider->allow_overshoot = true;
+  slider->allow_increments = true;
 
   /* Set initial factor. */
   slider->raw_factor = 0.5f;
@@ -379,6 +401,9 @@ tSlider *ED_slider_create(struct bContext *C)
       }
     }
   }
+
+  /* Hide the area menu bar contents, as the slider will be drawn on top. */
+  ED_area_status_text(slider->area, "");
 
   return slider;
 }
@@ -405,7 +430,7 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
       break;
     case EVT_LEFTCTRLKEY:
     case EVT_RIGHTCTRLKEY:
-      slider->increments = event->val == KM_PRESS;
+      slider->increments = slider->allow_increments && event->val == KM_PRESS;
       break;
     case MOUSEMOVE:;
       /* Update factor. */
@@ -449,16 +474,21 @@ void ED_slider_status_string_get(const struct tSlider *slider,
     STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
   }
 
-  if (slider->increments) {
-    STRNCPY(increments_str, TIP_("[Ctrl] - Increments active"));
+  if (slider->allow_increments) {
+    if (slider->increments) {
+      STRNCPY(increments_str, TIP_(" | [Ctrl] - Increments active"));
+    }
+    else {
+      STRNCPY(increments_str, TIP_(" | Ctrl - Hold for 10% increments"));
+    }
   }
   else {
-    STRNCPY(increments_str, TIP_("Ctrl - Hold for 10% increments"));
+    increments_str[0] = '\0';
   }
 
   BLI_snprintf(status_string,
                size_of_status_string,
-               "%s | %s | %s",
+               "%s | %s%s",
                overshoot_str,
                precision_str,
                increments_str);
@@ -499,6 +529,26 @@ bool ED_slider_allow_overshoot_get(struct tSlider *slider)
 void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
 {
   slider->allow_overshoot = value;
+}
+
+bool ED_slider_allow_increments_get(struct tSlider *slider)
+{
+  return slider->allow_increments;
+}
+
+void ED_slider_allow_increments_set(struct tSlider *slider, const bool value)
+{
+  slider->allow_increments = value;
+}
+
+bool ED_slider_is_bidirectional_get(struct tSlider *slider)
+{
+  return slider->is_bidirectional;
+}
+
+void ED_slider_is_bidirectional_set(struct tSlider *slider, const bool value)
+{
+  slider->is_bidirectional = value;
 }
 
 /** \} */

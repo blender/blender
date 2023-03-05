@@ -342,7 +342,7 @@ void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) 
  * \note Space case ' ' is a bit of an edge case here - in theory it is allowed,
  * but again can be an issue in some cases, so we simply replace it by an underscore too
  * (good practice anyway).
- * REMOVED based on popular demand (see T45900).
+ * REMOVED based on popular demand (see #45900).
  * Percent '%' char is a bit same case - not recommended to use it,
  * but supported by all decent file-systems/operating-systems around.
  *
@@ -515,6 +515,24 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
 #  define SEP_STR "/"
 #  define ALTSEP_STR "\\"
 #endif
+
+/**
+ * Return true if the slash can be used as a separator on this platform.
+ */
+BLI_INLINE bool BLI_path_slash_is_native_compat(const char ch)
+{
+  /* On UNIX it only makes sense to treat `/` as a path separator.
+   * On WIN32 either may be used. */
+  if (ch == SEP) {
+    return true;
+  }
+#ifdef WIN32
+  if (ch == ALTSEP) {
+    return true;
+  }
+#endif
+  return false;
+}
 
 /* Parent and current dir helpers. */
 #define FILENAME_PARENT ".."

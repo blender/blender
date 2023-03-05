@@ -25,7 +25,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   const bNode &bnode = builder.node();
   NodeInputColor *node_storage = static_cast<NodeInputColor *>(bnode.storage);
   blender::ColorGeometry4f color = (ColorGeometry4f)node_storage->color;
-  builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<ColorGeometry4f>>(color);
+  builder.construct_and_set_matching_fn<blender::mf::CustomMF_Constant<ColorGeometry4f>>(color);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

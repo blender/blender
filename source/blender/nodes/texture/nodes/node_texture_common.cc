@@ -69,7 +69,7 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
     if (node->type == NODE_GROUP_INPUT) {
       for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
            sock = sock->next, a++) {
-        if (in[a]) { /* shouldn't need to check this T36694. */
+        if (in[a]) { /* shouldn't need to check this #36694. */
           ns = node_get_socket_stack(gstack, sock);
           if (ns) {
             copy_stack(ns, in[a]);
@@ -95,7 +95,7 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
   int a;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &group_output_node->inputs, a) {
     if (!out[a]) {
-      /* shouldn't need to check this T36694. */
+      /* shouldn't need to check this #36694. */
       continue;
     }
 
@@ -157,7 +157,7 @@ void register_node_type_tex_group(void)
 
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  ntype.group_update_func = node_group_update;
+  ntype.declare_dynamic = blender::nodes::node_group_declare_dynamic;
   ntype.init_exec_fn = group_initexec;
   ntype.free_exec_fn = group_freeexec;
   ntype.exec_fn = group_execute;

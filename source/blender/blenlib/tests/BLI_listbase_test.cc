@@ -187,6 +187,76 @@ TEST(listbase, FromLink)
   BLI_freelistN(&lb);
 }
 
+TEST(listbase, SplitAfter)
+{
+  ListBase lb;
+  ListBase split_after_lb;
+  void *link1 = MEM_callocN(sizeof(Link), "link1");
+  void *link2 = MEM_callocN(sizeof(Link), "link2");
+
+  /* Empty list */
+  BLI_listbase_clear(&lb);
+  BLI_listbase_clear(&split_after_lb);
+
+  BLI_listbase_split_after(&lb, &split_after_lb, nullptr);
+  EXPECT_EQ(BLI_listbase_is_empty(&split_after_lb), true);
+
+  /* One link */
+  BLI_listbase_clear(&lb);
+  BLI_listbase_clear(&split_after_lb);
+  BLI_addtail(&lb, link1);
+
+  BLI_listbase_split_after(&lb, &split_after_lb, nullptr);
+  EXPECT_EQ(BLI_listbase_is_empty(&lb), true);
+  EXPECT_EQ(BLI_listbase_count(&split_after_lb), 1);
+  EXPECT_EQ(BLI_findindex(&split_after_lb, link1), 0);
+  EXPECT_EQ(split_after_lb.first, link1);
+  EXPECT_EQ(split_after_lb.last, link1);
+
+  BLI_listbase_clear(&lb);
+  BLI_listbase_clear(&split_after_lb);
+  BLI_addtail(&lb, link1);
+
+  BLI_listbase_split_after(&lb, &split_after_lb, link1);
+  EXPECT_EQ(BLI_listbase_count(&lb), 1);
+  EXPECT_EQ(BLI_findindex(&lb, link1), 0);
+  EXPECT_EQ(lb.first, link1);
+  EXPECT_EQ(lb.last, link1);
+  EXPECT_EQ(BLI_listbase_is_empty(&split_after_lb), true);
+
+  /* Two links */
+  BLI_listbase_clear(&lb);
+  BLI_listbase_clear(&split_after_lb);
+  BLI_addtail(&lb, link1);
+  BLI_addtail(&lb, link2);
+
+  BLI_listbase_split_after(&lb, &split_after_lb, nullptr);
+  EXPECT_EQ(BLI_listbase_is_empty(&lb), true);
+  EXPECT_EQ(BLI_listbase_count(&split_after_lb), 2);
+  EXPECT_EQ(BLI_findindex(&split_after_lb, link1), 0);
+  EXPECT_EQ(BLI_findindex(&split_after_lb, link2), 1);
+  EXPECT_EQ(split_after_lb.first, link1);
+  EXPECT_EQ(split_after_lb.last, link2);
+
+  BLI_listbase_clear(&lb);
+  BLI_listbase_clear(&split_after_lb);
+  BLI_addtail(&lb, link1);
+  BLI_addtail(&lb, link2);
+
+  BLI_listbase_split_after(&lb, &split_after_lb, link1);
+  EXPECT_EQ(BLI_listbase_count(&lb), 1);
+  EXPECT_EQ(BLI_findindex(&lb, link1), 0);
+  EXPECT_EQ(lb.first, link1);
+  EXPECT_EQ(lb.last, link1);
+  EXPECT_EQ(BLI_listbase_count(&split_after_lb), 1);
+  EXPECT_EQ(BLI_findindex(&split_after_lb, link2), 0);
+  EXPECT_EQ(split_after_lb.first, link2);
+  EXPECT_EQ(split_after_lb.last, link2);
+
+  BLI_freelistN(&lb);
+  BLI_freelistN(&split_after_lb);
+}
+
 /* -------------------------------------------------------------------- */
 /* Sort utilities & test */
 

@@ -11,7 +11,7 @@ namespace blender::nodes::node_geo_join_geometry_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 template<typename Component>
@@ -28,7 +28,7 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
   for (const GeometryComponent *component : components) {
     component->attributes()->for_all(
         [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
+          if (ignored_attributes.contains(attribute_id.name())) {
             return true;
           }
           if (meta_data.data_type == CD_PROP_STRING) {
@@ -143,7 +143,9 @@ static void join_components(Span<const VolumeComponent *> /*src_components*/,
 }
 
 template<typename Component>
-static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet &result)
+static void join_component_type(Span<GeometrySet> src_geometry_sets,
+                                GeometrySet &result,
+                                const AnonymousAttributePropagationInfo &propagation_info)
 {
   Vector<const Component *> components;
   for (const GeometrySet &geometry_set : src_geometry_sets) {
@@ -176,6 +178,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
     geometry::RealizeInstancesOptions options;
     options.keep_original_ids = true;
     options.realize_instance_attributes = false;
+    options.propagation_info = propagation_info;
     GeometrySet joined_components = geometry::realize_instances(
         GeometrySet::create_with_instances(instances.release()), options);
     result.add(joined_components.get_component_for_write<Component>());
@@ -186,13 +189,21 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Geometry");
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Geometry");
+
+  for (GeometrySet &geometry : geometry_sets) {
+    GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry);
+  }
+
   GeometrySet geometry_set_result;
-  join_component_type<MeshComponent>(geometry_sets, geometry_set_result);
-  join_component_type<PointCloudComponent>(geometry_sets, geometry_set_result);
-  join_component_type<InstancesComponent>(geometry_sets, geometry_set_result);
-  join_component_type<VolumeComponent>(geometry_sets, geometry_set_result);
-  join_component_type<CurveComponent>(geometry_sets, geometry_set_result);
-  join_component_type<GeometryComponentEditData>(geometry_sets, geometry_set_result);
+  join_component_type<MeshComponent>(geometry_sets, geometry_set_result, propagation_info);
+  join_component_type<PointCloudComponent>(geometry_sets, geometry_set_result, propagation_info);
+  join_component_type<InstancesComponent>(geometry_sets, geometry_set_result, propagation_info);
+  join_component_type<VolumeComponent>(geometry_sets, geometry_set_result, propagation_info);
+  join_component_type<CurveComponent>(geometry_sets, geometry_set_result, propagation_info);
+  join_component_type<GeometryComponentEditData>(
+      geometry_sets, geometry_set_result, propagation_info);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }

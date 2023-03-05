@@ -39,40 +39,42 @@ void BKE_movieclip_clear_proxy_cache(struct MovieClip *clip);
  */
 void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf);
 
-struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
+struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, const struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip,
-                                                   struct MovieClipUser *user,
+                                                   const struct MovieClipUser *user,
                                                    int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip,
-                                            struct MovieClipUser *user,
+                                            const struct MovieClipUser *user,
                                             float loc[2],
                                             float *scale,
                                             float *angle,
                                             int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_ibuf_flag(struct MovieClip *clip,
-                                          struct MovieClipUser *user,
+                                          const struct MovieClipUser *user,
                                           int flag,
                                           int cache_flag);
 void BKE_movieclip_get_size(struct MovieClip *clip,
-                            struct MovieClipUser *user,
+                            const struct MovieClipUser *user,
                             int *width,
                             int *height);
-void BKE_movieclip_get_size_fl(struct MovieClip *clip, struct MovieClipUser *user, float size[2]);
+void BKE_movieclip_get_size_fl(struct MovieClip *clip,
+                               const struct MovieClipUser *user,
+                               float size[2]);
 int BKE_movieclip_get_duration(struct MovieClip *clip);
 float BKE_movieclip_get_fps(struct MovieClip *clip);
 void BKE_movieclip_get_aspect(struct MovieClip *clip, float *aspx, float *aspy);
-bool BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
+bool BKE_movieclip_has_frame(struct MovieClip *clip, const struct MovieClipUser *user);
 void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 
 void BKE_movieclip_update_scopes(struct MovieClip *clip,
-                                 struct MovieClipUser *user,
+                                 const struct MovieClipUser *user,
                                  struct MovieClipScopes *scopes);
 
 /**
  * Get segments of cached frames. useful for debugging cache policies.
  */
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip,
-                                      struct MovieClipUser *user,
+                                      const struct MovieClipUser *user,
                                       int *r_totseg,
                                       int **r_points);
 
@@ -105,7 +107,7 @@ float BKE_movieclip_remap_scene_to_clip_frame(const struct MovieClip *clip, floa
 float BKE_movieclip_remap_clip_to_scene_frame(const struct MovieClip *clip, float framenr);
 
 void BKE_movieclip_filename_for_frame(struct MovieClip *clip,
-                                      struct MovieClipUser *user,
+                                      const struct MovieClipUser *user,
                                       char *name);
 
 /**
@@ -113,11 +115,11 @@ void BKE_movieclip_filename_for_frame(struct MovieClip *clip,
  * Used by a prefetch job which takes care of creating a local copy of the clip.
  */
 struct ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(struct MovieClip *clip,
-                                                        struct MovieClipUser *user);
+                                                        const struct MovieClipUser *user);
 
-bool BKE_movieclip_has_cached_frame(struct MovieClip *clip, struct MovieClipUser *user);
+bool BKE_movieclip_has_cached_frame(struct MovieClip *clip, const struct MovieClipUser *user);
 bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip,
-                                         struct MovieClipUser *user,
+                                         const struct MovieClipUser *user,
                                          struct ImBuf *ibuf);
 
 struct GPUTexture *BKE_movieclip_get_gpu_texture(struct MovieClip *clip,

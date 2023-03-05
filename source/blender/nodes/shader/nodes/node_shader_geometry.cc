@@ -41,7 +41,7 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
     /* Normalize some vectors after dFdx/dFdy offsets.
      * This is the case for interpolated, non linear functions.
      * The resulting vector can still be a bit wrong but not as much.
-     * (see T70644) */
+     * (see #70644) */
     if (ELEM(i, 1, 2, 4)) {
       GPU_link(mat,
                "vector_math_normalize",

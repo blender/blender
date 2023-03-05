@@ -20,7 +20,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void valuefn(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   float co1[3], co2[3];
 
@@ -31,7 +31,7 @@ static void valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,

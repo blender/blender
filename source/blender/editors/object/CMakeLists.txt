@@ -29,10 +29,13 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   object_add.cc
-  object_bake.c
-  object_bake_api.c
+  object_bake.cc
+  object_bake_api.cc
   object_collection.c
   object_constraint.c
   object_data_transfer.c
@@ -41,7 +44,7 @@ set(SRC
   object_facemap_ops.c
   object_gpencil_modifier.c
   object_hook.c
-  object_modes.c
+  object_modes.cc
   object_modifier.cc
   object_ops.c
   object_random.c

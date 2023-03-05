@@ -10,6 +10,8 @@
  * Each of them are reference by resource index (#ResourceHandle).
  */
 
+#include "BLI_math_matrix.hh"
+
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
 #include "BKE_mesh.h"
@@ -31,14 +33,14 @@
 
 inline void ObjectMatrices::sync(const Object &object)
 {
-  model = object.object_to_world;
-  model_inverse = object.world_to_object;
+  model.view() = blender::float4x4_view(object.object_to_world);
+  model_inverse.view() = blender::float4x4_view(object.world_to_object);
 }
 
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)
 {
   model = model_matrix;
-  model_inverse = model_matrix.inverted();
+  model_inverse = blender::math::invert(model_matrix);
 }
 
 inline std::ostream &operator<<(std::ostream &stream, const ObjectMatrices &matrices)
@@ -114,14 +116,14 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
     case ID_CU_LEGACY: {
       Curve &cu = *static_cast<Curve *>(ref.object->data);
       BKE_curve_texspace_ensure(&cu);
-      orco_add = cu.loc;
-      orco_mul = cu.size;
+      orco_add = cu.texspace_location;
+      orco_mul = cu.texspace_size;
       break;
     }
     case ID_MB: {
       MetaBall &mb = *static_cast<MetaBall *>(ref.object->data);
-      orco_add = mb.loc;
-      orco_mul = mb.size;
+      orco_add = mb.texspace_location;
+      orco_mul = mb.texspace_size;
       break;
     }
     default:

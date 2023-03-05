@@ -85,7 +85,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   if ((flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
     if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
       if ((v3d->shading.type < OB_SOLID) || (v3d->shading.flag & V3D_SHADING_XRAY)) {
-        /* Special case, when drawing wire, draw edges, see: T67637. */
+        /* Special case, when drawing wire, draw edges, see: #67637. */
       }
       else {
         pd->edit_mesh.do_edges = false;
@@ -285,11 +285,11 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
     struct GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
     Mesh *me = static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_vnors(me);
+      geom = DRW_mesh_batch_cache_get_edit_vert_normals(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (lnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_lnors(me);
+      geom = DRW_mesh_batch_cache_get_edit_loop_normals(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (fnormals_do) {

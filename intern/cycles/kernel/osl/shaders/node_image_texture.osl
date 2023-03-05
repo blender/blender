@@ -122,6 +122,7 @@ shader node_image_texture(int use_mapping = 0,
     vector Nob = transform("world", "object", N);
 
     /* project from direction vector to barycentric coordinates in triangles */
+    vector signed_Nob = Nob;
     Nob = vector(fabs(Nob[0]), fabs(Nob[1]), fabs(Nob[2]));
     Nob /= (Nob[0] + Nob[1] + Nob[2]);
 
@@ -184,9 +185,10 @@ shader node_image_texture(int use_mapping = 0,
     float tmp_alpha;
 
     if (weight[0] > 0.0) {
+      point UV = point((signed_Nob[0] < 0.0) ? 1.0 - p[1] : p[1], p[2], 0.0);
       Color += weight[0] * image_texture_lookup(filename,
-                                                p[1],
-                                                p[2],
+                                                UV[0],
+                                                UV[1],
                                                 tmp_alpha,
                                                 compress_as_srgb,
                                                 ignore_alpha,
@@ -198,9 +200,10 @@ shader node_image_texture(int use_mapping = 0,
       Alpha += weight[0] * tmp_alpha;
     }
     if (weight[1] > 0.0) {
+      point UV = point((signed_Nob[1] > 0.0) ? 1.0 - p[0] : p[0], p[2], 0.0);
       Color += weight[1] * image_texture_lookup(filename,
-                                                p[0],
-                                                p[2],
+                                                UV[0],
+                                                UV[1],
                                                 tmp_alpha,
                                                 compress_as_srgb,
                                                 ignore_alpha,
@@ -212,9 +215,10 @@ shader node_image_texture(int use_mapping = 0,
       Alpha += weight[1] * tmp_alpha;
     }
     if (weight[2] > 0.0) {
+      point UV = point((signed_Nob[2] > 0.0) ? 1.0 - p[1] : p[1], p[0], 0.0);
       Color += weight[2] * image_texture_lookup(filename,
-                                                p[1],
-                                                p[0],
+                                                UV[0],
+                                                UV[1],
                                                 tmp_alpha,
                                                 compress_as_srgb,
                                                 ignore_alpha,

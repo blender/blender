@@ -68,11 +68,12 @@ void main()
 
   normal_interp = normalize(normal_world_to_view(nor));
 
-  workbench_material_data_get(resource_handle, color_interp, alpha_interp, _roughness, metallic);
-
-  if (materialIndex == 0) {
-    color_interp = hair_get_customdata_vec3(ac);
-  }
+  workbench_material_data_get(resource_handle,
+                              hair_get_customdata_vec3(ac),
+                              color_interp,
+                              alpha_interp,
+                              _roughness,
+                              metallic);
 
   /* Hairs have lots of layer and can rapidly become the most prominent surface.
    * So we lower their alpha artificially. */

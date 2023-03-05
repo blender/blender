@@ -17,7 +17,6 @@ struct ARegion;
 struct FileAssetSelectParams;
 struct FileDirEntry;
 struct FileSelectParams;
-struct Scene;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;
@@ -152,6 +151,22 @@ struct ID *ED_fileselect_active_asset_get(const struct SpaceFile *sfile);
 void ED_fileselect_activate_asset_catalog(const struct SpaceFile *sfile, bUUID catalog_id);
 
 /**
+ * Resolve this space's #eFileAssetImportMethod to the #eAssetImportMethod (note the different
+ * type) to be used for the actual import of a specific asset.
+ * - If the asset system dictates a certain import method, this will be returned.
+ * - If the Asset Browser is set to follow the Preferences (#FILE_ASSET_IMPORT_FOLLOW_PREFS), the
+ *   asset system determines the import method (which is the default from the Preferences). -1 is
+ *   returned if the asset system doesn't specify a method (e.g. because the asset library doesn't
+ *   come from the Preferences).
+ * - Otherwise, the Asset Browser determines (possibly overrides) the import method.
+ *
+ * \return -1 on error, for example when #FILE_ASSET_IMPORT_FOLLOW_PREFS was requested but the
+ *         active asset library reference couldn't be found in the preferences.
+ */
+int /* #eAssetImportMethod */ ED_fileselect_asset_import_method_get(
+    const struct SpaceFile *sfile, const struct FileDirEntry *file);
+
+/**
  * Activate and select the file that corresponds to the given ID.
  * Pass deferred=true to wait for the next refresh before activating.
  */
@@ -193,7 +208,7 @@ void ED_file_read_bookmarks(void);
 
 /**
  * Support updating the directory even when this isn't the active space
- * needed so RNA properties update function isn't context sensitive, see T70255.
+ * needed so RNA properties update function isn't context sensitive, see #70255.
  */
 void ED_file_change_dir_ex(struct bContext *C, struct ScrArea *area);
 void ED_file_change_dir(struct bContext *C);

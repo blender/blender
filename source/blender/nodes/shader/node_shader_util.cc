@@ -15,7 +15,9 @@
 
 #include "node_exec.h"
 
-bool sh_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **r_disabled_hint)
+bool sh_node_poll_default(const bNodeType * /*ntype*/,
+                          const bNodeTree *ntree,
+                          const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "ShaderNodeTree")) {
     *r_disabled_hint = TIP_("Not a shader node tree");
@@ -24,8 +26,8 @@ bool sh_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **
   return true;
 }
 
-static bool sh_fn_poll_default(bNodeType * /*ntype*/,
-                               bNodeTree *ntree,
+static bool sh_fn_poll_default(const bNodeType * /*ntype*/,
+                               const bNodeTree *ntree,
                                const char **r_disabled_hint)
 {
   if (!STR_ELEM(ntree->idname, "ShaderNodeTree", "GeometryNodeTree")) {

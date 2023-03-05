@@ -67,23 +67,23 @@ static void verttag_add_adjacent_uv(HeapSimple *heap,
   BLI_assert(params->aspect_y != 0.0f);
   const int cd_loop_uv_offset = params->cd_loop_uv_offset;
   const int l_a_index = BM_elem_index_get(l_a);
-  const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
-  const float uv_a[2] = {luv_a->uv[0], luv_a->uv[1] / params->aspect_y};
+  const float *luv_a = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
+  const float uv_a[2] = {luv_a[0], luv_a[1] / params->aspect_y};
 
   {
     BMIter liter;
     BMLoop *l;
     /* Loop over faces of face, but do so by first looping over loops. */
     BM_ITER_ELEM (l, &liter, l_a->v, BM_LOOPS_OF_VERT) {
-      const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      if (equals_v2v2(luv_a->uv, luv->uv)) {
+      const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+      if (equals_v2v2(luv_a, luv)) {
         /* 'l_a' is already tagged, tag all adjacent. */
         BM_elem_flag_enable(l, BM_ELEM_TAG);
         BMLoop *l_b = l->next;
         do {
           if (!BM_elem_flag_test(l_b, BM_ELEM_TAG)) {
-            const MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l_b, cd_loop_uv_offset);
-            const float uv_b[2] = {luv_b->uv[0], luv_b->uv[1] / params->aspect_y};
+            const float *luv_b = BM_ELEM_CD_GET_FLOAT_P(l_b, cd_loop_uv_offset);
+            const float uv_b[2] = {luv_b[0], luv_b[1] / params->aspect_y};
             /* We know 'l_b' is not visited, check it out! */
             const int l_b_index = BM_elem_index_get(l_b);
             const float cost_cut = params->use_topology_distance ? 1.0f : len_v2v2(uv_a, uv_b);
@@ -189,13 +189,13 @@ static float edgetag_cut_cost_vert_uv(
   BMLoop *l_v1 = (l_v->v == l_e_a->v) ? l_e_a->next : l_e_a;
   BMLoop *l_v2 = (l_v->v == l_e_b->v) ? l_e_b->next : l_e_b;
 
-  MLoopUV *luv_v1 = BM_ELEM_CD_GET_VOID_P(l_v1, cd_loop_uv_offset);
-  MLoopUV *luv_v2 = BM_ELEM_CD_GET_VOID_P(l_v2, cd_loop_uv_offset);
-  MLoopUV *luv_v = BM_ELEM_CD_GET_VOID_P(l_v, cd_loop_uv_offset);
+  float *luv_v1 = BM_ELEM_CD_GET_FLOAT_P(l_v1, cd_loop_uv_offset);
+  float *luv_v2 = BM_ELEM_CD_GET_FLOAT_P(l_v2, cd_loop_uv_offset);
+  float *luv_v = BM_ELEM_CD_GET_FLOAT_P(l_v, cd_loop_uv_offset);
 
-  float uv_v1[2] = {luv_v1->uv[0], luv_v1->uv[1] / aspect_y};
-  float uv_v2[2] = {luv_v2->uv[0], luv_v2->uv[1] / aspect_y};
-  float uv_v[2] = {luv_v->uv[0], luv_v->uv[1] / aspect_y};
+  float uv_v1[2] = {luv_v1[0], luv_v1[1] / aspect_y};
+  float uv_v2[2] = {luv_v2[0], luv_v2[1] / aspect_y};
+  float uv_v[2] = {luv_v[0], luv_v[1] / aspect_y};
 
   return step_cost_3_v2(uv_v1, uv_v, uv_v2);
 }
@@ -204,11 +204,11 @@ static float edgetag_cut_cost_face_uv(
     BMLoop *l_e_a, BMLoop *l_e_b, BMFace *f, const float aspect_v2[2], const int cd_loop_uv_offset)
 {
   float l_e_a_cent[2], l_e_b_cent[2], f_cent[2];
-  MLoopUV *luv_e_a = BM_ELEM_CD_GET_VOID_P(l_e_a, cd_loop_uv_offset);
-  MLoopUV *luv_e_b = BM_ELEM_CD_GET_VOID_P(l_e_b, cd_loop_uv_offset);
+  float *luv_e_a = BM_ELEM_CD_GET_FLOAT_P(l_e_a, cd_loop_uv_offset);
+  float *luv_e_b = BM_ELEM_CD_GET_FLOAT_P(l_e_b, cd_loop_uv_offset);
 
-  mid_v2_v2v2(l_e_a_cent, luv_e_a->uv, luv_e_a->uv);
-  mid_v2_v2v2(l_e_b_cent, luv_e_b->uv, luv_e_b->uv);
+  mid_v2_v2v2(l_e_a_cent, luv_e_a, luv_e_a);
+  mid_v2_v2v2(l_e_b_cent, luv_e_b, luv_e_b);
 
   mul_v2_v2(l_e_a_cent, aspect_v2);
   mul_v2_v2(l_e_b_cent, aspect_v2);
@@ -397,9 +397,8 @@ static float facetag_cut_cost_edge_uv(BMFace *f_a,
   BM_face_uv_calc_center_median_weighted(f_a, aspect_v2, cd_loop_uv_offset, f_a_cent);
   BM_face_uv_calc_center_median_weighted(f_b, aspect_v2, cd_loop_uv_offset, f_b_cent);
 
-  const float *co_v1 = ((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_edge, cd_loop_uv_offset))->uv;
-  const float *co_v2 =
-      ((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_edge->next, cd_loop_uv_offset))->uv;
+  const float *co_v1 = BM_ELEM_CD_GET_FLOAT_P(l_edge, cd_loop_uv_offset);
+  const float *co_v2 = BM_ELEM_CD_GET_FLOAT_P(l_edge->next, cd_loop_uv_offset);
 
 #if 0
   mid_v2_v2v2(e_cent, co_v1, co_v2);
@@ -444,7 +443,7 @@ static float facetag_cut_cost_vert_uv(BMFace *f_a,
   BM_face_uv_calc_center_median_weighted(f_a, aspect_v2, cd_loop_uv_offset, f_a_cent);
   BM_face_uv_calc_center_median_weighted(f_b, aspect_v2, cd_loop_uv_offset, f_b_cent);
 
-  copy_v2_v2(v_cent, ((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_vert, cd_loop_uv_offset))->uv);
+  copy_v2_v2(v_cent, BM_ELEM_CD_GET_FLOAT_P(l_vert, cd_loop_uv_offset));
 
   mul_v2_v2(f_a_cent, aspect_v2);
   mul_v2_v2(f_b_cent, aspect_v2);

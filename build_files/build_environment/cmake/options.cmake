@@ -16,8 +16,10 @@ message("BuildMode = ${BUILD_MODE}")
 
 if(BUILD_MODE STREQUAL "Debug")
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+  set(MESON_BUILD_TYPE -Dbuildtype=debug)
 else()
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
+  set(MESON_BUILD_TYPE -Dbuildtype=release)
 endif()
 
 set(DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/downloads" CACHE STRING "Path for downloaded files")
@@ -117,7 +119,7 @@ else()
   set(LIBEXT ".a")
   set(LIBPREFIX "lib")
   set(MESON ${LIBDIR}/python/bin/meson)
-if(APPLE)
+  if(APPLE)
     set(SHAREDLIBEXT ".dylib")
 
     # Use same Xcode detection as Blender itself.

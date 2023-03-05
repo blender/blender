@@ -52,7 +52,7 @@ AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
     return APPLE_M1;
   }
   else if (strstr(device_name, "M2")) {
-    return APPLE_M2;
+    return get_apple_gpu_core_count(device) <= 10 ? APPLE_M2 : APPLE_M2_BIG;
   }
   return APPLE_UNKNOWN;
 }
@@ -64,6 +64,12 @@ MetalGPUVendor MetalInfo::get_device_vendor(id<MTLDevice> device)
     return METAL_GPU_INTEL;
   }
   else if (strstr(device_name, "AMD")) {
+    /* Setting this env var hides AMD devices thus exposing any integrated Intel devices. */
+    if (auto str = getenv("CYCLES_METAL_FORCE_INTEL")) {
+      if (atoi(str)) {
+        return METAL_GPU_UNKNOWN;
+      }
+    }
     return METAL_GPU_AMD;
   }
   else if (strstr(device_name, "Apple")) {
@@ -96,6 +102,15 @@ vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
     return usable_devices;
   }
 
+  /* If the system has both an AMD GPU (discrete) and an Intel one (integrated), prefer the AMD
+   * one. This can be overridden with CYCLES_METAL_FORCE_INTEL. */
+  bool has_usable_amd_gpu = false;
+  if (@available(macos 12.3, *)) {
+    for (id<MTLDevice> device in MTLCopyAllDevices()) {
+      has_usable_amd_gpu |= (get_device_vendor(device) == METAL_GPU_AMD);
+    }
+  }
+
   metal_printf("Usable Metal devices:\n");
   for (id<MTLDevice> device in MTLCopyAllDevices()) {
     string device_name = get_device_name(device);
@@ -111,8 +126,10 @@ vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
     }
 
 #  if defined(MAC_OS_VERSION_13_0)
-    if (@available(macos 13.0, *)) {
-      usable |= (vendor == METAL_GPU_INTEL);
+    if (!has_usable_amd_gpu) {
+      if (@available(macos 13.0, *)) {
+        usable |= (vendor == METAL_GPU_INTEL);
+      }
     }
 #  endif
 

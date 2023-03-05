@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
@@ -53,7 +55,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
     case GEO_COMPONENT_TYPE_CURVE: {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
       const Curves *curves = curve_component.get_for_read();
-      geometry_ = curves ? &CurvesGeometry::wrap(curves->geometry) : nullptr;
+      geometry_ = curves ? &curves->geometry.wrap() : nullptr;
       break;
     }
     case GEO_COMPONENT_TYPE_POINT_CLOUD: {
@@ -332,7 +334,7 @@ GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryField
                                                              const IndexMask /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  return context.attributes()->lookup(anonymous_id_.get(), context.domain(), data_type);
+  return context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
 }
 
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
@@ -363,8 +365,7 @@ std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
   if (!attributes.has_value()) {
     return std::nullopt;
   }
-  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(
-      anonymous_id_.get());
+  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(*anonymous_id_);
   if (!meta_data.has_value()) {
     return std::nullopt;
   }
@@ -409,6 +410,7 @@ bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
                                    const eAttrDomain domain,
+                                   const fn::Field<bool> &selection,
                                    const fn::GField &field)
 {
   MutableAttributeAccessor attributes = *component.attributes_for_write();
@@ -424,18 +426,45 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   const IndexMask mask{IndexMask(domain_size)};
   const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
 
-  /* Could avoid allocating a new buffer if:
-   * - We are writing to an attribute that exists already with the correct domain and type.
-   * - The field does not depend on that attribute (we can't easily check for that yet). */
-  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
+  const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(attribute_id);
+  const bool attribute_exists = meta_data && meta_data->domain == domain &&
+                                meta_data->data_type == data_type;
 
+  /*  We are writing to an attribute that exists already with the correct domain and type. */
+  if (attribute_exists) {
+    if (GSpanAttributeWriter dst_attribute = attributes.lookup_for_write_span(attribute_id)) {
+      bke::GeometryFieldContext field_context{component, domain};
+      const IndexMask mask{IndexMask(domain_size)};
+
+      fn::FieldEvaluator evaluator{field_context, &mask};
+      evaluator.add(validator.validate_field_if_necessary(field));
+      evaluator.set_selection(selection);
+      evaluator.evaluate();
+
+      const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+
+      array_utils::copy(evaluator.get_evaluated(0), selection, dst_attribute.span);
+
+      dst_attribute.finish();
+      return true;
+    }
+  }
+
+  /* Could avoid allocating a new buffer if:
+   * - The field does not depend on that attribute (we can't easily check for that yet). */
+  void *buffer = MEM_mallocN_aligned(type.size() * domain_size, type.alignment(), __func__);
+  if (selection.node().depends_on_input() || !fn::evaluate_constant_field(selection)) {
+    /* If every element might not be selected, the buffer must be initialized. */
+    type.value_initialize_n(buffer, domain_size);
+  }
   fn::FieldEvaluator evaluator{field_context, &mask};
   evaluator.add_with_destination(validator.validate_field_if_necessary(field),
                                  GMutableSpan{type, buffer, domain_size});
+  evaluator.set_selection(selection);
   evaluator.evaluate();
 
-  if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
-    if (attribute.domain == domain && attribute.varray.type() == type) {
+  if (attribute_exists) {
+    if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
       attribute.varray.set_all(buffer);
       attribute.finish();
       type.destruct_n(buffer, domain_size);
@@ -443,6 +472,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
       return true;
     }
   }
+
   attributes.remove(attribute_id);
   if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
     return true;
@@ -453,6 +483,15 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   type.destruct_n(buffer, domain_size);
   MEM_freeN(buffer);
   return false;
+}
+
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::GField &field)
+{
+  const fn::Field<bool> selection = fn::make_constant_field<bool>(true);
+  return try_capture_field_on_geometry(component, attribute_id, domain, selection, field);
 }
 
 std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &component,
@@ -521,8 +560,7 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
       }
       else if (const auto *curves_field_input = dynamic_cast<const CurvesFieldInput *>(
                    &field_input)) {
-        if (!handle_domain(
-                curves_field_input->preferred_domain(CurvesGeometry::wrap(curves->geometry)))) {
+        if (!handle_domain(curves_field_input->preferred_domain(curves->geometry.wrap()))) {
           return std::nullopt;
         }
       }

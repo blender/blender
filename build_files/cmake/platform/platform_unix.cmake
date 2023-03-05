@@ -4,39 +4,52 @@
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
 # Detect precompiled library directory
-if(NOT DEFINED LIBDIR)
-  # Path to a locally compiled libraries.
-  set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
-  string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
-  set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Path to precompiled libraries with known CentOS 7 ABI.
-  set(LIBDIR_CENTOS7_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_centos7_x86_64)
+if(NOT WITH_LIBS_PRECOMPILED)
+  unset(LIBDIR)
+else()
+  if(NOT DEFINED LIBDIR)
+    # Path to a locally compiled libraries.
+    set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+    string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
+    set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Choose the best suitable libraries.
-  if(EXISTS ${LIBDIR_NATIVE_ABI})
-    set(LIBDIR ${LIBDIR_NATIVE_ABI})
-    set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
-  elseif(EXISTS ${LIBDIR_CENTOS7_ABI})
-    set(LIBDIR ${LIBDIR_CENTOS7_ABI})
-    set(WITH_CXX11_ABI OFF)
-    if(WITH_MEM_JEMALLOC)
-      # jemalloc provides malloc hooks.
-      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
-    else()
+    # Path to precompiled libraries with known glibc 2.28 ABI.
+    set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_x86_64_glibc_228)
+
+    # Choose the best suitable libraries.
+    if(EXISTS ${LIBDIR_NATIVE_ABI})
+      set(LIBDIR ${LIBDIR_NATIVE_ABI})
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+    elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
+      set(LIBDIR ${LIBDIR_GLIBC228_ABI})
+      if(WITH_MEM_JEMALLOC)
+        # jemalloc provides malloc hooks.
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
+      else()
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+      endif()
     endif()
+
+    # Avoid namespace pollustion.
+    unset(LIBDIR_NATIVE_ABI)
+    unset(LIBDIR_GLIBC228_ABI)
   endif()
 
-  # Avoid namespace pollustion.
-  unset(LIBDIR_NATIVE_ABI)
-  unset(LIBDIR_CENTOS7_ABI)
+  if(NOT (EXISTS ${LIBDIR}))
+    message(STATUS
+      "Unable to find LIBDIR: ${LIBDIR}, system libraries may be used "
+      "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
+    )
+    unset(LIBDIR)
+  endif()
 endif()
+
 
 # Support restoring this value once pre-compiled libraries have been handled.
 set(WITH_STATIC_LIBS_INIT ${WITH_STATIC_LIBS})
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 
   file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
@@ -86,7 +99,7 @@ endmacro()
 # These are libraries that may be precompiled. For this we disable searching in
 # the system directories so that we don't accidentally use them instead.
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   without_system_libs_begin()
 endif()
 
@@ -98,6 +111,7 @@ find_package_wrapper(Epoxy REQUIRED)
 
 if(WITH_VULKAN_BACKEND)
   find_package_wrapper(Vulkan REQUIRED)
+  find_package_wrapper(ShaderC REQUIRED)
 endif()
 
 function(check_freetype_for_brotli)
@@ -115,7 +129,7 @@ endfunction()
 if(NOT WITH_SYSTEM_FREETYPE)
   # FreeType compiled with Brotli compression for woff2.
   find_package_wrapper(Freetype REQUIRED)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     find_package_wrapper(Brotli REQUIRED)
 
     # NOTE: This is done on WIN32 & APPLE but fails on some Linux systems.
@@ -142,7 +156,7 @@ if(WITH_PYTHON)
   if(WITH_PYTHON_MODULE AND NOT WITH_INSTALL_PORTABLE)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       path_is_prefix(LIBDIR PYTHON_SITE_PACKAGES _is_prefix)
       if(_is_prefix)
         message(WARNING "
@@ -167,11 +181,9 @@ endif()
 if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
   set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
-  if(WITH_IMAGE_OPENEXR)
-    add_bundled_libraries(openexr/lib)
-    add_bundled_libraries(imath/lib)
-  endif()
 endif()
+add_bundled_libraries(openexr/lib)
+add_bundled_libraries(imath/lib)
 
 if(WITH_IMAGE_OPENJPEG)
   find_package_wrapper(OpenJPEG)
@@ -220,7 +232,7 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
     # Override FFMPEG components to also include static library dependencies
     # included with precompiled libraries, and to ensure correct link order.
@@ -235,7 +247,7 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
-    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+    if((DEFINED LIBDIR) AND (EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a))
       list(APPEND FFMPEG_FIND_COMPONENTS aom)
     endif()
   elseif(FFMPEG)
@@ -329,13 +341,8 @@ endif()
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
-
-  if(OPENVDB_FOUND)
-  add_bundled_libraries(openvdb/lib)
-  find_package_wrapper(Blosc)
-    set_and_warn_library_found("Blosc" BLOSC_FOUND WITH_OPENVDB_BLOSC)
-  endif()
 endif()
+add_bundled_libraries(openvdb/lib)
 
 if(WITH_NANOVDB)
   find_package_wrapper(NanoVDB)
@@ -354,18 +361,14 @@ endif()
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
- if(WITH_USD)
-    add_bundled_libraries(usd/lib)
- endif()
 endif()
+add_bundled_libraries(usd/lib)
 
 if(WITH_MATERIALX)
   find_package_wrapper(MaterialX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
-  if(WITH_MATERIALX)
-    add_bundled_libraries(materialx/lib)
-  endif()
 endif()
+add_bundled_libraries(materialx/lib)
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
@@ -421,9 +424,8 @@ if(WITH_BOOST)
     find_package(IcuLinux)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
-
-  add_bundled_libraries(boost/lib)
 endif()
+add_bundled_libraries(boost/lib)
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
@@ -443,10 +445,13 @@ if(WITH_OPENIMAGEIO)
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${BOOST_LIBRARIES}
   )
+
   set(OPENIMAGEIO_DEFINITIONS "")
 
+  if(WITH_BOOST)
+    list(APPEND OPENIMAGEIO_LIBRARIES "${BOOST_LIBRARIES}")
+  endif()
   if(WITH_IMAGE_TIFF)
     list(APPEND OPENIMAGEIO_LIBRARIES "${TIFF_LIBRARY}")
   endif()
@@ -458,21 +463,16 @@ if(WITH_OPENIMAGEIO)
   endif()
 
   set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
-  if(WITH_OPENIMAGEIO)
-    add_bundled_libraries(openimageio/lib)
-  endif()
 endif()
+add_bundled_libraries(openimageio/lib)
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_DEFINITIONS)
+  set(OPENCOLORIO_DEFINITIONS "")
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
-
-  if(WITH_OPENCOLORIO)
-    add_bundled_libraries(opencolorio/lib)
-  endif()
 endif()
+add_bundled_libraries(opencolorio/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -484,7 +484,7 @@ if(WITH_OPENIMAGEDENOISE)
 endif()
 
 if(WITH_LLVM)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(LLVM_STATIC ON)
   endif()
 
@@ -498,7 +498,7 @@ if(WITH_LLVM)
     endif()
 
     # Symbol conflicts with same UTF library used by OpenCollada
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
         list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
       endif()
@@ -513,18 +513,14 @@ if(WITH_OPENSUBDIV)
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
-  if(WITH_OPENSUBDIV)
-    add_bundled_libraries(opensubdiv/lib)
-  endif()
 endif()
+add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
   set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
-  if(WITH_TBB)
-    add_bundled_libraries(tbb/lib)
-  endif()
 endif()
+add_bundled_libraries(tbb/lib)
 
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK)
@@ -558,7 +554,7 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   endif()
 endif()
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   without_system_libs_end()
 endif()
 
@@ -573,9 +569,14 @@ else()
 endif()
 
 find_package(Threads REQUIRED)
-list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})
-# used by other platforms
-set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+# `FindThreads` documentation notes that this may be empty
+# with the system libraries provide threading functionality.
+if(CMAKE_THREAD_LIBS_INIT)
+  list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})
+  # used by other platforms
+  set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
 
 if(CMAKE_DL_LIBS)
   list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})
@@ -597,7 +598,7 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 #
 # Keep last, so indirectly linked libraries don't override our own pre-compiled libs.
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   # Clear the prefix path as it causes the `LIBDIR` to override system locations.
   unset(CMAKE_PREFIX_PATH)
 
@@ -653,7 +654,7 @@ if(WITH_GHOST_WAYLAND)
   # When dynamically linked WAYLAND is used and `${LIBDIR}/wayland` is present,
   # there is no need to search for the libraries as they are not needed for building.
   # Only the headers are needed which can reference the known paths.
-  if(EXISTS "${LIBDIR}/wayland" AND WITH_GHOST_WAYLAND_DYNLOAD)
+  if((DEFINED LIBDIR) AND (EXISTS "${LIBDIR}/wayland" AND WITH_GHOST_WAYLAND_DYNLOAD))
     set(_use_system_wayland OFF)
   else()
     set(_use_system_wayland ON)
@@ -667,8 +668,7 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
-    # CentOS 7 packages have too old a version, a newer version exist in the
-    # precompiled libraries.
+    # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
       NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
       PATH_SUFFIXES share/wayland-protocols
@@ -718,7 +718,7 @@ if(WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
-    if(EXISTS "${LIBDIR}/wayland/bin/wayland-scanner")
+    if((DEFINED LIBDIR) AND (EXISTS "${LIBDIR}/wayland/bin/wayland-scanner"))
       set(WAYLAND_SCANNER "${LIBDIR}/wayland/bin/wayland-scanner")
     else()
       pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
@@ -793,7 +793,7 @@ if(WITH_GHOST_X11)
   endif()
 
   if(WITH_X11_ALPHA)
-    find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+    find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
       message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you

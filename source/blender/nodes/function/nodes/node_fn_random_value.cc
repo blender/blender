@@ -123,7 +123,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
         params.update_and_connect_available_socket(node, "Max");
       });
     }
-    search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
+    search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
   }
   else {
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -141,64 +141,49 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
   switch (data_type) {
     case CD_PROP_FLOAT3: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
-          fn{"Random Vector",
-             [](float3 min_value, float3 max_value, int id, int seed, float3 *r_value) {
-               const float x = noise::hash_to_float(seed, id, 0);
-               const float y = noise::hash_to_float(seed, id, 1);
-               const float z = noise::hash_to_float(seed, id, 2);
-               *r_value = float3(x, y, z) * (max_value - min_value) + min_value;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<float3, float3, int, int, float3>(
+          "Random Vector",
+          [](float3 min_value, float3 max_value, int id, int seed) -> float3 {
+            const float x = noise::hash_to_float(seed, id, 0);
+            const float y = noise::hash_to_float(seed, id, 1);
+            const float z = noise::hash_to_float(seed, id, 2);
+            return float3(x, y, z) * (max_value - min_value) + min_value;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_FLOAT: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
-          fn{"Random Float",
-             [](float min_value, float max_value, int id, int seed, float *r_value) {
-               const float value = noise::hash_to_float(seed, id);
-               *r_value = value * (max_value - min_value) + min_value;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<float, float, int, int, float>(
+          "Random Float",
+          [](float min_value, float max_value, int id, int seed) -> float {
+            const float value = noise::hash_to_float(seed, id);
+            return value * (max_value - min_value) + min_value;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_INT32: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, int>>
-          fn{"Random Int",
-             [](int min_value, int max_value, int id, int seed, int *r_value) {
-               const float value = noise::hash_to_float(id, seed);
-               /* Add one to the maximum and use floor to produce an even
-                * distribution for the first and last values (See T93591). */
-               *r_value = floor(value * (max_value + 1 - min_value) + min_value);
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<2>()};
+      static auto fn = mf::build::SI4_SO<int, int, int, int, int>(
+          "Random Int",
+          [](int min_value, int max_value, int id, int seed) -> int {
+            const float value = noise::hash_to_float(id, seed);
+            /* Add one to the maximum and use floor to produce an even
+             * distribution for the first and last values (See #93591). */
+            return floor(value * (max_value + 1 - min_value) + min_value);
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_BOOL: {
-      static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleInput, int>,
-                          fn::MFParamTag<fn::MFParamCategory::SingleOutput, bool>>
-          fn{"Random Bool",
-             [](float probability, int id, int seed, bool *r_value) {
-               *r_value = noise::hash_to_float(id, seed) <= probability;
-             },
-             fn::CustomMF_presets::SomeSpanOrSingle<1>()};
+      static auto fn = mf::build::SI3_SO<float, int, int, bool>(
+          "Random Bool",
+          [](float probability, int id, int seed) -> bool {
+            return noise::hash_to_float(id, seed) <= probability;
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<1>());
       builder.set_matching_fn(fn);
       break;
     }

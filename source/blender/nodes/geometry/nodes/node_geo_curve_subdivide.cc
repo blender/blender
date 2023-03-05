@@ -18,10 +18,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .min(0)
       .max(1000)
-      .supports_field()
+      .field_on_all()
       .description(
           N_("The number of control points to create on the segment following each point"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -37,7 +37,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+    const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
     bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{field_context, src_curves.points_num()};
@@ -49,7 +49,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     bke::CurvesGeometry dst_curves = geometry::subdivide_curves(
-        src_curves, src_curves.curves_range(), cuts);
+        src_curves, src_curves.curves_range(), cuts, params.get_output_propagation_info("Curve"));
 
     Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
     bke::curves_copy_parameters(src_curves_id, *dst_curves_id);

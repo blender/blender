@@ -3,12 +3,7 @@
 #pragma once
 
 struct ID;
-struct Main;
-struct Object;
-struct SpaceNode;
 struct SpaceSpreadsheet;
-struct bContext;
-struct bNode;
 
 #ifdef __cplusplus
 extern "C" {

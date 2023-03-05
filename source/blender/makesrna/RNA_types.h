@@ -86,7 +86,7 @@ typedef enum PropertyUnit {
  * Use values besides #PROP_SCALE_LINEAR
  * so the movement of the mouse doesn't map linearly to the value of the slider.
  *
- * For some settings it's useful to space motion in a non-linear way, see T77868.
+ * For some settings it's useful to space motion in a non-linear way, see #77868.
  *
  * NOTE: The scale types are available for all float sliders.
  * For integer sliders they are only available if they use the visible value bar.
@@ -234,7 +234,7 @@ typedef enum PropertyFlag {
    * Use for...
    * - pointers: in the UI and python so unsetting or setting to None won't work.
    * - strings: so our internal generated get/length/set
-   *   functions know to do NULL checks before access T30865.
+   *   functions know to do NULL checks before access #30865.
    */
   PROP_NEVER_NULL = (1 << 18),
   /**

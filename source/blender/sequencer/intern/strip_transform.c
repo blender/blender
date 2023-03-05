@@ -309,7 +309,7 @@ static SeqCollection *query_right_side_strips(const Scene *scene,
 
   SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (SEQ_collection_has_strip(seq, time_dependent_strips)) {
+    if (time_dependent_strips != NULL && SEQ_collection_has_strip(seq, time_dependent_strips)) {
       continue;
     }
     if (SEQ_collection_has_strip(seq, transformed_strips)) {
@@ -526,7 +526,7 @@ static void seq_transform_handle_overwrite(Scene *scene,
   SEQ_collection_free(targets);
 
   /* Remove covered strips. This must be done in separate loop, because `SEQ_edit_strip_split()`
-   * also uses `SEQ_edit_remove_flagged_sequences()`. See T91096. */
+   * also uses `SEQ_edit_remove_flagged_sequences()`. See #91096. */
   if (SEQ_collection_len(strips_to_delete) > 0) {
     Sequence *seq;
     SEQ_ITERATOR_FOREACH (seq, strips_to_delete) {
@@ -575,7 +575,7 @@ void SEQ_transform_handle_overlap(Scene *scene,
   }
 
   /* If any effects still overlap, we need to move them up.
-   * In some cases other strips can be overlapping still, see T90646. */
+   * In some cases other strips can be overlapping still, see #90646. */
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
     if (SEQ_transform_test_overlap(scene, seqbasep, seq)) {

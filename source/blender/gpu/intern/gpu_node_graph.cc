@@ -7,8 +7,8 @@
  * Intermediate node graph for generating GLSL shaders.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -27,7 +27,7 @@
 
 /* Node Link Functions */
 
-static GPUNodeLink *gpu_node_link_create(void)
+static GPUNodeLink *gpu_node_link_create()
 {
   GPUNodeLink *link = MEM_cnew<GPUNodeLink>("GPUNodeLink");
   link->users++;
@@ -149,7 +149,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     case GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN:
       input->source = GPU_SOURCE_FUNCTION_CALL;
       /* NOTE(@fclem): End of function call is the return variable set during codegen. */
-      SNPRINTF(input->function_call, "dF_branch(%s(), ", link->function_name);
+      SNPRINTF(input->function_call, "dF_branch_incomplete(%s(), ", link->function_name);
       break;
     default:
       break;
@@ -982,4 +982,23 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
       BLI_freelinkN(&graph->layer_attrs, attr);
     }
   }
+}
+
+void gpu_node_graph_optimize(GPUNodeGraph *graph)
+{
+  /* Replace all uniform node links with constant. */
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
+    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
+      if (input->link) {
+        if (input->link->link_type == GPU_NODE_LINK_UNIFORM) {
+          input->link->link_type = GPU_NODE_LINK_CONSTANT;
+        }
+      }
+      if (input->source == GPU_SOURCE_UNIFORM) {
+        input->source = (input->type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
+      }
+    }
+  }
+
+  /* TODO: Consider performing other node graph optimizations here. */
 }

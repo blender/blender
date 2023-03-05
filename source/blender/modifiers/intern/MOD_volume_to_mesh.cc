@@ -30,7 +30,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "BLI_float4x4.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
 #include "BLI_timeit.hh"
@@ -195,34 +195,34 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 }
 
 ModifierTypeInfo modifierType_VolumeToMesh = {
-    /* name */ N_("Volume to Mesh"),
-    /* structName */ "VolumeToMeshModifierData",
-    /* structSize */ sizeof(VolumeToMeshModifierData),
-    /* srna */ &RNA_VolumeToMeshModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh,
-    /* icon */ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
+    /*name*/ N_("Volume to Mesh"),
+    /*structName*/ "VolumeToMeshModifierData",
+    /*structSize*/ sizeof(VolumeToMeshModifierData),
+    /*srna*/ &RNA_VolumeToMeshModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh,
+    /*icon*/ ICON_VOLUME_DATA, /* TODO: Use correct icon. */
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ nullptr,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

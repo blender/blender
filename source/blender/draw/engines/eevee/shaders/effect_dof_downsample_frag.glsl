@@ -10,6 +10,7 @@
 
 void main()
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec2 halfres_texel_size = 1.0 / vec2(textureSize(colorBuffer, 0).xy);
   /* Center uv around the 4 halfres pixels. */
   vec2 quad_center = (floor(gl_FragCoord.xy) * 2.0 + 1.0) * halfres_texel_size;

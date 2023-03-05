@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
 #include "GPU_batch.h"
@@ -75,8 +75,8 @@ struct TextureInfo {
   {
     float3 bottom_left_uv = float3(clipping_uv_bounds.xmin, clipping_uv_bounds.ymin, 0.0f);
     float3 top_right_uv = float3(clipping_uv_bounds.xmax, clipping_uv_bounds.ymax, 0.0f);
-    float3 bottom_left_region = uv_to_region * bottom_left_uv;
-    float3 top_right_region = uv_to_region * top_right_uv;
+    float3 bottom_left_region = math::transform_point(uv_to_region, bottom_left_uv);
+    float3 top_right_region = math::transform_point(uv_to_region, top_right_uv);
     BLI_rctf_init(&clipping_bounds,
                   bottom_left_region.x,
                   top_right_region.x,

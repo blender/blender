@@ -19,7 +19,6 @@ struct MeshBatchCache;
 struct MeshBufferCache;
 struct MeshRenderData;
 struct Object;
-struct Scene;
 struct Subdiv;
 struct ToolSettings;
 

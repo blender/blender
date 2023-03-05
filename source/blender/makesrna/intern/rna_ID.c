@@ -574,6 +574,33 @@ IDProperty **rna_ID_idprops(PointerRNA *ptr)
   return &id->properties;
 }
 
+int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
+{
+  ID *id = (ID *)ptr->data;
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
+  if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+    *r_info =
+        "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
+        "always runtime";
+    return 0;
+  }
+
+  return PROP_EDITABLE;
+}
+
+bool rna_ID_is_runtime_get(PointerRNA *ptr)
+{
+  ID *id = (ID *)ptr->data;
+  /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
+  if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+    return true;
+  }
+
+  return (id->tag & LIB_TAG_RUNTIME) != 0;
+}
+
 void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
 {
   ID *id = (ID *)ptr->data;
@@ -794,7 +821,7 @@ static void rna_ID_override_library_operations_update(ID *id,
     return;
   }
 
-  BKE_lib_override_library_operations_create(bmain, id);
+  BKE_lib_override_library_operations_create(bmain, id, NULL);
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
@@ -1458,6 +1485,15 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_array(prop, 1);
 
+  /* IDP_BOOLEAN */
+  prop = RNA_def_property(srna, "bool", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 1);
+
+  prop = RNA_def_property(srna, "bool_array", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 1);
+
   /* IDP_GROUP */
   prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
@@ -2029,6 +2065,17 @@ static void rna_def_ID(BlenderRNA *brna)
       "Embedded Data",
       "This data-block is not an independent one, but is actually a sub-data of another ID "
       "(typical example: root node trees or master collections)");
+
+  prop = RNA_def_property(srna, "is_runtime_data", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_RUNTIME);
+  RNA_def_property_editable_func(prop, "rna_ID_is_runtime_editable");
+  RNA_def_property_boolean_funcs(prop, "rna_ID_is_runtime_get", NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_ui_text(prop,
+                           "Runtime Data",
+                           "This data-block is runtime data, i.e. it won't be saved in .blend "
+                           "file. Note that e.g. evaluated IDs are always runtime, so this value "
+                           "is only editable for data-blocks in Main data-base");
 
   prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_DOIT);

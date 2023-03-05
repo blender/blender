@@ -4,10 +4,10 @@
  * geometry manifold type */
 
 #ifdef DOUBLE_MANIFOLD
-#  define vert_len 12 /* Triangle Strip with 6 verts = 4 triangles = 12 verts*/
+#  define vert_len 12 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
 #  define emit_triangle_count 4
 #else
-#  define vert_len 6 /* Triang;e Strip with 4 verts = 2 triangles = 6 verts*/
+#  define vert_len 6 /* Triangle Strip with 4 verts = 2 triangles = 6 verts. */
 #  define emit_triangle_count 2
 #endif
 

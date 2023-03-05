@@ -1278,7 +1278,7 @@ void ED_curve_editnurb_make(Object *obedit)
 
     if (actkey) {
       // XXX strcpy(G.editModeTitleExtra, "(Key) ");
-      /* TODO(@campbellbarton): undo_system: investigate why this was needed. */
+      /* TODO(@ideasman42): undo_system: investigate why this was needed. */
 #if 0
       undo_editmode_clear();
 #endif
@@ -1429,7 +1429,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 
     /* All curves failed due to the same error. */
     if (status.error_vertex_keys) {
-      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with vertex keys");
+      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with shape keys");
     }
     else {
       BLI_assert(status.error_generic);
@@ -7115,7 +7115,7 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
   Object *object = CTX_data_active_object(C);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Curve *curve = (Curve *)object->data;
-  float min[3], max[3], size[3], loc[3];
+  float min[3], max[3], texspace_size[3], texspace_location[3];
   int a;
 
   BLI_assert(object_eval->runtime.curve_cache != NULL);
@@ -7123,28 +7123,28 @@ static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
   INIT_MINMAX(min, max);
   BKE_displist_minmax(&object_eval->runtime.curve_cache->disp, min, max);
 
-  mid_v3_v3v3(loc, min, max);
+  mid_v3_v3v3(texspace_location, min, max);
 
-  size[0] = (max[0] - min[0]) / 2.0f;
-  size[1] = (max[1] - min[1]) / 2.0f;
-  size[2] = (max[2] - min[2]) / 2.0f;
+  texspace_size[0] = (max[0] - min[0]) / 2.0f;
+  texspace_size[1] = (max[1] - min[1]) / 2.0f;
+  texspace_size[2] = (max[2] - min[2]) / 2.0f;
 
   for (a = 0; a < 3; a++) {
-    if (size[a] == 0.0f) {
-      size[a] = 1.0f;
+    if (texspace_size[a] == 0.0f) {
+      texspace_size[a] = 1.0f;
     }
-    else if (size[a] > 0.0f && size[a] < 0.00001f) {
-      size[a] = 0.00001f;
+    else if (texspace_size[a] > 0.0f && texspace_size[a] < 0.00001f) {
+      texspace_size[a] = 0.00001f;
     }
-    else if (size[a] < 0.0f && size[a] > -0.00001f) {
-      size[a] = -0.00001f;
+    else if (texspace_size[a] < 0.0f && texspace_size[a] > -0.00001f) {
+      texspace_size[a] = -0.00001f;
     }
   }
 
-  copy_v3_v3(curve->loc, loc);
-  copy_v3_v3(curve->size, size);
+  copy_v3_v3(curve->texspace_location, texspace_location);
+  copy_v3_v3(curve->texspace_size, texspace_size);
 
-  curve->texflag &= ~CU_AUTOSPACE;
+  curve->texspace_flag &= ~CU_TEXSPACE_FLAG_AUTO;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, curve);
   DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);

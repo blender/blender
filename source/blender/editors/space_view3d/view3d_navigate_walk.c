@@ -594,7 +594,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   copy_v2_v2_int(walk->init_mval, mval);
   copy_v2_v2_int(walk->prev_mval, mval);
 
-  WM_cursor_grab_enable(win, 0, true, NULL);
+  WM_cursor_grab_enable(win, 0, NULL, true);
 
   return 1;
 }
@@ -643,7 +643,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   }
 #endif
 
-  WM_cursor_grab_enable(win, 0, true, NULL);
+  WM_cursor_grab_disable(win, NULL);
 
   if (walk->state == WALK_CONFIRM) {
     MEM_freeN(walk);

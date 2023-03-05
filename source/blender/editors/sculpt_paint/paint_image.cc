@@ -759,23 +759,47 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 /******************** texture paint toggle operator ********************/
 
-static void paint_init_pivot(Object *ob, Scene *scene)
+static void paint_init_pivot_mesh(Object *ob, float location[3])
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   if (!me_eval) {
     me_eval = (const Mesh *)ob->data;
   }
 
-  float location[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+  float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 
-  if (!BKE_mesh_minmax(me_eval, location, max)) {
+  if (!BKE_mesh_minmax(me_eval, min, max)) {
     zero_v3(location);
     zero_v3(max);
   }
 
-  interp_v3_v3v3(location, location, max, 0.5f);
+  interp_v3_v3v3(location, min, max, 0.5f);
+}
+
+static void paint_init_pivot_curves(Object *ob, float location[3])
+{
+  const BoundBox *bbox = BKE_object_boundbox_get(ob);
+  interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
+}
+
+void paint_init_pivot(Object *ob, Scene *scene)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  float location[3];
+
+  switch (ob->type) {
+    case OB_MESH:
+      paint_init_pivot_mesh(ob, location);
+      break;
+    case OB_CURVES:
+      paint_init_pivot_curves(ob, location);
+      break;
+    default:
+      BLI_assert_unreachable();
+      ups->last_stroke_valid = false;
+      return;
+  }
+
   mul_m4_v3(ob->object_to_world, location);
 
   ups->last_stroke_valid = true;

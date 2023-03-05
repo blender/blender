@@ -34,39 +34,39 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .supports_field()
       .description(N_(value_in_description));
-  b.add_input<decl::Int>(N_("Group Index"))
+  b.add_input<decl::Int>(N_("Group ID"), "Group Index")
       .supports_field()
       .description(
           N_("An index used to group values together for multiple separate accumulations"));
 
   b.add_output<decl::Vector>(N_("Leading"), "Leading Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Float>(N_("Leading"), "Leading Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Int>(N_("Leading"), "Leading Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
 
   b.add_output<decl::Vector>(N_("Trailing"), "Trailing Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Float>(N_("Trailing"), "Trailing Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Int>(N_("Trailing"), "Trailing Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
 
   b.add_output<decl::Vector>(N_("Total"), "Total Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Float>(N_("Total"), "Total Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Int>(N_("Total"), "Total Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
 }
 
@@ -182,7 +182,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         0);
 
     params.add_item(
-        IFACE_("Group Index"),
+        IFACE_("Group ID"),
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("GeometryNodeAccumulateField");
           node_storage(node).data_type = *type;

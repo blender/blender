@@ -47,6 +47,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframes_edit.h" /* XXX move the select modes out of there! */
+#include "ED_markers.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -216,7 +217,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
 static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, bAnimListElem *ale)
 {
   /* Armatures-Specific Feature:
-   * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (T38737)
+   * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (#38737)
    */
   if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
     if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
@@ -240,7 +241,7 @@ static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, 
   }
 }
 
-static ListBase /* bAnimListElem */ anim_channels_for_selection(bAnimContext *ac)
+static ListBase /*bAnimListElem*/ anim_channels_for_selection(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
 
@@ -667,7 +668,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
       action_groups_remove_channel(act, fcu);
 
       /* if group has no more channels, remove it too,
-       * otherwise can have many dangling groups T33541.
+       * otherwise can have many dangling groups #33541.
        */
       if (BLI_listbase_is_empty(&agrp->channels)) {
         BLI_freelinkN(&act->groups, agrp);
@@ -2068,7 +2069,7 @@ static void setflag_anim_channels(bAnimContext *ac,
    *   since we only want to apply this to channels we can "see",
    *   and have these affect their relatives
    * - but for Graph Editor, this gets used also from main region
-   *   where hierarchy doesn't apply T21276.
+   *   where hierarchy doesn't apply #21276.
    */
   if ((ac->spacetype == SPACE_GRAPH) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
     /* graph editor (case 2) */
@@ -2718,7 +2719,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     ymax = NLACHANNEL_FIRST_TOP(ac);
   }
   else {
-    ymax = ACHANNEL_FIRST_TOP(ac);
+    ymax = ANIM_UI_get_first_channel_top(v2d);
   }
 
   /* loop over data, doing box select */
@@ -2726,7 +2727,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     float ymin;
 
     if (ale->type == ANIMTYPE_GPDATABLOCK) {
-      ymax -= ACHANNEL_STEP(ac);
+      ymax -= ANIM_UI_get_channel_step();
       continue;
     }
 
@@ -2734,7 +2735,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
       ymin = ymax - NLACHANNEL_STEP(snla);
     }
     else {
-      ymin = ymax - ACHANNEL_STEP(ac);
+      ymin = ymax - ANIM_UI_get_channel_step();
     }
 
     /* if channel is within border-select region, alter it */
@@ -2845,12 +2846,15 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
   int filter;
   bool success = false;
 
-  /* get the channel that was clicked on */
-  /* filter channels */
+  /* Filter relevant channels (note that grease-pencil/annotations are not displayed in Graph
+   * Editor). */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  if (ELEM(ac->datatype, ANIMCONT_FCURVES, ANIMCONT_NLA)) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get channel from index */
+  /* Get channel that was clicked on from index. */
   ale = BLI_findlink(&anim_data, channel_index);
   if (ale == NULL) {
     /* channel not found */
@@ -2945,10 +2949,10 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
                                     &channel_index);
   }
   else {
-    UI_view2d_listview_view_to_cell(ACHANNEL_NAMEWIDTH,
-                                    ACHANNEL_STEP(ac),
+    UI_view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                    ANIM_UI_get_channel_step(),
                                     0,
-                                    ACHANNEL_FIRST_TOP(ac),
+                                    ANIM_UI_get_first_channel_top(v2d),
                                     x,
                                     y,
                                     NULL,
@@ -3064,10 +3068,10 @@ static int click_select_channel_object(bContext *C,
     }
   }
 
-  /* Change active object - regardless of whether it is now selected, see: T37883.
+  /* Change active object - regardless of whether it is now selected, see: #37883.
    *
    * Ensure we exit edit-mode on whatever object was active before
-   * to avoid getting stuck there, see: T48747. */
+   * to avoid getting stuck there, see: #48747. */
   ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
   if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
@@ -3481,10 +3485,10 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
 
   /* figure out which channel user clicked in */
   UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  UI_view2d_listview_view_to_cell(ACHANNEL_NAMEWIDTH,
-                                  ACHANNEL_STEP(&ac),
+  UI_view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                  ANIM_UI_get_channel_step(),
                                   0,
-                                  ACHANNEL_FIRST_TOP(&ac),
+                                  ANIM_UI_get_first_channel_top(v2d),
                                   x,
                                   y,
                                   NULL,
@@ -3496,7 +3500,8 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, NULL);
 
-  return OPERATOR_FINISHED;
+  return WM_operator_flag_only_pass_through_on_press(OPERATOR_FINISHED | OPERATOR_PASS_THROUGH,
+                                                     event);
 }
 
 static void ANIM_OT_channels_click(wmOperatorType *ot)
@@ -3635,6 +3640,283 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name View Channel Operator
+ * \{ */
+
+static void get_normalized_fcurve_bounds(FCurve *fcu,
+                                         bAnimContext *ac,
+                                         const bAnimListElem *ale,
+                                         const bool include_handles,
+                                         const float range[2],
+                                         rctf *r_bounds)
+{
+  const bool fcu_selection_only = false;
+  BKE_fcurve_calc_bounds(fcu,
+                         &r_bounds->xmin,
+                         &r_bounds->xmax,
+                         &r_bounds->ymin,
+                         &r_bounds->ymax,
+                         fcu_selection_only,
+                         include_handles,
+                         range);
+  const short mapping_flag = ANIM_get_normalization_flags(ac);
+
+  const float min_height = 0.01f;
+  const float height = BLI_rctf_size_y(r_bounds);
+  if (height < min_height) {
+    r_bounds->ymin -= (min_height - height) / 2;
+    r_bounds->ymax += (min_height - height) / 2;
+  }
+
+  float offset;
+  const float unit_fac = ANIM_unit_mapping_get_factor(
+      ac->scene, ale->id, fcu, mapping_flag, &offset);
+
+  r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
+  r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
+}
+
+static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
+{
+  bool found_start = false;
+  int start_frame = 0;
+  int end_frame = 1;
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+    if (gpf->framenum < range[0]) {
+      continue;
+    }
+    if (gpf->framenum > range[1]) {
+      break;
+    }
+    if (!found_start) {
+      start_frame = gpf->framenum;
+      found_start = true;
+    }
+    end_frame = gpf->framenum;
+  }
+  r_bounds->xmin = start_frame;
+  r_bounds->xmax = end_frame;
+  r_bounds->ymin = 0;
+  r_bounds->ymax = 1;
+}
+
+static bool get_channel_bounds(bAnimContext *ac,
+                               bAnimListElem *ale,
+                               const float range[2],
+                               const bool include_handles,
+                               rctf *r_bounds)
+{
+  bool found_bounds = false;
+  switch (ale->datatype) {
+    case ALE_GPFRAME: {
+      bGPDlayer *gpl = (bGPDlayer *)ale->data;
+      get_gpencil_bounds(gpl, range, r_bounds);
+      found_bounds = true;
+      break;
+    }
+    case ALE_FCURVE: {
+      FCurve *fcu = (FCurve *)ale->key_data;
+      get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
+      found_bounds = true;
+      break;
+    }
+  }
+  return found_bounds;
+}
+
+static void get_view_range(Scene *scene, const bool use_preview_range, float r_range[2])
+{
+  if (use_preview_range && scene->r.flag & SCER_PRV_RANGE) {
+    r_range[0] = scene->r.psfra;
+    r_range[1] = scene->r.pefra;
+  }
+  else {
+    r_range[0] = -FLT_MAX;
+    r_range[1] = FLT_MAX;
+  }
+}
+
+/* Pad the given rctf with regions that could block the view.
+ * For example Markers and Time Scrubbing. */
+static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
+{
+  BLI_rctf_scale(bounds, 1.1f);
+
+  const float pad_top = UI_TIME_SCRUB_MARGIN_Y;
+  const float pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ?
+                               V2D_SCROLL_HANDLE_HEIGHT :
+                               UI_MARKER_MARGIN_Y;
+  BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
+}
+
+/* Find the window region in the bAnimContext area and move it to bounds. */
+static void move_graph_view(bContext *C, bAnimContext *ac, rctf *bounds, const int smooth_viewtx)
+{
+  LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
+    if (region->regiontype == RGN_TYPE_WINDOW) {
+      UI_view2d_smooth_view(C, region, bounds, smooth_viewtx);
+    }
+  }
+}
+
+static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
+                      ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  size_t anim_data_length = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  if (anim_data_length == 0) {
+    WM_report(RPT_WARNING, "No channels to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  float range[2];
+  const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
+  get_view_range(ac.scene, use_preview_range, range);
+
+  rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
+
+  bAnimListElem *ale;
+  const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
+
+  bool valid_bounds = false;
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    rctf channel_bounds;
+    const bool found_bounds = get_channel_bounds(
+        &ac, ale, range, include_handles, &channel_bounds);
+    if (found_bounds) {
+      BLI_rctf_union(&bounds, &channel_bounds);
+      valid_bounds = true;
+    }
+  }
+
+  if (!valid_bounds) {
+    ANIM_animdata_freelist(&anim_data);
+    return OPERATOR_CANCELLED;
+  }
+
+  add_region_padding(C, &ac, &bounds);
+
+  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+
+  ANIM_animdata_freelist(&anim_data);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool channel_view_poll(bContext *C)
+{
+  return ED_operator_action_active(C) || ED_operator_graphedit_active(C);
+}
+
+static void ANIM_OT_channels_view_selected(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Frame Selected Channels";
+  ot->idname = "ANIM_OT_channels_view_selected";
+  ot->description = "Reset viewable area to show the selected channels";
+
+  /* API callbacks */
+  ot->exec = graphkeys_view_selected_channels_exec;
+  ot->poll = channel_view_poll;
+
+  ot->flag = 0;
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "include_handles",
+                             true,
+                             "Include Handles",
+                             "Include handles of keyframes when calculating extents");
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_preview_range",
+                             true,
+                             "Use Preview Range",
+                             "Ignore frames outside of the preview range");
+}
+
+static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                      ANIMFILTER_LIST_CHANNELS);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  bAnimListElem *ale;
+  const int channel_index = animchannels_channel_get(&ac, event->mval);
+  ale = BLI_findlink(&anim_data, channel_index);
+  if (ale == NULL) {
+    ANIM_animdata_freelist(&anim_data);
+    return OPERATOR_CANCELLED;
+  }
+
+  float range[2];
+  const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
+  get_view_range(ac.scene, use_preview_range, range);
+
+  rctf bounds;
+  const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
+  const bool found_bounds = get_channel_bounds(&ac, ale, range, include_handles, &bounds);
+
+  if (!found_bounds) {
+    ANIM_animdata_freelist(&anim_data);
+    return OPERATOR_CANCELLED;
+  }
+
+  add_region_padding(C, &ac, &bounds);
+
+  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+
+  ANIM_animdata_freelist(&anim_data);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Frame Channel Under Cursor";
+  ot->idname = "ANIM_OT_channel_view_pick";
+  ot->description = "Reset viewable area to show the channel under the cursor";
+
+  /* API callbacks */
+  ot->invoke = graphkeys_channel_view_pick_invoke;
+  ot->poll = channel_view_poll;
+
+  ot->flag = 0;
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "include_handles",
+                             true,
+                             "Include Handles",
+                             "Include handles of keyframes when calculating extents");
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_preview_range",
+                             true,
+                             "Use Preview Range",
+                             "Ignore frames outside of the preview range");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator Registration
  * \{ */
 
@@ -3652,6 +3934,9 @@ void ED_operatortypes_animchannels(void)
   WM_operatortype_append(ANIM_OT_channels_setting_enable);
   WM_operatortype_append(ANIM_OT_channels_setting_disable);
   WM_operatortype_append(ANIM_OT_channels_setting_toggle);
+
+  WM_operatortype_append(ANIM_OT_channel_view_pick);
+  WM_operatortype_append(ANIM_OT_channels_view_selected);
 
   WM_operatortype_append(ANIM_OT_channels_delete);
 

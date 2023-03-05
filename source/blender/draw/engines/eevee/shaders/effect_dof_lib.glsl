@@ -12,38 +12,41 @@
 // #define DOF_DEBUG_GATHER_PERF
 // #define DOF_DEBUG_SCATTER_PERF
 
-const bool no_smooth_intersection = false;
-const bool no_gather_occlusion = false;
-const bool no_gather_mipmaps = false;
-const bool no_gather_random = false;
-const bool no_gather_filtering = false;
-const bool no_scatter_occlusion = false;
-const bool no_scatter_pass = false;
-const bool no_foreground_pass = false;
-const bool no_background_pass = false;
-const bool no_slight_focus_pass = false;
-const bool no_focus_pass = false;
-const bool no_holefill_pass = false;
+#define no_smooth_intersection false
+#define no_gather_occlusion false
+#define no_gather_mipmaps false
+#define no_gather_random false
+#define no_gather_filtering false
+#define no_scatter_occlusion false
+#define no_scatter_pass false
+#define no_foreground_pass false
+#define no_background_pass false
+#define no_slight_focus_pass false
+#define no_focus_pass false
+#define no_holefill_pass false
 
 /* -------------- Quality Defines ------------- */
 
 #ifdef DOF_HOLEFILL_PASS
 /* No need for very high density for holefill. */
-const int gather_ring_count = 3;
-const int gather_ring_density = 3;
-const int gather_max_density_change = 0;
-const int gather_density_change_ring = 1;
+#  define gather_ring_count 3
+#  define gather_ring_density 3
+#  define gather_max_density_change 0
+#  define gather_density_change_ring 1
 #else
-const int gather_ring_count = DOF_GATHER_RING_COUNT;
-const int gather_ring_density = 3;
-const int gather_max_density_change = 50; /* Dictates the maximum good quality blur. */
-const int gather_density_change_ring = 1;
+#  define gather_ring_count DOF_GATHER_RING_COUNT
+#  define gather_ring_density 3
+#  define gather_max_density_change 50 /* Dictates the maximum good quality blur. */
+#  define gather_density_change_ring 1
 #endif
 
 /* -------------- Utils ------------- */
-
-const vec2 quad_offsets[4] = vec2[4](
-    vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));
+/* For performance on macOS, constants declared within function scope utilize constant uniform
+   register space rather than per-thread, reducing spill and incrasing
+   thread execution width - and thus performance */
+#define DEFINE_DOF_QUAD_OFFSETS \
+  const vec2 quad_offsets[4] = vec2[4]( \
+      vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));
 
 /* Divide by sensor size to get the normalized size. */
 #define calculate_coc_persp(zdepth) (cocMul / zdepth - cocBias)
@@ -128,11 +131,11 @@ float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
 }
 
 /* Distribute weights between near/slightfocus/far fields (slide 117). */
-const float layer_threshold = 4.0;
+#define layer_threshold 4.0
 /* Make sure it overlaps. */
-const float layer_offset_fg = 0.5 + 1.0;
+#define layer_offset_fg (0.5 + 1.0)
 /* Extra offset for convolution layers to avoid light leaking from background. */
-const float layer_offset = 0.5 + 0.5;
+#define layer_offset (0.5 + 0.5)
 
 #define DOF_MAX_SLIGHT_FOCUS_RADIUS 16
 

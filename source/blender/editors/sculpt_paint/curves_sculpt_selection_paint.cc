@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <numeric>
 
+#include "BLI_math_matrix.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_task.hh"
 
 #include "DNA_brush_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
@@ -57,6 +59,8 @@ struct SelectionPaintOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  bke::SpanAttributeWriter<float> selection_;
+
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
   float brush_radius_factor_;
@@ -80,9 +84,12 @@ struct SelectionPaintOperationExecutor {
     object_ = CTX_data_active_object(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
-    curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
-    curves_id_->flag |= CV_SCULPT_SELECTION_ENABLED;
+    curves_ = &curves_id_->geometry.wrap();
     if (curves_->curves_num() == 0) {
+      return;
+    }
+    selection_ = float_selection_ensure(*curves_id_);
+    if (!selection_) {
       return;
     }
 
@@ -95,12 +102,7 @@ struct SelectionPaintOperationExecutor {
 
     if (self.clear_selection_) {
       if (stroke_extension.is_first) {
-        if (curves_id_->selection_domain == ATTR_DOMAIN_POINT) {
-          curves_->selection_point_float_for_write().fill(0.0f);
-        }
-        else if (curves_id_->selection_domain == ATTR_DOMAIN_CURVE) {
-          curves_->selection_curve_float_for_write().fill(0.0f);
-        }
+        curves::fill_selection_false(selection_.span);
       }
     }
 
@@ -117,24 +119,24 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    if (curves_id_->selection_domain == ATTR_DOMAIN_POINT) {
-      MutableSpan<float> selection = curves_->selection_point_float_for_write();
+    if (selection_.domain == ATTR_DOMAIN_POINT) {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        this->paint_point_selection_projected_with_symmetry(selection);
+        this->paint_point_selection_projected_with_symmetry(selection_.span);
       }
       else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-        this->paint_point_selection_spherical_with_symmetry(selection);
+        this->paint_point_selection_spherical_with_symmetry(selection_.span);
       }
     }
     else {
-      MutableSpan<float> selection = curves_->selection_curve_float_for_write();
       if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        this->paint_curve_selection_projected_with_symmetry(selection);
+        this->paint_curve_selection_projected_with_symmetry(selection_.span);
       }
       else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-        this->paint_curve_selection_spherical_with_symmetry(selection);
+        this->paint_curve_selection_spherical_with_symmetry(selection_.span);
       }
     }
+
+    selection_.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because
      * selection is handled as a generic attribute for now. */
@@ -156,10 +158,10 @@ struct SelectionPaintOperationExecutor {
   void paint_point_selection_projected(const float4x4 &brush_transform,
                                        MutableSpan<float> selection)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
@@ -169,11 +171,12 @@ struct SelectionPaintOperationExecutor {
 
     threading::parallel_for(curves_->points_range(), 1024, [&](const IndexRange point_range) {
       for (const int point_i : point_range) {
-        const float3 pos_cu = brush_transform_inv * deformation.positions[point_i];
+        const float3 pos_cu = math::transform_point(brush_transform_inv,
+                                                    deformation.positions[point_i]);
 
         /* Find the position of the point in screen space. */
         float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
 
         const float distance_to_brush_sq_re = math::distance_squared(pos_re, brush_pos_re_);
         if (distance_to_brush_sq_re > brush_radius_sq_re) {
@@ -196,21 +199,23 @@ struct SelectionPaintOperationExecutor {
   void paint_point_selection_spherical_with_symmetry(MutableSpan<float> selection)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     float3 brush_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_re_,
-                        brush_wo);
-    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_re_,
+        brush_wo);
+    const float3 brush_cu = math::transform_point(transforms_.world_to_curves, brush_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->paint_point_selection_spherical(selection, brush_transform * brush_cu);
+      this->paint_point_selection_spherical(selection,
+                                            math::transform_point(brush_transform, brush_cu));
     }
   }
 
@@ -258,13 +263,14 @@ struct SelectionPaintOperationExecutor {
   void paint_curve_selection_projected(const float4x4 &brush_transform,
                                        MutableSpan<float> selection)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -272,19 +278,21 @@ struct SelectionPaintOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 1024, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
         const float max_weight = threading::parallel_reduce(
-            curves_->points_for_curve(curve_i).drop_back(1),
+            points_by_curve[curve_i].drop_back(1),
             1024,
             0.0f,
             [&](const IndexRange segment_range, const float init) {
               float max_weight = init;
               for (const int segment_i : segment_range) {
-                const float3 pos1_cu = brush_transform_inv * deformation.positions[segment_i];
-                const float3 pos2_cu = brush_transform_inv * deformation.positions[segment_i + 1];
+                const float3 pos1_cu = math::transform_point(brush_transform_inv,
+                                                             deformation.positions[segment_i]);
+                const float3 pos2_cu = math::transform_point(brush_transform_inv,
+                                                             deformation.positions[segment_i + 1]);
 
                 float2 pos1_re;
                 float2 pos2_re;
-                ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.values);
-                ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.values);
+                ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.ptr());
+                ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.ptr());
 
                 const float distance_sq_re = dist_squared_to_line_segment_v2(
                     brush_pos_re_, pos1_re, pos2_re);
@@ -307,21 +315,23 @@ struct SelectionPaintOperationExecutor {
   void paint_curve_selection_spherical_with_symmetry(MutableSpan<float> selection)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     float3 brush_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_re_,
-                        brush_wo);
-    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_re_,
+        brush_wo);
+    const float3 brush_cu = math::transform_point(transforms_.world_to_curves, brush_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->paint_curve_selection_spherical(selection, brush_transform * brush_cu);
+      this->paint_curve_selection_spherical(selection,
+                                            math::transform_point(brush_transform, brush_cu));
     }
   }
 
@@ -329,6 +339,7 @@ struct SelectionPaintOperationExecutor {
   {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
@@ -336,7 +347,7 @@ struct SelectionPaintOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 1024, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
         const float max_weight = threading::parallel_reduce(
-            curves_->points_for_curve(curve_i).drop_back(1),
+            points_by_curve[curve_i].drop_back(1),
             1024,
             0.0f,
             [&](const IndexRange segment_range, const float init) {

@@ -63,7 +63,7 @@ typedef struct FModifierTypeInfo {
   /** #eFMI_Action_Types. */
   short acttype;
   /** #eFMI_Requirement_Flags. */
-  short requires;
+  short requires_flag;
   /** name of modifier in interface. */
   char name[64];
   /** name of struct for SDNA. */
@@ -373,6 +373,8 @@ bool BKE_fcurve_calc_range(
 
 /**
  * Calculate the extents of F-Curve's data.
+ * \param range Only calculate the bounds of the FCurve in the given range.
+ * Does the full range if NULL.
  */
 bool BKE_fcurve_calc_bounds(const struct FCurve *fcu,
                             float *xmin,
@@ -380,7 +382,8 @@ bool BKE_fcurve_calc_bounds(const struct FCurve *fcu,
                             float *ymin,
                             float *ymax,
                             bool do_sel_only,
-                            bool include_handles);
+                            bool include_handles,
+                            const float range[2]);
 
 /**
  * Return an array of keyed frames, rounded to `interval`.

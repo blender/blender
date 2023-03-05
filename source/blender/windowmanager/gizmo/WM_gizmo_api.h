@@ -87,6 +87,16 @@ void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
                                    int part_index,
                                    const struct wmEvent *event);
 
+/**
+ * Replaces the current gizmo modal.
+ * The substitute gizmo start out interactive.
+ * It is similar to #WM_gizmo_modal_set_from_setup but without operator initialization.
+ */
+void WM_gizmo_modal_set_while_modal(struct wmGizmoMap *gzmap,
+                                    struct bContext *C,
+                                    struct wmGizmo *gz,
+                                    const struct wmEvent *event);
+
 struct wmGizmoOpElem *WM_gizmo_operator_get(struct wmGizmo *gz, int part_index);
 struct PointerRNA *WM_gizmo_operator_set(struct wmGizmo *gz,
                                          int part_index,

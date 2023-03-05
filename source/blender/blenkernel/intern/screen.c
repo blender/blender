@@ -279,7 +279,8 @@ IDTypeInfo IDType_ID_SCR = {
     .name = "Screen",
     .name_plural = "screens",
     .translation_context = BLT_I18NCONTEXT_ID_SCREEN,
-    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
+             IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     .asset_type_info = NULL,
 
     .init_data = NULL,
@@ -955,7 +956,9 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
                                           const int xy[2])
 {
   LISTBASE_FOREACH (ScrArea *, area, &areamap->areabase) {
-    if (BLI_rcti_isect_pt_v(&area->totrct, xy)) {
+    /* Test area's outer screen verts, not inner `area->totrct`. */
+    if (xy[0] >= area->v1->vec.x && xy[0] <= area->v4->vec.x && xy[1] >= area->v1->vec.y &&
+        xy[1] <= area->v2->vec.y) {
       if (ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
         return area;
       }

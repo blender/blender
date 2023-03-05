@@ -10,4 +10,4 @@ set(LICENSES
   Zlib-license.txt
 )
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR}  "${LICENSES}" ${CYCLES_INSTALL_PATH}/license)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${LICENSES}" ${CYCLES_INSTALL_PATH}/license)

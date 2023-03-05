@@ -202,13 +202,18 @@ static void recalcData_sequencer_image(TransInfo *t)
     /* Origin. */
     float origin[2];
     copy_v2_v2(origin, td2d->loc);
-    i++, td++, td2d++;
+    i++;
+    td++;
+    td2d++;
 
     /* X and Y control points used to read scale and rotation. */
     float handle_x[2];
     copy_v2_v2(handle_x, td2d->loc);
     sub_v2_v2(handle_x, origin);
-    i++, td++, td2d++;
+    i++;
+    td++;
+    td2d++;
+
     float handle_y[2];
     copy_v2_v2(handle_y, td2d->loc);
     sub_v2_v2(handle_y, origin);
@@ -273,8 +278,8 @@ static void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), Tran
 }
 
 TransConvertTypeInfo TransConvertType_SequencerImage = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransSeqImageData,
-    /* recalcData */ recalcData_sequencer_image,
-    /* special_aftertrans_update */ special_aftertrans_update__sequencer_image,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransSeqImageData,
+    /*recalcData*/ recalcData_sequencer_image,
+    /*special_aftertrans_update*/ special_aftertrans_update__sequencer_image,
 };

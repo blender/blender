@@ -82,7 +82,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 struct UVWarpData {
   const MPoly *mpoly;
   const MLoop *mloop;
-  MLoopUV *mloopuv;
+  float (*mloopuv)[2];
 
   const MDeformVert *dvert;
   int defgrp_index;
@@ -99,7 +99,7 @@ static void uv_warp_compute(void *__restrict userdata,
 
   const MPoly *mp = &data->mpoly[i];
   const MLoop *ml = &data->mloop[mp->loopstart];
-  MLoopUV *mluv = &data->mloopuv[mp->loopstart];
+  float(*mluv)[2] = &data->mloopuv[mp->loopstart];
 
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
@@ -115,13 +115,13 @@ static void uv_warp_compute(void *__restrict userdata,
                                1.0f - BKE_defvert_find_weight(&dvert[ml->v], defgrp_index) :
                                BKE_defvert_find_weight(&dvert[ml->v], defgrp_index);
 
-      uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat);
-      interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);
+      uv_warp_from_mat4_pair(uv, (*mluv), warp_mat);
+      interp_v2_v2v2((*mluv), (*mluv), uv, weight);
     }
   }
   else {
     for (l = 0; l < mp->totloop; l++, mluv++) {
-      uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat);
+      uv_warp_from_mat4_pair(*mluv, *mluv, warp_mat);
     }
   }
 }
@@ -139,7 +139,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const bool invert_vgroup = (umd->flag & MOD_UVWARP_INVERT_VGROUP) != 0;
 
   /* make sure there are UV Maps available */
-  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
     return mesh;
   }
 
@@ -190,16 +190,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   translate_m4(warp_mat, -umd->center[0], -umd->center[1], 0.0f);
 
   /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
+  CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
   polys_num = mesh->totpoly;
   loops_num = mesh->totloop;
 
-  /* make sure we are not modifying the original UV map */
-  MLoopUV *mloopuv = static_cast<MLoopUV *>(
-      CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, loops_num));
+  float(*mloopuv)[2] = static_cast<float(*)[2]>(
+      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
@@ -304,35 +303,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_UVWarp = {
-    /* name */ N_("UVWarp"),
-    /* structName */ "UVWarpModifierData",
-    /* structSize */ sizeof(UVWarpModifierData),
-    /* srna */ &RNA_UVWarpModifier,
-    /* type */ eModifierTypeType_NonGeometrical,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
+    /*name*/ N_("UVWarp"),
+    /*structName*/ "UVWarpModifierData",
+    /*structSize*/ sizeof(UVWarpModifierData),
+    /*srna*/ &RNA_UVWarpModifier,
+    /*type*/ eModifierTypeType_NonGeometrical,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
+    /*icon*/ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

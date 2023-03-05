@@ -10,7 +10,6 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 

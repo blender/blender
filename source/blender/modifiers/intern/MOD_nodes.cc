@@ -13,7 +13,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -125,17 +125,16 @@ using blender::fn::ValueOrFieldCPPType;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::GeoNodeExecParams;
 using blender::nodes::InputSocketFieldType;
-using blender::nodes::geo_eval_log::GeoModifierLog;
-using blender::threading::EnumerableThreadSpecific;
-using namespace blender::fn::multi_function_types;
 using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 using blender::nodes::geo_eval_log::GeometryInfoLog;
+using blender::nodes::geo_eval_log::GeoModifierLog;
 using blender::nodes::geo_eval_log::GeoNodeLog;
 using blender::nodes::geo_eval_log::GeoTreeLog;
 using blender::nodes::geo_eval_log::NamedAttributeUsage;
 using blender::nodes::geo_eval_log::NodeWarning;
 using blender::nodes::geo_eval_log::NodeWarningType;
 using blender::nodes::geo_eval_log::ValueLog;
+using blender::threading::EnumerableThreadSpecific;
 
 static void initData(ModifierData *md)
 {
@@ -443,8 +442,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = double(value->min);
-      ui_data->max = ui_data->soft_max = double(value->max);
+      ui_data->soft_min = double(value->min);
+      ui_data->soft_max = double(value->max);
       ui_data->default_value = value->value;
       return property;
     }
@@ -454,8 +453,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = value->min;
-      ui_data->max = ui_data->soft_max = value->max;
+      ui_data->soft_min = value->min;
+      ui_data->soft_max = value->max;
       ui_data->default_value = value->value;
       return property;
     }
@@ -466,8 +465,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
           socket.identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = double(value->min);
-      ui_data->max = ui_data->soft_max = double(value->max);
+      ui_data->soft_min = double(value->min);
+      ui_data->soft_max = double(value->max);
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
       ui_data->default_array_len = 3;
       for (const int i : IndexRange(3)) {
@@ -497,10 +496,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_BOOLEAN: {
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.default_value);
-      auto property = bke::idprop::create(socket.identifier, int(value->value));
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
-      ui_data->min = ui_data->soft_min = 0;
-      ui_data->max = ui_data->soft_max = 1;
+      auto property = bke::idprop::create_bool(socket.identifier, value->value);
+      IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)IDP_ui_data_ensure(property.get());
       ui_data->default_value = value->value != 0;
       return property;
     }
@@ -516,7 +513,10 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_OBJECT: {
       const bNodeSocketValueObject *value = static_cast<const bNodeSocketValueObject *>(
           socket.default_value);
-      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      auto property = bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)IDP_ui_data_ensure(property.get());
+      ui_data->id_type = ID_OB;
+      return property;
     }
     case SOCK_COLLECTION: {
       const bNodeSocketValueCollection *value = static_cast<const bNodeSocketValueCollection *>(
@@ -554,7 +554,7 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
     case SOCK_RGBA:
       return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 4;
     case SOCK_BOOLEAN:
-      return property.type == IDP_INT;
+      return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
       return property.type == IDP_STRING;
     case SOCK_OBJECT:
@@ -602,7 +602,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       break;
     }
     case SOCK_BOOLEAN: {
-      bool value = IDP_Int(&property) != 0;
+      const bool value = IDP_Bool(&property);
       new (r_value) ValueOrField<bool>(value);
       break;
     }
@@ -683,16 +683,23 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 
     if (old_properties != nullptr) {
       IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, socket->identifier);
-      if (old_prop != nullptr && id_property_type_matches_socket(*socket, *old_prop)) {
-        /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
-         * want to replace the values). So release it temporarily and replace it after. */
-        IDPropertyUIData *ui_data = new_prop->ui_data;
-        new_prop->ui_data = nullptr;
-        IDP_CopyPropertyContent(new_prop, old_prop);
-        if (new_prop->ui_data != nullptr) {
-          IDP_ui_data_free(new_prop);
+      if (old_prop != nullptr) {
+        if (id_property_type_matches_socket(*socket, *old_prop)) {
+          /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
+           * want to replace the values). So release it temporarily and replace it after. */
+          IDPropertyUIData *ui_data = new_prop->ui_data;
+          new_prop->ui_data = nullptr;
+          IDP_CopyPropertyContent(new_prop, old_prop);
+          if (new_prop->ui_data != nullptr) {
+            IDP_ui_data_free(new_prop);
+          }
+          new_prop->ui_data = ui_data;
         }
-        new_prop->ui_data = ui_data;
+        else if (old_prop->type == IDP_INT && new_prop->type == IDP_BOOLEAN) {
+          /* Support versioning from integer to boolean property values. The actual value is stored
+           * in the same variable for both types. */
+          new_prop->data.val = old_prop->data.val != 0;
+        }
       }
     }
 
@@ -884,12 +891,12 @@ static void find_side_effect_nodes_for_viewer_path(
 
   /* Not only mark the viewer node as having side effects, but also all group nodes it is contained
    * in. */
-  r_side_effect_nodes.add(compute_context_builder.hash(),
-                          &find_viewer_lf_node(*found_viewer_node));
+  r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(),
+                                         &find_viewer_lf_node(*found_viewer_node));
   compute_context_builder.pop();
   while (!compute_context_builder.is_empty()) {
-    r_side_effect_nodes.add(compute_context_builder.hash(),
-                            &find_group_lf_node(*group_node_stack.pop()));
+    r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(),
+                                           &find_group_lf_node(*group_node_stack.pop()));
     compute_context_builder.pop();
   }
 }
@@ -918,6 +925,31 @@ static void find_side_effect_nodes(
       if (sl->spacetype == SPACE_VIEW3D) {
         const View3D &v3d = *reinterpret_cast<const View3D *>(sl);
         find_side_effect_nodes_for_viewer_path(v3d.viewer_path, nmd, ctx, r_side_effect_nodes);
+      }
+    }
+  }
+}
+
+static void find_socket_log_contexts(const NodesModifierData &nmd,
+                                     const ModifierEvalContext &ctx,
+                                     Set<blender::ComputeContextHash> &r_socket_log_contexts)
+{
+  Main *bmain = DEG_get_bmain(ctx.depsgraph);
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return;
+  }
+  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl->spacetype == SPACE_NODE) {
+        const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
+        if (const std::optional<blender::ComputeContextHash> hash = blender::nodes::geo_eval_log::
+                GeoModifierLog::get_compute_context_hash_for_node_editor(snode,
+                                                                         nmd.modifier.name)) {
+          r_socket_log_contexts.add(*hash);
+        }
       }
     }
   }
@@ -1099,12 +1131,11 @@ static GeometrySet compute_geometry(
 {
   const blender::nodes::GeometryNodeLazyFunctionGraphMapping &mapping = lf_graph_info.mapping;
 
-  Span<const lf::OutputSocket *> graph_inputs = mapping.group_input_sockets;
-  Vector<const lf::InputSocket *> graph_outputs;
-  for (const bNodeSocket *bsocket : output_node.input_sockets().drop_back(1)) {
-    const lf::InputSocket &socket = mapping.dummy_socket_map.lookup(bsocket)->as_input();
-    graph_outputs.append(&socket);
-  }
+  Vector<const lf::OutputSocket *> graph_inputs = mapping.group_input_sockets;
+  graph_inputs.extend(mapping.group_output_used_sockets);
+  graph_inputs.extend(mapping.attribute_set_by_geometry_output.values().begin(),
+                      mapping.attribute_set_by_geometry_output.values().end());
+  Vector<const lf::InputSocket *> graph_outputs = mapping.standard_group_output_sockets;
 
   Array<GMutablePointer> param_inputs(graph_inputs.size());
   Array<GMutablePointer> param_outputs(graph_outputs.size());
@@ -1122,8 +1153,13 @@ static GeometrySet compute_geometry(
   geo_nodes_modifier_data.depsgraph = ctx->depsgraph;
   geo_nodes_modifier_data.self_object = ctx->object;
   auto eval_log = std::make_unique<GeoModifierLog>();
+
+  Set<blender::ComputeContextHash> socket_log_contexts;
   if (logging_enabled(ctx)) {
     geo_nodes_modifier_data.eval_log = eval_log.get();
+
+    find_socket_log_contexts(*nmd, *ctx, socket_log_contexts);
+    geo_nodes_modifier_data.socket_log_contexts = &socket_log_contexts;
   }
   MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> r_side_effect_nodes;
   find_side_effect_nodes(*nmd, *ctx, r_side_effect_nodes);
@@ -1136,19 +1172,34 @@ static GeometrySet compute_geometry(
   blender::LinearAllocator<> allocator;
   Vector<GMutablePointer> inputs_to_destruct;
 
-  int input_index;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, interface_socket, &btree.inputs, input_index) {
-    if (interface_socket->type == SOCK_GEOMETRY && input_index == 0) {
+  int input_index = -1;
+  for (const int i : btree.interface_inputs().index_range()) {
+    input_index++;
+    const bNodeSocket &interface_socket = *btree.interface_inputs()[i];
+    if (interface_socket.type == SOCK_GEOMETRY && input_index == 0) {
       param_inputs[input_index] = &input_geometry_set;
       continue;
     }
 
-    const CPPType *type = interface_socket->typeinfo->geometry_nodes_cpp_type;
+    const CPPType *type = interface_socket.typeinfo->geometry_nodes_cpp_type;
     BLI_assert(type != nullptr);
     void *value = allocator.allocate(type->size(), type->alignment());
-    initialize_group_input(*nmd, *interface_socket, input_index, value);
+    initialize_group_input(*nmd, interface_socket, i, value);
     param_inputs[input_index] = {type, value};
     inputs_to_destruct.append({type, value});
+  }
+
+  Array<bool> output_used_inputs(btree.interface_outputs().size(), true);
+  for (const int i : btree.interface_outputs().index_range()) {
+    input_index++;
+    param_inputs[input_index] = &output_used_inputs[i];
+  }
+
+  Array<blender::bke::AnonymousAttributeSet> attributes_to_propagate(
+      mapping.attribute_set_by_geometry_output.size());
+  for (const int i : attributes_to_propagate.index_range()) {
+    input_index++;
+    param_inputs[input_index] = &attributes_to_propagate[i];
   }
 
   for (const int i : graph_outputs.index_range()) {
@@ -1232,9 +1283,6 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
       BKE_modifier_set_error(ob, md, "Node group's geometry input must be the first");
     }
   }
-  else if (geometry_socket_count > 1) {
-    BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
-  }
 }
 
 static void modifyGeometry(ModifierData *md,
@@ -1282,29 +1330,29 @@ static void modifyGeometry(ModifierData *md,
   bool use_orig_index_verts = false;
   bool use_orig_index_edges = false;
   bool use_orig_index_polys = false;
-  if (geometry_set.has_mesh()) {
-    const Mesh &mesh = *geometry_set.get_mesh_for_read();
-    use_orig_index_verts = CustomData_has_layer(&mesh.vdata, CD_ORIGINDEX);
-    use_orig_index_edges = CustomData_has_layer(&mesh.edata, CD_ORIGINDEX);
-    use_orig_index_polys = CustomData_has_layer(&mesh.pdata, CD_ORIGINDEX);
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    use_orig_index_verts = CustomData_has_layer(&mesh->vdata, CD_ORIGINDEX);
+    use_orig_index_edges = CustomData_has_layer(&mesh->edata, CD_ORIGINDEX);
+    use_orig_index_polys = CustomData_has_layer(&mesh->pdata, CD_ORIGINDEX);
   }
 
   geometry_set = compute_geometry(
       tree, *lf_graph_info, *output_node, std::move(geometry_set), nmd, ctx);
 
-  if (geometry_set.has_mesh()) {
-    /* Add #CD_ORIGINDEX layers if they don't exist already. This is required because the
-     * #eModifierTypeFlag_SupportsMapping flag is set. If the layers did not exist before, it is
-     * assumed that the output mesh does not have a mapping to the original mesh. */
-    Mesh &mesh = *geometry_set.get_mesh_for_write();
-    if (use_orig_index_verts) {
-      CustomData_add_layer(&mesh.vdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totvert);
-    }
-    if (use_orig_index_edges) {
-      CustomData_add_layer(&mesh.edata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totedge);
-    }
-    if (use_orig_index_polys) {
-      CustomData_add_layer(&mesh.pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totpoly);
+  if (use_orig_index_verts || use_orig_index_edges || use_orig_index_polys) {
+    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
+      /* Add #CD_ORIGINDEX layers if they don't exist already. This is required because the
+       * #eModifierTypeFlag_SupportsMapping flag is set. If the layers did not exist before, it is
+       * assumed that the output mesh does not have a mapping to the original mesh. */
+      if (use_orig_index_verts) {
+        CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totvert);
+      }
+      if (use_orig_index_edges) {
+        CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totedge);
+      }
+      if (use_orig_index_polys) {
+        CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+      }
     }
   }
 }
@@ -1401,7 +1449,7 @@ static void attribute_search_update_fn(
     }
   }
   else {
-    for (const bNode *node : nmd->node_group->nodes_by_type("NodeGroupInput")) {
+    for (const bNode *node : nmd->node_group->group_input_nodes()) {
       for (const bNodeSocket *socket : node->output_sockets()) {
         if (socket->type == SOCK_GEOMETRY) {
           sockets_to_check.append(socket);
@@ -1532,9 +1580,30 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
-  uiItemL(name_row, socket.name, ICON_NONE);
+
+  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
+  if (socket.type == SOCK_BOOLEAN && !use_attribute) {
+    uiItemL(name_row, "", ICON_NONE);
+  }
+  else {
+    uiItemL(name_row, socket.name, ICON_NONE);
+  }
 
   uiLayout *prop_row = uiLayoutRow(split, true);
+  if (socket.type == SOCK_BOOLEAN) {
+    uiLayoutSetPropSep(prop_row, false);
+    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+  }
+
+  if (use_attribute) {
+    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    uiItemL(layout, "", ICON_BLANK1);
+  }
+  else {
+    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
+    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
+  }
 
   PointerRNA props;
   uiItemFullO(prop_row,
@@ -1547,16 +1616,6 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
               &props);
   RNA_string_set(&props, "modifier_name", nmd.modifier.name);
   RNA_string_set(&props, "prop_path", rna_path_use_attribute.c_str());
-
-  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
-  if (use_attribute) {
-    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-    uiItemL(layout, "", ICON_BLANK1);
-  }
-  else {
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
-  }
 }
 
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
@@ -1622,6 +1681,9 @@ static void draw_property_for_socket(const bContext &C,
       }
     }
   }
+  if (!input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+    uiItemL(row, "", ICON_BLANK1);
+  }
 }
 
 static void draw_property_for_output_socket(const bContext &C,
@@ -1674,7 +1736,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     int socket_index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &nmd->node_group->inputs, socket_index) {
-      draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
+      if (!(socket->flag & SOCK_HIDE_IN_MODIFIER)) {
+        draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
+      }
     }
   }
 
@@ -1811,9 +1875,37 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   BLO_write_struct(writer, NodesModifierData, nmd);
 
   if (nmd->settings.properties != nullptr) {
+    Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
+    if (!BLO_write_is_undo(writer)) {
+      /* Boolean properties are added automatically for boolean node group inputs. Integer
+       * properties are automatically converted to boolean sockets where applicable as well.
+       * However, boolean properties will crash old versions of Blender, so convert them to integer
+       * properties for writing. The actual value is stored in the same variable for both types */
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_BOOLEAN) {
+          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
+          prop->type = IDP_INT;
+          prop->ui_data = nullptr;
+        }
+      }
+    }
+
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */
     IDP_BlendWrite(writer, nmd->settings.properties);
+
+    if (!BLO_write_is_undo(writer)) {
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
+            prop->type = IDP_BOOLEAN;
+            if (ui_data) {
+              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1864,38 +1956,38 @@ static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cdda
 }
 
 ModifierTypeInfo modifierType_Nodes = {
-    /* name */ N_("GeometryNodes"),
-    /* structName */ "NodesModifierData",
-    /* structSize */ sizeof(NodesModifierData),
-    /* srna */ &RNA_NodesModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */
+    /*name*/ N_("GeometryNodes"),
+    /*structName*/ "NodesModifierData",
+    /*structSize*/ sizeof(NodesModifierData),
+    /*srna*/ &RNA_NodesModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/
     static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode |
                                   eModifierTypeFlag_SupportsMapping),
-    /* icon */ ICON_GEOMETRY_NODES,
+    /*icon*/ ICON_GEOMETRY_NODES,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ modifyGeometrySet,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ modifyGeometrySet,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ freeData,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ blendWrite,
-    /* blendRead */ blendRead,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ freeData,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ foreachTexLink,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ blendWrite,
+    /*blendRead*/ blendRead,
 };

@@ -371,7 +371,7 @@ static const EnumPropertyItem display_channels_items[] = {
     {SI_USE_ALPHA,
      "COLOR_ALPHA",
      ICON_IMAGE_RGB_ALPHA,
-     "Color and Alpha",
+     "Color & Alpha",
      "Display image with RGB colors and alpha transparency"},
     {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
     {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},
@@ -1165,7 +1165,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
   View3DShading *shading = ptr->data;
   if (shading->type == OB_MATERIAL ||
-      (shading->type == OB_RENDER && !STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH))) {
+      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene))) {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -1966,7 +1966,7 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList *UNUSED(reports))
@@ -2064,7 +2064,7 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain),
                                                PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  /* XXX BCONTEXT_DATA is ugly, but required for lights... See T51318. */
+  /* XXX BCONTEXT_DATA is ugly, but required for lights... See #51318. */
   if (ELEM(sbuts->mainb, BCONTEXT_WORLD, BCONTEXT_MATERIAL, BCONTEXT_TEXTURE, BCONTEXT_DATA)) {
     sbuts->preview = 1;
   }
@@ -4714,10 +4714,33 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_sculpt_curves_cage", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_CURVES_CAGE);
+  RNA_def_property_ui_text(
+      prop, "Sculpt Curves Cage", "Show original curves that are currently being edited");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_curves_cage_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_curves_cage_opacity");
+  RNA_def_property_ui_text(
+      prop, "Curves Sculpt Cage Opacity", "Opacity of the cage overlay in curves sculpt mode");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "sculpt_mode_face_sets_opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_opacity");
   RNA_def_property_ui_text(prop, "Sculpt Face Sets Opacity", "");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "show_sculpt_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
+  RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "show_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+  RNA_def_property_ui_text(prop, "Sculpt Show Face Sets", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   /* grease pencil paper settings */
@@ -5763,7 +5786,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       {SEQ_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {0, NULL, 0, NULL, NULL},
@@ -5924,7 +5947,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   /* Overlay settings. */
   prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_OVERLAY);
-  RNA_def_property_ui_text(prop, "Show Overlay", "");
+  RNA_def_property_ui_text(prop, "Show Overlays", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "preview_overlay", PROP_POINTER, PROP_NONE);
@@ -6889,6 +6912,12 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_FOLLOW_PREFS,
+       "FOLLOW_PREFS",
+       0,
+       "Follow Preferences",
+       "Use the import method set in the Preferences for this asset library, don't override it "
+       "for this Asset Browser"},
       {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
       {FILE_ASSET_IMPORT_APPEND,
        "APPEND",
@@ -6935,9 +6964,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, asset_import_type_items);
-  RNA_def_property_ui_text(prop, "Import Type", "Determine how the asset will be imported");
-  /* Asset drag info saved by buttons stores the import type, so the space must redraw when import
-   * type changes. */
+  RNA_def_property_ui_text(prop, "Import Method", "Determine how the asset will be imported");
+  /* Asset drag info saved by buttons stores the import method, so the space must redraw when
+   * import type changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
@@ -7353,7 +7382,7 @@ static void rna_def_space_node(BlenderRNA *brna)
       {SNODE_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},

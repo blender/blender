@@ -5,6 +5,9 @@ set(INC
   ..
 )
 
+set(INC_SYS
+)
+
 set(SRC
   adaptive_sampling.cpp
   denoiser.cpp

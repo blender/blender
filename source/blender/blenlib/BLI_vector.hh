@@ -157,6 +157,12 @@ class Vector {
     this->increase_size_by_unchecked(size);
   }
 
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  explicit Vector(MutableSpan<U> values, Allocator allocator = {})
+      : Vector(values.as_span(), allocator)
+  {
+  }
+
   /**
    * Create a vector that contains copies of the values in the initialized list.
    *
@@ -902,11 +908,11 @@ class Vector {
 
   std::reverse_iterator<const T *> rbegin() const
   {
-    return std::reverse_iterator<T *>(this->end());
+    return std::reverse_iterator<const T *>(this->end());
   }
   std::reverse_iterator<const T *> rend() const
   {
-    return std::reverse_iterator<T *>(this->begin());
+    return std::reverse_iterator<const T *>(this->begin());
   }
 
   /**
@@ -935,6 +941,16 @@ class Vector {
   IndexRange index_range() const
   {
     return IndexRange(this->size());
+  }
+
+  uint64_t hash() const
+  {
+    return this->as_span().hash();
+  }
+
+  static uint64_t hash_as(const Span<T> values)
+  {
+    return values.hash();
   }
 
   friend bool operator==(const Vector &a, const Vector &b)

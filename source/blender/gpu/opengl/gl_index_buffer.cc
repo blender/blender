@@ -41,17 +41,28 @@ void GLIndexBuf::bind()
 
 void GLIndexBuf::bind_as_ssbo(uint binding)
 {
-  bind();
+  if (ibo_id_ == 0 || data_ != nullptr) {
+    /* Calling `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id_)` changes the index buffer
+     * of the currently bound VAO.
+     *
+     * In the OpenGL backend, the VAO state persists even after `GLVertArray::update_bindings`
+     * is called.
+     *
+     * NOTE: For safety, we could call `glBindVertexArray(0)` right after drawing a `GPUBatch`.
+     * However, for performance reasons, we have chosen not to do so. */
+    glBindVertexArray(0);
+    bind();
+  }
   BLI_assert(ibo_id_ != 0);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, ibo_id_);
 }
 
-const uint32_t *GLIndexBuf::read() const
+void GLIndexBuf::read(uint32_t *data) const
 {
   BLI_assert(is_active());
-  void *data = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
-  uint32_t *result = static_cast<uint32_t *>(data);
-  return result;
+  void *buffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
+  memcpy(data, buffer, size_get());
+  glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 }
 
 bool GLIndexBuf::is_active() const

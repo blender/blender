@@ -486,21 +486,20 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
       continue;
     }
 
-    /* create temp data for each layer */
+    bGPDframe *gpf_prv = gpencil_get_previous_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
+    if (gpf_prv == NULL) {
+      continue;
+    }
+    bGPDframe *gpf_next = gpencil_get_next_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
+    if (gpf_next == NULL) {
+      continue;
+    }
+
+    /* Create temp data for each layer. */
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
-
     tgpil->gpl = gpl;
-    bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
-    if (gpf == NULL) {
-      continue;
-    }
-    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpf, true);
-
-    gpf = gpencil_get_next_keyframe(gpl, scene->r.cfra, exclude_breakdowns);
-    if (gpf == NULL) {
-      continue;
-    }
-    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpf, true);
+    tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpf_prv, true);
+    tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpf_next, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
 

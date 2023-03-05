@@ -197,7 +197,7 @@ static void drw_volume_wireframe_cb(
         GPU_PRIM_LINES, cache->face_wire.pos_nor_in_order, ibo, GPU_BATCH_OWNS_INDEX);
   }
 
-  GPU_batch_vertbuf_add_ex(cache->face_wire.batch, vbo_wiredata, true);
+  GPU_batch_vertbuf_add(cache->face_wire.batch, vbo_wiredata, true);
 }
 
 GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
@@ -312,7 +312,8 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
                                                    1,
                                                    format,
                                                    GPU_DATA_FLOAT,
-                                                   GPU_TEXTURE_USAGE_SHADER_READ,
+                                                   GPU_TEXTURE_USAGE_SHADER_READ |
+                                                       GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                                                    dense_grid.voxels);
     /* The texture can be null if the resolution along one axis is larger than
      * GL_MAX_3D_TEXTURE_SIZE. */

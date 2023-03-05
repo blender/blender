@@ -115,6 +115,13 @@ ccl_device_forceinline void integrator_path_init_sorted(KernelGlobals kg,
   atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], 1);
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
   INTEGRATOR_STATE_WRITE(state, path, shader_sort_key) = key_;
+
+#  if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
+  if (!kernel_integrator_state.sort_key_counter[next_kernel]) {
+    return;
+  }
+#  endif
+
   atomic_fetch_and_add_uint32(&kernel_integrator_state.sort_key_counter[next_kernel][key_], 1);
 }
 
@@ -130,6 +137,13 @@ ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals kg,
   atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], 1);
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
   INTEGRATOR_STATE_WRITE(state, path, shader_sort_key) = key_;
+
+#  if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
+  if (!kernel_integrator_state.sort_key_counter[next_kernel]) {
+    return;
+  }
+#  endif
+
   atomic_fetch_and_add_uint32(&kernel_integrator_state.sort_key_counter[next_kernel][key_], 1);
 }
 

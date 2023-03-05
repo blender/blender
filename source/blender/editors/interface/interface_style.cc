@@ -349,7 +349,7 @@ int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
                                                 const char *str,
                                                 const float aspect)
 {
-  /* FIXME(@campbellbarton): the final scale of the font is rounded which should be accounted for.
+  /* FIXME(@ideasman42): the final scale of the font is rounded which should be accounted for.
    * Failing to do so causes bad alignment when zoomed out very far in the node-editor. */
   fontstyle_set_ex(fs, U.dpi_fac / aspect);
   return int(BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX) * aspect);
@@ -363,7 +363,7 @@ int UI_fontstyle_height_max(const uiFontStyle *fs)
 
 /* ************** init exit ************************ */
 
-void uiStyleInit(void)
+void uiStyleInit()
 {
   const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
 

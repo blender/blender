@@ -996,9 +996,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
-        MVert *verts = BKE_mesh_verts_for_write(me);
+        MVert *verts = (MVert *)CustomData_get_layer_for_write(&me->vdata, CD_MVERT, me->totvert);
         for (a = 0; a < tot; a++, data += 3) {
-          copy_v3_v3(verts[a].co, data);
+          copy_v3_v3(verts[a].co_legacy, data);
         }
       }
     }
@@ -1465,7 +1465,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     } /* sequencer changes */
   }
 
-  if (bmain->versionfile <= 251) { /* 2.5.1 had no subversions */
+  if (bmain->versionfile <= 251) { /* 2.5.1 had no sub-versions */
     bScreen *screen;
 
     /* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_HIDE_OVERLAYS.
@@ -1987,7 +1987,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       /* add ntree->inputs/ntree->outputs sockets for all unlinked sockets in the group tree. */
       for (node = ntree->nodes.first; node; node = node->next) {
         for (sock = node->inputs.first; sock; sock = sock->next) {
-          if (!sock->link && !nodeSocketIsHidden(sock)) {
+          if (!sock->link && !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
 
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_IN);
@@ -2012,7 +2012,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           }
         }
         for (sock = node->outputs.first; sock; sock = sock->next) {
-          if (nodeCountSocketLinks(ntree, sock) == 0 && !nodeSocketIsHidden(sock)) {
+          if (nodeCountSocketLinks(ntree, sock) == 0 &&
+              !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_OUT);
 
@@ -2114,7 +2115,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 258, 1)) {
-    /* screen view2d settings were not properly initialized T27164.
+    /* screen view2d settings were not properly initialized #27164.
      * v2d->scroll caused the bug but best reset other values too
      * which are in old blend files only.
      * Need to make less ugly - possibly an iterator? */

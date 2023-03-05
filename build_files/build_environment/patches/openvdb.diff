@@ -90,3 +90,25 @@ diff -Naur orig/openvdb/openvdb/tree/ValueAccessor.h openvdb/openvdb/openvdb/tre
  
      CacheItem(TreeCacheT& parent)
          : mParent(&parent)
+diff --git a/nanovdb/nanovdb/NanoVDB.h b/nanovdb/nanovdb/NanoVDB.h
+index f7fc304..fde5c47 100644
+--- a/nanovdb/nanovdb/NanoVDB.h
++++ b/nanovdb/nanovdb/NanoVDB.h
+@@ -1877,7 +1877,7 @@ __hostdev__ static inline uint32_t FindLowestOn(uint64_t v)
+ {
+     NANOVDB_ASSERT(v);
+ #if (defined(__CUDA_ARCH__) || defined(__HIP__)) && defined(NANOVDB_USE_INTRINSICS)
+-    return __ffsll(v);
++    return __ffsll(static_cast<unsigned long long int>(v));
+ #elif defined(_MSC_VER) && defined(NANOVDB_USE_INTRINSICS)
+     unsigned long index;
+     _BitScanForward64(&index, v);
+@@ -2592,7 +2592,7 @@ public:
+     ///
+     /// @note This method is only defined for IndexGrid = NanoGrid<ValueIndex>
+     template <typename T = BuildType>
+-    __hostdev__ typename enable_if<is_same<T, ValueIndex>::value, uint64_t>::type valueCount() const {return DataType::mData1;}
++    __hostdev__ typename enable_if<is_same<T, ValueIndex>::value, const uint64_t&>::type valueCount() const {return DataType::mData1;}
+ 
+     /// @brief Return a const reference to the tree
+     __hostdev__ const TreeT& tree() const { return *reinterpret_cast<const TreeT*>(this->treePtr()); }

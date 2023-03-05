@@ -159,12 +159,8 @@ static void camera_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-      BLO_expand(expander, bgpic->ima);
-    }
-    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-      BLO_expand(expander, bgpic->ima);
-    }
+    BLO_expand(expander, bgpic->ima);
+    BLO_expand(expander, bgpic->clip);
   }
 }
 
@@ -537,7 +533,7 @@ void BKE_camera_view_frame_ex(const Scene *scene,
   r_vec[3][2] = depth;
 
   if (do_clip) {
-    /* Ensure the frame isn't behind the near clipping plane, T62814. */
+    /* Ensure the frame isn't behind the near clipping plane, #62814. */
     float fac = ((camera->clip_start + 0.1f) / -r_vec[0][2]) * scale[2];
     for (uint i = 0; i < 4; i++) {
       if (camera->type == CAM_ORTHO) {
@@ -1117,6 +1113,9 @@ float BKE_camera_multiview_shift_x(const RenderData *rd,
     return data->shiftx;
   }
   if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
+    return data->shiftx;
+  }
+  if (data->type == CAM_PANO) {
     return data->shiftx;
   }
   /* SCE_VIEWS_SETUP_BASIC */

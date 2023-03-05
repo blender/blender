@@ -1158,7 +1158,7 @@ World *EEVEE_world_default_get(void)
  * Source is provided separately, rather than via create-info as source is manipulated
  * by `eevee_shader_material_create_info_amend`.
  *
- * We also retain the previous behaviour for ensuring library includes occur in the
+ * We also retain the previous behavior for ensuring library includes occur in the
  * correct order. */
 static const char *eevee_get_vert_info(int options, char **r_src)
 {
@@ -1288,7 +1288,7 @@ static char *eevee_get_defines(int options)
    * CreateInfo's for EEVEE materials are declared in:
    * `eevee/shaders/infos/eevee_legacy_material_info.hh`
    *
-   * This function should only contain defines which alter behaviour, but do not affect shader
+   * This function should only contain defines which alter behavior, but do not affect shader
    * resources. */
 
   if ((options & VAR_WORLD_BACKGROUND) != 0) {
@@ -1319,9 +1319,7 @@ static char *eevee_get_defines(int options)
   return str;
 }
 
-static void eevee_material_post_eval(void *UNUSED(thunk),
-                                     GPUMaterial *mat,
-                                     GPUCodegenOutput *codegen)
+static void eevee_material_post_eval(void * /*thunk*/, GPUMaterial *mat, GPUCodegenOutput *codegen)
 {
   /* Fetch material-specific Create-info's and source. */
   uint64_t options = GPU_material_uuid_get(mat);
@@ -1344,7 +1342,7 @@ static void eevee_material_post_eval(void *UNUSED(thunk),
 }
 
 static struct GPUMaterial *eevee_material_get_ex(
-    struct Scene *UNUSED(scene), Material *ma, World *wo, int options, bool deferred)
+    struct Scene * /*scene*/, Material *ma, World *wo, int options, bool deferred)
 {
   BLI_assert(ma || wo);
   const bool is_volume = (options & VAR_MAT_VOLUME) != 0;
@@ -1392,12 +1390,21 @@ struct GPUMaterial *EEVEE_material_get(
     return nullptr;
   }
   switch (status) {
-    case GPU_MAT_SUCCESS:
-      break;
-    case GPU_MAT_QUEUED:
+    case GPU_MAT_SUCCESS: {
+      /* Determine optimization status for remaining compilations counter. */
+      int optimization_status = GPU_material_optimization_status(mat);
+      if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
+        vedata->stl->g_data->queued_optimise_shaders_count++;
+      }
+    } break;
+    case GPU_MAT_QUEUED: {
       vedata->stl->g_data->queued_shaders_count++;
-      mat = EEVEE_material_default_get(scene, ma, options);
-      break;
+      GPUMaterial *default_mat = EEVEE_material_default_get(scene, ma, options);
+      /* Mark pending material with its default material for future cache warming.*/
+      GPU_material_set_default(mat, default_mat);
+      /* Return default material. */
+      mat = default_mat;
+    } break;
     case GPU_MAT_FAILED:
     default:
       ma = EEVEE_material_default_error_get();

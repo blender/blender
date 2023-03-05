@@ -44,7 +44,7 @@
 #include "WM_types.h"
 
 /* This hack is needed because we don't have a good way to
- * re-reference keymap items once added: T42944 */
+ * re-reference keymap items once added: #42944 */
 #define USE_KEYMAP_ADD_HACK
 
 /* -------------------------------------------------------------------- */
@@ -115,7 +115,7 @@ static void shortcut_free_operator_property(IDProperty *prop)
   }
 }
 
-static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
+static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
   uiBut *but = (uiBut *)arg1;
   char shortcut_str[128];
@@ -419,7 +419,7 @@ static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void * 
   ui_but_user_menu_add(C, but, um);
 }
 
-static void popup_user_menu_remove_func(bContext *UNUSED(C), void *arg1, void *arg2)
+static void popup_user_menu_remove_func(bContext * /*C*/, void *arg1, void *arg2)
 {
   bUserMenu *um = static_cast<bUserMenu *>(arg1);
   bUserMenuItem *umi = static_cast<bUserMenuItem *>(arg2);
@@ -934,7 +934,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     uiButViewItem *view_item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region,
                                                                                  event->xy);
     if (view_item_but) {
-      BLI_assert(view_item_but->but.type == UI_BTYPE_VIEW_ITEM);
+      BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
       UI_view_item_context_menu_build(C, view_item_but->view_item, uiLayoutColumn(layout, false));
       uiItemS(layout);
     }

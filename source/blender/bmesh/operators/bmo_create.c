@@ -19,7 +19,7 @@
 
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
-  /* NOTE(@campbellbarton): doing the best thing here isn't always easy create vs dissolve,
+  /* NOTE(@ideasman42): doing the best thing here isn't always easy create vs dissolve,
    * its nice to support but it _really_ gives issues we might have to not call dissolve. */
 
   BMOIter oiter;

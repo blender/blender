@@ -48,7 +48,6 @@
 
 #include "DRW_engine.h"
 
-#include "GPU_context.h"
 #include "WM_api.h"
 
 #include "pipeline.h"
@@ -973,12 +972,12 @@ static void engine_render_view_layer(Render *re,
 
 /* Callback function for engine_render_create_result to add all render passes to the result. */
 static void engine_render_add_result_pass_cb(void *user_data,
-                                             struct Scene *UNUSED(scene),
+                                             struct Scene * /*scene*/,
                                              struct ViewLayer *view_layer,
                                              const char *name,
                                              int channels,
                                              const char *chanid,
-                                             eNodeSocketDatatype UNUSED(type))
+                                             eNodeSocketDatatype /*type*/)
 {
   RenderResult *rr = (RenderResult *)user_data;
   RE_create_render_pass(rr, name, channels, chanid, view_layer->name, RR_ALL_VIEWS, false);
@@ -1046,14 +1045,19 @@ bool RE_engine_render(Render *re, bool do_all)
     re->engine = engine;
   }
 
-  /* create render result */
+  /* Create render result. Do this before acquiring lock, to avoid lock
+   * inversion as this calls python to get the render passes, while python UI
+   * code can also hold a lock on the render result. */
+  const bool create_new_result = (re->result == nullptr || !(re->r.scemode & R_BUTS_PREVIEW));
+  RenderResult *new_result = (create_new_result) ? engine_render_create_result(re) : nullptr;
+
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-  if (re->result == nullptr || !(re->r.scemode & R_BUTS_PREVIEW)) {
+  if (create_new_result) {
     if (re->result) {
       render_result_free(re->result);
     }
 
-    re->result = engine_render_create_result(re);
+    re->result = new_result;
   }
   BLI_rw_mutex_unlock(&re->resultmutex);
 

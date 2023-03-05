@@ -39,7 +39,7 @@ class ShadingView {
   /** Static string pointer. Used as debug name and as UUID for texture pool. */
   const char *name_;
   /** Matrix to apply to the viewmat. */
-  const float (*face_matrix_)[4];
+  const float4x4 &face_matrix_;
 
   /** Raytracing persistent buffers. Only opaque and refraction can have surface tracing. */
   // RaytraceBuffer rt_buffer_opaque_;
@@ -65,7 +65,7 @@ class ShadingView {
   bool is_enabled_ = false;
 
  public:
-  ShadingView(Instance &inst, const char *name, const float (*face_matrix)[4])
+  ShadingView(Instance &inst, const char *name, const float4x4 &face_matrix)
       : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_new_(name){};
 
   ~ShadingView(){};
@@ -107,12 +107,12 @@ class MainView {
 
  public:
   MainView(Instance &inst)
-      : shading_views_0(inst, "posX_view", cubeface_mat[0]),
-        shading_views_1(inst, "negX_view", cubeface_mat[1]),
-        shading_views_2(inst, "posY_view", cubeface_mat[2]),
-        shading_views_3(inst, "negY_view", cubeface_mat[3]),
-        shading_views_4(inst, "posZ_view", cubeface_mat[4]),
-        shading_views_5(inst, "negZ_view", cubeface_mat[5])
+      : shading_views_0(inst, "posX_view", cubeface_mat(0)),
+        shading_views_1(inst, "negX_view", cubeface_mat(1)),
+        shading_views_2(inst, "posY_view", cubeface_mat(2)),
+        shading_views_3(inst, "negY_view", cubeface_mat(3)),
+        shading_views_4(inst, "posZ_view", cubeface_mat(4)),
+        shading_views_5(inst, "negZ_view", cubeface_mat(5))
   {
   }
 

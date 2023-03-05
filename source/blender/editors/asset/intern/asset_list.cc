@@ -12,10 +12,11 @@
 #include <optional>
 #include <string>
 
+#include "AS_asset_library.hh"
+
 #include "BKE_context.h"
 
 #include "BLI_map.hh"
-#include "BLI_path_util.h"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"
@@ -112,6 +113,8 @@ class AssetList : NonCopyable {
   void clear(bContext *C);
 
   bool needsRefetch() const;
+  bool isLoaded() const;
+  asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListIterFn fn) const;
   bool listen(const wmNotifier &notifier) const;
   int size() const;
@@ -127,16 +130,7 @@ AssetList::AssetList(eFileSelectType filesel_type, const AssetLibraryReference &
 void AssetList::setup()
 {
   FileList *files = filelist_;
-
-  bUserAssetLibrary *user_library = nullptr;
-
-  /* Ensure valid repository, or fall-back to local one. */
-  if (library_ref_.type == ASSET_LIBRARY_CUSTOM) {
-    BLI_assert(library_ref_.custom_library_index >= 0);
-
-    user_library = BKE_preferences_asset_library_find_from_index(
-        &U, library_ref_.custom_library_index);
-  }
+  std::string asset_lib_path = AS_asset_library_root_path_from_library_ref(library_ref_);
 
   /* Relevant bits from file_refresh(). */
   /* TODO pass options properly. */
@@ -158,13 +152,10 @@ void AssetList::setup()
   filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
   char path[FILE_MAXDIR] = "";
-  if (user_library) {
-    BLI_strncpy(path, user_library->path, sizeof(path));
-    filelist_setdir(files, path);
+  if (!asset_lib_path.empty()) {
+    BLI_strncpy(path, asset_lib_path.c_str(), sizeof(path));
   }
-  else {
-    filelist_setdir(files, path);
-  }
+  filelist_setdir(files, path);
 }
 
 void AssetList::fetch(const bContext &C)
@@ -188,6 +179,16 @@ void AssetList::fetch(const bContext &C)
 bool AssetList::needsRefetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
+}
+
+bool AssetList::isLoaded() const
+{
+  return filelist_is_ready(filelist_);
+}
+
+asset_system::AssetLibrary *AssetList::asset_library() const
+{
+  return reinterpret_cast<asset_system::AssetLibrary *>(filelist_asset_library(filelist_));
 }
 
 void AssetList::iterate(AssetListIterFn fn) const
@@ -368,7 +369,10 @@ void AssetListStorage::remapID(ID *id_new, ID *id_old)
 std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_fileselect_type(
     const AssetLibraryReference &library_reference)
 {
-  switch (library_reference.type) {
+  switch (eAssetLibraryType(library_reference.type)) {
+    case ASSET_LIBRARY_ALL:
+      return FILE_ASSET_LIBRARY_ALL;
+    case ASSET_LIBRARY_ESSENTIALS:
     case ASSET_LIBRARY_CUSTOM:
       return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
@@ -407,6 +411,7 @@ AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 /** \name C-API
  * \{ */
 
+using namespace blender;
 using namespace blender::ed::asset;
 
 void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference, const bContext *C)
@@ -423,7 +428,7 @@ bool ED_assetlist_is_loaded(const AssetLibraryReference *library_reference)
   if (list->needsRefetch()) {
     return false;
   }
-  return true;
+  return list->isLoaded();
 }
 
 void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference,
@@ -455,6 +460,16 @@ void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetL
   if (list) {
     list->iterate(fn);
   }
+}
+
+asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
+    const AssetLibraryReference &library_reference)
+{
+  const AssetList *list = AssetListStorage::lookup_list(library_reference);
+  if (!list) {
+    return nullptr;
+  }
+  return list->asset_library();
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

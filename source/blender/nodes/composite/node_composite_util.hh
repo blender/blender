@@ -21,8 +21,8 @@
 
 #define CMP_SCALE_MAX 12000
 
-bool cmp_node_poll_default(struct bNodeType *ntype,
-                           struct bNodeTree *ntree,
+bool cmp_node_poll_default(const struct bNodeType *ntype,
+                           const struct bNodeTree *ntree,
                            const char **r_disabled_hint);
 void cmp_node_update_default(struct bNodeTree *ntree, struct bNode *node);
 void cmp_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);

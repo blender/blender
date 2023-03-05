@@ -82,7 +82,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   const Vector<const Nurb *> src_curves(nurbs_list);
 
   Curves *curves_id = curves_new_nomain(0, src_curves.size());
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  CurvesGeometry &curves = curves_id->geometry.wrap();
   MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   MutableSpan<int8_t> types = curves.curve_types_for_write();
@@ -108,6 +108,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
     return curves_id;
   }
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions = curves.positions_for_write();
   SpanAttributeWriter<float> radius_attribute =
       curves_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
@@ -119,7 +120,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         for (const int i : src_points.index_range()) {
           const BPoint &bp = src_points[i];
@@ -146,7 +147,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         resolutions[curve_i] = src_curve.resolu;
 
@@ -174,7 +175,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span src_points(src_curve.bp, src_curve.pntsu);
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         resolutions[curve_i] = src_curve.resolu;
         nurbs_orders[curve_i] = src_curve.orderu;

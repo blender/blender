@@ -9,7 +9,7 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-const int halfres_tile_divisor = DOF_TILE_DIVISOR / 2;
+#define halfres_tile_divisor (DOF_TILE_DIVISOR / 2)
 
 void main()
 {

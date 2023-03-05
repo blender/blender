@@ -3,7 +3,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -108,7 +108,7 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                         GPU_constant(&squash_freq));
 }
 
-class BrickFunction : public fn::MultiFunction {
+class BrickFunction : public mf::MultiFunction {
  private:
   const float offset_;
   const int offset_freq_;
@@ -122,26 +122,24 @@ class BrickFunction : public fn::MultiFunction {
                 const int squash_freq)
       : offset_(offset), offset_freq_(offset_freq), squash_(squash), squash_freq_(squash_freq)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"BrickTexture", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<ColorGeometry4f>("Color1");
+      builder.single_input<ColorGeometry4f>("Color2");
+      builder.single_input<ColorGeometry4f>("Mortar");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Mortar Size");
+      builder.single_input<float>("Mortar Smooth");
+      builder.single_input<float>("Bias");
+      builder.single_input<float>("Brick Width");
+      builder.single_input<float>("Row Height");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"BrickTexture"};
-    signature.single_input<float3>("Vector");
-    signature.single_input<ColorGeometry4f>("Color1");
-    signature.single_input<ColorGeometry4f>("Color2");
-    signature.single_input<ColorGeometry4f>("Mortar");
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Mortar Size");
-    signature.single_input<float>("Mortar Smooth");
-    signature.single_input<float>("Bias");
-    signature.single_input<float>("Brick Width");
-    signature.single_input<float>("Row Height");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
   }
 
   /* Fast integer noise. */
@@ -203,7 +201,7 @@ class BrickFunction : public fn::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(

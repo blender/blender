@@ -9,8 +9,6 @@
 
 namespace blender::ed::spreadsheet {
 
-struct CellDrawParams;
-
 eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type);
 
 /**

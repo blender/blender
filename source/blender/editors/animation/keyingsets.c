@@ -1119,7 +1119,7 @@ int ANIM_apply_keyingset(
       RNA_id_pointer_create(ksp->id, &id_ptr);
       if (RNA_path_resolve_property(&id_ptr, ksp->rna_path, &ptr, &prop)) {
         arraylen = RNA_property_array_length(&ptr, prop);
-        /* start from start of array, instead of the previously specified index - T48020 */
+        /* start from start of array, instead of the previously specified index - #48020 */
         i = 0;
       }
     }

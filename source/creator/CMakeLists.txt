@@ -385,7 +385,7 @@ endif()
 # Install Targets (Generic, All Platforms)
 
 
-# important to make a clean  install each time, else old scripts get loaded.
+# Important to make a clean install each time, else old scripts get loaded.
 install(
   CODE
   "file(REMOVE_RECURSE ${TARGETDIR_VER})"
@@ -394,9 +394,10 @@ install(
 if(WITH_PYTHON)
   # install(CODE "message(\"copying blender scripts...\")")
 
-  # exclude addons_contrib if release
+  # exclude addons_contrib if release branch
   if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
-     "${BLENDER_VERSION_CYCLE}" STREQUAL "rc")
+     "${BLENDER_VERSION_CYCLE}" STREQUAL "rc" OR
+     "${BLENDER_VERSION_CYCLE}" STREQUAL "beta")
     set(ADDON_EXCLUDE_CONDITIONAL "addons_contrib/*")
   else()
     set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # Dummy, won't do anything.
@@ -493,27 +494,27 @@ if(WITH_OPENCOLORIO)
     DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
     DESTINATION ${TARGETDIR_VER}/datafiles
   )
-  if(WIN32)
-    if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll) # 3.5
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_2.dll
-        DEBUG
-      )
-      install(
-        FILES ${LIBDIR}/opencolorio/lib/site-packages-debug/PyOpenColorIO_d.pyd
-        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-        CONFIGURATIONS Debug
-      )
-      install(
-        FILES ${LIBDIR}/opencolorio/lib/site-packages/PyOpenColorIO.pyd
-        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-      )
-    endif()
+endif()
+if(WIN32)
+  if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll) # 3.5
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_2.dll
+      DEBUG
+    )
+    install(
+      FILES ${LIBDIR}/opencolorio/lib/site-packages-debug/PyOpenColorIO_d.pyd
+      DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+      CONFIGURATIONS Debug
+    )
+    install(
+      FILES ${LIBDIR}/opencolorio/lib/site-packages/PyOpenColorIO.pyd
+      DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
   endif()
 endif()
 
@@ -561,19 +562,6 @@ endmacro()
 
 if(UNIX AND NOT APPLE)
 
-  if(NOT WITH_PYTHON_MODULE)
-    if(WITH_DOC_MANPAGE)
-      add_custom_target(
-        blender_man_page ALL
-        COMMAND
-          ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-          --blender ${EXECUTABLE_OUTPUT_PATH}/blender
-          --output ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-      )
-      add_dependencies(blender_man_page blender)
-    endif()
-  endif()
-
   if(PLATFORM_BUNDLED_LIBRARIES AND TARGETDIR_LIB)
     install(
       FILES ${PLATFORM_BUNDLED_LIBRARIES}
@@ -602,12 +590,6 @@ if(UNIX AND NOT APPLE)
       DESTINATION "."
     )
 
-    if(WITH_DOC_MANPAGE)
-      install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-        DESTINATION "."
-      )
-    endif()
     install(
       FILES
         ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -623,7 +605,10 @@ if(UNIX AND NOT APPLE)
       )
     endif()
 
-    if(EXISTS ${LIBDIR}/mesa)
+    # NOTE: there is a bug in CMake 3.25.1 where `LIBDIR` is reported as undefined.
+    if(NOT DEFINED LIBDIR)
+      # Pass.
+    elseif(EXISTS ${LIBDIR}/mesa)
       install(DIRECTORY ${LIBDIR}/mesa/lib/ DESTINATION "lib/mesa/")
 
       install(
@@ -635,16 +620,16 @@ if(UNIX AND NOT APPLE)
       # Remove from old location, so existing builds don't start with software
       # OpenGL now that the lib/ folder is used for other libraries.
       install(
-        CODE
-        "file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
-         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
+        CODE "\
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
+        file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
         "
       )
     endif()
@@ -654,13 +639,6 @@ if(UNIX AND NOT APPLE)
       TARGETS blender
       DESTINATION bin
     )
-    if(WITH_DOC_MANPAGE)
-      # Manual page (only with `blender` binary).
-      install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-        DESTINATION share/man/man1
-      )
-    endif()
 
     # Misc files.
     install(
@@ -690,7 +668,7 @@ if(UNIX AND NOT APPLE)
       DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       # Precompiled libraries, copy over complete lib directory.
       install_dir(
         ${PYTHON_LIBPATH}
@@ -878,12 +856,10 @@ elseif(WIN32)
     )
   endif()
 
-  if(WITH_FFTW3)
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
-      ALL
-    )
-  endif()
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
+    ALL
+  )
   if(MSVC_ASAN)
     # The ASAN DLL's can be found in the same folder as the compiler,
     # this is the easiest way to find these.
@@ -907,60 +883,54 @@ elseif(WIN32)
     unset(ASAN_DLL)
     unset(ASAN_DEBUG_DLL)
   endif()
-  if(WITH_IMAGE_OPENEXR OR WITH_OPENIMAGEIO)
-    if(EXISTS ${LIBDIR}/openexr/bin/Iex.dll)
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/openexr/bin/Iex.dll
-          ${LIBDIR}/openexr/bin/IlmThread.dll
-          ${LIBDIR}/openexr/bin/OpenEXRCore.dll
-          ${LIBDIR}/openexr/bin/OpenEXRUtil.dll
-          ${LIBDIR}/openexr/bin/OpenEXR.dll
-          ${LIBDIR}/imath/bin/imath.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/openexr/bin/Iex_d.dll
-          ${LIBDIR}/openexr/bin/IlmThread_d.dll
-          ${LIBDIR}/openexr/bin/OpenEXRCore_d.dll
-          ${LIBDIR}/openexr/bin/OpenEXRUtil_d.dll
-          ${LIBDIR}/openexr/bin/OpenEXR_d.dll
-          ${LIBDIR}/imath/bin/imath_d.dll
-        DEBUG
-      )
-    endif()
-  endif()
-  if(WITH_OPENIMAGEIO)
-    if(EXISTS ${LIBDIR}/openimageio/bin/openimageio.dll)
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/openimageio/bin/openimageio.dll
-          ${LIBDIR}/openimageio/bin/openimageio_util.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/openimageio/bin/openimageio_d.dll
-          ${LIBDIR}/openimageio/bin/openimageio_util_d.dll
-        DEBUG
-      )
-    endif()
-  endif()
-  if(WITH_GMP)
+  if(EXISTS ${LIBDIR}/openexr/bin/Iex.dll)
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
-      ALL
-    )
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/gmp/lib/libgmpxx.dll
+      FILES
+        ${LIBDIR}/openexr/bin/Iex.dll
+        ${LIBDIR}/openexr/bin/IlmThread.dll
+        ${LIBDIR}/openexr/bin/OpenEXRCore.dll
+        ${LIBDIR}/openexr/bin/OpenEXRUtil.dll
+        ${LIBDIR}/openexr/bin/OpenEXR.dll
+        ${LIBDIR}/imath/bin/imath.dll
       RELEASE
     )
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/gmp/lib/libgmpxx_d.dll
+      FILES
+        ${LIBDIR}/openexr/bin/Iex_d.dll
+        ${LIBDIR}/openexr/bin/IlmThread_d.dll
+        ${LIBDIR}/openexr/bin/OpenEXRCore_d.dll
+        ${LIBDIR}/openexr/bin/OpenEXRUtil_d.dll
+        ${LIBDIR}/openexr/bin/OpenEXR_d.dll
+        ${LIBDIR}/imath/bin/imath_d.dll
       DEBUG
     )
   endif()
+  if(EXISTS ${LIBDIR}/openimageio/bin/openimageio.dll)
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/openimageio/bin/openimageio.dll
+        ${LIBDIR}/openimageio/bin/openimageio_util.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/openimageio/bin/openimageio_d.dll
+        ${LIBDIR}/openimageio/bin/openimageio_util_d.dll
+      DEBUG
+    )
+  endif()
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
+    ALL
+  )
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/gmp/lib/libgmpxx.dll
+    RELEASE
+  )
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/gmp/lib/libgmpxx_d.dll
+    DEBUG
+  )
 
   if(WITH_WINDOWS_PDB)
     if(WITH_WINDOWS_STRIPPED_PDB)
@@ -977,55 +947,51 @@ elseif(WIN32)
     endif()
   endif()
 
-  if(WITH_OPENVDB)
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/openvdb/bin/openvdb.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
-        DEBUG
-      )
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/openvdb/bin/openvdb.dll
+    RELEASE
+  )
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
+    DEBUG
+  )
 
-      # This will not exist for 3.4 and earlier lib folders
-      # to ease the transition, support both 3.4 and 3.5 lib
-      # folders.
-      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
-        install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
-          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-          CONFIGURATIONS Debug
-        )
-        install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb.pyd
-          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-        )
-      endif()
-  endif()
-
-  if(WITH_MATERIALX)
-    windows_install_shared_manifest(
-      FILES
-        ${LIBDIR}/materialx/bin/MaterialXCore.dll
-        ${LIBDIR}/materialx/bin/MaterialXFormat.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenGlsl.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenMdl.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenOsl.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
-      RELEASE
+  # This will not exist for 3.4 and earlier lib folders
+  # to ease the transition, support both 3.4 and 3.5 lib
+  # folders.
+  if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
+    install(
+      FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
+      DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+      CONFIGURATIONS Debug
     )
-    windows_install_shared_manifest(
-      FILES
-        ${LIBDIR}/materialx/bin/MaterialXCore_d.dll
-        ${LIBDIR}/materialx/bin/MaterialXFormat_d.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenGlsl_d.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenMdl_d.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenOsl_d.dll
-        ${LIBDIR}/materialx/bin/MaterialXGenShader_d.dll
-      DEBUG
+    install(
+      FILES ${LIBDIR}/openvdb/python/pyopenvdb.pyd
+      DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
   endif()
+
+  windows_install_shared_manifest(
+    FILES
+      ${LIBDIR}/materialx/bin/MaterialXCore.dll
+      ${LIBDIR}/materialx/bin/MaterialXFormat.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenGlsl.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenMdl.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenOsl.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
+    RELEASE
+  )
+  windows_install_shared_manifest(
+    FILES
+      ${LIBDIR}/materialx/bin/MaterialXCore_d.dll
+      ${LIBDIR}/materialx/bin/MaterialXFormat_d.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenGlsl_d.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenMdl_d.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenOsl_d.dll
+      ${LIBDIR}/materialx/bin/MaterialXGenShader_d.dll
+    DEBUG
+  )
 
   if(WITH_PYTHON)
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
@@ -1106,80 +1072,75 @@ elseif(WIN32)
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Debug
       )
-      if(WITH_OPENIMAGEIO)
-        if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages) #this will only exist for 3.5+
-           install(
-            DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages/
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
-          )
-        endif()
-        if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages)
-          install(
-            DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages/
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Debug
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
-          )
-        endif()
-      endif()
-      if(WITH_USD)
-        # This will not exist for 3.4 and earlier lib folders
-        # to ease the transition, support both 3.4 and 3.5 lib
-        # folders.
-        if(EXISTS ${USD_LIBRARY_DIR}/python/)
-          install(
-            DIRECTORY ${USD_LIBRARY_DIR}/python/
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
-          )
-        endif()
-        if(EXISTS ${USD_LIBRARY_DIR}/debug/python/)
-          install(
-            DIRECTORY ${USD_LIBRARY_DIR}/debug/python/
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-            CONFIGURATIONS Debug
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
-          )
-        endif()
-      endif()
 
-      if(WITH_MATERIALX)
-        # MaterialX python bindings
-
+      if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages) #this will only exist for 3.5+
         install(
-            DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
-        )
-        install(
-            DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Debug
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages/
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
       endif()
+      if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages)
+        install(
+          DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages/
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+          CONFIGURATIONS Debug
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
+
+      # This will not exist for 3.4 and earlier lib folders
+      # to ease the transition, support both 3.4 and 3.5 lib
+      # folders.
+      if(EXISTS ${USD_LIBRARY_DIR}/python/)
+        install(
+          DIRECTORY ${USD_LIBRARY_DIR}/python/
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
+      if(EXISTS ${USD_LIBRARY_DIR}/debug/python/)
+        install(
+          DIRECTORY ${USD_LIBRARY_DIR}/debug/python/
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+          CONFIGURATIONS Debug
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
+
+      # MaterialX python bindings
+      install(
+        DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        PATTERN ".svn" EXCLUDE
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+      )
+      install(
+        DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+        CONFIGURATIONS Debug
+        PATTERN ".svn" EXCLUDE
+        PATTERN "__pycache__" EXCLUDE           # * any cache *
+        PATTERN "*.pyc" EXCLUDE                 # * any cache *
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
+      )
 
       if(WINDOWS_PYTHON_DEBUG)
         install(
@@ -1200,45 +1161,41 @@ elseif(WIN32)
 
   endif()
 
-  if(WITH_CODEC_FFMPEG)
-    # Filenames change slightly between FFMPEG versions check both 5.0 and fallback to 4.4
-    # to ease the transition between versions.
-    if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
-          ${LIBDIR}/ffmpeg/lib/avformat-59.dll
-          ${LIBDIR}/ffmpeg/lib/avdevice-59.dll
-          ${LIBDIR}/ffmpeg/lib/avutil-57.dll
-          ${LIBDIR}/ffmpeg/lib/swscale-6.dll
-          ${LIBDIR}/ffmpeg/lib/swresample-4.dll
-        ALL
-      )
-    else()
-      windows_install_shared_manifest(
-        FILES
-          ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
-          ${LIBDIR}/ffmpeg/lib/avformat-58.dll
-          ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
-          ${LIBDIR}/ffmpeg/lib/avutil-56.dll
-          ${LIBDIR}/ffmpeg/lib/swscale-5.dll
-          ${LIBDIR}/ffmpeg/lib/swresample-3.dll
-        ALL
-      )
-    endif()
-  endif()
-  if(WITH_TBB)
+  # Filenames change slightly between FFMPEG versions check both 5.0 and fallback to 4.4
+  # to ease the transition between versions.
+  if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
     windows_install_shared_manifest(
       FILES
-        ${LIBDIR}/tbb/bin/tbb.dll
-      RELEASE
+        ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
+        ${LIBDIR}/ffmpeg/lib/avformat-59.dll
+        ${LIBDIR}/ffmpeg/lib/avdevice-59.dll
+        ${LIBDIR}/ffmpeg/lib/avutil-57.dll
+        ${LIBDIR}/ffmpeg/lib/swscale-6.dll
+        ${LIBDIR}/ffmpeg/lib/swresample-4.dll
+      ALL
     )
+  else()
     windows_install_shared_manifest(
       FILES
-        ${LIBDIR}/tbb/bin/tbb_debug.dll
-      DEBUG
+        ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
+        ${LIBDIR}/ffmpeg/lib/avformat-58.dll
+        ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
+        ${LIBDIR}/ffmpeg/lib/avutil-56.dll
+        ${LIBDIR}/ffmpeg/lib/swscale-5.dll
+        ${LIBDIR}/ffmpeg/lib/swresample-3.dll
+      ALL
     )
   endif()
+  windows_install_shared_manifest(
+    FILES
+      ${LIBDIR}/tbb/bin/tbb.dll
+    RELEASE
+  )
+  windows_install_shared_manifest(
+    FILES
+      ${LIBDIR}/tbb/bin/tbb_debug.dll
+    DEBUG
+  )
   if(WITH_TBB_MALLOC_PROXY)
     windows_install_shared_manifest(
       FILES
@@ -1255,27 +1212,21 @@ elseif(WIN32)
     list(APPEND LIB ${TBB_MALLOC_LIBRARIES})
   endif()
 
-  if(WITH_CODEC_SNDFILE)
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
-      ALL
-    )
-  endif()
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
+    ALL
+  )
 
-  if(WITH_OPENAL)
-    windows_install_shared_manifest(
-      FILES
-        ${LIBDIR}/openal/lib/OpenAL32.dll
-      ALL
-    )
-  endif()
+  windows_install_shared_manifest(
+    FILES
+      ${LIBDIR}/openal/lib/OpenAL32.dll
+    ALL
+  )
 
-  if(WITH_SDL)
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/sdl/lib/SDL2.dll
-      ALL
-    )
-  endif()
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/sdl/lib/SDL2.dll
+    ALL
+  )
 
   if(WITH_SYSTEM_AUDASPACE)
     install(
@@ -1422,6 +1373,13 @@ elseif(APPLE)
     )
   endif()
 
+  if(WITH_VULKAN_BACKEND)
+    install(
+      FILES ${VULKAN_LIBRARY} ${MOLTENVK_LIBRARY}
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  endif()
+
   # Python.
   if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
     # Copy the python libraries into the install directory.
@@ -1524,6 +1482,20 @@ install(
 
 
 # -----------------------------------------------------------------------------
+# Bundle assets
+
+set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+
+if(EXISTS "${ASSET_BUNDLE_DIR}")
+  install(
+    DIRECTORY ${ASSET_BUNDLE_DIR}
+    DESTINATION ${TARGETDIR_VER}/datafiles/assets
+    PATTERN ".svn" EXCLUDE
+  )
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Setup link libraries
 
 add_dependencies(blender makesdna)
@@ -1547,30 +1519,36 @@ blender_target_include_dirs(blender ${INC})
 if(WITH_USD)
   add_definitions(-DWITH_USD)
   absolute_include_dirs(../blender/io/usd)
+endif()
 
+# Always install USD shared library and datafiles regardless if Blender
+# itself uses them, the bundled Python module still needs it.
+if((DEFINED LIBDIR) AND TARGETDIR_LIB)
   # On windows the usd library sits in ./blender.shared copy the files
   # relative to the location of the USD dll, if the dll does not exist
   # assume we are linking against the static 3.5 lib.
-  if(WIN32 AND
-      (
-        EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll OR  # USD 22.03
-        EXISTS ${LIBDIR}/usd/lib/usd_ms.dll         # USD 22.11
+  if(WITH_USD)
+    if(WIN32 AND
+        (
+          EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll OR  # USD 22.03
+          EXISTS ${LIBDIR}/usd/lib/usd_ms.dll         # USD 22.11
+        )
       )
-    )
-    install(DIRECTORY
-      ${USD_LIBRARY_DIR}/usd
-      DESTINATION "./blender.shared"
-    )
-  elseif(USD_PYTHON_SUPPORT)
-    install(DIRECTORY
-      ${USD_LIBRARY_DIR}/usd
-      DESTINATION ${TARGETDIR_LIB}
-    )
-  else()
-    install(DIRECTORY
-      ${USD_LIBRARY_DIR}/usd
-      DESTINATION "${TARGETDIR_VER}/datafiles"
-    )
+      install(DIRECTORY
+        ${USD_LIBRARY_DIR}/usd
+        DESTINATION "./blender.shared"
+      )
+    elseif(USD_PYTHON_SUPPORT)
+      install(DIRECTORY
+        ${USD_LIBRARY_DIR}/usd
+        DESTINATION ${TARGETDIR_LIB}
+      )
+    else()
+      install(DIRECTORY
+        ${USD_LIBRARY_DIR}/usd
+        DESTINATION "${TARGETDIR_VER}/datafiles"
+      )
+    endif()
   endif()
   if(WIN32)
     # If this file exists we are building against a 3.5 22.03 library folder
@@ -1600,14 +1578,16 @@ if(WITH_USD)
   endif()
 endif()
 
-if(WITH_MATERIALX AND TARGETDIR_LIB)
+# Always install MaterialX files regardless if Blender itself uses them, the
+# bundled Python module still needs it.
+if((DEFINED LIBDIR) AND TARGETDIR_LIB AND WITH_MATERIALX )
   install(
     DIRECTORY ${LIBDIR}/materialx/libraries
     DESTINATION "${TARGETDIR_LIB}/materialx"
   )
 endif()
 
-if(WIN32 AND WITH_BOOST)
+if(WIN32)
   set(BOOST_COMPONENTS atomic chrono date_time filesystem
     iostreams locale program_options regex
     serialization system thread wave wserialization
@@ -1674,6 +1654,42 @@ endif()
 # Windows shared library manifest
 if(WIN32)
   windows_generate_shared_manifest()
+endif()
+
+# -----------------------------------------------------------------------------
+# Steps that Run Blender
+#
+# As executing Blender is needed - it's important this operation runs after the shared
+# libraries have been installed to their destination.
+
+if(UNIX AND NOT APPLE)
+  if(NOT WITH_PYTHON_MODULE)
+    if(WITH_DOC_MANPAGE)
+      install(
+        CODE "\
+execute_process(\
+  COMMAND \
+  \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\" \
+  --blender \"${EXECUTABLE_OUTPUT_PATH}/blender\" \
+  --output \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\"\
+)"
+        DEPENDS blender
+      )
+
+      if(WITH_INSTALL_PORTABLE)
+        install(
+          FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+          DESTINATION "."
+        )
+      else()
+        # Manual page (only with `blender` binary).
+        install(
+          FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+          DESTINATION share/man/man1
+        )
+      endif()
+    endif()
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------

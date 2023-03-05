@@ -28,10 +28,8 @@
     .bufsize = 512, \
     .clipsta = 0.05f, \
     .clipend = 40.0f, \
-    .bleedexp = 2.5f, \
     .samp = 3, \
     .bias = 1.0f, \
-    .soft = 3.0f, \
     .area_size = 0.25f, \
     .area_sizey = 0.25f, \
     .area_sizez = 0.25f, \
@@ -47,7 +45,6 @@
     .cascade_fade = 0.1f, \
     .contact_dist = 0.2f, \
     .contact_bias = 0.03f, \
-    .contact_spread = 0.2f, \
     .contact_thickness = 0.2f, \
     .diff_fac = 1.0f, \
     .spec_fac = 1.0f, \

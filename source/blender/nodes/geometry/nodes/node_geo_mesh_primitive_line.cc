@@ -3,6 +3,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "BKE_material.h"
@@ -93,7 +94,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   if (params.in_out() == SOCK_OUT) {
-    search_link_ops_for_declarations(params, declaration.outputs());
+    search_link_ops_for_declarations(params, declaration.outputs);
     return;
   }
   else if (params.node_tree().typeinfo->validate_link(
@@ -179,15 +180,15 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 
   Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
 
   threading::parallel_invoke(
       1024 < count,
       [&]() {
-        threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
+        threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
           for (const int i : range) {
-            copy_v3_v3(verts[i].co, start + delta * i);
+            positions[i] = start + delta * i;
           }
         });
       },

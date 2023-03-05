@@ -12,7 +12,6 @@ if(UNIX)
     automake
     bison
     ${_libtoolize_name}
-    meson
     ninja
     pkg-config
     tclsh

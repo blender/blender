@@ -754,18 +754,16 @@ void UI_panel_header_buttons_end(Panel *panel)
   uiBlock *block = panel->runtime.block;
 
   /* A button group should always be created in #UI_panel_header_buttons_begin. */
-  BLI_assert(!BLI_listbase_is_empty(&block->button_groups));
+  BLI_assert(!block->button_groups.is_empty());
 
-  uiButtonGroup *button_group = static_cast<uiButtonGroup *>(block->button_groups.last);
-
-  button_group->flag &= ~UI_BUTTON_GROUP_LOCK;
+  uiButtonGroup &button_group = block->button_groups.last();
+  button_group.flag &= ~UI_BUTTON_GROUP_LOCK;
 
   /* Repurpose the first header button group if it is empty, in case the first button added to
    * the panel doesn't add a new group (if the button is created directly rather than through an
    * interface layout call). */
-  if (BLI_listbase_is_single(&block->button_groups) &&
-      BLI_listbase_is_empty(&button_group->buttons)) {
-    button_group->flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
+  if (block->button_groups.size() > 0) {
+    button_group.flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
   }
   else {
     /* Always add a new button group. Although this may result in many empty groups, without it,
@@ -940,12 +938,11 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
     /* If sub-panels have no search results but the parent panel does, then the parent panel open
      * and the sub-panels will close. In that case there must be a way to hide the buttons in the
      * panel but keep the header buttons. */
-    LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
-      if (button_group->flag & UI_BUTTON_GROUP_PANEL_HEADER) {
+    for (const uiButtonGroup &button_group : block->button_groups) {
+      if (button_group.flag & UI_BUTTON_GROUP_PANEL_HEADER) {
         continue;
       }
-      LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-        uiBut *but = static_cast<uiBut *>(link->data);
+      for (uiBut *but : button_group.buttons) {
         but->flag |= UI_HIDDEN;
       }
     }
@@ -1489,7 +1486,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
     GPU_blend(GPU_BLEND_NONE);
 
-    /* Not essential, but allows events to be handled right up to the region edge (T38171). */
+    /* Not essential, but allows events to be handled right up to the region edge (#38171). */
     if (is_left) {
       pc_dyn->rect.xmin = v2d->mask.xmin;
     }
@@ -2323,7 +2320,7 @@ int ui_handler_panel_region(bContext *C,
         UI_panel_category_active_set(region, pc_dyn->idname);
         ED_region_tag_redraw(region);
 
-        /* Reset scroll to the top (T38348). */
+        /* Reset scroll to the top (#38348). */
         UI_view2d_offset(&region->v2d, -1.0f, 1.0f);
 
         retval = WM_UI_HANDLER_BREAK;

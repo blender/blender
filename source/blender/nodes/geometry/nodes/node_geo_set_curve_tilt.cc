@@ -9,9 +9,9 @@ namespace blender::nodes::node_geo_set_curve_tilt_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Tilt")).subtype(PROP_ANGLE).supports_field();
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>(N_("Tilt")).subtype(PROP_ANGLE).field_on_all();
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void set_tilt(bke::CurvesGeometry &curves,
@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      set_tilt(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, tilt_field);
+      set_tilt(curves_id->geometry.wrap(), selection_field, tilt_field);
     }
   });
 

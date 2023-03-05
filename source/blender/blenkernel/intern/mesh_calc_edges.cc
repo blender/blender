@@ -146,7 +146,6 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
         /* Initialize new edge. */
         new_edge.v1 = item.key.v_low;
         new_edge.v2 = item.key.v_high;
-        new_edge.flag = ME_EDGEDRAW;
       }
       item.value.index = new_edge_index;
       new_edge_index++;
@@ -177,7 +176,7 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
         else {
           /* This is an invalid edge; normally this does not happen in Blender,
            * but it can be part of an imported mesh with invalid geometry. See
-           * T76514. */
+           * #76514. */
           edge_index = 0;
         }
         prev_loop->e = edge_index;

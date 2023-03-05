@@ -13,7 +13,7 @@
  * even though input/output are floats in some cases.
  *
  * This is done because the cases quadrics are useful
- * often need high precision, see T44780.
+ * often need high precision, see #44780.
  */
 
 #include "BLI_math.h"

@@ -71,14 +71,14 @@ void ConvertDepthToRadiusOperation::execute_pixel_sampled(float output[4],
   if (z != 0.0f) {
     float iZ = (1.0f / z);
 
-    /* bug T6656 part 2b, do not re-scale. */
+    /* bug #6656 part 2b, do not re-scale. */
 #if 0
     bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));
     /* Scale crad back to original maximum and blend. */
     crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
     radius = 0.5f * fabsf(aperture_ * (dof_sp_ * (inverse_focal_distance_ - iZ) - 1.0f));
-    /* 'bug' T6615, limit minimum radius to 1 pixel,
+    /* 'bug' #6615, limit minimum radius to 1 pixel,
      * not really a solution, but somewhat mitigates the problem. */
     if (radius < 0.0f) {
       radius = 0.0f;
@@ -111,7 +111,7 @@ void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *o
 
     const float inv_z = (1.0f / z);
 
-    /* Bug T6656 part 2b, do not re-scale. */
+    /* Bug #6656 part 2b, do not re-scale. */
 #if 0
     bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));
     /* Scale crad back to original maximum and blend:
@@ -119,7 +119,7 @@ void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *o
 #endif
     const float radius = 0.5f *
                          fabsf(aperture_ * (dof_sp_ * (inverse_focal_distance_ - inv_z) - 1.0f));
-    /* Bug T6615, limit minimum radius to 1 pixel,
+    /* Bug #6615, limit minimum radius to 1 pixel,
      * not really a solution, but somewhat mitigates the problem. */
     *it.out = CLAMPIS(radius, 0.0f, max_radius_);
   }

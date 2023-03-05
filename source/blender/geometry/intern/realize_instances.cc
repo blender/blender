@@ -9,7 +9,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_devirtualize_parameters.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -101,7 +101,7 @@ struct MeshElementStartIndices {
 
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
-  Span<MVert> verts;
+  Span<float3> positions;
   Span<MEdge> edges;
   Span<MPoly> polys;
   Span<MLoop> loops;
@@ -277,7 +277,7 @@ static void copy_transformed_positions(const Span<float3> src,
 {
   threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      dst[i] = transform * src[i];
+      dst[i] = math::transform_point(transform, src[i]);
     }
   });
 }
@@ -431,11 +431,12 @@ static void foreach_geometry_in_reference(
     case InstanceReference::Type::Collection: {
       Collection &collection = reference.collection();
       float4x4 offset_matrix = float4x4::identity();
-      sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
+      offset_matrix.location() -= collection.instance_offset;
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world;
+        const float4x4 matrix = base_transform * offset_matrix *
+                                float4x4_view(object->object_to_world);
         const int sub_id = noise::hash(id, index);
         fn(object_geometry_set, matrix, sub_id);
         index++;
@@ -636,8 +637,11 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_POINT_CLOUD, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_radii = attributes_to_propagate.pop_try("radius").has_value();
@@ -829,10 +833,12 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_MESH, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_MESH,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("normal");
   attributes_to_propagate.remove("shade_smooth");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
@@ -885,7 +891,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
-    mesh_info.verts = mesh->verts();
+    mesh_info.positions = mesh->vert_positions();
     mesh_info.edges = mesh->edges();
     mesh_info.polys = mesh->polys();
     mesh_info.loops = mesh->loops();
@@ -931,7 +937,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
-                                      MutableSpan<MVert> all_dst_verts,
+                                      MutableSpan<float3> all_dst_positions,
                                       MutableSpan<MEdge> all_dst_edges,
                                       MutableSpan<MPoly> all_dst_polys,
                                       MutableSpan<MLoop> all_dst_loops,
@@ -941,27 +947,24 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
 
-  const Span<MVert> src_verts = mesh_info.verts;
+  const Span<float3> src_positions = mesh_info.positions;
   const Span<MEdge> src_edges = mesh_info.edges;
   const Span<MPoly> src_polys = mesh_info.polys;
   const Span<MLoop> src_loops = mesh_info.loops;
 
-  const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
+  const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
   const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
 
-  MutableSpan<MVert> dst_verts = all_dst_verts.slice(dst_vert_range);
+  MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
   MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
 
-  threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
+  threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
-      const MVert &src_vert = src_verts[i];
-      MVert &dst_vert = dst_verts[i];
-      dst_vert = src_vert;
-      copy_v3_v3(dst_vert.co, task.transform * float3(src_vert.co));
+      dst_positions[i] = math::transform_point(task.transform, src_positions[i]);
     }
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
@@ -1067,7 +1070,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
-  MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
+  MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
@@ -1116,7 +1119,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 task,
                                 ordered_attributes,
                                 dst_attribute_writers,
-                                dst_verts,
+                                dst_positions,
                                 dst_edges,
                                 dst_polys,
                                 dst_loops,
@@ -1149,8 +1152,11 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_CURVE,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
   attributes_to_propagate.remove("resolution");
@@ -1192,7 +1198,7 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
     const Curves *curves_id = info.order[curve_index];
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     curve_info.curves = curves_id;
 
     /* Access attributes. */
@@ -1253,7 +1259,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
   const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
@@ -1342,7 +1348,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   /* Allocate new curves data-block. */
   Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  bke::CurvesGeometry &dst_curves = dst_curves_id->geometry.wrap();
   dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);

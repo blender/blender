@@ -47,8 +47,8 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     if (pixel_size) {
       // Project the derivatives of P to the viewing plane defined
       // by I so we have a measure of how big is a pixel at this point
-      float pixelwidth_x = len(dP.dx - dot(dP.dx, sd->I) * sd->I);
-      float pixelwidth_y = len(dP.dy - dot(dP.dy, sd->I) * sd->I);
+      float pixelwidth_x = len(dP.dx - dot(dP.dx, sd->wi) * sd->wi);
+      float pixelwidth_y = len(dP.dy - dot(dP.dy, sd->wi) * sd->wi);
       // Take the average of both axis' length
       pixelwidth = (pixelwidth_x + pixelwidth_y) * 0.5f;
     }

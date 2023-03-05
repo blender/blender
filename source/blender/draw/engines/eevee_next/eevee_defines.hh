@@ -9,7 +9,9 @@
  * dragging larger headers into the createInfo pipeline which would cause problems.
  */
 
-#pragma once
+#ifndef GPU_SHADER
+#  pragma once
+#endif
 
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 8
@@ -30,15 +32,29 @@
  * SHADOW_TILEMAP_RES max is 32 because of the shared bitmaps used for LOD tagging.
  * It is also limited by the maximum thread group size (1024).
  */
-#define SHADOW_TILEMAP_RES 16
-#define SHADOW_TILEMAP_LOD 4 /* LOG2(SHADOW_TILEMAP_RES) */
+#define SHADOW_TILEMAP_RES 32
+#define SHADOW_TILEMAP_LOD 5 /* LOG2(SHADOW_TILEMAP_RES) */
+#define SHADOW_TILEMAP_LOD0_LEN ((SHADOW_TILEMAP_RES / 1) * (SHADOW_TILEMAP_RES / 1))
+#define SHADOW_TILEMAP_LOD1_LEN ((SHADOW_TILEMAP_RES / 2) * (SHADOW_TILEMAP_RES / 2))
+#define SHADOW_TILEMAP_LOD2_LEN ((SHADOW_TILEMAP_RES / 4) * (SHADOW_TILEMAP_RES / 4))
+#define SHADOW_TILEMAP_LOD3_LEN ((SHADOW_TILEMAP_RES / 8) * (SHADOW_TILEMAP_RES / 8))
+#define SHADOW_TILEMAP_LOD4_LEN ((SHADOW_TILEMAP_RES / 16) * (SHADOW_TILEMAP_RES / 16))
+#define SHADOW_TILEMAP_LOD5_LEN ((SHADOW_TILEMAP_RES / 32) * (SHADOW_TILEMAP_RES / 32))
 #define SHADOW_TILEMAP_PER_ROW 64
-#define SHADOW_PAGE_COPY_GROUP_SIZE 32
-#define SHADOW_DEPTH_SCAN_GROUP_SIZE 32
+#define SHADOW_TILEDATA_PER_TILEMAP \
+  (SHADOW_TILEMAP_LOD0_LEN + SHADOW_TILEMAP_LOD1_LEN + SHADOW_TILEMAP_LOD2_LEN + \
+   SHADOW_TILEMAP_LOD3_LEN + SHADOW_TILEMAP_LOD4_LEN + SHADOW_TILEMAP_LOD5_LEN)
+#define SHADOW_PAGE_CLEAR_GROUP_SIZE 32
+#define SHADOW_PAGE_RES 256
+#define SHADOW_DEPTH_SCAN_GROUP_SIZE 8
 #define SHADOW_AABB_TAG_GROUP_SIZE 64
 #define SHADOW_MAX_TILEMAP 4096
+#define SHADOW_MAX_TILE (SHADOW_MAX_TILEMAP * SHADOW_TILEDATA_PER_TILEMAP)
 #define SHADOW_MAX_PAGE 4096
 #define SHADOW_PAGE_PER_ROW 64
+#define SHADOW_ATLAS_SLOT 5
+#define SHADOW_BOUNDS_GROUP_SIZE 64
+#define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
 
 /* Ray-tracing. */
 #define RAYTRACE_GROUP_SIZE 16
@@ -72,6 +88,11 @@
 /* Resource bindings. */
 
 /* Texture. */
+#define SHADOW_TILEMAPS_TEX_SLOT 12
+/* Only during surface shading. */
+#define SHADOW_ATLAS_TEX_SLOT 13
+/* Only during shadow rendering. */
+#define SHADOW_RENDER_MAP_SLOT 13
 #define RBUFS_UTILITY_TEX_SLOT 14
 
 /* Images. */
@@ -97,7 +118,10 @@
 #define LIGHT_BUF_SLOT 1
 #define LIGHT_ZBIN_BUF_SLOT 2
 #define LIGHT_TILE_BUF_SLOT 3
+/* Only during surface shading. */
 #define RBUFS_AOV_BUF_SLOT 5
+/* Only during shadow rendering. */
+#define SHADOW_PAGE_INFO_SLOT 5
 #define SAMPLING_BUF_SLOT 6
 #define CRYPTOMATTE_BUF_SLOT 7
 

@@ -377,7 +377,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  /* Resize if needed. Also, in case of resize - allocate in advance for future allocs. */
+  /* Resize if needed. Also, in case of resize - allocate in advance for future allocations. */
   const uint slot = mem.slot;
   if (slot >= texture_info_.size()) {
     texture_info_.resize(slot + 128);
@@ -429,7 +429,12 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
       queue->get_device().get_info<sycl::info::device::device_type>();
   sycl::usm::alloc usm_type = get_pointer_type(usm_ptr, queue->get_context());
   (void)usm_type;
-  assert(usm_type == sycl::usm::alloc::device ||
+#    ifndef WITH_ONEAPI_SYCL_HOST_TASK
+  const sycl::usm::alloc main_memory_type = sycl::usm::alloc::device;
+#    else
+  const sycl::usm::alloc main_memory_type = sycl::usm::alloc::host;
+#    endif
+  assert(usm_type == main_memory_type ||
          (usm_type == sycl::usm::alloc::host &&
           (allow_host || device_type == sycl::info::device_type::cpu)) ||
          usm_type == sycl::usm::alloc::unknown);
@@ -478,7 +483,11 @@ void *OneapiDevice::usm_alloc_device(SyclQueue *queue_, size_t memory_size)
 {
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
+#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
   return sycl::malloc_device(memory_size, *queue);
+#  else
+  return sycl::malloc_host(memory_size, *queue);
+#  endif
 }
 
 void OneapiDevice::usm_free(SyclQueue *queue_, void *usm_ptr)
@@ -622,9 +631,9 @@ bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
 /* The same min compute-runtime version is currently required across Windows and Linux.
- * For Windows driver 101.3430, compute-runtime version is 23904. */
-static const int lowest_supported_driver_version_win = 1013430;
-static const int lowest_supported_driver_version_neo = 23904;
+ * For Windows driver 101.4032, compute-runtime version is 24931. */
+static const int lowest_supported_driver_version_win = 1014032;
+static const int lowest_supported_driver_version_neo = 24931;
 
 int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 {
@@ -736,7 +745,11 @@ char *OneapiDevice::device_capabilities()
 
   const std::vector<sycl::device> &oneapi_devices = available_devices();
   for (const sycl::device &device : oneapi_devices) {
+#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     const std::string &name = device.get_info<sycl::info::device::name>();
+#  else
+    const std::string &name = "SYCL Host Task (Debug)";
+#  endif
 
     capabilities << std::string("\t") << name << "\n";
 #  define WRITE_ATTR(attribute_name, attribute_variable) \
@@ -813,7 +826,11 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
   for (sycl::device &device : devices) {
     const std::string &platform_name =
         device.get_platform().get_info<sycl::info::platform::name>();
+#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     std::string name = device.get_info<sycl::info::device::name>();
+#  else
+    std::string name = "SYCL Host Task (Debug)";
+#  endif
     std::string id = "ONEAPI_" + platform_name + "_" + name;
     if (device.has(sycl::aspect::ext_intel_pci_address)) {
       id.append("_" + device.get_info<sycl::ext::intel::info::device::pci_address>());

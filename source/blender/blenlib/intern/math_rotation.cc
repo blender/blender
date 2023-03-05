@@ -5,9 +5,29 @@
  */
 
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+
+namespace blender::math::detail {
+
+template AxisAngle<float>::operator EulerXYZ<float>() const;
+template AxisAngle<float>::operator Quaternion<float>() const;
+template EulerXYZ<float>::operator AxisAngle<float>() const;
+template EulerXYZ<float>::operator Quaternion<float>() const;
+template Quaternion<float>::operator AxisAngle<float>() const;
+template Quaternion<float>::operator EulerXYZ<float>() const;
+
+template AxisAngle<double>::operator EulerXYZ<double>() const;
+template AxisAngle<double>::operator Quaternion<double>() const;
+template EulerXYZ<double>::operator AxisAngle<double>() const;
+template EulerXYZ<double>::operator Quaternion<double>() const;
+template Quaternion<double>::operator AxisAngle<double>() const;
+template Quaternion<double>::operator EulerXYZ<double>() const;
+
+}  // namespace blender::math::detail
 
 namespace blender::math {
 
