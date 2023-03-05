@@ -44,7 +44,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"mod_remesh", NULL},
     {"collada", NULL},
     {"io_wavefront_obj", NULL},
-    {"io_ply",NULL},
+    {"io_ply", NULL},
     {"io_stl", NULL},
     {"io_gpencil", NULL},
     {"opencolorio", NULL},
