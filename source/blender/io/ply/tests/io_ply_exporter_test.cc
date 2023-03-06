@@ -33,7 +33,7 @@ class PlyExportTest : public BlendfileLoadingBaseTest {
   }
 };
 
-std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
+static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
 {
   std::unique_ptr<PlyData> plyData = std::make_unique<PlyData>();
   plyData->vertices = {{1.122082, 1.122082, 1.122082},
@@ -78,7 +78,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   return res;
 }
 
-char read(std::ifstream &file)
+static char read(std::ifstream &file)
 {
   char return_val;
   file.read((char *)&return_val, sizeof(return_val));

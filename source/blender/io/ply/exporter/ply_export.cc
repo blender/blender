@@ -23,18 +23,6 @@ namespace blender::io::ply {
 
 void exporter_main(bContext *C, const PLYExportParams &export_params)
 {
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  exporter_main(bmain, scene, view_layer, C, export_params);
-}
-
-void exporter_main(Main *bmain,
-                   Scene *scene,
-                   ViewLayer *view_layer,
-                   bContext *C,
-                   const PLYExportParams &export_params)
-{
   std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, CTX_data_ensure_evaluated_depsgraph(C), export_params);
 
