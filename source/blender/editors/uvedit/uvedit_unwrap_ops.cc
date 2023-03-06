@@ -426,7 +426,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
                                            Object *ob,
                                            BMesh *bm,
                                            const UnwrapOptions *options,
-                                           UnwrapResultInfo *result_info)
+                                           int *r_count_failed = nullptr)
 {
   BMFace *efa;
   BMIter iter;
@@ -462,11 +462,8 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 
   construct_param_edge_set_seams(handle, bm, options);
 
-  blender::geometry::uv_parametrizer_construct_end(handle,
-                                                   options->fill_holes,
-                                                   options->topology_from_uvs,
-                                                   result_info ? &result_info->count_failed :
-                                                                 nullptr);
+  blender::geometry::uv_parametrizer_construct_end(
+      handle, options->fill_holes, options->topology_from_uvs, r_count_failed);
 
   return handle;
 }
@@ -1810,7 +1807,8 @@ static void uvedit_unwrap(const Scene *scene,
     handle = construct_param_handle_subsurfed(scene, obedit, em, options, result_info);
   }
   else {
-    handle = construct_param_handle(scene, obedit, em->bm, options, result_info);
+    handle = construct_param_handle(
+        scene, obedit, em->bm, options, result_info ? &result_info->count_failed : nullptr);
   }
 
   blender::geometry::uv_parametrizer_lscm_begin(
