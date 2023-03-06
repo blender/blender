@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
-"PO-Revision-Date: 2023-02-26 22:41+0100\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"PO-Revision-Date: 2023-02-27 17:30+0100\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -4390,7 +4390,7 @@ msgstr "Utiliser réglages de post-process"
 
 
 msgid "Additional post processing options for new strokes"
-msgstr "Options de post-traitement additionnels pour les nouveaux traits"
+msgstr "Options de post-traitement supplémentaires pour les nouveaux traits"
 
 
 msgid "Random Settings"
@@ -5652,10 +5652,6 @@ msgid "Enabled"
 msgstr "Activé"
 
 
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Activer cet objet comme collisionneur dans les systèmes physiques"
-
-
 msgid "Single Sided"
 msgstr "Un seul côté"
 
@@ -5813,7 +5809,7 @@ msgstr "Aspect"
 
 
 msgid "Additional transform applied before view transform for artistic needs"
-msgstr "Transformation additionnelle appliquée avant la transformation de la vue, pour des besoins artistiques"
+msgstr "Transformation supplémentaire appliquée avant la transformation de la vue, pour des besoins artistiques"
 
 
 msgid "Do not modify image in an artistic manner"
@@ -14394,7 +14390,7 @@ msgstr "Nombre d’échantillons supplémentaires à prendre entre les frames po
 
 
 msgid "Additional distance around mesh surface to consider as effector"
-msgstr "Distance additionnelle autour de la surface du maillage à considérer comme effecteur"
+msgstr "Distance supplémentaire autour de la surface du maillage à considérer comme effecteur"
 
 
 msgid "Control when to apply the effector"
@@ -14610,7 +14606,7 @@ msgstr "Initial"
 
 
 msgid "Additional initial velocity in X, Y and Z direction (added to source velocity)"
-msgstr "Vélocité initiale additionnelle dans les directions X, Y et Z (ajoutée à la vélocité source)"
+msgstr "Vélocité initiale supplémentaire dans les directions X, Y et Z (ajoutée à la vélocité source)"
 
 
 msgid "Multiplier of source velocity passed to fluid (source velocity is non-zero only if object is moving)"
@@ -16419,10 +16415,6 @@ msgid "Texture Mapping"
 msgstr "Placage de texture"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Changer les coordonnées UV du trait"
-
-
 msgid "Time Offset"
 msgstr "Décalage temporel"
 
@@ -17931,10 +17923,6 @@ msgstr "Facteur d’épaisseur"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Quantité de bruit à appliquer à l’épaisseur"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Quantité de bruit pour appliquer la rotation UV"
 
 
 msgid "Noise Offset"
@@ -35071,10 +35059,6 @@ msgid "UV Pin"
 msgstr "Épinglage UV"
 
 
-msgid "UV pinned state in the uv editor"
-msgstr "État de l’épinglage dans l’éditeur d’UV"
-
-
 msgid "UV coordinates on face corners"
 msgstr "Coordonnées UV sur les coins de faces"
 
@@ -38906,10 +38890,6 @@ msgstr "Échelle verticale (utilisé seulement pour les projecteurs caméras)"
 
 msgid "UVWarp Modifier"
 msgstr "Modificateur déformer (gauchir) les UV"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Ajouter la position de la cible aux coordonnées UV"
 
 
 msgid "U-Axis"
@@ -54060,7 +54040,7 @@ msgstr "Termes et conditions légales attachées au modèle"
 
 
 msgid "Export Deformation Bones Only"
-msgstr "Exporter os de déformation uniquement"
+msgstr "Exporter uniquement les os de déformation"
 
 
 msgid "Export Deformation bones only"
@@ -54072,11 +54052,15 @@ msgstr "Bits de quantification de couleur"
 
 
 msgid "Quantization bits for color values (0 = no quantization)"
-msgstr "Bits de quantifications pour les valeurs de couleur (0 = pas de quantification)"
+msgstr "Bits de quantification pour les valeurs de couleur (0 = pas de quantification)"
 
 
 msgid "Generic quantization bits"
 msgstr "Bits de quantification génériques"
+
+
+msgid "Quantization bits for generic values like weights or joints (0 = no quantization)"
+msgstr "Bits de quantification pour les valeurs génériques comme les poids ou les articulations (0 = pas de quantification)"
 
 
 msgid "Draco mesh compression"
@@ -54100,7 +54084,7 @@ msgstr "Bits de quantification de normales"
 
 
 msgid "Quantization bits for normal values (0 = no quantization)"
-msgstr "Bits de quantifications pour les valeurs de normales (0 = pas de quantification)"
+msgstr "Bits de quantification pour les valeurs de normales (0 = pas de quantification)"
 
 
 msgid "Position quantization bits"
@@ -54108,7 +54092,7 @@ msgstr "Bits de quantification de position"
 
 
 msgid "Quantization bits for position values (0 = no quantization)"
-msgstr "Bits de quantifications pour les valeurs de position (0 = pas de quantification)"
+msgstr "Bits de quantification pour les valeurs de position (0 = pas de quantification)"
 
 
 msgid "Texcoord quantization bits"
@@ -54116,7 +54100,7 @@ msgstr "Bits de quantification de coordonnées de texture"
 
 
 msgid "Quantization bits for texture coordinate values (0 = no quantization)"
-msgstr "Bits de quantifications pour les valeurs de coordonnées de texture (0 = pas de quantification)"
+msgstr "Bits de quantification pour les valeurs de coordonnées de texture (0 = pas de quantification)"
 
 
 msgid "Export custom properties as glTF extras"
@@ -65545,10 +65529,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Accrocher les sommets sélectionnés au premier objet sélectionné"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Assigner le crochet à l’os actif de l’objet crochet"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Assigner à crochet"
@@ -68427,14 +68407,6 @@ msgid "Library Operation"
 msgstr "Opération de bibliothèque"
 
 
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"Supprimer cette bibliothèque et tous ses éléments.\n"
-"Attention : pas d’annulation possible"
-
-
 msgid "Relocate"
 msgstr "Relocaliser"
 
@@ -68851,10 +68823,6 @@ msgstr "Essayer de sélectionner une poignée avant la transformation"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Ajouter UV simples"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Ajouter une carte UV cubique au maillage"
 
 
 msgctxt "Operator"
@@ -76427,10 +76395,6 @@ msgid "Align Rotation"
 msgstr "Aligner la rotation"
 
 
-msgid "Align uv island's rotation"
-msgstr "Aligner la rotation d’un îlot UV"
-
-
 msgid "Axis to align to"
 msgstr "Axis sur lequel aligner"
 
@@ -76877,10 +76841,6 @@ msgstr "Plaquer les UV dans la région caméra en prenant en compte résolution 
 
 msgid "Use orthographic projection"
 msgstr "Utiliser une projection orthogonale"
-
-
-msgid "Randomize uv island's location, rotation, and scale"
-msgstr "Randomiser la position, la rotation et l’échelle des îlots UV"
 
 
 msgid "Maximum rotation"
@@ -85588,7 +85548,7 @@ msgstr "Nouveaux outils de courbes"
 
 
 msgid "Enable additional features for the new curves data block"
-msgstr "Activer des fonctionnalités additionnelles pour le nouveau bloc de données de courbes"
+msgstr "Activer des fonctionnalités supplémentaires pour le nouveau bloc de données de courbes"
 
 
 msgid "New Point Cloud Type"
@@ -90053,11 +90013,11 @@ msgstr "Valeur de départ de la conversion, en frames"
 
 
 msgid "Additional Subdivision"
-msgstr "Subdivision additionnelle"
+msgstr "Subdivision supplémentaire"
 
 
 msgid "Additional subdivision along the curves"
-msgstr "Subdivision additionnelle le long des courbes"
+msgstr "Subdivision supplémentaire le long des courbes"
 
 
 msgid "Curves Shape Type"
@@ -96925,10 +96885,6 @@ msgid "Display Texture Paint UVs"
 msgstr "Afficher les UV de peinture de texture"
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "Afficher le calque UV de la texture peinte en surimpression"
-
-
 msgid "Tile Grid Shape"
 msgstr "Forme de la grille de tuiles"
 
@@ -101808,40 +101764,100 @@ msgid "Number of dimensions of the grid data type"
 msgstr "Nombre de dimensions du type de données grille"
 
 
+msgctxt "Volume"
+msgid "Data Type"
+msgstr "Type de données"
+
+
 msgid "Data type of voxel values"
 msgstr "Type de données des valeurs de voxel"
+
+
+msgctxt "Volume"
+msgid "Boolean"
+msgstr "Booléen"
+
+
+msgctxt "Volume"
+msgid "Float"
+msgstr "Flottant"
 
 
 msgid "Single precision float"
 msgstr "Flottant simple précision"
 
 
+msgctxt "Volume"
+msgid "Double"
+msgstr "Double"
+
+
 msgid "Double precision"
 msgstr "Flottant double précision"
+
+
+msgctxt "Volume"
+msgid "Integer"
+msgstr "Entier"
+
+
+msgctxt "Volume"
+msgid "Integer 64-bit"
+msgstr "Entier 64 bits"
 
 
 msgid "64-bit integer"
 msgstr "Entier 64 bits"
 
 
+msgctxt "Volume"
+msgid "Mask"
+msgstr "Masque"
+
+
 msgid "No data, boolean mask of active voxels"
 msgstr "Aucune donnée, un masque booléen de voxels actifs"
+
+
+msgctxt "Volume"
+msgid "Float Vector"
+msgstr "Vecteur flottants"
 
 
 msgid "3D float vector"
 msgstr "Vecteur 3D de flottants"
 
 
+msgctxt "Volume"
+msgid "Double Vector"
+msgstr "Vecteur doubles"
+
+
 msgid "3D double vector"
 msgstr "Vecteur 3D de flottants doubles"
+
+
+msgctxt "Volume"
+msgid "Integer Vector"
+msgstr "Vecteur entiers"
 
 
 msgid "3D integer vector"
 msgstr "Vecteur 3D d’entiers"
 
 
+msgctxt "Volume"
+msgid "Points (Unsupported)"
+msgstr "Points (non pris en charge)"
+
+
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Grille de points, actuellement non pris en charge par les objets volumes"
+
+
+msgctxt "Volume"
+msgid "Unknown"
+msgstr "Inconnu"
 
 
 msgid "Unsupported data type"
@@ -106135,6 +106151,14 @@ msgid "Built without VR/OpenXR features"
 msgstr "Compilé sans les fonctionnalités de VR / OpenXR"
 
 
+msgid "Start VR Session"
+msgstr "Démarrer la session VR"
+
+
+msgid "Stop VR Session"
+msgstr "Arrêter la session VR"
+
+
 msgid "* Missing Paths *"
 msgstr "* Chemins manquants *"
 
@@ -109082,6 +109106,10 @@ msgid "No active track"
 msgstr "Aucune piste active"
 
 
+msgid "Custom Color Presets"
+msgstr "Préréglages de couleur personnalisés"
+
+
 msgid "No active plane track"
 msgstr "Aucun plan de suivi actif"
 
@@ -111179,7 +111207,7 @@ msgstr "Communauté des développeurs"
 
 msgctxt "Operator"
 msgid "Python API Reference"
-msgstr "Références de l’API Python (en)"
+msgstr "Référence de l’API Python (en)"
 
 
 msgctxt "Operator"
@@ -114051,7 +114079,7 @@ msgstr "Le maillage source n’a aucune face, aucune des correspondances « Fac
 
 
 msgid "Source or destination meshes do not have any vertices, cannot transfer vertex data"
-msgstr "Les maillages source/de destination n’ont aucun sommet, impossible de transférer des données de vertex"
+msgstr "Les maillages source/de destination n’ont aucun sommet, impossible de transférer des données de sommets"
 
 
 msgid "Source and destination meshes do not have the same amount of edges, 'Topology' mapping cannot be used in this case"
@@ -116685,6 +116713,16 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "Triplet hexadécimal de couleur (#RRVVBB)"
 
 
+msgctxt "Color"
+msgid "Value:"
+msgstr "Valeur:"
+
+
+msgctxt "Color"
+msgid "Value"
+msgstr "Valeur"
+
+
 msgid "Redo"
 msgstr "Refaire"
 
@@ -117595,15 +117633,15 @@ msgstr "Pas de poids/groupes de sommets dans l’objet"
 
 
 msgid "No face selected"
-msgstr "Pas de face sélectionnée"
+msgstr "Aucune face sélectionnée"
 
 
 msgid "No edge selected"
-msgstr "Pas d’arête sélectionnée"
+msgstr "Aucune arête sélectionnée"
 
 
 msgid "No vertex selected"
-msgstr "Pas de vertice sélectionnée"
+msgstr "Aucun sommet sélectionné"
 
 
 msgid "No vertex group among the selected vertices"
@@ -117683,7 +117721,7 @@ msgstr "Impossible de faire tourner %d arête(s)"
 
 
 msgid "Removed %d vertice(s)"
-msgstr "%d vertice(s) supprimé(s)"
+msgstr "%d sommets(s) supprimé(s)"
 
 
 msgid "%d already symmetrical, %d pairs mirrored, %d failed"
@@ -123078,10 +123116,6 @@ msgid "Driver not found in this animation data"
 msgstr "Le contrôleur est introuvable dans les données d’animation"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’infos d’ensemble de clés : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Impossible d’enlever la piste NLA « %s »"
 
@@ -123713,10 +123747,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Impossible de déplacer des prises d’un nœud intégré"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’arborescence de nœuds : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "L’arborescence de nœuds « %s » a un type indéfini %s"
 
@@ -123745,16 +123775,12 @@ msgid "Unable to locate socket '%s' in node"
 msgstr "Impossible de trouver la prise « %s » dans le nœud"
 
 
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de nœud : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, longueur maximum de %d"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
-msgstr "Les données évaluées ne peuvent être assignées qu’aux objets évalués, et les originales, aux objets originaux"
+msgstr "Les données évaluées ne peuvent être assignées qu’aux objets évalués, et les données originales aux objets originaux"
 
 
 msgid "Only empty objects support collection instances"
@@ -123774,7 +123800,7 @@ msgstr "VertexGroup.remove() : ne peut être appelé quand l’objet est en mod
 
 
 msgid "Vertex not in group"
-msgstr "Sommet pas dans le groupe"
+msgstr "Sommet absent du groupe"
 
 
 msgid "FaceMap.add(): cannot be called while object is in edit mode"
@@ -123942,10 +123968,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "Indice %d de segments de B-os invalide pour « %s » !"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de moteur de rendu : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Une forme de collision non-convexe a été passée à la fonction, utilisez uniquement des formes de collision convexes"
 
@@ -124070,30 +124092,6 @@ msgid "Region not found in space type"
 msgstr "La région est introuvable dans le type d’espace"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de panneau : « %s » est trop long, longueur maximum de %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Enregistrement de la classe de panneau : « %s » a la catégorie « %s » "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Enregistrement de la classe de panneau : le parent « %s » est introuvable pour « %s »"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe uilist : « %s » est trop long, longueur maximum de %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’en-tête : « %s » est trop long, longueur maximum de %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de menu : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "L’add-on n’est plus valide"
 
@@ -124102,16 +124100,8 @@ msgid "Excluded path is no longer valid"
 msgstr "Le chemin exclus n’est plus valide"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de préférences utilisateur : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "Font not packed"
 msgstr "Police non-empaquetée"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de préférences de configuration clavier : « %s » est trop long, longueur maximum de %d"
 
 
 msgid "Not a non-modal keymap"
@@ -124174,24 +124164,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "Impossible d’enlever la configuration clavier « %s »"
 
 
-msgid "Area type does not support gizmos"
-msgstr "Le type de zone ne prend pas en charge les gizmos"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de gizmo : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Type de gizmo « %s » inconnu"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "Le type de gizmo « %s » est pour un groupe de gizmos 3D. Le callback 'draw_select' est défini mais seul 'test_select' sera utilisé"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de groupe gizmo : « %s » est trop long, longueur maximum de %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -126860,7 +126838,7 @@ msgstr "Aucune frame rendue, ignorée pour ne pas écraser"
 
 
 msgid "No camera found in scene \"%s\" (used in compositing of scene \"%s\")"
-msgstr "Aucune caméra trouvée dans la scène « %s » (utilisé dans le compositing de la scène « %s »)"
+msgstr "Aucune caméra trouvée dans la scène « %s » (utilisée dans le compositing de la scène « %s »)"
 
 
 msgid "No camera found in scene \"%s\""
@@ -126876,7 +126854,7 @@ msgstr "Aucune vue active dans la scène « %s »"
 
 
 msgid "%s: no Combined pass found in the render layer '%s'"
-msgstr "%s : pas de passe combinée dans le calque de rendu « %s »"
+msgstr "%s : aucune passe Combinée dans le calque de rendu « %s »"
 
 
 msgid "%s: failed to allocate clip buffer '%s'"
@@ -127893,6 +127871,10 @@ msgid "FBX format"
 msgstr "Format FBX"
 
 
+msgid "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions"
+msgstr "Entrée/sortie de maillages, UV, couleurs de sommets, matériaux, textures, caméras, éclairages et actions en FBX"
+
+
 msgid "Import Images as Planes"
 msgstr "Importer images en tant que plans"
 
@@ -127959,6 +127941,10 @@ msgstr "Exporter la disposition UV en tant qu’image 2D"
 
 msgid "Wavefront OBJ format (legacy)"
 msgstr "Format Wavefront OBJ (obsolète)"
+
+
+msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
+msgstr "Importer et exporter OBJ, importer les maillages, UV, matériaux et textures en OBJ"
 
 
 msgid "glTF 2.0 format"

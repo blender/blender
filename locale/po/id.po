@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -4111,10 +4111,6 @@ msgstr "Ketebalan wajah luar"
 
 msgid "Enabled"
 msgstr "Diaktifkan"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Aktifkan objek ini sebagai penabrak untuk sistem fisika"
 
 
 msgid "Single Sided"

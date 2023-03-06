@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -4397,10 +4397,6 @@ msgstr "外面厚度"
 
 msgid "Enabled"
 msgstr "已啟用"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "將此物體設定為物理系統中的的碰撞子"
 
 
 msgid "Kill Particles"
@@ -21906,10 +21902,6 @@ msgid "UVWarp Modifier"
 msgstr "UVWarp 修改器"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "添加目標位置到 UV 座標軸"
-
-
 msgid "U-Axis"
 msgstr "U 軸"
 
@@ -35420,10 +35412,6 @@ msgstr "鉤至選取的物體"
 
 msgid "Hook selected vertices to the first selected object"
 msgstr "將選取的頂點鉤至第一個選取的物體"
-
-
-msgid "Assign the hook to the hook objects active bone"
-msgstr "將鉤指派給鉤物體作用中骨骼"
 
 
 msgctxt "Operator"
@@ -60402,10 +60390,6 @@ msgid "No valid driver data to create copy of"
 msgstr "無有效的驅動器資料可製作副本，副本來源為"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "正在註冊鍵處理集資訊型別：「%s」過長，最大長度為 %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "無法移除 NlaTrack「%s」"
 
@@ -60635,10 +60619,6 @@ msgid "Unable to create socket"
 msgstr "無法建立接口"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "正在註冊節點樹型別：「%s」過長，最大長度為 %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "節點樹「%s」有未定義的類型 %s"
 
@@ -60657,10 +60637,6 @@ msgstr "無法定位節點樹中的「%s」節點"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "無法定位節點中的「%s」接口"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "正在註冊節點型別：「%s」過長，最大長度為 %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -60774,14 +60750,6 @@ msgstr "無法移除 MovieTracking「%s」"
 
 msgid "Region not found in space type"
 msgstr "空間類型中找不到區塊"
-
-
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "正在註冊附加元件偏好設定型別：「%s」過長，最大長度為 %d"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "正在註冊鍵設定偏好設定型別：「%s」過長，最大長度為 %d"
 
 
 msgid "Not a non-modal keymap"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -5653,10 +5653,6 @@ msgstr "外面厚度"
 
 msgid "Enabled"
 msgstr "已开启"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "将该物体设置为物理仿真的碰撞器"
 
 
 msgid "Single Sided"
@@ -16422,10 +16418,6 @@ msgid "Texture Mapping"
 msgstr "纹理映射"
 
 
-msgid "Change stroke uv texture values"
-msgstr "修改UV笔画纹理值"
-
-
 msgid "Time Offset"
 msgstr "时间偏移"
 
@@ -17934,10 +17926,6 @@ msgstr "厚度系数"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "应用于宽度的噪波量"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "应用UV旋转的噪波量"
 
 
 msgid "Noise Offset"
@@ -35072,10 +35060,6 @@ msgid "UV Pin"
 msgstr "UV 钉固"
 
 
-msgid "UV pinned state in the uv editor"
-msgstr "UV 编辑器中的 UV 钉固状态"
-
-
 msgid "UV coordinates on face corners"
 msgstr "面角上的 UV 坐标"
 
@@ -38907,10 +38891,6 @@ msgstr "垂直比例(仅用于摄像机投射源)"
 
 msgid "UVWarp Modifier"
 msgstr "UV 偏移修改器"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "将目标位置添加到 UV 坐标"
 
 
 msgid "U-Axis"
@@ -65533,10 +65513,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "钩挂到选中的物体骨骼"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "将挂钩指定到钩挂物体的活动骨骼上"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "指定到挂钩"
@@ -68395,14 +68371,6 @@ msgid "Library Operation"
 msgstr "库操作"
 
 
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"删除此库与其全部条目。\n"
-"警告: 无法撤销"
-
-
 msgid "Relocate"
 msgstr "重定位"
 
@@ -68819,10 +68787,6 @@ msgstr "尝试在转换前选择一个点的控制柄"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "添加简易UV"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "在网格上添加立方体映射UVs"
 
 
 msgctxt "Operator"
@@ -76395,10 +76359,6 @@ msgid "Align Rotation"
 msgstr "对齐旋转"
 
 
-msgid "Align uv island's rotation"
-msgstr "对齐UV孤岛的旋转"
-
-
 msgid "Axis to align to"
 msgstr "要对齐的轴"
 
@@ -76845,10 +76805,6 @@ msgstr "将 UV 映射到顾及分辨率及的摄像机区域"
 
 msgid "Use orthographic projection"
 msgstr "使用正交投射"
-
-
-msgid "Randomize uv island's location, rotation, and scale"
-msgstr "随机化UV孤岛的位置/旋转/缩放"
 
 
 msgid "Maximum rotation"
@@ -96853,10 +96809,6 @@ msgstr "根据 UV 及其 3D 坐标的拉伸幅度使用不同的颜色对面进�
 
 msgid "Display Texture Paint UVs"
 msgstr "显示纹理绘制UV"
-
-
-msgid "Display overlay of texture paint uv layer"
-msgstr "叠加显示纹理绘制UV层"
 
 
 msgid "Tile Grid Shape"
@@ -122845,10 +122797,6 @@ msgid "Driver not found in this animation data"
 msgstr "未能在该动画数据中找到驱动器"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "将帧设置注册至类: '%s' 太长, 最大长度为 %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "无法移除 NLA 轨道 '%s'"
 
@@ -123480,10 +123428,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "无法移动内置节点中的接口"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "注册节点树类: '%s' 过长, 最大长度为 %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "节点树 '%s' 包含未定义的类型 '%s'"
 
@@ -123510,10 +123454,6 @@ msgstr "无法在节点树中找到节点 '%s'"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "无法在节点上找到接口 '%s'"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "注册节点类: '%s' 过长, 最大长度为 %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -123705,10 +123645,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "索引 %d 对柔性骨骼分段 '%s' 无效!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "注册的渲染引擎类: '%s' 太长, 最大长度为 %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "向函数传递了没有设置为凸壳的碰撞形状, 只使用凸壳作为碰撞形状"
 
@@ -123833,30 +123769,6 @@ msgid "Region not found in space type"
 msgstr "空间类型里找不到区域"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "注册的面板类: '%s' 太长, 最大长度为 %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "注册面板类: '%s'具有类别'%s' "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "注册面板类: '%s' 作为 '%s' 父级未找到"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "注册的工具类: '%s' 太长, 最大长度为 %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "注册的标题栏类: '%s' 太长, 最大长度为 %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "注册的菜单类: '%s' 太长, 最大长度为 %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "插件已失效"
 
@@ -123865,16 +123777,8 @@ msgid "Excluded path is no longer valid"
 msgstr "已排除路径不再有效"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "注册插件设置类: '%s' 太长, 最大的长度是 %d"
-
-
 msgid "Font not packed"
 msgstr "未打包字体"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "注册键位配置设置类: '%s'过长, 长度上限为 %d"
 
 
 msgid "Not a non-modal keymap"
@@ -123937,24 +123841,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "无法移除键配置 %s"
 
 
-msgid "Area type does not support gizmos"
-msgstr "区域类型不支持Gizmo"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "注册Gizmo类:'%s' 过长,最大长度为 %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "未知Gizmo类型 '%s'"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "Gizmo类型 '%s' 用于三维gizmo组. 在将用到 'test_select' 的位置设置了 'draw_select' 回调"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "注册Gizmo群组类:'%s' 过长,最大长度为 %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"
