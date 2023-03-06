@@ -276,6 +276,11 @@ extern TransConvertTypeInfo TransConvertType_SequencerImage;
 
 extern TransConvertTypeInfo TransConvertType_Tracking;
 
+/* transform_convert_tracking_curves.c */
+
+extern TransConvertTypeInfo TransConvertType_TrackingCurves;
+
+
 #ifdef __cplusplus
 }
 #endif
