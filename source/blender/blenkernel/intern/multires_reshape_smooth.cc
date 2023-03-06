@@ -648,8 +648,8 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
-  const MPoly *base_poly = &reshape_context->base_polys[face_index];
-  const int num_corners = base_poly->totloop;
+  const MPoly &base_poly = reshape_context->base_polys[face_index];
+  const int num_corners = base_poly.totloop;
   const int start_grid_index = reshape_context->face_start_grid_index[face_index];
   const int corner = grid_coord.grid_index - start_grid_index;
 
@@ -857,9 +857,9 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 
   int num_used_edges = 0;
   for (const int poly_index : base_polys.index_range()) {
-    const MPoly *base_poly = &base_polys[poly_index];
-    for (int corner = 0; corner < base_poly->totloop; corner++) {
-      const MLoop *loop = &base_loops[base_poly->loopstart + corner];
+    const MPoly &base_poly = base_polys[poly_index];
+    for (int corner = 0; corner < base_poly.totloop; corner++) {
+      const MLoop *loop = &base_loops[base_poly.loopstart + corner];
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
 

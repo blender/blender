@@ -132,10 +132,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap[vd.index];
       for (int j = 0; j < ss->pmap[vd.index].count; j++) {
-        const MPoly *poly = &ss->polys[vert_map->indices[j]];
+        const MPoly &poly = ss->polys[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(poly, &ss->mloop[poly->loopstart], positions, poly_center);
+        BKE_mesh_calc_poly_center(&poly, &ss->mloop[poly.loopstart], positions, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -1110,9 +1110,9 @@ static void sculpt_face_set_grow(Object *ob,
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
-    const MPoly *c_poly = &polys[p];
-    for (int l = 0; l < c_poly->totloop; l++) {
-      const MLoop *c_loop = &loops[c_poly->loopstart + l];
+    const MPoly &c_poly = polys[p];
+    for (int l = 0; l < c_poly.totloop; l++) {
+      const MLoop *c_loop = &loops[c_poly.loopstart + l];
       const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
@@ -1141,9 +1141,9 @@ static void sculpt_face_set_shrink(Object *ob,
       continue;
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
-      const MPoly *c_poly = &polys[p];
-      for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &loops[c_poly->loopstart + l];
+      const MPoly &c_poly = polys[p];
+      for (int l = 0; l < c_poly.totloop; l++) {
+        const MLoop *c_loop = &loops[c_poly.loopstart + l];
         const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];

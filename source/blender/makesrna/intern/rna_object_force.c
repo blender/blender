@@ -1150,7 +1150,7 @@ static void rna_def_collision(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
   RNA_def_property_ui_text(
-      prop, "Enabled", "Enable this objects as a collider for physics systems");
+      prop, "Enabled", "Enable this object as a collider for physics systems");
   RNA_def_property_update(prop, 0, "rna_CollisionSettings_dependency_update");
 
   /* Particle Interaction */

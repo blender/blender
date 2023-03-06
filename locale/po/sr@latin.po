@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1845,10 +1845,6 @@ msgstr "Spoljna debljina stranice"
 
 msgid "Enabled"
 msgstr "Omogućeno"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Omogući sudaranje sa ovim objektom"
 
 
 msgid "Kill Particles"
@@ -10537,10 +10533,6 @@ msgstr "Broj korišćenih projektora"
 
 msgid "Projectors"
 msgstr "Projektori"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Dodaj ciljnu poziciju na UV koordinate"
 
 
 msgid "U-Axis"

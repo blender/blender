@@ -1890,30 +1890,24 @@ static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *e
       continue;
     }
 
-    if (node->parent == nullptr) {
-      /* Disallow moving a parent into its child. */
-      if (nodeAttachNodeCheck(frame, node) == false) {
-        /* Attach all unparented nodes. */
-        nodeAttachNode(&ntree, node, frame);
-      }
+    /* Disallow moving a parent into its child. */
+    if (node->is_frame() && nodeIsParentAndChild(node, frame)) {
+      continue;
     }
-    else {
-      /* Attach nodes which share parent with the frame. */
-      bNode *parent;
-      for (parent = frame->parent; parent; parent = parent->parent) {
-        if (parent == node->parent) {
-          break;
-        }
-      }
 
-      if (parent) {
-        /* Disallow moving a parent into its child. */
-        if (nodeAttachNodeCheck(frame, node) == false) {
-          nodeDetachNode(&ntree, node);
-          nodeAttachNode(&ntree, node, frame);
-        }
-      }
+    if (node->parent == nullptr) {
+      nodeAttachNode(&ntree, node, frame);
+      continue;
     }
+
+    /* Attach nodes which share parent with the frame. */
+    const bool share_parent = nodeIsParentAndChild(node->parent, frame);
+    if (!share_parent) {
+      continue;
+    }
+
+    nodeDetachNode(&ntree, node);
+    nodeAttachNode(&ntree, node, frame);
   }
 
   node_sort(ntree);
@@ -2305,7 +2299,7 @@ static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, con
   /* Flag all children as offset to prevent them from being offset
    * separately (they've already moved with the parent). */
   for (bNode *node : data->ntree->all_nodes()) {
-    if (nodeIsChildOf(parent, node)) {
+    if (nodeIsParentAndChild(parent, node)) {
       /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
       node->flag |= NODE_TEST;
     }
@@ -2345,7 +2339,7 @@ static void node_link_insert_offset_frame_chains(bNodeTree *ntree,
                                                  const bool reversed)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (nodeIsChildOf(parent, node)) {
+    if (nodeIsParentAndChild(parent, node)) {
       nodeChainIter(ntree, node, node_link_insert_offset_frame_chain_cb, data, reversed);
     }
   }
@@ -2372,7 +2366,7 @@ static bool node_link_insert_offset_chain_cb(bNode *fromnode,
       node_offset_apply(*ofs_node, data->offset_x);
     }
 
-    if (nodeIsChildOf(data->insert_parent, ofs_node) == false) {
+    if (!nodeIsParentAndChild(data->insert_parent, ofs_node)) {
       data->insert_parent = nullptr;
     }
   }
@@ -2472,7 +2466,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
     if (needs_alignment) {
       bNode *offs_node = right_alignment ? next : prev;
       if (!offs_node->parent || offs_node->parent == insert.parent ||
-          nodeIsChildOf(offs_node->parent, &insert)) {
+          nodeIsParentAndChild(offs_node->parent, &insert)) {
         node_offset_apply(*offs_node, addval);
       }
       else if (!insert.parent && offs_node->parent) {

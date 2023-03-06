@@ -111,6 +111,7 @@ static SeqRetimingHandle *closest_retiming_handle_get(const bContext *C,
                                                       const float mouse_x)
 {
   const View2D *v2d = UI_view2d_fromcontext(C);
+  const Scene *scene = CTX_data_scene(C);
   int best_distance = INT_MAX;
   SeqRetimingHandle *closest_handle = nullptr;
 
@@ -119,7 +120,8 @@ static SeqRetimingHandle *closest_retiming_handle_get(const bContext *C,
 
   for (int i = 0; i < SEQ_retiming_handles_count(seq); i++) {
     SeqRetimingHandle *handle = seq->retiming_handles + i;
-    const int distance = round_fl_to_int(fabsf(handle->strip_frame_index - mouse_x_view));
+    const int distance = round_fl_to_int(
+        fabsf(SEQ_retiming_handle_timeline_frame_get(scene, seq, handle) - mouse_x_view));
 
     if (distance < distance_threshold && distance < best_distance) {
       best_distance = distance;
@@ -143,7 +145,7 @@ static int sequencer_retiming_handle_move_invoke(bContext *C, wmOperator *op, co
   /* Ensure retiming handle at left handle position. This way user gets more predictable result
    * when strips have offsets. */
   const int left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
-  if (SEQ_retiming_add_handle(seq, left_handle_frame) != nullptr) {
+  if (SEQ_retiming_add_handle(scene, seq, left_handle_frame) != nullptr) {
     handle_index++; /* Advance index, because new handle was created. */
   }
 
@@ -184,9 +186,9 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
       SeqRetimingHandle *handle_prev = handle - 1;
 
       /* Limit retiming handle movement. */
-      int xmin = SEQ_time_start_frame_get(seq) + handle_prev->strip_frame_index + 1;
+      int xmin = SEQ_retiming_handle_timeline_frame_get(scene, seq, handle_prev) + 1;
       mouse_x = max_ff(xmin, mouse_x);
-      offset = mouse_x - (SEQ_time_start_frame_get(seq) + handle->strip_frame_index);
+      offset = mouse_x - SEQ_retiming_handle_timeline_frame_get(scene, seq, handle);
 
       SEQ_retiming_offset_handle(scene, seq, handle, offset);
 
@@ -261,7 +263,7 @@ static int sequesequencer_retiming_handle_add_exec(bContext *C, wmOperator *op)
   bool inserted = false;
   const float end_frame = seq->start + SEQ_time_strip_length_get(scene, seq);
   if (seq->start < timeline_frame && end_frame > timeline_frame) {
-    SEQ_retiming_add_handle(seq, timeline_frame);
+    SEQ_retiming_add_handle(scene, seq, timeline_frame);
     inserted = true;
   }
 

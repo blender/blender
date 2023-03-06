@@ -117,10 +117,10 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    const MPoly *poly = mr->polys.data();
-    for (int poly_index = 0, l_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
-      for (int i = 0; i < poly->totloop; i++, l_index++) {
-        loop_stretch[l_index] = area_ratio[poly_index];
+    for (const int poly_i : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_i];
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        loop_stretch[loop_i] = area_ratio[poly_i];
       }
     }
   }

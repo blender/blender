@@ -757,7 +757,6 @@ void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void nodeToView(const struct bNode *node, float x, float y, float *rx, float *ry);
 void nodeFromView(const struct bNode *node, float x, float y, float *rx, float *ry);
-bool nodeAttachNodeCheck(const struct bNode *node, const struct bNode *parent);
 void nodeAttachNode(struct bNodeTree *ntree, struct bNode *node, struct bNode *parent);
 void nodeDetachNode(struct bNodeTree *ntree, struct bNode *node);
 
@@ -790,11 +789,7 @@ void nodeFindNode(struct bNodeTree *ntree,
  */
 struct bNode *nodeFindRootParent(bNode *node);
 
-/**
- * \returns true if \a child has \a parent as a parent/grandparent/... etc.
- * \note Recursive
- */
-bool nodeIsChildOf(const bNode *parent, const bNode *child);
+bool nodeIsParentAndChild(const bNode *parent, const bNode *child);
 
 /**
  * Iterate over a chain of nodes, starting with \a node_start, executing

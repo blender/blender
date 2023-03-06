@@ -236,10 +236,10 @@ class MeshFairingContext : public FairingContext {
                                   float r_adj_prev[3]) override
   {
     const int vert = mloop_[loop].v;
-    const MPoly *poly = &polys[loop_to_poly_map_[loop]];
-    const int corner = poly_find_loop_from_vert(poly, &mloop_[poly->loopstart], vert);
-    copy_v3_v3(r_adj_next, co_[ME_POLY_LOOP_NEXT(mloop_, poly, corner)->v]);
-    copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, poly, corner)->v]);
+    const MPoly &poly = polys[loop_to_poly_map_[loop]];
+    const int corner = poly_find_loop_from_vert(&poly, &mloop_[poly.loopstart], vert);
+    copy_v3_v3(r_adj_next, co_[ME_POLY_LOOP_NEXT(mloop_, &poly, corner)->v]);
+    copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, &poly, corner)->v]);
   }
 
   int other_vertex_index_from_loop(const int loop, const uint v) override

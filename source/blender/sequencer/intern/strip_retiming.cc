@@ -86,7 +86,7 @@ int SEQ_retiming_handles_count(const Sequence *seq)
   return seq->retiming_handle_num;
 }
 
-void SEQ_retiming_data_ensure(const Scene *scene, Sequence *seq)
+void SEQ_retiming_data_ensure(Sequence *seq)
 {
   if (!SEQ_retiming_is_allowed(seq)) {
     return;
@@ -99,7 +99,7 @@ void SEQ_retiming_data_ensure(const Scene *scene, Sequence *seq)
   seq->retiming_handles = (SeqRetimingHandle *)MEM_calloc_arrayN(
       2, sizeof(SeqRetimingHandle), __func__);
   SeqRetimingHandle *handle = seq->retiming_handles + 1;
-  handle->strip_frame_index = seq_time_strip_original_content_length_get(scene, seq) - 1;
+  handle->strip_frame_index = seq_time_strip_original_content_length_get(seq) - 1;
   handle->retiming_factor = 1.0f;
   seq->retiming_handle_num = 2;
 }
@@ -147,9 +147,10 @@ float seq_retiming_evaluate(const Sequence *seq, const int frame_index)
   return previous_handle->retiming_factor + (target_diff * segment_fac);
 }
 
-SeqRetimingHandle *SEQ_retiming_add_handle(Sequence *seq, const int timeline_frame)
+SeqRetimingHandle *SEQ_retiming_add_handle(Scene *scene, Sequence *seq, const int timeline_frame)
 {
-  float frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
+  float frame_index = (timeline_frame - SEQ_time_start_frame_get(seq)) *
+                      seq_time_media_playback_rate_factor_get(scene, seq);
   float value = seq_retiming_evaluate(seq, frame_index);
 
   const SeqRetimingHandle *closest_handle = retiming_find_segment_start_handle(seq, frame_index);
@@ -195,7 +196,7 @@ void SEQ_retiming_offset_handle(const Scene *scene,
 
   MutableSpan handles = SEQ_retiming_handles_get(seq);
   for (; handle < handles.end(); handle++) {
-    handle->strip_frame_index += offset;
+    handle->strip_frame_index += offset * seq_time_media_playback_rate_factor_get(scene, seq);
   }
 
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
@@ -223,9 +224,7 @@ void SEQ_retiming_remove_handle(Sequence *seq, SeqRetimingHandle *handle)
   seq->retiming_handle_num--;
 }
 
-float SEQ_retiming_handle_speed_get(const Scene *scene,
-                                    const Sequence *seq,
-                                    const SeqRetimingHandle *handle)
+float SEQ_retiming_handle_speed_get(const Sequence *seq, const SeqRetimingHandle *handle)
 {
   if (handle->strip_frame_index == 0) {
     return 1.0f;
@@ -233,7 +232,7 @@ float SEQ_retiming_handle_speed_get(const Scene *scene,
 
   const SeqRetimingHandle *handle_prev = handle - 1;
 
-  const int frame_index_max = seq_time_strip_original_content_length_get(scene, seq) - 1;
+  const int frame_index_max = seq_time_strip_original_content_length_get(seq) - 1;
   const int frame_retimed_prev = round_fl_to_int(handle_prev->retiming_factor * frame_index_max);
   const int frame_index_prev = handle_prev->strip_frame_index;
   const int frame_retimed = round_fl_to_int(handle->retiming_factor * frame_index_max);
@@ -244,4 +243,12 @@ float SEQ_retiming_handle_speed_get(const Scene *scene,
 
   const float speed = float(fragment_length_retimed) / float(fragment_length_original);
   return speed;
+}
+
+float SEQ_retiming_handle_timeline_frame_get(const Scene *scene,
+                                             const Sequence *seq,
+                                             const SeqRetimingHandle *handle)
+{
+  return SEQ_time_start_frame_get(seq) +
+         handle->strip_frame_index / seq_time_media_playback_rate_factor_get(scene, seq);
 }

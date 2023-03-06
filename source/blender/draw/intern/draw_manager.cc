@@ -236,7 +236,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassMain &pass, View &view)
 {
   submit(pass, view);
 
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   pass.draw_commands_buf_.resource_id_buf_.read();
   view.get_visibility_buffer().read();

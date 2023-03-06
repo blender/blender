@@ -49,6 +49,7 @@ struct MeshRenderData {
   bool use_hide;
   bool use_subsurf_fdots;
   bool use_final_mesh;
+  bool hide_unmapped_edges;
 
   /** Use for #MeshStatVis calculation which use world-space coords. */
   float obmat[4][4];

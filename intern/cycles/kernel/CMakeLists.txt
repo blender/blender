@@ -113,8 +113,6 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bsdf_microfacet_multi_impl.h
   closure/bsdf_oren_nayar.h
   closure/bsdf_phong_ramp.h
-  closure/bsdf_reflection.h
-  closure/bsdf_refraction.h
   closure/bsdf_toon.h
   closure/bsdf_transparent.h
   closure/bsdf_util.h

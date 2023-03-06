@@ -3091,7 +3091,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pin", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
-  RNA_def_property_ui_text(prop, "UV Pin", "UV pinned state in the uv editor");
+  RNA_def_property_ui_text(prop, "UV Pin", "UV pinned state in the UV editor");
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_pin_begin",
                                     "rna_iterator_array_next",

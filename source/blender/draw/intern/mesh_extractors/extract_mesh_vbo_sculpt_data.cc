@@ -88,8 +88,8 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   else {
     int mp_loop = 0;
     for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
-      const MPoly *poly = &mr->polys[poly_index];
-      for (int l = 0; l < poly->totloop; l++) {
+      const MPoly &poly = mr->polys[poly_index];
+      for (int l = 0; l < poly.totloop; l++) {
         float v_mask = 0.0f;
         if (cd_mask) {
           v_mask = cd_mask[loops[mp_loop].v];
@@ -143,9 +143,9 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
     float *v_mask = static_cast<float *>(GPU_vertbuf_get_data(mask_vbo));
 
     for (int i = 0; i < coarse_mesh->totpoly; i++) {
-      const MPoly *poly = &coarse_polys[i];
+      const MPoly &poly = coarse_polys[i];
 
-      for (int loop_index = poly->loopstart; loop_index < poly->loopstart + poly->totloop;
+      for (int loop_index = poly.loopstart; loop_index < poly.loopstart + poly.totloop;
            loop_index++) {
         const MLoop *ml = &coarse_loops[loop_index];
         *v_mask++ = cd_mask[ml->v];

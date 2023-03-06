@@ -6,9 +6,9 @@ layout(std430, binding = 0) readonly buffer inputVertexData
   PosNorLoop pos_nor[];
 };
 
-layout(std430, binding = 1) readonly buffer inputEdgeIndex
+layout(std430, binding = 1) readonly buffer inputEdgeDrawFlag
 {
-  uint input_edge_index[];
+  uint input_edge_draw_flag[];
 };
 
 layout(std430, binding = 2) writeonly buffer outputEdgeFactors
@@ -51,9 +51,9 @@ float loop_edge_factor_get(vec3 f_no, vec3 v_co, vec3 v_no, vec3 v_next_co)
 float compute_line_factor(uint start_loop_index, uint corner_index, vec3 face_normal)
 {
   uint vertex_index = start_loop_index + corner_index;
-  uint edge_index = input_edge_index[vertex_index];
+  uint edge_draw_flag = input_edge_draw_flag[vertex_index];
 
-  if (edge_index == -1 && optimal_display) {
+  if (edge_draw_flag == 0) {
     return 0.0;
   }
 

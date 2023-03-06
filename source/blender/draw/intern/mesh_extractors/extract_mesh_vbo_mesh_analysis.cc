@@ -96,12 +96,12 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
     }
   }
   else {
-    const MPoly *poly = mr->polys.data();
-    for (int poly_index = 0, l_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
-      float fac = angle_normalized_v3v3(mr->poly_normals[poly_index], dir) / float(M_PI);
+    for (const int poly_i : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_i];
+      float fac = angle_normalized_v3v3(mr->poly_normals[poly_i], dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < poly->totloop; i++, l_index++) {
-        r_overhang[l_index] = fac;
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        r_overhang[loop_i] = fac;
       }
     }
   }
@@ -247,12 +247,12 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
       }
     }
 
-    const MPoly *poly = mr->polys.data();
-    for (int poly_index = 0, l_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
-      float fac = face_dists[poly_index];
+    for (const int poly_i : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_i];
+      float fac = face_dists[poly_i];
       fac = thickness_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < poly->totloop; i++, l_index++) {
-        r_thickness[l_index] = fac;
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        r_thickness[loop_i] = fac;
       }
     }
   }
@@ -440,18 +440,19 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
     }
   }
   else {
-    const MPoly *poly = mr->polys.data();
-    for (int poly_index = 0, l_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
+    int l_index = 0;
+    for (const int poly_index : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_index];
       float fac = -1.0f;
 
-      if (poly->totloop > 3) {
+      if (poly.totloop > 3) {
         const float *f_no = mr->poly_normals[poly_index];
         fac = 0.0f;
 
-        for (int i = 1; i <= poly->totloop; i++) {
-          const MLoop *l_prev = &mr->loops[poly->loopstart + (i - 1) % poly->totloop];
-          const MLoop *l_curr = &mr->loops[poly->loopstart + (i + 0) % poly->totloop];
-          const MLoop *l_next = &mr->loops[poly->loopstart + (i + 1) % poly->totloop];
+        for (int i = 1; i <= poly.totloop; i++) {
+          const MLoop *l_prev = &mr->loops[poly.loopstart + (i - 1) % poly.totloop];
+          const MLoop *l_curr = &mr->loops[poly.loopstart + (i + 0) % poly.totloop];
+          const MLoop *l_next = &mr->loops[poly.loopstart + (i + 1) % poly.totloop];
           float no_corner[3];
           normal_tri_v3(no_corner,
                         mr->vert_positions[l_prev->v],
@@ -467,7 +468,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
       }
 
       fac = distort_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < poly->totloop; i++, l_index++) {
+      for (int i = 0; i < poly.totloop; i++, l_index++) {
         r_distort[l_index] = fac;
       }
     }
@@ -526,14 +527,14 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
   }
   else {
     /* first assign float values to verts */
-    const MPoly *poly = mr->polys.data();
 
     EdgeHash *eh = BLI_edgehash_new_ex(__func__, mr->edge_len);
 
-    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++, poly++) {
-      for (int i = 0; i < poly->totloop; i++) {
-        const MLoop *l_curr = &mr->loops[poly->loopstart + (i + 0) % poly->totloop];
-        const MLoop *l_next = &mr->loops[poly->loopstart + (i + 1) % poly->totloop];
+    for (const int poly_index : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_index];
+      for (int i = 0; i < poly.totloop; i++) {
+        const MLoop *l_curr = &mr->loops[poly.loopstart + (i + 0) % poly.totloop];
+        const MLoop *l_next = &mr->loops[poly.loopstart + (i + 1) % poly.totloop];
         float angle;
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, l_curr->v, l_next->v, &pval);

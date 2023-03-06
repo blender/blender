@@ -2384,24 +2384,24 @@ static void rna_Node_parent_set(PointerRNA *ptr,
   bNode *parent = value.data;
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
 
-  if (parent) {
-    /* XXX only Frame node allowed for now,
-     * in the future should have a poll function or so to test possible attachment.
-     */
-    if (parent->type != NODE_FRAME) {
-      return;
-    }
+  if (!parent) {
+    nodeDetachNode(ntree, node);
+    return;
+  }
 
-    /* make sure parent is not attached to the node */
-    if (nodeAttachNodeCheck(parent, node)) {
-      return;
-    }
+  /* XXX only Frame node allowed for now,
+   * in the future should have a poll function or so to test possible attachment.
+   */
+  if (parent->type != NODE_FRAME) {
+    return;
+  }
+
+  if (nodeIsParentAndChild(node, parent)) {
+    return;
   }
 
   nodeDetachNode(ntree, node);
-  if (parent) {
-    nodeAttachNode(ntree, node, parent);
-  }
+  nodeAttachNode(ntree, node, parent);
 }
 
 static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -2425,8 +2425,7 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
     return false;
   }
 
-  /* make sure parent is not attached to the node */
-  if (nodeAttachNodeCheck(parent, node)) {
+  if (node->type == NODE_FRAME && nodeIsParentAndChild(node, parent)) {
     return false;
   }
 

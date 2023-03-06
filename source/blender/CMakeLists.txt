@@ -144,6 +144,7 @@ add_subdirectory(simulation)
 add_subdirectory(geometry)
 add_subdirectory(gpu)
 add_subdirectory(imbuf)
+add_subdirectory(imbuf/intern/oiio)
 add_subdirectory(nodes)
 add_subdirectory(modifiers)
 add_subdirectory(gpencil_modifiers)
@@ -162,10 +163,6 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_subdirectory(imbuf/intern/openexr)
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_subdirectory(imbuf/intern/oiio)
 endif()
 
 if(WITH_IMAGE_DDS)

@@ -237,10 +237,10 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
   else {
     for (int i = 0; i < mr->poly_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const MPoly *poly = &mr->polys[i];
+        const MPoly &poly = mr->polys[i];
         const int mat = min_ii(mr->material_indices ? mr->material_indices[i] : 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += poly->totloop - 2;
+        mat_tri_offs[mat] += poly.totloop - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -275,10 +275,10 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
-  const MPoly *poly = &mr->polys[iter];
+  const MPoly &poly = mr->polys[iter];
   if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mr->material_indices ? mr->material_indices[iter] : 0, mr->mat_len - 1);
-    mat_tri_len[mat] += poly->totloop - 2;
+    mat_tri_len[mat] += poly.totloop - 2;
   }
 }
 
@@ -458,6 +458,9 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
 
+    /* If there is no distinct cage, hide unmapped edges that can't be selected. */
+    mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
+
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
       if (emd->vertexCos) {
@@ -520,6 +523,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = me;
     mr->edit_bmesh = nullptr;
     mr->extract_type = MR_EXTRACT_MESH;
+    mr->hide_unmapped_edges = false;
 
     if (is_paint_mode && mr->me) {
       mr->v_origindex = static_cast<const int *>(
