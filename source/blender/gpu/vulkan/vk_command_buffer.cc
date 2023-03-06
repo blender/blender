@@ -9,6 +9,7 @@
 #include "vk_buffer.hh"
 #include "vk_context.hh"
 #include "vk_memory.hh"
+#include "vk_pipeline.hh"
 #include "vk_texture.hh"
 
 #include "BLI_assert.h"
@@ -69,6 +70,20 @@ void VKCommandBuffer::bind(const VKDescriptorSet &descriptor_set,
   VkDescriptorSet vk_descriptor_set = descriptor_set.vk_handle();
   vkCmdBindDescriptorSets(
       vk_command_buffer_, bind_point, vk_pipeline_layout, 0, 1, &vk_descriptor_set, 0, 0);
+}
+
+void VKCommandBuffer::push_constants(const VKPushConstants &push_constants,
+                                     const VkPipelineLayout vk_pipeline_layout,
+                                     const VkShaderStageFlags vk_shader_stages)
+{
+  BLI_assert(push_constants.layout_get().storage_type_get() ==
+             VKPushConstants::StorageType::PUSH_CONSTANTS);
+  vkCmdPushConstants(vk_command_buffer_,
+                     vk_pipeline_layout,
+                     vk_shader_stages,
+                     push_constants.offset(),
+                     push_constants.layout_get().size_in_bytes(),
+                     push_constants.data());
 }
 
 void VKCommandBuffer::copy(VKBuffer &dst_buffer,

@@ -201,9 +201,11 @@ set(VULKAN_SRC
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_memory_layout.cc
   vulkan/vk_memory.cc
   vulkan/vk_pipeline.cc
   vulkan/vk_pixel_buffer.cc
+  vulkan/vk_push_constants.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
   vulkan/vk_shader_interface.cc
@@ -226,9 +228,11 @@ set(VULKAN_SRC
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_memory_layout.hh
   vulkan/vk_memory.hh
   vulkan/vk_pipeline.hh
   vulkan/vk_pixel_buffer.hh
+  vulkan/vk_push_constants.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
   vulkan/vk_shader_interface.hh
@@ -532,6 +536,7 @@ set(GLSL_SRC_TEST
   tests/shaders/gpu_compute_ssbo_test.glsl
   tests/shaders/gpu_compute_vbo_test.glsl
   tests/shaders/gpu_compute_dummy_test.glsl
+  tests/shaders/gpu_push_constants_test.glsl
 )
 
 set(MTL_BACKEND_GLSL_SRC
@@ -804,12 +809,19 @@ if(WITH_GTESTS)
       tests/gpu_testing.cc
 
       tests/gpu_index_buffer_test.cc
+      tests/gpu_push_constants_test.cc
       tests/gpu_shader_builtin_test.cc
       tests/gpu_shader_test.cc
       tests/gpu_storage_buffer_test.cc
 
       tests/gpu_testing.hh
     )
+    if(WITH_VULKAN_BACKEND)
+      list(APPEND TEST_SRC
+        tests/memory_layout_test.cc
+      )
+    endif()
+
     set(TEST_INC
     )
     set(TEST_LIB
