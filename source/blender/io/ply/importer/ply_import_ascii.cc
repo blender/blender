@@ -39,14 +39,14 @@ PlyData load_ply_ascii(fstream &file, const PlyHeader *header)
 
   /* Check if header contains uv data. */
   std::pair<std::string, PlyDataTypes> uv = {"s", PlyDataTypes::FLOAT};
-  bool has_UV = std::find(header->properties[0].begin(), header->properties[0].end(), uv) !=
-                header->properties[0].end();
+  const bool has_uv = std::find(header->properties[0].begin(), header->properties[0].end(), uv) !=
+                      header->properties[0].end();
 
   int3 vertex_index = get_vertex_index(header);
   int alpha_index;
   int3 color_index;
   int3 normal_index;
-  int2 UV_index;
+  int2 uv_index;
 
   if (has_alpha) {
     alpha_index = get_index(header, "alpha", PlyDataTypes::UCHAR);
@@ -61,8 +61,8 @@ PlyData load_ply_ascii(fstream &file, const PlyHeader *header)
     normal_index = get_normal_index(header);
   }
 
-  if (has_UV) {
-    UV_index = get_uv_index(header);
+  if (has_uv) {
+    uv_index = get_uv_index(header);
   }
 
   for (int i = 0; i < header->vertex_count; i++) {
@@ -105,12 +105,12 @@ PlyData load_ply_ascii(fstream &file, const PlyHeader *header)
     }
 
     /* If uv */
-    if (has_UV) {
+    if (has_uv) {
       float2 uvmap;
-      uvmap.x = std::stof(value_vec[UV_index.x]);
-      uvmap.y = std::stof(value_vec[UV_index.y]);
+      uvmap.x = std::stof(value_vec[uv_index.x]);
+      uvmap.y = std::stof(value_vec[uv_index.y]);
 
-      data.UV_coordinates.append(uvmap);
+      data.uv_coordinates.append(uvmap);
     }
   }
   for (int i = 0; i < header->face_count; i++) {

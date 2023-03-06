@@ -80,9 +80,9 @@ static std::string read_temp_file_in_string(const std::string &file_path)
 
 char read(std::ifstream &file)
 {
-  char returnVal;
-  file.read((char *)&returnVal, sizeof(returnVal));
-  return returnVal;
+  char return_val;
+  file.read((char *)&return_val, sizeof(return_val));
+  return return_val;
 }
 
 static std::vector<char> read_temp_file_in_vectorchar(const std::string &file_path)
@@ -440,7 +440,7 @@ TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataUV)
   params.export_uv = true;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
                                                  params);
-  EXPECT_EQ(plyData.UV_coordinates.size(), 8);
+  EXPECT_EQ(plyData.uv_coordinates.size(), 8);
 }
 TEST_F(ply_exporter_ply_data_test, SuzanneLoadPLYDataUV)
 {
@@ -448,7 +448,7 @@ TEST_F(ply_exporter_ply_data_test, SuzanneLoadPLYDataUV)
   params.export_uv = true;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/suzanne_all_data.blend",
                                                  params);
-  EXPECT_EQ(plyData.UV_coordinates.size(), 541);
+  EXPECT_EQ(plyData.uv_coordinates.size(), 541);
 }
 
 TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataUVDisabled)
@@ -457,7 +457,7 @@ TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataUVDisabled)
   params.export_uv = false;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
                                                  params);
-  EXPECT_EQ(plyData.UV_coordinates.size(), 0);
+  EXPECT_EQ(plyData.uv_coordinates.size(), 0);
 }
 
 }  // namespace blender::io::ply

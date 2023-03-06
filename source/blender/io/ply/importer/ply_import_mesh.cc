@@ -90,13 +90,13 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   }
 
   /* Uvmap */
-  if (!data.UV_coordinates.is_empty()) {
+  if (!data.uv_coordinates.is_empty()) {
     bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
         "UVMap", ATTR_DOMAIN_CORNER);
     int counter = 0;
     for (int i = 0; i < data.faces.size(); i++) {
       for (int j = 0; j < data.faces[i].size(); j++) {
-        uv_map.span[counter] = data.UV_coordinates[data.faces[i][j]];
+        uv_map.span[counter] = data.uv_coordinates[data.faces[i][j]];
         counter++;
       }
     }

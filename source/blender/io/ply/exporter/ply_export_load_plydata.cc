@@ -121,12 +121,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     /* Load faces into plyData. */
     int loop_offset = 0;
-    Span<MLoop> loops = mesh->loops();
-    for (const MPoly poly : mesh->polys()) {
-      Span<MLoop> loopSpan = loops.slice(poly.loopstart, poly.totloop);
-      Array<uint32_t> polyVector(loopSpan.size());
+    const Span<MLoop> loops = mesh->loops();
+    for (const MPoly &poly : mesh->polys()) {
+      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      Array<uint32_t> poly_verts(poly_loops.size());
 
-      for (int i = 0; i < loopSpan.size(); ++i) {
+      for (int i = 0; i < poly_loops.size(); ++i) {
         float2 uv;
         if (export_params.export_uv && uv_map != nullptr) {
           uv = uv_map[i + loop_offset];
@@ -134,13 +134,13 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         else {
           uv = {0, 0};
         }
-        UV_vertex_key key = UV_vertex_key(uv, loopSpan[i].v);
+        UV_vertex_key key = UV_vertex_key(uv, poly_loops[i].v);
         int ply_vertex_index = vertex_map.lookup(key);
-        polyVector[i] = (uint32_t(ply_vertex_index + vertex_offset));
+        poly_verts[i] = (uint32_t(ply_vertex_index + vertex_offset));
       }
-      loop_offset += loopSpan.size();
+      loop_offset += poly_loops.size();
 
-      plyData.faces.append(polyVector);
+      plyData.faces.append(std::move(poly_verts));
     }
 
     Array<int> mesh_vertex_index_LUT(vertex_map.size());
@@ -165,7 +165,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     /* UV's */
     if (export_params.export_uv) {
       for (int i = 0; i < vertex_map.size(); ++i) {
-        plyData.UV_coordinates.append(uv_coordinates[i]);
+        plyData.uv_coordinates.append(uv_coordinates[i]);
       }
     }
 

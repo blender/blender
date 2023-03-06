@@ -15,19 +15,22 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
   for (int i = 0; i < ply_data.vertices.size(); i++) {
     buffer.write_vertex(ply_data.vertices[i].x, ply_data.vertices[i].y, ply_data.vertices[i].z);
 
-    if (!ply_data.vertex_normals.is_empty())
+    if (!ply_data.vertex_normals.is_empty()) {
       buffer.write_vertex_normal(ply_data.vertex_normals[i].x,
                                  ply_data.vertex_normals[i].y,
                                  ply_data.vertex_normals[i].z);
+    }
 
-    if (!ply_data.vertex_colors.is_empty())
+    if (!ply_data.vertex_colors.is_empty()) {
       buffer.write_vertex_color(uchar(ply_data.vertex_colors[i].x * 255),
                                 uchar(ply_data.vertex_colors[i].y * 255),
                                 uchar(ply_data.vertex_colors[i].z * 255),
                                 uchar(ply_data.vertex_colors[i].w * 255));
+    }
 
-    if (!ply_data.UV_coordinates.is_empty())
-      buffer.write_UV(ply_data.UV_coordinates[i].x, ply_data.UV_coordinates[i].y);
+    if (!ply_data.uv_coordinates.is_empty()) {
+      buffer.write_UV(ply_data.uv_coordinates[i].x, ply_data.uv_coordinates[i].y);
+    }
 
     buffer.write_vertex_end();
   }

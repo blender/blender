@@ -22,7 +22,7 @@ struct PlyData {
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
   Vector<Array<uint32_t>> faces;
-  Vector<float2> UV_coordinates;
+  Vector<float2> uv_coordinates;
 };
 
 enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };

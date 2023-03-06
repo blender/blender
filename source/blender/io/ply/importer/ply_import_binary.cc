@@ -16,25 +16,25 @@ std::unique_ptr<PlyData> import_ply_binary(fstream &file, const PlyHeader *heade
   return data;
 }
 
-template<typename T> T read(fstream &file, bool isBigEndian)
+template<typename T> T read(fstream &file, bool is_big_endian)
 {
   T returnVal;
   file.read((char *)&returnVal, sizeof(returnVal));
   check_file_errors(file);
-  if (isBigEndian) {
+  if (is_big_endian) {
     returnVal = swap_bytes<T>(returnVal);
   }
   return returnVal;
 }
 
-template uint8_t read<uint8_t>(fstream &file, bool isBigEndian);
-template int8_t read<int8_t>(fstream &file, bool isBigEndian);
-template uint16_t read<uint16_t>(fstream &file, bool isBigEndian);
-template int16_t read<int16_t>(fstream &file, bool isBigEndian);
-template uint32_t read<uint32_t>(fstream &file, bool isBigEndian);
-template int32_t read<int32_t>(fstream &file, bool isBigEndian);
-template float read<float>(fstream &file, bool isBigEndian);
-template double read<double>(fstream &file, bool isBigEndian);
+template uint8_t read<uint8_t>(fstream &file, bool is_big_endian);
+template int8_t read<int8_t>(fstream &file, bool is_big_endian);
+template uint16_t read<uint16_t>(fstream &file, bool is_big_endian);
+template int16_t read<int16_t>(fstream &file, bool is_big_endian);
+template uint32_t read<uint32_t>(fstream &file, bool is_big_endian);
+template int32_t read<int32_t>(fstream &file, bool is_big_endian);
+template float read<float>(fstream &file, bool is_big_endian);
+template double read<double>(fstream &file, bool is_big_endian);
 
 void check_file_errors(const fstream &file)
 {
@@ -82,7 +82,7 @@ void discard_value(fstream &file, const PlyDataTypes type)
 PlyData load_ply_binary(fstream &file, const PlyHeader *header)
 {
   PlyData data;
-  bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
+  bool is_big_endian = header->type == PlyFormatType::BINARY_BE;
 
   for (int i = 0; i < header->elements.size(); i++) {
     if (header->elements[i].first == "vertex") {
@@ -95,10 +95,10 @@ PlyData load_ply_binary(fstream &file, const PlyHeader *header)
         std::pair<int, int> vertex_indices;
         for (auto [name, type] : header->properties[i]) {
           if (name == "vertex1") {
-            vertex_indices.first = int(read<int32_t>(file, isBigEndian));
+            vertex_indices.first = int(read<int32_t>(file, is_big_endian));
           }
           else if (name == "vertex2") {
-            vertex_indices.second = int(read<int32_t>(file, isBigEndian));
+            vertex_indices.second = int(read<int32_t>(file, is_big_endian));
           }
           else {
             discard_value(file, type);
@@ -112,12 +112,12 @@ PlyData load_ply_binary(fstream &file, const PlyHeader *header)
       /* Import faces. */
       for (int j = 0; j < header->elements[i].second; j++) {
         /* Assume vertex_index_count_type is uchar. */
-        uint8_t count = read<uint8_t>(file, isBigEndian);
+        uint8_t count = read<uint8_t>(file, is_big_endian);
         Array<uint> vertex_indices(count);
 
         /* Loop over the amount of vertex indices in this face. */
         for (uint8_t k = 0; k < count; k++) {
-          uint32_t index = read<uint32_t>(file, isBigEndian);
+          uint32_t index = read<uint32_t>(file, is_big_endian);
           /* If the face has a vertex index that is outside the range. */
           if (index >= data.vertices.size()) {
             throw std::runtime_error("Vertex index out of bounds");
@@ -145,7 +145,7 @@ void load_vertex_data(fstream &file, const PlyHeader *header, PlyData *r_data, i
   bool hasNormal = false;
   bool hasColor = false;
   bool hasUv = false;
-  bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
+  bool is_big_endian = header->type == PlyFormatType::BINARY_BE;
 
   for (int i = 0; i < header->vertex_count; i++) {
     float3 coord{0};
@@ -155,43 +155,43 @@ void load_vertex_data(fstream &file, const PlyHeader *header, PlyData *r_data, i
 
     for (auto [name, type] : header->properties[index]) {
       if (name == "x") {
-        coord.x = read<float>(file, isBigEndian);
+        coord.x = read<float>(file, is_big_endian);
       }
       else if (name == "y") {
-        coord.y = read<float>(file, isBigEndian);
+        coord.y = read<float>(file, is_big_endian);
       }
       else if (name == "z") {
-        coord.z = read<float>(file, isBigEndian);
+        coord.z = read<float>(file, is_big_endian);
       }
       else if (name == "nx") {
-        normal.x = read<float>(file, isBigEndian);
+        normal.x = read<float>(file, is_big_endian);
         hasNormal = true;
       }
       else if (name == "ny") {
-        normal.y = read<float>(file, isBigEndian);
+        normal.y = read<float>(file, is_big_endian);
       }
       else if (name == "nz") {
-        normal.z = read<float>(file, isBigEndian);
+        normal.z = read<float>(file, is_big_endian);
       }
       else if (name == "red") {
-        color.x = read<uint8_t>(file, isBigEndian) / 255.0f;
+        color.x = read<uint8_t>(file, is_big_endian) / 255.0f;
         hasColor = true;
       }
       else if (name == "green") {
-        color.y = read<uint8_t>(file, isBigEndian) / 255.0f;
+        color.y = read<uint8_t>(file, is_big_endian) / 255.0f;
       }
       else if (name == "blue") {
-        color.z = read<uint8_t>(file, isBigEndian) / 255.0f;
+        color.z = read<uint8_t>(file, is_big_endian) / 255.0f;
       }
       else if (name == "alpha") {
-        color.w = read<uint8_t>(file, isBigEndian) / 255.0f;
+        color.w = read<uint8_t>(file, is_big_endian) / 255.0f;
       }
       else if (name == "s") {
-        uv.x = read<float>(file, isBigEndian);
+        uv.x = read<float>(file, is_big_endian);
         hasUv = true;
       }
       else if (name == "t") {
-        uv.y = read<float>(file, isBigEndian);
+        uv.y = read<float>(file, is_big_endian);
       }
       else {
         /* No other properties are supported yet. */
@@ -207,7 +207,7 @@ void load_vertex_data(fstream &file, const PlyHeader *header, PlyData *r_data, i
       r_data->vertex_colors.append(color);
     }
     if (hasUv) {
-      r_data->UV_coordinates.append(uv);
+      r_data->uv_coordinates.append(uv);
     }
   }
 }

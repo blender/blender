@@ -20,8 +20,9 @@ FileBuffer::FileBuffer(const char *filepath, size_t buffer_chunk_size)
 
 void FileBuffer::write_to_file()
 {
-  for (const VectorChar &b : blocks_)
+  for (const VectorChar &b : blocks_) {
     fwrite(b.data(), 1, b.size(), this->outfile_);
+  }
   blocks_.clear();
 }
 
@@ -66,7 +67,6 @@ void FileBuffer::write_newline()
 void FileBuffer::ensure_space(size_t at_least)
 {
   if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
-
     blocks_.append(VectorChar());
     blocks_.reserve(std::max(at_least, buffer_chunk_size_));
   }
