@@ -161,6 +161,20 @@ const EnumPropertyItem rna_enum_driver_target_rotation_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_driver_target_context_property_items[] = {
+    {DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE,
+     "ACTIVE_SCENE",
+     ICON_NONE,
+     "Active Scene",
+     "Currently evaluating scene"},
+    {DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER,
+     "ACTIVE_VIEW_LAYER",
+     ICON_NONE,
+     "Active View Layer",
+     "Currently evaluating view layer"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "WM_api.h"
@@ -1879,6 +1893,14 @@ static void rna_def_drivertarget(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, prop_local_space_items);
   RNA_def_property_ui_text(prop, "Transform Space", "Space in which transforms are used");
   RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "context_property", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "context_property");
+  RNA_def_property_enum_items(prop, rna_enum_driver_target_context_property_items);
+  RNA_def_property_enum_default(prop, DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE);
+  RNA_def_property_ui_text(
+      prop, "Context Property", "Type of a context-dependent data-block to access property from");
+  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 
 static void rna_def_drivervar(BlenderRNA *brna)
@@ -1907,6 +1929,11 @@ static void rna_def_drivervar(BlenderRNA *brna)
        ICON_DRIVER_DISTANCE,
        "Distance",
        "Distance between two bones or objects"},
+      {DVAR_TYPE_CONTEXT_PROP,
+       "CONTEXT_PROP",
+       ICON_RNA,
+       "Context Property",
+       "Use the value from some RNA property within the current evaluation context"},
       {0, NULL, 0, NULL, NULL},
   };
 
