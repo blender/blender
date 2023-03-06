@@ -31,7 +31,6 @@ class VKShaderInterface : public ShaderInterface {
 
   VKPushConstants::Layout push_constants_layout_;
 
-
  public:
   VKShaderInterface() = default;
 
