@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
-"PO-Revision-Date: 2023-02-22 09:04+0100\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"PO-Revision-Date: 2023-03-01 09:06+0100\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
 "Language: sk_SK\n"
@@ -5652,10 +5652,6 @@ msgstr "Vonkajšia hrúbka plôšky"
 
 msgid "Enabled"
 msgstr "Povolené"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Povolí týmto objektom kolízie pre systémy fyziky"
 
 
 msgid "Single Sided"
@@ -16421,10 +16417,6 @@ msgid "Texture Mapping"
 msgstr "Mapovanie textúry"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Ťahom zmení hodnoty UV textúry"
-
-
 msgid "Time Offset"
 msgstr "Omeškanie"
 
@@ -17933,10 +17925,6 @@ msgstr "Faktor hrúbky"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Množstvo šumu pre použitie na hrúbku"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Množstvo šumu pre použitie UV rotácie"
 
 
 msgid "Noise Offset"
@@ -35072,10 +35060,6 @@ msgid "UV Pin"
 msgstr "Pripnuté UV"
 
 
-msgid "UV pinned state in the uv editor"
-msgstr "Stav pripnutia UV v UV editore"
-
-
 msgid "UV coordinates on face corners"
 msgstr "UV súradnice na rohoch plôšok"
 
@@ -38907,10 +38891,6 @@ msgstr "Vertikálna mierka (používa sa iba pre projektory kamier)"
 
 msgid "UVWarp Modifier"
 msgstr "Modifikátor UV skrivenia"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Pridá cieľovú pozíciu do UV súradníc"
 
 
 msgid "U-Axis"
@@ -54029,7 +54009,7 @@ msgstr "Exportovať všetky akcie armatúry"
 
 
 msgid "Export all actions, bound to a single armature. WARNING: Option does not support exports including multiple armatures"
-msgstr "Exportujte všetky akcie viazané na jednu armatúru. VAROVANIE: Možnosť nepodporuje export vrátane viacerých armatúr"
+msgstr "Exportuje všetky akcie viazané na jednu armatúru. VAROVANIE: Možnosť nepodporuje export vrátane viacerých armatúr"
 
 
 msgid "Exports active actions and NLA tracks as glTF animations"
@@ -54078,6 +54058,10 @@ msgstr "Kvantizácia bitov pre hodnoty farby (0 = bez kvantizácie)"
 
 msgid "Generic quantization bits"
 msgstr "Generické kvantizačné bity"
+
+
+msgid "Quantization bits for generic values like weights or joints (0 = no quantization)"
+msgstr "Kvantizácia bitov pre všeobecné hodnoty súradníc, ako sú váhy alebo kĺby (0 = bez kvantizácie)"
 
 
 msgid "Draco mesh compression"
@@ -65546,10 +65530,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Zahákuje vybrané vrcholy na prvý vybraný objekt"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Priradí hák k hákom objektov aktívnej kosti"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Priradiť k háku"
@@ -68428,14 +68408,6 @@ msgid "Library Operation"
 msgstr "Operácia knižnice"
 
 
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"Odstráni túto knižnicu a všetky jej položky.\n"
-"Upozornenie: Nemožno vrátiť späť"
-
-
 msgid "Relocate"
 msgstr "Premiestniť"
 
@@ -68852,10 +68824,6 @@ msgstr "Pokúsiť sa o výber bodu manipulátora pred transformáciou"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Pridať jednoduché UV"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Pridá mapu kocky UV súradníc na povrchovú sieť"
 
 
 msgctxt "Operator"
@@ -76428,10 +76396,6 @@ msgid "Align Rotation"
 msgstr "Zarovnať rotáciu"
 
 
-msgid "Align uv island's rotation"
-msgstr "Zarovná rotáciu UV ostrova"
-
-
 msgid "Axis to align to"
 msgstr "Zarovnať os na"
 
@@ -76878,10 +76842,6 @@ msgstr "Mapuje UV oblasť kamery berúc do úvahy rozlíšenie a vnútorný pome
 
 msgid "Use orthographic projection"
 msgstr "Použije kolmé premietanie"
-
-
-msgid "Randomize uv island's location, rotation, and scale"
-msgstr "Vytvorí náhodnú polohu, rotáciu a mierku UV ostrova"
 
 
 msgid "Maximum rotation"
@@ -96926,10 +96886,6 @@ msgid "Display Texture Paint UVs"
 msgstr "Zobraziť textúru UV kresby"
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "Zobrazí prekrytie textúry kresbou UV vrstvy"
-
-
 msgid "Tile Grid Shape"
 msgstr "Tvar mriežky dlaždíc"
 
@@ -101809,40 +101765,100 @@ msgid "Number of dimensions of the grid data type"
 msgstr "Počet rozmerov typu údajov mriežky"
 
 
+msgctxt "Volume"
+msgid "Data Type"
+msgstr "Typ údajov"
+
+
 msgid "Data type of voxel values"
 msgstr "Typ údajov voxel"
+
+
+msgctxt "Volume"
+msgid "Boolean"
+msgstr "Logická hodnota"
+
+
+msgctxt "Volume"
+msgid "Float"
+msgstr "Pohyblivá čiarka"
 
 
 msgid "Single precision float"
 msgstr "Jednoduchá pohyblivá čiarka"
 
 
+msgctxt "Volume"
+msgid "Double"
+msgstr "Dvojitá"
+
+
 msgid "Double precision"
 msgstr "Dvojitá presnosť"
+
+
+msgctxt "Volume"
+msgid "Integer"
+msgstr "Celé číslo"
+
+
+msgctxt "Volume"
+msgid "Integer 64-bit"
+msgstr "Celé číslo 64-bitové"
 
 
 msgid "64-bit integer"
 msgstr "64-bitové celé číslo"
 
 
+msgctxt "Volume"
+msgid "Mask"
+msgstr "Maska"
+
+
 msgid "No data, boolean mask of active voxels"
 msgstr "Bez údajov, logická maska aktívnych voxelov"
+
+
+msgctxt "Volume"
+msgid "Float Vector"
+msgstr "Vektor pohyblivej čiarky"
 
 
 msgid "3D float vector"
 msgstr "3D pohyblivá čiarka"
 
 
+msgctxt "Volume"
+msgid "Double Vector"
+msgstr "Dvojitý vektor"
+
+
 msgid "3D double vector"
 msgstr "Dvojitý vektor 3D"
+
+
+msgctxt "Volume"
+msgid "Integer Vector"
+msgstr "Vektor celého čísla"
 
 
 msgid "3D integer vector"
 msgstr "Vector 3D celého čísla"
 
 
+msgctxt "Volume"
+msgid "Points (Unsupported)"
+msgstr "Body (nepodporované)"
+
+
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Mriežka bodov, momentálne nepodporovaná objektmi objemu"
+
+
+msgctxt "Volume"
+msgid "Unknown"
+msgstr "Neznáme"
 
 
 msgid "Unsupported data type"
@@ -106142,6 +106158,14 @@ msgid "Built without VR/OpenXR features"
 msgstr "Postavené bez funkcií VR/OpenXR"
 
 
+msgid "Start VR Session"
+msgstr "Štart relácie VR"
+
+
+msgid "Stop VR Session"
+msgstr "Zastavenie relácie VR"
+
+
 msgid "* Missing Paths *"
 msgstr "* Chýbajúce cesty *"
 
@@ -109087,6 +109111,10 @@ msgstr "Nastaviť os Y"
 
 msgid "No active track"
 msgstr "Žiadna aktívna stopa"
+
+
+msgid "Custom Color Presets"
+msgstr "Vlastné predvoľby farieb"
 
 
 msgid "No active plane track"
@@ -116700,6 +116728,16 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "Hexadecimálne trojčíslie pre farbu (#RRGGBB)"
 
 
+msgctxt "Color"
+msgid "Value:"
+msgstr "Hodnota:"
+
+
+msgctxt "Color"
+msgid "Value"
+msgstr "Hodnota"
+
+
 msgid "Redo"
 msgstr "Vpred"
 
@@ -123093,10 +123131,6 @@ msgid "Driver not found in this animation data"
 msgstr "V týchto údajoch animácie sa ovládač nenašiel"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Informácia registrácie triedy sústavy kľúčovania: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Nemožno odstrániť stopu NLA '%s'"
 
@@ -123728,10 +123762,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Nemožno presunúť zásuvky vo vstavanom uzle"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy uzla stromu: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Strom uzla '%s' má nedefinovaný typ %s"
 
@@ -123758,10 +123788,6 @@ msgstr "Uzol '%s' sa nedá nájsť v strome uzla"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Nepodarilo sa nájsť zásuvku '%s' v uzle"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia trieda uzla: %s je príliš dlhá, maximálna dĺžka je %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -123957,10 +123983,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "Neplatný index %d pre segmenty Kosti ohybu v '%s'!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy mechanizmu prekreslenia: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Do funkcie prešiel nekonvexný kolízny tvar, používajte len konvexné kolízne tvary"
 
@@ -124085,30 +124107,6 @@ msgid "Region not found in space type"
 msgstr "Oblasť sa v type priestoru nenašla"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy panelu: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Registrácia triedy panelu: '%s' má kategóriu '%s' "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Registrácia triedy panelu: rodič '%s' pre '%s' sa nenašiel"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy zoznamu užívateľa: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy záhlavia: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy ponuky: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "Doplnok je už neplatný"
 
@@ -124117,16 +124115,8 @@ msgid "Excluded path is no longer valid"
 msgstr "Vylúčená cesta je už neplatná"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy predvolieb doplnkov: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "Font not packed"
 msgstr "Písmo nie je zbalené"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy predvolieb konfigurácie kľúčov: '%s' je príliš dlhá, maximálna dĺžka je %d"
 
 
 msgid "Not a non-modal keymap"
@@ -124189,24 +124179,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "Konfiguráciu klávesy '%s' nemožno odstrániť"
 
 
-msgid "Area type does not support gizmos"
-msgstr "Typ oblasti nepodporuje manipulačné prvky"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy manipulačného prvku: '%s' je príliš dlhá, maximálna dĺžka je %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Typ manipulačného prvku '%s' nie je známy"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "GizmoType '%s' je pre skupinu 3D skupinu manipulačného prvku (gizmo). Je nastavené spätné volanie 'draw_select', kde sa použije iba 'test_select'"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Registrácia triedy skupiny manipulačných prvkov: '%s' je príliš dlhá, maximálna dĺžka je %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -127908,6 +127886,10 @@ msgid "FBX format"
 msgstr "Formát FBX"
 
 
+msgid "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions"
+msgstr "Povrchové siete FBX IO, UV, farby vrcholov, materiály, textúry, kamery, lampy a akcie"
+
+
 msgid "Import Images as Planes"
 msgstr "Importovať obrázky ako roviny"
 
@@ -127974,6 +127956,10 @@ msgstr "Exportuje UV rozloženia ako 2D grafiku"
 
 msgid "Wavefront OBJ format (legacy)"
 msgstr "Formát Wavefront OBJ (starší)"
+
+
+msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
+msgstr "Import-Export OBJ, Import OBJ povrchovej siete, UV, materiálov a textúr"
 
 
 msgid "glTF 2.0 format"

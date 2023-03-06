@@ -548,9 +548,9 @@ static void get_loop_normals(struct Mesh *mesh,
   const Span<MPoly> polys = mesh->polys();
 
   for (const int i : polys.index_range()) {
-    const MPoly *poly = &polys[i];
-    for (int j = poly->totloop - 1; j >= 0; j--, abc_index++) {
-      int blender_index = poly->loopstart + j;
+    const MPoly &poly = polys[i];
+    for (int j = poly.totloop - 1; j >= 0; j--, abc_index++) {
+      int blender_index = poly.loopstart + j;
       copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);
     }
   }

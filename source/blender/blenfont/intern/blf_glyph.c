@@ -1212,8 +1212,19 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
   }
 
   if (font->flags & BLF_CLIPPING) {
+    float xa, ya;
+
+    if (font->flags & BLF_ASPECT) {
+      xa = font->aspect[0];
+      ya = font->aspect[1];
+    }
+    else {
+      xa = 1.0f;
+      ya = 1.0f;
+    }
+
     rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, x, y);
+    blf_glyph_calc_rect_test(&rect_test, g, (int)((float)x * xa), (int)((float)y * ya));
     BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;

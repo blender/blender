@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -4960,10 +4960,6 @@ msgstr "Зовнішня товщина грані"
 
 msgid "Enabled"
 msgstr "Увімкнено"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Увімкнути ці об'єкти, як колайдер для фізичних систем"
 
 
 msgid "Single Sided"
@@ -15125,10 +15121,6 @@ msgid "Texture Mapping"
 msgstr "Розкладання текстури"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Змінити значення uv текстури штриха"
-
-
 msgid "Time Offset"
 msgstr "Часовий зсув"
 
@@ -15817,10 +15809,6 @@ msgstr "Фактор Товщини"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Величина шуму для застосування до товщини"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Величина шуму для застосування до обертання UV"
 
 
 msgid "Noise Offset"
@@ -34677,10 +34665,6 @@ msgstr "Проєктори"
 
 msgid "UVWarp Modifier"
 msgstr "Модифікатор Деформація UV"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Додати до UV-координат цільове положення "
 
 
 msgid "U-Axis"
@@ -56156,10 +56140,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Зачепити вибрані вершини за перший вибраний об'єкт"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Присвоїти гачок активній кістці об'єкта"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Приєднати до гачка"
@@ -59093,10 +59073,6 @@ msgstr "Спробувати вибирати держак точки перед
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Додати Прості UVи"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Додати кубічну карту UV на сіть"
 
 
 msgctxt "Operator"
@@ -82836,10 +82812,6 @@ msgid "Display Texture Paint UVs"
 msgstr "Показ UV-т Малювання Текстур"
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "Показувати накладку шару UV для малювання текстур"
-
-
 msgid "Tile Grid Shape"
 msgstr "Форма Сітки Плиток"
 
@@ -102271,10 +102243,6 @@ msgid "Driver not found in this animation data"
 msgstr "Драйвер не знайдено у цих даних анімації"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу інформації набору ключів: назва '%s' задовга, найбільша довжина - %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Доріжку НЛА '%s' неможливо вилучити"
 
@@ -102656,10 +102624,6 @@ msgid "Unable to create socket"
 msgstr "Неможливо створити роз'єм"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу дерева вузлів: назва '%s' задовга, найбільша довжина - %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Дерево вузлів '%s' має невизначений тип %s"
 
@@ -102678,10 +102642,6 @@ msgstr "Не вдалося відшукати гніздо '%s' у дереві
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Не вдалося розмістити роз'єм '%s' у вузлі"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу вузла: назва '%s' задовга, найбільша довжина - %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -102861,10 +102821,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "Недійсний індекс %d для сегментів Б-Кістки '%s'!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу рушія рендера: назва '%s' задовга, найбільша довжина - %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Функції надано неопуклу форму зіткнення. Використовуйте лише опуклі форми."
 
@@ -102965,30 +102921,6 @@ msgid "Region not found in space type"
 msgstr "Область не знайдено у типі простору"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу панелі: назва '%s' задовга, найбільша довжина - %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Реєстрація класу панелі: '%s', має категорію '%s'"
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Реєстрація класу панелі: предка '%s' для '%s' не знайдено"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу uilist: назва '%s' задовга, найбільша довжина - %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу заголовка: назва '%s' задовга, найбільша довжина - %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу меню: назва '%s' задовга, найбільша довжина - %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "Додаток більше не діє"
 
@@ -102997,16 +102929,8 @@ msgid "Excluded path is no longer valid"
 msgstr "Виключений шлях більше не діє"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу налаштунків додатку: '%s' є занадто довге, найбільша довжина - %d"
-
-
 msgid "Font not packed"
 msgstr "Шрифт не упаковано"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу налаштунків конфігурації клавш: '%s' є занадто довге, найбільша довжина - %d"
 
 
 msgid "Not a non-modal keymap"
@@ -103069,24 +102993,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "Набір ключів '%s' неможливо вилучити"
 
 
-msgid "Area type does not support gizmos"
-msgstr "Тип ділянки не підтримує гізмо"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу гізмо: назва '%s' задовга, найбільша довжина - %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Тип гізмо '%s' невідомий"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "GizmoType '%s' є для групи гізмо 3D. Відклик 'draw_select' задається лише там, де буде використовуватися 'test_select'"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу групи гізмо: назва '%s' задовга, найбільша довжина - %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"

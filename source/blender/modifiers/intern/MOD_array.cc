@@ -285,7 +285,6 @@ static void mesh_merge_transform(Mesh *result,
   int i;
   MEdge *edge;
   MLoop *ml;
-  MPoly *poly;
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
@@ -323,9 +322,8 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* adjust cap poly loopstart indices */
-  poly = &result_polys[cap_polys_index];
-  for (i = 0; i < cap_npolys; i++, poly++) {
-    poly->loopstart += cap_loops_index;
+  for (const int i : blender::IndexRange(cap_polys_index, cap_npolys)) {
+    result_polys[i].loopstart += cap_loops_index;
   }
 
   /* adjust cap loop vertex and edge indices */
@@ -378,7 +376,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 {
   MEdge *edge;
   MLoop *ml;
-  MPoly *poly;
   int i, j, c, count;
   float length = amd->length;
   /* offset matrix */
@@ -615,9 +612,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       edge->v2 += c * chunk_nverts;
     }
 
-    poly = &result_polys[c * chunk_npolys];
-    for (i = 0; i < chunk_npolys; i++, poly++) {
-      poly->loopstart += c * chunk_nloops;
+    for (const int i : blender::IndexRange(c * chunk_npolys, chunk_npolys)) {
+      result_polys[i].loopstart += c * chunk_nloops;
     }
 
     /* adjust loop vertex and edge indices */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -375,7 +375,7 @@ msgstr "Biblioteca Fribidi"
 
 
 msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "[Fribidi Library]: Biblioteca compilada FriBidi C ( .so a Linux, .dll a Windows ), que probablement us caldrà editar si aneu amb Windows, p. ex. utilitzant la inclosa al repositori de biblioteques de svn"
+msgstr "[Fribidi Library]: Biblioteca compilada FriBidi C ( .so a Linux, .dll a Windows ), que probablement us caldrà editar si aneu amb Windows, p. ex. utilitzant la inclosa al repositori de biblioteques de SVN"
 
 
 msgid "Gettext 'msgfmt' executable"
@@ -1035,7 +1035,7 @@ msgstr "Referents de Restricció de Deformacions d'esquelet"
 
 
 msgid "Collection of target bones and weights"
-msgstr "Col·lecció d’ossos referents i influències"
+msgstr "Col·lecció d’ossos referents i forces"
 
 
 msgid "Armature EditBones"
@@ -2991,7 +2991,7 @@ msgstr "X endins"
 
 
 msgid "X-axis handle offset for start of the B-Bone's curve, adjusts curvature"
-msgstr "[In X]: Separació de l'ansa dins l'eix X en relació a l'inici de la corba de l'os-B, ajusta la curvatura"
+msgstr "[In X]: Separació de l'ansa dins l'eix X en relació a l'inici de la corba de l'os-D, ajusta la curvatura"
 
 
 msgid "In Z"
@@ -2999,7 +2999,7 @@ msgstr "Z endins"
 
 
 msgid "Z-axis handle offset for start of the B-Bone's curve, adjusts curvature"
-msgstr "[In Z]: Separació de l'ansa dins l'eix Z en relació a l'inici de la corba de l'os-B, ajusta la curvatura"
+msgstr "[In Z]: Separació de l'ansa dins l'eix Z en relació a l'inici de la corba de l'os-D, ajusta la curvatura"
 
 
 msgid "Out X"
@@ -3007,7 +3007,7 @@ msgstr "X enfora"
 
 
 msgid "X-axis handle offset for end of the B-Bone's curve, adjusts curvature"
-msgstr "[Out X]: Separació de l'ansa dins l'eix X en relació al final de la corba de l'os-B, ajusta la curvatura"
+msgstr "[Out X]: Separació de l'ansa dins l'eix X en relació al final de la corba de l'os-D, ajusta la curvatura"
 
 
 msgid "Out Z"
@@ -3015,23 +3015,23 @@ msgstr "Z Enfora"
 
 
 msgid "Z-axis handle offset for end of the B-Bone's curve, adjusts curvature"
-msgstr "[Out Z]: Separació de l'ansa dins l'eix Z en relació al final de la corba de l'os-B, ajusta la curvatura"
+msgstr "[Out Z]: Separació de l'ansa dins l'eix Z en relació al final de la corba de l'os-D, ajusta la curvatura"
 
 
 msgid "B-Bone End Handle"
-msgstr "Nansa del final de l'os-B"
+msgstr "Nansa del final de l'os-D"
 
 
 msgid "Bone that serves as the end handle for the B-Bone curve"
-msgstr "[B-Bone End Handle]: Os que serveix com a nansa del final per a la corba d'os-B"
+msgstr "[B-Bone End Handle]: Os que serveix com a nansa del final per a la corba d'os-D"
 
 
 msgid "B-Bone Start Handle"
-msgstr "Nansa d'inici de l'os-B"
+msgstr "Nansa d'inici de l'os-D"
 
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
-msgstr "[B-Bone Start Handle]: Os que serveix com a nansa d'inici per a la corba d'os-B"
+msgstr "[B-Bone Start Handle]: Os que serveix com a nansa d'inici per a la corba d'os-D"
 
 
 msgctxt "Armature"
@@ -3040,7 +3040,7 @@ msgstr "Gradualitzat inicial"
 
 
 msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "[Ease in]: Longitud de la primera nansa de Bézier ( només per a ossos-B )"
+msgstr "[Ease in]: Longitud de la primera nansa de Bézier ( només per a ossos-D )"
 
 
 msgctxt "Armature"
@@ -3049,15 +3049,15 @@ msgstr "Gradualitzat final"
 
 
 msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "[Ease out]: Longitud de la segona nansa de Bézier ( només per a ossos-B )"
+msgstr "[Ease out]: Longitud de la segona nansa de Bézier ( només per a ossos-D )"
 
 
 msgid "B-Bone End Handle Type"
-msgstr "Tipus de nansa final d'os-B"
+msgstr "Tipus de nansa final d'os-D"
 
 
 msgid "Selects how the end handle of the B-Bone is computed"
-msgstr "[B-Bone End Handle Tupe]: Selecciona la manera de calcular la nansa de final de l'os-B"
+msgstr "[B-Bone End Handle Tupe]: Selecciona la manera de calcular la nansa de final de l'os-D"
 
 
 msgid "Automatic"
@@ -3089,11 +3089,11 @@ msgstr "Usa l'orientació de l'os especificat per a calcular la nansa, ignorant 
 
 
 msgid "B-Bone Start Handle Type"
-msgstr "Tipus de nansa inicial d'os-B"
+msgstr "Tipus de nansa inicial d'os-D"
 
 
 msgid "Selects how the start handle of the B-Bone is computed"
-msgstr "[B-Bone Start Handle Type]: Selecciona com es calcula la nansa inicial de l'os-B"
+msgstr "[B-Bone Start Handle Type]: Selecciona com es calcula la nansa inicial de l'os-D"
 
 
 msgid "End Handle Ease"
@@ -3101,7 +3101,7 @@ msgstr "Gradualitzat de nansa final"
 
 
 msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "[End Handle Ease]: Multiplica el canal de gradualitzat final de l'os-B pel valor d'escala local de Y de la nansa final. Es fa després de què l'opció de la gradualitzat d'escala, per la qual cosa no l'afecta"
+msgstr "[End Handle Ease]: Multiplica el canal de gradualitzat final de l'os-D pel valor d'escala local de Y de la nansa final. Es fa després de què l'opció de la gradualitzat d'escala, per la qual cosa no l'afecta"
 
 
 msgid "Start Handle Ease"
@@ -3109,7 +3109,7 @@ msgstr "Gradualitzat de nansa inicial"
 
 
 msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "[Start Handle Ease]: Multiplica el canal de gradualitzat inicial de l'os-B pel valor d'escala local de Y de la nansa d'inici. Es fa després de què l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
+msgstr "[Start Handle Ease]: Multiplica el canal de gradualitzat inicial de l'os-D pel valor d'escala local de Y de la nansa d'inici. Es fa després de què l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
 
 
 msgid "End Handle Scale"
@@ -3117,7 +3117,7 @@ msgstr "Escala de la nansa final"
 
 
 msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "[End Handle Scale]: Multiplica l'escala dels canals de sortida de l'os B pels valors d'escala locals de la nansa final. Això es fa després de l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
+msgstr "[End Handle Scale]: Multiplica l'escala dels canals de sortida de l'os-D pels valors d'escala locals de la nansa final. Això es fa després de l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
 
 
 msgid "Start Handle Scale"
@@ -3125,7 +3125,7 @@ msgstr "Escala de la nansa inicial"
 
 
 msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "[Start Handle Scale]: Multiplica l'escala dels canals d'entrada de l'os -B pels valors d'escala locals de la nansa inicial. Això es fa després de l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
+msgstr "[Start Handle Scale]: Multiplica l'escala dels canals d'entrada de l'os-D pels valors d'escala locals de la nansa inicial. Això es fa després de l'opció de gradualitzat d'escala, per la qual cosa no l'afecta"
 
 
 msgid "Roll In"
@@ -3133,7 +3133,7 @@ msgstr "Gir d'entrada"
 
 
 msgid "Roll offset for the start of the B-Bone, adjusts twist"
-msgstr "[Roll In] Separació del gir d'inici de l'os-B, ajusta el roscar"
+msgstr "[Roll In] Separació del gir d'inici de l'os-D, ajusta el roscar"
 
 
 msgid "Roll Out"
@@ -3141,7 +3141,7 @@ msgstr "Gir de sortida"
 
 
 msgid "Roll offset for the end of the B-Bone, adjusts twist"
-msgstr "[Roll out]: Separació del gir del final de l'os-B, ajusta el roscar"
+msgstr "[Roll out]: Separació del gir del final de l'os-D, ajusta el roscar"
 
 
 msgid "Scale In"
@@ -3149,7 +3149,7 @@ msgstr "Escalat d'entrada"
 
 
 msgid "Scale factors for the start of the B-Bone, adjusts thickness (for tapering effects)"
-msgstr "[Scale In]: Factors d'escala per a l'inici de l'os-B, ajusta el gruix(per a efectes d'estrenyiment)"
+msgstr "[Scale In]: Factors d'escala per a l'inici de l'os-D, ajusta el gruix(per a efectes d'estrenyiment)"
 
 
 msgid "Scale Out"
@@ -3157,31 +3157,31 @@ msgstr "Escalat de sortida"
 
 
 msgid "Scale factors for the end of the B-Bone, adjusts thickness (for tapering effects)"
-msgstr "[Scale Out] Factors d'escala per al final de l'os-B, ajusta el gruix (per a efectes d'estrenyiment)"
+msgstr "[Scale Out] Factors d'escala per al final de l'os-D, ajusta el gruix (per a efectes d'estrenyiment)"
 
 
 msgid "B-Bone Segments"
-msgstr "Segments d'os-B"
+msgstr "Segments d'os-D"
 
 
 msgid "Number of subdivisions of bone (for B-Bones only)"
-msgstr "[B-Bone Segments]: Nombre de subdivisions d'un os (només per a ossos-B)"
+msgstr "[B-Bone Segments]: Nombre de subdivisions d'un os (només per a ossos-D)"
 
 
 msgid "B-Bone Display X Width"
-msgstr "Visualització de l'amplada X de l'os-B"
+msgstr "Visualització de l'amplada X de l'os-D"
 
 
 msgid "B-Bone X size"
-msgstr "Mida de l'os-B en X"
+msgstr "Mida de l'os-D en X"
 
 
 msgid "B-Bone Display Z Width"
-msgstr "Visualització de l'amplada Z de l'os-B"
+msgstr "Visualització de l'amplada Z de l'os-D"
 
 
 msgid "B-Bone Z size"
-msgstr "Mida de l'os-B en Z"
+msgstr "Mida de l'os-D en Z"
 
 
 msgid "Children"
@@ -3401,7 +3401,7 @@ msgstr "Multiplicar el grup de vèrtexs per la funda"
 
 
 msgid "When deforming bone, multiply effects of Vertex Group weights with Envelope influence"
-msgstr "[Multiply Vertex Groups with Envelope]: En deformar l'os, es multipliquen els efectes dels pesos del grup de vèrtexs per la influència de funda"
+msgstr "[Multiply Vertex Groups with Envelope]: En deformar l'os, es multipliquen els efectes de les forces del grup de vèrtexs per la influència de funda"
 
 
 msgid "Inherit Rotation"
@@ -3597,11 +3597,11 @@ msgstr "Potencialitats del pintat de vèrtexs"
 
 
 msgid "Weight Paint Capabilities"
-msgstr "Potencialitats del pintar influència"
+msgstr "Potencialitats del pintat de força"
 
 
 msgid "Has Weight"
-msgstr "Té pes"
+msgstr "Té força"
 
 
 msgid "Curves Sculpt Brush Settings"
@@ -4406,7 +4406,7 @@ msgstr "Usar estabilitzador"
 
 
 msgid "Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing"
-msgstr "[Use Stabilizer]: Dibuixa línies amb retard per a permetre suavitzar traços. Prem la tecla de Majúscules per sobreseir mentre es dibuixa"
+msgstr "[Use Stabilizer]: Dibuixa línies amb retard per a permetre suavitzar traços. Prem la tecla de Majúscules per sobreseure mentre es dibuixa"
 
 
 msgid "Use Pressure Strength"
@@ -4502,7 +4502,7 @@ msgstr "Capa de memòria cau"
 
 
 msgid "Layer of the cache, used to load or override data from the first the first layer"
-msgstr "[Cache Layer]: Capa de memòria cau, usada per a carregar o sobreseir dades de la primera capa"
+msgstr "[Cache Layer]: Capa de memòria cau, usada per a carregar o sobreseure dades de la primera capa"
 
 
 msgid "Path to the archive"
@@ -4645,7 +4645,7 @@ msgstr "[Image User]: Paràmetres que defineixen quina capa, passada i fotograma
 
 
 msgid "Override Background Image"
-msgstr "Sobreseir la imatge de rerefons"
+msgstr "Sobreseure la imatge de rerefons"
 
 
 msgid "In a local override camera, whether this background image comes from the linked reference camera, or is local to the override"
@@ -5157,7 +5157,7 @@ msgstr "Màxim del destí"
 
 
 msgid "Goal maximum, vertex group weights are scaled to match this range"
-msgstr "[Goal Maximum]: Màxim del destí, els pesos del grups de vèrtexs s'escalaran per coincidir amb aquest interval"
+msgstr "[Goal Maximum]: Màxim del destí, les forces dels grups de vèrtexs s'escalaran per coincidir amb aquest interval"
 
 
 msgid "Goal Minimum"
@@ -5165,7 +5165,7 @@ msgstr "Mínim del destí"
 
 
 msgid "Goal minimum, vertex group weights are scaled to match this range"
-msgstr "[Goal Minimum]: El mínim del destí, els pesos dels grups de vèrtexs s'escalaran per coincidir amb aquest interval"
+msgstr "[Goal Minimum]: El mínim del destí, les forces dels grups de vèrtexs s'escalaran per coincidir amb aquest interval"
 
 
 msgid "Goal Stiffness"
@@ -5652,10 +5652,6 @@ msgid "Enabled"
 msgstr "Activat"
 
 
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Habilita aquest objecte com a col·lisionador per a sistemes físics"
-
-
 msgid "Single Sided"
 msgstr "D'una cara"
 
@@ -5665,7 +5661,7 @@ msgstr "[Single Sided]: La col·lisió de tela actua en base a les normals del c
 
 
 msgid "Override Normals"
-msgstr "Sobreseir normals"
+msgstr "Sobreseure normals"
 
 
 msgid "Cloth collision impulses act in the direction of the collider normals (more reliable in some cases)"
@@ -6070,7 +6066,7 @@ msgstr "[Line]: Text de la línia"
 
 
 msgid "Console line type when used in scrollback"
-msgstr "Tipus de línia de la consola quan es repassa el codi lliscant enrere"
+msgstr "Tipus de línia de la consola quan es repassa el codi rodolant enrere"
 
 
 msgid "Output"
@@ -6122,7 +6118,7 @@ msgstr "[Influence]: Quantitat d'influència que tindrà la restricció en la so
 
 
 msgid "Override Constraint"
-msgstr "Sobreseir la restricció"
+msgstr "Sobreseure la restricció"
 
 
 msgid "In a local override object, whether this constraint comes from the linked reference object, or is local to the override"
@@ -6410,7 +6406,7 @@ msgstr "Esquelet"
 
 
 msgid "Apply weight-blended transformation from multiple bones like the Armature modifier"
-msgstr "[Armature]: Aplica transformació de fusió per pesos des de múltiples ossos com ara el modificador d'esquelet"
+msgstr "[Armature]: Aplica transformació de fusió per forces des de múltiples ossos com ara el modificador d'esquelet"
 
 
 msgid "Child Of"
@@ -6634,7 +6630,7 @@ msgstr "Usa fundes"
 
 
 msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered"
-msgstr "[Use Envelopes]: Multiplica els pesos per funda per a tots els ossos, enlloc d'actuar com una fusió basada en grup de vèrtexs. Els pesos definits encara s'utilitzen, i només es té en compte els ossos indicats"
+msgstr "[Use Envelopes]: Multiplica les forces per funda per a tots els ossos, enlloc d'actuar com una fusió basada en grup de vèrtexs. Els pesos definits encara s'utilitzen, i només es té en compte els ossos indicats"
 
 
 msgid "Use Current Location"
@@ -6642,7 +6638,7 @@ msgstr "Usar ubicació actual"
 
 
 msgid "Use the current bone location for envelopes and choosing B-Bone segments instead of rest position"
-msgstr "[Use Current Location]: Utilitza la ubicació de l'os actual per a fundes i per a escollir els segments d'os-B enlloc de la posa de repòs"
+msgstr "[Use Current Location]: Utilitza la ubicació de l'os actual per a fundes i per a escollir els segments d'os-D enlloc de la posa de repòs"
 
 
 msgid "Preserve Volume"
@@ -6850,11 +6846,11 @@ msgstr "Inverteix la ubicació Z"
 
 
 msgid "Follow B-Bone"
-msgstr "Segueix os-B"
+msgstr "Segueix os-D"
 
 
 msgid "Follow shape of B-Bone segments when calculating Head/Tail position"
-msgstr "[Follow B-Bone]: Segueix la forma dels segments de l’os-B en calcular la ubicació del cap/cua"
+msgstr "[Follow B-Bone]: Segueix la forma dels segments d’os-D en calcular la ubicació del cap/cua"
 
 
 msgid "Add original location into copied location"
@@ -7390,11 +7386,11 @@ msgstr "[Lock Z Rotation]: Restringeix la rotació al llarg de l'eix Z"
 
 
 msgid "Orientation Weight"
-msgstr "Pes d'orientació"
+msgstr "Força d'orientació"
 
 
 msgid "For Tree-IK: Weight of orientation control for this target"
-msgstr "[Orientationh Weight]: Per a l'arbre de CI: control del pes d'orientació per al referent"
+msgstr "[Orientationh Weight]: Per a l'arbre de CI: control de la força d'orientació per al referent"
 
 
 msgid "Pole Angle"
@@ -7450,7 +7446,7 @@ msgstr "[Use Tail]: Inclou la cua de l'os com a últim element de la cadena"
 
 
 msgid "For Tree-IK: Weight of position control for this target"
-msgstr "Per a l'arbre de CI: Control el pes d'ubicació per a aquest referent"
+msgstr "Per a l'arbre de CI: Control de la força d'ubicació per a aquest referent"
 
 
 msgid "Limit Distance Constraint"
@@ -7618,7 +7614,7 @@ msgstr "Estricte"
 
 
 msgid "Volume is strictly preserved, overriding the scaling of non-free axes"
-msgstr "[Strict]: El volum es conserva estrictament, tot sobreseint l'escalat dels eixos no lliures"
+msgstr "[Strict]: El volum es conserva estrictament, tot sobreseient l'escalat dels eixos no lliures"
 
 
 msgid "Uniform"
@@ -8470,11 +8466,11 @@ msgstr "Esquelet referent"
 
 
 msgid "Blend Weight"
-msgstr "Fusió per pesos"
+msgstr "Fusió per forces"
 
 
 msgid "Blending weight of this bone"
-msgstr "[Blend Weight]: El pes de fusió d'aquest os"
+msgstr "[Blend Weight]: La força de fusió d'aquest os"
 
 
 msgid "Curve in a curve mapping"
@@ -10651,11 +10647,11 @@ msgstr "Ubicació de l'extrem de la cua de l'os"
 
 
 msgid "Effector weights for physics simulation"
-msgstr "Pesos en operació per a simulació d'efectes físics"
+msgstr "Forces en operació per a simulació d'efectes físics"
 
 
 msgid "All effector's weight"
-msgstr "Tots els pesos efectuadors"
+msgstr "Tots les forces efectuadores"
 
 
 msgid "Use For Growing Hair"
@@ -10695,7 +10691,7 @@ msgstr "Guia en corba"
 
 
 msgid "Curve guide effector weight"
-msgstr "[Curve Guide] Pes efectuador que guia per una corba corba"
+msgstr "[Curve Guide] Força efectuadora que guia per una corba"
 
 
 msgid "Drag"
@@ -10703,11 +10699,11 @@ msgstr "Arrossega"
 
 
 msgid "Drag effector weight"
-msgstr "[Drag]: Arrossegar influència d'efectuador"
+msgstr "[Drag]: Arrossegar força d'efectuador"
 
 
 msgid "Force effector weight"
-msgstr "Forçar influència d'efectuador"
+msgstr "Forçar força d'efectuador"
 
 
 msgid "Global gravity weight"
@@ -11428,7 +11424,7 @@ msgstr "Fotograma on s'inicia la influència modificadora (en cas que s'utilitzi
 
 
 msgid "Amount of influence F-Curve Modifier will have when not fading in/out"
-msgstr "Quantitat d'influència que exercir+a el modificador de Corba-F quan no estigui en procés de penetració o d'esvaïment"
+msgstr "Quantitat d'influència que exercirà el modificador de Corba-F quan no estigui en procés de penetració o d'esvaïment"
 
 
 msgid "Disabled"
@@ -11525,7 +11521,7 @@ msgstr "[Stepped Interpolation]: Fixa els valors al pas de quadrícula més prop
 
 
 msgid "Use Influence"
-msgstr "Usa influència"
+msgstr "Usar influència"
 
 
 msgid "F-Curve Modifier's effects will be tempered by a default factor"
@@ -12301,7 +12297,7 @@ msgstr "Pesos"
 
 
 msgid "Use curve weights to influence the particle influence along the curve"
-msgstr "[Weights]: Utilitza pesos de corba per influir en la influència de partícula al llarg de la corba"
+msgstr "[Weights]: Utilitza forces de corba per influir en la influència de partícula al llarg de la corba"
 
 
 msgid "Use Max"
@@ -13006,7 +13002,7 @@ msgstr "Seguir preferències"
 
 
 msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
-msgstr "Usa el mètode d'importació que posa a les preferències d'aquesta biblioteca de recursos, no la sobreseeix per aquest navegador de recursos"
+msgstr "Usa el mètode d'importació que posa a les preferències d'aquesta biblioteca de recursos, no la sobreseieu per aquest navegador de recursos"
 
 
 msgid "Link"
@@ -13494,7 +13490,7 @@ msgstr "[Upper Bound]: Límit superior de l'interval de ressaltat"
 
 
 msgid "Guiding weight (higher value results in greater lag)"
-msgstr "Pes guia (valor més alt dona retard més gran)"
+msgstr "Força guia (valor més alt dona retard més gran)"
 
 
 msgid "Guiding size (higher value results in larger vortices)"
@@ -14370,7 +14366,7 @@ msgstr "Compara les velocitats del fotograma anterior amb les noves del fotogram
 
 
 msgid "Override"
-msgstr "Sobreseir"
+msgstr "Sobreseure"
 
 
 msgid "Always write new guide velocities for every frame (each frame only contains current velocities from guiding objects)"
@@ -16384,7 +16380,7 @@ msgstr "Modificador que afecta l'objecte llapis de greix"
 
 
 msgid "Override Modifier"
-msgstr "Sobreseir modificador"
+msgstr "Sobreseure modificador"
 
 
 msgid "In a local override object, whether this modifier comes from the linked reference object, or is local to the override"
@@ -16419,10 +16415,6 @@ msgid "Texture Mapping"
 msgstr "Mapejat de textura"
 
 
-msgid "Change stroke uv texture values"
-msgstr "[Texture Mapping]: Canvia els valors de textura d'UV del traç"
-
-
 msgid "Time Offset"
 msgstr "Desfasament temporal"
 
@@ -16432,19 +16424,19 @@ msgstr "[Time Offset]: Desfasa les fotofites"
 
 
 msgid "Vertex Weight Angle"
-msgstr "Angle de pes de vèrtex"
+msgstr "Angle de força del vèrtex"
 
 
 msgid "Generate Vertex Weights base on stroke angle"
-msgstr "[Vertex Weight Angle]: Genera la base de pesos de vèrtex en l'angle del traç"
+msgstr "[Vertex Weight Angle]: Genera la base de forces de vèrtex en l'angle del traç"
 
 
 msgid "Vertex Weight Proximity"
-msgstr "Proximitat de pesos de vèrtex"
+msgstr "Proximitat de forces de vèrtex"
 
 
 msgid "Generate Vertex Weights base on distance to object"
-msgstr "[Vertex Weight Proximity]: Genera la base dels pesos de vèrtex a partir de la distància respecte de l'objecte"
+msgstr "[Vertex Weight Proximity]: Genera la base de forces de vèrtex a partir de la distància respecte de l'objecte"
 
 
 msgid "Array"
@@ -17933,10 +17925,6 @@ msgid "Amount of noise to apply to thickness"
 msgstr "[Thickness Factor]: Quantitat de soroll per aplicar al gruix"
 
 
-msgid "Amount of noise to apply uv rotation"
-msgstr "Quantitat de soroll per aplicar la rotació de l'UV"
-
-
 msgid "Noise Offset"
 msgstr "Separació de soroll"
 
@@ -18050,11 +18038,11 @@ msgstr "[Uniform Opacity]: Substitueix l'opacitat del traç"
 
 
 msgid "Weighted"
-msgstr "Pes"
+msgstr "Per força"
 
 
 msgid "Use weight to modulate effect"
-msgstr "[Weighted]: Utilitza el pes per modular l'efecte"
+msgstr "[Weighted]: Utilitza la força per modular l'efecte"
 
 
 msgid "Outline Modifier"
@@ -18562,15 +18550,15 @@ msgstr "Usa una corba maniobrera per definir l'efecte de color de vèrtex al lla
 
 
 msgid "Weight Modifier Angle"
-msgstr "Angle del modificador pes"
+msgstr "Angle del modificador força"
 
 
 msgid "Calculate Vertex Weight dynamically"
-msgstr "Calcula dinàmicament el pes dels vèrtexs"
+msgstr "Calcula dinàmicament la força dels vèrtexs"
 
 
 msgid "Minimum value for vertex weight"
-msgstr "Valor mínim per al pes del vèrtexs"
+msgstr "Valor mínim de força de vèrtexs"
 
 
 msgid "Space"
@@ -18582,19 +18570,19 @@ msgstr "Espai de coordenades"
 
 
 msgid "Invert output weight values"
-msgstr "Invertir els valors emesos d'influència"
+msgstr "Invertir els valors emesos de força"
 
 
 msgid "Multiply Weights"
-msgstr "Multiplica pesos"
+msgstr "Multiplica forces"
 
 
 msgid "Multiply the calculated weights with the existing values in the vertex group"
-msgstr "[Multiply Weights]: Multiplica els pesos calculats pels valors existents al grup de vèrtexs"
+msgstr "[Multiply Weights]: Multiplica les forces calculades pels valors existents al grup de vèrtexs"
 
 
 msgid "Weight Modifier Proximity"
-msgstr "Proximitat de modificador de pes"
+msgstr "Proximitat de modificador força"
 
 
 msgid "Highest"
@@ -18602,7 +18590,7 @@ msgstr "Altura màxima"
 
 
 msgid "Distance mapping to 1.0 weight"
-msgstr "[Highest]: Mapejat de distància al pes d'1,0"
+msgstr "[Highest]: Mapejat de distància a força 1,0"
 
 
 msgid "Lowest"
@@ -18610,7 +18598,7 @@ msgstr "Alçada mínima"
 
 
 msgid "Distance mapping to 0.0 weight"
-msgstr "[Lowest]: Mapejat de distància al pes de 0,0"
+msgstr "[Lowest]: Mapejat de distància a força 0,0"
 
 
 msgid "Object used as distance reference"
@@ -18622,7 +18610,7 @@ msgstr "Element de grup de vèrtexs"
 
 
 msgid "Weight value of a vertex in a vertex group"
-msgstr "[Vertex Group Element]: Valor de pes d'un vèrtex en un grup de vèrtexs"
+msgstr "[Vertex Group Element]: Valor força d'un vèrtex en un grup de vèrtexs"
 
 
 msgid "Group Index"
@@ -18630,7 +18618,7 @@ msgstr "Índex de grup"
 
 
 msgid "Vertex Weight"
-msgstr "Pes de vèrtex"
+msgstr "Força de vèrtex"
 
 
 msgid "Grid and Canvas Settings"
@@ -18846,7 +18834,7 @@ msgstr "[Original ID]: El bloc de dades en qüestió a partir del document .blen
 
 
 msgid "Library Override"
-msgstr "Sobreseir biblioteca"
+msgstr "Sobreseure biblioteca"
 
 
 msgid "Library override data"
@@ -19003,7 +18991,7 @@ msgstr "[Stick]: Mostra els ossos com a simples línies 2D de punts"
 
 
 msgid "B-Bone"
-msgstr "Os-B"
+msgstr "Os-D"
 
 
 msgid "Display bones as boxes, showing subdivision and B-Splines"
@@ -19791,11 +19779,11 @@ msgstr "Eina llapis de greix per pintar vèrtexs"
 
 
 msgid "Grease Pencil Weight Paint Tool"
-msgstr "Eina de llapis de greix per pintar influència"
+msgstr "Eina de llapis de greix per pintat de força"
 
 
 msgid "Weight Paint for Vertex Groups"
-msgstr "Pintar influència per a grups de vèrtex"
+msgstr "Pintar força per a grups de vèrtexs"
 
 
 msgid "Gradient Spacing"
@@ -19975,7 +19963,7 @@ msgstr "[Normal Radius]: Relació entre el radi del pinzell i el radi que s'util
 
 
 msgid "Normal Weight"
-msgstr "Pes normal"
+msgstr "Força de normal"
 
 
 msgid "How much grab will pull vertices out of surface during a grab"
@@ -20535,7 +20523,7 @@ msgstr "[Use Cursor Overlay]: Mostra el cursor al mirador"
 
 
 msgid "Override Overlay"
-msgstr "Sobreseir sopreposat"
+msgstr "Sobreseure sopreposat"
 
 
 msgid "Don't show overlay during a stroke"
@@ -20719,11 +20707,11 @@ msgstr "[Use Vertex]: Usa aquest pinzell en el mode de pintat de vèrtexs"
 
 
 msgid "Use Weight"
-msgstr "Usar influència"
+msgstr "Usar força"
 
 
 msgid "Use this brush in weight paint mode"
-msgstr "[Use Weight]: Utilitza aquest pinzell en mode de pintura d'influència"
+msgstr "[Use Weight]: Utilitza aquest pinzell en mode de pintura de força"
 
 
 msgid "Sculpt on a persistent layer of the mesh"
@@ -20963,7 +20951,7 @@ msgstr "Camins dels objectes dins l'arxiu Alembic"
 
 
 msgid "Override Frame"
-msgstr "Sobreseir fotograma"
+msgstr "Sobreseure fotograma"
 
 
 msgid "Whether to use a custom frame for looking up data in the cache file, instead of using the current scene frame"
@@ -21727,7 +21715,7 @@ msgstr "[Taper Radius]: Determina com es calcula el radi efectiu del punt spline
 
 
 msgid "Override the radius of the spline point with the taper radius"
-msgstr "Sobreseeix el radi del punt spline amb el radi transverser"
+msgstr "Sobreseure el radi del punt spline amb el radi transverser"
 
 
 msgid "Multiply the radius of the spline point by the taper radius"
@@ -22851,11 +22839,11 @@ msgstr "Pintura de vèrtex amb del llapis de greix"
 
 
 msgid "Stroke Weight Paint Mode"
-msgstr "Mode pintar influència amb traç"
+msgstr "Mode pintat de força amb traç"
 
 
 msgid "Grease Pencil weight paint"
-msgstr "[Stroke Weight Paint Mode]: Pintar influència amb el llapis de greix"
+msgstr "[Stroke Weight Paint Mode]: Pintar força amb el llapis de greix"
 
 
 msgid "Onion Opacity"
@@ -25738,7 +25726,7 @@ msgstr "Pintura de vèrtexs"
 
 
 msgid "Weight Paint"
-msgstr "Pintura d'influència"
+msgstr "Pintat de força"
 
 
 msgid "Texture Paint"
@@ -25766,7 +25754,7 @@ msgstr "Pinta traços de llapis de greix"
 
 
 msgid "Grease Pencil Weight Paint Strokes"
-msgstr "Traços de pintura d'influència amb llapis de greix"
+msgstr "Traços de pintura de força amb llapis de greix"
 
 
 msgid "Grease Pencil Vertex Paint Strokes"
@@ -29391,7 +29379,7 @@ msgstr "ID de Biblioteca de sobreseïments"
 
 
 msgid "Struct gathering all data needed by overridden linked IDs"
-msgstr "Struct que recopila totes les dades necessàries per als ID enllaçats sobreseïts"
+msgstr "Struct que recopila totes les dades necessàries per als ID enllaçats sobreseguts"
 
 
 msgid "Hierarchy Root ID"
@@ -29419,7 +29407,7 @@ msgstr "[Is System Override]: Que si aquest sobreseïment de biblioteca només e
 
 
 msgid "List of overridden properties"
-msgstr "Llista de propietats sobreseïdes"
+msgstr "Llista de propietats sobresegudes"
 
 
 msgid "Reference ID"
@@ -29443,7 +29431,7 @@ msgstr "Biblioteca d'IDs de propietats de sobreseïment"
 
 
 msgid "Description of an overridden property"
-msgstr "[ID Library Override Property]: Descripció d'una propietat sobreseïda"
+msgstr "[ID Library Override Property]: Descripció d'una propietat sobreseguda"
 
 
 msgid "Operations"
@@ -29467,7 +29455,7 @@ msgstr "Operació de la propietat de sobreseïment de la biblioteca d'identifica
 
 
 msgid "Description of an override operation over an overridden property"
-msgstr "[ID Library Override Property Operation]: Descripció d'una operació de sobreseïment sobre una propietat sobreseïda"
+msgstr "[ID Library Override Property Operation]: Descripció d'una operació de sobreseïment sobre una propietat sobreseguda"
 
 
 msgid "Optional flags (NOT USED)"
@@ -32027,7 +32015,7 @@ msgstr "[Insert Keyframes - Only Needed]: Insereix només fotofites allà on só
 
 
 msgid "Override Insert Keyframes Default- Only Needed"
-msgstr "Sobreseir inserció de cites per defecte- només les necessàries"
+msgstr "Sobreseure inserció de cites per defecte- només les necessàries"
 
 
 msgid "Override default setting to only insert keyframes where they're needed in the relevant F-Curves"
@@ -32035,7 +32023,7 @@ msgstr "Paràmetre de sobreseïment per defecte perquè només s'insereixin foto
 
 
 msgid "Override Insert Keyframes Default - Visual"
-msgstr "Sobreseir inserció de cites per defecte- Visual"
+msgstr "Sobreseure inserció de cites per defecte- Visual"
 
 
 msgid "Override default setting to insert keyframes based on 'visual transforms'"
@@ -32043,7 +32031,7 @@ msgstr "Paràmetre de sobreseïment per defecte perquè només s'insereixin foto
 
 
 msgid "Override F-Curve Colors - XYZ to RGB"
-msgstr "Sobreseir colors de Corba F - de XYZ a RGB"
+msgstr "Sobreseure colors de Corba F - de XYZ a RGB"
 
 
 msgid "Override default setting to set color for newly added transformation F-Curves (Location, Rotation, Scale) to be based on the transform axis"
@@ -32075,11 +32063,11 @@ msgstr "Disponible"
 
 
 msgid "Insert a keyframe for each of the BBone shape properties"
-msgstr "[Available]: Insereix una fotofita per a cadascuna de les propietats de forma de l'os-B"
+msgstr "[Available]: Insereix una fotofita per a cadascuna de les propietats de forma de l'os-D"
 
 
 msgid "BBone Shape"
-msgstr "Forma d'os-B"
+msgstr "Forma d'os-D"
 
 
 msgid "Insert keyframes for additional location offset"
@@ -33456,11 +33444,11 @@ msgstr "Evita que la vora borrosa faci autointerseccions"
 
 
 msgid "Weight Interpolation"
-msgstr "Interpolació d'influència"
+msgstr "Interpolació de força"
 
 
 msgid "The type of weight interpolation for spline"
-msgstr "[Weight Interpolation]: El tipus d’interpolació d'influència pel spline"
+msgstr "[Weight Interpolation]: El tipus d’interpolació de força pel spline"
 
 
 msgid "Mask Spline Point"
@@ -33753,7 +33741,7 @@ msgstr "Les cares amb aquest material es comportaran com si tingués un determin
 
 
 msgid "Override object and collection intersection priority value"
-msgstr "Sobreseir el valor prioritari d'intersecció d'objectes i col·leccions"
+msgstr "Sobreseure el valor prioritari d'intersecció d'objectes i col·leccions"
 
 
 msgid "Material slot in an object"
@@ -33971,7 +33959,7 @@ msgstr "Mostra/Oculta cares"
 
 
 msgid "Unwrap"
-msgstr "Desembolicar"
+msgstr "Desembolcallar"
 
 
 msgctxt "WindowManager"
@@ -34370,7 +34358,7 @@ msgstr "Conjunts de cares inicials"
 
 
 msgid "Generate Weights"
-msgstr "Generar influències"
+msgstr "Generar forces"
 
 
 msgid "Hooks"
@@ -34570,7 +34558,7 @@ msgstr "Costura"
 
 
 msgid "Seam edge for UV unwrapping"
-msgstr "[Seam]: Aresta que fa de costura per a desembolicar en UV"
+msgstr "[Seam]: Aresta que fa de costura per a desembolcallar en UV"
 
 
 msgid "Vertex indices"
@@ -35069,10 +35057,6 @@ msgid "UV Pin"
 msgstr "Fixació UV"
 
 
-msgid "UV pinned state in the uv editor"
-msgstr "[UV Pin]: Estat de fixació de l'UV a l'editor d'UV"
-
-
 msgid "UV coordinates on face corners"
 msgstr "Coordenades UV als cantells de cara"
 
@@ -35342,23 +35326,23 @@ msgstr "[UV Warp]: Transforma el mapa UV usant la diferència entre dos objectes
 
 
 msgid "Vertex Weight Edit"
-msgstr "Edita influència de vèrtexs"
+msgstr "Edita força de vèrtexs"
 
 
 msgid "Modify of the weights of a vertex group"
-msgstr "[Vertex Weight Edit]: Modifica la influència d'un grup de vèrtexs"
+msgstr "[Vertex Weight Edit]: Modifica les forces d'un grup de vèrtexs"
 
 
 msgid "Vertex Weight Mix"
-msgstr "Mescla d'influència de vèrtexs"
+msgstr "Mescla de forces de vèrtexs"
 
 
 msgid "Mix the weights of two vertex groups"
-msgstr "[Vertex Weight Mix]: Combina les influències de dos grups de vèrtexs"
+msgstr "[Vertex Weight Mix]: Combina les forces de dos grups de vèrtexs"
 
 
 msgid "Set the vertex group weights based on the distance to another target object"
-msgstr "Determina la influència del grup de vèrtexs en funció de la distància a un altre objecte referent"
+msgstr "Determina les forces del grup de vèrtexs en funció de la distància a un altre objecte referent"
 
 
 msgid "Create copies of the shape with offsets"
@@ -37262,11 +37246,11 @@ msgstr "Usar vèrtexs que no formen part de la regió definida"
 
 
 msgid "Weights over this threshold remain"
-msgstr "Les influències per sobre d'aquest llindar es conserven"
+msgstr "Les forces per sobre d'aquest llindar es conserven"
 
 
 msgid "Use vertex group weights to cut faces at the weight contour"
-msgstr "Usa les influències dels grups de vèrtexs per a tallar cares del seu contorn"
+msgstr "Usa les forces dels grups de vèrtexs per a tallar cares del seu contorn"
 
 
 msgid "Cache Modifier"
@@ -38663,7 +38647,7 @@ msgstr "Cares aplanades"
 
 
 msgid "Make faces use the minimal vertex weight assigned to their vertices(ensures new faces remain parallel to their original ones, slow, disable when not needed)"
-msgstr "[Flat Faces]: Fa que les cares utilitzin la mínima influència de vèrtex assignada als seus vèrtexs (assegura que les cares noves queden paral·leles a les originals, lent, desactivar si no cal)"
+msgstr "[Flat Faces]: Fa que les cares utilitzin la mínima força de vèrtex assignada als seus vèrtexs (assegura que les cares noves queden paral·leles a les originals, lent, desactivar si no cal)"
 
 
 msgid "Flip Normals"
@@ -38906,10 +38890,6 @@ msgid "UVWarp Modifier"
 msgstr "Modificador aberració UV"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "[UVWarp Modifier]: Afegeix la posició de referència a les coordenades uv"
-
-
 msgid "U-Axis"
 msgstr "Eix U"
 
@@ -38971,11 +38951,11 @@ msgstr "[UV Layer]: Nom de la capa UV"
 
 
 msgid "WeightVG Edit Modifier"
-msgstr "Modificador d'edició d'influències-GV"
+msgstr "Modificador d'edició de forces-GV"
 
 
 msgid "Edit the weights of vertices in a group"
-msgstr "[WeightVG Edit Modifier]: Edita les influències dels vèrtexs en un grup"
+msgstr "[WeightVG Edit Modifier]: Edita les forces dels vèrtexs en un grup"
 
 
 msgid "Add Threshold"
@@ -38983,7 +38963,7 @@ msgstr "Llindar de suma"
 
 
 msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "[Add Threshold]: Límit inferior de la influència d'un vèrtex a sumar a un grup-v"
+msgstr "[Add Threshold]: Límit inferior de la força d'un vèrtex a sumar a un grup-v"
 
 
 msgid "Default Weight"
@@ -38995,7 +38975,7 @@ msgstr "[Default Weight]: Influència predeterminada que tindrà un vèrtex si n
 
 
 msgid "How weights are mapped to their new values"
-msgstr "Com es mapegen les influències als seus valors nous"
+msgstr "Com es mapegen les forces als seus valors nous"
 
 
 msgid "Null action"
@@ -39026,7 +39006,7 @@ msgstr "Inverteix decaïment"
 
 
 msgid "Invert the resulting falloff weight"
-msgstr "[Invert Falloff]: Inverteix la influència resultant del decaïment"
+msgstr "[Invert Falloff]: Inverteix la força resultant del decaïment"
 
 
 msgid "Invert vertex group mask influence"
@@ -39098,11 +39078,11 @@ msgstr "[Mask Vertex Group]: Nom del grup de vèrtexs d'emmascarament"
 
 
 msgid "Normalize Weights"
-msgstr "Normalitza influències"
+msgstr "Normalitza forces"
 
 
 msgid "Normalize the resulting weights (otherwise they are only clamped within 0.0 to 1.0 range)"
-msgstr "[Normalize Weights]: Normalitza les influències resultants (en cas contrari només s'estrenyen dins de l'interval 0,0 a 1,0)"
+msgstr "[Normalize Weights]: Normalitza les forces resultants (en cas contrari només s'estrenyen dins de l'interval 0,0 a 1,0)"
 
 
 msgid "Remove Threshold"
@@ -39110,7 +39090,7 @@ msgstr "Llindar de supressió"
 
 
 msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "[Remove Threshold]: Límit superior perquè la influència d'un vèrtex s'elimini del grop-v"
+msgstr "[Remove Threshold]: Límit superior perquè la força d'un vèrtex s'elimini del grop-v"
 
 
 msgid "Group Add"
@@ -39118,7 +39098,7 @@ msgstr "Afegir grup"
 
 
 msgid "Add vertices with weight over threshold to vgroup"
-msgstr "[Group Add]: Afegeix vèrtexs amb influència superior al llindar de grup-v"
+msgstr "[Group Add]: Afegeix vèrtexs amb força superior al llindar de grup-v"
 
 
 msgid "Group Remove"
@@ -39126,11 +39106,11 @@ msgstr "Eliminar grup"
 
 
 msgid "Remove vertices with weight below threshold from vgroup"
-msgstr "[Group Remove]: Elimina vèrtexs d'influència inferior al llindar del grup-v"
+msgstr "[Group Remove]: Elimina vèrtexs de força inferior al llindar del grup-v"
 
 
 msgid "WeightVG Mix Modifier"
-msgstr "Modificador mescla influència-GV"
+msgstr "Modificador mescla força-GV"
 
 
 msgid "Default Weight A"
@@ -39150,7 +39130,7 @@ msgstr "Influència predeterminada que tindrà un vèrtex si no està en el sego
 
 
 msgid "Invert Weights A"
-msgstr "Invertir influència A"
+msgstr "Invertir forces A"
 
 
 msgid "Invert the influence of vertex group A"
@@ -39158,7 +39138,7 @@ msgstr "[Invert Weights A]: Inverteix la influència del grup de vèrtexs A"
 
 
 msgid "Invert Weights B"
-msgstr "Invertir influència B"
+msgstr "Invertir forces B"
 
 
 msgid "Invert the influence of vertex group B"
@@ -39166,43 +39146,43 @@ msgstr "Inverteix la influència del grup de vèrtexs B"
 
 
 msgid "How weights from vgroup B affect weights of vgroup A"
-msgstr "Com afecten les influències del grup-v B a les del grup-v A"
+msgstr "Com afecten les forces del grup-v B a les del grup-v A"
 
 
 msgid "Replace VGroup A's weights by VGroup B's ones"
-msgstr "Substitueix influències del grup A per les del grup-v B"
+msgstr "Substitueix forces del grup A per les del grup-v B"
 
 
 msgid "Add VGroup B's weights to VGroup A's ones"
-msgstr "Suma les influències del grup-v B a les del grup-v A"
+msgstr "Suma les forces del grup-v B a les del grup-v A"
 
 
 msgid "Subtract VGroup B's weights from VGroup A's ones"
-msgstr "Resta les influències de grup-v B's de les del grup-v A"
+msgstr "Resta les forces de grup-v B's de les del grup-v A"
 
 
 msgid "Multiply VGroup A's weights by VGroup B's ones"
-msgstr "Multiplica les influències del grup-v A per les del grup-v B"
+msgstr "Multiplica les forces del grup-v A per les del grup-v B"
 
 
 msgid "Divide VGroup A's weights by VGroup B's ones"
-msgstr "Divideix les influències del grup-v A per les del grup-v B"
+msgstr "Divideix les forces del grup-v A per les del grup-v B"
 
 
 msgid "Difference between VGroup A's and VGroup B's weights"
-msgstr "Diferència entre les influències del grup-v A i el grup-v B"
+msgstr "Diferència entre les forces del grup-v A i el grup-v B"
 
 
 msgid "Average value of VGroup A's and VGroup B's weights"
-msgstr "Mitjana de les influències del grup-v A i del grup-v B"
+msgstr "Mitjana de les forces del grup-v A i del grup-v B"
 
 
 msgid "Minimum of VGroup A's and VGroup B's weights"
-msgstr "Mínima influència del grup-v A i del grup-v B"
+msgstr "Mínimes forces del grup-v A i del grup-v B"
 
 
 msgid "Maximum of VGroup A's and VGroup B's weights"
-msgstr "Màxima influència del grup-v A i del grup-v B"
+msgstr "Màximes forces del grup-v A i del grup-v B"
 
 
 msgid "Vertex Set"
@@ -39266,19 +39246,19 @@ msgstr "Nom del segon grup de vèrtexs"
 
 
 msgid "WeightVG Proximity Modifier"
-msgstr "Modificador proximitat a influència-GV"
+msgstr "Modificador proximitat a força-GV"
 
 
 msgid "Set the weights of vertices in a group from a target object's distance"
-msgstr "[WeightVG Proximity Modifier]: Consigna les influències dels vèrtexs d'un grup a partir de la distància d'un objecte de referència"
+msgstr "[WeightVG Proximity Modifier]: Consigna les forces dels vèrtexs d'un grup a partir de la distància d'un objecte de referència"
 
 
 msgid "Distance mapping to weight 1.0"
-msgstr "Mapejat distància a influència 1,0"
+msgstr "Mapejat distància a força 1,0"
 
 
 msgid "Distance mapping to weight 0.0"
-msgstr "Mapejat distància a influència 0,0"
+msgstr "Mapejat distància a força 0,0"
 
 
 msgid "Proximity Geometry"
@@ -39286,7 +39266,7 @@ msgstr "Geometria de proximitat"
 
 
 msgid "Use the shortest computed distance to target object's geometry as weight"
-msgstr "[Proximity Geometry]: Usa com a influència la distància calculada més curta a la geometria de l'objecte referent"
+msgstr "[Proximity Geometry]: Usa com a força la distància calculada més curta a la geometria de l'objecte referent"
 
 
 msgid "Compute distance to nearest vertex"
@@ -39526,7 +39506,7 @@ msgstr "Distància entre ones"
 
 
 msgid "WeightedNormal Modifier"
-msgstr "Modificador influència normal"
+msgstr "Modificador de normal amb força"
 
 
 msgid "Keep Sharp"
@@ -39534,15 +39514,15 @@ msgstr "Mantenir agut"
 
 
 msgid "Keep sharp edges as computed for default split normals, instead of setting a single weighted normal for each vertex"
-msgstr "[Keep Sharp]: Manté els cantells aguts segons còmput per a normals partides per defecte, en lloc de definir una influència de normal per a cada vèrtex"
+msgstr "[Keep Sharp]: Manté els cantells aguts segons còmput per a normals partides per defecte, en lloc de definir una normal amb força per a cada vèrtex"
 
 
 msgid "Weighting Mode"
-msgstr "Mode influència"
+msgstr "Mode força"
 
 
 msgid "Weighted vertex normal mode to use"
-msgstr "[Weighting Mode]: El mode d'influència de normal de vèrtexs triat"
+msgstr "[Weighting Mode]: El mode de normal amb força de vèrtexs triat"
 
 
 msgid "Face Area"
@@ -39566,7 +39546,7 @@ msgstr "[Face Area & Angle]: Les normals generades es ponderen tant per l'àrea 
 
 
 msgid "Threshold value for different weights to be considered equal"
-msgstr "Valor del llindar per considerar iguals diferents influències i ponderacions"
+msgstr "Valor del llindar per considerar iguals diferents forces i ponderacions"
 
 
 msgid "Face Influence"
@@ -39582,7 +39562,7 @@ msgstr "Nom del grup de vèrtex per a modificar les àrees seleccionades"
 
 
 msgid "Corrective factor applied to faces' weights, 50 is neutral, lower values increase weight of weak faces, higher values increase weight of strong faces"
-msgstr "Factor correctiu aplicat a les influències de cares, 50 és neutral, els valors menors augmenten la influència de les cares febles, els valors més alts augmenten el de les cares fortes"
+msgstr "Factor correctiu aplicat a les forces de cares, 50 és neutral, els valors menors augmenten la força de les cares febles, els valors més alts augmenten el de les cares fortes"
 
 
 msgid "Weld Modifier"
@@ -40979,7 +40959,7 @@ msgstr "Influència d'aquest rastre en la resolutiva final"
 
 
 msgid "Stab Weight"
-msgstr "Poder estabilitzador"
+msgstr "Força estabilitzadora"
 
 
 msgid "Influence of this track on 2D stabilization"
@@ -41199,7 +41179,7 @@ msgstr "La pista d'ANL està activa"
 
 
 msgid "Override Track"
-msgstr "Sobreseir pista"
+msgstr "Sobreseure pista"
 
 
 msgid "In a local override data, whether this NLA track comes from the linked reference data, or is local to the override"
@@ -45586,7 +45566,7 @@ msgstr "[Pack UV Islands]: Escala les illes d'un mapa UV i les mou perquè ompli
 
 
 msgid "UV Unwrap"
-msgstr "Desplegar UV"
+msgstr "Desembolcallar UV"
 
 
 msgid "Generate a UV map based on seam edges"
@@ -48192,7 +48172,7 @@ msgstr "Usar la configuració de retenció d'aquest objecte per a sobreescriure 
 
 
 msgid "Use this object's intersection priority to override collection setting"
-msgstr "Usar la prioritat d'intersecció d'aquest objecte per sobreseir la configuració de la col·lecció"
+msgstr "Usar la prioritat d'intersecció d'aquest objecte per sobreseure la configuració de la col·lecció"
 
 
 msgid "Object Modifiers"
@@ -49869,7 +49849,7 @@ msgstr "[All Forks]: Segueix les bifurcacions de la cadena de paternitat"
 
 
 msgid "(De)select bones linked by parent/child connections under the mouse cursor"
-msgstr "(De)selecciona els ossos enllaçats per connexions pare/fill sota el cursor del ratolí"
+msgstr "(Des)selecciona els ossos enllaçats per connexions pare/fill sota el cursor del ratolí"
 
 
 msgctxt "Operator"
@@ -51002,7 +50982,7 @@ msgstr "Centrar actual"
 
 
 msgid "Scroll view so current frame would be centered"
-msgstr "[Center Current Frame]: Fa lliscar la visualització per centrar l'actual"
+msgstr "[Center Current Frame]: Desplaça la visualització per centrar el fotograma actual"
 
 
 msgctxt "Operator"
@@ -51038,7 +51018,7 @@ msgstr "Ubicació del ratolí per seleccionar l'entitat més propera"
 
 msgctxt "Operator"
 msgid "(De)select All Markers"
-msgstr "(De)selecciona tots els marcadors"
+msgstr "(Des)selecciona tots els marcadors"
 
 
 msgid "Change selection of all markers of active track"
@@ -51843,7 +51823,7 @@ msgstr "[History]: Liquida l'historial d'ordres"
 
 
 msgid "Scrollback"
-msgstr "Desplaçat"
+msgstr "Ròdol enrere"
 
 
 msgid "Clear the scrollback history"
@@ -52025,7 +52005,7 @@ msgstr "Enganxa el text del porta-retalls"
 
 msgctxt "Operator"
 msgid "Scrollback Append"
-msgstr "Annexar desplaçament enrere"
+msgstr "Annexar ròdol enrere"
 
 
 msgid "Append scrollback text by type"
@@ -52226,11 +52206,11 @@ msgstr "Mou la restricció cap amunt en la l'estiba de restriccions"
 
 msgctxt "Operator"
 msgid "Normalize Weights"
-msgstr "Normalitzar influències"
+msgstr "Normalitzar forces"
 
 
 msgid "Normalize weights of all target bones"
-msgstr "[Normalize Weights]: Normalitza les influències de tots els ossos de referència"
+msgstr "[Normalize Weights]: Normalitza les forces de tots els ossos de referència"
 
 
 msgid "Clear inverse correction for Object Solver constraint"
@@ -52291,7 +52271,7 @@ msgstr "Entra/surt del mode d'escultura per corbes"
 
 
 msgid "(De)select all control points"
-msgstr "(De)selecciona tots els punts de control"
+msgstr "(Des)selecciona tots els punts de control"
 
 
 msgctxt "Operator"
@@ -52402,20 +52382,20 @@ msgstr "V cíclic"
 
 msgctxt "Operator"
 msgid "(De)select First"
-msgstr "(De)seleccionar primer"
+msgstr "(Des)seleccionar primer"
 
 
 msgid "(De)select first of visible part of each NURBS"
-msgstr "(De)selecciona el primer de la part visibles de cada NURBS"
+msgstr "(Des)selecciona el primer de la part visibles de cada NURBS"
 
 
 msgctxt "Operator"
 msgid "(De)select Last"
-msgstr "(De)seleccionar últim"
+msgstr "(Des)seleccionar últim"
 
 
 msgid "(De)select last of visible part of each NURBS"
-msgstr "(De)selecciona l'últim de la part visible de cada NURBS"
+msgstr "(Des)selecciona l'últim de la part visible de cada NURBS"
 
 
 msgctxt "Operator"
@@ -53007,11 +52987,11 @@ msgstr "[Smooth Curve Tilt]: Interpola la inclinació dels punts seleccionats"
 
 msgctxt "Operator"
 msgid "Smooth Curve Weight"
-msgstr "Suavitzar influència de corba"
+msgstr "Suavitzar força de corba"
 
 
 msgid "Interpolate weight of selected points"
-msgstr "[Smooth Curve Weight]: Interpola la influència dels punts seleccionats"
+msgstr "[Smooth Curve Weight]: Interpola la força dels punts seleccionats"
 
 
 msgctxt "Operator"
@@ -53050,11 +53030,11 @@ msgstr "[Handles]: Utilitza nanses en convertir corbes Bézier en polígons"
 
 msgctxt "Operator"
 msgid "Set Goal Weight"
-msgstr "Establir objectiu d'influència"
+msgstr "Establir objectiu de força"
 
 
 msgid "Set softbody goal weight for selected points"
-msgstr "[Set Goal Weight]: Estableix la influència de l'objectiu del cos tou per als punts seleccionats"
+msgstr "[Set Goal Weight]: Estableix l'objectiu de força del cos tou per als punts seleccionats"
 
 
 msgid "Split off selected points from connected unselected points"
@@ -54077,6 +54057,10 @@ msgid "Generic quantization bits"
 msgstr "Bits de quantificació genèrics"
 
 
+msgid "Quantization bits for generic values like weights or joints (0 = no quantization)"
+msgstr "[Generic quantization bits]: Bits de quantificació per a valors genèrics com forces o articulacions (0 = sense quantificació)"
+
+
 msgid "Draco mesh compression"
 msgstr "Compressió de malla amb Draco"
 
@@ -54932,7 +54916,7 @@ msgstr "Següent"
 
 msgctxt "Operator"
 msgid "Smooth Scroll"
-msgstr "Desplaçament suau"
+msgstr "Rodolar suau"
 
 
 msgid "Smooth scroll to make editable file visible"
@@ -55028,7 +55012,7 @@ msgstr "Restaura tots els blocs de dades empaquetats enllaçats a les seves ubic
 
 
 msgid "Scroll the selected files into view"
-msgstr "Desplaçar els documents seleccionats per veure'ls"
+msgstr "Rodolar els documents seleccionats fins que es vegin"
 
 
 msgctxt "Operator"
@@ -55937,11 +55921,11 @@ msgstr "[Link Strokes]: Si s'han d'enllaçar els traços amb seccions de radi ze
 
 
 msgid "Normalize Weight"
-msgstr "Normalitzar influència"
+msgstr "Normalitzar força"
 
 
 msgid "Normalize weight (set from stroke width)"
-msgstr "[Normalize Weight]: Normalitza la influència (treta de l'amplada de traç)"
+msgstr "[Normalize Weight]: Normalitza la força (treta de l'amplada de traç)"
 
 
 msgid "Whether the path control curve reproduces the drawing in realtime, starting from Start Frame"
@@ -56227,11 +56211,11 @@ msgstr "Duplicar fotogrames actius en totes les capes"
 
 msgctxt "Operator"
 msgid "Generate Automatic Weights"
-msgstr "Generar influències automàtiques"
+msgstr "Generar forces automàtiques"
 
 
 msgid "Generate automatic weights for armatures (requires armature modifier)"
-msgstr "Generar influències automàtiques per a esquelets (requereix modificador esquelet)"
+msgstr "Generar forces automàtiques per a esquelets (requereix modificador esquelet)"
 
 
 msgid "Armature to use"
@@ -57024,7 +57008,7 @@ msgstr "Ubicació de ratolí"
 
 msgctxt "Operator"
 msgid "(De)select All Strokes"
-msgstr "(De)selecciona tots els traços"
+msgstr "(Des)selecciona tots els traços"
 
 
 msgid "Change selection of all Grease Pencil strokes currently visible"
@@ -57854,7 +57838,7 @@ msgstr "Invertir grup de vèrtexs"
 
 
 msgid "Invert weights to the active vertex group"
-msgstr "[Invert Vertex Group]: Inverteix les influències al grup de vèrtexs actiu"
+msgstr "[Invert Vertex Group]: Inverteix les forces al grup de vèrtexs actiu"
 
 
 msgctxt "Operator"
@@ -57863,7 +57847,7 @@ msgstr "Normalitzar grup de vèrtexs"
 
 
 msgid "Normalize weights to the active vertex group"
-msgstr "Normalitza les influències del grup de vèrtexs actiu"
+msgstr "Normalitza les forces del grup de vèrtexs actiu"
 
 
 msgctxt "Operator"
@@ -57872,7 +57856,7 @@ msgstr "Normalitzar tots els grups de vèrtexs"
 
 
 msgid "Normalize all weights of all vertex groups, so that for each vertex, the sum of all weights is 1.0"
-msgstr "Normalitza totes les influències de tots els grups de vèrtexs, de manera que per a cada vèrtex, la suma de totes les influències sigui 1.0"
+msgstr "Normalitza totes les forces de tots els grups de vèrtexs, de manera que per a cada vèrtex, la suma de totes les forces sigui 1.0"
 
 
 msgid "Lock Active"
@@ -57907,7 +57891,7 @@ msgstr "Suavitzar grup de vèrtexs"
 
 
 msgid "Smooth weights to the active vertex group"
-msgstr "[Smooth Vertex Group]: Suavitza les influències al grup de vèrtexs actiu"
+msgstr "[Smooth Vertex Group]: Suavitza les forces al grup de vèrtexs actiu"
 
 
 msgctxt "Operator"
@@ -57930,16 +57914,16 @@ msgstr "Entra/Surt del mode de pintat de vèrtexs per als traços de llapis de g
 
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
-msgstr "Pintat d'influència de traç"
+msgstr "Pintat de força amb traç"
 
 
 msgctxt "Operator"
 msgid "Strokes Weight Mode Toggle"
-msgstr "Revesar mode d'influència de traços"
+msgstr "Revesar mode de força amb traços"
 
 
 msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
-msgstr "Entra/Surt del mode de pintat d'influència per als traços del llapis de greix"
+msgstr "Entra/Surt del mode de pintat de força amb traços del llapis de greix"
 
 
 msgctxt "Operator"
@@ -59783,7 +59767,7 @@ msgstr "Seleccionar càmera"
 
 msgctxt "Operator"
 msgid "(De)select all Markers"
-msgstr "(De)selecciona tots els marcadors"
+msgstr "(Des)selecciona tots els marcadors"
 
 
 msgid "Change selection of all time markers"
@@ -59900,11 +59884,11 @@ msgstr "Duplicar màscara"
 
 msgctxt "Operator"
 msgid "Clear Feather Weight"
-msgstr "Descartar influència de vora borrosa"
+msgstr "Descartar força de vora borrosa"
 
 
 msgid "Reset the feather weight to zero"
-msgstr "[Clear Feather Weight]: Restableix la influència de la vora borrosa a zero"
+msgstr "[Clear Feather Weight]: Restableix la força de la vora borrosa a zero"
 
 
 msgctxt "Operator"
@@ -60036,7 +60020,7 @@ msgstr "Seleccionar tots els punts de corba enllaçats als ja seleccionats"
 
 
 msgid "(De)select all points linked to the curve under the mouse cursor"
-msgstr "(De)seleccionaa tots els punts enllaçats a la corba sota el cursor del ratolí"
+msgstr "(Des)selecciona tots els punts enllaçats a la corba sota el cursor del ratolí"
 
 
 msgid "Select more spline points connected to initial selection"
@@ -60058,7 +60042,7 @@ msgstr "Animació de reinici de vora borrosa"
 
 
 msgid "Reset feather weights on all selected points animation values"
-msgstr "[Feather Reset Animation]: Restableix les influències de vora borrosa en tots els valors d'animació de punts seleccionats"
+msgstr "[Feather Reset Animation]: Restableix les forces de vora borrosa en tots els valors d'animació de punts seleccionats"
 
 
 msgctxt "Operator"
@@ -60579,38 +60563,38 @@ msgstr "Comparar VCols"
 
 msgctxt "Operator"
 msgid "Add Edge Bevel Weight"
-msgstr "Afegir influència a bisell d'aresta"
+msgstr "Afegir força a bisell d'aresta"
 
 
 msgid "Add an edge bevel weight layer"
-msgstr "[Add Edge Bevel Weight]: Afegeix una capa d'influència al bisell d'aresta"
+msgstr "[Add Edge Bevel Weight]: Afegeix una capa de força al bisell d'aresta"
 
 
 msgctxt "Operator"
 msgid "Clear Edge Bevel Weight"
-msgstr "Descartar influència de bisell d'aresta"
+msgstr "Descartar força de bisell d'aresta"
 
 
 msgid "Clear the edge bevel weight layer"
-msgstr "Neteja la capa d'influència del bisell d'aresta"
+msgstr "Neteja la capa de força del bisell d'aresta"
 
 
 msgctxt "Operator"
 msgid "Add Vertex Bevel Weight"
-msgstr "Afegir influència de bisells de vèrtexs"
+msgstr "Afegir força de bisells de vèrtexs"
 
 
 msgid "Add a vertex bevel weight layer"
-msgstr "[Add Vertex Bevel Weight]: Afegeix una capa d'influència de bisells de vèrtexs"
+msgstr "[Add Vertex Bevel Weight]: Afegeix una capa de força de bisells de vèrtexs"
 
 
 msgctxt "Operator"
 msgid "Clear Vertex Bevel Weight"
-msgstr "Descartar influència de bisells de vèrtexs"
+msgstr "Descartar força de bisells de vèrtexs"
 
 
 msgid "Clear the vertex bevel weight layer"
-msgstr "Neteja la capa d'influència del bisells de vèrtexs"
+msgstr "Neteja la capa de força del bisells de vèrtexs"
 
 
 msgctxt "Operator"
@@ -60664,7 +60648,7 @@ msgstr "Descartar dades de normals dividides personalitzades"
 
 
 msgid "Remove the custom split normals layer, if it exists"
-msgstr "Suprimeix la capa normal dividida personalitzada, si existeix"
+msgstr "Suprimeix la capa de normals dividides personalitzada, si existeix"
 
 
 msgctxt "Operator"
@@ -61267,7 +61251,7 @@ msgstr "[Flip Quad Tessellation]: Capgira la tessel·lació dels quads seleccion
 
 
 msgid "Hide (un)selected vertices, edges or faces"
-msgstr "Amagar vèrtexs, arestes o cares (de)seleccionades"
+msgstr "Amagar vèrtexs, arestes o cares (des)seleccionades"
 
 
 msgctxt "Operator"
@@ -62490,7 +62474,7 @@ msgstr "Torns"
 
 
 msgid "(De)select all vertices, edges or faces"
-msgstr "(De)seleccionar tots els vèrtexs, arestes o cares"
+msgstr "(Des)seleccionar tots els vèrtexs, arestes o cares"
 
 
 msgctxt "Operator"
@@ -62617,7 +62601,7 @@ msgstr "Delimitar regió seleccionada"
 
 
 msgid "(De)select all vertices linked to the edge under the mouse cursor"
-msgstr "(De)selecciona tots els vèrtexs enllaçats a l'aresta de sota el cursor del ratolí"
+msgstr "(Des)selecciona tots els vèrtexs enllaçats a l'aresta de sota el cursor del ratolí"
 
 
 msgctxt "Operator"
@@ -62962,7 +62946,7 @@ msgstr "[Smooth Normals Vectors]: Suavitza les normals personalitzades basades e
 
 
 msgid "Specifies weight of smooth vs original normal"
-msgstr "Especificar la influència de la normal suavitzada en contrast amb l'original"
+msgstr "Especificar la força de la normal suavitzada en contrast amb l'original"
 
 
 msgctxt "Operator"
@@ -64225,7 +64209,7 @@ msgstr "Influència del zoom"
 
 
 msgid "Influence of the zoom factor on scroll speed"
-msgstr "[Zoom Influence]: Influència del factor de zoom en la rapidesa de desplaçament"
+msgstr "[Zoom Influence]: Influència del factor de zoom en la rapidesa de ròdol"
 
 
 msgctxt "Operator"
@@ -64444,7 +64428,7 @@ msgstr "Selecció de borns"
 
 
 msgid "(De)select all nodes"
-msgstr "(De)seleccionar tots els nodes"
+msgstr "(Des)seleccionar tots els nodes"
 
 
 msgid "Use box selection to select nodes"
@@ -64771,7 +64755,7 @@ msgstr "Dividir els mapes precuinats per material, usant el nom del material al 
 
 
 msgid "UV layer to override active"
-msgstr "Capa UV sobreseirà l'activa"
+msgstr "Capa UV per sobreseure l'activa"
 
 
 msgid "Horizontal dimension of the baking map (external only)"
@@ -65000,7 +64984,7 @@ msgstr "Transferir dades de malla"
 
 
 msgid "Transfer data layer(s) (weights, edge sharp, etc.) from active to selected meshes"
-msgstr "Transfereix les capes de dades (influències, arestes cantelludes, etc.) des de les malles actives a les seleccionades"
+msgstr "Transfereix les capes de dades (forces, arestes cantelludes, etc.) des de les malles actives a les seleccionades"
 
 
 msgid "Which data to transfer"
@@ -65098,7 +65082,7 @@ msgstr "Llançar grup de nodes de geometria sobre objecte"
 
 
 msgid "Session UUID of the geometry node group being dropped"
-msgstr "UUID de sessió del grup de nodes de geometria que es llança"
+msgstr "UUID de sessió del grup de nodes de geometria que es deixa caure"
 
 
 msgctxt "Operator"
@@ -65543,10 +65527,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Enganxa els vèrtexs seleccionats al primer objecte seleccionat"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Assignar el ganxo a l'os actiu de l'objecte ganxo"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Assignar a ganxo"
@@ -65903,7 +65883,7 @@ msgstr "Objectes, dades i materials seleccionats"
 
 msgctxt "Operator"
 msgid "Make Library Override"
-msgstr "Fer sobreseiment de biblioteca"
+msgstr "Fer sobreseïment de biblioteca"
 
 
 msgid "Create a local override of the selected linked objects, and their hierarchy of dependencies"
@@ -65911,11 +65891,11 @@ msgstr "[Make Library Override]: Crea un sobreseïment local dels objectes enlla
 
 
 msgid "Override Collection"
-msgstr "Sobreseir col·lecció"
+msgstr "Sobreseure col·lecció"
 
 
 msgid "Session UUID of the directly linked collection containing the selected object, to make an override from"
-msgstr "UUID de la sessió de la col·lecció enllaçada directament que conté l'objecte seleccionat, per a fer-ne el sobreseiment"
+msgstr "UUID de la sessió de la col·lecció enllaçada directament que conté l'objecte seleccionat, per a fer-ne el sobreseïment"
 
 
 msgid "Make linked data local to each object"
@@ -66372,11 +66352,11 @@ msgstr "   amb grups buits"
 
 
 msgid "   With Automatic Weights"
-msgstr "   amb influències automàtics"
+msgstr "   amb forces automàtiques"
 
 
 msgid "   With Envelope Weights"
-msgstr "   amb influències de funda"
+msgstr "   amb forces de funda"
 
 
 msgid "Bone Relative"
@@ -66404,7 +66384,7 @@ msgstr "Emmirallar X"
 
 
 msgid "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation"
-msgstr "Aplica les influències de manera simètrica seguint l'eix X, per la creació de grups de vèrtexs automàtics/de funda"
+msgstr "Aplica les forces de manera simètrica seguint l'eix X, per la creació de grups de vèrtexs automàtics/de funda"
 
 
 msgctxt "Operator"
@@ -67123,7 +67103,7 @@ msgstr "Netejar morfofites"
 
 
 msgid "Clear weights for all shape keys"
-msgstr "Elimina les influències per a totes les morfofites"
+msgstr "Elimina les forces per a totes les morfofites"
 
 
 msgctxt "Operator"
@@ -67470,7 +67450,7 @@ msgstr "Assigna els vèrtexs seleccionats a un nou grup de vèrtexs"
 
 msgctxt "Operator"
 msgid "Clean Vertex Group Weights"
-msgstr "Neteja influències de grups de vèrtex"
+msgstr "Neteja forces de grups de vèrtex"
 
 
 msgid "Remove vertex group assignments which are not required"
@@ -67494,7 +67474,7 @@ msgstr "[Keep Single]: Manté els vèrtexs assignats a almenys un grup quan es n
 
 
 msgid "Remove vertices which weight is below or equal to this limit"
-msgstr "Eliminar els vèrtexs la influència dels quals per sota o igual a aquest límit"
+msgstr "Eliminar els vèrtexs la força dels quals és per sota o igual a aquest límit"
 
 
 msgctxt "Operator"
@@ -67521,7 +67501,7 @@ msgstr "Corregeix deformació de grup de vèrtexs"
 
 
 msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "[Fix Vertex Group Deform]: Modifica la posició dels vèrtexs seleccionats canviant només les influències respectives (eina que amb molts vèrtexs pot esdevenir lenta)"
+msgstr "[Fix Vertex Group Deform]: Modifica la posició dels vèrtexs seleccionats canviant només les forces respectives (eina que amb molts vèrtexs pot esdevenir lenta)"
 
 
 msgid "Change Sensitivity"
@@ -67529,7 +67509,7 @@ msgstr "Canviar sensibilitat"
 
 
 msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "[Change Sensitivity]: Canvia la dimensió de l'alteració de les influències en cada iteració: els valors més baixos són més lents"
+msgstr "[Change Sensitivity]: Canvia la dimensió de l'alteració de les forces en cada iteració: els valors més baixos són més lents"
 
 
 msgid "The distance to move to"
@@ -67541,23 +67521,23 @@ msgstr "Aquest multiplicador pot canviar la distància moguda"
 
 
 msgid "Invert active vertex group's weights"
-msgstr "Invertir influències de grup de vèrtexs actiu"
+msgstr "Invertir forces de grup de vèrtexs actiu"
 
 
 msgid "Add Weights"
-msgstr "Afegir influències"
+msgstr "Afegir forces"
 
 
 msgid "Add vertices from groups that have zero weight before inverting"
-msgstr "[Add Weights]: Afegeix vèrtexs des de grups que tenen influència zero abans de capgirar"
+msgstr "[Add Weights]: Afegeix vèrtexs des de grups que tenen força zero abans de capgirar"
 
 
 msgid "Remove Weights"
-msgstr "Eliminar influències"
+msgstr "Eliminar forces"
 
 
 msgid "Remove vertices from groups that have zero weight after inverting"
-msgstr "Elimina els vèrtexs des de grups que tenen influència zero després de capgirar"
+msgstr "Elimina els vèrtexs des de grups que tenen força zero després de capgirar"
 
 
 msgctxt "Operator"
@@ -67566,15 +67546,15 @@ msgstr "Nivells de grups de vèrtexs"
 
 
 msgid "Add some offset and multiply with some gain the weights of the active vertex group"
-msgstr "Afegeix algun desplaçament i multiplica amb alguns guanys les influències del grup de vèrtex actiu"
+msgstr "Afegeix algun desplaçament i multiplica amb alguns guanys les forces del grup de vèrtex actiu"
 
 
 msgid "Value to multiply weights by"
-msgstr "Valor a què multiplicar les influències"
+msgstr "Valor a què multiplicar les forces"
 
 
 msgid "Value to add to weights"
-msgstr "Valor a sumar a les influències"
+msgstr "Valor a sumar a les forces"
 
 
 msgctxt "Operator"
@@ -67583,11 +67563,11 @@ msgstr "Limitar nombre dìnfluències per vèrtex"
 
 
 msgid "Limit deform weights associated with a vertex to a specified number by removing lowest weights"
-msgstr "Limita influències deformadores associades a un vèrtex a un nombre especificat eliminant les influències més baixes"
+msgstr "Limita forces deformadores associades a un vèrtex a un nombre especificat eliminant les forces més baixes"
 
 
 msgid "Maximum number of deform weights"
-msgstr "Nombre màxim d'influències deformadores"
+msgstr "Nombre màxim de forces deformadores"
 
 
 msgctxt "Operator"
@@ -67649,7 +67629,7 @@ msgstr "Emmirallar grup de vèrtexs"
 
 
 msgid "Mirror vertex group, flip weights and/or names, editing only selected vertices, flipping when both sides are selected otherwise copy from unselected"
-msgstr "Emmiralla el grup de vèrtexs, capgira les influències i/o els noms, editant només els vèrtexs seleccionats, capgirant quan ambdós costats estan seleccionats, en cas contrari copia des de no seleccionats"
+msgstr "Emmiralla el grup de vèrtexs, capgira les forces i/o els noms, editant només els vèrtexs seleccionats, capgirant quan ambdós costats estan seleccionats, en cas contrari copia des de no seleccionats"
 
 
 msgid "All Groups"
@@ -67657,7 +67637,7 @@ msgstr "Tots els grups"
 
 
 msgid "Mirror all vertex groups weights"
-msgstr "Emmiralla totes les influències dels grups de vèrtexs"
+msgstr "Emmiralla totes les forces dels grups de vèrtexs"
 
 
 msgid "Flip Group Names"
@@ -67686,7 +67666,7 @@ msgstr "Mou el grup de vèrtexs actiu amunt/avall de la llista"
 
 
 msgid "Normalize weights of the active vertex group, so that the highest ones are now 1.0"
-msgstr "Normalitzar influències del grup de vèrtexs actiu, de manera que els més alts siguin ara 1.0"
+msgstr "Normalitzar forces del grup de vèrtexs actiu, de manera que els més alts siguin ara 1.0"
 
 
 msgctxt "Operator"
@@ -67696,11 +67676,11 @@ msgstr "Normalitzar tots els grups de vèrtexs"
 
 msgctxt "Operator"
 msgid "Quantize Vertex Weights"
-msgstr "Quantificar influències de vèrtexs"
+msgstr "Quantificar forces de vèrtexs"
 
 
 msgid "Set weights to a fixed number of steps"
-msgstr "Estableix les influències a un nombre fix de passos"
+msgstr "Estableix les forces a un nombre fix de passos"
 
 
 msgid "Number of steps between 0 and 1"
@@ -67755,11 +67735,11 @@ msgstr "Grup de vèrtexs a definir com a actiu"
 
 msgctxt "Operator"
 msgid "Smooth Vertex Weights"
-msgstr "Suavitzar influències de vèrtexs"
+msgstr "Suavitzar forces de vèrtexs"
 
 
 msgid "Smooth weights for selected vertices"
-msgstr "[Smooth Vertex Weights]: Suavitzar influències per als vèrtexs seleccionats"
+msgstr "[Smooth Vertex Weights]: Suavitzar forces per als vèrtexs seleccionats"
 
 
 msgid "Expand/Contract"
@@ -67767,7 +67747,7 @@ msgstr "Expandir/Contraure"
 
 
 msgid "Expand/contract weights"
-msgstr "[Expand/Contract]: Expandir/contraure influències"
+msgstr "[Expand/Contract]: Expandir/contraure forces"
 
 
 msgctxt "Operator"
@@ -67806,24 +67786,24 @@ msgstr "Copiar d'actius"
 
 
 msgid "Copy weights from active to selected"
-msgstr "Copiar influències des d'actiu a seleccionat"
+msgstr "Copiar forces des d'actiu a seleccionat"
 
 
 msgctxt "Operator"
 msgid "Delete Weight"
-msgstr "Suprimir influència"
+msgstr "Suprimir força"
 
 
 msgid "Delete this weight from the vertex (disabled if vertex group is locked)"
-msgstr "Suprimeix aquesta influència del vèrtex (inhabilitat si el grup de vèrtexs està bloquejat)"
+msgstr "Suprimeix aquesta força del vèrtex (inhabilitat si el grup de vèrtexs està bloquejat)"
 
 
 msgid "Weight Index"
-msgstr "Índex d'influència"
+msgstr "Índex de força"
 
 
 msgid "Index of source weight in active vertex group"
-msgstr "[Weight Index]: Índex de la influència d'origen en el grup de vèrtex actiu"
+msgstr "[Weight Index]: Índex de la força d'origen en el grup de vèrtex actiu"
 
 
 msgctxt "Operator"
@@ -67832,16 +67812,16 @@ msgstr "Normalitzar actius"
 
 
 msgid "Normalize active vertex's weights"
-msgstr "[Normalize Active]: Normalitza les influències de vèrtexs actius"
+msgstr "[Normalize Active]: Normalitza les forces de vèrtexs actius"
 
 
 msgctxt "Operator"
 msgid "Paste Weight to Selected"
-msgstr "Enganxar influència a la selecció"
+msgstr "Enganxar força a la selecció"
 
 
 msgid "Copy this group's weight to other selected vertices (disabled if vertex group is locked)"
-msgstr "[Paste Weight to Selected]: Copia la influència d'aquest grup a altres vèrtexs seleccionats (inhabilitat si el grup de vèrtexs està bloquejat)"
+msgstr "[Paste Weight to Selected]: Copia la força d'aquest grup a altres vèrtexs seleccionats (inhabilitat si el grup de vèrtexs està bloquejat)"
 
 
 msgctxt "Operator"
@@ -68365,7 +68345,7 @@ msgstr "Arrossegar i llançar"
 
 
 msgid "Drag and drop element to another place"
-msgstr "[Drag and Drop]: Arrossega i deixa anar l'element en un altre lloc"
+msgstr "[Drag and Drop]: Arrossega i deixa caure l'element en un altre lloc"
 
 
 msgctxt "Operator"
@@ -68423,14 +68403,6 @@ msgstr "Operació de biblioteca en inventari"
 
 msgid "Library Operation"
 msgstr "[Outliner Library Operation]: Operació de la biblioteca"
-
-
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"Suprimir aquesta biblioteca i el seu contingut sencer.\n"
-"Avís: No es pot desfer"
 
 
 msgid "Relocate"
@@ -68648,7 +68620,7 @@ msgstr "Llançar objecte a escena"
 
 
 msgid "Drag object to scene in Outliner"
-msgstr "[Drop Object to Scene]: Arrossega l'objecte a l'escena en l'inventari"
+msgstr "[Drop Object to Scene]: Arrossega l'objecte fins a l'escena en l'inventari"
 
 
 msgctxt "Operator"
@@ -68666,7 +68638,7 @@ msgstr "Operació d'escena"
 
 msgctxt "Operator"
 msgid "Scroll Page"
-msgstr "Desplaçar pàgina"
+msgstr "Rodolar pàgina"
 
 
 msgid "Scroll page up or down"
@@ -68674,7 +68646,7 @@ msgstr "[Scroll Page]: Desplaça la pàgina amunt o avall"
 
 
 msgid "Scroll up one page"
-msgstr "Desplaçar amunt una pàgina"
+msgstr "Rodolar amunt una pàgina"
 
 
 msgctxt "Operator"
@@ -68826,7 +68798,7 @@ msgstr "Selecciona un punt de corba de pintura"
 
 
 msgid "(De)select all"
-msgstr "(De)seleccionar-ho tot"
+msgstr "(Des)seleccionar-ho tot"
 
 
 msgctxt "Operator"
@@ -68849,10 +68821,6 @@ msgstr "Intentar seleccionar una nansa de punts abans de transformar"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Afegir UVs simples"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Afegir mapa d'UVs de cub a la malla"
 
 
 msgctxt "Operator"
@@ -69253,11 +69221,11 @@ msgstr "Normalitzar els colors, augmentant el contrast"
 
 msgctxt "Operator"
 msgid "Vertex Color from Weight"
-msgstr "Color de vèrtexs des d'influència"
+msgstr "Color de vèrtexs des de força"
 
 
 msgid "Convert active weight into gray scale vertex colors"
-msgstr "[Vertex Color from Weight]: Converteix la influència activa en colors de vèrtex d'escala de grisos"
+msgstr "[Vertex Color from Weight]: Converteix la força activa en colors de vèrtex d'escala de grisos"
 
 
 msgctxt "Operator"
@@ -69302,11 +69270,11 @@ msgstr "Influència des d'ossos"
 
 
 msgid "Set the weights of the groups matching the attached armature's selected bones, using the distance between the vertices and the bones"
-msgstr "Determina influències dels grups que aparellen els ossos seleccionats de l'esquelet lligada, utilitzant la distància entre els vèrtexs i els ossos"
+msgstr "Determina forces dels grups que aparellen els ossos seleccionats de l'esquelet lligada, utilitzant la distància entre els vèrtexs i els ossos"
 
 
 msgid "Method to use for assigning weights"
-msgstr "Mètode per a assignar influències"
+msgstr "Mètode per a assignar forces"
 
 
 msgid "Automatic weights from bones"
@@ -69323,43 +69291,43 @@ msgstr "[From Envelopes]: Influències usant fundes de radi definit per la usuà
 
 msgctxt "Operator"
 msgid "Weight Gradient"
-msgstr "Gradient d'influència"
+msgstr "Gradient de força"
 
 
 msgid "Draw a line to apply a weight gradient to selected vertices"
-msgstr "[Weight Gradient]: Dibuixa una línia per a aplicar una gradació d'influència als vèrtexs seleccionats"
+msgstr "[Weight Gradient]: Dibuixa una línia per a aplicar una gradació de força als vèrtexs seleccionats"
 
 
 msgctxt "Operator"
 msgid "Weight Paint"
-msgstr "Pintat d'influència"
+msgstr "Pintat de força"
 
 
 msgid "Paint a stroke in the current vertex group's weights"
-msgstr "[Weight Paint]: Pinta un traç en les influències del grup de vèrtexs present"
+msgstr "[Weight Paint]: Pinta un traç en les forces del grup de vèrtexs present"
 
 
 msgctxt "Operator"
 msgid "Weight Paint Mode"
-msgstr "Mode pintat d'influència"
+msgstr "Mode pintat de força"
 
 
 msgid "Toggle weight paint mode in 3D view"
-msgstr "Revesa el mode de pintura d'influència en la vista 3D"
+msgstr "Revesa el mode de pintura de força en la vista 3D"
 
 
 msgctxt "Operator"
 msgid "Weight Paint Sample Weight"
-msgstr "Mostreig d'influència en pintat d'influència"
+msgstr "Mostreig de força en pintat d'influència"
 
 
 msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "[Weight Paint Sample Weight]: Utilitza el ratolí per a mostrejar una influència en la vista 3D"
+msgstr "[Weight Paint Sample Weight]: Utilitza el ratolí per a mostrejar una força en la vista 3D"
 
 
 msgctxt "Operator"
 msgid "Weight Paint Sample Group"
-msgstr "Grup de mostra de pintat d'influència"
+msgstr "Grup de mostra de pintat de força"
 
 
 msgid "Select one of the vertex groups available under current mouse position"
@@ -69368,11 +69336,11 @@ msgstr "Selecciona un dels grups de vèrtexs disponibles sota la posició actual
 
 msgctxt "Operator"
 msgid "Set Weight"
-msgstr "Determinar influència"
+msgstr "Determinar força"
 
 
 msgid "Fill the active vertex group with the current paint weight"
-msgstr "[Set Weight]: Omple el grup de vèrtexs actiu amb el pintat d'influència actual"
+msgstr "[Set Weight]: Omple el grup de vèrtexs actiu amb el pintat de força actual"
 
 
 msgctxt "Operator"
@@ -69588,7 +69556,7 @@ msgstr "Refrescar objectes instància"
 
 
 msgid "Refresh list of instance objects and their weights"
-msgstr "Refresca la llista d'objectes instàncies i les influències"
+msgstr "Refresca la llista d'objectes instàncies i les forces"
 
 
 msgctxt "Operator"
@@ -69694,7 +69662,7 @@ msgstr "[Reveal]: Mostra les partícules ocultes"
 
 
 msgid "(De)select all particles' keys"
-msgstr "(De)seleccionar tots els nòduls de les partícules"
+msgstr "(Des)seleccionar tots els nòduls de les partícules"
 
 
 msgid "Deselect boundary selected keys of each particle"
@@ -69794,15 +69762,15 @@ msgstr "[Unify Length]: Fa el pèl seleccionat de la mateixa longitud"
 
 msgctxt "Operator"
 msgid "Weight Set"
-msgstr "Assignar pes"
+msgstr "Assignar força"
 
 
 msgid "Set the weight of selected keys"
-msgstr "[Weight Set]: Estableix el pes dels nòduls seleccionats"
+msgstr "[Weight Set]: Estableix la força dels nòduls seleccionats"
 
 
 msgid "Interpolation factor between current brush weight, and keys' weights"
-msgstr "Factor d'interpolació entre la influència del pinzell actual i el pes dels nòduls"
+msgstr "Factor d'interpolació entre la força del pinzell actual i la força dels nòduls"
 
 
 msgctxt "Operator"
@@ -69983,7 +69951,7 @@ msgstr "Propietats personalitzades"
 
 
 msgid "Weighting factor for which keyframe is favored more"
-msgstr "Factor influència per a la fotofita més afavorida"
+msgstr "Factor força per a la fotofita més afavorida"
 
 
 msgid "Next Keyframe"
@@ -72743,11 +72711,11 @@ msgstr "Crea conjunts de cares usant les arestes retingudes com a límits"
 
 
 msgid "Face Sets from Bevel Weight"
-msgstr "Conjunts de cares des d'influència de bisell"
+msgstr "Conjunts de cares des de força de bisell"
 
 
 msgid "Create Face Sets using Bevel Weights as boundaries"
-msgstr "Crea conjunts de cares usant influències de bisells com a límits"
+msgstr "Crea conjunts de cares usant forces de bisells com a límits"
 
 
 msgid "Face Sets from Sharp Edges"
@@ -73606,7 +73574,7 @@ msgstr "[Allow Overlap]: No es corregeix la superposició en segments de seqüè
 
 
 msgid "Override Overlap Shuffle Behavior"
-msgstr "Sobreseir mètode de reordenament de solapat"
+msgstr "Sobreseure mètode de reordenament de solapat"
 
 
 msgid "Use the overlap_mode tool settings to determine how to shuffle overlapping strips"
@@ -73685,19 +73653,3226 @@ msgstr "Esvair de sortida"
 
 
 msgid "Fade out selected strips"
-msgstr "Esvaeix de sortida els segments seleccionats."
+msgstr "Esvair de sortida els segments seleccionats"
+
+
+msgid "From Current Frame"
+msgstr "Des del fotograma actual"
+
+
+msgid "Fade from the time cursor to the end of overlapping sequences"
+msgstr "Esvaeix des del cursor de temps fins al final de les seqüències superposades"
+
+
+msgid "To Current Frame"
+msgstr "Cap al fotograma actual"
+
+
+msgid "Fade from the start of sequences under the time cursor to the current frame"
+msgstr "Esvaeix des de l'inici de les seqüències sota el cursor de temps fins al fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Clear Fades"
+msgstr "Descartar esvaïments"
+
+
+msgid "Removes fade animation from selected sequences"
+msgstr "[Clear Fades]: Suprimeix l'esvaïment animat de les seqüències seleccionades"
+
+
+msgctxt "Operator"
+msgid "Insert Gaps"
+msgstr "Inserir buits"
+
+
+msgid "Insert gap at current frame to first strips at the right, independent of selection or locked state of strips"
+msgstr "[Insert Gaps]: Insereix buit al fotograma actual fins als primers segments de la dreta, independentment de la selecció o l'estat de bloqueig dels segments"
+
+
+msgid "Frames to insert after current strip"
+msgstr "Fotogrames a inserir després del segment actual"
+
+
+msgctxt "Operator"
+msgid "Remove Gaps"
+msgstr "Eliminar buits"
+
+
+msgid "Remove gap at current frame to first strip at the right, independent of selection or locked state of strips"
+msgstr "Elimina el buit del fotograma actual fins al primer segment a la dreta, independentment de la selecció o l'estat de bloqueig dels segments"
+
+
+msgid "All Gaps"
+msgstr "Tots els buits"
+
+
+msgid "Do all gaps to right of current frame"
+msgstr "[All Gaps]: Fa tots els buits a la dreta del fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Add Image Strip"
+msgstr "Afegir segment imatge"
+
+
+msgid "Add an image or image sequence to the sequencer"
+msgstr "Afegeix una imatge o una seqüència d'imatges al seqüenciador"
+
+
+msgid "Scale fit method"
+msgstr "Mètode d'ajust d'escala"
+
+
+msgid "Scale image to fit within the canvas"
+msgstr "[Scale fit method]: Escala la imatge per a ajustar-la al llenç"
+
+
+msgid "Scale to Fill"
+msgstr "Escalar per emplenar"
+
+
+msgid "Scale image to completely fill the canvas"
+msgstr "Escala la imatge per a emplenar completament el llenç"
+
+
+msgid "Stretch to Fill"
+msgstr "Estirar per emplenar"
+
+
+msgid "Stretch image to fill the canvas"
+msgstr "Estira la imatge per a omplir el llenç"
+
+
+msgid "Use Original Size"
+msgstr "Usar mida original"
+
+
+msgid "Keep image at its original size"
+msgstr "Manté la imatge en la mida original"
+
+
+msgid "Set View Transform"
+msgstr "Disposar transformació de la vista"
+
+
+msgid "Set appropriate view transform based on media color space"
+msgstr "[Set View Transform]: Estableix la transformació adequada de la visualització en base a l'espai de color del mèdia"
+
+
+msgctxt "Operator"
+msgid "Separate Images"
+msgstr "Separar imatges"
+
+
+msgid "On image sequence strips, it returns a strip for each image"
+msgstr "[Separate Images]: Als segments de seqüència d'imatges, retorna un segment per imatge"
+
+
+msgid "Length of each frame"
+msgstr "Longitud de cada fotograma"
+
+
+msgctxt "Operator"
+msgid "Lock Strips"
+msgstr "Bloquejar segments"
+
+
+msgid "Lock strips so they can't be transformed"
+msgstr "Bloqueja els segments perquè no es puguin transformar"
+
+
+msgctxt "Operator"
+msgid "Add Mask Strip"
+msgstr "Afegir segment màscara"
+
+
+msgid "Add a mask strip to the sequencer"
+msgstr "[Add Mask Strip]: Afegeix un segment màscara al seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Make Meta Strip"
+msgstr "Produir meta segment"
+
+
+msgid "Group selected strips into a meta-strip"
+msgstr "[Make Meta Strip]: Agrupa els segments seleccionats en un meta-segment"
+
+
+msgctxt "Operator"
+msgid "UnMeta Strip"
+msgstr "Des-metar segment"
+
+
+msgid "Put the contents of a meta-strip back in the sequencer"
+msgstr "[UnMeta Strip]: Retorna el contingut d'un meta-segment al seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Toggle Meta Strip"
+msgstr "Reversar segment meta"
+
+
+msgid "Toggle a meta-strip (to edit enclosed strips)"
+msgstr "Alterna un meta-segment (per editar els segments continguts)"
+
+
+msgctxt "Operator"
+msgid "Add Movie Strip"
+msgstr "Afegir segment de pel·lícula"
+
+
+msgid "Add a movie strip to the sequencer"
+msgstr "Afegeix un segment de pel·lícula al seqüenciador"
+
+
+msgid "Adjust Playback Rate"
+msgstr "Ajustar freqüència de reproducció"
+
+
+msgid "Play at normal speed regardless of scene FPS"
+msgstr "Reproduir a velocitat normal independentment dels FPS de l'escena"
+
+
+msgid "Load sound with the movie"
+msgstr "Carregar el so amb la pel·lícula"
+
+
+msgid "Use Movie Framerate"
+msgstr "Usar els FTS de la pel·lícula"
+
+
+msgid "Use framerate from the movie to keep sound and video in sync"
+msgstr "Usa la velocitat de fotogrames de la pel·lícula per a mantenir el so i el vídeo sincronitzats"
+
+
+msgctxt "Operator"
+msgid "Add MovieClip Strip"
+msgstr "Afegir segment de clip de vídeo"
+
+
+msgid "Add a movieclip strip to the sequencer"
+msgstr "[Add MovieClip Strip]: Afegeix un segment de clip de pel·lícula al seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Mute Strips"
+msgstr "Silenciar segments"
+
+
+msgid "Mute (un)selected strips"
+msgstr "Silencia segments (des)seleccionats"
+
+
+msgid "Mute unselected rather than selected strips"
+msgstr "Silencia els segments no seleccionats en lloc dels seleccionats"
+
+
+msgctxt "Operator"
+msgid "Clear Strip Offset"
+msgstr "Descartar desplaçament de segment"
+
+
+msgid "Clear strip offsets from the start and end frames"
+msgstr "[Clear Strip Offset]: Neteja els desplaçaments de segment dels fotogrames inicial i final"
+
+
+msgctxt "Operator"
+msgid "Paste"
+msgstr "Enganxar"
+
+
+msgid "Paste strips from clipboard"
+msgstr "Enganxa els segments des del porta-retalls"
+
+
+msgid "Keep strip offset relative to the current frame when pasting"
+msgstr "Mantenir en enganxar desplaçament de segment en relació amb el fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Reassign Inputs"
+msgstr "Reassignar ingressos"
+
+
+msgid "Reassign the inputs for the effect strip"
+msgstr "[Reassign Inputs]: Reassigna els ingressos per al  segment d'efecte"
+
+
+msgid "Rebuild all selected proxies and timecode indices using the job system"
+msgstr "Recomposa totes les simulacions i índexs de codis de temps seleccionats usant el sistema de tasques"
+
+
+msgctxt "Operator"
+msgid "Refresh Sequencer"
+msgstr "Refrescar seqüenciador"
+
+
+msgid "Refresh the sequencer editor"
+msgstr "Refresca l'editor del seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Reload Strips"
+msgstr "Recarregar segments"
+
+
+msgid "Reload strips in the sequencer"
+msgstr "[Reload Strips]: Torna a carregar els segments al seqüenciador"
+
+
+msgid "Adjust Length"
+msgstr "Ajustar llargada"
+
+
+msgid "Adjust length of strips to their data length"
+msgstr "Ajusta la longitud dels segments a la longitud de les seves dades"
+
+
+msgctxt "Operator"
+msgid "Rename Channel"
+msgstr "Rebatejar canal"
+
+
+msgctxt "Operator"
+msgid "Set Render Size"
+msgstr "Determinar mida de revelat"
+
+
+msgid "Set render size and aspect from active sequence"
+msgstr "[Set Render Size]: Estableix la mida i l'aspecte del revelat a partir de la seqüència activa"
+
+
+msgid "Use mouse to sample color in current frame"
+msgstr "Usare ratolí per a mostrejar el color en el fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Update Scene Frame Range"
+msgstr "Actualitzar interval de fotogrames de l'escena"
+
+
+msgid "Update frame range of scene strip"
+msgstr "Actualitza l'interval de fotogrames del segment de l'escena"
+
+
+msgctxt "Operator"
+msgid "Add Scene Strip"
+msgstr "Afegir segment d'escena"
+
+
+msgid "Add a strip to the sequencer using a blender scene as a source"
+msgstr "Afegeix un segment al seqüenciador usant una escena de Blender com a origen"
+
+
+msgctxt "Operator"
+msgid "Add Strip with a new Scene"
+msgstr "Afegir segment amb escena nova"
+
+
+msgid "Create a new Strip and assign a new Scene as source"
+msgstr "Crea un segment nou i assigna una escena nova com a origen"
+
+
+msgid "Add new Strip with a new empty Scene with default settings"
+msgstr "Afegir nou segment amb una nova escena buida amb la configuració predeterminada"
+
+
+msgid "Add a new Strip, with an empty scene, and copy settings from the current scene"
+msgstr "Afegir nou segment, amb una escena buida, i copiar la configuració de l'escena actual"
+
+
+msgid "Add a Strip and link in the collections from the current scene (shallow copy)"
+msgstr "Afegir un segment i un enllaç a les col·leccions des de l'escena actual (còpia superficial)"
+
+
+msgid "Add a Strip and make a full copy of the current scene"
+msgstr "Afegir un segment i fer una còpia completa de l'escena actual"
+
+
+msgid "Select a strip (last selected becomes the \"active strip\")"
+msgstr "Seleccionar un segment (l'últim seleccionat esdevé «segment actiu»)"
+
+
+msgid "Use the object center when selecting, in edit mode used to extend object selection"
+msgstr "Usar el centre de l'objecte en seleccionar, en el mode d'edició utilitzat per ampliar la selecció de l'objecte"
+
+
+msgid "Linked Handle"
+msgstr "Ansa enllaçada"
+
+
+msgid "Select handles next to the active strip"
+msgstr "Selecciona nanses adjacents al segment actiu"
+
+
+msgid "Linked Time"
+msgstr "Temps enllaçat"
+
+
+msgid "Select other strips at the same time"
+msgstr "Selecciona altres segments al mateix temps"
+
+
+msgid "Side of Frame"
+msgstr "Costat del fotograma"
+
+
+msgid "Select all strips on same side of the current frame as the mouse cursor"
+msgstr "Selecciona tots els segments del mateix costat del l'actual fotograma que el cursor del ratolí"
+
+
+msgid "Select or deselect all strips"
+msgstr "Seleccionar o desseleccionar totes els segments"
+
+
+msgid "Select strips using box selection"
+msgstr "Selecciona segments mitjançant la selecció de caixa"
+
+
+msgid "Select Handles"
+msgstr "Seleccionar anses"
+
+
+msgid "Select the strips and their handles"
+msgstr "[Select Handles]: Selecciona els segments i les seves nanses"
+
+
+msgid "Select all strips grouped by various properties"
+msgstr "Seleccionar tots els segments agrupats per diverses propietats"
+
+
+msgid "Shared strip type"
+msgstr "Tipus compartit de segment"
+
+
+msgid "Global Type"
+msgstr "Tipus global"
+
+
+msgid "All strips of same basic type (graphical or sound)"
+msgstr "Tots els segments del mateix tipus bàsic (gràfic o so)"
+
+
+msgid "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"
+msgstr "Tipus compartit d'efecte de segment (si el segment actiu no és d'efecte, selecciona tots els de no-efecte)"
+
+
+msgid "Shared data (scene, image, sound, etc.)"
+msgstr "Dades compartides (escena, imatge, so, etc.)"
+
+
+msgid "Effect"
+msgstr "Efecte"
+
+
+msgid "Shared effects"
+msgstr "Efectes compartits"
+
+
+msgid "Effect/Linked"
+msgstr "Efecte/enllaçat"
+
+
+msgid "Other strips affected by the active one (sharing some time, and below or effect-assigned)"
+msgstr "[Effect/Linked]: Altres segments afectats per l'actiu (compartint algun temps, i a sota o assignats a efecte)"
+
+
+msgid "Overlap"
+msgstr "Superposició"
+
+
+msgid "Overlapping time"
+msgstr "[Overlap]: Temps de superposició"
+
+
+msgid "Same Channel"
+msgstr "El mateix canal"
+
+
+msgid "Only consider strips on the same channel as the active one"
+msgstr "Només té en compte els segments del mateix canal que l'actiu"
+
+
+msgctxt "Operator"
+msgid "Select Handles"
+msgstr "Seleccionar nanses"
+
+
+msgid "Select gizmo handles on the sides of the selected strip"
+msgstr "Selecciona nanses de flòstic als costats del segment seleccionat"
+
+
+msgid "The side of the handle that is selected"
+msgstr "El costat de la nansa que se selecciona"
+
+
+msgid "Left Neighbor"
+msgstr "Veí esquerre"
+
+
+msgid "Right Neighbor"
+msgstr "Veí dret"
+
+
+msgid "Both Neighbors"
+msgstr "Ambdós veïns"
+
+
+msgid "Shrink the current selection of adjacent selected strips"
+msgstr "Encongir la selecció actual de segments adjacents seleccionats"
+
+
+msgid "Select all strips adjacent to the current selection"
+msgstr "Seleccionar tots els segments adjacents a la selecció actual"
+
+
+msgctxt "Operator"
+msgid "Select Pick Linked"
+msgstr "Seleccionar enllaçats amb cursor"
+
+
+msgid "Select a chain of linked strips nearest to the mouse pointer"
+msgstr "[Select Pick Linked]: Selecciona una cadena de segments enllaçades més propera al punter del ratolí"
+
+
+msgid "Select more strips adjacent to the current selection"
+msgstr "Seleccionar més segments adjacents a la selecció actual"
+
+
+msgctxt "Operator"
+msgid "Select Side"
+msgstr "Seleccionar costat"
+
+
+msgid "Select strips on the nominated side of the selected strips"
+msgstr "[Select Side]: Selecciona segments del costat especificat d'entre els segments seleccionades"
+
+
+msgid "The side to which the selection is applied"
+msgstr "El costat al qual s'aplica la selecció"
+
+
+msgid "Mouse Position"
+msgstr "Posició del ratolí"
+
+
+msgid "No Change"
+msgstr "Sense canvis"
+
+
+msgctxt "Operator"
+msgid "Select Side of Frame"
+msgstr "Seleccionar costat de fotograma"
+
+
+msgid "Select strips relative to the current frame"
+msgstr "Selecciona segments relatius al fotograma actual"
+
+
+msgid "Select to the left of the current frame"
+msgstr "Seleccionar cap a l'esquerra del fotograma actual"
+
+
+msgid "Select to the right of the current frame"
+msgstr "Seleccionar cap a la dreta del fotograma actual"
+
+
+msgid "Select intersecting with the current frame"
+msgstr "Seleccionar el que intersecciona amb el fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Set Range to Strips"
+msgstr "Determina interval en segments"
+
+
+msgid "Set the frame range to the selected strips start and end"
+msgstr "Estableix l'interval de fotogrames a l'inici i al final dels segments seleccionats"
+
+
+msgid "Set the preview range instead"
+msgstr "Estableix en lloc d'això l'interval de previsualització"
+
+
+msgctxt "Operator"
+msgid "Slip Strips"
+msgstr "Desplaçar segments"
+
+
+msgid "Slip the contents of selected strips"
+msgstr "[Slip Strips]: Desplaça el contingut dels segments seleccionats"
+
+
+msgid "Offset to the data of the strip"
+msgstr "Desplaçament de les dades del segment"
+
+
+msgctxt "Operator"
+msgid "Snap Strips to the Current Frame"
+msgstr "Ajustar segments al fotograma actual"
+
+
+msgid "Frame where selected strips will be snapped"
+msgstr "[Snap Strips to the Current Frame]: Fotograma on es fixaran els segments seleccionats"
+
+
+msgctxt "Operator"
+msgid "Add Sound Strip"
+msgstr "Afegir segment de so"
+
+
+msgid "Add a sound strip to the sequencer"
+msgstr "Afegeix un segment de so al seqüenciador"
+
+
+msgid "Cache the sound in memory"
+msgstr "Guardar so en memòria cau"
+
+
+msgid "Merge all the sound's channels into one"
+msgstr "Fusionar tots els canals de so en un de sol"
+
+
+msgid "Split the selected strips in two"
+msgstr "Dividir en dos els segments seleccionats"
+
+
+msgid "Channel in which strip will be cut"
+msgstr "Canal en el qual es tallarà el segment"
+
+
+msgid "Frame where selected strips will be split"
+msgstr "Fotograma on es dividiran els segments seleccionats"
+
+
+msgid "Ignore Selection"
+msgstr "Ignorar selecció"
+
+
+msgid "Make cut event if strip is not selected preserving selection state after cut"
+msgstr "Produeix esdeveniment de tall si el segment no està seleccionada tot preservant l'estat de la selecció després de tallar"
+
+
+msgid "The side that remains selected after splitting"
+msgstr "El costat que queda seleccionat després de dividir"
+
+
+msgid "The type of split operation to perform on strips"
+msgstr "El tipus d'operació de divisió a realitzar en els segments"
+
+
+msgid "Use Cursor Position"
+msgstr "Usar posició del cursor"
+
+
+msgid "Split at position of the cursor instead of current frame"
+msgstr "Divideix a la posició del cursor en lloc del fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Split Multicam"
+msgstr "Dividir multicam"
+
+
+msgid "Split multicam strip and select camera"
+msgstr "[Split Multicam]: Divideix el segment multicam i selecciona la càmera"
+
+
+msgid "Set a color tag for the selected strips"
+msgstr "Disposa una etiqueta de color per als segments seleccionats"
+
+
+msgid "Color 09"
+msgstr "Color 09"
+
+
+msgctxt "Operator"
+msgid "Jump to Strip"
+msgstr "Salta al segment"
+
+
+msgid "Move frame to previous edit point"
+msgstr "[Jump to Strip]: Mou el fotograma al punt d'edició anterior"
+
+
+msgid "Use Strip Center"
+msgstr "Usar centre de segment"
+
+
+msgid "Next Strip"
+msgstr "Segment següent"
+
+
+msgctxt "Operator"
+msgid "Add Strip Modifier"
+msgstr "Afegir modificador de segment"
+
+
+msgid "Add a modifier to the strip"
+msgstr "Afegeix un modificador al segment"
+
+
+msgid "Tone Map"
+msgstr "Mapa de tons"
+
+
+msgid "White Balance"
+msgstr "Balanç de blancs"
+
+
+msgctxt "Operator"
+msgid "Copy to Selected Strips"
+msgstr "Copiar als segments seleccionats"
+
+
+msgid "Copy modifiers of the active strip to all selected strips"
+msgstr "Copia els modificadors del segment actiu a tots els segments seleccionats"
+
+
+msgid "Replace modifiers in destination"
+msgstr "Substituir modificadors a destinació"
+
+
+msgid "Append active modifiers to selected strips"
+msgstr "Afegir modificadors actius als segments seleccionats"
+
+
+msgctxt "Operator"
+msgid "Move Strip Modifier"
+msgstr "Moure modificador de segment"
+
+
+msgid "Move modifier up and down in the stack"
+msgstr "Mou el modificador amunt i avall de l'estiba"
+
+
+msgid "Name of modifier to remove"
+msgstr "Nom del modificador a eliminar"
+
+
+msgctxt "Operator"
+msgid "Remove Strip Modifier"
+msgstr "Eliminar modificador de segment"
+
+
+msgid "Remove a modifier from the strip"
+msgstr "Suprimeix un modificador del segment"
+
+
+msgctxt "Operator"
+msgid "Clear Strip Transform"
+msgstr "Descarta transformació de segment"
+
+
+msgid "Reset image transformation to default value"
+msgstr "Restableix la transformació d'imatge el valor per defecte"
+
+
+msgid "Property"
+msgstr "Propietat"
+
+
+msgid "Strip transform property to be reset"
+msgstr "Propietat de transformació del segment a reiniciar"
+
+
+msgid "Reset strip transform location"
+msgstr "Reinicia la ubicació de transformació del segment"
+
+
+msgid "Reset strip transform scale"
+msgstr "Reinicia l'escala de transformació del segment"
+
+
+msgid "Reset strip transform rotation"
+msgstr "Reinicia la rotació de transformació del segment"
+
+
+msgid "Reset strip transform location, scale and rotation"
+msgstr "Reinicia la ubicació, escala i rotació de transformació del segment"
+
+
+msgctxt "Operator"
+msgid "Strip Transform Set Fit"
+msgstr "Delimitar transformació de segment"
+
+
+msgid "Scale fit fit_method"
+msgstr "[Strip Transform Set Fit]: fit_method ajustant l'escalat"
+
+
+msgid "Scale image so fits in preview"
+msgstr "Escalar la imatge perquè càpiga en la previsualització"
+
+
+msgid "Scale image so it fills preview completely"
+msgstr "Escalar la imatge perquè empleni la previsualització totalment"
+
+
+msgid "Stretch image so it fills preview"
+msgstr "Estirar la imatge perquè empleni la previsualització"
+
+
+msgctxt "Operator"
+msgid "Swap Strip"
+msgstr "Intercanviar segment"
+
+
+msgid "Swap active strip with strip to the right or left"
+msgstr "[Swap Strip]: Intercanvia el segment actiu amb el segment de la dreta o esquerra"
+
+
+msgid "Side of the strip to swap"
+msgstr "Costat del segment a intercanviar"
+
+
+msgctxt "Operator"
+msgid "Sequencer Swap Data"
+msgstr "Dades d'intercanvi de seqüenciador"
+
+
+msgid "Swap 2 sequencer strips"
+msgstr "Intercanvia 2 segments de seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Swap Inputs"
+msgstr "Intercanviar ingressos"
+
+
+msgid "Swap the first two inputs for the effect strip"
+msgstr "[Swap Inputs]: Intercanvia els primers dos ingressos pel segment d'efecte"
+
+
+msgctxt "Operator"
+msgid "Unlock Strips"
+msgstr "Desblocar segments"
+
+
+msgid "Unlock strips so they can be transformed"
+msgstr "Desbloca els segments perquè es puguin transformar"
+
+
+msgctxt "Operator"
+msgid "Unmute Strips"
+msgstr "Dessilenciar segments"
+
+
+msgid "Unmute (un)selected strips"
+msgstr "Dessilencia els segments (no)seleccionats"
+
+
+msgid "Unmute unselected rather than selected strips"
+msgstr "Dessilenciar els segments no seleccionades en lloc dels seleccionades"
+
+
+msgid "View all the strips in the sequencer"
+msgstr "Visualitzar tots els segments del seqüenciador"
+
+
+msgid "Zoom preview to fit in the area"
+msgstr "Ajustar previsualització dins l'àrea"
+
+
+msgctxt "Operator"
+msgid "Border Offset View"
+msgstr "Vora de vista desplaçada"
+
+
+msgid "Set the boundaries of the border used for offset view"
+msgstr "Estableix els límits de la vora utilitzats per a la vista de desplaçament"
+
+
+msgid "Zoom the sequencer on the selected strips"
+msgstr "Enquadrar vista de seqüenciador en els segments seleccionades"
+
+
+msgctxt "Operator"
+msgid "Sequencer View Zoom Ratio"
+msgstr "Relació d'enquadrament de la vista del seqüenciador"
+
+
+msgid "Change zoom ratio of sequencer preview"
+msgstr "Canvia la relació de zoom de la vista prèvia del seqüenciador"
+
+
+msgctxt "Operator"
+msgid "Update Animation Cache"
+msgstr "Actualitzar memòria cau d'animació"
+
+
+msgid "Update the audio animation cache"
+msgstr "Actualitza la memòria cau de l'animació d'àudio"
+
+
+msgctxt "Operator"
+msgid "Mixdown"
+msgstr "Concentrar"
+
+
+msgid "Mix the scene's audio to a sound file"
+msgstr "Mescla l'àudio de l'escena a un document de so"
+
+
+msgid "Sample accuracy, important for animation data (the lower the value, the more accurate)"
+msgstr "Precisió de la mostra, important per a les dades d'animació (quan menor sigui el valor, més precissió)"
+
+
+msgid "Bitrate in kbit/s"
+msgstr "Taxa de bits en kbit/s"
+
+
+msgid "Advanced Audio Coding"
+msgstr "Codificació d'àudio avançada"
+
+
+msgid "Dolby Digital ATRAC 3"
+msgstr "Dolby Digital ATRAC 3"
+
+
+msgid "Free Lossless Audio Codec"
+msgstr "Còdec d'àudio lliure sense pèrdua"
+
+
+msgid "MPEG-1 Audio Layer II"
+msgstr "MPEG-1 capa d'àudio II"
+
+
+msgid "MPEG-2 Audio Layer III"
+msgstr "MPEG-2 capa d'àudio III"
+
+
+msgid "Pulse Code Modulation (RAW)"
+msgstr "Modulació de codi de pols (RAW)"
+
+
+msgid "Xiph.Org Vorbis Codec"
+msgstr "Xiph.Còdec Org Vorbis"
+
+
+msgid "File format"
+msgstr "Format del document"
+
+
+msgid "ac3"
+msgstr "ac3"
+
+
+msgid "flac"
+msgstr "flac"
+
+
+msgid "mkv"
+msgstr "mkv"
+
+
+msgid "mp2"
+msgstr "mp2"
+
+
+msgid "mp3"
+msgstr "mp3"
+
+
+msgid "ogg"
+msgstr "ogg"
+
+
+msgid "Xiph.Org Ogg Container"
+msgstr "Contenidor Ogg Xiph.Org"
+
+
+msgid "wav"
+msgstr "wav"
+
+
+msgid "Waveform Audio File Format"
+msgstr "Document àudio en format d'ona"
+
+
+msgid "Sample format"
+msgstr "Format de mostra"
+
+
+msgid "8-bit unsigned"
+msgstr "8 bits sense signe"
+
+
+msgid "16-bit signed"
+msgstr "16 bits amb signe"
+
+
+msgid "24-bit signed"
+msgstr "24 bits amb signe"
+
+
+msgid "32-bit signed"
+msgstr "32 bits amb signe"
+
+
+msgid "32-bit floating-point"
+msgstr "32 bits coma flotant"
+
+
+msgid "64-bit floating-point"
+msgstr "64 bits coma flotant"
+
+
+msgid "Split channels"
+msgstr "Dividir canals"
+
+
+msgid "Each channel will be rendered into a mono file"
+msgstr "Cada canal es revelarà en un document mono"
+
+
+msgctxt "Operator"
+msgid "Open Sound"
+msgstr "Obrir so"
+
+
+msgid "Load a sound file"
+msgstr "Carrega un document de so"
+
+
+msgctxt "Operator"
+msgid "Open Sound Mono"
+msgstr "Obrir so mono"
+
+
+msgid "Load a sound file as mono"
+msgstr "Carrega un document de so com a mono"
+
+
+msgid "Mixdown the sound to mono"
+msgstr "Concentrar el so a mono"
+
+
+msgctxt "Operator"
+msgid "Pack Sound"
+msgstr "Empaquetar so"
+
+
+msgid "Pack the sound into the current blend file"
+msgstr "[Pack Sound]: Empaqueta el so dins document Blender actual"
+
+
+msgctxt "Operator"
+msgid "Unpack Sound"
+msgstr "Desempaquetar so"
+
+
+msgid "Unpack the sound to the samples filename"
+msgstr "Desempaqueta el so al nom de document de mostreig"
+
+
+msgid "Sound Name"
+msgstr "Nom del so"
+
+
+msgid "Sound data-block name to unpack"
+msgstr "Nom del bloc de dades de so a desempaquetar"
+
+
+msgctxt "Operator"
+msgid "Update Animation"
+msgstr "Actualitzar animació"
+
+
+msgid "Update animation flags"
+msgstr "Actualitza els indicadors de l'animació"
+
+
+msgctxt "Operator"
+msgid "Add Row Filter"
+msgstr "Afegir filtre de files"
+
+
+msgid "Add a filter to remove rows from the displayed data"
+msgstr "[Add Row Filter]: Afegeix un filtre per a eliminar files de les dades mostrades"
+
+
+msgctxt "Operator"
+msgid "Change Visible Data Source"
+msgstr "Canviar font de dades visible"
+
+
+msgid "Change visible data source in the spreadsheet"
+msgstr "Canvia la font de dades visible al full de càlcul"
+
+
+msgid "Attribute Domain Type"
+msgstr "Tipus de domini d'atribut"
+
+
+msgid "Component Type"
+msgstr "Tipus de component"
+
+
+msgctxt "Operator"
+msgid "Remove Row Filter"
+msgstr "Suprimir filtre de files"
+
+
+msgid "Remove a row filter from the rules"
+msgstr "Suprimeix un filtre de files d'entre les regles"
+
+
+msgctxt "Operator"
+msgid "Toggle Pin"
+msgstr "Revesar fixació"
+
+
+msgid "Turn on or off pinning"
+msgstr "[Toggle Pin]: Activa o desactiva la fixació"
+
+
+msgctxt "Operator"
+msgid "Add Surface Circle"
+msgstr "Afegir cercle de superfície"
+
+
+msgid "Construct a Nurbs surface Circle"
+msgstr "[Add Surface Circle]: Construeix un cercle de superfície de Nurbs"
+
+
+msgctxt "Operator"
+msgid "Add Surface Curve"
+msgstr "Afegir corba de superfície"
+
+
+msgid "Construct a Nurbs surface Curve"
+msgstr "Construeix una corba de superfície de Nurbs"
+
+
+msgctxt "Operator"
+msgid "Add Surface Cylinder"
+msgstr "Afegir cilindre de superfície"
+
+
+msgid "Construct a Nurbs surface Cylinder"
+msgstr "Construeix un cilindre de superfície Nurbs"
+
+
+msgctxt "Operator"
+msgid "Add Surface Sphere"
+msgstr "Afegir esfera de superfície"
+
+
+msgid "Construct a Nurbs surface Sphere"
+msgstr "Construeix una esfera de superfície de Nurbs"
+
+
+msgctxt "Operator"
+msgid "Add Surface Patch"
+msgstr "Afegir pedaç de superfície"
+
+
+msgid "Construct a Nurbs surface Patch"
+msgstr "Construeix un pedaç de superfície de Nurbs"
+
+
+msgctxt "Operator"
+msgid "Add Surface Torus"
+msgstr "Afegir tor de superfície"
+
+
+msgid "Construct a Nurbs surface Torus"
+msgstr "Construeix un tor de superfície de Nurbs"
+
+
+msgctxt "Operator"
+msgid "New Texture"
+msgstr "Nova textura"
+
+
+msgid "Add a new texture"
+msgstr "Afegeix una textura nova"
+
+
+msgctxt "Operator"
+msgid "Copy Texture Slot Settings"
+msgstr "Copiar configuració dels epígrafs de textura"
+
+
+msgid "Copy the material texture settings and nodes"
+msgstr "Copia la configuració del material textura i dels nodes"
+
+
+msgctxt "Operator"
+msgid "Move Texture Slot"
+msgstr "Moure epígraf de textura"
+
+
+msgid "Move texture slots up and down"
+msgstr "Mou els epígrafs textura amunt i avall"
+
+
+msgctxt "Operator"
+msgid "Paste Texture Slot Settings"
+msgstr "Enganxar configuració d'epígraf de textura"
+
+
+msgid "Copy the texture settings and nodes"
+msgstr "Copia la configuració de la textura i els nodes"
+
+
+msgctxt "Operator"
+msgid "Text Auto Complete"
+msgstr "Autocompletar text"
+
+
+msgid "Show a list of used text in the open document"
+msgstr "[Text Auto Complete]: Mostra una llista de text usat al document obert"
+
+
+msgctxt "Operator"
+msgid "Toggle Comments"
+msgstr "Revesar comentaris"
+
+
+msgid "Add or remove comments"
+msgstr "Afegeix o suprimeix comentaris"
+
+
+msgid "Toggle Comments"
+msgstr "Reversar comentaris"
+
+
+msgid "Comment"
+msgstr "Comentar"
+
+
+msgid "Un-Comment"
+msgstr "Descomentar"
+
+
+msgctxt "Operator"
+msgid "Convert Whitespace"
+msgstr "Convertir espais en blanc"
+
+
+msgid "Convert whitespaces by type"
+msgstr "Converteix espais en blanc per tipus"
+
+
+msgid "Type of whitespace to convert to"
+msgstr "Tipus d'espai en blanc al qual convertir"
+
+
+msgid "To Spaces"
+msgstr "Als espais"
+
+
+msgid "To Tabs"
+msgstr "A les pestanyes"
+
+
+msgid "Set cursor position"
+msgstr "Establir posició del cursor"
+
+
+msgctxt "Operator"
+msgid "Cut"
+msgstr "Retallar"
+
+
+msgctxt "Operator"
+msgid "Duplicate Line"
+msgstr "Duplicar línia"
+
+
+msgid "Duplicate the current line"
+msgstr "Duplica la línia actual"
+
+
+msgctxt "Operator"
+msgid "Find Next"
+msgstr "Seguir buscant"
+
+
+msgid "Find specified text"
+msgstr "Busca el text especificat"
+
+
+msgctxt "Operator"
+msgid "Find & Set Selection"
+msgstr "Buscar i determinar la selecció"
+
+
+msgid "Find specified text and set as selected"
+msgstr "Busca un text especificat i el selecciona"
+
+
+msgid "Indent selected text"
+msgstr "Sagnar text seleccionat"
+
+
+msgctxt "Operator"
+msgid "Jump"
+msgstr "[Jump]: Saltar"
+
+
+msgid "Jump cursor to line"
+msgstr "Fa salta el cursor a la línia"
+
+
+msgid "Line number to jump to"
+msgstr "Número de línia cap a on saltar"
+
+
+msgctxt "Operator"
+msgid "Line Number"
+msgstr "Número de línia"
+
+
+msgid "The current line number"
+msgstr "El número de línia actual"
+
+
+msgctxt "Operator"
+msgid "Make Internal"
+msgstr "Internalitzar"
+
+
+msgid "Make active text file internal"
+msgstr "Fa que el document de text actiu sigui intern"
+
+
+msgid "File Top"
+msgstr "Document superior"
+
+
+msgid "File Bottom"
+msgstr "Document inferior"
+
+
+msgctxt "Operator"
+msgid "Move Lines"
+msgstr "Moure línies"
+
+
+msgid "Move the currently selected line(s) up/down"
+msgstr "Mou les línies seleccionades amunt/avall"
+
+
+msgctxt "Operator"
+msgid "New Text"
+msgstr "Nou text"
+
+
+msgid "Create a new text data-block"
+msgstr "Crea un nou bloc de dades de text"
+
+
+msgctxt "Operator"
+msgid "Open Text"
+msgstr "Obrir text"
+
+
+msgid "Open a new text data-block"
+msgstr "Obre un nou bloc de dades de text"
+
+
+msgid "Make Internal"
+msgstr "Internalitzar"
+
+
+msgid "Make text file internal after loading"
+msgstr "Fa que el document de text esdevingui intern després de carregar-lo"
+
+
+msgctxt "Operator"
+msgid "Toggle Overwrite"
+msgstr "Revesar sobreescriure"
+
+
+msgid "Toggle overwrite while typing"
+msgstr "[Toggle Overwrite]: Alterna la sobreescriptura en picar text"
+
+
+msgid "Paste text selected elsewhere rather than copied (X11 only)"
+msgstr "Enganxar el text seleccionat en un altre lloc en lloc de copiar (només X11)"
+
+
+msgctxt "Operator"
+msgid "Refresh PyConstraints"
+msgstr "Refrescar restriccions py"
+
+
+msgid "Refresh all pyconstraints"
+msgstr "[Refresh PyConstraints]: Refresca totes les restriccions de py"
+
+
+msgctxt "Operator"
+msgid "Reload"
+msgstr "Recarregar"
+
+
+msgid "Reload active text data-block from its file"
+msgstr "Torna a carregar el bloc de dades de text actiu des del seu document"
+
+
+msgctxt "Operator"
+msgid "Replace"
+msgstr "Substituir"
+
+
+msgid "Replace text with the specified text"
+msgstr "Substitueix el text pel text especificat"
+
+
+msgid "Replace All"
+msgstr "Substituir tots"
+
+
+msgid "Replace all occurrences"
+msgstr "Substitueix totes les ocurrències"
+
+
+msgctxt "Operator"
+msgid "Replace & Set Selection"
+msgstr "Substituir i determinar selecció"
+
+
+msgid "Replace text with specified text and set as selected"
+msgstr "Substitueix el text pel text especificat i el deixa seleccionat"
+
+
+msgctxt "Operator"
+msgid "Resolve Conflict"
+msgstr "Resoldre conflicte"
+
+
+msgid "When external text is out of sync, resolve the conflict"
+msgstr "Quan el text extern està dessincronitzat, resol el conflicte"
+
+
+msgid "How to solve conflict due to differences in internal and external text"
+msgstr "Com resoldre conflictes a causa de diferències en el text intern i extern"
+
+
+msgid "Ignore"
+msgstr "Ignorar"
+
+
+msgctxt "Operator"
+msgid "Run Script"
+msgstr "Executar protocol"
+
+
+msgid "Run active script"
+msgstr "[Run Script]: Executa el protocol actiu"
+
+
+msgctxt "Operator"
+msgid "Save"
+msgstr "Desar"
+
+
+msgid "Save active text data-block"
+msgstr "Desa el bloc de dades de text actiu"
+
+
+msgctxt "Operator"
+msgid "Save As"
+msgstr "Anomenar i desar"
+
+
+msgid "Save active text file with options"
+msgstr "Desa el document de text actiu amb opcions"
+
+
+msgctxt "Operator"
+msgid "Scroll"
+msgstr "Rodolar"
+
+
+msgid "Number of lines to scroll"
+msgstr "[Scroll]: Nombre de línies a desplaçar"
+
+
+msgctxt "Operator"
+msgid "Scrollbar"
+msgstr "Barra ròdol"
+
+
+msgctxt "Operator"
+msgid "Select Line"
+msgstr "Seleccionar línia"
+
+
+msgid "Select text by line"
+msgstr "Selecciona el text per línies"
+
+
+msgid "Select word under cursor"
+msgstr "Seleccionar paraula de sota el cursor"
+
+
+msgid "Set cursor selection"
+msgstr "Activar selecció per cursor"
+
+
+msgctxt "Operator"
+msgid "Find"
+msgstr "Buscar"
+
+
+msgid "Start searching text"
+msgstr "[Find]: Start searching text"
+
+
+msgctxt "Operator"
+msgid "To 3D Object"
+msgstr "A l'objecte 3D"
+
+
+msgid "Create 3D text object from active text data-block"
+msgstr "Crea un objecte de text 3D a partir del bloc de dades de text actiu"
+
+
+msgid "Split Lines"
+msgstr "Dividir línies"
+
+
+msgid "Create one object per line in the text"
+msgstr "[Split Lines]: Crea un objecte per línia al text"
+
+
+msgid "Unindent selected text"
+msgstr "Dessagnar text seleccionat"
+
+
+msgid "Unlink active text data-block"
+msgstr "Desenllaçar bloc de dades de text actiu"
+
+
+msgctxt "Operator"
+msgid "Scale B-Bone"
+msgstr "Escalar os-D"
+
+
+msgid "Scale selected bendy bones display size"
+msgstr "[Scale B-Bone]: Escala la mida de visualització dels ossos doblegables seleccionats"
+
+
+msgid "Constraint Axis"
+msgstr "Eix de restricció"
+
+
+msgid "Matrix Orientation"
+msgstr "Orientació de matriu"
+
+
+msgid "Transformation orientation"
+msgstr "Orientació de transformació"
+
+
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Doblegar"
+
+
+msgid "Bend selected items between the 3D cursor and the mouse"
+msgstr "Doblega els elements seleccionats entre el cursor 3D i el ratolí"
+
+
+msgid "Center Override"
+msgstr "Sobreseïment de centre"
+
+
+msgid "Force using this center value (when set)"
+msgstr "[Center Override]: Força l'ús d'aquest valor de centre (quan està definit)"
+
+
+msgid "Edit Grease Pencil"
+msgstr "Editar llapis de greix"
+
+
+msgid "Edit selected Grease Pencil strokes"
+msgstr "Edita els traços de llapis de greix seleccionats"
+
+
+msgid "Use Snapping Options"
+msgstr "Usar opcions d'acoblament"
+
+
+msgctxt "Operator"
+msgid "Create Orientation"
+msgstr "Crear orientació"
+
+
+msgid "Create transformation orientation from selection"
+msgstr "Crea una orientació de transformació a partir de la selecció"
+
+
+msgid "Name of the new custom orientation"
+msgstr "Nom de la nova orientació personalitzada"
+
+
+msgid "Overwrite Previous"
+msgstr "Sobreescriure anterior"
+
+
+msgid "Overwrite previously created orientation with same name"
+msgstr "Sobreescriu l'orientació creada prèviament amb el mateix nom"
+
+
+msgid "Use After Creation"
+msgstr "Usar després de la creació"
+
+
+msgid "Select orientation after its creation"
+msgstr "[Use After Creation]: Selecciona l'orientació després de la seva creació"
+
+
+msgid "Use View"
+msgstr "Usar visualització"
+
+
+msgid "Use the current view instead of the active object to create the new orientation"
+msgstr "Usa la vista actual en lloc de l'objecte actiu per a crear la nova orientació"
+
+
+msgctxt "Operator"
+msgid "Delete Orientation"
+msgstr "Suprimir orientació"
+
+
+msgid "Delete transformation orientation"
+msgstr "Suprimeix l'orientació de transformació"
+
+
+msgctxt "Operator"
+msgid "Edge Bevel Weight"
+msgstr "Força de bisellat d'aresta"
+
+
+msgid "Change the bevel weight of edges"
+msgstr "Canvia la força la força de bisell de les vores"
+
+
+msgctxt "Operator"
+msgid "Edge Crease"
+msgstr "Retenció d'aresta"
+
+
+msgid "Change the crease of edges"
+msgstr "[Edge Crease]: Canvia la retenció de les arestes"
+
+
+msgctxt "Operator"
+msgid "Edge Slide"
+msgstr "Lliscar aresta"
+
+
+msgid "Correct UVs"
+msgstr "Corregir UVs"
+
+
+msgid "Correct UV coordinates when transforming"
+msgstr "Corregeix les coordenades UV en transformar"
+
+
+msgid "When Even mode is active, flips between the two adjacent edge loops"
+msgstr "Quan el mode uniforme està actiu, s'inverteix entre les dues anelles d'aresta adjacents"
+
+
+msgid "Single Side"
+msgstr "Cara única"
+
+
+msgid "Snap to Elements"
+msgstr "Acoblar als elements"
+
+
+msgid "Snap to increments of grid"
+msgstr "Acoblar als increments de la graekka"
+
+
+msgid "Snap to vertices"
+msgstr "Acoblar als vèrtexs"
+
+
+msgid "Snap to edges"
+msgstr "Acoblar a les arestes"
+
+
+msgid "Face Project"
+msgstr "Projectar a cara"
+
+
+msgid "Snap by projecting onto faces"
+msgstr "[Face Project]: S'acobla projectant-se sobre cares"
+
+
+msgid "Face Nearest"
+msgstr "Cara més propera"
+
+
+msgid "Snap to nearest point on faces"
+msgstr "Acobla al punt més proper de les cares"
+
+
+msgid "Snap to volume"
+msgstr "Acobla a volum"
+
+
+msgid "Edge Center"
+msgstr "Centre d'aresta"
+
+
+msgid "Snap to the middle of edges"
+msgstr "Acobla al mig de les arestes"
+
+
+msgid "Edge Perpendicular"
+msgstr "Perpendicular d'aresta"
+
+
+msgid "Snap to the nearest point on an edge"
+msgstr "Acobla al punt més proper en una aresta"
+
+
+msgid "Snap With"
+msgstr "Acoblar amb"
+
+
+msgid "Snap closest point onto target"
+msgstr "Acobla al punt més proper a la referència"
+
+
+msgid "Snap transformation center onto target"
+msgstr "Acoblar centre de transformació a la referència"
+
+
+msgid "Snap median onto target"
+msgstr "Acoblar mediana a la referència"
+
+
+msgid "Snap active onto target"
+msgstr "Acoblar actiu a la referència"
+
+
+msgid "Clamp within the edge extents"
+msgstr "Constreny dins l'abast de l'aresta"
+
+
+msgid "Make the edge loop match the shape of the adjacent edge loop"
+msgstr "[Clamp within the edge extents]: Fa que l'anella d'aresta s'iguali a la forma de l'anella d'aresta adjacent"
+
+
+msgid "Target: Include Edit"
+msgstr "Referent: inclou edició"
+
+
+msgid "Target: Include Non-Edited"
+msgstr "Referent: inclou no editats"
+
+
+msgid "Project Individual Elements"
+msgstr "Projectar elements individuals"
+
+
+msgid "Target: Exclude Non-Selectable"
+msgstr "Referent: exclou no seleccionables"
+
+
+msgid "Target: Include Active"
+msgstr "Referent: inclou actiu"
+
+
+msgctxt "Operator"
+msgid "Transform from Gizmo"
+msgstr "Transformar des de flòstic"
+
+
+msgid "Mirror selected items around one or more axes"
+msgstr "[Transform from Gizmo]: Emmiralla els elements seleccionats al voltant d'un o més eixos"
+
+
+msgctxt "Operator"
+msgid "Push/Pull"
+msgstr "Empènyer/estirar"
+
+
+msgid "Push/Pull selected items"
+msgstr "[Push/Pull]: Empeny/estira els elements seleccionats"
+
+
+msgctxt "Operator"
+msgid "Resize"
+msgstr "Redimensionar"
+
+
+msgid "Scale (resize) selected items"
+msgstr "[Resize]: Escala (canvia la mida) els elements seleccionats"
+
+
+msgid "Mouse Directional Constraint"
+msgstr "Restricció direccional del ratolí"
+
+
+msgid "Remove on Cancel"
+msgstr "Suprimir en cancel·lar"
+
+
+msgid "Remove elements on cancel"
+msgstr "Suprimeix elements en cancel·lar"
+
+
+msgid "Edit Texture Space"
+msgstr "Editar espai textura"
+
+
+msgid "Edit object data texture space"
+msgstr "Edita dades de l'objecte espai de textura"
+
+
+msgctxt "Operator"
+msgid "Rotate"
+msgstr "Rotar"
+
+
+msgid "Rotate selected items"
+msgstr "Fa girar els elements seleccionats"
+
+
+msgctxt "Operator"
+msgid "Rotate Normals"
+msgstr "Rotar normals"
+
+
+msgid "Rotate split normal of selected items"
+msgstr "Fa girar la normal dividida dels elements seleccionats"
+
+
+msgctxt "Operator"
+msgid "Select Orientation"
+msgstr "Seleccionar orientació"
+
+
+msgid "Select transformation orientation"
+msgstr "Selecciona l'orientació de la transformació"
+
+
+msgctxt "Operator"
+msgid "Sequence Slide"
+msgstr "Lliscador de seqüència"
+
+
+msgid "Axis Ortho"
+msgstr "Eix orto"
 
 
 msgid "Edge Pan"
-msgstr "Escombratge de vora"
+msgstr "Escombratge d'aresta"
+
+
+msgid "Enable edge panning in 2D view"
+msgstr "[Edge Pan]: Activa la panoràmica d'arestes en vista 2D"
+
+
+msgctxt "Operator"
+msgid "Shear"
+msgstr "Estrebar"
+
+
+msgid "Shear selected items along the horizontal screen axis"
+msgstr "[Shear]: Estreba els elements seleccionats al llarg de l'eix horitzontal de la pantalla"
+
+
+msgctxt "Operator"
+msgid "Shrink/Fatten"
+msgstr "Encongir/engrossir"
+
+
+msgctxt "Operator"
+msgid "Skin Resize"
+msgstr "Redimensionar pellam"
+
+
+msgid "Scale selected vertices' skin radii"
+msgstr "[Skin Resize]: Escala els radis de la pell dels vèrtexs seleccionats"
+
+
+msgctxt "Operator"
+msgid "Tilt"
+msgstr "Inclinar"
+
+
+msgid "Tilt selected control vertices of 3D curve"
+msgstr "[Tilt]: Inclina els vèrtexs de control seleccionats de la corba 3D"
+
+
+msgctxt "Operator"
+msgid "To Sphere"
+msgstr "A esfera"
+
+
+msgid "Move selected items outward in a spherical shape around geometric center"
+msgstr "Mou els elements seleccionats cap a l'exterior en una forma esfèrica al voltant del centre geomètric"
+
+
+msgctxt "Operator"
+msgid "Trackball"
+msgstr "Ratolí de bola"
+
+
+msgid "Trackball style rotation of selected items"
+msgstr "[Trackball]: Rotació de manera esfèrica dels elements seleccionats"
+
+
+msgctxt "Operator"
+msgid "Transform"
+msgstr "Transformar"
+
+
+msgid "Align with Point Normal"
+msgstr "Alinea amb la normal de punt"
+
+
+msgid "Values"
+msgstr "Valors"
+
+
+msgctxt "Operator"
+msgid "Move"
+msgstr "Moure"
+
+
+msgid "Transform Cursor"
+msgstr "Transformar cursor"
+
+
+msgid "Auto Merge & Split"
+msgstr "Autofusió i divisió"
+
+
+msgid "Forces the use of Auto Merge and Split"
+msgstr "[Auto Merge & Split]: Força l'ús de la fusió automàtica i la divisió"
+
+
+msgctxt "Operator"
+msgid "Vertex Crease"
+msgstr "Retenció de vèrtex"
+
+
+msgid "Change the crease of vertices"
+msgstr "[Vertex Crease]: Canvia la retenció de vèrtexs"
+
+
+msgctxt "Operator"
+msgid "Vertex Slide"
+msgstr "Lliscar vèrtex"
+
+
+msgid "Slide a vertex along a mesh"
+msgstr "[Vertex Slide]: Llisca un vèrtex al llarg d'una malla"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "Aleatoritzar"
+
+
+msgid "Randomize vertices"
+msgstr "Aleatoritza vèrtexs"
+
+
+msgid "Align offset direction to normals"
+msgstr "Alinea la direcció de desplaçament a les normals"
+
+
+msgid "Distance to offset"
+msgstr "Distància al desplaçament"
+
+
+msgid "Increase for uniform offset distance"
+msgstr "Augment de la distància uniforme de desplaçament"
+
+
+msgctxt "Operator"
+msgid "Warp"
+msgstr "Aberració"
+
+
+msgid "Warp vertices around the cursor"
+msgstr "[Warp]: Degorma els vèrtexs entorn del cursor"
+
+
+msgid "Offset Angle"
+msgstr "Angle de desplaçament"
+
+
+msgid "Angle to use as the basis for warping"
+msgstr "[Offset Angle]: Angle a usar de base per a la deformació"
+
+
+msgid "Warp Angle"
+msgstr "Angle d'aberració"
+
+
+msgid "Amount to warp about the cursor"
+msgstr "[Warp Angle]: Quantitat a deformar entorn del cursor"
+
+
+msgctxt "Operator"
+msgid "Add Entry"
+msgstr "Afegir entrada"
+
+
+msgid "Add an entry to the list after the current active item"
+msgstr "[Add Entry]: Afegeix una entrada a la llista després de l'element actiu present"
+
+
+msgctxt "Operator"
+msgid "Move Entry"
+msgstr "Moure entrada"
+
+
+msgid "Move an entry in the list up or down"
+msgstr "Mou una entrada amunt o avall de la llista"
+
+
+msgid "UP"
+msgstr "AMUNT"
+
+
+msgid "DOWN"
+msgstr "AVALL"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Entry"
+msgstr "Suprimir entrada seleccionada"
+
+
+msgid "Remove the selected entry from the list"
+msgstr "Suprimeix l'entrada seleccionada de la llista"
+
+
+msgctxt "Operator"
+msgid "Assign Value as Default"
+msgstr "Assignar valor per defecte"
+
+
+msgid "Set this property's current value as the new default"
+msgstr "Determina el valor actual d'aquesta propietat com a nou predeterminat"
+
+
+msgctxt "Operator"
+msgid "Press Button"
+msgstr "Pitjar botó"
+
+
+msgid "Presses active button"
+msgstr "Prem el botó actiu"
+
+
+msgid "Skip Depressed"
+msgstr "Ometre els sabaixats"
+
+
+msgctxt "Operator"
+msgid "Clear Button String"
+msgstr "Descartar cadena del botó"
+
+
+msgid "Unsets the text of the active button"
+msgstr "[Clear Button String]: Anul·la el text del botó actiu"
+
+
+msgctxt "Operator"
+msgid "Copy as New Driver"
+msgstr "Copiar com a controlador nou"
+
+
+msgid "Create a new driver with this property as input, and copy it to the clipboard. Use Paste Driver to add it to the target property, or Paste Driver Variables to extend an existing driver"
+msgstr "Crea un controlador nou amb aquesta propietat com a ingrés i la copia al porta-retalls. Usa Enganxar controlador per afegir-lo a la propietat de referència, o Enganxar variables de controlador per ampliar un controlador existent"
+
+
+msgctxt "Operator"
+msgid "Copy Data Path"
+msgstr "Copiar camí de dades"
+
+
+msgid "Copy the RNA data path for this property to the clipboard"
+msgstr "Copia al porta-retalls el camí de dades d'ARN per aquesta propietat"
+
+
+msgid "Copy full data path"
+msgstr "Copiar camí de dades sencer"
+
+
+msgctxt "Operator"
+msgid "Copy Python Command"
+msgstr "Copiar ordre Python"
+
+
+msgid "Copy the Python command matching this button"
+msgstr "Copia l'ordre Python que coincideix amb aquest botó"
+
+
+msgctxt "Operator"
+msgid "Copy to Selected"
+msgstr "Copiar a selecció"
+
+
+msgid "Copy the property's value from the active item to the same property of all selected items if the same property exists"
+msgstr "Copia el valor de la propietat des de l'element actiu a la mateixa propietat de tots els elements seleccionats si tal propietat existeix"
+
+
+msgid "Copy to selected all elements of the array"
+msgstr "Copiar a tots els elements seleccionats de la corrua"
+
+
+msgctxt "Operator"
+msgid "Drop Color"
+msgstr "Llançar color"
+
+
+msgid "Drop colors to buttons"
+msgstr "Deixa caure els colors damunt els botons"
+
+
+msgid "Source color"
+msgstr "Color d'origen"
+
+
+msgid "Gamma Corrected"
+msgstr "Gamma corregida"
+
+
+msgid "The source color is gamma corrected"
+msgstr "El color d'origen té la gamma corregida"
+
+
+msgctxt "Operator"
+msgid "Drop Material in Material slots"
+msgstr "Llançar material en epígrafs de materials"
+
+
+msgid "Drag material to Material slots in Properties"
+msgstr "Arrossega el material als epígrafs de materials a Propietats"
+
+
+msgctxt "Operator"
+msgid "Drop Name"
+msgstr "Llançar nom"
+
+
+msgid "Drop name to button"
+msgstr "[Drop Name]: Deixa caure el nom sobre botó"
+
+
+msgid "The string value to drop into the button"
+msgstr "El valor de la cadena que s'ha de deixar caure al botó"
+
+
+msgctxt "Operator"
+msgid "Edit Source"
+msgstr "Editar origen"
+
+
+msgid "Edit UI source code of the active button"
+msgstr "Edita el codi font del botó actiu en la IU"
+
+
+msgctxt "Operator"
+msgid "Edit Translation"
+msgstr "Editar traducció"
+
+
+msgid "Translate the label and tooltip of the given property"
+msgstr "Tradueix l'etiqueta i la pista per a la propietat indicada"
+
+
+msgid "Label of the control"
+msgstr "Etiqueta del control"
+
+
+msgid "Flags about the label of the button"
+msgstr "Indicadors sobre l'etiqueta del botó"
+
+
+msgid "Message is marked as fuzzy in po file"
+msgstr "El missatge està marcat com a vague (\"fuzzy\") al document PO"
+
+
+msgid "Some error occurred with this message"
+msgstr "S'ha produït algun error amb aquest missatge"
+
+
+msgid "Tip of the control"
+msgstr "Pista sobre el control"
+
+
+msgid "Flags about the tip of the button"
+msgstr "Indicadors sobre la pista del botó"
+
+
+msgid "Remove all local translation files, to be able to use the system ones again"
+msgstr "Suprimir tots els documents locals de traducció, per a poder tornar a usar els del sistema"
+
+
+msgid "Label of the enum item of the control, if any"
+msgstr "Etiqueta de l'element d'enumeració del control, si n'hi ha"
+
+
+msgid "Flags about the RNA enum item label of the button"
+msgstr "Indicadors sobre l'etiqueta d'element d'enumeració d'ARN del botó"
+
+
+msgid "Tip of the enum item of the control, if any"
+msgstr "Pista de l'element d'enumeració del control, si n'hi ha"
+
+
+msgid "Flags about the RNA enum item tip of the button"
+msgstr "Indicadors sobre la pista de l'element d'enumeració d'ARN del botó"
+
+
+msgid "Current (translated) language"
+msgstr "Idioma actual (traduït)"
+
+
+msgid "Original label of the control"
+msgstr "Etiqueta original del control"
+
+
+msgid "Original tip of the control"
+msgstr "Pista original del control"
+
+
+msgid "Original label of the enum item of the control, if any"
+msgstr "Etiqueta original de l'element d'enumeració del control, si n'hi ha"
+
+
+msgid "Original tip of the enum item of the control, if any"
+msgstr "Pista original de l'element d'enumeració del control, si n'hi ha"
+
+
+msgid "Original RNA-defined label of the control, if any"
+msgstr "Etiqueta original del control definida per l'ARN, si n'hi ha"
+
+
+msgid "Original RNA-defined tip of the control, if any"
+msgstr "Pista original del control definida per l'ARN, si n'hi ha"
+
+
+msgid "Path to the matching po file"
+msgstr "Camí al document PO coincident"
+
+
+msgid "RNA context for label"
+msgstr "Context d'ARN per a l'etiqueta"
+
+
+msgid "Identifier of the RNA enum item, if any"
+msgstr "Identificador de l'element d'enumeració d'ARN, si n'hi ha"
+
+
+msgid "RNA-defined label of the control, if any"
+msgstr "Etiqueta del control definida per l'ARN, si n'hi ha"
+
+
+msgid "Flags about the RNA-defined label of the button"
+msgstr "Indicadors del botó sobre l'etiqueta definida per l'ARN"
+
+
+msgid "Identifier of the RNA property, if any"
+msgstr "Identificador de la propietat d'ARN, si n'hi ha"
+
+
+msgid "Identifier of the RNA struct, if any"
+msgstr "Identificador del struct de l'ARN, si n'hi ha"
+
+
+msgid "RNA-defined tip of the control, if any"
+msgstr "Pista del control definit per l'ARN, si n'hi ha"
+
+
+msgid "Flags about the RNA-defined tip of the button"
+msgstr "Indicadors sobre la pista del botñi definida per l'ARN"
+
+
+msgid "Stats from opened po"
+msgstr "Estadístiques del PO obert"
+
+
+msgid "Try to rebuild mo file, and refresh Blender's UI"
+msgstr "Intentar reconstruir document MO i actualitzar IU del Blender"
+
+
+msgid "Update po file, try to rebuild mo file, and refresh Blender's UI"
+msgstr "Actualitzar document PO, intentar reconstruir el document MO i refrescar la IU del Blender"
+
+
+msgid "Edit i18n in current language for the active button"
+msgstr "Editar l'i18n en l'idioma actual per al botó actiu"
+
+
+msgctxt "Operator"
+msgid "Eyedropper"
+msgstr "Pipeta"
+
+
+msgid "Sample a color from the Blender window to store in a property"
+msgstr "[Eyedropper]: Mostreja un color des de la finestra del Blender per a emmagatzemar-lo en una propietat"
+
+
+msgctxt "Operator"
+msgid "Eyedropper Colorband"
+msgstr "Banda de color amb pipeta"
+
+
+msgid "Sample a color band"
+msgstr "Mostreja una banda de color"
+
+
+msgctxt "Operator"
+msgid "Eyedropper Colorband (Points)"
+msgstr "Banda de color amb pipeta (punts)"
+
+
+msgid "Point-sample a color band"
+msgstr "Mostreja amb punts una banda de color"
+
+
+msgctxt "Operator"
+msgid "Eyedropper Depth"
+msgstr "Profunditat de pipeta"
+
+
+msgid "Sample depth from the 3D view"
+msgstr "Mostreja profunditat des de la vista 3D"
+
+
+msgctxt "Operator"
+msgid "Eyedropper Driver"
+msgstr "Controlador de pipeta"
+
+
+msgid "Pick a property to use as a driver target"
+msgstr "Xucla una propietat per utilitzar-la com a referent del controlador"
+
+
+msgid "Mapping Type"
+msgstr "Tipus de mapeig"
+
+
+msgid "Method used to match target and driven properties"
+msgstr "Mètode usat per a fer coincidir les propietats referent i guiades"
+
+
+msgid "All from Target"
+msgstr "Tots des del referent"
+
+
+msgid "Drive all components of this property using the target picked"
+msgstr "[All from Target]: Condueix tots els components d'aquesta propietat usant el referent pescat"
+
+
+msgid "Single from Target"
+msgstr "Únic des del referent"
+
+
+msgid "Drive this component of this property using the target picked"
+msgstr "[Single from Target]: Condueix aquest component d'aquesta propietat usant el referent escollit"
+
+
+msgid "Match Indices"
+msgstr "Aparellar indèxs"
+
+
+msgid "Create drivers for each pair of corresponding elements"
+msgstr "[Match Indices]: Crea controladors per a cada parell d'elements que es corresponen"
+
+
+msgid "Manually Create Later"
+msgstr "Crear manualment més tard"
+
+
+msgid "Create drivers for all properties without assigning any targets yet"
+msgstr "Crea controladors per a totes les propietats sense assignar-hi encara cap referent"
+
+
+msgid "Manually Create Later (Single)"
+msgstr "Crear manualment més tard (únic)"
+
+
+msgid "Create driver for this property only and without assigning any targets yet"
+msgstr "Crea un controlador només per a aquesta propietat i sense assignar-l'hi encara cap referent"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Eyedropper"
+msgstr "Pipeta de llapis de greix"
+
+
+msgid "Sample a color from the Blender Window and create Grease Pencil material"
+msgstr "Mostreja un color des de la finestra del Blender i crea material amb llapis de greix"
+
+
+msgctxt "Operator"
+msgid "Eyedropper Data-Block"
+msgstr "Bloc de dades de pipeta"
+
+
+msgid "Sample a data-block from the 3D View to store in a property"
+msgstr "Mostra un bloc de dades des de la vista 3D per a emmagatzemar en una propietat"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Export"
+msgstr "Exportació de complement I18n"
+
+
+msgid "Export given add-on's translation data as PO files"
+msgstr "[I18n Add-on Export]: Exporta les dades de traducció del complement indicat com a documents PO"
+
+
+msgid "Add-on to process"
+msgstr "Complement a processar"
+
+
+msgid "Export POT"
+msgstr "Exportar POT"
+
+
+msgid "Export (generate) a POT file too"
+msgstr "Exporta (genera) un document POT"
+
+
+msgid "Update Existing"
+msgstr "Actualitzar existent"
+
+
+msgid "Update existing po files, if any, instead of overwriting them"
+msgstr "Actualitza els documents PO existents, si n'hi ha, en lloc de sobreescriure'ls"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Import"
+msgstr "Importar complement I18n"
+
+
+msgid "Import given add-on's translation data from PO files"
+msgstr "[I18n Add-on Import]: Importa les dades de traducció del complement indicat des de documents PO"
+
+
+msgctxt "Operator"
+msgid "Update I18n Add-on"
+msgstr "Actualitzar complement I18n"
+
+
+msgid "Wrapper operator which will invoke given op after setting its module_name"
+msgstr "Operador de gravat que invocarà l'op donada després de consignar el seu nom de mòdul"
+
+
+msgid "Operator Name"
+msgstr "Nom de l'operador"
+
+
+msgid "Name (id) of the operator to invoke"
+msgstr "Nom (id) de l'operador a invocar"
+
+
+msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
+msgstr "Actualitza les dades de traducció del complement referit (que es troben com a tupla de python al codi font del complement)"
+
+
+msgctxt "Operator"
+msgid "Clean up I18n Branches"
+msgstr "Netejar branques d'I18n"
+
+
+msgid "Clean up i18n svn's branches (po files)"
+msgstr "Neteja les branques de l'SVN i18n (documents PO)"
+
+
+msgctxt "Operator"
+msgid "Edit Translation Update Mo"
+msgstr "Editar actualització de traducció MO"
+
+
+msgid "Try to \"compile\" given po file into relevant blender.mo file"
+msgstr "Intenta «compilar» el document PO indicat en el document corresponent MO"
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "Paràmetres de càrrega d'I18n"
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "Carrega la configuració de traduccions des d'un document JSon persistent"
+
+
+msgid "Path to the saved settings file"
+msgstr "Camí al document de configuració desat"
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "Paràmetres de desat d'I18n"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "Desa la configuració de les traduccions en un document JSon persistent"
+
+
+msgctxt "Operator"
+msgid "Update I18n Branches"
+msgstr "Actualitzar branques d'I18n"
+
+
+msgid "Update i18n svn's branches (po files)"
+msgstr "Actualitza les branques de l'SVN i18n (documents PO)"
+
+
+msgid "Skip POT"
+msgstr "Ometre POT"
+
+
+msgid "Skip POT file generation"
+msgstr "[Skip POT]: Omet la generació de documents POT"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "Paràmetres d'actualització d'I18n d'inici"
+
+
+msgid "Init settings for i18n svn's update operators"
+msgstr "Configuració d'inici per als operadors d'actualització de l'SVN i18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "Iniciar actualització d'I18n en llengües seleccionades"
+
+
+msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
+msgstr "(Des)selecciona (o inverteix la selecció) de tots els idiomes per als operadors d'actualització de l'SVN d'i18n"
+
+
+msgid "Invert Selection"
+msgstr "Invertir selecció"
+
+
+msgid "Inverse selection (overrides 'Select All' when True)"
+msgstr "Selecció inversa (sobreseu «Seleccionar-ho tot» quan està ver)"
+
+
+msgid "Select All"
+msgstr "Seleccionar-ho tot"
+
+
+msgid "Select all if True, else deselect all"
+msgstr "Ho selecciona tot si és ver, en cas contrari ho desselecciona tot"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "Actualitzar estadístiques d'I18n"
+
+
+msgid "Create or extend a 'i18n_info.txt' Text datablock"
+msgstr "Crea o amplia un bloc de dades de text «i18n_info.txt»"
+
+
+msgid "Check Branches"
+msgstr "Comprovar branques"
+
+
+msgid "Check po files in branches"
+msgstr "Comprova els documents PO a les branques"
+
+
+msgid "Check Trunk"
+msgstr "Comprovar troncal"
+
+
+msgid "Check po files in trunk"
+msgstr "[Check Trunk]: Comprova els documents PO troncals"
+
+
+msgctxt "Operator"
+msgid "Update I18n Trunk"
+msgstr "Actualitzar troncal I18n"
+
+
+msgctxt "Operator"
+msgid "Jump to Target"
+msgstr "Saltar a referent"
+
+
+msgid "Switch to the target object or bone"
+msgstr "Intercanvia a l'objecte o os referent"
+
+
+msgctxt "Operator"
+msgid "List Filter"
+msgstr "Filtre de llista"
+
+
+msgid "Start entering filter text for the list in focus"
+msgstr "Comença a introduir el text de filtre per a la llista indicada"
+
+
+msgid "Delete the selected local override and relink its usages to the linked data-block if possible, else reset it and mark it as non editable"
+msgstr "Suprimir el sobreseïment local seleccionat i tornar a enllaçar els seus usos amb el bloc de dades enllaçat si és possible, altrament ho reinicia i ho marca com a no editable"
+
+
+msgid "Create a local override of the selected linked data-block, and its hierarchy of dependencies"
+msgstr "Crear un sobreseïment local del bloc de dades enllaçat seleccionat, i de la seva jerarquia de dependències"
+
+
+msgid "Reset the selected local override to its linked reference values"
+msgstr "Recupera el sobreseïment local seleccionat als seus valors de referència enllaçats"
+
+
+msgctxt "Operator"
+msgid "Remove Override"
+msgstr "Suprimir sobreseïment"
+
+
+msgid "Remove an override operation"
+msgstr "Elimina una operació de sobreseïment"
+
+
+msgid "Reset to default values all elements of the array"
+msgstr "Reposa als valors predeterminats tots els elements de la corrua"
+
+
+msgctxt "Operator"
+msgid "Define Override Type"
+msgstr "Definir tipus de sobreseïment"
+
+
+msgid "Create an override operation, or set the type of an existing one"
+msgstr "[Define Override Type]: Crear operació de sobreseïment, o definir el tipus d'una d'existent"
+
+
+msgid "Type of override operation"
+msgstr "Tipus d'operació de sobreseïment"
+
+
+msgid "NoOp"
+msgstr "Inoperat"
+
+
+msgid "'No-Operation', place holder preventing automatic override to ever affect the property"
+msgstr "[NoOp]: 'No-operació', marcador de posició que impedeix que el sobreseïment automàtic mai afecti la propietat"
+
+
+msgid "Completely replace value from linked data by local one"
+msgstr "Substituir completament el valor de les dades enllaçades per un valor local"
+
+
+msgid "Store difference to linked data value"
+msgstr "Guardar la diferència amb el valor de les dades enllaçades"
+
+
+msgid "Store factor to linked data value (useful e.g. for scale)"
+msgstr "Factor d'emmagatzematge al valor de les dades enllaçades (útil, per exemple, per a escala)"
+
+
+msgctxt "Operator"
+msgid "Reload Translation"
+msgstr "Recarregar traducció"
+
+
+msgid "Force a full reload of UI translation"
+msgstr "Força una recàrrega completa de la traducció de la IU"
+
+
+msgctxt "Operator"
+msgid "Reset to Default Value"
+msgstr "Reposar valor predeterminat"
+
+
+msgid "Reset this property's value to its default value"
+msgstr "Reinicia el valor d'aquesta propietat al seu valor predeterminat"
+
+
+msgctxt "Operator"
+msgid "Unset Property"
+msgstr "Desmarcar propietat"
+
+
+msgid "Clear the property and use default or generated value in operators"
+msgstr "Descarta la propietat i usa el valor predeterminat o el valor generat en els operadors"
+
+
+msgctxt "Operator"
+msgid "View drop"
+msgstr "Assignació visual"
+
+
+msgid "Drag and drop items onto a data-set item"
+msgstr "[View drop]: Arrossega i deixa caure elements dins un element de conjunt de dades"
+
+
+msgctxt "Operator"
+msgid "Rename View Item"
+msgstr "Rebatejar element de visualització"
+
+
+msgid "Rename the active item in the data-set view"
+msgstr "Reanomena l'element actiu en la visualització de conjunt de dades"
+
+
+msgctxt "Operator"
+msgid "Align"
+msgstr "Alinear"
+
+
+msgid "Align selected UV vertices to an axis"
+msgstr "Alinea els vèrtexs UV seleccionats a un eix"
+
+
+msgid "Axis to align UV locations on"
+msgstr "Eix on alinear les ubicacions UV"
+
+
+msgid "Straighten"
+msgstr "Redreçar"
+
+
+msgid "Align UVs along the line defined by the endpoints"
+msgstr "Alinea UVs seguint la línia definida per les puntes"
+
+
+msgid "Straighten X"
+msgstr "Redreçar X"
+
+
+msgid "Align UVs along the line defined by the endpoints along the X axis"
+msgstr "Alinea UVs al llarg de la línia definida per les puntes seguint l'eix X"
+
+
+msgid "Straighten Y"
+msgstr "Redreçar Y"
+
+
+msgid "Align UVs along the line defined by the endpoints along the Y axis"
+msgstr "Alinea UVs al llarg de la línia definida per les puntes seguint l'eix Y"
+
+
+msgid "Align Auto"
+msgstr "Autoalinear"
+
+
+msgid "Automatically choose the axis on which there is most alignment already"
+msgstr "Tria automàticament l'eix en el qual ja hi ha més alineació"
 
 
 msgid "Align X"
 msgstr "Alinear X"
 
 
+msgid "Align UVs on X axis"
+msgstr "Alinea UVs a l'eix X"
+
+
 msgid "Align Y"
 msgstr "Alinear Y"
+
+
+msgid "Align UVs on Y axis"
+msgstr "Alinea UVs a l'eix Y"
+
+
+msgctxt "Operator"
+msgid "Align Rotation"
+msgstr "Alinear rotació"
+
+
+msgid "Axis to align to"
+msgstr "Eix al qual alinear"
+
+
+msgid "Method to calculate rotation angle"
+msgstr "Mètode per calcular l'angle de rotació"
+
+
+msgid "Align from all edges"
+msgstr "Alinea des de totes les arestes"
+
+
+msgid "Only selected edges"
+msgstr "Només les arestes seleccionades"
+
+
+msgid "Align to Geometry axis"
+msgstr "Alinea a l'eix geomètric"
+
+
+msgctxt "Operator"
+msgid "Average Islands Scale"
+msgstr "Escala mitjana d'illes"
+
+
+msgid "Average the size of separate UV islands, based on their area in 3D space"
+msgstr "[Average Islands Scale]: Mitjana de la mida de les illes UV per separat, en base a la seva àrea en l'espai 3D"
+
+
+msgid "Scale U and V independently"
+msgstr "Escalar U i V independentment"
+
+
+msgid "Reduce shear within islands"
+msgstr "Reduir estrebament dins les illes"
+
+
+msgctxt "Operator"
+msgid "Copy UVs"
+msgstr "Copiar UVs"
+
+
+msgid "Copy selected UV vertices"
+msgstr "Copia els vèrtexs UV seleccionats"
+
+
+msgctxt "Operator"
+msgid "Cube Projection"
+msgstr "Projecció de cub"
+
+
+msgid "Project the UV vertices of the mesh over the six faces of a cube"
+msgstr "Projecta els vèrtexs UV de la malla sobre les sis cares d'un cub"
+
+
+msgid "Clip to Bounds"
+msgstr "Segar a límits"
+
+
+msgid "Clip UV coordinates to bounds after unwrapping"
+msgstr "Retalla les coordenades UV als límits després de desembolcallar"
+
+
+msgid "Correct Aspect"
+msgstr "Aspecte correcte"
+
+
+msgid "Map UVs taking image aspect ratio into account"
+msgstr "[Correct Aspect]: Mapeja UVs tenint en compte la relació d'aspecte de la imatge"
+
+
+msgid "Cube Size"
+msgstr "Mida del cub"
+
+
+msgid "Size of the cube to project on"
+msgstr "Mida del cub a què es projectarà"
+
+
+msgid "Scale to Bounds"
+msgstr "Escalar a límits"
+
+
+msgid "Scale UV coordinates to bounds after unwrapping"
+msgstr "Escala les coordenades UV als límits després de desembolcallar"
+
+
+msgctxt "Operator"
+msgid "Cylinder Projection"
+msgstr "Projecció de cilindre"
+
+
+msgid "Project the UV vertices of the mesh over the curved wall of a cylinder"
+msgstr "Projecta els vèrtexs UV de la malla sobre la paret corba d'un cilindre"
+
+
+msgid "How to determine rotation around the pole"
+msgstr "Com es determina la rotació al voltant del pol"
+
+
+msgid "Polar ZX"
+msgstr "Polar ZX"
+
+
+msgid "Polar 0 is X"
+msgstr "La polar 0 és X"
+
+
+msgid "Polar ZY"
+msgstr "ZY polar"
+
+
+msgid "Polar 0 is Y"
+msgstr "La polar 0 és Y"
+
+
+msgid "Direction of the sphere or cylinder"
+msgstr "Direcció de l'esfera o cilindre"
+
+
+msgid "View on Equator"
+msgstr "Vista a l'equador"
+
+
+msgid "3D view is on the equator"
+msgstr "La vista 3D és a l'equador"
+
+
+msgid "View on Poles"
+msgstr "Vista als pols"
+
+
+msgid "3D view is on the poles"
+msgstr "La vista 3D és als pols"
+
+
+msgid "Align to Object"
+msgstr "Alinear a objecte"
+
+
+msgid "Align according to object transform"
+msgstr "Alinear segons transformació d'objecte"
+
+
+msgid "Pole"
+msgstr "Pol"
+
+
+msgid "How to handle faces at the poles"
+msgstr "[Pole]: Com tractar les cares als pols"
+
+
+msgid "UVs are pinched at the poles"
+msgstr "Els UVs s'escanyen als pols"
+
+
+msgid "UVs are fanned at the poles"
+msgstr "Els UVs es ventilen als pols"
+
+
+msgid "Radius of the sphere or cylinder"
+msgstr "Radi de l'esfera o del cilindre"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "Exportar disposició d'UV"
+
+
+msgid "Export UV layout to file"
+msgstr "Exporta la disposició d'UV a un document"
+
+
+msgid "All UVs"
+msgstr "Tots els UVs"
+
+
+msgid "Export all UVs in this mesh (not just visible ones)"
+msgstr "Exporta tots els UVs d'aquesta malla (no només els visibles)"
+
+
+msgid "File format to export the UV layout to"
+msgstr "Format del document d'exportació de la disposició UV"
+
+
+msgid "Scalable Vector Graphic (.svg)"
+msgstr "Gràfic vectorial escalable (.svg)"
+
+
+msgid "Export the UV layout to a vector SVG file"
+msgstr "Exporta la disposició UV a un document SVG vectorial"
+
+
+msgid "Encapsulate PostScript (.eps)"
+msgstr "Encapsular PostScript (.eps)"
+
+
+msgid "Export the UV layout to a vector EPS file"
+msgstr "Exporta la disposició UV a un document EPS vectorial"
+
+
+msgid "PNG Image (.png)"
+msgstr "Imatge PNG (.png)"
+
+
+msgid "Export the UV layout to a bitmap image"
+msgstr "Exporta la disposició UV a una imatge de mapa de bits"
+
+
+msgid "Exports UVs from the modified mesh"
+msgstr "Exporta UVs des de la malla modificada"
+
+
+msgid "Fill Opacity"
+msgstr "Opacitat de l'emplenat"
+
+
+msgid "Set amount of opacity for exported UV layout"
+msgstr "Estableix la quantitat d'opacitat per a la disposició UV exportada"
+
+
+msgid "Dimensions of the exported file"
+msgstr "Dimensions del document exportat"
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "Seguir quads actius"
+
+
+msgid "Follow UVs from active quads along continuous face loops"
+msgstr "Segueix els UVs des de quads actius seguint els bucles de cares continus"
+
+
+msgid "Edge Length Mode"
+msgstr "Mode longitud d'aresta"
+
+
+msgid "Method to space UV edge loops"
+msgstr "Mètode per espaiar les anelles d'arestes UV"
+
+
+msgid "Space all UVs evenly"
+msgstr "Espaiat regular de tots els UVs"
+
+
+msgid "Average space UVs edge length of each loop"
+msgstr "Espaiat de mitjana de longitud de cada anella d'UVs"
+
+
+msgid "Length Average"
+msgstr "Mitjana de longitud"
+
+
+msgid "Hide (un)selected UV vertices"
+msgstr "Amagar vèrtexs UV (des)seleccionats"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "Empacar luminograma"
+
+
+msgid "Pack each face's UVs into the UV bounds"
+msgstr "[Lightmap Pack]: Empaqueta cada cara d'UV dins els límits d'UV"
+
+
+msgid "New Image"
+msgstr "Nova imatge"
+
+
+msgid "Assign new images for every mesh (only one if Share Texture Space is enabled)"
+msgstr "Assigna imatges noves per a cada malla (només una si està habilitat Compartir espai de textura)"
+
+
+msgid "Pack Quality"
+msgstr "Qualitat d'empacat"
+
+
+msgid "Quality of the packing. Higher values will be slower but waste less space"
+msgstr "[Pack Quality]: Qualitat de l'empaquetat. Els valors més alts seran més lents, però malgastaran menys espai"
+
+
+msgid "Selected Faces"
+msgstr "Cares seleccionades"
+
+
+msgid "All Faces"
+msgstr "Totes les cares"
+
+
+msgid "Width and height for the new image"
+msgstr "Amplada i alçada de la nova imatge"
+
+
+msgid "Size of the margin as a division of the UV"
+msgstr "Mida del marge com a divisió de l'UV"
+
+
+msgid "New UV Map"
+msgstr "Nou mapa UV"
+
+
+msgid "Create a new UV map for every mesh packed"
+msgstr "Crea un mapa UV nou per a cada malla empaquetada"
+
+
+msgid "Share Texture Space"
+msgstr "Compartir espai de textura"
+
+
+msgid "Objects share texture space, map all objects into a single UV map"
+msgstr "[Share Texture Space]: Els objectes comparteixen espai de textura, es mapegen tots els objectes en un sol mapa UV"
+
+
+msgid "Mark selected UV edges as seams"
+msgstr "Marcar com a costures les arestes UV seleccionades"
+
+
+msgid "Clear Seams"
+msgstr "Descartar costures"
+
+
+msgid "Clear instead of marking seams"
+msgstr "[Clear Seams]: Neteja les costures en lloc de marcar-les"
+
+
+msgctxt "Operator"
+msgid "Minimize Stretch"
+msgstr "Minimitzar estirament"
+
+
+msgid "Reduce UV stretching by relaxing angles"
+msgstr "[Minimize Stretch]: Redueix l'estirament d'UV relaxant els angles"
+
+
+msgid "Blend factor between stretch minimized and original"
+msgstr "Factor de fusió entre estirament minimitzat i original"
+
+
+msgid "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry"
+msgstr "Omplir els forats de la malla virtualment abans de desembolcallar, per evitar superposicions i preservar la simetria"
+
+
+msgid "Number of iterations to run, 0 is unlimited when run interactively"
+msgstr "Nombre d'iteracions a executar, 0 és il·limitat quan s'executa interactivament"
+
+
+msgctxt "Operator"
+msgid "Pack Islands"
+msgstr "Empacar illes"
+
+
+msgid "Transform all islands so that they fill up the UV/UDIM space as much as possible"
+msgstr "[Pack Islands]: Transforma totes les illes de manera que emplenen l'espai UV/UDIM al màxim possible"
+
+
+msgid "Space between islands"
+msgstr "Espai entre illes"
+
+
+msgid "Margin Method"
+msgstr "Mètode de marge"
+
+
+msgid "Scaled"
+msgstr "Escalat"
+
+
+msgid "Use scale of existing UVs to multiply margin"
+msgstr "[Scaled]: Utilitza l'escala d'UVs existents per multiplicar el marge"
+
+
+msgid "Just add the margin, ignoring any UV scale"
+msgstr "Sumar simplement el marge, ignorant qualsevol escala UV"
+
+
+msgid "Specify a precise fraction of final UV output"
+msgstr "Especificar una fracció precisa de l'emissió final d'UV"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Rotar illes per a millor encaix"
+
+
+msgid "Pack to"
+msgstr "Empacar en"
+
+
+msgid "Closest UDIM"
+msgstr "UDIM més proper"
+
+
+msgid "Pack islands to closest UDIM"
+msgstr "Empaca les illes a l'UDIM més proper"
+
+
+msgid "Active UDIM"
+msgstr "UDIM actiu"
+
+
+msgid "Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located"
+msgstr "[Active UDIM]: Empaca les illes a la imatge mosaic UDIM o al mosaic de graella UDIM on està situat el cursor 2D"
+
+
+msgctxt "Operator"
+msgid "Paste UVs"
+msgstr "Enganxar UVs"
+
+
+msgid "Paste selected UV vertices"
+msgstr "Enganxa els vèrtexs UV seleccionats"
+
+
+msgctxt "Operator"
+msgid "Pin"
+msgstr "Fixar"
+
+
+msgid "Set/clear selected UV vertices as anchored between multiple unwrap operations"
+msgstr "Estableix/neteja els vèrtexs UV seleccionats en tant que ancorats entre múltiples operacions de desembolcallat"
+
+
+msgid "Clear pinning for the selection instead of setting it"
+msgstr "Descartar la fixació de la selecció en lloc d'activar-la"
+
+
+msgctxt "Operator"
+msgid "Project from View"
+msgstr "Projectar des de visualització"
+
+
+msgid "Project the UV vertices of the mesh as seen in current 3D view"
+msgstr "[Project from View]: Projecta els vèrtexs UV de la malla com es veu a la vista 3D actual"
+
+
+msgid "Camera Bounds"
+msgstr "Límits de càmera"
+
+
+msgid "Map UVs to the camera region taking resolution and aspect into account"
+msgstr "[Camera Bounds]: Mapeja UVs en la regió de la càmera tenint en compte la resolució i l'aspecte"
+
+
+msgid "Use orthographic projection"
+msgstr "Usar projecció ortogràfica"
+
+
+msgid "Maximum rotation"
+msgstr "Rotació màxima"
+
+
+msgid "Use the same scale value for both axes"
+msgstr "Usa el mateix valor d'escala per als dos eixos"
+
+
+msgid "Randomize the rotation value"
+msgstr "Aleatoritzar el valor de rotació"
+
+
+msgctxt "Operator"
+msgid "Merge UVs by Distance"
+msgstr "Fusionar UVs segons distància"
+
+
+msgid "Selected UV vertices that are within a radius of each other are welded together"
+msgstr "Als vèrtexs UV seleccionats que estan dins d'un radi l'un de l'altre se'ls solda junts"
+
+
+msgid "Maximum distance between welded vertices"
+msgstr "Distància màxima entre vèrtexs soldats"
+
+
+msgctxt "Operator"
+msgid "Reset"
+msgstr "Reiniciar"
+
+
+msgid "Reset UV projection"
+msgstr "Reinicia la projecció UV"
 
 
 msgid "Reveal all hidden UV vertices"
@@ -73799,12 +76974,16 @@ msgid "Orbit & Pan"
 msgstr "Òrbota i escombratge"
 
 
+msgid "Weights Context Menu"
+msgstr "Menú contextual de forces"
+
+
 msgid "Heavy"
 msgstr "Pesat"
 
 
 msgid "Enable library override template in the python API"
-msgstr "Activa la plantilla de sobreseiment de la biblioteca a l'API de python"
+msgstr "Activa la plantilla de sobreseïment de la biblioteca a l'API de python"
 
 
 msgid "Lock Camera Pan/Zoom"
@@ -73821,6 +77000,10 @@ msgstr "Escombratge usant amunt/avall al dispositiu (en cas contrari endavant/en
 
 msgid "Use the depth under the mouse to improve view pan/rotate/zoom functionality"
 msgstr "Usa la profunditat sota el ratolí per a millorar la funcionalitat escombratge/rotació/zoom de la vista"
+
+
+msgid "Use Weight Color Range"
+msgstr "Usa l'interval de color força"
 
 
 msgid "Sync Zoom/Pan"
@@ -74506,7 +77689,7 @@ msgstr "Per retencions d'arestes"
 
 msgctxt "Operator"
 msgid "By Edge Bevel Weight"
-msgstr "Per influències de bisellat d'aresta"
+msgstr "Per forces de bisellat d'aresta"
 
 
 msgctxt "Operator"

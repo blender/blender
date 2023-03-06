@@ -81,7 +81,7 @@ class MeshImporter : public MeshImporterBase {
    * it holds a portion of Mesh faces and corresponds to a DAE primitive list
    * (<triangles>, <polylist>, etc.) */
   struct Primitive {
-    MPoly *poly;
+    int poly_index;
     int *material_indices;
     unsigned int totpoly;
   };

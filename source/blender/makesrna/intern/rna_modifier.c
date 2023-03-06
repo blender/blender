@@ -4928,7 +4928,7 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "UVWarpModifier", "Modifier");
-  RNA_def_struct_ui_text(srna, "UVWarp Modifier", "Add target position to uv coordinates");
+  RNA_def_struct_ui_text(srna, "UVWarp Modifier", "Add target position to UV coordinates");
   RNA_def_struct_sdna(srna, "UVWarpModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_UVPROJECT);
 

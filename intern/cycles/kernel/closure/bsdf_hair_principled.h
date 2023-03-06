@@ -338,6 +338,7 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            float randu,
                                            float randv,
+                                           float randw,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *wo,
                                            ccl_private float *pdf,
@@ -356,11 +357,6 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
   const float3 Z = safe_normalize(cross(X, Y));
 
   const float3 local_O = make_float3(dot(sd->wi, X), dot(sd->wi, Y), dot(sd->wi, Z));
-
-  float2 u[2];
-  u[0] = make_float2(randu, randv);
-  u[1].x = lcg_step_float(&sd->lcg_state);
-  u[1].y = lcg_step_float(&sd->lcg_state);
 
   const float sin_theta_o = local_O.x;
   const float cos_theta_o = cos_from_sin(sin_theta_o);
@@ -385,11 +381,12 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 
   int p = 0;
   for (; p < 3; p++) {
-    if (u[0].x < Ap_energy[p]) {
+    if (randw < Ap_energy[p]) {
       break;
     }
-    u[0].x -= Ap_energy[p];
+    randw -= Ap_energy[p];
   }
+  randw /= Ap_energy[p];
 
   float v = bsdf->v;
   if (p == 1) {
@@ -399,10 +396,9 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
     v *= 4.0f;
   }
 
-  u[1].x = max(u[1].x, 1e-5f);
-  const float fac = 1.0f + v * logf(u[1].x + (1.0f - u[1].x) * expf(-2.0f / v));
-  float sin_theta_i = -fac * sin_theta_o +
-                      cos_from_sin(fac) * cosf(M_2PI_F * u[1].y) * cos_theta_o;
+  randw = max(randw, 1e-5f);
+  const float fac = 1.0f + v * logf(randw + (1.0f - randw) * expf(-2.0f / v));
+  float sin_theta_i = -fac * sin_theta_o + cos_from_sin(fac) * cosf(M_2PI_F * randv) * cos_theta_o;
   float cos_theta_i = cos_from_sin(sin_theta_i);
 
   float angles[6];
@@ -414,10 +410,10 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 
   float phi;
   if (p < 3) {
-    phi = delta_phi(p, gamma_o, gamma_t) + sample_trimmed_logistic(u[0].y, bsdf->s);
+    phi = delta_phi(p, gamma_o, gamma_t) + sample_trimmed_logistic(randu, bsdf->s);
   }
   else {
-    phi = M_2PI_F * u[0].y;
+    phi = M_2PI_F * randu;
   }
   const float phi_i = phi_o + phi;
 

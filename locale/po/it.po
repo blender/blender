@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -3628,10 +3628,6 @@ msgstr "Spessore esterno della faccia"
 
 msgid "Enabled"
 msgstr "Abilitato"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Impostazioni per usare gli oggetti come collisori nella simulazione della fisica"
 
 
 msgid "Kill Particles"
@@ -21416,10 +21412,6 @@ msgid "UVWarp Modifier"
 msgstr "Modificatore Deforma UV"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "Aggiunge una posizione obiettivo alle coordinate UV"
-
-
 msgid "U-Axis"
 msgstr "Asse U"
 
@@ -36034,10 +36026,6 @@ msgstr "Scorri Punto Curva Pittura"
 
 msgid "Align Handles"
 msgstr "Allinea Maniglie"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Aggiunge una mappa UV cubica sulla mesh"
 
 
 msgctxt "Operator"
@@ -59733,10 +59721,6 @@ msgstr "Impossibile creare il connettore"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Impossibile trovare il connettore '%s' nel nodo"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Registrazione classe nodo: '%s' troppo lungo, la lunghezza massima è %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"

@@ -2845,7 +2845,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     const Text *text = (const Text *)node.id;
     const int line_height_max = BLF_height_max(fontid);
     const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
+    const float line_width = (BLI_rctf_size_x(&rct) - 2 * margin) / aspect;
 
     /* 'x' doesn't need aspect correction. */
     x = rct.xmin + margin;
@@ -2854,12 +2854,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     int y_min = y + ((margin * 2) - (y - rct.ymin));
 
     BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-    BLF_clipping(fontid,
-                 rct.xmin,
-                 /* Round to avoid clipping half-way through a line. */
-                 y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
-                 rct.xmin + line_width,
-                 rct.ymax);
+    BLF_clipping(fontid, rct.xmin, rct.ymin + margin, rct.xmax, rct.ymax);
 
     BLF_wordwrap(fontid, line_width);
 

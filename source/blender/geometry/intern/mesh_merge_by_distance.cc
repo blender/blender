@@ -166,8 +166,8 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
 {
   int poly_kills = 0;
   int loop_kills = mloop.size();
-  const MPoly *poly = &polys[0];
-  for (int i = 0; i < polys.size(); i++, poly++) {
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
     int poly_ctx = weld_mesh->poly_map[i];
     if (poly_ctx != OUT_OF_CONTEXT) {
       const WeldPoly *wp = &weld_mesh->wpoly[poly_ctx];
@@ -206,7 +206,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
       }
     }
     else {
-      loop_kills -= poly->totloop;
+      loop_kills -= poly.totloop;
     }
   }
 
@@ -1606,7 +1606,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Polys/Loops. */
 
-  MPoly *r_mp = dst_polys.data();
   MLoop *r_ml = dst_loops.data();
   int r_i = 0;
   int loop_cur = 0;
@@ -1648,9 +1647,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
 
     CustomData_copy_data(&mesh.pdata, &result->pdata, i, r_i, 1);
-    r_mp->loopstart = loop_start;
-    r_mp->totloop = loop_cur - loop_start;
-    r_mp++;
+    dst_polys[r_i].loopstart = loop_start;
+    dst_polys[r_i].totloop = loop_cur - loop_start;
     r_i++;
   }
 
@@ -1677,9 +1675,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       loop_cur++;
     }
 
-    r_mp->loopstart = loop_start;
-    r_mp->totloop = loop_cur - loop_start;
-    r_mp++;
+    dst_polys[r_i].loopstart = loop_start;
+    dst_polys[r_i].totloop = loop_cur - loop_start;
     r_i++;
   }
 

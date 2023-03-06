@@ -148,6 +148,9 @@ static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
   if (barrier_bits & GPU_BARRIER_UNIFORM) {
     barrier |= GL_UNIFORM_BARRIER_BIT;
   }
+  if (barrier_bits & GPU_BARRIER_BUFFER_UPDATE) {
+    barrier |= GL_BUFFER_UPDATE_BARRIER_BIT;
+  }
   return barrier;
 }
 

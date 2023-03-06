@@ -180,8 +180,8 @@ struct SGLSLMeshToTangent {
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
       const MLoopTri *lt = &looptri[face_as_quad_map[face_num]];
-      const MPoly *poly = &polys[lt->poly];
-      if (poly->totloop == 4) {
+      const MPoly &poly = polys[lt->poly];
+      if (poly.totloop == 4) {
         return 4;
       }
     }
@@ -197,9 +197,9 @@ struct SGLSLMeshToTangent {
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
       lt = &looptri[face_as_quad_map[face_num]];
-      const MPoly *poly = &polys[lt->poly];
-      if (poly->totloop == 4) {
-        return (uint(poly->loopstart) + vert_num);
+      const MPoly &poly = polys[lt->poly];
+      if (poly.totloop == 4) {
+        return (uint(poly.loopstart) + vert_num);
       }
       /* fall through to regular triangle */
     }
@@ -245,14 +245,14 @@ struct SGLSLMeshToTangent {
         return mikk::float3(precomputedFaceNormals[lt->poly]);
       }
 #ifdef USE_LOOPTRI_DETECT_QUADS
-      const MPoly *poly = &polys[lt->poly];
+      const MPoly &poly = polys[lt->poly];
       float normal[3];
-      if (poly->totloop == 4) {
+      if (poly.totloop == 4) {
         normal_quad_v3(normal,
-                       positions[mloop[poly->loopstart + 0].v],
-                       positions[mloop[poly->loopstart + 1].v],
-                       positions[mloop[poly->loopstart + 2].v],
-                       positions[mloop[poly->loopstart + 3].v]);
+                       positions[mloop[poly.loopstart + 0].v],
+                       positions[mloop[poly.loopstart + 1].v],
+                       positions[mloop[poly.loopstart + 2].v],
+                       positions[mloop[poly.loopstart + 3].v]);
       }
       else
 #endif

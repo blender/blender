@@ -25,16 +25,35 @@ typedef enum eGPUWriteMask {
 ENUM_OPERATORS(eGPUWriteMask, GPU_WRITE_COLOR)
 
 typedef enum eGPUBarrier {
-  GPU_BARRIER_NONE = 0,
-  GPU_BARRIER_COMMAND = (1 << 0),
-  GPU_BARRIER_FRAMEBUFFER = (1 << 1),
-  GPU_BARRIER_SHADER_IMAGE_ACCESS = (1 << 2),
-  GPU_BARRIER_SHADER_STORAGE = (1 << 3),
-  GPU_BARRIER_TEXTURE_FETCH = (1 << 4),
-  GPU_BARRIER_TEXTURE_UPDATE = (1 << 5),
-  GPU_BARRIER_VERTEX_ATTRIB_ARRAY = (1 << 6),
-  GPU_BARRIER_ELEMENT_ARRAY = (1 << 7),
-  GPU_BARRIER_UNIFORM = (1 << 8),
+  /* Texture Barrier. */
+
+  /** All written texture prior to this barrier can be bound as frame-buffer attachment. */
+  GPU_BARRIER_FRAMEBUFFER = (1 << 0),
+  /** All written texture prior to this barrier can be bound as image. */
+  GPU_BARRIER_SHADER_IMAGE_ACCESS = (1 << 1),
+  /** All written texture prior to this barrier can be bound as sampler. */
+  GPU_BARRIER_TEXTURE_FETCH = (1 << 2),
+  /** All written texture prior to this barrier can be read or updated with CPU memory. */
+  GPU_BARRIER_TEXTURE_UPDATE = (1 << 3),
+  /** All written texture prior to this barrier can be read or updated with PBO. */
+  // GPU_BARRIER_PIXEL_BUFFER = (1 << 4), /* Not implemented yet. */
+
+  /* Buffer Barrier. */
+
+  /** All written buffer prior to this barrier can be bound as indirect command buffer. */
+  GPU_BARRIER_COMMAND = (1 << 10),
+  /** All written buffer prior to this barrier can be bound as SSBO. */
+  GPU_BARRIER_SHADER_STORAGE = (1 << 11),
+  /** All written buffer prior to this barrier can be bound as VBO. */
+  GPU_BARRIER_VERTEX_ATTRIB_ARRAY = (1 << 12),
+  /** All written buffer prior to this barrier can be bound as IBO. */
+  GPU_BARRIER_ELEMENT_ARRAY = (1 << 13),
+  /** All written buffer prior to this barrier can be bound as UBO. */
+  GPU_BARRIER_UNIFORM = (1 << 14),
+  /** All written buffer prior to this barrier can be read or updated with CPU memory. */
+  GPU_BARRIER_BUFFER_UPDATE = (1 << 15),
+  /** All written persistent mapped buffer prior to this barrier can be read or updated. */
+  // GPU_BARRIER_CLIENT_MAPPED_BUFFER = (1 << 15), /* Not implemented yet. */
 } eGPUBarrier;
 
 ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_UNIFORM)
@@ -197,6 +216,14 @@ void GPU_bgl_start(void);
 void GPU_bgl_end(void);
 bool GPU_bgl_get(void);
 
+/**
+ * A barrier _must_ be issued _after_ a shader arbitrary write to a buffer or a
+ * texture (i.e: using imageStore, imageAtomics, or SSBO). Otherwise, the written value may not
+ * appear updated to the next user of this resource.
+ *
+ * The type of barrier must be chosen depending on the _future_ use of the memory that was written
+ * by the shader.
+ */
 void GPU_memory_barrier(eGPUBarrier barrier);
 
 GPUFence *GPU_fence_create(void);

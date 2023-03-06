@@ -53,7 +53,7 @@ static void test_gpu_shader_compute_2d()
   GPU_compute_dispatch(shader, SIZE, SIZE, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   float *data = static_cast<float *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
   EXPECT_NE(data, nullptr);
   for (int index = 0; index < SIZE * SIZE; index++) {
@@ -99,7 +99,7 @@ static void test_gpu_shader_compute_1d()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   /* Create texture to load back result. */
   float *data = static_cast<float *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
@@ -148,7 +148,7 @@ static void test_gpu_shader_compute_vbo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the vertex buffer. */
   float data[SIZE * 4];
@@ -192,7 +192,7 @@ static void test_gpu_shader_compute_ibo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the index buffer. */
   uint32_t data[SIZE];
@@ -234,7 +234,7 @@ static void test_gpu_shader_compute_ssbo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the index buffer. */
   uint32_t data[SIZE];
@@ -288,7 +288,7 @@ static void test_gpu_texture_read()
   GPU_texture_clear(rgba16u, GPU_DATA_UINT, ucol);
   GPU_texture_clear(rgba32f, GPU_DATA_FLOAT, fcol);
 
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   uint4 *rgba32u_data = (uint4 *)GPU_texture_read(rgba32u, GPU_DATA_UINT, 0);
   uint4 *rgba16u_data = (uint4 *)GPU_texture_read(rgba16u, GPU_DATA_UINT, 0);

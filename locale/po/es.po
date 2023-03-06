@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -5594,10 +5594,6 @@ msgstr "Grosor exterior de caras"
 
 msgid "Enabled"
 msgstr "Habilitado"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Habilitar este objeto como colisionador para los sistemas de dinámicas"
 
 
 msgid "Single Sided"
@@ -16315,10 +16311,6 @@ msgid "Texture Mapping"
 msgstr "Mapeo de textura"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Permite cambiar los valores de UV de la textura del trazo"
-
-
 msgid "Time Offset"
 msgstr "Desplazar tiempo"
 
@@ -17763,10 +17755,6 @@ msgstr "Factor de grosor"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Cantidad de ruido a aplicar al grosor"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Cantidad de ruido a aplicar a la rotación UV"
 
 
 msgid "Noise Offset"
@@ -38488,10 +38476,6 @@ msgstr "Escala vertical (sólo usado para proyecciones de cámara)"
 
 msgid "UVWarp Modifier"
 msgstr "Modificador Deformar UV"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Agregar posición objetivo a las coordenadas UV"
 
 
 msgid "U-Axis"
@@ -64759,10 +64743,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Enganchar los vértices seleccionados al primer objeto seleccionado"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Asignar el gancho al hueso activo de los objetos del gancho"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Asignar a gancho"
@@ -67617,14 +67597,6 @@ msgid "Library Operation"
 msgstr "Operación de biblioteca"
 
 
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"Borrar esta biblioteca y todos sus elementos.\n"
-"Advertencia: No se podrá deshacer"
-
-
 msgid "Relocate"
 msgstr "Reubicar"
 
@@ -68041,10 +68013,6 @@ msgstr "Intenta seleccionar un asa antes de la transformación"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Agregar UV simples"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Permite agregar coordenadas UV cúbicas a la malla"
 
 
 msgctxt "Operator"
@@ -75497,10 +75465,6 @@ msgid "Align Rotation"
 msgstr "Alinear rotación"
 
 
-msgid "Align uv island's rotation"
-msgstr "Alinea la rotación de la isla UV"
-
-
 msgid "Axis to align to"
 msgstr "Eje al cual alinear"
 
@@ -75905,10 +75869,6 @@ msgstr "Mapea las UV a la región de la cámara, tomando en cuenta la resolució
 
 msgid "Use orthographic projection"
 msgstr "Usa una proyección ortogonal"
-
-
-msgid "Randomize uv island's location, rotation, and scale"
-msgstr "Aleatoriza la posición, rotación y escala de la isla UV"
 
 
 msgid "Maximum rotation"
@@ -95604,10 +95564,6 @@ msgstr "Muestra las caras coloreadas de acuerdo a la diferencia entre su forma U
 
 msgid "Display Texture Paint UVs"
 msgstr "Mostrar UV al pintar texturas"
-
-
-msgid "Display overlay of texture paint uv layer"
-msgstr "Sobreimprimir la capa UV, al pintar texturas"
 
 
 msgid "Tile Grid Shape"
@@ -121229,10 +121185,6 @@ msgid "Driver not found in this animation data"
 msgstr "No se encontró un controlador en estos datos de animación"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de información de conjunto de clave: '%s' es demasiado largo, la longitud máxima es %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "La pista de ANL '%s' no puede ser removida"
 
@@ -121860,10 +121812,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "No es posible mover los conectores de un nodo interno"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de árbol de nodos: '%s' es demasiado largo, la longitud máxima es %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Árbol de nodos '%s' contiene el tipo %s no definido"
 
@@ -121890,10 +121838,6 @@ msgstr "No es posible localizar el nodo '%s' en el árbol de nodos"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "No es posible localizar el conector '%s' en el nodo"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de nodo: '%s' es demasiado largo, la longitud máxima es %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -122077,10 +122021,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "¡Identificador %d inválido para los segmentos del hueso flexible '%s'!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de motor de procesamiento: '%s' es muy extenso, longitud máxima %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Se proporcionó una forma de colisión no convexa a la función, usar sólo formas de colisión convexas"
 
@@ -122197,30 +122137,6 @@ msgid "Region not found in space type"
 msgstr "Región no encontrada en el tipo de espacio"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de panel: '%s' es demasiado largo, la longitud máxima es %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Registrando clase de panel: '%s' tiene categoría '%s' "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Registrando clase de panel: superior '%s' de '%s' no encontrado"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de lista de iu: '%s' es demasiado largo, la longitud máxima es %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de encabezado: '%s' es demasiado largo, la longitud máxima es %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de menú: '%s' es demasiado largo, la longitud máxima es %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "El complemento ya no es válido"
 
@@ -122229,16 +122145,8 @@ msgid "Excluded path is no longer valid"
 msgstr "La trayectoria excluida ya no es válida"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de opciones de complemento: '%s' es demasiado largo, la longitud máxima es %d"
-
-
 msgid "Font not packed"
 msgstr "Fuentes no empacadas"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de configuración teclado: '%s' es demasiado largo, la longitud máxima es %d"
 
 
 msgid "Not a non-modal keymap"
@@ -122301,24 +122209,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "La configuración de teclado '%s' no puede ser removida"
 
 
-msgid "Area type does not support gizmos"
-msgstr "El tipo de área no soporta manipuladores"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Al registrar la clase de manipulador: '%s' es demasiado largo, la longitud máxima es %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Tipo de manipulador '%s' desconocido"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "El tipo de manipulador '%s' es para un grupo de manipuladores 3D. La función de rellamada 'draw_select' se definirá únicamente donde 'test_select' vaya a ser usada"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Al registrar la clase del grupo de manipulador: '%s' es demasiado largo, la longitud máxima es %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"

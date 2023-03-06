@@ -181,10 +181,10 @@ static void get_cols(const CDStreamConfig &config,
   Imath::C4f col;
 
   for (int i = 0; i < config.totpoly; i++) {
-    const MPoly *poly = &polys[i];
-    const MCol *cface = &cfaces[poly->loopstart + poly->totloop];
+    const MPoly &poly = polys[i];
+    const MCol *cface = &cfaces[poly.loopstart + poly.totloop];
 
-    for (int j = 0; j < poly->totloop; j++) {
+    for (int j = 0; j < poly.totloop; j++) {
       cface--;
 
       col[0] = cface->a * cscale;
@@ -411,7 +411,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
   void *cd_data = config.add_customdata_cb(
       config.mesh, prop_header.getName().c_str(), CD_PROP_BYTE_COLOR);
   MCol *cfaces = static_cast<MCol *>(cd_data);
-  MPoly *polys = config.polys;
+  const MPoly *polys = config.polys;
   MLoop *mloops = config.mloop;
 
   size_t face_index = 0;
@@ -425,11 +425,11 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
   bool use_dual_indexing = is_facevarying && indices->size() > 0;
 
   for (int i = 0; i < config.totpoly; i++) {
-    MPoly *poly = &polys[i];
-    MCol *cface = &cfaces[poly->loopstart + poly->totloop];
-    MLoop *mloop = &mloops[poly->loopstart + poly->totloop];
+    const MPoly &poly = polys[i];
+    MCol *cface = &cfaces[poly.loopstart + poly.totloop];
+    MLoop *mloop = &mloops[poly.loopstart + poly.totloop];
 
-    for (int j = 0; j < poly->totloop; j++, face_index++) {
+    for (int j = 0; j < poly.totloop; j++, face_index++) {
       cface--;
       mloop--;
 

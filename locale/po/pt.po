@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -3703,10 +3703,6 @@ msgstr "Espessura da face externa."
 
 msgid "Enabled"
 msgstr "Ativado"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Ativa estes objetos como colisores para os sistemas de física."
 
 
 msgid "Kill Particles"
@@ -23951,10 +23947,6 @@ msgid "UVWarp Modifier"
 msgstr "Modificador - Conformar UV"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "Adiciona uma posição alvo para as coordenadas UV."
-
-
 msgid "U-Axis"
 msgstr "Eixo U"
 
@@ -39177,10 +39169,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Engancha os vértices selecionados para o primeiro objeto selecionado."
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Atribui o gancho para o osso ativo de gancho do objeto."
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Atribuir a um gancho"
@@ -40963,10 +40951,6 @@ msgstr "Alinha a haste do manipulo do ponto oposto durante a transformação."
 
 msgid "Attempt to select a point handle before transform"
 msgstr "Tenta selecionar um ponto de haste de manipulo antes da transformação."
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Adicionar UVs de mapeamento cúbico na malha."
 
 
 msgctxt "Operator"
@@ -66817,10 +66801,6 @@ msgid "No valid driver data to create copy of"
 msgstr "O controlador não possui dados válidos a partir dos quais poderiam ser criadas cópias."
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Registrando informação de classe de conjunto de inserção de chaves: '%s' é muito longo, comprimento máximo é %d."
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Trilha de animação não linear: '%s' não pode ser removido."
 
@@ -67082,10 +67062,6 @@ msgid "Unable to create socket"
 msgstr "Não é possível de criar conector"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Registrando classe de árvore de nós: '%s' é muito grande, comprimento máximo é %d."
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Árvore de nós '%s' possui tipo indefinido %s."
 
@@ -67104,10 +67080,6 @@ msgstr "Não é ṕossível localizar o nó '%s' na árvore de nós."
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Não é possível localizar conector '%s' no nó."
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Registrando classe de nó: '%s' é muito grande, comprimento máximo é %d."
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -67197,10 +67169,6 @@ msgstr "O grupo de ossos '%s' não foi encontrado nesse objeto."
 
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Restrição '%s' não encontrada dentro do osso de pose '%s'"
-
-
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Registrando classe de motor de renderização: '%s' é muito longo, comprimento máximo é %d."
 
 
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
@@ -67295,32 +67263,12 @@ msgid "Region not found in space type"
 msgstr "Região não encontrada dentro do tipo de espaço."
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Erro ao registar a classe do painel '%s'. O nome ou bloco é muito grande. O comprimento máximo é %d."
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Erro ao registar a classe da lista de interface de utilizador '%s'. O nome ou bloco é muito grande. O comprimento máximo é %d."
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Erro ao registar a classe de cabeçalho '%s'. O nome ou bloco é muito grande. O comprimento máximo é %d."
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Erro ao registar a classe de menu '%s'. O nome ou bloco é muito grande. O comprimento máximo é %d."
-
-
 msgid "Add-on is no longer valid"
 msgstr "O complemento não é mais válido."
 
 
 msgid "Excluded path is no longer valid"
 msgstr "O caminho excluído não é mais válido."
-
-
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Erro ao registar a classe de preferências do complemento '%s'. O nome ou bloco é muito grande. O comprimento máximo é %d."
 
 
 msgid "Font not packed"

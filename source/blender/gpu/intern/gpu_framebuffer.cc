@@ -311,7 +311,9 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
   return unwrap(gpu_fb)->check(err_out);
 }
 
-void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot)
+static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb,
+                                              GPUAttachment attachment,
+                                              int slot)
 {
   Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
   GPUAttachmentType type = tex->attachment_type(slot);
@@ -321,21 +323,21 @@ void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment att
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_layer_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
@@ -406,6 +408,42 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            uint clear_stencil)
 {
   unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
+}
+
+void GPU_framebuffer_clear_color(GPUFrameBuffer *fb, const float clear_col[4])
+{
+  GPU_framebuffer_clear(fb, GPU_COLOR_BIT, clear_col, 0.0f, 0x00);
+}
+
+void GPU_framebuffer_clear_depth(GPUFrameBuffer *fb, float clear_depth)
+{
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, NULL, clear_depth, 0x00);
+}
+
+void GPU_framebuffer_clear_color_depth(GPUFrameBuffer *fb,
+                                       const float clear_col[4],
+                                       float clear_depth)
+{
+  GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT, clear_col, clear_depth, 0x00);
+}
+
+void GPU_framebuffer_clear_stencil(GPUFrameBuffer *fb, uint clear_stencil)
+{
+  GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, NULL, 0.0f, clear_stencil);
+}
+
+void GPU_framebuffer_clear_depth_stencil(GPUFrameBuffer *fb, float clear_depth, uint clear_stencil)
+{
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, NULL, clear_depth, clear_stencil);
+}
+
+void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,
+                                               const float clear_col[4],
+                                               float clear_depth,
+                                               uint clear_stencil)
+{
+  GPU_framebuffer_clear(
+      fb, GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_col, clear_depth, clear_stencil);
 }
 
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])

@@ -377,8 +377,6 @@ ccl_device int bsdf_microfacet_multi_ggx_common_setup(ccl_private MicrofacetBsdf
 {
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
-  bsdf->extra->color = saturate(bsdf->extra->color);
-  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
@@ -388,6 +386,10 @@ ccl_device int bsdf_microfacet_multi_ggx_setup(ccl_private MicrofacetBsdf *bsdf)
   if (is_zero(bsdf->T))
     bsdf->T = make_float3(1.0f, 0.0f, 0.0f);
 
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+  fresnel->color = saturate(fresnel->color);
+
+  bsdf->fresnel_type = MicrofacetFresnel::CONSTANT;
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;
 
   return bsdf_microfacet_multi_ggx_common_setup(bsdf);
@@ -399,7 +401,12 @@ ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(ccl_private MicrofacetBsd
   if (is_zero(bsdf->T))
     bsdf->T = make_float3(1.0f, 0.0f, 0.0f);
 
-  bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID;
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+  fresnel->color = saturate(fresnel->color);
+  fresnel->cspec0 = saturate(fresnel->cspec0);
+
+  bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
+  bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;
 
   bsdf_microfacet_adjust_weight(sd, bsdf);
 
@@ -410,6 +417,10 @@ ccl_device int bsdf_microfacet_multi_ggx_refraction_setup(ccl_private Microfacet
 {
   bsdf->alpha_y = bsdf->alpha_x;
 
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+  fresnel->color = saturate(fresnel->color);
+
+  bsdf->fresnel_type = MicrofacetFresnel::CONSTANT;
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;
 
   return bsdf_microfacet_multi_ggx_common_setup(bsdf);
@@ -439,7 +450,21 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosu
     return zero_spectrum();
   }
 
-  bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID);
+  Spectrum color, cspec0;
+  bool use_fresnel;
+  if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
+    ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+    use_fresnel = true;
+    color = fresnel->color;
+    cspec0 = fresnel->cspec0;
+  }
+  else {
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::CONSTANT);
+    ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+    use_fresnel = false;
+    color = fresnel->color;
+    cspec0 = zero_spectrum();
+  }
 
   bool is_aniso = (bsdf->alpha_x != bsdf->alpha_y);
   if (is_aniso)
@@ -463,13 +488,13 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosu
   return mf_eval_glossy(local_I,
                         local_O,
                         true,
-                        bsdf->extra->color,
+                        color,
                         bsdf->alpha_x,
                         bsdf->alpha_y,
                         lcg_state,
                         bsdf->ior,
                         use_fresnel,
-                        bsdf->extra->cspec0);
+                        cspec0);
 }
 
 ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
@@ -509,7 +534,21 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
     return LABEL_REFLECT | LABEL_SINGULAR;
   }
 
-  bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID);
+  Spectrum color, cspec0;
+  bool use_fresnel;
+  if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
+    ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+    use_fresnel = true;
+    color = fresnel->color;
+    cspec0 = fresnel->cspec0;
+  }
+  else {
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::CONSTANT);
+    ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+    use_fresnel = false;
+    color = fresnel->color;
+    cspec0 = zero_spectrum();
+  }
 
   *eta = bsdf->ior;
   *sampled_roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
@@ -525,13 +564,13 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
 
   *eval = mf_sample_glossy(local_I,
                            &local_O,
-                           bsdf->extra->color,
+                           color,
                            bsdf->alpha_x,
                            bsdf->alpha_y,
                            lcg_state,
                            bsdf->ior,
                            use_fresnel,
-                           bsdf->extra->cspec0);
+                           cspec0);
   *wo = X * local_O.x + Y * local_O.y + Z * local_O.z;
 
   /* Ensure that the light direction is on the outside w.r.t. the geometry normal. */
@@ -557,8 +596,11 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_setup(ccl_private MicrofacetBsdf 
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = max(0.0f, bsdf->ior);
-  bsdf->extra->color = saturate(bsdf->extra->color);
 
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+  fresnel->color = saturate(fresnel->color);
+
+  bsdf->fresnel_type = MicrofacetFresnel::CONSTANT;
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION;
@@ -570,10 +612,13 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private Microfa
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = max(0.0f, bsdf->ior);
-  bsdf->extra->color = saturate(bsdf->extra->color);
-  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
 
-  bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID;
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+  fresnel->color = saturate(fresnel->color);
+  fresnel->cspec0 = saturate(fresnel->cspec0);
+
+  bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
+  bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 
   bsdf_microfacet_adjust_weight(sd, bsdf);
 
@@ -601,21 +646,35 @@ ccl_device Spectrum bsdf_microfacet_multi_ggx_glass_eval(ccl_private const Shade
   float3 local_O = make_float3(dot(wo, X), dot(wo, Y), dot(wo, Z));
 
   const bool is_transmission = local_O.z < 0.0f;
-  const bool use_fresnel = !is_transmission &&
-                           (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID);
+
+  Spectrum color, cspec0;
+  bool use_fresnel;
+  if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
+    ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+    use_fresnel = true;
+    color = fresnel->color;
+    cspec0 = is_transmission ? fresnel->color : fresnel->cspec0;
+  }
+  else {
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::CONSTANT);
+    ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+    use_fresnel = false;
+    color = fresnel->color;
+    cspec0 = zero_spectrum();
+  }
 
   *pdf = mf_glass_pdf(local_I, local_O, bsdf->alpha_x, bsdf->ior);
   kernel_assert(*pdf >= 0.f);
   return mf_eval_glass(local_I,
                        local_O,
                        !is_transmission,
-                       bsdf->extra->color,
+                       color,
                        bsdf->alpha_x,
                        bsdf->alpha_y,
                        lcg_state,
                        bsdf->ior,
-                       use_fresnel,
-                       (is_transmission) ? bsdf->extra->color : bsdf->extra->cspec0);
+                       !is_transmission && use_fresnel,
+                       cspec0);
 }
 
 ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
@@ -640,14 +699,14 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
   *sampled_roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
-    float3 R, T;
+    float3 T;
     bool inside;
-    float fresnel = fresnel_dielectric(bsdf->ior, Z, wi, &R, &T, &inside);
+    float fresnel = fresnel_dielectric(bsdf->ior, Z, wi, &T, &inside);
 
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
     if (randu < fresnel) {
-      *wo = R;
+      *wo = 2 * dot(Z, wi) * Z - wi;
       return LABEL_REFLECT | LABEL_SINGULAR;
     }
     else {
@@ -656,7 +715,21 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
     }
   }
 
-  bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID);
+  Spectrum color, cspec0;
+  bool use_fresnel;
+  if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
+    ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+    use_fresnel = true;
+    color = fresnel->color;
+    cspec0 = fresnel->cspec0;
+  }
+  else {
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::CONSTANT);
+    ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+    use_fresnel = false;
+    color = fresnel->color;
+    cspec0 = zero_spectrum();
+  }
 
   make_orthonormals(Z, &X, &Y);
 
@@ -665,13 +738,13 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
 
   *eval = mf_sample_glass(local_I,
                           &local_O,
-                          bsdf->extra->color,
+                          color,
                           bsdf->alpha_x,
                           bsdf->alpha_y,
                           lcg_state,
                           bsdf->ior,
                           use_fresnel,
-                          bsdf->extra->cspec0);
+                          cspec0);
   *pdf = mf_glass_pdf(local_I, local_O, bsdf->alpha_x, bsdf->ior);
   kernel_assert(*pdf >= 0.f);
   *eval *= *pdf;

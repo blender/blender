@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -2536,10 +2536,6 @@ msgstr "Grubość jaką ma ściana na 'zewnątrz'"
 
 msgid "Enabled"
 msgstr "Włączony"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Włącz kolizje dla tego obiektu w systemach fizycznych"
 
 
 msgid "Kill Particles"
@@ -10476,10 +10472,6 @@ msgid "No valid driver data to create copy of"
 msgstr "Brak prawidłowych danych sterownika do utworzenia kopii"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja keying set info class: '%s' jest za długie, maksymalna długość: %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Nla Track '%s5 nie możliwy do usunięcia"
 
@@ -10733,10 +10725,6 @@ msgid "Unable to create socket"
 msgstr "Utworzenie złącza niemożliwe"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja node tree class: '%s' jest za długie, maksymalna długość: %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Drzewo nodów (node tree) '%s' posiada niezdefiniowany typ %s"
 
@@ -10755,10 +10743,6 @@ msgstr "Nie znaleziono noda '%s' w drzewie nodów (node tree)"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Nie znaleziono złącza '%s' w nodzie"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja node class: '%s' jest za długie, maksymalna długość: %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -10836,10 +10820,6 @@ msgstr "Nie odnaleziono grupy kości '%s' w tym obiekcie"
 
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Nie odnaleziono ogranicznika '%s' w kości pozy (pose bone) '%s'"
-
-
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja render engine class: '%s' jest za długie, maksymalna długość: %d"
 
 
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
@@ -10928,22 +10908,6 @@ msgstr "MovieTracking '%s' nie może zostać usunięte"
 
 msgid "Region not found in space type"
 msgstr "Nie odnaleziono regionu w typie przestrzeni"
-
-
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja panel class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja uilist class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja header class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja menu class: '%s' jest za długie, maksymalna długość: %d"
 
 
 msgid "Excluded path is no longer valid"

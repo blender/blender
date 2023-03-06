@@ -773,13 +773,13 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
    */
   for (int fi : im->face_index_range()) {
     const Face *f = im->face(fi);
-    const MPoly *poly = &dst_polys[fi];
+    const MPoly &poly = dst_polys[fi];
     for (int j : f->index_range()) {
       if (f->edge_orig[j] != NO_INDEX) {
         const Mesh *orig_me;
         int index_in_orig_me;
         mim.input_medge_for_orig_index(f->edge_orig[j], &orig_me, &index_in_orig_me);
-        int e_index = dst_loops[poly->loopstart + j].e;
+        int e_index = dst_loops[poly.loopstart + j].e;
         copy_edge_attributes(result, orig_me, e_index, index_in_orig_me);
       }
     }

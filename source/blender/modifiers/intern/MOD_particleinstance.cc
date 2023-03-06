@@ -477,19 +477,19 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* create polys and loops */
     for (k = 0; k < totpoly; k++) {
 
-      const MPoly *inMP = &orig_polys[k];
-      MPoly *poly = &polys[p_skip * totpoly + k];
+      const MPoly &in_poly = orig_polys[k];
+      MPoly &poly = polys[p_skip * totpoly + k];
 
       CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * totpoly + k, 1);
-      *poly = *inMP;
-      poly->loopstart += p_skip * totloop;
+      poly = in_poly;
+      poly.loopstart += p_skip * totloop;
 
       {
-        const MLoop *inML = &orig_loops[inMP->loopstart];
-        MLoop *ml = &loops[poly->loopstart];
-        int j = poly->totloop;
+        const MLoop *inML = &orig_loops[in_poly.loopstart];
+        MLoop *ml = &loops[poly.loopstart];
+        int j = poly.totloop;
 
-        CustomData_copy_data(&mesh->ldata, &result->ldata, inMP->loopstart, poly->loopstart, j);
+        CustomData_copy_data(&mesh->ldata, &result->ldata, in_poly.loopstart, poly.loopstart, j);
         for (; j; j--, ml++, inML++) {
           ml->v = inML->v + (p_skip * totvert);
           ml->e = inML->e + (p_skip * totedge);

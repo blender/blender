@@ -348,7 +348,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     return LABEL_NONE;
   }
 
-  float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
+  float3 rand_bsdf = path_state_rng_3D(kg, rng_state, PRNG_SURFACE_BSDF);
   ccl_private const ShaderClosure *sc = surface_shader_bsdf_bssrdf_pick(sd, &rand_bsdf);
 
 #ifdef __SUBSURFACE__
@@ -393,6 +393,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     label = surface_shader_bsdf_sample_closure(kg,
                                                sd,
                                                sc,
+                                               INTEGRATOR_STATE(state, path, flag),
                                                rand_bsdf,
                                                &bsdf_eval,
                                                &bsdf_wo,
