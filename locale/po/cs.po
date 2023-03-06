@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -3524,10 +3524,6 @@ msgstr "Tloušťka vnější plochy"
 
 msgid "Enabled"
 msgstr "Povoleno"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Povolit tyto objekty jako collider pro fyzické systémy"
 
 
 msgid "Single Sided"
@@ -8019,10 +8015,6 @@ msgstr "Režim úprav"
 
 msgid "Texture Mapping"
 msgstr "Mapování textur"
-
-
-msgid "Change stroke uv texture values"
-msgstr "Změna hodnot uv textury tahu"
 
 
 msgid "Time Offset"
@@ -16215,10 +16207,6 @@ msgstr "Původni pozice"
 
 msgid "UVWarp Modifier"
 msgstr "Kopírovat modifikátor"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Zobrazit normalizované souřadnice"
 
 
 msgid "U-Axis"

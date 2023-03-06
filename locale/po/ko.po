@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'c5bbc5db6faa')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:19:45\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -4469,10 +4469,6 @@ msgstr "바깥 페이스 두께"
 
 msgid "Enabled"
 msgstr "활성화됨"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "이 오브젝트를 피직스 시스템의 충돌체로 사용"
 
 
 msgid "Single Sided"
@@ -30525,10 +30521,6 @@ msgid "UVWarp Modifier"
 msgstr "UV 왜곡 모디파이어"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "UV 좌표에 대상 위치를 추가"
-
-
 msgid "U-Axis"
 msgstr "U 축"
 
@@ -49185,10 +49177,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "첫 번째 선택된 오브젝트에 선택된 버택스를 후크"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "활성 본을 후크 오브젝트하는 후크를 할당"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "후크로 할당"
@@ -51672,10 +51660,6 @@ msgstr "변환 이전에 포인트 핸들을 선택하는 시도"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "심플 UV를 추가"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "메쉬에 큐브 맵 UV를 추가"
 
 
 msgctxt "Operator"
@@ -72384,10 +72368,6 @@ msgid "Display Texture Paint UVs"
 msgstr "텍스처 페인트 UV를 표시"
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "택스처 페인트 UV 레이어의 오버레이를 표시"
-
-
 msgid "Tile Grid Shape"
 msgstr "타일 그리드 셰이프"
 
@@ -88044,10 +88024,6 @@ msgid "Driver not found in this animation data"
 msgstr "이 애니메이션 데이터에서 드라이버를 찾을 수 없습니다"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 키잉 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "NLA트랙 '%s'을 제거 할 수 없습니다"
 
@@ -88389,10 +88365,6 @@ msgid "Unable to create socket"
 msgstr "소켓을 만들 수 없음"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 노드 트리 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "노드 트리 '%s'의 유형이 %s입니다"
 
@@ -88411,10 +88383,6 @@ msgstr "노드 트리에서 노드 '%s' 찾을 수 없음"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "노드에서 소켓 '%s' 찾을 수 없음"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 노드 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -88550,10 +88518,6 @@ msgid "Bone '%s' has out of date B-Bone segment data!"
 msgstr "Bone '%s'은 오래된 B-본 세그먼트 데이터를 가지고 있습니다!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 렌더 엔진 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "비 볼록 충돌 셰이프가 함수에 전달되고 볼록 충돌 셰이프 만 사용됩니다"
 
@@ -88646,30 +88610,6 @@ msgid "Region not found in space type"
 msgstr "공간 유형에서 지역을 찾을 수 없습니다"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "패널 클래스 등록 중: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "패널 클래스 등록 중: '%s'은 (는) '%s'카테고리를 가지고 있습니다 "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "패널 클래스 등록 중: 부모 '%s'을 찾을 수 없습니다. '%s'에 대한"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 UI 목록 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 헤더 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 메뉴 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "애드온이 더 이상 유효하지 않음"
 
@@ -88678,16 +88618,8 @@ msgid "Excluded path is no longer valid"
 msgstr "제외된 경로는 더 이상 유효하지 않음"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "애드온 환경 설정 클래스 등록 중: '%s'는 너무 길고, 최대 길이는 %d입니다"
-
-
 msgid "Font not packed"
 msgstr "폰트가 포장되지 않음"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "키-구성 환경 설정 클래스를 등록중: '%s'는 너무 길고, 최대 길이는 %d"
 
 
 msgid "Not a non-modal keymap"
@@ -88730,20 +88662,8 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "키 설정 '%s'을 제거 할 수 없습니다"
 
 
-msgid "Area type does not support gizmos"
-msgstr "영역 유형은 기즈모를 지원하지 않습니다"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "기즈모 클래스를 등록중: '%s'은 너무 길고, 최대 길이는 %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "기지모 유형 '%s' 알 수 없음"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "기즈모 그룹 클래스를 등록중: '%s'이 너무 길고. 최대 길이는 %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"
