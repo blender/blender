@@ -144,29 +144,6 @@ static bool wm_ply_export_check(bContext *UNUSED(C), wmOperator *op)
   return changed;
 }
 
-/* Both forward and up axes cannot be along the same direction. */
-static void forward_axis_update(struct Main *UNUSED(main),
-                                struct Scene *UNUSED(scene),
-                                struct PointerRNA *ptr)
-{
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
-  if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
-  }
-}
-
-static void up_axis_update(struct Main *UNUSED(main),
-                           struct Scene *UNUSED(scene),
-                           struct PointerRNA *ptr)
-{
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
-  if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
-  }
-}
-
 void WM_OT_ply_export(struct wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -193,9 +170,9 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
 
   /* Object transform options. */
   prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
   RNA_def_float(
       ot->srna,
       "global_scale",
@@ -295,18 +272,6 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool wm_ply_import_check(bContext *UNUSED(C), wmOperator *op)
-{
-  const int num_axes = 3;
-  /* Both forward and up axes cannot be the same (or same except opposite sign). */
-  if (RNA_enum_get(op->ptr, "forward_axis") % num_axes ==
-      (RNA_enum_get(op->ptr, "up_axis") % num_axes)) {
-    RNA_enum_set(op->ptr, "up_axis", RNA_enum_get(op->ptr, "up_axis") % num_axes + 1);
-    return true;
-  }
-  return false;
-}
-
 void WM_OT_ply_import(struct wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -318,7 +283,6 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
   ot->invoke = wm_ply_import_invoke;
   ot->exec = wm_ply_import_execute;
   ot->poll = WM_operator_winactive;
-  ot->check = wm_ply_import_check;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
@@ -336,8 +300,10 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   false,
                   "Scene Unit",
                   "Apply current scene's unit (as defined by unit scale) to imported data");
-  RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
-  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
   RNA_def_boolean(ot->srna, "merge_verts", false, "Merge Vertices", "Merges vertices by distance");
   RNA_def_enum(ot->srna,
                "import_colors",
