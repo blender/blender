@@ -233,7 +233,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
 
   tiles_tx_.acquire(tiles_extent, GPU_RGBA16F);
 
-  GPU_storagebuf_clear_to_zero(tile_indirection_buf_);
+  tile_indirection_buf_.clear_to_zero();
 
   inst_.manager->submit(motion_blur_ps_, view);
 
