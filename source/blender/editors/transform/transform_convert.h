@@ -280,7 +280,6 @@ extern TransConvertTypeInfo TransConvertType_Tracking;
 
 extern TransConvertTypeInfo TransConvertType_TrackingCurves;
 
-
 #ifdef __cplusplus
 }
 #endif
