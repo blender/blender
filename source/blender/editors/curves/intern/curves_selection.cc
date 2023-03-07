@@ -167,7 +167,7 @@ bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
   const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
-  return !selection || contains(selection, curves.curves_range(), true);
+  return !selection || contains(selection, selection.index_range(), true);
 }
 
 bool has_anything_selected(const GSpan selection)
@@ -321,9 +321,9 @@ void select_random(bke::CurvesGeometry &curves,
   selection.finish();
 }
 
-static void apply_selection_operation_at_index(GMutableSpan selection,
-                                               const int index,
-                                               const eSelectOp sel_op)
+void apply_selection_operation_at_index(GMutableSpan selection,
+                                        const int index,
+                                        const eSelectOp sel_op)
 {
   if (selection.type().is<bool>()) {
     MutableSpan<bool> selection_typed = selection.typed<bool>();
@@ -361,14 +361,15 @@ static void apply_selection_operation_at_index(GMutableSpan selection,
   }
 }
 
-static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
-                                            const ARegion *region,
-                                            const RegionView3D *rv3d,
-                                            const Object &object,
-                                            const bke::CurvesGeometry &curves,
-                                            float2 mouse_pos,
-                                            float radius,
-                                            FindClosestData &closest_data)
+static std::optional<FindClosestData> find_closest_point_to_screen_co(
+    const Depsgraph &depsgraph,
+    const ARegion *region,
+    const RegionView3D *rv3d,
+    const Object &object,
+    const bke::CurvesGeometry &curves,
+    float2 mouse_pos,
+    float radius,
+    const FindClosestData &initial_closest)
 {
   float4x4 projection;
   ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
@@ -377,10 +378,10 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
       bke::crazyspace::get_evaluated_curves_deformation(depsgraph, object);
 
   const float radius_sq = pow2f(radius);
-  closest_data = threading::parallel_reduce(
+  const FindClosestData new_closest_data = threading::parallel_reduce(
       curves.points_range(),
       1024,
-      closest_data,
+      initial_closest,
       [&](const IndexRange point_range, const FindClosestData &init) {
         FindClosestData best_match = init;
         for (const int point_i : point_range) {
@@ -411,21 +412,23 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
         }
         return b;
       });
-  if (closest_data.index >= 0) {
-    return true;
+
+  if (new_closest_data.distance < initial_closest.distance) {
+    return new_closest_data;
   }
 
-  return false;
+  return {};
 }
 
-static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
-                                            const ARegion *region,
-                                            const RegionView3D *rv3d,
-                                            const Object &object,
-                                            const bke::CurvesGeometry &curves,
-                                            float2 mouse_pos,
-                                            float radius,
-                                            FindClosestData &closest_data)
+static std::optional<FindClosestData> find_closest_curve_to_screen_co(
+    const Depsgraph &depsgraph,
+    const ARegion *region,
+    const RegionView3D *rv3d,
+    const Object &object,
+    const bke::CurvesGeometry &curves,
+    float2 mouse_pos,
+    float radius,
+    const FindClosestData &initial_closest)
 {
   float4x4 projection;
   ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
@@ -436,10 +439,10 @@ static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
   const float radius_sq = pow2f(radius);
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  closest_data = threading::parallel_reduce(
+  const FindClosestData new_closest_data = threading::parallel_reduce(
       curves.curves_range(),
       256,
-      closest_data,
+      initial_closest,
       [&](const IndexRange curves_range, const FindClosestData &init) {
         FindClosestData best_match = init;
         for (const int curve_i : curves_range) {
@@ -499,64 +502,44 @@ static bool find_closest_curve_to_screen_co(const Depsgraph &depsgraph,
         return b;
       });
 
-  if (closest_data.index >= 0) {
-    return true;
+  if (new_closest_data.distance < initial_closest.distance) {
+    return new_closest_data;
   }
 
-  return false;
+  return {};
 }
 
-bool select_pick(const ViewContext &vc,
-                 const Object &object,
-                 bke::CurvesGeometry &curves,
-                 const eAttrDomain selection_domain,
-                 const SelectPick_Params &params,
-                 const int2 coord,
-                 FindClosestData initial)
+std::optional<FindClosestData> closest_elem_find_screen_space(
+    const ViewContext &vc,
+    const Object &object,
+    bke::CurvesGeometry &curves,
+    const eAttrDomain domain,
+    const int2 coord,
+    const FindClosestData &initial_closest)
 {
-  FindClosestData closest = initial;
-
-  bool found = false;
-  if (selection_domain == ATTR_DOMAIN_POINT) {
-    found = find_closest_point_to_screen_co(*vc.depsgraph,
-                                            vc.region,
-                                            vc.rv3d,
-                                            object,
-                                            curves,
-                                            float2(coord),
-                                            ED_view3d_select_dist_px(),
-                                            closest);
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return find_closest_point_to_screen_co(*vc.depsgraph,
+                                             vc.region,
+                                             vc.rv3d,
+                                             object,
+                                             curves,
+                                             float2(coord),
+                                             ED_view3d_select_dist_px(),
+                                             initial_closest);
+    case ATTR_DOMAIN_CURVE:
+      return find_closest_curve_to_screen_co(*vc.depsgraph,
+                                             vc.region,
+                                             vc.rv3d,
+                                             object,
+                                             curves,
+                                             float2(coord),
+                                             ED_view3d_select_dist_px(),
+                                             initial_closest);
+    default:
+      BLI_assert_unreachable();
+      return {};
   }
-  else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    found = find_closest_curve_to_screen_co(*vc.depsgraph,
-                                            vc.region,
-                                            vc.rv3d,
-                                            object,
-                                            curves,
-                                            float2(coord),
-                                            ED_view3d_select_dist_px(),
-                                            closest);
-  }
-
-  bool deselected = false;
-  if (params.sel_op == SEL_OP_SET) {
-    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, selection_domain, CD_PROP_BOOL);
-    if (found || ((params.deselect_all && has_anything_selected(selection.span)))) {
-      fill_selection_false(selection.span);
-      deselected = true;
-    }
-    selection.finish();
-  }
-
-  if (found) {
-    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, selection_domain, CD_PROP_BOOL);
-    apply_selection_operation_at_index(selection.span, closest.index, params.sel_op);
-    selection.finish();
-  }
-
-  return deselected || found;
 }
 
 bool select_box(const ViewContext &vc,

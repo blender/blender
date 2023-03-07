@@ -31,6 +31,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -2985,9 +2986,14 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
   return changed || found;
 }
 
+struct ClosestCurveDataBlock {
+  Curves *curves_id = nullptr;
+  blender::ed::curves::FindClosestData elem = {};
+};
+
 /**
- * Cursor selection for the Curves object.
- * 
+ * Cursor selection for all Curves objects in edit mode.
+ *
  * \returns true if the selection changed.
  */
 static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPick_Params &params)
@@ -2999,35 +3005,81 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   ED_view3d_viewcontext_init(&C, &vc, depsgraph);
 
   uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+  Base **bases_ptr = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d, &bases_len);
+  Span<Base *> bases(bases_ptr, bases_len);
 
-  bool changed = false;
-  ed::curves::FindClosestData closest_data;
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base = bases[base_index];
-    Object *curves_ob = base->object;
-    Curves &curves_id = *static_cast<Curves *>(curves_ob->data);
-    bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  Curves &active_curves_id = *static_cast<Curves *>(vc.obedit->data);
+  const eAttrDomain selection_domain = eAttrDomain(active_curves_id.selection_domain);
 
-    if (ed::curves::select_pick(vc,
-                                *curves_ob,
-                                curves,
-                                eAttrDomain(curves_id.selection_domain),
-                                params,
-                                mval,
-                                closest_data)) {
-      changed = true;
-      /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-       * generic attribute for now. */
-      DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
-    }
+  const ClosestCurveDataBlock closest = threading::parallel_reduce(
+      bases.index_range(),
+      1L,
+      ClosestCurveDataBlock(),
+      [&](const IndexRange range, const ClosestCurveDataBlock &init) {
+        ClosestCurveDataBlock new_closest = init;
+        for (Base *base : bases.slice(range)) {
+          Object &curves_ob = *base->object;
+          Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+          std::optional<ed::curves::FindClosestData> new_closest_elem =
+              ed::curves::closest_elem_find_screen_space(vc,
+                                                         curves_ob,
+                                                         curves_id.geometry.wrap(),
+                                                         selection_domain,
+                                                         mval,
+                                                         new_closest.elem);
+          if (new_closest_elem) {
+            new_closest.elem = *new_closest_elem;
+            new_closest.curves_id = &curves_id;
+          }
+        }
+        return new_closest;
+      },
+      [](const ClosestCurveDataBlock &a, const ClosestCurveDataBlock &b) {
+        return (a.elem.distance < b.elem.distance) ? a : b;
+      });
+
+  std::atomic<bool> deselected = false;
+  if (params.deselect_all || params.sel_op == SEL_OP_SET) {
+    threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
+      for (Base *base : bases.slice(range)) {
+        Curves &curves_id = *static_cast<Curves *>(base->object->data);
+        bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+        if (ed::curves::has_anything_selected(curves)) {
+          bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+              curves, selection_domain, CD_PROP_BOOL);
+          ed::curves::fill_selection_false(selection.span);
+          selection.finish();
+
+          deselected = true;
+          /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+           * generic attribute for now. */
+          DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+          WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
+        }
+      }
+    });
   }
 
-  MEM_freeN(bases);
+  if (!closest.curves_id) {
+    MEM_freeN(bases_ptr);
+    return deselected;
+  }
 
-  return changed;
+  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+      closest.curves_id->geometry.wrap(), selection_domain, CD_PROP_BOOL);
+  ed::curves::apply_selection_operation_at_index(
+      selection.span, closest.elem.index, params.sel_op);
+  selection.finish();
+
+  /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+   * generic attribute for now. */
+  DEG_id_tag_update(&closest.curves_id->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(&C, NC_GEOM | ND_DATA, closest.curves_id);
+
+  MEM_freeN(bases_ptr);
+
+  return true;
 }
 
 static int view3d_select_exec(bContext *C, wmOperator *op)
@@ -3081,7 +3133,8 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && enumerate) {
     /* Enumerate makes no sense in edit-mode unless also explicitly picking objects or bones.
-     * Pass the event through so the event may be handled by loop-select for e.g. see: #100204. */
+     * Pass the event through so the event may be handled by loop-select for e.g. see: #100204.
+     */
     if (obedit->type != OB_ARMATURE) {
       return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
     }
