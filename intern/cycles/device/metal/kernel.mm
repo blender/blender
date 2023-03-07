@@ -161,25 +161,12 @@ ShaderCache::~ShaderCache()
   running = false;
   cond_var.notify_all();
 
-  int num_incomplete = int(incomplete_requests);
-  if (num_incomplete) {
-    /* Shutting down the app with incomplete shader compilation requests. Give 1 second's grace for
-     * clean shutdown. */
-    metal_printf("ShaderCache busy (incomplete_requests = %d)...\n", num_incomplete);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    num_incomplete = int(incomplete_requests);
-  }
-
-  if (num_incomplete && !MetalDeviceKernels::is_benchmark_warmup()) {
-    metal_printf("ShaderCache still busy (incomplete_requests = %d). Terminating...\n",
-                 num_incomplete);
-    std::terminate();
-  }
-
-  metal_printf("ShaderCache idle. Shutting down.\n");
+  metal_printf("Waiting for ShaderCache threads... (incomplete_requests = %d)\n",
+               int(incomplete_requests));
   for (auto &thread : compile_threads) {
     thread.join();
   }
+  metal_printf("ShaderCache shut down.\n");
 }
 
 void ShaderCache::wait_for_all()
@@ -675,7 +662,9 @@ void MetalKernelPipeline::compile()
     }
   }
 
-  __block bool creating_new_archive = false;
+  bool creating_new_archive = false;
+  bool recreate_archive = false;
+
   if (@available(macOS 11.0, *)) {
     if (use_binary_archive) {
       if (!archive) {
@@ -684,51 +673,101 @@ void MetalKernelPipeline::compile()
         archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:nil];
         creating_new_archive = true;
       }
-      computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
-      pipelineOptions = MTLPipelineOptionFailOnBinaryArchiveMiss;
+      else {
+        pipelineOptions = MTLPipelineOptionFailOnBinaryArchiveMiss;
+        computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
+      }
     }
   }
+
+  /* Lambda to do the actual pipeline compilation. */
+  auto do_compilation = [&]() {
+    __block bool compilation_finished = false;
+    __block string error_str;
+
+    if (archive && path_exists(metalbin_path)) {
+      /* Use the blocking variant of newComputePipelineStateWithDescriptor if an archive exists on
+       * disk. It should load almost instantaneously, and will fail gracefully when loading a
+       * corrupt archive (unlike the async variant). */
+      NSError *error = nil;
+      pipeline = [mtlDevice newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
+                                                          options:pipelineOptions
+                                                       reflection:nullptr
+                                                            error:&error];
+      const char *err = error ? [[error localizedDescription] UTF8String] : nullptr;
+      error_str = err ? err : "nil";
+    }
+    else {
+      /* Use the async variant of newComputePipelineStateWithDescriptor if no archive exists on
+       * disk. This allows us responds to app shutdown. */
+      [mtlDevice
+          newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
+                                        options:pipelineOptions
+                              completionHandler:^(id<MTLComputePipelineState> computePipelineState,
+                                                  MTLComputePipelineReflection *reflection,
+                                                  NSError *error) {
+                                pipeline = computePipelineState;
+
+                                /* Retain the pipeline so we can use it safely past the completion
+                                 * handler. */
+                                if (pipeline) {
+                                  [pipeline retain];
+                                }
+                                const char *err = error ?
+                                                      [[error localizedDescription] UTF8String] :
+                                                      nullptr;
+                                error_str = err ? err : "nil";
+
+                                compilation_finished = true;
+                              }];
+
+      /* Immediately wait for either the compilation to finish or for app shutdown. */
+      while (ShaderCache::running && !compilation_finished) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      }
+    }
+
+    if (creating_new_archive && pipeline && ShaderCache::running) {
+      /* Add pipeline into the new archive. It should be instantaneous following
+       * newComputePipelineStateWithDescriptor. */
+      NSError *error;
+
+      computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
+      if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
+                                                        error:&error]) {
+        NSString *errStr = [error localizedDescription];
+        metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
+      }
+    }
+    else if (!pipeline) {
+      metal_printf(
+          "newComputePipelineStateWithDescriptor failed for \"%s\"%s. "
+          "Error:\n%s\n",
+          device_kernel_as_string((DeviceKernel)device_kernel),
+          (archive && !recreate_archive) ? " Archive may be incomplete or corrupt - attempting "
+                                           "recreation.." :
+                                           "",
+          error_str.c_str());
+    }
+  };
 
   double starttime = time_dt();
 
-  /* Block on load to ensure we continue with a valid kernel function */
-  if (creating_new_archive) {
-    starttime = time_dt();
-    NSError *error;
-    if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
-                                                      error:&error]) {
-      NSString *errStr = [error localizedDescription];
-      metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
-    }
-  }
+  do_compilation();
 
-  pipeline = [mtlDevice newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
-                                                      options:pipelineOptions
-                                                   reflection:nullptr
-                                                        error:&error];
-
-  bool recreate_archive = false;
+  /* An archive might have a corrupt entry and fail to materialize the pipeline. This shouldn't
+   * happen, but if it does we recreate it. */
   if (pipeline == nil && archive) {
-    NSString *errStr = [error localizedDescription];
-    metal_printf(
-        "Failed to create compute pipeline state \"%s\" from archive - attempting recreation... "
-        "(error: %s)\n",
-        device_kernel_as_string((DeviceKernel)device_kernel),
-        errStr ? [errStr UTF8String] : "nil");
-    pipeline = [mtlDevice newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
-                                                        options:MTLPipelineOptionNone
-                                                     reflection:nullptr
-                                                          error:&error];
     recreate_archive = true;
+    pipelineOptions = MTLPipelineOptionNone;
+    path_remove(metalbin_path);
+
+    do_compilation();
   }
 
   double duration = time_dt() - starttime;
 
   if (pipeline == nil) {
-    NSString *errStr = [error localizedDescription];
-    error_str = string_printf("Failed to create compute pipeline state \"%s\", error: \n",
-                              device_kernel_as_string((DeviceKernel)device_kernel));
-    error_str += (errStr ? [errStr UTF8String] : "nil");
     metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!\n",
                  kernel_type_as_string(pso_type),
                  device_kernel,
@@ -748,7 +787,8 @@ void MetalKernelPipeline::compile()
       if (creating_new_archive || recreate_archive) {
         if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())]
                                error:&error]) {
-          metal_printf("Failed to save binary archive, error:\n%s\n",
+          metal_printf("Failed to save binary archive to %s, error:\n%s\n",
+                       metalbin_path.c_str(),
                        [[error localizedDescription] UTF8String]);
         }
         else {
