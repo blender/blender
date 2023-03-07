@@ -167,7 +167,7 @@ bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
   const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
-  return !selection || contains(selection, curves.curves_range(), true);
+  return !selection || contains(selection, selection.index_range(), true);
 }
 
 bool has_anything_selected(const GSpan selection)
