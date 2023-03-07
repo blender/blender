@@ -713,7 +713,18 @@ typedef struct wmEvent {
   /** Custom data type, stylus, 6-DOF, see `wm_event_types.h`. */
   short custom;
   short customdata_free;
-  /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
+  /**
+   * The #wmEvent::type implies the following #wmEvent::custodata.
+   *
+   * - #EVT_ACTIONZONE_AREA / #EVT_ACTIONZONE_FULLSCREEN / #EVT_ACTIONZONE_FULLSCREEN:
+   *   Uses #sActionzoneData.
+   * - #EVT_DROP: uses #ListBase of #wmDrag (also #wmEvent::custom == #EVT_DATA_DRAGDROP).
+   *   Typically set to #wmWindowManger::drags.
+   * - #EVT_FILESELECT: uses #wmOperator.
+   * - #EVT_XR_ACTION: uses #wmXrActionData (also #wmEvent::custom == #EVT_DATA_XR).
+   * - #NDOF_MOTION: uses #wmNDOFMotionData (also #wmEvent::custom == #EVT_DATA_NDOF_MOTION).
+   * - #TIMER: uses #wmTimer (also #wmEvent::custom == #EVT_DATA_TIMER).
+   */
   void *customdata;
 
   /* Previous State. */
