@@ -99,7 +99,7 @@ void SEQ_retiming_data_ensure(Sequence *seq)
   seq->retiming_handles = (SeqRetimingHandle *)MEM_calloc_arrayN(
       2, sizeof(SeqRetimingHandle), __func__);
   SeqRetimingHandle *handle = seq->retiming_handles + 1;
-  handle->strip_frame_index = seq_time_strip_original_content_length_get(seq) - 1;
+  handle->strip_frame_index = seq->len;
   handle->retiming_factor = 1.0f;
   seq->retiming_handle_num = 2;
 }
@@ -232,7 +232,7 @@ float SEQ_retiming_handle_speed_get(const Sequence *seq, const SeqRetimingHandle
 
   const SeqRetimingHandle *handle_prev = handle - 1;
 
-  const int frame_index_max = seq_time_strip_original_content_length_get(seq) - 1;
+  const int frame_index_max = seq->len - 1;
   const int frame_retimed_prev = round_fl_to_int(handle_prev->retiming_factor * frame_index_max);
   const int frame_index_prev = handle_prev->strip_frame_index;
   const int frame_retimed = round_fl_to_int(handle->retiming_factor * frame_index_max);

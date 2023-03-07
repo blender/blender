@@ -53,21 +53,12 @@ float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence
   return seq->media_playback_rate / scene_playback_rate;
 }
 
-int seq_time_strip_original_content_length_get(const Sequence *seq)
-{
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    return seq->len;
-  }
-
-  return seq->len;
-}
-
 float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
 {
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
   float end = SEQ_time_content_end_frame_get(scene, seq) - 1;
-  const float length = seq_time_strip_original_content_length_get(seq);
+  const float length = seq->len;
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     end = SEQ_time_right_handle_frame_get(scene, seq);
