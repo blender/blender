@@ -77,7 +77,7 @@ float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
     return -1;
   }
 
-  if (seq->len == 1 && seq->type == SEQ_TYPE_IMAGE) {
+  if (seq->type == SEQ_TYPE_IMAGE && SEQ_transform_single_image_check(seq)) {
     return 0;
   }
 
