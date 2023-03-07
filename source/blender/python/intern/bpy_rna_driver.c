@@ -20,14 +20,17 @@
 
 #include "bpy_rna_driver.h" /* own include */
 
-PyObject *pyrna_driver_get_variable_value(struct ChannelDriver *driver, struct DriverTarget *dtar)
+PyObject *pyrna_driver_get_variable_value(const struct AnimationEvalContext *anim_eval_context,
+                                          struct ChannelDriver *driver,
+                                          struct DriverVar *dvar,
+                                          struct DriverTarget *dtar)
 {
   PyObject *driver_arg = NULL;
   PointerRNA ptr;
   PropertyRNA *prop = NULL;
   int index;
 
-  if (driver_get_variable_property(driver, dtar, &ptr, &prop, &index)) {
+  if (driver_get_variable_property(anim_eval_context, driver, dvar, dtar, &ptr, &prop, &index)) {
     if (prop) {
       if (index != -1) {
         if (index < RNA_property_array_length(&ptr, prop) && index >= 0) {

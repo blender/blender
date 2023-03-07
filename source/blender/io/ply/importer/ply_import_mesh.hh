@@ -12,7 +12,7 @@
 namespace blender::io::ply {
 
 /**
- * Converts the PlyData datastructure to a mesh.
+ * Converts the #PlyData data-structure to a mesh.
  * \param data: The PLY data.
  * \return The mesh that can be used inside blender.
  */

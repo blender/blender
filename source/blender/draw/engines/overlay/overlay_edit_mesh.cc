@@ -106,7 +106,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     /* Complementary Depth Pass */
     state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
     if (show_retopology) {
-      /* Do not cull backfaces for retopology depth pass.
+      /* Do not cull back-faces for retopology depth pass.
        * This prevents edit overlays from appearing behind any faces.
        * Doing so reduces visual clutter. */
       state &= ~DRW_STATE_CULL_BACK;
@@ -162,9 +162,9 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
                                            &pd->edit_mesh_faces_cage_grp[i];
       state = state_common;
       if (show_retopology) {
-        /* Cull backfaces for retopology face pass.
-         * This makes it so backfaces are not drawn.
-         * Doing so lets us distinguish backfaces from frontfaces. */
+        /* Cull back-faces for retopology face pass.
+         * This makes it so back-faces are not drawn.
+         * Doing so lets us distinguish back-faces from front-faces. */
         state |= DRW_STATE_CULL_BACK;
       }
       DRW_PASS_CREATE(*edit_face_ps, state | pd->clipping_state);

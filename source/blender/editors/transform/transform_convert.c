@@ -932,6 +932,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   }
   if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MOVIECLIP) {
+      if (t->region->regiontype == RGN_TYPE_PREVIEW) {
+        return &TransConvertType_TrackingCurves;
+      }
       return &TransConvertType_Tracking;
     }
     if (t->options & CTX_MASK) {

@@ -15,6 +15,15 @@
 #include "BLI_assert.h"
 
 namespace blender::gpu {
+
+VKDescriptorSet::VKDescriptorSet(VKDescriptorSet &&other)
+    : vk_descriptor_pool_(other.vk_descriptor_pool_),
+      vk_descriptor_set_(other.vk_descriptor_set_),
+      bindings_(std::move(other.bindings_))
+{
+  other.mark_freed();
+}
+
 VKDescriptorSet::~VKDescriptorSet()
 {
   if (vk_descriptor_set_ != VK_NULL_HANDLE) {

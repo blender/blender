@@ -417,7 +417,7 @@ void GPU_framebuffer_clear_color(GPUFrameBuffer *fb, const float clear_col[4])
 
 void GPU_framebuffer_clear_depth(GPUFrameBuffer *fb, float clear_depth)
 {
-  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, NULL, clear_depth, 0x00);
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, nullptr, clear_depth, 0x00);
 }
 
 void GPU_framebuffer_clear_color_depth(GPUFrameBuffer *fb,
@@ -429,12 +429,12 @@ void GPU_framebuffer_clear_color_depth(GPUFrameBuffer *fb,
 
 void GPU_framebuffer_clear_stencil(GPUFrameBuffer *fb, uint clear_stencil)
 {
-  GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, NULL, 0.0f, clear_stencil);
+  GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, nullptr, 0.0f, clear_stencil);
 }
 
 void GPU_framebuffer_clear_depth_stencil(GPUFrameBuffer *fb, float clear_depth, uint clear_stencil)
 {
-  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, NULL, clear_depth, clear_stencil);
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, nullptr, clear_depth, clear_stencil);
 }
 
 void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,

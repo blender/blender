@@ -6,6 +6,7 @@ set(INC
   cached_resources
   ../../blenkernel
   ../../blenlib
+  ../../blentranslation
   ../../gpu
   ../../imbuf
   ../../makesdna
