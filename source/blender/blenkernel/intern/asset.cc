@@ -44,6 +44,8 @@ AssetMetaData::~AssetMetaData()
   }
   MEM_SAFE_FREE(author);
   MEM_SAFE_FREE(description);
+  MEM_SAFE_FREE(copyright);
+  MEM_SAFE_FREE(license);
   BLI_freelistN(&tags);
 }
 
@@ -161,13 +163,19 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
   if (asset_data->properties) {
     IDP_BlendWrite(writer, asset_data->properties);
   }
-
   if (asset_data->author) {
     BLO_write_string(writer, asset_data->author);
   }
   if (asset_data->description) {
     BLO_write_string(writer, asset_data->description);
   }
+  if (asset_data->copyright) {
+    BLO_write_string(writer, asset_data->copyright);
+  }
+  if (asset_data->license) {
+    BLO_write_string(writer, asset_data->license);
+  }
+
   LISTBASE_FOREACH (AssetTag *, tag, &asset_data->tags) {
     BLO_write_struct(writer, AssetTag, tag);
   }
@@ -185,6 +193,8 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 
   BLO_read_data_address(reader, &asset_data->author);
   BLO_read_data_address(reader, &asset_data->description);
+  BLO_read_data_address(reader, &asset_data->copyright);
+  BLO_read_data_address(reader, &asset_data->license);
   BLO_read_list(reader, &asset_data->tags);
   BLI_assert(BLI_listbase_count(&asset_data->tags) == asset_data->tot_tags);
 }
