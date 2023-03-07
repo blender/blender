@@ -18,6 +18,7 @@
 
 #include "DRW_render.h"
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -45,6 +46,8 @@
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
 
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
+
+using namespace blender;
 
 struct ArmatureDrawContext {
   /* Current armature object */
@@ -2355,7 +2358,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
     const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
 
     const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
-    LISTBASE_FOREACH (const bDeformGroup *, dg, defbase) {
+    for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {
       if (dg->flag & DG_LOCK_WEIGHT) {
         pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
 
