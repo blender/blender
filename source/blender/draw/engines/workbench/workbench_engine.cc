@@ -577,7 +577,7 @@ static void write_render_z_output(struct RenderLayer *layer,
 
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
-    /* Convert ogl depth [0..1] to view Z [near..far] */
+    /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(nullptr)) {
       for (float &z : MutableSpan(rp->rect, pix_num)) {
         if (z == 1.0f) {

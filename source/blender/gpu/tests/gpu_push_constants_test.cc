@@ -143,8 +143,8 @@ static void do_push_constants_test(const char *info_name, const int num_calls_si
     shader.update_push_constants(call_data);
     shader.dispatch();
   }
-  /* All calls will be "simultaneously" in flight. First readback will wait until the dispatches
-   * have finished execution.*/
+  /* All calls will be "simultaneously" in flight. First read-back will wait until the dispatches
+   * have finished execution. */
   for (const int call_index : IndexRange(num_calls_simultaneously)) {
     CallData &call_data = shader.call_datas[call_index];
     call_data.read_back();
@@ -152,7 +152,7 @@ static void do_push_constants_test(const char *info_name, const int num_calls_si
   }
 }
 
-/* Test case with single call as sanity check, before we make it more interesting.*/
+/* Test case with single call as sanity check, before we make it more interesting. */
 static void test_push_constants()
 {
   do_push_constants_test("gpu_push_constants_test");
@@ -180,7 +180,7 @@ GPU_TEST(push_constants_512bytes)
 #if 0
 /* Schedule multiple simultaneously. */
 /* These test have been disabled for now as this will to be solved in a separate PR.
- * - DescriptorSets may not be altered, when they are in the command queue or being executed.
+ * - `DescriptorSets` may not be altered, when they are in the command queue or being executed.
  */
 static void test_push_constants_multiple()
 {

@@ -310,7 +310,7 @@ static bool tracking_check_marker_margin(const libmv_Marker *libmv_marker,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Autotrack context initialization.
+/** \name Auto-Track Context Initialization
  * \{ */
 
 static bool autotrack_is_marker_usable(const MovieTrackingMarker *marker)

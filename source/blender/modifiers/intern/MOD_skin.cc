@@ -16,14 +16,14 @@
  *
  * The main missing features in this code compared to the paper are:
  *
- * + No mesh evolution. The paper suggests iteratively subsurfing the
+ * - No mesh evolution. The paper suggests iteratively subdivision-surfacing the
  *   skin output and adapting the output to better conform with the
  *   spheres of influence surrounding each vertex.
  *
- * + No mesh fairing. The paper suggests re-aligning output edges to
+ * - No mesh fairing. The paper suggests re-aligning output edges to
  *   follow principal mesh curvatures.
  *
- * + No auxiliary balls. These would serve to influence mesh
+ * - No auxiliary balls. These would serve to influence mesh
  *   evolution, which as noted above is not implemented.
  *
  * The code also adds some features not present in the paper:

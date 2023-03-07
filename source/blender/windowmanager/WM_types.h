@@ -849,7 +849,7 @@ typedef enum {
   /** Do not attempt to free custom-data pointer even if non-NULL. */
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
 
-  /* Internal falgs, should not be used outside of WM code. */
+  /* Internal flags, should not be used outside of WM code. */
   /** This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
    * deleted in a safe context. */
   WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
