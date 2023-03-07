@@ -2832,7 +2832,9 @@ class VIEW3D_MT_object_parent(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.parent_no_inverse_set")
+        layout.operator("object.parent_no_inverse_set").keep_transform = False
+        props = layout.operator("object.parent_no_inverse_set", text="Make Parent without Inverse (Keep Transform)")
+        props.keep_transform = True
         layout.operator_context = operator_context_default
 
         layout.separator()
