@@ -76,13 +76,25 @@ void RealizeOnDomainOperation::execute()
 
 GPUShader *RealizeOnDomainOperation::get_realization_shader()
 {
-  switch (get_result().type()) {
-    case ResultType::Color:
-      return shader_manager().get("compositor_realize_on_domain_color");
-    case ResultType::Vector:
-      return shader_manager().get("compositor_realize_on_domain_vector");
-    case ResultType::Float:
-      return shader_manager().get("compositor_realize_on_domain_float");
+  if (get_input().get_realization_options().interpolation == Interpolation::Bicubic) {
+    switch (get_result().type()) {
+      case ResultType::Color:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_color");
+      case ResultType::Vector:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_vector");
+      case ResultType::Float:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_float");
+    }
+  }
+  else {
+    switch (get_result().type()) {
+      case ResultType::Color:
+        return shader_manager().get("compositor_realize_on_domain_color");
+      case ResultType::Vector:
+        return shader_manager().get("compositor_realize_on_domain_vector");
+      case ResultType::Float:
+        return shader_manager().get("compositor_realize_on_domain_float");
+    }
   }
 
   BLI_assert_unreachable();
