@@ -159,7 +159,8 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
           else {
             /* Minimum distance is larger than allowed segment length.
              * The unilateral collision constraint is satisfied by just clamping segment length. */
-            positions_cu[point_i] = prev_pos_cu + math::normalize(old_pos_su - prev_pos_cu) * goal_segment_length_cu;
+            positions_cu[point_i] = prev_pos_cu + math::normalize(old_pos_su - prev_pos_cu) *
+                                                      goal_segment_length_cu;
           }
         }
         if (used_iterations == max_collisions) {
