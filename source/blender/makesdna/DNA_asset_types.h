@@ -72,6 +72,12 @@ typedef struct AssetMetaData {
   /** Optional description of this asset for display in the UI. Dynamic length. */
   char *description;
 
+  /** Optional copyright of this asset for display in the UI. Dynamic length. */
+  char *copyright;
+
+  /** Optional license of this asset for display in the UI. Dynamic length. */
+  char *license;
+
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)
    * is up to the asset-engine. */

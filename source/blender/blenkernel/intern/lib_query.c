@@ -272,7 +272,7 @@ static bool library_foreach_ID_link(Main *bmain,
     }
 
     if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY) &&
-        (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) == 0 &&
+        (flag & (IDWALK_DO_INTERNAL_RUNTIME_POINTERS | IDWALK_DO_LIBRARY_POINTER)) == 0 &&
         (((bmain->relations->flag & MAINIDRELATIONS_INCLUDE_UI) == 0) ==
          ((data.flag & IDWALK_INCLUDE_UI) == 0))) {
       /* Note that this is minor optimization, even in worst cases (like id being an object with
