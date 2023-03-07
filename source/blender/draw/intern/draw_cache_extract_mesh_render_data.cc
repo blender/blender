@@ -559,21 +559,21 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 
     mr->material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_INT32, "material_index"));
 
     mr->hide_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert"));
+        CustomData_get_layer_named(&mr->me->vdata, CD_PROP_BOOL, ".hide_vert"));
     mr->hide_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".hide_edge"));
+        CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, ".hide_edge"));
     mr->hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_BOOL, ".hide_poly"));
 
     mr->select_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".select_vert"));
+        CustomData_get_layer_named(&mr->me->vdata, CD_PROP_BOOL, ".select_vert"));
     mr->select_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".select_edge"));
+        CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, ".select_edge"));
     mr->select_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".select_poly"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_BOOL, ".select_poly"));
   }
   else {
     /* #BMesh */
@@ -586,7 +586,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
   }
 
-  retrieve_active_attribute_names(*mr, *object, *me);
+  retrieve_active_attribute_names(*mr, *object, *mr->me);
 
   return mr;
 }
