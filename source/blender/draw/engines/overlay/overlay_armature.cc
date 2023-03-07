@@ -2437,7 +2437,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
             draw_bone_box(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
           }
         }
-        else {
+        else if (arm->drawtype == ARM_OCTA) {
           draw_bone_update_disp_matrix_default(nullptr, pchan);
           if (!is_pose_select || pchan_culling_test_octohedral(view, ob, pchan)) {
             draw_bone_octahedral(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
