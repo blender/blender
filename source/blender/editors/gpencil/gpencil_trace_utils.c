@@ -252,6 +252,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
     float start_point[2], last[2];
     start_point[0] = c[n - 1][2].x;
     start_point[1] = c[n - 1][2].y;
+    zero_v2(last);
 
     for (int32_t i = 0; i < n; i++) {
       switch (tag[i]) {
