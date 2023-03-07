@@ -8,6 +8,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.h"
+
 #include "DNA_node_types.h"
 
 struct bNode;
@@ -145,6 +147,7 @@ class SocketDeclaration {
   std::string name;
   std::string identifier;
   std::string description;
+  std::string translation_context;
   /** Defined by whether the socket is part of the node's input or
    * output socket declaration list. Included here for convenience. */
   eNodeSocketInOut in_out;
@@ -272,6 +275,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &description(std::string value = "")
   {
     decl_->description = std::move(value);
+    return *(Self *)this;
+  }
+
+  Self &translation_context(std::string value = BLT_I18NCONTEXT_DEFAULT)
+  {
+    decl_->translation_context = std::move(value);
     return *(Self *)this;
   }
 

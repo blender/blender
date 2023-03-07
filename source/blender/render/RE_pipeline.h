@@ -54,7 +54,7 @@ typedef struct RenderView {
   float *rectf;
   /* if this exists, result of composited layers */
   float *rectz;
-  /* optional, 32 bits version of picture, used for sequencer, ogl render and image curves */
+  /* optional, 32 bits version of picture, used for sequencer, OpenGL render and image curves */
   int *rect32;
 
 } RenderView;
@@ -105,7 +105,7 @@ typedef struct RenderResult {
   /* The following rect32, rectf and rectz buffers are for temporary storage only,
    * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
 
-  /* optional, 32 bits version of picture, used for ogl render and image curves */
+  /* Optional, 32 bits version of picture, used for OpenGL render and image curves. */
   int *rect32;
   /* if this exists, a copy of one of layers, or result of composited layers */
   float *rectf;

@@ -383,7 +383,7 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const uint8_t *pixe
     rgb_frame = context->current_frame;
   }
 
-  /* Copy the Blender pixels into the FFmpeg datastructure, taking care of endianness and flipping
+  /* Copy the Blender pixels into the FFMPEG data-structure, taking care of endianness and flipping
    * the image vertically. */
   int linesize = rgb_frame->linesize[0];
   for (int y = 0; y < height; y++) {

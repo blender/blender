@@ -6,15 +6,19 @@
  */
 
 #include "vk_shader_interface.hh"
+#include "vk_context.hh"
 
 namespace blender::gpu {
 
 void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 {
+  static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
+  static size_t PUSH_CONSTANTS_FALLBACK_NAME_LEN = strlen(PUSH_CONSTANTS_FALLBACK_NAME);
+
   using namespace blender::gpu::shader;
 
   attr_len_ = 0;
-  uniform_len_ = 0;
+  uniform_len_ = info.push_constants_.size();
   ssbo_len_ = 0;
   ubo_len_ = 0;
   image_offset_ = -1;
@@ -40,6 +44,17 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
         break;
     }
   }
+
+  /* Reserve 1 uniform buffer for push constants fallback. */
+  size_t names_size = info.interface_names_size_;
+  VKContext &context = *VKContext::get();
+  const VKPushConstants::StorageType push_constants_storage_type =
+      VKPushConstants::Layout::determine_storage_type(info, context.physical_device_limits_get());
+  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+    ubo_len_++;
+    names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;
+  }
+
   /* Make sure that the image slots don't overlap with the sampler slots. */
   image_offset_++;
 
@@ -48,7 +63,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       MEM_calloc_arrayN(input_tot_len, sizeof(ShaderInput), __func__));
   ShaderInput *input = inputs_;
 
-  name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_, "name_buffer");
+  name_buffer_ = (char *)MEM_mallocN(names_size, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Uniform blocks */
@@ -58,6 +73,13 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       input->location = input->binding = res.slot;
       input++;
     }
+  }
+  /* Add push constant when using uniform buffer as fallback. */
+  int32_t push_constants_fallback_location = -1;
+  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+    copy_input_name(input, PUSH_CONSTANTS_FALLBACK_NAME, name_buffer_, name_buffer_offset);
+    input->location = input->binding = -1;
+    input++;
   }
 
   /* Images, Samplers and buffers. */
@@ -72,6 +94,15 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       input->location = input->binding = res.slot + image_offset_;
       input++;
     }
+  }
+
+  /* Push constants. */
+  int32_t push_constant_location = 1024;
+  for (const ShaderCreateInfo::PushConst &push_constant : info.push_constants_) {
+    copy_input_name(input, push_constant.name, name_buffer_, name_buffer_offset);
+    input->location = push_constant_location++;
+    input->binding = -1;
+    input++;
   }
 
   /* Storage buffers */
@@ -106,6 +137,17 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     const ShaderInput *input = shader_input_get(res);
     descriptor_set_location_update(input, descriptor_set_location++);
   }
+
+  /* Post initializing push constants.*/
+  /* Determine the binding location of push constants fallback buffer.*/
+  int32_t push_constant_descriptor_set_location = -1;
+  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+    push_constant_descriptor_set_location = descriptor_set_location++;
+    const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
+    descriptor_set_location_update(push_constant_input, push_constants_fallback_location);
+  }
+  push_constants_layout_.init(
+      info, *this, push_constants_storage_type, push_constant_descriptor_set_location);
 }
 
 static int32_t shader_input_index(const ShaderInput *shader_inputs,

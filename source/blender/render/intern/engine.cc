@@ -116,7 +116,7 @@ bool RE_engine_is_external(const Render *re)
 
 bool RE_engine_is_opengl(RenderEngineType *render_type)
 {
-  /* TODO: refine? Can we have ogl render engine without ogl render pipeline? */
+  /* TODO: refine? Can we have OpenGL render engine without OpenGL render pipeline? */
   return (render_type->draw_engine != nullptr) &&
          DRW_engine_render_support(render_type->draw_engine);
 }

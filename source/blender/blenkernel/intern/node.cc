@@ -2053,19 +2053,22 @@ bool nodeFindNodeTry(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r
 
 bNode *nodeFindRootParent(bNode *node)
 {
-  if (node->parent) {
-    return nodeFindRootParent(node->parent);
+  bNode *parent_iter = node;
+  while (parent_iter->parent != nullptr) {
+    parent_iter = parent_iter->parent;
   }
-  return node->type == NODE_FRAME ? node : nullptr;
+  if (parent_iter->type != NODE_FRAME) {
+    return nullptr;
+  }
+  return parent_iter;
 }
 
 bool nodeIsParentAndChild(const bNode *parent, const bNode *child)
 {
-  if (parent == child) {
-    return true;
-  }
-  if (child->parent) {
-    return nodeIsParentAndChild(parent, child->parent);
+  for (const bNode *child_iter = child; child_iter; child_iter = child_iter->parent) {
+    if (child_iter == parent) {
+      return true;
+    }
   }
   return false;
 }
@@ -2551,26 +2554,26 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 
 void nodeToView(const bNode *node, const float x, const float y, float *rx, float *ry)
 {
-  if (node->parent) {
-    nodeToView(node->parent, x + node->locx, y + node->locy, rx, ry);
+  float mapping_x = 0.0f;
+  float mapping_y = 0.0f;
+  for (const bNode *node_iter = node; node_iter; node_iter = node_iter->parent) {
+    mapping_x += node_iter->locx;
+    mapping_y += node_iter->locy;
   }
-  else {
-    *rx = x + node->locx;
-    *ry = y + node->locy;
-  }
+  *rx = mapping_x + x;
+  *ry = mapping_y + y;
 }
 
 void nodeFromView(const bNode *node, const float x, const float y, float *rx, float *ry)
 {
-  if (node->parent) {
-    nodeFromView(node->parent, x, y, rx, ry);
-    *rx -= node->locx;
-    *ry -= node->locy;
+  float mapping_x = 0.0f;
+  float mapping_y = 0.0f;
+  for (const bNode *node_iter = node; node_iter; node_iter = node_iter->parent) {
+    mapping_x += node_iter->locx;
+    mapping_y += node_iter->locy;
   }
-  else {
-    *rx = x - node->locx;
-    *ry = y - node->locy;
-  }
+  *rx = -mapping_x + x;
+  *ry = -mapping_y + y;
 }
 
 void nodeAttachNode(bNodeTree *ntree, bNode *node, bNode *parent)

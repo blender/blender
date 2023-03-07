@@ -624,7 +624,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         return false;
       }
       if (value == TFM_MODAL_TRANSLATE && t->mode == TFM_TRANSLATION) {
-        return false;
+        /* The tracking transform in MovieClip has an alternate translate that modifies the offset
+         * of the tracks. */
+        return t->data_type == &TransConvertType_Tracking;
       }
       if (value == TFM_MODAL_ROTATE && t->mode == TFM_ROTATION) {
         return false;
@@ -987,16 +989,16 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             t->redraw |= TREDRAW_HARD;
             handled = true;
           }
-          else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-            restoreTransObjects(t);
-
-            t->flag ^= T_ALT_TRANSFORM;
-            t->redraw |= TREDRAW_HARD;
-            handled = true;
-          }
         }
         else {
           if (t->mode == TFM_TRANSLATION) {
+            if (t->data_type == &TransConvertType_Tracking) {
+              restoreTransObjects(t);
+
+              t->flag ^= T_ALT_TRANSFORM;
+              t->redraw |= TREDRAW_HARD;
+              handled = true;
+            }
             break;
           }
           restoreTransObjects(t);

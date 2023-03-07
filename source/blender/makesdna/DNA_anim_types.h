@@ -322,6 +322,13 @@ typedef struct DriverTarget {
   short flag;
   /** Type of ID-block that this target can use. */
   int idtype;
+
+  /* Context-dependent property of a "Context Property" type target.
+   * The `rna_path` of this property is used as a target.
+   * This is a value of enumerator #eDriverTarget_ContextProperty. */
+  int context_property;
+
+  int _pad1;
 } DriverTarget;
 
 /** Driver Target flags. */
@@ -386,6 +393,11 @@ typedef enum eDriverTarget_RotationMode {
   DTAR_ROTMODE_EULER_MAX = DTAR_ROTMODE_EULER_ZYX,
 } eDriverTarget_RotationMode;
 
+typedef enum eDriverTarget_ContextProperty {
+  DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE = 0,
+  DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER = 1,
+} eDriverTarget_ContextProperty;
+
 /* --- */
 
 /* maximum number of driver targets per variable */
@@ -432,6 +444,8 @@ typedef enum eDriverVar_Types {
   DVAR_TYPE_LOC_DIFF,
   /** 'final' transform for object/bones */
   DVAR_TYPE_TRANSFORM_CHAN,
+  /** Property within a current evaluation context */
+  DVAR_TYPE_CONTEXT_PROP,
 
   /**
    * Maximum number of variable types.

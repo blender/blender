@@ -902,6 +902,29 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
   uiItemR(sub, &dtar_ptr, "transform_space", 0, IFACE_("Space"), ICON_NONE);
 }
 
+/* Settings for 'Context Property' driver variable type. */
+static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverVar *dvar)
+{
+  DriverTarget *dtar = &dvar->targets[0];
+
+  /* Initialize RNA pointer to the target. */
+  PointerRNA dtar_ptr;
+  RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr);
+
+  /* Target Property. */
+  {
+    uiLayout *row = uiLayoutRow(layout, false);
+    uiItemR(row, &dtar_ptr, "context_property", 0, NULL, ICON_NONE);
+  }
+
+  /* Target Path */
+  {
+    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
+    uiTemplatePathBuilder(col, &dtar_ptr, "data_path", NULL, IFACE_("Path"));
+  }
+}
+
 /* ----------------------------------------------------------------- */
 
 /* property driven by the driver - duplicates Active FCurve, but useful for clarity */
@@ -1212,6 +1235,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
         break;
       case DVAR_TYPE_TRANSFORM_CHAN: /* transform channel */
         graph_panel_driverVar__transChan(box, id, dvar);
+        break;
+      case DVAR_TYPE_CONTEXT_PROP: /* context property */
+        graph_panel_driverVar__contextProp(box, id, dvar);
         break;
     }
 

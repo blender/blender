@@ -111,6 +111,7 @@ class VKDescriptorSet : NonCopyable {
       : vk_descriptor_pool_(vk_descriptor_pool), vk_descriptor_set_(vk_descriptor_set)
   {
   }
+  VKDescriptorSet(VKDescriptorSet &&other);
   virtual ~VKDescriptorSet();
 
   VKDescriptorSet &operator=(VKDescriptorSet &&other)

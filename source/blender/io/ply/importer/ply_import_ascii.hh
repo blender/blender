@@ -23,10 +23,10 @@ namespace blender::io::ply {
 std::unique_ptr<PlyData> import_ply_ascii(fstream &file, PlyHeader *header);
 
 /**
- * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
+ * Loads the information from the PLY file in ASCII format to the #PlyData data-structure.
  * \param file: The PLY file that was opened.
  * \param header: The information in the PLY header.
- * \return The PlyData datastructure that can be used for conversion to a Mesh.
+ * \return The #PlyData data-structure that can be used for conversion to a Mesh.
  */
 PlyData load_ply_ascii(fstream &file, const PlyHeader *header);
 

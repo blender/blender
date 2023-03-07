@@ -688,7 +688,8 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     /* Support for any RNA data. */
 #ifdef USE_RNA_AS_PYOBJECT
     if (dvar->type == DVAR_TYPE_SINGLE_PROP) {
-      driver_arg = pyrna_driver_get_variable_value(driver, &dvar->targets[0]);
+      driver_arg = pyrna_driver_get_variable_value(
+          anim_eval_context, driver, dvar, &dvar->targets[0]);
 
       if (driver_arg == NULL) {
         driver_arg = PyFloat_FromDouble(0.0);
@@ -714,7 +715,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 #endif
     {
       /* Try to get variable value. */
-      const float tval = driver_get_variable_value(driver, dvar);
+      const float tval = driver_get_variable_value(anim_eval_context, driver, dvar);
       driver_arg = PyFloat_FromDouble((double)tval);
     }
 
