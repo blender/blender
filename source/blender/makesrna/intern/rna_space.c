@@ -4407,6 +4407,11 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Extras", "Object details, including empty wire, cameras and other visual guides");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_light_colors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SHOW_LIGHT_COLORS);
+  RNA_def_property_ui_text(prop, "Light Colors", "Show light colors");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "show_bones", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_HIDE_BONES);
   RNA_def_property_ui_text(

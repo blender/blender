@@ -552,6 +552,7 @@ enum {
   V3D_OVERLAY_SCULPT_SHOW_MASK = (1 << 14),
   V3D_OVERLAY_SCULPT_SHOW_FACE_SETS = (1 << 15),
   V3D_OVERLAY_SCULPT_CURVES_CAGE = (1 << 16),
+  V3D_OVERLAY_SHOW_LIGHT_COLORS = (1 << 17),
 };
 
 /** #View3DOverlay.edit_flag */
