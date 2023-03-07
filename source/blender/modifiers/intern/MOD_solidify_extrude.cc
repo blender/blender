@@ -446,8 +446,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #endif
 
       if (mat_ofs) {
-        dst_material_index[i] += mat_ofs;
-        CLAMP(dst_material_index[i], 0, mat_nr_max);
+        dst_material_index[poly_i] += mat_ofs;
+        CLAMP(dst_material_index[poly_i], 0, mat_nr_max);
       }
 
       e = ml2[0].e;
