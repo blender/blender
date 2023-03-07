@@ -130,6 +130,8 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_VIRTUAL_REALITY "Virtual reality"
 #define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
 #define BLT_I18NCONTEXT_COLOR "Color"
+#define BLT_I18NCONTEXT_AMOUNT "Amount"
+#define BLT_I18NCONTEXT_UNIT "Unit"
 
 /* Helper for bpy.app.i18n object... */
 typedef struct {
@@ -198,6 +200,8 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_VIRTUAL_REALITY, "virtual_reality"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UNIT, "unit"),   \
     { \
       NULL, NULL, NULL \
     } \

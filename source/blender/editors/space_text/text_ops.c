@@ -2810,8 +2810,10 @@ void TEXT_OT_scroll(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_int(
+  PropertyRNA *prop;
+  prop = RNA_def_int(
       ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */
@@ -2915,8 +2917,10 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_int(
+  PropertyRNA *prop;
+  prop = RNA_def_int(
       ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */

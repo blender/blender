@@ -342,7 +342,7 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
     BLI_strncpy(masklay->name, name, sizeof(masklay->name));
   }
   else {
-    strcpy(masklay->name, "MaskLayer");
+    strcpy(masklay->name, DATA_("MaskLayer"));
   }
 
   BLI_addtail(&mask->masklayers, masklay);
