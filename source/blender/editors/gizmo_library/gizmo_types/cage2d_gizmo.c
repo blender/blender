@@ -704,15 +704,15 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
     else {
       if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
         int scale_parts[] = {
-            ED_GIZMO_CAGE2D_PART_SCALE_MIN_X,
-            ED_GIZMO_CAGE2D_PART_SCALE_MAX_X,
-            ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y,
-            ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y,
-
             ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y,
             ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y,
             ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y,
             ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y,
+
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_X,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_X,
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y,
         };
         for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
           GPU_select_load_id(select_id | scale_parts[i]);
