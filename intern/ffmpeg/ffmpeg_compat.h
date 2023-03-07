@@ -13,6 +13,7 @@
 #ifndef __FFMPEG_COMPAT_H__
 #define __FFMPEG_COMPAT_H__
 
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
 /* Check if our ffmpeg is new enough, avoids user complaints.
