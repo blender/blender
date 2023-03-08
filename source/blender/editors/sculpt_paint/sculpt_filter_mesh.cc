@@ -21,9 +21,9 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
-#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -31,9 +31,8 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_util.h"
-#include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.hh"
@@ -739,24 +738,22 @@ wmKeyMap *filter_mesh_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static void sculpt_mesh_update_status_bar(bContext* C, wmOperator* op) {
+static void sculpt_mesh_update_status_bar(bContext *C, wmOperator *op)
+{
   char header[UI_MAX_DRAW_STR];
   char buf[UI_MAX_DRAW_STR];
   int available_len = sizeof(buf);
 
-
-  char* p = buf;
+  char *p = buf;
 #define WM_MODALKEY(_id) \
   WM_modalkeymap_operator_items_to_string_buf( \
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
-  BLI_snprintf(
-      header,
-      sizeof(header),
-      TIP_("%s: Confirm, %s: Cancel"),
-      WM_MODALKEY(FILTER_MESH_MODAL_CONFIRM),
-      WM_MODALKEY(FILTER_MESH_MODAL_CANCEL)
-  );
+  BLI_snprintf(header,
+               sizeof(header),
+               TIP_("%s: Confirm, %s: Cancel"),
+               WM_MODALKEY(FILTER_MESH_MODAL_CONFIRM),
+               WM_MODALKEY(FILTER_MESH_MODAL_CANCEL));
 
 #undef WM_MODALKEY
 
@@ -857,15 +854,18 @@ static void sculpt_mesh_filter_end(bContext *C)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
-static int sculpt_mesh_filter_confirm(SculptSession *ss, wmOperator* op, const eSculptMeshFilterType filter_type) {
+static int sculpt_mesh_filter_confirm(SculptSession *ss,
+                                      wmOperator *op,
+                                      const eSculptMeshFilterType filter_type)
+{
 
-    float initial_strength = ss->filter_cache->start_filter_strength;
-    /* Don't update strength property if we're storing an event history. */
-    if (sculpt_mesh_filter_is_continuous(filter_type)) {
-      RNA_float_set(op->ptr, "strength", initial_strength);
-    }
+  float initial_strength = ss->filter_cache->start_filter_strength;
+  /* Don't update strength property if we're storing an event history. */
+  if (sculpt_mesh_filter_is_continuous(filter_type)) {
+    RNA_float_set(op->ptr, "strength", initial_strength);
+  }
 
-    return OPERATOR_FINISHED;
+  return OPERATOR_FINISHED;
 }
 
 static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
@@ -912,7 +912,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
   sculpt_mesh_update_status_bar(C, op);
-    
+
   if (event->type == EVT_MODAL_MAP) {
     int ret = OPERATOR_FINISHED;
     switch (event->val) {
@@ -922,14 +922,14 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
         ret = OPERATOR_CANCELLED;
         break;
 
-      case FILTER_MESH_MODAL_CONFIRM: 
+      case FILTER_MESH_MODAL_CONFIRM:
         ret = sculpt_mesh_filter_confirm(ss, op, filter_type);
         SCULPT_undo_push_end_ex(ob, false);
         break;
     }
 
     sculpt_mesh_filter_end(C);
-    ED_workspace_status_text(C, nullptr);  /* Clear status bar */
+    ED_workspace_status_text(C, nullptr); /* Clear status bar */
     WM_cursor_modal_restore(CTX_wm_window(C));
 
     return ret;
@@ -974,7 +974,9 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_filter_specific_init(const eSculptMeshFilterType filter_type, wmOperator* op, SculptSession* ss)
+static void sculpt_filter_specific_init(const eSculptMeshFilterType filter_type,
+                                        wmOperator *op,
+                                        SculptSession *ss)
 {
   switch (filter_type) {
     case MESH_FILTER_SURFACE_SMOOTH: {
@@ -1176,9 +1178,10 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
 
   /* Doesn't seem to actually be called?
      Check `sculpt_mesh_filter_modal` to see where it's really called. */
-  ot->cancel = sculpt_mesh_filter_cancel; 
+  ot->cancel = sculpt_mesh_filter_cancel;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_X | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_X | OPTYPE_BLOCKING |
+             OPTYPE_DEPENDS_ON_CURSOR;
 
   /* RNA. */
   SCULPT_mesh_filter_properties(ot);
