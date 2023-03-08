@@ -3221,17 +3221,35 @@ class VIEW3D_MT_sculpt(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize", text="Scale")
+
+        props = layout.operator("sculpt.mesh_filter", text="Sphere")
+        props.type = 'SPHERE'
+
+        layout.separator()
+
+        props = layout.operator("paint.hide_show", text="Box Hide")
+        props.action = 'HIDE'
+
+        props = layout.operator("paint.hide_show", text="Box Show")
+        props.action = 'SHOW'
+
+        layout.separator()
+
+        props = layout.operator("sculpt.face_set_change_visibility", text="Toggle Visibility")
+        props.mode = 'TOGGLE'
+
+        props = layout.operator("sculpt.face_set_change_visibility", text="Hide Active Face Set")
+        props.mode = 'HIDE_ACTIVE'
+
         props = layout.operator("paint.hide_show", text="Show All")
         props.action = 'SHOW'
         props.area = 'ALL'
 
-        props = layout.operator("paint.hide_show", text="Box Show")
-        props.action = 'SHOW'
-        props.area = 'INSIDE'
-
-        props = layout.operator("paint.hide_show", text="Box Hide")
-        props.action = 'HIDE'
-        props.area = 'INSIDE'
+        props = layout.operator("sculpt.face_set_change_visibility", text="Invert Visible")
+        props.mode = 'INVERT'
 
         props = layout.operator("paint.hide_show", text="Hide Masked")
         props.action = 'HIDE'
@@ -3239,10 +3257,55 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
+        props = layout.operator("sculpt.trim_box_gesture", text="Box Trim")
+        props.trim_mode = 'DIFFERENCE'
+
+        layout.operator("sculpt.trim_lasso_gesture", text="Lasso Trim")
+        props.trim_mode = 'DIFFERENCE'
+
+        props = layout.operator("sculpt.trim_box_gesture", text="Box Add")
+        props.trim_mode = 'JOIN'
+
+        layout.operator("sculpt.trim_lasso_gesture", text="Lasso Add")
+        props.trim_mode = 'JOIN'
+
+        layout.operator("sculpt.project_line_gesture", text="Line Project")
+
+        layout.separator()
+
+        # Fair Positions
+        props = layout.operator("sculpt.face_set_edit", text="Fair Positions")
+        props.mode = 'FAIR_POSITIONS'
+
+        # Fair Tangency
+        props = layout.operator("sculpt.face_set_edit", text="Fair Tangency")
+        props.mode = 'FAIR_TANGENCY'
+
+        layout.separator()
+
+        sculpt_filters_types = [
+            ('SMOOTH', "Smooth"),
+            ('SURFACE_SMOOTH', "Surface Smooth"),
+            ('INFLATE', "Inflate"),
+            ('RELAX', "Relax Topology"),
+            ('RELAX_FACE_SETS', "Relax Face Sets"),
+            ('SHARPEN', "Sharpen"),
+            ('ENHANCE_DETAILS', "Enhance Details"),
+            ('ERASE_DISCPLACEMENT', "Erase Multires Displacement"),
+            ('RANDOM', "Randomize")
+        ]
+
+        for filter_type, ui_name in sculpt_filters_types:
+            props = layout.operator("sculpt.mesh_filter", text=ui_name)
+            props.type = filter_type
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_sculpt_set_pivot", text="Set Pivot")
 
         layout.separator()
 
+        # Rebuild BVH
         layout.operator("sculpt.optimize")
 
         layout.separator()

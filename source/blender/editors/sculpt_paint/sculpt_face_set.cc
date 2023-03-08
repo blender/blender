@@ -982,7 +982,7 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
   ot->invoke = sculpt_face_sets_change_visibility_invoke;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   RNA_def_enum(ot->srna,
                "mode",
