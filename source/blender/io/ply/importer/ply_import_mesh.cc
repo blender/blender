@@ -121,6 +121,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     }
   }
 
+  BKE_mesh_smooth_flag_set(mesh, false);
+
   return mesh;
 }
 }  // namespace blender::io::ply

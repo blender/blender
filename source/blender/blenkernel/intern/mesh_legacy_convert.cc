@@ -447,6 +447,12 @@ static void convert_mfaces_to_mpolys(ID *id,
     material_indices = static_cast<int *>(CustomData_add_layer_named(
         pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index"));
   }
+  bool *sharp_faces = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(pdata, CD_PROP_BOOL, "sharp_face", totpoly));
+  if (!sharp_faces) {
+    sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
+        pdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, totpoly, "sharp_face"));
+  }
 
   numTex = CustomData_number_of_layers(fdata, CD_MTFACE);
   numCol = CustomData_number_of_layers(fdata, CD_MCOL);
@@ -491,7 +497,7 @@ static void convert_mfaces_to_mpolys(ID *id,
     poly->totloop = mf->v4 ? 4 : 3;
 
     material_indices[i] = mf->mat_nr;
-    poly->flag = mf->flag;
+    sharp_faces[i] = (mf->flag & ME_SMOOTH) == 0;
 
 #define ML(v1, v2) \
   { \
@@ -975,6 +981,8 @@ static int mesh_tessface_calc(Mesh &mesh,
   mloop = (const MLoop *)CustomData_get_layer(ldata, CD_MLOOP);
   const int *material_indices = static_cast<const int *>(
       CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+  const bool *sharp_faces = static_cast<const bool *>(
+      CustomData_get_layer_named(pdata, CD_PROP_BOOL, "sharp_face"));
 
   /* Allocate the length of `totfaces`, avoid many small reallocation's,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
@@ -1014,7 +1022,7 @@ static int mesh_tessface_calc(Mesh &mesh,
     lidx[2] = l3; \
     lidx[3] = 0; \
     mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
-    mf->flag = poly->flag; \
+    mf->flag = (sharp_faces && sharp_faces[poly_index]) ? 0 : ME_SMOOTH; \
     mf->edcode = 0; \
     (void)0
 
@@ -1037,7 +1045,7 @@ static int mesh_tessface_calc(Mesh &mesh,
     lidx[2] = l3; \
     lidx[3] = l4; \
     mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
-    mf->flag = poly->flag; \
+    mf->flag = (sharp_faces && sharp_faces[poly_index]) ? 0 : ME_SMOOTH; \
     mf->edcode = TESSFACE_IS_QUAD; \
     (void)0
 
@@ -1123,7 +1131,6 @@ static int mesh_tessface_calc(Mesh &mesh,
         lidx[3] = 0;
 
         mf->mat_nr = material_indices ? material_indices[poly_index] : 0;
-        mf->flag = poly->flag;
         mf->edcode = 0;
 
         mface_index++;
@@ -1209,6 +1216,57 @@ void BKE_mesh_tessface_ensure(struct Mesh *mesh)
 {
   if (mesh->totpoly && mesh->totface == 0) {
     BKE_mesh_tessface_calc(mesh);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sharp Edge Conversion
+ * \{ */
+
+void BKE_mesh_legacy_sharp_faces_to_flags(Mesh *mesh)
+{
+  using namespace blender;
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  if (const bool *sharp_faces = static_cast<const bool *>(
+          CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"))) {
+    threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        SET_FLAG_FROM_TEST(polys[i].flag_legacy, !sharp_faces[i], ME_SMOOTH);
+      }
+    });
+  }
+  else {
+    for (const int i : polys.index_range()) {
+      polys[i].flag_legacy |= ME_SMOOTH;
+    }
+  }
+}
+
+void BKE_mesh_legacy_sharp_faces_from_flags(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const Span<MPoly> polys = mesh->polys();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (attributes.contains("sharp_face")) {
+    return;
+  }
+  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
+        return !(poly.flag_legacy & ME_SMOOTH);
+      })) {
+    SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_only_span<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE);
+    threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        sharp_faces.span[i] = !(polys[i].flag_legacy & ME_SMOOTH);
+      }
+    });
+    sharp_faces.finish();
+  }
+  else {
+    attributes.remove("sharp_face");
   }
 }
 
@@ -1496,7 +1554,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(polys[i].flag, hide_poly[i], ME_HIDE);
+      SET_FLAG_FROM_TEST(polys[i].flag_legacy, hide_poly[i], ME_HIDE);
     }
   });
 }
@@ -1539,13 +1597,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   }
 
   const Span<MPoly> polys = mesh->polys();
-  if (std::any_of(
-          polys.begin(), polys.end(), [](const MPoly &poly) { return poly.flag & ME_HIDE; })) {
+  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
+        return poly.flag_legacy & ME_HIDE;
+      })) {
     SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_poly", ATTR_DOMAIN_FACE);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_poly.span[i] = polys[i].flag & ME_HIDE;
+        hide_poly.span[i] = polys[i].flag_legacy & ME_HIDE;
       }
     });
     hide_poly.finish();
@@ -1814,7 +1873,7 @@ void BKE_mesh_legacy_convert_selection_layers_to_flags(Mesh *mesh)
       ".select_poly", ATTR_DOMAIN_FACE, false);
   threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(polys[i].flag, select_poly[i], ME_FACE_SEL);
+      SET_FLAG_FROM_TEST(polys[i].flag_legacy, select_poly[i], ME_FACE_SEL);
     }
   });
 }
@@ -1858,13 +1917,14 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   }
 
   const Span<MPoly> polys = mesh->polys();
-  if (std::any_of(
-          polys.begin(), polys.end(), [](const MPoly &poly) { return poly.flag & ME_FACE_SEL; })) {
+  if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
+        return poly.flag_legacy & ME_FACE_SEL;
+      })) {
     SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".select_poly", ATTR_DOMAIN_FACE);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        select_poly.span[i] = polys[i].flag & ME_FACE_SEL;
+        select_poly.span[i] = polys[i].flag_legacy & ME_FACE_SEL;
       }
     });
     select_poly.finish();

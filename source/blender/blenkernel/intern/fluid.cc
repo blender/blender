@@ -23,7 +23,7 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
@@ -3213,16 +3213,8 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   float size[3];
   float cell_size_scaled[3];
 
-  /* Assign material + flags to new mesh.
-   * If there are no faces in original mesh, keep materials and flags unchanged. */
-  MPoly mp_example = {0};
-  if (MPoly *polys = BKE_mesh_polys_for_write(orgmesh)) {
-    mp_example = *polys;
-  }
-
   const int *orig_material_indices = BKE_mesh_material_indices(orgmesh);
   const short mp_mat_nr = orig_material_indices ? orig_material_indices[0] : 0;
-  const char mp_flag = mp_example.flag;
 
   int i;
   int num_verts, num_faces;
@@ -3250,6 +3242,10 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
   blender::MutableSpan<MPoly> polys = me->polys_for_write();
   blender::MutableSpan<MLoop> loops = me->loops_for_write();
+
+  const bool is_sharp = orgmesh->attributes().lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false)[0];
+  BKE_mesh_smooth_flag_set(me, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3338,7 +3334,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   for (const int i : polys.index_range()) {
     /* Initialize from existing face. */
     material_indices[i] = mp_mat_nr;
-    polys[i].flag = mp_flag;
 
     polys[i].loopstart = i * 3;
     polys[i].totloop = 3;

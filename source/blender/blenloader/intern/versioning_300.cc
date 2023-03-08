@@ -14,6 +14,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_multi_value_map.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -928,6 +929,139 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
                 store_attribute_geometry_input);
     nodeAddLink(
         &ntree, node, uv_map_output_socket, store_attribute_node, store_attribute_value_input);
+  }
+
+  /* Move nodes to the front so that they are drawn behind existing nodes. */
+  for (bNode *node : new_nodes) {
+    BLI_remlink(&ntree.nodes, node);
+    BLI_addhead(&ntree.nodes, node);
+  }
+  if (!new_nodes.is_empty()) {
+    nodeRebuildIDVector(&ntree);
+  }
+}
+
+/**
+ * When extruding from loose edges, the extrude geometry node used to create flat faces due to the
+ * default of the old "shade_smooth" attribute. Since the "false" value has changed with the
+ * "sharp_face" attribute, add nodes to propagate the new attribute in its inverted "smooth" form.
+ */
+static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
+{
+  using namespace blender;
+  Vector<bNode *> new_nodes;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (node->idname != StringRef("GeometryNodeExtrudeMesh")) {
+      continue;
+    }
+    if (static_cast<const NodeGeometryExtrudeMesh *>(node->storage)->mode !=
+        GEO_NODE_EXTRUDE_MESH_EDGES) {
+      continue;
+    }
+    bNodeSocket *geometry_in_socket = nodeFindSocket(node, SOCK_IN, "Mesh");
+    bNodeSocket *geometry_out_socket = nodeFindSocket(node, SOCK_OUT, "Mesh");
+
+    Map<bNodeSocket *, bNodeLink *> in_links_per_socket;
+    MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+      in_links_per_socket.add(link->tosock, link);
+      out_links_per_socket.add(link->fromsock, link);
+    }
+
+    bNodeLink *geometry_in_link = in_links_per_socket.lookup_default(geometry_in_socket, nullptr);
+    Span<bNodeLink *> geometry_out_links = out_links_per_socket.lookup(geometry_out_socket);
+    if (!geometry_in_link || geometry_out_links.is_empty()) {
+      continue;
+    }
+
+    const bool versioning_already_done = [&]() {
+      if (geometry_in_link->fromnode->idname != StringRef("GeometryNodeCaptureAttribute")) {
+        return false;
+      }
+      bNode *capture_node = geometry_in_link->fromnode;
+      const NodeGeometryAttributeCapture &capture_storage =
+          *static_cast<const NodeGeometryAttributeCapture *>(capture_node->storage);
+      if (capture_storage.data_type != CD_PROP_BOOL ||
+          capture_storage.domain != ATTR_DOMAIN_FACE) {
+        return false;
+      }
+      bNodeSocket *capture_in_socket = nodeFindSocket(capture_node, SOCK_IN, "Value_003");
+      bNodeLink *capture_in_link = in_links_per_socket.lookup_default(capture_in_socket, nullptr);
+      if (!capture_in_link) {
+        return false;
+      }
+      if (capture_in_link->fromnode->idname != StringRef("GeometryNodeInputShadeSmooth")) {
+        return false;
+      }
+      if (geometry_out_links.size() != 1) {
+        return false;
+      }
+      bNodeLink *geometry_out_link = geometry_out_links.first();
+      if (geometry_out_link->tonode->idname != StringRef("GeometryNodeSetShadeSmooth")) {
+        return false;
+      }
+      bNode *set_smooth_node = geometry_out_link->tonode;
+      bNodeSocket *smooth_in_socket = nodeFindSocket(set_smooth_node, SOCK_IN, "Shade Smooth");
+      bNodeLink *connecting_link = in_links_per_socket.lookup_default(smooth_in_socket, nullptr);
+      if (!connecting_link) {
+        return false;
+      }
+      if (connecting_link->fromnode != capture_node) {
+        return false;
+      }
+      return true;
+    }();
+    if (versioning_already_done) {
+      continue;
+    }
+
+    bNode *capture_node = nodeAddNode(nullptr, &ntree, "GeometryNodeCaptureAttribute");
+    capture_node->parent = node->parent;
+    capture_node->locx = node->locx - 25;
+    capture_node->locy = node->locy;
+    new_nodes.append(capture_node);
+    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->data_type = CD_PROP_BOOL;
+    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->domain = ATTR_DOMAIN_FACE;
+
+    bNode *is_smooth_node = nodeAddNode(nullptr, &ntree, "GeometryNodeInputShadeSmooth");
+    is_smooth_node->parent = node->parent;
+    is_smooth_node->locx = capture_node->locx - 25;
+    is_smooth_node->locy = capture_node->locy;
+    new_nodes.append(is_smooth_node);
+    nodeAddLink(&ntree,
+                is_smooth_node,
+                nodeFindSocket(is_smooth_node, SOCK_OUT, "Smooth"),
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_IN, "Value_003"));
+    nodeAddLink(&ntree,
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_OUT, "Geometry"),
+                capture_node,
+                geometry_in_socket);
+    geometry_in_link->tonode = capture_node;
+    geometry_in_link->tosock = nodeFindSocket(capture_node, SOCK_IN, "Geometry");
+
+    bNode *set_smooth_node = nodeAddNode(nullptr, &ntree, "GeometryNodeSetShadeSmooth");
+    set_smooth_node->parent = node->parent;
+    set_smooth_node->locx = node->locx + 25;
+    set_smooth_node->locy = node->locy;
+    new_nodes.append(set_smooth_node);
+    nodeAddLink(&ntree,
+                node,
+                geometry_out_socket,
+                set_smooth_node,
+                nodeFindSocket(set_smooth_node, SOCK_IN, "Geometry"));
+
+    bNodeSocket *smooth_geometry_out = nodeFindSocket(set_smooth_node, SOCK_OUT, "Geometry");
+    for (bNodeLink *link : geometry_out_links) {
+      link->fromnode = set_smooth_node;
+      link->fromsock = smooth_geometry_out;
+    }
+    nodeAddLink(&ntree,
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_OUT, "Attribute_003"),
+                set_smooth_node,
+                nodeFindSocket(set_smooth_node, SOCK_IN, "Shade Smooth"));
   }
 
   /* Move nodes to the front so that they are drawn behind existing nodes. */
@@ -4047,5 +4181,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     /* Keep this block, even when empty. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_extrude_smooth_propagation(*ntree);
+      }
+    }
   }
 }

@@ -63,19 +63,20 @@ typedef struct MPoly {
   int totloop;
   /** Deprecated material index. Now stored in the "material_index" attribute, but kept for IO. */
   short mat_nr_legacy;
-  char flag, _pad;
+  char flag_legacy, _pad;
 } MPoly;
 
 /** #MPoly.flag */
-enum {
-  ME_SMOOTH = (1 << 0),
 #ifdef DNA_DEPRECATED_ALLOW
+enum {
+  /** Deprecated smooth shading status. Now stored reversed in "sharp_face" attribute. */
+  ME_SMOOTH = (1 << 0),
   /** Deprecated selection status. Now stored in ".select_poly" attribute. */
   ME_FACE_SEL = (1 << 1),
-#endif
   /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
   /* ME_HIDE = (1 << 4), */
 };
+#endif
 
 /**
  * Mesh Face Corners.

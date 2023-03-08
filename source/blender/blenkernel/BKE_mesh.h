@@ -453,12 +453,15 @@ void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
  *
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with auto-smooth!
+ *
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
  */
 void BKE_edges_sharp_from_angle_set(int numEdges,
                                     const struct MLoop *mloops,
                                     int numLoops,
                                     const struct MPoly *polys,
                                     const float (*poly_normals)[3],
+                                    const bool *sharp_faces,
                                     int numPolys,
                                     float split_angle,
                                     bool *sharp_edges);
@@ -574,6 +577,7 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
  * (splitting edges).
  *
  * \param loop_to_poly_map: Optional pre-created map from loops to their polygon.
+ * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on
  * each side of the edge.
  */
@@ -591,6 +595,7 @@ void BKE_mesh_normals_loop_split(const float (*vert_positions)[3],
                                  bool use_split_normals,
                                  float split_angle,
                                  const bool *sharp_edges,
+                                 const bool *sharp_faces,
                                  const int *loop_to_poly_map,
                                  MLoopNorSpaceArray *r_lnors_spacearr,
                                  short (*clnors_data)[2]);
@@ -605,6 +610,7 @@ void BKE_mesh_normals_loop_custom_set(const float (*vert_positions)[3],
                                       int numLoops,
                                       const struct MPoly *polys,
                                       const float (*poly_normals)[3],
+                                      const bool *sharp_faces,
                                       int numPolys,
                                       bool *sharp_edges,
                                       short (*r_clnors_data)[2]);
@@ -618,6 +624,7 @@ void BKE_mesh_normals_loop_custom_from_verts_set(const float (*vert_positions)[3
                                                  int numLoops,
                                                  const struct MPoly *polys,
                                                  const float (*poly_normals)[3],
+                                                 const bool *sharp_faces,
                                                  int numPolys,
                                                  bool *sharp_edges,
                                                  short (*r_clnors_data)[2]);
