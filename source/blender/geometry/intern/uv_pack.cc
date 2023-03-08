@@ -6,11 +6,14 @@
 
 #include "GEO_uv_pack.hh"
 
+#include "BLI_array.hh"
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -20,21 +23,157 @@
 
 namespace blender::geometry {
 
-static float pack_islands_scale_margin(const Span<PackIsland *> &island_vector,
+/* Compact representation for AABB packers. */
+class UVAABBIsland {
+ public:
+  float2 uv_diagonal;
+  float2 uv_placement;
+  int64_t index;
+};
+
+/**
+ * Pack AABB islands using the "Alpaca" strategy, with no rotation.
+ *
+ * Each box is packed into an "L" shaped region, gradually filling up space.
+ * "Alpaca" is a pun, as it's pronounced the same as "L-Packer" in English.
+ *
+ * In theory, alpaca_turbo should be the fastest non-trivial packer, hence the "turbo" suffix.
+ *
+ * Technically, the algorithm here is only O(n), In practice, to get reasonable results, the input
+ * must be pre-sorted, which costs an additional O(nlogn) time complexity.
+ */
+static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
+                                      float *r_max_u,
+                                      float *r_max_v)
+{
+  /* Exclude an initial AABB near the origin. */
+  float next_u1 = *r_max_u;
+  float next_v1 = *r_max_v;
+  bool zigzag = next_u1 < next_v1; /* Horizontal or Vertical strip? */
+
+  float u0 = zigzag ? next_u1 : 0.0f;
+  float v0 = zigzag ? 0.0f : next_v1;
+
+  /* Visit every island in order. */
+  for (UVAABBIsland *island : islands) {
+    float dsm_u = island->uv_diagonal.x;
+    float dsm_v = island->uv_diagonal.y;
+
+    bool restart = false;
+    if (zigzag) {
+      restart = (next_v1 < v0 + dsm_v);
+    }
+    else {
+      restart = (next_u1 < u0 + dsm_u);
+    }
+    if (restart) {
+      /* We're at the end of a strip. Restart from U axis or V axis. */
+      zigzag = next_u1 < next_v1;
+      u0 = zigzag ? next_u1 : 0.0f;
+      v0 = zigzag ? 0.0f : next_v1;
+    }
+
+    /* Place the island. */
+    island->uv_placement.x = u0;
+    island->uv_placement.y = v0;
+    if (zigzag) {
+      /* Move upwards. */
+      v0 += dsm_v;
+      next_u1 = max_ff(next_u1, u0 + dsm_u);
+      next_v1 = max_ff(next_v1, v0);
+    }
+    else {
+      /* Move sideways. */
+      u0 += dsm_u;
+      next_v1 = max_ff(next_v1, v0 + dsm_v);
+      next_u1 = max_ff(next_u1, u0);
+    }
+  }
+
+  /* Write back total pack AABB. */
+  *r_max_u = next_u1;
+  *r_max_v = next_v1;
+}
+
+static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                                        BoxPack *box_array,
                                        const float scale,
                                        const float margin)
 {
-  for (const int64_t index : island_vector.index_range()) {
-    PackIsland *island = island_vector[index];
-    BoxPack *box = &box_array[index];
-    box->index = int(index);
-    box->w = BLI_rctf_size_x(&island->bounds_rect) * scale + 2 * margin;
-    box->h = BLI_rctf_size_y(&island->bounds_rect) * scale + 2 * margin;
+  /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has O(n^3)
+   * time complexity, causing poor performance if there are lots of islands. See: #102843.
+   * #pack_islands_alpaca_turbo is designed to be the fastest packing method, O(nlogn),
+   * but has poor packing efficiency if the AABBs have a spread of sizes and aspect ratios.
+   * Here, we merge the best properties of both packers into one combined packer.
+
+   * The free tuning parameter, `alpaca_cutoff` will determine how many islands are packed
+   * using each method.
+
+   * The current strategy is:
+     * - Sort islands in size order.
+     * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
+     * - Call #pack_islands_alpaca_turbo on the remaining islands.
+     * - Combine results.
+
+   */
+
+  /* First, copy information from our input into the AABB structure. */
+  Array<UVAABBIsland *> aabbs(islands.size());
+  for (const int64_t i : islands.index_range()) {
+    PackIsland *pack_island = islands[i];
+    UVAABBIsland *aabb = new UVAABBIsland();
+    aabb->index = i;
+    aabb->uv_diagonal.x = BLI_rctf_size_x(&pack_island->bounds_rect) * scale + 2 * margin;
+    aabb->uv_diagonal.y = BLI_rctf_size_y(&pack_island->bounds_rect) * scale + 2 * margin;
+    aabbs[i] = aabb;
   }
-  float max_u, max_v;
-  BLI_box_pack_2d(box_array, int(island_vector.size()), &max_u, &max_v);
-  return max_ff(max_u, max_v);
+
+  /* Sort from "biggest" to "smallest". */
+  std::stable_sort(aabbs.begin(), aabbs.end(), [](const UVAABBIsland *a, const UVAABBIsland *b) {
+    /* Just choose the AABB with larger rectangular area. */
+    return b->uv_diagonal.x * b->uv_diagonal.y < a->uv_diagonal.x * a->uv_diagonal.y;
+  });
+
+  /* Partition island_vector, largest will go to box_pack, the rest alpaca_turbo.
+   * See discussion above for details. */
+  const int64_t alpaca_cutoff = int64_t(1024); /* TODO: Tune constant. */
+  int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
+
+  /* Prepare for box_pack_2d. */
+  for (const int64_t i : islands.index_range()) {
+    UVAABBIsland *aabb = aabbs[i];
+    BoxPack *box = &box_array[i];
+    box->index = int(aabb->index);
+    box->w = aabb->uv_diagonal.x;
+    box->h = aabb->uv_diagonal.y;
+  }
+
+  /* Call box_pack_2d (slow for large N.) */
+  float max_u = 0.0f;
+  float max_v = 0.0f;
+  BLI_box_pack_2d(box_array, int(max_box_pack), &max_u, &max_v);
+
+  /* At this stage, `max_u` and `max_v` contain the box_pack UVs. */
+
+  /* Call Alpaca. */
+  pack_islands_alpaca_turbo(aabbs.as_span().drop_front(max_box_pack), &max_u, &max_v);
+
+  /* Write back Alpaca UVs. */
+  for (int64_t index = max_box_pack; index < aabbs.size(); index++) {
+    UVAABBIsland *aabb = aabbs[index];
+    BoxPack *box = &box_array[index];
+    box->x = aabb->uv_placement.x;
+    box->y = aabb->uv_placement.y;
+  }
+
+  /* Memory management. */
+  for (int64_t i : aabbs.index_range()) {
+    UVAABBIsland *aabb = aabbs[i];
+    aabbs[i] = nullptr;
+    delete aabb;
+  }
+
+  return std::max(max_u, max_v);
 }
 
 static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vector,
@@ -102,7 +241,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
       }
     }
 
-    scale = max_ff(scale, min_scale_roundoff);
+    scale = std::max(scale, min_scale_roundoff);
 
     /* Evaluate our `f`. */
     scale_last = scale;
