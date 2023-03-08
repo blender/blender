@@ -632,10 +632,9 @@ void wm_file_read_report(bContext *C, Main *bmain)
  * \note In the case of #WM_file_read the file may fail to load.
  * Change here shouldn't cause user-visible changes in that case.
  */
-static void wm_file_read_pre(bContext *C, bool use_data, bool /*use_userdef*/)
+static void wm_file_read_pre(bool use_data, bool /*use_userdef*/)
 {
   if (use_data) {
-    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
     BLI_timer_on_file_load();
   }
 
@@ -656,6 +655,10 @@ struct wmFileReadPost_Params {
   uint is_startup_file : 1;
   uint is_factory_startup : 1;
   uint reset_app_template : 1;
+
+  /* Used by #wm_homefile_read_post */
+  uint success : 1;
+  uint is_alloc : 1;
 };
 
 /**
@@ -747,7 +750,6 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   if (use_data) {
     /* important to do before nullptr'ing the context */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_POST);
     if (is_factory_startup) {
       BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
@@ -944,6 +946,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   const bool use_data = true;
   const bool use_userdef = false;
 
+  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+
   /* so we can get the error message */
   errno = 0;
 
@@ -968,7 +974,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     bf_reports.duration.whole = PIL_check_seconds_timer();
     struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
-      wm_file_read_pre(C, use_data, use_userdef);
+      wm_file_read_pre(use_data, use_userdef);
 
       /* Put aside screens to match with persistent windows later,
        * also exit screens and editors. */
@@ -1004,6 +1010,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.is_startup_file = false;
       read_file_post_params.is_factory_startup = false;
       read_file_post_params.reset_app_template = false;
+      read_file_post_params.success = true;
+      read_file_post_params.is_alloc = false;
       wm_file_read_post(C, &read_file_post_params);
 
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
@@ -1048,7 +1056,11 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(false);
 
-  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_string(
+      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  BLI_assert(BKE_main_namemap_validate(bmain));
 
   return success;
 }
@@ -1178,10 +1190,16 @@ void wm_homefile_read_ex(bContext *C,
 #endif /* WITH_PYTHON */
   }
 
+  if (use_data) {
+    /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+     * This runs from #wm_homefile_read_post. */
+    BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, "");
+  }
+
   /* For regular file loading this only runs after the file is successfully read.
    * In the case of the startup file, the in-memory startup file is used as a fallback
    * so we know this will work if all else fails. */
-  wm_file_read_pre(C, use_data, use_userdef);
+  wm_file_read_pre(use_data, use_userdef);
 
   if (use_data) {
     /* put aside screens to match with persistent windows later */
@@ -1392,10 +1410,14 @@ void wm_homefile_read_ex(bContext *C,
     params_file_read_post.is_factory_startup = is_factory_startup;
     params_file_read_post.reset_app_template = reset_app_template;
 
+    params_file_read_post.success = success;
+    params_file_read_post.is_alloc = false;
+
     if (r_params_file_read_post == nullptr) {
-      wm_file_read_post(C, &params_file_read_post);
+      wm_homefile_read_post(C, &params_file_read_post);
     }
     else {
+      params_file_read_post.is_alloc = true;
       *r_params_file_read_post = static_cast<wmFileReadPost_Params *>(
           MEM_mallocN(sizeof(wmFileReadPost_Params), __func__));
       **r_params_file_read_post = params_file_read_post;
@@ -1417,7 +1439,17 @@ void wm_homefile_read_post(struct bContext *C,
                            const struct wmFileReadPost_Params *params_file_read_post)
 {
   wm_file_read_post(C, params_file_read_post);
-  MEM_freeN((void *)params_file_read_post);
+
+  if (params_file_read_post->use_data) {
+    BKE_callback_exec_string(CTX_data_main(C),
+                             params_file_read_post->success ? BKE_CB_EVT_LOAD_POST :
+                                                              BKE_CB_EVT_LOAD_POST_FAIL,
+                             "");
+  }
+
+  if (params_file_read_post->is_alloc) {
+    MEM_freeN((void *)params_file_read_post);
+  }
 }
 
 /** \} */
@@ -1820,7 +1852,10 @@ static bool wm_file_write(bContext *C,
 
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+
+  /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, filepath);
   ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
@@ -1906,8 +1941,6 @@ static bool wm_file_write(bContext *C,
       wm_history_file_update();
     }
 
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
-
     /* run this function after because the file can't be written before the blend is */
     if (ibuf_thumb) {
       IMB_thumb_delete(filepath, THB_FAIL); /* without this a failed thumb overrides */
@@ -1920,6 +1953,8 @@ static bool wm_file_write(bContext *C,
     /* Success. */
     ok = true;
   }
+
+  BKE_callback_exec_string(bmain, ok ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL, filepath);
 
   if (ibuf_thumb) {
     IMB_freeImBuf(ibuf_thumb);
@@ -2154,7 +2189,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, "");
   ED_assets_pre_save(bmain);
 
   /* check current window and close it if temp */
@@ -2181,17 +2218,17 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   blend_write_params.remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE;
   /* Don't apply any path changes to the current blend file. */
   blend_write_params.use_save_as_copy = true;
-  if (BLO_write_file(bmain, filepath, fileflags, &blend_write_params, op->reports) == 0) {
-    printf("fail\n");
-    return OPERATOR_CANCELLED;
+  const bool ok = BLO_write_file(bmain, filepath, fileflags, &blend_write_params, op->reports);
+
+  BKE_callback_exec_string(bmain, ok ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL, "");
+
+  if (ok) {
+    printf("ok\n");
+    BKE_report(op->reports, RPT_INFO, "Startup file saved");
+    return OPERATOR_FINISHED;
   }
-
-  printf("ok\n");
-  BKE_report(op->reports, RPT_INFO, "Startup file saved");
-
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
-
-  return OPERATOR_FINISHED;
+  printf("fail\n");
+  return OPERATOR_CANCELLED;
 }
 
 void WM_OT_save_homefile(wmOperatorType *ot)
