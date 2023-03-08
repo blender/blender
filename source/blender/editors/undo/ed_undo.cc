@@ -178,7 +178,7 @@ static void ed_undo_step_pre(bContext *C,
 
   if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
-    if (obact && (obact->type == OB_GPENCIL)) {
+    if (obact && (obact->type == OB_GPENCIL_LEGACY)) {
       ED_gpencil_toggle_brush_cursor(C, false, nullptr);
     }
   }
@@ -212,7 +212,7 @@ static void ed_undo_step_post(bContext *C,
   /* Set special modes for grease pencil */
   if (area != nullptr && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
-    if (obact && (obact->type == OB_GPENCIL)) {
+    if (obact && (obact->type == OB_GPENCIL_LEGACY)) {
       /* set cursor */
       if (obact->mode & OB_MODE_ALL_PAINT_GPENCIL) {
         ED_gpencil_toggle_brush_cursor(C, true, nullptr);

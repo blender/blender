@@ -86,7 +86,7 @@ static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
   }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == nullptr) || !ELEM(obact->type, OB_GPENCIL, OB_EMPTY)) {
+  if ((obact == nullptr) || !ELEM(obact->type, OB_GPENCIL_LEGACY, OB_EMPTY)) {
     return false;
   }
 
@@ -135,7 +135,7 @@ static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *o
   ListBase *lb;
   lb = object_duplilist(depsgraph, scene, ob);
   LISTBASE_FOREACH (DupliObject *, dob, lb) {
-    if (dob->ob->type != OB_GPENCIL) {
+    if (dob->ob->type != OB_GPENCIL_LEGACY) {
       continue;
     }
 
@@ -154,7 +154,7 @@ static void gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
   /* Add active object. In some files this could not be in selected array. */
   Object *obact = CTX_data_active_object(C);
 
-  if (obact->type == OB_GPENCIL) {
+  if (obact->type == OB_GPENCIL_LEGACY) {
     elem = MEM_cnew<GpBakeOb>(__func__);
     elem->ob = obact;
     BLI_addtail(list, elem);
@@ -170,7 +170,7 @@ static void gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
       continue;
     }
     /* Add selected objects. */
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       elem = MEM_cnew<GpBakeOb>(__func__);
       elem->ob = ob;
       BLI_addtail(list, elem);

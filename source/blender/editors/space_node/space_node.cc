@@ -950,7 +950,7 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
       snode->from = new_id;
     }
   }
-  else if (GS(old_id->name) == ID_GD) {
+  else if (GS(old_id->name) == ID_GD_LEGACY) {
     if ((ID *)snode->gpd == old_id) {
       snode->gpd = (bGPdata *)new_id;
       id_us_min(old_id);

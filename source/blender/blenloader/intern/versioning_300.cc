@@ -385,7 +385,7 @@ static void assert_sorted_ids(Main *bmain)
 static void move_vertex_group_names_to_object_data(Main *bmain)
 {
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY)) {
       ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
 
       /* Choose the longest vertex group name list among all linked duplicates. */
@@ -1044,7 +1044,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
     /* This was missing from #move_vertex_group_names_to_object_data. */
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY)) {
         /* This uses the fact that the active vertex group index starts counting at 1. */
         if (BKE_object_defgroup_active_index_get(object) == 0) {
           BKE_object_defgroup_active_index_set(object, object->actdef);
@@ -2347,7 +2347,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             }
           }
         }
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
@@ -2542,7 +2542,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_elem_find(
             fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;

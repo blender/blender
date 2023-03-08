@@ -111,7 +111,7 @@ void GPENCIL_engine_init(void *ved)
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If Vertex Paint mode, use always Vertex mode. */
-    if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL &&
+    if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL_LEGACY &&
         ctx->obact->mode == OB_MODE_VERTEX_GPENCIL) {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
@@ -235,7 +235,7 @@ void GPENCIL_cache_init(void *ved)
     pd->do_fast_drawing = false;
 
     pd->obact = draw_ctx->obact;
-    if (pd->obact && pd->obact->type == OB_GPENCIL && !(pd->draw_depth_only)) {
+    if (pd->obact && pd->obact->type == OB_GPENCIL_LEGACY && !(pd->draw_depth_only)) {
       /* Check if active object has a temp stroke data. */
       bGPdata *gpd = (bGPdata *)pd->obact->data;
       if (gpd->runtime.sbuffer_used > 0) {
@@ -592,7 +592,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     return;
   }
 
-  if (ob->data && (ob->type == OB_GPENCIL) && (ob->dt >= OB_SOLID)) {
+  if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
     gpIterPopulateData iter = {0};
     iter.ob = ob;
     iter.pd = pd;
@@ -917,7 +917,7 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != NULL) &&
-      (pd->obact->type == OB_GPENCIL)) {
+      (pd->obact->type == OB_GPENCIL_LEGACY)) {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);
     /* Blend color. */

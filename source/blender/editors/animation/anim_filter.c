@@ -1847,7 +1847,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     /* Only consider this object if it has got some GP data (saving on all the other tests) */
-    if (base->object && (base->object->type == OB_GPENCIL)) {
+    if (base->object && (base->object->type == OB_GPENCIL_LEGACY)) {
       Object *ob = base->object;
 
       /* firstly, check if object can be included, by the following factors:
@@ -2806,7 +2806,7 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* object data */
-    if ((ob->data) && (ob->type != OB_GPENCIL)) {
+    if ((ob->data) && (ob->type != OB_GPENCIL_LEGACY)) {
       tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
     }
 
@@ -2816,7 +2816,8 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* grease pencil */
-    if ((ob->type == OB_GPENCIL) && (ob->data) && !(ads->filterflag & ADS_FILTER_NOGPENCIL)) {
+    if ((ob->type == OB_GPENCIL_LEGACY) && (ob->data) &&
+        !(ads->filterflag & ADS_FILTER_NOGPENCIL)) {
       tmp_items += animdata_filter_ds_gpencil(ac, &tmp_data, ads, ob->data, filter_mode);
     }
   }

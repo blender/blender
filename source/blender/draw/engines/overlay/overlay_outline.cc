@@ -311,7 +311,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     return;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     OVERLAY_outline_gpencil(pd, ob);
     return;
   }

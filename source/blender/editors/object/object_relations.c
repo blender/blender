@@ -733,7 +733,7 @@ bool ED_object_parent_set(ReportList *reports,
 
     invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
-  else if (is_armature_parent && (ob->type == OB_GPENCIL) && (par->type == OB_ARMATURE)) {
+  else if (is_armature_parent && (ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE) {
       ED_gpencil_add_armature(C, reports, ob, par);
     }
@@ -751,7 +751,7 @@ bool ED_object_parent_set(ReportList *reports,
 
     invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
-  else if ((ob->type == OB_GPENCIL) && (par->type == OB_LATTICE)) {
+  else if ((ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_LATTICE)) {
     /* Add Lattice modifier */
     if (partype == PAR_LATTICE) {
       ED_gpencil_add_lattice_modifier(C, reports, ob, par);
@@ -965,7 +965,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     if (child->type == OB_MESH) {
       has_children_of_type.mesh = true;
     }
-    if (child->type == OB_GPENCIL) {
+    if (child->type == OB_GPENCIL_LEGACY) {
       has_children_of_type.gpencil = true;
     }
     if (child->type == OB_CURVES) {
@@ -1432,7 +1432,7 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
           /* Linking non-grease-pencil materials to a grease-pencil object causes issues.
            * We make sure that if one of the objects is a grease-pencil object, the other must be
            * as well. */
-          ((ob_src->type == OB_GPENCIL) == (ob_dst->type == OB_GPENCIL))) {
+          ((ob_src->type == OB_GPENCIL_LEGACY) == (ob_dst->type == OB_GPENCIL_LEGACY))) {
         return true;
       }
       break;
@@ -1456,7 +1456,7 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
       }
       break;
     case MAKE_LINKS_SHADERFX:
-      if ((ob_src->type == OB_GPENCIL) && (ob_dst->type == OB_GPENCIL)) {
+      if ((ob_src->type == OB_GPENCIL_LEGACY) && (ob_dst->type == OB_GPENCIL_LEGACY)) {
         return true;
       }
       break;
@@ -1892,7 +1892,7 @@ static void single_obdata_users(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
-          case OB_GPENCIL:
+          case OB_GPENCIL_LEGACY:
             ob->data = ID_NEW_SET(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));

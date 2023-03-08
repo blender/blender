@@ -366,7 +366,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_vgroup_remove(ob, defgroup);
   }
   else {

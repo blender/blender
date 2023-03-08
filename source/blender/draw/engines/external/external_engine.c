@@ -195,7 +195,7 @@ static void external_cache_populate(void *vedata, Object *ob)
     return;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* Grease Pencil objects need correct depth to do the blending. */
     stl->g_data->need_depth = true;
     return;

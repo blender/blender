@@ -278,7 +278,7 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
-  if (ob_active->type == OB_GPENCIL) {
+  if (ob_active->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData virtualModifierData;
     GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob_active,
                                                                              &virtualModifierData);

@@ -296,10 +296,10 @@ static void greasepencil_blend_read_expand(BlendExpander *expander, ID *id)
   }
 }
 
-IDTypeInfo IDType_ID_GD = {
-    .id_code = ID_GD,
-    .id_filter = FILTER_ID_GD,
-    .main_listbase_index = INDEX_ID_GD,
+IDTypeInfo IDType_ID_GD_LEGACY = {
+    .id_code = ID_GD_LEGACY,
+    .id_filter = FILTER_ID_GD_LEGACY,
+    .main_listbase_index = INDEX_ID_GD_LEGACY,
     .struct_size = sizeof(bGPdata),
     .name = "GPencil",
     .name_plural = "grease_pencils",
@@ -707,7 +707,7 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
   bGPdata *gpd;
 
   /* allocate memory for a new block */
-  gpd = BKE_libblock_alloc(bmain, ID_GD, name, 0);
+  gpd = BKE_libblock_alloc(bmain, ID_GD_LEGACY, name, 0);
 
   /* initial settings */
   gpd->flag = (GP_DATA_DISPINFO | GP_DATA_EXPAND);
@@ -2710,7 +2710,7 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
 
   /* if not layer parented, try with object parented */
   if (obparent_eval == NULL) {
-    if ((ob_eval != NULL) && (ob_eval->type == OB_GPENCIL)) {
+    if ((ob_eval != NULL) && (ob_eval->type == OB_GPENCIL_LEGACY)) {
       copy_m4_m4(diff_mat, ob_eval->object_to_world);
       mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
       return;
@@ -2748,7 +2748,7 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
 
 void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
 {
-  if (ob->type != OB_GPENCIL) {
+  if (ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
 

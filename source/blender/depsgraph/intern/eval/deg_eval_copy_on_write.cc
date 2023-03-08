@@ -739,7 +739,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
     }
     /* FIXME: This is a temporary fix to update the runtime pointers properly, see #96216. Should
      * be removed at some point. */
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd_cow = (bGPdata *)id_cow;
       bGPDlayer *gpl = (bGPDlayer *)(gpd_cow->layers.first);
       if (gpl != nullptr && gpl->runtime.gpl_orig == nullptr) {
@@ -892,8 +892,8 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
     }
     /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
      * pencil data to do an update-on-write. */
-    if (id_type == ID_GD && BKE_gpencil_can_avoid_full_copy_on_write(
-                                (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
+    if (id_type == ID_GD_LEGACY && BKE_gpencil_can_avoid_full_copy_on_write(
+                                       (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
       BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
       return id_cow;
     }

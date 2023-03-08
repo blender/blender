@@ -461,7 +461,7 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
       xod_base = &xod->base;
       break;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd = (bGPdata *)id;
       const int elem_array_len = BKE_gpencil_stroke_point_count(gpd);
       XFormObjectData_GPencil *xod = static_cast<XFormObjectData_GPencil *>(
@@ -619,7 +619,7 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float 
       metaball_coords_and_quats_apply_with_mat4(mb, xod->elem_array, mat);
       break;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd = (bGPdata *)xod_base->id;
       XFormObjectData_GPencil *xod = (XFormObjectData_GPencil *)xod_base;
       BKE_gpencil_point_coords_apply_with_mat4(gpd, xod->elem_array, mat);
@@ -718,7 +718,7 @@ void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
       metaball_coords_and_quats_apply(mb, xod->elem_array);
       break;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd = (bGPdata *)xod_base->id;
       XFormObjectData_GPencil *xod = (XFormObjectData_GPencil *)xod_base;
       BKE_gpencil_point_coords_apply(gpd, xod->elem_array);
@@ -770,7 +770,7 @@ void ED_object_data_xform_tag_update(struct XFormObjectData *xod_base)
       DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
       break;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       /* Generic update. */
       bGPdata *gpd = (bGPdata *)xod_base->id;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);

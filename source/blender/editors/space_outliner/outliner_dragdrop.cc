@@ -636,7 +636,7 @@ static int material_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
   }
 
   /* only drop grease pencil material on grease pencil objects */
-  if ((ma->gp_style != nullptr) && (ob->type != OB_GPENCIL)) {
+  if ((ma->gp_style != nullptr) && (ob->type != OB_GPENCIL_LEGACY)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -828,7 +828,7 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER_BASE:
     case TSE_MODIFIER:
-      return (ob_parent->type == OB_GPENCIL) == (ob_dst->type == OB_GPENCIL);
+      return (ob_parent->type == OB_GPENCIL_LEGACY) == (ob_dst->type == OB_GPENCIL_LEGACY);
       break;
     case TSE_CONSTRAINT_BASE:
     case TSE_CONSTRAINT:
@@ -836,7 +836,7 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
       break;
     case TSE_GPENCIL_EFFECT_BASE:
     case TSE_GPENCIL_EFFECT:
-      return ob_parent->type == OB_GPENCIL && ob_dst->type == OB_GPENCIL;
+      return ob_parent->type == OB_GPENCIL_LEGACY && ob_dst->type == OB_GPENCIL_LEGACY;
       break;
   }
 
@@ -949,7 +949,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
       break;
     }
     case TSE_GPENCIL_EFFECT_BASE:
-      if (ob_dst->type != OB_GPENCIL) {
+      if (ob_dst->type != OB_GPENCIL_LEGACY) {
         return;
       }
 
@@ -967,11 +967,12 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
 
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
-      if (drop_data->ob_parent->type == OB_GPENCIL && ob_dst->type == OB_GPENCIL) {
+      if (drop_data->ob_parent->type == OB_GPENCIL_LEGACY && ob_dst->type == OB_GPENCIL_LEGACY) {
         ED_object_gpencil_modifier_copy_to_object(
             ob_dst, static_cast<GpencilModifierData *>(drop_data->drag_directdata));
       }
-      else if (drop_data->ob_parent->type != OB_GPENCIL && ob_dst->type != OB_GPENCIL) {
+      else if (drop_data->ob_parent->type != OB_GPENCIL_LEGACY &&
+               ob_dst->type != OB_GPENCIL_LEGACY) {
         ED_object_modifier_copy_to_object(C,
                                           ob_dst,
                                           drop_data->ob_parent,
@@ -992,7 +993,7 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
       }
       break;
     case TSE_GPENCIL_EFFECT: {
-      if (ob_dst->type != OB_GPENCIL) {
+      if (ob_dst->type != OB_GPENCIL_LEGACY) {
         return;
       }
 
@@ -1019,7 +1020,7 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
   int index = 0;
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
         index = outliner_get_insert_index(
             drag_te, drop_te, insert_type, &ob->greasepencil_modifiers);
         ED_object_gpencil_modifier_move_to_index(

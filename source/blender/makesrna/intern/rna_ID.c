@@ -40,7 +40,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_CV, "CURVES", ICON_CURVES_DATA, "Curves", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-    {ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
@@ -128,7 +128,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
     {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
     {FILTER_ID_CU_LEGACY, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
-    {FILTER_ID_GD,
+    {FILTER_ID_GD_LEGACY,
      "filter_grease_pencil",
      ICON_GREASEPENCIL,
      "Grease Pencil",
@@ -361,7 +361,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
     return ID_CU_LEGACY;
   }
   if (base_type == &RNA_GreasePencil) {
-    return ID_GD;
+    return ID_GD_LEGACY;
   }
   if (base_type == &RNA_Collection) {
     return ID_GR;
@@ -482,7 +482,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_CacheFile;
     case ID_CU_LEGACY:
       return &RNA_Curve;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
