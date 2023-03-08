@@ -50,10 +50,10 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const MPoly *poly = &data->polys[poly_corner->poly_index];
-  const int start_grid_index = poly->loopstart + poly_corner->corner;
+  const MPoly &poly = data->polys[poly_corner->poly_index];
+  const int start_grid_index = poly.loopstart + poly_corner->corner;
   int corner = 0;
-  if (poly->totloop == 4) {
+  if (poly.totloop == 4) {
     float corner_u, corner_v;
     corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_mask_grid = &data->grid_paint_mask[start_grid_index + corner];
@@ -105,8 +105,8 @@ static int count_num_ptex_faces(const Mesh *mesh)
   int num_ptex_faces = 0;
   const blender::Span<MPoly> polys = mesh->polys();
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &polys[poly_index];
-    num_ptex_faces += (poly->totloop == 4) ? 1 : poly->totloop;
+    const MPoly &poly = polys[poly_index];
+    num_ptex_faces += (poly.totloop == 4) ? 1 : poly.totloop;
   }
   return num_ptex_faces;
 }
@@ -123,14 +123,14 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &polys[poly_index];
-    if (poly->totloop == 4) {
+    const MPoly &poly = polys[poly_index];
+    if (poly.totloop == 4) {
       ptex_poly_corner[ptex_face_index].poly_index = poly_index;
       ptex_poly_corner[ptex_face_index].corner = 0;
       ptex_face_index++;
     }
     else {
-      for (int corner = 0; corner < poly->totloop; corner++) {
+      for (int corner = 0; corner < poly.totloop; corner++) {
         ptex_poly_corner[ptex_face_index].poly_index = poly_index;
         ptex_poly_corner[ptex_face_index].corner = corner;
         ptex_face_index++;

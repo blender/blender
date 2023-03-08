@@ -115,7 +115,7 @@ bool BKE_shrinkwrap_init_tree(
 
   data->mesh = mesh;
   data->polys = mesh->polys().data();
-  data->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  data->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -231,15 +231,14 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   data->edge_is_boundary = edge_is_boundary;
 
   /* Build the boundary looptri bitmask. */
-  const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  int totlooptri = BKE_mesh_runtime_looptri_len(mesh);
+  const blender::Span<MLoopTri> looptris = mesh->looptris();
 
-  BLI_bitmap *looptri_has_boundary = BLI_BITMAP_NEW(totlooptri,
+  BLI_bitmap *looptri_has_boundary = BLI_BITMAP_NEW(looptris.size(),
                                                     "ShrinkwrapBoundaryData::looptri_is_boundary");
 
-  for (int i = 0; i < totlooptri; i++) {
+  for (const int64_t i : looptris.index_range()) {
     int real_edges[3];
-    BKE_mesh_looptri_get_real_edges(edges.data(), loops.data(), &mlooptri[i], real_edges);
+    BKE_mesh_looptri_get_real_edges(edges.data(), loops.data(), &looptris[i], real_edges);
 
     for (int j = 0; j < 3; j++) {
       if (real_edges[j] >= 0 && edge_mode[real_edges[j]]) {
@@ -296,7 +295,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   MEM_freeN(vert_status);
 
   /* Finalize average direction and compute normal. */
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     int bidx = vert_boundary_id[i];
 
@@ -1406,9 +1405,9 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   calc.aux_target = DEG_get_evaluated_object(ctx->depsgraph, smd->auxTarget);
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
-    /* Setup arrays to get vertexs positions, normals and deform weights */
+    /* Setup arrays to get vertex positions, normals and deform weights */
     calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
-    calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    calc.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
 
     /* Using vertices positions/normals as if a subsurface was applied */
     if (smd->subsurfLevels) {
@@ -1569,7 +1568,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
   calc.vertexCos = vertexCos;
-  calc.vert_normals = BKE_mesh_vertex_normals_ensure(src_me);
+  calc.vert_normals = BKE_mesh_vert_normals_ensure(src_me);
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;

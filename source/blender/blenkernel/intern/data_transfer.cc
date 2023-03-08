@@ -251,7 +251,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
 /* ********** */
 
 /**
- * When transfering color attributes, also transfer the active color attribute string.
+ * When transferring color attributes, also transfer the active color attribute string.
  * If a match can't be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
@@ -295,7 +295,7 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
 }
 
 /**
- * When transfering color attributes, also transfer the default color attribute string.
+ * When transferring color attributes, also transfer the default color attribute string.
  * If a match cant be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
@@ -383,7 +383,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"));
       BKE_mesh_normals_loop_split(positions_dst,
-                                  BKE_mesh_vertex_normals_ensure(me_dst),
+                                  BKE_mesh_vert_normals_ensure(me_dst),
                                   num_verts_dst,
                                   edges_dst.data(),
                                   edges_dst.size(),
@@ -421,8 +421,8 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
     const int num_verts_dst = me_dst->totvert;
     const blender::Span<MEdge> edges_dst = me_dst->edges();
     blender::MutableSpan<MPoly> polys_dst = me_dst->polys_for_write();
-    MLoop *loops_dst = BKE_mesh_loops_for_write(me_dst);
-    const int num_loops_dst = me_dst->totloop;
+    blender::MutableSpan<MLoop> loops_dst = me_dst->loops_for_write();
+
     CustomData *ldata_dst = &me_dst->ldata;
 
     const float(*poly_nors_dst)[3] = BKE_mesh_poly_normals_ensure(me_dst);
@@ -433,7 +433,7 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
 
     if (!custom_nors_dst) {
       custom_nors_dst = static_cast<short(*)[2]>(CustomData_add_layer(
-          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, num_loops_dst));
+          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops_dst.size()));
     }
 
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
@@ -442,13 +442,13 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
 
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     BKE_mesh_normals_loop_custom_set(positions_dst,
-                                     BKE_mesh_vertex_normals_ensure(me_dst),
+                                     BKE_mesh_vert_normals_ensure(me_dst),
                                      num_verts_dst,
                                      edges_dst.data(),
                                      edges_dst.size(),
-                                     loops_dst,
+                                     loops_dst.data(),
                                      loop_nors_dst,
-                                     num_loops_dst,
+                                     loops_dst.size(),
                                      polys_dst.data(),
                                      poly_nors_dst,
                                      polys_dst.size(),
@@ -1005,26 +1005,21 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      const size_t elem_size = sizeof(*((MEdge *)nullptr));
-      const size_t data_size = sizeof(((MEdge *)nullptr)->flag);
-      const size_t data_offset = offsetof(MEdge, flag);
-      const uint64_t data_flag = ME_SEAM;
-
-      data_transfer_layersmapping_add_item(r_map,
-                                           cddata_type,
-                                           mix_mode,
-                                           mix_factor,
-                                           mix_weights,
-                                           BKE_mesh_edges(me_src),
-                                           BKE_mesh_edges_for_write(me_dst),
-                                           me_src->totedge,
-                                           me_dst->totedge,
-                                           elem_size,
-                                           data_size,
-                                           data_offset,
-                                           data_flag,
-                                           nullptr,
-                                           interp_data);
+      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
+        CustomData_add_layer_named(
+            &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me_dst->totedge, ".uv_seam");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_BOOL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edata, CD_PROP_BOOL, ".uv_seam"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edata, CD_PROP_BOOL, ".uv_seam", me_dst->totedge),
+          interp,
+          interp_data);
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
@@ -1211,8 +1206,8 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
-      /* Make sure we have active/defaut color layers if none existed before.
-       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      /* Make sure we have active/default color layers if none existed before.
+       * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         data_transfer_mesh_attributes_transfer_active_color_string(
             me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
@@ -1259,8 +1254,8 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                            fromlayers,
                                            tolayers,
                                            nullptr);
-      /* Make sure we have active/defaut color layers if none existed before.
-       * Use the active/defaut from src (if it was transferred), otherwise the first. */
+      /* Make sure we have active/default color layers if none existed before.
+       * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         data_transfer_mesh_attributes_transfer_active_color_string(
             me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
@@ -1344,7 +1339,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
-    dirty_nors_dst = BKE_mesh_vertex_normals_are_dirty(me_dst);
+    dirty_nors_dst = BKE_mesh_vert_normals_are_dirty(me_dst);
     /* Never create needed custom layers on passed destination mesh
      * (assumed to *not* be ob_dst->data, aka modifier case). */
     use_create = false;

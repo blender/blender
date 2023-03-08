@@ -164,7 +164,7 @@ class RandomizeLocRotSize(Operator):
         scale = None if not self.use_scale else self.scale
 
         scale_even = self.scale_even
-        #scale_min = self.scale_min
+        # scale_min = self.scale_min
         scale_min = 0
 
         randomize_selected(context, seed, delta,

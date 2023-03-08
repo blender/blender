@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1845,10 +1845,6 @@ msgstr "Spoljna debljina stranice"
 
 msgid "Enabled"
 msgstr "Omogućeno"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Omogući sudaranje sa ovim objektom"
 
 
 msgid "Kill Particles"
@@ -10537,10 +10533,6 @@ msgstr "Broj korišćenih projektora"
 
 msgid "Projectors"
 msgstr "Projektori"
-
-
-msgid "Add target position to uv coordinates"
-msgstr "Dodaj ciljnu poziciju na UV koordinate"
 
 
 msgid "U-Axis"
@@ -24732,10 +24724,6 @@ msgid "Alpha Threshold"
 msgstr "Prag providnosti"
 
 
-msgid "Unknown"
-msgstr "Nepoznato"
-
-
 msgid "Jump Height"
 msgstr "Visina skakanja"
 
@@ -25168,6 +25156,10 @@ msgstr "Otvori..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Uputstvo"
+
+
+msgid "Unknown"
+msgstr "Nepoznato"
 
 
 msgid "Frame Numbers"
@@ -26793,10 +26785,6 @@ msgid "Online Python Reference"
 msgstr "Python uputstvo na internetu"
 
 
-msgid "Value:"
-msgstr "Vrednost"
-
-
 msgid "(Gamma Corrected)"
 msgstr "Ispravka"
 
@@ -27525,6 +27513,10 @@ msgstr "Svojstvo"
 
 msgid "Driver Value:"
 msgstr "Vrednost vozača:"
+
+
+msgid "Value:"
+msgstr "Vrednost"
 
 
 msgid "Update Dependencies"

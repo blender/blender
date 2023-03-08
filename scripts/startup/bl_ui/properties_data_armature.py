@@ -132,7 +132,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             rows=rows,
         )
 
-
         col = row.column(align=True)
         col.operator("pose.group_add", icon='ADD', text="")
         col.operator("pose.group_remove", icon='REMOVE', text="")
@@ -218,7 +217,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
-    #bl_label = "Bones Motion Paths"
+    # bl_label = "Bones Motion Paths"
     bl_options = {'DEFAULT_CLOSED'}
     bl_context = "data"
 
@@ -240,7 +239,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
 
 
 class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
-    #bl_label = "Bones Motion Paths"
+    # bl_label = "Bones Motion Paths"
     bl_context = "data"
     bl_parent_id = "DATA_PT_motion_paths"
     bl_options = {'DEFAULT_CLOSED'}

@@ -94,22 +94,21 @@ def rna_idprop_ui_create(
             description=description,
             default=default,
         )
-        return
+    else:
+        if soft_min is None:
+            soft_min = min
+        if soft_max is None:
+            soft_max = max
 
-    if soft_min is None:
-        soft_min = min
-    if soft_max is None:
-        soft_max = max
-
-    ui_data.update(
-        subtype=subtype,
-        min=min,
-        max=max,
-        soft_min=soft_min,
-        soft_max=soft_max,
-        description=description,
-        default=default,
-    )
+        ui_data.update(
+            subtype=subtype,
+            min=min,
+            max=max,
+            soft_min=soft_min,
+            soft_max=soft_max,
+            description=description,
+            default=default,
+        )
 
     prop_path = rna_idprop_quote_path(prop)
 

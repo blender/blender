@@ -1223,7 +1223,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     eGPUTextureFormat texture_format = IMB_gpu_get_texture_format(
         ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
-    const char *texture_format_description = GPU_texture_format_description(texture_format);
+    const char *texture_format_description = GPU_texture_format_name(texture_format);
     ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_(",  %s"), texture_format_description);
 
     uiItemL(col, str, ICON_NONE);

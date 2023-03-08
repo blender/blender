@@ -345,10 +345,10 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap->pmap[vd.index];
       for (int j = 0; j < ss->pmap->pmap[vd.index].count; j++) {
-        const MPoly *p = &ss->mpoly[vert_map->indices[j]];
+        const MPoly *p = &ss->polys[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], vert_positions, poly_center);
+        BKE_mesh_calc_poly_center(p, &ss->loops[p->loopstart], vert_positions, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -399,7 +399,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             }
           }
 
-          const MLoop *ml = &ss->mloop[p->loopstart];
+          const MLoop *ml = &ss->loops[p->loopstart];
 
           for (int i = 0; i < p->totloop; i++, ml++) {
             float *v = vert_positions[ml->v];
@@ -1501,7 +1501,7 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
   ot->invoke = sculpt_face_sets_change_visibility_invoke;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   RNA_def_enum(ot->srna,
                "mode",
@@ -1703,9 +1703,9 @@ static void sculpt_face_set_grow(Object *ob,
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
-    const MPoly *c_poly = &mesh->mpoly[p];
+    const MPoly *c_poly = &polys[p];
     for (int l = 0; l < c_poly->totloop; l++) {
-      const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
+      const MLoop *c_loop = &loops[c_poly->loopstart + l];
       const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
@@ -1823,9 +1823,9 @@ static void sculpt_face_set_shrink(Object *ob,
       continue;
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
-      const MPoly *c_poly = &mesh->mpoly[p];
+      const MPoly *c_poly = &polys[p];
       for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
+        const MLoop *c_loop = &loops[c_poly->loopstart + l];
         const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];
@@ -2646,8 +2646,8 @@ static void island_stack_bmesh_do(
 static void island_stack_mesh_do(
     SculptSession *ss, int fset, PBVHFaceRef face, Vector<PBVHFaceRef> &faces, BLI_bitmap *visit)
 {
-  const MPoly *mp = ss->mpoly + face.i;
-  const MLoop *ml = ss->mloop + mp->loopstart;
+  const MPoly *mp = ss->polys + face.i;
+  const MLoop *ml = ss->loops + mp->loopstart;
 
   for (int i = 0; i < mp->totloop; i++, ml++) {
     MeshElemMap *ep = ss->epmap + ml->e;
@@ -2671,9 +2671,9 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->totedges,
-                                  ss->mpoly,
+                                  ss->polys,
                                   ss->totfaces,
-                                  ss->mloop,
+                                  ss->loops,
                                   ss->totloops);
   }
 

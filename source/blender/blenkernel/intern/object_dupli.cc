@@ -735,7 +735,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
     vdd.vert_positions = me_eval->vert_positions();
-    vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
+    vdd.vert_normals = BKE_mesh_vert_normals_ensure(me_eval);
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
@@ -1056,7 +1056,7 @@ struct FaceDupliData_Mesh {
   FaceDupliData_Params params;
 
   int totface;
-  const MPoly *mpoly;
+  const MPoly *polys;
   const MLoop *mloop;
   Span<float3> vert_positions;
   const float (*orco)[3];
@@ -1155,11 +1155,11 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const float scale_fac,
 
                                          /* Mesh variables. */
-                                         const MPoly *mpoly,
+                                         const MPoly &poly,
                                          const MLoop *mloopstart,
                                          const Span<float3> vert_positions)
 {
-  const int coords_len = mpoly->totloop;
+  const int coords_len = poly.totloop;
   Array<float3, 64> coords(coords_len);
 
   const MLoop *ml = mloopstart;
@@ -1206,13 +1206,12 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                               Object *inst_ob)
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
-  const MPoly *mpoly = fdd->mpoly, *mp;
+  const MPoly *polys = fdd->polys;
   const MLoop *mloop = fdd->mloop;
   const float(*orco)[3] = fdd->orco;
   const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
-  int a;
 
   float child_imat[4][4];
 
@@ -1221,27 +1220,28 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
   const float scale_fac = ctx->object->instance_faces_scale;
 
-  for (a = 0, mp = mpoly; a < totface; a++, mp++) {
-    const MLoop *loopstart = mloop + mp->loopstart;
+  for (const int a : blender::IndexRange(totface)) {
+    const MPoly &poly = polys[a];
+    const MLoop *loopstart = mloop + poly.loopstart;
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
                                             child_imat,
                                             a,
                                             use_scale,
                                             scale_fac,
-                                            mp,
+                                            poly,
                                             loopstart,
                                             fdd->vert_positions);
 
-    const float w = 1.0f / float(mp->totloop);
+    const float w = 1.0f / float(poly.totloop);
     if (orco) {
-      for (int j = 0; j < mp->totloop; j++) {
+      for (int j = 0; j < poly.totloop; j++) {
         madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
       }
     }
     if (mloopuv) {
-      for (int j = 0; j < mp->totloop; j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j], w);
+      for (int j = 0; j < poly.totloop; j++) {
+        madd_v2_v2fl(dob->uv, mloopuv[poly.loopstart + j], w);
       }
     }
   }
@@ -1319,7 +1319,7 @@ static void make_duplis_faces(const DupliContext *ctx)
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
-    fdd.mpoly = me_eval->polys().data();
+    fdd.polys = me_eval->polys().data();
     fdd.mloop = me_eval->loops().data();
     fdd.vert_positions = me_eval->vert_positions();
     fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(

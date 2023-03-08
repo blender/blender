@@ -37,7 +37,7 @@ static void test_gpu_storage_buffer_create_update_read()
   read_data.resize(SIZE, 0);
   GPU_storagebuf_read(ssbo, read_data.data());
 
-  /* Check if data is the same.*/
+  /* Check if data is the same. */
   for (int i : IndexRange(SIZE)) {
     EXPECT_EQ(data[i], read_data[i]);
   }

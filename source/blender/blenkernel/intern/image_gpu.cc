@@ -111,7 +111,7 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
     tile_info[3] = tile_runtime->tilearray_size[1] / array_h;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_array_ex(
+  GPUTexture *tex = GPU_texture_create_1d_array(
       ima->id.name + 2, width, 2, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_SHADER_READ, data);
   GPU_texture_mipmap_mode(tex, false, false);
 
@@ -241,7 +241,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
       ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
@@ -423,7 +423,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
       GPU_texture_wrap_mode(*tex, true, false);
 
       if (GPU_mipmap_enabled()) {
-        GPU_texture_generate_mipmap(*tex);
+        GPU_texture_update_mipmap_chain(*tex);
         if (ima) {
           ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
         }
@@ -436,7 +436,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 
   if (*tex) {
-    GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+    GPU_texture_original_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
   }
 
   if (ibuf != ibuf_intern) {
@@ -820,7 +820,7 @@ static void gpu_texture_update_from_ibuf(
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
   }
   else {
     ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;

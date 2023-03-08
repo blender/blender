@@ -68,7 +68,7 @@ void BKE_mesh_foreach_mapped_vert(
     const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
     const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                        BKE_mesh_vertex_normals_ensure(mesh) :
+                                        BKE_mesh_vert_normals_ensure(mesh) :
                                         nullptr;
 
     if (index) {
@@ -311,7 +311,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   const blender::Span<MPoly> polys = mesh->polys();
   const blender::Span<MLoop> loops = mesh->loops();
   const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                      BKE_mesh_vertex_normals_ensure(mesh) :
+                                      BKE_mesh_vert_normals_ensure(mesh) :
                                       nullptr;
   const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
   const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;

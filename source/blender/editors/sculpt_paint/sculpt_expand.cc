@@ -157,7 +157,7 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
     return sculpt_expand_is_vert_in_active_component(ss, expand_cache, v);
   }
   else {
-    const MLoop *loop = &ss->mloop[ss->mpoly[f.i].loopstart];
+    const MLoop *loop = &ss->loops[ss->polys[f].loopstart];
     return sculpt_expand_is_vert_in_active_component(
         ss, expand_cache, BKE_pbvh_index_to_vertex(ss->pbvh, loop->v));
   }
@@ -761,9 +761,9 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
     }
     else {
       for (int j = 0; j < ss->pmap->pmap[v_next_i].count; j++) {
-        const MPoly *p = &ss->mpoly[ss->pmap->pmap[v_next_i].indices[j]];
+        const MPoly *p = &ss->polys[ss->pmap->pmap[v_next_i].indices[j]];
         for (int l = 0; l < p->totloop; l++) {
-          const int neighbor_v = ss->mloop[p->loopstart + l].v;
+          const int neighbor_v = ss->loops[p->loopstart + l].v;
 
           if (BLI_BITMAP_TEST(visited_verts, neighbor_v)) {
             continue;
@@ -850,15 +850,15 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
   for (const int p : polys.index_range()) {
-    const MPoly *poly = &polys[p];
+    const MPoly &poly = polys[p];
     float accum = 0.0f;
-    for (int l = 0; l < poly->totloop; l++) {
-      const int grid_loop_index = (poly->loopstart + l) * key->grid_area;
+    for (int l = 0; l < poly.totloop; l++) {
+      const int grid_loop_index = (poly.loopstart + l) * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
         accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff[p] = accum / (poly->totloop * key->grid_area);
+    expand_cache->face_falloff[p] = accum / (poly.totloop * key->grid_area);
   }
 }
 
@@ -868,13 +868,13 @@ static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expan
   const blender::Span<MLoop> loops = mesh->loops();
 
   for (const int p : polys.index_range()) {
-    const MPoly *poly = &polys[p];
+    const MPoly &poly = polys[p];
     float accum = 0.0f;
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &loops[l + poly->loopstart];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &loops[l + poly.loopstart];
       accum += expand_cache->vert_falloff[loop->v];
     }
-    expand_cache->face_falloff[p] = accum / poly->totloop;
+    expand_cache->face_falloff[p] = accum / poly.totloop;
   }
 }
 
@@ -1194,10 +1194,10 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   }
 
   for (int p = 0; p < totface; p++) {
-    const MPoly *poly = &ss->mpoly[p];
+    const MPoly &poly = ss->polys[p];
     bool any_disabled = false;
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &ss->mloop[l + poly->loopstart];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &ss->mloop[l + poly.loopstart];
       if (!BLI_BITMAP_TEST(enabled_verts, loop->v)) {
         any_disabled = true;
         break;
@@ -2233,9 +2233,9 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
-      const MPoly *c_poly = &polys[f_index];
-      for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &loops[c_poly->loopstart + l];
+      const MPoly &c_poly = polys[f_index];
+      for (int l = 0; l < c_poly.totloop; l++) {
+        const MLoop *c_loop = &loops[c_poly.loopstart + l];
         const MeshElemMap *vert_map = &pmap[c_loop->v];
         for (int i = 0; i < vert_map->count; i++) {
 

@@ -39,6 +39,7 @@
     .flag = V3D_OVERLAY_VIEWER_ATTRIBUTE | V3D_OVERLAY_SCULPT_SHOW_MASK | V3D_OVERLAY_SCULPT_SHOW_FACE_SETS, \
     .wireframe_threshold = 1.0f, \
     .wireframe_opacity = 1.0f, \
+    .retopology_offset = 0.2f, \
     .viewer_attribute_opacity = 1.0f, \
     .xray_alpha_bone = 0.5f, \
     .bone_wire_alpha = 1.0f, \

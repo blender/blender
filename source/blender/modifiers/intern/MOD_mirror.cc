@@ -87,7 +87,7 @@ static Mesh *mirror_apply_on_axis(MirrorModifierData *mmd,
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
           *tmp, MutableSpan<int>{vert_merge_map, result->totvert}, vert_merge_map_len);
-      BKE_id_free(NULL, tmp);
+      BKE_id_free(nullptr, tmp);
     }
     MEM_freeN(vert_merge_map);
   }

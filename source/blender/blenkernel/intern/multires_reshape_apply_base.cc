@@ -75,14 +75,11 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
-                                reshape_context->base_positions,
-                                reshape_context->base_edges.data(),
                                 reshape_context->base_polys.data(),
                                 reshape_context->base_loops.data(),
                                 base_mesh->totvert,
                                 base_mesh->totpoly,
-                                base_mesh->totloop,
-                                false);
+                                base_mesh->totloop);
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));
@@ -101,11 +98,11 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     /* Find center. */
     int tot = 0;
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &reshape_context->base_polys[pmap[i].indices[j]];
+      const MPoly &poly = reshape_context->base_polys[pmap[i].indices[j]];
 
       /* This double counts, not sure if that's bad or good. */
-      for (int k = 0; k < p->totloop; k++) {
-        const int vndx = reshape_context->base_loops[p->loopstart + k].v;
+      for (int k = 0; k < poly.totloop; k++) {
+        const int vndx = reshape_context->base_loops[poly.loopstart + k].v;
         if (vndx != i) {
           add_v3_v3(center, origco[vndx]);
           tot++;
@@ -116,20 +113,20 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 
     /* Find normal. */
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &reshape_context->base_polys[pmap[i].indices[j]];
+      const MPoly &poly = reshape_context->base_polys[pmap[i].indices[j]];
       MPoly fake_poly;
       float no[3];
 
       /* Set up poly, loops, and coords in order to call BKE_mesh_calc_poly_normal(). */
-      fake_poly.totloop = p->totloop;
+      fake_poly.totloop = poly.totloop;
       fake_poly.loopstart = 0;
       MLoop *fake_loops = static_cast<MLoop *>(
-          MEM_malloc_arrayN(p->totloop, sizeof(MLoop), __func__));
+          MEM_malloc_arrayN(poly.totloop, sizeof(MLoop), __func__));
       float(*fake_co)[3] = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(p->totloop, sizeof(float[3]), __func__));
+          MEM_malloc_arrayN(poly.totloop, sizeof(float[3]), __func__));
 
-      for (int k = 0; k < p->totloop; k++) {
-        const int vndx = reshape_context->base_loops[p->loopstart + k].v;
+      for (int k = 0; k < poly.totloop; k++) {
+        const int vndx = reshape_context->base_loops[poly.loopstart + k].v;
 
         fake_loops[k].v = k;
 
@@ -163,7 +160,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   /* Vertices were moved around, need to update normals after all the vertices are updated
    * Probably this is possible to do in the loop above, but this is rather tricky because
    * we don't know all needed vertices' coordinates there yet. */
-  BKE_mesh_tag_coords_changed(base_mesh);
+  BKE_mesh_tag_positions_changed(base_mesh);
 }
 
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)

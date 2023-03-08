@@ -855,7 +855,7 @@ struct MultiresThreadedData {
   CCGElem **gridData, **subGridData;
   CCGKey *key;
   CCGKey *sub_key;
-  const MPoly *mpoly;
+  const MPoly *polys;
   MDisps *mdisps;
   GridPaintMask *grid_paint_mask;
   int *gridOffset;
@@ -873,7 +873,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
   CCGElem **gridData = tdata->gridData;
   CCGElem **subGridData = tdata->subGridData;
   CCGKey *key = tdata->key;
-  const MPoly *mpoly = tdata->mpoly;
+  const MPoly *polys = tdata->polys;
   MDisps *mdisps = tdata->mdisps;
   GridPaintMask *grid_paint_mask = tdata->grid_paint_mask;
   int *gridOffset = tdata->gridOffset;
@@ -881,12 +881,12 @@ static void multires_disp_run_cb(void *__restrict userdata,
   int dGridSize = tdata->dGridSize;
   int dSkip = tdata->dSkip;
 
-  const int numVerts = mpoly[pidx].totloop;
+  const int numVerts = polys[pidx].totloop;
   int S, x, y, gIndex = gridOffset[pidx];
 
   for (S = 0; S < numVerts; S++, gIndex++) {
     GridPaintMask *gpm = grid_paint_mask ? &grid_paint_mask[gIndex] : nullptr;
-    MDisps *mdisp = &mdisps[mpoly[pidx].loopstart + S];
+    MDisps *mdisp = &mdisps[polys[pidx].loopstart + S];
     CCGElem *grid = gridData[gIndex];
     CCGElem *subgrid = subGridData[gIndex];
     float(*dispgrid)[3] = nullptr;
@@ -967,7 +967,7 @@ static void multiresModifier_disp_run(
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGElem **gridData, **subGridData;
   CCGKey key;
-  const MPoly *mpoly = me->polys().data();
+  const MPoly *polys = me->polys().data();
   MDisps *mdisps = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
   GridPaintMask *grid_paint_mask = nullptr;
@@ -977,7 +977,7 @@ static void multiresModifier_disp_run(
 
   /* this happens in the dm made by bmesh_mdisps_space_set */
   if (dm2 && CustomData_has_layer(&dm2->loopData, CD_MDISPS)) {
-    mpoly = static_cast<const MPoly *>(
+    polys = static_cast<const MPoly *>(
         CustomData_get_layer_for_write(&dm2->polyData, CD_MPOLY, dm2->getNumPolys(dm)));
     mdisps = static_cast<MDisps *>(
         CustomData_get_layer_for_write(&dm2->loopData, CD_MDISPS, dm2->getNumLoops(dm)));
@@ -1032,7 +1032,7 @@ static void multiresModifier_disp_run(
   data.gridData = gridData;
   data.subGridData = subGridData;
   data.key = &key;
-  data.mpoly = mpoly;
+  data.polys = polys;
   data.mdisps = mdisps;
   data.grid_paint_mask = grid_paint_mask;
   data.gridOffset = gridOffset;
@@ -1555,12 +1555,12 @@ void multiresModifier_ensure_external_read(struct Mesh *mesh, const MultiresModi
 /***************** Multires interpolation stuff *****************/
 
 int mdisp_rot_face_to_crn(
-    MPoly *mpoly, const int face_side, const float u, const float v, float *x, float *y)
+    const MPoly *poly, const int face_side, const float u, const float v, float *x, float *y)
 {
   const float offset = face_side * 0.5f - 0.5f;
   int S = 0;
 
-  if (mpoly->totloop == 4) {
+  if (poly->totloop == 4) {
     if (u <= offset && v <= offset) {
       S = 0;
     }
@@ -1591,7 +1591,7 @@ int mdisp_rot_face_to_crn(
       *y = v - offset;
     }
   }
-  else if (mpoly->totloop == 3) {
+  else if (poly->totloop == 3) {
     int grid_size = offset;
     float w = (face_side - 1) - u - v;
     float W1, W2;
@@ -1627,8 +1627,8 @@ int mdisp_rot_face_to_crn(
     int minS, i;
     float mindist = FLT_MAX;
 
-    for (i = 0; i < mpoly->totloop; i++) {
-      float len = len_v3v3(nullptr, positions[mloop[mpoly->loopstart + i].v]);
+    for (i = 0; i < poly->totloop; i++) {
+      float len = len_v3v3(nullptr, positions[mloop[poly->loopstart + i].v]);
       if (len < mindist) {
         mindist = len;
         minS = i;

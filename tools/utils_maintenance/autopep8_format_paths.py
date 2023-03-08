@@ -28,7 +28,7 @@ VERSION_MIN = (1, 6, 0)
 VERSION_MAX_RECOMMENDED = (1, 6, 0)
 AUTOPEP8_FORMAT_CMD = "autopep8"
 
-BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 os.chdir(BASE_DIR)
 
 

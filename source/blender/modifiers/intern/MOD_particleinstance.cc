@@ -312,7 +312,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     max_co = max[track];
   }
 
-  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, 0, maxloop, maxpoly);
+  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxloop, maxpoly);
 
   const blender::Span<MPoly> orig_polys = mesh->polys();
   const blender::Span<MLoop> orig_loops = mesh->loops();
@@ -468,28 +468,28 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     /* Create edges and adjust edge vertex indices. */
     CustomData_copy_data(&mesh->edata, &result->edata, 0, p_skip * totedge, totedge);
-    MEdge *me = &edges[p_skip * totedge];
-    for (k = 0; k < totedge; k++, me++) {
-      me->v1 += p_skip * totvert;
-      me->v2 += p_skip * totvert;
+    MEdge *edge = &edges[p_skip * totedge];
+    for (k = 0; k < totedge; k++, edge++) {
+      edge->v1 += p_skip * totvert;
+      edge->v2 += p_skip * totvert;
     }
 
     /* create polys and loops */
     for (k = 0; k < totpoly; k++) {
 
-      const MPoly *inMP = &orig_polys[k];
-      MPoly *mp = &polys[p_skip * totpoly + k];
+      const MPoly &in_poly = orig_polys[k];
+      MPoly &poly = polys[p_skip * totpoly + k];
 
       CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * totpoly + k, 1);
-      *mp = *inMP;
-      mp->loopstart += p_skip * totloop;
+      poly = in_poly;
+      poly.loopstart += p_skip * totloop;
 
       {
-        const MLoop *inML = &orig_loops[inMP->loopstart];
-        MLoop *ml = &loops[mp->loopstart];
-        int j = mp->totloop;
+        const MLoop *inML = &orig_loops[in_poly.loopstart];
+        MLoop *ml = &loops[poly.loopstart];
+        int j = poly.totloop;
 
-        CustomData_copy_data(&mesh->ldata, &result->ldata, inMP->loopstart, mp->loopstart, j);
+        CustomData_copy_data(&mesh->ldata, &result->ldata, in_poly.loopstart, poly.loopstart, j);
         for (; j; j--, ml++, inML++) {
           ml->v = inML->v + (p_skip * totvert);
           ml->e = inML->e + (p_skip * totedge);

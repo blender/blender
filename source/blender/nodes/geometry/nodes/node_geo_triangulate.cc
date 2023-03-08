@@ -59,6 +59,10 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
   BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, true, nullptr, nullptr, nullptr);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, &mesh);
   BM_mesh_free(bm);
+
+  /* Positions are not changed by the triangulation operation, so the bounds are the same. */
+  result->runtime->bounds_cache = mesh.runtime->bounds_cache;
+
   return result;
 }
 

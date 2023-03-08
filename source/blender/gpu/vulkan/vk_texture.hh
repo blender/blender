@@ -10,8 +10,6 @@
 #include "gpu_texture_private.hh"
 #include "vk_context.hh"
 
-#include "vk_mem_alloc.h"
-
 namespace blender::gpu {
 
 class VKTexture : public Texture {
@@ -58,7 +56,7 @@ class VKTexture : public Texture {
   bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
-  /** Is this texture already allocated on device.*/
+  /** Is this texture already allocated on device. */
   bool is_allocated();
   /**
    * Allocate the texture of the device. Result is `true` when texture is successfully allocated

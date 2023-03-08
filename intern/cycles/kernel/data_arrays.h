@@ -29,7 +29,7 @@ KERNEL_DATA_ARRAY(DecomposedTransform, camera_motion)
 /* triangles */
 KERNEL_DATA_ARRAY(uint, tri_shader)
 KERNEL_DATA_ARRAY(packed_float3, tri_vnormal)
-KERNEL_DATA_ARRAY(uint4, tri_vindex)
+KERNEL_DATA_ARRAY(packed_uint3, tri_vindex)
 KERNEL_DATA_ARRAY(uint, tri_patch)
 KERNEL_DATA_ARRAY(float2, tri_patch_uv)
 KERNEL_DATA_ARRAY(packed_float3, tri_verts)

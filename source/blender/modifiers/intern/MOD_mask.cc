@@ -588,7 +588,6 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         cut_edge.v1 = dst_loops[mp_dst.loopstart].v;
         cut_edge.v2 = cut_dst_loop.v;
         BLI_assert(cut_edge.v1 != cut_edge.v2);
-        cut_edge.flag = 0;
         edge_index++;
 
         /* Only handle one of the cuts per iteration. */
@@ -627,7 +626,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   /* Return empty or input mesh when there are no vertex groups. */
   const Span<MDeformVert> dverts = mesh->deform_verts();
   if (dverts.is_empty()) {
-    return invert_mask ? mesh : BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
+    return invert_mask ? mesh : BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0);
   }
 
   /* Quick test to see if we can return early. */
@@ -713,7 +712,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   Mesh *result = BKE_mesh_new_nomain_from_template(mesh,
                                                    verts_masked_num + verts_add_num,
                                                    edges_masked_num + edges_add_num,
-                                                   0,
                                                    loops_masked_num + loops_add_num,
                                                    polys_masked_num + polys_add_num);
 

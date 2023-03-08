@@ -322,6 +322,13 @@ typedef struct DriverTarget {
   short flag;
   /** Type of ID-block that this target can use. */
   int idtype;
+
+  /* Context-dependent property of a "Context Property" type target.
+   * The `rna_path` of this property is used as a target.
+   * This is a value of enumerator #eDriverTarget_ContextProperty. */
+  int context_property;
+
+  int _pad1;
 } DriverTarget;
 
 /** Driver Target flags. */
@@ -374,8 +381,10 @@ typedef enum eDriverTarget_RotationMode {
 
   DTAR_ROTMODE_QUATERNION,
 
-  /** Implements the very common Damped Track + child trick to decompose
-   *  rotation into bending followed by twist around the remaining axis. */
+  /**
+   * Implements the very common Damped Track + child trick to decompose
+   * rotation into bending followed by twist around the remaining axis.
+   */
   DTAR_ROTMODE_SWING_TWIST_X,
   DTAR_ROTMODE_SWING_TWIST_Y,
   DTAR_ROTMODE_SWING_TWIST_Z,
@@ -383,6 +392,11 @@ typedef enum eDriverTarget_RotationMode {
   DTAR_ROTMODE_EULER_MIN = DTAR_ROTMODE_EULER_XYZ,
   DTAR_ROTMODE_EULER_MAX = DTAR_ROTMODE_EULER_ZYX,
 } eDriverTarget_RotationMode;
+
+typedef enum eDriverTarget_ContextProperty {
+  DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE = 0,
+  DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER = 1,
+} eDriverTarget_ContextProperty;
 
 /* --- */
 
@@ -430,6 +444,8 @@ typedef enum eDriverVar_Types {
   DVAR_TYPE_LOC_DIFF,
   /** 'final' transform for object/bones */
   DVAR_TYPE_TRANSFORM_CHAN,
+  /** Property within a current evaluation context */
+  DVAR_TYPE_CONTEXT_PROP,
 
   /**
    * Maximum number of variable types.
@@ -966,8 +982,8 @@ typedef struct KeyingSet {
   char idname[64];
   /** User-viewable name for KeyingSet (for menus, etc.) - `MAX_ID_NAME - 2`. */
   char name[64];
-  /** (RNA_DYN_DESCR_MAX) short help text. */
-  char description[240];
+  /** (#RNA_DYN_DESCR_MAX) help text. */
+  char description[1024];
   /** Name of the typeinfo data used for the relative paths - `MAX_ID_NAME - 2`. */
   char typeinfo[64];
 

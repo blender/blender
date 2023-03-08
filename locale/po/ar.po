@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -2849,10 +2849,6 @@ msgstr "ﻲﺟﺭﺎﺨﻟﺍ ﻪﺟﻮﻟﺍ ﺔﻓﺎﺜﻛ"
 
 msgid "Enabled"
 msgstr "ﻝﺎﻌﻓ"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "ﺔﻴﺋﺎﻳﺰﻴﻔﻟﺍ ﺔﻤﻈﻧﻼ﻿ﻟ ﻡﺩﺎﺼﻤﻛ ﻦﺋﺎﻜﻟﺍ ﺍﺬﻫ ﻞﻌﻓ"
 
 
 msgid "Kill Particles"
@@ -39172,10 +39168,6 @@ msgid "Hex"
 msgstr "ﻲﻧﺎﻤﺛ"
 
 
-msgid "Value:"
-msgstr ":ﺔﻤﻴﻗ"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(ﺔﻟﺪﻌﻣ ﺓﺭﺎﻧﺇ)"
 
@@ -40018,6 +40010,10 @@ msgstr ":ﺔﻴﺻﺎﺧ"
 
 msgid "Driver Value:"
 msgstr ":ﻞﻐﺸﻤﻟﺍ ﺔﻤﻴﻗ"
+
+
+msgid "Value:"
+msgstr ":ﺔﻤﻴﻗ"
 
 
 msgid "Update Dependencies"

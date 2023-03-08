@@ -305,10 +305,10 @@ static void extract_range_iter_poly_mesh(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
-  const MPoly *mp = &((const MPoly *)data->elems)[iter];
+  const MPoly *poly = &((const MPoly *)data->elems)[iter];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_poly_mesh(
-        mr, mp, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
+        mr, poly, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
@@ -337,10 +337,10 @@ static void extract_range_iter_ledge_mesh(void *__restrict userdata,
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
   const int ledge_index = data->loose_elems[iter];
-  const MEdge *med = &((const MEdge *)data->elems)[ledge_index];
+  const MEdge *edge = &((const MEdge *)data->elems)[ledge_index];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_ledge_mesh(
-        mr, med, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
+        mr, edge, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
@@ -387,24 +387,24 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
   int stop;
   switch (iter_type) {
     case MR_ITER_LOOPTRI:
-      range_data.elems = is_mesh ? mr->mlooptri : (void *)mr->edit_bmesh->looptris;
+      range_data.elems = is_mesh ? mr->looptris.data() : (void *)mr->edit_bmesh->looptris;
       func = is_mesh ? extract_range_iter_looptri_mesh : extract_range_iter_looptri_bm;
       stop = mr->tri_len;
       break;
     case MR_ITER_POLY:
-      range_data.elems = is_mesh ? mr->mpoly : (void *)mr->bm->ftable;
+      range_data.elems = is_mesh ? mr->polys.data() : (void *)mr->bm->ftable;
       func = is_mesh ? extract_range_iter_poly_mesh : extract_range_iter_poly_bm;
       stop = mr->poly_len;
       break;
     case MR_ITER_LEDGE:
       range_data.loose_elems = mr->ledges;
-      range_data.elems = is_mesh ? mr->medge : (void *)mr->bm->etable;
+      range_data.elems = is_mesh ? mr->edges.data() : (void *)mr->bm->etable;
       func = is_mesh ? extract_range_iter_ledge_mesh : extract_range_iter_ledge_bm;
       stop = mr->edge_loose_len;
       break;
     case MR_ITER_LVERT:
       range_data.loose_elems = mr->lverts;
-      range_data.elems = is_mesh ? mr->vert_positions : (void *)mr->bm->vtable;
+      range_data.elems = is_mesh ? mr->vert_positions.data() : (void *)mr->bm->vtable;
       func = is_mesh ? extract_range_iter_lvert_mesh : extract_range_iter_lvert_bm;
       stop = mr->vert_loose_len;
       break;
@@ -885,8 +885,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
           /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
            * based on the subdivision loops. */
           const int poly_origindex = subdiv_loop_poly_index[i * 4];
-          const MPoly *mp = &mr->mpoly[poly_origindex];
-          extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, mp);
+          const MPoly &poly = mr->polys[poly_origindex];
+          extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, &poly);
         }
       }
     }

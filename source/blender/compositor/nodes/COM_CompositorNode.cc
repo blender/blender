@@ -15,7 +15,8 @@ void CompositorNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
   const bNode *editor_node = this->get_bnode();
-  bool is_active = (editor_node->flag & NODE_DO_OUTPUT_RECALC) || context.is_rendering();
+  bool is_active = ((editor_node->flag & NODE_DO_OUTPUT_RECALC) || context.is_rendering()) &&
+                   (editor_node->flag & NODE_DO_OUTPUT);
   bool ignore_alpha = (editor_node->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
 
   NodeInput *image_socket = this->get_input_socket(0);

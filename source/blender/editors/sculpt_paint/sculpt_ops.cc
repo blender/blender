@@ -2095,3 +2095,9 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
   WM_operatortype_append(SCULPT_OT_reveal_all);
 }
+
+
+void ED_keymap_sculpt(wmKeyConfig *keyconf)
+{
+  filter_mesh_modal_keymap(keyconf);
+}

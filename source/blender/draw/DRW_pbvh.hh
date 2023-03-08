@@ -34,8 +34,8 @@ struct PBVH_GPU_Args {
   struct BMesh *bm;
   const struct Mesh *me;
   const float (*vert_positions)[3];
-  const struct MLoop *mloop;
-  const struct MPoly *mpoly;
+  const MLoop *mloop;
+  const MPoly *polys;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
   struct CustomData *vdata, *ldata, *pdata;
   const float (*vert_normals)[3];

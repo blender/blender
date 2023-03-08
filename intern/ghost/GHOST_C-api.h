@@ -1248,8 +1248,8 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
 void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle context, void *r_command_buffer);
 
 /**
- * Gets the Vulkan backbuffer related resource handles associated with the Vulkan context.
- * Needs to be called after each swap event as the backbuffer will change.
+ * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
+ * Needs to be called after each swap event as the back-buffer will change.
  *
  * Should should only be called when using a Vulkan context with an active swap chain.
  * Other contexts will not return any handles and leave the

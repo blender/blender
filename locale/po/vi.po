@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -5492,10 +5492,6 @@ msgstr "Độ dày của mặt ngoài"
 
 msgid "Enabled"
 msgstr "Đã Bật"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Cho vật thể này được làm đồ va chạm trong các hệ thống vật lý"
 
 
 msgid "Single Sided"
@@ -16158,10 +16154,6 @@ msgid "Texture Mapping"
 msgstr "Ánh Xạ Chất Liệu"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Đổi giá trị chất liệu UV của nét"
-
-
 msgid "Time Offset"
 msgstr "Dịch thời gian"
 
@@ -17606,10 +17598,6 @@ msgstr "Hệ Số Độ Dày"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Mức huyên náo để áp dụng cho bề dầy"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Mức huyên náo để áp dụng cho xoay UV"
 
 
 msgid "Noise Offset"
@@ -38100,10 +38088,6 @@ msgid "UVWarp Modifier"
 msgstr "Bộ Điều Chỉnh Mở Gói UV"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "Thêm vị trí mục tiêu cho tọa độ UV"
-
-
 msgid "U-Axis"
 msgstr "Trục-U"
 
@@ -52707,14 +52691,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Quyền luật pháp và điều kiện của mô hình"
 
 
-msgid "Use Current Frame"
-msgstr "Sử Dụng Bức Ảnh Hiện Tại"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Xuất cảnh trong bức ảnh hiện tại"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "Chỉ Xuất Xương Méo Hóa"
 
@@ -52733,10 +52709,6 @@ msgstr "Bit lượng tử hóa cho giá trị màn sắc (0 = không lượng t�
 
 msgid "Generic quantization bits"
 msgstr "Bit lượng tử hóa tổng quát"
-
-
-msgid "Quantization bits for generic coordinate values like weights or joints (0 = no quantization)"
-msgstr "Bit lượng tử hóa cho các giá trị tọa độ như quyền lượng hay khớp (0 = không lượng tử hóa)"
 
 
 msgid "Draco mesh compression"
@@ -52897,14 +52869,6 @@ msgstr "Tiếp Tuyến Mẫu Dạng"
 
 msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "Xuất tiếp tuyến đỉnh với dạng mẫu (mục đích biến dạng)"
-
-
-msgid "Group by NLA Track"
-msgstr "Nhom Hóa từng Rãnh NLA"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr "Khi bật, nhiều hành động được gồm vào cùng hoạt hình glTF nếu được đẩy vào rãnh NLA có cùng tên. Khi tắt, tất cả hành động hiện tại đang được chỉ định hiện tại được trở thành một hoạt hình glTF"
 
 
 msgid "Merged Animation Name"
@@ -63657,10 +63621,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Móc các đỉnh được chọn với vật thể đầu được chọn"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Chỉ định móc đến xương hoạt động của vật thể móc"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Chỉ Định Móc"
@@ -66515,14 +66475,6 @@ msgid "Library Operation"
 msgstr "Thao Tác Thư Viện"
 
 
-msgid ""
-"Delete this library and all its item.\n"
-"Warning: No undo"
-msgstr ""
-"Xóa thư viện này và tất cả mặt hàng của nó.\n"
-"Cảnh Báo: Không thể hủy bước"
-
-
 msgid "Relocate"
 msgstr "Di Chuyển"
 
@@ -66939,10 +66891,6 @@ msgstr "Thử chọn một điểm tay cầm trước biến hóa"
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Thêm UV Đơn Giản"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Thêm UV bản đồ lập phương trên mạng lưới"
 
 
 msgctxt "Operator"
@@ -93961,10 +93909,6 @@ msgid "Display Texture Paint UVs"
 msgstr "Hiển Thị UV Sơn Chất Liệu "
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "Hiển thị lớp che cho UV sơn chất liệu"
-
-
 msgid "Tile Grid Shape"
 msgstr "Hình Dạng Đồ Thị Ô"
 
@@ -98661,10 +98605,6 @@ msgid "Double precision"
 msgstr "Số thật dấu phẩy động đôi"
 
 
-msgid "Integer 64-bit"
-msgstr "Số nguyên 64 bit"
-
-
 msgid "64-bit integer"
 msgstr "Số nguyên 64 bit"
 
@@ -98673,40 +98613,20 @@ msgid "No data, boolean mask of active voxels"
 msgstr "Không có dữ liệu, mặt nạ bool của thể tích hoạt động"
 
 
-msgid "Float Vector"
-msgstr "Vectơ Số Thật Dấu Phẩy Động"
-
-
 msgid "3D float vector"
 msgstr "Vectơ số thật dấu phẩy động đơn 3D"
-
-
-msgid "Double Vector"
-msgstr "Vectơ Đôi"
 
 
 msgid "3D double vector"
 msgstr "Vectơ số thật dấu phẩy động đôi 3D"
 
 
-msgid "Integer Vector"
-msgstr "Vectơ Số Thật"
-
-
 msgid "3D integer vector"
 msgstr "Vectơ số nguyên 3D"
 
 
-msgid "Points (Unsupported)"
-msgstr "Điểm (Chưa Hỗ Trợ)"
-
-
 msgid "Points grid, currently unsupported by volume objects"
 msgstr "Đồ thị điểm, hiện tại vật thể thể tích chưa hỗ trợ"
-
-
-msgid "Unknown"
-msgstr "Lạ"
 
 
 msgid "Unsupported data type"
@@ -103291,6 +103211,10 @@ msgid "Edit Bone(s)"
 msgstr "Biên Tập Xương"
 
 
+msgid "Unknown"
+msgstr "Lạ"
+
+
 msgid "Calculation Range"
 msgstr "Phạm Vi Tính Toán"
 
@@ -107347,11 +107271,6 @@ msgstr "Wavefront (.obj)"
 msgctxt "Operator"
 msgid "STL (.stl) (experimental)"
 msgstr "STL (.stl) (đồ thí nghiệm)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Mô Tả Cảnh Tổng Quát (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -112602,10 +112521,6 @@ msgid "Hex"
 msgstr "Thập Lục Phận"
 
 
-msgid "Value:"
-msgstr "Giá Trị:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(Gama Được Chỉnh Sửa)"
 
@@ -115882,6 +115797,10 @@ msgid "Add Input Variable"
 msgstr "Thêm Biến Số Ngõ Vào"
 
 
+msgid "Value:"
+msgstr "Giá Trị:"
+
+
 msgid "Update Dependencies"
 msgstr "Nâng Cấp Đồ Nhờ"
 
@@ -118615,10 +118534,6 @@ msgid "Driver not found in this animation data"
 msgstr "Không tìm được điều vận trong dữ liệu hoạt hình này"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp thông tin tập bức ảnh mẫu: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Không thể xóa RãnhNLA '%s'"
 
@@ -119046,10 +118961,6 @@ msgid "Unable to create socket"
 msgstr "Không thể chế tạo ổ cắm"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp cây giao điểm: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Cây giao điểm '%s' có loại chưa được chỉ định '%s'"
 
@@ -119076,10 +118987,6 @@ msgstr "Không tìm được giao điểm '%s' trong cây giao điểm"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Không tìm được ổ cắm '%s' trong giao điểm"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp giao điểm: '%s' quá dài, bề dài tối đa là %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -119263,10 +119170,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "Chỉ số %d không hợp lệ cho khúc Xương-B của '%s'!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp động cơ kết xuất: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Đã gởi một hình dạng vô lõm cho hàm số, chỉ được dùng hình dạng lõm"
 
@@ -119379,30 +119282,6 @@ msgid "Region not found in space type"
 msgstr "Không tìm được vùng trong loại không gian"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp bảng: '%s' quá dài, bề dài tối đa là %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Đang đăng ký lớp bảng: '%s' có thứ loại '%s' "
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Đang đăng ký lớp bảng: không tìm được phụ huynh '%s' cho '%s'"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp uilist: '%s' quá dài, bề dài tối đa là %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp đầu: '%s' quá dài, bề dài tối đa là %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp danh sách: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "Đồ kèm không hợp lệ nữa"
 
@@ -119411,16 +119290,8 @@ msgid "Excluded path is no longer valid"
 msgstr "Đường dẫn bị trừ không còn hợp lệ"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp tùy chọn đồ kèm: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "Font not packed"
 msgstr "Phông chưa được gói lại"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Đang đăng ký lớp tùy chọn cho mẫu bàn phím: '%s' quá dài, bề dài tối đa là %d"
 
 
 msgid "Not a non-modal keymap"
@@ -119483,24 +119354,12 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "Không thể xóa Cấu Hình Phím '%s'"
 
 
-msgid "Area type does not support gizmos"
-msgstr "Loại khu vực không hỗ trợ đồ đạc"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp đồ đạc: '%s' quá dài, bề dài tối đa là %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Chưa biết đến LoạiĐồĐạc '%s'"
 
 
 msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
 msgstr "LoạiĐồĐạc '%s' được dùng cho một nhóm đồ đạc 3D. Kêu lại 'draw_select' được đặt khi chỉ được dùng 'test_select'"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp danh sách: '%s' quá dài, bề dài tối đa là %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"

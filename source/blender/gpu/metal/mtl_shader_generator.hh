@@ -205,6 +205,7 @@ struct MSLUniformBlock {
   std::string name;
   ShaderStage stage;
   bool is_array;
+  uint slot;
 
   bool operator==(const MSLUniformBlock &right) const
   {
@@ -417,6 +418,9 @@ class MSLGeneratorInterface {
 
   /* Parameters. */
   shader::DepthWrite depth_write;
+
+  /* Bind index trackers. */
+  int max_ubo_slot = -1;
 
   /* Shader buffer bind indices for argument buffers per shader stage.
    * NOTE: Compute stage will re-use index 0. */

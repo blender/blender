@@ -222,7 +222,10 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
 
   /* Export motion points. */
   const int num_points = pointcloud->num_points();
-  float3 *mP = attr_mP->data_float3() + motion_step * num_points;
+  // Point cloud attributes are stored as float4 with the radius
+  // in the w element. This is explict now as float3 is no longer
+  // interchangeable with float4 as it is packed now.
+  float4 *mP = attr_mP->data_float4() + motion_step * num_points;
   bool have_motion = false;
   const array<float3> &pointcloud_points = pointcloud->get_points();
 
@@ -231,11 +234,9 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
   std::optional<BL::FloatAttribute> b_attr_radius = find_radius_attribute(b_pointcloud);
 
   for (int i = 0; i < std::min(num_points, b_points_num); i++) {
-    const float3 co = get_float3(b_attr_position.data[i].vector());
+    const float3 P = get_float3(b_attr_position.data[i].vector());
     const float radius = b_attr_radius ? b_attr_radius->data[i].value() : 0.01f;
-    float3 P = co;
-    P.w = radius;
-    mP[i] = P;
+    mP[i] = make_float4(P.x, P.y, P.z, radius);
     have_motion = have_motion || (P != pointcloud_points[i]);
   }
 

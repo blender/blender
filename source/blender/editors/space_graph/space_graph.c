@@ -142,8 +142,9 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *area)
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (sipo->ads == NULL) {
+    wmWindow *win = WM_window_find_by_area(wm, area);
     sipo->ads = MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
-    sipo->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
+    sipo->ads->source = win ? (ID *)WM_window_get_active_scene(win) : NULL;
   }
 
   /* force immediate init of any invalid F-Curve colors */

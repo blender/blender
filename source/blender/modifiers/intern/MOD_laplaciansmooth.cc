@@ -62,14 +62,6 @@ struct LaplacianSystem {
   float vert_centroid[3];
 };
 
-static void delete_laplacian_system(LaplacianSystem *sys);
-static void fill_laplacian_matrix(LaplacianSystem *sys);
-static void init_data(ModifierData *md);
-static void init_laplacian_matrix(LaplacianSystem *sys);
-static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag);
-static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border);
-
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
   MEM_SAFE_FREE(sys->eweights);
@@ -126,11 +118,11 @@ static float compute_volume(const float center[3],
   float vol = 0.0f;
 
   for (const int i : polys.index_range()) {
-    const MPoly *mp = &polys[i];
-    const MLoop *l_first = &loops[mp->loopstart];
+    const MPoly &poly = polys[i];
+    const MLoop *l_first = &loops[poly.loopstart];
     const MLoop *l_prev = l_first + 1;
     const MLoop *l_curr = l_first + 2;
-    const MLoop *l_term = l_first + mp->totloop;
+    const MLoop *l_term = l_first + poly.totloop;
 
     for (; l_curr != l_term; l_prev = l_curr, l_curr++) {
       vol += volume_tetrahedron_signed_v3(
@@ -194,10 +186,10 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     sys->eweights[i] = w1;
   }
 
-  for (i = 0; i < sys->polys.size(); i++) {
-    const MPoly *mp = &sys->polys[i];
-    const MLoop *l_next = &sys->loops[mp->loopstart];
-    const MLoop *l_term = l_next + mp->totloop;
+  for (const int i : sys->polys.index_range()) {
+    const MPoly &poly = sys->polys[i];
+    const MLoop *l_next = &sys->loops[poly.loopstart];
+    const MLoop *l_term = l_next + poly.totloop;
     const MLoop *l_prev = l_term - 2;
     const MLoop *l_curr = l_term - 1;
 
@@ -249,10 +241,10 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   int i;
   uint idv1, idv2;
 
-  for (i = 0; i < sys->polys.size(); i++) {
-    const MPoly *mp = &sys->polys[i];
-    const MLoop *l_next = &sys->loops[mp->loopstart];
-    const MLoop *l_term = l_next + mp->totloop;
+  for (const int i : sys->polys.index_range()) {
+    const MPoly &poly = sys->polys[i];
+    const MLoop *l_next = &sys->loops[poly.loopstart];
+    const MLoop *l_term = l_next + poly.totloop;
     const MLoop *l_prev = l_term - 2;
     const MLoop *l_curr = l_term - 1;
 

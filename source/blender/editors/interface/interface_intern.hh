@@ -57,10 +57,6 @@ struct wmTimer;
 #define UI_MENU_SCROLL_MOUSE (UI_MENU_SCROLL_ARROW + 2 * UI_DPI_FAC)
 #define UI_MENU_SCROLL_PAD (4 * UI_DPI_FAC)
 
-/* panel limits */
-#define UI_PANEL_MINX 100
-#define UI_PANEL_MINY 70
-
 /** Popover width (multiplied by #U.widget_unit) */
 #define UI_POPOVER_WIDTH_UNITS 10
 

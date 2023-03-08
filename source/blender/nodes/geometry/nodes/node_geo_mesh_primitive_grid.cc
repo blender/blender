@@ -51,7 +51,6 @@ Mesh *create_grid_mesh(const int verts_x,
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
                                    edges_x * verts_y + edges_y * verts_x,
-                                   0,
                                    edges_x * edges_y * 4,
                                    edges_x * edges_y);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();

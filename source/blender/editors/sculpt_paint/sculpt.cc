@@ -132,7 +132,7 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
     case PBVH_FACES:
     case PBVH_GRIDS: {
       const MPoly *mp = ss->mpoly + face.i;
-      BKE_mesh_calc_poly_normal(mp, ss->mloop + mp->loopstart, ss->vert_positions, no);
+      BKE_mesh_calc_poly_normal(mp, ss->loops + mp->loopstart, ss->vert_positions, no);
       break;
     }
     default:  // failed
@@ -728,8 +728,8 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
           continue;
         }
 
-        const MPoly *mp = ss->mpoly + poly_index;
-        const MLoop *ml = ss->mloop + mp->loopstart;
+        const MPoly *mp = ss->polys + poly_index;
+        const MLoop *ml = ss->loops + mp->loopstart;
 
         for (int k = 0; k < mp->totloop; k++, ml++) {
           PBVHVertRef vertex2 = {ml->v};
@@ -1024,9 +1024,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-    for (int l = 0; l < p->totloop; l++) {
-      const MLoop *loop = &ss->mloop[p->loopstart + l];
+    const MPoly &poly = ss->polys[vert_map->indices[i]];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &ss->loops[poly.loopstart + l];
       if (loop->v == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -1254,7 +1254,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   /* length of array is now in len */
 
   for (int i = 0; i < len; i++) {
-    const MEdge *e = ss->medge + edges[i];
+    const MEdge *e = ss->edges + edges[i];
     int v2 = e->v1 == vertex.i ? e->v2 : e->v1;
 
     sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v2), BKE_pbvh_make_eref(edges[i]), v2);
@@ -1270,31 +1270,13 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-    uint f_adj_v[2];
 
-    MLoop *l = &ss->mloop[p->loopstart];
-    int e1, e2;
-
-    bool ok = false;
-
-    for (int j = 0; j < p->totloop; j++, l++) {
-      if (l->v == index) {
-        f_adj_v[0] = ME_POLY_LOOP_PREV(ss->mloop, p, j)->v;
-        f_adj_v[1] = ME_POLY_LOOP_NEXT(ss->mloop, p, j)->v;
-
-        e1 = ME_POLY_LOOP_PREV(ss->mloop, p, j)->e;
-        e2 = l->e;
-        ok = true;
-        break;
-      }
-    }
-
-    if (ok) {
-      for (int j = 0; j < 2; j += 1) {
-        if (f_adj_v[j] != index) {
-          sculpt_vertex_neighbor_add(
-              iter, BKE_pbvh_make_vref(f_adj_v[j]), BKE_pbvh_make_eref(j ? e2 : e1), f_adj_v[j]);
+    const MPoly &poly = ss->polys[vert_map->indices[i]];
+    int f_adj_v[2];
+    if (poly_get_adj_loops_from_vert(&poly, ss->loops, vertex.i, f_adj_v) != -1) {
+      for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
+        if (f_adj_v[j] != vertex.i) {
+          sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
         }
       }
     }
@@ -1328,7 +1310,7 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
   iter->no_free = false;
 
   for (int i = 0; i < vert_map->count; i++) {
-    const MEdge *me = &ss->medge[vert_map->indices[i]];
+    const MEdge *me = &ss->edges[vert_map->indices[i]];
 
     unsigned int v = me->v1 == (unsigned int)vertex.i ? me->v2 : me->v1;
     MSculptVert *mv = ss->msculptverts + v;
@@ -1464,7 +1446,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
@@ -6315,7 +6297,8 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       SCULPT_update_object_bounding_box(ob);
     }
 
-    if (SCULPT_get_redraw_rect(region, CTX_wm_region_view3d(C), ob, &r)) {
+    RegionView3D *rv3d = CTX_wm_region_view3d(C);
+    if (rv3d && SCULPT_get_redraw_rect(region, rv3d, ob, &r)) {
       if (ss->cache) {
         ss->cache->current_r = r;
       }
@@ -6335,7 +6318,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   if (update_flags & SCULPT_UPDATE_COORDS && !ss->shapekey_active) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
-      BKE_mesh_tag_coords_changed(mesh);
+      BKE_mesh_tag_positions_changed(mesh);
       /* Update the mesh's bounds eagerly since the PBVH already has that information. */
       mesh->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
         BKE_pbvh_bounding_box(ob->sculpt->pbvh, r_bounds.min, r_bounds.max);
@@ -7000,9 +6983,9 @@ void SCULPT_boundary_info_ensure(Object *object)
       MEM_calloc_arrayN(base_mesh->totedge, sizeof(int), "Adjacent face edge count"));
 
   for (const int p : polys.index_range()) {
-    const MPoly *poly = &polys[p];
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &loops[l + poly->loopstart];
+    const MPoly &poly = polys[p];
+    for (int l = 0; l < poly.totloop; l++) {
+      const MLoop *loop = &loops[l + poly.loopstart];
       adjacent_faces_edge_count[loop->e]++;
     }
   }
@@ -7025,9 +7008,9 @@ void SCULPT_ensure_epmap(SculptSession *ss)
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->totedges,
-                                  ss->mpoly,
+                                  ss->polys,
                                   ss->totfaces,
-                                  ss->mloop,
+                                  ss->loops,
                                   ss->totloops);
   }
 }

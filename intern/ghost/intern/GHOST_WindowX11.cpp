@@ -1226,7 +1226,7 @@ static GHOST_Context *create_glx_context(Window window,
 
 GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type)
 {
-#if defined(WITH_VULKAN)
+#if defined(WITH_VULKAN_BACKEND)
   if (type == GHOST_kDrawingContextTypeVulkan) {
     GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
                                                  GHOST_kVulkanPlatformX11,

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-03-06 08:08:35\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2021\n"
 "Language-Team: Russian (https://www.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -5084,10 +5084,6 @@ msgstr "Толщина внешней грани"
 
 msgid "Enabled"
 msgstr "Включено"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Включить эти объекты в число объектов столкновения физической системы"
 
 
 msgid "Single Sided"
@@ -15421,10 +15417,6 @@ msgid "Texture Mapping"
 msgstr "Разметка текстуры"
 
 
-msgid "Change stroke uv texture values"
-msgstr "Изменить значения UV-текстуры штриха"
-
-
 msgid "Time Offset"
 msgstr "Сдвиг времени"
 
@@ -16437,10 +16429,6 @@ msgstr "Коэфф. толщины"
 
 msgid "Amount of noise to apply to thickness"
 msgstr "Величина шума, применяемого к толщине"
-
-
-msgid "Amount of noise to apply uv rotation"
-msgstr "Величина шума, применяемого к UV-вращению"
 
 
 msgid "Noise Offset"
@@ -33036,10 +33024,6 @@ msgid "UVWarp Modifier"
 msgstr "Модификатор деформации UV"
 
 
-msgid "Add target position to uv coordinates"
-msgstr "Добавить целевое положение к UV-координатам"
-
-
 msgid "U-Axis"
 msgstr "Ось U"
 
@@ -43086,14 +43070,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "Условия использования модели"
 
 
-msgid "Use Current Frame"
-msgstr "Использовать текущий кадр"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "Экспортировать сцену на текущем кадре анимации"
-
-
 msgid "Draco mesh compression"
 msgstr "Сжатие меша Draco"
 
@@ -51535,10 +51511,6 @@ msgid "Hook selected vertices to the first selected object"
 msgstr "Привязать крюком выделенные вершины к первому выделенному объекту"
 
 
-msgid "Assign the hook to the hook objects active bone"
-msgstr "Назначить крюк объектам крюка активной кости"
-
-
 msgctxt "Operator"
 msgid "Assign to Hook"
 msgstr "Присвоить для крюка"
@@ -54023,10 +53995,6 @@ msgstr "Попробовать выделить точку рукоятки до
 msgctxt "Operator"
 msgid "Add Simple UVs"
 msgstr "Добавить простую UV-карту"
-
-
-msgid "Add cube map uvs on mesh"
-msgstr "Добавить кубическую развёртку в меше"
 
 
 msgctxt "Operator"
@@ -74799,10 +74767,6 @@ msgid "Display Texture Paint UVs"
 msgstr "Показать UV текстурного рисования"
 
 
-msgid "Display overlay of texture paint uv layer"
-msgstr "Показывать наложение uv-слоя текстурного рисования"
-
-
 msgid "Live Unwrap"
 msgstr "Развёртывать в реальном времени"
 
@@ -78288,10 +78252,6 @@ msgid "Render cryptomatte object pass, for isolating objects in compositing"
 msgstr "Рендерить проход объектов Сryptomatte, изолирующий объекты в постобработке"
 
 
-msgid "Unknown"
-msgstr "Неизвестно"
-
-
 msgid "Volume grid name"
 msgstr "Имя сетки у объёма"
 
@@ -80008,6 +79968,10 @@ msgstr "Ветка: %s"
 msgctxt "Operator"
 msgid "Load %d.%d Settings"
 msgstr "Загрузить настройки %d.%d"
+
+
+msgid "Unknown"
+msgstr "Неизвестно"
 
 
 msgid "Frame Numbers"
@@ -82980,11 +82944,6 @@ msgstr "Общее"
 msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
-
-
-msgctxt "Operator"
-msgid "Universal Scene Description (.usd, .usdc, .usda)"
-msgstr "Universal Scene Description (.usd, .usdc, .usda)"
 
 
 msgctxt "Operator"
@@ -86633,10 +86592,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "Value:"
-msgstr "Значение:"
-
-
 msgid "(Gamma Corrected)"
 msgstr "(с гамма-коррекцией)"
 
@@ -89097,6 +89052,10 @@ msgid "Add Input Variable"
 msgstr "Добавить входную переменную"
 
 
+msgid "Value:"
+msgstr "Значение:"
+
+
 msgid "Update Dependencies"
 msgstr "Обновить зависимости"
 
@@ -90736,10 +90695,6 @@ msgid "Driver not found in this animation data"
 msgstr "Драйвер не найден в данных анимации"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса информации о ключевом наборе: имя «%s» слишком длинное, максимальная длина — %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Трек НЛА «%s» не может быть удалён"
 
@@ -91053,10 +91008,6 @@ msgid "Unable to create socket"
 msgstr "Не удалось создать сокет"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса нодовой системы: имя «%s» слишком длинное, максимальная длина — %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Нодовая система «%s» имеет неопределённый тип %s"
 
@@ -91075,10 +91026,6 @@ msgstr "Нода «%s» не найдена в системе нодов"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Сокет «%s» не найден в ноде"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса ноды: имя «%s» слишком длинное, максимальная длина — %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -91222,10 +91169,6 @@ msgid "Invalid index %d for B-Bone segments of '%s'!"
 msgstr "Неверный индекс %d для сегмента B-кости из %s!"
 
 
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса движка рендеринга: имя «%s» слишком длинное, максимальная длина — %d"
-
-
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
 msgstr "Функции передана поверхность столкновения невыпуклой формы, используйте только выпуклые поверхности столкновений"
 
@@ -91318,30 +91261,6 @@ msgid "Region not found in space type"
 msgstr "Регион не найден в типе пространства"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса панели: имя «%s» слишком длинное, максимальная длина — %d"
-
-
-msgid "Registering panel class: '%s' has category '%s' "
-msgstr "Регистрация класса панели: «%s» имеет категорию «%s»"
-
-
-msgid "Registering panel class: parent '%s' for '%s' not found"
-msgstr "Регистрация класса панели: родитель «%s» для «%s» не найден"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса интерфейсного списка: имя «%s» слишком длинное, максимальная длина — %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса заголовка: имя «%s» слишком длинное, максимальная длина — %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса меню: имя «%s» слишком длинное, максимальная длина — %d"
-
-
 msgid "Add-on is no longer valid"
 msgstr "Аддон больше недействителен"
 
@@ -91350,16 +91269,8 @@ msgid "Excluded path is no longer valid"
 msgstr "Исключённый путь недействителен"
 
 
-msgid "Registering add-on preferences class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация класса настроек аддона: имя «%s» слишком длинное, максимальная длина — %d"
-
-
 msgid "Font not packed"
 msgstr "Шрифт не упакован"
-
-
-msgid "Registering key-config preferences class: '%s' is too long, maximum length is %d"
-msgstr "Регистрация клавиатурных настроек: имя «%s» слишком длинное, максимальная длина — %d"
 
 
 msgid "Not a non-modal keymap"
@@ -91402,20 +91313,8 @@ msgid "KeyConfig '%s' cannot be removed"
 msgstr "Клавиатурная конфигурация «%s» не может быть удалена"
 
 
-msgid "Area type does not support gizmos"
-msgstr "Тип области не поддерживает манипуляторы"
-
-
-msgid "Registering gizmo class: '%s' is too long, maximum length is %d"
-msgstr "Регистрируемый класс манипуляторов: «%s» слишком длинный, максимальная длина — %d"
-
-
 msgid "GizmoType '%s' not known"
 msgstr "Тип манипуляторов «%s» не известен"
-
-
-msgid "Registering gizmogroup class: '%s' is too long, maximum length is %d"
-msgstr "Регистрируемый класс группы манипуляторов: «%s» слишком длинный, максимальная длина — %d"
 
 
 msgid "Gizmo target property '%s.%s' not found"

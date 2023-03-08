@@ -1051,10 +1051,10 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   }
 }
 
-LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *obj)
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *ob)
 {
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
-    if (eln->object_ref == obj) {
+    if (eln->object_ref == ob) {
       return eln;
     }
   }

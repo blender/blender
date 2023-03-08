@@ -747,11 +747,9 @@ typedef struct SculptSession {
   int temp_vdata_elems, temp_pdata_elems;
 
   float (*vert_positions)[3];
-
-  const struct MVert *mvert;
-  const struct MEdge *medge;
-  const struct MPoly *mpoly;
-  const struct MLoop *mloop;
+  const struct MEdge *edges;
+  const struct MLoop *loops;
+  const struct MPoly *polys;
 
   const int *material_index;
 

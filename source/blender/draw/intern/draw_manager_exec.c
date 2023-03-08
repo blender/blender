@@ -646,10 +646,10 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_TEXTURE:
-          GPU_texture_bind_ex(uni->texture, uni->sampler_state, uni->location, false);
+          GPU_texture_bind_ex(uni->texture, uni->sampler_state, uni->location);
           break;
         case DRW_UNIFORM_TEXTURE_REF:
-          GPU_texture_bind_ex(*uni->texture_ref, uni->sampler_state, uni->location, false);
+          GPU_texture_bind_ex(*uni->texture_ref, uni->sampler_state, uni->location);
           break;
         case DRW_UNIFORM_IMAGE:
           GPU_texture_image_bind(uni->texture, uni->location);

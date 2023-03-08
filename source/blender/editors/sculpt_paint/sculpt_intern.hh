@@ -2048,6 +2048,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /* Mesh Filter. */
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
+struct wmKeyMap *filter_mesh_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* Cloth Filter. */
 
@@ -2553,12 +2554,13 @@ void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene);
 /* Ensures vertex island keys exist and are valid. */
 void SCULPT_topology_islands_ensure(Object *ob);
 
-/* Mark vertex island keys as invalid.  Call when adding or hiding
- * geometry.
+/**
+ * Mark vertex island keys as invalid.
+ * Call when adding or hiding geometry.
  */
 void SCULPT_topology_islands_invalidate(SculptSession *ss);
 
-/* Get vertex island key.*/
+/** Get vertex island key. */
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */

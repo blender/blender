@@ -101,6 +101,7 @@ typedef struct DRWSubdivCache {
   struct BMesh *bm;
   struct Subdiv *subdiv;
   bool optimal_display;
+  bool hide_unmapped_edges;
   bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for positions and normals. */
@@ -148,6 +149,8 @@ typedef struct DRWSubdivCache {
   struct GPUVertBuf *verts_orig_index;
   /* Maps subdivision loop to original coarse edge index, only really useful for edit mode. */
   struct GPUVertBuf *edges_orig_index;
+  /* Indicates if edge should be drawn in optimal display mode. */
+  struct GPUVertBuf *edges_draw_flag;
 
   /* Owned by #Subdiv. Indexed by coarse polygon index, difference between value (i + 1) and (i)
    * gives the number of ptex faces for coarse polygon (i). */
@@ -229,10 +232,10 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *face_adjacency_offsets,
                                     struct GPUVertBuf *face_adjacency_lists,
                                     struct GPUVertBuf *vertex_loop_map,
-                                    struct GPUVertBuf *vertex_normals);
+                                    struct GPUVertBuf *vert_normals);
 
 void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
-                                  struct GPUVertBuf *vertex_normals,
+                                  struct GPUVertBuf *vert_normals,
                                   struct GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   struct GPUVertBuf *pos_nor);
 
@@ -259,7 +262,7 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
 
 void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
                                        struct GPUVertBuf *pos_nor,
-                                       struct GPUVertBuf *edge_idx,
+                                       struct GPUVertBuf *edge_draw_flag,
                                        struct GPUVertBuf *edge_fac);
 
 void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,

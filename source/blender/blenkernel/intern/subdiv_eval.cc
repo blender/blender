@@ -90,9 +90,9 @@ static void set_coarse_positions(Subdiv *subdiv,
    * OpenSubdiv's vertices match mesh ones? */
   BLI_bitmap *vertex_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &polys[poly_index];
-    for (int corner = 0; corner < poly->totloop; corner++) {
-      const MLoop *loop = &loops[poly->loopstart + corner];
+    const MPoly &poly = polys[poly_index];
+    for (int corner = 0; corner < poly.totloop; corner++) {
+      const MLoop *loop = &loops[poly.loopstart + corner];
       BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
     }
   }
@@ -139,8 +139,8 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const MPoly *mpoly = &ctx->polys[face_index];
-  const float(*mluv)[2] = &ctx->mloopuv[mpoly->loopstart];
+  const MPoly &poly = ctx->polys[face_index];
+  const float(*mluv)[2] = &ctx->mloopuv[poly.loopstart];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.

@@ -108,8 +108,7 @@ static void gizmo_light_radius_prop_matrix_get(const wmGizmo *UNUSED(gz),
   BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
   const Light *la = BKE_view_layer_active_object_get(view_layer)->data;
 
-  /* Draw gizmo even when radius is zero. */
-  const float diameter = fmaxf(2.0f * la->radius, 1e-2f);
+  const float diameter = 2.0f * la->radius;
   matrix[0][0] = diameter;
   matrix[1][1] = diameter;
 }

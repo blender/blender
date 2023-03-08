@@ -1438,6 +1438,11 @@ static bool outliner_element_visible_get(const Scene *scene,
             return false;
           }
           break;
+        case OB_GPENCIL:
+          if (exclude_filter & SO_FILTER_NO_OB_GPENCIL) {
+            return false;
+          }
+          break;
         default:
           if (exclude_filter & SO_FILTER_NO_OB_OTHERS) {
             return false;

@@ -251,7 +251,7 @@ static bool face_materials_match(const PBVH *pbvh, const int a, const int b)
       return false;
     }
   }
-  return (pbvh->mpoly[a].flag & ME_SMOOTH) == (pbvh->mpoly[b].flag & ME_SMOOTH);
+  return (pbvh->polys[a].flag & ME_SMOOTH) == (pbvh->polys[b].flag & ME_SMOOTH);
 }
 
 static bool grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
@@ -788,7 +788,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->face_sets_color_seed = pbvh->face_sets_color_seed;
   args->vert_positions = pbvh->vert_positions;
   args->mloop = pbvh->mloop;
-  args->mpoly = pbvh->mpoly;
+  args->polys = pbvh->polys;
   args->mlooptri = pbvh->looptri;
   args->flat_vcol_shading = pbvh->flat_vcol_shading;
   args->show_orig = pbvh_show_orig_co;
@@ -809,7 +809,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->pdata = pbvh->pdata;
       args->totprim = node->totprim;
       args->me = pbvh->mesh;
-      args->mpoly = pbvh->mpoly;
+      args->polys = pbvh->polys;
       args->vert_normals = pbvh->vert_normals;
 
       args->active_color = pbvh->mesh->active_color_attribute;
@@ -828,7 +828,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->grid_indices = node->prim_indices;
       args->subdiv_ccg = pbvh->subdiv_ccg;
       args->face_sets = pbvh->face_sets;
-      args->mpoly = pbvh->mpoly;
+      args->polys = pbvh->polys;
 
       args->active_color = pbvh->mesh->active_color_attribute;
       args->render_color = pbvh->mesh->default_color_attribute;
@@ -934,7 +934,7 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
 
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
-                         const MPoly *mpoly,
+                         const MPoly *polys,
                          const MLoop *mloop,
                          float (*vert_positions)[3],
                          MSculptVert *msculptverts,
@@ -959,20 +959,21 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->face_areas = face_areas;
   pbvh->mesh = mesh;
   pbvh->header.type = PBVH_FACES;
-  pbvh->mpoly = mpoly;
-  pbvh->hide_poly = (bool *)CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly);
-  pbvh->material_indices = (const int *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_INT32, "material_index");
+  pbvh->polys = polys;
+  pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
+  pbvh->material_indices = static_cast<const int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
   pbvh->mloop = mloop;
   pbvh->looptri = looptri;
   pbvh->msculptverts = msculptverts;
   pbvh->vert_positions = vert_positions;
-  BKE_mesh_vertex_normals_ensure(mesh);
-  pbvh->vert_normals = BKE_mesh_vertex_normals_for_write(mesh);
-  pbvh->hide_vert = (bool *)CustomData_get_layer_named_for_write(
-      &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
-  pbvh->vert_bitmap = (bool *)MEM_calloc_arrayN(totvert, sizeof(bool), "bvh->vert_bitmap");
+  BKE_mesh_vert_normals_ensure(mesh);
+  pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
+  pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
+  pbvh->vert_bitmap = static_cast<bool *>(
+      MEM_calloc_arrayN(totvert, sizeof(bool), "bvh->vert_bitmap"));
   pbvh->totvert = totvert;
 
 #ifdef TEST_PBVH_FACE_SPLIT
@@ -1085,7 +1086,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->ldata = &me->ldata;
   pbvh->pdata = &me->pdata;
 
-  pbvh->mpoly = me->polys().data();
+  pbvh->polys = me->polys().data();
   pbvh->mloop = me->loops().data();
 
   /* We also need the base mesh for PBVH draw. */
@@ -1574,8 +1575,8 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
       /* Face normal and mask */
       if (lt->poly != mpoly_prev) {
-        const MPoly *mp = &pbvh->mpoly[lt->poly];
-        BKE_mesh_calc_poly_normal(mp, &pbvh->mloop[mp->loopstart], pbvh->vert_positions, fn);
+        const MPoly &poly = pbvh->polys[lt->poly];
+        BKE_mesh_calc_poly_normal(&poly, &pbvh->mloop[poly.loopstart], pbvh->vert_positions, fn);
         mpoly_prev = lt->poly;
       }
 
@@ -4876,14 +4877,11 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
 
   BKE_mesh_vert_poly_map_create(&pmap->pmap,
                                 &pmap->pmap_mem,
-                                BKE_mesh_vert_positions(me),
-                                BKE_mesh_edges(me),
                                 BKE_mesh_polys(me),
                                 BKE_mesh_loops(me),
                                 me->totvert,
                                 me->totpoly,
-                                me->totloop,
-                                false);
+                                me->totloop);
 
   pmap->refcount = 1;
 
@@ -5215,7 +5213,7 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
       }
 
       fd->last_face_index_ = face_index;
-      const MPoly *mp = fd->mpoly_ + face_index;
+      const MPoly &poly = fd->polys_[face_index];
 
       fd->face.i = fd->index = face_index;
 
@@ -5226,15 +5224,15 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
         fd->hide = fd->hide_poly_ + face_index;
       }
 
-      pbvh_face_iter_verts_reserve(fd, mp->totloop);
+      pbvh_face_iter_verts_reserve(fd, poly.totloop);
 
-      const MLoop *ml = fd->mloop_ + mp->loopstart;
+      const MLoop *ml = fd->mloop_ + poly.loopstart;
       const int grid_area = fd->subdiv_key_.grid_area;
 
-      for (int i = 0; i < mp->totloop; i++, ml++) {
+      for (int i = 0; i < poly.totloop; i++, ml++) {
         if (fd->pbvh_type_ == PBVH_GRIDS) {
           /* Grid corners. */
-          fd->verts[i].i = (mp->loopstart + i) * grid_area + grid_area - 1;
+          fd->verts[i].i = (poly.loopstart + i) * grid_area + grid_area - 1;
         }
         else {
           fd->verts[i].i = ml->v;
@@ -5265,7 +5263,7 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->subdiv_key_ = pbvh->gridkey;
       ATTR_FALLTHROUGH;
     case PBVH_FACES:
-      fd->mpoly_ = pbvh->mpoly;
+      fd->polys_ = pbvh->polys;
       fd->mloop_ = pbvh->mloop;
       fd->looptri_ = pbvh->looptri;
       fd->hide_poly_ = pbvh->hide_poly;

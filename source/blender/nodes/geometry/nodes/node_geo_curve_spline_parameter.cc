@@ -99,6 +99,8 @@ static Array<float> calculate_point_lengths(
       const Span<float> evaluated_lengths = curves.evaluated_lengths_for_curve(i_curve, is_cyclic);
       MutableSpan<float> lengths = result.as_mutable_span().slice(points);
       lengths.first() = 0.0f;
+      const float last_evaluated_length = evaluated_lengths.is_empty() ? 0.0f :
+                                                                         evaluated_lengths.last();
 
       float total;
       switch (types[i_curve]) {
@@ -107,19 +109,19 @@ static Array<float> calculate_point_lengths(
           for (const int i : IndexRange(points.size()).drop_back(1)) {
             lengths[i + 1] = evaluated_lengths[resolution * (i + 1) - 1];
           }
-          total = evaluated_lengths.last();
+          total = last_evaluated_length;
           break;
         }
         case CURVE_TYPE_POLY:
           lengths.drop_front(1).copy_from(evaluated_lengths.take_front(lengths.size() - 1));
-          total = evaluated_lengths.last();
+          total = last_evaluated_length;
           break;
         case CURVE_TYPE_BEZIER: {
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
           for (const int i : IndexRange(points.size()).drop_back(1)) {
             lengths[i + 1] = evaluated_lengths[offsets[i + 1] - 1];
           }
-          total = evaluated_lengths.last();
+          total = last_evaluated_length;
           break;
         }
         case CURVE_TYPE_NURBS: {

@@ -167,7 +167,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
 
   const int tot_loops = 3 * mesh_data.tris.size() + 4 * mesh_data.quads.size();
   const int tot_polys = mesh_data.tris.size() + mesh_data.quads.size();
-  Mesh *mesh = BKE_mesh_new_nomain(mesh_data.verts.size(), 0, 0, tot_loops, tot_polys);
+  Mesh *mesh = BKE_mesh_new_nomain(mesh_data.verts.size(), 0, tot_loops, tot_polys);
 
   fill_mesh_from_openvdb_data(mesh_data.verts,
                               mesh_data.tris,

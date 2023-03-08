@@ -173,9 +173,8 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
                              COLLADAFW::ColorOrTexture &cot,
                              COLLADAFW::FloatOrParam &val)
 {
-  /*  Handling the alpha value according to the Collada 1.4 reference guide
-   *  see page 7-5 Determining Transparency (Opacity)
-   */
+  /* Handling the alpha value according to the Collada 1.4 reference guide
+   * see page 7-5 Determining Transparency (Opacity). */
 
   if (effect == nullptr) {
     return;

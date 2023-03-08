@@ -629,7 +629,7 @@ def BuildRNAInfo():
         except:
             return ""  # invalid id
 
-    #structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
+    # structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
     '''
     structs = []
     for rna_struct in bpy.doc.structs.values():
@@ -703,7 +703,7 @@ def BuildRNAInfo():
 
             # Store a list of functions, remove inherited later
             # NOT USED YET
-            ## rna_functions_dict[identifier] = get_direct_functions(rna_struct)
+            # rna_functions_dict[identifier] = get_direct_functions(rna_struct)
 
             # fill in these later
             rna_children_dict[identifier] = []
@@ -786,7 +786,7 @@ def BuildRNAInfo():
         # if rna_struct.nested:
         #     continue
 
-        #write_struct(rna_struct, '')
+        # write_struct(rna_struct, '')
         info_struct = GetInfoStructRNA(rna_struct)
         if rna_base:
             info_struct.base = GetInfoStructRNA(rna_struct_dict[rna_base])

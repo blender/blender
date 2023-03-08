@@ -227,7 +227,7 @@ static AdrBit2Path ob_layer_bits[] = {
   } \
   (void)0
 
-/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+/* This function checks if a `blocktype+adrcode` combination, returning a mapping table. */
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
   /* Object layers */
@@ -2005,7 +2005,8 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
         /* trying to add to the current failed (no space),
          * so add a new track to the stack, and add to that...
          */
-        nlt = BKE_nlatrack_add(adt, NULL, false);
+        nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, false);
+        BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
         BKE_nlatrack_add_strip(nlt, strip, false);
       }
 

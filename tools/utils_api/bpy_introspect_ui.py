@@ -441,10 +441,10 @@ def module_classes(mod):
 def main():
 
     import os
-    BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
     BASE_DIR = os.path.normpath(os.path.abspath(BASE_DIR))
-    MODULE_DIR_UI = os.path.join(BASE_DIR, "release", "scripts", "startup")
-    MODULE_DIR_MOD = os.path.join(BASE_DIR, "release", "scripts", "modules")
+    MODULE_DIR_UI = os.path.join(BASE_DIR, "scripts", "startup")
+    MODULE_DIR_MOD = os.path.join(BASE_DIR, "scripts", "modules")
 
     print("Using base dir: %r" % BASE_DIR)
     print("Using module dir: %r" % MODULE_DIR_UI)

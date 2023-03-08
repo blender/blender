@@ -13,6 +13,8 @@
 #  include <vulkan/vulkan.h>
 #endif
 
+#include "vk_mem_alloc.h"
+
 #include "gpu_texture_private.hh"
 
 namespace blender::gpu {

@@ -248,7 +248,7 @@ void SkinInfo::link_armature(bContext *C,
    * ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
    *
    * for each vertex in weight indices
-   *  for each bone index in vertex
+   *   for each bone index in vertex
    *      add vertex to group at group index
    *      treat group index -1 specially
    *

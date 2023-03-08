@@ -288,6 +288,26 @@ struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
  */
 void BLO_blendhandle_close(BlendHandle *bh);
 
+/** Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and
+ * generate an error report containing given `message`. */
+void BLO_read_invalidate_message(BlendHandle *bh, struct Main *bmain, const char *message);
+
+/**
+ * BLI_assert-like macro to check a condition, and if `false`, fail the whole .blend reading
+ * process by marking the Main data-base as invalid, and returning provided `_ret_value`.
+ *
+ * NOTE: About usages:
+ *   - #BLI_assert should be used when the error is considered as a bug, but there is some code to
+ *     recover from it and produce a valid Main data-base.
+ *   - #BLO_read_assert_message should be used when the error is not considered as recoverable.
+ */
+#define BLO_read_assert_message(_check_expr, _ret_value, _bh, _bmain, _message) \
+  if (_check_expr) { \
+    BLO_read_invalidate_message((_bh), (_bmain), (_message)); \
+    return _ret_value; \
+  } \
+  (void)0
+
 /** \} */
 
 #define BLO_GROUP_MAX 32

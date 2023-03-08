@@ -82,8 +82,15 @@ void main()
 
   vec3 world_pos0 = point_object_to_world(in_pos0);
   vec3 world_pos1 = point_object_to_world(in_pos1);
-  vec4 out_pos0 = point_world_to_ndc(world_pos0);
-  vec4 out_pos1 = point_world_to_ndc(world_pos1);
+  vec3 view_pos0 = point_world_to_view(world_pos0);
+  vec3 view_pos1 = point_world_to_view(world_pos1);
+  vec4 out_pos0 = point_view_to_ndc(view_pos0);
+  vec4 out_pos1 = point_view_to_ndc(view_pos1);
+
+  /* Offset Z position for retopology overlay. */
+  out_pos0.z += get_homogenous_z_offset(view_pos0.z, out_pos0.w, retopologyOffset);
+  out_pos1.z += get_homogenous_z_offset(view_pos1.z, out_pos1.w, retopologyOffset);
+
   uvec4 m_data0 = uvec4(in_data0) & uvec4(dataMask);
   uvec4 m_data1 = uvec4(in_data1) & uvec4(dataMask);
 
@@ -124,15 +131,13 @@ void main()
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 vpos0 = point_world_to_view(world_pos0);
   vec3 view_normal0 = normalize(normal_object_to_view(in_vnor0) + 1e-4);
-  vec3 view_vec0 = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos0) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec0 = (ProjectionMatrix[3][3] == 0.0) ? normalize(view_pos0) : vec3(0.0, 0.0, 1.0);
   float facing0 = dot(view_vec0, view_normal0);
   facing0 = 1.0 - abs(facing0) * 0.2;
 
-  vec3 vpos1 = point_world_to_view(world_pos1);
   vec3 view_normal1 = normalize(normal_object_to_view(in_vnor1) + 1e-4);
-  vec3 view_vec1 = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos1) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec1 = (ProjectionMatrix[3][3] == 0.0) ? normalize(view_pos1) : vec3(0.0, 0.0, 1.0);
   float facing1 = dot(view_vec1, view_normal1);
   facing1 = 1.0 - abs(facing1) * 0.2;
 

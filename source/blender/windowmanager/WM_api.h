@@ -144,6 +144,13 @@ void WM_reinit_gizmomap_all(struct Main *bmain);
 void WM_script_tag_reload(void);
 
 wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
+
+/**
+ * Knowing the area, return it's screen.
+ * \note This should typically be avoided, only use when the context is not available.
+ */
+wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area);
+
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],
@@ -538,6 +545,8 @@ struct wmTimer *WM_event_add_timer_notifier(struct wmWindowManager *wm,
                                             struct wmWindow *win,
                                             unsigned int type,
                                             double timestep);
+/** Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
+ * internally by the window manager code. */
 void WM_event_remove_timer(struct wmWindowManager *wm,
                            struct wmWindow *win,
                            struct wmTimer *timer);
@@ -1379,6 +1388,19 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetHandle *asset);
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);
+
+/* Path drag and drop. */
+/**
+ * \param path: The path to drag. Value will be copied into the drag data so the passed string may
+ *              be destructed.
+ */
+wmDragPath *WM_drag_create_path_data(const char *path);
+const char *WM_drag_get_path(const wmDrag *drag);
+/**
+ * Note that even though the enum return type uses bit-flags, this should never have multiple
+ * type-bits set, so `ELEM()` like comparison is possible.
+ */
+int /* eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
 
 /* Set OpenGL viewport and scissor */
 void wmViewport(const struct rcti *winrct);

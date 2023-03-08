@@ -9,6 +9,43 @@
 
 namespace blender::gpu {
 
+/* -------------------------------------------------------------------- */
+/** \name Creation & Deletion
+ * \{ */
+
+VKFrameBuffer::VKFrameBuffer(const char *name) : FrameBuffer(name)
+{
+  immutable_ = false;
+}
+
+VKFrameBuffer::VKFrameBuffer(const char *name,
+                             VkFramebuffer vk_framebuffer,
+                             VkRenderPass /*vk_render_pass*/,
+                             VkExtent2D vk_extent)
+    : FrameBuffer(name)
+{
+  immutable_ = true;
+  /* Never update an internal frame-buffer. */
+  dirty_attachments_ = false;
+  width_ = vk_extent.width;
+  height_ = vk_extent.height;
+  vk_framebuffer_ = vk_framebuffer;
+
+  viewport_[0] = scissor_[0] = 0;
+  viewport_[1] = scissor_[1] = 0;
+  viewport_[2] = scissor_[2] = width_;
+  viewport_[3] = scissor_[3] = height_;
+}
+
+VKFrameBuffer::~VKFrameBuffer()
+{
+  if (!immutable_ && vk_framebuffer_ != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(vk_device_, vk_framebuffer_, NULL);
+  }
+}
+
+/** \} */
+
 void VKFrameBuffer::bind(bool /*enabled_srgb*/)
 {
 }

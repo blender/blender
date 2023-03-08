@@ -35,6 +35,7 @@ static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
   BKE_mesh_legacy_sharp_edges_from_flags(&mesh);
   BKE_mesh_legacy_face_set_to_generic(&mesh);
   BKE_mesh_legacy_edge_crease_to_layers(&mesh);
+  BKE_mesh_legacy_uv_seam_from_flags(&mesh);
   BKE_mesh_legacy_convert_verts_to_positions(&mesh);
   BKE_mesh_legacy_attribute_flags_to_strings(&mesh);
 }

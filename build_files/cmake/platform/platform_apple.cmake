@@ -270,19 +270,7 @@ if(WITH_PUGIXML)
   find_package(PugiXML REQUIRED)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  find_package(OpenImageIO)
-  list(APPEND OPENIMAGEIO_LIBRARIES
-    ${PNG_LIBRARIES}
-    ${JPEG_LIBRARIES}
-    ${TIFF_LIBRARY}
-    ${OPENEXR_LIBRARIES}
-    ${OPENJPEG_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-  )
-  set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
-  set(OPENIMAGEIO_IDIFF "${LIBDIR}/openimageio/bin/idiff")
-endif()
+find_package(OpenImageIO REQUIRED)
 add_bundled_libraries(openimageio/lib)
 
 if(WITH_OPENCOLORIO)

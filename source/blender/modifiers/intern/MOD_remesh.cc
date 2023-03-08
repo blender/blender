@@ -66,7 +66,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->mloop = (DualConLoop)mesh->loops().data();
   input->loop_stride = sizeof(MLoop);
 
-  input->looptri = (DualConTri)BKE_mesh_runtime_looptri_ensure(mesh);
+  input->looptri = (DualConTri)mesh->looptris().data();
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
@@ -93,7 +93,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
     return nullptr;
   }
 
-  output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
+  output->mesh = BKE_mesh_new_nomain(totvert, 0, 4 * totquad, totquad);
   output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
   output->polys = output->mesh->polys_for_write().data();
   output->loops = output->mesh->loops_for_write().data();
@@ -120,11 +120,10 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   BLI_assert(output->curface < mesh->totpoly);
   UNUSED_VARS_NDEBUG(mesh);
 
-  MLoop *mloop = output->loops;
-  MPoly *cur_poly = &output->polys[output->curface];
+  output->polys[output->curface].loopstart = output->curface * 4;
+  output->polys[output->curface].totloop = 4;
 
-  cur_poly->loopstart = output->curface * 4;
-  cur_poly->totloop = 4;
+  MLoop *mloop = output->loops;
   for (i = 0; i < 4; i++) {
     mloop[output->curface * 4 + i].v = vert_indices[i];
   }

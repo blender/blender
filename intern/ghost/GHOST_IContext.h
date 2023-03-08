@@ -91,8 +91,8 @@ class GHOST_IContext {
   virtual GHOST_TSuccess getVulkanCommandBuffer(void *r_command_buffer) = 0;
 
   /**
-   * Gets the Vulkan backbuffer related resource handles associated with the Vulkan context.
-   * Needs to be called after each swap event as the backbuffer will change.
+   * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap event as the back-buffer will change.
    *
    * \param r_image: After calling this function the VkImage
    *     referenced by this parameter will contain the VKImage handle

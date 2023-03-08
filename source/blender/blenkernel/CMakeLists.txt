@@ -94,7 +94,7 @@ set(SRC
   intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.c
-  intern/collision.c
+  intern/collision.cc
   intern/colorband.c
   intern/colortools.c
   intern/compute_contexts.cc
@@ -290,14 +290,14 @@ set(SRC
   intern/text.c
   intern/text_suggestions.c
   intern/texture.cc
-  intern/tracking.c
-  intern/tracking_auto.c
-  intern/tracking_detect.c
-  intern/tracking_plane_tracker.c
-  intern/tracking_region_tracker.c
-  intern/tracking_solver.c
-  intern/tracking_stabilize.c
-  intern/tracking_util.c
+  intern/tracking.cc
+  intern/tracking_auto.cc
+  intern/tracking_detect.cc
+  intern/tracking_plane_tracker.cc
+  intern/tracking_region_tracker.cc
+  intern/tracking_solver.cc
+  intern/tracking_stabilize.cc
+  intern/tracking_util.cc
   intern/type_conversions.cc
   intern/undo_system.cc
   intern/unit.c
@@ -596,10 +596,6 @@ endif()
 
 if(WITH_IMAGE_TIFF)
   add_definitions(-DWITH_TIFF)
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)

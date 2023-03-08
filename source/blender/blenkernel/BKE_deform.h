@@ -91,7 +91,7 @@ struct MDeformWeight *BKE_defvert_find_index(const struct MDeformVert *dv, int d
 /**
  * Ensures that `dv` has a deform weight entry for the specified defweight group.
  *
- * \note this function is mirrored in editmesh_tools.c, for use for edit-vertices.
+ * \note this function is mirrored in editmesh_tools.cc, for use for edit-vertices.
  */
 struct MDeformWeight *BKE_defvert_ensure_index(struct MDeformVert *dv, int defgroup);
 /**

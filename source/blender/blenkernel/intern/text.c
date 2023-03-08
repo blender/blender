@@ -2124,10 +2124,8 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
   return changed_any;
 }
 
-void txt_comment(Text *text)
+void txt_comment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return;
   }
@@ -2136,10 +2134,8 @@ void txt_comment(Text *text)
   txt_select_prefix(text, prefix, skip_blank_lines);
 }
 
-bool txt_uncomment(Text *text)
+bool txt_uncomment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return false;
   }

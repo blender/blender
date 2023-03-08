@@ -336,7 +336,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    data.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
   }
   data.vert_clnors = vert_clnors;
   if (tex_target != nullptr) {

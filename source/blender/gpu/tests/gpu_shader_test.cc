@@ -43,7 +43,7 @@ static void test_gpu_shader_compute_2d()
 
   /* Create texture to store result and attach to shader. */
   GPUTexture *texture = GPU_texture_create_2d(
-      "gpu_shader_compute_2d", SIZE, SIZE, 1, GPU_RGBA32F, nullptr);
+      "gpu_shader_compute_2d", SIZE, SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -53,7 +53,7 @@ static void test_gpu_shader_compute_2d()
   GPU_compute_dispatch(shader, SIZE, SIZE, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   float *data = static_cast<float *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
   EXPECT_NE(data, nullptr);
   for (int index = 0; index < SIZE * SIZE; index++) {
@@ -89,7 +89,7 @@ static void test_gpu_shader_compute_1d()
 
   /* Construct Texture. */
   GPUTexture *texture = GPU_texture_create_1d(
-      "gpu_shader_compute_1d", SIZE, 1, GPU_RGBA32F, nullptr);
+      "gpu_shader_compute_1d", SIZE, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -99,7 +99,7 @@ static void test_gpu_shader_compute_1d()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   /* Create texture to load back result. */
   float *data = static_cast<float *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
@@ -148,7 +148,7 @@ static void test_gpu_shader_compute_vbo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the vertex buffer. */
   float data[SIZE * 4];
@@ -192,7 +192,7 @@ static void test_gpu_shader_compute_ibo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the index buffer. */
   uint32_t data[SIZE];
@@ -234,7 +234,7 @@ static void test_gpu_shader_compute_ssbo()
   GPU_compute_dispatch(shader, SIZE, 1, 1);
 
   /* Check if compute has been done. */
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   /* Download the index buffer. */
   uint32_t data[SIZE];
@@ -278,9 +278,9 @@ static void test_gpu_texture_read()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *rgba32u = GPU_texture_create_2d_ex("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
-  GPUTexture *rgba16u = GPU_texture_create_2d_ex("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
-  GPUTexture *rgba32f = GPU_texture_create_2d_ex("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
+  GPUTexture *rgba32u = GPU_texture_create_2d("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
+  GPUTexture *rgba16u = GPU_texture_create_2d("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
+  GPUTexture *rgba32f = GPU_texture_create_2d("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
 
   const float4 fcol = {0.0f, 1.3f, -231.0f, 1000.0f};
   const uint4 ucol = {0, 1, 2, 12223};
@@ -288,7 +288,7 @@ static void test_gpu_texture_read()
   GPU_texture_clear(rgba16u, GPU_DATA_UINT, ucol);
   GPU_texture_clear(rgba32f, GPU_DATA_FLOAT, fcol);
 
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   uint4 *rgba32u_data = (uint4 *)GPU_texture_read(rgba32u, GPU_DATA_UINT, 0);
   uint4 *rgba16u_data = (uint4 *)GPU_texture_read(rgba16u, GPU_DATA_UINT, 0);
@@ -432,7 +432,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   int test_output_px_len = divide_ceil_u(sizeof(TestOutput), 4 * 4);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_2d_ex(
+  GPUTexture *tex = GPU_texture_create_2d(
       "tx", test_output_px_len, test_count, 1, GPU_RGBA32UI, usage, nullptr);
   GPUFrameBuffer *fb = GPU_framebuffer_create("test_fb");
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});

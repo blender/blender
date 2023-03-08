@@ -43,6 +43,8 @@ struct UndoStep *ED_text_undo_push_init(struct bContext *C);
 
 /* text_format.c */
 
+const char *ED_text_format_comment_line_prefix(struct Text *text);
+
 bool ED_text_is_syntax_highlight_supported(struct Text *text);
 
 #ifdef __cplusplus

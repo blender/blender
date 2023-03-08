@@ -5307,14 +5307,11 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
 
   BKE_mesh_vert_poly_map_create(&pmap->pmap,
                                 &pmap->pmap_mem,
-                                BKE_mesh_vert_positions(me),
-                                BKE_mesh_edges(me),
                                 BKE_mesh_polys(me),
                                 BKE_mesh_loops(me),
                                 me->totvert,
                                 me->totpoly,
-                                me->totloop,
-                                false);
+                                me->totloop);
 
   pmap->refcount = 1;
 

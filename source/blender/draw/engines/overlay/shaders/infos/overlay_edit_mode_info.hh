@@ -18,6 +18,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .push_constant(Type::BOOL, "selectFaces")
     .push_constant(Type::BOOL, "selectEdges")
     .push_constant(Type::FLOAT, "alpha")
+    .push_constant(Type::FLOAT, "retopologyOffset")
     .push_constant(Type::IVEC4, "dataMask")
     .vertex_source("overlay_edit_mesh_vert.glsl")
     .additional_info("draw_modelmat", "draw_globals");
@@ -31,10 +32,23 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
     .push_constant(Type::BOOL, "selectFaces")
     .push_constant(Type::BOOL, "selectEdges")
     .push_constant(Type::FLOAT, "alpha")
+    .push_constant(Type::FLOAT, "retopologyOffset")
     .push_constant(Type::IVEC4, "dataMask")
     .vertex_source("overlay_edit_mesh_vert_no_geom.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 #endif
+
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_depth)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .push_constant(Type::FLOAT, "retopologyOffset")
+    .vertex_source("overlay_edit_mesh_depth_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
+    .additional_info("draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_mesh_depth_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_mesh_depth", "drw_clipped");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_vert_iface, "")
     .smooth(Type::VEC4, "finalColor")

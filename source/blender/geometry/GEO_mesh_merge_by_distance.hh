@@ -49,7 +49,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
  * \warning \a vert_merge_map must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
  * this is not supported and will likely generate corrupted geometry.
  *
- * \param vert_dest_map_len: The number of non '-1' values in vtargetmap. (not the size)
+ * \param vert_dest_map_len: The number of non '-1' values in `vert_dest_map`. (not the size)
  */
 Mesh *mesh_merge_verts(const Mesh &mesh, MutableSpan<int> vert_dest_map, int vert_dest_map_len);
 

@@ -42,8 +42,8 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_2D_image_shuffle_color";
     case GPU_SHADER_2D_IMAGE_RECT_COLOR:
       return "gpu_shader_2D_image_rect_color";
-    case GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR:
-      return "gpu_shader_2D_image_multi_rect_color";
+    case GPU_SHADER_ICON_MULTI:
+      return "gpu_shader_icon_multi";
     case GPU_SHADER_3D_UNIFORM_COLOR:
       return "gpu_shader_3D_uniform_color";
     case GPU_SHADER_3D_FLAT_COLOR:
@@ -85,8 +85,7 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
     case GPU_SHADER_2D_NODELINK_INST:
       return "gpu_shader_2D_nodelink_inst";
     case GPU_SHADER_GPENCIL_STROKE:
-      return GPU_geometry_shader_support() ? "gpu_shader_gpencil_stroke_geom" :
-                                             "gpu_shader_gpencil_stroke_nogeom";
+      return "gpu_shader_gpencil_stroke";
     default:
       BLI_assert_unreachable();
       return "";

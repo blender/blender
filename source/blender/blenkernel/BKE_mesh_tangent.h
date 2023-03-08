@@ -15,7 +15,8 @@ struct ReportList;
  * Compute simplified tangent space normals, i.e.
  * tangent vector + sign of bi-tangent one, which combined with
  * split normals can be used to recreate the full tangent space.
- * NOTE: * The mesh should be made of only tris and quads!
+ *
+ * \note The mesh should be made of only triangles and quads!
  */
 void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           int numVerts,
@@ -24,14 +25,14 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*loop_normals)[3],
                                           const float (*loopuv)[2],
                                           int numLoops,
-                                          const struct MPoly *mpolys,
+                                          const struct MPoly *polys,
                                           int numPolys,
                                           struct ReportList *reports);
 /**
  * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
  * \note
  * - There must be a valid loop's CD_NORMALS available.
- * - The mesh should be made of only tris and quads!
+ * - The mesh should be made of only triangles and quads!
  */
 void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
                                        const char *uvmap,
@@ -42,8 +43,8 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   const struct MPoly *mpoly,
-                                   uint mpoly_len,
+                                   const struct MPoly *polys,
+                                   uint polys_len,
                                    const struct MLoop *mloop,
                                    const struct MLoopTri *looptri,
                                    uint looptri_len,

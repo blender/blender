@@ -96,8 +96,7 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
   }
 
   /* Tag verts as not loose. */
-  const Span<MEdge> edges(mr->medge, mr->edge_len);
-  for (const MEdge &edge : edges) {
+  for (const MEdge &edge : mr->edges) {
     BLI_BITMAP_ENABLE(lvert_map, edge.v1);
     BLI_BITMAP_ENABLE(lvert_map, edge.v2);
   }
@@ -238,10 +237,10 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
   else {
     for (int i = 0; i < mr->poly_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const MPoly *mp = &mr->mpoly[i];
+        const MPoly &poly = mr->polys[i];
         const int mat = min_ii(mr->material_indices ? mr->material_indices[i] : 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += mp->totloop - 2;
+        mat_tri_offs[mat] += poly.totloop - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -276,10 +275,10 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
-  const MPoly *mp = &mr->mpoly[iter];
+  const MPoly &poly = mr->polys[iter];
   if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mr->material_indices ? mr->material_indices[iter] : 0, mr->mat_len - 1);
-    mat_tri_len[mat] += mp->totloop - 2;
+    mat_tri_len[mat] += poly.totloop - 2;
   }
 }
 
@@ -339,7 +338,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      mr->mlooptri = BKE_mesh_runtime_looptri_ensure(mr->me);
+      mr->looptris = mr->me->looptris();
     }
   }
   else {
@@ -359,9 +358,9 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr->vert_normals = BKE_mesh_vertex_normals_ensure(mr->me);
+    mr->vert_normals = mr->me->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr->poly_normals = BKE_mesh_poly_normals_ensure(mr->me);
+      mr->poly_normals = mr->me->poly_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals = static_cast<float(*)[3]>(
@@ -370,17 +369,17 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
           CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
-      BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions),
-                                  mr->vert_normals,
-                                  mr->vert_len,
-                                  mr->medge,
-                                  mr->edge_len,
-                                  mr->mloop,
+      BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions.data()),
+                                  reinterpret_cast<const float(*)[3]>(mr->vert_normals.data()),
+                                  mr->vert_positions.size(),
+                                  mr->edges.data(),
+                                  mr->edges.size(),
+                                  mr->loops.data(),
                                   mr->loop_normals,
-                                  mr->loop_len,
-                                  mr->mpoly,
-                                  mr->poly_normals,
-                                  mr->poly_len,
+                                  mr->loops.size(),
+                                  mr->polys.data(),
+                                  reinterpret_cast<const float(*)[3]>(mr->poly_normals.data()),
+                                  mr->polys.size(),
                                   is_auto_smooth,
                                   split_angle,
                                   sharp_edges,
@@ -459,6 +458,9 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
 
+    /* If there is no distinct cage, hide unmapped edges that can't be selected. */
+    mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
+
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
       if (emd->vertexCos) {
@@ -521,6 +523,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->me = me;
     mr->edit_bmesh = nullptr;
     mr->extract_type = MR_EXTRACT_MESH;
+    mr->hide_unmapped_edges = false;
 
     if (is_paint_mode && mr->me) {
       mr->v_origindex = static_cast<const int *>(
@@ -545,31 +548,31 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = mr->me->totpoly;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
 
-    mr->vert_positions = mr->me->vert_positions().data();
-    mr->medge = mr->me->edges().data();
-    mr->mpoly = mr->me->polys().data();
-    mr->mloop = mr->me->loops().data();
+    mr->vert_positions = mr->me->vert_positions();
+    mr->edges = mr->me->edges();
+    mr->polys = mr->me->polys();
+    mr->loops = mr->me->loops();
 
     mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
     mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
     mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 
     mr->material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_INT32, "material_index"));
 
     mr->hide_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert"));
+        CustomData_get_layer_named(&mr->me->vdata, CD_PROP_BOOL, ".hide_vert"));
     mr->hide_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".hide_edge"));
+        CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, ".hide_edge"));
     mr->hide_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_BOOL, ".hide_poly"));
 
     mr->select_vert = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".select_vert"));
+        CustomData_get_layer_named(&mr->me->vdata, CD_PROP_BOOL, ".select_vert"));
     mr->select_edge = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".select_edge"));
+        CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, ".select_edge"));
     mr->select_poly = static_cast<const bool *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".select_poly"));
+        CustomData_get_layer_named(&mr->me->pdata, CD_PROP_BOOL, ".select_poly"));
   }
   else {
     /* #BMesh */
@@ -582,7 +585,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
   }
 
-  retrieve_active_attribute_names(*mr, *object, *me);
+  retrieve_active_attribute_names(*mr, *object, *mr->me);
 
   return mr;
 }

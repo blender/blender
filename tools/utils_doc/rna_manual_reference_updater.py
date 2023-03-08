@@ -39,7 +39,7 @@ except ImportError:
     sys.exit(1)
 
 # The root of Blender's source directory.
-BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
 
 # Names that don't match this regex can't be used as URL's.
 re_name_sanity_match = re.compile("[a-zA-Z0-9._*]+")
@@ -131,7 +131,7 @@ def main():
     parser.add_argument(
         "--output",
         dest="output",
-        default=os.path.join(BASE_DIR, "release", "scripts", "modules", "rna_manual_reference.py"),
+        default=os.path.join(BASE_DIR, "scripts", "modules", "rna_manual_reference.py"),
         required=False,
         help="path to output including filename and extentsion",
         metavar="FILE")

@@ -181,6 +181,23 @@ void ED_node_tag_update_id(ID *id)
 
 namespace blender::ed::space_node {
 
+static const char *node_socket_get_translation_context(const bNodeSocket &socket)
+{
+  /* The node is not explicitly defined. */
+  if (socket.runtime->declaration == nullptr) {
+    return nullptr;
+  }
+
+  blender::StringRefNull translation_context = socket.runtime->declaration->translation_context;
+
+  /* Default context. */
+  if (translation_context.is_empty()) {
+    return nullptr;
+  }
+
+  return translation_context.data();
+}
+
 static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
                                                    const bNodeSocket &sock,
                                                    uiLayout &layout);
@@ -268,6 +285,9 @@ void node_sort(bNodeTree &ntree)
     ntree.runtime->nodes_by_id.add_new(sort_nodes[i]);
     sort_nodes[i]->runtime->index_in_tree = i;
   }
+
+  /* Nodes have been reordered; the socket locations are invalid until the node tree is redrawn. */
+  ntree.runtime->all_socket_locations.clear();
 }
 
 static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
@@ -377,8 +397,14 @@ static void node_update_basis(const bContext &C,
     /* Align output buttons to the right. */
     uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+
     const char *socket_label = nodeSocketLabel(socket);
-    socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
+    const char *socket_translation_context = node_socket_get_translation_context(*socket);
+    socket->typeinfo->draw((bContext *)&C,
+                           row,
+                           &sockptr,
+                           &nodeptr,
+                           CTX_IFACE_(socket_translation_context, socket_label));
 
     node_socket_add_tooltip_in_node_editor(ntree, *socket, *row);
 
@@ -511,7 +537,12 @@ static void node_update_basis(const bContext &C,
     uiLayout *row = uiLayoutRow(layout, true);
 
     const char *socket_label = nodeSocketLabel(socket);
-    socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
+    const char *socket_translation_context = node_socket_get_translation_context(*socket);
+    socket->typeinfo->draw((bContext *)&C,
+                           row,
+                           &sockptr,
+                           &nodeptr,
+                           CTX_IFACE_(socket_translation_context, socket_label));
 
     node_socket_add_tooltip_in_node_editor(ntree, *socket, *row);
 
@@ -910,7 +941,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
   }
 
   auto to_string = [](int value) {
-    char str[16];
+    char str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(str, value);
     return std::string(str);
   };
@@ -2842,7 +2873,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     const Text *text = (const Text *)node.id;
     const int line_height_max = BLF_height_max(fontid);
     const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
+    const float line_width = (BLI_rctf_size_x(&rct) - 2 * margin) / aspect;
 
     /* 'x' doesn't need aspect correction. */
     x = rct.xmin + margin;
@@ -2851,12 +2882,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     int y_min = y + ((margin * 2) - (y - rct.ymin));
 
     BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-    BLF_clipping(fontid,
-                 rct.xmin,
-                 /* Round to avoid clipping half-way through a line. */
-                 y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
-                 rct.xmin + line_width,
-                 rct.ymax);
+    BLF_clipping(fontid, rct.xmin, rct.ymin + margin, rct.xmax, rct.ymax);
 
     BLF_wordwrap(fontid, line_width);
 
@@ -3178,16 +3204,16 @@ static void draw_nodetree(const bContext &C,
   else if (ntree.type == NTREE_COMPOSIT) {
     tree_draw_ctx.used_by_realtime_compositor = realtime_compositor_is_in_use(C);
   }
-  snode->runtime->all_socket_locations.reinitialize(ntree.all_sockets().size());
+  ntree.runtime->all_socket_locations.reinitialize(ntree.all_sockets().size());
 
   node_update_nodetree(
-      C, tree_draw_ctx, ntree, nodes, blocks, snode->runtime->all_socket_locations);
+      C, tree_draw_ctx, ntree, nodes, blocks, ntree.runtime->all_socket_locations);
   node_draw_nodetree(C,
                      tree_draw_ctx,
                      region,
                      *snode,
                      ntree,
-                     snode->runtime->all_socket_locations,
+                     ntree.runtime->all_socket_locations,
                      nodes,
                      blocks,
                      parent_key);

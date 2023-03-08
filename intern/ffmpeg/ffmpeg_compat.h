@@ -13,6 +13,7 @@
 #ifndef __FFMPEG_COMPAT_H__
 #define __FFMPEG_COMPAT_H__
 
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
 /* Check if our ffmpeg is new enough, avoids user complaints.
@@ -42,6 +43,17 @@
  * If it sticks around any longer, then we should consider refactoring this.
  */
 #  define FFMPEG_USE_OLD_CHANNEL_VARS
+#endif
+
+/* AV_CODEC_CAP_AUTO_THREADS was renamed to AV_CODEC_CAP_OTHER_THREADS with
+ * upstream commit
+ * github.com/FFmpeg/FFmpeg/commit/7d09579190def3ef7562399489e628f3b65714ce
+ * (lavc 58.132.100) and removed with commit
+ * github.com/FFmpeg/FFmpeg/commit/10c9a0874cb361336237557391d306d26d43f137
+ * for ffmpeg 6.0.
+ */
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 132, 100)
+#  define AV_CODEC_CAP_OTHER_THREADS AV_CODEC_CAP_AUTO_THREADS
 #endif
 
 #if (LIBAVFORMAT_VERSION_MAJOR < 58) || \

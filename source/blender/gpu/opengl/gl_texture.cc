@@ -594,11 +594,11 @@ void GLTexture::samplers_init()
   }
   samplers_update();
 
-  /* Custom sampler for icons. */
+  /* Custom sampler for icons.
+   * NOTE: The icon texture is sampled within the shader using a -0.5f LOD bias. */
   GLuint icon_sampler = samplers_[GPU_SAMPLER_ICON];
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glSamplerParameterf(icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
 
   debug::object_label(GL_SAMPLER, icon_sampler, "icons");
 }

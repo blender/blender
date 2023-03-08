@@ -243,7 +243,7 @@ typedef struct bArmatureConstraint {
   ListBase targets;
 } bArmatureConstraint;
 
-/* Single-target subobject constraints --------------------- */
+/* Single-target sub-object constraints --------------------- */
 
 /* Track To Constraint */
 typedef struct bTrackToConstraint {

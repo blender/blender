@@ -83,7 +83,7 @@ def deprecations() -> List[Tuple[datetime.datetime, Tuple[str, int], str]]:
     # *DEPRECATED* 2010/12/22 ``some.py.func`` more info.
 
     """
-    SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+    SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
     SKIP_DIRS_ABS = [os.path.join(SOURCE_DIR, p) for p in SKIP_DIRS]
 

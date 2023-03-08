@@ -988,18 +988,18 @@ static int find_original_loop(const blender::Span<MPoly> orig_polys,
   /* Get original vertex and polygon index. There is currently no loop mapping
    * in modifier stack evaluation. */
   const int vert_orig = vert_origindex[vert_eval];
-  const int poly_orig = poly_origindex[poly_eval];
+  const int poly_orig_i = poly_origindex[poly_eval];
 
-  if (vert_orig == ORIGINDEX_NONE || poly_orig == ORIGINDEX_NONE) {
+  if (vert_orig == ORIGINDEX_NONE || poly_orig_i == ORIGINDEX_NONE) {
     return ORIGINDEX_NONE;
   }
 
   /* Find matching loop with original vertex in original polygon. */
-  const MPoly *mpoly_orig = &orig_polys[poly_orig];
-  const MLoop *mloop_orig = &orig_loops[mpoly_orig->loopstart];
-  for (int j = 0; j < mpoly_orig->totloop; ++j, ++mloop_orig) {
+  const MPoly &poly_orig = orig_polys[poly_orig_i];
+  const MLoop *mloop_orig = &orig_loops[poly_orig.loopstart];
+  for (int j = 0; j < poly_orig.totloop; ++j, ++mloop_orig) {
     if (mloop_orig->v == vert_orig) {
-      return mpoly_orig->loopstart + j;
+      return poly_orig.loopstart + j;
     }
   }
 

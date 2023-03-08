@@ -1850,9 +1850,9 @@ static void sculpt_update_object(
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->mpoly = me->polys().data();
-    ss->medge = me->edges().data();
-    ss->mloop = me->loops().data();
+    ss->polys = me->polys().data();
+    ss->edges = me->edges().data();
+    ss->loops = me->loops().data();
   }
   else {
     ss->totvert = me->totvert;
@@ -1861,12 +1861,11 @@ static void sculpt_update_object(
     ss->totloops = me->totloop;
     ss->totedges = me->totedge;
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-
     ss->sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &me->edata, CD_PROP_BOOL, "sharp_edge", me->totedge);
-    ss->mpoly = me->polys().data();
-    ss->medge = me->edges().data();
-    ss->mloop = me->loops().data();
+    ss->polys = me->polys().data();
+    ss->edges = me->edges().data();
+    ss->loops = me->loops().data();
 
     ss->vdata = &me->vdata;
     ss->edata = &me->edata;
@@ -2396,22 +2395,22 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     /* if vertices already have mask, copy into multires data */
     if (paint_mask) {
       for (i = 0; i < me->totpoly; i++) {
-        const MPoly *p = &polys[i];
+        const MPoly &poly = polys[i];
         float avg = 0;
 
         /* mask center */
-        for (j = 0; j < p->totloop; j++) {
-          const MLoop *l = &loops[p->loopstart + j];
+        for (j = 0; j < poly.totloop; j++) {
+          const MLoop *l = &loops[poly.loopstart + j];
           avg += paint_mask[l->v];
         }
-        avg /= float(p->totloop);
+        avg /= float(poly.totloop);
 
         /* fill in multires mask corner */
-        for (j = 0; j < p->totloop; j++) {
-          GridPaintMask *gpm = &gmask[p->loopstart + j];
-          const MLoop *l = &loops[p->loopstart + j];
-          const MLoop *prev = ME_POLY_LOOP_PREV(loops, p, j);
-          const MLoop *next = ME_POLY_LOOP_NEXT(loops, p, j);
+        for (j = 0; j < poly.totloop; j++) {
+          GridPaintMask *gpm = &gmask[poly.loopstart + j];
+          const MLoop *l = &loops[poly.loopstart + j];
+          const MLoop *prev = ME_POLY_LOOP_PREV(loops, &poly, j);
+          const MLoop *next = ME_POLY_LOOP_NEXT(loops, &poly, j);
 
           gpm->data[0] = avg;
           gpm->data[1] = (paint_mask[l->v] + paint_mask[next->v]) * 0.5f;
@@ -2809,9 +2808,9 @@ static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totve
                                         ss->face_sets,
                                         ss->hide_poly,
                                         ss->vert_positions,
-                                        ss->medge,
-                                        ss->mloop,
-                                        ss->mpoly,
+                                        ss->edges,
+                                        ss->loops,
+                                        ss->polys,
                                         ss->msculptverts,
                                         ss->pmap->pmap,
                                         vertex,

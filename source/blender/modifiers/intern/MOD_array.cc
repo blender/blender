@@ -25,6 +25,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_path.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -279,11 +280,11 @@ static void mesh_merge_transform(Mesh *result,
                                  int remap_len,
                                  const bool recalc_normals_later)
 {
+  using namespace blender;
   int *index_orig;
   int i;
-  MEdge *me;
+  MEdge *edge;
   MLoop *ml;
-  MPoly *mp;
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
@@ -300,7 +301,7 @@ static void mesh_merge_transform(Mesh *result,
 
   /* We have to correct normals too, if we do not tag them as dirty later! */
   if (!recalc_normals_later) {
-    float(*dst_vert_normals)[3] = BKE_mesh_vertex_normals_for_write(result);
+    float(*dst_vert_normals)[3] = BKE_mesh_vert_normals_for_write(result);
     for (i = 0; i < cap_nverts; i++) {
       mul_mat3_m4_v3(cap_offset, dst_vert_normals[cap_verts_index + i]);
       normalize_v3(dst_vert_normals[cap_verts_index + i]);
@@ -314,16 +315,15 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* adjust cap edge vertex indices */
-  me = &result_edges[cap_edges_index];
-  for (i = 0; i < cap_nedges; i++, me++) {
-    me->v1 += cap_verts_index;
-    me->v2 += cap_verts_index;
+  edge = &result_edges[cap_edges_index];
+  for (i = 0; i < cap_nedges; i++, edge++) {
+    edge->v1 += cap_verts_index;
+    edge->v2 += cap_verts_index;
   }
 
   /* adjust cap poly loopstart indices */
-  mp = &result_polys[cap_polys_index];
-  for (i = 0; i < cap_npolys; i++, mp++) {
-    mp->loopstart += cap_loops_index;
+  for (const int i : blender::IndexRange(cap_polys_index, cap_npolys)) {
+    result_polys[i].loopstart += cap_loops_index;
   }
 
   /* adjust cap loop vertex and edge indices */
@@ -331,6 +331,17 @@ static void mesh_merge_transform(Mesh *result,
   for (i = 0; i < cap_nloops; i++, ml++) {
     ml->v += cap_verts_index;
     ml->e += cap_edges_index;
+  }
+
+  const bke::AttributeAccessor cap_attributes = cap_mesh->attributes();
+  if (const VArray<int> cap_material_indices = cap_attributes.lookup<int>("material_index",
+                                                                          ATTR_DOMAIN_FACE)) {
+    bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
+    bke::SpanAttributeWriter<int> result_material_indices =
+        result_attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
+    cap_material_indices.materialize(
+        result_material_indices.span.slice(cap_polys_index, cap_npolys));
+    result_material_indices.finish();
   }
 
   /* Set #CD_ORIGINDEX. */
@@ -363,9 +374,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    const ModifierEvalContext *ctx,
                                    const Mesh *mesh)
 {
-  MEdge *me;
+  MEdge *edge;
   MLoop *ml;
-  MPoly *mp;
   int i, j, c, count;
   float length = amd->length;
   /* offset matrix */
@@ -378,7 +388,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   int tot_doubles;
 
   const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
-  const bool use_recalc_normals = BKE_mesh_vertex_normals_are_dirty(mesh) || use_merge;
+  const bool use_recalc_normals = BKE_mesh_vert_normals_are_dirty(mesh) || use_merge;
   const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != nullptr);
 
   int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
@@ -539,7 +549,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+      mesh, result_nverts, result_nedges, result_nloops, result_npolys);
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
@@ -565,9 +575,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   const float(*src_vert_normals)[3] = nullptr;
   float(*dst_vert_normals)[3] = nullptr;
   if (!use_recalc_normals) {
-    src_vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-    dst_vert_normals = BKE_mesh_vertex_normals_for_write(result);
-    BKE_mesh_vertex_normals_clear_dirty(result);
+    src_vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+    dst_vert_normals = BKE_mesh_vert_normals_for_write(result);
+    BKE_mesh_vert_normals_clear_dirty(result);
   }
 
   for (c = 1; c < count; c++) {
@@ -596,15 +606,14 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
 
     /* adjust edge vertex indices */
-    me = &result_edges[c * chunk_nedges];
-    for (i = 0; i < chunk_nedges; i++, me++) {
-      me->v1 += c * chunk_nverts;
-      me->v2 += c * chunk_nverts;
+    edge = &result_edges[c * chunk_nedges];
+    for (i = 0; i < chunk_nedges; i++, edge++) {
+      edge->v1 += c * chunk_nverts;
+      edge->v2 += c * chunk_nverts;
     }
 
-    mp = &result_polys[c * chunk_npolys];
-    for (i = 0; i < chunk_npolys; i++, mp++) {
-      mp->loopstart += c * chunk_nloops;
+    for (const int i : blender::IndexRange(c * chunk_npolys, chunk_npolys)) {
+      result_polys[i].loopstart += c * chunk_nloops;
     }
 
     /* adjust loop vertex and edge indices */
@@ -778,7 +787,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       Mesh *tmp = result;
       result = geometry::mesh_merge_verts(
           *tmp, MutableSpan<int>{full_doubles_map, result->totvert}, tot_doubles);
-      BKE_id_free(NULL, tmp);
+      BKE_id_free(nullptr, tmp);
     }
     MEM_freeN(full_doubles_map);
   }

@@ -432,7 +432,7 @@ PBVH *BKE_pbvh_new(PBVHType type);
  */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
-                         const struct MPoly *mpoly,
+                         const struct MPoly *polys,
                          const struct MLoop *mloop,
                          float (*vert_positions)[3],
                          struct MSculptVert *msculptverts,
@@ -1007,7 +1007,7 @@ typedef struct PBVHFaceIter {
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const struct MPoly *mpoly_;
+  const struct MPoly *polys_;
   const struct MLoopTri *looptri_;
   const struct MLoop *mloop_;
   int prim_index_;

@@ -8,15 +8,19 @@
 #pragma once
 
 #include "vk_common.hh"
-#include "vk_pipeline.hh"
+
+#include "BLI_utility_mixins.hh"
 
 namespace blender::gpu {
 class VKBuffer;
 class VKTexture;
+class VKPushConstants;
+class VKPipeline;
+class VKDescriptorSet;
 
-/** Command buffer to keep track of the life-time of a command buffer.*/
+/** Command buffer to keep track of the life-time of a command buffer. */
 class VKCommandBuffer : NonCopyable, NonMovable {
-  /** None owning handle to the command buffer and device. Handle is owned by `GHOST_ContextVK`.*/
+  /** None owning handle to the command buffer and device. Handle is owned by `GHOST_ContextVK`. */
   VkDevice vk_device_ = VK_NULL_HANDLE;
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
   VkQueue vk_queue_ = VK_NULL_HANDLE;
@@ -33,8 +37,16 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void bind(const VKDescriptorSet &descriptor_set,
             const VkPipelineLayout vk_pipeline_layout,
             VkPipelineBindPoint bind_point);
+  /**
+   * Add a push constant command to the command buffer.
+   *
+   * Only valid when the storage type of push_constants is StorageType::PUSH_CONSTANTS.
+   */
+  void push_constants(const VKPushConstants &push_constants,
+                      const VkPipelineLayout vk_pipeline_layout,
+                      const VkShaderStageFlags vk_shader_stages);
   void dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
-  /* Copy the contents of a texture mip level to the dst buffer.*/
+  /** Copy the contents of a texture MIP level to the dst buffer. */
   void copy(VKBuffer &dst_buffer, VKTexture &src_texture, Span<VkBufferImageCopy> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);

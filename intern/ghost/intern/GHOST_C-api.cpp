@@ -1228,4 +1228,4 @@ void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
   window->getVulkanBackbuffer(image, framebuffer, render_pass, extent, fb_id);
 }
 
-#endif /* WITH_VULKAN */
+#endif /* WITH_VULKAN_BACKEND */

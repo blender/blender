@@ -9661,7 +9661,7 @@ static int ui_handle_viewlist_items_hover(const wmEvent *event, const ARegion *r
   bool has_item = false;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM,UI_BTYPE_LISTROW)) {
+      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM, UI_BTYPE_LISTROW)) {
         but->flag &= ~UI_ACTIVE;
         has_item = true;
       }
@@ -11307,7 +11307,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
     ui_blocks_set_tooltips(region, true);
   }
 
-  /* Always do this, to reliably update view and uilist item highlighting, even if
+  /* Always do this, to reliably update view and UI-list item highlighting, even if
    * the mouse hovers a button nested in the item (it's an overlapping layout). */
   ui_handle_viewlist_items_hover(event, region);
   if (retval == WM_UI_HANDLER_CONTINUE) {

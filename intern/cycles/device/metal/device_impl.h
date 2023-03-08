@@ -116,7 +116,9 @@ class MetalDevice : public Device {
 
   bool use_local_atomic_sort() const;
 
-  string preprocess_source(MetalPipelineType pso_type, const uint kernel_features, string* source = nullptr);
+  string preprocess_source(MetalPipelineType pso_type,
+                           const uint kernel_features,
+                           string *source = nullptr);
 
   bool make_source_and_check_if_compile_needed(MetalPipelineType pso_type);
 

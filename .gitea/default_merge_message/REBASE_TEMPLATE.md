@@ -2,4 +2,4 @@ ${CommitTitle}
 
 ${CommitBody}
 
-Pull Request #${PullRequestIndex}
+Pull Request: https://projects.blender.org/blender/blender/pulls/${PullRequestIndex}

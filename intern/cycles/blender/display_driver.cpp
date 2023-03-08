@@ -216,8 +216,13 @@ class DisplayGPUTexture {
     height = texture_height;
 
     /* Texture must have a minimum size of 1x1. */
-    gpu_texture = GPU_texture_create_2d(
-        "CyclesBlitTexture", max(width, 1), max(height, 1), 1, GPU_RGBA16F, nullptr);
+    gpu_texture = GPU_texture_create_2d("CyclesBlitTexture",
+                                        max(width, 1),
+                                        max(height, 1),
+                                        1,
+                                        GPU_RGBA16F,
+                                        GPU_TEXTURE_USAGE_GENERAL,
+                                        nullptr);
 
     if (!gpu_texture) {
       LOG(ERROR) << "Error creating texture.";
@@ -700,14 +705,14 @@ static void draw_tile(const float2 &zoom,
   const float zoomed_height = draw_tile.params.size.y * zoom.y;
   if (texture.width != draw_tile.params.size.x || texture.height != draw_tile.params.size.y) {
     /* Resolution divider is different from 1, force nearest interpolation. */
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0);
   }
   else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
            zoomed_height - draw_tile.params.size.y > 0.5f) {
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0);
   }
   else {
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0);
   }
 
   /* Draw at the parameters for which the texture has been updated for. This allows to always draw

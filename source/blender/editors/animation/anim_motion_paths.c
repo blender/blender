@@ -370,7 +370,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
       if (ED_keylist_selected_keys_frame_range(keylist, &frame_range)) {
         break;
       }
-      ATTR_FALLTHROUGH;  // Fall through if there were no selected keys found.
+      ATTR_FALLTHROUGH; /* Fall through if there were no selected keys found. */
     case MOTIONPATH_RANGE_KEYS_ALL:
       ED_keylist_all_keys_frame_range(keylist, &frame_range);
       break;

@@ -609,7 +609,7 @@ void immBindTexture(const char *name, GPUTexture *tex)
 void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
-  GPU_texture_bind_ex(tex, state, binding, true);
+  GPU_texture_bind_ex(tex, state, binding);
 }
 
 void immBindUniformBuf(const char *name, GPUUniformBuf *ubo)

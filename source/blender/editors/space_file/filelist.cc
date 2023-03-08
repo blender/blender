@@ -2620,6 +2620,9 @@ static bool file_is_blend_backup(const char *str)
 
 int ED_path_extension_type(const char *path)
 {
+  /* ATTENTION: Never return OR'ed bit-flags here, always return a single enum value! Some code
+   * using this may do `ELEM()`-like checks. */
+
   if (BLO_has_bfile_extension(path)) {
     return FILE_TYPE_BLENDER;
   }
@@ -2674,8 +2677,17 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  if (BLI_path_extension_check_n(
-          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", ".stl", nullptr)) {
+  if (BLI_path_extension_check_n(path,
+                                 ".obj",
+                                 ".mtl",
+                                 ".3ds",
+                                 ".fbx",
+                                 ".glb",
+                                 ".gltf",
+                                 ".svg",
+                                 ".ply",
+                                 ".stl",
+                                 nullptr)) {
     return FILE_TYPE_OBJECT_IO;
   }
   if (BLI_path_extension_check_array(path, imb_ext_image)) {

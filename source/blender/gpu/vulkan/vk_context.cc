@@ -8,6 +8,7 @@
 #include "vk_context.hh"
 
 #include "vk_backend.hh"
+#include "vk_framebuffer.hh"
 #include "vk_memory.hh"
 #include "vk_state_manager.hh"
 
@@ -36,7 +37,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   VmaAllocatorCreateInfo info = {};
   /* Should use same vulkan version as GHOST (1.2), but set to 1.0 as 1.2 requires
    * correct extensions and functions to be found by VMA, which isn't working as expected and
-   * requires more research. To continue development we lower the API to version 1.0.*/
+   * requires more research. To continue development we lower the API to version 1.0. */
   info.vulkanApiVersion = VK_API_VERSION_1_0;
   info.physicalDevice = vk_physical_device_;
   info.device = vk_device_;
@@ -48,6 +49,9 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   state_manager = new VKStateManager();
 
   VKBackend::capabilities_init(*this);
+
+  /* For off-screen contexts. Default frame-buffer is empty. */
+  active_fb = back_left = new VKFrameBuffer("back_left");
 }
 
 VKContext::~VKContext()
@@ -65,6 +69,22 @@ void VKContext::init_physical_device_limits()
 
 void VKContext::activate()
 {
+  if (ghost_window_) {
+    VkImage image; /* TODO will be used for reading later... */
+    VkFramebuffer framebuffer;
+    VkRenderPass render_pass;
+    VkExtent2D extent;
+    uint32_t fb_id;
+
+    GHOST_GetVulkanBackbuffer(
+        (GHOST_WindowHandle)ghost_window_, &image, &framebuffer, &render_pass, &extent, &fb_id);
+
+    /* Recreate the gpu::VKFrameBuffer wrapper after every swap. */
+    delete back_left;
+
+    back_left = new VKFrameBuffer("back_left", framebuffer, render_pass, extent);
+    active_fb = back_left;
+  }
 }
 
 void VKContext::deactivate()

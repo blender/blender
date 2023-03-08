@@ -107,10 +107,8 @@ static void nearest_fcurve_vert_store(ListBase *matches,
     int screen_co[2], dist;
 
     /* convert from data-space to screen coordinates
-     * NOTE: hpoint+1 gives us 0,1,2 respectively for each handle,
-     *  needed to access the relevant vertex coordinates in the 3x3
-     *  'vec' matrix
-     */
+     * NOTE: `hpoint +1` gives us 0,1,2 respectively for each handle,
+     * needed to access the relevant vertex coordinates in the 3x3 'vec' matrix */
     if (UI_view2d_view_to_region_clip(v2d,
                                       bezt->vec[hpoint + 1][0],
                                       (bezt->vec[hpoint + 1][1] + offset) * unit_scale,

@@ -97,7 +97,7 @@ typedef struct ClothVertex {
   float tv[3];                /* temporary "velocity", mostly used as tv = tx-txold */
   float mass;                 /* mass / weight of the vertex      */
   float goal;                 /* goal, from SB            */
-  float impulse[3];           /* used in collision.c */
+  float impulse[3];           /* used in collision.cc */
   float xrest[3];             /* rest position of the vertex */
   float dcvel[3];             /* delta velocities to be applied by collision response */
   unsigned int impulse_count; /* same as above */
@@ -196,7 +196,7 @@ typedef enum {
 } CLOTH_SPRINGS_FLAGS;
 
 /* -------------------------------------------------------------------- */
-/* collision.c */
+/* collision.cc */
 
 struct CollPair;
 
@@ -232,7 +232,7 @@ void clothModifier_do(struct ClothModifierData *clmd,
 
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
 
-/* Needed for collision.c */
+/* Needed for collision.cc */
 void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving, bool self);
 
 /* Needed for button_object.c */
