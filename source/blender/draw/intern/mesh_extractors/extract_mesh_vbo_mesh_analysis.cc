@@ -96,12 +96,12 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
     }
   }
   else {
-    const MPoly *mp = mr->mpoly;
-    for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float fac = angle_normalized_v3v3(mr->poly_normals[mp_index], dir) / float(M_PI);
+    for (const int poly_i : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_i];
+      float fac = angle_normalized_v3v3(mr->poly_normals[poly_i], dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < mp->totloop; i++, l_index++) {
-        r_overhang[l_index] = fac;
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        r_overhang[loop_i] = fac;
       }
     }
   }
@@ -214,12 +214,12 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
     BVHTreeFromMesh treeData = {nullptr};
 
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr->me, BVHTREE_FROM_LOOPTRI, 4);
-    const MLoopTri *mlooptri = mr->mlooptri;
-    for (int i = 0; i < mr->tri_len; i++, mlooptri++) {
-      const int index = mlooptri->poly;
-      const float *cos[3] = {mr->vert_positions[mr->mloop[mlooptri->tri[0]].v],
-                             mr->vert_positions[mr->mloop[mlooptri->tri[1]].v],
-                             mr->vert_positions[mr->mloop[mlooptri->tri[2]].v]};
+    const Span<MLoopTri> looptris = mr->looptris;
+    for (const int i : looptris.index_range()) {
+      const int index = looptris[i].poly;
+      const float *cos[3] = {mr->vert_positions[mr->loops[looptris[i].tri[0]].v],
+                             mr->vert_positions[mr->loops[looptris[i].tri[1]].v],
+                             mr->vert_positions[mr->loops[looptris[i].tri[2]].v]};
       float ray_co[3];
       float ray_no[3];
 
@@ -247,21 +247,21 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
       }
     }
 
-    const MPoly *mp = mr->mpoly;
-    for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float fac = face_dists[mp_index];
+    for (const int poly_i : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_i];
+      float fac = face_dists[poly_i];
       fac = thickness_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < mp->totloop; i++, l_index++) {
-        r_thickness[l_index] = fac;
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        r_thickness[loop_i] = fac;
       }
     }
   }
 }
 
 struct BVHTree_OverlapData {
-  const float3 *positions;
-  const MLoop *loops;
-  const MLoopTri *mlooptri;
+  Span<float3> positions;
+  Span<MLoop> loops;
+  Span<MLoopTri> looptris;
   float epsilon;
 };
 
@@ -269,8 +269,8 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
 {
   struct BVHTree_OverlapData *data = static_cast<struct BVHTree_OverlapData *>(userdata);
 
-  const MLoopTri *tri_a = &data->mlooptri[index_a];
-  const MLoopTri *tri_b = &data->mlooptri[index_b];
+  const MLoopTri *tri_a = &data->looptris[index_a];
+  const MLoopTri *tri_b = &data->looptris[index_b];
 
   if (UNLIKELY(tri_a->poly == tri_b->poly)) {
     return false;
@@ -341,18 +341,18 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
 
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr->me, BVHTREE_FROM_LOOPTRI, 4);
 
-    struct BVHTree_OverlapData data = {nullptr};
+    struct BVHTree_OverlapData data = {};
     data.positions = mr->vert_positions;
-    data.loops = mr->mloop;
-    data.mlooptri = mr->mlooptri;
+    data.loops = mr->loops;
+    data.looptris = mr->looptris;
     data.epsilon = BLI_bvhtree_get_epsilon(tree);
 
     BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(tree, &overlap_len, bvh_overlap_cb, &data);
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {
         const MPoly *f_hit_pair[2] = {
-            &mr->mpoly[mr->mlooptri[overlap[i].indexA].poly],
-            &mr->mpoly[mr->mlooptri[overlap[i].indexB].poly],
+            &mr->polys[mr->looptris[overlap[i].indexA].poly],
+            &mr->polys[mr->looptris[overlap[i].indexB].poly],
         };
         for (int j = 0; j < 2; j++) {
           const MPoly *f_hit = f_hit_pair[j];
@@ -440,18 +440,19 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
     }
   }
   else {
-    const MPoly *mp = mr->mpoly;
-    for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
+    int l_index = 0;
+    for (const int poly_index : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_index];
       float fac = -1.0f;
 
-      if (mp->totloop > 3) {
-        const float *f_no = mr->poly_normals[mp_index];
+      if (poly.totloop > 3) {
+        const float *f_no = mr->poly_normals[poly_index];
         fac = 0.0f;
 
-        for (int i = 1; i <= mp->totloop; i++) {
-          const MLoop *l_prev = &mr->mloop[mp->loopstart + (i - 1) % mp->totloop];
-          const MLoop *l_curr = &mr->mloop[mp->loopstart + (i + 0) % mp->totloop];
-          const MLoop *l_next = &mr->mloop[mp->loopstart + (i + 1) % mp->totloop];
+        for (int i = 1; i <= poly.totloop; i++) {
+          const MLoop *l_prev = &mr->loops[poly.loopstart + (i - 1) % poly.totloop];
+          const MLoop *l_curr = &mr->loops[poly.loopstart + (i + 0) % poly.totloop];
+          const MLoop *l_next = &mr->loops[poly.loopstart + (i + 1) % poly.totloop];
           float no_corner[3];
           normal_tri_v3(no_corner,
                         mr->vert_positions[l_prev->v],
@@ -467,7 +468,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
       }
 
       fac = distort_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < mp->totloop; i++, l_index++) {
+      for (int i = 0; i < poly.totloop; i++, l_index++) {
         r_distort[l_index] = fac;
       }
     }
@@ -526,24 +527,24 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
   }
   else {
     /* first assign float values to verts */
-    const MPoly *mp = mr->mpoly;
 
     EdgeHash *eh = BLI_edgehash_new_ex(__func__, mr->edge_len);
 
-    for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      for (int i = 0; i < mp->totloop; i++) {
-        const MLoop *l_curr = &mr->mloop[mp->loopstart + (i + 0) % mp->totloop];
-        const MLoop *l_next = &mr->mloop[mp->loopstart + (i + 1) % mp->totloop];
+    for (const int poly_index : mr->polys.index_range()) {
+      const MPoly &poly = mr->polys[poly_index];
+      for (int i = 0; i < poly.totloop; i++) {
+        const MLoop *l_curr = &mr->loops[poly.loopstart + (i + 0) % poly.totloop];
+        const MLoop *l_next = &mr->loops[poly.loopstart + (i + 1) % poly.totloop];
         float angle;
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, l_curr->v, l_next->v, &pval);
         if (!value_is_init) {
-          *pval = (void *)mr->poly_normals[mp_index];
+          *pval = (void *)&mr->poly_normals[poly_index];
           /* non-manifold edge, yet... */
           continue;
         }
         if (*pval != nullptr) {
-          const float *f1_no = mr->poly_normals[mp_index];
+          const float *f1_no = mr->poly_normals[poly_index];
           const float *f2_no = static_cast<const float *>(*pval);
           angle = angle_normalized_v3v3(f1_no, f2_no);
           angle = is_edge_convex_v3(
@@ -579,7 +580,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
     BLI_edgehashIterator_free(ehi);
     BLI_edgehash_free(eh, nullptr);
 
-    const MLoop *ml = mr->mloop;
+    const MLoop *ml = mr->loops.data();
     for (int l_index = 0; l_index < mr->loop_len; l_index++, ml++) {
       r_sharp[l_index] = sharp_remap(vert_angles[ml->v], min, max, minmax_irange);
     }

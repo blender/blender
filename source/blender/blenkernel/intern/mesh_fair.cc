@@ -198,12 +198,12 @@ class MeshFairingContext : public FairingContext {
     totloop_ = mesh->totloop;
 
     MutableSpan<float3> positions = mesh->vert_positions_for_write();
-    medge_ = mesh->edges();
-    mpoly_ = mesh->polys();
+    edges_ = mesh->edges();
+    polys = mesh->polys();
     mloop_ = mesh->loops();
     BKE_mesh_vert_loop_map_create(&vlmap_,
                                   &vlmap_mem_,
-                                  mpoly_.data(),
+                                  polys.data(),
                                   mloop_.data(),
                                   mesh->totvert,
                                   mesh->totpoly,
@@ -222,7 +222,7 @@ class MeshFairingContext : public FairingContext {
       }
     }
 
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(mpoly_, mloop_.size());
+    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys, mloop_.size());
   }
 
   ~MeshFairingContext() override
@@ -236,26 +236,26 @@ class MeshFairingContext : public FairingContext {
                                   float r_adj_prev[3]) override
   {
     const int vert = mloop_[loop].v;
-    const MPoly *p = &mpoly_[loop_to_poly_map_[loop]];
-    const int corner = poly_find_loop_from_vert(p, &mloop_[p->loopstart], vert);
-    copy_v3_v3(r_adj_next, co_[ME_POLY_LOOP_NEXT(mloop_, p, corner)->v]);
-    copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, p, corner)->v]);
+    const MPoly &poly = polys[loop_to_poly_map_[loop]];
+    const int corner = poly_find_loop_from_vert(&poly, &mloop_[poly.loopstart], vert);
+    copy_v3_v3(r_adj_next, co_[ME_POLY_LOOP_NEXT(mloop_, &poly, corner)->v]);
+    copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, &poly, corner)->v]);
   }
 
   int other_vertex_index_from_loop(const int loop, const uint v) override
   {
-    const MEdge *e = &medge_[mloop_[loop].e];
-    if (e->v1 == v) {
-      return e->v2;
+    const MEdge *edge = &edges_[mloop_[loop].e];
+    if (edge->v1 == v) {
+      return edge->v2;
     }
-    return e->v1;
+    return edge->v1;
   }
 
  protected:
   Mesh *mesh_;
   Span<MLoop> mloop_;
-  Span<MPoly> mpoly_;
-  Span<MEdge> medge_;
+  Span<MPoly> polys;
+  Span<MEdge> edges_;
   Array<int> loop_to_poly_map_;
 };
 
@@ -451,7 +451,7 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
                                    bool *affected_verts,
                                    const eMeshFairingDepth depth)
 {
-  /* Prefair. */
+  /* Pre-fair. */
   UniformVertexWeight *uniform_vertex_weights = new UniformVertexWeight(fairing_context);
   UniformLoopWeight *uniform_loop_weights = new UniformLoopWeight();
   fairing_context->fair_verts(affected_verts, depth, uniform_vertex_weights, uniform_loop_weights);

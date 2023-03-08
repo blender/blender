@@ -1220,7 +1220,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       case ID_KE:
       case ID_SPK:
       case ID_AR:
-      case ID_GD:
+      case ID_GD_LEGACY:
       case ID_LP:
       case ID_CV:
       case ID_PT:
@@ -1270,7 +1270,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         if (tselem->type != TSE_MODIFIER_BASE) {
           Object *ob = (Object *)tselem->id;
 
-          if (ob->type == OB_GPENCIL) {
+          if (ob->type == OB_GPENCIL_LEGACY) {
             BKE_gpencil_modifier_panel_expand(static_cast<GpencilModifierData *>(te->directdata));
           }
           else {

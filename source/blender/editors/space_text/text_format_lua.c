@@ -341,6 +341,7 @@ void ED_text_format_register_lua(void)
   tft.format_identifier = txtfmt_lua_format_identifier;
   tft.format_line = txtfmt_lua_format_line;
   tft.ext = ext;
+  tft.comment_line = "--";
 
   ED_text_format_register(&tft);
 }

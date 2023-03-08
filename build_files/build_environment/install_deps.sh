@@ -6615,11 +6615,9 @@ print_info() {
   fi
 
   if [ -d $INST/oiio ]; then
-    _1="-D WITH_OPENIMAGEIO=ON"
-    _2="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
+    _1="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
-    PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$OSL_SKIP" = false ]; then

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_assembler_preview">
+    <description>Create an assembler file from source (C/C++)</description>
+    <displayname>Assembler Preview</displayname>
+    <category>Compiler</category>
+    <executable output="showinpane" error="showinpane" modifiesdocument="no">
+        <path>qtc_assembler_preview.py</path>
+        <arguments>%{CurrentProject:BuildPath} %{CurrentDocument:FilePath}</arguments>
+        <workingdirectory>%{CurrentProject:BuildPath}</workingdirectory>
+    </executable>
+</externaltool>

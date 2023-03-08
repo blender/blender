@@ -308,7 +308,6 @@ static Mesh *create_uv_sphere_mesh(const float radius,
 {
   Mesh *mesh = BKE_mesh_new_nomain(sphere_vert_total(segments, rings),
                                    sphere_edge_total(segments, rings),
-                                   0,
                                    sphere_corner_total(segments, rings),
                                    sphere_face_total(segments, rings));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
@@ -320,10 +319,10 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        MutableSpan vert_normals{
-            reinterpret_cast<float3 *>(BKE_mesh_vertex_normals_for_write(mesh)), mesh->totvert};
+        MutableSpan vert_normals{reinterpret_cast<float3 *>(BKE_mesh_vert_normals_for_write(mesh)),
+                                 mesh->totvert};
         calculate_sphere_vertex_data(positions, vert_normals, radius, segments, rings);
-        BKE_mesh_vertex_normals_clear_dirty(mesh);
+        BKE_mesh_vert_normals_clear_dirty(mesh);
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
       [&]() { calculate_sphere_faces(polys, segments); },

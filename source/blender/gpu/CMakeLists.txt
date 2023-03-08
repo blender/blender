@@ -191,16 +191,26 @@ set(OPENGL_SRC
 set(VULKAN_SRC
   vulkan/vk_backend.cc
   vulkan/vk_batch.cc
+  vulkan/vk_buffer.cc
+  vulkan/vk_command_buffer.cc
+  vulkan/vk_common.cc
   vulkan/vk_context.cc
+  vulkan/vk_descriptor_pools.cc
+  vulkan/vk_descriptor_set.cc
   vulkan/vk_drawlist.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_memory_layout.cc
   vulkan/vk_memory.cc
+  vulkan/vk_pipeline.cc
   vulkan/vk_pixel_buffer.cc
+  vulkan/vk_push_constants.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
+  vulkan/vk_shader_interface.cc
   vulkan/vk_shader_log.cc
+  vulkan/vk_state_manager.cc
   vulkan/vk_storage_buffer.cc
   vulkan/vk_texture.cc
   vulkan/vk_uniform_buffer.cc
@@ -208,16 +218,26 @@ set(VULKAN_SRC
 
   vulkan/vk_backend.hh
   vulkan/vk_batch.hh
+  vulkan/vk_buffer.hh
+  vulkan/vk_command_buffer.hh
+  vulkan/vk_common.hh
   vulkan/vk_context.hh
+  vulkan/vk_descriptor_pools.hh
+  vulkan/vk_descriptor_set.hh
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_memory_layout.hh
   vulkan/vk_memory.hh
+  vulkan/vk_pipeline.hh
   vulkan/vk_pixel_buffer.hh
+  vulkan/vk_push_constants.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
+  vulkan/vk_shader_interface.hh
   vulkan/vk_shader_log.hh
+  vulkan/vk_state_manager.hh
   vulkan/vk_storage_buffer.hh
   vulkan/vk_texture.hh
   vulkan/vk_uniform_buffer.hh
@@ -286,7 +306,7 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND INC
-    ../../../extern/vulkan_memory_allocator/
+    ../../../extern/vulkan_memory_allocator
   )
   list(APPEND INC_SYS
     ${VULKAN_INCLUDE_DIRS}
@@ -348,7 +368,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_line_dashed_frag.glsl
   shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_2D_image_rect_vert.glsl
-  shaders/gpu_shader_2D_image_multi_rect_vert.glsl
+  shaders/gpu_shader_icon_multi_vert.glsl
   shaders/gpu_shader_icon_frag.glsl
   shaders/gpu_shader_icon_vert.glsl
   shaders/gpu_shader_image_frag.glsl
@@ -357,7 +377,6 @@ set(GLSL_SRC
   shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
   shaders/gpu_shader_image_shuffle_color_frag.glsl
   shaders/gpu_shader_image_color_frag.glsl
-  shaders/gpu_shader_image_varying_color_frag.glsl
   shaders/gpu_shader_3D_image_vert.glsl
   shaders/gpu_shader_3D_vert.glsl
   shaders/gpu_shader_3D_normal_vert.glsl
@@ -391,6 +410,7 @@ set(GLSL_SRC
 
   shaders/gpu_shader_codegen_lib.glsl
 
+  shaders/common/gpu_shader_bicubic_sampler_lib.glsl
   shaders/common/gpu_shader_common_color_ramp.glsl
   shaders/common/gpu_shader_common_color_utils.glsl
   shaders/common/gpu_shader_common_curves.glsl
@@ -495,8 +515,12 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_world_normals.glsl
 
   shaders/gpu_shader_gpencil_stroke_vert.glsl
+  shaders/gpu_shader_gpencil_stroke_vert_no_geom.glsl
   shaders/gpu_shader_gpencil_stroke_frag.glsl
   shaders/gpu_shader_gpencil_stroke_geom.glsl
+
+  shaders/gpu_shader_display_fallback_vert.glsl
+  shaders/gpu_shader_display_fallback_frag.glsl
 
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
@@ -510,8 +534,10 @@ set(GLSL_SRC_TEST
   tests/shaders/gpu_compute_1d_test.glsl
   tests/shaders/gpu_compute_2d_test.glsl
   tests/shaders/gpu_compute_ibo_test.glsl
+  tests/shaders/gpu_compute_ssbo_test.glsl
   tests/shaders/gpu_compute_vbo_test.glsl
   tests/shaders/gpu_compute_dummy_test.glsl
+  tests/shaders/gpu_push_constants_test.glsl
 )
 
 set(MTL_BACKEND_GLSL_SRC
@@ -636,7 +662,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_diag_stripes_info.hh
   shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
   shaders/infos/gpu_shader_2D_image_info.hh
-  shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh
   shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
   shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
   shaders/infos/gpu_shader_2D_image_rect_color_info.hh
@@ -785,11 +810,19 @@ if(WITH_GTESTS)
       tests/gpu_testing.cc
 
       tests/gpu_index_buffer_test.cc
+      tests/gpu_push_constants_test.cc
       tests/gpu_shader_builtin_test.cc
       tests/gpu_shader_test.cc
+      tests/gpu_storage_buffer_test.cc
 
       tests/gpu_testing.hh
     )
+    if(WITH_VULKAN_BACKEND)
+      list(APPEND TEST_SRC
+        tests/memory_layout_test.cc
+      )
+    endif()
+
     set(TEST_INC
     )
     set(TEST_LIB

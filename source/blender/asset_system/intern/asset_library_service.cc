@@ -63,6 +63,9 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   switch (type) {
     case ASSET_LIBRARY_ESSENTIALS: {
       const StringRefNull root_path = essentials_directory_path();
+      if (root_path.is_empty()) {
+        return nullptr;
+      }
 
       AssetLibrary *library = get_asset_library_on_disk(root_path);
       library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
@@ -213,6 +216,9 @@ std::string AssetLibraryService::root_path_from_library_ref(
 {
   if (ELEM(library_reference.type, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL)) {
     return "";
+  }
+  if (ELEM(library_reference.type, ASSET_LIBRARY_ESSENTIALS)) {
+    return essentials_directory_path();
   }
 
   bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(

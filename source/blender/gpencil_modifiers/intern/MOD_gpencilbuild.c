@@ -384,7 +384,7 @@ static void build_sequential(Object *ob,
                 /* Cycling backwards through zero-points to fix them. */
                 for (int k = 0; k < zeropoints; k++) {
                   float linear_fill = interpf(
-                      deltatime, 0, ((float)k + 1) / (zeropoints + 1)); /* Factor = Proportion. */
+                      0, deltatime, ((float)k + 1) / (zeropoints + 1)); /* Factor = Proportion. */
                   idx_times[curpoint - k - 1] = sumtime + linear_fill;
                 }
               }

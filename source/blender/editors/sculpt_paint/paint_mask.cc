@@ -1033,8 +1033,10 @@ static void sculpt_gesture_trim_shape_origin_normal_get(SculptGestureContext *sg
    */
   switch (trim_operation->orientation) {
     case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
-      copy_v3_v3(r_origin, sgcontext->world_space_view_origin);
+      mul_v3_m4v3(
+          r_origin, sgcontext->vc.obact->object_to_world, sgcontext->ss->gesture_initial_location);
       copy_v3_v3(r_normal, sgcontext->world_space_view_normal);
+      negate_v3(r_normal);
       break;
     case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
       mul_v3_m4v3(
@@ -1141,8 +1143,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const int trim_totverts = tot_screen_points * 2;
   const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
-  trim_operation->mesh = BKE_mesh_new_nomain(
-      trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
+  trim_operation->mesh = BKE_mesh_new_nomain(trim_totverts, 0, trim_totpolys * 3, trim_totpolys);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 
@@ -1168,14 +1169,30 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
-  /* Write vertices coordinates for the front face. */
+  /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
   float depth_point[3];
-  madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
+
+  /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
+   * Note: for projection extrusion we add depth_front here
+   * instead of in the loop.
+   */
+  if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+    copy_v3_v3(depth_point, shape_origin);
+  }
+  else {
+    madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
+  }
+
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
     if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
       ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+
+      /* For fixed mode we add the shape normal here to avoid projection errors. */
+      if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+        madd_v3_v3fl(new_point, shape_normal, depth_front);
+      }
     }
     else {
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
@@ -1225,54 +1242,62 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  MPoly *polys = BKE_mesh_polys_for_write(trim_operation->mesh);
-  MLoop *loops = BKE_mesh_loops_for_write(trim_operation->mesh);
-  MPoly *mp = polys;
-  MLoop *ml = loops;
-  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
-    ml[0].v = r_tris[i][0];
-    ml[1].v = r_tris[i][1];
-    ml[2].v = r_tris[i][2];
+  blender::MutableSpan<MPoly> polys = trim_operation->mesh->polys_for_write();
+  blender::MutableSpan<MLoop> loops = trim_operation->mesh->loops_for_write();
+  int poly_index = 0;
+  int loop_index = 0;
+  for (int i = 0; i < tot_tris_face; i++) {
+    polys[poly_index].loopstart = loop_index;
+    polys[poly_index].totloop = 3;
+    loops[loop_index + 0].v = r_tris[i][0];
+    loops[loop_index + 1].v = r_tris[i][1];
+    loops[loop_index + 2].v = r_tris[i][2];
+    poly_index++;
+    loop_index += 3;
   }
 
   /* Write the back face triangle indices. */
-  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
-    ml[0].v = r_tris[i][0] + tot_screen_points;
-    ml[1].v = r_tris[i][1] + tot_screen_points;
-    ml[2].v = r_tris[i][2] + tot_screen_points;
+  for (int i = 0; i < tot_tris_face; i++) {
+    polys[poly_index].loopstart = loop_index;
+    polys[poly_index].totloop = 3;
+    loops[loop_index + 0].v = r_tris[i][0] + tot_screen_points;
+    loops[loop_index + 1].v = r_tris[i][1] + tot_screen_points;
+    loops[loop_index + 2].v = r_tris[i][2] + tot_screen_points;
+    poly_index++;
+    loop_index += 3;
   }
 
   MEM_freeN(r_tris);
 
   /* Write the indices for the lateral triangles. */
-  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
+  for (int i = 0; i < tot_screen_points; i++) {
+    polys[poly_index].loopstart = loop_index;
+    polys[poly_index].totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
       next_index = 0;
     }
-    ml[0].v = next_index + tot_screen_points;
-    ml[1].v = next_index;
-    ml[2].v = current_index;
+    loops[loop_index + 0].v = next_index + tot_screen_points;
+    loops[loop_index + 1].v = next_index;
+    loops[loop_index + 2].v = current_index;
+    poly_index++;
+    loop_index += 3;
   }
 
-  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
+  for (int i = 0; i < tot_screen_points; i++) {
+    polys[poly_index].loopstart = loop_index;
+    polys[poly_index].totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
       next_index = 0;
     }
-    ml[0].v = current_index;
-    ml[1].v = current_index + tot_screen_points;
-    ml[2].v = next_index + tot_screen_points;
+    loops[loop_index + 0].v = current_index;
+    loops[loop_index + 1].v = current_index + tot_screen_points;
+    loops[loop_index + 2].v = next_index + tot_screen_points;
+    poly_index++;
+    loop_index += 3;
   }
 
   BKE_mesh_calc_edges(trim_operation->mesh, false, false);

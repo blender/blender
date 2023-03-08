@@ -3643,7 +3643,7 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
 /** \name View Channel Operator
  * \{ */
 
-static void get_normalized_fcurve_bounds(FCurve *fcu,
+static bool get_normalized_fcurve_bounds(FCurve *fcu,
                                          bAnimContext *ac,
                                          const bAnimListElem *ale,
                                          const bool include_handles,
@@ -3651,22 +3651,19 @@ static void get_normalized_fcurve_bounds(FCurve *fcu,
                                          rctf *r_bounds)
 {
   const bool fcu_selection_only = false;
-  BKE_fcurve_calc_bounds(fcu,
-                         &r_bounds->xmin,
-                         &r_bounds->xmax,
-                         &r_bounds->ymin,
-                         &r_bounds->ymax,
-                         fcu_selection_only,
-                         include_handles,
-                         range);
-  const short mapping_flag = ANIM_get_normalization_flags(ac);
-
-  const float min_height = 0.01f;
-  const float height = BLI_rctf_size_y(r_bounds);
-  if (height < min_height) {
-    r_bounds->ymin -= (min_height - height) / 2;
-    r_bounds->ymax += (min_height - height) / 2;
+  const bool found_bounds = BKE_fcurve_calc_bounds(fcu,
+                                                   &r_bounds->xmin,
+                                                   &r_bounds->xmax,
+                                                   &r_bounds->ymin,
+                                                   &r_bounds->ymax,
+                                                   fcu_selection_only,
+                                                   include_handles,
+                                                   range);
+  if (!found_bounds) {
+    return false;
   }
+
+  const short mapping_flag = ANIM_get_normalization_flags(ac);
 
   float offset;
   const float unit_fac = ANIM_unit_mapping_get_factor(
@@ -3674,9 +3671,17 @@ static void get_normalized_fcurve_bounds(FCurve *fcu,
 
   r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
   r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
+
+  const float min_height = 0.01f;
+  const float height = BLI_rctf_size_y(r_bounds);
+  if (height < min_height) {
+    r_bounds->ymin -= (min_height - height) / 2;
+    r_bounds->ymax += (min_height - height) / 2;
+  }
+  return true;
 }
 
-static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
+static bool get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
 {
   bool found_start = false;
   int start_frame = 0;
@@ -3698,6 +3703,8 @@ static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bou
   r_bounds->xmax = end_frame;
   r_bounds->ymin = 0;
   r_bounds->ymax = 1;
+
+  return found_start;
 }
 
 static bool get_channel_bounds(bAnimContext *ac,
@@ -3710,14 +3717,12 @@ static bool get_channel_bounds(bAnimContext *ac,
   switch (ale->datatype) {
     case ALE_GPFRAME: {
       bGPDlayer *gpl = (bGPDlayer *)ale->data;
-      get_gpencil_bounds(gpl, range, r_bounds);
-      found_bounds = true;
+      found_bounds = get_gpencil_bounds(gpl, range, r_bounds);
       break;
     }
     case ALE_FCURVE: {
       FCurve *fcu = (FCurve *)ale->key_data;
-      get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
-      found_bounds = true;
+      found_bounds = get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
       break;
     }
   }
@@ -3749,22 +3754,17 @@ static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
   BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
 }
 
-/* Find the window region in the bAnimContext area and move it to bounds. */
-static void move_graph_view(bContext *C, bAnimContext *ac, rctf *bounds, const int smooth_viewtx)
-{
-  LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      UI_view2d_smooth_view(C, region, bounds, smooth_viewtx);
-    }
-  }
-}
-
 static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3800,13 +3800,19 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   if (!valid_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on.");
     return OPERATOR_CANCELLED;
   }
 
   add_region_padding(C, &ac, &bounds);
 
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
+
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -3852,6 +3858,12 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
+    return OPERATOR_CANCELLED;
+  }
+
   ListBase anim_data = {NULL, NULL};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
                       ANIMFILTER_LIST_CHANNELS);
@@ -3875,13 +3887,19 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   if (!found_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on.");
     return OPERATOR_CANCELLED;
   }
 
   add_region_padding(C, &ac, &bounds);
 
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
+
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 

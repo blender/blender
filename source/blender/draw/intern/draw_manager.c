@@ -188,7 +188,7 @@ bool DRW_object_is_renderable(const Object *ob)
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
       View3D *v3d = DST.draw_ctx.v3d;
-      if (v3d && v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) {
+      if (v3d && v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_RETOPOLOGY) {
         return false;
       }
     }
@@ -1314,9 +1314,9 @@ static void drw_engines_data_validate(void)
 static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
 {
   const bool exclude_gpencil_rendering = v3d ? (v3d->object_type_exclude_viewport &
-                                                (1 << OB_GPENCIL)) != 0 :
+                                                (1 << OB_GPENCIL_LEGACY)) != 0 :
                                                false;
-  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD);
+  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1876,7 +1876,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
         return true;
       }
@@ -2339,7 +2339,7 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
 
   if (g_select_buffer.texture_depth == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+    g_select_buffer.texture_depth = GPU_texture_create_2d(
         "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(

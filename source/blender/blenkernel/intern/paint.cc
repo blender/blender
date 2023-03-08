@@ -234,6 +234,7 @@ const uchar PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
 const uchar PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
 const uchar PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
 const uchar PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
+const uchar PAINT_CURSOR_SCULPT_CURVES[3] = {255, 100, 100};
 
 static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
 
@@ -1695,16 +1696,16 @@ static void sculpt_update_object(
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->mpoly = BKE_mesh_polys(me);
-    ss->mloop = BKE_mesh_loops(me);
+    ss->polys = me->polys().data();
+    ss->mloop = me->loops().data();
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->mpoly = BKE_mesh_polys(me);
-    ss->mloop = BKE_mesh_loops(me);
+    ss->polys = me->polys().data();
+    ss->mloop = me->loops().data();
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
@@ -1764,8 +1765,8 @@ static void sculpt_update_object(
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(&ss->pmap,
                                   &ss->pmap_mem,
-                                  BKE_mesh_polys(me),
-                                  BKE_mesh_loops(me),
+                                  me->polys().data(),
+                                  me->loops().data(),
                                   me->totvert,
                                   me->totpoly,
                                   me->totloop);
@@ -2014,22 +2015,22 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     /* if vertices already have mask, copy into multires data */
     if (paint_mask) {
       for (i = 0; i < me->totpoly; i++) {
-        const MPoly *p = &polys[i];
+        const MPoly &poly = polys[i];
         float avg = 0;
 
         /* mask center */
-        for (j = 0; j < p->totloop; j++) {
-          const MLoop *l = &loops[p->loopstart + j];
+        for (j = 0; j < poly.totloop; j++) {
+          const MLoop *l = &loops[poly.loopstart + j];
           avg += paint_mask[l->v];
         }
-        avg /= float(p->totloop);
+        avg /= float(poly.totloop);
 
         /* fill in multires mask corner */
-        for (j = 0; j < p->totloop; j++) {
-          GridPaintMask *gpm = &gmask[p->loopstart + j];
-          const MLoop *l = &loops[p->loopstart + j];
-          const MLoop *prev = ME_POLY_LOOP_PREV(loops, p, j);
-          const MLoop *next = ME_POLY_LOOP_NEXT(loops, p, j);
+        for (j = 0; j < poly.totloop; j++) {
+          GridPaintMask *gpm = &gmask[poly.loopstart + j];
+          const MLoop *l = &loops[poly.loopstart + j];
+          const MLoop *prev = ME_POLY_LOOP_PREV(loops, &poly, j);
+          const MLoop *next = ME_POLY_LOOP_NEXT(loops, &poly, j);
 
           gpm->data[0] = avg;
           gpm->data[1] = (paint_mask[l->v] + paint_mask[next->v]) * 0.5f;
@@ -2717,6 +2718,11 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
 
   if (attr) {
     sculpt_attr_update(ob, attr);
+
+    /* Since "stroke_only" is not a CustomData flag we have
+     * to sync its parameter setting manually. Fixes #104618.
+     */
+    attr->params.stroke_only = params->stroke_only;
 
     return attr;
   }

@@ -120,10 +120,11 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   isect->v = barycentrics.y;
 
   /* Record geometric normal. */
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
-  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0);
-  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1);
-  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */

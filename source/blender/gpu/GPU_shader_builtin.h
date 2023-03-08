@@ -39,7 +39,7 @@ typedef enum eGPUBuiltinShader {
   /** Draw a texture with a desaturation factor. */
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   /** Draw a group of texture rectangle with an associated color multiplied. */
-  GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR,
+  GPU_SHADER_ICON_MULTI,
   /** Draw a two color checker based on screen position (not UV coordinates). */
   GPU_SHADER_2D_CHECKER,
   /** Draw diagonal stripes with two alternating colors. */

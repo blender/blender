@@ -2039,9 +2039,11 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   draw_config.th_col2 = th_col2;
   draw_config.th_col3 = th_col3;
 
+  const bNodeTree &node_tree = *snode.edittree;
+
   draw_config.dim_factor = selected ? 1.0f :
                                       node_link_dim_factor(
-                                          snode.runtime->all_socket_locations, v2d, link);
+                                          node_tree.runtime->all_socket_locations, v2d, link);
 
   bTheme *btheme = UI_GetTheme();
   draw_config.dash_alpha = btheme->space_node.dash_alpha;
@@ -2063,24 +2065,21 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
       snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
     PointerRNA from_node_ptr, to_node_ptr;
-    RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.fromnode, &from_node_ptr);
-    RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.tonode, &to_node_ptr);
+    RNA_pointer_create((ID *)&node_tree, &RNA_Node, link.fromnode, &from_node_ptr);
+    RNA_pointer_create((ID *)&node_tree, &RNA_Node, link.tonode, &to_node_ptr);
 
     if (link.fromsock) {
-      node_socket_color_get(
-          C, *snode.edittree, from_node_ptr, *link.fromsock, draw_config.start_color);
+      node_socket_color_get(C, node_tree, from_node_ptr, *link.fromsock, draw_config.start_color);
     }
     else {
-      node_socket_color_get(
-          C, *snode.edittree, to_node_ptr, *link.tosock, draw_config.start_color);
+      node_socket_color_get(C, node_tree, to_node_ptr, *link.tosock, draw_config.start_color);
     }
 
     if (link.tosock) {
-      node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, draw_config.end_color);
+      node_socket_color_get(C, node_tree, to_node_ptr, *link.tosock, draw_config.end_color);
     }
     else {
-      node_socket_color_get(
-          C, *snode.edittree, from_node_ptr, *link.fromsock, draw_config.end_color);
+      node_socket_color_get(C, node_tree, from_node_ptr, *link.fromsock, draw_config.end_color);
     }
   }
   else {
@@ -2167,8 +2166,9 @@ void node_draw_link_bezier(const bContext &C,
                            const int th_col3,
                            const bool selected)
 {
-  const std::array<float2, 4> points = node_link_bezier_points(snode.runtime->all_socket_locations,
-                                                               link);
+  const bNodeTree &node_tree = *snode.edittree;
+  const std::array<float2, 4> points = node_link_bezier_points(
+      node_tree.runtime->all_socket_locations, link);
   if (!node_link_draw_is_visible(v2d, points)) {
     return;
   }
@@ -2227,15 +2227,18 @@ void node_draw_link(const bContext &C,
 static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
                                                              const bNodeLink &link)
 {
+  const bNodeTree &node_tree = *snode.edittree;
   const float2 cursor = snode.runtime->cursor * UI_DPI_FAC;
   std::array<float2, 4> points;
   points[0] = link.fromsock ?
-                  socket_link_connection_location(
-                      snode.runtime->all_socket_locations, *link.fromnode, *link.fromsock, link) :
+                  socket_link_connection_location(node_tree.runtime->all_socket_locations,
+                                                  *link.fromnode,
+                                                  *link.fromsock,
+                                                  link) :
                   cursor;
   points[3] = link.tosock ?
                   socket_link_connection_location(
-                      snode.runtime->all_socket_locations, *link.tonode, *link.tosock, link) :
+                      node_tree.runtime->all_socket_locations, *link.tonode, *link.tosock, link) :
                   cursor;
   calculate_inner_link_bezier_points(points);
   return points;

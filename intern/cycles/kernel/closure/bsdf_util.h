@@ -10,12 +10,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float fresnel_dielectric(float eta,
-                                    const float3 N,
-                                    const float3 I,
-                                    ccl_private float3 *R,
-                                    ccl_private float3 *T,
-                                    ccl_private bool *is_inside)
+ccl_device float fresnel_dielectric(
+    float eta, const float3 N, const float3 I, ccl_private float3 *T, ccl_private bool *is_inside)
 {
   float cos = dot(N, I), neta;
   float3 Nn;
@@ -34,9 +30,6 @@ ccl_device float fresnel_dielectric(float eta,
     Nn = -N;
     *is_inside = true;
   }
-
-  // compute reflection
-  *R = (2 * cos) * Nn - I;
 
   float arg = 1 - (neta * neta * (1 - (cos * cos)));
   if (arg < 0) {
@@ -71,15 +64,21 @@ ccl_device float fresnel_dielectric_cos(float cosi, float eta)
   return 1.0f;  // TIR(no refracted component)
 }
 
-ccl_device float3 fresnel_conductor(float cosi, const float3 eta, const float3 k)
+ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spectrum k)
 {
-  float3 cosi2 = make_float3(cosi * cosi, cosi * cosi, cosi * cosi);
-  float3 one = make_float3(1.0f, 1.0f, 1.0f);
-  float3 tmp_f = eta * eta + k * k;
-  float3 tmp = tmp_f * cosi2;
-  float3 Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
-  float3 Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) / (tmp_f + (2.0f * eta * cosi) + cosi2);
+  Spectrum cosi2 = make_spectrum(cosi * cosi);
+  Spectrum one = make_spectrum(1.0f);
+  Spectrum tmp_f = eta * eta + k * k;
+  Spectrum tmp = tmp_f * cosi2;
+  Spectrum Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
+  Spectrum Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) / (tmp_f + (2.0f * eta * cosi) + cosi2);
   return (Rparl2 + Rperp2) * 0.5f;
+}
+
+ccl_device float ior_from_F0(Spectrum f0)
+{
+  const float sqrt_f0 = sqrtf(clamp(average(f0), 0.0f, 0.99f));
+  return (1.0f + sqrt_f0) / (1.0f - sqrt_f0);
 }
 
 ccl_device float schlick_fresnel(float u)

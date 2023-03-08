@@ -66,6 +66,7 @@ extern const uchar PAINT_CURSOR_SCULPT[3];
 extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
 extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
+extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 
 typedef enum ePaintMode {
   PAINT_MODE_SCULPT = 0,
@@ -576,7 +577,7 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   float (*vert_positions)[3];
-  const struct MPoly *mpoly;
+  const struct MPoly *polys;
   const struct MLoop *mloop;
 
   /* These contain the vertex and poly counts of the final mesh. */

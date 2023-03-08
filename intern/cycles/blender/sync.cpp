@@ -349,8 +349,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
 
   bool use_light_tree = get_boolean(cscene, "use_light_tree");
   integrator->set_use_light_tree(use_light_tree);
-  integrator->set_light_sampling_threshold(
-      (use_light_tree) ? 0.0f : get_float(cscene, "light_sampling_threshold"));
+  integrator->set_light_sampling_threshold(get_float(cscene, "light_sampling_threshold"));
 
   if (integrator->use_light_tree_is_modified()) {
     scene->light_manager->tag_update(scene, LightManager::UPDATE_ALL);

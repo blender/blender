@@ -735,7 +735,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
 
 Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData gpencilvirtualModifierData;
     ArmatureGpencilModifierData *agmd = nullptr;
     GpencilModifierData *gmd = BKE_gpencil_modifiers_get_virtual_modifierlist(
@@ -1018,7 +1018,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
   }
   mti->deformVerts(md, ctx, me, vertexCos, numVerts);
   if (me) {
-    BKE_mesh_tag_coords_changed(me);
+    BKE_mesh_tag_positions_changed(me);
   }
 }
 

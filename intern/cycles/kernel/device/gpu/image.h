@@ -5,13 +5,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef WITH_NANOVDB
-#  define NDEBUG /* Disable "assert" in device code */
-#  define NANOVDB_USE_INTRINSICS
-#  include "nanovdb/NanoVDB.h"
-#  include "nanovdb/util/SampleFromVoxels.h"
+#if !defined __KERNEL_METAL__
+#  ifdef WITH_NANOVDB
+#    define NDEBUG /* Disable "assert" in device code */
+#    define NANOVDB_USE_INTRINSICS
+#    include "nanovdb/NanoVDB.h"
+#    include "nanovdb/util/SampleFromVoxels.h"
+#  endif
 #endif
-
 /* w0, w1, w2, and w3 are the four cubic B-spline basis functions. */
 ccl_device float cubic_w0(float a)
 {
@@ -126,7 +127,7 @@ kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, fl
 #ifdef WITH_NANOVDB
 template<typename T, typename S>
 ccl_device typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_tricubic_nanovdb(
-    S &s, float x, float y, float z)
+    ccl_private S &s, float x, float y, float z)
 {
   float px = floorf(x);
   float py = floorf(y);
@@ -157,13 +158,19 @@ ccl_device typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_tric
                 g1y * (g0x * s(Vec3f(x0, y1, z1)) + g1x * s(Vec3f(x1, y1, z1))));
 }
 
+#  if defined(__KERNEL_METAL__)
+template<typename T>
+__attribute__((noinline)) typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_nanovdb(
+    ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+#  else
 template<typename T>
 ccl_device_noinline typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_nanovdb(
     ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+#  endif
 {
   using namespace nanovdb;
 
-  NanoGrid<T> *const grid = (NanoGrid<T> *)info.data;
+  ccl_global NanoGrid<T> *const grid = (ccl_global NanoGrid<T> *)info.data;
   typedef typename nanovdb::NanoGrid<T>::AccessorType AccessorType;
   AccessorType acc = grid->getAccessor();
 

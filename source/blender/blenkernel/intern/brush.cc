@@ -263,6 +263,8 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (brush->gradient) {
     BLO_write_struct(writer, ColorBand, brush->gradient);
   }
+
+  BKE_previewimg_blend_write(writer, brush->preview);
 }
 
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
@@ -348,7 +350,9 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
 
-  brush->preview = nullptr;
+  BLO_read_data_address(reader, &brush->preview);
+  BKE_previewimg_blend_read(reader, brush->preview);
+
   brush->icon_imbuf = nullptr;
 }
 

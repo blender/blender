@@ -185,8 +185,7 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
   BLI_assert(custom_data);
   const int layer_index = request.layer_index;
 
-  const MPoly *mpoly = mr->mpoly;
-  const MLoop *mloop = mr->mloop;
+  const MLoop *mloop = mr->loops.data();
 
   const AttributeType *attr_data = static_cast<const AttributeType *>(
       CustomData_get_layer_n(custom_data, request.cd_type, layer_index));
@@ -210,9 +209,9 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
       }
       break;
     case ATTR_DOMAIN_FACE:
-      for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
-        const MPoly &poly = mpoly[mp_index];
-        const VBOType value = Converter::convert_value(attr_data[mp_index]);
+      for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+        const MPoly &poly = mr->polys[poly_index];
+        const VBOType value = Converter::convert_value(attr_data[poly_index]);
         for (int l = 0; l < poly.totloop; l++) {
           *vbo_data++ = value;
         }

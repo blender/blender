@@ -254,20 +254,15 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   rtcSetGeometryBuildQuality(geom_id, build_quality);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
-  unsigned *rtc_indices = (unsigned *)rtcSetNewGeometryBuffer(
-      geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(int) * 3, num_triangles);
-  assert(rtc_indices);
-  if (!rtc_indices) {
-    VLOG_WARNING << "Embree could not create new geometry buffer for mesh " << mesh->name.c_str()
-                 << ".\n";
-    return;
-  }
-  for (size_t j = 0; j < num_triangles; ++j) {
-    Mesh::Triangle t = mesh->get_triangle(j);
-    rtc_indices[j * 3] = t.v[0];
-    rtc_indices[j * 3 + 1] = t.v[1];
-    rtc_indices[j * 3 + 2] = t.v[2];
-  }
+  const int *triangles = mesh->get_triangles().data();
+  rtcSetSharedGeometryBuffer(geom_id,
+                             RTC_BUFFER_TYPE_INDEX,
+                             0,
+                             RTC_FORMAT_UINT3,
+                             triangles,
+                             0,
+                             sizeof(int) * 3,
+                             num_triangles);
 
   set_tri_vertex_buffer(geom_id, mesh, false);
 
@@ -309,28 +304,46 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       verts = &attr_mP->data_float3()[t_ * num_verts];
     }
 
-    float *rtc_verts = (update) ?
-                           (float *)rtcGetGeometryBufferData(geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
-                           (float *)rtcSetNewGeometryBuffer(geom_id,
-                                                            RTC_BUFFER_TYPE_VERTEX,
-                                                            t,
-                                                            RTC_FORMAT_FLOAT3,
-                                                            sizeof(float) * 3,
-                                                            num_verts + 1);
-
-    assert(rtc_verts);
-    if (rtc_verts) {
-      for (size_t j = 0; j < num_verts; ++j) {
-        rtc_verts[0] = verts[j].x;
-        rtc_verts[1] = verts[j].y;
-        rtc_verts[2] = verts[j].z;
-        rtc_verts += 3;
-      }
-    }
-
     if (update) {
       rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
     }
+    else {
+      rtcSetSharedGeometryBuffer(geom_id,
+                                 RTC_BUFFER_TYPE_VERTEX,
+                                 t,
+                                 RTC_FORMAT_FLOAT3,
+                                 verts,
+                                 0,
+                                 sizeof(float3),
+                                 num_verts + 1);
+    }
+  }
+}
+
+/**
+ * Packs the hair motion curve data control variables (CVs) into float4s as [x y z radius]
+ */
+template<typename T>
+void pack_motion_verts(size_t num_curves,
+                       const Hair *hair,
+                       const T *verts,
+                       const float *curve_radius,
+                       float4 *rtc_verts)
+{
+  for (size_t j = 0; j < num_curves; ++j) {
+    Hair::Curve c = hair->get_curve(j);
+    int fk = c.first_key;
+    int k = 1;
+    for (; k < c.num_keys + 1; ++k, ++fk) {
+      rtc_verts[k].x = verts[fk].x;
+      rtc_verts[k].y = verts[fk].y;
+      rtc_verts[k].z = verts[fk].z;
+      rtc_verts[k].w = curve_radius[fk];
+    }
+    /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
+    rtc_verts[0] = rtc_verts[1];
+    rtc_verts[k] = rtc_verts[k - 1];
+    rtc_verts += c.num_keys + 2;
   }
 }
 
@@ -360,15 +373,10 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
   const int t_mid = (num_motion_steps - 1) / 2;
   const float *curve_radius = &hair->get_curve_radius()[0];
   for (int t = 0; t < num_motion_steps; ++t) {
-    const float3 *verts;
-    if (t == t_mid || attr_mP == NULL) {
-      verts = &hair->get_curve_keys()[0];
-    }
-    else {
-      int t_ = (t > t_mid) ? (t - 1) : t;
-      verts = &attr_mP->data_float3()[t_ * num_keys];
-    }
-
+    // As float4 and float3 are no longer interchangeable the 2 types need to be
+    // handled separately. Attributes are float4s where the radius is stored in w and
+    // the middle motion vector is from the mesh points which are stored float3s with
+    // the radius stored in another array.
     float4 *rtc_verts = (update) ? (float4 *)rtcGetGeometryBufferData(
                                        geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
                                    (float4 *)rtcSetNewGeometryBuffer(geom_id,
@@ -381,24 +389,34 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     assert(rtc_verts);
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
-      for (size_t j = 0; j < num_curves; ++j) {
-        Hair::Curve c = hair->get_curve(j);
-        int fk = c.first_key;
-        int k = 1;
-        for (; k < c.num_keys + 1; ++k, ++fk) {
-          rtc_verts[k] = float3_to_float4(verts[fk]);
-          rtc_verts[k].w = curve_radius[fk];
-        }
-        /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
-        rtc_verts[0] = rtc_verts[1];
-        rtc_verts[k] = rtc_verts[k - 1];
-        rtc_verts += c.num_keys + 2;
+      if (t == t_mid || attr_mP == NULL) {
+        const float3 *verts = &hair->get_curve_keys()[0];
+        pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
+      }
+      else {
+        int t_ = (t > t_mid) ? (t - 1) : t;
+        const float4 *verts = &attr_mP->data_float4()[t_ * num_keys];
+        pack_motion_verts<float4>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
     }
 
     if (update) {
       rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
     }
+  }
+}
+
+/**
+ * Pack the motion points into a float4 as [x y z radius]
+ */
+template<typename T>
+void pack_motion_points(size_t num_points, const T *verts, const float *radius, float4 *rtc_verts)
+{
+  for (size_t j = 0; j < num_points; ++j) {
+    rtc_verts[j].x = verts[j].x;
+    rtc_verts[j].y = verts[j].y;
+    rtc_verts[j].z = verts[j].z;
+    rtc_verts[j].w = radius[j];
   }
 }
 
@@ -421,15 +439,10 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
   const int t_mid = (num_motion_steps - 1) / 2;
   const float *radius = pointcloud->get_radius().data();
   for (int t = 0; t < num_motion_steps; ++t) {
-    const float3 *verts;
-    if (t == t_mid || attr_mP == NULL) {
-      verts = pointcloud->get_points().data();
-    }
-    else {
-      int t_ = (t > t_mid) ? (t - 1) : t;
-      verts = &attr_mP->data_float3()[t_ * num_points];
-    }
-
+    // As float4 and float3 are no longer interchangeable the 2 types need to be
+    // handled separately. Attributes are float4s where the radius is stored in w and
+    // the middle motion vector is from the mesh points which are stored float3s with
+    // the radius stored in another array.
     float4 *rtc_verts = (update) ? (float4 *)rtcGetGeometryBufferData(
                                        geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
                                    (float4 *)rtcSetNewGeometryBuffer(geom_id,
@@ -441,9 +454,14 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
     assert(rtc_verts);
     if (rtc_verts) {
-      for (size_t j = 0; j < num_points; ++j) {
-        rtc_verts[j] = float3_to_float4(verts[j]);
-        rtc_verts[j].w = radius[j];
+      if (t == t_mid || attr_mP == NULL) {
+        const float3 *verts = pointcloud->get_points().data();
+        pack_motion_points<float3>(num_points, verts, radius, rtc_verts);
+      }
+      else {
+        int t_ = (t > t_mid) ? (t - 1) : t;
+        const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
+        pack_motion_points<float4>(num_points, verts, radius, rtc_verts);
       }
     }
 

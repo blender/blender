@@ -468,7 +468,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
                                const float scale_thickness,
                                const float sample)
 {
-  if (ELEM(NULL, ob_gp, ob_cu) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
+  if (ELEM(NULL, ob_gp, ob_cu) || (ob_gp->type != OB_GPENCIL_LEGACY) || (ob_gp->data == NULL)) {
     return;
   }
 

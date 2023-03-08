@@ -82,6 +82,21 @@ vec2 get_ao_dir(float jitter)
   return vec2(cos(jitter), sin(jitter));
 }
 
+/* Certain intel drivers on macOS lose precision, resulting in rendering artifacts,
+ * when using standard pow(A, B) function.
+ * Using logarithmic identity provides higher precision results. */
+#if defined(GPU_INTEL) && defined(OS_MAC)
+float occlusion_pow(float a, float b)
+{
+  return exp(b * log(a));
+}
+#else
+float occlusion_pow(float a, float b)
+{
+  return pow(a, b);
+}
+#endif
+
 /* Return horizon angle cosine. */
 float search_horizon(vec3 vI,
                      vec3 vP,
@@ -327,7 +342,7 @@ float diffuse_occlusion(OcclusionData data, vec3 V, vec3 N, vec3 Ng)
   float visibility;
   occlusion_eval(data, V, N, Ng, 0.0, visibility, unused_error, unused);
   /* Scale by user factor */
-  visibility = pow(saturate(visibility), aoFactor);
+  visibility = occlusion_pow(saturate(visibility), aoFactor);
   return visibility;
 }
 
@@ -340,7 +355,7 @@ float diffuse_occlusion(
 
   visibility = gtao_multibounce(visibility, albedo);
   /* Scale by user factor */
-  visibility = pow(saturate(visibility), aoFactor);
+  visibility = occlusion_pow(saturate(visibility), aoFactor);
   return visibility;
 }
 
@@ -404,7 +419,7 @@ float specular_occlusion(
   visibility = mix(specular_occlusion, 1.0, tmp);
 
   /* Scale by user factor */
-  visibility = pow(saturate(visibility), aoFactor);
+  visibility = occlusion_pow(saturate(visibility), aoFactor);
   return visibility;
 }
 

@@ -11,7 +11,7 @@ if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
 
-# files rna_access.c rna_define.c makesrna.c intentionally excluded.
+# files rna_access.cc rna_define.c makesrna.c intentionally excluded.
 set(DEFSRC
   rna_ID.c
   rna_action.c
@@ -242,10 +242,6 @@ if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-endif()
-
 if(WITH_IMAGE_TIFF)
   add_definitions(-DWITH_TIFF)
 endif()
@@ -422,7 +418,7 @@ add_custom_command(
 
 # Build bf_rna
 set(SRC
-  rna_access.c
+  rna_access.cc
   rna_access_compare_override.c
   rna_path.cc
   ${GENSRC}

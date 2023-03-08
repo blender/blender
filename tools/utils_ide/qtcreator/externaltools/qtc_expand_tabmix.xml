@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_expand_tabmix">
+    <description>Expand non-leading tabs into spaces.</description>
+    <displayname>Expand Tab Mix</displayname>
+    <category>Formatting</category>
+    <executable output="replaceselection" error="showinpane" modifiesdocument="no">
+        <path>qtc_expand_tabmix.py</path>
+        <input>%{CurrentDocument:Selection}</input>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

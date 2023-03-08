@@ -87,19 +87,25 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   const float limit_radius_sq = limit_radius * limit_radius;
 
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-  const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::Span<MLoop> loops = mesh->loops();
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, mesh->totedge, polys, mesh->totpoly, loops, mesh->totloop);
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  edges.size(),
+                                  polys.data(),
+                                  polys.size(),
+                                  loops.data(),
+                                  loops.size());
   }
   if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(&ss->vemap, &ss->vemap_mem, edges, mesh->totvert, mesh->totedge);
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, edges.data(), mesh->totvert, edges.size());
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -175,10 +181,9 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           if (ss->hide_poly && ss->hide_poly[poly]) {
             continue;
           }
-          const MPoly *mpoly = &polys[poly];
 
-          for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-            const MLoop *mloop = &loops[loop_index + mpoly->loopstart];
+          for (int loop_index = 0; loop_index < polys[poly].totloop; loop_index++) {
+            const MLoop *mloop = &loops[loop_index + polys[poly].loopstart];
             const int v_other = mloop->v;
             if (ELEM(v_other, v1, v2)) {
               continue;

@@ -218,6 +218,19 @@ typedef enum eKeyPasteOffset {
   KEYFRAME_PASTE_OFFSET_NONE,
 } eKeyPasteOffset;
 
+typedef enum eKeyPasteValueOffset {
+  /* Paste keys with the first key matching the key left of the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_LEFT_KEY,
+  /* Paste keys with the last key matching the key right of the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_RIGHT_KEY,
+  /* Paste keys relative to the value of the curve under the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_CFRA,
+  /* Paste values relative to the cursor position. */
+  KEYFRAME_PASTE_VALUE_OFFSET_CURSOR,
+  /* Paste keys with the exact copied value. */
+  KEYFRAME_PASTE_VALUE_OFFSET_NONE,
+} eKeyPasteValueOffset;
+
 typedef enum eKeyMergeMode {
   /* overlay existing with new keys */
   KEYFRAME_PASTE_MERGE_MIX,
@@ -427,6 +440,7 @@ short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
 eKeyPasteError paste_animedit_keys(struct bAnimContext *ac,
                                    ListBase *anim_data,
                                    eKeyPasteOffset offset_mode,
+                                   eKeyPasteValueOffset value_offset_mode,
                                    eKeyMergeMode merge_mode,
                                    bool flip);
 

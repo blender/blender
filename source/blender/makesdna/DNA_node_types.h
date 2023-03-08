@@ -330,7 +330,11 @@ typedef struct bNode {
   int16_t custom1, custom2;
   float custom3, custom4;
 
-  /** Optional link to libdata. */
+  /**
+   * Optional link to libdata.
+   *
+   * \see #bNodeType::initfunc & #bNodeType::freefunc for details on ID user-count.
+   */
   struct ID *id;
 
   /** Custom data struct for node properties for storage in files. */

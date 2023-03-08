@@ -74,6 +74,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_blenloader
+  bf_imbuf_openimageio
   bf_intern_guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio
@@ -104,14 +105,6 @@ if(WITH_IMAGE_TIFF)
     ${TIFF_LIBRARY}
   )
   add_definitions(-DWITH_TIFF)
-endif()
-
-
-if(WITH_OPENIMAGEIO)
-  list(APPEND LIB
-    bf_imbuf_openimageio
-  )
-  add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)

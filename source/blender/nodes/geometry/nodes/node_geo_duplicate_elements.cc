@@ -507,7 +507,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
 
   const OffsetIndices<int> duplicates(offset_data);
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, 0, total_loops, total_polys);
+  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_loops, total_polys);
   MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
   MutableSpan<MPoly> new_polys = new_mesh->polys_for_write();
   MutableSpan<MLoop> new_loops = new_mesh->loops_for_write();
@@ -690,7 +690,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
       selection, counts, offset_data);
   const int output_edges_num = duplicates.total_size();
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(output_edges_num * 2, output_edges_num, 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(output_edges_num * 2, output_edges_num, 0, 0);
   MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
 
   Array<int> vert_orig_indices(output_edges_num * 2);
@@ -850,7 +850,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
   const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
       selection, counts, offset_data);
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(duplicates.total_size(), 0, 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(duplicates.total_size(), 0, 0, 0);
 
   copy_attributes_without_id(duplicates,
                              selection,

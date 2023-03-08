@@ -29,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "NOD_add_node_search.hh"
 #include "NOD_common.h"
 #include "NOD_node_declaration.hh"
 #include "NOD_register.hh"
@@ -264,6 +265,7 @@ void register_node_type_frame()
 
   node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_frame_init;
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
@@ -294,6 +296,7 @@ void register_node_type_reroute()
 
   node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_reroute_init;
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 
   nodeRegisterType(ntype);
 }

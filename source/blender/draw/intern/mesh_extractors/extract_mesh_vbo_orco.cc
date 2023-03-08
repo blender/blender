@@ -62,14 +62,13 @@ static void extract_orco_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_orco_iter_poly_mesh(const MeshRenderData *mr,
-                                        const MPoly *mp,
-                                        const int /*mp_index*/,
+                                        const MPoly *poly,
+                                        const int /*poly_index*/,
                                         void *data)
 {
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  const int ml_index_end = poly->loopstart + poly->totloop;
+  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+    const MLoop *ml = &mr->loops[ml_index];
     MeshExtract_Orco_Data *orco_data = (MeshExtract_Orco_Data *)data;
     float *loop_orco = orco_data->vbo_data[ml_index];
     copy_v3_v3(loop_orco, orco_data->orco[ml->v]);

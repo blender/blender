@@ -11,6 +11,7 @@ set(INC
   ../../io/collada
   ../../io/common
   ../../io/gpencil
+  ../../io/ply
   ../../io/stl
   ../../io/usd
   ../../io/wavefront_obj
@@ -33,6 +34,7 @@ set(SRC
   io_gpencil_utils.c
   io_obj.c
   io_ops.c
+  io_ply_ops.c
   io_stl_ops.c
   io_usd.c
 
@@ -42,6 +44,7 @@ set(SRC
   io_gpencil.h
   io_obj.h
   io_ops.h
+  io_ply_ops.h
   io_stl_ops.h
   io_usd.h
 )
@@ -63,6 +66,13 @@ if(WITH_IO_WAVEFRONT_OBJ)
     bf_wavefront_obj
   )
   add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
+if(WITH_IO_PLY)
+  list(APPEND LIB
+    bf_ply
+  )
+  add_definitions(-DWITH_IO_PLY)
 endif()
 
 if(WITH_IO_STL)

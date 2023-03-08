@@ -1195,24 +1195,89 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
 #ifdef WITH_VULKAN_BACKEND
 
 /**
- * Return VULKAN handles for the given context.
+ * Get Vulkan handles for the given context.
+ *
+ * These handles are the same for a given context.
+ * Should should only be called when using a Vulkan context.
+ * Other contexts will not return any handles and leave the
+ * handles where the parameters are referring to unmodified.
+ *
+ * \param context: GHOST context handle of a vulkan context to
+ *     get the Vulkan handles from.
+ * \param r_instance: After calling this function the VkInstance
+ *     referenced by this parameter will contain the VKInstance handle
+ *     of the context associated with the `context` parameter.
+ * \param r_physical_device: After calling this function the VkPhysicalDevice
+ *     referenced by this parameter will contain the VKPhysicalDevice handle
+ *     of the context associated with the `context` parameter.
+ * \param r_device: After calling this function the VkDevice
+ *     referenced by this parameter will contain the VKDevice handle
+ *     of the context associated with the `context` parameter.
+ * \param r_graphic_queue_family: After calling this function the uint32_t
+ *     referenced by this parameter will contain the graphic queue family id
+ *     of the context associated with the `context` parameter.
+ * \param r_queue: After calling this function the VkQueue
+ *     referenced by this parameter will contain the VKQueue handle
+ *     of the context associated with the `context` parameter.
  */
 void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
                             void *r_instance,
                             void *r_physical_device,
                             void *r_device,
-                            uint32_t *r_graphic_queue_family);
+                            uint32_t *r_graphic_queue_family,
+                            void *r_queue);
 
 /**
- * Return VULKAN back-buffer resources handles for the given window.
+ * Return Vulkan command buffer.
+ *
+ * Command buffers are different for each image in the swap chain.
+ * At the start of each frame the correct command buffer should be
+ * retrieved with this function.
+ *
+ * Should should only be called when using a Vulkan context.
+ * Other contexts will not return any handles and leave the
+ * handles where the parameters are referring to unmodified.
+ *
+ * \param context:  GHOST context handle to a vulkan context to get the
+ *     command queue from.
+ * \param r_command_buffer: After calling this function the VkCommandBuffer
+ *     referenced by this parameter will contain the VKCommandBuffer handle
+ *     of the current back buffer (when swap chains are enabled) or
+ *     it will contain a general VkCommandQueue.
+ */
+void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle context, void *r_command_buffer);
+
+/**
+ * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
+ * Needs to be called after each swap event as the back-buffer will change.
+ *
+ * Should should only be called when using a Vulkan context with an active swap chain.
+ * Other contexts will not return any handles and leave the
+ * handles where the parameters are referring to unmodified.
+ *
+ * \param windowhandle:  GHOST window handle to a window to get the resource from.
+ * \param r_image: After calling this function the VkImage
+ *     referenced by this parameter will contain the VKImage handle
+ *     of the current back buffer.
+ * \param r_framebuffer: After calling this function the VkFramebuffer
+ *     referenced by this parameter will contain the VKFramebuffer handle
+ *     of the current back buffer.
+ * \param r_render_pass: After calling this function the VkRenderPass
+ *     referenced by this parameter will contain the VKRenderPass handle
+ *     of the current back buffer.
+ * \param r_extent: After calling this function the VkExtent2D
+ *     referenced by this parameter will contain the size of the
+ *     frame buffer and image in pixels.
+ * \param r_fb_id: After calling this function the uint32_t
+ *     referenced by this parameter will contain the id of the
+ *     framebuffer of the current back buffer.
  */
 void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
-                               void *image,
-                               void *framebuffer,
-                               void *command_buffer,
-                               void *render_pass,
-                               void *extent,
-                               uint32_t *fb_id);
+                               void *r_image,
+                               void *r_framebuffer,
+                               void *r_render_pass,
+                               void *r_extent,
+                               uint32_t *r_fb_id);
 
 #endif
 

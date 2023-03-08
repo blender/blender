@@ -1673,7 +1673,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 driver_version = "470"
                 col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
-                col.label(text="and NVIDIA driver version %s or newer" % driver_version,
+                col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'HIP':
                 if True:
@@ -1719,7 +1719,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 .replace('(TM)', unicodedata.lookup('TRADE MARK SIGN'))
                 .replace('(tm)', unicodedata.lookup('TRADE MARK SIGN'))
                 .replace('(R)', unicodedata.lookup('REGISTERED SIGN'))
-                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN'))
+                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN')),
+                translate=False
             )
 
     def draw_impl(self, layout, context):

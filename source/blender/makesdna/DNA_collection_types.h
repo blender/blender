@@ -19,6 +19,7 @@ extern "C" {
 
 struct Collection;
 struct Object;
+struct GHash;
 
 typedef struct CollectionObject {
   struct CollectionObject *next, *prev;
@@ -60,6 +61,9 @@ typedef struct Collection_Runtime {
 
   /** List of collections that are a parent of this data-block. */
   ListBase parents;
+
+  /** An optional map for faster lookups on #Collection.gobject */
+  struct GHash *gobject_hash;
 
   uint8_t tag;
 

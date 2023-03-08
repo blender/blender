@@ -342,7 +342,7 @@ static bool eyedropper_gpencil_poll(bContext *C)
 {
   /* Only valid if the current active object is grease pencil. */
   Object *obact = CTX_data_active_object(C);
-  if ((obact == nullptr) || (obact->type != OB_GPENCIL)) {
+  if ((obact == nullptr) || (obact->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 

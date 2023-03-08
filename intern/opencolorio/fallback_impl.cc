@@ -20,11 +20,13 @@ enum TransformType {
   TRANSFORM_SRGB_TO_LINEAR,
   TRANSFORM_SCALE,
   TRANSFORM_EXPONENT,
+  TRANSFORM_NONE,
   TRANSFORM_UNKNOWN,
 };
 
 #define COLORSPACE_LINEAR ((OCIO_ConstColorSpaceRcPtr *)1)
 #define COLORSPACE_SRGB ((OCIO_ConstColorSpaceRcPtr *)2)
+#define COLORSPACE_DATA ((OCIO_ConstColorSpaceRcPtr *)3)
 
 typedef struct OCIO_PackedImageDescription {
   float *data;
@@ -165,6 +167,8 @@ OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcP
     return COLORSPACE_LINEAR;
   else if (strcmp(name, "sRGB") == 0)
     return COLORSPACE_SRGB;
+  else if (strcmp(name, "data") == 0)
+    return COLORSPACE_DATA;
 
   return NULL;
 }
@@ -178,6 +182,9 @@ int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, con
   }
   else if (cs == COLORSPACE_SRGB) {
     return 1;
+  }
+  else if (cs == COLORSPACE_DATA) {
+    return 2;
   }
   return -1;
 }
@@ -314,7 +321,10 @@ OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessorWithNames(OCIO_ConstCo
   OCIO_ConstColorSpaceRcPtr *cs_src = configGetColorSpace(config, srcName);
   OCIO_ConstColorSpaceRcPtr *cs_dst = configGetColorSpace(config, dstName);
   FallbackTransform transform;
-  if (cs_src == COLORSPACE_LINEAR && cs_dst == COLORSPACE_SRGB) {
+  if (cs_src == COLORSPACE_DATA || cs_dst == COLORSPACE_DATA) {
+    transform.type = TRANSFORM_NONE;
+  }
+  else if (cs_src == COLORSPACE_LINEAR && cs_dst == COLORSPACE_SRGB) {
     transform.type = TRANSFORM_LINEAR_TO_SRGB;
   }
   else if (cs_src == COLORSPACE_SRGB && cs_dst == COLORSPACE_LINEAR) {
@@ -432,6 +442,9 @@ const char *FallbackImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
   }
   else if (cs == COLORSPACE_SRGB) {
     return "sRGB";
+  }
+  else if (cs == COLORSPACE_DATA) {
+    return "data";
   }
   return NULL;
 }

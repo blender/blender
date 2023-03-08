@@ -157,7 +157,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
   retval = op->type->exec(C, op);
   OPERATOR_RETVAL_CHECK(retval);
 
-  return 1;
+  return (retval & OPERATOR_FINISHED) ? 1 : 0;
 }
 
 int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)

@@ -738,7 +738,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (!geometry_set.has_mesh()) {
-      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
     }
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
@@ -885,7 +885,7 @@ static GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
   GeometrySet geometry_set = curve_calc_modifiers_post(
       depsgraph, scene, ob, r_dispbase, for_render);
   if (!geometry_set.has_mesh()) {
-    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
   }
   return geometry_set;
 }

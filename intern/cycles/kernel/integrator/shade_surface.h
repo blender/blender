@@ -56,10 +56,10 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
    *   or dot(sd->Ng, ray_D)  is small. Detect such cases and skip test?
    * - Instead of ray offset, can we tweak P to lie within the triangle?
    */
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, sd->prim).w;
-  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
-                      tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
-                      tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x),
+                      tri_b = kernel_data_fetch(tri_verts, tri_vindex.y),
+                      tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
 
   float3 local_ray_P = ray_P;
   float3 local_ray_D = ray_D;
@@ -348,7 +348,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     return LABEL_NONE;
   }
 
-  float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
+  float3 rand_bsdf = path_state_rng_3D(kg, rng_state, PRNG_SURFACE_BSDF);
   ccl_private const ShaderClosure *sc = surface_shader_bsdf_bssrdf_pick(sd, &rand_bsdf);
 
 #ifdef __SUBSURFACE__
@@ -393,6 +393,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     label = surface_shader_bsdf_sample_closure(kg,
                                                sd,
                                                sc,
+                                               INTEGRATOR_STATE(state, path, flag),
                                                rand_bsdf,
                                                &bsdf_eval,
                                                &bsdf_wo,

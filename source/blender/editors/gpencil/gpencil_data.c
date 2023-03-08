@@ -221,7 +221,7 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
   else {
     /* GP Object */
     Object *ob = CTX_data_active_object(C);
-    if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
+    if ((ob != NULL) && (ob->type == OB_GPENCIL_LEGACY)) {
       gpd = (bGPdata *)ob->data;
       PropertyRNA *prop;
       char name[128];
@@ -536,7 +536,7 @@ enum {
 static bool gpencil_layer_duplicate_object_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -561,7 +561,7 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
   bGPDlayer *gpl_active = BKE_gpencil_layer_active_get(gpd_src);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-    if ((ob == ob_src) || (ob->type != OB_GPENCIL)) {
+    if ((ob == ob_src) || (ob->type != OB_GPENCIL_LEGACY)) {
       continue;
     }
     bGPdata *gpd_dst = (bGPdata *)ob->data;
@@ -2225,7 +2225,7 @@ static bool gpencil_vertex_group_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
     if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
@@ -2243,7 +2243,7 @@ static bool gpencil_vertex_group_weight_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
     if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
@@ -2839,7 +2839,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* Ensure we're in right mode and that the active object is correct */
-  if (!ob_active || ob_active->type != OB_GPENCIL) {
+  if (!ob_active || ob_active->type != OB_GPENCIL_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2850,7 +2850,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Ensure all rotations are applied before */
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob_iter->type == OB_GPENCIL) {
+    if (ob_iter->type == OB_GPENCIL_LEGACY) {
       if ((ob_iter->rot[0] != 0) || (ob_iter->rot[1] != 0) || (ob_iter->rot[2] != 0)) {
         BKE_report(op->reports, RPT_ERROR, "Apply all rotations before join objects");
         return OPERATOR_CANCELLED;
@@ -2878,7 +2878,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
   /* loop and join all data */
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if ((ob_iter->type == OB_GPENCIL) && (ob_iter != ob_active)) {
+    if ((ob_iter->type == OB_GPENCIL_LEGACY) && (ob_iter != ob_active)) {
       /* we assume that each datablock is not already used in active object */
       if (ob_active->data != ob_iter->data) {
         Object *ob_src = ob_iter;
@@ -3046,7 +3046,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 static bool gpencil_active_material_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob && ob->data && (ob->type == OB_GPENCIL)) {
+  if (ob && ob->data && (ob->type == OB_GPENCIL_LEGACY)) {
     short *totcolp = BKE_object_material_len_p(ob);
     return *totcolp > 0;
   }
@@ -3648,7 +3648,7 @@ void GPENCIL_OT_set_active_material(wmOperatorType *ot)
 static bool gpencil_materials_copy_to_object_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   short *totcolp = BKE_object_material_len_p(ob);
@@ -3667,7 +3667,7 @@ static int gpencil_materials_copy_to_object_exec(bContext *C, wmOperator *op)
   Material *ma_active = BKE_gpencil_material(ob_src, ob_src->actcol);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-    if ((ob == ob_src) || (ob->type != OB_GPENCIL)) {
+    if ((ob == ob_src) || (ob->type != OB_GPENCIL_LEGACY)) {
       continue;
     }
     /* Duplicate materials. */
@@ -3763,7 +3763,7 @@ bool ED_gpencil_add_lattice_modifier(const bContext *C,
 static int gpencil_layer_mask_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3831,7 +3831,7 @@ void GPENCIL_OT_layer_mask_add(wmOperatorType *ot)
 static int gpencil_layer_mask_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return OPERATOR_CANCELLED;
   }
 

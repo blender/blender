@@ -343,7 +343,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       eGPUTextureFormat format = col ? GPU_RGBA8 : GPU_R8;
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
-      target->overlay_texture = GPU_texture_create_2d_ex(
+      target->overlay_texture = GPU_texture_create_2d(
           "paint_cursor_overlay", size, size, 1, format, usage, nullptr);
       GPU_texture_update(target->overlay_texture, GPU_DATA_UBYTE, buffer);
 
@@ -463,7 +463,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     if (!cursor_snap.overlay_texture) {
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
-      cursor_snap.overlay_texture = GPU_texture_create_2d_ex(
+      cursor_snap.overlay_texture = GPU_texture_create_2d(
           "cursor_snap_overaly", size, size, 1, GPU_R8, usage, nullptr);
       GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UBYTE, buffer);
 

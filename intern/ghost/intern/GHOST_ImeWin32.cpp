@@ -140,7 +140,7 @@ void GHOST_ImeWin32::SetImeWindowStyle(
   ::DefWindowProc(window_handle, message, wparam, lparam);
 }
 
-void GHOST_ImeWin32::DestroyImeWindow(HWND window_handle)
+void GHOST_ImeWin32::DestroyImeWindow(HWND /*window_handle*/)
 {
   /* Destroy the system caret if we have created for this IME input context. */
   if (system_caret_) {
@@ -149,7 +149,7 @@ void GHOST_ImeWin32::DestroyImeWindow(HWND window_handle)
   }
 }
 
-void GHOST_ImeWin32::MoveImeWindow(HWND window_handle, HIMC imm_context)
+void GHOST_ImeWin32::MoveImeWindow(HWND /*window_handle*/, HIMC imm_context)
 {
   int x = caret_rect_.m_l;
   int y = caret_rect_.m_t;
@@ -228,7 +228,7 @@ void GHOST_ImeWin32::CheckFirst(HWND window_handle)
   }
 }
 
-void GHOST_ImeWin32::ResetComposition(HWND window_handle)
+void GHOST_ImeWin32::ResetComposition(HWND /*window_handle*/)
 {
   /* Currently, just reset the composition status. */
   is_composing_ = false;

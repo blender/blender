@@ -10,6 +10,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_pointcloud.h"
 
+#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 namespace blender::nodes {
@@ -58,4 +59,5 @@ void geo_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
   ntype->poll = geo_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }

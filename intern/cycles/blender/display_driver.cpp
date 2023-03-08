@@ -54,44 +54,10 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
 /* --------------------------------------------------------------------
  * BlenderFallbackDisplayShader.
  */
-
-/* TODO move shaders to standalone .glsl file. */
-static const char *FALLBACK_VERTEX_SHADER =
-    "uniform vec2 fullscreen;\n"
-    "in vec2 texCoord;\n"
-    "in vec2 pos;\n"
-    "out vec2 texCoord_interp;\n"
-    "\n"
-    "vec2 normalize_coordinates()\n"
-    "{\n"
-    "   return (vec2(2.0) * (pos / fullscreen)) - vec2(1.0);\n"
-    "}\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(normalize_coordinates(), 0.0, 1.0);\n"
-    "   texCoord_interp = texCoord;\n"
-    "}\n\0";
-
-static const char *FALLBACK_FRAGMENT_SHADER =
-    "uniform sampler2D image_texture;\n"
-    "in vec2 texCoord_interp;\n"
-    "out vec4 fragColor;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "   fragColor = texture(image_texture, texCoord_interp);\n"
-    "}\n\0";
-
 static GPUShader *compile_fallback_shader(void)
 {
   /* NOTE: Compilation errors are logged to console. */
-  GPUShader *shader = GPU_shader_create(FALLBACK_VERTEX_SHADER,
-                                        FALLBACK_FRAGMENT_SHADER,
-                                        nullptr,
-                                        nullptr,
-                                        nullptr,
-                                        "FallbackCyclesBlitShader");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_shader_cycles_display_fallback");
   return shader;
 }
 
@@ -250,8 +216,13 @@ class DisplayGPUTexture {
     height = texture_height;
 
     /* Texture must have a minimum size of 1x1. */
-    gpu_texture = GPU_texture_create_2d(
-        "CyclesBlitTexture", max(width, 1), max(height, 1), 1, GPU_RGBA16F, nullptr);
+    gpu_texture = GPU_texture_create_2d("CyclesBlitTexture",
+                                        max(width, 1),
+                                        max(height, 1),
+                                        1,
+                                        GPU_RGBA16F,
+                                        GPU_TEXTURE_USAGE_GENERAL,
+                                        nullptr);
 
     if (!gpu_texture) {
       LOG(ERROR) << "Error creating texture.";
@@ -734,14 +705,14 @@ static void draw_tile(const float2 &zoom,
   const float zoomed_height = draw_tile.params.size.y * zoom.y;
   if (texture.width != draw_tile.params.size.x || texture.height != draw_tile.params.size.y) {
     /* Resolution divider is different from 1, force nearest interpolation. */
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0);
   }
   else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
            zoomed_height - draw_tile.params.size.y > 0.5f) {
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0);
   }
   else {
-    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0);
   }
 
   /* Draw at the parameters for which the texture has been updated for. This allows to always draw

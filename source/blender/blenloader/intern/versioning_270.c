@@ -149,13 +149,13 @@ static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, c
  */
 static void migrate_single_rot_stabilization_track_settings(MovieTrackingStabilization *stab)
 {
-  if (stab->rot_track) {
-    if (!(stab->rot_track->flag & TRACK_USE_2D_STAB_ROT)) {
+  if (stab->rot_track_legacy) {
+    if (!(stab->rot_track_legacy->flag & TRACK_USE_2D_STAB_ROT)) {
       stab->tot_rot_track++;
-      stab->rot_track->flag |= TRACK_USE_2D_STAB_ROT;
+      stab->rot_track_legacy->flag |= TRACK_USE_2D_STAB_ROT;
     }
   }
-  stab->rot_track = NULL; /* this field is now ignored */
+  stab->rot_track_legacy = NULL; /* this field is now ignored */
 }
 
 static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
@@ -1406,7 +1406,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
             fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
       MovieClip *clip;
       for (clip = bmain->movieclips.first; clip != NULL; clip = clip->id.next) {
-        if (clip->tracking.stabilization.rot_track) {
+        if (clip->tracking.stabilization.rot_track_legacy) {
           migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);
         }
         if (clip->tracking.stabilization.scale == 0.0f) {
@@ -1420,8 +1420,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         clip->tracking.stabilization.anchor_frame = 1;
         /* by default show the track lists expanded, to improve "discoverability" */
         clip->tracking.stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
-        /* deprecated, not used anymore */
-        clip->tracking.stabilization.ok = false;
       }
     }
   }

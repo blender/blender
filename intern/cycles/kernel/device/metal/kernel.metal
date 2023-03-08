@@ -126,10 +126,10 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
   isect->v = barycentrics.y;
 
   /* Record geometric normal */
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, isect->prim).w;
-  const float3 tri_a = float3(kernel_data_fetch(tri_verts, tri_vindex + 0));
-  const float3 tri_b = float3(kernel_data_fetch(tri_verts, tri_vindex + 1));
-  const float3 tri_c = float3(kernel_data_fetch(tri_verts, tri_vindex + 2));
+  const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, isect->prim);
+  const float3 tri_a = float3(kernel_data_fetch(tri_verts, tri_vindex.x));
+  const float3 tri_b = float3(kernel_data_fetch(tri_verts, tri_vindex.y));
+  const float3 tri_c = float3(kernel_data_fetch(tri_verts, tri_vindex.z));
   payload.local_isect.Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit) */

@@ -17,6 +17,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_gpencil.h"
@@ -42,6 +43,7 @@
 #include "MOD_gpencil_util.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 
@@ -254,11 +256,11 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
 /* Generic "generateStrokes" callback */
 static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = ob->data;
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    BKE_gpencil_frame_active_set(depsgraph, gpd);
-    bGPDframe *gpf = gpl->actframe;
+    bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
     if (gpf == NULL) {
       continue;
     }

@@ -221,29 +221,6 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
   return changed;
 }
 
-/* Both forward and up axes cannot be along the same direction. */
-static void forward_axis_update(struct Main *UNUSED(main),
-                                struct Scene *UNUSED(scene),
-                                struct PointerRNA *ptr)
-{
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
-  if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
-  }
-}
-
-static void up_axis_update(struct Main *UNUSED(main),
-                           struct Scene *UNUSED(scene),
-                           struct PointerRNA *ptr)
-{
-  int forward = RNA_enum_get(ptr, "forward_axis");
-  int up = RNA_enum_get(ptr, "up_axis");
-  if ((forward % 3) == (up % 3)) {
-    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
-  }
-}
-
 void WM_OT_obj_export(struct wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -295,9 +272,9 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   /* Object transform options. */
   prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
   RNA_def_float(
       ot->srna,
       "global_scale",
@@ -527,9 +504,9 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       1000.0f);
   prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
   RNA_def_boolean(ot->srna,
                   "use_split_objects",
                   true,

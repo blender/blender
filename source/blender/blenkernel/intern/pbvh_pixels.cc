@@ -672,7 +672,6 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   uv_islands::MeshData mesh_data(
       {pbvh->looptri, pbvh->totprim},
       {pbvh->mloop, mesh->totloop},
-      pbvh->totvert,
       uv_map,
       {static_cast<blender::float3 *>(static_cast<void *>(pbvh->vert_positions)), pbvh->totvert});
   uv_islands::UVIslands islands(mesh_data);

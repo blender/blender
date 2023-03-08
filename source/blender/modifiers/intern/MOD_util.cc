@@ -92,23 +92,22 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
     if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
-      const MPoly *mpoly = BKE_mesh_polys(mesh);
-      const MPoly *mp;
-      const MLoop *mloop = BKE_mesh_loops(mesh);
+      const blender::Span<MPoly> polys = mesh->polys();
+      const blender::Span<MLoop> loops = mesh->loops();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
-      const int polys_num = mesh->totpoly;
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
       CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
       const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
           CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uvname));
 
       /* verts are given the UV from the first face that uses them */
-      for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
-        uint fidx = mp->totloop - 1;
+      for (const int i : polys.index_range()) {
+        const MPoly &poly = polys[i];
+        uint fidx = poly.totloop - 1;
 
         do {
-          uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint lidx = poly.loopstart + fidx;
+          uint vidx = loops[lidx].v;
 
           if (!BLI_BITMAP_TEST(done, vidx)) {
             /* remap UVs from [0, 1] to [-1, 1] */

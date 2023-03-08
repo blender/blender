@@ -1427,3 +1427,8 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(SCULPT_OT_reveal_all);
 }
+
+void ED_keymap_sculpt(wmKeyConfig *keyconf)
+{
+  filter_mesh_modal_keymap(keyconf);
+}

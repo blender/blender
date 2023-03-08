@@ -200,15 +200,13 @@ static void mesh_data_init(MeshData &mesh_data)
 
 MeshData::MeshData(const Span<MLoopTri> looptris,
                    const Span<MLoop> loops,
-                   const int verts_num,
                    const Span<float2> uv_map,
-                   const Span<float3> vertex_positions)
+                   const Span<float3> vert_positions)
     : looptris(looptris),
-      verts_num(verts_num),
       loops(loops),
       uv_map(uv_map),
-      vertex_positions(vertex_positions),
-      vert_to_edge_map(verts_num),
+      vert_positions(vert_positions),
+      vert_to_edge_map(vert_positions.size()),
       edge_to_primitive_map(0),
       primitive_to_edge_map(looptris.size())
 {
@@ -1085,7 +1083,7 @@ void UVIsland::print_debug(const MeshData &mesh_data) const
   ss << "import mathutils\n";
 
   ss << "uvisland_vertices = [\n";
-  for (const float3 &vertex_position : mesh_data.vertex_positions) {
+  for (const float3 &vertex_position : mesh_data.vert_positions) {
     ss << "  mathutils.Vector((" << vertex_position.x << ", " << vertex_position.y << ", "
        << vertex_position.z << ")),\n";
   }

@@ -54,7 +54,9 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
 
 GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_iface, "interp")
     .smooth(Type::VEC3, "P")
-    .smooth(Type::VEC3, "vP");
+    .smooth(Type::VEC3, "vP")
+    .flat(Type::VEC3, "ls_aabb_min")
+    .flat(Type::VEC3, "ls_aabb_max");
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
     .do_static_compilation(true)
@@ -63,9 +65,17 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, "ShadowTileDataPacked", "tiles_buf[]")
     .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .push_constant(Type::FLOAT, "pixel_world_radius")
+    .push_constant(Type::IVEC2, "fb_resolution")
+    .push_constant(Type::INT, "fb_lod")
     .vertex_out(eevee_shadow_tag_transparent_iface)
-    .additional_info(
-        "eevee_shared", "draw_view", "draw_view_culling", "draw_modelmat_new", "eevee_light_data")
+    .additional_info("eevee_shared",
+                     "draw_resource_id_varying",
+                     "draw_view",
+                     "draw_view_culling",
+                     "draw_modelmat_new",
+                     "eevee_hiz_data",
+                     "eevee_light_data")
     .vertex_source("eevee_shadow_tag_usage_vert.glsl")
     .fragment_source("eevee_shadow_tag_usage_frag.glsl");
 

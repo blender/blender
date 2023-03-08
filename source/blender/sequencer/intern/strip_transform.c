@@ -36,9 +36,7 @@ static CLG_LogRef LOG = {"seq.strip_transform"};
 
 bool SEQ_transform_single_image_check(Sequence *seq)
 {
-  return ((seq->len == 1) &&
-          (seq->type == SEQ_TYPE_IMAGE ||
-           ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) == 0)));
+  return (seq->flag & SEQ_SINGLE_FRAME_CONTENT) != 0;
 }
 
 bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)

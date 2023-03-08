@@ -86,6 +86,16 @@ struct USDImportParams {
   bool import_all_materials;
 };
 
+/* This struct is in place to store the mesh sequence parameters needed when reading a data from a
+ * usd file for the mesh sequence cache.
+ */
+typedef struct USDMeshReadParams {
+  double motion_sample_time; /* USD TimeCode in frames. */
+  int read_flags; /* MOD_MESHSEQ_xxx value that is set from MeshSeqCacheModifierData.read_flag. */
+} USDMeshReadParams;
+
+USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_flags);
+
 /* The USD_export takes a as_background_job parameter, and returns a boolean.
  *
  * When as_background_job=true, returns false immediately after scheduling
@@ -121,9 +131,8 @@ void USD_get_transform(struct CacheReader *reader, float r_mat[4][4], float time
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           double time,
-                           const char **err_str,
-                           int read_flag);
+                           USDMeshReadParams params,
+                           const char **err_str);
 
 bool USD_mesh_topology_changed(struct CacheReader *reader,
                                const struct Object *ob,

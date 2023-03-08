@@ -525,7 +525,7 @@ static bool gpencil_generate_weights_poll(bContext *C)
     return false;
   }
 
-  if (ob->type != OB_GPENCIL) {
+  if (ob->type != OB_GPENCIL_LEGACY) {
     return false;
   }
 

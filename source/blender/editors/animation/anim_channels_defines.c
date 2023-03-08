@@ -695,7 +695,7 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_VOLUME;
     case OB_EMPTY:
       return ICON_OUTLINER_OB_EMPTY;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return ICON_OUTLINER_OB_GREASEPENCIL;
     default:
       return ICON_OBJECT_DATA;
@@ -4483,7 +4483,8 @@ void ANIM_channel_draw(
   if (ac->sl) {
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
-         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
+         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
+        !ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_DSGPENCIL)) {
       /* for F-Curves, draw color-preview of curve left to the visibility icon */
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         FCurve *fcu = (FCurve *)ale->data;
@@ -5227,7 +5228,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
   if (ac->sl) {
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
-         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
+         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
+        (ale->type != ANIMTYPE_GPLAYER)) {
       /* Pin toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_ALWAYS_VISIBLE);

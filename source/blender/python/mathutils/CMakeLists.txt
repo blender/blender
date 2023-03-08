@@ -22,7 +22,7 @@ set(SRC
   mathutils_Matrix.c
   mathutils_Quaternion.c
   mathutils_Vector.c
-  mathutils_bvhtree.c
+  mathutils_bvhtree.cc
   mathutils_geometry.c
   mathutils_interpolate.c
   mathutils_kdtree.c

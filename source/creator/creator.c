@@ -239,12 +239,12 @@ void *gmp_alloc(size_t size)
 {
   return scalable_malloc(size);
 }
-void *gmp_realloc(void *ptr, size_t old_size, size_t new_size)
+void *gmp_realloc(void *ptr, size_t UNUSED(old_size), size_t new_size)
 {
   return scalable_realloc(ptr, new_size);
 }
 
-void gmp_free(void *ptr, size_t size)
+void gmp_free(void *ptr, size_t UNUSED(size))
 {
   scalable_free(ptr);
 }

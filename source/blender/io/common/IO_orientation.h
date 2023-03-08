@@ -4,6 +4,9 @@
 
 #include "RNA_types.h"
 
+struct Main;
+struct Scene;
+
 typedef enum {
   IO_AXIS_X = 0,
   IO_AXIS_Y = 1,
@@ -14,3 +17,6 @@ typedef enum {
 } eIOAxis;
 
 extern const EnumPropertyItem io_transform_axis[];
+
+void io_ui_forward_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+void io_ui_up_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);

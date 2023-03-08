@@ -571,11 +571,11 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   std::stringstream ss;
   ss << "Rows: ";
   if (runtime->visible_rows != runtime->tot_rows) {
-    char visible_rows_str[16];
+    char visible_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(visible_rows_str, runtime->visible_rows);
     ss << visible_rows_str << " / ";
   }
-  char tot_rows_str[16];
+  char tot_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   BLI_str_format_int_grouped(tot_rows_str, runtime->tot_rows);
   ss << tot_rows_str << "   |   Columns: " << runtime->tot_columns;
   std::string stats_str = ss.str();

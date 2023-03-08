@@ -291,8 +291,10 @@ struct StageInterfaceInfo {
   };
 
   StringRefNull name;
-  /** Name of the instance of the block (used to access).
-   *  Can be empty string (i.e: "") only if not using geometry shader. */
+  /**
+   * Name of the instance of the block (used to access).
+   * Can be empty string (i.e: "") only if not using geometry shader.
+   */
   StringRefNull instance_name;
   /** List of all members of the interface. */
   Vector<InOut> inouts;

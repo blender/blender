@@ -385,6 +385,13 @@ void BLO_blendhandle_close(BlendHandle *bh)
   blo_filedata_free(fd);
 }
 
+void BLO_read_invalidate_message(BlendHandle *bh, Main *bmain, const char *message)
+{
+  FileData *fd = reinterpret_cast<FileData *>(bh);
+
+  blo_readfile_invalidate(fd, bmain, message);
+}
+
 /**********/
 
 BlendFileData *BLO_read_from_file(const char *filepath,

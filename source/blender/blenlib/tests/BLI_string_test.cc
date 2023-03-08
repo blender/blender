@@ -324,7 +324,7 @@ TEST(string, StrPartitionExUtf8)
 /* BLI_str_format_int_grouped */
 TEST(string, StrFormatIntGrouped)
 {
-  char number_str[16];
+  char number_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   int number;
 
   BLI_str_format_int_grouped(number_str, number = 0);
@@ -335,12 +335,6 @@ TEST(string, StrFormatIntGrouped)
 
   BLI_str_format_int_grouped(number_str, number = -1);
   EXPECT_STREQ("-1", number_str);
-
-  BLI_str_format_int_grouped(number_str, number = -2147483648);
-  EXPECT_STREQ("-2,147,483,648", number_str);
-
-  BLI_str_format_int_grouped(number_str, number = 2147483647);
-  EXPECT_STREQ("2,147,483,647", number_str);
 
   BLI_str_format_int_grouped(number_str, number = 1000);
   EXPECT_STREQ("1,000", number_str);
@@ -353,12 +347,44 @@ TEST(string, StrFormatIntGrouped)
 
   BLI_str_format_int_grouped(number_str, number = -999);
   EXPECT_STREQ("-999", number_str);
+
+  BLI_str_format_int_grouped(number_str, number = 2147483647);
+  EXPECT_STREQ("2,147,483,647", number_str);
+
+  BLI_str_format_int_grouped(number_str, number = -2147483648);
+  EXPECT_STREQ("-2,147,483,648", number_str);
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(number_str), strlen(number_str) + 1);
+}
+
+/* BLI_str_format_uint64_grouped */
+TEST(string, StrFormatUint64Grouped)
+{
+  char number_str[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  uint64_t number;
+
+  BLI_str_format_uint64_grouped(number_str, number = 0);
+  EXPECT_STREQ("0", number_str);
+
+  BLI_str_format_uint64_grouped(number_str, number = 1);
+  EXPECT_STREQ("1", number_str);
+
+  BLI_str_format_uint64_grouped(number_str, number = 999);
+  EXPECT_STREQ("999", number_str);
+
+  BLI_str_format_uint64_grouped(number_str, number = 1000);
+  EXPECT_STREQ("1,000", number_str);
+
+  BLI_str_format_uint64_grouped(number_str, number = 18446744073709551615u);
+  EXPECT_STREQ("18,446,744,073,709,551,615", number_str);
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(number_str), strlen(number_str) + 1);
 }
 
 /* BLI_str_format_byte_unit */
 TEST(string, StrFormatByteUnits)
 {
-  char size_str[15];
+  char size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
   long long int size;
 
   /* Base 10 */
@@ -418,12 +444,14 @@ TEST(string, StrFormatByteUnits)
   /* Test maximum string length. */
   BLI_str_format_byte_unit(size_str, size = -9223200000000000000, false);
   EXPECT_STREQ("-8191.8472 PiB", size_str);
+  /* Ensure the limit is correct. */
+  EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
 
 /* BLI_str_format_decimal_unit */
 TEST(string, StrFormatDecimalUnits)
 {
-  char size_str[7];
+  char size_str[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE];
   int size;
 
   BLI_str_format_decimal_unit(size_str, size = 0);
@@ -518,7 +546,7 @@ TEST(string, StrFormatDecimalUnits)
 /* BLI_str_format_integer_unit */
 TEST(string, StrFormatIntegerUnits)
 {
-  char size_str[7];
+  char size_str[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE];
   int size;
 
   BLI_str_format_integer_unit(size_str, size = 0);

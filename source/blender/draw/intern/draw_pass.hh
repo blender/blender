@@ -135,6 +135,8 @@ class PassBase {
  public:
   const char *debug_name;
 
+  bool use_custom_ids;
+
   PassBase(const char *name,
            DrawCommandBufType &draw_command_buf,
            SubPassVector<PassBase<DrawCommandBufType>> &sub_passes,
@@ -142,7 +144,8 @@ class PassBase {
       : draw_commands_buf_(draw_command_buf),
         sub_passes_(sub_passes),
         shader_(shader),
-        debug_name(name){};
+        debug_name(name),
+        use_custom_ids(false){};
 
   /**
    * Reset the pass command pool.
@@ -224,13 +227,14 @@ class PassBase {
             uint instance_len = -1,
             uint vertex_len = -1,
             uint vertex_first = -1,
-            ResourceHandle handle = {0});
+            ResourceHandle handle = {0},
+            uint custom_id = 0);
 
   /**
    * Shorter version for the common case.
    * \note Implemented in derived class. Not a virtual function to avoid indirection.
    */
-  void draw(GPUBatch *batch, ResourceHandle handle);
+  void draw(GPUBatch *batch, ResourceHandle handle, uint custom_id = 0);
 
   /**
    * Record a procedural draw call. Geometry is **NOT** source from a GPUBatch.
@@ -240,7 +244,8 @@ class PassBase {
                        uint instance_len,
                        uint vertex_len,
                        uint vertex_first = -1,
-                       ResourceHandle handle = {0});
+                       ResourceHandle handle = {0},
+                       uint custom_id = 0);
 
   /**
    * Indirect variants.
@@ -654,20 +659,25 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
  * \{ */
 
 template<class T>
-inline void PassBase<T>::draw(
-    GPUBatch *batch, uint instance_len, uint vertex_len, uint vertex_first, ResourceHandle handle)
+inline void PassBase<T>::draw(GPUBatch *batch,
+                              uint instance_len,
+                              uint vertex_len,
+                              uint vertex_first,
+                              ResourceHandle handle,
+                              uint custom_id)
 {
   if (instance_len == 0 || vertex_len == 0) {
     return;
   }
   BLI_assert(shader_);
   draw_commands_buf_.append_draw(
-      headers_, commands_, batch, instance_len, vertex_len, vertex_first, handle);
+      headers_, commands_, batch, instance_len, vertex_len, vertex_first, handle, custom_id);
 }
 
-template<class T> inline void PassBase<T>::draw(GPUBatch *batch, ResourceHandle handle)
+template<class T>
+inline void PassBase<T>::draw(GPUBatch *batch, ResourceHandle handle, uint custom_id)
 {
-  this->draw(batch, -1, -1, -1, handle);
+  this->draw(batch, -1, -1, -1, handle, custom_id);
 }
 
 template<class T>
@@ -675,9 +685,11 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
                                          uint instance_len,
                                          uint vertex_len,
                                          uint vertex_first,
-                                         ResourceHandle handle)
+                                         ResourceHandle handle,
+                                         uint custom_id)
 {
-  this->draw(procedural_batch_get(primitive), instance_len, vertex_len, vertex_first, handle);
+  this->draw(
+      procedural_batch_get(primitive), instance_len, vertex_len, vertex_first, handle, custom_id);
 }
 
 /** \} */

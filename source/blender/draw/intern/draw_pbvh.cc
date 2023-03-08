@@ -339,14 +339,14 @@ struct PBVHBatches {
     bool smooth = false;
 
     foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri *tri) {
-      const MPoly *mp = args->mpoly + tri->poly;
-
       if (tri->poly != last_poly) {
         last_poly = tri->poly;
 
-        if (!(mp->flag & ME_SMOOTH)) {
+        const MPoly &poly = args->polys[tri->poly];
+        if (!(poly.flag & ME_SMOOTH)) {
           smooth = true;
-          BKE_mesh_calc_poly_normal(mp, args->mloop + mp->loopstart, args->vert_positions, fno);
+          BKE_mesh_calc_poly_normal(
+              &poly, args->mloop + poly.loopstart, args->vert_positions, fno);
           normal_float_to_short_v3(no, fno);
         }
         else {

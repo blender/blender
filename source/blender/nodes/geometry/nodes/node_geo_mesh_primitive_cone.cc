@@ -655,7 +655,7 @@ static void calculate_cone_uvs(const ConeConfig &config,
 static Mesh *create_vertex_mesh()
 {
   /* Returns a mesh with a single vertex at the origin. */
-  Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0);
   mesh->vert_positions_for_write().first() = float3(0);
   return mesh;
 }
@@ -685,7 +685,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      config.tot_verts, config.tot_edges, 0, config.tot_corners, config.tot_faces);
+      config.tot_verts, config.tot_edges, config.tot_corners, config.tot_faces);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   MutableSpan<float3> positions = mesh->vert_positions_for_write();

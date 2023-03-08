@@ -198,23 +198,23 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
   int filter;
   int ret = 0;
 
-  bAnimListElem dummychan = {NULL};
-  Base dummybase = {NULL};
+  bAnimListElem dummy_chan = {NULL};
+  Base dummy_base = {NULL};
 
   if (ob == NULL) {
     return 0;
   }
 
   /* create a dummy wrapper data to work with */
-  dummybase.object = ob;
+  dummy_base.object = ob;
 
-  dummychan.type = ANIMTYPE_OBJECT;
-  dummychan.data = &dummybase;
-  dummychan.id = &ob->id;
-  dummychan.adt = ob->adt;
+  dummy_chan.type = ANIMTYPE_OBJECT;
+  dummy_chan.data = &dummy_base;
+  dummy_chan.id = &ob->id;
+  dummy_chan.adt = ob->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
@@ -250,20 +250,20 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
   int filter;
   int ret = 0;
 
-  bAnimListElem dummychan = {NULL};
+  bAnimListElem dummy_chan = {NULL};
 
   if (sce == NULL) {
     return 0;
   }
 
   /* create a dummy wrapper data to work with */
-  dummychan.type = ANIMTYPE_SCENE;
-  dummychan.data = sce;
-  dummychan.id = &sce->id;
-  dummychan.adt = sce->adt;
+  dummy_chan.type = ANIMTYPE_SCENE;
+  dummy_chan.data = sce;
+  dummy_chan.id = &sce->id;
+  dummy_chan.adt = sce->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */

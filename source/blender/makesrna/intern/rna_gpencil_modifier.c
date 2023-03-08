@@ -41,7 +41,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "GP_TEXTURE",
      ICON_MOD_UVPROJECT,
      "Texture Mapping",
-     "Change stroke uv texture values"},
+     "Change stroke UV texture values"},
     {eGpencilModifierType_Time, "GP_TIME", ICON_MOD_TIME, "Time Offset", "Offset keyframes"},
     {eGpencilModifierType_WeightAngle,
      "GP_WEIGHT_ANGLE",
@@ -1031,7 +1031,7 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "factor_uvs");
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
-  RNA_def_property_ui_text(prop, "UV Factor", "Amount of noise to apply uv rotation");
+  RNA_def_property_ui_text(prop, "UV Factor", "Amount of noise to apply to UV rotation");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_random", PROP_BOOLEAN, PROP_NONE);

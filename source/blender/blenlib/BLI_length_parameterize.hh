@@ -91,8 +91,6 @@ struct SampleSegmentHint {
  * \param sample_length: The position to sample at.
  * \param r_segment_index: Returns the index of the segment that #sample_length is in.
  * \param r_factor: Returns the position within the segment.
- *
- * \note #sample_length must not be outside of any segment.
  */
 inline void sample_at_length(const Span<float> accumulated_segment_lengths,
                              const float sample_length,
@@ -105,7 +103,6 @@ inline void sample_at_length(const Span<float> accumulated_segment_lengths,
 
   BLI_assert(lengths.size() > 0);
   BLI_assert(sample_length >= 0.0f);
-  BLI_assert(sample_length <= lengths.last() + 0.00001f);
 
   if (hint != nullptr && hint->segment_index >= 0) {
     const float length_in_segment = sample_length - hint->segment_start;

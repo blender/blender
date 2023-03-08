@@ -975,20 +975,13 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
       /* Get and sample refraction bsdf */
-      bool found_transimissive_microfacet_bsdf = false;
+      bool found_refractive_microfacet_bsdf = false;
       for (int ci = 0; ci < sd_mnee->num_closure; ci++) {
         ccl_private ShaderClosure *bsdf = &sd_mnee->closure[ci];
-        if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID ||
-            bsdf->type == CLOSURE_BSDF_REFRACTION_ID ||
-            bsdf->type == CLOSURE_BSDF_SHARP_GLASS_ID) {
-          /* Note that CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID and
-           * CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
-           * CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below. */
+        if (CLOSURE_IS_REFRACTIVE(bsdf->type)) {
+          /* Note that Glass closures are treated as refractive further below. */
 
-          found_transimissive_microfacet_bsdf = true;
+          found_refractive_microfacet_bsdf = true;
           ccl_private MicrofacetBsdf *microfacet_bsdf = (ccl_private MicrofacetBsdf *)bsdf;
 
           /* Figure out appropriate index of refraction ratio. */
@@ -1011,7 +1004,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           break;
         }
       }
-      if (!found_transimissive_microfacet_bsdf)
+      if (!found_refractive_microfacet_bsdf)
         return 0;
     }
 

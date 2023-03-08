@@ -1273,6 +1273,7 @@ static int text_comment_exec(bContext *C, wmOperator *op)
 {
   Text *text = CTX_data_edit_text(C);
   int type = RNA_enum_get(op->ptr, "type");
+  const char *prefix = ED_text_format_comment_line_prefix(text);
 
   text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
@@ -1284,14 +1285,14 @@ static int text_comment_exec(bContext *C, wmOperator *op)
 
   switch (type) {
     case 1:
-      txt_comment(text);
+      txt_comment(text, prefix);
       break;
     case -1:
-      txt_uncomment(text);
+      txt_uncomment(text, prefix);
       break;
     default:
-      if (txt_uncomment(text) == false) {
-        txt_comment(text);
+      if (txt_uncomment(text, prefix) == false) {
+        txt_comment(text, prefix);
       }
       break;
   }
@@ -2809,8 +2810,10 @@ void TEXT_OT_scroll(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_int(
+  PropertyRNA *prop;
+  prop = RNA_def_int(
       ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */
@@ -2914,8 +2917,10 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_int(
+  PropertyRNA *prop;
+  prop = RNA_def_int(
       ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll", -100, 100);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */

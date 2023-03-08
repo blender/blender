@@ -117,7 +117,7 @@ struct TransformUserData {
       return;
     }
 
-    /* Transform the src_crop to the destination buffer with a margin.*/
+    /* Transform the src_crop to the destination buffer with a margin. */
     const int2 margin(2);
     rcti rect;
     BLI_rcti_init_minmax(&rect);
@@ -133,7 +133,7 @@ struct TransformUserData {
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) - margin);
     }
 
-    /* Clamp rect to fit inside the image buffer.*/
+    /* Clamp rect to fit inside the image buffer. */
     rcti dest_rect;
     BLI_rcti_init(&dest_rect, 0, dst->x, 0, dst->y);
     BLI_rcti_isect(&rect, &dest_rect, &rect);

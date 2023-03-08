@@ -155,7 +155,8 @@ static void pointdensity_cache_psys(
   ParticleSimulationData sim = {NULL};
   ParticleData *pa = NULL;
   float cfra = BKE_scene_ctime_get(scene);
-  int i /*, Childexists*/ /* UNUSED */;
+  int i;
+  // int childexists = 0; /* UNUSED */
   int total_particles;
   int data_used;
   float *data_vel, *data_life;
@@ -353,7 +354,7 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
 static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
   BLI_assert(data_color);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   memcpy(data_color, vert_normals, sizeof(float[3]) * mesh->totvert);
 }
 

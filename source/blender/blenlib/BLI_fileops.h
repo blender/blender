@@ -57,8 +57,8 @@ int BLI_delete(const char *file, bool dir, bool recursive) ATTR_NONNULL();
  * \return zero on success (matching 'remove' behavior).
  */
 int BLI_delete_soft(const char *file, const char **error_message) ATTR_NONNULL();
+int BLI_path_move(const char *path, const char *to) ATTR_NONNULL();
 #if 0 /* Unused */
-int BLI_move(const char *path, const char *to) ATTR_NONNULL();
 int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
 #endif
 
@@ -142,6 +142,18 @@ double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
  */
 char *BLI_current_working_dir(char *dir, size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 eFileAttributes BLI_file_attributes(const char *path);
+/**
+ * Changes the current working directory to the provided path.
+ *
+ * Usage of this function is strongly discouraged as it is not thread safe. It will likely cause
+ * issues if there is an operation on another thread that does not expect the current working
+ * directory to change. This has been added to support USDZ export, which has a problematic
+ * "feature" described in this issue https://projects.blender.org/blender/blender/issues/99807. It
+ * will be removed if it is possible to resolve that issue upstream in the USD library.
+ *
+ * \return true on success, false otherwise.
+ */
+bool BLI_change_working_dir(const char *dir);
 
 /** \} */
 

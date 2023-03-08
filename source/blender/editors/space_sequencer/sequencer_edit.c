@@ -1851,6 +1851,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->start = start_ofs;
         seq_new->type = SEQ_TYPE_IMAGE;
         seq_new->len = 1;
+        seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
         seq_new->endofs = 1 - step;
 
         /* New strip. */
@@ -2916,6 +2917,13 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
         se++;
       }
       RNA_END;
+    }
+
+    if (len == 1) {
+      seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+    }
+    else {
+      seq->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
     }
 
     /* Reset these else we won't see all the images. */

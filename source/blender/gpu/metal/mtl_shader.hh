@@ -788,7 +788,7 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
           }
           else if (shader_attrib_format == MTLVertexFormatUInt && component_length == 4) {
             /* Special case here, format has been specified as GPU_COMP_U8 with 4 components, which
-             *is equivalent to a UInt-- so data will be compatible with shader interface. */
+             * is equivalent to a UInt-- so data will be compatible with shader interface. */
             out_vert_format = MTLVertexFormatUInt;
           }
           else {

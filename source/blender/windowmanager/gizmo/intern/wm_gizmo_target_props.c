@@ -271,18 +271,18 @@ void WM_gizmotype_target_property_def(wmGizmoType *gzt,
                                       int data_type,
                                       int array_length)
 {
-  wmGizmoPropertyType *mpt;
 
   BLI_assert(WM_gizmotype_target_property_find(gzt, idname) == NULL);
 
   const uint idname_size = strlen(idname) + 1;
-  mpt = MEM_callocN(sizeof(wmGizmoPropertyType) + idname_size, __func__);
-  memcpy(mpt->idname, idname, idname_size);
-  mpt->data_type = data_type;
-  mpt->array_length = array_length;
-  mpt->index_in_type = gzt->target_property_defs_len;
+  wmGizmoPropertyType *gz_prop_type = MEM_callocN(sizeof(wmGizmoPropertyType) + idname_size,
+                                                  __func__);
+  memcpy(gz_prop_type->idname, idname, idname_size);
+  gz_prop_type->data_type = data_type;
+  gz_prop_type->array_length = array_length;
+  gz_prop_type->index_in_type = gzt->target_property_defs_len;
   gzt->target_property_defs_len += 1;
-  BLI_addtail(&gzt->target_property_defs, mpt);
+  BLI_addtail(&gzt->target_property_defs, gz_prop_type);
 }
 
 /** \} */

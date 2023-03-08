@@ -464,13 +464,11 @@ static bool do_add_image_extension(char *string,
     }
   }
 #endif
-#ifdef WITH_OPENIMAGEIO
   else if (imtype == R_IMF_IMTYPE_PSD) {
     if (!BLI_path_extension_check(string, extension_test = ".psd")) {
       extension = extension_test;
     }
   }
-#endif
 #ifdef WITH_OPENEXR
   else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     if (!BLI_path_extension_check(string, extension_test = ".exr")) {

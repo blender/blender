@@ -642,17 +642,17 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_y)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *polys = BKE_mesh_polys(original_mesh);
-  const MLoop *loops = BKE_mesh_loops(original_mesh);
-  const MPoly *poly = &polys[BM_elem_index_get(f)];
+  const blender::Span<MPoly> polys = original_mesh->polys();
+  const blender::Span<MLoop> loops = original_mesh->loops();
+  const MPoly &poly = polys[BM_elem_index_get(f)];
 
   const int corner_vertex_index = BM_elem_index_get(v);
 
   /* Calculates an offset to write the grids correctly oriented in the main
    * #MultiresUnsubdivideGrid. */
   int loop_offset = 0;
-  for (int i = 0; i < poly->totloop; i++) {
-    const int loop_index = poly->loopstart + i;
+  for (int i = 0; i < poly.totloop; i++) {
+    const int loop_index = poly.loopstart + i;
     const MLoop *l = &loops[loop_index];
     if (l->v == corner_vertex_index) {
       loop_offset = i;
@@ -667,8 +667,8 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   float(*face_grid)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(face_grid_area, sizeof(float[3]), "face_grid"));
 
-  for (int i = 0; i < poly->totloop; i++) {
-    const int loop_index = poly->loopstart + i;
+  for (int i = 0; i < poly.totloop; i++) {
+    const int loop_index = poly.loopstart + i;
     MDisps *mdisp = &context->original_mdisp[loop_index];
     int quad_loop = i - loop_offset;
     if (quad_loop < 0) {
@@ -921,7 +921,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *original_polys = BKE_mesh_polys(original_mesh);
+  const blender::Span<MPoly> original_polys = original_mesh->polys();
 
   Mesh *base_mesh = context->base_mesh;
 
@@ -954,9 +954,9 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
       MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map"));
 
   for (int i = 0; i < original_mesh->totpoly; i++) {
-    const MPoly *poly = &original_polys[i];
-    for (int l = 0; l < poly->totloop; l++) {
-      int original_loop_index = l + poly->loopstart;
+    const MPoly &poly = original_polys[i];
+    for (int l = 0; l < poly.totloop; l++) {
+      int original_loop_index = l + poly.loopstart;
       context->loop_to_face_map[original_loop_index] = i;
     }
   }
@@ -966,18 +966,21 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  * Checks the orientation of the loops to flip the x and y axis when extracting the grid if
  * necessary.
  */
-static bool multires_unsubdivide_flip_grid_x_axis(
-    const MPoly *polys, const MLoop *loops, int poly, int loop, int v_x)
+static bool multires_unsubdivide_flip_grid_x_axis(const blender::Span<MPoly> polys,
+                                                  const blender::Span<MLoop> loops,
+                                                  int poly_index,
+                                                  int loop,
+                                                  int v_x)
 {
-  const MPoly *p = &polys[poly];
+  const MPoly &poly = polys[poly_index];
 
-  const MLoop *l_first = &loops[p->loopstart];
-  if ((loop == (p->loopstart + (p->totloop - 1))) && l_first->v == v_x) {
+  const MLoop *l_first = &loops[poly.loopstart];
+  if ((loop == (poly.loopstart + (poly.totloop - 1))) && l_first->v == v_x) {
     return true;
   }
 
   int next_l_index = loop + 1;
-  if (next_l_index < p->loopstart + p->totloop) {
+  if (next_l_index < poly.loopstart + poly.totloop) {
     const MLoop *l_next = &loops[next_l_index];
     if (l_next->v == v_x) {
       return true;
@@ -1041,8 +1044,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   const int base_l_offset = CustomData_get_n_offset(
       &bm_base_mesh->ldata, CD_PROP_INT32, base_l_layer_index);
 
-  const MPoly *polys = BKE_mesh_polys(base_mesh);
-  const MLoop *loops = BKE_mesh_loops(base_mesh);
+  const blender::Span<MPoly> polys = base_mesh->polys();
+  const blender::Span<MLoop> loops = base_mesh->loops();
 
   /* Main loop for extracting the grids. Iterates over the base mesh vertices. */
   BM_ITER_MESH (v, &iter, bm_base_mesh, BM_VERTS_OF_MESH) {
@@ -1146,7 +1149,7 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
   context->num_total_levels = context->num_new_levels + context->num_original_levels;
 
   /* Store the new base-mesh as a mesh in context, free bmesh. */
-  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
 
   BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = true;

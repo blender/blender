@@ -242,6 +242,8 @@ typedef struct EEVEE_PassList {
   struct DRWPass *volumetric_accum_ps;
   struct DRWPass *ssr_raytrace;
   struct DRWPass *ssr_resolve;
+  struct DRWPass *ssr_resolve_probe;
+  struct DRWPass *ssr_resolve_refl;
   struct DRWPass *sss_blur_ps;
   struct DRWPass *sss_resolve_ps;
   struct DRWPass *sss_translucency_ps;
@@ -700,6 +702,9 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *ssr_specrough_input;
   struct GPUTexture *ssr_hit_output;
   struct GPUTexture *ssr_hit_depth;
+  /* Intel devices require a split execution due to shader issue */
+  bool use_split_ssr_pass;
+
   /* Temporal Anti Aliasing */
   int taa_reproject_sample;
   int taa_current_sample;
@@ -1210,6 +1215,8 @@ struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void);
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void);
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_refl_sh_get(void);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
 struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);

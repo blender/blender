@@ -72,7 +72,7 @@ void OBJECT_OT_drop_geometry_nodes(struct wmOperatorType *ot);
  */
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
-/* object_edit.c */
+/* object_edit.cc */
 
 void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
 void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);
@@ -287,7 +287,6 @@ void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);

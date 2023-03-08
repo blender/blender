@@ -34,8 +34,8 @@ def seek(r, txt, recurs):
     newtxt = ''
 
     if recurs > MAX_RECURSIVE:
-        #print ("Recursion is over max")
-        #print (txt)
+        # print ("Recursion is over max")
+        # print (txt)
         return
 
     type_r = type(r)
@@ -124,7 +124,7 @@ for d in dir(bpy.types):
 '''
 
 # print dir(bpy)
-#import sys
+# import sys
 # sys.exit()
 
 print("iter over ", seek_count, "rna items")

@@ -205,6 +205,74 @@ static void rna_AssetMetaData_description_set(PointerRNA *ptr, const char *value
   }
 }
 
+static void rna_AssetMetaData_copyright_get(PointerRNA *ptr, char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->copyright) {
+    strcpy(value, asset_data->copyright);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_AssetMetaData_copyright_length(PointerRNA *ptr)
+{
+  AssetMetaData *asset_data = ptr->data;
+  return asset_data->copyright ? strlen(asset_data->copyright) : 0;
+}
+
+static void rna_AssetMetaData_copyright_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->copyright) {
+    MEM_freeN(asset_data->copyright);
+  }
+
+  if (value[0]) {
+    asset_data->copyright = BLI_strdup(value);
+  }
+  else {
+    asset_data->copyright = NULL;
+  }
+}
+
+static void rna_AssetMetaData_license_get(PointerRNA *ptr, char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->license) {
+    strcpy(value, asset_data->license);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_AssetMetaData_license_length(PointerRNA *ptr)
+{
+  AssetMetaData *asset_data = ptr->data;
+  return asset_data->license ? strlen(asset_data->license) : 0;
+}
+
+static void rna_AssetMetaData_license_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->license) {
+    MEM_freeN(asset_data->license);
+  }
+
+  if (value[0]) {
+    asset_data->license = BLI_strdup(value);
+  }
+  else {
+    asset_data->license = NULL;
+  }
+}
+
 static void rna_AssetMetaData_active_tag_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
@@ -396,6 +464,30 @@ static void rna_def_asset_data(BlenderRNA *brna)
                                 "rna_AssetMetaData_description_set");
   RNA_def_property_ui_text(
       prop, "Description", "A description of the asset to be displayed for the user");
+
+  prop = RNA_def_property(srna, "copyright", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_copyright_get",
+                                "rna_AssetMetaData_copyright_length",
+                                "rna_AssetMetaData_copyright_set");
+  RNA_def_property_ui_text(
+      prop,
+      "Copyright",
+      "Copyright notice for this asset. An empty copyright notice does not necessarily indicate "
+      "that this is copyright-free. Contact the author if any clarification is needed");
+
+  prop = RNA_def_property(srna, "license", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_license_get",
+                                "rna_AssetMetaData_license_length",
+                                "rna_AssetMetaData_license_set");
+  RNA_def_property_ui_text(prop,
+                           "License",
+                           "The type of license this asset is distributed under. An empty license "
+                           "name does not necessarily indicate that this is free of licensing "
+                           "terms. Contact the author if any clarification is needed");
 
   prop = RNA_def_property(srna, "tags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "AssetTag");

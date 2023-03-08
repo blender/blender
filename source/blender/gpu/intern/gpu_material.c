@@ -215,13 +215,13 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
 
   GPUColorBandBuilder *builder = mat->coba_builder;
 
-  mat->coba_tex = GPU_texture_create_1d_array_ex("mat_ramp",
-                                                 CM_TABLE + 1,
-                                                 builder->current_layer,
-                                                 1,
-                                                 GPU_RGBA16F,
-                                                 GPU_TEXTURE_USAGE_SHADER_READ,
-                                                 (float *)builder->pixels);
+  mat->coba_tex = GPU_texture_create_1d_array("mat_ramp",
+                                              CM_TABLE + 1,
+                                              builder->current_layer,
+                                              1,
+                                              GPU_RGBA16F,
+                                              GPU_TEXTURE_USAGE_SHADER_READ,
+                                              (float *)builder->pixels);
 
   MEM_freeN(builder);
   mat->coba_builder = NULL;
@@ -239,6 +239,7 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
                                              mat->sky_builder->current_layer,
                                              1,
                                              GPU_RGBA32F,
+                                             GPU_TEXTURE_USAGE_GENERAL,
                                              (float *)mat->sky_builder->pixels);
 
   MEM_freeN(mat->sky_builder);
@@ -609,12 +610,12 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
       GPU_texture_free(material->sss_tex_profile);
     }
 
-    material->sss_tex_profile = GPU_texture_create_1d_ex("sss_tex_profile",
-                                                         64,
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         GPU_TEXTURE_USAGE_SHADER_READ,
-                                                         translucence_profile);
+    material->sss_tex_profile = GPU_texture_create_1d("sss_tex_profile",
+                                                      64,
+                                                      1,
+                                                      GPU_RGBA16F,
+                                                      GPU_TEXTURE_USAGE_SHADER_READ,
+                                                      translucence_profile);
 
     MEM_freeN(translucence_profile);
 
@@ -951,14 +952,16 @@ void GPU_material_compile(GPUMaterial *mat)
        * As PSOs do not always match for default shaders, we limit warming for PSO
        * configurations to ensure compile time remains fast, as these first
        * entries will be the most commonly used PSOs. As not all PSOs are necessarily
-       * required immediately, this limit should remain low (1-3 at most).
-       * */
+       * required immediately, this limit should remain low (1-3 at most). */
       if (mat->default_mat != NULL && mat->default_mat != mat) {
         if (mat->default_mat->pass != NULL) {
           GPUShader *parent_sh = GPU_pass_shader_get(mat->default_mat->pass);
           if (parent_sh) {
-            GPU_shader_set_parent(sh, parent_sh);
-            GPU_shader_warm_cache(sh, 1);
+            /* Skip warming if cached pass is identical to the default material. */
+            if (mat->default_mat->pass != mat->pass && parent_sh != sh) {
+              GPU_shader_set_parent(sh, parent_sh);
+              GPU_shader_warm_cache(sh, 1);
+            }
           }
         }
       }

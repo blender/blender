@@ -706,7 +706,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {NULL};
   const MFace *mface = NULL, *mf;
-  const MEdge *medge = NULL, *me;
+  const MEdge *edges = NULL, *edge;
   Mesh *mesh, *target_mesh;
   int numverts;
   int k;
@@ -763,7 +763,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {
-    medge = BKE_mesh_edges(mesh);
+    edges = BKE_mesh_edges(mesh);
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }
   else {
@@ -824,9 +824,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       }
     }
     else {
-      me = &medge[nearest.index];
+      edge = &edges[nearest.index];
 
-      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[me->v1], positions[me->v2]);
+      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[edge->v1], positions[edge->v2]);
       tpa->fuv[0] = 1.0f - tpa->fuv[1];
       tpa->fuv[2] = tpa->fuv[3] = 0.0f;
       tpa->foffset = 0.0f;

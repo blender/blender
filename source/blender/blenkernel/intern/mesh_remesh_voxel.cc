@@ -65,15 +65,14 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 {
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<MLoop> input_loops = input_mesh->loops();
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
+  const Span<MLoopTri> looptris = input_mesh->looptris();
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
-  MVertTri *verttri = (MVertTri *)MEM_callocN(
-      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
+  Array<MVertTri> verttri(looptris.size());
   BKE_mesh_runtime_verttri_from_looptri(
-      verttri, input_loops.data(), looptri, BKE_mesh_runtime_looptri_len(input_mesh));
+      verttri.data(), input_loops.data(), looptris.data(), looptris.size());
 
-  const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
+  const int totfaces = looptris.size();
   const int totverts = input_mesh->totvert;
   Array<int> faces(totfaces * 3);
 
@@ -105,8 +104,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   /* Run the remesher */
   QFLOW_quadriflow_remesh(&qrd, update_cb, update_cb_data);
 
-  MEM_freeN(verttri);
-
   if (qrd.out_faces == nullptr) {
     /* The remeshing was canceled */
     return nullptr;
@@ -120,7 +117,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   }
 
   /* Construct the new output mesh */
-  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
+  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
   BKE_mesh_copy_parameters(mesh, input_mesh);
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
@@ -224,7 +221,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
       *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      vertices.size(), 0, 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
+      vertices.size(), 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
   MutableSpan<MPoly> mesh_polys = mesh->polys_for_write();
   MutableSpan<MLoop> mesh_loops = mesh->loops_for_write();
@@ -335,7 +332,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const VArraySpan<int> src(src_face_sets);
   MutableSpan<int> dst = dst_face_sets.span;
 
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
+  const blender::Span<MLoopTri> looptris = source->looptris();
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
@@ -345,15 +342,15 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
-      const MPoly *mpoly = &target_polys[i];
-      BKE_mesh_calc_poly_center(mpoly,
-                                &target_loops[mpoly->loopstart],
+      const MPoly &poly = target_polys[i];
+      BKE_mesh_calc_poly_center(&poly,
+                                &target_loops[poly.loopstart],
                                 reinterpret_cast<const float(*)[3]>(target_positions.data()),
                                 from_co);
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
-        dst[i] = src[looptri[nearest.index].poly];
+        dst[i] = src[looptris[nearest.index].poly];
       }
       else {
         dst[i] = 1;

@@ -12,6 +12,7 @@ struct UndoType;
 struct SelectPick_Params;
 struct ViewContext;
 struct rcti;
+struct TransVertStore;
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,11 @@ void ED_keymap_curves(struct wmKeyConfig *keyconf);
  * calculated for the evaluated points and sampled back to the control points.
  */
 float (*ED_curves_point_normals_array_create(const struct Curves *curves_id))[3];
+
+/**
+ * Wrapper for `transverts_from_curves_positions_create`.
+ */
+void ED_curves_transverts_create(struct Curves *curves_id, struct TransVertStore *tvs);
 
 /** \} */
 
@@ -55,6 +61,13 @@ bool object_has_editable_curves(const Main &bmain, const Object &object);
 bke::CurvesGeometry primitive_random_sphere(int curves_size, int points_per_curve);
 VectorSet<Curves *> get_unique_editable_curves(const bContext &C);
 void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob);
+
+/**
+ * Allocate an array of `TransVert` for cursor/selection snapping (See
+ * `ED_transverts_create_from_obedit` in `view3d_snap.c`).
+ * \note: the `TransVert` elements in \a tvs are expected to write to the positions of \a curves.
+ */
+void transverts_from_curves_positions_create(bke::CurvesGeometry &curves, TransVertStore *tvs);
 
 /* -------------------------------------------------------------------- */
 /** \name Poll Functions
@@ -93,6 +106,7 @@ bool has_anything_selected(const bke::CurvesGeometry &curves);
  * Return true if any element in the span is selected, on either domain with either type.
  */
 bool has_anything_selected(GSpan selection);
+bool has_anything_selected(const VArray<bool> &varray, IndexRange range_to_check);
 
 /**
  * Find curves that have any point selected (a selection factor greater than zero),
@@ -113,6 +127,9 @@ IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_i
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
                                                      eAttrDomain selection_domain,
                                                      eCustomDataType create_type);
+
+/** Apply a change to a single curve or point. Avoid using this when affecting many elements. */
+void apply_selection_operation_at_index(GMutableSpan selection, int index, eSelectOp sel_op);
 
 /**
  * (De)select all the curves.
@@ -153,13 +170,24 @@ void select_random(bke::CurvesGeometry &curves,
                    float probability);
 
 /**
- * Select point or curve at a (screen-space) point.
+ * Helper struct for `closest_elem_find_screen_space`.
  */
-bool select_pick(const ViewContext &vc,
-                 bke::CurvesGeometry &curves,
-                 eAttrDomain selection_domain,
-                 const SelectPick_Params &params,
-                 int2 coord);
+struct FindClosestData {
+  int index = -1;
+  float distance = FLT_MAX;
+};
+
+/**
+ * Find the closest screen-space point or curve in projected region-space.
+ *
+ * \return A new point or curve closer than the \a initial input, if one exists.
+ */
+std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext &vc,
+                                                              const Object &object,
+                                                              bke::CurvesGeometry &curves,
+                                                              eAttrDomain domain,
+                                                              int2 coord,
+                                                              const FindClosestData &initial);
 
 /**
  * Select points or curves in a (screen-space) rectangle.

@@ -1098,7 +1098,7 @@ int BLI_string_find_split_words(
 /** \name String Formatting (Numeric)
  * \{ */
 
-static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
+static size_t BLI_str_format_int_grouped_ex(char *src, char *dst, int num_len)
 {
   char *p_src = src;
   char *p_dst = dst;
@@ -1122,25 +1122,25 @@ static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_
   return (size_t)(p_dst - dst);
 }
 
-size_t BLI_str_format_int_grouped(char dst[16], int num)
+size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
 {
-  char src[16];
+  char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   const int num_len = BLI_snprintf(src, sizeof(src), "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
-size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
+size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
 {
-  /* NOTE: Buffer to hold maximum `uint64`, which is 1.8e+19. but
-   * we also need space for commas and null-terminator. */
-  char src[27];
+  char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   const int num_len = BLI_snprintf(src, sizeof(src), "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
-void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
+void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
+                              long long int bytes,
+                              const bool base_10)
 {
   double bytes_converted = bytes;
   int order = 0;
@@ -1159,14 +1159,15 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
   decimals = MAX2(order - 1, 0);
 
   /* Format value first, stripping away floating zeroes. */
-  const size_t dst_len = 15;
+  const size_t dst_len = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
   size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
   len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
   dst[len++] = ' ';
   BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
 }
 
-void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
+void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
+                                 int number_to_format)
 {
   float number_to_format_converted = number_to_format;
   int order = 0;
@@ -1179,7 +1180,7 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
     order++;
   }
 
-  const size_t dst_len = 7;
+  const size_t dst_len = BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE;
   int decimals = 0;
   if ((order > 0) && fabsf(number_to_format_converted) < 100.0f) {
     decimals = 1;
@@ -1187,7 +1188,8 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
   BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
 }
 
-void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
+void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
+                                 const int number_to_format)
 {
   float number_to_format_converted = number_to_format;
   int order = 0;
@@ -1207,7 +1209,7 @@ void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
     order++;
   }
 
-  const size_t dst_len = 5;
+  const size_t dst_len = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
   BLI_snprintf(dst,
                dst_len,
                "%s%s%d%s",

@@ -317,6 +317,7 @@ void gpu_shader_create_info_init()
   /* WORKAROUND: Replace the use of gpu_BaseInstance by an instance attribute. */
   if (GPU_shader_draw_parameters_support() == false) {
     draw_resource_id_new = draw_resource_id_fallback;
+    draw_resource_with_custom_id_new = draw_resource_with_custom_id_fallback;
   }
 
 #ifdef WITH_METAL_BACKEND
@@ -379,6 +380,9 @@ void gpu_shader_create_info_init()
 
     /* EEVEE Volumetric Material */
     eevee_legacy_material_volumetric_vert = eevee_legacy_material_volumetric_vert_no_geom;
+
+    /* GPencil stroke. */
+    gpu_shader_gpencil_stroke = gpu_shader_gpencil_stroke_no_geom;
   }
 #endif
 

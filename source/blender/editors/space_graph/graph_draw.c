@@ -593,7 +593,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
    *
    * If the automatically determined sampling frequency is likely to cause an infinite
    * loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
-   *  chosen here is just the coarsest value which still looks reasonable...
+   * chosen here is just the coarsest value which still looks reasonable.
    */
 
   /* TODO: perhaps we should have 1.0 frames

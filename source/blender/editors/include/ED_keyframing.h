@@ -223,7 +223,7 @@ typedef struct KeyingSetInfo {
   /* identifier so that user can hook this up to a KeyingSet (used as label). */
   char name[64];
   /* short help/description. */
-  char description[240]; /* RNA_DYN_DESCR_MAX */
+  char description[1024]; /* #RNA_DYN_DESCR_MAX */
   /* keying settings */
   short keyingflag;
 

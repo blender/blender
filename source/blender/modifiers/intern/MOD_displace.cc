@@ -312,7 +312,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(
-          verts_num, BKE_mesh_loops(mesh), mesh->totloop, (const float(*)[3])clnors, vert_clnors);
+          verts_num, mesh->loops().data(), mesh->totloop, (const float(*)[3])clnors, vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -336,7 +336,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    data.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
   }
   data.vert_clnors = vert_clnors;
   if (tex_target != nullptr) {
