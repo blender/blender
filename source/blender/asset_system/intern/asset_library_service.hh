@@ -68,13 +68,15 @@ class AssetLibraryService {
   /**
    * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
    */
-  AssetLibrary *get_asset_library_on_disk(StringRefNull top_level_directory);
+  AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
+                                          StringRef name,
+                                          StringRefNull top_level_directory);
 
   /** Get the "Current File" asset library. */
-  AssetLibrary *get_asset_library_current_file();
+  AssetLibrary *get_asset_library_current_file(StringRef name);
 
   /** Get the "All" asset library, which loads all others and merges them into one. */
-  AssetLibrary *get_asset_library_all(const Main *bmain);
+  AssetLibrary *get_asset_library_all(StringRef name, const Main *bmain);
 
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;

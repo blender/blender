@@ -46,15 +46,15 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
  * Loading an asset library at this point only means loading the catalogs. Later on this should
  * invoke reading of asset representations too.
  */
-struct ::AssetLibrary *AS_asset_library_load(const char *library_path)
+struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *library_path)
 {
   AssetLibraryService *service = AssetLibraryService::get();
   asset_system::AssetLibrary *lib;
   if (library_path == nullptr || library_path[0] == '\0') {
-    lib = service->get_asset_library_current_file();
+    lib = service->get_asset_library_current_file(name);
   }
   else {
-    lib = service->get_asset_library_on_disk(library_path);
+    lib = service->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, library_path);
   }
   return reinterpret_cast<struct ::AssetLibrary *>(lib);
 }
@@ -129,8 +129,10 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
 
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary(StringRef root_path)
-    : root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
+AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, StringRef root_path)
+    : library_type_(library_type),
+      name_(name),
+      root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
       asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
@@ -250,6 +252,16 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     return;
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
+}
+
+eAssetLibraryType AssetLibrary::library_type() const
+{
+  return library_type_;
+}
+
+StringRefNull AssetLibrary::name() const
+{
+  return name_;
 }
 
 StringRefNull AssetLibrary::root_path() const

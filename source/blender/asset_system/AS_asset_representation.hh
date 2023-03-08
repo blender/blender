@@ -71,6 +71,12 @@ class AssetRepresentation {
 
   const AssetIdentifier &get_identifier() const;
 
+  /** Create a weak reference for this asset that can be written to files, but can break under a
+   * number of conditions.
+   * A weak reference can only be created if an asset representation is owned by an asset library.
+   */
+  std::unique_ptr<AssetWeakReference> make_weak_reference() const;
+
   StringRefNull get_name() const;
   AssetMetaData &get_metadata() const;
   /** Get the import method to use for this asset. A different one may be used if

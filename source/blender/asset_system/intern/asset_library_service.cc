@@ -67,7 +67,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      AssetLibrary *library = get_asset_library_on_disk(type, "Essentials", root_path);
       library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
 
       return library;
@@ -79,12 +79,12 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
       if (root_path.empty()) {
         /* File wasn't saved yet. */
-        return get_asset_library_current_file();
+        return get_asset_library_current_file("Current File");
       }
-      return get_asset_library_on_disk(root_path);
+      return get_asset_library_on_disk(type, "Current File", root_path);
     }
     case ASSET_LIBRARY_ALL:
-      return get_asset_library_all(bmain);
+      return get_asset_library_all("All", bmain);
     case ASSET_LIBRARY_CUSTOM: {
       bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
           library_reference);
@@ -97,7 +97,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk(root_path);
+      AssetLibrary *library = get_asset_library_on_disk(type, custom_library->name, root_path);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
 
@@ -108,7 +108,9 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   return nullptr;
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_path)
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType library_type,
+                                                             StringRef name,
+                                                             StringRefNull root_path)
 {
   BLI_assert_msg(!root_path.is_empty(),
                  "top level directory must be given for on-disk asset library");
@@ -124,7 +126,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_
     return lib;
   }
 
-  std::unique_ptr lib_uptr = std::make_unique<AssetLibrary>(normalized_root_path);
+  std::unique_ptr lib_uptr = std::make_unique<AssetLibrary>(
+      library_type, name, normalized_root_path);
   AssetLibrary *lib = lib_uptr.get();
 
   lib->on_blend_save_handler_register();
@@ -137,7 +140,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_
   return lib;
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_current_file()
+AssetLibrary *AssetLibraryService::get_asset_library_current_file(StringRef name)
 {
   if (current_file_library_) {
     CLOG_INFO(&LOG, 2, "get current file lib (cached)");
@@ -145,7 +148,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   }
   else {
     CLOG_INFO(&LOG, 2, "get current file lib (loaded)");
-    current_file_library_ = std::make_unique<AssetLibrary>();
+    current_file_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_LOCAL, name);
     current_file_library_->on_blend_save_handler_register();
   }
 
@@ -170,7 +173,7 @@ static void rebuild_all_library(AssetLibrary &all_library, const bool reload_cat
   all_library.catalog_service->rebuild_tree();
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
+AssetLibrary *AssetLibraryService::get_asset_library_all(StringRef name, const Main *bmain)
 {
   /* (Re-)load all other asset libraries. */
   for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
@@ -190,7 +193,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   }
 
   CLOG_INFO(&LOG, 2, "get all lib (loaded)");
-  all_library_ = std::make_unique<AssetLibrary>();
+  all_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_ALL, name);
 
   /* Don't reload catalogs on this initial read, they've just been loaded above. */
   rebuild_all_library(*all_library_, /*reload_catlogs=*/false);
