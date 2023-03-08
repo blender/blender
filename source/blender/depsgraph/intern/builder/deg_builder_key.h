@@ -155,7 +155,7 @@ struct PersistentOperationKey : public OperationKey {
     component_name_storage_ = component_node->name;
     name_storage_ = operation_node->name;
 
-    /* Assign fields used by the #OperationKey API.  */
+    /* Assign fields used by the #OperationKey API. */
     id = id_node->id_orig;
     component_type = component_node->type;
     component_name = component_name_storage_.c_str();

@@ -3169,13 +3169,12 @@ static void uv_map_mirror(BMFace *efa,
    * than 0.5 units in the *u* coordinate.
    * If we find such a face, we try and improve the unwrapping
    * by adding (1.0, 0.0) onto some of the face's UVs.
-
+   *
    * Note that this is only a heuristic. The property we're
    * attempting to maintain is that the winding of the face
    * in UV space corresponds with the handedness of the face
    * in 3D space w.r.t to the unwrapping. Even for triangles,
-   * that property is somewhat complicated to evaluate.
-   */
+   * that property is somewhat complicated to evaluate. */
 
   float right_u = -1.0e30f;
   BMLoop *l;

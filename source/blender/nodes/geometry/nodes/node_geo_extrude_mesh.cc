@@ -1088,7 +1088,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   /* For every selected polygon, change it to use the new extruded vertices and the duplicate
    * edges, and build the faces that form the sides of the extrusion. Build "original index"
    * arrays for the new vertices and edges so they can be accessed later.
-
+   *
    * Filling some of this data like the new edges or polygons could be easily split into
    * separate loops, which may or may not be faster, but would involve more duplication. */
   Array<int> new_vert_indices(extrude_corner_size);

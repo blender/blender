@@ -548,7 +548,7 @@ static void sample_interval_bezier(const Span<float3> src_positions,
       }
     }
     else {
-      /* General case, compute the insertion point.  */
+      /* General case, compute the insertion point. */
       end_point_insert = knot_insert_bezier(
           src_positions, src_handles_l, src_handles_r, end_point);
 
@@ -1063,7 +1063,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
     dst_curves.attributes_for_write().remove("cyclic");
   }
   else {
-    /* Only trimmed curves are no longer cyclic.  */
+    /* Only trimmed curves are no longer cyclic. */
     if (bke::SpanAttributeWriter cyclic = dst_attributes.lookup_for_write_span<bool>("cyclic")) {
       cyclic.span.fill_indices(selection, false);
       cyclic.finish();

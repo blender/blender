@@ -139,11 +139,15 @@ enum {
   /** Do not process ID pointers inside embedded IDs. Needed by depsgraph processing e.g. */
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
 
-  /** Also process internal ID pointers like `ID.newid` or `ID.orig_id`.
-   *  WARNING: Dangerous, use with caution. */
+  /**
+   * Also process internal ID pointers like `ID.newid` or `ID.orig_id`.
+   * WARNING: Dangerous, use with caution.
+   */
   IDWALK_DO_INTERNAL_RUNTIME_POINTERS = (1 << 9),
-  /** Also process the ID.lib pointer. It is an option because this pointer can usually be fully
-     ignored. */
+  /**
+   * Also process the ID.lib pointer. It is an option because this pointer can usually be fully
+   * ignored.
+   */
   IDWALK_DO_LIBRARY_POINTER = (1 << 10),
 };
 

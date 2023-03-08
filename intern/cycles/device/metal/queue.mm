@@ -278,7 +278,7 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
   if (metal_device_->device_vendor == METAL_GPU_APPLE) {
     result *= 4;
 
-    /* Increasing the state count doesn't notably benefit M1-family systems.  */
+    /* Increasing the state count doesn't notably benefit M1-family systems. */
     if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) != APPLE_M1) {
       size_t system_ram = system_physical_ram();
       size_t allocated_so_far = [metal_device_->mtlDevice currentAllocatedSize];

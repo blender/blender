@@ -345,7 +345,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
   bAnimVizSettings *avs = ob->mode == OB_MODE_POSE ? &ob->pose->avs : &ob->avs;
 
   if (avs->path_range == MOTIONPATH_RANGE_MANUAL) {
-    /* Don't touch manually-determined ranges.  */
+    /* Don't touch manually-determined ranges. */
     return;
   }
 

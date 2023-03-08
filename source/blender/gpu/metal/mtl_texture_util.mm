@@ -176,7 +176,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatDepth32Float;
     case GPU_DEPTH_COMPONENT24:
       /* This formal is not supported on Metal.
-       * Use 32Float depth instead with some conversion steps for download and upload.  */
+       * Use 32Float depth instead with some conversion steps for download and upload. */
       return MTLPixelFormatDepth32Float;
     case GPU_DEPTH_COMPONENT16:
       return MTLPixelFormatDepth16Unorm;

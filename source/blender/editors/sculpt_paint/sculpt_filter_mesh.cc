@@ -1177,7 +1177,7 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
   ot->ui = sculpt_mesh_ui_exec;
 
   /* Doesn't seem to actually be called?
-     Check `sculpt_mesh_filter_modal` to see where it's really called. */
+   * Check `sculpt_mesh_filter_modal` to see where it's really called. */
   ot->cancel = sculpt_mesh_filter_cancel;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_X | OPTYPE_BLOCKING |

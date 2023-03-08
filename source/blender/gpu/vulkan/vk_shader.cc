@@ -909,7 +909,7 @@ static void add_descriptor_set_layout_bindings(
     r_bindings.append(create_descriptor_set_layout_binding(location, resource));
   }
 
-  /* Add push constants to the descriptor when push constants are stored in an uniform buffer.*/
+  /* Add push constants to the descriptor when push constants are stored in an uniform buffer. */
   const VKPushConstants::Layout &push_constants_layout = interface.push_constants_layout_get();
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     r_bindings.append(create_descriptor_set_layout_binding(push_constants_layout));

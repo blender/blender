@@ -2803,8 +2803,7 @@ static void sculpt_attribute_update_refs(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  /* run twice, in case sculpt_attr_update had to recreate a layer and
-     messed up the bmesh offsets. */
+  /* Run twice, in case sculpt_attr_update had to recreate a layer and messed up #BMesh offsets. */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < SCULPT_MAX_ATTRIBUTES; j++) {
       SculptAttribute *attr = ss->temp_attributes + j;

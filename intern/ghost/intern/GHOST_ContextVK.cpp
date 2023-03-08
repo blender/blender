@@ -878,7 +878,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
   extensions_device.push_back("VK_KHR_dedicated_allocation");
   extensions_device.push_back("VK_KHR_get_memory_requirements2");
-  /* Enable MoltenVK required instance extensions.*/
+  /* Enable MoltenVK required instance extensions. */
 #ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
   requireExtension(
       extensions_available, extensions_enabled, "VK_KHR_get_physical_device_properties2");
