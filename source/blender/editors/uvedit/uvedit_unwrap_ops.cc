@@ -1290,14 +1290,13 @@ static bool island_has_pins(const Scene *scene,
  * This is needed to perform UV packing on objects that aren't in edit-mode.
  * \param udim_params: Parameters to specify UDIM target and UDIM source image.
  * \param params: Parameters and options to pass to the packing engine.
- *
  */
-void ED_uvedit_pack_islands_multi(const Scene *scene,
-                                  Object **objects,
-                                  const int objects_len,
-                                  BMesh **bmesh_override,
-                                  const UVMapUDIM_Params *closest_udim,
-                                  const UVPackIsland_Params *params)
+static void uvedit_pack_islands_multi(const Scene *scene,
+                                      Object **objects,
+                                      const int objects_len,
+                                      BMesh **bmesh_override,
+                                      const UVMapUDIM_Params *closest_udim,
+                                      const UVPackIsland_Params *params)
 {
   blender::Vector<FaceIsland *> island_vector;
 
@@ -1533,7 +1532,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     closest_udim->grid_shape[1] = sima->tile_grid_shape[1];
   }
 
-  ED_uvedit_pack_islands_multi(
+  uvedit_pack_islands_multi(
       scene, objects, objects_len, nullptr, closest_udim, &pack_island_params);
 
   MEM_freeN(objects);
@@ -2308,8 +2307,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
 
-    ED_uvedit_pack_islands_multi(
-        scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
+    uvedit_pack_islands_multi(scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
   }
 }
 
@@ -2461,7 +2459,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
 
-  ED_uvedit_pack_islands_multi(scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
+  uvedit_pack_islands_multi(scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
 
   MEM_freeN(objects);
 
@@ -2841,10 +2839,10 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     params.margin_method = eUVPackIsland_MarginMethod(RNA_enum_get(op->ptr, "margin_method"));
     params.margin = RNA_float_get(op->ptr, "island_margin");
 
-    ED_uvedit_pack_islands_multi(
+    uvedit_pack_islands_multi(
         scene, objects_changed, object_changed_len, nullptr, nullptr, &params);
 
-    /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
+    /* #uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
     uv_map_clip_correct(
         scene, objects_changed, object_changed_len, op, per_face_aspect, only_selected_uvs);
@@ -3831,7 +3829,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
   params.margin = 0.001f;
 
-  ED_uvedit_pack_islands_multi(scene, &ob, 1, &bm, nullptr, &params);
+  uvedit_pack_islands_multi(scene, &ob, 1, &bm, nullptr, &params);
 
   /* Write back from BMesh to Mesh. */
   BMeshToMeshParams bm_to_me_params{};
