@@ -419,6 +419,7 @@ struct ProjPaintState {
   blender::Span<MLoop> loops_eval;
   const bool *select_poly_eval;
   const int *material_indices;
+  const bool *sharp_faces_eval;
   blender::Span<MLoopTri> looptris_eval;
 
   const float (*mloopuv_stencil_eval)[2];
@@ -1721,10 +1722,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
   if (ps->do_mask_normal) {
     const MLoopTri *lt = &ps->looptris_eval[tri_index];
     const int lt_vtri[3] = {PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt)};
-    const MPoly &poly = ps->polys_eval[lt->poly];
     float no[3], angle_cos;
 
-    if (poly.flag & ME_SMOOTH) {
+    if (!(ps->sharp_faces_eval && ps->sharp_faces_eval[lt->poly])) {
       const float *no1, *no2, *no3;
       no1 = ps->vert_normals[lt_vtri[0]];
       no2 = ps->vert_normals[lt_vtri[1]];
@@ -4079,6 +4079,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
       &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
   ps->material_indices = (const int *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
+  ps->sharp_faces_eval = static_cast<const bool *>(
+      CustomData_get_layer_named(&ps->me_eval->pdata, CD_PROP_BOOL, "sharp_face"));
 
   ps->totvert_eval = ps->me_eval->totvert;
   ps->totedge_eval = ps->me_eval->totedge;

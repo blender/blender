@@ -839,7 +839,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
         RNA_property_update(C, ptr, prop);
 
         /* tag grease pencil data-block and disable onion */
-        if (GS(id->name) == ID_GD) {
+        if (GS(id->name) == ID_GD_LEGACY) {
           DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
           DEG_id_tag_update(newid, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
           bGPdata *gpd = (bGPdata *)newid;

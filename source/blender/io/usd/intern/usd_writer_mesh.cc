@@ -440,12 +440,15 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   }
   else {
     /* Compute the loop normals based on the 'smooth' flag. */
+    bke::AttributeAccessor attributes = mesh->attributes();
     const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
     const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+    const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE, false);
     for (const int i : polys.index_range()) {
       const MPoly &poly = polys[i];
 
-      if ((poly.flag & ME_SMOOTH) == 0) {
+      if (sharp_faces[i]) {
         /* Flat shaded, use common normal for all verts. */
         pxr::GfVec3f pxr_normal(face_normals[i]);
         for (int loop_idx = 0; loop_idx < poly.totloop; ++loop_idx) {

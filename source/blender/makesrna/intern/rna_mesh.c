@@ -659,6 +659,32 @@ static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
   hide_poly[index] = value;
 }
 
+static bool rna_MeshPolygon_use_smooth_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, "sharp_face");
+  const int index = rna_MeshPolygon_index_get(ptr);
+  return !(sharp_faces && sharp_faces[index]);
+}
+
+static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  bool *sharp_faces = (bool *)CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_BOOL, "sharp_face", mesh->totpoly);
+  if (!sharp_faces) {
+    if (!value) {
+      /* Skip adding layer if the value is the same as the default. */
+      return;
+    }
+    sharp_faces = (bool *)CustomData_add_layer_named(
+        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totpoly, "sharp_face");
+  }
+  const int index = rna_MeshPolygon_index_get(ptr);
+  sharp_faces[index] = !value;
+}
+
 static bool rna_MeshPolygon_select_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -1790,8 +1816,9 @@ static bool rna_MeshLoopTriangle_use_smooth_get(PointerRNA *ptr)
 {
   const Mesh *me = rna_mesh(ptr);
   const MLoopTri *ltri = (MLoopTri *)ptr->data;
-  const MPoly *polys = BKE_mesh_polys(me);
-  return polys[ltri->poly].flag & ME_SMOOTH;
+  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_BOOL, "sharp_face");
+  return !(sharp_faces && sharp_faces[ltri->poly]);
 }
 
 /* path construction */
@@ -2960,7 +2987,8 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_MeshPolygon_use_smooth_get", "rna_MeshPolygon_use_smooth_set");
   RNA_def_property_ui_text(prop, "Smooth", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 

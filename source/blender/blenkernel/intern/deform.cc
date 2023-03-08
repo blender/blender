@@ -440,7 +440,7 @@ bool BKE_object_supports_vertex_groups(const Object *ob)
     return false;
   }
 
-  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD);
+  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD_LEGACY);
 }
 
 const ListBase *BKE_id_defgroup_list_get(const ID *id)
@@ -454,7 +454,7 @@ const ListBase *BKE_id_defgroup_list_get(const ID *id)
       const Lattice *lt = (const Lattice *)id;
       return &lt->vertex_group_names;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       const bGPdata *gpd = (const bGPdata *)id;
       return &gpd->vertex_group_names;
     }
@@ -477,7 +477,7 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
       const Lattice *lattice = (const Lattice *)ob->data;
       return &lattice->vertex_group_active_index;
     }
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       const bGPdata *gpd = (const bGPdata *)ob->data;
       return &gpd->vertex_group_active_index;
     }

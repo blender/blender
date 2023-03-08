@@ -5912,7 +5912,8 @@ static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *p
   LISTBASE_FOREACH (uiItem *, subitem, &layout->items) {
     if (subitem->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)subitem;
-      if (!(bitem->but->flag & UI_HIDDEN) && STREQ(bitem->but->str, pt->label)) {
+      if (!(bitem->but->flag & UI_HIDDEN) &&
+          STREQ(bitem->but->str, CTX_IFACE_(pt->translation_context, pt->label))) {
         return true;
       }
     }

@@ -511,7 +511,7 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   }
 
   /* vertex groups */
-  if (ELEM(ob->type, OB_MESH, OB_GPENCIL, OB_LATTICE)) {
+  if (ELEM(ob->type, OB_MESH, OB_GPENCIL_LEGACY, OB_LATTICE)) {
     const ListBase *defbase = BKE_object_defgroup_list(ob);
     if (!BLI_listbase_is_empty(defbase)) {
       TreeElement *tenla = outliner_add_element(
@@ -727,7 +727,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
       break;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd = (bGPdata *)id;
 
       if (outliner_animdata_test(gpd->adt)) {
@@ -1438,8 +1438,8 @@ static bool outliner_element_visible_get(const Scene *scene,
             return false;
           }
           break;
-        case OB_GPENCIL:
-          if (exclude_filter & SO_FILTER_NO_OB_GPENCIL) {
+        case OB_GPENCIL_LEGACY:
+          if (exclude_filter & SO_FILTER_NO_OB_GPENCIL_LEGACY) {
             return false;
           }
           break;

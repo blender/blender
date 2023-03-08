@@ -119,7 +119,7 @@ static bool is_object_data_in_editmode(const ID *id, const Object *obact)
 
   const short id_type = GS(id->name);
 
-  if (id_type == ID_GD && obact && obact->data == id) {
+  if (id_type == ID_GD_LEGACY && obact && obact->data == id) {
     bGPdata *gpd = (bGPdata *)id;
     return GPENCIL_EDIT_MODE(gpd);
   }
@@ -2357,7 +2357,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
         else {
           return ICON_OUTLINER_OB_EMPTY;
         }
-      case OB_GPENCIL:
+      case OB_GPENCIL_LEGACY:
         return ICON_OUTLINER_OB_GREASEPENCIL;
     }
 
@@ -2454,7 +2454,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       }
     case ID_LS:
       return ICON_LINE_DATA;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_LP: {
       const LightProbe *lp = (LightProbe *)id;
@@ -2645,7 +2645,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         Object *ob = (Object *)tselem->id;
         data.drag_id = tselem->id;
 
-        if (ob->type != OB_GPENCIL) {
+        if (ob->type != OB_GPENCIL_LEGACY) {
           ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
           const ModifierTypeInfo *modifier_type = static_cast<const ModifierTypeInfo *>(
               BKE_modifier_get_info((ModifierType)md->type));

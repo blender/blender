@@ -615,6 +615,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
                                       std::vector<BCPolygonNormalsIndices> &polygons_normals,
                                       Mesh *me)
 {
+  using namespace blender;
   std::map<Normal, uint> shared_normal_indices;
   int last_normal_index = -1;
 
@@ -625,6 +626,10 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   const float(*lnors)[3] = nullptr;
   bool use_custom_normals = false;
 
+  const bke::AttributeAccessor attributes = me->attributes();
+  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
+
   BKE_mesh_calc_normals_split(me);
   if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
     lnors = (float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
@@ -633,7 +638,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
 
   for (const int poly_index : polys.index_range()) {
     const MPoly *poly = &polys[poly_index];
-    bool use_vert_normals = use_custom_normals || poly->flag & ME_SMOOTH;
+    bool use_vert_normals = use_custom_normals || !sharp_faces[poly_index];
 
     if (!use_vert_normals) {
       /* For flat faces use face normal as vertex normal: */

@@ -294,7 +294,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       /* fix grease pencil modifiers and vertex groups */
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
 
         bGPdata *gpd = (bGPdata *)ob->data;
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {

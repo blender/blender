@@ -464,7 +464,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
       Object *ob = static_cast<Object *>(
           BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2));
-      if (ob && ob->type == OB_GPENCIL) {
+      if (ob && ob->type == OB_GPENCIL_LEGACY) {
         ob->dtx |= OB_USE_GPENCIL_LIGHTS;
       }
     }
@@ -550,7 +550,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   if (app_template && STREQ(app_template, "2D_Animation")) {
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (object->type == OB_GPENCIL) {
+      if (object->type == OB_GPENCIL_LEGACY) {
         /* Set grease pencil object in drawing mode */
         bGPdata *gpd = (bGPdata *)object->data;
         object->mode = OB_MODE_PAINT_GPENCIL;

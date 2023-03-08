@@ -722,7 +722,7 @@ void ShadowModule::begin_sync()
       PassMain::Sub &sub = pass.sub("Transparent");
       /* WORKAROUND: The DRW_STATE_WRITE_STENCIL is here only to avoid enabling the rasterizer
        * discard inside draw manager. */
-      sub.state_set(DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_STENCIL);
+      sub.state_set(DRW_STATE_CULL_FRONT | DRW_STATE_WRITE_STENCIL);
       sub.state_stencil(0, 0, 0);
       sub.framebuffer_set(&usage_tag_fb);
       sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT));
@@ -730,6 +730,10 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
       sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
+      sub.push_constant("pixel_world_radius", &pixel_world_radius_);
+      sub.push_constant("fb_resolution", &usage_tag_fb_resolution_);
+      sub.push_constant("fb_lod", &usage_tag_fb_lod_);
+      inst_.hiz_buffer.bind_resources(&sub);
       inst_.lights.bind_resources(&sub);
 
       box_batch_ = DRW_cache_cube_get();
@@ -1092,11 +1096,16 @@ void ShadowModule::set_view(View &view)
   int3 target_size = inst_.render_buffers.depth_tx.size();
   dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
 
-  tilemap_projection_ratio_ = tilemap_pixel_radius() /
-                              screen_pixel_radius(view, int2(target_size));
+  pixel_world_radius_ = screen_pixel_radius(view, int2(target_size));
+  tilemap_projection_ratio_ = tilemap_pixel_radius() / pixel_world_radius_;
 
-  usage_tag_fb.ensure(int2(target_size));
+  usage_tag_fb_resolution_ = math::divide_ceil(int2(target_size),
+                                               int2(std::exp2(usage_tag_fb_lod_)));
+  usage_tag_fb.ensure(usage_tag_fb_resolution_);
+
   render_fb_.ensure(int2(SHADOW_TILEMAP_RES * shadow_page_size_));
+
+  inst_.hiz_buffer.update();
 
   bool tile_update_remains = true;
   while (tile_update_remains) {

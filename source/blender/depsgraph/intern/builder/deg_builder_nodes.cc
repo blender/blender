@@ -604,7 +604,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_MB:
     case ID_CU_LEGACY:
     case ID_LT:
-    case ID_GD:
+    case ID_GD_LEGACY:
     case ID_CV:
     case ID_PT:
     case ID_VO:
@@ -933,7 +933,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
@@ -1616,7 +1616,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
 
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       /* GPencil evaluation operations. */
       op_node = add_operation_node(obdata,
                                    NodeType::GEOMETRY,

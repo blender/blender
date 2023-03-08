@@ -143,7 +143,7 @@ static void GPENCIL_render_cache(void *vedata,
                                  struct RenderEngine *UNUSED(engine),
                                  Depsgraph *UNUSED(depsgraph))
 {
-  if (ob && ELEM(ob->type, OB_GPENCIL, OB_LAMP)) {
+  if (ob && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_LAMP)) {
     if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
       GPENCIL_cache_populate(vedata, ob);
     }

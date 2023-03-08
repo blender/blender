@@ -34,7 +34,7 @@ Object *GpencilImporter::create_object()
                                                                    ushort(0);
 
   Object *ob_gpencil = ED_object_add_type(params_.C,
-                                          OB_GPENCIL,
+                                          OB_GPENCIL_LEGACY,
                                           (params_.filename[0] != '\0') ? params_.filename :
                                                                           nullptr,
                                           cur_loc,

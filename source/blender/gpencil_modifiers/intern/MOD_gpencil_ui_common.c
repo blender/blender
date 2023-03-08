@@ -40,7 +40,7 @@ static bool gpencil_modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   Object *ob = ED_object_active_context(C);
 
-  return (ob != NULL) && (ob->type == OB_GPENCIL);
+  return (ob != NULL) && (ob->type == OB_GPENCIL_LEGACY);
 }
 
 /* -------------------------------------------------------------------- */

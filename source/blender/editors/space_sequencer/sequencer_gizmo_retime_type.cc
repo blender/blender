@@ -54,10 +54,14 @@
 
 using blender::MutableSpan;
 
-#define REMOVE_GIZMO_HEIGHT 14.0f * U.dpi_fac               /* Pixels from bottom of strip.  */
-#define RETIME_HANDLE_TRIANGLE_SIZE 14.0f * U.dpi_fac       /* Size in pixels. */
-#define RETIME_HANDLE_MOUSEOVER_THRESHOLD 16.0f * U.dpi_fac /* Size in pixels. */
-#define RETIME_BUTTON_SIZE 0.6f                             /* Factor based on icon size. */
+/** Pixels from bottom of strip. */
+#define REMOVE_GIZMO_HEIGHT (14.0f * U.dpi_fac)
+/** Size in pixels. */
+#define RETIME_HANDLE_TRIANGLE_SIZE (14.0f * U.dpi_fac)
+/** Size in pixels. */
+#define RETIME_HANDLE_MOUSEOVER_THRESHOLD (16.0f * U.dpi_fac)
+/** Factor based on icon size. */
+#define RETIME_BUTTON_SIZE 0.6f
 
 static float strip_y_rescale(const Sequence *seq, const float y_value)
 {

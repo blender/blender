@@ -860,7 +860,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
-              "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
+              "LIB=${sycl_compiler_root}/../lib\;${sycl_compiler_root}/../compiler/lib/intel64_win" # for compiler to find sycl.lib and in case of icpx, libircmt.lib
               "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
               ${SYCL_COMPILER}
               "$<$<CONFIG:Release>:${sycl_compiler_flags_Release}>"

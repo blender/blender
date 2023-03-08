@@ -240,7 +240,7 @@ struct SGLSLMeshToTangent {
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[loop_index]);
     }
-    if ((polys[lt->poly].flag & ME_SMOOTH) == 0) { /* flat */
+    if (sharp_faces && sharp_faces[lt->poly]) { /* flat */
       if (precomputedFaceNormals) {
         return mikk::float3(precomputedFaceNormals[lt->poly]);
       }
@@ -285,6 +285,7 @@ struct SGLSLMeshToTangent {
   const float (*vert_normals)[3];
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */
+  const bool *sharp_faces;
   int numTessFaces;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
@@ -394,6 +395,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const MLoop *mloop,
                                    const MLoopTri *looptri,
                                    const uint looptri_len,
+                                   const bool *sharp_faces,
 
                                    CustomData *loopdata,
                                    bool calc_active_tangent,
@@ -498,6 +500,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         mesh2tangent->polys = polys;
         mesh2tangent->mloop = mloop;
         mesh2tangent->looptri = looptri;
+        mesh2tangent->sharp_faces = sharp_faces;
         /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
         mesh2tangent->precomputedLoopNormals = loop_normals;
@@ -583,6 +586,8 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       me_eval->loops().data(),
       looptris.data(),
       uint(looptris.size()),
+      static_cast<const bool *>(
+          CustomData_get_layer_named(&me_eval->pdata, CD_PROP_BOOL, "sharp_face")),
       &me_eval->ldata,
       calc_active_tangent,
       tangent_names,

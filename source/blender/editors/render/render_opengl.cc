@@ -647,7 +647,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
       return IDWALK_RET_STOP_RECURSION;
 
     /* Special cases: */
-    case ID_GD: /* bGPdata, (Grease Pencil) */
+    case ID_GD_LEGACY: /* bGPdata, (Grease Pencil) */
       /* In addition to regular ID's animdata, GreasePencil uses a specific frame-based animation
        * system that requires specific handling here. */
       gather_frames_to_render_for_grease_pencil(oglrender, (bGPdata *)id);

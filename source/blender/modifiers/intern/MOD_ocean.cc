@@ -204,7 +204,6 @@ static void generate_ocean_geometry_polys(void *__restrict userdata,
 
     gogd->polys[fi].loopstart = fi * 4;
     gogd->polys[fi].totloop = 4;
-    gogd->polys[fi].flag |= ME_SMOOTH;
   }
 }
 

@@ -94,7 +94,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, Pointer
       case SPACE_TOPBAR:     /* Top-bar */
       case SPACE_VIEW3D:     /* 3D-View */
       {
-        if (ob && (ob->type == OB_GPENCIL)) {
+        if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
           /* GP Object. */
           if (r_ptr) {
             RNA_id_pointer_create(&ob->id, r_ptr);
@@ -244,7 +244,7 @@ bGPdata *ED_annotation_data_get_active_direct(ID *screen_id, ScrArea *area, Scen
 bGPdata *ED_gpencil_data_get_active(const bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return NULL;
   }
   return ob->data;
@@ -281,7 +281,7 @@ bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr)
 
 bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
 {
-  if (ob && ob->data && (ob->type == OB_GPENCIL)) {
+  if (ob && ob->data && (ob->type == OB_GPENCIL_LEGACY)) {
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(ob->data);
     if (gpl) {
       if (gpl->actframe) {
@@ -313,7 +313,7 @@ bool gpencil_add_poll(bContext *C)
 bool gpencil_active_layer_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -894,7 +894,7 @@ void ED_gpencil_drawing_reference_get(const Scene *scene,
 
   /* if using a gpencil object at cursor mode, can use the location of the object */
   if (align_flag & GP_PROJECT_VIEWSPACE) {
-    if (ob && (ob->type == OB_GPENCIL)) {
+    if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       /* fallback (no strokes) - use cursor or object location */
       if (align_flag & GP_PROJECT_CURSOR) {
         /* use 3D-cursor */
@@ -984,7 +984,7 @@ void ED_gpencil_project_stroke_to_plane(const Scene *scene,
   else if (axis < 3) {
     plane_normal[axis] = 1.0f;
     /* if object, apply object rotation */
-    if (ob && (ob->type == OB_GPENCIL)) {
+    if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
       copy_m4_m4(mat, ob->object_to_world);
 
@@ -1206,7 +1206,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
   else if (axis < 3) {
     plane_normal[axis] = 1.0f;
     /* if object, apply object rotation */
-    if (ob && (ob->type == OB_GPENCIL)) {
+    if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
       copy_m4_m4(mat, ob->object_to_world);
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
@@ -1407,7 +1407,7 @@ Object *ED_gpencil_add_object(bContext *C, const float loc[3], ushort local_view
 {
   const float rot[3] = {0.0f};
 
-  Object *ob = ED_object_add_type(C, OB_GPENCIL, NULL, loc, rot, false, local_view_bits);
+  Object *ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, NULL, loc, rot, false, local_view_bits);
 
   /* create default brushes and colors */
   ED_gpencil_add_defaults(C, ob);
@@ -2124,7 +2124,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat)
   Material *gps_ma = NULL;
   /* Read all strokes. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = ob->data;
       if (gpd == NULL) {
         continue;
@@ -2761,7 +2761,7 @@ void ED_gpencil_tag_scene_gpencil(Scene *scene)
   /* Mark all grease pencil data-blocks of the scene. */
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
         bGPdata *gpd = (bGPdata *)ob->data;
         gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
         DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

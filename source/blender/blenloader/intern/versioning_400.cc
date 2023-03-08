@@ -31,6 +31,7 @@ static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
   BKE_mesh_legacy_convert_flags_to_hide_layers(&mesh);
   BKE_mesh_legacy_convert_uvs_to_generic(&mesh);
   BKE_mesh_legacy_convert_mpoly_to_material_indices(&mesh);
+  BKE_mesh_legacy_sharp_faces_from_flags(&mesh);
   BKE_mesh_legacy_bevel_weight_to_layers(&mesh);
   BKE_mesh_legacy_sharp_edges_from_flags(&mesh);
   BKE_mesh_legacy_face_set_to_generic(&mesh);

@@ -233,7 +233,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
   BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
-  ob_dst->mode = ob_dst->type != OB_GPENCIL ? OB_MODE_OBJECT : ob_dst->mode;
+  ob_dst->mode = ob_dst->type != OB_GPENCIL_LEGACY ? OB_MODE_OBJECT : ob_dst->mode;
   ob_dst->sculpt = nullptr;
 
   if (ob_src->pd) {
@@ -1489,7 +1489,7 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
 bool BKE_object_copy_modifier(
     Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md_src)
 {
-  BLI_assert(ob_dst->type != OB_GPENCIL);
+  BLI_assert(ob_dst->type != OB_GPENCIL_LEGACY);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_src->type);
   if (!object_modifier_type_copy_check((ModifierType)md_src->type)) {
@@ -1587,7 +1587,7 @@ bool BKE_object_copy_modifier(
 
 bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *gmd_src)
 {
-  BLI_assert(ob_dst->type == OB_GPENCIL);
+  BLI_assert(ob_dst->type == OB_GPENCIL_LEGACY);
 
   GpencilModifierData *gmd_dst = BKE_gpencil_modifier_new(gmd_src->type);
   BLI_strncpy(gmd_dst->name, gmd_src->name, sizeof(gmd_dst->name));
@@ -1607,7 +1607,7 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
                                     const bool do_copy_all,
                                     const int flag_subdata)
 {
-  if ((ob_dst->type == OB_GPENCIL) != (ob_src->type == OB_GPENCIL)) {
+  if ((ob_dst->type == OB_GPENCIL_LEGACY) != (ob_src->type == OB_GPENCIL_LEGACY)) {
     BLI_assert_msg(0,
                    "Trying to copy a modifier stack between a GPencil object and another type.");
     return false;
@@ -1904,7 +1904,7 @@ bool BKE_object_is_in_editmode(const Object *ob)
     case OB_SURF:
     case OB_CURVES_LEGACY:
       return ((Curve *)ob->data)->editnurb != nullptr;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       /* Grease Pencil object has no edit mode data. */
       return GPENCIL_EDIT_MODE((bGPdata *)ob->data);
     case OB_CURVES:
@@ -2131,7 +2131,7 @@ static const char *get_obdata_defname(int type)
       return DATA_("Volume");
     case OB_EMPTY:
       return DATA_("Empty");
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return DATA_("GPencil");
     case OB_LIGHTPROBE:
       return DATA_("LightProbe");
@@ -2156,7 +2156,7 @@ static void object_init(Object *ob, const short ob_type)
     ob->upflag = OB_POSY;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     ob->dtx |= OB_USE_GPENCIL_LIGHTS;
   }
 
@@ -2196,7 +2196,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
       return BKE_speaker_add(bmain, name);
     case OB_LIGHTPROBE:
       return BKE_lightprobe_add(bmain, name);
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return BKE_gpencil_data_addnew(bmain, name);
     case OB_CURVES:
       return BKE_curves_add(bmain, name);
@@ -2230,8 +2230,8 @@ int BKE_object_obdata_to_type(const ID *id)
       return OB_CAMERA;
     case ID_LT:
       return OB_LATTICE;
-    case ID_GD:
-      return OB_GPENCIL;
+    case ID_GD_LEGACY:
+      return OB_GPENCIL_LEGACY;
     case ID_AR:
       return OB_ARMATURE;
     case ID_LP:
@@ -2558,7 +2558,7 @@ Object *BKE_object_pose_armature_get_with_wpaint_check(Object *ob)
         }
         break;
       }
-      case OB_GPENCIL: {
+      case OB_GPENCIL_LEGACY: {
         if ((ob->mode & OB_MODE_WEIGHT_GPENCIL) == 0) {
           return nullptr;
         }
@@ -2794,7 +2794,7 @@ Object *BKE_object_duplicate(Main *bmain, Object *ob, uint dupflag, uint duplica
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       if (dupflag & USER_DUP_GPENCIL) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
@@ -3737,7 +3737,7 @@ const BoundBox *BKE_object_boundbox_get(Object *ob)
     case OB_ARMATURE:
       bb = BKE_armature_boundbox_get(ob);
       break;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       bb = BKE_gpencil_boundbox_get(ob);
       break;
     case OB_CURVES:
@@ -3889,7 +3889,7 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       changed = true;
       break;
     }
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       const BoundBox bb = *BKE_gpencil_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
@@ -4190,7 +4190,7 @@ void BKE_object_foreach_display_point(Object *ob,
       func_cb(co, user_data);
     }
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     GPencilStrokePointIterData iter_data{};
     iter_data.obmat = obmat;
     iter_data.point_func_cb = func_cb;
@@ -5118,7 +5118,7 @@ bool BKE_object_supports_material_slots(struct Object *ob)
               OB_CURVES,
               OB_POINTCLOUD,
               OB_VOLUME,
-              OB_GPENCIL);
+              OB_GPENCIL_LEGACY);
 }
 
 /** \} */

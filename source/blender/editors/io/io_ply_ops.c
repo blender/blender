@@ -64,7 +64,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
-  struct PLYExportParams export_params;
+  struct PLYExportParams export_params = {"\0"};
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;

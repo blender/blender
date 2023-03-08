@@ -195,6 +195,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
+  SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE);
+
   blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
       &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
 
@@ -278,9 +281,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           }
         }
 
-        if (is_smooth) {
-          polys[dst_poly].flag |= ME_SMOOTH;
-        }
+        sharp_faces.span[dst_poly] = !is_smooth;
         dst_poly++;
         dst_loop += 3;
         index += 3;
@@ -363,9 +364,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
             }
           }
 
-          if (is_smooth) {
-            polys[dst_poly].flag |= ME_SMOOTH;
-          }
+          sharp_faces.span[dst_poly] = !is_smooth;
           dst_poly++;
           dst_loop += 4;
 
@@ -383,6 +382,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   material_indices.finish();
+  sharp_faces.finish();
 
   return mesh;
 }

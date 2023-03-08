@@ -3754,16 +3754,6 @@ static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
   BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
 }
 
-static ARegion *get_window_region(bAnimContext *ac)
-{
-  LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      return region;
-    }
-  }
-  return NULL;
-}
-
 static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -3772,8 +3762,7 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-
-  ARegion *window_region = get_window_region(&ac);
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
 
   if (!window_region) {
     return OPERATOR_CANCELLED;
@@ -3869,7 +3858,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
-  ARegion *window_region = get_window_region(&ac);
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
 
   if (!window_region) {
     return OPERATOR_CANCELLED;

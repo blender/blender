@@ -1865,7 +1865,7 @@ def pyrna2sphinx(basepath):
                     else:
                         url_base = API_BASEURL
 
-                    fw("   :file: `%s\\:%d <%s/%s$%d>`_\n\n" %
+                    fw("   :file:`%s\\:%d <%s/%s#L%d>`_\n\n" %
                        (location[0], location[1], url_base, location[0], location[1]))
 
             file.close()

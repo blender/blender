@@ -136,7 +136,7 @@ void GpencilIO::create_object_list()
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
 
-    if (object->type != OB_GPENCIL) {
+    if (object->type != OB_GPENCIL_LEGACY) {
       continue;
     }
     if ((params_.select_mode == GP_EXPORT_ACTIVE) && (params_.ob != object)) {

@@ -1468,7 +1468,7 @@ static bool gpencil_convert_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
 
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 

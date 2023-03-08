@@ -224,8 +224,14 @@ OperationCode bone_target_opcode(ID *target,
 
 bool object_have_geometry_component(const Object *object)
 {
-  return ELEM(
-      object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
+  return ELEM(object->type,
+              OB_MESH,
+              OB_CURVES_LEGACY,
+              OB_FONT,
+              OB_SURF,
+              OB_MBALL,
+              OB_LATTICE,
+              OB_GPENCIL_LEGACY);
 }
 
 }  // namespace
@@ -542,7 +548,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_CV:
     case ID_PT:
     case ID_VO:
-    case ID_GD:
+    case ID_GD_LEGACY:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -942,7 +948,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME: {
@@ -2435,7 +2441,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
     }
     case ID_LT:
       break;
-    case ID_GD: /* Grease Pencil */
+    case ID_GD_LEGACY: /* Grease Pencil */
     {
       bGPdata *gpd = (bGPdata *)obdata;
 

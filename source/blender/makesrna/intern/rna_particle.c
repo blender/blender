@@ -2948,6 +2948,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_range(prop, 0, 1000000, 1, -1);
   RNA_def_property_ui_text(prop, "Number", "Total number of particles");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(

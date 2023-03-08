@@ -255,7 +255,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -382,7 +382,7 @@ static void rna_Object_duplicator_visibility_flag_update(Main *UNUSED(bmain),
 static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
@@ -391,7 +391,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
@@ -600,7 +600,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_Speaker;
     case OB_LIGHTPROBE:
       return &RNA_LightProbe;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return &RNA_GreasePencil;
     case OB_CURVES:
       return &RNA_Curves;
@@ -617,7 +617,7 @@ static bool rna_Object_data_poll(PointerRNA *ptr, const PointerRNA value)
 {
   Object *ob = (Object *)ptr->data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Object - Don't allow using "Annotation" GP datablocks here */
     bGPdata *gpd = value.data;
     return (gpd->flag & GP_DATA_ANNOTATIONS) == 0;
@@ -1138,7 +1138,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BLI_assert(BKE_id_is_in_global_main(value.data));
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* notifying material property in topbar */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
@@ -1377,7 +1377,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = (Object *)ptr->owner_id;
   Material *ma = (Material *)value.data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Materials only */
     return (ma->gp_style != NULL);
   }
@@ -2237,7 +2237,7 @@ bool rna_Light_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  return ((Object *)value.owner_id)->type == OB_GPENCIL;
+  return ((Object *)value.owner_id)->type == OB_GPENCIL_LEGACY;
 }
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)

@@ -71,11 +71,11 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
     if (mr->loop_normals) {
       *lnor_data = GPU_normal_convert_i10_v3(mr->loop_normals[ml_index]);
     }
-    else if (poly->flag & ME_SMOOTH) {
-      *lnor_data = GPU_normal_convert_i10_v3(mr->vert_normals[ml->v]);
+    else if (mr->sharp_faces && mr->sharp_faces[poly_index]) {
+      *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[poly_index]);
     }
     else {
-      *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[poly_index]);
+      *lnor_data = GPU_normal_convert_i10_v3(mr->vert_normals[ml->v]);
     }
 
     /* Flag for paint mode overlay.
@@ -195,11 +195,11 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
     if (mr->loop_normals) {
       normal_float_to_short_v3(&lnor_data->x, mr->loop_normals[ml_index]);
     }
-    else if (poly->flag & ME_SMOOTH) {
-      normal_float_to_short_v3(&lnor_data->x, mr->vert_normals[ml->v]);
+    else if (mr->sharp_faces && mr->sharp_faces[poly_index]) {
+      normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[poly_index]);
     }
     else {
-      normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[poly_index]);
+      normal_float_to_short_v3(&lnor_data->x, mr->vert_normals[ml->v]);
     }
 
     /* Flag for paint mode overlay.

@@ -1063,7 +1063,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_BR (1ULL << 2)
 #define FILTER_ID_CA (1ULL << 3)
 #define FILTER_ID_CU_LEGACY (1ULL << 4)
-#define FILTER_ID_GD (1ULL << 5)
+#define FILTER_ID_GD_LEGACY (1ULL << 5)
 #define FILTER_ID_GR (1ULL << 6)
 #define FILTER_ID_IM (1ULL << 7)
 #define FILTER_ID_LA (1ULL << 8)
@@ -1100,12 +1100,12 @@ typedef enum IDRecalcFlag {
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU_LEGACY | \
-   FILTER_ID_GD | FILTER_ID_GR | FILTER_ID_IM | FILTER_ID_LA | FILTER_ID_LS | FILTER_ID_LT | \
-   FILTER_ID_MA | FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | \
-   FILTER_ID_OB | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | \
-   FILTER_ID_SO | FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | \
-   FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM | \
-   FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI)
+   FILTER_ID_GD_LEGACY | FILTER_ID_GR | FILTER_ID_IM | FILTER_ID_LA | FILTER_ID_LS | \
+   FILTER_ID_LT | FILTER_ID_MA | FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | \
+   FILTER_ID_NT | FILTER_ID_OB | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | \
+   FILTER_ID_SPK | FILTER_ID_SO | FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | \
+   FILTER_ID_CF | FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | \
+   FILTER_ID_SIM | FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
@@ -1149,7 +1149,7 @@ enum {
    * other ID types, including node trees e.g.
    * So there is no proper place for those, for now keep close to the lower end of the processing
    * hierarchy, but we may want to re-evaluate that at some point. */
-  INDEX_ID_GD,
+  INDEX_ID_GD_LEGACY,
 
   /* Node trees, abstraction for procedural data, potentially used by many other ID types.
    *

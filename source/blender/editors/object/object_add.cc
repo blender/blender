@@ -1304,7 +1304,7 @@ static bool object_gpencil_add_poll(bContext *C)
     return false;
   }
 
-  if (obact && obact->type == OB_GPENCIL) {
+  if (obact && obact->type == OB_GPENCIL_LEGACY) {
     if (obact->mode != OB_MODE_OBJECT) {
       return false;
     }
@@ -1316,7 +1316,8 @@ static bool object_gpencil_add_poll(bContext *C)
 static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C), *ob_orig = ob;
-  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? static_cast<bGPdata *>(ob->data) : nullptr;
+  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL_LEGACY)) ? static_cast<bGPdata *>(ob->data) :
+                                                           nullptr;
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
@@ -1361,7 +1362,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       }
     }
 
-    ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true, local_view_bits);
+    ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, ob_name, loc, rot, true, local_view_bits);
     gpd = static_cast<bGPdata *>(ob->data);
     newob = true;
   }
@@ -2266,7 +2267,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     }
 
     /* if grease pencil object, set cache as dirty */
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
@@ -2761,7 +2762,7 @@ static const EnumPropertyItem convert_target_items[] = {
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-    {OB_GPENCIL,
+    {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
      "Grease Pencil",
@@ -2980,7 +2981,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
           BKE_object_free_shaderfx(ob, 0);
         }
@@ -3013,7 +3014,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
     }
-    else if (ob->type == OB_MESH && target == OB_GPENCIL) {
+    else if (ob->type == OB_MESH && target == OB_GPENCIL_LEGACY) {
       ob->flag |= OB_DONE;
 
       /* Create a new grease pencil object and copy transformations. */
@@ -3245,7 +3246,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
         Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
         copy_v3_v3(ob_gpencil->rot, newob->rot);
@@ -3280,7 +3281,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         if (ob->type != OB_CURVES_LEGACY) {
           ob->flag &= ~OB_DONE;
           BKE_report(op->reports, RPT_ERROR, "Convert Surfaces to Grease Pencil is not supported");
@@ -3528,7 +3529,7 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
   if (target == OB_MESH) {
     uiItemR(layout, op->ptr, "merge_customdata", 0, nullptr, ICON_NONE);
   }
-  else if (target == OB_GPENCIL) {
+  else if (target == OB_GPENCIL_LEGACY) {
     uiItemR(layout, op->ptr, "thickness", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "angle", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "offset", 0, nullptr, ICON_NONE);
@@ -4106,7 +4107,7 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
     return ED_operator_screenactive(C);
   }
   return false;
@@ -4133,7 +4134,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
       BKE_report(op->reports, RPT_ERROR, "This data does not support joining in this mode");
@@ -4151,7 +4152,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     ret = ED_gpencil_join_objects_exec(C, op);
   }
 
