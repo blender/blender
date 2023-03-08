@@ -747,14 +747,14 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Set the USD units to centimeters and scale the scene to convert from meters");
 
   RNA_def_enum(ot->srna,
-               "export_global_forward_selection",
+               "forward_axis",
                prop_usd_export_global_forward,
                USD_DEFAULT_FORWARD,
                "Forward Axis",
                "Global Forward axis for export");
 
   RNA_def_enum(ot->srna,
-               "export_global_up_selection",
+               "up_axis",
                prop_usd_export_global_up,
                USD_DEFAULT_UP,
                "Up Axis",
