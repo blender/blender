@@ -131,9 +131,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    const MPoly *p = &ss->polys[vert_map->indices[i]];
     for (int l = 0; l < p->totloop; l++) {
-      const MLoop *loop = &ss->mloop[p->loopstart + l];
+      const MLoop *loop = &ss->loops[p->loopstart + l];
       if (loop->v == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -252,7 +252,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
       }
 
       if (typemask & SCULPT_BOUNDARY_SEAM) {
-        ret |= ss->medge[edge.i].flag & ME_SEAM ? SCULPT_BOUNDARY_SEAM : 0;
+        ret |= (ss->seam_edge && ss->seam_edge[edge.i]) ? SCULPT_BOUNDARY_SEAM : 0;
       }
 
       break;
@@ -280,8 +280,8 @@ void SCULPT_edge_get_verts(const SculptSession *ss,
     }
 
     case PBVH_FACES: {
-      r_v1->i = (intptr_t)ss->medge[edge.i].v1;
-      r_v2->i = (intptr_t)ss->medge[edge.i].v2;
+      r_v1->i = (intptr_t)ss->edges[edge.i].v1;
+      r_v2->i = (intptr_t)ss->edges[edge.i].v2;
       break;
     }
     case PBVH_GRIDS:
@@ -320,7 +320,7 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
   int v1, v2;
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-      ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+      ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
 
   switch (adjacency) {
     case SUBDIV_CCG_ADJACENT_VERTEX:
@@ -352,13 +352,14 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                       ss->face_sets,
                                       ss->hide_poly,
                                       ss->vert_positions,
-                                      ss->medge,
-                                      ss->mloop,
-                                      ss->mpoly,
+                                      ss->edges,
+                                      ss->loops,
+                                      ss->polys,
                                       ss->msculptverts,
                                       ss->pmap->pmap,
                                       vertex,
-                                      ss->sharp_edge);
+                                      ss->sharp_edge,
+                                      ss->seam_edge);
 
   /* We have to handle boundary here seperately. */
 
@@ -372,7 +373,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
       bool ok = true;
 
       for (int i = 0; i < ss->pmap->pmap[vertex.i].count; i++) {
-        const MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
+        const MPoly *mp = ss->polys + ss->pmap->pmap[vertex.i].indices[i];
         if (mp->totloop < 4) {
           ok = false;
         }
@@ -471,7 +472,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
 
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
@@ -605,12 +606,11 @@ void SCULPT_stroke_id_ensure(Object *ob)
 
   if (!ss->attrs.stroke_id) {
     SculptAttributeParams params = {0};
-    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(
-        ob,
-        ATTR_DOMAIN_POINT,
-        CD_PROP_INT32,
-        SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
-        &params);
+    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(ob,
+                                                      ATTR_DOMAIN_POINT,
+                                                      CD_PROP_INT32,
+                                                      SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
+                                                      &params);
   }
 }
 

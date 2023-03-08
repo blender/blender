@@ -2964,8 +2964,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
       CustomData_get_layer_for_write(&me->vdata, CD_MVERT_SKIN, me->totvert));
   int *emap_mem;
   MeshElemMap *emap;
-  BKE_mesh_vert_edge_map_create(
-      &emap, &emap_mem, nullptr, me_edges.data(), me->totvert, me->totedge, false);
+  BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me_edges.data(), me->totvert, me->totedge);
 
   BLI_bitmap *edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 

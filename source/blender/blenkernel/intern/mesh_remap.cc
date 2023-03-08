@@ -739,11 +739,9 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       BKE_mesh_vert_edge_map_create(&vert_to_edge_src_map,
                                     &vert_to_edge_src_map_mem,
-                                    nullptr,
                                     edges_src.data(),
                                     num_verts_src,
-                                    int(edges_src.size()),
-                                    false);
+                                    int(edges_src.size()));
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_VERTS, 2);
       nearest.index = -1;

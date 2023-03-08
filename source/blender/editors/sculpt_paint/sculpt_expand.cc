@@ -157,7 +157,7 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
     return sculpt_expand_is_vert_in_active_component(ss, expand_cache, v);
   }
   else {
-    const MLoop *loop = &ss->loops[ss->polys[f].loopstart];
+    const MLoop *loop = &ss->loops[ss->polys[f.i].loopstart];
     return sculpt_expand_is_vert_in_active_component(
         ss, expand_cache, BKE_pbvh_index_to_vertex(ss->pbvh, loop->v));
   }
@@ -1197,7 +1197,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     const MPoly &poly = ss->polys[p];
     bool any_disabled = false;
     for (int l = 0; l < poly.totloop; l++) {
-      const MLoop *loop = &ss->mloop[l + poly.loopstart];
+      const MLoop *loop = &ss->loops[l + poly.loopstart];
       if (!BLI_BITMAP_TEST(enabled_verts, loop->v)) {
         any_disabled = true;
         break;

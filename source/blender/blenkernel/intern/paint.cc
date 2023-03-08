@@ -1863,6 +1863,8 @@ static void sculpt_update_object(
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
     ss->sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &me->edata, CD_PROP_BOOL, "sharp_edge", me->totedge);
+    ss->seam_edge = (bool *)CustomData_get_layer_named_for_write(
+        &me->edata, CD_PROP_BOOL, ".uv_seam", me->totedge);
     ss->polys = me->polys().data();
     ss->edges = me->edges().data();
     ss->loops = me->loops().data();
@@ -2814,7 +2816,8 @@ static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totve
                                         ss->msculptverts,
                                         ss->pmap->pmap,
                                         vertex,
-                                        ss->sharp_edge);
+                                        ss->sharp_edge,
+                                        ss->seam_edge);
 
     // can't fully update boundary here, so still flag for update
     BKE_sculpt_boundary_flag_update(ss, vertex);

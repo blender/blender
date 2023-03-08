@@ -4114,7 +4114,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
   int len = 0;
 
   for (int i = 0; i < map->count; i++) {
-    const MPoly *mp = pbvh->mpoly + map->indices[i];
+    const MPoly *mp = pbvh->polys + map->indices[i];
     const MLoop *ml = pbvh->mloop + mp->loopstart;
 
     if (pbvh->hide_poly && pbvh->hide_poly[map->indices[i]]) {
@@ -4390,7 +4390,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          MSculptVert *msculptverts,
                                          const MeshElemMap *pmap,
                                          PBVHVertRef vertex,
-                                         const bool *sharp_edges)
+                                         const bool *sharp_edges,
+                                         const bool *seam_edges)
 {
   MSculptVert *mv = msculptverts + vertex.i;
   const MeshElemMap *vert_map = &pmap[vertex.i];
@@ -4426,7 +4427,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
         totsharp++;
       }
 
-      if (me->flag & ME_SEAM) {
+      if (seam_edges && seam_edges[ml->e]) {
         *flags |= SCULPT_BOUNDARY_SEAM;
         totseam++;
       }
@@ -4709,14 +4710,14 @@ PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
       case PBVH_BMESH:
         break;
       case PBVH_FACES:
-        pbvh->vert_normals = BKE_mesh_vertex_normals_for_write(me);
+        pbvh->vert_normals = BKE_mesh_vert_normals_for_write(me);
       case PBVH_GRIDS:
         if (!pbvh->deformed) {
           pbvh->vert_positions = BKE_mesh_vert_positions_for_write(me);
         }
 
-        pbvh->mloop = me->mloop;
-        pbvh->mpoly = me->mpoly;
+        pbvh->mloop = me->loops().data();
+        pbvh->polys = me->polys().data();
         pbvh->vdata = &me->vdata;
         pbvh->ldata = &me->ldata;
         pbvh->pdata = &me->pdata;

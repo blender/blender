@@ -131,7 +131,7 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
 
     case PBVH_FACES:
     case PBVH_GRIDS: {
-      const MPoly *mp = ss->mpoly + face.i;
+      const MPoly *mp = ss->polys + face.i;
       BKE_mesh_calc_poly_normal(mp, ss->loops + mp->loopstart, ss->vert_positions, no);
       break;
     }
@@ -993,58 +993,6 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
       break;
     }
   }
-}
-
-static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss, int index)
-{
-  if (!ss->face_sets) {
-    return true;
-  }
-  const MeshElemMap *vert_map = &ss->pmap->pmap[index];
-  int face_set = -1;
-  for (int i = 0; i < vert_map->count; i++) {
-    if (face_set == -1) {
-      face_set = ss->face_sets[vert_map->indices[i]];
-    }
-    else {
-      if (ss->face_sets[vert_map->indices[i]] != face_set) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-/**
- * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
- * in the base mesh are equal.
- */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
-{
-  const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
-  int p1 = -1, p2 = -1;
-  for (int i = 0; i < vert_map->count; i++) {
-    const MPoly &poly = ss->polys[vert_map->indices[i]];
-    for (int l = 0; l < poly.totloop; l++) {
-      const MLoop *loop = &ss->loops[poly.loopstart + l];
-      if (loop->v == v2) {
-        if (p1 == -1) {
-          p1 = vert_map->indices[i];
-          break;
-        }
-
-        if (p2 == -1) {
-          p2 = vert_map->indices[i];
-          break;
-        }
-      }
-    }
-  }
-
-  if (p1 != -1 && p2 != -1) {
-    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
-  }
-  return true;
 }
 
 bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex)
@@ -4665,11 +4613,6 @@ static void sculpt_combine_proxies_node(Object &object,
 {
   SculptSession *ss = object.sculpt;
 
-  float(*orco)[3] = nullptr;
-  if (use_orco && !ss->bm) {
-    orco = SCULPT_undo_push_node(&object, &node, SCULPT_UNDO_COORDS)->co;
-  }
-
   int proxy_count;
   PBVHProxyNode *proxies;
   BKE_pbvh_node_get_proxies(&node, &proxies, &proxy_count);
@@ -6216,7 +6159,6 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 {
-  SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* For the cloth brush it makes more sense to not restore the mesh state to keep running the

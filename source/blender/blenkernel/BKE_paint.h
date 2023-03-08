@@ -983,6 +983,7 @@ typedef struct SculptSession {
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
   bool *sharp_edge;
+  bool *seam_edge;
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 
   bool hard_edge_mode;

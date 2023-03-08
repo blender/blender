@@ -309,7 +309,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   if (!ss->vemap) {
 
     BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, cos, mesh->medge, mesh->totvert, mesh->totedge, true);
+        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -532,21 +532,17 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
   }
 
   BMEdge *e;
-  int i = 0;
 
   BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
     const int v1_i = BM_elem_index_get(e->v1);
     const int v2_i = BM_elem_index_get(e->v2);
 
     if (!BLI_BITMAP_TEST(affected_vertex, v1_i) && !BLI_BITMAP_TEST(affected_vertex, v2_i)) {
-      i++;
       continue;
     }
     if (dists[v1_i] != FLT_MAX || dists[v2_i] != FLT_MAX) {
       BLI_LINKSTACK_PUSH(queue, e);
     }
-
-    i++;
   }
 
   do {

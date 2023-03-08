@@ -1287,7 +1287,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          struct MSculptVert *msculptverts,
                                          const struct MeshElemMap *pmap,
                                          PBVHVertRef vertex,
-                                         const bool *sharp_edges);
+                                         const bool *sharp_edges,
+                                         const bool *seam_edges);
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
                                          PBVHVertRef vertex);

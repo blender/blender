@@ -1588,8 +1588,7 @@ static void vgroup_smooth_subset(Object *ob,
     emap_mem = nullptr;
   }
   else {
-    BKE_mesh_vert_edge_map_create(
-        &emap, &emap_mem, nullptr, me->edges().data(), me->totvert, me->totedge, false);
+    BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me->edges().data(), me->totvert, me->totedge);
   }
 
   weight_accum_prev = static_cast<float *>(

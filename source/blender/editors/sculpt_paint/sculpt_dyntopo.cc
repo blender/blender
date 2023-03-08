@@ -217,9 +217,9 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     int i3 = (i + 1) % elem->count;
 
     const float *v = ss->vert_positions[vertex.i];
-    const MEdge *e1 = ss->medge + elem->indices[i1];
-    const MEdge *e2 = ss->medge + elem->indices[i2];
-    const MEdge *e3 = ss->medge + elem->indices[i3];
+    const MEdge *e1 = ss->edges + elem->indices[i1];
+    const MEdge *e2 = ss->edges + elem->indices[i2];
+    const MEdge *e3 = ss->edges + elem->indices[i3];
 
     const float *v1 = (unsigned int)vertex.i == e1->v1 ? ss->vert_positions[e1->v2] :
                                                          ss->vert_positions[e1->v1];
@@ -279,13 +279,8 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
       Mesh *mesh = BKE_object_get_original_mesh(ob);
 
       if (!ss->vemap) {
-        BKE_mesh_vert_edge_map_create(&ss->vemap,
-                                      &ss->vemap_mem,
-                                      ss->vert_positions,
-                                      BKE_mesh_edges(mesh),
-                                      mesh->totvert,
-                                      mesh->totedge,
-                                      true);
+        BKE_mesh_vert_edge_map_create(
+            &ss->vemap, &ss->vemap_mem, mesh->edges().data(), mesh->totvert, mesh->totedge);
       }
 
       break;
@@ -458,8 +453,8 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   ss->totvert = ss->bm->totvert;
 
   //  BM_mesh_triangulate(
-  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, nullptr, nullptr,
-  //      nullptr);
+  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, nullptr,
+  //      nullptr, nullptr);
 }
 
 void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
@@ -1753,8 +1748,16 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
     }
 
     PBVHVertRef vertex = {(intptr_t)sv->v};
-    sv->brushfade = SCULPT_brush_strength_factor(
-        ss, brush, sv->v->co, sqrtf(test.dist), nullptr, sv->v->no, 0.0f, vertex, 0, &automask_data);
+    sv->brushfade = SCULPT_brush_strength_factor(ss,
+                                                 brush,
+                                                 sv->v->co,
+                                                 sqrtf(test.dist),
+                                                 nullptr,
+                                                 sv->v->no,
+                                                 0.0f,
+                                                 vertex,
+                                                 0,
+                                                 &automask_data);
   }
 
   for (int i = 0; i < 5; i++) {
