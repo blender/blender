@@ -388,23 +388,21 @@ void USDGenericMeshWriter::write_vertex_groups(const Object *ob,
 
   // Extract vertex groups
   if (as_point_groups) {
-    for (i = 0; i < mesh->totvert; i++) {
+    const blender::Span<MDeformVert> verts = mesh->deform_verts();
+    for (i = 0; i < verts.size(); i++) {
       // Init to zero
       for (j = 0; j < num_groups; j++) {
         pv_data[j][i] = 0.0f;
       }
 
-      MDeformVert *vert = &mesh->dvert[i];
-      if (vert) {
-        for (j = 0; j < vert->totweight; j++) {
-          uint idx = vert->dw[j].def_nr;
-          float w = vert->dw[j].weight;
-          /* This out of bounds check is necessary because MDeformVert.totweight can be
-          larger than the number of bDeformGroup structs in Object.defbase. It appears to be
-          a Blender bug that can cause this scenario.*/
-          if (idx < num_groups) {
-            pv_data[idx][i] = w;
-          }
+      for (j = 0; j < verts[i].totweight; j++) {
+        uint idx = verts[i].dw[j].def_nr;
+        float w = verts[i].dw[j].weight;
+        /* This out of bounds check is necessary because MDeformVert.totweight can be
+        larger than the number of bDeformGroup structs in Object.defbase. It appears to be
+        a Blender bug that can cause this scenario.*/
+        if (idx < num_groups) {
+          pv_data[idx][i] = w;
         }
       }
     }
