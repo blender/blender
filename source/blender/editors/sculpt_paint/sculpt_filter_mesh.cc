@@ -826,7 +826,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator *op)
     SCULPT_orig_vert_data_init(&orig_data, ob, nodes[i], SCULPT_UNDO_COORDS);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(&orig_data, &vd);
+      SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
       copy_v3_v3(vd.co, orig_data.co);
     }

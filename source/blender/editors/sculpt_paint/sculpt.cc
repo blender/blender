@@ -307,17 +307,7 @@ void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]
 
 bool SCULPT_has_persistent_base(SculptSession *ss)
 {
-  if (ss->bm) {
-    return CustomData_get_named_layer_index(
-               &ss->bm->vdata, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co)) != -1;
-  }
-  else if (ss->vdata) {
-    return CustomData_get_named_layer_index(
-               ss->vdata, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co)) != -1;
-  }
-
-  /* Detect multires. */
-  return ss->attrs.persistent_co;
+  return BKE_sculpt_has_persistent_base(ss);
 }
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex)

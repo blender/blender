@@ -1342,7 +1342,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BKE_mesh_calc_edges(trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
 
-  mp = trim_operation->mesh->mpoly + tot_tris_face * 2;
+  MPoly *mp = &polys[tot_tris_face * 2];
 
   bool *sharp_edge = (bool *)CustomData_get_layer_named_for_write(
       &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
@@ -1359,7 +1359,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* flag edges as sharp for dyntopo remesher */
   for (int i = 0; i < tot_screen_points * 2; i++, mp++) {
-    ml = trim_operation->mesh->mloop + mp->loopstart;
+    MLoop *ml = &loops[mp->loopstart];
 
     sharp_edge[ml[1].e] = true;
   }

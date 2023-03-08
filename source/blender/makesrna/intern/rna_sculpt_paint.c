@@ -575,8 +575,6 @@ static char *rna_GPencilSculptGuide_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
 }
 
-bool SCULPT_has_persistent_base(SculptSession *ss);
-
 bool rna_Sculpt_has_persistent_base(bContext *C)
 {
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
@@ -590,7 +588,7 @@ bool rna_Sculpt_has_persistent_base(bContext *C)
     return false;
   }
 
-  return SCULPT_has_persistent_base(ob->sculpt);
+  return BKE_sculpt_has_persistent_base(ob->sculpt);
 }
 
 static void rna_Sculpt_automasking_invert_cavity_set(PointerRNA *ptr, bool val)

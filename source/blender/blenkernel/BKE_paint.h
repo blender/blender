@@ -1135,6 +1135,8 @@ bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct Regio
 
 char BKE_get_fset_boundary_symflag(struct Object *object);
 
+bool BKE_sculpt_has_persistent_base(SculptSession *ss);
+
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),

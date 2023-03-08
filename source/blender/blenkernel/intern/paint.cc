@@ -76,7 +76,7 @@
 #include "bmesh_log.h"
 
 // TODO: figure out bad cross module refs
-extern "C" void SCULPT_undo_ensure_bmlog(Object *ob);
+void SCULPT_undo_ensure_bmlog(Object *ob);
 
 static void init_sculptvert_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
@@ -3884,4 +3884,19 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
   attr->used = false;
 
   return true;
+}
+
+bool BKE_sculpt_has_persistent_base(SculptSession *ss)
+{
+  if (ss->bm) {
+    return CustomData_get_named_layer_index(
+               &ss->bm->vdata, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co)) != -1;
+  }
+  else if (ss->vdata) {
+    return CustomData_get_named_layer_index(
+               ss->vdata, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co)) != -1;
+  }
+
+  /* Detect multires. */
+  return ss->attrs.persistent_co;
 }
