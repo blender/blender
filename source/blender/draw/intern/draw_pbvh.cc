@@ -1012,13 +1012,27 @@ struct PBVHBatches {
         break;
 
       case CD_PBVH_NO_TYPE:
-        foreach_bmesh([&](BMLoop *l) {
-          short no[3];
-          bool smooth = BM_elem_flag_test(l->f, BM_ELEM_SMOOTH);
+        if (args->show_orig) {
+          int cd_sculpt_vert = CustomData_get_offset(&args->bm->vdata, CD_DYNTOPO_VERT);
 
-          normal_float_to_short_v3(no, smooth ? l->v->no : l->f->no);
-          *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
-        });
+          foreach_bmesh([&](BMLoop *l) {
+            MSculptVert *mv = static_cast<MSculptVert *>(
+                BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert));
+            short no[3];
+
+            normal_float_to_short_v3(no, mv->origno);
+            *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
+          });
+        }
+        else {
+          foreach_bmesh([&](BMLoop *l) {
+            short no[3];
+            bool smooth = BM_elem_flag_test(l->f, BM_ELEM_SMOOTH);
+
+            normal_float_to_short_v3(no, smooth ? l->v->no : l->f->no);
+            *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
+          });
+        }
         break;
 
       case CD_PBVH_MASK_TYPE: {

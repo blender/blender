@@ -214,9 +214,7 @@ static void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
     BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
   }
 
-#ifdef USE_NEW_IDMAP
   BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
-#endif
   BM_vert_kill(pbvh->header.bm, v);
   bm_logstack_pop();
 }
@@ -1255,7 +1253,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   BLI_rng_free(rng);
 }
 
-bool check_face_is_tri(PBVH *pbvh, BMFace *f)
+ATTR_NO_OPT bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 {
 #if DYNTOPO_DISABLE_FLAG & DYNTOPO_DISABLE_TRIANGULATOR
   return true;
@@ -1290,9 +1288,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   // BKE_pbvh_bmesh_remove_face(pbvh, f, true);
   pbvh_bmesh_face_remove(pbvh, f, false, true, true);
   BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
-#ifdef USE_NEW_IDMAP
   BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
-#endif
 
   int len = (f->len - 2) * 3;
 
@@ -1304,10 +1300,8 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   MemArena *arena = nullptr;
   struct Heap *heap = nullptr;
 
-  if (f->len > 4) {
-    arena = BLI_memarena_new(512, "ngon arena");
-    heap = BLI_heap_new();
-  }
+  arena = BLI_memarena_new(512, "ngon arena");
+  heap = BLI_heap_new();
 
   BM_face_triangulate(pbvh->header.bm,
                       f,
@@ -1338,9 +1332,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       f = nullptr;
     }
 
-#ifdef USE_NEW_IDMAP
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)dbl->link, true);
-#endif
     BM_face_kill(pbvh->header.bm, (BMFace *)dbl->link);
 
     MEM_freeN(dbl);
@@ -1535,9 +1527,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
 
     pbvh_bmesh_face_remove(pbvh, f, true, false, false);
-#  ifdef USE_NEW_IDMAP
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
-#  endif
     BM_face_kill(pbvh->header.bm, f);
   }
 
@@ -1548,9 +1538,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
     if (!e->l) {
       BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
-#  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
-#  endif
       BM_edge_kill(pbvh->header.bm, e);
     }
   }
@@ -1562,9 +1550,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       pbvh_bmesh_vert_remove(pbvh, v);
 
       BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
-#  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
-#  endif
       BM_vert_kill(pbvh->header.bm, v);
     }
     else {

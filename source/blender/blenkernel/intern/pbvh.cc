@@ -769,8 +769,15 @@ void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas)
   pbvh->face_areas = face_areas;
 }
 
-/* XXX investigate this global. */
-extern "C" bool pbvh_show_orig_co = false;
+void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig)
+{
+  pbvh->show_orig = show_orig;
+}
+
+bool BKE_pbvh_show_orig_get(PBVH *pbvh)
+{
+  return pbvh->show_orig;
+}
 
 static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 {
@@ -791,7 +798,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->polys = pbvh->polys;
   args->mlooptri = pbvh->looptri;
   args->flat_vcol_shading = pbvh->flat_vcol_shading;
-  args->show_orig = pbvh_show_orig_co;
   args->updategen = node->updategen;
   args->msculptverts = pbvh->msculptverts;
 
@@ -861,6 +867,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->tri_buffers = node->tri_buffers;
       args->tot_tri_buffers = node->tot_tri_buffers;
 
+      args->show_orig = pbvh->show_orig;
       break;
   }
 }
@@ -3504,7 +3511,7 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
   for (int a = 0; a < pbvh->totnode; a++) {
     PBVHNode *node = &pbvh->nodes[a];
 
-    if (pbvh_show_orig_co) {
+    if (pbvh->show_orig) {
       draw_fn(node, user_data, node->orig_vb.bmin, node->orig_vb.bmax, node->flag);
     }
     else {

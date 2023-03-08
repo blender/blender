@@ -761,6 +761,13 @@ ATTR_NO_OPT void BLI_mempool_free(BLI_mempool *pool, void *addr)
   mempool_unpoison(pool);
 
   if (pool->flag & BLI_MEMPOOL_IGNORE_FREE) {
+    BLI_freenode *newhead = addr;
+
+    if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
+      newhead->freeword = FREEWORD;
+    }
+
+    BLI_asan_poison(newhead, pool->esize);
     mempool_poison(pool);
     return;
   }

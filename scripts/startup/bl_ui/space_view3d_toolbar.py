@@ -951,6 +951,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "use_sculpt_delay_updates")
         col.prop(sculpt, "use_deform_only")
+        col.prop(tool_settings, "show_origco")
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):

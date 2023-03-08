@@ -2149,19 +2149,19 @@ void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
 }
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          Mesh *me,
-                          BMesh *bm,
-                          bool smooth_shading,
-                          BMLog *log,
-                          BMIdMap *idmap,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset,
-                          const int cd_sculpt_vert,
-                          const int cd_face_areas,
-                          const int cd_boundary_flag,
-                          bool fast_draw,
-                          bool update_sculptverts)
+ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                                      Mesh *me,
+                                      BMesh *bm,
+                                      bool smooth_shading,
+                                      BMLog *log,
+                                      BMIdMap *idmap,
+                                      const int cd_vert_node_offset,
+                                      const int cd_face_node_offset,
+                                      const int cd_sculpt_vert,
+                                      const int cd_face_areas,
+                                      const int cd_boundary_flag,
+                                      bool fast_draw,
+                                      bool update_sculptverts)
 {
   // coalese_pbvh(pbvh, bm);
 
@@ -2245,6 +2245,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
     mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT;
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
 
     int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
     *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;

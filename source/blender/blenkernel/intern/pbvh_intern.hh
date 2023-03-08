@@ -284,6 +284,7 @@ struct PBVH {
   PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
+  bool show_orig;
 };
 
 /* pbvh.cc */

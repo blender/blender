@@ -8,7 +8,7 @@
 #  define WITH_BM_ID_FREELIST
 #endif
 
-#define DEBUG_BM_IDMAP /* Debug idmap; note: disables mempool deallocation */
+//#define DEBUG_BM_IDMAP /* Debug idmap; note: disables mempool deallocation */
 
 #define USE_NEW_IDMAP
 

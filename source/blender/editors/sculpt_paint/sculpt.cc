@@ -372,7 +372,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, 
   SCULPT_vertex_normal_get(ss, vertex, no);
 }
 
-float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
+ATTR_NO_OPT float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -2863,11 +2863,11 @@ void SCULPT_calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-static float brush_strength(const Sculpt *sd,
-                            const StrokeCache *cache,
-                            const float feather,
-                            const UnifiedPaintSettings *ups,
-                            const PaintModeSettings * /*paint_mode_settings*/)
+ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
+                                        const StrokeCache *cache,
+                                        const float feather,
+                                        const UnifiedPaintSettings *ups,
+                                        const PaintModeSettings * /*paint_mode_settings*/)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);
@@ -5355,6 +5355,10 @@ static void sculpt_update_cache_invariants(
   }
 
 #undef PIXEL_INPUT_THRESHHOLD
+
+  if (ss->pbvh) {
+    BKE_pbvh_show_orig_set(ss->pbvh, tool_settings->show_origco);
+  }
 }
 
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
@@ -6443,13 +6447,13 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
 
     sculpt_update_cache_invariants(C, sd, ss, op, mval);
 
+    SCULPT_stroke_id_next(ob);
+    ss->cache->stroke_id = ss->stroke_id;
+
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval, false, false);
 
     sculpt_stroke_undo_begin(C, op);
-
-    SCULPT_stroke_id_next(ob);
-    ss->cache->stroke_id = ss->stroke_id;
 
     return true;
   }

@@ -1424,6 +1424,9 @@ void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
 bool BKE_pbvh_pmap_release(SculptPMap *pmap);
 void BKE_pbvh_clear_cache(PBVH *preserve);
 
+void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
+bool BKE_pbvh_show_orig_get(PBVH *pbvh);
+
 #ifdef __cplusplus
 }
 #endif
