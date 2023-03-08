@@ -161,6 +161,12 @@ class GHOST_System : public GHOST_ISystem {
   bool m_windowFocus;
 
   /**
+   * Focus and raise windows on mouse hover.
+   */
+  void setAutoFocus(const bool auto_focus);
+  bool m_autoFocus;
+
+  /**
    * Get the Window under the cursor.
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.

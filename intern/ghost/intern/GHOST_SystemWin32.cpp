@@ -1828,10 +1828,13 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (!window->m_mousePresent) {
             WINTAB_PRINTF("HWND %p mouse enter\n", window->getHWND());
             TRACKMOUSEEVENT tme = {sizeof(tme)};
-            /* Request WM_MOUSELEAVE message when the cursor leaves the client area, and
-             * WM_MOUSEHOVER message after 50ms when in the client area. */
-            tme.dwFlags = TME_LEAVE | TME_HOVER;
-            tme.dwHoverTime = 50;
+            /* Request WM_MOUSELEAVE message when the cursor leaves the client area. */
+            tme.dwFlags = TME_LEAVE;
+            if (system->m_autoFocus) {
+              /* Request WM_MOUSEHOVER message after 100ms when in the client area. */
+              tme.dwFlags |= TME_HOVER;
+              tme.dwHoverTime = 100;
+            }
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);
             window->m_mousePresent = true;
