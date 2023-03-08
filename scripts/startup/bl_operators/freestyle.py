@@ -54,6 +54,9 @@ class SCENE_OT_freestyle_fill_range_by_selection(Operator):
         # Find the reference object
         if m.type == 'DISTANCE_FROM_CAMERA':
             ref = scene.camera
+            if ref is None:
+                self.report({'ERROR'}, "No active camera in the scene")
+                return {'CANCELLED'}
             matrix_to_camera = ref.matrix_world.inverted()
         elif m.type == 'DISTANCE_FROM_OBJECT':
             if m.target is None:

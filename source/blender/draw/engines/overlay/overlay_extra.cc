@@ -123,6 +123,9 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       cb->field_tube_limit = BUF_INSTANCE(grp_sub, format, DRW_cache_field_tube_limit_get());
       cb->field_vortex = BUF_INSTANCE(grp_sub, format, DRW_cache_field_vortex_get());
       cb->field_wind = BUF_INSTANCE(grp_sub, format, DRW_cache_field_wind_get());
+      cb->light_icon_inner = BUF_INSTANCE(grp_sub, format, DRW_cache_light_icon_inner_lines_get());
+      cb->light_icon_outer = BUF_INSTANCE(grp_sub, format, DRW_cache_light_icon_outer_lines_get());
+      cb->light_icon_sun_rays = BUF_INSTANCE(grp_sub, format, DRW_cache_light_icon_sun_rays_get());
       cb->light_area[0] = BUF_INSTANCE(grp_sub, format, DRW_cache_light_area_disk_lines_get());
       cb->light_area[1] = BUF_INSTANCE(grp_sub, format, DRW_cache_light_area_square_lines_get());
       cb->light_point = BUF_INSTANCE(grp_sub, format, DRW_cache_light_point_lines_get());
@@ -605,8 +608,9 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   Light *la = static_cast<Light *>(ob->data);
   float *color_p;
   DRW_object_wire_theme_get(ob, view_layer, &color_p);
+
   /* Remove the alpha. */
-  float color[4] = {UNPACK3(color_p), 1.0f};
+  float theme_color[4] = {UNPACK3(color_p), 1.0f};
   /* Pack render data into object matrix. */
   union {
     float mat[4][4];
@@ -636,12 +640,25 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   DRW_buffer_add_entry(cb->groundline, instdata.pos);
 
+  float light_color[4] = {1.0f};
+  const bool show_light_colors = vedata->stl->pd->overlay.flag & V3D_OVERLAY_SHOW_LIGHT_COLORS;
+  if (show_light_colors) {
+    copy_v3_v3(light_color, &la->r);
+  }
+
+  /* Draw the outer ring of the light icon and the sun rays in `light_color`, if required. */
+  DRW_buffer_add_entry(
+      cb->light_icon_outer, show_light_colors ? light_color : theme_color, &instdata);
+  DRW_buffer_add_entry(cb->light_icon_inner, theme_color, &instdata);
+
   if (la->type == LA_LOCAL) {
     instdata.area_size_x = instdata.area_size_y = la->radius;
-    DRW_buffer_add_entry(cb->light_point, color, &instdata);
+    DRW_buffer_add_entry(cb->light_point, theme_color, &instdata);
   }
   else if (la->type == LA_SUN) {
-    DRW_buffer_add_entry(cb->light_sun, color, &instdata);
+    DRW_buffer_add_entry(cb->light_sun, theme_color, &instdata);
+    DRW_buffer_add_entry(
+        cb->light_icon_sun_rays, show_light_colors ? light_color : theme_color, &instdata);
   }
   else if (la->type == LA_SPOT) {
     /* Previous implementation was using the clip-end distance as cone size.
@@ -664,8 +681,8 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     instdata.spot_blend = sqrtf((a2 - a2 * c2) / (c2 - a2 * c2));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
-    color[3] = -max_ff(la->radius, FLT_MIN);
-    DRW_buffer_add_entry(cb->light_spot, color, &instdata);
+    theme_color[3] = -max_ff(la->radius, FLT_MIN);
+    DRW_buffer_add_entry(cb->light_spot, theme_color, &instdata);
 
     if ((la->mode & LA_SHOW_CONE) && !DRW_state_is_select()) {
       const float color_inside[4] = {0.0f, 0.0f, 0.0f, 0.5f};
@@ -679,7 +696,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     int sqr = ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_RECT);
     instdata.area_size_x = la->area_size;
     instdata.area_size_y = uniform_scale ? la->area_size : la->area_sizey;
-    DRW_buffer_add_entry(cb->light_area[sqr], color, &instdata);
+    DRW_buffer_add_entry(cb->light_area[sqr], theme_color, &instdata);
   }
 }
 
@@ -1560,7 +1577,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool from_dupli = (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) != 0;
   const bool has_bounds = !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE);
   const bool has_texspace = has_bounds &&
-                            !ELEM(ob->type, OB_EMPTY, OB_LATTICE, OB_ARMATURE, OB_GPENCIL);
+                            !ELEM(ob->type, OB_EMPTY, OB_LATTICE, OB_ARMATURE, OB_GPENCIL_LEGACY);
 
   const bool draw_relations = ((pd->v3d_flag & V3D_HIDE_HELPLINES) == 0) && !is_select_mode;
   const bool draw_obcenters = !is_paint_mode &&

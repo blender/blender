@@ -68,7 +68,7 @@ typedef enum ID_Type {
   ID_NT = MAKE_ID2('N', 'T'),        /* bNodeTree */
   ID_BR = MAKE_ID2('B', 'R'),        /* Brush */
   ID_PA = MAKE_ID2('P', 'A'),        /* ParticleSettings */
-  ID_GD = MAKE_ID2('G', 'D'),        /* bGPdata, (Grease Pencil) */
+  ID_GD_LEGACY = MAKE_ID2('G', 'D'), /* bGPdata, (legacy Grease Pencil) */
   ID_WM = MAKE_ID2('W', 'M'),        /* WindowManager */
   ID_MC = MAKE_ID2('M', 'C'),        /* MovieClip */
   ID_MSK = MAKE_ID2('M', 'S'),       /* Mask */

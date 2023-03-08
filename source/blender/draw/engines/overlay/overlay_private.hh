@@ -178,6 +178,9 @@ typedef struct OVERLAY_ExtraCallBuffers {
 
   DRWCallBuffer *groundline;
 
+  DRWCallBuffer *light_icon_inner;
+  DRWCallBuffer *light_icon_outer;
+  DRWCallBuffer *light_icon_sun_rays;
   DRWCallBuffer *light_point;
   DRWCallBuffer *light_sun;
   DRWCallBuffer *light_spot;

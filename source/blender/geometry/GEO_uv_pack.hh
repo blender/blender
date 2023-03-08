@@ -11,9 +11,6 @@
  * \ingroup geo
  */
 
-/** Workaround to forward-declare C type in C++ header. */
-extern "C" {
-
 enum eUVPackIsland_MarginMethod {
   ED_UVPACK_MARGIN_SCALED = 0, /* Use scale of existing UVs to multiply margin. */
   ED_UVPACK_MARGIN_ADD,        /* Just add the margin, ignoring any UV scale. */
@@ -43,7 +40,6 @@ struct UVPackIsland_Params {
   /** Additional translation for bottom left corner. */
   float udim_base_offset[2];
 };
-}
 
 namespace blender::geometry {
 

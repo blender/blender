@@ -171,7 +171,7 @@ static bool gpencil_stroke_sculptmode_poll(bContext *C)
     return ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
   }
 
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     return GPENCIL_SCULPT_MODE(gpd);
   }
 
@@ -184,7 +184,7 @@ static bool gpencil_stroke_weightmode_poll(bContext *C)
   bGPdata *gpd = CTX_data_gpencil_data(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     return GPENCIL_WEIGHT_MODE(gpd);
   }
 
@@ -197,7 +197,7 @@ static bool gpencil_stroke_vertexmode_poll(bContext *C)
   bGPdata *gpd = CTX_data_gpencil_data(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     return (gpd && (gpd->flag & GP_DATA_STROKE_VERTEXMODE));
   }
 

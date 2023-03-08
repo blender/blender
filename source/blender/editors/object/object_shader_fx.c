@@ -60,7 +60,7 @@ ShaderFxData *ED_object_shaderfx_add(
   ShaderFxData *new_fx = NULL;
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(type);
 
-  if (ob->type != OB_GPENCIL) {
+  if (ob->type != OB_GPENCIL_LEGACY) {
     BKE_reportf(reports, RPT_WARNING, "Effect cannot be added to object '%s'", ob->id.name + 2);
     return NULL;
   }

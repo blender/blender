@@ -170,7 +170,6 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 
 static void createTransTrackingCurves(bContext *C, TransInfo *t)
 {
-  ARegion *region = CTX_wm_region(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   int width, height;
@@ -190,7 +189,7 @@ static void createTransTrackingCurves(bContext *C, TransInfo *t)
   }
 
   /* transformation was called from graph editor */
-  BLI_assert(region->regiontype == RGN_TYPE_PREVIEW);
+  BLI_assert(CTX_wm_region(C)->regiontype == RGN_TYPE_PREVIEW);
   createTransTrackingCurvesData(C, t);
 }
 

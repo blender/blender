@@ -2963,7 +2963,7 @@ static const char *dataname(short id_code)
       return "Data from PAL";
     case ID_PC:
       return "Data from PCRV";
-    case ID_GD:
+    case ID_GD_LEGACY:
       return "Data from GD";
     case ID_WM:
       return "Data from WM";

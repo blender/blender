@@ -846,9 +846,9 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
 
       poly_map[i] = wpoly_len++;
       if (totloop > 5 && vert_ctx_len > 1) {
-        int max_new = (totloop / 3) - 1;
-        vert_ctx_len /= 2;
-        maybe_new_poly += MIN2(max_new, vert_ctx_len);
+        /* Each untouched vertex pair is a candidate for a new polygon. */
+        int max_new = std::min(vert_ctx_len, (totloop - vert_ctx_len) / 2);
+        maybe_new_poly += max_new;
         CLAMP_MIN(max_ctx_poly_len, totloop);
       }
     }

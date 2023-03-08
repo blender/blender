@@ -2703,7 +2703,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 {
   using namespace blender;
   using namespace blender::bke;
-  if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == nullptr)) {
+  if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL_LEGACY) ||
+      (ob_gp->data == nullptr)) {
     return false;
   }
 

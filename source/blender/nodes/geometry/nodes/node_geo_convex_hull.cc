@@ -43,6 +43,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     result = BKE_mesh_new_nomain(verts_num, edges_num, loops_num, faces_num);
     BKE_id_material_eval_ensure_default_slot(&result->id);
   }
+  BKE_mesh_smooth_flag_set(result, false);
 
   /* Copy vertices. */
   MutableSpan<float3> dst_positions = result->vert_positions_for_write();

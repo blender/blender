@@ -174,7 +174,7 @@ typedef struct LineartBakeJob {
 static bool lineart_gpencil_bake_single_target(LineartBakeJob *bj, Object *ob, int frame)
 {
   bool touched = false;
-  if (ob->type != OB_GPENCIL || G.is_break) {
+  if (ob->type != OB_GPENCIL_LEGACY || G.is_break) {
     return false;
   }
 
@@ -285,7 +285,7 @@ static int lineart_gpencil_bake_common(bContext *C,
 
   if (!bake_all_targets) {
     Object *ob = CTX_data_active_object(C);
-    if (!ob || ob->type != OB_GPENCIL) {
+    if (!ob || ob->type != OB_GPENCIL_LEGACY) {
       WM_report(RPT_ERROR, "No active object or active object isn't a GPencil object.");
       return OPERATOR_FINISHED;
     }
@@ -294,7 +294,7 @@ static int lineart_gpencil_bake_common(bContext *C,
   else {
     /* #CTX_DATA_BEGIN is not available for iterating in objects while using the job system. */
     CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
           if (md->type == eGpencilModifierType_Lineart) {
             BLI_linklist_prepend(&bj->objects, ob);
@@ -384,7 +384,7 @@ static int lineart_gpencil_bake_strokes_commom_modal(bContext *C,
 static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
 {
   /* TODO: move these checks to an operator poll function. */
-  if ((ob == NULL) || ob->type != OB_GPENCIL) {
+  if ((ob == NULL) || ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {

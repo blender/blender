@@ -692,6 +692,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_cone_verts(config, positions);
   calculate_cone_edges(config, edges);

@@ -96,6 +96,9 @@ void BKE_mesh_legacy_convert_loose_edges_to_flag(struct Mesh *mesh);
 void BKE_mesh_legacy_attribute_flags_to_strings(struct Mesh *mesh);
 void BKE_mesh_legacy_attribute_strings_to_flags(struct Mesh *mesh);
 
+void BKE_mesh_legacy_sharp_faces_to_flags(struct Mesh *mesh);
+void BKE_mesh_legacy_sharp_faces_from_flags(struct Mesh *mesh);
+
 void BKE_mesh_legacy_sharp_edges_to_flags(struct Mesh *mesh);
 void BKE_mesh_legacy_sharp_edges_from_flags(struct Mesh *mesh);
 

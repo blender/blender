@@ -215,7 +215,7 @@ static bool shaderfx_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   Object *ob = ED_object_active_context(C);
 
-  return (ob != NULL) && (ob->type == OB_GPENCIL);
+  return (ob != NULL) && (ob->type == OB_GPENCIL_LEGACY);
 }
 
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)

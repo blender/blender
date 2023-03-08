@@ -580,7 +580,7 @@ enum {
   SEQ_USE_PROXY = (1 << 15),
   SEQ_IGNORE_CHANNEL_LOCK = (1 << 16),
   SEQ_AUTO_PLAYBACK_RATE = (1 << 17),
-  SEQ_FLAG_UNUSED_18 = (1 << 18), /* cleared */
+  SEQ_SINGLE_FRAME_CONTENT = (1 << 18),
   SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
   SEQ_FLAG_UNUSED_21 = (1 << 21), /* cleared */
 

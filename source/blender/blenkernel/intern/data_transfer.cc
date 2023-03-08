@@ -382,6 +382,8 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
     if (dirty_nors_dst || do_loop_nors_dst) {
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"));
+      const bool *sharp_faces = static_cast<const bool *>(
+          CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face"));
       BKE_mesh_normals_loop_split(positions_dst,
                                   BKE_mesh_vert_normals_ensure(me_dst),
                                   num_verts_dst,
@@ -396,6 +398,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
                                   use_split_nors_dst,
                                   split_angle_dst,
                                   sharp_edges,
+                                  sharp_faces,
                                   nullptr,
                                   nullptr,
                                   custom_nors_dst);
@@ -451,6 +454,8 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
                                      loops_dst.size(),
                                      polys_dst.data(),
                                      poly_nors_dst,
+                                     static_cast<const bool *>(CustomData_get_layer_named(
+                                         &me_dst->pdata, CD_PROP_BOOL, "sharp_face")),
                                      polys_dst.size(),
                                      sharp_edges.span.data(),
                                      custom_nors_dst);
@@ -1109,26 +1114,21 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      const size_t elem_size = sizeof(*((MPoly *)nullptr));
-      const size_t data_size = sizeof(((MPoly *)nullptr)->flag);
-      const size_t data_offset = offsetof(MPoly, flag);
-      const uint64_t data_flag = ME_SMOOTH;
-
-      data_transfer_layersmapping_add_item(r_map,
-                                           cddata_type,
-                                           mix_mode,
-                                           mix_factor,
-                                           mix_weights,
-                                           me_src->polys().data(),
-                                           me_dst->polys_for_write().data(),
-                                           me_src->totpoly,
-                                           me_dst->totpoly,
-                                           elem_size,
-                                           data_size,
-                                           data_offset,
-                                           data_flag,
-                                           nullptr,
-                                           interp_data);
+      if (!CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
+        CustomData_add_layer_named(
+            &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me_dst->totpoly, "sharp_face");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_BOOL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->pdata, CD_PROP_BOOL, "sharp_face"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->pdata, CD_PROP_BOOL, "sharp_face", num_elem_dst),
+          interp,
+          interp_data);
       return true;
     }
 

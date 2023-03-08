@@ -424,7 +424,7 @@ static bool gpencil_strokes_merge_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -459,7 +459,7 @@ static int gpencil_stroke_merge_exec(bContext *C, wmOperator *op)
 
   Object *ob = CTX_data_active_object(C);
   /* sanity checks */
-  if (!ob || ob->type != OB_GPENCIL) {
+  if (!ob || ob->type != OB_GPENCIL_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
@@ -556,7 +556,7 @@ static bool gpencil_stroke_merge_material_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 

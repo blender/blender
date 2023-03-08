@@ -11,8 +11,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> shade_smooth_field = AttributeFieldInput::Create<bool>("shade_smooth");
-  params.set_output("Smooth", std::move(shade_smooth_field));
+  Field<bool> shade_smooth_field = AttributeFieldInput::Create<bool>("sharp_face");
+  params.set_output("Smooth", fn::invert_boolean_field(shade_smooth_field));
 }
 
 }  // namespace blender::nodes::node_geo_input_shade_smooth_cc

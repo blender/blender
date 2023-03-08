@@ -136,7 +136,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
         return true;
       }
       break;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       if (mode & (OB_MODE_EDIT_GPENCIL | OB_MODE_ALL_PAINT_GPENCIL)) {
         return true;
       }
@@ -193,7 +193,7 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
     return (mode == OB_MODE_OBJECT);
   }
 
-  if ((ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
+  if ((ob->type == OB_GPENCIL_LEGACY) && (mode == OB_MODE_EDIT)) {
     mode = OB_MODE_EDIT_GPENCIL;
   }
 
@@ -291,7 +291,7 @@ static bool ed_object_mode_generic_exit_ex(
     }
     ED_object_particle_edit_mode_exit_ex(scene, ob);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     /* Accounted for above. */
     BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
     if (only_test) {
@@ -355,7 +355,7 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
                                              Object *ob,
                                              const bool is_mode_set)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData virtualModifierData;
     GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob,
                                                                              &virtualModifierData);

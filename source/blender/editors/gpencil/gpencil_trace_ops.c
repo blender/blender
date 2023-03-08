@@ -312,7 +312,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
                         NULL;
 
   if (job->ob_gpencil != NULL) {
-    if (job->ob_gpencil->type != OB_GPENCIL) {
+    if (job->ob_gpencil->type != OB_GPENCIL_LEGACY) {
       BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
       job->ob_gpencil = NULL;
     }

@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_bicubic_sampler_lib.glsl)
+
 void point_texco_remap_square(vec3 vin, out vec3 vout)
 {
   vout = vin * 2.0 - 1.0;
@@ -54,68 +56,9 @@ void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alp
   alpha = color.a;
 }
 
-/** \param f: Signed distance to texel center. */
-void cubic_bspline_coefs(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
-{
-  vec2 f2 = f * f;
-  vec2 f3 = f2 * f;
-  /* Bspline coefs (optimized) */
-  w3 = f3 / 6.0;
-  w0 = -w3 + f2 * 0.5 - f * 0.5 + 1.0 / 6.0;
-  w1 = f3 * 0.5 - f2 * 1.0 + 2.0 / 3.0;
-  w2 = 1.0 - w0 - w1 - w3;
-}
-
 void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-  vec2 tex_size = vec2(textureSize(ima, 0).xy);
-
-  co.xy *= tex_size;
-  /* texel center */
-  vec2 tc = floor(co.xy - 0.5) + 0.5;
-  vec2 w0, w1, w2, w3;
-  cubic_bspline_coefs(co.xy - tc, w0, w1, w2, w3);
-
-#if 1 /* Optimized version using 4 filtered tap. */
-  vec2 s0 = w0 + w1;
-  vec2 s1 = w2 + w3;
-
-  vec2 f0 = w1 / (w0 + w1);
-  vec2 f1 = w3 / (w2 + w3);
-
-  vec4 final_co;
-  final_co.xy = tc - 1.0 + f0;
-  final_co.zw = tc + 1.0 + f1;
-
-  final_co /= tex_size.xyxy;
-
-  color = safe_color(textureLod(ima, final_co.xy, 0.0)) * s0.x * s0.y;
-  color += safe_color(textureLod(ima, final_co.zy, 0.0)) * s1.x * s0.y;
-  color += safe_color(textureLod(ima, final_co.xw, 0.0)) * s0.x * s1.y;
-  color += safe_color(textureLod(ima, final_co.zw, 0.0)) * s1.x * s1.y;
-
-#else /* Reference bruteforce 16 tap. */
-  color = texelFetch(ima, ivec2(tc + vec2(-1.0, -1.0)), 0) * w0.x * w0.y;
-  color += texelFetch(ima, ivec2(tc + vec2(0.0, -1.0)), 0) * w1.x * w0.y;
-  color += texelFetch(ima, ivec2(tc + vec2(1.0, -1.0)), 0) * w2.x * w0.y;
-  color += texelFetch(ima, ivec2(tc + vec2(2.0, -1.0)), 0) * w3.x * w0.y;
-
-  color += texelFetch(ima, ivec2(tc + vec2(-1.0, 0.0)), 0) * w0.x * w1.y;
-  color += texelFetch(ima, ivec2(tc + vec2(0.0, 0.0)), 0) * w1.x * w1.y;
-  color += texelFetch(ima, ivec2(tc + vec2(1.0, 0.0)), 0) * w2.x * w1.y;
-  color += texelFetch(ima, ivec2(tc + vec2(2.0, 0.0)), 0) * w3.x * w1.y;
-
-  color += texelFetch(ima, ivec2(tc + vec2(-1.0, 1.0)), 0) * w0.x * w2.y;
-  color += texelFetch(ima, ivec2(tc + vec2(0.0, 1.0)), 0) * w1.x * w2.y;
-  color += texelFetch(ima, ivec2(tc + vec2(1.0, 1.0)), 0) * w2.x * w2.y;
-  color += texelFetch(ima, ivec2(tc + vec2(2.0, 1.0)), 0) * w3.x * w2.y;
-
-  color += texelFetch(ima, ivec2(tc + vec2(-1.0, 2.0)), 0) * w0.x * w3.y;
-  color += texelFetch(ima, ivec2(tc + vec2(0.0, 2.0)), 0) * w1.x * w3.y;
-  color += texelFetch(ima, ivec2(tc + vec2(1.0, 2.0)), 0) * w2.x * w3.y;
-  color += texelFetch(ima, ivec2(tc + vec2(2.0, 2.0)), 0) * w3.x * w3.y;
-#endif
-
+  color = safe_color(texture_bicubic(ima, co.xy));
   alpha = color.a;
 }
 
@@ -263,7 +206,7 @@ void node_tex_tile_cubic(
     /* texel center */
     vec2 tc = floor(co.xy - 0.5) + 0.5;
     vec2 w0, w1, w2, w3;
-    cubic_bspline_coefs(co.xy - tc, w0, w1, w2, w3);
+    cubic_bspline_coefficients(co.xy - tc, w0, w1, w2, w3);
 
     vec2 s0 = w0 + w1;
     vec2 s1 = w2 + w3;

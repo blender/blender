@@ -272,6 +272,7 @@ void BLI_filelist_entry_mode_to_string(const struct stat *st,
   const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 
 #ifdef WIN32
+  UNUSED_VARS(st);
   BLI_strncpy(r_mode1, types[0], sizeof(*r_mode1) * FILELIST_DIRENTRY_MODE_LEN);
   BLI_strncpy(r_mode2, types[0], sizeof(*r_mode2) * FILELIST_DIRENTRY_MODE_LEN);
   BLI_strncpy(r_mode3, types[0], sizeof(*r_mode3) * FILELIST_DIRENTRY_MODE_LEN);
@@ -315,6 +316,7 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN])
 {
 #ifdef WIN32
+  UNUSED_VARS(st);
   strcpy(r_owner, "unknown");
 #else
   struct passwd *pwuser = getpwuid(st->st_uid);

@@ -296,7 +296,7 @@ static bool gpencil_draw_poll(bContext *C)
 
     /* only grease pencil object type */
     Object *ob = CTX_data_active_object(C);
-    if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+    if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
       return false;
     }
 
@@ -2051,7 +2051,7 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
     return 0;
   }
 
-  if ((!obact) || (obact->type != OB_GPENCIL)) {
+  if ((!obact) || (obact->type != OB_GPENCIL_LEGACY)) {
     View3D *v3d = p->area->spacedata.first;
     /* if active object doesn't exist or isn't a GP Object, create one */
     const float *cur = p->scene->cursor.location;
@@ -3308,7 +3308,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     gpencil_guide_event_handling(C, op, event, p);
   }
 
-  if ((ob->type == OB_GPENCIL) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
+  if ((ob->type == OB_GPENCIL_LEGACY) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
     /* FIXME: use the mode switching operator, this misses notifiers, messages. */
     /* Just set paintmode flag... */
     p->gpd->flag |= GP_DATA_STROKE_PAINTMODE;

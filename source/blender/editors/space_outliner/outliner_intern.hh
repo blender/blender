@@ -127,7 +127,7 @@ struct TreeElementIcon {
         ID_AC, \
         ID_BR, \
         ID_PA, \
-        ID_GD, \
+        ID_GD_LEGACY, \
         ID_LS, \
         ID_LP, \
         ID_CV, \

@@ -603,7 +603,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     ARegion *region = draw_ctx->region;
     Object *ob = draw_ctx->obact;
 
-    BLI_assert(ob && (ob->type == OB_GPENCIL));
+    BLI_assert(ob && (ob->type == OB_GPENCIL_LEGACY));
 
     /* Get origin to reproject points. */
     float origin[3];

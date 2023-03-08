@@ -55,12 +55,13 @@ eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 
 bool transdata_check_local_center(const TransInfo *t, short around)
 {
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
-          ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
-           /* implicit: (t->flag & T_EDIT) */
-           ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL) ||
-           (t->spacetype == SPACE_GRAPH) ||
-           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
+  return (
+      (around == V3D_AROUND_LOCAL_ORIGINS) &&
+      ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
+       /* implicit: (t->flag & T_EDIT) */
+       ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL_LEGACY) ||
+       (t->spacetype == SPACE_GRAPH) ||
+       (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
 
 bool transform_mode_is_changeable(const int mode)

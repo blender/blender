@@ -236,6 +236,8 @@ static bool quad_crosses_symmetry_plane(BMVert *quad[4], const SkinModifierData 
   return false;
 }
 
+#ifdef WITH_BULLET
+
 /* Returns true if the frame is filled by precisely two faces (and
  * outputs those faces to fill_faces), otherwise returns false. */
 static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_faces[2])
@@ -254,6 +256,8 @@ static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_fac
 
   return false;
 }
+
+#endif
 
 /* Returns true if hull is successfully built, false otherwise */
 static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
@@ -370,7 +374,7 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 
   return true;
 #else
-  UNUSED_VARS(so, frames, totframe, skin_frame_find_contained_faces);
+  UNUSED_VARS(so, frames, totframe);
   return false;
 #endif
 }

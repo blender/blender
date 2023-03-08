@@ -3635,7 +3635,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
     int dvert_tot = 0;
     /* Grease pencil stores vertex groups separately for each stroke,
      * so remap each stroke's weights separately. */
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {

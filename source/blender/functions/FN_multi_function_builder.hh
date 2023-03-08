@@ -407,6 +407,9 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
                         std::forward<decltype(args)>(args)...);
         });
   }
+  else {
+    UNUSED_VARS(exec_preset);
+  }
 
   /* If devirtualized execution was disabled or not possible, use a fallback method which is
    * slower but always works. */

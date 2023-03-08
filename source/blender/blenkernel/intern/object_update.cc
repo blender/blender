@@ -181,7 +181,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
       break;
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
       BKE_gpencil_update_layer_transforms(depsgraph, ob);
@@ -303,7 +303,7 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       }
       break;
     }
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
       break;
     case OB_CURVES:

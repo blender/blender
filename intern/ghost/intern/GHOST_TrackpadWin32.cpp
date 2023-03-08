@@ -265,14 +265,14 @@ HRESULT GHOST_DirectManipulationViewportEventHandler::OnViewportStatusChanged(
 }
 
 HRESULT GHOST_DirectManipulationViewportEventHandler::OnViewportUpdated(
-    IDirectManipulationViewport *viewport)
+    IDirectManipulationViewport * /*viewport*/)
 {
   /* Nothing to do here. */
   return S_OK;
 }
 
 HRESULT GHOST_DirectManipulationViewportEventHandler::OnContentUpdated(
-    IDirectManipulationViewport *viewport, IDirectManipulationContent *content)
+    IDirectManipulationViewport * /*viewport*/, IDirectManipulationContent *content)
 {
   float transform[6];
   HRESULT hr = content->GetContentTransform(transform, ARRAYSIZE(transform));

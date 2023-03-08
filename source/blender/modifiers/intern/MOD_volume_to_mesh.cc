@@ -183,9 +183,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   BKE_mesh_copy_parameters_for_eval(mesh, input_mesh);
-  if (vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE) {
-    BKE_mesh_smooth_flag_set(mesh, true);
-  }
+  BKE_mesh_smooth_flag_set(mesh, vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE);
   return mesh;
 #else
   UNUSED_VARS(md);
