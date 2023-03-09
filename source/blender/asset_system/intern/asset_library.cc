@@ -54,7 +54,7 @@ struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *libra
     lib = service->get_asset_library_current_file(name);
   }
   else {
-    lib = service->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, library_path);
+    lib = service->get_asset_library_on_disk_custom(name, library_path);
   }
   return reinterpret_cast<struct ::AssetLibrary *>(lib);
 }

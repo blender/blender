@@ -65,12 +65,11 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
 
-  /**
-   * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
-   */
-  AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
-                                          StringRef name,
-                                          StringRefNull top_level_directory);
+  /** Get an asset library of type #ASSET_LIBRARY_CUSTOM. */
+  AssetLibrary *get_asset_library_on_disk_custom(StringRef name, StringRefNull root_path);
+  /** Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
+   * #ASSET_LIBRARY_CUSTOM. */
+  AssetLibrary *get_asset_library_on_disk_builtin(eAssetLibraryType type, StringRefNull root_path);
 
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file(StringRef name);
@@ -89,6 +88,12 @@ class AssetLibraryService {
   /** Allocate a new instance of the service and assign it to `instance_`. */
   static void allocate_service_instance();
 
+  /**
+   * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
+   */
+  AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
+                                          StringRef name,
+                                          StringRefNull top_level_directory);
   /**
    * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
    * This makes memory management simple, and ensures a fresh start for every blend file. */

@@ -67,7 +67,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk(type, "Essentials", root_path);
+      AssetLibrary *library = get_asset_library_on_disk_builtin(type, root_path);
       library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
 
       return library;
@@ -81,7 +81,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         /* File wasn't saved yet. */
         return get_asset_library_current_file("Current File");
       }
-      return get_asset_library_on_disk(type, "Current File", root_path);
+      return get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_ALL:
       return get_asset_library_all("All", bmain);
@@ -97,7 +97,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk(type, custom_library->name, root_path);
+      AssetLibrary *library = get_asset_library_on_disk_custom(custom_library->name, root_path);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
 
@@ -138,6 +138,24 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
   return lib;
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef name,
+                                                                    StringRefNull root_path)
+{
+  return get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
+                                                                     StringRefNull root_path)
+{
+  BLI_assert_msg(
+      type != ASSET_LIBRARY_CUSTOM,
+      "Use `get_asset_library_on_disk_custom()` for libraries of type `ASSET_LIBRARY_CUSTOM`");
+
+  /* Builtin asset libraries don't need a name, the #eAssetLibraryType is enough to identify them
+   * (and doesn't change, unlike the name). */
+  return get_asset_library_on_disk(type, {}, root_path);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_current_file(StringRef name)
