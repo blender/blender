@@ -64,6 +64,14 @@ void RNA_def_struct_register_funcs(StructRNA *srna,
                                    const char *reg,
                                    const char *unreg,
                                    const char *instance);
+/**
+ * Return an allocated string for the RNA data-path:
+ *
+ * - Double quotes must be used for string access, e.g: `collection["%s"]`.
+ * - Strings containing arbitrary characters must be escaped using #BLI_str_escape.
+ *
+ * Paths must be compatible with #RNA_path_resolve & related functions.
+ */
 void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 /**
  * Only used in one case when we name the struct for the purpose of useful error messages.
