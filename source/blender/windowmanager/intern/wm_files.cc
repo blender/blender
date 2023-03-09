@@ -3310,9 +3310,6 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   }
 
   if (blendfile_path[0] != '\0') {
-    char path[FILE_MAX];
-
-    RNA_string_get(op->ptr, "filepath", path);
     ret = wm_save_as_mainfile_exec(C, op);
   }
   else {
