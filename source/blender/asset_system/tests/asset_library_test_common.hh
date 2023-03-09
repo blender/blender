@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "asset_library_service.hh"
+
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"
 
@@ -60,6 +62,8 @@ class AssetLibraryTestBase : public testing::Test {
 
   void TearDown() override
   {
+    AssetLibraryService::destroy();
+
     if (!temp_library_path_.empty()) {
       BLI_delete(temp_library_path_.c_str(), true, true);
       temp_library_path_ = "";
