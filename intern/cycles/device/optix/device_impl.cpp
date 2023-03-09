@@ -1437,6 +1437,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       BVHOptiX *const blas = static_cast<BVHOptiX *>(ob->get_geometry()->bvh);
       OptixTraversableHandle handle = blas->traversable_handle;
+      if (handle == 0) {
+        continue;
+      }
 
       OptixInstance &instance = instances[num_instances++];
       memset(&instance, 0, sizeof(instance));
