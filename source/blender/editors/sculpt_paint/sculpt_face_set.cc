@@ -16,9 +16,11 @@
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -52,6 +54,9 @@
 #include "RNA_define.h"
 
 #include "bmesh.h"
+
+using blender::float3;
+using blender::Vector;
 
 /* Utils. */
 
@@ -1236,34 +1241,45 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
 static void sculpt_face_set_edit_fair_face_set(Object *ob,
                                                const int active_face_set_id,
-                                               const eMeshFairingDepth fair_order)
+                                               const eMeshFairingDepth fair_order,
+                                               const float strength)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  bool *fair_verts = static_cast<bool *>(
-      MEM_malloc_arrayN(totvert, sizeof(bool), "fair vertices"));
+  Vector<float3> orig_positions;
+  Vector<bool> fair_verts;
+
+  orig_positions.resize(totvert);
+  fair_verts.resize(totvert);
 
   SCULPT_boundary_info_ensure(ob);
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
+    orig_positions[i] = SCULPT_vertex_co_get(ss, vertex);
     fair_verts[i] = !SCULPT_vertex_is_boundary(ss, vertex) &&
                     SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id) &&
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
   float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-  BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts, fair_order);
-  MEM_freeN(fair_verts);
+  BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
+
+  for (int i = 0; i < totvert; i++) {
+    if (fair_verts[i]) {
+      interp_v3_v3v3(positions[i], orig_positions[i], positions[i], strength);
+    }
+  }
 }
 
 static void sculpt_face_set_apply_edit(Object *ob,
                                        const int active_face_set_id,
                                        const int mode,
-                                       const bool modify_hidden)
+                                       const bool modify_hidden,
+                                       const float strength = 0.0f)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1284,10 +1300,12 @@ static void sculpt_face_set_apply_edit(Object *ob,
       sculpt_face_set_delete_geometry(ob, ss, active_face_set_id, modify_hidden);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
-      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_POSITION);
+      sculpt_face_set_edit_fair_face_set(
+          ob, active_face_set_id, MESH_FAIRING_DEPTH_POSITION, strength);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
-      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
+      sculpt_face_set_edit_fair_face_set(
+          ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY, strength);
       break;
   }
 }
@@ -1399,13 +1417,17 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   PBVH *pbvh = ss->pbvh;
   PBVHNode **nodes;
   int totnode;
+
   BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+
+  const float strength = RNA_float_get(op->ptr, "strength");
+
   SCULPT_undo_push_begin(ob, op);
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update(nodes[i]);
     SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COORDS);
   }
-  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, false);
+  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, false, strength);
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
@@ -1416,32 +1438,37 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   MEM_freeN(nodes);
 }
 
-static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-
   const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
       RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   if (!sculpt_face_set_edit_is_operation_valid(ss, mode, modify_hidden)) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   ss->face_sets = BKE_sculpt_face_sets_ensure(BKE_mesh_from_object(ob));
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
-  /* Update the current active Face Set and Vertex as the operator can be used directly from the
-   * tool without brush cursor. */
-  SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
-    /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
+  return true;
+}
+
+static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
+{
+  if (!sculpt_face_set_edit_init(C, op)) {
     return OPERATOR_CANCELLED;
   }
-  const int active_face_set = SCULPT_active_face_set_get(ss);
+
+  Object *ob = CTX_data_active_object(C);
+
+  const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
+  const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
+      RNA_enum_get(op->ptr, "mode"));
+  const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   switch (mode) {
     case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
@@ -1462,6 +1489,27 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
+static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+  /* Update the current active Face Set and Vertex as the operator can be used directly from the
+   * tool without brush cursor. */
+  SculptCursorGeometryInfo sgi;
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
+    /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
+    return OPERATOR_CANCELLED;
+  }
+  RNA_int_set(op->ptr, "active_face_set", SCULPT_active_face_set_get(ss));
+
+  return sculpt_face_set_edit_exec(C, op);
+}
+
 void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -1471,12 +1519,19 @@ void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->invoke = sculpt_face_set_edit_invoke;
+  ot->exec = sculpt_face_set_edit_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
+  PropertyRNA *prop = RNA_def_int(
+      ot->srna, "active_face_set", 1, 0, INT_MAX, "Active Face Set", "", 0, 64);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_enum(
       ot->srna, "mode", prop_sculpt_face_sets_edit_types, SCULPT_FACE_SET_EDIT_GROW, "Mode", "");
+  RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
+
   ot->prop = RNA_def_boolean(ot->srna,
                              "modify_hidden",
                              true,
