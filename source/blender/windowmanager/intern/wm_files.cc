@@ -3184,7 +3184,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* function used for WM_OT_save_mainfile too */
+/* Function used for #WM_OT_save_mainfile too. */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -3257,8 +3257,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* function used for WM_OT_save_mainfile too */
-static bool blend_save_check(bContext * /*C*/, wmOperator *op)
+static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -3303,7 +3302,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
   ot->exec = wm_save_as_mainfile_exec;
   ot->get_name = wm_save_as_mainfile_get_name;
   ot->get_description = wm_save_as_mainfile_get_description;
-  ot->check = blend_save_check;
+  ot->check = wm_save_mainfile_check;
   /* omit window poll so this can work in background mode */
 
   WM_operator_properties_filesel(ot,
@@ -3370,8 +3369,8 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
-  ot->check = blend_save_check;
-  /* omit window poll so this can work in background mode */
+  ot->check = wm_save_mainfile_check;
+  /* Omit window poll so this can work in background mode. */
 
   PropertyRNA *prop;
   WM_operator_properties_filesel(ot,
