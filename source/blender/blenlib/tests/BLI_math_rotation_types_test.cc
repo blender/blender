@@ -315,7 +315,8 @@ TEST(math_rotation_types, TypeConversion)
   EulerXYZ euler_xyz(AngleRadian::from_degree(20.0559),
                      AngleRadian::from_degree(-20.5632f),
                      AngleRadian::from_degree(30.3091f));
-  AxisAngle axis_angle({0.563771, -0.333098, 0.755783}, AngleRadian::from_degree(44.0284f));
+  AxisAngle axis_angle(normalize(float3{0.563771, -0.333098, 0.755783}),
+                       AngleRadian::from_degree(44.0284f));
 
   EXPECT_V4_NEAR(float4(to_quaternion(euler_xyz)), float4(quaternion), 1e-4);
   EXPECT_V3_NEAR(to_axis_angle(euler_xyz).axis(), axis_angle.axis(), 1e-4);
@@ -394,12 +395,12 @@ TEST(math_rotation_types, Euler3Conversion)
   EXPECT_V3_NEAR(float3(to_euler(mat_zxy, EulerOrder::ZXY).xyz()), xyz, 1e-4);
   EXPECT_V3_NEAR(float3(to_euler(mat_zyx, EulerOrder::ZYX).xyz()), xyz, 1e-4);
 
-  AxisAngle axis_angle_xyz = AxisAngle({0.563771, -0.333098, 0.755783}, 0.76844f);
-  AxisAngle axis_angle_xzy = AxisAngle({0.359907, -0.376274, 0.853747}, 0.676476f);
-  AxisAngle axis_angle_yxz = AxisAngle({0.636846, -0.376274, 0.672937}, 0.676476f);
-  AxisAngle axis_angle_yzx = AxisAngle({0.563771, -0.572084, 0.59572}, 0.76844f);
-  AxisAngle axis_angle_zxy = AxisAngle({0.318609, -0.572084, 0.755783}, 0.76844f);
-  AxisAngle axis_angle_zyx = AxisAngle({0.359907, -0.646237, 0.672937}, 0.676476f);
+  AxisAngle axis_angle_xyz = {normalize(float3{0.563771, -0.333098, 0.755783}), 0.76844f};
+  AxisAngle axis_angle_xzy = {normalize(float3{0.359907, -0.376274, 0.853747}), 0.676476f};
+  AxisAngle axis_angle_yxz = {normalize(float3{0.636846, -0.376274, 0.672937}), 0.676476f};
+  AxisAngle axis_angle_yzx = {normalize(float3{0.563771, -0.572084, 0.59572}), 0.76844f};
+  AxisAngle axis_angle_zxy = {normalize(float3{0.318609, -0.572084, 0.755783}), 0.76844f};
+  AxisAngle axis_angle_zyx = {normalize(float3{0.359907, -0.646237, 0.672937}), 0.676476f};
 
   EXPECT_V3_NEAR(to_axis_angle(euler3_xyz).axis(), axis_angle_xyz.axis(), 1e-4);
   EXPECT_V3_NEAR(to_axis_angle(euler3_xzy).axis(), axis_angle_xzy.axis(), 1e-4);
