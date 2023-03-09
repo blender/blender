@@ -494,10 +494,16 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
       lnors_spacearr->mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     }
     mem = lnors_spacearr->mem;
-    lnors_spacearr->lspacearr = (MLoopNorSpace **)BLI_memarena_calloc(
-        mem, sizeof(MLoopNorSpace *) * size_t(numLoops));
-    lnors_spacearr->loops_pool = (LinkNode *)BLI_memarena_alloc(
-        mem, sizeof(LinkNode) * size_t(numLoops));
+    if (numLoops > 0) {
+      lnors_spacearr->lspacearr = (MLoopNorSpace **)BLI_memarena_calloc(
+          mem, sizeof(MLoopNorSpace *) * size_t(numLoops));
+      lnors_spacearr->loops_pool = (LinkNode *)BLI_memarena_alloc(
+          mem, sizeof(LinkNode) * size_t(numLoops));
+    }
+    else {
+      lnors_spacearr->lspacearr = nullptr;
+      lnors_spacearr->loops_pool = nullptr;
+    }
 
     lnors_spacearr->spaces_num = 0;
   }
