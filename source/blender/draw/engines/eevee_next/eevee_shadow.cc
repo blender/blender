@@ -836,8 +836,7 @@ void ShadowModule::end_sync()
     tilemap_pool.tiles_data.clear_to_zero();
 
     /* Clear cached page buffer. */
-    int2 data = {-1, -1};
-    GPU_storagebuf_clear(pages_cached_data_, GPU_RG32I, GPU_DATA_INT, &data);
+    GPU_storagebuf_clear(pages_cached_data_, -1);
 
     /* Reset info to match new state. */
     pages_infos_data_.page_free_count = shadow_page_len_;
