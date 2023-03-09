@@ -70,12 +70,10 @@ class AssetLibraryService {
   /** Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
    * #ASSET_LIBRARY_CUSTOM. */
   AssetLibrary *get_asset_library_on_disk_builtin(eAssetLibraryType type, StringRefNull root_path);
-
   /** Get the "Current File" asset library. */
-  AssetLibrary *get_asset_library_current_file(StringRef name);
-
+  AssetLibrary *get_asset_library_current_file();
   /** Get the "All" asset library, which loads all others and merges them into one. */
-  AssetLibrary *get_asset_library_all(StringRef name, const Main *bmain);
+  AssetLibrary *get_asset_library_all(const Main *bmain);
 
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;

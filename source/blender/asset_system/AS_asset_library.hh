@@ -82,10 +82,12 @@ class AssetLibrary {
  public:
   /**
    * \param name: The name this asset library will be displayed in the UI as. Will also be used as
-   *              a weak way to identify an asset library (e.g. by #AssetWeakReference).
+   *              a weak way to identify an asset library (e.g. by #AssetWeakReference). Make sure
+   *              this is set for any custom (not builtin) asset library. That is,
+   *              #ASSET_LIBRARY_CUSTOM ones.
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
-  AssetLibrary(eAssetLibraryType library_type, StringRef name, StringRef root_path = "");
+  AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
   ~AssetLibrary();
 
   /**

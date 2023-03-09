@@ -79,12 +79,12 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
       if (root_path.empty()) {
         /* File wasn't saved yet. */
-        return get_asset_library_current_file("Current File");
+        return get_asset_library_current_file();
       }
       return get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_ALL:
-      return get_asset_library_all("All", bmain);
+      return get_asset_library_all(bmain);
     case ASSET_LIBRARY_CUSTOM: {
       bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
           library_reference);
@@ -158,7 +158,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibra
   return get_asset_library_on_disk(type, {}, root_path);
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_current_file(StringRef name)
+AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 {
   if (current_file_library_) {
     CLOG_INFO(&LOG, 2, "get current file lib (cached)");
@@ -166,7 +166,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file(StringRef name
   }
   else {
     CLOG_INFO(&LOG, 2, "get current file lib (loaded)");
-    current_file_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_LOCAL, name);
+    current_file_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_LOCAL);
     current_file_library_->on_blend_save_handler_register();
   }
 
@@ -191,7 +191,7 @@ static void rebuild_all_library(AssetLibrary &all_library, const bool reload_cat
   all_library.catalog_service->rebuild_tree();
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_all(StringRef name, const Main *bmain)
+AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 {
   /* (Re-)load all other asset libraries. */
   for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
@@ -211,7 +211,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(StringRef name, const M
   }
 
   CLOG_INFO(&LOG, 2, "get all lib (loaded)");
-  all_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_ALL, name);
+  all_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_ALL);
 
   /* Don't reload catalogs on this initial read, they've just been loaded above. */
   rebuild_all_library(*all_library_, /*reload_catlogs=*/false);

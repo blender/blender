@@ -51,7 +51,7 @@ struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *libra
   AssetLibraryService *service = AssetLibraryService::get();
   asset_system::AssetLibrary *lib;
   if (library_path == nullptr || library_path[0] == '\0') {
-    lib = service->get_asset_library_current_file(name);
+    lib = service->get_asset_library_current_file();
   }
   else {
     lib = service->get_asset_library_on_disk_custom(name, library_path);

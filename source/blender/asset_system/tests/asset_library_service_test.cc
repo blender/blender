@@ -93,15 +93,13 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
 {
   AssetLibraryService *service = AssetLibraryService::get();
 
-  const std::string lib_name_on_disk = std::string(__func__) + " on disk";
-  const std::string lib_name_curfile = std::string(__func__) + " current file";
-  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(lib_name_on_disk,
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
                                                                       asset_library_root_);
-  AssetLibrary *const curfile_lib = service->get_asset_library_current_file(lib_name_curfile);
+  AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
 
-  EXPECT_EQ(lib, service->get_asset_library_on_disk_custom(lib_name_on_disk, asset_library_root_))
+  EXPECT_EQ(lib, service->get_asset_library_on_disk_custom(__func__, asset_library_root_))
       << "Calling twice without destroying in between should return the same instance.";
-  EXPECT_EQ(curfile_lib, service->get_asset_library_current_file(lib_name_curfile))
+  EXPECT_EQ(curfile_lib, service->get_asset_library_current_file())
       << "Calling twice without destroying in between should return the same instance.";
 
   /* NOTE: there used to be a test for the opposite here, that after a call to
@@ -113,12 +111,9 @@ TEST_F(AssetLibraryServiceTest, library_from_reference)
 {
   AssetLibraryService *service = AssetLibraryService::get();
 
-  const std::string lib_name_on_disk = std::string(__func__) + " on disk";
-  const std::string lib_name_curfile = std::string(__func__) + " current file";
-
-  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(lib_name_on_disk,
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
                                                                       asset_library_root_);
-  AssetLibrary *const curfile_lib = service->get_asset_library_current_file(lib_name_curfile);
+  AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
 
   AssetLibraryReference ref{};
   ref.type = ASSET_LIBRARY_LOCAL;
