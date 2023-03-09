@@ -1368,7 +1368,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                rna_enum_usd_tex_import_mode_items,
                USD_TEX_IMPORT_PACK,
                "Import Textures",
-               "Behavior when importing textures from a USDZ archive");
+               "Behavior when importing textures from a USDZ archive or URI");
 
   RNA_def_string(ot->srna,
                  "import_textures_dir",
