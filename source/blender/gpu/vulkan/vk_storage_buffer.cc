@@ -14,11 +14,11 @@ namespace blender::gpu {
 
 void VKStorageBuffer::update(const void *data)
 {
-  VKContext &context = *VKContext::get();
   if (!buffer_.is_allocated()) {
+    VKContext &context = *VKContext::get();
     allocate(context);
   }
-  buffer_.update(context, data);
+  buffer_.update(data);
 }
 
 void VKStorageBuffer::allocate(VKContext &context)
@@ -65,11 +65,7 @@ void VKStorageBuffer::read(void *data)
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   command_buffer.submit();
 
-  void *mapped_memory;
-  if (buffer_.map(context, &mapped_memory)) {
-    memcpy(data, mapped_memory, size_in_bytes_);
-    buffer_.unmap(context);
-  }
+  buffer_.read(data);
 }
 
 }  // namespace blender::gpu
