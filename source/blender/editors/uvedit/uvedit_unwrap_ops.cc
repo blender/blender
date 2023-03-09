@@ -1440,8 +1440,9 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     mul_v2_m2v2(pre_translate, matrix_inverse, base_offset);
 
     /* Translate to box_array from bounds_rect. */
-    pre_translate[0] += box_array[i].x - island->bounds_rect.xmin;
-    pre_translate[1] += box_array[i].y - island->bounds_rect.ymin;
+    blender::geometry::PackIsland *pack_island = pack_island_vector[box_array[i].index];
+    pre_translate[0] += box_array[i].x - pack_island->bounds_rect.xmin;
+    pre_translate[1] += box_array[i].y - pack_island->bounds_rect.ymin;
     island_uv_transform(island, matrix, pre_translate);
   }
 
