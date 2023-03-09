@@ -406,10 +406,8 @@ struct ProjPaintState {
   SpinLock *tile_lock;
 
   Mesh *me_eval;
-  int totlooptri_eval;
   int totloop_eval;
   int totpoly_eval;
-  int totedge_eval;
   int totvert_eval;
 
   const float (*vert_positions_eval)[3];
@@ -3920,8 +3918,8 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 {
   if (ps->seam_bleed_px > 0.0f) {
     ps->vertFaces = MEM_cnew_array<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
-    ps->faceSeamFlags = MEM_cnew_array<ushort>(ps->totlooptri_eval, "paint-faceSeamFlags");
-    ps->faceWindingFlags = MEM_cnew_array<char>(ps->totlooptri_eval, "paint-faceWindindFlags");
+    ps->faceSeamFlags = MEM_cnew_array<ushort>(ps->looptris_eval.size(), __func__);
+    ps->faceWindingFlags = MEM_cnew_array<char>(ps->looptris_eval.size(), __func__);
     ps->loopSeamData = static_cast<LoopSeamData *>(
         MEM_mallocN(sizeof(LoopSeamData) * ps->totloop_eval, "paint-loopSeamUVs"));
     ps->vertSeams = MEM_cnew_array<ListBase>(ps->totvert_eval, "paint-vertSeams");
@@ -4083,7 +4081,6 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
       CustomData_get_layer_named(&ps->me_eval->pdata, CD_PROP_BOOL, "sharp_face"));
 
   ps->totvert_eval = ps->me_eval->totvert;
-  ps->totedge_eval = ps->me_eval->totedge;
   ps->totpoly_eval = ps->me_eval->totpoly;
   ps->totloop_eval = ps->me_eval->totloop;
 
@@ -4311,7 +4308,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 
   BLI_assert(ps->image_tot == 0);
 
-  for (tri_index = 0; tri_index < ps->totlooptri_eval; tri_index++) {
+  for (tri_index = 0; tri_index < ps->looptris_eval.size(); tri_index++) {
     bool is_face_sel;
     bool skip_tri = false;
 
