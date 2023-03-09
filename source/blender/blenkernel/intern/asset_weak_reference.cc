@@ -26,9 +26,9 @@ AssetWeakReference::AssetWeakReference(AssetWeakReference &&other)
       asset_library_identifier(other.asset_library_identifier),
       relative_asset_identifier(other.relative_asset_identifier)
 {
-  asset_library_type = 0; /* Not a valid type. */
-  asset_library_identifier = nullptr;
-  relative_asset_identifier = nullptr;
+  other.asset_library_type = 0; /* Not a valid type. */
+  other.asset_library_identifier = nullptr;
+  other.relative_asset_identifier = nullptr;
 }
 
 AssetWeakReference::~AssetWeakReference()
