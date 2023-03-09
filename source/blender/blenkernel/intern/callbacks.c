@@ -72,7 +72,7 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
 void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str)
 {
   PointerRNA str_ptr;
-  PrimitiveStringRNA data = {};
+  PrimitiveStringRNA data = {NULL};
   data.value = str;
   RNA_pointer_create(NULL, &RNA_PrimitiveString, &data, &str_ptr);
 
