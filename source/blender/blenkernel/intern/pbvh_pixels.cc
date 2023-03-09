@@ -23,6 +23,7 @@
 #include "bmesh.h"
 
 #include "pbvh_intern.hh"
+#include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
 
 namespace blender::bke::pbvh::pixels {
@@ -714,6 +715,9 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     apply_watertight_check(pbvh, image, image_user);
   }
 
+  /* Add solution for non-manifold parts of the model. */
+  BKE_pbvh_pixels_copy_update(*pbvh, *image, *image_user, mesh_data);
+
   /* Rebuild the undo regions. */
   for (PBVHNode *node : nodes_to_update) {
     NodeData *node_data = static_cast<NodeData *>(node->pixels.node_data);
@@ -797,6 +801,13 @@ void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &i
     node_data->flags.dirty = false;
   }
 }
+
+void BKE_pbvh_pixels_collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles)
+{
+  NodeData *node_data = static_cast<NodeData *>(node.pixels.node_data);
+  node_data->collect_dirty_tiles(r_dirty_tiles);
+}
+
 }  // namespace blender::bke::pbvh::pixels
 
 using namespace blender::bke::pbvh::pixels;
