@@ -805,8 +805,6 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
     const int loopstart = poly.loopstart;
     const int totloop = poly.totloop;
 
-    int vert_ctx_len = 0;
-
     int prev_wloop_len = wloop_len;
     for (const int i_loop : mloop.index_range().slice(loopstart, totloop)) {
       int v = mloop[i_loop].v;
@@ -815,9 +813,6 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
       int e_dest = edge_dest_map[e];
       bool is_vert_ctx = v_dest != OUT_OF_CONTEXT;
       bool is_edge_ctx = e_dest != OUT_OF_CONTEXT;
-      if (is_vert_ctx) {
-        vert_ctx_len++;
-      }
       if (is_vert_ctx || is_edge_ctx) {
         WeldLoop wl{};
         wl.vert = is_vert_ctx ? v_dest : v;
@@ -845,9 +840,11 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
       wpoly.append(wp);
 
       poly_map[i] = wpoly_len++;
-      if (totloop > 5 && vert_ctx_len > 1) {
-        /* Each untouched vertex pair is a candidate for a new polygon. */
-        int max_new = std::min(vert_ctx_len, (totloop - vert_ctx_len) / 2);
+      if (totloop > 5 && loops_len > 1) {
+        /* We could be smarter here and actually count how many new polygons will be created.
+         * But counting this can be inefficient as it depends on the number of non-consecutive
+         * self polygon merges. For now just estimate a maximum value. */
+        int max_new = std::min((totloop / 3), loops_len) - 1;
         maybe_new_poly += max_new;
         CLAMP_MIN(max_ctx_poly_len, totloop);
       }
