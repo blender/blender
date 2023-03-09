@@ -406,7 +406,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
   uint color = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
-  if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+  if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
     GPU_line_smooth(true);
   }
   GPU_blend(GPU_BLEND_ALPHA);
@@ -482,7 +482,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
   immEnd();
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
-  if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+  if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
     GPU_line_smooth(false);
   }
 }
@@ -515,7 +515,7 @@ static void draw_fcurve_sample_control(
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
+static void draw_fcurve_samples(ARegion *region, FCurve *fcu)
 {
   FPoint *first, *last;
   float hsize, xscale, yscale;
@@ -531,7 +531,7 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
   /* draw */
   if (first && last) {
     /* anti-aliased lines for more consistent appearance */
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
       GPU_line_smooth(true);
     }
     GPU_blend(GPU_BLEND_ALPHA);
@@ -547,7 +547,7 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
     immUnbindProgram();
 
     GPU_blend(GPU_BLEND_NONE);
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
       GPU_line_smooth(false);
     }
   }
@@ -565,7 +565,6 @@ static void draw_fcurve_curve(bAnimContext *ac,
                               const bool use_nla_remap,
                               const bool draw_extrapolation)
 {
-  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   short mapping_flag = ANIM_get_normalization_flags(ac);
 
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
@@ -601,7 +600,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
   float pixels_per_sample = 1.5f;
   float samplefreq = pixels_per_sample / UI_view2d_scale_get_x(v2d);
 
-  if (sipo->flag & SIPO_BEAUTYDRAW_OFF) {
+  if (!(U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING)) {
     /* Low Precision = coarse lower-bound clamping
      *
      * Although the "Beauty Draw" flag was originally for AA'd
@@ -1030,7 +1029,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
     }
 
     /* anti-aliased lines for less jagged appearance */
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
       GPU_line_smooth(true);
     }
     GPU_blend(GPU_BLEND_ALPHA);
@@ -1105,7 +1104,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 
     immUnbindProgram();
 
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
       GPU_line_smooth(false);
     }
     GPU_blend(GPU_BLEND_NONE);
@@ -1115,7 +1114,8 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
    * - If the option to only show controls if the F-Curve is selected is enabled,
    *   we must obey this.
    */
-  if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
+  if (!(U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) ||
+      (fcu->flag & FCURVE_SELECTED)) {
     if (!BKE_fcurve_are_keyframes_usable(fcu) && !(fcu->fpt && fcu->totvert)) {
       /* only draw controls if this is the active modifier */
       if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
@@ -1153,7 +1153,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       }
       else {
         /* samples: only draw two indicators at either end as indicators */
-        draw_fcurve_samples(sipo, region, fcu);
+        draw_fcurve_samples(region, fcu);
       }
 
       GPU_matrix_pop();
@@ -1300,7 +1300,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
   GPU_line_width(3.0f);
 
   /* anti-aliased lines for less jagged appearance */
-  if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+  if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
     GPU_line_smooth(true);
   }
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1333,7 +1333,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
 
   immUnbindProgram();
 
-  if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+  if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
     GPU_line_smooth(false);
   }
   GPU_blend(GPU_BLEND_NONE);

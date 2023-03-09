@@ -63,7 +63,7 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<float2 *> 
   if (loops_for_vert.size() <= 1) {
     return;
   }
-  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer.  */
+  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer. */
   Vector<int, 32> loops_merge;
   loops_merge.reserve(loops_for_vert.size());
   for (float2 *mloopuv : mloopuv_layers) {

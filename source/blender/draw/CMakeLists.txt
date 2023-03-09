@@ -822,7 +822,6 @@ if(WITH_GTESTS)
       tests/draw_pass_test.cc
       tests/draw_testing.cc
       tests/eevee_test.cc
-      tests/shaders_test.cc
 
       tests/draw_testing.hh
     )

@@ -11,9 +11,9 @@ namespace blender::io::usd {
 
 void ensure_usd_plugin_path_registered()
 {
-  /* if PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
-     the plugins are placed relative to the USD shared library hence no
-     hinting is required. */
+  /* If #PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
+   * the plugins are placed relative to the USD shared library hence no
+   * hinting is required. */
 #ifndef PXR_PYTHON_SUPPORT_ENABLED
   static bool plugin_path_registered = false;
   if (plugin_path_registered) {

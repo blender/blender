@@ -39,8 +39,8 @@ class UVAABBIsland {
  *
  * In theory, alpaca_turbo should be the fastest non-trivial packer, hence the "turbo" suffix.
  *
- * Technically, the algorithm here is only O(n), In practice, to get reasonable results, the input
- * must be pre-sorted, which costs an additional O(nlogn) time complexity.
+ * Technically, the algorithm here is only `O(n)`, In practice, to get reasonable results,
+ * the input must be pre-sorted, which costs an additional `O(nlogn)` time complexity.
  */
 static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
                                       float *r_max_u,
@@ -100,21 +100,20 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                                        const float scale,
                                        const float margin)
 {
-  /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has O(n^3)
+  /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has `O(n^3)`
    * time complexity, causing poor performance if there are lots of islands. See: #102843.
-   * #pack_islands_alpaca_turbo is designed to be the fastest packing method, O(nlogn),
+   * #pack_islands_alpaca_turbo is designed to be the fastest packing method, `O(nlogn)`,
    * but has poor packing efficiency if the AABBs have a spread of sizes and aspect ratios.
    * Here, we merge the best properties of both packers into one combined packer.
-
+   *
    * The free tuning parameter, `alpaca_cutoff` will determine how many islands are packed
    * using each method.
-
+   *
    * The current strategy is:
-     * - Sort islands in size order.
-     * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
-     * - Call #pack_islands_alpaca_turbo on the remaining islands.
-     * - Combine results.
-
+   * - Sort islands in size order.
+   * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
+   * - Call #pack_islands_alpaca_turbo on the remaining islands.
+   * - Combine results.
    */
 
   /* First, copy information from our input into the AABB structure. */

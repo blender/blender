@@ -300,7 +300,7 @@ typedef struct FontBLF {
   /** Font size. */
   float size;
 
-  /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
+  /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts. */
   FT_MM_Var *variations;
 
   /** Character variation; 0=default, -1=min, +1=max. */

@@ -15,13 +15,13 @@ namespace blender::gpu {
  * Information about alignment/components and memory size for types when using std140 layout.
  */
 struct Std140 {
-  /** Get the memory size in bytes of a single component using by the given type.*/
+  /** Get the memory size in bytes of a single component using by the given type. */
   static uint32_t component_mem_size(const shader::Type type);
-  /** Get to alignment of the given type in bytes.*/
+  /** Get to alignment of the given type in bytes. */
   static uint32_t element_alignment(const shader::Type type, bool is_array);
-  /** Get the number of components that should be allocated for the given type.*/
+  /** Get the number of components that should be allocated for the given type. */
   static uint32_t element_components_len(const shader::Type type);
-  /** Get the number of components of the given type when used in an array.*/
+  /** Get the number of components of the given type when used in an array. */
   static uint32_t array_components_len(const shader::Type type);
 };
 
@@ -29,13 +29,13 @@ struct Std140 {
  * Information about alignment/components and memory size for types when using std430 layout.
  */
 struct Std430 {
-  /** Get the memory size in bytes of a single component using by the given type.*/
+  /** Get the memory size in bytes of a single component using by the given type. */
   static uint32_t component_mem_size(const shader::Type type);
-  /** Get to alignment of the given type in bytes.*/
+  /** Get to alignment of the given type in bytes. */
   static uint32_t element_alignment(const shader::Type type, bool is_array);
-  /** Get the number of components that should be allocated for the given type.*/
+  /** Get the number of components that should be allocated for the given type. */
   static uint32_t element_components_len(const shader::Type type);
-  /** Get the number of components of the given type when used in an array.*/
+  /** Get the number of components of the given type when used in an array. */
   static uint32_t array_components_len(const shader::Type type);
 };
 

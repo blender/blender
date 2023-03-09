@@ -246,7 +246,7 @@ static const char32_t *blf_get_sample_text(FT_Face face)
     return def;
   }
 
-  /* Detect "Last resort" fonts. They have everything, except the last 5 bits.  */
+  /* Detect "Last resort" fonts. They have everything, except the last 5 bits. */
   if (os2_table->ulUnicodeRange1 == 0xffffffffU && os2_table->ulUnicodeRange2 == 0xffffffffU &&
       os2_table->ulUnicodeRange3 == 0xffffffffU && os2_table->ulUnicodeRange4 >= 0x7FFFFFFU) {
     return U"\xE000\xFFFF";

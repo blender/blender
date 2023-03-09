@@ -136,7 +136,7 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
 
     /* Find root in a monotonic interval using newton method, under given precision and maximal
      * iterations. Falls back to bisection if newton step produces results outside of the valid
-     * interval.*/
+     * interval. */
     const float precision = 1e-6f;
     const int max_iter = 3;
     int iter = 0;

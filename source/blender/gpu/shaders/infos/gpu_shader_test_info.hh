@@ -55,7 +55,7 @@ GPU_SHADER_CREATE_INFO(gpu_compute_ssbo_binding_test)
     .compute_source("gpu_compute_dummy_test.glsl")
     .do_static_compilation(true);
 
-/* Push constants*/
+/* Push constants. */
 GPU_SHADER_CREATE_INFO(gpu_push_constants_base_test)
     .local_group_size(1)
     .storage_buf(0, Qualifier::WRITE, "float", "data_out[]")

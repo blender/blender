@@ -54,10 +54,9 @@
 
 #include "action_intern.h"
 
-/* ************************************************************************** */
-/* POSE MARKERS STUFF */
-
-/* *************************** Localize Markers ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Pose Markers: Localize Markers
+ * \{ */
 
 /* ensure that there is:
  * 1) an active action editor
@@ -142,10 +141,11 @@ void ACTION_OT_markers_make_local(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************************** */
-/* KEYFRAME-RANGE STUFF */
+/** \} */
 
-/* *************************** Calculate Range ************************** */
+/* -------------------------------------------------------------------- */
+/** \name Calculate Range
+ * \{ */
 
 /* Get the min/max keyframes. */
 static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
@@ -242,7 +242,11 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   return found;
 }
 
-/* ****************** Automatic Preview-Range Operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View: Automatic Preview-Range Operator
+ * \{ */
 
 static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -292,7 +296,11 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****************** View-All Operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View: All Operator
+ * \{ */
 
 /**
  * Find the extents of the active channel
@@ -459,7 +467,11 @@ void ACTION_OT_view_selected(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* ****************** View-All Operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View: Frame Operator
+ * \{ */
 
 static int actkeys_view_frame_exec(bContext *C, wmOperator *op)
 {
@@ -484,10 +496,12 @@ void ACTION_OT_view_frame(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* ************************************************************************** */
-/* GENERAL STUFF */
+/** \} */
 
-/* ******************** Copy/Paste Keyframes Operator ************************* */
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Copy/Paste Operator
+ * \{ */
+
 /* NOTE: the backend code for this is shared with the graph editor */
 
 static short copy_action_keys(bAnimContext *ac)
@@ -712,7 +726,11 @@ void ACTION_OT_paste(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ******************** Insert Keyframes Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Insert Operator
+ * \{ */
 
 /* defines for insert keyframes tool */
 static const EnumPropertyItem prop_actkeys_insertkey_types[] = {
@@ -902,7 +920,11 @@ void ACTION_OT_keyframe_insert(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
 }
 
-/* ******************** Duplicate Keyframes Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Duplicate Operator
+ * \{ */
 
 static bool duplicate_action_keys(bAnimContext *ac)
 {
@@ -978,7 +1000,11 @@ void ACTION_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Delete Keyframes Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Delete Operator
+ * \{ */
 
 static bool delete_action_keys(bAnimContext *ac)
 {
@@ -1067,7 +1093,11 @@ void ACTION_OT_delete(wmOperatorType *ot)
   WM_operator_properties_confirm_or_exec(ot);
 }
 
-/* ******************** Clean Keyframes Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Clean Operator
+ * \{ */
 
 static void clean_action_keys(bAnimContext *ac, float thresh, bool clean_chan)
 {
@@ -1143,7 +1173,11 @@ void ACTION_OT_clean(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "channels", false, "Channels", "");
 }
 
-/* ******************** Sample Keyframes Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes: Sample Operator
+ * \{ */
 
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 static void sample_action_keys(bAnimContext *ac)
@@ -1208,10 +1242,11 @@ void ACTION_OT_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************************** */
-/* SETTINGS STUFF */
+/** \} */
 
-/* ******************** Set Extrapolation-Type Operator *********************** */
+/* -------------------------------------------------------------------- */
+/** \name Settings: Set Extrapolation-Type Operator
+ * \{ */
 
 /* defines for make/clear cyclic extrapolation tools */
 #define MAKE_CYCLIC_EXPO -1
@@ -1343,7 +1378,11 @@ void ACTION_OT_extrapolation_type(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
 }
 
-/* ******************** Set Interpolation-Type Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Settings: Set Interpolation-Type Operator
+ * \{ */
 
 static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 {
@@ -1398,7 +1437,11 @@ void ACTION_OT_interpolation_type(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
-/* ******************** Set Easing Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Settings: Set Easing Operator
+ * \{ */
 
 static int actkeys_easing_exec(bContext *C, wmOperator *op)
 {
@@ -1447,7 +1490,11 @@ void ACTION_OT_easing_type(wmOperatorType *ot)
       ot->srna, "type", rna_enum_beztriple_interpolation_easing_items, 0, "Type", "");
 }
 
-/* ******************** Set Handle-Type Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Settings: Set Handle-Type Operator
+ * \{ */
 
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_action_keys(bAnimContext *ac, short mode)
@@ -1532,7 +1579,11 @@ void ACTION_OT_handle_type(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_keyframe_handle_type_items, 0, "Type", "");
 }
 
-/* ******************** Set Keyframe-Type Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Settings: Set Keyframe-Type Operator
+ * \{ */
 
 /* this function is responsible for setting keyframe type for keyframes */
 static void setkeytype_action_keys(bAnimContext *ac, short mode)
@@ -1620,10 +1671,11 @@ void ACTION_OT_keyframe_type(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_beztriple_keyframe_type_items, 0, "Type", "");
 }
 
-/* ************************************************************************** */
-/* TRANSFORM STUFF */
+/** \} */
 
-/* ***************** Jump to Selected Frames Operator *********************** */
+/* -------------------------------------------------------------------- */
+/** \name Transform: Jump to Selected Frames Operator
+ * \{ */
 
 static bool actkeys_framejump_poll(bContext *C)
 {
@@ -1722,7 +1774,11 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Snap Keyframes Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform: Snap Keyframes Operator
+ * \{ */
 
 /* defines for snap keyframes tool */
 static const EnumPropertyItem prop_actkeys_snap_types[] = {
@@ -1852,7 +1908,11 @@ void ACTION_OT_snap(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
 }
 
-/* ******************** Mirror Keyframes Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform: Mirror Keyframes Operator
+ * \{ */
 
 /* defines for mirror keyframes tool */
 static const EnumPropertyItem prop_actkeys_mirror_types[] = {
@@ -1976,4 +2036,4 @@ void ACTION_OT_mirror(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
 }
 
-/* ************************************************************************** */
+/** \} */

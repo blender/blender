@@ -54,8 +54,9 @@
 
 #include "action_intern.h"
 
-/* ************************************************************************** */
-/* ACTION CREATION */
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
 
 AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owner)
 {
@@ -86,9 +87,12 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
   return adt;
 }
 
-/* -------------------------------------------------------------------- */
+/** \} */
 
-/* Create new action */
+/* -------------------------------------------------------------------- */
+/** \name Create New Action
+ * \{ */
+
 static bAction *action_create_new(bContext *C, bAction *oldact)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -150,14 +154,18 @@ static void actedit_change_action(bContext *C, bAction *act)
   RNA_property_update(C, &ptr, prop);
 }
 
-/* ******************** New Action Operator *********************** */
+/** \} */
 
-/* Criteria:
- *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions...
- *        OR
- *     The NLA Editor is active (i.e. Animation Data panel -> new action)
- *  2) The associated AnimData block must not be in tweak-mode.
- */
+/* -------------------------------------------------------------------- */
+/** \name New Action Operator
+ *
+ * Criteria:
+ * 1) There must be an dope-sheet/action editor, and it must be in a mode which uses actions...
+ *       OR
+ *    The NLA Editor is active (i.e. Animation Data panel -> new action)
+ * 2) The associated #AnimData block must not be in tweak-mode.
+ * \{ */
+
 static bool action_new_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -290,13 +298,17 @@ void ACTION_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* Action Push-Down Operator ******************** */
+/** \} */
 
-/* Criteria:
- *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions
- *  2) There must be an action active
- *  3) The associated AnimData block must not be in tweak-mode
- */
+/* -------------------------------------------------------------------- */
+/** \name Action Push-Down Operator
+ *
+ * Criteria:
+ * 1) There must be an dope-sheet/action editor, and it must be in a mode which uses actions.
+ * 2) There must be an action active.
+ * 3) The associated #AnimData block must not be in tweak-mode.
+ * \{ */
+
 static bool action_pushdown_poll(bContext *C)
 {
   if (ED_operator_action_active(C)) {
@@ -370,7 +382,11 @@ void ACTION_OT_push_down(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* Action Stash Operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Action Stash Operator
+ * \{ */
 
 static int action_stash_exec(bContext *C, wmOperator *op)
 {
@@ -432,12 +448,16 @@ void ACTION_OT_stash(wmOperatorType *ot)
                              "Create a new action once the existing one has been safely stored");
 }
 
-/* ----------------- */
+/** \} */
 
-/* Criteria:
- *  1) There must be an dopesheet/action editor, and it must be in a mode which uses actions
- *  2) The associated AnimData block must not be in tweak-mode
- */
+/* -------------------------------------------------------------------- */
+/** \name Action Stash & Create Operator
+ *
+ * Criteria:
+ * 1) There must be an dope-sheet/action editor, and it must be in a mode which uses actions.
+ * 2) The associated #AnimData block must not be in tweak-mode.
+ * \{ */
+
 static bool action_stash_create_poll(bContext *C)
 {
   if (ED_operator_action_active(C)) {
@@ -536,17 +556,18 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************************** */
-/* ACTION UNLINK */
+/** \} */
 
-/* ******************* Action Unlink Operator ******************** */
-/* We use a custom unlink operator here, as there are some technicalities which need special care:
+/* -------------------------------------------------------------------- */
+/** \name Action Unlink Operator
+ *
+ * We use a custom unlink operator here, as there are some technicalities which need special care:
  * 1) When in Tweak Mode, it shouldn't be possible to unlink the active action,
  *    or else, everything turns to custard.
  * 2) If the Action doesn't have any other users, the user should at least get
  *    a warning that it is going to get lost.
  * 3) We need a convenient way to exit Tweak Mode from the Action Editor
- */
+ * \{ */
 
 void ED_animedit_unlink_action(
     bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports, bool force_delete)
@@ -701,8 +722,11 @@ void ACTION_OT_unlink(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************************** */
-/* ACTION BROWSING */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Action Browsing
+ * \{ */
 
 /* Try to find NLA Strip to use for action layer up/down tool */
 static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
@@ -775,7 +799,11 @@ static void action_layer_switch_strip(
   BLI_assert(adt->actstrip == strip);
 }
 
-/* ********************** One Layer Up Operator ************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name One Layer Up Operator
+ * \{ */
 
 static bool action_layer_next_poll(bContext *C)
 {
@@ -886,7 +914,11 @@ void ACTION_OT_layer_next(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************* One Layer Down Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name One Layer Down Operator
+ * \{ */
 
 static bool action_layer_prev_poll(bContext *C)
 {
@@ -985,4 +1017,4 @@ void ACTION_OT_layer_prev(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************************** */
+/** \} */

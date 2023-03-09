@@ -798,7 +798,7 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
       }
 
       /* Don't check endpoint distances unless the bounding boxes of the strokes
-      are close enough together that they can plausibly be connected. */
+       * are close enough together that they can plausibly be connected. */
       if (!extended_bbox_overlap(gps->boundbox_min,
                                  gps->boundbox_max,
                                  gps2->boundbox_min,

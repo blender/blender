@@ -202,7 +202,7 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
 }
 
 /* Single face of a equiangular cube map projection as described in
-   https://blog.google/products/google-ar-vr/bringing-pixels-front-and-center-vr-video/ */
+ * https://blog.google/products/google-ar-vr/bringing-pixels-front-and-center-vr-video/ */
 ccl_device float3 equiangular_cubemap_face_to_direction(float u, float v)
 {
   u = (1.0f - u);

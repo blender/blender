@@ -12,11 +12,11 @@ namespace blender::gpu {
 
 void VKUniformBuffer::update(const void *data)
 {
-  VKContext &context = *VKContext::get();
   if (!buffer_.is_allocated()) {
+    VKContext &context = *VKContext::get();
     allocate(context);
   }
-  buffer_.update(context, data);
+  buffer_.update(data);
 }
 
 void VKUniformBuffer::allocate(VKContext &context)

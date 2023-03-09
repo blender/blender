@@ -63,6 +63,9 @@ bool allow_procedural_attribute_access(StringRef attribute_name)
   if (attribute_name.startswith(".hide")) {
     return false;
   }
+  if (attribute_name.startswith(".uv")) {
+    return false;
+  }
   if (attribute_name.startswith("." UV_VERTSEL_NAME ".")) {
     return false;
   }

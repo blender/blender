@@ -2548,7 +2548,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Time Alignment", "How should strokes start to appear/disappear");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  /* Which time mode to use: Current frames, manual percentage, or drawspeed.  */
+  /* Which time mode to use: Current frames, manual percentage, or drawspeed. */
   prop = RNA_def_property(srna, "time_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "time_mode");
   RNA_def_property_enum_items(prop, gpencil_build_time_mode_items);

@@ -44,8 +44,9 @@
 
 #include "action_intern.h"
 
-/* ************************************************************************* */
-/* Channel List */
+/* -------------------------------------------------------------------- */
+/** \name Channel List
+ * \{ */
 
 void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 {
@@ -110,8 +111,11 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ************************************************************************* */
-/* Keyframes */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframes
+ * \{ */
 
 /* extra padding for lengths (to go under scrollers) */
 #define EXTRA_SCROLL_PAD 100.0f
@@ -424,8 +428,11 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ************************************************************************* */
-/* Timeline - Caches */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Timeline - Caches
+ * \{ */
 
 static bool timeline_cache_is_hidden_by_setting(SpaceAction *saction, PTCacheID *pid)
 {
@@ -659,4 +666,4 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
   BLI_freelistN(&pidlist);
 }
 
-/* ************************************************************************* */
+/** \} */

@@ -1006,7 +1006,7 @@ void GPU_material_optimize(GPUMaterial *mat)
    * NOTE(Threading): Need to verify if GPU_generate_pass can cause side-effects, especially when
    * used with "thunk". So far, this appears to work, and deferring optimized pass creation is more
    * optimal, as these do not benefit from caching, due to baked constants. However, this could
-   * possibly be cause for concern for certain cases.  */
+   * possibly be cause for concern for certain cases. */
   if (!mat->optimized_pass) {
     mat->optimized_pass = GPU_generate_pass(
         mat, &mat->graph, mat->optimize_pass_info.callback, mat->optimize_pass_info.thunk, true);
