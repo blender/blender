@@ -81,7 +81,7 @@ class DeviceInfo {
   bool has_gpu_queue;   /* Device supports GPU queue. */
   bool use_metalrt;     /* Use MetalRT to accelerate ray queries (Metal only). */
   KernelOptimizationLevel kernel_optimization_level; /* Optimization level applied to path tracing
-                                                        kernels (Metal only). */
+                                                      * kernels (Metal only). */
   DenoiserTypeMask denoisers;                        /* Supported denoiser types. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;

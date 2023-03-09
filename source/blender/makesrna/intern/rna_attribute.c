@@ -136,7 +136,9 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 static char *rna_Attribute_path(const PointerRNA *ptr)
 {
   const CustomDataLayer *layer = ptr->data;
-  return BLI_sprintfN("attributes['%s']", layer->name);
+  char layer_name_esc[sizeof(layer->name) * 2];
+  BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
+  return BLI_sprintfN("attributes[\"%s\"]", layer_name_esc);
 }
 
 static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)

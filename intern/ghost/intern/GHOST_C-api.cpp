@@ -918,6 +918,12 @@ void GHOST_UseWindowFocus(bool use_focus)
   return system->useWindowFocus(use_focus);
 }
 
+void GHOST_SetAutoFocus(bool auto_focus)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  system->setAutoFocus(auto_focus);
+}
+
 float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;

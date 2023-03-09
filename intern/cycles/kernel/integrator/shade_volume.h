@@ -1019,7 +1019,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
-  /* The current path throughput which is used later to calculate per-segment throughput.*/
+  /* The current path throughput which is used later to calculate per-segment throughput. */
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
   /* The path throughput used to calculate the throughput for direct light. */
   float3 unlit_throughput = initial_throughput;
@@ -1063,7 +1063,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
       if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
         /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
          * will happen at the same position as the indirect event and the direct light contribution
-         * will contribute to the position of the next path segment.*/
+         * will contribute to the position of the next path segment. */
         float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
@@ -1076,7 +1076,8 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
          * event will happen at a separate position as the indirect event and the direct light
          * contribution will contribute to the position of the current/previous path segment. The
-         * unlit_throughput has to be adjusted to include the scattering at the previous segment.*/
+         * unlit_throughput has to be adjusted to include the scattering at the previous segment.
+         */
         float3 scatterEval = one_float3();
         if (state->guiding.path_segment) {
           pgl_vec3f scatteringWeight = state->guiding.path_segment->scatteringWeight;

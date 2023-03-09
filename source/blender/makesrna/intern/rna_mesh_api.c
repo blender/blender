@@ -245,7 +245,7 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna, "split_faces", "rna_Mesh_split_faces");
   RNA_def_function_ui_description(func, "Split faces based on the edge angle");
   /* TODO: This parameter has no effect anymore, since the internal code does not need to
-   * compute temporary CD_NORMAL loop data. It should be removed for next major release (4.0).  */
+   * compute temporary CD_NORMAL loop data. It should be removed for next major release (4.0). */
   RNA_def_boolean(func, "free_loop_normals", 1, "Free Loop Normals", "Deprecated, has no effect");
 
   func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");

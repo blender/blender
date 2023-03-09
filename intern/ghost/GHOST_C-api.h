@@ -944,6 +944,11 @@ extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);
 extern void GHOST_UseWindowFocus(bool use_focus);
 
 /**
+ * Focus and raise windows on mouse hover.
+ */
+extern void GHOST_SetAutoFocus(bool auto_focus);
+
+/**
  * If window was opened using native pixel size, it returns scaling factor.
  */
 extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);

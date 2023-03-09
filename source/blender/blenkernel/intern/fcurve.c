@@ -589,7 +589,7 @@ static bool get_fcurve_end_keyframes(const FCurve *fcu,
     }
 
     /* The binary search returns an index where a keyframe would be inserted,
-    so it needs to be clamped to ensure it is in range of the array. */
+     * so it needs to be clamped to ensure it is in range of the array. */
     first_index = clamp_i(first_index, 0, fcu->totvert - 1);
     last_index = clamp_i(last_index - 1, 0, fcu->totvert - 1);
   }

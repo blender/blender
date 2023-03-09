@@ -4197,10 +4197,8 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   for (int64_t i : pack_island_vector.index_range()) {
     BoxPack *box = box_array + i;
     PackIsland *pack_island = pack_island_vector[box->index];
-    pack_island->bounds_rect.xmin = box->x;
-    pack_island->bounds_rect.ymin = box->y;
-    pack_island->bounds_rect.xmax = box->x + box->w;
-    pack_island->bounds_rect.ymax = box->y + box->h;
+    pack_island->bounds_rect.xmin = box->x - pack_island->bounds_rect.xmin;
+    pack_island->bounds_rect.ymin = box->y - pack_island->bounds_rect.ymin;
   }
 
   unpacked = 0;
@@ -4213,17 +4211,13 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     }
     PackIsland *pack_island = pack_island_vector[i - unpacked];
 
-    float minv[2];
-    float maxv[2];
-    p_chart_uv_bbox(chart, minv, maxv);
-
     /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
     float m[2];
     float b[2];
     m[0] = scale[0];
     m[1] = scale[1];
-    b[0] = pack_island->bounds_rect.xmin - minv[0];
-    b[1] = pack_island->bounds_rect.ymin - minv[1];
+    b[0] = pack_island->bounds_rect.xmin;
+    b[1] = pack_island->bounds_rect.ymin;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
       v->uv[0] = m[0] * (v->uv[0] + b[0]);

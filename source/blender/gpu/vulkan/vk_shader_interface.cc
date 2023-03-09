@@ -138,8 +138,8 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     descriptor_set_location_update(input, descriptor_set_location++);
   }
 
-  /* Post initializing push constants.*/
-  /* Determine the binding location of push constants fallback buffer.*/
+  /* Post initializing push constants. */
+  /* Determine the binding location of push constants fallback buffer. */
   int32_t push_constant_descriptor_set_location = -1;
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     push_constant_descriptor_set_location = descriptor_set_location++;

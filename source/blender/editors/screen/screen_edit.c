@@ -377,7 +377,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     return false;
   }
 
-  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772.  */
+  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772. */
   if (SCREEN_DIR_IS_VERTICAL(dir)) {
     const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
     const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);

@@ -107,16 +107,9 @@ class GRAPH_MT_view(Menu):
             layout.separator()
             layout.prop(st, "show_markers")
 
-        layout.separator()
-        layout.prop(st, "use_beauty_drawing")
-
-        layout.separator()
-
         layout.prop(st, "show_extrapolation")
 
         layout.prop(st, "show_handles")
-
-        layout.prop(st, "use_only_selected_curves_handles")
         layout.prop(st, "use_only_selected_keyframe_handles")
 
         layout.prop(st, "show_seconds")

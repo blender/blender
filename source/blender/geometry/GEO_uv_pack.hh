@@ -21,7 +21,7 @@ enum eUVPackIsland_MarginMethod {
 struct UVPackIsland_Params {
   /** Islands can be rotated to improve packing. */
   bool rotate;
-  /** (In UV Editor) only pack islands which have one or more selected UVs.*/
+  /** (In UV Editor) only pack islands which have one or more selected UVs. */
   bool only_selected_uvs;
   /** (In 3D Viewport or UV Editor) only pack islands which have selected faces. */
   bool only_selected_faces;

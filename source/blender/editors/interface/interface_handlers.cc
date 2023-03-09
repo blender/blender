@@ -47,6 +47,8 @@
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
 
+#include "GHOST_C-api.h"
+
 #include "IMB_colormanagement.h"
 
 #include "ED_screen.h"
@@ -3468,6 +3470,9 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
+  /* Temporarily turn off window auto-focus on platforms that support it. */
+  GHOST_SetAutoFocus(false);
+
 #ifdef WITH_INPUT_IME
   if (!is_num_but) {
     ui_textedit_ime_begin(win, but);
@@ -3522,6 +3527,9 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
   }
 
   WM_cursor_modal_restore(win);
+
+  /* Turn back on the auto-focusing of windows. */
+  GHOST_SetAutoFocus(true);
 
   /* Free text undo history text blocks. */
   ui_textedit_undo_stack_destroy(data->undo_stack_text);

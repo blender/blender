@@ -131,7 +131,7 @@ static PyObject *bpy_bmloopuv_select_edge_get(BPy_BMLoopUV *self, void *UNUSED(c
 }
 static int bpy_bmloopuv_select_edge_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
 {
-  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here.  */
+  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here. */
   BLI_assert(self->edge_select);
   if (self->edge_select) {
     *self->edge_select = PyC_Long_AsBool(value);

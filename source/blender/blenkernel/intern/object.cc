@@ -4090,7 +4090,7 @@ bool BKE_object_minmax_empty_drawtype(const struct Object *ob, float r_min[3], f
       max[0] = radius + (ofs[0] * radius);
       max[1] = radius + (ofs[1] * radius);
       /* Since the image aspect can shrink the bounds towards the object origin,
-       * adjust the min/max to account for that.  */
+       * adjust the min/max to account for that. */
       for (int i = 0; i < 2; i++) {
         CLAMP_MAX(min[i], 0.0f);
         CLAMP_MIN(max[i], 0.0f);

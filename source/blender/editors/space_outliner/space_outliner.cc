@@ -521,7 +521,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       /* TODO the mempool could be moved to #SpaceOutliner_Runtime so that #SpaceOutliner could
        * hold the #TreeStore directly. */
 
-      /* Address relative to the tree-store, as noted above.  */
+      /* Address relative to the tree-store, as noted above. */
       void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA

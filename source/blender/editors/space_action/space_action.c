@@ -46,7 +46,9 @@
 
 #include "action_intern.h" /* own include */
 
-/* ******************** default callbacks for action space ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Default Callbacks for Action Space
+ * \{ */
 
 static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
 {
@@ -962,3 +964,5 @@ void ED_spacetype_action(void)
 
   BKE_spacetype_register(st);
 }
+
+/** \} */

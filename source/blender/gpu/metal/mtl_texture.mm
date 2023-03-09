@@ -497,7 +497,7 @@ void gpu::MTLTexture::update_sub(
     }
 
     /* Early exit if update size is zero. update_sub sometimes has a zero-sized
-     * extent when called from texture painting.  */
+     * extent when called from texture painting. */
     if (totalsize <= 0 || extent[0] <= 0) {
       MTL_LOG_WARNING(
           "MTLTexture::update_sub called with extent size of zero for one or more dimensions. "
@@ -643,7 +643,7 @@ void gpu::MTLTexture::update_sub(
 
       /* For compute, we should use a stating texture to avoid texture write usage,
        * if it has not been specified for the texture. Using shader-write disables
-       * lossless texture compression, so this is best to avoid where possible.  */
+       * lossless texture compression, so this is best to avoid where possible. */
       if (!(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_SHADER_WRITE)) {
         use_staging_texture = true;
       }

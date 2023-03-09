@@ -333,6 +333,11 @@ class GHOST_ISystem {
   virtual void useWindowFocus(const bool use_focus) = 0;
 
   /**
+   * Focus and raise windows on mouse hover.
+   */
+  virtual void setAutoFocus(const bool auto_focus) = 0;
+
+  /**
    * Get the Window under the cursor.
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.

@@ -1343,7 +1343,7 @@ void PathTrace::guiding_prepare_structures()
      * per update to be limited, for reproducible results and reasonable training size.
      *
      * Idea: we could stochastically discard samples with a probability of 1/num_samples_per_update
-     * we can then update only after the num_samples_per_update iterations are rendered.  */
+     * we can then update only after the num_samples_per_update iterations are rendered. */
     render_scheduler_.set_limit_samples_per_update(4);
   }
   else {

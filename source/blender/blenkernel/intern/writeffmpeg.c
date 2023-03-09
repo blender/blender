@@ -586,7 +586,7 @@ static const AVCodec *get_av1_encoder(
         }
         else {
           /* Is not a square num, set greater side based on longer side, or use a square if both
-             sides are equal. */
+           * sides are equal. */
           int sqrt_p2 = power_of_2_min_i(threads_sqrt);
           if (sqrt_p2 < 2) {
             /* Ensure a default minimum. */

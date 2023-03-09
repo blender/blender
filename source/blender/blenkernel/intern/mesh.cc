@@ -255,14 +255,17 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     Set<std::string> names_to_skip;
     if (!BLO_write_is_undo(writer)) {
       /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({".hide_vert",
+      names_to_skip.add_multiple_new({"position",
+                                      ".hide_vert",
                                       ".hide_edge",
                                       ".hide_poly",
-                                      "position",
-                                      "material_index",
+                                      ".uv_seam",
                                       ".select_vert",
                                       ".select_edge",
-                                      ".select_poly"});
+                                      ".select_poly",
+                                      "material_index",
+                                      "sharp_face",
+                                      "sharp_edge"});
 
       mesh->mvert = BKE_mesh_legacy_convert_positions_to_verts(
           mesh, temp_arrays_for_legacy_format, vert_layers);
