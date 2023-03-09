@@ -291,12 +291,13 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
       SCULT_dyntopo_flag_all_disk_sort(ss);
 
-      // symmetrize is messing up ids, regenerate them from scratch
+      /* De-duplicate element IDs. */
       BM_idmap_check_ids(ss->bm_idmap);
+
       BM_mesh_toolflags_set(ss->bm, false);
-      BM_log_full_mesh(ss->bm, ss->bm_log);
 
       /* Finish undo. */
+      BM_log_full_mesh(ss->bm, ss->bm_log);
       SCULPT_undo_push_end(ob);
 
       break;
@@ -856,8 +857,6 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
   SculptSession *ss = ob->sculpt;
 
   SampleColorCustomData *sccd = (SampleColorCustomData *)op->customdata;
-
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   /* Finish operation on release. */
   if (event->val == KM_RELEASE) {
@@ -1433,7 +1432,6 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       BMVert *v = verts[i];
       PBVHVertRef vertex = {(intptr_t)v};
 
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
       int *boundflag = SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
 
       if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP |
@@ -1699,7 +1697,6 @@ static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
         break;
       case AUTOMASK_BAKE_DIVIDE:
         mask = automask > 0.00001f ? *vd.mask / automask : 0.0f;
-        break;
         break;
       case AUTOMASK_BAKE_ADD:
         mask = *vd.mask + automask;
