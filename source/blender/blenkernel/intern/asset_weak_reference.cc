@@ -21,6 +21,11 @@ using namespace blender;
 
 /* #AssetWeakReference -------------------------------------------- */
 
+AssetWeakReference::AssetWeakReference()
+    : asset_library_type(0), asset_library_identifier(nullptr), relative_asset_identifier(nullptr)
+{
+}
+
 AssetWeakReference::AssetWeakReference(AssetWeakReference &&other)
     : asset_library_type(other.asset_library_type),
       asset_library_identifier(other.asset_library_identifier),
