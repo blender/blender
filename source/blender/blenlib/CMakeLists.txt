@@ -262,6 +262,10 @@ set(SRC
   BLI_map.hh
   BLI_map_slots.hh
   BLI_math.h
+  BLI_math_angle_types.hh
+  BLI_math_axis_angle.hh
+  BLI_math_axis_angle_types.hh
+  BLI_math_basis_types.hh
   BLI_math_base.h
   BLI_math_base.hh
   BLI_math_base_safe.h
@@ -270,6 +274,8 @@ set(SRC
   BLI_math_color.h
   BLI_math_color.hh
   BLI_math_color_blend.h
+  BLI_math_euler.hh
+  BLI_math_euler_types.hh
   BLI_math_geom.h
   BLI_math_inline.h
   BLI_math_interp.h
@@ -277,6 +283,8 @@ set(SRC
   BLI_math_matrix.hh
   BLI_math_matrix_types.hh
   BLI_math_mpq.hh
+  BLI_math_quaternion.hh
+  BLI_math_quaternion_types.hh
   BLI_math_rotation.h
   BLI_math_rotation.hh
   BLI_math_rotation_legacy.hh
@@ -498,6 +506,7 @@ if(WITH_GTESTS)
     tests/BLI_math_matrix_test.cc
     tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_rotation_test.cc
+    tests/BLI_math_rotation_types_test.cc
     tests/BLI_math_solvers_test.cc
     tests/BLI_math_time_test.cc
     tests/BLI_math_vector_test.cc

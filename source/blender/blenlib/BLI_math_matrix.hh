@@ -230,6 +230,15 @@ template<typename MatT, typename VectorT>
                                          const VectorT up);
 
 /**
+ * This returns a version of \a mat with orthonormal basis axes.
+ * This leaves the given \a axis untouched.
+ *
+ * In other words this removes the shear of the matrix. However this doesn't properly account for
+ * volume preservation, and so, the axes keep their respective length.
+ */
+template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis);
+
+/**
  * Construct a transformation that is pivoted around the given origin point. So for instance,
  * from_origin_transform<MatT>(from_rotation(M_PI_2), float2(0.0f, 2.0f))
  * will construct a transformation representing a 90 degree rotation around the point (0, 2).
@@ -251,6 +260,30 @@ template<typename T, bool Normalized = false>
 [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 3, 3> &mat);
 template<typename T, bool Normalized = false>
 [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 4, 4> &mat);
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order);
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 4, 4> &mat, EulerOrder order);
+
+/**
+ * Extract euler rotation from transform matrix.
+ * The returned euler triple is given to be the closest from the \a reference.
+ * It avoids axis flipping for animated f-curves for eg.
+ * \return the rotation with the smallest values from the potential candidates.
+ * \note this correspond to the C API "to_compatible" functions.
+ */
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
+                                                          const detail::EulerXYZ<T> &reference);
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
+                                                          const detail::EulerXYZ<T> &reference);
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
+                                                        const detail::Euler3<T> &reference);
+template<typename T, bool Normalized = false>
+[[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
+                                                        const detail::Euler3<T> &reference);
 
 /**
  * Extract quaternion rotation from transform matrix.
@@ -259,6 +292,14 @@ template<typename T, bool Normalized = false>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 3, 3> &mat);
 template<typename T, bool Normalized = false>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 4, 4> &mat);
+
+/**
+ * Extract quaternion rotation from transform matrix.
+ * Legacy version of #to_quaternion which has slightly different behavior.
+ * Keep for particle-system & boids since replacing this will make subtle changes
+ * that impact hair in existing files. See: D15772.
+ */
+[[nodiscard]] Quaternion to_quaternion_legacy(const float3x3 &mat);
 
 /**
  * Extract the absolute 3d scale from a transform matrix.
@@ -481,10 +522,19 @@ template<typename T, int NumCol, int NumRow>
 [[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const EulerXYZ<T> &rotation);
 
 template<typename T, int NumCol, int NumRow>
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const Euler3<T> &rotation);
+
+template<typename T, int NumCol, int NumRow>
 [[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const Quaternion<T> &rotation);
 
 template<typename T, int NumCol, int NumRow>
-[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const AxisAngle<T> &rotation);
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const DualQuaternion<T> &rotation);
+
+template<typename T, int NumCol, int NumRow>
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const CartesianBasis &rotation);
+
+template<typename T, int NumCol, int NumRow, typename AngleT>
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const AxisAngle<T, AngleT> &rotation);
 
 }  // namespace detail
 
@@ -539,14 +589,14 @@ template<typename T, int NumCol, int NumRow, typename VectorT>
   return result;
 }
 
-template<typename T, int NumCol, int NumRow>
+template<typename T, int NumCol, int NumRow, typename AngleT>
 [[nodiscard]] MatBase<T, NumCol, NumRow> rotate(const MatBase<T, NumCol, NumRow> &mat,
-                                                const detail::AxisAngle<T> &rotation)
+                                                const detail::AxisAngle<T, AngleT> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using Vec3T = typename MatT::vec3_type;
-  const T &angle_sin = rotation.angle_sin();
-  const T &angle_cos = rotation.angle_cos();
+  const T angle_sin = sin(rotation.angle());
+  const T angle_cos = cos(rotation.angle());
   const Vec3T &axis_vec = rotation.axis();
 
   MatT result = mat;
@@ -665,24 +715,60 @@ void normalized_to_eul2(const MatBase<T, 3, 3> &mat,
 
   const T cy = math::hypot(mat[0][0], mat[0][1]);
   if (cy > T(16) * FLT_EPSILON) {
-    eul1.x = math::atan2(mat[1][2], mat[2][2]);
-    eul1.y = math::atan2(-mat[0][2], cy);
-    eul1.z = math::atan2(mat[0][1], mat[0][0]);
+    eul1.x() = math::atan2(mat[1][2], mat[2][2]);
+    eul1.y() = math::atan2(-mat[0][2], cy);
+    eul1.z() = math::atan2(mat[0][1], mat[0][0]);
 
-    eul2.x = math::atan2(-mat[1][2], -mat[2][2]);
-    eul2.y = math::atan2(-mat[0][2], -cy);
-    eul2.z = math::atan2(-mat[0][1], -mat[0][0]);
+    eul2.x() = math::atan2(-mat[1][2], -mat[2][2]);
+    eul2.y() = math::atan2(-mat[0][2], -cy);
+    eul2.z() = math::atan2(-mat[0][1], -mat[0][0]);
   }
   else {
-    eul1.x = math::atan2(-mat[2][1], mat[1][1]);
-    eul1.y = math::atan2(-mat[0][2], cy);
-    eul1.z = 0.0f;
+    eul1.x() = math::atan2(-mat[2][1], mat[1][1]);
+    eul1.y() = math::atan2(-mat[0][2], cy);
+    eul1.z() = 0.0f;
 
     eul2 = eul1;
   }
 }
+template<typename T>
+void normalized_to_eul2(const MatBase<T, 3, 3> &mat,
+                        detail::Euler3<T> &eul1,
+                        detail::Euler3<T> &eul2)
+{
+  BLI_assert(math::is_unit_scale(mat));
+  const int i_index = eul1.i_index();
+  const int j_index = eul1.j_index();
+  const int k_index = eul1.k_index();
+
+  const T cy = math::hypot(mat[i_index][i_index], mat[i_index][j_index]);
+  if (cy > T(16) * FLT_EPSILON) {
+    eul1.i() = math::atan2(mat[j_index][k_index], mat[k_index][k_index]);
+    eul1.j() = math::atan2(-mat[i_index][k_index], cy);
+    eul1.k() = math::atan2(mat[i_index][j_index], mat[i_index][i_index]);
+
+    eul2.i() = math::atan2(-mat[j_index][k_index], -mat[k_index][k_index]);
+    eul2.j() = math::atan2(-mat[i_index][k_index], -cy);
+    eul2.k() = math::atan2(-mat[i_index][j_index], -mat[i_index][i_index]);
+  }
+  else {
+    eul1.i() = math::atan2(-mat[k_index][j_index], mat[j_index][j_index]);
+    eul1.j() = math::atan2(-mat[i_index][k_index], cy);
+    eul1.k() = 0.0f;
+
+    eul2 = eul1;
+  }
+
+  if (eul1.parity()) {
+    eul1 = -eul1;
+    eul2 = -eul2;
+  }
+}
 
 /* Using explicit template instantiations in order to reduce compilation time. */
+extern template void normalized_to_eul2(const float3x3 &mat,
+                                        detail::Euler3<float> &eul1,
+                                        detail::Euler3<float> &eul2);
 extern template void normalized_to_eul2(const float3x3 &mat,
                                         detail::EulerXYZ<float> &eul1,
                                         detail::EulerXYZ<float> &eul2);
@@ -710,14 +796,14 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
         /* Ensure W is non-negative for a canonical result. */
         s = -s;
       }
-      q.y = 0.25f * s;
+      q.x = 0.25f * s;
       s = 1.0f / s;
-      q.x = (mat[1][2] - mat[2][1]) * s;
-      q.z = (mat[0][1] + mat[1][0]) * s;
-      q.w = (mat[2][0] + mat[0][2]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.x == 0.0f && q.z == 0.0f && q.w == 0.0f))) {
+      q.w = (mat[1][2] - mat[2][1]) * s;
+      q.y = (mat[0][1] + mat[1][0]) * s;
+      q.z = (mat[2][0] + mat[0][2]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.y == 0.0f && q.z == 0.0f))) {
         /* Avoids the need to normalize the degenerate case. */
-        q.y = 1.0f;
+        q.x = 1.0f;
       }
     }
     else {
@@ -727,14 +813,14 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
         /* Ensure W is non-negative for a canonical result. */
         s = -s;
       }
-      q.z = 0.25f * s;
+      q.y = 0.25f * s;
       s = 1.0f / s;
-      q.x = (mat[2][0] - mat[0][2]) * s;
-      q.y = (mat[0][1] + mat[1][0]) * s;
-      q.w = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.x == 0.0f && q.y == 0.0f && q.w == 0.0f))) {
+      q.w = (mat[2][0] - mat[0][2]) * s;
+      q.x = (mat[0][1] + mat[1][0]) * s;
+      q.z = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.z == 0.0f))) {
         /* Avoids the need to normalize the degenerate case. */
-        q.z = 1.0f;
+        q.y = 1.0f;
       }
     }
   }
@@ -746,14 +832,14 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
         /* Ensure W is non-negative for a canonical result. */
         s = -s;
       }
-      q.w = 0.25f * s;
+      q.z = 0.25f * s;
       s = 1.0f / s;
-      q.x = (mat[0][1] - mat[1][0]) * s;
-      q.y = (mat[2][0] + mat[0][2]) * s;
-      q.z = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f))) {
+      q.w = (mat[0][1] - mat[1][0]) * s;
+      q.x = (mat[2][0] + mat[0][2]) * s;
+      q.y = (mat[1][2] + mat[2][1]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.y == 0.0f))) {
         /* Avoids the need to normalize the degenerate case. */
-        q.w = 1.0f;
+        q.z = 1.0f;
       }
     }
     else {
@@ -762,19 +848,19 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
        */
       const T trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       T s = 2.0f * math::sqrt(trace);
-      q.x = 0.25f * s;
+      q.w = 0.25f * s;
       s = 1.0f / s;
-      q.y = (mat[1][2] - mat[2][1]) * s;
-      q.z = (mat[2][0] - mat[0][2]) * s;
-      q.w = (mat[0][1] - mat[1][0]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.y == 0.0f && q.z == 0.0f && q.w == 0.0f))) {
+      q.x = (mat[1][2] - mat[2][1]) * s;
+      q.y = (mat[2][0] - mat[0][2]) * s;
+      q.z = (mat[0][1] - mat[1][0]) * s;
+      if (UNLIKELY((trace == 1.0f) && (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f))) {
         /* Avoids the need to normalize the degenerate case. */
-        q.x = 1.0f;
+        q.w = 1.0f;
       }
     }
   }
 
-  BLI_assert(!(q.x < 0.0f));
+  BLI_assert(!(q.w < 0.0f));
   BLI_assert(math::is_unit_scale(VecBase<T, 4>(q)));
   return q;
 }
@@ -801,30 +887,56 @@ MatBase<T, NumCol, NumRow> from_rotation(const EulerXYZ<T> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using DoublePrecision = typename TypeTraits<T>::DoublePrecision;
-  DoublePrecision ci = math::cos(rotation.x);
-  DoublePrecision cj = math::cos(rotation.y);
-  DoublePrecision ch = math::cos(rotation.z);
-  DoublePrecision si = math::sin(rotation.x);
-  DoublePrecision sj = math::sin(rotation.y);
-  DoublePrecision sh = math::sin(rotation.z);
-  DoublePrecision cc = ci * ch;
-  DoublePrecision cs = ci * sh;
-  DoublePrecision sc = si * ch;
-  DoublePrecision ss = si * sh;
+  const DoublePrecision cos_i = math::cos(DoublePrecision(rotation.x().radian()));
+  const DoublePrecision cos_j = math::cos(DoublePrecision(rotation.y().radian()));
+  const DoublePrecision cos_k = math::cos(DoublePrecision(rotation.z().radian()));
+  const DoublePrecision sin_i = math::sin(DoublePrecision(rotation.x().radian()));
+  const DoublePrecision sin_j = math::sin(DoublePrecision(rotation.y().radian()));
+  const DoublePrecision sin_k = math::sin(DoublePrecision(rotation.z().radian()));
+  const DoublePrecision cos_i_cos_k = cos_i * cos_k;
+  const DoublePrecision cos_i_sin_k = cos_i * sin_k;
+  const DoublePrecision sin_i_cos_k = sin_i * cos_k;
+  const DoublePrecision sin_i_sin_k = sin_i * sin_k;
 
   MatT mat = MatT::identity();
-  mat[0][0] = T(cj * ch);
-  mat[1][0] = T(sj * sc - cs);
-  mat[2][0] = T(sj * cc + ss);
+  mat[0][0] = T(cos_j * cos_k);
+  mat[1][0] = T(sin_j * sin_i_cos_k - cos_i_sin_k);
+  mat[2][0] = T(sin_j * cos_i_cos_k + sin_i_sin_k);
 
-  mat[0][1] = T(cj * sh);
-  mat[1][1] = T(sj * ss + cc);
-  mat[2][1] = T(sj * cs - sc);
+  mat[0][1] = T(cos_j * sin_k);
+  mat[1][1] = T(sin_j * sin_i_sin_k + cos_i_cos_k);
+  mat[2][1] = T(sin_j * cos_i_sin_k - sin_i_cos_k);
 
-  mat[0][2] = T(-sj);
-  mat[1][2] = T(cj * si);
-  mat[2][2] = T(cj * ci);
+  mat[0][2] = T(-sin_j);
+  mat[1][2] = T(cos_j * sin_i);
+  mat[2][2] = T(cos_j * cos_i);
   return mat;
+}
+
+template<typename T, int NumCol, int NumRow>
+MatBase<T, NumCol, NumRow> from_rotation(const Euler3<T> &rotation)
+{
+  using MatT = MatBase<T, NumCol, NumRow>;
+  const int i_index = rotation.i_index();
+  const int j_index = rotation.j_index();
+  const int k_index = rotation.k_index();
+#if 1 /* Reference. */
+  EulerXYZ<T> euler_xyz(rotation.ijk());
+  const MatT mat = from_rotation<T, NumCol, NumRow>(rotation.parity() ? -euler_xyz : euler_xyz);
+  MatT result = MatT::identity();
+  result[i_index][i_index] = mat[0][0];
+  result[j_index][i_index] = mat[1][0];
+  result[k_index][i_index] = mat[2][0];
+  result[i_index][j_index] = mat[0][1];
+  result[j_index][j_index] = mat[1][1];
+  result[k_index][j_index] = mat[2][1];
+  result[i_index][k_index] = mat[0][2];
+  result[j_index][k_index] = mat[1][2];
+  result[k_index][k_index] = mat[2][2];
+#else
+  /* TODO(fclem): Manually inline and check performance difference. */
+#endif
+  return result;
 }
 
 template<typename T, int NumCol, int NumRow>
@@ -832,20 +944,20 @@ MatBase<T, NumCol, NumRow> from_rotation(const Quaternion<T> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using DoublePrecision = typename TypeTraits<T>::DoublePrecision;
-  DoublePrecision q0 = M_SQRT2 * DoublePrecision(rotation.x);
-  DoublePrecision q1 = M_SQRT2 * DoublePrecision(rotation.y);
-  DoublePrecision q2 = M_SQRT2 * DoublePrecision(rotation.z);
-  DoublePrecision q3 = M_SQRT2 * DoublePrecision(rotation.w);
+  const DoublePrecision q0 = M_SQRT2 * DoublePrecision(rotation.w);
+  const DoublePrecision q1 = M_SQRT2 * DoublePrecision(rotation.x);
+  const DoublePrecision q2 = M_SQRT2 * DoublePrecision(rotation.y);
+  const DoublePrecision q3 = M_SQRT2 * DoublePrecision(rotation.z);
 
-  DoublePrecision qda = q0 * q1;
-  DoublePrecision qdb = q0 * q2;
-  DoublePrecision qdc = q0 * q3;
-  DoublePrecision qaa = q1 * q1;
-  DoublePrecision qab = q1 * q2;
-  DoublePrecision qac = q1 * q3;
-  DoublePrecision qbb = q2 * q2;
-  DoublePrecision qbc = q2 * q3;
-  DoublePrecision qcc = q3 * q3;
+  const DoublePrecision qda = q0 * q1;
+  const DoublePrecision qdb = q0 * q2;
+  const DoublePrecision qdc = q0 * q3;
+  const DoublePrecision qaa = q1 * q1;
+  const DoublePrecision qab = q1 * q2;
+  const DoublePrecision qac = q1 * q3;
+  const DoublePrecision qbb = q2 * q2;
+  const DoublePrecision qbc = q2 * q3;
+  const DoublePrecision qcc = q3 * q3;
 
   MatT mat = MatT::identity();
   mat[0][0] = T(1.0 - qbb - qcc);
@@ -862,13 +974,54 @@ MatBase<T, NumCol, NumRow> from_rotation(const Quaternion<T> &rotation)
   return mat;
 }
 
+/* Not technically speaking a simple rotation, but a whole transform. */
 template<typename T, int NumCol, int NumRow>
-MatBase<T, NumCol, NumRow> from_rotation(const AxisAngle<T> &rotation)
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const DualQuaternion<T> &rotation)
+{
+  using MatT = MatBase<T, NumCol, NumRow>;
+  BLI_assert(is_normalized(rotation));
+  /**
+   * From:
+   * "Skinning with Dual Quaternions"
+   * Ladislav Kavan, Steven Collins, Jiri Zara, Carol O'Sullivan
+   * Trinity College Dublin, Czech Technical University in Prague
+   */
+  /* Follow the paper notation. */
+  const Quaternion<T> &c0 = rotation.quat;
+  const Quaternion<T> &ce = rotation.trans;
+  const T &w0 = c0.w, &x0 = c0.x, &y0 = c0.y, &z0 = c0.z;
+  const T &we = ce.w, &xe = ce.x, &ye = ce.y, &ze = ce.z;
+  /* Rotation. */
+  MatT mat = from_rotation<T, NumCol, NumRow>(c0);
+  /* Translation. */
+  mat[3][0] = T(2) * (-we * x0 + xe * w0 - ye * z0 + ze * y0);
+  mat[3][1] = T(2) * (-we * y0 + xe * z0 + ye * w0 - ze * x0);
+  mat[3][2] = T(2) * (-we * z0 - xe * y0 + ye * x0 + ze * w0);
+  /* Scale. */
+  if (rotation.scale_weight != T(0)) {
+    mat.template view<4, 4>() = mat * rotation.scale;
+  }
+  return mat;
+}
+
+template<typename T, int NumCol, int NumRow>
+MatBase<T, NumCol, NumRow> from_rotation(const CartesianBasis &rotation)
+{
+  using MatT = MatBase<T, NumCol, NumRow>;
+  MatT mat = MatT::identity();
+  mat.x_axis() = to_vector<VecBase<T, 3>>(rotation.axes.x);
+  mat.y_axis() = to_vector<VecBase<T, 3>>(rotation.axes.y);
+  mat.z_axis() = to_vector<VecBase<T, 3>>(rotation.axes.z);
+  return mat;
+}
+
+template<typename T, int NumCol, int NumRow, typename AngleT>
+MatBase<T, NumCol, NumRow> from_rotation(const AxisAngle<T, AngleT> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using Vec3T = typename MatT::vec3_type;
-  const T angle_sin = rotation.angle_sin();
-  const T angle_cos = rotation.angle_cos();
+  const T angle_sin = sin(rotation.angle());
+  const T angle_cos = cos(rotation.angle());
   const Vec3T &axis = rotation.axis();
 
   BLI_assert(is_unit_scale(axis));
@@ -895,15 +1048,15 @@ template<typename T, int NumCol, int NumRow>
 MatBase<T, NumCol, NumRow> from_rotation(const AngleRadian<T> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
-  T ci = math::cos(rotation.value);
-  T si = math::sin(rotation.value);
+  const T cos_i = cos(rotation);
+  const T sin_i = sin(rotation);
 
   MatT mat = MatT::identity();
-  mat[0][0] = ci;
-  mat[1][0] = -si;
+  mat[0][0] = cos_i;
+  mat[1][0] = -sin_i;
 
-  mat[0][1] = si;
-  mat[1][1] = ci;
+  mat[0][1] = sin_i;
+  mat[1][1] = cos_i;
   return mat;
 }
 
@@ -912,12 +1065,31 @@ extern template MatBase<float, 2, 2> from_rotation(const AngleRadian<float> &rot
 extern template MatBase<float, 3, 3> from_rotation(const AngleRadian<float> &rotation);
 extern template MatBase<float, 3, 3> from_rotation(const EulerXYZ<float> &rotation);
 extern template MatBase<float, 4, 4> from_rotation(const EulerXYZ<float> &rotation);
+extern template MatBase<float, 3, 3> from_rotation(const Euler3<float> &rotation);
+extern template MatBase<float, 4, 4> from_rotation(const Euler3<float> &rotation);
 extern template MatBase<float, 3, 3> from_rotation(const Quaternion<float> &rotation);
 extern template MatBase<float, 4, 4> from_rotation(const Quaternion<float> &rotation);
-extern template MatBase<float, 3, 3> from_rotation(const AxisAngle<float> &rotation);
-extern template MatBase<float, 4, 4> from_rotation(const AxisAngle<float> &rotation);
+extern template MatBase<float, 3, 3> from_rotation(const math::AxisAngle &rotation);
+extern template MatBase<float, 4, 4> from_rotation(const math::AxisAngle &rotation);
+extern template MatBase<float, 3, 3> from_rotation(const math::AxisAngleCartesian &rotation);
+extern template MatBase<float, 4, 4> from_rotation(const math::AxisAngleCartesian &rotation);
 
 }  // namespace detail
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order)
+{
+  detail::Euler3<T> eul1(order), eul2(order);
+  if constexpr (Normalized) {
+    detail::normalized_to_eul2(mat, eul1, eul2);
+  }
+  else {
+    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
+  }
+  /* Return best, which is just the one with lowest values in it. */
+  return (length_manhattan(VecBase<T, 3>(eul1)) > length_manhattan(VecBase<T, 3>(eul2))) ? eul2 :
+                                                                                           eul1;
+}
 
 template<typename T, bool Normalized>
 [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 3, 3> &mat)
@@ -929,9 +1101,16 @@ template<typename T, bool Normalized>
   else {
     detail::normalized_to_eul2(normalize(mat), eul1, eul2);
   }
-  /* Return best, which is just the one with lowest values it in. */
+  /* Return best, which is just the one with lowest values in it. */
   return (length_manhattan(VecBase<T, 3>(eul1)) > length_manhattan(VecBase<T, 3>(eul2))) ? eul2 :
                                                                                            eul1;
+}
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 4, 4> &mat, EulerOrder order)
+{
+  /* TODO(fclem): Avoid the copy with 3x3 ref. */
+  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), order);
 }
 
 template<typename T, bool Normalized>
@@ -939,6 +1118,62 @@ template<typename T, bool Normalized>
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
   return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat));
+}
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
+                                                        const detail::Euler3<T> &reference)
+{
+  detail::Euler3<T> eul1(reference.order()), eul2(reference.order());
+  if constexpr (Normalized) {
+    detail::normalized_to_eul2(mat, eul1, eul2);
+  }
+  else {
+    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
+  }
+  eul1 = eul1.wrapped_around(reference);
+  eul2 = eul2.wrapped_around(reference);
+  /* Return best, which is just the one with lowest values it in. */
+  return (length_manhattan(VecBase<T, 3>(eul1) - VecBase<T, 3>(reference)) >
+          length_manhattan(VecBase<T, 3>(eul2) - VecBase<T, 3>(reference))) ?
+             eul2 :
+             eul1;
+}
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
+                                                          const detail::EulerXYZ<T> &reference)
+{
+  detail::EulerXYZ<T> eul1, eul2;
+  if constexpr (Normalized) {
+    detail::normalized_to_eul2(mat, eul1, eul2);
+  }
+  else {
+    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
+  }
+  eul1 = eul1.wrapped_around(reference);
+  eul2 = eul2.wrapped_around(reference);
+  /* Return best, which is just the one with lowest values it in. */
+  return (length_manhattan(VecBase<T, 3>(eul1) - VecBase<T, 3>(reference)) >
+          length_manhattan(VecBase<T, 3>(eul2) - VecBase<T, 3>(reference))) ?
+             eul2 :
+             eul1;
+}
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
+                                                        const detail::Euler3<T> &reference)
+{
+  /* TODO(fclem): Avoid the copy with 3x3 ref. */
+  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), reference);
+}
+
+template<typename T, bool Normalized>
+[[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
+                                                          const detail::EulerXYZ<T> &reference)
+{
+  /* TODO(fclem): Avoid the copy with 3x3 ref. */
+  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), reference);
 }
 
 template<typename T, bool Normalized>
@@ -997,6 +1232,12 @@ template<typename T, bool Normalized>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::EulerXYZ<T> &r_rotation)
 {
   r_rotation = to_euler<T, Normalized>(mat);
+}
+
+template<typename T, bool Normalized>
+inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::Euler3<T> &r_rotation)
+{
+  r_rotation = to_euler<T, Normalized>(mat, r_rotation.order());
 }
 
 }  // namespace detail
@@ -1084,6 +1325,7 @@ template<typename MatT, typename VectorT>
   BLI_assert(is_unit_scale(forward));
   BLI_assert(is_unit_scale(up));
 
+  /* TODO(fclem): This is wrong. Forward is Y. */
   MatT matrix;
   matrix.x_axis() = forward;
   /* Beware of handedness! Blender uses right-handedness.
@@ -1102,6 +1344,100 @@ template<typename MatT, typename VectorT>
   MatT matrix = MatT(from_orthonormal_axes<Mat3x3>(forward, up));
   matrix.location() = location;
   return matrix;
+}
+
+template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis)
+{
+  using T = typename MatT::base_type;
+  using Vec3T = VecBase<T, 3>;
+  Vec3T scale;
+  MatBase<T, 3, 3> R;
+  R.x = normalize_and_get_length(mat.x_axis(), scale.x);
+  R.y = normalize_and_get_length(mat.y_axis(), scale.y);
+  R.z = normalize_and_get_length(mat.z_axis(), scale.z);
+  /* NOTE(fclem) This is a direct port from `orthogonalize_m4()`.
+   * To select the secondary axis, it checks if the candidate axis is not colinear.
+   * The issue is that the candidate axes are not normalized so this dot product
+   * check is kind of pointless.
+   * Because of this, the target axis could still be colinear but pass the check. */
+#if 1 /* Reproduce C API behavior. Do not normalize other axes. */
+  switch (axis) {
+    case Axis::X:
+      R.y = mat.y_axis();
+      R.z = mat.z_axis();
+      break;
+    case Axis::Y:
+      R.x = mat.x_axis();
+      R.z = mat.z_axis();
+      break;
+    case Axis::Z:
+      R.x = mat.x_axis();
+      R.y = mat.y_axis();
+      break;
+  }
+#endif
+
+  /**
+   * The secondary axis is chosen as follow (X->Y, Y->X, Z->X).
+   * If this axis is coplanar try the third axis.
+   * If also coplanar, make up an axis by shuffling the primary axis coordinates (xyz > yzx).
+   */
+  switch (axis) {
+    case Axis::X:
+      if (dot(R.x, R.y) < T(1)) {
+        R.z = normalize(cross(R.x, R.y));
+        R.y = cross(R.z, R.x);
+      }
+      else if (dot(R.x, R.z) < T(1)) {
+        R.y = normalize(cross(R.z, R.x));
+        R.z = cross(R.x, R.y);
+      }
+      else {
+        R.z = normalize(cross(R.x, Vec3T(R.x.y, R.x.z, R.x.x)));
+        R.y = cross(R.z, R.x);
+      }
+      break;
+    case Axis::Y:
+      if (dot(R.y, R.x) < T(1)) {
+        R.z = normalize(cross(R.x, R.y));
+        R.x = cross(R.y, R.z);
+      }
+      /* FIXME(fclem): THIS IS WRONG. Should be dot(R.y, R.z). Following C code for now... */
+      else if (dot(R.x, R.z) < T(1)) {
+        R.x = normalize(cross(R.y, R.z));
+        R.z = cross(R.x, R.y);
+      }
+      else {
+        R.x = normalize(cross(R.y, Vec3T(R.y.y, R.y.z, R.y.x)));
+        R.z = cross(R.x, R.y);
+      }
+      break;
+    case Axis::Z:
+      if (dot(R.z, R.x) < T(1)) {
+        R.y = normalize(cross(R.z, R.x));
+        R.x = cross(R.y, R.z);
+      }
+      else if (dot(R.z, R.y) < T(1)) {
+        R.x = normalize(cross(R.y, R.z));
+        R.y = cross(R.z, R.x);
+      }
+      else {
+        R.x = normalize(cross(Vec3T(R.z.y, R.z.z, R.z.x), R.z));
+        R.y = cross(R.z, R.x);
+      }
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+  /* Reapply the lost scale. */
+  R.x *= scale.x;
+  R.y *= scale.y;
+  R.z *= scale.z;
+
+  MatT result(R);
+  result.location() = mat.location();
+  return result;
 }
 
 template<typename MatT, typename VectorT>
