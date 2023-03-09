@@ -308,6 +308,7 @@ TEST(math_rotation_types, AngleFraction)
   EXPECT_EQ(AngleCartesian(-pi * 1 / 4).sin(), T(-M_SQRT1_2));
   EXPECT_EQ(AngleCartesian(-pi * 3 / 4).sin(), T(-M_SQRT1_2));
 }
+
 TEST(math_rotation_types, TypeConversion)
 {
   /* All the same rotation. */

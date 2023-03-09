@@ -455,8 +455,8 @@ struct CartesianBasis {
                                                      const AxisSigned b_forward)
 {
   /* Pick predictable next axis. */
-  AxisSigned a_up = AxisSigned(abs(a_forward.next_after()));
-  AxisSigned b_up = AxisSigned(abs(b_forward.next_after()));
+  AxisSigned a_up = abs(a_forward.next_after());
+  AxisSigned b_up = abs(b_forward.next_after());
 
   if (sign(a_forward) != sign(b_forward)) {
     /* Flip both axis (up and right) so resulting rotation matrix sign remains positive. */
