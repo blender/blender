@@ -130,10 +130,6 @@ template<typename T> struct EulerBase {
 /** \name EulerXYZ
  * \{ */
 
-/* Forward declaration for casting operators. */
-template<typename T, typename AngleT> struct AxisAngle;
-template<typename T> struct Quaternion;
-
 template<typename T> struct EulerXYZ : public EulerBase<T> {
   using AngleT = AngleRadian<T>;
 

@@ -20,9 +20,6 @@ namespace blender::math {
 
 namespace detail {
 
-/* Forward declaration for casting operators. */
-template<typename T> struct EulerXYZ;
-
 /**
  * A `blender::math::Quaternion<T>` represents either an orientation or a rotation.
  *

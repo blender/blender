@@ -27,11 +27,6 @@ namespace blender::math {
 
 namespace detail {
 
-/* Forward declaration for casting operators. */
-template<typename T> struct Euler3;
-template<typename T> struct EulerXYZ;
-template<typename T> struct Quaternion;
-
 template<typename T, typename AngleT> struct AxisAngle {
   using vec3_type = VecBase<T, 3>;
 
