@@ -5,7 +5,6 @@
  * \ingroup editor/io
  */
 
-
 #ifdef WITH_USD
 
 #  include "DNA_modifier_types.h"
@@ -51,6 +50,7 @@
 
 
 static const char *WM_OT_USD_EXPORT_IDNAME = "WM_OT_usd_export";
+static const char *WM_OT_USD_IMPORT_IDNAME = "WM_OT_usd_import";
 
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
@@ -1134,6 +1134,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .convert_light_from_nits = convert_light_from_nits,
                                    .scale_light_radius = scale_light_radius,
                                    .create_background_shader = create_background_shader,
+                                   .mtl_name_collision_mode = mtl_name_collision_mode,
                                    .attr_import_mode = attr_import_mode,
                                    .import_defined_only = import_defined_only,
                                    .mtl_name_collision_mode = mtl_name_collision_mode,
@@ -1156,91 +1157,16 @@ static void wm_usd_import_cancel(bContext *UNUSED(C), wmOperator *op)
 static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  struct PointerRNA *ptr = op->ptr;
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-
-  uiLayout *box = uiLayoutBox(layout);
-  uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("Data Types"));
-  uiItemR(col, ptr, "import_cameras", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_curves", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_lights", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_materials", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_meshes", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_blendshapes", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_volumes", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_skeletons", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_shapes", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "prim_path_mask", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "scale", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "apply_unit_conversion_scale", 0, NULL, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Mesh Data"));
-  uiItemR(col, ptr, "read_mesh_uvs", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "read_mesh_colors", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "validate_meshes", 0, NULL, ICON_NONE);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
-  uiItemR(col, ptr, "import_subdiv", 0, IFACE_("Subdivision"), ICON_NONE);
-  uiItemR(col, ptr, "import_instance_proxies", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_visible_only", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_defined_only", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_guide", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_proxy", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_render", 0, NULL, ICON_NONE);
-
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Options"));
-  uiItemR(col, ptr, "set_frame_range", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "convert_light_from_nits", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "create_background_shader", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "attr_import_mode", 0, NULL, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
-  uiItemR(col, ptr, "import_all_materials", 0, NULL, ICON_NONE);
-  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
-
-  uiLayout *row = uiLayoutRow(col, true);
-  const char *import_shaders_mode_prop_name = USD_umm_module_loaded() ?
-                                                  "import_shaders_mode" :
-                                                  "import_shaders_mode_no_umm";
-  uiItemR(row, ptr, import_shaders_mode_prop_name, 0, NULL, ICON_NONE);
-  bool import_mtls = RNA_boolean_get(ptr, "import_materials");
-  uiLayoutSetEnabled(row, import_mtls);
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "set_material_blend", 0, NULL, ICON_NONE);
-  bool import_usd_preview = RNA_enum_get(op->ptr, import_shaders_mode_prop_name) ==
-                            USD_IMPORT_USD_PREVIEW_SURFACE;
-  uiLayoutSetEnabled(row, import_usd_preview);
-  uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "import_textures_mode", 0, NULL, ICON_NONE);
-  bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "import_textures_dir", 0, NULL, ICON_NONE);
-  uiLayoutSetEnabled(row, copy_textures);
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "tex_name_collision_mode", 0, NULL, ICON_NONE);
-  uiLayoutSetEnabled(row, copy_textures);
-  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
-
-  box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
-  uiItemR(col, ptr, "use_instancing", 0, NULL, ICON_NONE);
 }
 
 void WM_OT_usd_import(struct wmOperatorType *ot)
 {
   ot->name = "Import USD";
   ot->description = "Import USD stage into current scene";
-  ot->idname = "WM_OT_usd_import";
+  ot->idname = WM_OT_USD_IMPORT_IDNAME;
 
   ot->invoke = wm_usd_import_invoke;
   ot->exec = wm_usd_import_exec;
@@ -1344,7 +1270,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
 
-  RNA_def_boolean(ot->srna, "import_proxy", true, "Proxy", "Import proxy geometry");
+  RNA_def_boolean(ot->srna, "import_proxy", false, "Proxy", "Import proxy geometry");
 
   RNA_def_boolean(ot->srna, "import_render", true, "Render", "Import final render geometry");
 
@@ -1427,7 +1353,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "attr_import_mode",
                rna_enum_usd_attr_import_mode_items,
-               USD_ATTR_IMPORT_NONE,
+               USD_ATTR_IMPORT_ALL,
                "Import Attributes",
                "Behavior when importing USD attributes as Blender custom properties");
 
@@ -1479,6 +1405,9 @@ static wmOperator *get_named_operator(const bContext *C, const char *idname) {
 
     return op;
 }
+
+
+/* Export Panels and related functions. */
 
 static bool usd_export_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
@@ -1550,7 +1479,6 @@ static void usd_export_panel_materials_draw(const bContext *C, Panel *panel)
 
   uiLayout *col = uiLayoutColumn(panel->layout, false);
   uiLayoutSetPropSep(col, true);
-  uiLayoutSetEnabled(col, is_enabled);
 
   uiItemFullR(col,
               ptr,
@@ -1712,7 +1640,7 @@ static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
 }
 
 
-void usd_export_panel_register(const char* idname,
+void usd_panel_register(const char* idname,
                                const char* label,
                                int flag,
                                bool (*poll)(const struct bContext *C, struct PanelType *pt),
@@ -1741,101 +1669,92 @@ void usd_export_panel_register(const char* idname,
 
 
 void usd_export_panel_register_general() {
-  usd_export_panel_register("FILE_PT_usd_export_general",
-                            "General",
-                            0,
-                            usd_export_panel_poll,
-                            usd_export_panel_general_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_general",
+                     "General",
+                     0,
+                     usd_export_panel_poll,
+                     usd_export_panel_general_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_geometry() {
-  usd_export_panel_register("FILE_PT_usd_export_geometry",
-                            "Geometry",
-                            0,
-                            usd_export_panel_poll,
-                            usd_export_panel_geometry_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_geometry",
+                     "Geometry",
+                     0,
+                     usd_export_panel_poll,
+                     usd_export_panel_geometry_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_materials() {
-  usd_export_panel_register("FILE_PT_usd_export_materials",
-                            "Materials",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_materials_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_materials",
+                     "Materials",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_materials_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_lights() {
-  usd_export_panel_register("FILE_PT_usd_export_lights",
-                            "Lights",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_lights_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_lights",
+                     "Lights",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_lights_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_stage() {
-  usd_export_panel_register("FILE_PT_usd_export_stage",
-                            "Stage",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_stage_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_stage",
+                     "Stage",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_stage_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_animation() {
-  usd_export_panel_register("FILE_PT_usd_export_animation",
-                            NULL,
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_animation_draw,
-                            usd_export_panel_animation_draw_header
-                            );
+  usd_panel_register("FILE_PT_usd_export_animation",
+                     NULL,
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_animation_draw,
+                     usd_export_panel_animation_draw_header);
 }
 
 
 void usd_export_panel_register_types() {
-  usd_export_panel_register("FILE_PT_usd_export_types",
-                            "Export Types",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_export_types_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_types",
+                     "Export Types",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_export_types_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_particles() {
-  usd_export_panel_register("FILE_PT_usd_export_particles",
-                            "Particles and Instancing",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_particles_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_particles",
+                     "Particles and Instancing",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_particles_draw,
+                     NULL);
 }
 
 
 void usd_export_panel_register_rigging() {
-  usd_export_panel_register("FILE_PT_usd_export_rigging",
-                            "Rigging",
-                            PANEL_TYPE_DEFAULT_CLOSED,
-                            usd_export_panel_poll,
-                            usd_export_panel_rigging_draw,
-                            NULL
-                            );
+  usd_panel_register("FILE_PT_usd_export_rigging",
+                     "Rigging",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                     usd_export_panel_poll,
+                     usd_export_panel_rigging_draw,
+                     NULL);
 }
 
 
@@ -1852,5 +1771,274 @@ void WM_PT_USDExportPanelsRegister()
   usd_export_panel_register_particles();
 }
 
+/* Import Panels and related functions. */
+
+static bool usd_import_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+  return (bool)get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+}
+
+static void usd_import_panel_general_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemFullR(col, ptr, RNA_struct_find_property(ptr, "prim_path_mask"), 0, 0, 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_visible_only", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_defined_only", 0, NULL, ICON_NONE);
+
+  uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
+
+  uiItemR(col, ptr, "apply_unit_conversion_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "scale", 0, NULL, ICON_NONE);
+
+  uiItemR(col, ptr, "attr_import_mode", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_types_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "import_meshes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_curves", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_volumes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_shapes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_cameras", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_lights", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_materials", 0, NULL, ICON_NONE);
+
+  uiItemSpacer(panel->layout);
+
+  col = uiLayoutColumnWithHeading(panel->layout, true, "USD Purpose");
+  uiLayoutSetPropSep(col, true);
+  uiItemR(col, ptr, "import_render", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_proxy", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_guide", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_geometry_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "read_mesh_uvs", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_colors", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "validate_meshes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_subdiv", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_materials_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  const bool is_enabled = RNA_boolean_get(ptr, "import_materials");
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  uiItemR(col, ptr, "import_all_materials", 0, NULL, ICON_NONE);
+
+  const char *import_shaders_mode_prop_name = USD_umm_module_loaded() ?
+                                                  "import_shaders_mode" :
+                                                  "import_shaders_mode_no_umm";
+  uiItemR(col, ptr, import_shaders_mode_prop_name, 0, NULL, ICON_NONE);
+
+  uiLayout *sub = uiLayoutColumn(col, false);
+  uiItemR(sub, ptr, "set_material_blend", 0, NULL, ICON_NONE);
+  uiLayoutSetEnabled(sub, RNA_enum_get(ptr, import_shaders_mode_prop_name) == USD_IMPORT_USD_PREVIEW_SURFACE);
+
+  uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_textures_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, false);
+
+  uiItemR(col, ptr, "import_textures_mode", 0, NULL, ICON_NONE);
+
+  const bool is_enabled = RNA_enum_get(ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
+
+  col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  uiItemR(col, ptr, "import_textures_dir", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "tex_name_collision_mode", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_lights_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  const bool is_enabled = RNA_boolean_get(ptr, "import_lights");
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetEnabled(col, is_enabled);
+
+  uiItemR(col, ptr, "convert_light_from_nits", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "create_background_shader", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "light_intensity_scale", 0  , NULL, ICON_NONE);
+}
+
+static void usd_import_panel_rigging_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "import_skeletons", 0, "Import Armatures", ICON_NONE);
+  uiItemR(col, ptr, "import_blendshapes", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_animation_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "set_frame_range", 0, NULL, ICON_NONE);
+}
+
+static void usd_import_panel_particles_draw(const bContext *C, Panel *panel)
+{
+  wmOperator *op   = get_named_operator(C, WM_OT_USD_IMPORT_IDNAME);
+  PointerRNA *ptr  = op->ptr;
+
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(col, true);
+
+  uiItemR(col, ptr, "use_instancing", 0, NULL, ICON_NONE);
+
+  uiLayout *sub = uiLayoutColumn(panel->layout, false);
+  uiLayoutSetPropSep(sub, true);
+
+  uiItemR(sub, ptr, "import_instance_proxies", 0, NULL, ICON_NONE);
+  const bool is_enabled = !RNA_boolean_get(ptr, "use_instancing");
+  uiLayoutSetEnabled(sub, is_enabled);
+}
+
+void usd_import_panel_register_general() {
+  usd_panel_register("FILE_PT_usd_import_general",
+                            "General",
+                            0,
+                            usd_import_panel_poll,
+                            usd_import_panel_general_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_types() {
+  usd_panel_register("FILE_PT_usd_import_types",
+                            "Import Types",
+                            0,
+                            usd_import_panel_poll,
+                            usd_import_panel_types_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_geometry() {
+  usd_panel_register("FILE_PT_usd_import_geometry",
+                            "Geometry",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_geometry_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_materials() {
+  usd_panel_register("FILE_PT_usd_import_materials",
+                            "Materials",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_materials_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_textures() {
+  usd_panel_register("FILE_PT_usd_import_textures",
+                            "Textures",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_textures_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_lights() {
+  usd_panel_register("FILE_PT_usd_import_lights",
+                            "Lights",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_lights_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_rigging() {
+  usd_panel_register("FILE_PT_usd_import_rigging",
+                            "Rigging",
+                     PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_rigging_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_animation() {
+  usd_panel_register("FILE_PT_usd_import_animation",
+                            "Animation",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_animation_draw,
+                            NULL
+  );
+}
+
+void usd_import_panel_register_particles() {
+  usd_panel_register("FILE_PT_usd_import_particles",
+                            "Particles and Instancing",
+                            PANEL_TYPE_DEFAULT_CLOSED,
+                            usd_import_panel_poll,
+                            usd_import_panel_particles_draw,
+                            NULL
+  );
+}
+
+void WM_PT_USDImportPanelsRegister()
+{
+  usd_import_panel_register_general();
+  usd_import_panel_register_types();
+  usd_import_panel_register_geometry();
+  usd_import_panel_register_materials();
+  usd_import_panel_register_textures();
+  usd_import_panel_register_lights();
+  usd_import_panel_register_rigging();
+  usd_import_panel_register_animation();
+  usd_import_panel_register_particles();
+}
 
 #endif /* WITH_USD */

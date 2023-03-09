@@ -86,6 +86,7 @@ void ED_operatortypes_io(void)
   WM_operatortype_append(WM_OT_usd_export);
 
   WM_PT_USDExportPanelsRegister();
+  WM_PT_USDImportPanelsRegister();
 #endif
 
 #ifdef WITH_IO_GPENCIL
