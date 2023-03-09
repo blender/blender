@@ -164,8 +164,17 @@ typedef struct AssetLibraryReference {
  *       explicit freeing.
  */
 typedef struct AssetWeakReference {
+  char _pad[6];
+
+  short asset_library_type; /* #eAssetLibraryType */
+  /** If #asset_library_type is not enough to identify the asset library, this string can provide
+   * further location info (allocated string). Null otherwise. */
+  const char *asset_library_identifier;
+
+  const char *relative_asset_identifier;
+
 #ifdef __cplusplus
-  AssetWeakReference() = default;
+  AssetWeakReference();
   AssetWeakReference(AssetWeakReference &&);
   AssetWeakReference(const AssetWeakReference &) = delete;
   /** Enables use with `std::unique_ptr<AssetWeakReference>`. */
@@ -175,15 +184,6 @@ typedef struct AssetWeakReference {
       const blender::asset_system::AssetLibrary &library,
       const blender::asset_system::AssetIdentifier &asset_identifier);
 #endif
-
-  char _pad[6];
-
-  short asset_library_type; /* #eAssetLibraryType */
-  /** If #asset_library_type is not enough to identify the asset library, this string can provide
-   * further location info. Allocated string. */
-  const char *asset_library_identifier;
-
-  const char *relative_asset_identifier;
 } AssetWeakReference;
 
 /**

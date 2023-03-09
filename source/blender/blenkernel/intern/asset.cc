@@ -25,8 +25,6 @@
 
 using namespace blender;
 
-/* Asset Metadata Core API -------------------------------------------- */
-
 AssetMetaData *BKE_asset_metadata_create()
 {
   const AssetMetaData *default_metadata = DNA_struct_default_get(AssetMetaData);
