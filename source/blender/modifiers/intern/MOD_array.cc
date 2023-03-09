@@ -369,8 +369,12 @@ static void mesh_merge_transform(Mesh *result,
 
 static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    const ModifierEvalContext *ctx,
-                                   const Mesh *mesh)
+                                   Mesh *mesh)
 {
+  if (mesh->totvert == 0) {
+    return mesh;
+  }
+
   MEdge *me;
   MLoop *ml;
   MPoly *mp;
