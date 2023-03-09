@@ -1499,6 +1499,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
         multi_input_socket_nodes_.add_new(&bsocket, &lf_multi_input_node);
         for (lf::InputSocket *lf_multi_input_socket : lf_multi_input_node.inputs()) {
           mapping_->bsockets_by_lf_socket_map.add(lf_multi_input_socket, &bsocket);
+          const void *default_value = lf_multi_input_socket->type().default_value();
+          lf_multi_input_socket->set_default_value(default_value);
         }
       }
       else {
@@ -2740,7 +2742,8 @@ class UsedSocketVisualizeOptions : public lf::Graph::ToDotOptions {
           socket_name_suffixes_.add(lf_socket, suffix);
         }
       }
-      else if (lf::OutputSocket *lf_socket = builder_.output_socket_map_.lookup(bsocket)) {
+      else if (lf::OutputSocket *lf_socket = builder_.output_socket_map_.lookup_default(bsocket,
+                                                                                        nullptr)) {
         socket_font_colors_.add(lf_socket, color_str);
         socket_name_suffixes_.add(lf_socket, suffix);
       }
