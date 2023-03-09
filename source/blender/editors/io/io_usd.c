@@ -608,7 +608,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "When checked, all vertex colors are included in the export");
   RNA_def_boolean(ot->srna,
                   "export_vertex_groups",
-                  true,
+                  false,
                   "Vertex Groups",
                   "When checked, all vertex groups are included in the export");
   RNA_def_boolean(ot->srna,
