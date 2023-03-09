@@ -195,11 +195,6 @@ struct UnwrapOptions {
   bool pin_unselected;
 };
 
-struct UnwrapResultInfo {
-  int count_changed;
-  int count_failed;
-};
-
 static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
 {
   BMFace *efa;
@@ -2438,15 +2433,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   }
 
   /* execute unwrap */
-  UnwrapResultInfo result_info{};
-  result_info.count_changed = 0;
-  result_info.count_failed = 0;
-  uvedit_unwrap_multi(scene,
-                      objects,
-                      objects_len,
-                      &options,
-                      &result_info.count_changed,
-                      &result_info.count_failed);
+  int count_changed = 0;
+  int count_failed = 0;
+  uvedit_unwrap_multi(scene, objects, objects_len, &options, &count_changed, &count_failed);
 
   UVPackIsland_Params pack_island_params{};
   pack_island_params.rotate = true;
@@ -2464,17 +2453,17 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(objects);
 
-  if (result_info.count_failed == 0 && result_info.count_changed == 0) {
+  if (count_failed == 0 && count_changed == 0) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Unwrap could not solve any island(s), edge seams may need to be added");
   }
-  else if (result_info.count_failed) {
+  else if (count_failed) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Unwrap failed to solve %d of %d island(s), edge seams may need to be added",
-                result_info.count_failed,
-                result_info.count_changed + result_info.count_failed);
+                count_failed,
+                count_changed + count_failed);
   }
 
   return OPERATOR_FINISHED;
