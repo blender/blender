@@ -5549,9 +5549,9 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
       BKE_mesh_tag_positions_changed(mesh);
       /* Update the mesh's bounds eagerly since the PBVH already has that information. */
-      mesh->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
-        BKE_pbvh_bounding_box(ob->sculpt->pbvh, r_bounds.min, r_bounds.max);
-      });
+      Bounds<float3> bounds;
+      BKE_pbvh_bounding_box(ob->sculpt->pbvh, bounds.min, bounds.max);
+      mesh->bounds_set_eager(bounds);
     }
   }
 }

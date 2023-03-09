@@ -16,6 +16,7 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 
+#  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
 
 namespace blender {
@@ -260,6 +261,9 @@ typedef struct Mesh {
    * Cached triangulation of the mesh.
    */
   blender::Span<MLoopTri> looptris() const;
+
+  /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
+  void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
 
   /**
    * Cached information about loose edges, calculated lazily when necessary.

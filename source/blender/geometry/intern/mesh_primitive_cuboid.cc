@@ -418,6 +418,9 @@ Mesh *create_cuboid_mesh(const float3 &size,
     calculate_uvs(config, mesh, uv_id);
   }
 
+  const float3 bounds = size * 0.5f;
+  mesh->bounds_set_eager({-bounds, bounds});
+
   return mesh;
 }
 
