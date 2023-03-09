@@ -783,6 +783,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(306, 2)) {
+    userdef->animation_flag |= USER_ANIM_HIGH_QUALITY_DRAWING;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
