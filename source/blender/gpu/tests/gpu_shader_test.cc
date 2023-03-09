@@ -19,12 +19,19 @@
 #include "MEM_guardedalloc.h"
 
 #include "gpu_shader_create_info.hh"
+#include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.h"
 #include "gpu_testing.hh"
 
 namespace blender::gpu::tests {
 
 using namespace blender::gpu::shader;
+
+static void test_shader_compile_statically_defined()
+{
+  EXPECT_TRUE(gpu_shader_create_info_compile_all());
+}
+GPU_TEST(shader_compile_statically_defined)
 
 static void test_gpu_shader_compute_2d()
 {

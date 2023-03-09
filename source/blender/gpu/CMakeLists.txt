@@ -811,7 +811,6 @@ if(WITH_GTESTS)
 
       tests/gpu_index_buffer_test.cc
       tests/gpu_push_constants_test.cc
-      tests/gpu_shader_builtin_test.cc
       tests/gpu_shader_test.cc
       tests/gpu_storage_buffer_test.cc
 
