@@ -219,7 +219,7 @@ void outliner_item_mode_toggle(bContext *C,
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 {
   /* paranoia check */
-  if (te->idcode != ID_SCE) {
+  if (te->store_elem->type != TSE_R_LAYER) {
     return;
   }
 
