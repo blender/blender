@@ -621,6 +621,8 @@ void MetalKernelPipeline::compile()
   MTLPipelineOption pipelineOptions = MTLPipelineOptionNone;
 
   bool use_binary_archive = should_use_binary_archive();
+  bool loading_existing_archive = false;
+  bool creating_new_archive = false;
 
   id<MTLBinaryArchive> archive = nil;
   string metalbin_path;
@@ -650,42 +652,39 @@ void MetalKernelPipeline::compile()
     metalbin_path = path_cache_get(path_join("kernels", metalbin_name));
     path_create_directories(metalbin_path);
 
-    /* Retrieve shader binary from disk, and update the file timestamp for LRU purging to work as
-     * intended. */
-    if (use_binary_archive && path_cache_kernel_exists_and_mark_used(metalbin_path)) {
-      if (@available(macOS 11.0, *)) {
-        MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
+    /* Check if shader binary exists on disk, and if so, update the file timestamp for LRU purging
+     * to work as intended. */
+    loading_existing_archive = path_cache_kernel_exists_and_mark_used(metalbin_path);
+    creating_new_archive = !loading_existing_archive;
+
+    if (@available(macOS 11.0, *)) {
+      MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
+      if (loading_existing_archive) {
         archiveDesc.url = [NSURL fileURLWithPath:@(metalbin_path.c_str())];
-        archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:nil];
-        [archiveDesc release];
       }
-    }
-  }
-
-  bool creating_new_archive = false;
-  bool recreate_archive = false;
-
-  if (@available(macOS 11.0, *)) {
-    if (use_binary_archive) {
+      NSError *error = nil;
+      archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:&error];
       if (!archive) {
-        MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
-        archiveDesc.url = nil;
-        archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:nil];
-        creating_new_archive = true;
+        const char *err = error ? [[error localizedDescription] UTF8String] : nullptr;
+        metal_printf("newBinaryArchiveWithDescriptor failed: %s\n", err ? err : "nil");
       }
-      else {
+      [archiveDesc release];
+
+      if (loading_existing_archive) {
         pipelineOptions = MTLPipelineOptionFailOnBinaryArchiveMiss;
         computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
       }
     }
   }
 
+  bool recreate_archive = false;
+
   /* Lambda to do the actual pipeline compilation. */
   auto do_compilation = [&]() {
     __block bool compilation_finished = false;
     __block string error_str;
 
-    if (archive && path_exists(metalbin_path)) {
+    if (loading_existing_archive) {
       /* Use the blocking variant of newComputePipelineStateWithDescriptor if an archive exists on
        * disk. It should load almost instantaneously, and will fail gracefully when loading a
        * corrupt archive (unlike the async variant). */
@@ -698,8 +697,30 @@ void MetalKernelPipeline::compile()
       error_str = err ? err : "nil";
     }
     else {
+      /* TODO / MetalRT workaround:
+       * Workaround for a crash when addComputePipelineFunctionsWithDescriptor is called *after*
+       * newComputePipelineStateWithDescriptor with linked functions (i.e. with MetalRT enabled).
+       * Ideally we would like to call newComputePipelineStateWithDescriptor (async) first so we
+       * can bail out if needed, but we can stop the crash by flipping the order when there are
+       * linked functions. However when addComputePipelineFunctionsWithDescriptor is called first
+       * it will block while it builds the pipeline, offering no way of bailing out. */
+      auto addComputePipelineFunctionsWithDescriptor = [&]() {
+        if (creating_new_archive && ShaderCache::running) {
+          NSError *error;
+          if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
+                                                            error:&error]) {
+            NSString *errStr = [error localizedDescription];
+            metal_printf("Failed to add PSO to archive:\n%s\n",
+                         errStr ? [errStr UTF8String] : "nil");
+          }
+        }
+      };
+      if (computePipelineStateDescriptor.linkedFunctions) {
+        addComputePipelineFunctionsWithDescriptor();
+      }
+
       /* Use the async variant of newComputePipelineStateWithDescriptor if no archive exists on
-       * disk. This allows us responds to app shutdown. */
+       * disk. This allows us to respond to app shutdown. */
       [mtlDevice
           newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
                                         options:pipelineOptions
@@ -725,21 +746,14 @@ void MetalKernelPipeline::compile()
       while (ShaderCache::running && !compilation_finished) {
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }
-    }
 
-    if (creating_new_archive && pipeline && ShaderCache::running) {
-      /* Add pipeline into the new archive. It should be instantaneous following
-       * newComputePipelineStateWithDescriptor. */
-      NSError *error;
-
-      computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
-      if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
-                                                        error:&error]) {
-        NSString *errStr = [error localizedDescription];
-        metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
+      /* Add pipeline into the new archive (unless we did it earlier). */
+      if (pipeline && !computePipelineStateDescriptor.linkedFunctions) {
+        addComputePipelineFunctionsWithDescriptor();
       }
     }
-    else if (!pipeline) {
+
+    if (!pipeline) {
       metal_printf(
           "newComputePipelineStateWithDescriptor failed for \"%s\"%s. "
           "Error:\n%s\n",
