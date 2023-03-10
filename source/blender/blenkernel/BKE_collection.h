@@ -181,18 +181,13 @@ bool BKE_scene_collections_object_remove(struct Main *bmain,
                                          bool free_us);
 
 /**
- * Check all collections in \a bmain (including embedded ones in scenes) for CollectionObject with
- * NULL object pointer, and remove them.
- */
-void BKE_collections_object_remove_nulls(struct Main *bmain);
-
-/**
- * Check all collections in \a bmain (including embedded ones in scenes) for duplicate
- * CollectionObject with a same object pointer within a same object, and remove them.
+ * Check all collections in \a bmain (including embedded ones in scenes) for invalid
+ * CollectionObject (either with NULL object pointer, or duplicates), and remove them.
  *
- * NOTE: Always keeps the first of the detected duplicates.
+ * \note In case of duplicates, the first CollectionObject in the list is kept, all others are
+ * removed.
  */
-void BKE_collections_object_remove_duplicates(struct Main *bmain);
+void BKE_collections_object_remove_invalids(struct Main *bmain);
 
 /**
  * Remove all NULL children from parent collections of changed \a collection.

@@ -83,16 +83,9 @@ static bool collection_find_child_recursive(const Collection *parent,
                                             const Collection *collection);
 
 static void collection_gobject_hash_ensure(Collection *collection);
-static void collection_gobject_hash_remove_object(Collection *collection, const Object *ob);
 static void collection_gobject_hash_update_object(Collection *collection,
                                                   Object *ob_old,
                                                   CollectionObject *cob);
-
-/** Does nothing unless #USE_DEBUG_EXTRA_GOBJECT_ASSERT is defined. */
-static void collection_gobject_hash_assert_internal_consistency(Collection *collection);
-
-#define BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection) \
-  collection_gobject_hash_assert_internal_consistency(collection)
 
 /** \} */
 
@@ -183,7 +176,15 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, cob->ob, IDWALK_CB_USER);
 
     if (collection->runtime.gobject_hash) {
+      /* If the remapping does not create inconsistent data (NULL object pointer or duplicate
+       * CollectionObjects), keeping the ghash consistent is also possible. Otherwise, this call
+       * will take care of tagging the collection objects list as dirty. */
       collection_gobject_hash_update_object(collection, cob_ob_old, cob);
+    }
+    else if (cob_ob_old != cob->ob || cob->ob == NULL) {
+      /* If there is no reference GHash, duplicates cannot be reliably detected, so assume that any
+       * NULL pointer or changed pointer may create an invalid collection object list. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
     }
   }
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
@@ -983,7 +984,6 @@ bool BKE_collection_has_object(Collection *collection, const Object *ob)
   if (ELEM(NULL, collection, ob)) {
     return false;
   }
-  BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection);
   collection_gobject_hash_ensure(collection);
   return BLI_ghash_lookup(collection->runtime.gobject_hash, ob);
 }
@@ -1052,6 +1052,171 @@ bool BKE_collection_is_empty(const Collection *collection)
 /* -------------------------------------------------------------------- */
 /** \name Collection Objects
  * \{ */
+
+static void collection_gobject_assert_internal_consistency(Collection *collection,
+                                                           const bool do_extensive_check);
+
+static GHash *collection_gobject_hash_alloc(const Collection *collection)
+{
+  return BLI_ghash_ptr_new_ex(__func__, (uint)BLI_listbase_count(&collection->gobject));
+}
+
+static void collection_gobject_hash_create(Collection *collection)
+{
+  GHash *gobject_hash = collection_gobject_hash_alloc(collection);
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    if (UNLIKELY(cob->ob == NULL)) {
+      BLI_assert(collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY);
+      continue;
+    }
+    CollectionObject **cob_p;
+    /* Do not overwrite an already existing entry. */
+    if (UNLIKELY(BLI_ghash_ensure_p(gobject_hash, cob->ob, (void ***)&cob_p))) {
+      BLI_assert(collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY);
+      continue;
+    }
+    *cob_p = cob;
+  }
+  collection->runtime.gobject_hash = gobject_hash;
+}
+
+static void collection_gobject_hash_ensure(Collection *collection)
+{
+  if (collection->runtime.gobject_hash) {
+#ifdef USE_DEBUG_EXTRA_GOBJECT_ASSERT
+    collection_gobject_assert_internal_consistency(collection, true);
+#endif
+    return;
+  }
+
+  collection_gobject_hash_create(collection);
+
+  collection_gobject_assert_internal_consistency(collection, true);
+}
+
+/** Similar to #collection_gobject_hash_ensure/#collection_gobject_hash_create, but does fix
+ * inconsistencies in the collection objects list. */
+static void collection_gobject_hash_ensure_fix(Collection *collection)
+{
+  bool changed = false;
+
+  if ((collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY) == 0) {
+#ifdef USE_DEBUG_EXTRA_GOBJECT_ASSERT
+    collection_gobject_assert_internal_consistency(collection, true);
+#endif
+    return;
+  }
+
+  GHash *gobject_hash = collection->runtime.gobject_hash;
+  if (gobject_hash) {
+    BLI_ghash_clear_ex(gobject_hash, NULL, NULL, BLI_ghash_len(gobject_hash));
+  }
+  else {
+    collection->runtime.gobject_hash = gobject_hash = collection_gobject_hash_alloc(collection);
+  }
+
+  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
+    if (cob->ob == NULL) {
+      BLI_freelinkN(&collection->gobject, cob);
+      changed = true;
+      continue;
+    }
+    CollectionObject **cob_p;
+    if (BLI_ghash_ensure_p(gobject_hash, cob->ob, (void ***)&cob_p)) {
+      BLI_freelinkN(&collection->gobject, cob);
+      changed = true;
+      continue;
+    }
+    *cob_p = cob;
+  }
+
+  if (changed) {
+    BKE_collection_object_cache_free(collection);
+  }
+
+  collection->runtime.tag &= ~COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+  collection_gobject_assert_internal_consistency(collection, true);
+}
+
+/**
+ * Update the collections object hash, removing `ob_old`, inserting `cob->ob` as the new key.
+ *
+ * \note This function is called fron foreach_id callback, and a difference of Object pointers is
+ * only expected in case ID remapping is happening. This code is the only are in Blender allowed to
+ * (temporarily) leave the CollectionObject list in an inconsistent/invalid state (with NULL object
+ * pointers, or duplicates of CollectionObjects). If such invalid cases are encountered, it will
+ * tag the collection objects list as dirty.
+ *
+ * \param ob_old: The existing key to `cob` in the hash, not removed when NULL.
+ * \param cob: The `cob->ob` is to be used as the new key,
+ * when NULL it's not added back into the hash.
+ */
+static void collection_gobject_hash_update_object(Collection *collection,
+                                                  Object *ob_old,
+                                                  CollectionObject *cob)
+{
+  if (ob_old == cob->ob) {
+    return;
+  }
+
+  if (ob_old) {
+    CollectionObject *cob_old = BLI_ghash_popkey(collection->runtime.gobject_hash, ob_old, NULL);
+    if (cob_old != cob) {
+      /* Old object alredy removed from the ghash. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+    }
+  }
+
+  if (cob->ob) {
+    CollectionObject **cob_p;
+    if (!BLI_ghash_ensure_p(collection->runtime.gobject_hash, cob->ob, (void ***)&cob_p)) {
+      *cob_p = cob;
+    }
+    else {
+      /* Duplicate CollectionObject entries. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+    }
+  }
+  else {
+    /* CollectionObject with NULL objetc pointer. */
+    collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+  }
+}
+
+/**
+ * Validate the integrity of the collection's CollectionObject list, and of its mapping.
+ *
+ * Simple test is very fast, as it only checks that the 'dirty' tag for collection's objects is not
+ * set.
+ *
+ * The extensive check is expensive. This should not be done from within loops over collections
+ * items, or from low-level operations that can be assumed safe (like adding or removing an object
+ * from a colleciton). It ensures that:
+ *   - There is a `gobject_hash` mapping.
+ *   - There is no NULL-object CollectionObject items.
+ *   - there is no duplicate CollectionObject items (two or more referencing the same Object).
+ */
+static void collection_gobject_assert_internal_consistency(Collection *collection,
+                                                           const bool do_extensive_check)
+{
+  BLI_assert((collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY) == 0);
+  if (!do_extensive_check) {
+    return;
+  }
+
+  if (collection->runtime.gobject_hash == NULL) {
+    /* NOTE: If the ghash does not exist yet, it's creation will assert on errors, so in theory the
+     * second loop below could be skipped. */
+    collection_gobject_hash_create(collection);
+  }
+  GHash *gobject_hash = collection->runtime.gobject_hash;
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    BLI_assert(cob->ob != NULL);
+    /* If there are more than one CollectionObject for the same object, at most one of them will
+     * pass this test. */
+    BLI_assert(BLI_ghash_lookup(gobject_hash, cob->ob) == cob);
+  }
+}
 
 static void collection_tag_update_parent_recursive(Main *bmain,
                                                    Collection *collection,
@@ -1336,83 +1501,14 @@ bool BKE_scene_collections_object_remove(Main *bmain, Scene *scene, Object *ob, 
   return scene_collections_object_remove(bmain, scene, ob, free_us, NULL);
 }
 
-/*
- * Remove all NULL objects from collections.
- * This is used for library remapping, where these pointers have been set to NULL.
- * Otherwise this should never happen.
- */
-static void collection_object_remove_nulls(Collection *collection)
-{
-  bool changed = false;
-
-  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    if (cob->ob == NULL) {
-      BLI_freelinkN(&collection->gobject, cob);
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    BKE_collection_object_cache_free(collection);
-  }
-}
-
-void BKE_collections_object_remove_nulls(Main *bmain)
+void BKE_collections_object_remove_invalids(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    collection_object_remove_nulls(scene->master_collection);
+    collection_gobject_hash_ensure_fix(scene->master_collection);
   }
 
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    collection_object_remove_nulls(collection);
-  }
-}
-
-/*
- * Remove all duplicate objects from collections.
- * This is used for library remapping, happens when remapping an object to another one already
- * present in the collection. Otherwise this should never happen.
- */
-static void collection_object_remove_duplicates(Collection *collection)
-{
-  bool changed = false;
-  BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection);
-  const bool use_hash_exists = (collection->runtime.gobject_hash != NULL);
-
-  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    if (cob->ob->runtime.collection_management) {
-      if (use_hash_exists) {
-        collection_gobject_hash_remove_object(collection, cob->ob);
-      }
-      BLI_freelinkN(&collection->gobject, cob);
-      changed = true;
-      continue;
-    }
-    cob->ob->runtime.collection_management = true;
-  }
-
-  /* Cleanup. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    cob->ob->runtime.collection_management = false;
-  }
-
-  if (changed) {
-    BKE_collection_object_cache_free(collection);
-  }
-}
-
-void BKE_collections_object_remove_duplicates(struct Main *bmain)
-{
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    ob->runtime.collection_management = false;
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    collection_object_remove_duplicates(scene->master_collection);
-  }
-
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    collection_object_remove_duplicates(collection);
+    collection_gobject_hash_ensure_fix(collection);
   }
 }
 
@@ -1644,79 +1740,6 @@ bool BKE_collection_has_collection(const Collection *parent, const Collection *c
 static CollectionParent *collection_find_parent(Collection *child, Collection *collection)
 {
   return BLI_findptr(&child->runtime.parents, collection, offsetof(CollectionParent, collection));
-}
-
-static void collection_gobject_hash_ensure(Collection *collection)
-{
-  if (collection->runtime.gobject_hash) {
-    BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection);
-    return;
-  }
-  GHash *gobject_hash = BLI_ghash_ptr_new_ex(__func__, BLI_listbase_count(&collection->gobject));
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    BLI_ghash_insert(gobject_hash, cob->ob, cob);
-  }
-  collection->runtime.gobject_hash = gobject_hash;
-
-  BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection);
-}
-
-static void collection_gobject_hash_remove_object(Collection *collection, const Object *ob)
-{
-  const bool found = BLI_ghash_remove(collection->runtime.gobject_hash, ob, NULL, NULL);
-  BLI_assert(found);
-  UNUSED_VARS_NDEBUG(found);
-}
-
-/**
- * Update the collections object hash, removing `ob_old`, inserting `cob->ob` as the new key.
- *
- * \param ob_old: The existing key to `cob` in the hash, not removed when NULL.
- * \param cob: The `cob->ob` is to be used as the new key,
- * when NULL it's not added back into the hash.
- */
-static void collection_gobject_hash_update_object(Collection *collection,
-                                                  Object *ob_old,
-                                                  CollectionObject *cob)
-{
-  if (ob_old == cob->ob) {
-    return;
-  }
-  BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID(collection);
-  if (ob_old) {
-    collection_gobject_hash_remove_object(collection, ob_old);
-  }
-  /* The object may be set to NULL if the ID is being cleared from #collection_foreach_id,
-   * generally `cob->ob` is not expected to be NULL. */
-  if (cob->ob) {
-    BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
-  }
-}
-
-/**
- * Should only be called by: #BLI_ASSERT_COLLECION_GOBJECT_HASH_IS_VALID macro,
- * this is an expensive operation intended only to be used for debugging.
- */
-static void collection_gobject_hash_assert_internal_consistency(Collection *collection)
-{
-#ifdef USE_DEBUG_EXTRA_GOBJECT_ASSERT
-  if (collection->runtime.gobject_hash == NULL) {
-    return;
-  }
-  GHash *gobject_hash = collection->runtime.gobject_hash;
-  int gobject_count = 0;
-
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    CollectionObject *cob_test = BLI_ghash_lookup(gobject_hash, cob->ob);
-    BLI_assert(cob == cob_test);
-    gobject_count += 1;
-  }
-
-  const int gobject_hash_count = BLI_ghash_len(gobject_hash);
-  BLI_assert(gobject_count == gobject_hash_count);
-#else
-  UNUSED_VARS(collection);
-#endif /* USE_DEBUG_EXTRA_GOBJECT_ASSERT */
 }
 
 static bool collection_child_add(Collection *parent,
