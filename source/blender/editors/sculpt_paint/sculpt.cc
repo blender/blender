@@ -5074,7 +5074,6 @@ void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->prev_colors);
-  MEM_SAFE_FREE(cache->detail_directions);
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
   MEM_SAFE_FREE(cache->prev_colors_vpaint);

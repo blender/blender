@@ -694,10 +694,10 @@ typedef struct SculptAttributePointers {
 
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #SCULPT_automasking_cache_init when needed. */
-  SculptAttribute *automasking_factor;
-  SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
+  SculptAttribute *automasking_factor;    /* Stroke only. */
+  SculptAttribute *automasking_occlusion; /* CD_PROP_INT8, stroke only */
   SculptAttribute *automasking_stroke_id;
-  SculptAttribute *automasking_cavity;
+  SculptAttribute *automasking_cavity; /* Stroke only. */
 
   SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
 
@@ -728,8 +728,11 @@ typedef struct SculptAttributePointers {
   SculptAttribute *fairing_fade;
   SculptAttribute *fairing_mask;
 
-  /* Stores the displacement produced by the laplacian step of HC smooth. */
+  /* Stores the displacement produced by the laplacian step of HC smooth */
   SculptAttribute *laplacian_disp;
+
+  /* Enhance Details */
+  SculptAttribute *detail_directions; /* Stroke only. */
 } SculptAttributePointers;
 
 typedef struct SculptSession {

@@ -3689,6 +3689,34 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   ss->cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 }
 
+template<typename T> static void sculpt_clear_attribute_bmesh(BMesh *bm, SculptAttribute *attr)
+{
+  BMIter iter;
+  int itertype;
+
+  switch (attr->domain) {
+    case ATTR_DOMAIN_POINT:
+      itertype = BM_VERTS_OF_MESH;
+      break;
+    case ATTR_DOMAIN_EDGE:
+      itertype = BM_EDGES_OF_MESH;
+      break;
+    case ATTR_DOMAIN_FACE:
+      itertype = BM_FACES_OF_MESH;
+      break;
+    default:
+      BLI_assert_unreachable();
+      return;
+  }
+
+  int size = CustomData_getTypeSize(attr->proptype);
+
+  T *elem;
+  BM_ITER_MESH (elem, &iter, bm, itertype) {
+    memset(POINTER_OFFSET(elem->head.data, attr->bmesh_cd_offset), 0, size);
+  }
+}
+
 void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -3705,6 +3733,22 @@ void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
        */
 
       if (!attr->params.simple_array && ss->bm) {
+        BMIter iter;
+        int size = CustomData_getTypeSize(attr->proptype);
+
+        /* Zero the attribute in an attempt to emulate the behavior of releasing it. */
+        switch (attr->domain) {
+          case ATTR_DOMAIN_POINT: {
+            sculpt_clear_attribute_bmesh<BMVert>(ss->bm, attr);
+            break;
+          }
+          case ATTR_DOMAIN_EDGE:
+            sculpt_clear_attribute_bmesh<BMEdge>(ss->bm, attr);
+            break;
+          case ATTR_DOMAIN_FACE:
+            sculpt_clear_attribute_bmesh<BMFace>(ss->bm, attr);
+            break;
+        }
         continue;
       }
 

@@ -260,7 +260,8 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                 &automask_data);
 
     float disp[3];
-    madd_v3_v3v3fl(disp, vd.co, ss->cache->detail_directions[vd.index], fade);
+    float *detail_dir = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.detail_directions);
+    madd_v3_v3v3fl(disp, vd.co, detail_dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
     if (vd.is_mesh) {
@@ -287,15 +288,23 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
-    ss->cache->detail_directions = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[3]), "details directions"));
+
+    if (!ss->attrs.detail_directions) {
+      SculptAttributeParams params = {};
+      params.stroke_only = true;
+
+      ss->attrs.detail_directions = BKE_sculpt_attribute_ensure(
+          ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(laplacian_disp), &params);
+    }
 
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       float avg[3];
       SCULPT_neighbor_coords_average(ss, avg, vertex, projection, fset_projection, use_weighted);
-      sub_v3_v3v3(ss->cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
+      float *detail_dir = SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.detail_directions);
+
+      sub_v3_v3v3(detail_dir, avg, SCULPT_vertex_co_get(ss, vertex));
     }
   }
 

@@ -1694,7 +1694,6 @@ static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
       case AUTOMASK_BAKE_MULTIPLY:
         mask = *vd.mask * automask;
         break;
-        break;
       case AUTOMASK_BAKE_DIVIDE:
         mask = automask > 0.00001f ? *vd.mask / automask : 0.0f;
         break;
@@ -2000,7 +1999,6 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     BMIter iter;
     BMFace *f;
     BMVert *v;
-    const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
       BM_log_vert_before_modified(ss->bm, ss->bm_log, v);
