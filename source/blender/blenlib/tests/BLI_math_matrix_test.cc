@@ -347,8 +347,6 @@ TEST(math_matrix, MatrixMethods)
   float3 expect_scale = float3(3, 2, 2);
   float3 expect_location = float3(0, 1, 0);
 
-  EXPECT_V3_NEAR(float3(to_euler(m)), float3(expect_eul), 0.0002f);
-  EXPECT_V4_NEAR(float4(to_quaternion(m)), float4(expect_qt), 0.0002f);
   EXPECT_EQ(to_scale(m), expect_scale);
 
   float4 expect_sz = {3, 2, 2, M_SQRT2};
@@ -359,6 +357,9 @@ TEST(math_matrix, MatrixMethods)
 
   float4x4 m2 = normalize(m);
   EXPECT_TRUE(is_unit_scale(m2));
+
+  EXPECT_V3_NEAR(float3(to_euler(m1)), float3(expect_eul), 0.0002f);
+  EXPECT_V4_NEAR(float4(to_quaternion(m1)), float4(expect_qt), 0.0002f);
 
   EulerXYZ eul;
   Quaternion qt;

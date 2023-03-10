@@ -339,8 +339,8 @@ MatBase<T, 3, 3> interpolate(const MatBase<T, 3, 3> &A, const MatBase<T, 3, 3> &
     P_B = -P_B;
   }
 
-  detail::Quaternion<T> quat_A = math::to_quaternion(U_A);
-  detail::Quaternion<T> quat_B = math::to_quaternion(U_B);
+  detail::Quaternion<T> quat_A = math::to_quaternion(normalize(U_A));
+  detail::Quaternion<T> quat_B = math::to_quaternion(normalize(U_B));
   detail::Quaternion<T> quat = math::interpolate(quat_A, quat_B, t);
   Mat3T U = from_rotation<Mat3T>(quat);
 

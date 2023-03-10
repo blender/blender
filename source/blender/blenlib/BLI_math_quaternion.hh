@@ -586,7 +586,7 @@ template<typename T>
     const Mat4T baseinv = invert(basemat);
 
     /* Extra orthogonalize, to avoid flipping with stretched bones. */
-    detail::Quaternion<T> basequat = to_quaternion(orthogonalize(baseRS, Axis::Y));
+    detail::Quaternion<T> basequat = to_quaternion(normalize(orthogonalize(baseRS, Axis::Y)));
 
     Mat4T baseR = from_rotation<Mat4T>(basequat);
     baseR.location() = baseRS.location();
@@ -603,7 +603,7 @@ template<typename T>
   }
 
   /* Non-dual part. */
-  const detail::Quaternion<T> q = to_quaternion(R);
+  const detail::Quaternion<T> q = to_quaternion(normalize(R));
 
   /* Dual part. */
   const Vec3T &t = R.location().xyz();
@@ -663,7 +663,7 @@ template<typename T> detail::EulerXYZ<T> to_euler(const detail::Quaternion<T> &q
   using Mat3T = MatBase<T, 3, 3>;
   BLI_assert(is_unit_scale(quat));
   Mat3T unit_mat = from_rotation<Mat3T>(quat);
-  return to_euler<T, true>(unit_mat);
+  return to_euler<T>(unit_mat);
 }
 
 template<typename T>
@@ -672,7 +672,7 @@ detail::Euler3<T> to_euler(const detail::Quaternion<T> &quat, EulerOrder order)
   using Mat3T = MatBase<T, 3, 3>;
   BLI_assert(is_unit_scale(quat));
   Mat3T unit_mat = from_rotation<Mat3T>(quat);
-  return to_euler<T, true>(unit_mat, order);
+  return to_euler<T>(unit_mat, order);
 }
 
 /** \} */

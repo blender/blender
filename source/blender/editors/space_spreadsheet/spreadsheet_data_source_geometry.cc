@@ -268,7 +268,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       if (STREQ(column_id.name, "Rotation")) {
         return std::make_unique<ColumnValues>(
             column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
-              return float3(math::to_euler(transforms[index]));
+              return float3(math::to_euler(math::normalize(transforms[index])));
             }));
       }
       if (STREQ(column_id.name, "Scale")) {

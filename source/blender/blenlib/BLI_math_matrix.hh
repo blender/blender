@@ -256,13 +256,13 @@ template<typename MatT, typename VectorT>
  * Extract euler rotation from transform matrix.
  * \return the rotation with the smallest values from the potential candidates.
  */
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 3, 3> &mat);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 4, 4> &mat);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 4, 4> &mat, EulerOrder order);
 
 /**
@@ -272,25 +272,25 @@ template<typename T, bool Normalized = false>
  * \return the rotation with the smallest values from the potential candidates.
  * \note this correspond to the C API "to_compatible" functions.
  */
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
                                                           const detail::EulerXYZ<T> &reference);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
                                                           const detail::EulerXYZ<T> &reference);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
                                                         const detail::Euler3<T> &reference);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
                                                         const detail::Euler3<T> &reference);
 
 /**
  * Extract quaternion rotation from transform matrix.
  */
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 3, 3> &mat);
-template<typename T, bool Normalized = false>
+template<typename T>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 4, 4> &mat);
 
 /**
@@ -1076,61 +1076,44 @@ extern template MatBase<float, 4, 4> from_rotation(const math::AxisAngleCartesia
 
 }  // namespace detail
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order)
 {
   detail::Euler3<T> eul1(order), eul2(order);
-  if constexpr (Normalized) {
-    detail::normalized_to_eul2(mat, eul1, eul2);
-  }
-  else {
-    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
-  }
+  detail::normalized_to_eul2(mat, eul1, eul2);
   /* Return best, which is just the one with lowest values in it. */
   return (length_manhattan(VecBase<T, 3>(eul1)) > length_manhattan(VecBase<T, 3>(eul2))) ? eul2 :
                                                                                            eul1;
 }
 
-template<typename T, bool Normalized>
-[[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 3, 3> &mat)
+template<typename T> [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 3, 3> &mat)
 {
   detail::EulerXYZ<T> eul1, eul2;
-  if constexpr (Normalized) {
-    detail::normalized_to_eul2(mat, eul1, eul2);
-  }
-  else {
-    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
-  }
+  detail::normalized_to_eul2(mat, eul1, eul2);
   /* Return best, which is just the one with lowest values in it. */
   return (length_manhattan(VecBase<T, 3>(eul1)) > length_manhattan(VecBase<T, 3>(eul2))) ? eul2 :
                                                                                            eul1;
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_euler(const MatBase<T, 4, 4> &mat, EulerOrder order)
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
-  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), order);
+  return to_euler<T>(MatBase<T, 3, 3>(mat), order);
 }
 
-template<typename T, bool Normalized>
-[[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 4, 4> &mat)
+template<typename T> [[nodiscard]] inline detail::EulerXYZ<T> to_euler(const MatBase<T, 4, 4> &mat)
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
-  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat));
+  return to_euler<T>(MatBase<T, 3, 3>(mat));
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
                                                         const detail::Euler3<T> &reference)
 {
   detail::Euler3<T> eul1(reference.order()), eul2(reference.order());
-  if constexpr (Normalized) {
-    detail::normalized_to_eul2(mat, eul1, eul2);
-  }
-  else {
-    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
-  }
+  detail::normalized_to_eul2(mat, eul1, eul2);
   eul1 = eul1.wrapped_around(reference);
   eul2 = eul2.wrapped_around(reference);
   /* Return best, which is just the one with lowest values it in. */
@@ -1140,17 +1123,12 @@ template<typename T, bool Normalized>
              eul1;
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 3, 3> &mat,
                                                           const detail::EulerXYZ<T> &reference)
 {
   detail::EulerXYZ<T> eul1, eul2;
-  if constexpr (Normalized) {
-    detail::normalized_to_eul2(mat, eul1, eul2);
-  }
-  else {
-    detail::normalized_to_eul2(normalize(mat), eul1, eul2);
-  }
+  detail::normalized_to_eul2(mat, eul1, eul2);
   eul1 = eul1.wrapped_around(reference);
   eul2 = eul2.wrapped_around(reference);
   /* Return best, which is just the one with lowest values it in. */
@@ -1160,39 +1138,33 @@ template<typename T, bool Normalized>
              eul1;
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Euler3<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
                                                         const detail::Euler3<T> &reference)
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
-  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), reference);
+  return to_euler<T>(MatBase<T, 3, 3>(mat), reference);
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::EulerXYZ<T> to_nearest_euler(const MatBase<T, 4, 4> &mat,
                                                           const detail::EulerXYZ<T> &reference)
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
-  return to_euler<T, Normalized>(MatBase<T, 3, 3>(mat), reference);
+  return to_euler<T>(MatBase<T, 3, 3>(mat), reference);
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 3, 3> &mat)
 {
-  using namespace math;
-  if constexpr (Normalized) {
-    return detail::normalized_to_quat_with_checks(mat);
-  }
-  else {
-    return detail::normalized_to_quat_with_checks(normalize(mat));
-  }
+  return detail::normalized_to_quat_with_checks(mat);
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 [[nodiscard]] inline detail::Quaternion<T> to_quaternion(const MatBase<T, 4, 4> &mat)
 {
   /* TODO(fclem): Avoid the copy with 3x3 ref. */
-  return to_quaternion<T, Normalized>(MatBase<T, 3, 3>(mat));
+  return to_quaternion<T>(MatBase<T, 3, 3>(mat));
 }
 
 template<bool AllowNegativeScale, typename T, int NumCol, int NumRow>
@@ -1222,22 +1194,22 @@ template<bool AllowNegativeScale, typename T>
 /* Implementation details. Use `to_euler` and `to_quaternion` instead. */
 namespace detail {
 
-template<typename T, bool Normalized>
+template<typename T>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::Quaternion<T> &r_rotation)
 {
-  r_rotation = to_quaternion<T, Normalized>(mat);
+  r_rotation = to_quaternion<T>(mat);
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::EulerXYZ<T> &r_rotation)
 {
-  r_rotation = to_euler<T, Normalized>(mat);
+  r_rotation = to_euler<T>(mat);
 }
 
-template<typename T, bool Normalized>
+template<typename T>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::Euler3<T> &r_rotation)
 {
-  r_rotation = to_euler<T, Normalized>(mat, r_rotation.order());
+  r_rotation = to_euler<T>(mat, r_rotation.order());
 }
 
 }  // namespace detail
@@ -1254,7 +1226,7 @@ inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
       r_scale = -r_scale;
     }
   }
-  detail::to_rotation<T, true>(normalized_mat, r_rotation);
+  detail::to_rotation<T>(normalized_mat, r_rotation);
 }
 
 template<bool AllowNegativeScale, typename T, typename RotationT>
