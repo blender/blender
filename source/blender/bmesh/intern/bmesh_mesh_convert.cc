@@ -1319,8 +1319,10 @@ ATTR_NO_OPT void BM_mesh_bm_to_me(Main *bmain,
     bm->ldata.layers[i].flag &= ~CD_FLAG_NOCOPY;
   }
 
-  CustomData_add_layer_named(
-      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  if (!CustomData_get_layer_named(&me->vdata, CD_PROP_FLOAT3, "position")) {
+    CustomData_add_layer_named(
+        &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  }
   CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, me->totedge);
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);

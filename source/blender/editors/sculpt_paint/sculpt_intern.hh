@@ -1883,7 +1883,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              PBVHVertRef vertex,
                                              float projection,
-                                             float fset_projection);
+                                             float fset_projection,
+                                             bool use_area_weights);
 BLI_INLINE bool SCULPT_get_fset_projection(SculptSession *ss, float fset_projection)
 {
   if (ss->hard_edge_mode) {
@@ -1919,7 +1920,8 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           const float co[3],
                                           const PBVHVertRef vertex,
                                           const float origco[3],
-                                          const float alpha);
+                                          const float alpha,
+                                          bool use_area_weights);
 
 void SCULPT_surface_smooth_displace_step(
     SculptSession *ss, float *co, const PBVHVertRef v_index, const float beta, const float fade);
@@ -2617,4 +2619,3 @@ BLI_INLINE bool SCULPT_stroke_id_test_no_update(SculptSession *ss,
 int SCULPT_get_symmetry_pass(const struct SculptSession *ss);
 
 #define SCULPT_boundary_flag_update BKE_sculpt_boundary_flag_update
-

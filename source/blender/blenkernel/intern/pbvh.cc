@@ -4161,7 +4161,10 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
   pbvh->vemap = vemap;
 }
 
-void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
+ATTR_NO_OPT void BKE_pbvh_get_vert_face_areas(PBVH *pbvh,
+                                              PBVHVertRef vertex,
+                                              float *r_areas,
+                                              int valence)
 {
   const int cur_i = pbvh->face_area_i;
 

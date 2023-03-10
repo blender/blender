@@ -550,6 +550,8 @@ def brush_settings(layout, context, brush, popover=False):
         row.prop(brush, "invert_hardness_pressure", text="")
         row.prop(brush, "use_hardness_pressure", text="")
 
+        layout.prop(brush.dyntopo, "disabled")
+
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
             UnifiedPaintPanel.prop_unified(
@@ -561,6 +563,9 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
+        if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
+            layout.prop(brush, "use_weighted_smooth")
+            
         # topology_rake_factor
         if (
                 capabilities.has_topology_rake and

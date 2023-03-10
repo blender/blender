@@ -4083,6 +4083,11 @@ static void sculpt_topology_update(Sculpt *sd,
     mode |= PBVH_Subdivide;
   }
 
+  /* Force both subdivide and collapse for simplify brush. */
+  if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
+    mode |= PBVH_Collapse | PBVH_Subdivide;
+  }
+
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;
   sdata.radius_squared = square_f(ss->cache->radius * radius_scale * 1.25f);

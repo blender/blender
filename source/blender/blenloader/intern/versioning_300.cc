@@ -4014,6 +4014,25 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo")) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (ELEM(brush->sculpt_tool,
+               SCULPT_TOOL_SMOOTH,
+               SCULPT_TOOL_DISPLACEMENT_ERASER,
+               SCULPT_TOOL_SLIDE_RELAX,
+               SCULPT_TOOL_ROTATE,
+               SCULPT_TOOL_GRAB,
+               SCULPT_TOOL_CLOTH,
+               SCULPT_TOOL_PAINT)) {
+        brush->dyntopo.flag |= DYNTOPO_DISABLED;
+      }
+
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SLIDE_RELAX)) {
+        brush->flag2 |= BRUSH_SMOOTH_USE_AREA_WEIGHT;
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

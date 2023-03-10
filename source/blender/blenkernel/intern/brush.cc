@@ -1753,6 +1753,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       br->slide_deform_type = BRUSH_SLIDE_DEFORM_DRAG;
       disable_dyntopo = true;
+      br->flag2 |= BRUSH_SMOOTH_USE_AREA_WEIGHT;
       break;
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_SIZE_PRESSURE;
@@ -1809,6 +1810,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->surface_smooth_shape_preservation = 0.5f;
       br->surface_smooth_current_vertex = 0.5f;
       br->surface_smooth_iterations = 4;
+      disable_dyntopo = true;
+      br->flag2 |= BRUSH_SMOOTH_USE_AREA_WEIGHT;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;

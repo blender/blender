@@ -1962,7 +1962,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, slide_fset);
+        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, slide_fset, true);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
@@ -2001,7 +2001,7 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, slide_fset);
+        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, slide_fset, true);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
