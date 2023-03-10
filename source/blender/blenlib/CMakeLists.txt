@@ -265,10 +265,10 @@ set(SRC
   BLI_math_angle_types.hh
   BLI_math_axis_angle.hh
   BLI_math_axis_angle_types.hh
-  BLI_math_basis_types.hh
   BLI_math_base.h
   BLI_math_base.hh
   BLI_math_base_safe.h
+  BLI_math_basis_types.hh
   BLI_math_bits.h
   BLI_math_boolean.hh
   BLI_math_color.h
