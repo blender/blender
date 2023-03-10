@@ -4034,7 +4034,7 @@ static void sculpt_topology_update(Sculpt *sd,
   /* build brush radius scale */
   float radius_scale = 1.0f;
 
-  if (brush->dyntopo.flag & DYNTOPO_DISABLED) {
+  if ((brush->dyntopo.flag & DYNTOPO_DISABLED) || !(sd->flags & SCULPT_DYNTOPO_ENABLED)) {
     return;
   }
 

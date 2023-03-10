@@ -841,7 +841,7 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
-    bl_label = "Dyntopo"
+    bl_label = "Dynamic Topology"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
 
@@ -872,6 +872,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
+
+        col.prop(sculpt, "use_dyntopo")
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
