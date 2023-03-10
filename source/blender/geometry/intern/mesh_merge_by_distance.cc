@@ -1115,7 +1115,7 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
    * polygons. */
   const auto intersect = [](const Span<int> buffer_a,
                             const Span<int> buffer_b,
-                            const BitVector<> is_double,
+                            const BitVector<> &is_double,
                             int *r_buffer) {
     int result_num = 0;
     int index_a = 0, index_b = 0;
