@@ -793,7 +793,7 @@ static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mesh_bisect_temp = mesh_bisect;
 
       mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
-          ob, &mmd, mesh_bisect, axis, plane_co, plane_no);
+          &mmd, mesh_bisect, axis, plane_co, plane_no);
 
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(nullptr, mesh_bisect_temp);

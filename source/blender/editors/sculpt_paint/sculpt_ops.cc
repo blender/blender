@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
@@ -1411,9 +1410,6 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
     MEM_SAFE_FREE(nodes);
 
-    BMVert **stack = nullptr;
-    BLI_array_declare(stack);
-
     bm->elem_index_dirty |= BM_VERT;
     BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -1608,7 +1604,6 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
     }
 
     MEM_SAFE_FREE(verts);
-    BLI_array_free(stack);
     BLI_mempool_destroy(nodepool);
     MEM_SAFE_FREE(visit);
   }

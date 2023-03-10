@@ -25,8 +25,7 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(Object *ob,
-                                                          MirrorModifierData *mmd,
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
                                                           const Mesh *mesh,
                                                           int axis,
                                                           const float plane_co[3],
@@ -98,7 +97,6 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_SHAPEKEY;
 
   BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
-
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
@@ -182,7 +180,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   Mesh *mesh_bisect = nullptr;
   if (do_bisect) {
     mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
-        ob, mmd, mesh, axis, plane_co, plane_no);
+        mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 
