@@ -30,7 +30,7 @@ class VKStorageBuffer : public StorageBuf {
   void update(const void *data) override;
   void bind(int slot) override;
   void unbind() override;
-  void clear(eGPUTextureFormat internal_format, eGPUDataFormat data_format, void *data) override;
+  void clear(uint32_t clear_value) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
   void read(void *data) override;
 

@@ -195,11 +195,6 @@ struct UnwrapOptions {
   bool pin_unselected;
 };
 
-struct UnwrapResultInfo {
-  int count_changed;
-  int count_failed;
-};
-
 static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
 {
   BMFace *efa;
@@ -1387,9 +1382,10 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     FaceIsland *face_island = island_vector[i];
     blender::geometry::PackIsland *pack_island = new blender::geometry::PackIsland();
     pack_island->bounds_rect = face_island->bounds_rect;
+    pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
   }
-  BoxPack *box_array = pack_islands(pack_island_vector, *params, scale);
+  pack_islands(pack_island_vector, *params, scale);
 
   float base_offset[2] = {0.0f, 0.0f};
   copy_v2_v2(base_offset, params->udim_base_offset);
@@ -1428,8 +1424,9 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   float matrix[2][2];
   float matrix_inverse[2][2];
   float pre_translate[2];
-  for (int i = 0; i < island_vector.size(); i++) {
-    FaceIsland *island = island_vector[box_array[i].index];
+  for (int64_t i : pack_island_vector.index_range()) {
+    blender::geometry::PackIsland *pack_island = pack_island_vector[i];
+    FaceIsland *island = island_vector[pack_island->caller_index];
     matrix[0][0] = scale[0];
     matrix[0][1] = 0.0f;
     matrix[1][0] = 0.0f;
@@ -1439,11 +1436,16 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     /* Add base_offset, post transform. */
     mul_v2_m2v2(pre_translate, matrix_inverse, base_offset);
 
-    /* Translate to box_array from bounds_rect. */
-    blender::geometry::PackIsland *pack_island = pack_island_vector[box_array[i].index];
-    pre_translate[0] += box_array[i].x - pack_island->bounds_rect.xmin;
-    pre_translate[1] += box_array[i].y - pack_island->bounds_rect.ymin;
+    /* Add pre-translation from #pack_islands. */
+    pre_translate[0] += pack_island->pre_translate.x;
+    pre_translate[1] += pack_island->pre_translate.y;
+
+    /* Perform the transformation. */
     island_uv_transform(island, matrix, pre_translate);
+
+    /* Cleanup memory. */
+    pack_island_vector[i] = nullptr;
+    delete pack_island;
   }
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1456,14 +1458,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     MEM_freeN(island->faces);
     MEM_freeN(island);
   }
-
-  for (int i = 0; i < pack_island_vector.size(); i++) {
-    blender::geometry::PackIsland *pack_island = pack_island_vector[i];
-    pack_island_vector[i] = nullptr;
-    delete pack_island;
-  }
-
-  MEM_freeN(box_array);
 }
 
 /* -------------------------------------------------------------------- */
@@ -2438,15 +2432,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   }
 
   /* execute unwrap */
-  UnwrapResultInfo result_info{};
-  result_info.count_changed = 0;
-  result_info.count_failed = 0;
-  uvedit_unwrap_multi(scene,
-                      objects,
-                      objects_len,
-                      &options,
-                      &result_info.count_changed,
-                      &result_info.count_failed);
+  int count_changed = 0;
+  int count_failed = 0;
+  uvedit_unwrap_multi(scene, objects, objects_len, &options, &count_changed, &count_failed);
 
   UVPackIsland_Params pack_island_params{};
   pack_island_params.rotate = true;
@@ -2464,17 +2452,17 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(objects);
 
-  if (result_info.count_failed == 0 && result_info.count_changed == 0) {
+  if (count_failed == 0 && count_changed == 0) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Unwrap could not solve any island(s), edge seams may need to be added");
   }
-  else if (result_info.count_failed) {
+  else if (count_failed) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Unwrap failed to solve %d of %d island(s), edge seams may need to be added",
-                result_info.count_failed,
-                result_info.count_changed + result_info.count_failed);
+                count_failed,
+                count_changed + count_failed);
   }
 
   return OPERATOR_FINISHED;

@@ -993,6 +993,23 @@ if(WITH_VULKAN_BACKEND)
   endif()
 endif()
 
+if(WITH_VULKAN_BACKEND)
+  if(EXISTS ${LIBDIR}/shaderc)
+    set(SHADERC_FOUND On)
+    set(SHADERC_ROOT_DIR ${LIBDIR}/shaderc)
+    set(SHADERC_INCLUDE_DIR ${SHADERC_ROOT_DIR}/include)
+    set(SHADERC_INCLUDE_DIRS ${SHADERC_INCLUDE_DIR})
+    set(SHADERC_LIBRARY
+      DEBUG ${SHADERC_ROOT_DIR}/lib/shaderc_shared_d.lib
+      OPTIMIZED ${SHADERC_ROOT_DIR}/lib/shaderc_shared.lib
+    )
+    set(SHADERC_LIBRARIES ${SHADERC_LIBRARY})
+  else()
+    message(WARNING "Shaderc was not found, disabling WITH_VULKAN_BACKEND")
+    set(WITH_VULKAN_BACKEND OFF)
+  endif()
+endif()
+
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)
   if(openpgl_FOUND)

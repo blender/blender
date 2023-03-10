@@ -1711,7 +1711,11 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
 
 static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, object, false, true, false);
+
   SculptSession *ss = object->sculpt;
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
     /* Not supported in Multires and Dyntopo. */

@@ -632,7 +632,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
   if (!draw_extrapolation) {
     float fcu_start = 0;
     float fcu_end = 0;
-    BKE_fcurve_calc_range(fcu_, &fcu_start, &fcu_end, false, false);
+    BKE_fcurve_calc_range(fcu_, &fcu_start, &fcu_end, false);
 
     fcu_start = BKE_nla_tweakedit_remap(adt, fcu_start, NLATIME_CONVERT_MAP);
     fcu_end = BKE_nla_tweakedit_remap(adt, fcu_end, NLATIME_CONVERT_MAP);

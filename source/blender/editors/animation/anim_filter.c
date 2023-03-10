@@ -264,7 +264,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
   ac->ads = sipo->ads;
 
   /* set settings for Graph Editor - "Selected = Editable" */
-  if (U.animation_flag  & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
     sipo->ads->filterflag |= ADS_FILTER_SELEDIT;
   }
   else {

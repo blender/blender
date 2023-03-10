@@ -556,252 +556,236 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
 
 /* ...................................... */
 
-/* Helper for calc_fcurve_* functions -> find first and last BezTriple to be used. */
-static bool get_fcurve_end_keyframes(const FCurve *fcu,
-                                     BezTriple **first,
-                                     BezTriple **last,
-                                     const bool do_sel_only,
-                                     const float range[2])
+/* Get the first and last index to the bezt array that satisfies the given parameters.
+ * \param selected_keys_only Only accept indices of bezt that are selected. Is a subset of
+ * frame_range. \param frame_range Only consider keyframes in that frame interval. Can be NULL.
+ */
+static bool get_bounding_bezt_indices(const FCurve *fcu,
+                                      const bool selected_keys_only,
+                                      const float frame_range[2],
+                                      int *r_first,
+                                      int *r_last)
 {
-  bool found = false;
-
-  /* Init outputs. */
-  *first = NULL;
-  *last = NULL;
-
   /* Sanity checks. */
   if (fcu->bezt == NULL) {
-    return found;
+    return false;
   }
 
-  int first_index = 0;
-  int last_index = fcu->totvert - 1;
+  *r_first = 0;
+  *r_last = fcu->totvert - 1;
 
-  if (range != NULL) {
+  bool found = false;
+  if (frame_range != NULL) {
     /* If a range is passed in find the first and last keyframe within that range. */
     bool replace = false;
-    first_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[0], fcu->totvert, &replace);
-    last_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, range[1], fcu->totvert, &replace);
+    *r_first = BKE_fcurve_bezt_binarysearch_index(
+        fcu->bezt, frame_range[0], fcu->totvert, &replace);
+    *r_last = BKE_fcurve_bezt_binarysearch_index(
+        fcu->bezt, frame_range[1], fcu->totvert, &replace);
 
     /* If first and last index are the same, no keyframes were found in the range. */
-    if (first_index == last_index) {
-      return found;
+    if (*r_first == *r_last) {
+      return false;
     }
 
     /* The binary search returns an index where a keyframe would be inserted,
      * so it needs to be clamped to ensure it is in range of the array. */
-    first_index = clamp_i(first_index, 0, fcu->totvert - 1);
-    last_index = clamp_i(last_index - 1, 0, fcu->totvert - 1);
+    *r_first = clamp_i(*r_first, 0, fcu->totvert - 1);
+    *r_last = clamp_i(*r_last - 1, 0, fcu->totvert - 1);
   }
 
   /* Only include selected items? */
-  if (do_sel_only) {
+  if (selected_keys_only) {
     /* Find first selected. */
-    for (int i = first_index; i <= last_index; i++) {
+    for (int i = *r_first; i <= *r_last; i++) {
       BezTriple *bezt = &fcu->bezt[i];
       if (BEZT_ISSEL_ANY(bezt)) {
-        *first = bezt;
+        *r_first = i;
         found = true;
         break;
       }
     }
 
     /* Find last selected. */
-    for (int i = last_index; i >= first_index; i--) {
+    for (int i = *r_last; i >= *r_first; i--) {
       BezTriple *bezt = &fcu->bezt[i];
       if (BEZT_ISSEL_ANY(bezt)) {
-        *last = bezt;
+        *r_last = i;
         found = true;
         break;
       }
     }
   }
   else {
-    *first = &fcu->bezt[first_index];
-    *last = &fcu->bezt[last_index];
     found = true;
   }
 
   return found;
 }
 
-bool BKE_fcurve_calc_bounds(const FCurve *fcu,
-                            float *xmin,
-                            float *xmax,
-                            float *ymin,
-                            float *ymax,
-                            const bool do_sel_only,
-                            const bool include_handles,
-                            const float range[2])
+static void calculate_bezt_bounds_x(BezTriple *bezt_array,
+                                    const int index_range[2],
+                                    const bool include_handles,
+                                    float *r_min,
+                                    float *r_max)
 {
-  float xminv = 999999999.0f, xmaxv = -999999999.0f;
-  float yminv = 999999999.0f, ymaxv = -999999999.0f;
-  bool foundvert = false;
+  *r_min = bezt_array[index_range[0]].vec[1][0];
+  *r_max = bezt_array[index_range[1]].vec[1][0];
 
-  const bool use_range = range != NULL;
-
-  if (fcu->totvert) {
-    if (fcu->bezt) {
-
-      if (xmin || xmax) {
-        BezTriple *bezt_first = NULL, *bezt_last = NULL;
-        foundvert = get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only, range);
-
-        if (bezt_first) {
-          BLI_assert(bezt_last != NULL);
-          foundvert = true;
-          if (include_handles) {
-            xminv = min_fff(xminv, bezt_first->vec[0][0], bezt_first->vec[1][0]);
-            xmaxv = max_fff(xmaxv, bezt_last->vec[1][0], bezt_last->vec[2][0]);
-          }
-          else {
-            xminv = min_ff(xminv, bezt_first->vec[1][0]);
-            xmaxv = max_ff(xmaxv, bezt_last->vec[1][0]);
-          }
-        }
-      }
-
-      /* Only loop over keyframes to find extents for values if needed. */
-      if (ymin || ymax) {
-        BezTriple *bezt, *prevbezt = NULL;
-
-        int i;
-        for (bezt = fcu->bezt, i = 0; i < fcu->totvert; prevbezt = bezt, bezt++, i++) {
-          if (use_range && (bezt->vec[1][0] < range[0] || bezt->vec[1][0] > range[1])) {
-            continue;
-          }
-          if ((do_sel_only == false) || BEZT_ISSEL_ANY(bezt)) {
-            /* Keyframe itself. */
-            yminv = min_ff(yminv, bezt->vec[1][1]);
-            ymaxv = max_ff(ymaxv, bezt->vec[1][1]);
-
-            if (include_handles) {
-              /* Left handle - only if applicable.
-               * NOTE: for the very first keyframe,
-               * the left handle actually has no bearings on anything. */
-              if (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)) {
-                yminv = min_ff(yminv, bezt->vec[0][1]);
-                ymaxv = max_ff(ymaxv, bezt->vec[0][1]);
-              }
-
-              /* Right handle - only if applicable. */
-              if (bezt->ipo == BEZT_IPO_BEZ) {
-                yminv = min_ff(yminv, bezt->vec[2][1]);
-                ymaxv = max_ff(ymaxv, bezt->vec[2][1]);
-              }
-            }
-
-            foundvert = true;
-          }
-        }
-      }
-    }
-    else if (fcu->fpt) {
-      /* Frame range can be directly calculated from end verts. */
-      if (xmin || xmax) {
-        xminv = min_ff(xminv, fcu->fpt[0].vec[0]);
-        xmaxv = max_ff(xmaxv, fcu->fpt[fcu->totvert - 1].vec[0]);
-      }
-
-      /* Only loop over keyframes to find extents for values if needed. */
-      if (ymin || ymax) {
-        int i = 0;
-
-        for (FPoint *fpt = fcu->fpt; i < fcu->totvert; fpt++, i++) {
-          if (fpt->vec[1] < yminv) {
-            yminv = fpt->vec[1];
-          }
-          if (fpt->vec[1] > ymaxv) {
-            ymaxv = fpt->vec[1];
-          }
-
-          foundvert = true;
-        }
-      }
+  if (include_handles) {
+    /* Need to check all handles because they might extend beyond their neighboring keys. */
+    for (int i = index_range[0]; i <= index_range[1]; i++) {
+      const BezTriple *bezt = &bezt_array[i];
+      *r_min = min_fff(*r_min, bezt->vec[0][0], bezt->vec[1][0]);
+      *r_max = max_fff(*r_max, bezt->vec[1][0], bezt->vec[2][0]);
     }
   }
-
-  if (foundvert) {
-    if (xmin) {
-      *xmin = xminv;
-    }
-    if (xmax) {
-      *xmax = xmaxv;
-    }
-
-    if (ymin) {
-      *ymin = yminv;
-    }
-    if (ymax) {
-      *ymax = ymaxv;
-    }
-  }
-  else {
-    if (G.debug & G_DEBUG) {
-      printf("F-Curve calc bounds didn't find anything, so assuming minimum bounds of 1.0\n");
-    }
-
-    if (xmin) {
-      *xmin = use_range ? range[0] : 0.0f;
-    }
-    if (xmax) {
-      *xmax = use_range ? range[1] : 1.0f;
-    }
-
-    if (ymin) {
-      *ymin = 0.0f;
-    }
-    if (ymax) {
-      *ymax = 1.0f;
-    }
-  }
-
-  return foundvert;
 }
 
-bool BKE_fcurve_calc_range(
-    const FCurve *fcu, float *start, float *end, const bool do_sel_only, const bool do_min_length)
+static void calculate_bezt_bounds_y(BezTriple *bezt_array,
+                                    const int index_range[2],
+                                    const bool selected_keys_only,
+                                    const bool include_handles,
+                                    float *r_min,
+                                    float *r_max)
 {
-  float min = 999999999.0f, max = -999999999.0f;
+  *r_min = bezt_array[index_range[0]].vec[1][1];
+  *r_max = bezt_array[index_range[0]].vec[1][1];
+
+  for (int i = index_range[0]; i <= index_range[1]; i++) {
+    const BezTriple *bezt = &bezt_array[i];
+
+    if (selected_keys_only && !BEZT_ISSEL_ANY(bezt)) {
+      continue;
+    }
+
+    *r_min = min_ff(*r_min, bezt->vec[1][1]);
+    *r_max = max_ff(*r_max, bezt->vec[1][1]);
+
+    if (include_handles) {
+      *r_min = min_fff(*r_min, bezt->vec[0][1], bezt->vec[2][1]);
+      *r_max = max_fff(*r_max, bezt->vec[0][1], bezt->vec[2][1]);
+    }
+  }
+}
+
+static bool calculate_bezt_bounds(const FCurve *fcu,
+                                  const bool selected_keys_only,
+                                  const bool include_handles,
+                                  const float frame_range[2],
+                                  rctf *r_bounds)
+{
+  int index_range[2];
+  const bool found_indices = get_bounding_bezt_indices(
+      fcu, selected_keys_only, frame_range, &index_range[0], &index_range[1]);
+  if (!found_indices) {
+    return false;
+  }
+  calculate_bezt_bounds_x(
+      fcu->bezt, index_range, include_handles, &r_bounds->xmin, &r_bounds->xmax);
+  calculate_bezt_bounds_y(fcu->bezt,
+                          index_range,
+                          selected_keys_only,
+                          include_handles,
+                          &r_bounds->ymin,
+                          &r_bounds->ymax);
+  return true;
+}
+
+static bool calculate_fpt_bounds(const FCurve *fcu, const float frame_range[2], rctf *r_bounds)
+{
+  r_bounds->xmin = INFINITY;
+  r_bounds->xmax = -INFINITY;
+  r_bounds->ymin = INFINITY;
+  r_bounds->ymax = -INFINITY;
+
+  const int first_index = 0;
+  const int last_index = fcu->totvert - 1;
+  int start_index = first_index;
+  int end_index = last_index;
+
+  if (frame_range != NULL) {
+    /* Start index can be calculated because fpt has a key on every full frame. */
+    const float start_index_f = frame_range[0] - fcu->fpt[0].vec[0];
+    const float end_index_f = start_index_f + frame_range[1] - frame_range[0];
+
+    if (start_index_f > fcu->totvert - 1 || end_index_f < 0) {
+      /* Range is outside of keyframe samples. */
+      return false;
+    }
+
+    /* Range might be partially covering keyframe samples. */
+    start_index = clamp_i(start_index_f, 0, fcu->totvert - 1);
+    end_index = clamp_i(end_index_f, 0, fcu->totvert - 1);
+  }
+
+  /* X range can be directly calculated from end verts. */
+  r_bounds->xmin = fcu->fpt[start_index].vec[0];
+  r_bounds->xmax = fcu->fpt[end_index].vec[0];
+
+  for (int i = start_index; i <= end_index; i++) {
+    r_bounds->ymin = min_ff(r_bounds->ymin, fcu->fpt[i].vec[1]);
+    r_bounds->ymax = max_ff(r_bounds->ymax, fcu->fpt[i].vec[1]);
+  }
+
+  return BLI_rctf_is_valid(r_bounds);
+}
+
+bool BKE_fcurve_calc_bounds(const FCurve *fcu,
+                            const bool selected_keys_only,
+                            const bool include_handles,
+                            const float frame_range[2],
+                            rctf *r_bounds)
+{
+  if (fcu->totvert == 0) {
+    return false;
+  }
+
+  if (fcu->bezt) {
+    const bool found_bounds = calculate_bezt_bounds(
+        fcu, selected_keys_only, include_handles, frame_range, r_bounds);
+    return found_bounds;
+  }
+
+  if (fcu->fpt) {
+    const bool founds_bounds = calculate_fpt_bounds(fcu, frame_range, r_bounds);
+    return founds_bounds;
+  }
+
+  return false;
+}
+
+bool BKE_fcurve_calc_range(const FCurve *fcu,
+                           float *r_start,
+                           float *r_end,
+                           const bool selected_keys_only)
+{
+  float min, max = 0.0f;
   bool foundvert = false;
 
-  if (fcu->totvert) {
-    if (fcu->bezt) {
-      BezTriple *bezt_first = NULL, *bezt_last = NULL;
-
-      /* Get endpoint keyframes. */
-      get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only, NULL);
-
-      if (bezt_first) {
-        BLI_assert(bezt_last != NULL);
-
-        min = min_ff(min, bezt_first->vec[1][0]);
-        max = max_ff(max, bezt_last->vec[1][0]);
-
-        foundvert = true;
-      }
-    }
-    else if (fcu->fpt) {
-      min = min_ff(min, fcu->fpt[0].vec[0]);
-      max = max_ff(max, fcu->fpt[fcu->totvert - 1].vec[0]);
-
-      foundvert = true;
-    }
+  if (fcu->totvert == 0) {
+    return false;
   }
 
-  if (foundvert == false) {
-    min = max = 0.0f;
-  }
-
-  if (do_min_length) {
-    /* Minimum length is 1 frame. */
-    if (min == max) {
-      max += 1.0f;
+  if (fcu->bezt) {
+    int index_range[2];
+    foundvert = get_bounding_bezt_indices(
+        fcu, selected_keys_only, NULL, &index_range[0], &index_range[1]);
+    if (!foundvert) {
+      return false;
     }
+    const bool include_handles = false;
+    calculate_bezt_bounds_x(fcu->bezt, index_range, include_handles, &min, &max);
+  }
+  else if (fcu->fpt) {
+    min = fcu->fpt[0].vec[0];
+    max = fcu->fpt[fcu->totvert - 1].vec[0];
+
+    foundvert = true;
   }
 
-  *start = min;
-  *end = max;
+  *r_start = min;
+  *r_end = max;
 
   return foundvert;
 }

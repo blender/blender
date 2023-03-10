@@ -141,6 +141,7 @@ dict_custom = {
     "instantiable",
     "instantiation",
     "instantiations",
+    "interdependencies",
     "interferences",
     "interocular",
     "invariant",

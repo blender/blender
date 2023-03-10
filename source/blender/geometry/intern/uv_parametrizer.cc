@@ -4167,6 +4167,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     }
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
+    pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
 
     float minv[2];
@@ -4192,42 +4193,29 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   params.udim_base_offset[1] = 0.0f;
 
   float scale[2] = {1.0f, 1.0f};
-  BoxPack *box_array = pack_islands(pack_island_vector, params, scale);
+  pack_islands(pack_island_vector, params, scale);
 
   for (int64_t i : pack_island_vector.index_range()) {
-    BoxPack *box = box_array + i;
-    PackIsland *pack_island = pack_island_vector[box->index];
-    pack_island->bounds_rect.xmin = box->x - pack_island->bounds_rect.xmin;
-    pack_island->bounds_rect.ymin = box->y - pack_island->bounds_rect.ymin;
-  }
-
-  unpacked = 0;
-  for (int i = 0; i < handle->ncharts; i++) {
-    PChart *chart = handle->charts[i];
-
-    if (ignore_pinned && chart->has_pins) {
-      unpacked++;
-      continue;
-    }
-    PackIsland *pack_island = pack_island_vector[i - unpacked];
+    PackIsland *pack_island = pack_island_vector[i];
+    PChart *chart = handle->charts[pack_island->caller_index];
 
     /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
     float m[2];
     float b[2];
     m[0] = scale[0];
     m[1] = scale[1];
-    b[0] = pack_island->bounds_rect.xmin;
-    b[1] = pack_island->bounds_rect.ymin;
+    b[0] = pack_island->pre_translate.x;
+    b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
       v->uv[0] = m[0] * (v->uv[0] + b[0]);
       v->uv[1] = m[1] * (v->uv[1] + b[1]);
     }
 
-    pack_island_vector[i - unpacked] = nullptr;
+    pack_island_vector[i] = nullptr;
     delete pack_island;
   }
-  MEM_freeN(box_array);
+
   if (handle->aspx != handle->aspy) {
     uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
   }

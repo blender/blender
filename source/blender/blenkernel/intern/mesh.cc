@@ -1585,6 +1585,11 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
   return true;
 }
 
+void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)
+{
+  this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = bounds; });
+}
+
 void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 {
   MutableSpan<float3> positions = me->vert_positions_for_write();
