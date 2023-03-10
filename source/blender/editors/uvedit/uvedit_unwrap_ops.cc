@@ -1382,9 +1382,10 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     FaceIsland *face_island = island_vector[i];
     blender::geometry::PackIsland *pack_island = new blender::geometry::PackIsland();
     pack_island->bounds_rect = face_island->bounds_rect;
+    pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
   }
-  BoxPack *box_array = pack_islands(pack_island_vector, *params, scale);
+  pack_islands(pack_island_vector, *params, scale);
 
   float base_offset[2] = {0.0f, 0.0f};
   copy_v2_v2(base_offset, params->udim_base_offset);
@@ -1423,8 +1424,9 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   float matrix[2][2];
   float matrix_inverse[2][2];
   float pre_translate[2];
-  for (int i = 0; i < island_vector.size(); i++) {
-    FaceIsland *island = island_vector[box_array[i].index];
+  for (int64_t i : pack_island_vector.index_range()) {
+    blender::geometry::PackIsland *pack_island = pack_island_vector[i];
+    FaceIsland *island = island_vector[pack_island->caller_index];
     matrix[0][0] = scale[0];
     matrix[0][1] = 0.0f;
     matrix[1][0] = 0.0f;
@@ -1434,11 +1436,16 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     /* Add base_offset, post transform. */
     mul_v2_m2v2(pre_translate, matrix_inverse, base_offset);
 
-    /* Translate to box_array from bounds_rect. */
-    blender::geometry::PackIsland *pack_island = pack_island_vector[box_array[i].index];
-    pre_translate[0] += box_array[i].x - pack_island->bounds_rect.xmin;
-    pre_translate[1] += box_array[i].y - pack_island->bounds_rect.ymin;
+    /* Add pre-translation from #pack_islands. */
+    pre_translate[0] += pack_island->pre_translate.x;
+    pre_translate[1] += pack_island->pre_translate.y;
+
+    /* Perform the transformation. */
     island_uv_transform(island, matrix, pre_translate);
+
+    /* Cleanup memory. */
+    pack_island_vector[i] = nullptr;
+    delete pack_island;
   }
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1451,14 +1458,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     MEM_freeN(island->faces);
     MEM_freeN(island);
   }
-
-  for (int i = 0; i < pack_island_vector.size(); i++) {
-    blender::geometry::PackIsland *pack_island = pack_island_vector[i];
-    pack_island_vector[i] = nullptr;
-    delete pack_island;
-  }
-
-  MEM_freeN(box_array);
 }
 
 /* -------------------------------------------------------------------- */
