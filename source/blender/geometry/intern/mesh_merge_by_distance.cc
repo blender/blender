@@ -1113,7 +1113,10 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
   /* Fills the `r_buffer` buffer with the intersection of the arrays in `buffer_a` and `buffer_b`.
    * `buffer_a` and `buffer_b` have a sequence of sorted, non-repeating indices representing
    * polygons. */
-  const auto intersect = [](const Span<int> buffer_a, const Span<int> buffer_b, int *r_buffer) {
+  const auto intersect = [](const Span<int> buffer_a,
+                            const Span<int> buffer_b,
+                            const BitVector<> is_double,
+                            int *r_buffer) {
     int result_num = 0;
     int index_a = 0, index_b = 0;
     while (index_a < buffer_a.size() && index_b < buffer_b.size()) {
@@ -1127,7 +1130,12 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
       }
       else {
         /* Equality. */
-        r_buffer[result_num++] = value_a;
+
+        /* Do not add duplicates.
+         * As they are already in the original array, this can cause buffer overflow. */
+        if (!is_double[value_a]) {
+          r_buffer[result_num++] = value_a;
+        }
         index_a++;
         index_b++;
       }
@@ -1214,6 +1222,7 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 
     int *isect_result = doubles_buffer.data() + doubles_buffer_num + 1;
 
+    /* `polys_a` are the polygons connected to the first corner. So skip the first corner. */
     for (int corner_index : IndexRange(corner_first + 1, corner_num - 1)) {
       elem_index = corners[corner_index];
       link_offs = linked_polys_offset[elem_index];
@@ -1227,8 +1236,10 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
         polys_b_num--;
       } while (poly_to_test != poly_index);
 
-      doubles_num = intersect(
-          Span<int>{polys_a, polys_a_num}, Span<int>{polys_b, polys_b_num}, isect_result);
+      doubles_num = intersect(Span<int>{polys_a, polys_a_num},
+                              Span<int>{polys_b, polys_b_num},
+                              is_double,
+                              isect_result);
 
       if (doubles_num == 0) {
         break;
@@ -1246,6 +1257,12 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
       }
       doubles_buffer_num += doubles_num;
       doubles_offsets.append(++doubles_buffer_num);
+
+      if ((doubles_buffer_num + 1) == poly_num) {
+        /* The last slot is the remaining unduplicated polygon.
+         * Avoid checking intersection as there are no more slots left. */
+        break;
+      }
     }
   }
 
