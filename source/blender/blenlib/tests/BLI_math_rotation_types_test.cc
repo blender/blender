@@ -271,7 +271,7 @@ TEST(math_rotation_types, AngleFraction)
     EXPECT_NEAR(angle.cos(), cos((T(M_PI) * i) / 16), 1e-6f);
     EXPECT_NEAR(angle.sin(), sin((T(M_PI) * i) / 16), 1e-6f);
 
-    /* Ensure symetry. */
+    /* Ensure symmetry. */
     AngleCartesian angle_opposite(pi + pi * i / 16);
     EXPECT_EQ(angle.cos(), -angle_opposite.cos());
     EXPECT_EQ(angle.sin(), -angle_opposite.sin());

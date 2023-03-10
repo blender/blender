@@ -222,7 +222,7 @@ struct Rows {
     /** This pixel is directly affected by a brush and doesn't need to be solved. */
     Brush,
     SelectedForCloserExamination,
-    /** This pixel will be copid from another pixel to solve non-manifold edge bleeding. */
+    /** This pixel will be copied from another pixel to solve non-manifold edge bleeding. */
     CopyFromClosestEdge,
   };
 
@@ -233,7 +233,7 @@ struct Rows {
     /**
      * Index of the edge in the list of non-manifold edges.
      *
-     * The edge is kept to calculate athe mix factor between the two pixels that have chosen to
+     * The edge is kept to calculate the mix factor between the two pixels that have chosen to
      * be mixed.
      */
     int64_t edge_index;
@@ -309,7 +309,7 @@ struct Rows {
    * Look for a second source pixel that will be blended with the first source pixel to improve
    * the quality of the fix.
    *
-   * - The second source pixel must be a neighbour pixel of the first source, or the same as the
+   * - The second source pixel must be a neighbor pixel of the first source, or the same as the
    *   first source when no second pixel could be found.
    * - The second source pixel must be a pixel that is painted on by the brush.
    * - The second source pixel must be the second closest pixel , or the first source

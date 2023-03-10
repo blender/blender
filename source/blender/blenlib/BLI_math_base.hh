@@ -90,8 +90,10 @@ template<typename T> inline T floor(const T &a)
   return std::floor(a);
 }
 
-/* Repeats the sawtooth pattern even on negative numbers.
- * ex: 'mod_periodic(-3, 4) = 1', 'mod(-3, 4)= -3'  */
+/**
+ * Repeats the saw-tooth pattern even on negative numbers.
+ * ex: `mod_periodic(-3, 4) = 1`, `mod(-3, 4)= -3`
+ */
 template<typename T> inline T mod_periodic(const T &a, const T &b)
 {
   return a - (b * math::floor(a / b));

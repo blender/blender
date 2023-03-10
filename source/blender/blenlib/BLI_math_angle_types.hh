@@ -680,21 +680,21 @@ template<typename T = float> struct AngleFraction {
         default:
           BLI_assert_unreachable();
       }
-      /* Resulting angle should be oscilating in [0..pi/4] range. */
+      /* Resulting angle should be oscillating in [0..pi/4] range. */
       BLI_assert(a.numerator_ >= 0 && a.numerator_ <= a.denominator_ / 4);
       T angle = T(M_PI) * (T(a.numerator_) / T(a.denominator_));
       x = math::cos(angle);
       y = math::sin(angle);
-      /* Diagonal symetry "unfolding". */
+      /* Diagonal symmetry "unfolding". */
       if (ELEM(octant, 1, 2)) {
         std::swap(x, y);
       }
     }
-    /* Y axis symetry. */
+    /* Y axis symmetry. */
     if (octant >= 2) {
       x = -x;
     }
-    /* X axis symetry. */
+    /* X axis symmetry. */
     if (is_negative) {
       y = -y;
     }

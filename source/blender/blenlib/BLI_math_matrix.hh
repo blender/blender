@@ -1379,8 +1379,8 @@ template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const 
 
   /**
    * The secondary axis is chosen as follow (X->Y, Y->X, Z->X).
-   * If this axis is coplanar try the third axis.
-   * If also coplanar, make up an axis by shuffling the primary axis coordinates (xyz > yzx).
+   * If this axis is co-planar try the third axis.
+   * If also co-planar, make up an axis by shuffling the primary axis coordinates (XYZ > YZX).
    */
   switch (axis) {
     case Axis::X:
