@@ -19,33 +19,31 @@
 
 namespace blender::math {
 
-namespace detail {
-
 /**
- * A `blender::math::AngleRadian<T>` is a typical radian angle.
+ * A `blender::math::AngleRadianBase<T>` is a typical radian angle.
  * - Storage : `1 * sizeof(T)`
  * - Range : [-inf..inf]
  * - Fast : Everything not slow.
  * - Slow : `cos()`, `sin()`, `tan()`, `AngleRadian(cos, sin)`
  */
-template<typename T> struct AngleRadian {
+template<typename T> struct AngleRadianBase {
  private:
   T value_;
 
  public:
-  AngleRadian() = default;
+  AngleRadianBase() = default;
 
-  AngleRadian(const T &radian) : value_(radian){};
-  explicit AngleRadian(const T &cos, const T &sin) : value_(math::atan2(sin, cos)){};
+  AngleRadianBase(const T &radian) : value_(radian){};
+  explicit AngleRadianBase(const T &cos, const T &sin) : value_(math::atan2(sin, cos)){};
 
   /** Static functions. */
 
-  static AngleRadian identity()
+  static AngleRadianBase identity()
   {
     return 0;
   }
 
-  static AngleRadian from_degree(const T &degrees)
+  static AngleRadianBase from_degree(const T &degrees)
   {
     return degrees * T(M_PI / 180.0);
   }
@@ -81,7 +79,7 @@ template<typename T> struct AngleRadian {
   /**
    * Return the angle wrapped inside [-pi..pi] interval. Basically `(angle + pi) % 2pi - pi`.
    */
-  AngleRadian wrapped() const
+  AngleRadianBase wrapped() const
   {
     return math::mod_periodic(value_ + T(M_PI), T(2 * M_PI)) - T(M_PI);
   }
@@ -92,80 +90,80 @@ template<typename T> struct AngleRadian {
    * This means the interpolation between the returned value and \a reference will always take the
    * shortest path.
    */
-  AngleRadian wrapped_around(const AngleRadian &reference) const
+  AngleRadianBase wrapped_around(const AngleRadianBase &reference) const
   {
     return reference + (*this - reference).wrapped();
   }
 
   /** Operators. */
 
-  friend AngleRadian operator+(const AngleRadian &a, const AngleRadian &b)
+  friend AngleRadianBase operator+(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return a.value_ + b.value_;
   }
 
-  friend AngleRadian operator-(const AngleRadian &a, const AngleRadian &b)
+  friend AngleRadianBase operator-(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return a.value_ - b.value_;
   }
 
-  friend AngleRadian operator*(const AngleRadian &a, const AngleRadian &b)
+  friend AngleRadianBase operator*(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return a.value_ * b.value_;
   }
 
-  friend AngleRadian operator/(const AngleRadian &a, const AngleRadian &b)
+  friend AngleRadianBase operator/(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return a.value_ / b.value_;
   }
 
-  friend AngleRadian operator-(const AngleRadian &a)
+  friend AngleRadianBase operator-(const AngleRadianBase &a)
   {
     return -a.value_;
   }
 
-  AngleRadian &operator+=(const AngleRadian &b)
+  AngleRadianBase &operator+=(const AngleRadianBase &b)
   {
     value_ += b.value_;
     return *this;
   }
 
-  AngleRadian &operator-=(const AngleRadian &b)
+  AngleRadianBase &operator-=(const AngleRadianBase &b)
   {
     value_ -= b.value_;
     return *this;
   }
 
-  AngleRadian &operator*=(const AngleRadian &b)
+  AngleRadianBase &operator*=(const AngleRadianBase &b)
   {
     value_ *= b.value_;
     return *this;
   }
 
-  AngleRadian &operator/=(const AngleRadian &b)
+  AngleRadianBase &operator/=(const AngleRadianBase &b)
   {
     value_ /= b.value_;
     return *this;
   }
 
-  friend bool operator==(const AngleRadian &a, const AngleRadian &b)
+  friend bool operator==(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return a.value_ == b.value_;
   }
 
-  friend bool operator!=(const AngleRadian &a, const AngleRadian &b)
+  friend bool operator!=(const AngleRadianBase &a, const AngleRadianBase &b)
   {
     return !(a == b);
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const AngleRadian &rot)
+  friend std::ostream &operator<<(std::ostream &stream, const AngleRadianBase &rot)
   {
     return stream << "AngleRadian(" << rot.value_ << ")";
   }
 };
 
 /**
- * A `blender::math::AngleCartesian<T>` stores the angle as cosine + sine tuple.
+ * A `blender::math::AngleCartesianBase<T>` stores the angle as cosine + sine tuple.
  * - Storage : `2 * sizeof(T)`
  * - Range : [-pi..pi]
  * - Fast : `cos()`, `sin()`, `tan()`, `AngleCartesian(cos, sin)`
@@ -175,18 +173,18 @@ template<typename T> struct AngleRadian {
  * advantage when trigonometric values of an angle are required but not directly the angle itself.
  * It is also a nice shortcut for using the trigonometric identities.
  */
-template<typename T> struct AngleCartesian {
+template<typename T> struct AngleCartesianBase {
  private:
   T cos_;
   T sin_;
 
  public:
-  AngleCartesian() = default;
+  AngleCartesianBase() = default;
 
   /**
    * Create an angle from a (x, y) position on the unit circle.
    */
-  AngleCartesian(const T &x, const T &y) : cos_(x), sin_(y)
+  AngleCartesianBase(const T &x, const T &y) : cos_(x), sin_(y)
   {
     BLI_assert(math::abs(x * x + y * y - T(1)) < T(1e-4));
   }
@@ -194,34 +192,34 @@ template<typename T> struct AngleCartesian {
   /**
    * Create an angle from a radian value.
    */
-  explicit AngleCartesian(const T &radian)
-      : AngleCartesian(math::cos(radian), math::sin(radian)){};
-  explicit AngleCartesian(const AngleRadian<T> &angle)
-      : AngleCartesian(math::cos(angle.radian()), math::sin(angle.radian())){};
+  explicit AngleCartesianBase(const T &radian)
+      : AngleCartesianBase(math::cos(radian), math::sin(radian)){};
+  explicit AngleCartesianBase(const AngleRadianBase<T> &angle)
+      : AngleCartesianBase(math::cos(angle.radian()), math::sin(angle.radian())){};
 
   /** Static functions. */
 
-  static AngleCartesian identity()
+  static AngleCartesianBase identity()
   {
     return {1, 0};
   }
 
-  static AngleCartesian from_degree(const T &degrees)
+  static AngleCartesianBase from_degree(const T &degrees)
   {
-    return AngleCartesian(degrees * T(M_PI / 180.0));
+    return AngleCartesianBase(degrees * T(M_PI / 180.0));
   }
 
   /**
    * Create an angle from a (x, y) position on the 2D plane.
    * Fallback to identity if (x, y) is origin (0, 0).
    */
-  static AngleCartesian from_point(const T &x, const T &y)
+  static AngleCartesianBase from_point(const T &x, const T &y)
   {
     T norm = math::sqrt(x * x + y * y);
     if (norm == 0) {
       return identity();
     }
-    return AngleCartesian(x / norm, y / norm);
+    return AngleCartesianBase(x / norm, y / norm);
   }
 
   /** Conversions. */
@@ -273,17 +271,17 @@ template<typename T> struct AngleCartesian {
    * purpose of this class).
    */
 
-  friend AngleCartesian operator+(const AngleCartesian &a, const AngleCartesian &b)
+  friend AngleCartesianBase operator+(const AngleCartesianBase &a, const AngleCartesianBase &b)
   {
     return {a.cos_ * b.cos_ - a.sin_ * b.sin_, a.sin_ * b.cos_ + a.cos_ * b.sin_};
   }
 
-  friend AngleCartesian operator-(const AngleCartesian &a, const AngleCartesian &b)
+  friend AngleCartesianBase operator-(const AngleCartesianBase &a, const AngleCartesianBase &b)
   {
     return {a.cos_ * b.cos_ + a.sin_ * b.sin_, a.sin_ * b.cos_ - a.cos_ * b.sin_};
   }
 
-  friend AngleCartesian operator*(const AngleCartesian &a, const T &b)
+  friend AngleCartesianBase operator*(const AngleCartesianBase &a, const T &b)
   {
     if (b == T(2)) {
       return {a.cos_ * a.cos_ - a.sin_ * a.sin_, T(2) * a.sin_ * a.cos_};
@@ -293,24 +291,24 @@ template<typename T> struct AngleCartesian {
               T(3) * a.sin_ - T(4) * (a.sin_ * a.sin_ * a.sin_)};
     }
     BLI_assert_msg(0,
-                   "Arbitrary angle product isn't supported with AngleCartesian<T> for "
-                   "performance reason. Use AngleRadian<T> instead.");
+                   "Arbitrary angle product isn't supported with AngleCartesianBase<T> for "
+                   "performance reason. Use AngleRadianBase<T> instead.");
     return identity();
   }
 
-  friend AngleCartesian operator*(const T &b, const AngleCartesian &a)
+  friend AngleCartesianBase operator*(const T &b, const AngleCartesianBase &a)
   {
     return a * b;
   }
 
-  friend AngleCartesian operator/(const AngleCartesian &a, const T &divisor)
+  friend AngleCartesianBase operator/(const AngleCartesianBase &a, const T &divisor)
   {
     if (divisor == T(2)) {
       /* Still costly but faster than using `atan()`. */
-      AngleCartesian result = {math::sqrt((T(1) + a.cos_) / T(2)),
-                               math::sqrt((T(1) - a.cos_) / T(2))};
+      AngleCartesianBase result = {math::sqrt((T(1) + a.cos_) / T(2)),
+                                   math::sqrt((T(1) - a.cos_) / T(2))};
       /* Recover sign only for sine. Cosine of half angle is given to be positive or 0 since the
-       * angle stored in #AngleCartesian is in the range [-pi..pi]. */
+       * angle stored in #AngleCartesianBase is in the range [-pi..pi]. */
       /* TODO(fclem): Could use copysign here. */
       if (a.sin_ < T(0)) {
         result.sin_ = -result.sin_;
@@ -318,57 +316,55 @@ template<typename T> struct AngleCartesian {
       return result;
     }
     BLI_assert_msg(0,
-                   "Arbitrary angle quotient isn't supported with AngleCartesian<T> for "
-                   "performance reason. Use AngleRadian<T> instead.");
+                   "Arbitrary angle quotient isn't supported with AngleCartesianBase<T> for "
+                   "performance reason. Use AngleRadianBase<T> instead.");
     return identity();
   }
 
-  friend AngleCartesian operator-(const AngleCartesian &a)
+  friend AngleCartesianBase operator-(const AngleCartesianBase &a)
   {
     return {a.cos_, -a.sin_};
   }
 
-  AngleCartesian &operator+=(const AngleCartesian &b)
+  AngleCartesianBase &operator+=(const AngleCartesianBase &b)
   {
     *this = *this + b;
     return *this;
   }
 
-  AngleCartesian &operator*=(const T &b)
+  AngleCartesianBase &operator*=(const T &b)
   {
     *this = *this * b;
     return *this;
   }
 
-  AngleCartesian &operator-=(const AngleCartesian &b)
+  AngleCartesianBase &operator-=(const AngleCartesianBase &b)
   {
     *this = *this - b;
     return *this;
   }
 
-  AngleCartesian &operator/=(const T &b)
+  AngleCartesianBase &operator/=(const T &b)
   {
     *this = *this / b;
     return *this;
   }
 
-  friend bool operator==(const AngleCartesian &a, const AngleCartesian &b)
+  friend bool operator==(const AngleCartesianBase &a, const AngleCartesianBase &b)
   {
     return a.cos_ == b.cos_ && a.sin_ == b.sin_;
   }
 
-  friend bool operator!=(const AngleCartesian &a, const AngleCartesian &b)
+  friend bool operator!=(const AngleCartesianBase &a, const AngleCartesianBase &b)
   {
     return !(a == b);
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const AngleCartesian &rot)
+  friend std::ostream &operator<<(std::ostream &stream, const AngleCartesianBase &rot)
   {
     return stream << "AngleCartesian(x=" << rot.cos_ << ", y=" << rot.sin_ << ")";
   }
 };
-
-}  // namespace detail
 
 /**
  * A `blender::math::AngleFraction<T>` stores a radian angle as quotient.
@@ -385,7 +381,7 @@ template<typename T> struct AngleCartesian {
  * not as cheap as a `AngleRadian`. Another nice property is that the `cos()` and `sin()` functions
  * give symmetric results around the circle.
  *
- * NOTE: Prefer converting to `blender::math::AngleCartesian<T>` if both `cos()` and `sin()`
+ * NOTE: Prefer converting to `blender::math::AngleCartesianBase<T>` if both `cos()` and `sin()`
  * are needed. This will save some computation.
  *
  * Any operation becomes undefined if either the numerator or the denominator overflows.
@@ -611,7 +607,7 @@ template<typename T = float> struct AngleFraction {
                   << ")";
   }
 
-  operator detail::AngleCartesian<T>() const
+  operator AngleCartesianBase<T>() const
   {
     AngleFraction a = this->wrapped();
     BLI_assert(abs(a.numerator_) <= a.denominator_);
@@ -698,51 +694,51 @@ template<typename T = float> struct AngleFraction {
     if (is_negative) {
       y = -y;
     }
-    return detail::AngleCartesian<T>(x, y);
+    return AngleCartesianBase<T>(x, y);
   }
 };
 
-template<typename T> T cos(const detail::AngleRadian<T> &a)
+template<typename T> T cos(const AngleRadianBase<T> &a)
 {
   return cos(a.radian());
 }
-template<typename T> T sin(const detail::AngleRadian<T> &a)
+template<typename T> T sin(const AngleRadianBase<T> &a)
 {
   return sin(a.radian());
 }
-template<typename T> T tan(const detail::AngleRadian<T> &a)
+template<typename T> T tan(const AngleRadianBase<T> &a)
 {
   return tan(a.radian());
 }
 
-template<typename T> T cos(const detail::AngleCartesian<T> &a)
+template<typename T> T cos(const AngleCartesianBase<T> &a)
 {
   return a.cos();
 }
-template<typename T> T sin(const detail::AngleCartesian<T> &a)
+template<typename T> T sin(const AngleCartesianBase<T> &a)
 {
   return a.sin();
 }
-template<typename T> T tan(const detail::AngleCartesian<T> &a)
+template<typename T> T tan(const AngleCartesianBase<T> &a)
 {
   return a.tan();
 }
 
 template<typename T> T cos(const AngleFraction<T> &a)
 {
-  return cos(detail::AngleCartesian<T>(a));
+  return cos(AngleCartesianBase<T>(a));
 }
 template<typename T> T sin(const AngleFraction<T> &a)
 {
-  return sin(detail::AngleCartesian<T>(a));
+  return sin(AngleCartesianBase<T>(a));
 }
 template<typename T> T tan(const AngleFraction<T> &a)
 {
-  return tan(detail::AngleCartesian<T>(a));
+  return tan(AngleCartesianBase<T>(a));
 }
 
-using AngleRadian = math::detail::AngleRadian<float>;
-using AngleCartesian = math::detail::AngleCartesian<float>;
+using AngleRadian = AngleRadianBase<float>;
+using AngleCartesian = AngleCartesianBase<float>;
 
 }  // namespace blender::math
 

@@ -27,7 +27,7 @@ namespace blender::math {
  * This might introduce some precision loss and have performance implication.
  */
 template<typename T, typename RotT>
-[[nodiscard]] detail::Quaternion<T> rotate(const detail::Quaternion<T> &a, const RotT &b);
+[[nodiscard]] QuaternionBase<T> rotate(const QuaternionBase<T> &a, const RotT &b);
 
 /**
  * Rotate \a a by \a b. In other word, insert the \a b rotation before \a a.
@@ -36,8 +36,7 @@ template<typename T, typename RotT>
  * This might introduce some precision loss and have performance implication.
  */
 template<typename T, typename RotT, typename AngleT>
-[[nodiscard]] detail::AxisAngle<T, AngleT> rotate(const detail::AxisAngle<T, AngleT> &a,
-                                                  const RotT &b);
+[[nodiscard]] AxisAngleBase<T, AngleT> rotate(const AxisAngleBase<T, AngleT> &a, const RotT &b);
 
 /**
  * Rotate \a a by \a b. In other word, insert the \a b rotation before \a a.
@@ -46,7 +45,7 @@ template<typename T, typename RotT, typename AngleT>
  * This might introduce some precision loss and have performance implication.
  */
 template<typename T, typename RotT>
-[[nodiscard]] detail::EulerXYZ<T> rotate(const detail::EulerXYZ<T> &a, const RotT &b);
+[[nodiscard]] EulerXYZBase<T> rotate(const EulerXYZBase<T> &a, const RotT &b);
 
 /**
  * Rotate \a a by \a b. In other word, insert the \a b rotation before \a a.
@@ -55,14 +54,14 @@ template<typename T, typename RotT>
  * This might introduce some precision loss and have performance implication.
  */
 template<typename T, typename RotT>
-[[nodiscard]] detail::Euler3<T> rotate(const detail::Euler3<T> &a, const RotT &b);
+[[nodiscard]] Euler3Base<T> rotate(const Euler3Base<T> &a, const RotT &b);
 
 /**
  * Return rotation from orientation \a a  to orientation \a b into another quaternion.
  */
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> rotation_between(const detail::Quaternion<T> &a,
-                                                     const detail::Quaternion<T> &b);
+[[nodiscard]] QuaternionBase<T> rotation_between(const QuaternionBase<T> &a,
+                                                 const QuaternionBase<T> &b);
 
 /**
  * Create a orientation from a triangle plane and the axis formed by the segment(v1, v2).
@@ -70,18 +69,18 @@ template<typename T>
  * Used for Ngons when their normal is known.
  */
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_triangle(const VecBase<T, 3> &v1,
-                                                  const VecBase<T, 3> &v2,
-                                                  const VecBase<T, 3> &v3,
-                                                  const VecBase<T, 3> &normal);
+[[nodiscard]] QuaternionBase<T> from_triangle(const VecBase<T, 3> &v1,
+                                              const VecBase<T, 3> &v2,
+                                              const VecBase<T, 3> &v3,
+                                              const VecBase<T, 3> &normal);
 
 /**
  * Create a orientation from a triangle plane and the axis formed by the segment(v1, v2).
  */
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_triangle(const VecBase<T, 3> &v1,
-                                                  const VecBase<T, 3> &v2,
-                                                  const VecBase<T, 3> &v3);
+[[nodiscard]] QuaternionBase<T> from_triangle(const VecBase<T, 3> &v1,
+                                              const VecBase<T, 3> &v2,
+                                              const VecBase<T, 3> &v3);
 
 /**
  * Create a rotation from a vector and a basis rotation.
@@ -90,22 +89,21 @@ template<typename T>
  * \a up_flag is supposed to be #Object.upflag
  */
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_vector(const VecBase<T, 3> &vector,
-                                                const AxisSigned track_flag,
-                                                const Axis up_flag);
+[[nodiscard]] QuaternionBase<T> from_vector(const VecBase<T, 3> &vector,
+                                            const AxisSigned track_flag,
+                                            const Axis up_flag);
 
 /**
  * Returns a quaternion for converting local space to tracking space.
  * This is slightly different than from_axis_conversion for legacy reasons.
  */
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_tracking(AxisSigned forward_axis, Axis up_axis);
+[[nodiscard]] QuaternionBase<T> from_tracking(AxisSigned forward_axis, Axis up_axis);
 
 /**
  * Convert euler rotation to gimbal rotation matrix.
  */
-template<typename T>
-[[nodiscard]] MatBase<T, 3, 3> to_gimbal_axis(const detail::Euler3<T> &rotation);
+template<typename T> [[nodiscard]] MatBase<T, 3, 3> to_gimbal_axis(const Euler3Base<T> &rotation);
 
 /** \} */
 
@@ -120,7 +118,7 @@ template<typename T>
  * Unlike the angle between vectors, this does *NOT* return the shortest angle.
  * See `angle_of_signed` below for this.
  */
-template<typename T> [[nodiscard]] detail::AngleRadian<T> angle_of(const detail::Quaternion<T> &q)
+template<typename T> [[nodiscard]] AngleRadianBase<T> angle_of(const QuaternionBase<T> &q)
 {
   BLI_assert(is_unit_scale(q));
   return T(2) * math::safe_acos(q.w);
@@ -134,8 +132,7 @@ template<typename T> [[nodiscard]] detail::AngleRadian<T> angle_of(const detail:
  * allows to use 'abs(angle_of_signed(...))' to get the shortest angle between quaternions with
  * higher precision than subtracting 2pi afterwards.
  */
-template<typename T>
-[[nodiscard]] detail::AngleRadian<T> angle_of_signed(const detail::Quaternion<T> &q)
+template<typename T> [[nodiscard]] AngleRadianBase<T> angle_of_signed(const QuaternionBase<T> &q)
 {
   BLI_assert(is_unit_scale(q));
   return T(2) * ((q.w >= T(0)) ? math::safe_acos(q.w) : -math::safe_acos(-q.w));
@@ -148,13 +145,13 @@ template<typename T>
  * See `angle_of` for more detail.
  */
 template<typename T>
-[[nodiscard]] detail::AngleRadian<T> angle_between(const detail::Quaternion<T> &a,
-                                                   const detail::Quaternion<T> &b)
+[[nodiscard]] AngleRadianBase<T> angle_between(const QuaternionBase<T> &a,
+                                               const QuaternionBase<T> &b)
 {
   return angle_of(rotation_between(a, b));
 }
 template<typename T>
-[[nodiscard]] detail::AngleRadian<T> angle_between(const VecBase<T, 3> &a, const VecBase<T, 3> &b)
+[[nodiscard]] AngleRadianBase<T> angle_between(const VecBase<T, 3> &a, const VecBase<T, 3> &b)
 {
   BLI_assert(is_unit_scale(a));
   BLI_assert(is_unit_scale(b));
@@ -178,8 +175,8 @@ template<typename T>
  * See `angle_of_signed` for more detail.
  */
 template<typename T>
-[[nodiscard]] detail::AngleRadian<T> angle_between_signed(const detail::Quaternion<T> &a,
-                                                          const detail::Quaternion<T> &b)
+[[nodiscard]] AngleRadianBase<T> angle_between_signed(const QuaternionBase<T> &a,
+                                                      const QuaternionBase<T> &b)
 {
   return angle_of_signed(rotation_between(a, b));
 }
@@ -191,27 +188,26 @@ template<typename T>
  * \{ */
 
 template<typename T, typename RotT>
-[[nodiscard]] detail::Quaternion<T> rotate(const detail::Quaternion<T> &a, const RotT &b)
+[[nodiscard]] QuaternionBase<T> rotate(const QuaternionBase<T> &a, const RotT &b)
 {
-  return a * detail::Quaternion<T>(b);
+  return a * QuaternionBase<T>(b);
 }
 
 template<typename T, typename RotT, typename AngleT>
-[[nodiscard]] detail::AxisAngle<T, AngleT> rotate(const detail::AxisAngle<T, AngleT> &a,
-                                                  const RotT &b)
+[[nodiscard]] AxisAngleBase<T, AngleT> rotate(const AxisAngleBase<T, AngleT> &a, const RotT &b)
 {
-  return detail::AxisAngle<T, AngleT>(detail::Quaternion<T>(a) * detail::Quaternion<T>(b));
+  return AxisAngleBase<T, AngleT>(QuaternionBase<T>(a) * QuaternionBase<T>(b));
 }
 
 template<typename T, typename RotT>
-[[nodiscard]] detail::EulerXYZ<T> rotate(const detail::EulerXYZ<T> &a, const RotT &b)
+[[nodiscard]] EulerXYZBase<T> rotate(const EulerXYZBase<T> &a, const RotT &b)
 {
   MatBase<T, 3, 3> tmp = from_rotation<MatBase<T, 3, 3>>(a) * from_rotation<MatBase<T, 3, 3>>(b);
   return to_euler(tmp);
 }
 
 template<typename T, typename RotT>
-[[nodiscard]] detail::Euler3<T> rotate(const detail::Euler3<T> &a, const RotT &b)
+[[nodiscard]] Euler3Base<T> rotate(const Euler3Base<T> &a, const RotT &b)
 {
   const MatBase<T, 3, 3> tmp = from_rotation<MatBase<T, 3, 3>>(a) *
                                from_rotation<MatBase<T, 3, 3>>(b);
@@ -219,17 +215,17 @@ template<typename T, typename RotT>
 }
 
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> rotation_between(const detail::Quaternion<T> &a,
-                                                     const detail::Quaternion<T> &b)
+[[nodiscard]] QuaternionBase<T> rotation_between(const QuaternionBase<T> &a,
+                                                 const QuaternionBase<T> &b)
 {
   return invert(a) * b;
 }
 
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_triangle(const VecBase<T, 3> &v1,
-                                                  const VecBase<T, 3> &v2,
-                                                  const VecBase<T, 3> &v3,
-                                                  const VecBase<T, 3> &normal)
+[[nodiscard]] QuaternionBase<T> from_triangle(const VecBase<T, 3> &v1,
+                                              const VecBase<T, 3> &v2,
+                                              const VecBase<T, 3> &v3,
+                                              const VecBase<T, 3> &normal)
 {
   /* Force to used an unused var to avoid the same function signature as the version without
    * `normal` argument. */
@@ -246,7 +242,7 @@ template<typename T>
 
   T angle = T(-0.5) * math::safe_acos(z_axis.z);
   T si = math::sin(angle);
-  detail::Quaternion<T> q1(math::cos(angle), nor.x * si, nor.y * si, T(0));
+  QuaternionBase<T> q1(math::cos(angle), nor.x * si, nor.y * si, T(0));
 
   /* Rotate back line v1-v2. */
   Vec3T line = transform_point(conjugate(q1), (v2 - v1));
@@ -254,23 +250,23 @@ template<typename T>
   line = normalize(Vec3T(line.x, line.y, T(0)));
 
   angle = T(0.5) * math::atan2(line.y, line.x);
-  detail::Quaternion<T> q2(math::cos(angle), 0.0, 0.0, math::sin(angle));
+  QuaternionBase<T> q2(math::cos(angle), 0.0, 0.0, math::sin(angle));
 
   return q1 * q2;
 }
 
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_triangle(const VecBase<T, 3> &v1,
-                                                  const VecBase<T, 3> &v2,
-                                                  const VecBase<T, 3> &v3)
+[[nodiscard]] QuaternionBase<T> from_triangle(const VecBase<T, 3> &v1,
+                                              const VecBase<T, 3> &v2,
+                                              const VecBase<T, 3> &v3)
 {
   return from_triangle(v1, v2, v3, normal_tri(v1, v2, v3));
 }
 
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_vector(const VecBase<T, 3> &vector,
-                                                const AxisSigned track_flag,
-                                                const Axis up_flag)
+[[nodiscard]] QuaternionBase<T> from_vector(const VecBase<T, 3> &vector,
+                                            const AxisSigned track_flag,
+                                            const Axis up_flag)
 {
   using Vec2T = VecBase<T, 2>;
   using Vec3T = VecBase<T, 3>;
@@ -279,7 +275,7 @@ template<typename T>
   const T vec_len = length(vector);
 
   if (UNLIKELY(vec_len == 0.0f)) {
-    return detail::Quaternion<T>::identity();
+    return QuaternionBase<T>::identity();
   }
 
   const Axis axis = track_flag.axis();
@@ -313,8 +309,8 @@ template<typename T>
    * Avoiding the need for safe_acos and deriving sin from cos. */
   const T rotation_angle = math::safe_acos(vec[axis.as_int()] / vec_len);
 
-  const detail::Quaternion<T> q1 = to_quaternion(
-      detail::AxisAngle<T, detail::AngleRadian<T>>(rotation_axis, rotation_angle));
+  const QuaternionBase<T> q1 = to_quaternion(
+      AxisAngleBase<T, AngleRadianBase<T>>(rotation_axis, rotation_angle));
 
   if (axis == up_flag) {
     /* Nothing else to do. */
@@ -341,27 +337,26 @@ template<typename T>
     projected = -projected;
   }
 
-  const detail::AngleCartesian<T> angle(projected.x, projected.y);
-  const detail::AngleCartesian<T> half_angle = angle / T(2);
+  const AngleCartesianBase<T> angle(projected.x, projected.y);
+  const AngleCartesianBase<T> half_angle = angle / T(2);
 
-  const detail::Quaternion<T> q2(Vec4T(half_angle.cos(), vec * (half_angle.sin() / vec_len)));
+  const QuaternionBase<T> q2(Vec4T(half_angle.cos(), vec * (half_angle.sin() / vec_len)));
 
   return q2 * q1;
 }
 
 template<typename T>
-[[nodiscard]] detail::Quaternion<T> from_tracking(AxisSigned forward_axis, Axis up_axis)
+[[nodiscard]] QuaternionBase<T> from_tracking(AxisSigned forward_axis, Axis up_axis)
 {
   BLI_assert(forward_axis.axis() != up_axis);
 
   /* Curve have Z forward, Y up, X left. */
-  return detail::Quaternion<T>(
+  return QuaternionBase<T>(
       rotation_between(from_orthonormal_axes(AxisSigned::Z_POS, AxisSigned::Y_POS),
                        from_orthonormal_axes(forward_axis, AxisSigned(up_axis))));
 }
 
-template<typename T>
-[[nodiscard]] MatBase<T, 3, 3> to_gimbal_axis(const detail::Euler3<T> &rotation)
+template<typename T> [[nodiscard]] MatBase<T, 3, 3> to_gimbal_axis(const Euler3Base<T> &rotation)
 {
   using Mat3T = MatBase<T, 3, 3>;
   using Vec3T = VecBase<T, 3>;
@@ -373,7 +368,7 @@ template<typename T>
   /* First axis is local. */
   result[i_index] = from_rotation<Mat3T>(rotation)[i_index];
   /* Second axis is local minus first rotation. */
-  detail::Euler3<T> tmp_rot = rotation;
+  Euler3Base<T> tmp_rot = rotation;
   tmp_rot.i() = T(0);
   result[j_index] = from_rotation<Mat3T>(tmp_rot)[j_index];
   /* Last axis is global. */
@@ -393,7 +388,7 @@ template<typename T>
  * Creates a quaternion from an axis triple.
  * This is faster and more precise than converting from another representation.
  */
-template<typename T> detail::Quaternion<T> to_quaternion(const CartesianBasis &rotation)
+template<typename T> QuaternionBase<T> to_quaternion(const CartesianBasis &rotation)
 {
   /**
    * There are only 6 * 4 = 24 possible valid orthonormal orientations.
@@ -406,53 +401,53 @@ template<typename T> detail::Quaternion<T> to_quaternion(const CartesianBasis &r
 
   switch (map(rotation.axes.x, rotation.axes.y, rotation.axes.z)) {
     default:
-      return detail::Quaternion<T>::identity();
+      return QuaternionBase<T>::identity();
     case map(AxisSigned::Z_POS, AxisSigned::X_POS, AxisSigned::Y_POS):
-      return detail::Quaternion<T>{T(0.5), T(-0.5), T(-0.5), T(-0.5)};
+      return QuaternionBase<T>{T(0.5), T(-0.5), T(-0.5), T(-0.5)};
     case map(AxisSigned::Y_NEG, AxisSigned::X_POS, AxisSigned::Z_POS):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(0), T(0), T(-M_SQRT1_2)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(0), T(0), T(-M_SQRT1_2)};
     case map(AxisSigned::Z_NEG, AxisSigned::X_POS, AxisSigned::Y_NEG):
-      return detail::Quaternion<T>{T(0.5), T(0.5), T(0.5), T(-0.5)};
+      return QuaternionBase<T>{T(0.5), T(0.5), T(0.5), T(-0.5)};
     case map(AxisSigned::Y_POS, AxisSigned::X_POS, AxisSigned::Z_NEG):
-      return detail::Quaternion<T>{T(0), T(M_SQRT1_2), T(M_SQRT1_2), T(0)};
+      return QuaternionBase<T>{T(0), T(M_SQRT1_2), T(M_SQRT1_2), T(0)};
     case map(AxisSigned::Z_NEG, AxisSigned::Y_POS, AxisSigned::X_POS):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(0), T(M_SQRT1_2), T(0)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(0), T(M_SQRT1_2), T(0)};
     case map(AxisSigned::Z_POS, AxisSigned::Y_POS, AxisSigned::X_NEG):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(0), T(-M_SQRT1_2), T(0)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(0), T(-M_SQRT1_2), T(0)};
     case map(AxisSigned::X_NEG, AxisSigned::Y_POS, AxisSigned::Z_NEG):
-      return detail::Quaternion<T>{T(0), T(0), T(1), T(0)};
+      return QuaternionBase<T>{T(0), T(0), T(1), T(0)};
     case map(AxisSigned::Y_POS, AxisSigned::Z_POS, AxisSigned::X_POS):
-      return detail::Quaternion<T>{T(0.5), T(0.5), T(0.5), T(0.5)};
+      return QuaternionBase<T>{T(0.5), T(0.5), T(0.5), T(0.5)};
     case map(AxisSigned::X_NEG, AxisSigned::Z_POS, AxisSigned::Y_POS):
-      return detail::Quaternion<T>{T(0), T(0), T(M_SQRT1_2), T(M_SQRT1_2)};
+      return QuaternionBase<T>{T(0), T(0), T(M_SQRT1_2), T(M_SQRT1_2)};
     case map(AxisSigned::Y_NEG, AxisSigned::Z_POS, AxisSigned::X_NEG):
-      return detail::Quaternion<T>{T(0.5), T(0.5), T(-0.5), T(-0.5)};
+      return QuaternionBase<T>{T(0.5), T(0.5), T(-0.5), T(-0.5)};
     case map(AxisSigned::X_POS, AxisSigned::Z_POS, AxisSigned::Y_NEG):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(M_SQRT1_2), T(0), T(0)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(M_SQRT1_2), T(0), T(0)};
     case map(AxisSigned::Z_NEG, AxisSigned::X_NEG, AxisSigned::Y_POS):
-      return detail::Quaternion<T>{T(0.5), T(-0.5), T(0.5), T(0.5)};
+      return QuaternionBase<T>{T(0.5), T(-0.5), T(0.5), T(0.5)};
     case map(AxisSigned::Y_POS, AxisSigned::X_NEG, AxisSigned::Z_POS):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(0), T(0), T(M_SQRT1_2)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(0), T(0), T(M_SQRT1_2)};
     case map(AxisSigned::Z_POS, AxisSigned::X_NEG, AxisSigned::Y_NEG):
-      return detail::Quaternion<T>{T(0.5), T(0.5), T(-0.5), T(0.5)};
+      return QuaternionBase<T>{T(0.5), T(0.5), T(-0.5), T(0.5)};
     case map(AxisSigned::Y_NEG, AxisSigned::X_NEG, AxisSigned::Z_NEG):
-      return detail::Quaternion<T>{T(0), T(-M_SQRT1_2), T(M_SQRT1_2), T(0)};
+      return QuaternionBase<T>{T(0), T(-M_SQRT1_2), T(M_SQRT1_2), T(0)};
     case map(AxisSigned::Z_POS, AxisSigned::Y_NEG, AxisSigned::X_POS):
-      return detail::Quaternion<T>{T(0), T(M_SQRT1_2), T(0), T(M_SQRT1_2)};
+      return QuaternionBase<T>{T(0), T(M_SQRT1_2), T(0), T(M_SQRT1_2)};
     case map(AxisSigned::X_NEG, AxisSigned::Y_NEG, AxisSigned::Z_POS):
-      return detail::Quaternion<T>{T(0), T(0), T(0), T(1)};
+      return QuaternionBase<T>{T(0), T(0), T(0), T(1)};
     case map(AxisSigned::Z_NEG, AxisSigned::Y_NEG, AxisSigned::X_NEG):
-      return detail::Quaternion<T>{T(0), T(-M_SQRT1_2), T(0), T(M_SQRT1_2)};
+      return QuaternionBase<T>{T(0), T(-M_SQRT1_2), T(0), T(M_SQRT1_2)};
     case map(AxisSigned::X_POS, AxisSigned::Y_NEG, AxisSigned::Z_NEG):
-      return detail::Quaternion<T>{T(0), T(1), T(0), T(0)};
+      return QuaternionBase<T>{T(0), T(1), T(0), T(0)};
     case map(AxisSigned::Y_NEG, AxisSigned::Z_NEG, AxisSigned::X_POS):
-      return detail::Quaternion<T>{T(0.5), T(-0.5), T(0.5), T(-0.5)};
+      return QuaternionBase<T>{T(0.5), T(-0.5), T(0.5), T(-0.5)};
     case map(AxisSigned::X_POS, AxisSigned::Z_NEG, AxisSigned::Y_POS):
-      return detail::Quaternion<T>{T(M_SQRT1_2), T(-M_SQRT1_2), T(0), T(0)};
+      return QuaternionBase<T>{T(M_SQRT1_2), T(-M_SQRT1_2), T(0), T(0)};
     case map(AxisSigned::Y_POS, AxisSigned::Z_NEG, AxisSigned::X_NEG):
-      return detail::Quaternion<T>{T(0.5), T(-0.5), T(-0.5), T(0.5)};
+      return QuaternionBase<T>{T(0.5), T(-0.5), T(-0.5), T(0.5)};
     case map(AxisSigned::X_NEG, AxisSigned::Z_NEG, AxisSigned::Y_NEG):
-      return detail::Quaternion<T>{T(0), T(0), T(-M_SQRT1_2), T(M_SQRT1_2)};
+      return QuaternionBase<T>{T(0), T(0), T(-M_SQRT1_2), T(M_SQRT1_2)};
   }
 }
 

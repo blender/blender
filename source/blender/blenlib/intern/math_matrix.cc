@@ -339,9 +339,9 @@ MatBase<T, 3, 3> interpolate(const MatBase<T, 3, 3> &A, const MatBase<T, 3, 3> &
     P_B = -P_B;
   }
 
-  detail::Quaternion<T> quat_A = math::to_quaternion(normalize(U_A));
-  detail::Quaternion<T> quat_B = math::to_quaternion(normalize(U_B));
-  detail::Quaternion<T> quat = math::interpolate(quat_A, quat_B, t);
+  QuaternionBase<T> quat_A = math::to_quaternion(normalize(U_A));
+  QuaternionBase<T> quat_B = math::to_quaternion(normalize(U_B));
+  QuaternionBase<T> quat = math::interpolate(quat_A, quat_B, t);
   Mat3T U = from_rotation<Mat3T>(quat);
 
   Mat3T P = interpolate_linear(P_A, P_B, t);
@@ -372,7 +372,7 @@ template double4x4 interpolate(const double4x4 &a, const double4x4 &b, double t)
 template<typename T>
 MatBase<T, 3, 3> interpolate_fast(const MatBase<T, 3, 3> &a, const MatBase<T, 3, 3> &b, T t)
 {
-  using QuaternionT = detail::Quaternion<T>;
+  using QuaternionT = QuaternionBase<T>;
   using Vec3T = typename MatBase<T, 3, 3>::vec3_type;
 
   Vec3T a_scale, b_scale;
@@ -391,7 +391,7 @@ template double3x3 interpolate_fast(const double3x3 &a, const double3x3 &b, doub
 template<typename T>
 MatBase<T, 4, 4> interpolate_fast(const MatBase<T, 4, 4> &a, const MatBase<T, 4, 4> &b, T t)
 {
-  using QuaternionT = detail::Quaternion<T>;
+  using QuaternionT = QuaternionBase<T>;
   using Vec3T = typename MatBase<T, 3, 3>::vec3_type;
 
   Vec3T a_loc, b_loc;
@@ -447,30 +447,30 @@ Quaternion to_quaternion_legacy(const float3x3 &mat)
 namespace detail {
 
 template void normalized_to_eul2(const float3x3 &mat,
-                                 detail::Euler3<float> &eul1,
-                                 detail::Euler3<float> &eul2);
+                                 Euler3Base<float> &eul1,
+                                 Euler3Base<float> &eul2);
 template void normalized_to_eul2(const float3x3 &mat,
-                                 detail::EulerXYZ<float> &eul1,
-                                 detail::EulerXYZ<float> &eul2);
+                                 EulerXYZBase<float> &eul1,
+                                 EulerXYZBase<float> &eul2);
 template void normalized_to_eul2(const double3x3 &mat,
-                                 detail::EulerXYZ<double> &eul1,
-                                 detail::EulerXYZ<double> &eul2);
+                                 EulerXYZBase<double> &eul1,
+                                 EulerXYZBase<double> &eul2);
 
-template detail::Quaternion<float> normalized_to_quat_with_checks(const float3x3 &mat);
-template detail::Quaternion<double> normalized_to_quat_with_checks(const double3x3 &mat);
+template QuaternionBase<float> normalized_to_quat_with_checks(const float3x3 &mat);
+template QuaternionBase<double> normalized_to_quat_with_checks(const double3x3 &mat);
 
-template MatBase<float, 2, 2> from_rotation(const detail::AngleRadian<float> &rotation);
-template MatBase<float, 3, 3> from_rotation(const detail::AngleRadian<float> &rotation);
-template MatBase<float, 3, 3> from_rotation(const detail::EulerXYZ<float> &rotation);
-template MatBase<float, 4, 4> from_rotation(const detail::EulerXYZ<float> &rotation);
-template MatBase<float, 3, 3> from_rotation(const detail::Euler3<float> &rotation);
-template MatBase<float, 4, 4> from_rotation(const detail::Euler3<float> &rotation);
-template MatBase<float, 3, 3> from_rotation(const detail::Quaternion<float> &rotation);
-template MatBase<float, 4, 4> from_rotation(const detail::Quaternion<float> &rotation);
-template MatBase<float, 3, 3> from_rotation(const math::AxisAngle &rotation);
-template MatBase<float, 4, 4> from_rotation(const math::AxisAngle &rotation);
-template MatBase<float, 3, 3> from_rotation(const math::AxisAngleCartesian &rotation);
-template MatBase<float, 4, 4> from_rotation(const math::AxisAngleCartesian &rotation);
+template MatBase<float, 2, 2> from_rotation(const AngleRadian &rotation);
+template MatBase<float, 3, 3> from_rotation(const AngleRadian &rotation);
+template MatBase<float, 3, 3> from_rotation(const EulerXYZ &rotation);
+template MatBase<float, 4, 4> from_rotation(const EulerXYZ &rotation);
+template MatBase<float, 3, 3> from_rotation(const Euler3 &rotation);
+template MatBase<float, 4, 4> from_rotation(const Euler3 &rotation);
+template MatBase<float, 3, 3> from_rotation(const Quaternion &rotation);
+template MatBase<float, 4, 4> from_rotation(const Quaternion &rotation);
+template MatBase<float, 3, 3> from_rotation(const AxisAngle &rotation);
+template MatBase<float, 4, 4> from_rotation(const AxisAngle &rotation);
+template MatBase<float, 3, 3> from_rotation(const AxisAngleCartesian &rotation);
+template MatBase<float, 4, 4> from_rotation(const AxisAngleCartesian &rotation);
 
 }  // namespace detail
 

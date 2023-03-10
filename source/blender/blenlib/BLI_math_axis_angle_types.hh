@@ -14,8 +14,8 @@
  * 2D operations and are thus faster.
  *
  * Interpolation isn't possible between two `blender::math::AxisAngle<T>`; they must be
- * converted to other rotation types for that. Converting to `blender::math::Quaternion<T>` is the
- * fastest and more correct option.
+ * converted to other rotation types for that. Converting to `blender::math::QuaternionBase<T>` is
+ * the fastest and more correct option.
  */
 
 #include "BLI_math_angle_types.hh"
@@ -25,9 +25,7 @@
 
 namespace blender::math {
 
-namespace detail {
-
-template<typename T, typename AngleT> struct AxisAngle {
+template<typename T, typename AngleT> struct AxisAngleBase {
   using vec3_type = VecBase<T, 3>;
 
  private:
@@ -36,29 +34,29 @@ template<typename T, typename AngleT> struct AxisAngle {
   AngleT angle_ = AngleT::identity();
 
  public:
-  AxisAngle() = default;
+  AxisAngleBase() = default;
 
   /**
    * Create a rotation from a basis axis and an angle.
    */
-  AxisAngle(const AxisSigned axis, const AngleT &angle);
+  AxisAngleBase(const AxisSigned axis, const AngleT &angle);
 
   /**
    * Create a rotation from an axis and an angle.
    * \note `axis` have to be normalized.
    */
-  AxisAngle(const vec3_type &axis, const AngleT &angle);
+  AxisAngleBase(const vec3_type &axis, const AngleT &angle);
 
   /**
    * Create a rotation from 2 normalized vectors.
    * \note `from` and `to` must be normalized.
    * \note Consider using `AxisAngleCartesian` for faster conversion to other rotation.
    */
-  AxisAngle(const vec3_type &from, const vec3_type &to);
+  AxisAngleBase(const vec3_type &from, const vec3_type &to);
 
   /** Static functions. */
 
-  static AxisAngle identity()
+  static AxisAngleBase identity()
   {
     return {};
   }
@@ -77,26 +75,24 @@ template<typename T, typename AngleT> struct AxisAngle {
 
   /** Operators. */
 
-  friend bool operator==(const AxisAngle &a, const AxisAngle &b)
+  friend bool operator==(const AxisAngleBase &a, const AxisAngleBase &b)
   {
     return (a.axis() == b.axis()) && (a.angle() == b.angle());
   }
 
-  friend bool operator!=(const AxisAngle &a, const AxisAngle &b)
+  friend bool operator!=(const AxisAngleBase &a, const AxisAngleBase &b)
   {
     return (a != b);
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const AxisAngle &rot)
+  friend std::ostream &operator<<(std::ostream &stream, const AxisAngleBase &rot)
   {
     return stream << "AxisAngle(axis=" << rot.axis() << ", angle=" << rot.angle() << ")";
   }
 };
 
-};  // namespace detail
-
-using AxisAngle = math::detail::AxisAngle<float, detail::AngleRadian<float>>;
-using AxisAngleCartesian = math::detail::AxisAngle<float, detail::AngleCartesian<float>>;
+using AxisAngle = AxisAngleBase<float, AngleRadianBase<float>>;
+using AxisAngleCartesian = AxisAngleBase<float, AngleCartesianBase<float>>;
 
 }  // namespace blender::math
 
