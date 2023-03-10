@@ -8781,7 +8781,7 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
                                       PropertyRNA **r_prop,
                                       int *r_index)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
 
   if (activebut && activebut->rnapoin.data) {
     *r_ptr = activebut->rnapoin;
@@ -8799,7 +8799,7 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
 
 void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
   if (activebut) {
     /* TODO(@ideasman42): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the
