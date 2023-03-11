@@ -156,8 +156,8 @@
  */
 #define USE_HASH_TABLE_KEY_CACHE
 #ifdef USE_HASH_TABLE_KEY_CACHE
-#  define HASH_TABLE_KEY_UNSET ((uint64_t)-1)
-#  define HASH_TABLE_KEY_FALLBACK ((uint64_t)-2)
+#  define HASH_TABLE_KEY_UNSET ((hash_key)-1)
+#  define HASH_TABLE_KEY_FALLBACK ((hash_key)-2)
 #endif
 
 /**
@@ -205,7 +205,7 @@
 /** \name Internal Structs
  * \{ */
 
-typedef uint64_t hash_key;
+typedef uint32_t hash_key;
 
 typedef struct BArrayInfo {
   size_t chunk_stride;
@@ -745,19 +745,19 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 #define HASH_INIT (5381)
 
-BLI_INLINE uint hash_data_single(const uchar p)
+BLI_INLINE hash_key hash_data_single(const uchar p)
 {
-  return ((HASH_INIT << 5) + HASH_INIT) + (uint)(*((signed char *)&p));
+  return ((HASH_INIT << 5) + HASH_INIT) + (hash_key)(*((signed char *)&p));
 }
 
 /* hash bytes, from BLI_ghashutil_strhash_n */
-static uint hash_data(const uchar *key, size_t n)
+static hash_key hash_data(const uchar *key, size_t n)
 {
   const signed char *p;
-  uint h = HASH_INIT;
+  hash_key h = HASH_INIT;
 
   for (p = (const signed char *)key; n--; p++) {
-    h = (uint)((h << 5) + h) + (uint)*p;
+    h = (hash_key)((h << 5) + h) + (hash_key)*p;
   }
 
   return h;
