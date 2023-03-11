@@ -268,8 +268,8 @@ typedef struct BChunkList {
   ListBase chunk_refs;
   /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
   uint chunk_refs_len;
-  /** Size of all chunks */
-  size_t total_size;
+  /** Size of all chunks (expanded). */
+  size_t total_expanded_size;
 
   /** Number of #BArrayState using this. */
   int users;
@@ -364,13 +364,13 @@ static bool bchunk_data_compare(const BChunk *chunk,
 /** \name Internal BChunkList API
  * \{ */
 
-static BChunkList *bchunk_list_new(BArrayMemory *bs_mem, size_t total_size)
+static BChunkList *bchunk_list_new(BArrayMemory *bs_mem, size_t total_expanded_size)
 {
   BChunkList *chunk_list = BLI_mempool_alloc(bs_mem->chunk_list);
 
   BLI_listbase_clear(&chunk_list->chunk_refs);
   chunk_list->chunk_refs_len = 0;
-  chunk_list->total_size = total_size;
+  chunk_list->total_expanded_size = total_expanded_size;
   chunk_list->users = 0;
   return chunk_list;
 }
@@ -1023,7 +1023,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
                                                const size_t data_len_original,
                                                const BChunkList *chunk_list_reference)
 {
-  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_size);
+  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_expanded_size);
 
   /* -----------------------------------------------------------------------
    * Fast-Path for exact match
@@ -1056,7 +1056,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
     }
 
     if (full_match) {
-      if (chunk_list_reference->total_size == data_len_original) {
+      if (chunk_list_reference->total_expanded_size == data_len_original) {
         return (BChunkList *)chunk_list_reference;
       }
     }
@@ -1146,9 +1146,9 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   bool use_aligned = false;
 
 #ifdef USE_ALIGN_CHUNKS_TEST
-  if (chunk_list->total_size == chunk_list_reference->total_size) {
+  if (chunk_list->total_expanded_size == chunk_list_reference->total_expanded_size) {
     /* if we're already a quarter aligned */
-    if (data_len - i_prev <= chunk_list->total_size / 4) {
+    if (data_len - i_prev <= chunk_list->total_expanded_size / 4) {
       use_aligned = true;
     }
     else {
@@ -1230,7 +1230,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 #endif
 
       const BChunkRef *cref;
-      size_t chunk_list_reference_bytes_remaining = chunk_list_reference->total_size -
+      size_t chunk_list_reference_bytes_remaining = chunk_list_reference->total_expanded_size -
                                                     chunk_list_reference_skip_bytes;
 
       if (cref_match_first) {
@@ -1382,7 +1382,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
   /* check we're the correct size and that we didn't accidentally modify the reference */
   ASSERT_CHUNKLIST_SIZE(chunk_list, data_len_original);
-  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_size);
+  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_expanded_size);
 
   ASSERT_CHUNKLIST_DATA(chunk_list, data);
 
@@ -1481,7 +1481,7 @@ size_t BLI_array_store_calc_size_expanded_get(const BArrayStore *bs)
 {
   size_t size_accum = 0;
   LISTBASE_FOREACH (const BArrayState *, state, &bs->states) {
-    size_accum += state->chunk_list->total_size;
+    size_accum += state->chunk_list->total_expanded_size;
   }
   return size_accum;
 }
@@ -1567,7 +1567,7 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state)
 
 size_t BLI_array_store_state_size_get(BArrayState *state)
 {
-  return state->chunk_list->total_size;
+  return state->chunk_list->total_expanded_size;
 }
 
 void BLI_array_store_state_data_get(BArrayState *state, void *data)
@@ -1577,7 +1577,7 @@ void BLI_array_store_state_data_get(BArrayState *state, void *data)
   LISTBASE_FOREACH (BChunkRef *, cref, &state->chunk_list->chunk_refs) {
     data_test_len += cref->link->data_len;
   }
-  BLI_assert(data_test_len == state->chunk_list->total_size);
+  BLI_assert(data_test_len == state->chunk_list->total_expanded_size);
 #endif
 
   uchar *data_step = (uchar *)data;
@@ -1590,9 +1590,9 @@ void BLI_array_store_state_data_get(BArrayState *state, void *data)
 
 void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len)
 {
-  void *data = MEM_mallocN(state->chunk_list->total_size, __func__);
+  void *data = MEM_mallocN(state->chunk_list->total_expanded_size, __func__);
   BLI_array_store_state_data_get(state, data);
-  *r_data_len = state->chunk_list->total_size;
+  *r_data_len = state->chunk_list->total_expanded_size;
   return data;
 }
 
@@ -1605,11 +1605,11 @@ void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_le
 /* only for test validation */
 static size_t bchunk_list_size(const BChunkList *chunk_list)
 {
-  size_t total_size = 0;
+  size_t total_expanded_size = 0;
   LISTBASE_FOREACH (BChunkRef *, cref, &chunk_list->chunk_refs) {
-    total_size += cref->link->data_len;
+    total_expanded_size += cref->link->data_len;
   }
-  return total_size;
+  return total_expanded_size;
 }
 
 bool BLI_array_store_is_valid(BArrayStore *bs)
@@ -1621,7 +1621,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 
   LISTBASE_FOREACH (BArrayState *, state, &bs->states) {
     BChunkList *chunk_list = state->chunk_list;
-    if (!(bchunk_list_size(chunk_list) == chunk_list->total_size)) {
+    if (!(bchunk_list_size(chunk_list) == chunk_list->total_expanded_size)) {
       return false;
     }
 
@@ -1631,7 +1631,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 
 #ifdef USE_MERGE_CHUNKS
     /* ensure we merge all chunks that could be merged */
-    if (chunk_list->total_size > bs->info.chunk_byte_size_min) {
+    if (chunk_list->total_expanded_size > bs->info.chunk_byte_size_min) {
       LISTBASE_FOREACH (BChunkRef *, cref, &chunk_list->chunk_refs) {
         if (cref->link->data_len < bs->info.chunk_byte_size_min) {
           return false;
