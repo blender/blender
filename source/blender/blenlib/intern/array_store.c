@@ -105,17 +105,19 @@
  * support disabling some parts of this.
  * \{ */
 
-/* Scan first chunks (happy path when beginning of the array matches).
+/**
+ * Scan first chunks (happy path when beginning of the array matches).
  * When the array is a perfect match, we can re-use the entire list.
  *
  * Note that disabling makes some tests fail that check for output-size.
  */
 #define USE_FASTPATH_CHUNKS_FIRST
 
-/* Scan last chunks (happy path when end of the array matches).
+/**
+ * Scan last chunks (happy path when end of the array matches).
  * When the end of the array matches, we can quickly add these chunks.
  * note that we will add contiguous matching chunks
- * so this isn't as useful as USE_FASTPATH_CHUNKS_FIRST,
+ * so this isn't as useful as #USE_FASTPATH_CHUNKS_FIRST,
  * however it avoids adding matching chunks into the lookup table,
  * so creating the lookup table won't be as expensive.
  */
@@ -123,14 +125,16 @@
 #  define USE_FASTPATH_CHUNKS_LAST
 #endif
 
-/* For arrays of matching length, test that *enough* of the chunks are aligned,
+/**
+ * For arrays of matching length, test that *enough* of the chunks are aligned,
  * and simply step over both arrays, using matching chunks.
  * This avoids overhead of using a lookup table for cases
  * when we can assume they're mostly aligned.
  */
 #define USE_ALIGN_CHUNKS_TEST
 
-/* Accumulate hashes from right to left so we can create a hash for the chunk-start.
+/**
+ * Accumulate hashes from right to left so we can create a hash for the chunk-start.
  * This serves to increase uniqueness and will help when there is many values which are the same.
  */
 #define USE_HASH_TABLE_ACCUMULATE
@@ -147,7 +151,8 @@
 #  define BCHUNK_HASH_LEN 4
 #endif
 
-/* Calculate the key once and reuse it
+/**
+ * Calculate the key once and reuse it
  */
 #define USE_HASH_TABLE_KEY_CACHE
 #ifdef USE_HASH_TABLE_KEY_CACHE
@@ -155,11 +160,13 @@
 #  define HASH_TABLE_KEY_FALLBACK ((uint64_t)-2)
 #endif
 
-/* How much larger the table is then the total number of chunks.
+/**
+ * How much larger the table is then the total number of chunks.
  */
 #define BCHUNK_HASH_TABLE_MUL 3
 
-/* Merge too small/large chunks:
+/**
+ * Merge too small/large chunks:
  *
  * Using this means chunks below a threshold will be merged together.
  * Even though short term this uses more memory,
@@ -172,19 +179,20 @@
 #define USE_MERGE_CHUNKS
 
 #ifdef USE_MERGE_CHUNKS
-/* Merge chunks smaller then: (chunk_size / BCHUNK_MIN_SIZE_DIV)
- */
+/** Merge chunks smaller then: (#BArrayInfo::chunk_byte_size / #BCHUNK_SIZE_MIN_DIV). */
 #  define BCHUNK_SIZE_MIN_DIV 8
 
-/* Disallow chunks bigger than the regular chunk size scaled by this value
- * NOTE: must be at least 2!
+/**
+ * Disallow chunks bigger than the regular chunk size scaled by this value.
+ *
+ * \note must be at least 2!
  * however, this code runs won't run in tests unless it's ~1.1 ugh.
  * so lower only to check splitting works.
  */
 #  define BCHUNK_SIZE_MAX_MUL 2
 #endif /* USE_MERGE_CHUNKS */
 
-/* slow (keep disabled), but handy for debugging */
+/** Slow (keep disabled), but handy for debugging */
 // #define USE_VALIDATE_LIST_SIZE
 
 // #define USE_VALIDATE_LIST_DATA_PARTIAL
@@ -251,20 +259,23 @@ struct BArrayStore {
 struct BArrayState {
   /** linked list in #BArrayStore.states */
   struct BArrayState *next, *prev;
-
-  struct BChunkList *chunk_list; /* BChunkList's */
+  /** Shared chunk list, this reference must hold a #BChunkList::users. */
+  struct BChunkList *chunk_list;
 };
 
 typedef struct BChunkList {
-  ListBase chunk_refs; /* BChunkRef's */
-  uint chunk_refs_len; /* BLI_listbase_count(chunks), store for reuse. */
-  size_t total_size;   /* size of all chunks */
+  /** List of #BChunkRef's */
+  ListBase chunk_refs;
+  /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
+  uint chunk_refs_len;
+  /** Size of all chunks */
+  size_t total_size;
 
-  /** number of #BArrayState using this. */
+  /** Number of #BArrayState using this. */
   int users;
 } BChunkList;
 
-/* a chunk of an array */
+/** A chunk of memory in an array (unit of de-duplication). */
 typedef struct BChunk {
   const uchar *data;
   size_t data_len;
