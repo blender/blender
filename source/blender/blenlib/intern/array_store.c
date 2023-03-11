@@ -142,13 +142,30 @@
 #ifdef USE_HASH_TABLE_ACCUMULATE
 /* Number of times to propagate hashes back.
  * Effectively a 'triangle-number'.
- * so 4 -> 7, 5 -> 10, 6 -> 15... etc.
+ * so 3 -> 7, 4 -> 11, 5 -> 16, 6 -> 22, 7 -> 29, ... etc.
+ *
+ * \note additional steps are expensive, so avoid high values unless necessary
+ * (with low strides, between 1-4) where a low value would cause the hashes to
+ * be un-evenly distributed.
  */
-#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS 4
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_DEFAULT 3
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_32BITS 4
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_16BITS 5
+/**
+ * Singe bytes (or boolean) arrays need a higher number of steps
+ * because the resulting values are not unique enough to result in evenly distributed values.
+ * Use more accumulation when the the size of the structs is small, see: #105046.
+ *
+ * With 6 -> 22, one byte each - means an array of booleans can be combine into 22 bits
+ * representing 4,194,303 different combinations.
+ */
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_8BITS 6
 #else
-/* How many items to hash (multiplied by stride)
+/**
+ * How many items to hash (multiplied by stride).
+ * The more values, the greater the chance this block has a unique hash.
  */
-#  define BCHUNK_HASH_LEN 4
+#  define BCHUNK_HASH_LEN 16
 #endif
 
 /**
@@ -216,7 +233,10 @@ typedef struct BArrayInfo {
   /* min/max limits (inclusive) */
   size_t chunk_byte_size_min;
   size_t chunk_byte_size_max;
-
+  /**
+   * The read-ahead value should never exceed `chunk_byte_size`,
+   * otherwise the hash would be based on values in the next chunk.
+   */
   size_t accum_read_ahead_bytes;
 #ifdef USE_HASH_TABLE_ACCUMULATE
   size_t accum_steps;
@@ -943,9 +963,9 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
 static hash_key key_from_chunk_ref(const BArrayInfo *info, const BChunkRef *cref)
 {
-  const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride;
   hash_key key;
   BChunk *chunk = cref->link;
+  const size_t data_hash_len = MIN2(chunk->data_len, BCHUNK_HASH_LEN * info->chunk_stride);
 
 #  ifdef USE_HASH_TABLE_KEY_CACHE
   key = chunk->key;
@@ -1398,6 +1418,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
 BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 {
+  BLI_assert(stride > 0 && chunk_count > 0);
+
   BArrayStore *bs = MEM_callocN(sizeof(BArrayStore), __func__);
 
   bs->info.chunk_stride = stride;
@@ -1410,14 +1432,32 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 #endif
 
 #ifdef USE_HASH_TABLE_ACCUMULATE
-  bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS - 1;
-  /* Triangle number, identifying now much read-ahead we need:
-   * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
-  bs->info.accum_read_ahead_len =
-      (uint)(((bs->info.accum_steps * (bs->info.accum_steps + 1)) / 2) + 1);
+  /* One is always subtracted from this `accum_steps`, this is intentional
+   * as it results in reading ahead the expected amount. */
+  if (stride <= sizeof(int8_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_8BITS + 1;
+  }
+  else if (stride <= sizeof(int16_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_16BITS + 1;
+  }
+  else if (stride <= sizeof(int32_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_32BITS + 1;
+  }
+  else {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_DEFAULT + 1;
+  }
+
+  do {
+    bs->info.accum_steps -= 1;
+    /* Triangle number, identifying now much read-ahead we need:
+     * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
+    bs->info.accum_read_ahead_len = ((bs->info.accum_steps * (bs->info.accum_steps + 1)) / 2) + 1;
+    /* Only small chunk counts are likely to exceed the read-ahead length. */
+  } while (UNLIKELY(chunk_count < bs->info.accum_read_ahead_len));
+
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
-  bs->info.accum_read_ahead_bytes = BCHUNK_HASH_LEN * stride;
+  bs->info.accum_read_ahead_bytes = MIN2((size_t)BCHUNK_HASH_LEN, chunk_count) * stride;
 #endif
 
   bs->memory.chunk_list = BLI_mempool_create(sizeof(BChunkList), 0, 512, BLI_MEMPOOL_NOP);
@@ -1425,6 +1465,8 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
   /* allow iteration to simplify freeing, otherwise its not needed
    * (we could loop over all states as an alternative). */
   bs->memory.chunk = BLI_mempool_create(sizeof(BChunk), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+
+  BLI_assert(bs->info.accum_read_ahead_bytes <= bs->info.chunk_byte_size);
 
   return bs;
 }
