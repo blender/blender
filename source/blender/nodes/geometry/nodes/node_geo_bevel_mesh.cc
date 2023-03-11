@@ -391,7 +391,6 @@ int MeshDelta::new_edge(int v1, int v2, int rep)
   MEdge medge;
   medge.v1 = v1;
   medge.v2 = v2;
-  medge.flag = 0;
   new_edges_.append(medge);
   new_edge_rep_.append(rep);
   new_edge_map_.add_new(CanonVertPair(v1, v2), e);
@@ -777,7 +776,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
   Span<MPoly> mesh_polys = mesh_.polys();
 
   Mesh *mesh_out = BKE_mesh_new_nomain_from_template(
-      &mesh_, out_totvert, out_totedge, 0, out_totloop, out_totpoly);
+      &mesh_, out_totvert, out_totedge, out_totloop, out_totpoly);
 
   MeshComponent out_component;
   out_component.replace(mesh_out, GeometryOwnershipType::Editable);
