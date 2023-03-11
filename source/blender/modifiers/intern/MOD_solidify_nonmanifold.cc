@@ -2320,7 +2320,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               dst_material_index[poly_index] = most_mat_nr +
                                                (g->is_orig_closed || !do_rim ? 0 : mat_ofs_rim);
               CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
-              polys[poly_index].flag = orig_polys[most_mat_nr_face].flag;
               poly_index++;
 
               for (uint k = 0; g2->valid && k < j; g2++) {
@@ -2395,7 +2394,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         dst_material_index[poly_index] =
             (src_material_index ? src_material_index[orig_face_index] : 0) + mat_ofs_rim;
         CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
-        polys[poly_index].flag = face->flag;
         poly_index++;
 
         int loop1 = -1;
@@ -2588,7 +2586,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                                                  0) +
                                            (fr->reversed != do_flip ? mat_ofs : 0);
           CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
-          polys[poly_index].flag = fr->face->flag;
           if (fr->reversed != do_flip) {
             for (int l = int(k) - 1; l >= 0; l--) {
               if (shell_defgrp_index != -1) {

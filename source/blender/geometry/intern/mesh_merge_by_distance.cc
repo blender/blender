@@ -805,8 +805,6 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
     const int loopstart = poly.loopstart;
     const int totloop = poly.totloop;
 
-    int vert_ctx_len = 0;
-
     int prev_wloop_len = wloop_len;
     for (const int i_loop : mloop.index_range().slice(loopstart, totloop)) {
       int v = mloop[i_loop].v;
@@ -815,9 +813,6 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
       int e_dest = edge_dest_map[e];
       bool is_vert_ctx = v_dest != OUT_OF_CONTEXT;
       bool is_edge_ctx = e_dest != OUT_OF_CONTEXT;
-      if (is_vert_ctx) {
-        vert_ctx_len++;
-      }
       if (is_vert_ctx || is_edge_ctx) {
         WeldLoop wl{};
         wl.vert = is_vert_ctx ? v_dest : v;
@@ -845,10 +840,12 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> polys,
       wpoly.append(wp);
 
       poly_map[i] = wpoly_len++;
-      if (totloop > 5 && vert_ctx_len > 1) {
-        int max_new = (totloop / 3) - 1;
-        vert_ctx_len /= 2;
-        maybe_new_poly += MIN2(max_new, vert_ctx_len);
+      if (totloop > 5 && loops_len > 1) {
+        /* We could be smarter here and actually count how many new polygons will be created.
+         * But counting this can be inefficient as it depends on the number of non-consecutive
+         * self polygon merges. For now just estimate a maximum value. */
+        int max_new = std::min((totloop / 3), loops_len) - 1;
+        maybe_new_poly += max_new;
         CLAMP_MIN(max_ctx_poly_len, totloop);
       }
     }
@@ -1115,8 +1112,11 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 {
   /* Fills the `r_buffer` buffer with the intersection of the arrays in `buffer_a` and `buffer_b`.
    * `buffer_a` and `buffer_b` have a sequence of sorted, non-repeating indices representing
-   * polygons.  */
-  const auto intersect = [](const Span<int> buffer_a, const Span<int> buffer_b, int *r_buffer) {
+   * polygons. */
+  const auto intersect = [](const Span<int> buffer_a,
+                            const Span<int> buffer_b,
+                            const BitVector<> &is_double,
+                            int *r_buffer) {
     int result_num = 0;
     int index_a = 0, index_b = 0;
     while (index_a < buffer_a.size() && index_b < buffer_b.size()) {
@@ -1130,7 +1130,12 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
       }
       else {
         /* Equality. */
-        r_buffer[result_num++] = value_a;
+
+        /* Do not add duplicates.
+         * As they are already in the original array, this can cause buffer overflow. */
+        if (!is_double[value_a]) {
+          r_buffer[result_num++] = value_a;
+        }
         index_a++;
         index_b++;
       }
@@ -1217,6 +1222,7 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 
     int *isect_result = doubles_buffer.data() + doubles_buffer_num + 1;
 
+    /* `polys_a` are the polygons connected to the first corner. So skip the first corner. */
     for (int corner_index : IndexRange(corner_first + 1, corner_num - 1)) {
       elem_index = corners[corner_index];
       link_offs = linked_polys_offset[elem_index];
@@ -1230,8 +1236,10 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
         polys_b_num--;
       } while (poly_to_test != poly_index);
 
-      doubles_num = intersect(
-          Span<int>{polys_a, polys_a_num}, Span<int>{polys_b, polys_b_num}, isect_result);
+      doubles_num = intersect(Span<int>{polys_a, polys_a_num},
+                              Span<int>{polys_b, polys_b_num},
+                              is_double,
+                              isect_result);
 
       if (doubles_num == 0) {
         break;
@@ -1249,6 +1257,12 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
       }
       doubles_buffer_num += doubles_num;
       doubles_offsets.append(++doubles_buffer_num);
+
+      if ((doubles_buffer_num + 1) == poly_num) {
+        /* The last slot is the remaining unduplicated polygon.
+         * Avoid checking intersection as there are no more slots left. */
+        break;
+      }
     }
   }
 

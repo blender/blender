@@ -44,7 +44,6 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -673,7 +672,6 @@ void WM_OT_collada_export(wmOperatorType *ot)
       "Store Bindpose information in custom bone properties for later use during Collada export");
 }
 
-/* function used for WM_OT_save_mainfile too */
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
   char filename[FILE_MAX];

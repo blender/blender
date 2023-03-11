@@ -181,10 +181,10 @@ void main()
   /* Enlarge edge for flag display. */
   half_size += (geometry_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
 
-#ifdef USE_SMOOTH_WIRE
-  /* Add 1 px for AA */
-  half_size += 0.5;
-#endif
+  if (do_smooth_wire) {
+    /* Add 1 px for AA */
+    half_size += 0.5;
+  }
 
   vec3 edge_ofs = vec3(half_size * sizeViewportInv, 0.0);
 

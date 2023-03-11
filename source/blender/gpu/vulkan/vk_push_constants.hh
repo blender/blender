@@ -45,12 +45,12 @@ class VKContext;
  */
 class VKPushConstants : NonCopyable {
  public:
-  /** Different methods to store push constants.*/
+  /** Different methods to store push constants. */
   enum class StorageType {
-    /** Push constants aren't in use.*/
+    /** Push constants aren't in use. */
     NONE,
 
-    /** Store push constants as regular vulkan push constants.*/
+    /** Store push constants as regular vulkan push constants. */
     PUSH_CONSTANTS,
 
     /**
@@ -67,7 +67,7 @@ class VKPushConstants : NonCopyable {
     static constexpr StorageType STORAGE_TYPE_FALLBACK = StorageType::UNIFORM_BUFFER;
 
     struct PushConstant {
-      /* Used as lookup based on ShaderInput.*/
+      /* Used as lookup based on ShaderInput. */
       int32_t location;
 
       /** Offset in the push constant data (in bytes). */
@@ -213,7 +213,7 @@ class VKPushConstants : NonCopyable {
     }
 
     /* Store elements in uniform buffer as array. In Std140 arrays have an element stride of 16
-     * bytes.*/
+     * bytes. */
     BLI_assert(sizeof(T) == 4);
     const T *src = input_data;
     for (const int i : IndexRange(array_size)) {

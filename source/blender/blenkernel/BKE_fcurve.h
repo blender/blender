@@ -366,24 +366,25 @@ int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
                                     int fcurve_result_len);
 
 /**
- * Calculate the extents of F-Curve's keyframes.
+ * Calculate the x range of the given F-Curve's data.
+ * \return true if a range has been found.
  */
-bool BKE_fcurve_calc_range(
-    const struct FCurve *fcu, float *min, float *max, bool do_sel_only, bool do_min_length);
+bool BKE_fcurve_calc_range(const struct FCurve *fcu,
+                           float *r_min,
+                           float *r_max,
+                           bool selected_keys_only);
 
 /**
- * Calculate the extents of F-Curve's data.
- * \param range Only calculate the bounds of the FCurve in the given range.
+ * Calculate the x and y extents of F-Curve's data.
+ * \param frame_range Only calculate the bounds of the FCurve in the given range.
  * Does the full range if NULL.
+ * \return true if the bounds have been found.
  */
 bool BKE_fcurve_calc_bounds(const struct FCurve *fcu,
-                            float *xmin,
-                            float *xmax,
-                            float *ymin,
-                            float *ymax,
-                            bool do_sel_only,
+                            bool selected_keys_only,
                             bool include_handles,
-                            const float range[2]);
+                            const float frame_range[2],
+                            struct rctf *r_bounds);
 
 /**
  * Return an array of keyed frames, rounded to `interval`.

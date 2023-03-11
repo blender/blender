@@ -617,6 +617,12 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
   MaterialIdPrimitiveArrayMap mat_prim_map;
 
   int *material_indices = BKE_mesh_material_indices_for_write(me);
+  bool *sharp_faces = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(&me->pdata, CD_PROP_BOOL, "sharp_face", me->totpoly));
+  if (!sharp_faces) {
+    sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
+        &me->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, me->totpoly, "sharp_face"));
+  }
 
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();
   COLLADAFW::MeshVertexData &nor = collada_mesh->getNormals();
@@ -659,9 +665,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           if (mp_has_normals) { /* vertex normals, same implementation as for the triangles */
             /* The same for vertices normals. */
             uint vertex_normal_indices[3] = {first_normal, normal_indices[1], normal_indices[2]};
-            if (!is_flat_face(vertex_normal_indices, nor, 3)) {
-              polys[poly_index].flag |= ME_SMOOTH;
-            }
+            sharp_faces[poly_index] = is_flat_face(vertex_normal_indices, nor, 3);
             normal_indices++;
           }
 
@@ -729,9 +733,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         if (mp_has_normals) {
           /* If it turns out that we have complete custom normals for each MPoly
            * and we want to use custom normals, this will be overridden. */
-          if (!is_flat_face(normal_indices, nor, vcount)) {
-            polys[poly_index].flag |= ME_SMOOTH;
-          }
+          sharp_faces[poly_index] = is_flat_face(normal_indices, nor, vcount);
 
           if (use_custom_normals) {
             /* Store the custom normals for later application. */

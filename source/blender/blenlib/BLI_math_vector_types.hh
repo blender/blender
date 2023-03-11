@@ -645,6 +645,7 @@ template<typename T> struct AssertUnitEpsilon {
 
 }  // namespace math
 
+using char2 = blender::VecBase<int8_t, 2>;
 using char3 = blender::VecBase<int8_t, 3>;
 
 using uchar3 = blender::VecBase<uint8_t, 3>;

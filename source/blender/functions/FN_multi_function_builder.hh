@@ -125,7 +125,7 @@ namespace detail {
  */
 template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, typename ElementFn>
 /* Perform additional optimizations on this loop because it is a very hot loop. For example, the
- * math node in geometry nodes is processed here.  */
+ * math node in geometry nodes is processed here. */
 #if (defined(__GNUC__) && !defined(__clang__))
 [[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
 #endif

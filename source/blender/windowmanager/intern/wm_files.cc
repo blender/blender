@@ -591,9 +591,9 @@ void WM_file_autoexec_init(const char *filepath)
   }
 
   if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
-    char path[FILE_MAX];
-    BLI_split_dir_part(filepath, path, sizeof(path));
-    if (BKE_autoexec_match(path)) {
+    char dirpath[FILE_MAX];
+    BLI_split_dir_part(filepath, dirpath, sizeof(dirpath));
+    if (BKE_autoexec_match(dirpath)) {
       G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
     }
   }
@@ -632,10 +632,9 @@ void wm_file_read_report(bContext *C, Main *bmain)
  * \note In the case of #WM_file_read the file may fail to load.
  * Change here shouldn't cause user-visible changes in that case.
  */
-static void wm_file_read_pre(bContext *C, bool use_data, bool /*use_userdef*/)
+static void wm_file_read_pre(bool use_data, bool /*use_userdef*/)
 {
   if (use_data) {
-    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE);
     BLI_timer_on_file_load();
   }
 
@@ -656,6 +655,10 @@ struct wmFileReadPost_Params {
   uint is_startup_file : 1;
   uint is_factory_startup : 1;
   uint reset_app_template : 1;
+
+  /* Used by #wm_homefile_read_post */
+  uint success : 1;
+  uint is_alloc : 1;
 };
 
 /**
@@ -747,7 +750,6 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   if (use_data) {
     /* important to do before nullptr'ing the context */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_POST);
     if (is_factory_startup) {
       BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
@@ -876,8 +878,10 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
     for (LinkNode *node_lib = bf_reports->resynced_lib_overrides_libraries; node_lib != nullptr;
          node_lib = node_lib->next) {
       Library *library = static_cast<Library *>(node_lib->link);
-      BKE_reportf(
-          bf_reports->reports, RPT_INFO, "Library %s needs overrides resync", library->filepath);
+      BKE_reportf(bf_reports->reports,
+                  RPT_INFO,
+                  "Library \"%s\" needs overrides resync",
+                  library->filepath);
     }
   }
 
@@ -944,6 +948,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   const bool use_data = true;
   const bool use_userdef = false;
 
+  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+
   /* so we can get the error message */
   errno = 0;
 
@@ -968,7 +976,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     bf_reports.duration.whole = PIL_check_seconds_timer();
     struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
-      wm_file_read_pre(C, use_data, use_userdef);
+      wm_file_read_pre(use_data, use_userdef);
 
       /* Put aside screens to match with persistent windows later,
        * also exit screens and editors. */
@@ -1004,6 +1012,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.is_startup_file = false;
       read_file_post_params.is_factory_startup = false;
       read_file_post_params.reset_app_template = false;
+      read_file_post_params.success = true;
+      read_file_post_params.is_alloc = false;
       wm_file_read_post(C, &read_file_post_params);
 
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
@@ -1020,18 +1030,18 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Cannot read file '%s': %s",
+                "Cannot read file \"%s\": %s",
                 filepath,
                 errno ? strerror(errno) : TIP_("unable to open the file"));
   }
   else if (retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
-    BKE_reportf(reports, RPT_ERROR, "File format is not supported in file '%s'", filepath);
+    BKE_reportf(reports, RPT_ERROR, "File format is not supported in file \"%s\"", filepath);
   }
   else if (retval == BKE_READ_EXOTIC_FAIL_PATH) {
-    BKE_reportf(reports, RPT_ERROR, "File path '%s' invalid", filepath);
+    BKE_reportf(reports, RPT_ERROR, "File path \"%s\" invalid", filepath);
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "Unknown error loading '%s'", filepath);
+    BKE_reportf(reports, RPT_ERROR, "Unknown error loading \"%s\"", filepath);
     BLI_assert_msg(0, "invalid 'retval'");
   }
 
@@ -1048,7 +1058,11 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(false);
 
-  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_string(
+      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  BLI_assert(BKE_main_namemap_validate(bmain));
 
   return success;
 }
@@ -1178,10 +1192,16 @@ void wm_homefile_read_ex(bContext *C,
 #endif /* WITH_PYTHON */
   }
 
+  if (use_data) {
+    /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+     * This runs from #wm_homefile_read_post. */
+    BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, "");
+  }
+
   /* For regular file loading this only runs after the file is successfully read.
    * In the case of the startup file, the in-memory startup file is used as a fallback
    * so we know this will work if all else fails. */
-  wm_file_read_pre(C, use_data, use_userdef);
+  wm_file_read_pre(use_data, use_userdef);
 
   if (use_data) {
     /* put aside screens to match with persistent windows later */
@@ -1225,7 +1245,7 @@ void wm_homefile_read_ex(bContext *C,
         userdef = nullptr;
 
         skip_flags |= BLO_READ_SKIP_USERDEF;
-        printf("Read prefs: %s\n", filepath_userdef);
+        printf("Read prefs: \"%s\"\n", filepath_userdef);
       }
     }
   }
@@ -1234,7 +1254,7 @@ void wm_homefile_read_ex(bContext *C,
     if (!BKE_appdir_app_template_id_search(
             app_template, app_template_system, sizeof(app_template_system))) {
       /* Can safely continue with code below, just warn it's not found. */
-      BKE_reportf(reports, RPT_WARNING, "Application Template '%s' not found", app_template);
+      BKE_reportf(reports, RPT_WARNING, "Application Template \"%s\" not found", app_template);
     }
 
     /* Insert template name into startup file. */
@@ -1294,7 +1314,7 @@ void wm_homefile_read_ex(bContext *C,
 
   if (success == false && filepath_startup_override && reports) {
     /* We can not return from here because wm is already reset */
-    BKE_reportf(reports, RPT_ERROR, "Could not read '%s'", filepath_startup_override);
+    BKE_reportf(reports, RPT_ERROR, "Could not read \"%s\"", filepath_startup_override);
   }
 
   if (success == false) {
@@ -1392,10 +1412,14 @@ void wm_homefile_read_ex(bContext *C,
     params_file_read_post.is_factory_startup = is_factory_startup;
     params_file_read_post.reset_app_template = reset_app_template;
 
+    params_file_read_post.success = success;
+    params_file_read_post.is_alloc = false;
+
     if (r_params_file_read_post == nullptr) {
-      wm_file_read_post(C, &params_file_read_post);
+      wm_homefile_read_post(C, &params_file_read_post);
     }
     else {
+      params_file_read_post.is_alloc = true;
       *r_params_file_read_post = static_cast<wmFileReadPost_Params *>(
           MEM_mallocN(sizeof(wmFileReadPost_Params), __func__));
       **r_params_file_read_post = params_file_read_post;
@@ -1417,7 +1441,17 @@ void wm_homefile_read_post(struct bContext *C,
                            const struct wmFileReadPost_Params *params_file_read_post)
 {
   wm_file_read_post(C, params_file_read_post);
-  MEM_freeN((void *)params_file_read_post);
+
+  if (params_file_read_post->use_data) {
+    BKE_callback_exec_string(CTX_data_main(C),
+                             params_file_read_post->success ? BKE_CB_EVT_LOAD_POST :
+                                                              BKE_CB_EVT_LOAD_POST_FAIL,
+                             "");
+  }
+
+  if (params_file_read_post->is_alloc) {
+    MEM_freeN((void *)params_file_read_post);
+  }
 }
 
 /** \} */
@@ -1747,17 +1781,14 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
 
 bool write_crash_blend(void)
 {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
-  BLI_path_extension_replace(path, sizeof(path), "_crash.blend");
+  BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
+  BLI_path_extension_replace(filepath, sizeof(filepath), "_crash.blend");
   BlendFileWriteParams params{};
-  if (BLO_write_file(G_MAIN, path, G.fileflags, &params, nullptr)) {
-    printf("written: %s\n", path);
-    return 1;
-  }
-  printf("failed: %s\n", path);
-  return 0;
+  const bool success = BLO_write_file(G_MAIN, filepath, G.fileflags, &params, nullptr);
+  printf("%s: \"%s\"\n", success ? "written" : "failed", filepath);
+  return success;
 }
 
 /**
@@ -1781,7 +1812,8 @@ static bool wm_file_write_check_with_report_on_failure(Main *bmain,
 
   /* Check if file write permission is ok */
   if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
-    BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
+    BKE_reportf(
+        reports, RPT_ERROR, "Cannot save blend file, path \"%s\" is not writable", filepath);
     return false;
   }
 
@@ -1806,7 +1838,6 @@ static bool wm_file_write(bContext *C,
                           ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  int ok = false;
   BlendThumbnail *thumb = nullptr, *main_thumb = nullptr;
   ImBuf *ibuf_thumb = nullptr;
 
@@ -1815,12 +1846,15 @@ static bool wm_file_write(bContext *C,
    * its handy for scripts to save to a predefined name without blender editing it */
 
   if (!wm_file_write_check_with_report_on_failure(bmain, filepath, reports)) {
-    return ok;
+    return false;
   }
 
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+
+  /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, filepath);
   ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
@@ -1891,7 +1925,10 @@ static bool wm_file_write(bContext *C,
   blend_write_params.use_save_versions = true;
   blend_write_params.use_save_as_copy = use_save_as_copy;
   blend_write_params.thumb = thumb;
-  if (BLO_write_file(bmain, filepath, fileflags, &blend_write_params, reports)) {
+
+  const bool success = BLO_write_file(bmain, filepath, fileflags, &blend_write_params, reports);
+
+  if (success) {
     const bool do_history_file_update = (G.background == false) &&
                                         (CTX_wm_manager(C)->op_undo_depth == 0);
 
@@ -1906,8 +1943,6 @@ static bool wm_file_write(bContext *C,
       wm_history_file_update();
     }
 
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
-
     /* run this function after because the file can't be written before the blend is */
     if (ibuf_thumb) {
       IMB_thumb_delete(filepath, THB_FAIL); /* without this a failed thumb overrides */
@@ -1916,10 +1951,10 @@ static bool wm_file_write(bContext *C,
 
     /* Without this there is no feedback the file was saved. */
     BKE_reportf(reports, RPT_INFO, "Saved \"%s\"", BLI_path_basename(filepath));
-
-    /* Success. */
-    ok = true;
   }
+
+  BKE_callback_exec_string(
+      bmain, success ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL, filepath);
 
   if (ibuf_thumb) {
     IMB_freeImBuf(ibuf_thumb);
@@ -1930,7 +1965,7 @@ static bool wm_file_write(bContext *C,
 
   WM_cursor_wait(false);
 
-  return ok;
+  return success;
 }
 
 /** \} */
@@ -1942,7 +1977,7 @@ static bool wm_file_write(bContext *C,
 static void wm_autosave_location(char filepath[FILE_MAX])
 {
   const int pid = abs(getpid());
-  char path[1024];
+  char filename[1024];
 
   /* Normally there is no need to check for this to be nullptr,
    * however this runs on exit when it may be cleared. */
@@ -1952,10 +1987,10 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   if (blendfile_path && (blendfile_path[0] != '\0')) {
     const char *basename = BLI_path_basename(blendfile_path);
     int len = strlen(basename) - 6;
-    BLI_snprintf(path, sizeof(path), "%.*s_%d_autosave.blend", len, basename, pid);
+    BLI_snprintf(filename, sizeof(filename), "%.*s_%d_autosave.blend", len, basename, pid);
   }
   else {
-    BLI_snprintf(path, sizeof(path), "%d_autosave.blend", pid);
+    BLI_snprintf(filename, sizeof(filename), "%d_autosave.blend", pid);
   }
 
   const char *tempdir_base = BKE_tempdir_base();
@@ -1972,7 +2007,7 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 #endif
 
-  BLI_path_join(filepath, FILE_MAX, tempdir_base, path);
+  BLI_path_join(filepath, FILE_MAX, tempdir_base, filename);
 }
 
 static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
@@ -2154,7 +2189,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, "");
   ED_assets_pre_save(bmain);
 
   /* check current window and close it if temp */
@@ -2167,7 +2204,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE);
 
-  printf("Writing homefile: '%s' ", filepath);
+  printf("Writing homefile: \"%s\" ", filepath);
 
   ED_editors_flush_edits(bmain);
 
@@ -2181,17 +2218,19 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   blend_write_params.remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE;
   /* Don't apply any path changes to the current blend file. */
   blend_write_params.use_save_as_copy = true;
-  if (BLO_write_file(bmain, filepath, fileflags, &blend_write_params, op->reports) == 0) {
-    printf("fail\n");
-    return OPERATOR_CANCELLED;
+
+  const bool success = BLO_write_file(
+      bmain, filepath, fileflags, &blend_write_params, op->reports);
+
+  BKE_callback_exec_string(bmain, success ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL, "");
+
+  if (success) {
+    printf("ok\n");
+    BKE_report(op->reports, RPT_INFO, "Startup file saved");
+    return OPERATOR_FINISHED;
   }
-
-  printf("ok\n");
-  BKE_report(op->reports, RPT_INFO, "Startup file saved");
-
-  BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
-
-  return OPERATOR_FINISHED;
+  printf("fail\n");
+  return OPERATOR_CANCELLED;
 }
 
 void WM_OT_save_homefile(wmOperatorType *ot)
@@ -2218,9 +2257,9 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
   /* Update keymaps in user preferences. */
   WM_keyconfig_update(wm);
 
-  const bool ok = BKE_blendfile_userdef_write_all(op->reports);
+  const bool success = BKE_blendfile_userdef_write_all(op->reports);
 
-  return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void WM_OT_save_userpref(wmOperatorType *ot)
@@ -2434,7 +2473,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
       filepath = filepath_buf;
       if (BLI_access(filepath, R_OK)) {
         BKE_reportf(
-            op->reports, RPT_ERROR, "Can't read alternative start-up file: '%s'", filepath);
+            op->reports, RPT_ERROR, "Can't read alternative start-up file: \"%s\"", filepath);
         return OPERATOR_CANCELLED;
       }
     }
@@ -2595,8 +2634,6 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
  */
 static bool wm_file_read_opwrap(bContext *C, const char *filepath, ReportList *reports)
 {
-  bool success;
-
   /* XXX wm in context is not set correctly after WM_file_read -> crash */
   /* do it before for now, but is this correct with multiple windows? */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
@@ -2606,7 +2643,7 @@ static bool wm_file_read_opwrap(bContext *C, const char *filepath, ReportList *r
     WM_file_autoexec_init(filepath);
   }
 
-  success = WM_file_read(C, filepath, reports);
+  const bool success = WM_file_read(C, filepath, reports);
 
   return success;
 }
@@ -2773,13 +2810,12 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
     return nullptr;
   }
 
-  /* Filepath. */
-  char path[FILE_MAX];
-  RNA_string_get(params, "filepath", path);
+  char filepath[FILE_MAX];
+  RNA_string_get(params, "filepath", filepath);
 
   BLI_stat_t stats;
-  if (BLI_stat(path, &stats) == -1) {
-    return BLI_sprintfN("%s\n\n%s", path, TIP_("File Not Found"));
+  if (BLI_stat(filepath, &stats) == -1) {
+    return BLI_sprintfN("%s\n\n%s", filepath, TIP_("File Not Found"));
   }
 
   /* Date. */
@@ -2796,8 +2832,13 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
   char size_str[FILELIST_DIRENTRY_SIZE_LEN];
   BLI_filelist_entry_size_to_string(nullptr, uint64_t(stats.st_size), false, size_str);
 
-  return BLI_sprintfN(
-      "%s\n\n%s: %s %s\n%s: %s", path, TIP_("Modified"), date_st, time_st, TIP_("Size"), size_str);
+  return BLI_sprintfN("%s\n\n%s: %s %s\n%s: %s",
+                      filepath,
+                      TIP_("Modified"),
+                      date_st,
+                      time_st,
+                      TIP_("Size"),
+                      size_str);
 }
 
 /* currently fits in a pointer */
@@ -2812,19 +2853,19 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
   struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
   bool is_untrusted = false;
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   char *lslash;
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   /* get the dir */
-  lslash = (char *)BLI_path_slash_rfind(path);
+  lslash = (char *)BLI_path_slash_rfind(filepath);
   if (lslash) {
     *(lslash + 1) = '\0';
   }
 
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    if (BKE_autoexec_match(path) == true) {
+    if (BKE_autoexec_match(filepath) == true) {
       RNA_property_boolean_set(op->ptr, prop, false);
       is_untrusted = true;
     }
@@ -3143,11 +3184,11 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* function used for WM_OT_save_mainfile too */
+/* Function used for #WM_OT_save_mainfile too. */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   const bool is_save_as = (op->type->invoke == wm_save_as_mainfile_invoke);
   const bool use_save_as_copy = is_save_as && RNA_boolean_get(op->ptr, "copy");
 
@@ -3161,13 +3202,13 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
   const bool is_filepath_set = RNA_struct_property_is_set(op->ptr, "filepath");
   if (is_filepath_set) {
-    RNA_string_get(op->ptr, "filepath", path);
+    RNA_string_get(op->ptr, "filepath", filepath);
   }
   else {
-    STRNCPY(path, BKE_main_blendfile_path(bmain));
+    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
   }
 
-  if (path[0] == '\0') {
+  if (filepath[0] == '\0') {
     BKE_report(op->reports,
                RPT_ERROR,
                "Unable to save an unsaved file with an empty or unset \"filepath\" property");
@@ -3179,11 +3220,11 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
    * Even though this should never happen, there may be some corner case where a malformed
    * path is stored in `G.main->filepath`: when the file path is initialized from recovering
    * a blend file - for example, so in this case failing to save isn't ideal. */
-  if (is_filepath_set && !BLI_path_is_abs_from_cwd(path)) {
+  if (is_filepath_set && !BLI_path_is_abs_from_cwd(filepath)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "The \"filepath\" property was not an absolute path: \"%s\"",
-                path);
+                filepath);
     return OPERATOR_CANCELLED;
   }
 
@@ -3193,7 +3234,8 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   /* set compression flag */
   SET_FLAG_FROM_TEST(fileflags, RNA_boolean_get(op->ptr, "compress"), G_FILE_COMPRESS);
 
-  const bool ok = wm_file_write(C, path, fileflags, remap_mode, use_save_as_copy, op->reports);
+  const bool success = wm_file_write(
+      C, filepath, fileflags, remap_mode, use_save_as_copy, op->reports);
 
   if ((op->flag & OP_IS_INVOKE) == 0) {
     /* OP_IS_INVOKE is set when the operator is called from the GUI.
@@ -3202,7 +3244,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     G.fileflags = fileflags_orig;
   }
 
-  if (ok == false) {
+  if (success == false) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3215,8 +3257,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* function used for WM_OT_save_mainfile too */
-static bool blend_save_check(bContext * /*C*/, wmOperator *op)
+static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -3261,7 +3302,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
   ot->exec = wm_save_as_mainfile_exec;
   ot->get_name = wm_save_as_mainfile_get_name;
   ot->get_description = wm_save_as_mainfile_get_description;
-  ot->check = blend_save_check;
+  ot->check = wm_save_mainfile_check;
   /* omit window poll so this can work in background mode */
 
   WM_operator_properties_filesel(ot,
@@ -3310,9 +3351,6 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   }
 
   if (blendfile_path[0] != '\0') {
-    char path[FILE_MAX];
-
-    RNA_string_get(op->ptr, "filepath", path);
     ret = wm_save_as_mainfile_exec(C, op);
   }
   else {
@@ -3331,8 +3369,8 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
-  ot->check = blend_save_check;
-  /* omit window poll so this can work in background mode */
+  ot->check = wm_save_mainfile_check;
+  /* Omit window poll so this can work in background mode. */
 
   PropertyRNA *prop;
   WM_operator_properties_filesel(ot,

@@ -185,9 +185,11 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
-      mesh->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",
-                                                                          ATTR_DOMAIN_FACE);
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE);
 
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;
@@ -203,9 +205,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
     MPoly &poly = polys[poly_idx];
     poly.totloop = curr_face.corner_count_;
     poly.loopstart = tot_loop_idx;
-    if (curr_face.shaded_smooth) {
-      poly.flag |= ME_SMOOTH;
-    }
+    sharp_faces.span[poly_idx] = !curr_face.shaded_smooth;
     material_indices.span[poly_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
@@ -233,6 +233,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
   }
 
   material_indices.finish();
+  sharp_faces.finish();
 }
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)

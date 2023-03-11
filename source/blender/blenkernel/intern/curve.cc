@@ -410,7 +410,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
   }
   cu->bevel_profile = nullptr;
   /* Initialize the offset to 1.0, to compensate for it being set to -1.0
-     in the property getter. */
+   * in the property getter. */
   cu->offset = 1.0f;
 }
 

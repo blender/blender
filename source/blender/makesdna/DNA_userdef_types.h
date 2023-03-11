@@ -1220,6 +1220,8 @@ typedef enum eAutokey_Flag {
  */
 typedef enum eUserpref_Anim_Flags {
   USER_ANIM_SHOW_CHANNEL_GROUP_COLORS = (1 << 0),
+  USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS = (1 << 1),
+  USER_ANIM_HIGH_QUALITY_DRAWING = (1 << 2),
 } eUserpref_Anim_Flags;
 
 /** #UserDef.transopts */

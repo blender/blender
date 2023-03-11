@@ -11,7 +11,6 @@
 #include "BLI_convexhull_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
@@ -22,6 +21,22 @@
 #include "MEM_guardedalloc.h"
 
 namespace blender::geometry {
+
+UVPackIsland_Params::UVPackIsland_Params()
+{
+  /* TEMPORARY, set every thing to "zero" for backwards compatibility. */
+  rotate = false;
+  only_selected_uvs = false;
+  only_selected_faces = false;
+  use_seams = false;
+  correct_aspect = false;
+  ignore_pinned = false;
+  pin_unselected = false;
+  margin = 0.001f;
+  margin_method = ED_UVPACK_MARGIN_SCALED;
+  udim_base_offset[0] = 0.0f;
+  udim_base_offset[1] = 0.0f;
+}
 
 /* Compact representation for AABB packers. */
 class UVAABBIsland {
@@ -39,8 +54,8 @@ class UVAABBIsland {
  *
  * In theory, alpaca_turbo should be the fastest non-trivial packer, hence the "turbo" suffix.
  *
- * Technically, the algorithm here is only O(n), In practice, to get reasonable results, the input
- * must be pre-sorted, which costs an additional O(nlogn) time complexity.
+ * Technically, the algorithm here is only `O(n)`, In practice, to get reasonable results,
+ * the input must be pre-sorted, which costs an additional `O(nlogn)` time complexity.
  */
 static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
                                       float *r_max_u,
@@ -100,21 +115,20 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                                        const float scale,
                                        const float margin)
 {
-  /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has O(n^3)
+  /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has `O(n^3)`
    * time complexity, causing poor performance if there are lots of islands. See: #102843.
-   * #pack_islands_alpaca_turbo is designed to be the fastest packing method, O(nlogn),
+   * #pack_islands_alpaca_turbo is designed to be the fastest packing method, `O(nlogn)`,
    * but has poor packing efficiency if the AABBs have a spread of sizes and aspect ratios.
    * Here, we merge the best properties of both packers into one combined packer.
-
+   *
    * The free tuning parameter, `alpaca_cutoff` will determine how many islands are packed
    * using each method.
-
+   *
    * The current strategy is:
-     * - Sort islands in size order.
-     * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
-     * - Call #pack_islands_alpaca_turbo on the remaining islands.
-     * - Combine results.
-
+   * - Sort islands in size order.
+   * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
+   * - Call #pack_islands_alpaca_turbo on the remaining islands.
+   * - Combine results.
    */
 
   /* First, copy information from our input into the AABB structure. */
@@ -303,9 +317,9 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
   return params.margin * aabb_length_sum * 0.1f;
 }
 
-BoxPack *pack_islands(const Span<PackIsland *> &island_vector,
-                      const UVPackIsland_Params &params,
-                      float r_scale[2])
+static BoxPack *pack_islands_box_array(const Span<PackIsland *> &island_vector,
+                                       const UVPackIsland_Params &params,
+                                       float r_scale[2])
 {
   BoxPack *box_array = static_cast<BoxPack *>(
       MEM_mallocN(sizeof(*box_array) * island_vector.size(), __func__));
@@ -350,6 +364,22 @@ BoxPack *pack_islands(const Span<PackIsland *> &island_vector,
     BLI_rctf_pad(&island->bounds_rect, margin, margin);
   }
   return box_array;
+}
+
+void pack_islands(const Span<PackIsland *> &islands,
+                  const UVPackIsland_Params &params,
+                  float r_scale[2])
+{
+  BoxPack *box_array = pack_islands_box_array(islands, params, r_scale);
+
+  for (int64_t i : islands.index_range()) {
+    BoxPack *box = box_array + i;
+    PackIsland *island = islands[box->index];
+    island->pre_translate.x = box->x - island->bounds_rect.xmin;
+    island->pre_translate.y = box->y - island->bounds_rect.ymin;
+  }
+
+  MEM_freeN(box_array);
 }
 
 }  // namespace blender::geometry

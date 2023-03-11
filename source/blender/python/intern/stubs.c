@@ -12,6 +12,9 @@
 #if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
+#elif defined(_MSC_VER)
+/* Suppress unreferenced formal parameter warning. */
+#  pragma warning(disable : 4100)
 #endif
 
 /* python, will come back */

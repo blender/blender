@@ -227,7 +227,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_effect_reflection_resolve)
     .auto_resource_location(true)
     .do_static_compilation(true);
 
-/* Split reflection resolve support for Intel-based MacBooks.*/
+/* Split reflection resolve support for Intel-based MacBooks. */
 GPU_SHADER_CREATE_INFO(eevee_legacy_effect_reflection_resolve_probe)
     .define("RESOLVE_PROBE")
     .additional_info("eevee_legacy_effect_reflection_resolve")

@@ -145,7 +145,8 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
   MutableSpan<MPoly> polys = active_mesh->polys_for_write();
   MutableSpan<MLoop> loops = active_mesh->loops_for_write();
 
-  const char should_smooth = prim_.IsA<pxr::UsdGeomCube>() ? 0 : ME_SMOOTH;
+  /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
+  BKE_mesh_smooth_flag_set(active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
 
   int loop_index = 0;
   for (int i = 0; i < face_counts.size(); i++) {
@@ -154,9 +155,6 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
     MPoly &poly = polys[i];
     poly.loopstart = loop_index;
     poly.totloop = face_size;
-
-    /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
-    poly.flag |= should_smooth;
 
     for (int f = 0; f < face_size; ++f, ++loop_index) {
       loops[loop_index].v = face_indices[loop_index];

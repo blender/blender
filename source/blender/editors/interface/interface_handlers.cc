@@ -47,6 +47,8 @@
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
 
+#include "GHOST_C-api.h"
+
 #include "IMB_colormanagement.h"
 
 #include "ED_screen.h"
@@ -3459,6 +3461,9 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
+  /* Temporarily turn off window auto-focus on platforms that support it. */
+  GHOST_SetAutoFocus(false);
+
 #ifdef WITH_INPUT_IME
   if (!is_num_but) {
     ui_textedit_ime_begin(win, but);
@@ -3513,6 +3518,9 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
   }
 
   WM_cursor_modal_restore(win);
+
+  /* Turn back on the auto-focusing of windows. */
+  GHOST_SetAutoFocus(true);
 
   /* Free text undo history text blocks. */
   ui_textedit_undo_stack_destroy(data->undo_stack_text);
@@ -8773,7 +8781,7 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
                                       PropertyRNA **r_prop,
                                       int *r_index)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
 
   if (activebut && activebut->rnapoin.data) {
     *r_ptr = activebut->rnapoin;
@@ -8791,7 +8799,7 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
 
 void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
   if (activebut) {
     /* TODO(@ideasman42): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the

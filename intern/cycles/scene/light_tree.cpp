@@ -259,7 +259,7 @@ int LightTree::recursive_build(
   bool should_split = false;
   if (try_splitting) {
     /* Find the best place to split the primitives into 2 nodes.
-     * If the best split cost is no better than making a leaf node, make a leaf instead.*/
+     * If the best split cost is no better than making a leaf node, make a leaf instead. */
     float min_cost = min_split_saoh(
         centroid_bounds, start, end, bbox, bcone, split_dim, split_bucket, num_left_prims, prims);
     should_split = num_prims > max_lights_in_leaf_ || min_cost < energy_total;

@@ -333,28 +333,26 @@ struct PBVHBatches {
           foreach_faces,
       GPUVertBufRaw *access)
   {
-    float fno[3];
+    const bool *sharp_faces = static_cast<const bool *>(
+        CustomData_get_layer_named(args->pdata, CD_PROP_BOOL, "sharp_face"));
     short no[3];
     int last_poly = -1;
-    bool smooth = false;
+    bool flat = false;
 
     foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri *tri) {
       if (tri->poly != last_poly) {
         last_poly = tri->poly;
-
-        const MPoly &poly = args->polys[tri->poly];
-        if (!(poly.flag & ME_SMOOTH)) {
-          smooth = true;
+        flat = sharp_faces && sharp_faces[tri->poly];
+        if (flat) {
+          const MPoly &poly = args->polys[tri->poly];
+          float fno[3];
           BKE_mesh_calc_poly_normal(
               &poly, args->mloop + poly.loopstart, args->vert_positions, fno);
           normal_float_to_short_v3(no, fno);
         }
-        else {
-          smooth = false;
-        }
       }
 
-      if (!smooth) {
+      if (!flat) {
         normal_float_to_short_v3(no, args->vert_normals[vertex_i]);
       }
 
@@ -409,7 +407,7 @@ struct PBVHBatches {
         foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
           float3 no(0.0f, 0.0f, 0.0f);
 
-          const bool smooth = args->grid_flag_mats[grid_index].flag & ME_SMOOTH;
+          const bool smooth = !args->grid_flag_mats[grid_index].sharp;
 
           if (smooth) {
             no = CCG_elem_no(&args->ccg_key, elems[0]);
@@ -1085,7 +1083,7 @@ struct PBVHBatches {
 
     for (int i : IndexRange(args->totprim)) {
       int grid_index = args->grid_indices[i];
-      bool smooth = args->grid_flag_mats[grid_index].flag & ME_SMOOTH;
+      bool smooth = !args->grid_flag_mats[grid_index].sharp;
       BLI_bitmap *gh = args->grid_hidden[grid_index];
 
       for (int y = 0; y < gridsize - 1; y += skip) {

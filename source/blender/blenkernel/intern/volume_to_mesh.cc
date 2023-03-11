@@ -180,6 +180,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               mesh->loops_for_write());
 
   BKE_mesh_calc_edges(mesh, false, false);
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   return mesh;
 }

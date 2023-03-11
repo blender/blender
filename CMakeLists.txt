@@ -1607,6 +1607,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     # warning level:
     "/W3"
     "/w34062"  # switch statement contains 'default' but no 'case' labels
+    "/w34100"  # 'identifier' : unreferenced formal parameter
     "/w34115"  # 'type' : named type definition in parentheses
     "/w34189"  # local variable is initialized but not referenced
     # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
@@ -1933,7 +1934,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_IMAGE_OPENEXR)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
   info_cfg_option(WITH_IMAGE_TIFF)
-  
+
   info_cfg_text("Audio:")
   info_cfg_option(WITH_CODEC_AVI)
   info_cfg_option(WITH_CODEC_FFMPEG)

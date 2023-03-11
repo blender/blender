@@ -312,7 +312,7 @@ class NODE_MT_node(Menu):
         snode = context.space_data
         is_compositor = snode.tree_type == 'CompositorNodeTree'
 
-        layout.operator("transform.translate")
+        layout.operator("transform.translate").view2d_edge_pan = True
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
 

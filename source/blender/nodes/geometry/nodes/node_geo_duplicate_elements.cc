@@ -322,7 +322,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   int dst_curves_num = 0;
   int dst_points_num = 0;
   for (const int i_curve : selection.index_range()) {
-    const int count = std::max(counts[selection[i_curve]], 0);
+    const int count = counts[selection[i_curve]];
     curve_offset_data[i_curve] = dst_curves_num;
     point_offset_data[i_curve] = dst_points_num;
     dst_curves_num += count;
@@ -498,7 +498,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   int total_loops = 0;
   Array<int> offset_data(selection.size() + 1);
   for (const int i_selection : selection.index_range()) {
-    const int count = std::max(counts[selection[i_selection]], 0);
+    const int count = counts[selection[i_selection]];
     offset_data[i_selection] = total_polys;
     total_polys += count;
     total_loops += count * polys[selection[i_selection]].totloop;
@@ -1042,7 +1042,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryDuplicateElements &storage = node_storage(params.node());
   const eAttrDomain duplicate_domain = eAttrDomain(storage.domain);
 
-  Field<int> count_field = params.extract_input<Field<int>>("Amount");
+  static auto max_zero_fn = mf::build::SI1_SO<int, int>(
+      "max_zero",
+      [](int value) { return std::max(0, value); },
+      mf::build::exec_presets::AllSpanOrSingle());
+  Field<int> count_field(
+      FieldOperation::Create(max_zero_fn, {params.extract_input<Field<int>>("Amount")}));
+
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   IndexAttributes attribute_outputs;
   attribute_outputs.duplicate_index = params.get_output_anonymous_attribute_id_if_needed(

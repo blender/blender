@@ -7407,6 +7407,27 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
   return (PyObject *)pyrna;
 }
 
+PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr)
+{
+  if (ptr->type == &RNA_PrimitiveString) {
+    const PrimitiveStringRNA *data = ptr->data;
+    return PyC_UnicodeFromBytes(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveInt) {
+    const PrimitiveIntRNA *data = ptr->data;
+    return PyLong_FromLong(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveFloat) {
+    const PrimitiveFloatRNA *data = ptr->data;
+    return PyFloat_FromDouble(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveBoolean) {
+    const PrimitiveBooleanRNA *data = ptr->data;
+    return PyBool_FromLong(data->value);
+  }
+  return pyrna_struct_CreatePyObject(ptr);
+}
+
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
 {
   BPy_PropertyRNA *pyrna;

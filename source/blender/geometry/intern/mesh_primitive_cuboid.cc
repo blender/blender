@@ -407,6 +407,7 @@ Mesh *create_cuboid_mesh(const float3 &size,
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_positions(config, positions);
 
@@ -416,6 +417,9 @@ Mesh *create_cuboid_mesh(const float3 &size,
   if (uv_id) {
     calculate_uvs(config, mesh, uv_id);
   }
+
+  const float3 bounds = size * 0.5f;
+  mesh->bounds_set_eager({-bounds, bounds});
 
   return mesh;
 }

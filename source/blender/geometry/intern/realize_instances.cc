@@ -846,7 +846,6 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                                     options.propagation_info,
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("shade_smooth");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;

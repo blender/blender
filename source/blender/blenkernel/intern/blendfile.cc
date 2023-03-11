@@ -506,7 +506,7 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
-    printf("Read blend: %s\n", filepath);
+    printf("Read blend: \"%s\"\n", filepath);
   }
 
   BlendFileData *bfd = BLO_read_from_file(filepath, eBLOReadSkip(params->skip_flags), reports);
@@ -518,7 +518,7 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
     handle_subversion_warning(bfd->main, reports);
   }
   else {
-    BKE_reports_prependf(reports->reports, "Loading '%s' failed: ", filepath);
+    BKE_reports_prependf(reports->reports, "Loading \"%s\" failed: ", filepath);
   }
   return bfd;
 }
@@ -768,7 +768,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
     bool ok_write;
     BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
-    printf("Writing userprefs: '%s' ", filepath);
+    printf("Writing userprefs: \"%s\" ", filepath);
     if (use_template_userpref) {
       ok_write = BKE_blendfile_userdef_write_app_template(filepath, reports);
     }
@@ -795,7 +795,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
       /* Also save app-template prefs */
       BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
-      printf("Writing userprefs app-template: '%s' ", filepath);
+      printf("Writing userprefs app-template: \"%s\" ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {
         printf("ok\n");
       }

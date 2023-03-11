@@ -277,7 +277,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain, const pxr::UsdPrim &
 
   if (prim.IsA<pxr::UsdShadeMaterial>()) {
     /* Record material path for later processing, if needed,
-     * e.g., when importing all materials.  */
+     * e.g., when importing all materials. */
     material_paths_.push_back(prim.GetPath().GetAsString());
 
     /* We don't create readers for materials, so return early. */

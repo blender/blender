@@ -64,7 +64,9 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
 static char *rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = ptr->data;
-  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
+  char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
+  BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
+  return BLI_sprintfN("asset_data.tags[\"%s\"]", asset_tag_name_esc);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
