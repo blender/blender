@@ -192,22 +192,6 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   grease_pencil->runtime = MEM_new<blender::bke::GreasePencilRuntime>(__func__);
 }
 
-static void grease_pencil_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
-  for (int i = 0; i < grease_pencil->material_array_num; i++) {
-    BLO_read_id_address(reader, id, &grease_pencil->material_array[i]);
-  }
-  for (int i = 0; i < grease_pencil->drawing_array_num; i++) {
-    GreasePencilDrawingBase *drawing_base = grease_pencil->drawing_array[i];
-    if (drawing_base->type == GP_DRAWING_REFERENCE) {
-      GreasePencilDrawingReference *drawing_reference =
-          reinterpret_cast<GreasePencilDrawingReference *>(drawing_base);
-      BLO_read_id_address(reader, id, &drawing_reference->id_reference);
-    }
-  }
-}
-
 IDTypeInfo IDType_ID_GP = {
     /*id_code*/ ID_GP,
     /*id_filter*/ FILTER_ID_GP,
@@ -230,7 +214,7 @@ IDTypeInfo IDType_ID_GP = {
 
     /*blend_write*/ grease_pencil_blend_write,
     /*blend_read_data*/ grease_pencil_blend_read_data,
-    /*blend_read_lib*/ grease_pencil_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

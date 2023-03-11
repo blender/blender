@@ -42,6 +42,7 @@ typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendWriter BlendWriter;
 
 struct BlendFileReadReport;
+struct LibraryIDLinkCallbackData;
 struct Main;
 
 /* -------------------------------------------------------------------- */
@@ -262,6 +263,7 @@ bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, struct ListBase *list);
 struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
+struct Library *BLO_read_data_current_library(BlendDataReader *reader);
 
 /** \} */
 
@@ -285,10 +287,6 @@ struct ID *BLO_read_get_new_id_address(BlendLibReader *reader,
                                        struct ID *self_id,
                                        const bool do_linked_only,
                                        struct ID *id) ATTR_NONNULL(2);
-
-#define BLO_read_id_address(reader, self_id, id_ptr_p) \
-  *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address( \
-      (reader), (self_id), (self_id) && ID_IS_LINKED(self_id), (ID *)*(id_ptr_p))
 
 /**
  * Search for the new address of the ID for the given `session_uuid`.

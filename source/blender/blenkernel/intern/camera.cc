@@ -230,20 +230,6 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Camera *ca = (Camera *)id;
-  BLO_read_id_address(reader, id, &ca->ipo); /* deprecated, for versioning */
-
-  BLO_read_id_address(reader, id, &ca->dof_ob); /* deprecated, for versioning */
-  BLO_read_id_address(reader, id, &ca->dof.focus_object);
-
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    BLO_read_id_address(reader, id, &bgpic->ima);
-    BLO_read_id_address(reader, id, &bgpic->clip);
-  }
-}
-
 IDTypeInfo IDType_ID_CA = {
     /*id_code*/ ID_CA,
     /*id_filter*/ FILTER_ID_CA,
@@ -266,7 +252,7 @@ IDTypeInfo IDType_ID_CA = {
 
     /*blend_write*/ camera_blend_write,
     /*blend_read_data*/ camera_blend_read_data,
-    /*blend_read_lib*/ camera_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

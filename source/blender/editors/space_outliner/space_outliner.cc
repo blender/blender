@@ -513,9 +513,11 @@ static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *s
   space_outliner->runtime = nullptr;
 }
 
-static void outliner_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void outliner_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
+                                          ID * /*parent_id*/,
+                                          SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
 
   if (space_outliner->treestore) {
     TreeStoreElem *tselem;
@@ -523,10 +525,7 @@ static void outliner_space_blend_read_lib(BlendLibReader *reader, ID *parent_id,
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
     while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      if (TSE_IS_REAL_ID(tselem)) {
-        BLO_read_id_address(reader, parent_id, &tselem->id);
-      }
-      else {
+      if (!TSE_IS_REAL_ID(tselem)) {
         tselem->id = nullptr;
       }
     }
@@ -620,7 +619,7 @@ void ED_spacetype_outliner()
   st->deactivate = outliner_deactivate;
   st->context = outliner_context;
   st->blend_read_data = outliner_space_blend_read_data;
-  st->blend_read_lib = outliner_space_blend_read_lib;
+  st->blend_read_after_liblink = outliner_space_blend_read_after_liblink;
   st->blend_write = outliner_space_blend_write;
 
   /* regions: main window */

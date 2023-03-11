@@ -1186,13 +1186,6 @@ static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
   sclip->scopes.ok = 0;
 }
 
-static void clip_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceClip *sclip = (SpaceClip *)sl;
-  BLO_read_id_address(reader, parent_id, &sclip->clip);
-  BLO_read_id_address(reader, parent_id, &sclip->mask_info.mask);
-}
-
 static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceClip, sl);
@@ -1226,7 +1219,7 @@ void ED_spacetype_clip()
   st->id_remap = clip_id_remap;
   st->foreach_id = clip_foreach_id;
   st->blend_read_data = clip_space_blend_read_data;
-  st->blend_read_lib = clip_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = clip_space_blend_write;
 
   /* regions: main window */

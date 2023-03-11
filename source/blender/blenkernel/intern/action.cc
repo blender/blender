@@ -236,33 +236,6 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, act->preview);
 }
 
-static void blend_read_lib_constraint_channels(BlendLibReader *reader, ID *id, ListBase *chanbase)
-{
-  LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
-    BLO_read_id_address(reader, id, &chan->ipo);
-  }
-}
-
-static void action_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  bAction *act = (bAction *)id;
-
-  /* XXX deprecated - old animation system <<< */
-  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_read_id_address(reader, id, &chan->ipo);
-    blend_read_lib_constraint_channels(reader, &act->id, &chan->constraintChannels);
-  }
-  /* >>> XXX deprecated - old animation system */
-
-  BKE_fcurve_blend_read_lib(reader, id, &act->curves);
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    if (marker->camera) {
-      BLO_read_id_address(reader, id, &marker->camera);
-    }
-  }
-}
-
 static IDProperty *action_asset_type_property(const bAction *action)
 {
   const bool is_single_frame = BKE_action_has_single_frame(action);
@@ -309,7 +282,7 @@ IDTypeInfo IDType_ID_AC = {
 
     /*blend_write*/ action_blend_write,
     /*blend_read_data*/ action_blend_read_data,
-    /*blend_read_lib*/ action_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -1899,7 +1872,7 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
   }
 }
 
-void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
+void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose *pose)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
 
@@ -1917,13 +1890,8 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
   }
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    BKE_constraint_blend_read_lib(reader, (ID *)ob, &pchan->constraints);
-
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_BlendReadLib(reader, &ob->id, pchan->prop);
-
-    BLO_read_id_address(reader, &ob->id, &pchan->custom);
     if (UNLIKELY(pchan->bone == nullptr)) {
       rebuild = true;
     }

@@ -641,49 +641,6 @@ static void linestyle_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void linestyle_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
-
-  LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->color_modifiers) {
-    switch (m->type) {
-      case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
-        LineStyleColorModifier_DistanceFromObject *cm =
-            (LineStyleColorModifier_DistanceFromObject *)m;
-        BLO_read_id_address(reader, id, &cm->target);
-        break;
-      }
-    }
-  }
-  LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->alpha_modifiers) {
-    switch (m->type) {
-      case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
-        LineStyleAlphaModifier_DistanceFromObject *am =
-            (LineStyleAlphaModifier_DistanceFromObject *)m;
-        BLO_read_id_address(reader, id, &am->target);
-        break;
-      }
-    }
-  }
-  LISTBASE_FOREACH (LineStyleModifier *, m, &linestyle->thickness_modifiers) {
-    switch (m->type) {
-      case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
-        LineStyleThicknessModifier_DistanceFromObject *tm =
-            (LineStyleThicknessModifier_DistanceFromObject *)m;
-        BLO_read_id_address(reader, id, &tm->target);
-        break;
-      }
-    }
-  }
-  for (int a = 0; a < MAX_MTEX; a++) {
-    MTex *mtex = linestyle->mtex[a];
-    if (mtex) {
-      BLO_read_id_address(reader, id, &mtex->tex);
-      BLO_read_id_address(reader, id, &mtex->object);
-    }
-  }
-}
-
 IDTypeInfo IDType_ID_LS = {
     /*id_code*/ ID_LS,
     /*id_filter*/ FILTER_ID_LS,
@@ -706,7 +663,7 @@ IDTypeInfo IDType_ID_LS = {
 
     /*blend_write*/ linestyle_blend_write,
     /*blend_read_data*/ linestyle_blend_read_data,
-    /*blend_read_lib*/ linestyle_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

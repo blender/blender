@@ -304,31 +304,23 @@ static void collection_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_collection_blend_read_data(reader, collection, nullptr);
 }
 
-static void lib_link_collection_data(BlendLibReader *reader, ID *self_id, Collection *collection)
+static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
+  Collection *collection = reinterpret_cast<Collection *>(id);
+
+  /* Sanity check over Collection/Object data. */
   BLI_assert(collection->runtime.gobject_hash == nullptr);
   LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    BLO_read_id_address(reader, self_id, &cob->ob);
-
     if (cob->ob == nullptr) {
       BLI_freelinkN(&collection->gobject, cob);
     }
   }
 
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BLO_read_id_address(reader, self_id, &child->collection);
-  }
-}
-
-void BKE_collection_blend_read_lib(BlendLibReader *reader, Collection *collection)
-{
-  lib_link_collection_data(reader, &collection->id, collection);
-}
-
-static void collection_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Collection *collection = (Collection *)id;
-  BKE_collection_blend_read_lib(reader, collection);
+  /* foreach_id code called by generic lib_link process has most likely set this flag, however it
+   * is not needed during readfile process since the runtime data is affects are not yet built, so
+   * just clear it here. */
+  BLI_assert(collection->runtime.gobject_hash == nullptr);
+  collection->runtime.tag &= ~COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
 }
 
 IDTypeInfo IDType_ID_GR = {
@@ -353,7 +345,7 @@ IDTypeInfo IDType_ID_GR = {
 
     /*blend_write*/ collection_blend_write,
     /*blend_read_data*/ collection_blend_read_data,
-    /*blend_read_lib*/ collection_blend_read_lib,
+    /*blend_read_after_liblink*/ collection_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -1864,7 +1856,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   }
 
   /* We may have parent chains outside of scene's master_collection context? At least, readfile's
-   * lib_link_collection_data() seems to assume that, so do the same here. */
+   * #collection_blend_read_after_liblink() seems to assume that, so do the same here. */
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     if (collection->runtime.tag & COLLECTION_TAG_RELATION_REBUILD) {
       /* NOTE: we do not have easy access to 'which collections is root' info in that case, which

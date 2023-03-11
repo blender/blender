@@ -179,13 +179,11 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void shapekey_blend_read_lib(BlendLibReader *reader, ID *id)
+static void shapekey_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  Key *key = (Key *)id;
-  BLI_assert((key->id.tag & LIB_TAG_EXTERN) == 0);
-
-  BLO_read_id_address(reader, id, &key->ipo); /* XXX deprecated - old animation system */
-  BLO_read_id_address(reader, id, &key->from);
+  /* ShapeKeys should always only be linked indirectly through their user ID (mesh, Curve etc.), or
+   * be fully local data. */
+  BLI_assert((id->tag & LIB_TAG_EXTERN) == 0);
 }
 
 IDTypeInfo IDType_ID_KE = {
@@ -212,7 +210,7 @@ IDTypeInfo IDType_ID_KE = {
 
     /*blend_write*/ shapekey_blend_write,
     /*blend_read_data*/ shapekey_blend_read_data,
-    /*blend_read_lib*/ shapekey_blend_read_lib,
+    /*blend_read_after_liblink*/ shapekey_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 

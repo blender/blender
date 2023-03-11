@@ -210,7 +210,6 @@ typedef struct bNodeTreeInterface {
   /** Read/write blend file data. */
   void write(BlendWriter *writer);
   void read_data(BlendDataReader *reader);
-  void read_lib(BlendLibReader *reader, ID *id);
 
   bNodeTreeInterfaceItem *active_item();
   const bNodeTreeInterfaceItem *active_item() const;

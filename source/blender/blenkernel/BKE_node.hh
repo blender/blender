@@ -56,7 +56,6 @@ void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  * \note `ntree` itself has been read!
  */
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
-void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree);
 
 /* -------------------------------------------------------------------- */
 /** \name Node Tree Interface

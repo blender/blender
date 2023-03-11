@@ -314,7 +314,6 @@ void IDP_BlendReadData_impl(struct BlendDataReader *reader,
                             struct IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
-void IDP_BlendReadLib(struct BlendLibReader *reader, struct ID *self_id, struct IDProperty *prop);
 
 typedef enum eIDPropertyUIDataType {
   /** Other properties types that don't support RNA UI data. */

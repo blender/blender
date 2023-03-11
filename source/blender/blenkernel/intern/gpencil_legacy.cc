@@ -262,23 +262,6 @@ static void greasepencil_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_gpencil_blend_read_data(reader, gpd);
 }
 
-static void greasepencil_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  bGPdata *gpd = (bGPdata *)id;
-
-  /* Relink all data-block linked by GP data-block. */
-  /* Layers */
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* Layer -> Parent References */
-    BLO_read_id_address(reader, id, &gpl->parent);
-  }
-
-  /* materials */
-  for (int a = 0; a < gpd->totcol; a++) {
-    BLO_read_id_address(reader, id, &gpd->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_GD_LEGACY = {
     /*id_code*/ ID_GD_LEGACY,
     /*id_filter*/ FILTER_ID_GD_LEGACY,
@@ -301,7 +284,7 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
 
     /*blend_write*/ greasepencil_blend_write,
     /*blend_read_data*/ greasepencil_blend_read_data,
-    /*blend_read_lib*/ greasepencil_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

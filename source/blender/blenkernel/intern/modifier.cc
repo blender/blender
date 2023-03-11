@@ -1515,11 +1515,6 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
   }
 }
 
-void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
-{
-  BKE_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
-}
-
 namespace blender::bke {
 
 using Clock = std::chrono::high_resolution_clock;

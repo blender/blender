@@ -856,54 +856,6 @@ void SEQ_blend_read(BlendDataReader *reader, ListBase *seqbase)
   SEQ_for_each_callback(seqbase, seq_read_data_cb, reader);
 }
 
-struct Read_lib_data {
-  BlendLibReader *reader;
-  Scene *scene;
-};
-
-static bool seq_read_lib_cb(Sequence *seq, void *user_data)
-{
-  Read_lib_data *data = (Read_lib_data *)user_data;
-  BlendLibReader *reader = data->reader;
-  Scene *sce = data->scene;
-
-  IDP_BlendReadLib(reader, &sce->id, seq->prop);
-
-  if (seq->ipo) {
-    /* XXX: deprecated - old animation system. */
-    BLO_read_id_address(reader, &sce->id, &seq->ipo);
-  }
-  if (seq->scene) {
-    BLO_read_id_address(reader, &sce->id, &seq->scene);
-  }
-  if (seq->clip) {
-    BLO_read_id_address(reader, &sce->id, &seq->clip);
-  }
-  if (seq->mask) {
-    BLO_read_id_address(reader, &sce->id, &seq->mask);
-  }
-  if (seq->scene_camera) {
-    BLO_read_id_address(reader, &sce->id, &seq->scene_camera);
-  }
-  if (seq->sound) {
-    BLO_read_id_address(reader, &sce->id, &seq->sound);
-  }
-  if (seq->type == SEQ_TYPE_TEXT) {
-    TextVars *t = static_cast<TextVars *>(seq->effectdata);
-    BLO_read_id_address(reader, &sce->id, &t->text_font);
-  }
-
-  SEQ_modifier_blend_read_lib(reader, sce, &seq->modifiers);
-
-  return true;
-}
-
-void SEQ_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase *seqbase)
-{
-  Read_lib_data data = {reader, scene};
-  SEQ_for_each_callback(seqbase, seq_read_lib_cb, &data);
-}
-
 static bool seq_doversion_250_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = static_cast<Main *>(user_data);

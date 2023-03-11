@@ -359,22 +359,13 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   brush->icon_imbuf = nullptr;
 }
 
-static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
+static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
 
-  /* brush->(mask_)mtex.obj is ignored on purpose? */
-  BLO_read_id_address(reader, id, &brush->mtex.tex);
-  BLO_read_id_address(reader, id, &brush->mask_mtex.tex);
-  BLO_read_id_address(reader, id, &brush->clone.image);
-  BLO_read_id_address(reader, id, &brush->toggle_brush);
-  BLO_read_id_address(reader, id, &brush->paint_curve);
-
-  /* link default grease pencil palette */
+  /* Update brush settings depending on availability of other IDs. */
   if (brush->gpencil_settings != nullptr) {
     if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-      BLO_read_id_address(reader, id, &brush->gpencil_settings->material);
-
       if (!brush->gpencil_settings->material) {
         brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
       }
@@ -382,7 +373,6 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
     else {
       brush->gpencil_settings->material = nullptr;
     }
-    BLO_read_id_address(reader, id, &brush->gpencil_settings->material_alt);
   }
 }
 
@@ -441,7 +431,7 @@ IDTypeInfo IDType_ID_BR = {
 
     /*blend_write*/ brush_blend_write,
     /*blend_read_data*/ brush_blend_read_data,
-    /*blend_read_lib*/ brush_blend_read_lib,
+    /*blend_read_after_liblink*/ brush_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ brush_undo_preserve,
 

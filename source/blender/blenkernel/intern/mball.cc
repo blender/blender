@@ -141,16 +141,6 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
   mb->lastelem = nullptr;
 }
 
-static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  MetaBall *mb = (MetaBall *)id;
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_read_id_address(reader, id, &mb->mat[a]);
-  }
-
-  BLO_read_id_address(reader, id, &mb->ipo);  // XXX deprecated - old animation system
-}
-
 IDTypeInfo IDType_ID_MB = {
     /*id_code*/ ID_MB,
     /*id_filter*/ FILTER_ID_MB,
@@ -173,7 +163,7 @@ IDTypeInfo IDType_ID_MB = {
 
     /*blend_write*/ metaball_blend_write,
     /*blend_read_data*/ metaball_blend_read_data,
-    /*blend_read_lib*/ metaball_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

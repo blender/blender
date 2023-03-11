@@ -985,16 +985,6 @@ static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceL
   memset(&sseq->runtime, 0x0, sizeof(sseq->runtime));
 }
 
-static void sequencer_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceSeq *sseq = (SpaceSeq *)sl;
-
-  /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
-   * so fingers crossed this works fine!
-   */
-  BLO_read_id_address(reader, parent_id, &sseq->gpd);
-}
-
 static void sequencer_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceSeq, sl);
@@ -1022,7 +1012,7 @@ void ED_spacetype_sequencer()
   st->id_remap = sequencer_id_remap;
   st->foreach_id = sequencer_foreach_id;
   st->blend_read_data = sequencer_space_blend_read_data;
-  st->blend_read_lib = sequencer_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = sequencer_space_blend_write;
 
   /* Create regions: */

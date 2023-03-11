@@ -52,12 +52,6 @@ static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_a
   BKE_id_blend_write(writer, &prb->id);
 }
 
-static void lightprobe_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  LightProbe *prb = (LightProbe *)id;
-  BLO_read_id_address(reader, &prb->id, &prb->visibility_grp);
-}
-
 IDTypeInfo IDType_ID_LP = {
     /*id_code*/ ID_LP,
     /*id_filter*/ FILTER_ID_LP,
@@ -80,7 +74,7 @@ IDTypeInfo IDType_ID_LP = {
 
     /*blend_write*/ lightprobe_blend_write,
     /*blend_read_data*/ nullptr,
-    /*blend_read_lib*/ lightprobe_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

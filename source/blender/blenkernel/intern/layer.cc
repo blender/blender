@@ -2434,37 +2434,11 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   view_layer->object_bases_hash = nullptr;
 }
 
-static void lib_link_layer_collection(BlendLibReader *reader,
-                                      ID *self_id,
-                                      LayerCollection *layer_collection,
-                                      const bool master)
+void BKE_view_layer_blend_read_after_liblink(BlendLibReader * /*reader*/,
+                                   ID * /*self_id*/,
+                                   ViewLayer *view_layer)
 {
-  /* Master collection is not a real data-block. */
-  if (!master) {
-    BLO_read_id_address(reader, self_id, &layer_collection->collection);
-  }
-
-  LISTBASE_FOREACH (
-      LayerCollection *, layer_collection_nested, &layer_collection->layer_collections) {
-    lib_link_layer_collection(reader, self_id, layer_collection_nested, false);
-  }
-}
-
-void BKE_view_layer_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewLayer *view_layer)
-{
-  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_read_id_address(reader, self_id, &fmc->script);
-  }
-
-  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_read_id_address(reader, self_id, &fls->linestyle);
-    BLO_read_id_address(reader, self_id, &fls->group);
-  }
-
   LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
-    /* we only bump the use count for the collection objects */
-    BLO_read_id_address(reader, self_id, &base->object);
-
     if (base->object == nullptr) {
       /* Free in case linked object got lost. */
       BLI_freelinkN(&view_layer->object_bases, base);
@@ -2473,14 +2447,6 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewLaye
       }
     }
   }
-
-  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    lib_link_layer_collection(reader, self_id, layer_collection, true);
-  }
-
-  BLO_read_id_address(reader, self_id, &view_layer->mat_override);
-
-  IDP_BlendReadLib(reader, self_id, view_layer->id_properties);
 }
 
 /** \} */

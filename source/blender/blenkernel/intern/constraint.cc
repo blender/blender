@@ -6562,35 +6562,3 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
     }
   }
 }
-
-/* temp struct used to transport needed info to lib_link_constraint_cb() */
-struct tConstraintLinkData {
-  BlendLibReader *reader;
-  ID *id;
-};
-/* callback function used to relink constraint ID-links */
-static void lib_link_constraint_cb(bConstraint * /*con*/,
-                                   ID **idpoin,
-                                   bool /*is_reference*/,
-                                   void *userdata)
-{
-  tConstraintLinkData *cld = (tConstraintLinkData *)userdata;
-  BLO_read_id_address(cld->reader, cld->id, idpoin);
-}
-
-void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *conlist)
-{
-  tConstraintLinkData cld;
-
-  /* legacy fixes */
-  LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    /* own ipo, all constraints have it */
-    BLO_read_id_address(reader, id, &con->ipo); /* XXX deprecated - old animation system */
-  }
-
-  /* relink all ID-blocks used by the constraints */
-  cld.reader = reader;
-  cld.id = id;
-
-  BKE_constraints_id_loop(conlist, lib_link_constraint_cb, IDWALK_NOP, &cld);
-}

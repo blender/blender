@@ -141,14 +141,6 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
 
-static void pointcloud_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  PointCloud *pointcloud = (PointCloud *)id;
-  for (int a = 0; a < pointcloud->totcol; a++) {
-    BLO_read_id_address(reader, id, &pointcloud->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_PT = {
     /*id_code*/ ID_PT,
     /*id_filter*/ FILTER_ID_PT,
@@ -171,7 +163,7 @@ IDTypeInfo IDType_ID_PT = {
 
     /*blend_write*/ pointcloud_blend_write,
     /*blend_read_data*/ pointcloud_blend_read_data,
-    /*blend_read_lib*/ pointcloud_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

@@ -1880,52 +1880,63 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
 /** \name Read ID
  * \{ */
 
-static void lib_link_id(BlendLibReader *reader, ID *id);
+static void after_liblink_id_process(BlendLibReader *reader, ID *id);
 
-static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
+static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
 {
 
   /* Handle 'private IDs'. */
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != nullptr) {
-    lib_link_id(reader, &nodetree->id);
-    blender::bke::ntreeBlendReadLib(reader, nodetree);
+    after_liblink_id_process(reader, &nodetree->id);
+
+    if (nodetree->owner_id == nullptr) {
+      CLOG_WARN(&LOG,
+                "NULL owner_id pointer for embedded NodeTree of %s, should never happen",
+                id->name);
+      nodetree->owner_id = id;
+    }
+    else if (nodetree->owner_id != id) {
+      CLOG_WARN(&LOG,
+                "Inconsistent owner_id pointer for embedded NodeTree of %s, should never happen",
+                id->name);
+      nodetree->owner_id = id;
+    }
   }
 
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     if (scene->master_collection != nullptr) {
-      lib_link_id(reader, &scene->master_collection->id);
-      BKE_collection_blend_read_lib(reader, scene->master_collection);
+      after_liblink_id_process(reader, &scene->master_collection->id);
+
+      if (scene->master_collection->runtime.owner_id == nullptr) {
+        CLOG_WARN(&LOG,
+                  "NULL owner_id pointer for embedded Scene Collection of %s, should never happen",
+                  id->name);
+        scene->master_collection->runtime.owner_id = id;
+      }
+      else if (scene->master_collection->runtime.owner_id != id) {
+        CLOG_WARN(&LOG,
+                  "Inconsistent owner_id pointer for embedded Scene Collection of %s, should "
+                  "never happen",
+                  id->name);
+        scene->master_collection->runtime.owner_id = id;
+      }
     }
   }
 }
 
-static void lib_link_id(BlendLibReader *reader, ID *id)
+static void after_liblink_id_process(BlendLibReader *reader, ID *id)
 {
   /* NOTE: WM IDProperties are never written to file, hence they should always be nullptr here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == nullptr);
-  IDP_BlendReadLib(reader, id, id->properties);
 
-  AnimData *adt = BKE_animdata_from_id(id);
-  if (adt != nullptr) {
-    BKE_animdata_blend_read_lib(reader, id, adt);
+  after_liblink_id_embedded_id_process(reader, id);
+
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+  if (id_type->blend_read_after_liblink != nullptr) {
+    id_type->blend_read_after_liblink(reader, id);
   }
-
-  if (id->override_library) {
-    BLO_read_id_address(reader, id, &id->override_library->reference);
-    BLO_read_id_address(reader, id, &id->override_library->storage);
-    BLO_read_id_address(reader, id, &id->override_library->hierarchy_root);
-
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-        BLO_read_id_address(reader, id, &opop->subitem_reference_id);
-        BLO_read_id_address(reader, id, &opop->subitem_local_id);
-      }
-    }
-  }
-
-  lib_link_id_embedded_id(reader, id);
 }
 
 static void direct_link_id_override_property_operation_cb(BlendDataReader *reader, void *data)
@@ -2290,8 +2301,6 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 
   id_us_ensure_real(&lib->id);
 }
-
-static void lib_link_library(BlendLibReader * /*reader*/, Library * /*lib*/) {}
 
 /* Always call this once you have loaded new library data to set the relative paths correctly
  * in relation to the blend file. */
@@ -3258,6 +3267,34 @@ static void do_versions_after_linking(FileData *fd, Main *main)
 /** \name Read Library Data Block (all)
  * \{ */
 
+static int lib_link_cb(struct LibraryIDLinkCallbackData *cb_data)
+{
+  /* Embedded IDs are not known by lib_link code, so they would be remapped to `nullptr`. But there
+   * is no need to process them anyway, asthey are already handled during the 'read_data' phase.
+   *
+   * NOTE: Some external non-owning pointers to embedded IDs (like the nodetree pointers of the
+   * Node editor) will not be detected as embedded ones though at 'lib_link' stage (because their
+   * source data cannot be accessed). This is handled on a case-by-case basis in 'after_lib_link'
+   * validation code. */
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
+    return IDWALK_RET_NOP;
+  }
+
+  /* Explicitely requested to be ignored during readfile processing. Means the read_data code
+   * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
+  if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
+    return IDWALK_RET_NOP;
+  }
+
+  BlendLibReader *reader = static_cast<BlendLibReader *>(cb_data->user_data);
+  ID **id_ptr = cb_data->id_pointer;
+  ID *owner_id = cb_data->owner_id;
+
+  *id_ptr = BLO_read_get_new_id_address(reader, owner_id, ID_IS_LINKED(owner_id), *id_ptr);
+
+  return IDWALK_RET_NOP;
+}
+
 static void lib_link_all(FileData *fd, Main *bmain)
 {
   BlendLibReader reader = {fd, bmain};
@@ -3287,15 +3324,13 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     if ((id->tag & LIB_TAG_NEED_LINK) != 0) {
-      lib_link_id(&reader, id);
+      /* Not all original pointer values can be considered as valid.
+       * Handling of DNA deprecated data should never be needed in undo case. */
+      const int flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
+                       ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
+      BKE_library_foreach_ID_link(nullptr, id, lib_link_cb, &reader, flag);
 
-      if (id_type->blend_read_lib != nullptr) {
-        id_type->blend_read_lib(&reader, id);
-      }
-
-      if (GS(id->name) == ID_LI) {
-        lib_link_library(&reader, (Library *)id); /* Only init users. */
-      }
+      after_liblink_id_process(&reader, id);
 
       id->tag &= ~LIB_TAG_NEED_LINK;
     }

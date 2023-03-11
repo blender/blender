@@ -487,7 +487,6 @@ void BKE_nla_blend_write(struct BlendWriter *writer, struct ListBase *tracks);
 void BKE_nla_blend_read_data(struct BlendDataReader *reader,
                              struct ID *id_owner,
                              struct ListBase *tracks);
-void BKE_nla_blend_read_lib(struct BlendLibReader *reader, struct ID *id, struct ListBase *tracks);
 
 #ifdef __cplusplus
 }

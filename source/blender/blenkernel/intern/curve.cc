@@ -272,25 +272,6 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void curve_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Curve *cu = (Curve *)id;
-  for (int a = 0; a < cu->totcol; a++) {
-    BLO_read_id_address(reader, id, &cu->mat[a]);
-  }
-
-  BLO_read_id_address(reader, id, &cu->bevobj);
-  BLO_read_id_address(reader, id, &cu->taperobj);
-  BLO_read_id_address(reader, id, &cu->textoncurve);
-  BLO_read_id_address(reader, id, &cu->vfont);
-  BLO_read_id_address(reader, id, &cu->vfontb);
-  BLO_read_id_address(reader, id, &cu->vfonti);
-  BLO_read_id_address(reader, id, &cu->vfontbi);
-
-  BLO_read_id_address(reader, id, &cu->ipo); /* XXX deprecated - old animation system */
-  BLO_read_id_address(reader, id, &cu->key);
-}
-
 IDTypeInfo IDType_ID_CU_LEGACY = {
     /*id_code*/ ID_CU_LEGACY,
     /*id_filter*/ FILTER_ID_CU_LEGACY,
@@ -313,7 +294,7 @@ IDTypeInfo IDType_ID_CU_LEGACY = {
 
     /*blend_write*/ curve_blend_write,
     /*blend_read_data*/ curve_blend_read_data,
-    /*blend_read_lib*/ curve_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

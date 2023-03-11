@@ -316,7 +316,6 @@ void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collect
 void BKE_collection_blend_read_data(struct BlendDataReader *reader,
                                     struct Collection *collection,
                                     struct ID *owner_id);
-void BKE_collection_blend_read_lib(struct BlendLibReader *reader, struct Collection *collection);
 
 /* Iteration callbacks. */
 

@@ -359,18 +359,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Mesh *me = reinterpret_cast<Mesh *>(id);
-  for (int i = 0; i < me->totcol; i++) {
-    BLO_read_id_address(reader, id, &me->mat[i]);
-  }
-
-  BLO_read_id_address(reader, id, &me->ipo);  // XXX: deprecated: old anim sys
-  BLO_read_id_address(reader, id, &me->key);
-  BLO_read_id_address(reader, id, &me->texcomesh);
-}
-
 IDTypeInfo IDType_ID_ME = {
     /*id_code*/ ID_ME,
     /*id_filter*/ FILTER_ID_ME,
@@ -393,7 +381,7 @@ IDTypeInfo IDType_ID_ME = {
 
     /*blend_write*/ mesh_blend_write,
     /*blend_read_data*/ mesh_blend_read_data,
-    /*blend_read_lib*/ mesh_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

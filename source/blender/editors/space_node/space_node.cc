@@ -1169,57 +1169,6 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   snode->runtime = nullptr;
 }
 
-static void node_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceNode *snode = (SpaceNode *)sl;
-
-  /* node tree can be stored locally in id too, link this first */
-  BLO_read_id_address(reader, parent_id, &snode->id);
-  BLO_read_id_address(reader, parent_id, &snode->from);
-
-  bNodeTree *ntree = snode->id ? ntreeFromID(snode->id) : nullptr;
-  if (ntree) {
-    snode->nodetree = ntree;
-  }
-  else {
-    BLO_read_id_address(reader, parent_id, &snode->nodetree);
-  }
-
-  bNodeTreePath *path;
-  for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path; path = path->next) {
-    if (path == snode->treepath.first) {
-      /* first nodetree in path is same as snode->nodetree */
-      path->nodetree = snode->nodetree;
-    }
-    else {
-      BLO_read_id_address(reader, parent_id, &path->nodetree);
-    }
-
-    if (!path->nodetree) {
-      break;
-    }
-  }
-
-  /* remaining path entries are invalid, remove */
-  bNodeTreePath *path_next;
-  for (; path; path = path_next) {
-    path_next = path->next;
-
-    BLI_remlink(&snode->treepath, path);
-    MEM_freeN(path);
-  }
-
-  /* edittree is just the last in the path,
-   * set this directly since the path may have been shortened above */
-  if (snode->treepath.last) {
-    path = static_cast<bNodeTreePath *>(snode->treepath.last);
-    snode->edittree = path->nodetree;
-  }
-  else {
-    snode->edittree = nullptr;
-  }
-}
-
 static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
@@ -1260,7 +1209,7 @@ void ED_spacetype_node()
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
   st->blend_read_data = node_space_blend_read_data;
-  st->blend_read_lib = node_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = node_space_blend_write;
 
   /* regions: main window */

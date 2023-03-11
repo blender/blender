@@ -159,13 +159,6 @@ static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
   lt->batch_cache = nullptr;
 }
 
-static void lattice_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Lattice *lt = (Lattice *)id;
-  BLO_read_id_address(reader, id, &lt->ipo);  // XXX deprecated - old animation system
-  BLO_read_id_address(reader, id, &lt->key);
-}
-
 IDTypeInfo IDType_ID_LT = {
     /*id_code*/ ID_LT,
     /*id_filter*/ FILTER_ID_LT,
@@ -188,7 +181,7 @@ IDTypeInfo IDType_ID_LT = {
 
     /*blend_write*/ lattice_blend_write,
     /*blend_read_data*/ lattice_blend_read_data,
-    /*blend_read_lib*/ lattice_blend_read_lib,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

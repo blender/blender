@@ -709,11 +709,6 @@ void BKE_object_to_curve_clear(struct Object *object);
 
 void BKE_object_check_uuids_unique_and_report(const struct Object *object);
 
-void BKE_object_modifiers_lib_link_common(void *user_data,
-                                          struct Object *ob,
-                                          struct ID **idpoin,
-                                          int cb_flag);
-
 /**
  * Return the last subsurf modifier of an object, this does not check whether modifiers on top of
  * it are disabled. Return NULL if no such modifier is found.

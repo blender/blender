@@ -2130,20 +2130,6 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
 }
 
-static void view3d_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  View3D *v3d = (View3D *)sl;
-
-  BLO_read_id_address(reader, parent_id, &v3d->camera);
-  BLO_read_id_address(reader, parent_id, &v3d->ob_center);
-
-  if (v3d->localvd) {
-    BLO_read_id_address(reader, parent_id, &v3d->localvd->camera);
-  }
-
-  BKE_viewer_path_blend_read_lib(reader, parent_id, &v3d->viewer_path);
-}
-
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
@@ -2181,7 +2167,7 @@ void ED_spacetype_view3d()
   st->id_remap = view3d_id_remap;
   st->foreach_id = view3d_foreach_id;
   st->blend_read_data = view3d_space_blend_read_data;
-  st->blend_read_lib = view3d_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = view3d_space_blend_write;
 
   /* regions: main window */

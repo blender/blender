@@ -1532,69 +1532,11 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 /* patch for missing scene IDs, can't be in do-versions */
-static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
+static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
-  Scene *sce = (Scene *)id;
-
-  BKE_keyingsets_blend_read_lib(reader, &sce->id, &sce->keyingsets);
-
-  BLO_read_id_address(reader, id, &sce->camera);
-  BLO_read_id_address(reader, id, &sce->world);
-  BLO_read_id_address(reader, id, &sce->set);
-  BLO_read_id_address(reader, id, &sce->gpd);
-
-  BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->imapaint.paint);
-  if (sce->toolsettings->sculpt) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->sculpt->paint);
-  }
-  if (sce->toolsettings->vpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->vpaint->paint);
-  }
-  if (sce->toolsettings->wpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->wpaint->paint);
-  }
-  if (sce->toolsettings->uvsculpt) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->uvsculpt->paint);
-  }
-  if (sce->toolsettings->gp_paint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_paint->paint);
-  }
-  if (sce->toolsettings->gp_vertexpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_vertexpaint->paint);
-  }
-  if (sce->toolsettings->gp_sculptpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_sculptpaint->paint);
-  }
-  if (sce->toolsettings->gp_weightpaint) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
-  }
-  if (sce->toolsettings->curves_sculpt) {
-    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->curves_sculpt->paint);
-  }
-
-  if (sce->toolsettings->sculpt) {
-    BLO_read_id_address(reader, id, &sce->toolsettings->sculpt->gravity_object);
-  }
-
-  if (sce->toolsettings->imapaint.stencil) {
-    BLO_read_id_address(reader, id, &sce->toolsettings->imapaint.stencil);
-  }
-
-  if (sce->toolsettings->imapaint.clone) {
-    BLO_read_id_address(reader, id, &sce->toolsettings->imapaint.clone);
-  }
-
-  if (sce->toolsettings->imapaint.canvas) {
-    BLO_read_id_address(reader, id, &sce->toolsettings->imapaint.canvas);
-  }
-
-  BLO_read_id_address(reader, id, &sce->toolsettings->particle.shape_object);
-
-  BLO_read_id_address(reader, id, &sce->toolsettings->gp_sculpt.guide.reference_object);
+  Scene *sce = reinterpret_cast<Scene *>(id);
 
   LISTBASE_FOREACH_MUTABLE (Base *, base_legacy, &sce->base) {
-    BLO_read_id_address(reader, id, &base_legacy->object);
-
     if (base_legacy->object == nullptr) {
       BLO_reportf_wrap(BLO_read_lib_reports(reader),
                        RPT_WARNING,
@@ -1608,51 +1550,8 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     }
   }
 
-  if (sce->ed) {
-    SEQ_blend_read_lib(reader, sce, &sce->ed->seqbase);
-  }
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, id, marker->prop);
-
-    if (marker->camera) {
-      BLO_read_id_address(reader, id, &marker->camera);
-    }
-  }
-
-  /* rigidbody world relies on its linked collections */
-  if (sce->rigidbody_world) {
-    RigidBodyWorld *rbw = sce->rigidbody_world;
-    if (rbw->group) {
-      BLO_read_id_address(reader, id, &rbw->group);
-    }
-    if (rbw->constraints) {
-      BLO_read_id_address(reader, id, &rbw->constraints);
-    }
-    if (rbw->effector_weights) {
-      BLO_read_id_address(reader, id, &rbw->effector_weights->group);
-    }
-  }
-
-  LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
-    BLO_read_id_address(reader, id, &srl->mat_override);
-    LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &srl->freestyleConfig.modules) {
-      BLO_read_id_address(reader, id, &fmc->script);
-    }
-    LISTBASE_FOREACH (FreestyleLineSet *, fls, &srl->freestyleConfig.linesets) {
-      BLO_read_id_address(reader, id, &fls->linestyle);
-      BLO_read_id_address(reader, id, &fls->group);
-    }
-  }
-  /* Motion Tracking */
-  BLO_read_id_address(reader, id, &sce->clip);
-
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    BKE_view_layer_blend_read_lib(reader, id, view_layer);
-  }
-
-  if (sce->r.bake.cage_object) {
-    BLO_read_id_address(reader, id, &sce->r.bake.cage_object);
+    BKE_view_layer_blend_read_after_liblink(reader, id, view_layer);
   }
 
 #ifdef USE_SETSCENE_CHECK
@@ -1717,7 +1616,7 @@ constexpr IDTypeInfo get_type_info()
 
   info.blend_write = scene_blend_write;
   info.blend_read_data = scene_blend_read_data;
-  info.blend_read_lib = scene_blend_read_lib;
+  info.blend_read_after_liblink = scene_blend_read_after_liblink;
 
   info.blend_read_undo_preserve = scene_undo_preserve;
 

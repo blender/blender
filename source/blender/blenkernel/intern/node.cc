@@ -946,81 +946,9 @@ static void ntree_blend_read_data(BlendDataReader *reader, ID *id)
   ntreeBlendReadData(reader, nullptr, ntree);
 }
 
-static void lib_link_node_socket(BlendLibReader *reader, ID *self_id, bNodeSocket *sock)
+static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
-  IDP_BlendReadLib(reader, self_id, sock->prop);
-
-  /* This can happen for all socket types when a file is saved in an older version of Blender than
-   * it was originally created in (#86298). Some socket types still require a default value. The
-   * default value of those sockets will be created in `ntreeSetTypes`. */
-  if (sock->default_value == nullptr) {
-    return;
-  }
-
-  switch (eNodeSocketDatatype(sock->type)) {
-    case SOCK_OBJECT: {
-      BLO_read_id_address(
-          reader, self_id, &sock->default_value_typed<bNodeSocketValueObject>()->value);
-      break;
-    }
-    case SOCK_IMAGE: {
-      BLO_read_id_address(
-          reader, self_id, &sock->default_value_typed<bNodeSocketValueImage>()->value);
-      break;
-    }
-    case SOCK_COLLECTION: {
-      BLO_read_id_address(
-          reader, self_id, &sock->default_value_typed<bNodeSocketValueCollection>()->value);
-      break;
-    }
-    case SOCK_TEXTURE: {
-      BLO_read_id_address(
-          reader, self_id, &sock->default_value_typed<bNodeSocketValueTexture>()->value);
-      break;
-    }
-    case SOCK_MATERIAL: {
-      BLO_read_id_address(
-          reader, self_id, &sock->default_value_typed<bNodeSocketValueMaterial>()->value);
-      break;
-    }
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_RGBA:
-    case SOCK_BOOLEAN:
-    case SOCK_ROTATION:
-    case SOCK_INT:
-    case SOCK_STRING:
-    case SOCK_CUSTOM:
-    case SOCK_SHADER:
-    case SOCK_GEOMETRY:
-      break;
-  }
-}
-
-static void lib_link_node_sockets(BlendLibReader *reader, ID *self_id, ListBase *sockets)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    lib_link_node_socket(reader, self_id, sock);
-  }
-}
-
-void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
-{
-  BLO_read_id_address(reader, &ntree->id, &ntree->gpd);
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    /* Link ID Properties -- and copy this comment EXACTLY for easy finding
-     * of library blocks that implement this. */
-    IDP_BlendReadLib(reader, &ntree->id, node->prop);
-
-    BLO_read_id_address(reader, &ntree->id, &node->id);
-
-    lib_link_node_sockets(reader, &ntree->id, &node->inputs);
-    lib_link_node_sockets(reader, &ntree->id, &node->outputs);
-  }
-
-  lib_link_node_sockets(reader, &ntree->id, &ntree->inputs);
-  lib_link_node_sockets(reader, &ntree->id, &ntree->outputs);
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
 
   /* Set `node->typeinfo` pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
@@ -1039,12 +967,6 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
       }
     }
   }
-}
-
-static void ntree_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  ntreeBlendReadLib(reader, ntree);
 }
 
 static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
@@ -1099,7 +1021,7 @@ IDTypeInfo IDType_ID_NT = {
 
     /*blend_write*/ blender::bke::ntree_blend_write,
     /*blend_read_data*/ blender::bke::ntree_blend_read_data,
-    /*blend_read_lib*/ blender::bke::ntree_blend_read_lib,
+    /*blend_read_after_liblink*/ blender::bke::ntree_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 

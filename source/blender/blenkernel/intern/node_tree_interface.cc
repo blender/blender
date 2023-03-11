@@ -328,55 +328,6 @@ static void socket_data_read_data(BlendDataReader *reader, bNodeTreeInterfaceSoc
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID Pointer Data
- * \{ */
-
-template<typename T>
-void socket_data_read_lib_impl(BlendLibReader * /*reader*/, ID * /*id*/, T & /*data*/)
-{
-}
-template<>
-void socket_data_read_lib_impl(BlendLibReader *reader, ID *id, bNodeSocketValueObject &data)
-{
-  BLI_assert(id != nullptr);
-  BLO_read_id_address(reader, id, &data.value);
-}
-template<>
-void socket_data_read_lib_impl(BlendLibReader *reader, ID *id, bNodeSocketValueImage &data)
-{
-  BLI_assert(id != nullptr);
-  BLO_read_id_address(reader, id, &data.value);
-}
-template<>
-void socket_data_read_lib_impl(BlendLibReader *reader, ID *id, bNodeSocketValueCollection &data)
-{
-  BLI_assert(id != nullptr);
-  BLO_read_id_address(reader, id, &data.value);
-}
-template<>
-void socket_data_read_lib_impl(BlendLibReader *reader, ID *id, bNodeSocketValueTexture &data)
-{
-  BLI_assert(id != nullptr);
-  BLO_read_id_address(reader, id, &data.value);
-}
-template<>
-void socket_data_read_lib_impl(BlendLibReader *reader, ID *id, bNodeSocketValueMaterial &data)
-{
-  BLI_assert(id != nullptr);
-  BLO_read_id_address(reader, id, &data.value);
-}
-
-static void socket_data_read_lib(BlendLibReader *reader, ID *id, bNodeTreeInterfaceSocket &socket)
-{
-  socket_data_to_static_type_tag(socket.socket_type, [&](auto type_tag) {
-    using SocketDataType = typename decltype(type_tag)::type;
-    socket_data_read_lib_impl(reader, id, get_socket_data_as<SocketDataType>(socket));
-  });
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Callback per ID Pointer
  * \{ */
 
@@ -563,25 +514,6 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       for (const int i : blender::IndexRange(panel.items_num)) {
         BLO_read_data_address(reader, &panel.items_array[i]);
         item_read_data(reader, *panel.items_array[i]);
-      }
-      break;
-    }
-  }
-}
-
-static void item_read_lib(BlendLibReader *reader, ID *id, bNodeTreeInterfaceItem &item)
-{
-  switch (item.item_type) {
-    case NODE_INTERFACE_SOCKET: {
-      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      IDP_BlendReadLib(reader, id, socket.properties);
-      socket_types::socket_data_read_lib(reader, id, socket);
-      break;
-    }
-    case NODE_INTERFACE_PANEL: {
-      bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
-      for (bNodeTreeInterfaceItem *item : panel.items()) {
-        item_read_lib(reader, id, *item);
       }
       break;
     }
@@ -1034,11 +966,6 @@ void bNodeTreeInterface::write(BlendWriter *writer)
 void bNodeTreeInterface::read_data(BlendDataReader *reader)
 {
   item_types::item_read_data(reader, this->root_panel.item);
-}
-
-void bNodeTreeInterface::read_lib(BlendLibReader *reader, ID *id)
-{
-  item_types::item_read_lib(reader, id, this->root_panel.item);
 }
 
 bNodeTreeInterfaceItem *bNodeTreeInterface::active_item()

@@ -883,11 +883,12 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void file_space_blend_read_lib(BlendLibReader * /*reader*/,
+static void file_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
                                       ID * /*parent_id*/,
                                       SpaceLink *sl)
 {
-  SpaceFile *sfile = (SpaceFile *)sl;
+  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+
   sfile->tags |= FILE_TAG_REBUILD_MAIN_FILES;
 }
 
@@ -929,7 +930,7 @@ void ED_spacetype_file()
   st->id_remap = file_id_remap;
   st->foreach_id = file_foreach_id;
   st->blend_read_data = file_space_blend_read_data;
-  st->blend_read_lib = file_space_blend_read_lib;
+  st->blend_read_after_liblink = file_space_blend_read_after_liblink;
   st->blend_write = file_space_blend_write;
 
   /* regions: main window */

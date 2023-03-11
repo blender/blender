@@ -623,17 +623,14 @@ static void volume_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_pointer_array(reader, (void **)&volume->mat);
 }
 
-static void volume_blend_read_lib(BlendLibReader *reader, ID *id)
+static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  Volume *volume = (Volume *)id;
+  Volume *volume = reinterpret_cast<Volume *>(id);
+
   /* Needs to be done *after* cache pointers are restored (call to
    * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
    * lib_link... */
   BKE_volume_init_grids(volume);
-
-  for (int a = 0; a < volume->totcol; a++) {
-    BLO_read_id_address(reader, id, &volume->mat[a]);
-  }
 }
 
 IDTypeInfo IDType_ID_VO = {
@@ -658,7 +655,7 @@ IDTypeInfo IDType_ID_VO = {
 
     /*blend_write*/ volume_blend_write,
     /*blend_read_data*/ volume_blend_read_data,
-    /*blend_read_lib*/ volume_blend_read_lib,
+    /*blend_read_after_liblink*/ volume_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 

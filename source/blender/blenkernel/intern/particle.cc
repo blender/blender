@@ -367,71 +367,12 @@ static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)
   CLAMP(part->trail_count, 1, 100000);
 }
 
-void BKE_particle_partdeflect_blend_read_lib(BlendLibReader *reader, ID *id, PartDeflect *pd)
+static void particle_settings_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  if (pd && pd->tex) {
-    BLO_read_id_address(reader, id, &pd->tex);
-  }
-  if (pd && pd->f_source) {
-    BLO_read_id_address(reader, id, &pd->f_source);
-  }
-}
+  ParticleSettings *part = reinterpret_cast<ParticleSettings *>(id);
 
-static void particle_settings_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  ParticleSettings *part = (ParticleSettings *)id;
-
-  /* XXX: deprecated - old animation system. */
-  BLO_read_id_address(reader, id, &part->ipo);
-
-  BLO_read_id_address(reader, id, &part->instance_object);
-  BLO_read_id_address(reader, id, &part->instance_collection);
-  BLO_read_id_address(reader, id, &part->force_group);
-  BLO_read_id_address(reader, id, &part->bb_ob);
-  BLO_read_id_address(reader, id, &part->collision_group);
-
-  BKE_particle_partdeflect_blend_read_lib(reader, id, part->pd);
-  BKE_particle_partdeflect_blend_read_lib(reader, id, part->pd2);
-
-  if (part->effector_weights) {
-    BLO_read_id_address(reader, id, &part->effector_weights->group);
-  }
-
-  if (part->instance_weights.first && part->instance_collection) {
-    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-      BLO_read_id_address(reader, id, &dw->ob);
-    }
-  }
-  else {
+  if (part->instance_weights.first && !part->instance_collection) {
     BLI_freelistN(&part->instance_weights);
-  }
-
-  if (part->boids) {
-    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-        switch (rule->type) {
-          case eBoidRuleType_Goal:
-          case eBoidRuleType_Avoid: {
-            BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid *)rule;
-            BLO_read_id_address(reader, id, &brga->ob);
-            break;
-          }
-          case eBoidRuleType_FollowLeader: {
-            BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader *)rule;
-            BLO_read_id_address(reader, id, &brfl->ob);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  for (int a = 0; a < MAX_MTEX; a++) {
-    MTex *mtex = part->mtex[a];
-    if (mtex) {
-      BLO_read_id_address(reader, id, &mtex->tex);
-      BLO_read_id_address(reader, id, &mtex->object);
-    }
   }
 }
 
@@ -457,7 +398,7 @@ IDTypeInfo IDType_ID_PA = {
 
     /*blend_write*/ particle_settings_blend_write,
     /*blend_read_data*/ particle_settings_blend_read_data,
-    /*blend_read_lib*/ particle_settings_blend_read_lib,
+    /*blend_read_after_liblink*/ particle_settings_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -5487,28 +5428,18 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader, ListBase *part
   }
 }
 
-void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
+void BKE_particle_system_blend_read_after_liblink(BlendLibReader * /*reader*/,
                                         Object *ob,
-                                        ID *id,
+                                        ID * /*id*/,
                                         ListBase *particles)
 {
   LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, particles) {
-
-    BLO_read_id_address(reader, id, &psys->part);
     if (psys->part) {
-      LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
-        BLO_read_id_address(reader, id, &pt->ob);
-      }
-
-      BLO_read_id_address(reader, id, &psys->parent);
-      BLO_read_id_address(reader, id, &psys->target_ob);
-
       if (psys->clmd) {
         /* XXX(@ideasman42): from reading existing code this seems correct but intended usage
          * of point-cache with cloth should be added in #ParticleSystem. */
         psys->clmd->point_cache = psys->pointcache;
         psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = nullptr;
-        BLO_read_id_address(reader, id, &psys->clmd->coll_parms->group);
         psys->clmd->modifier.error = nullptr;
       }
     }
