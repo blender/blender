@@ -214,12 +214,12 @@ void USDLightWriter::do_write(HierarchyContext &context)
                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
               pxr::UsdLuxDistantLight::Define(usd_export_context_.stage,
                                               usd_export_context_.usd_path);
-      sun_light.CreateAngleAttr().Set(light->sun_angle, timecode);
+      sun_light.CreateAngleAttr().Set(light->sun_angle * (180.0f / (float)M_PI), timecode);
 
       if (usd_export_context_.export_params.backward_compatible) {
         if (pxr::UsdAttribute attr = sun_light.GetPrim().CreateAttribute(
                 usdtokens::angle, pxr::SdfValueTypeNames->Float, true)) {
-          attr.Set(light->sun_angle, timecode);
+          attr.Set(light->sun_angle * (180.0f / (float)M_PI), timecode);
         }
       }
 
