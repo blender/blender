@@ -433,7 +433,6 @@ int MeshDelta::new_face(int loopstart, int totloop, int rep)
   MPoly mpoly;
   mpoly.loopstart = loopstart;
   mpoly.totloop = totloop;
-  mpoly.flag = 0;
   new_polys_.append(mpoly);
   new_poly_rep_.append(rep);
   return f;
