@@ -4179,18 +4179,10 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     pack_island->bounds_rect.ymax = maxv[1];
   }
 
-  UVPackIsland_Params params{};
+  UVPackIsland_Params params;
   params.rotate = do_rotate;
-  params.only_selected_uvs = false;
-  params.only_selected_faces = false;
-  params.use_seams = false;
-  params.correct_aspect = false;
-  params.ignore_pinned = false;
-  params.pin_unselected = false;
   params.margin = margin;
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
-  params.udim_base_offset[0] = 0.0f;
-  params.udim_base_offset[1] = 0.0f;
 
   float scale[2] = {1.0f, 1.0f};
   pack_islands(pack_island_vector, params, scale);
