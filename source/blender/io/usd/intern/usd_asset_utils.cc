@@ -342,6 +342,10 @@ bool parent_dir_exists_on_file_system(const char *path)
 
 bool should_import_asset(const std::string &path)
 {
+  if (path.empty()) {
+    return false;
+  }
+
   if (BLI_path_is_rel(path.c_str())) {
     return false;
   }

@@ -462,7 +462,8 @@ static PyObject *get_shader_source_data(const USDImportParams &params,
                                              asset_path.GetAssetPath());
       }
 
-      const bool import_textures = params.import_textures_mode != USD_TEX_IMPORT_NONE &&
+      const bool import_textures = !resolved_path.empty() &&
+                                   params.import_textures_mode != USD_TEX_IMPORT_NONE &&
                                    should_import_asset(resolved_path);
 
       if (import_textures) {
