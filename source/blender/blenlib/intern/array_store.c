@@ -833,6 +833,14 @@ static void hash_array_from_cref(const BArrayInfo *info,
   BLI_assert(i == hash_array_len);
 }
 
+BLI_INLINE void hash_accum_impl(hash_key *hash_array, const size_t i_dst, const size_t i_ahead)
+{
+  /* Tested to give good results when accumulating unique values from an array of booleans.
+   * (least unused cells in the `BTableRef **table`). */
+  BLI_assert(i_dst < i_ahead);
+  hash_array[i_dst] += ((hash_array[i_ahead] << 3) ^ (hash_array[i_dst] >> 1));
+}
+
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   /* _very_ unlikely, can happen if you select a chunk-size of 1 for example. */
@@ -843,8 +851,8 @@ static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t
   const size_t hash_array_search_len = hash_array_len - iter_steps;
   while (iter_steps != 0) {
     const size_t hash_offset = iter_steps;
-    for (uint i = 0; i < hash_array_search_len; i++) {
-      hash_array[i] += (hash_array[i + hash_offset]) * ((hash_array[i] & 0xff) + 1);
+    for (size_t i = 0; i < hash_array_search_len; i++) {
+      hash_accum_impl(hash_array, i, i + hash_offset);
     }
     iter_steps -= 1;
   }
@@ -869,7 +877,7 @@ static void hash_accum_single(hash_key *hash_array, const size_t hash_array_len,
     const size_t hash_array_search_len = hash_array_len - iter_steps_sub;
     const size_t hash_offset = iter_steps;
     for (uint i = 0; i < hash_array_search_len; i++) {
-      hash_array[i] += (hash_array[i + hash_offset]) * ((hash_array[i] & 0xff) + 1);
+      hash_accum_impl(hash_array, i, i + hash_offset);
     }
     iter_steps -= 1;
     iter_steps_sub += iter_steps;
