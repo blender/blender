@@ -1210,6 +1210,7 @@ static void collection_gobject_assert_internal_consistency(Collection *collectio
     collection_gobject_hash_create(collection);
   }
   GHash *gobject_hash = collection->runtime.gobject_hash;
+  UNUSED_VARS_NDEBUG(gobject_hash);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BLI_assert(cob->ob != NULL);
     /* If there are more than one CollectionObject for the same object, at most one of them will
