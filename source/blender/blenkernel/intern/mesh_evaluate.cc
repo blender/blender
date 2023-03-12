@@ -279,19 +279,6 @@ void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLo
   }
 }
 
-void BKE_mesh_poly_edgebitmap_insert(uint *edge_bitmap, const MPoly *poly, const MLoop *mloop)
-{
-  const MLoop *ml;
-  int i = poly->totloop;
-
-  ml = mloop;
-
-  while (i-- != 0) {
-    BLI_BITMAP_ENABLE(edge_bitmap, ml->e);
-    ml++;
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

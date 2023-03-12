@@ -571,9 +571,6 @@ float BKE_mesh_calc_area(const struct Mesh *me);
 void BKE_mesh_poly_edgehash_insert(struct EdgeHash *ehash,
                                    const struct MPoly *poly,
                                    const struct MLoop *mloop);
-void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap,
-                                     const struct MPoly *poly,
-                                     const struct MLoop *mloop);
 
 bool BKE_mesh_center_median(const struct Mesh *me, float r_cent[3]);
 /**
