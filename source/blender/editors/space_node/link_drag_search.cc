@@ -309,7 +309,7 @@ static void gather_socket_link_operations(const bContext &C,
         continue;
       }
       search_link_ops.append(
-          {std::string(IFACE_("Group Input ")) + UI_MENU_ARROW_SEP + interface_socket->name,
+          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket->name,
            [interface_socket](nodes::LinkSearchOpParams &params) {
              add_existing_group_input_fn(params, *interface_socket);
            },
