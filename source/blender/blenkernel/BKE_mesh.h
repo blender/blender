@@ -25,7 +25,6 @@ struct BoundBox;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct EdgeHash;
 struct ID;
 struct KeyBlock;
 struct LinkNode;
@@ -567,10 +566,6 @@ float BKE_mesh_calc_poly_area(const struct MLoop *poly_loops,
                               const float (*vert_positions)[3],
                               int verts_num);
 float BKE_mesh_calc_area(const struct Mesh *me);
-
-void BKE_mesh_poly_edgehash_insert(struct EdgeHash *ehash,
-                                   const struct MPoly *poly,
-                                   const struct MLoop *mloop);
 
 bool BKE_mesh_center_median(const struct Mesh *me, float r_cent[3]);
 /**

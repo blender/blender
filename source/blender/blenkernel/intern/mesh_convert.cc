@@ -76,6 +76,22 @@ using blender::StringRefNull;
 
 static CLG_LogRef LOG = {"bke.mesh_convert"};
 
+static void poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLoop *mloop)
+{
+  const MLoop *ml, *ml_next;
+  int i = poly->totloop;
+
+  ml_next = mloop;      /* first loop */
+  ml = &ml_next[i - 1]; /* last loop */
+
+  while (i-- != 0) {
+    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, nullptr);
+
+    ml = ml_next;
+    ml_next++;
+  }
+}
+
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
@@ -90,7 +106,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
   EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
   for (const MPoly &poly : polys) {
-    BKE_mesh_poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
+    poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
   }
 
   const int totedge_new = BLI_edgehash_len(eh);

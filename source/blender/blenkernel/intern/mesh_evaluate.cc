@@ -263,22 +263,6 @@ void poly_angles_calc(const Span<float3> vert_positions,
 
 }  // namespace blender::bke::mesh
 
-void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLoop *mloop)
-{
-  const MLoop *ml, *ml_next;
-  int i = poly->totloop;
-
-  ml_next = mloop;      /* first loop */
-  ml = &ml_next[i - 1]; /* last loop */
-
-  while (i-- != 0) {
-    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, nullptr);
-
-    ml = ml_next;
-    ml_next++;
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
