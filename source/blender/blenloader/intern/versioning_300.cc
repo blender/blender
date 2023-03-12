@@ -4148,16 +4148,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 1)) {
     /* Z bias for retopology overlay. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "retopology_offset")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -4180,11 +4171,24 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         SEQ_for_each_callback(&ed->seqbase, version_set_seq_single_frame_content, nullptr);
       }
     }
-    /* Keep this block, even when empty. */
+
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_extrude_smooth_propagation(*ntree);
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

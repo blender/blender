@@ -89,6 +89,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.wcol_view_item = U_theme_default.tui.wcol_view_item;
   }
 
+  if (!USER_VERSION_ATLEAST(306, 1)) {
+    FROM_DEFAULT_V4_UCHAR(space_view3d.face_retopology);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
