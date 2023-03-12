@@ -8741,15 +8741,6 @@ static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_c
   return but_found;
 }
 
-static bool ui_context_rna_button_active_test(const uiBut *but)
-{
-  return (but->rnapoin.data != nullptr);
-}
-static uiBut *ui_context_rna_button_active(const bContext *C)
-{
-  return ui_context_button_active(CTX_wm_region(C), ui_context_rna_button_active_test);
-}
-
 uiBut *UI_context_active_but_get(const bContext *C)
 {
   return ui_context_button_active(CTX_wm_region(C), nullptr);
