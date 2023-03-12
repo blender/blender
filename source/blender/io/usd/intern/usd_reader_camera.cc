@@ -63,8 +63,8 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   bcam->sensor_x = apperture_x * scale_to_mm;
   bcam->sensor_y = apperture_y * scale_to_mm;
 
-  bcam->shiftx = h_film_offset * scale_to_mm / apperture_x;
-  bcam->shifty = v_film_offset * scale_to_mm / apperture_y / film_aspect;
+  bcam->shiftx = h_film_offset / apperture_x;
+  bcam->shifty = v_film_offset / apperture_y / film_aspect;
 
   pxr::GfRange1f usd_clip_range = usd_cam.GetClippingRange();
   bcam->clip_start = usd_clip_range.GetMin() * settings_->scale;

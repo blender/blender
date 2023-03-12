@@ -70,18 +70,22 @@ void USDCameraWriter::do_write(HierarchyContext &context)
 
   usd_camera.CreateProjectionAttr().Set(pxr::UsdGeomTokens->perspective);
 
-  /* USD stores the focal length in "millimeters or tenths of world units", because at some point
-   * they decided world units might be centimeters. Quite confusing, as the USD Viewer shows the
-   * correct FoV when we write millimeters and not "tenths of world units".
-   */
-  usd_camera.CreateFocalLengthAttr().Set(camera->lens, timecode);
+  /*
+  * For USD, these camera properties are in tenths of a world unit.
+  * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
+  * val_in_tenths_of_units = val_in_meters * 10.0f * (units / meter)
+  */
+  const float scale_from_mm = .001f * 10.0f * unit_scale;
+
+  const float focal_length = camera->lens * scale_from_mm;
+  usd_camera.CreateFocalLengthAttr().Set(focal_length, timecode);
 
   /* TODO(makowalski): Maybe add option to call camera_sensor_size_for_render(). */
   /*float aperture_x, aperture_y;
   camera_sensor_size_for_render(camera, &scene->r, &aperture_x, &aperture_y);*/
 
-  float aperture_x = camera->sensor_x;
-  float aperture_y = camera->sensor_y;
+  float aperture_x = camera->sensor_x  * scale_from_mm;
+  float aperture_y = camera->sensor_y * scale_from_mm;
 
   float film_aspect = aperture_x / aperture_y;
   usd_camera.CreateHorizontalApertureAttr().Set(aperture_x, timecode);
