@@ -50,7 +50,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
@@ -1854,29 +1854,22 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
-  const Span<float3> positions = mesh->vert_positions();
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
 
-  BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(positions.data()),
-                              BKE_mesh_vert_normals_ensure(mesh),
-                              positions.size(),
-                              edges.data(),
-                              edges.size(),
-                              loops.data(),
-                              r_corner_normals,
-                              loops.size(),
-                              polys.data(),
-                              BKE_mesh_poly_normals_ensure(mesh),
-                              polys.size(),
-                              use_split_normals,
-                              split_angle,
-                              sharp_edges,
-                              sharp_faces,
-                              nullptr,
-                              r_lnors_spacearr,
-                              clnors);
+  blender::bke::mesh::normals_calc_loop(
+      mesh->vert_positions(),
+      mesh->edges(),
+      mesh->polys(),
+      mesh->loops(),
+      {},
+      mesh->vert_normals(),
+      mesh->poly_normals(),
+      sharp_edges,
+      sharp_faces,
+      use_split_normals,
+      split_angle,
+      clnors,
+      nullptr,
+      {reinterpret_cast<float3 *>(r_corner_normals), mesh->totloop});
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)

@@ -53,7 +53,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"

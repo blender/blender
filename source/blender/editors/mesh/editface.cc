@@ -23,7 +23,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "ED_mesh.h"

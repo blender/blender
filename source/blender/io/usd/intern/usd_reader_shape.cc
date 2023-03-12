@@ -2,7 +2,7 @@
  * Copyright 2023 Nvidia. All rights reserved. */
 
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 

@@ -30,7 +30,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
@@ -338,15 +338,12 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 
   blender::threading::parallel_for(IndexRange(target->totpoly), 2048, [&](const IndexRange range) {
     for (const int i : range) {
-      float from_co[3];
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
       const MPoly &poly = target_polys[i];
-      BKE_mesh_calc_poly_center(&poly,
-                                &target_loops[poly.loopstart],
-                                reinterpret_cast<const float(*)[3]>(target_positions.data()),
-                                from_co);
+      const float3 from_co = mesh::poly_center_calc(
+          target_positions, target_loops.slice(poly.loopstart, poly.totloop));
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {

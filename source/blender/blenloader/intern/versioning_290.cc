@@ -48,7 +48,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_node.h"
 

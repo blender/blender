@@ -38,7 +38,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"

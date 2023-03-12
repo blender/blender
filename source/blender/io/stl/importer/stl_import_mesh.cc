@@ -7,7 +7,7 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
 #include "BLI_math_vector.h"

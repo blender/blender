@@ -20,7 +20,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
@@ -656,7 +656,7 @@ void heat_bone_weighting(Object *ob,
   int a, tris_num, j, bbone, firstsegment, lastsegment;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> vert_positions = me->vert_positions();
   const blender::Span<MPoly> polys = me->polys();
   const blender::Span<MLoop> loops = me->loops();
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -705,8 +705,7 @@ void heat_bone_weighting(Object *ob,
   mlooptri = static_cast<MLoopTri *>(
       MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__));
 
-  BKE_mesh_recalc_looptri(
-      loops.data(), polys.data(), vert_positions, me->totloop, me->totpoly, mlooptri);
+  blender::bke::mesh::looptris_calc(vert_positions, polys, loops, {mlooptri, sys->heat.tris_num});
 
   sys->heat.mlooptri = mlooptri;
   sys->heat.loops = loops;

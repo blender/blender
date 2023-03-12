@@ -63,7 +63,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"

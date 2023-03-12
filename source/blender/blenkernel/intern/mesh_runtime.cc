@@ -20,7 +20,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_subdiv_ccg.h"
@@ -152,21 +152,11 @@ blender::Span<MLoopTri> Mesh::looptris() const
     r_data.reinitialize(poly_to_tri_count(polys.size(), loops.size()));
 
     if (BKE_mesh_poly_normals_are_dirty(this)) {
-      BKE_mesh_recalc_looptri(loops.data(),
-                              polys.data(),
-                              reinterpret_cast<const float(*)[3]>(positions.data()),
-                              loops.size(),
-                              polys.size(),
-                              r_data.data());
+      blender::bke::mesh::looptris_calc(positions, polys, loops, r_data);
     }
     else {
-      BKE_mesh_recalc_looptri_with_normals(loops.data(),
-                                           polys.data(),
-                                           reinterpret_cast<const float(*)[3]>(positions.data()),
-                                           loops.size(),
-                                           polys.size(),
-                                           r_data.data(),
-                                           BKE_mesh_poly_normals_ensure(this));
+      blender::bke::mesh::looptris_calc_with_normals(
+          positions, polys, loops, this->poly_normals(), r_data);
     }
   });
 

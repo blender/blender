@@ -15,7 +15,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"

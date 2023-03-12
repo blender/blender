@@ -24,10 +24,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_virtual_array.hh"
 
-#include "BKE_customdata.h"
-
 #include "BKE_attribute.hh"
-#include "BKE_mesh.h"
+#include "BKE_customdata.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 
 using blender::float3;
@@ -39,65 +38,81 @@ using blender::VArray;
 /** \name Polygon Calculations
  * \{ */
 
-static void mesh_calc_ngon_center(const MPoly *poly,
-                                  const MLoop *loopstart,
-                                  const float (*positions)[3],
-                                  float cent[3])
+namespace blender::bke::mesh {
+
+static float3 poly_center_calc_ngon(const Span<float3> vert_positions,
+                                    const Span<MLoop> poly_loops)
 {
-  const float w = 1.0f / float(poly->totloop);
+  const float w = 1.0f / float(poly_loops.size());
 
-  zero_v3(cent);
-
-  for (int i = 0; i < poly->totloop; i++) {
-    madd_v3_v3fl(cent, positions[(loopstart++)->v], w);
+  float3 center(0);
+  for (const int i : poly_loops.index_range()) {
+    center += vert_positions[poly_loops[i].v] * w;
   }
+  return center;
 }
 
-void BKE_mesh_calc_poly_center(const MPoly *poly,
-                               const MLoop *loopstart,
+float3 poly_center_calc(const Span<float3> vert_positions, const Span<MLoop> poly_loops)
+{
+  if (poly_loops.size() == 3) {
+    float3 center;
+    mid_v3_v3v3v3(center,
+                  vert_positions[poly_loops[0].v],
+                  vert_positions[poly_loops[1].v],
+                  vert_positions[poly_loops[2].v]);
+    return center;
+  }
+  if (poly_loops.size() == 4) {
+    float3 center;
+    mid_v3_v3v3v3v3(center,
+                    vert_positions[poly_loops[0].v],
+                    vert_positions[poly_loops[1].v],
+                    vert_positions[poly_loops[2].v],
+                    vert_positions[poly_loops[3].v]);
+    return center;
+  }
+  return poly_center_calc_ngon(vert_positions, poly_loops);
+}
+
+}  // namespace blender::bke::mesh
+
+void BKE_mesh_calc_poly_center(const MLoop *poly_loops,
+                               const int poly_size,
                                const float (*vert_positions)[3],
+                               const int verts_num,
                                float r_cent[3])
 {
-  if (poly->totloop == 3) {
-    mid_v3_v3v3v3(r_cent,
-                  vert_positions[loopstart[0].v],
-                  vert_positions[loopstart[1].v],
-                  vert_positions[loopstart[2].v]);
-  }
-  else if (poly->totloop == 4) {
-    mid_v3_v3v3v3v3(r_cent,
-                    vert_positions[loopstart[0].v],
-                    vert_positions[loopstart[1].v],
-                    vert_positions[loopstart[2].v],
-                    vert_positions[loopstart[3].v]);
-  }
-  else {
-    mesh_calc_ngon_center(poly, loopstart, vert_positions, r_cent);
-  }
+  copy_v3_v3(r_cent,
+             blender::bke::mesh::poly_center_calc(
+                 {reinterpret_cast<const blender::float3 *>(vert_positions), verts_num},
+                 {poly_loops, poly_size}));
 }
 
-float BKE_mesh_calc_poly_area(const MPoly *poly,
-                              const MLoop *loopstart,
-                              const float (*vert_positions)[3])
+namespace blender::bke::mesh {
+
+float poly_area_calc(const Span<float3> vert_positions, const Span<MLoop> poly_loops)
 {
-  if (poly->totloop == 3) {
-    return area_tri_v3(vert_positions[loopstart[0].v],
-                       vert_positions[loopstart[1].v],
-                       vert_positions[loopstart[2].v]);
+  if (poly_loops.size() == 3) {
+    return area_tri_v3(vert_positions[poly_loops[0].v],
+                       vert_positions[poly_loops[1].v],
+                       vert_positions[poly_loops[2].v]);
   }
-
-  const MLoop *l_iter = loopstart;
-  float(*vertexcos)[3] = (float(*)[3])BLI_array_alloca(vertexcos, size_t(poly->totloop));
-
-  /* pack vertex cos into an array for area_poly_v3 */
-  for (int i = 0; i < poly->totloop; i++, l_iter++) {
-    copy_v3_v3(vertexcos[i], vert_positions[l_iter->v]);
+  Array<float3, 32> poly_coords(poly_loops.size());
+  for (const int i : poly_loops.index_range()) {
+    poly_coords[i] = vert_positions[poly_loops[i].v];
   }
+  return area_poly_v3((const float(*)[3])poly_coords.data(), poly_loops.size());
+}
 
-  /* finally calculate the area */
-  float area = area_poly_v3((const float(*)[3])vertexcos, uint(poly->totloop));
+}  // namespace blender::bke::mesh
 
-  return area;
+float BKE_mesh_calc_poly_area(const MLoop *poly_loops,
+                              const int poly_size,
+                              const float (*vert_positions)[3],
+                              const int verts_num)
+{
+  return blender::bke::mesh::poly_area_calc(
+      {reinterpret_cast<const float3 *>(vert_positions), verts_num}, {poly_loops, poly_size});
 }
 
 float BKE_mesh_calc_area(const Mesh *me)
@@ -108,14 +123,14 @@ float BKE_mesh_calc_area(const Mesh *me)
 
   float total_area = 0.0f;
   for (const MPoly &poly : polys) {
-    total_area += BKE_mesh_calc_poly_area(
-        &poly, &loops[poly.loopstart], reinterpret_cast<const float(*)[3]>(positions.data()));
+    total_area += blender::bke::mesh::poly_area_calc(positions,
+                                                     loops.slice(poly.loopstart, poly.totloop));
   }
   return total_area;
 }
 
-static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *poly,
-                                                             const MLoop *loopstart,
+static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MLoop *poly_loops,
+                                                             const int poly_size,
                                                              const float (*positions)[3],
                                                              float r_cent[3])
 {
@@ -124,11 +139,11 @@ static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *poly,
 
   zero_v3(r_cent);
 
-  v_pivot = positions[loopstart[0].v];
-  v_step1 = positions[loopstart[1].v];
+  v_pivot = positions[poly_loops[0].v];
+  v_step1 = positions[poly_loops[1].v];
 
-  for (int i = 2; i < poly->totloop; i++) {
-    const float *v_step2 = positions[loopstart[i].v];
+  for (int i = 2; i < poly_size; i++) {
+    const float *v_step2 = positions[poly_loops[i].v];
 
     /* Calculate the 6x volume of the tetrahedron formed by the 3 vertices
      * of the triangle and the origin as the fourth vertex */
@@ -151,26 +166,27 @@ static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *poly,
   return total_volume;
 }
 
+namespace blender::bke::mesh {
+
 /**
  * A version of mesh_calc_poly_volume_centroid that takes an initial reference center,
  * use this to increase numeric stability as the quality of the result becomes
  * very low quality as the value moves away from 0.0, see: #65986.
  */
-static float mesh_calc_poly_volume_centroid_with_reference_center(const MPoly *poly,
-                                                                  const MLoop *loopstart,
-                                                                  const Span<float3> positions,
-                                                                  const float reference_center[3],
+static float mesh_calc_poly_volume_centroid_with_reference_center(const Span<float3> positions,
+                                                                  const Span<MLoop> poly_loops,
+                                                                  const float3 &reference_center,
                                                                   float r_cent[3])
 {
   /* See: mesh_calc_poly_volume_centroid for comments. */
   float v_pivot[3], v_step1[3];
   float total_volume = 0.0f;
   zero_v3(r_cent);
-  sub_v3_v3v3(v_pivot, positions[loopstart[0].v], reference_center);
-  sub_v3_v3v3(v_step1, positions[loopstart[1].v], reference_center);
-  for (int i = 2; i < poly->totloop; i++) {
+  sub_v3_v3v3(v_pivot, positions[poly_loops[0].v], reference_center);
+  sub_v3_v3v3(v_step1, positions[poly_loops[1].v], reference_center);
+  for (int i = 2; i < poly_loops.size(); i++) {
     float v_step2[3];
-    sub_v3_v3v3(v_step2, positions[loopstart[i].v], reference_center);
+    sub_v3_v3v3(v_step2, positions[poly_loops[i].v], reference_center);
     const float tetra_volume = volume_tri_tetrahedron_signed_v3_6x(v_pivot, v_step1, v_step2);
     total_volume += tetra_volume;
     for (uint j = 0; j < 3; j++) {
@@ -187,21 +203,22 @@ static float mesh_calc_poly_volume_centroid_with_reference_center(const MPoly *p
  * - This has the advantage over #mesh_calc_poly_volume_centroid
  *   that it doesn't depend on solid geometry, instead it weights the surface by volume.
  */
-static float mesh_calc_poly_area_centroid(const MPoly *poly,
-                                          const MLoop *loopstart,
-                                          const float (*positions)[3],
-                                          float r_cent[3])
+static float poly_area_centroid_calc(const Span<float3> positions,
+                                     const Span<MLoop> poly_loops,
+                                     float r_cent[3])
 {
   float total_area = 0.0f;
-  float v1[3], v2[3], v3[3], normal[3], tri_cent[3];
+  float v1[3], v2[3], v3[3], tri_cent[3];
 
-  BKE_mesh_calc_poly_normal(poly, loopstart, positions, normal);
-  copy_v3_v3(v1, positions[loopstart[0].v]);
-  copy_v3_v3(v2, positions[loopstart[1].v]);
+  const float3 normal = blender::bke::mesh::poly_normal_calc(positions, poly_loops);
+
+  copy_v3_v3(v1, positions[poly_loops[0].v]);
+  copy_v3_v3(v2, positions[poly_loops[1].v]);
+
   zero_v3(r_cent);
 
-  for (int i = 2; i < poly->totloop; i++) {
-    copy_v3_v3(v3, positions[loopstart[i].v]);
+  for (int i = 2; i < poly_loops.size(); i++) {
+    copy_v3_v3(v3, positions[poly_loops[i].v]);
 
     float tri_area = area_tri_signed_v3(v1, v2, v3, normal);
     total_area += tri_area;
@@ -217,24 +234,23 @@ static float mesh_calc_poly_area_centroid(const MPoly *poly,
   return total_area;
 }
 
-void BKE_mesh_calc_poly_angles(const MPoly *poly,
-                               const MLoop *loopstart,
-                               const float (*vert_positions)[3],
-                               float angles[])
+void poly_angles_calc(const Span<float3> vert_positions,
+                      const Span<MLoop> poly_loops,
+                      MutableSpan<float> angles)
 {
   float nor_prev[3];
   float nor_next[3];
 
-  int i_this = poly->totloop - 1;
+  int i_this = poly_loops.size() - 1;
   int i_next = 0;
 
   sub_v3_v3v3(
-      nor_prev, vert_positions[loopstart[i_this - 1].v], vert_positions[loopstart[i_this].v]);
+      nor_prev, vert_positions[poly_loops[i_this - 1].v], vert_positions[poly_loops[i_this].v]);
   normalize_v3(nor_prev);
 
-  while (i_next < poly->totloop) {
+  while (i_next < poly_loops.size()) {
     sub_v3_v3v3(
-        nor_next, vert_positions[loopstart[i_this].v], vert_positions[loopstart[i_next].v]);
+        nor_next, vert_positions[poly_loops[i_this].v], vert_positions[poly_loops[i_next].v]);
     normalize_v3(nor_next);
     angles[i_this] = angle_normalized_v3v3(nor_prev, nor_next);
 
@@ -244,6 +260,8 @@ void BKE_mesh_calc_poly_angles(const MPoly *poly,
     i_next++;
   }
 }
+
+}  // namespace blender::bke::mesh
 
 void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLoop *mloop)
 {
@@ -332,7 +350,7 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
   float poly_area;
   float total_area = 0.0f;
   float poly_cent[3];
-  const float(*positions)[3] = BKE_mesh_vert_positions(me);
+  const Span<float3> positions = me->vert_positions();
   const blender::Span<MPoly> polys = me->polys();
   const blender::Span<MLoop> loops = me->loops();
 
@@ -340,8 +358,8 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
 
   /* calculate a weighted average of polygon centroids */
   for (const int i : polys.index_range()) {
-    poly_area = mesh_calc_poly_area_centroid(
-        &polys[i], &loops[polys[i].loopstart], positions, poly_cent);
+    poly_area = blender::bke::mesh::poly_area_centroid_calc(
+        positions, loops.slice(polys[i].loopstart, polys[i].totloop), poly_cent);
 
     madd_v3_v3fl(r_cent, poly_cent, poly_area);
     total_area += poly_area;
@@ -376,8 +394,8 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 
   /* calculate a weighted average of polyhedron centroids */
   for (const int i : polys.index_range()) {
-    poly_volume = mesh_calc_poly_volume_centroid_with_reference_center(
-        &polys[i], &loops[polys[i].loopstart], positions, init_cent, poly_cent);
+    poly_volume = blender::bke::mesh::mesh_calc_poly_volume_centroid_with_reference_center(
+        positions, loops.slice(polys[i].loopstart, polys[i].totloop), init_cent, poly_cent);
 
     /* poly_cent is already volume-weighted, so no need to multiply by the volume */
     add_v3_v3(r_cent, poly_cent);

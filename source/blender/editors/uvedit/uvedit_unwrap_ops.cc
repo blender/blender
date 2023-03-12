@@ -39,7 +39,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"

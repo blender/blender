@@ -23,7 +23,7 @@
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 static std::string getActiveUVLayerName(Object *ob)
 {

@@ -42,7 +42,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
@@ -2258,23 +2258,19 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   if (poly_normals_needed) {
-    BKE_mesh_calc_normals_poly(positions,
-                               mesh->totvert,
-                               loops.data(),
-                               loops.size(),
-                               polys.data(),
-                               polys.size(),
-                               poly_normals);
+    blender::bke::mesh::normals_calc_polys(
+        {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
+        polys,
+        loops,
+        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()});
   }
   if (vert_normals_needed) {
-    BKE_mesh_calc_normals_poly_and_vertex(positions,
-                                          mesh->totvert,
-                                          loops.data(),
-                                          loops.size(),
-                                          polys.data(),
-                                          polys.size(),
-                                          poly_normals,
-                                          vert_normals);
+    blender::bke::mesh::normals_calc_poly_vert(
+        {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
+        polys,
+        loops,
+        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
   if (loop_normals_needed) {
     short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
@@ -2283,24 +2279,21 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     const bool *sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
-    BKE_mesh_normals_loop_split(positions,
-                                vert_normals,
-                                mesh->totvert,
-                                edges.data(),
-                                mesh->totedge,
-                                loops.data(),
-                                r_loop_normals,
-                                loops.size(),
-                                polys.data(),
-                                poly_normals,
-                                polys.size(),
-                                (mesh->flag & ME_AUTOSMOOTH) != 0,
-                                mesh->smoothresh,
-                                sharp_edges,
-                                sharp_faces,
-                                nullptr,
-                                nullptr,
-                                clnors);
+    blender::bke::mesh::normals_calc_loop(
+        {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
+        edges,
+        polys,
+        loops,
+        {},
+        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert},
+        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        sharp_edges,
+        sharp_faces,
+        (mesh->flag & ME_AUTOSMOOTH) != 0,
+        mesh->smoothresh,
+        clnors,
+        nullptr,
+        {reinterpret_cast<blender::float3 *>(r_loop_normals), loops.size()});
   }
 
   if (free_vert_normals) {

@@ -34,7 +34,7 @@
 #  include "BKE_customdata.h"
 #  include "BKE_editmesh_bvh.h"
 #  include "BKE_lib_id.h"
-#  include "BKE_mesh.h"
+#  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.h"
 
 #  include "DEG_depsgraph_query.h"

@@ -20,7 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.
  * Although Alembic only allows for a single UV layer per {I|O}Schema, and does

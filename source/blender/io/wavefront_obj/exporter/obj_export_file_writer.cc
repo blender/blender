@@ -9,7 +9,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_blender_version.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"

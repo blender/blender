@@ -19,7 +19,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"

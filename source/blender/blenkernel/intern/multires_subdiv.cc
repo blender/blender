@@ -12,7 +12,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"

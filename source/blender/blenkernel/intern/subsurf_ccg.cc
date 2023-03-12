@@ -33,7 +33,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"

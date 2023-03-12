@@ -31,7 +31,7 @@
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_screen.h"

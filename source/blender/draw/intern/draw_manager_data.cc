@@ -15,7 +15,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"

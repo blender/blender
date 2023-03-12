@@ -12,7 +12,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 
 #include "BLI_bitmap.h"
@@ -233,6 +233,7 @@ void BKE_mesh_foreach_mapped_face_center(
     void *userData,
     MeshForeachFlag flag)
 {
+  using namespace blender;
   if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
@@ -267,11 +268,9 @@ void BKE_mesh_foreach_mapped_face_center(
     }
   }
   else {
-    const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+    const blender::Span<float3> positions = mesh->vert_positions();
     const blender::Span<MPoly> polys = mesh->polys();
     const blender::Span<MLoop> loops = mesh->loops();
-    float _no_buf[3];
-    float *no = (flag & MESH_FOREACH_USE_NORMAL) ? _no_buf : nullptr;
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
 
     if (index) {
@@ -280,22 +279,28 @@ void BKE_mesh_foreach_mapped_face_center(
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        float cent[3];
-        BKE_mesh_calc_poly_center(&polys[i], &loops[polys[i].loopstart], positions, cent);
+        const Span<MLoop> poly_loops = loops.slice(polys[i].loopstart, polys[i].totloop);
+        const float3 center = bke::mesh::poly_center_calc(positions, poly_loops);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          BKE_mesh_calc_poly_normal(&polys[i], &loops[polys[i].loopstart], positions, no);
+          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_loops);
+          func(userData, orig, center, normal);
         }
-        func(userData, orig, cent, no);
+        else {
+          func(userData, orig, center, nullptr);
+        }
       }
     }
     else {
       for (const int i : polys.index_range()) {
-        float cent[3];
-        BKE_mesh_calc_poly_center(&polys[i], &loops[polys[i].loopstart], positions, cent);
+        const Span<MLoop> poly_loops = loops.slice(polys[i].loopstart, polys[i].totloop);
+        const float3 center = bke::mesh::poly_center_calc(positions, poly_loops);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          BKE_mesh_calc_poly_normal(&polys[i], &loops[polys[i].loopstart], positions, no);
+          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_loops);
+          func(userData, i, center, normal);
         }
-        func(userData, i, cent, no);
+        else {
+          func(userData, i, center, nullptr);
+        }
       }
     }
   }

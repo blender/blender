@@ -90,7 +90,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 

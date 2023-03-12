@@ -25,7 +25,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
 #include "UI_interface.h"
@@ -180,6 +180,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     mul_mat3_m4_v3(projectors[i].ob->object_to_world, projectors[i].normal);
   }
 
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::Span<MPoly> polys = mesh->polys();
   const blender::Span<MLoop> loops = mesh->loops();
 
@@ -225,13 +226,13 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
     else {
       /* multiple projectors, select the closest to face normal direction */
-      float face_no[3];
       int j;
       Projector *best_projector;
       float best_dot;
 
       /* get the untransformed face normal */
-      BKE_mesh_calc_poly_normal(&poly, &loops[poly.loopstart], (const float(*)[3])coords, face_no);
+      const blender::float3 face_no = blender::bke::mesh::poly_normal_calc(
+          positions, loops.slice(poly.loopstart, poly.totloop));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)

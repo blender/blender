@@ -23,7 +23,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "collada_internal.h"
 #include "collada_utils.h"
@@ -643,11 +643,8 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
     if (!use_vert_normals) {
       /* For flat faces use face normal as vertex normal: */
 
-      float vector[3];
-      BKE_mesh_calc_poly_normal(poly,
-                                &loops[poly->loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                vector);
+      const float3 vector = blender::bke::mesh::poly_normal_calc(
+          positions, loops.slice(poly->loopstart, poly->totloop));
 
       Normal n = {vector[0], vector[1], vector[2]};
       normals.push_back(n);

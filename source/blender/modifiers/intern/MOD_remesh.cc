@@ -21,7 +21,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_screen.h"

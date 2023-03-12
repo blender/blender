@@ -10,6 +10,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_global.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include <sstream>
@@ -410,12 +411,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // Compute loop triangles
   int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  BKE_mesh_recalc_looptri(mesh_loops.data(),
-                          mesh_polys.data(),
-                          reinterpret_cast<const float(*)[3]>(vert_positions.data()),
-                          me->totloop,
-                          me->totpoly,
-                          mlooptri);
+  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, mesh_loops, {mlooptri, tottri});
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);

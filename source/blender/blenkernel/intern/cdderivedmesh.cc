@@ -20,7 +20,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -121,12 +121,11 @@ static void cdDM_recalc_looptri(DerivedMesh *dm)
   DM_ensure_looptri_data(dm);
   BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
 
-  BKE_mesh_recalc_looptri(cddm->mloop,
-                          cddm->mpoly,
-                          cddm->vert_positions,
-                          totloop,
-                          totpoly,
-                          cddm->dm.looptris.array_wip);
+  blender::bke::mesh::looptris_calc(
+      {reinterpret_cast<const blender::float3 *>(cddm->vert_positions), dm->numVertData},
+      {cddm->mpoly, totpoly},
+      {cddm->mloop, totloop},
+      {dm->looptris.array_wip, dm->looptris.num});
 
   BLI_assert(cddm->dm.looptris.array == NULL);
   atomic_cas_ptr(

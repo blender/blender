@@ -34,7 +34,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_fair.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
@@ -113,6 +113,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                const int n,
                                                const TaskParallelTLS *__restrict tls)
 {
+  using namespace blender;
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
@@ -125,7 +126,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  const float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  const Span<float3> positions(
+      reinterpret_cast<const float3 *>(SCULPT_mesh_deformed_positions_get(ss)),
+      SCULPT_vertex_count_get(ss));
+  const Span<MLoop> loops(ss->mloop, data->me->totloop);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
@@ -139,8 +143,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       for (int j = 0; j < ss->pmap[vd.index].count; j++) {
         const MPoly &poly = ss->polys[vert_map->indices[j]];
 
-        float poly_center[3];
-        BKE_mesh_calc_poly_center(&poly, &ss->mloop[poly.loopstart], positions, poly_center);
+        const float3 poly_center = bke::mesh::poly_center_calc(
+            positions, loops.slice(poly.loopstart, poly.totloop));
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;

@@ -20,7 +20,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -1409,7 +1409,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
   if (node->flag & PBVH_UpdateNormals) {
     uint mpoly_prev = UINT_MAX;
-    float fn[3];
+    blender::float3 fn;
 
     const int *faces = node->prim_indices;
     const int totface = node->totprim;
@@ -1426,7 +1426,9 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
       /* Face normal and mask */
       if (lt->poly != mpoly_prev) {
         const MPoly &poly = pbvh->polys[lt->poly];
-        BKE_mesh_calc_poly_normal(&poly, &pbvh->mloop[poly.loopstart], pbvh->vert_positions, fn);
+        fn = blender::bke::mesh::poly_normal_calc(
+            {reinterpret_cast<const blender::float3 *>(pbvh->vert_positions), pbvh->totvert},
+            {&pbvh->mloop[poly.loopstart], poly.totloop});
         mpoly_prev = lt->poly;
       }
 

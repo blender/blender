@@ -20,7 +20,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"

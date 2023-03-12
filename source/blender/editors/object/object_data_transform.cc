@@ -35,7 +35,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_scene.h"
 
 #include "bmesh.h"
