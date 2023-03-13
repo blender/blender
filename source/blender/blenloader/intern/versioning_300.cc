@@ -4148,7 +4148,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 306, 1)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 3)) {
     /* Z bias for retopology overlay. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "retopology_offset")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
