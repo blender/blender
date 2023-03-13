@@ -230,6 +230,7 @@ void normals_calc_polys(const Span<float3> positions,
                         const Span<MLoop> loops,
                         MutableSpan<float3> poly_normals)
 {
+  BLI_assert(polys.size() == poly_normals.size());
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       const MPoly &poly = polys[i];
@@ -415,7 +416,7 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 
     poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
     blender::bke::mesh::normals_calc_polys(
-        positions, polys, loops, {reinterpret_cast<float3 *>(poly_normals), mesh->totvert});
+        positions, polys, loops, {reinterpret_cast<float3 *>(poly_normals), mesh->totpoly});
 
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
   });
