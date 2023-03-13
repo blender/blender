@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -1541,10 +1541,6 @@ msgid "Time"
 msgstr "समय"
 
 
-msgid "Number"
-msgstr "संख्या"
-
-
 msgid "Delete"
 msgstr "मिटाएँ"
 
@@ -1852,14 +1848,6 @@ msgstr "गतिकी"
 
 msgid "Add Color"
 msgstr "रंग जोड़ें"
-
-
-msgid "Root"
-msgstr "मूल"
-
-
-msgid "Sharp"
-msgstr "पैना"
 
 
 msgid "Repeat"
@@ -2478,6 +2466,10 @@ msgid "Roughness 2"
 msgstr "खुरदरापन २"
 
 
+msgid "Number"
+msgstr "संख्या"
+
+
 msgid "Show particle number"
 msgstr "कण संख्या दिखाएँ"
 
@@ -2567,10 +2559,6 @@ msgid "Modified"
 msgstr "संशोधित"
 
 
-msgid "Lines"
-msgstr "लाइनों"
-
-
 msgid "Register"
 msgstr "पंजीकृत करें"
 
@@ -2621,6 +2609,10 @@ msgstr "पारदर्शिता सरणि जानकारी मे
 
 msgid "Calculate Alpha"
 msgstr "पारदर्शिता गणना"
+
+
+msgid "Sharp"
+msgstr "पैना"
 
 
 msgid "Sin"
@@ -3025,6 +3017,10 @@ msgid "Seam"
 msgstr "सीवन"
 
 
+msgid "Root"
+msgstr "मूल"
+
+
 msgid "Ball"
 msgstr "गेंद"
 
@@ -3144,6 +3140,10 @@ msgstr "यादृच्छिक"
 
 msgid "Use distance between affected object's vertices and target object, or target object's geometry"
 msgstr "प्रभावित ऑब्जेक्ट सकें और लक्ष्य ऑब्जेक्ट के बीच दूरी का उपयोग करें, या लक्ष्य वस्तु की ज्यामिति"
+
+
+msgid "Lines"
+msgstr "लाइनों"
 
 
 msgid "Tracks"
@@ -5542,10 +5542,6 @@ msgid "Update Trunk"
 msgstr "अद्यतन ट्रंक"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgctxt "Operator"
 msgid "New"
 msgstr "नई"
@@ -5698,16 +5694,16 @@ msgid "Roughness End"
 msgstr "खुरदरापन समाप्त"
 
 
+msgid "Use Timing"
+msgstr "समय का उपयोग करें"
+
+
 msgid "Spacing: %g"
 msgstr "रिक्ति: %g"
 
 
 msgid "%d fluid particles for this frame"
 msgstr "इस गठन के लिए %d तरल पदार्थ कणों"
-
-
-msgid "Use Timing"
-msgstr "समय का उपयोग करें"
 
 
 msgid "Structural"
@@ -6019,10 +6015,6 @@ msgstr "संचिका:"
 
 msgid "Author:"
 msgstr "लेखक:"
-
-
-msgid "author"
-msgstr "लेखक"
 
 
 msgid "Version:"

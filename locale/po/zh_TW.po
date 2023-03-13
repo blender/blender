@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -9753,10 +9753,6 @@ msgid "Effective but slow compression"
 msgstr "有效但緩慢的壓縮"
 
 
-msgid "Number"
-msgstr "數目"
-
-
 msgid "Randomness"
 msgstr "隨機度"
 
@@ -11610,22 +11606,6 @@ msgstr "遮罩紋理疊層 Alpha"
 
 msgid "Editable falloff curve"
 msgstr "可編輯的衰減曲線"
-
-
-msgid "Root"
-msgstr "基根"
-
-
-msgid "Sharp"
-msgstr "銳利"
-
-
-msgid "Sharper"
-msgstr "更銳利"
-
-
-msgid "Inverse Square"
-msgstr "反轉平方"
 
 
 msgid "Paint most on faces pointing towards the view according to this angle"
@@ -13926,6 +13906,10 @@ msgid "Inverse Linear"
 msgstr "反轉線性"
 
 
+msgid "Inverse Square"
+msgstr "反轉平方"
+
+
 msgid "Lin/Quad Weighted"
 msgstr "線性/二次型權重"
 
@@ -15773,6 +15757,10 @@ msgid "Show guide hairs"
 msgstr "顯示導引毛髮"
 
 
+msgid "Number"
+msgstr "數目"
+
+
 msgid "Show particle number"
 msgstr "顯示粒子數目"
 
@@ -16491,10 +16479,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "磁碟上的文字檔與記憶體中的不同"
 
 
-msgid "Lines"
-msgstr "線條"
-
-
 msgid "Lines of text"
 msgstr "文字的列"
 
@@ -17099,8 +17083,16 @@ msgid "Use soft marble"
 msgstr "使用柔大理石"
 
 
+msgid "Sharp"
+msgstr "銳利"
+
+
 msgid "Use more clearly defined marble"
 msgstr "使用更清晰定義的大理石"
+
+
+msgid "Sharper"
+msgstr "更銳利"
 
 
 msgid "Use very clearly defined marble"
@@ -19772,6 +19764,10 @@ msgstr "皮膚的半徑"
 
 msgid "If vertex has multiple adjacent edges, it is hulled to them directly"
 msgstr "如果頂點有多條相鄰邊線，它會被它們直接拉過去"
+
+
+msgid "Root"
+msgstr "基根"
 
 
 msgid "Mesh Skin Vertex Layer"
@@ -22447,6 +22443,10 @@ msgstr "快取的幀數"
 
 msgid "Line Thickness"
 msgstr "線條厚度"
+
+
+msgid "Lines"
+msgstr "線條"
 
 
 msgid "Use straight lines between keyframe points"
@@ -54225,10 +54225,6 @@ msgid "Invert Selection"
 msgstr "反轉選取項"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "跟蹤"
 
@@ -54258,12 +54254,12 @@ msgid "Active object is not a mesh"
 msgstr "作用中物體非網格"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "是否移除擴充元件：%r？"
-
-
 msgid "Warning, file already exists. Overwrite existing file?"
 msgstr "警告：檔案已經存在。是否覆蓋既有檔案？"
+
+
+msgid "Remove Add-on: %r?"
+msgstr "是否移除擴充元件：%r？"
 
 
 msgctxt "Operator"
@@ -54680,10 +54676,6 @@ msgid "Strand Shape"
 msgstr "股段外形"
 
 
-msgid "Spacing: %g"
-msgstr "間隔：%g"
-
-
 msgid "Settings used for fluid"
 msgstr "用於流體的設定"
 
@@ -54692,16 +54684,20 @@ msgid "Jittering Amount"
 msgstr "抖動量"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "此框幀的 %d 個流體粒子"
-
-
 msgid "Use Timing"
 msgstr "使用計時"
 
 
+msgid "Spacing: %g"
+msgstr "間隔：%g"
+
+
 msgid "Not yet functional"
 msgstr "尚未能運作"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "此框幀的 %d 個流體粒子"
 
 
 msgid "Dynamic Mesh"
@@ -55440,12 +55436,12 @@ msgid "Rotation"
 msgstr "旋轉"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "原始框幀區間：%d-%d (%d)"
-
-
 msgid "Unpack"
 msgstr "解包"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "原始框幀區間：%d-%d (%d)"
 
 
 msgctxt "Text"
@@ -55652,10 +55648,6 @@ msgid "Excluded Paths"
 msgstr "排除的路徑"
 
 
-msgid "Color Set %d"
-msgstr "色彩集 %d"
-
-
 msgid "Invert Wheel Zoom Direction"
 msgstr "反轉滾輪遠近調焦方向"
 
@@ -55666,6 +55658,10 @@ msgstr "找到多個同名的附加元件！"
 
 msgid "Missing script files"
 msgstr "遺失的指令稿檔案"
+
+
+msgid "Color Set %d"
+msgstr "色彩集 %d"
 
 
 msgid "Description:"
@@ -55682,10 +55678,6 @@ msgstr "檔案："
 
 msgid "Author:"
 msgstr "作者："
-
-
-msgid "author"
-msgstr "作者"
 
 
 msgid "Version:"
