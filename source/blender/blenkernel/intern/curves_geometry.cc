@@ -17,11 +17,14 @@
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"
 
+#include "BLO_read_write.h"
+
 #include "DNA_curves_types.h"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_customdata.h"
 
 namespace blender::bke {
 
@@ -1568,6 +1571,35 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
 
   BLI_assert_unreachable();
   return {};
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File reading/writing.
+ * \{ */
+
+void CurvesGeometry::blend_read(BlendDataReader &reader)
+{
+  CustomData_blend_read(&reader, &this->point_data, this->point_num);
+  CustomData_blend_read(&reader, &this->curve_data, this->curve_num);
+
+  BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+}
+
+void CurvesGeometry::blend_write(BlendWriter &writer, ID &id)
+{
+  Vector<CustomDataLayer, 16> point_layers;
+  Vector<CustomDataLayer, 16> curve_layers;
+  CustomData_blend_write_prepare(this->point_data, point_layers);
+  CustomData_blend_write_prepare(this->curve_data, curve_layers);
+
+  CustomData_blend_write(
+      &writer, &this->point_data, point_layers, this->point_num, CD_MASK_ALL, &id);
+  CustomData_blend_write(
+      &writer, &this->curve_data, curve_layers, this->curve_num, CD_MASK_ALL, &id);
+
+  BLO_write_int32_array(&writer, this->curve_num + 1, this->curve_offsets);
 }
 
 /** \} */
