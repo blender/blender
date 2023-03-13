@@ -809,10 +809,11 @@ if(WITH_GTESTS)
     set(TEST_SRC
       tests/gpu_testing.cc
 
-      tests/gpu_index_buffer_test.cc
-      tests/gpu_push_constants_test.cc
-      tests/gpu_shader_test.cc
-      tests/gpu_storage_buffer_test.cc
+      tests/index_buffer_test.cc
+      tests/push_constants_test.cc
+      tests/shader_test.cc
+      tests/storage_buffer_test.cc
+      tests/texture_test.cc
 
       tests/gpu_testing.hh
     )

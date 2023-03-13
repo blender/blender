@@ -33,7 +33,7 @@ static void test_shader_compile_statically_defined()
 }
 GPU_TEST(shader_compile_statically_defined)
 
-static void test_gpu_shader_compute_2d()
+static void test_shader_compute_2d()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -77,9 +77,9 @@ static void test_gpu_shader_compute_2d()
   GPU_texture_free(texture);
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_compute_2d)
+GPU_TEST(shader_compute_2d)
 
-static void test_gpu_shader_compute_1d()
+static void test_shader_compute_1d()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -126,9 +126,9 @@ static void test_gpu_shader_compute_1d()
   GPU_texture_free(texture);
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_compute_1d)
+GPU_TEST(shader_compute_1d)
 
-static void test_gpu_shader_compute_vbo()
+static void test_shader_compute_vbo()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -173,9 +173,9 @@ static void test_gpu_shader_compute_vbo()
   GPU_vertbuf_discard(vbo);
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_compute_vbo)
+GPU_TEST(shader_compute_vbo)
 
-static void test_gpu_shader_compute_ibo()
+static void test_shader_compute_ibo()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -214,9 +214,9 @@ static void test_gpu_shader_compute_ibo()
   GPU_indexbuf_discard(ibo);
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_compute_ibo)
+GPU_TEST(shader_compute_ibo)
 
-static void test_gpu_shader_compute_ssbo()
+static void test_shader_compute_ssbo()
 {
 
   if (!GPU_compute_shader_support() && !GPU_shader_storage_buffer_objects_support()) {
@@ -256,9 +256,9 @@ static void test_gpu_shader_compute_ssbo()
   GPU_storagebuf_free(ssbo);
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_compute_ssbo)
+GPU_TEST(shader_compute_ssbo)
 
-static void test_gpu_shader_ssbo_binding()
+static void test_shader_ssbo_binding()
 {
   if (!GPU_compute_shader_support()) {
     /* We can't test as a the platform does not support compute shaders. */
@@ -269,7 +269,7 @@ static void test_gpu_shader_ssbo_binding()
   /* Build compute shader. */
   GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
-  
+
   /* Perform tests. */
   EXPECT_EQ(0, GPU_shader_get_ssbo_binding(shader, "data0"));
   EXPECT_EQ(1, GPU_shader_get_ssbo_binding(shader, "data1"));
@@ -277,44 +277,7 @@ static void test_gpu_shader_ssbo_binding()
   /* Cleanup. */
   GPU_shader_free(shader);
 }
-GPU_TEST(gpu_shader_ssbo_binding)
-
-static void test_gpu_texture_read()
-{
-  GPU_render_begin();
-
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *rgba32u = GPU_texture_create_2d("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
-  GPUTexture *rgba16u = GPU_texture_create_2d("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
-  GPUTexture *rgba32f = GPU_texture_create_2d("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
-
-  const float4 fcol = {0.0f, 1.3f, -231.0f, 1000.0f};
-  const uint4 ucol = {0, 1, 2, 12223};
-  GPU_texture_clear(rgba32u, GPU_DATA_UINT, ucol);
-  GPU_texture_clear(rgba16u, GPU_DATA_UINT, ucol);
-  GPU_texture_clear(rgba32f, GPU_DATA_FLOAT, fcol);
-
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-
-  uint4 *rgba32u_data = (uint4 *)GPU_texture_read(rgba32u, GPU_DATA_UINT, 0);
-  uint4 *rgba16u_data = (uint4 *)GPU_texture_read(rgba16u, GPU_DATA_UINT, 0);
-  float4 *rgba32f_data = (float4 *)GPU_texture_read(rgba32f, GPU_DATA_FLOAT, 0);
-
-  EXPECT_EQ(ucol, *rgba32u_data);
-  EXPECT_EQ(ucol, *rgba16u_data);
-  EXPECT_EQ(fcol, *rgba32f_data);
-
-  MEM_freeN(rgba32u_data);
-  MEM_freeN(rgba16u_data);
-  MEM_freeN(rgba32f_data);
-
-  GPU_texture_free(rgba32u);
-  GPU_texture_free(rgba16u);
-  GPU_texture_free(rgba32f);
-
-  GPU_render_end();
-}
-GPU_TEST(gpu_texture_read)
+GPU_TEST(shader_ssbo_binding)
 
 static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 {
@@ -487,11 +450,11 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   GPU_render_end();
 }
 
-static void test_gpu_math_lib()
+static void test_math_lib()
 {
   gpu_shader_lib_test("gpu_math_test.glsl");
 }
-GPU_TEST(gpu_math_lib)
+GPU_TEST(math_lib)
 
 static void test_eevee_lib()
 {
