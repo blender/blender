@@ -269,13 +269,12 @@ static void test_gpu_shader_ssbo_binding()
   /* Build compute shader. */
   GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
-  GPU_shader_bind(shader);
-
+  
+  /* Perform tests. */
   EXPECT_EQ(0, GPU_shader_get_ssbo_binding(shader, "data0"));
   EXPECT_EQ(1, GPU_shader_get_ssbo_binding(shader, "data1"));
 
   /* Cleanup. */
-  GPU_shader_unbind();
   GPU_shader_free(shader);
 }
 GPU_TEST(gpu_shader_ssbo_binding)
