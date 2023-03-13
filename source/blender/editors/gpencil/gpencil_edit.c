@@ -1715,6 +1715,10 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
          */
 
         for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+          /* Active frame is copied later, so don't need duplicate the stroke here. */
+          if (gpl->actframe == gpf) {
+            continue;
+          }
           if (gpf->flag & GP_FRAME_SELECT) {
             if (gpf) {
               /* Create new stroke */
