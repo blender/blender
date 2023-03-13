@@ -392,7 +392,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
     mdl_imported = umm_import_mdl_material(params_, mtl, usd_material, true /* Verbose */, &has_mdl);
-    if (mdl_imported && params_.import_textures_mode == USD_TEX_IMPORT_PACK) {
+    if (params_.import_textures_mode == USD_TEX_IMPORT_PACK) {
       /* Process the imported material to pack the textures.  */
       pack_imported_textures(mtl);
     }
