@@ -527,6 +527,9 @@ REL_PRESETS_DIR = os.path.join("scripts", "presets")
 # Where to search for templates (relative to SOURCE_DIR).
 REL_TEMPLATES_DIR = os.path.join("scripts", "startup", "bl_app_templates_system")
 
+# Name of the built-in asset catalog file.
+ASSET_CATALOG_FILE = "blender_assets.cats.txt"
+
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
 
