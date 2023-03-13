@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -9219,22 +9219,6 @@ msgid "Add Color"
 msgstr "Tambahkan Warna"
 
 
-msgid "Smoother"
-msgstr "Lebih halus"
-
-
-msgid "Root"
-msgstr "Akar"
-
-
-msgid "Sharp"
-msgstr "Tajam"
-
-
-msgid "Sharper"
-msgstr "Lebih Tajam"
-
-
 msgid "Dash Ratio"
 msgstr "Rasio Garis"
 
@@ -9381,14 +9365,6 @@ msgstr "Atribut Kecepatan"
 
 msgid "Name of the Alembic attribute used for generating motion blur data"
 msgstr "Nama atribut Alembic digunakan untuk generasi data blur gerakan"
-
-
-msgid "Velocity Unit"
-msgstr "Unit Kecepatan"
-
-
-msgid "Second"
-msgstr "Kedua"
 
 
 msgid "Field of View"
@@ -10441,6 +10417,14 @@ msgstr "Pola"
 
 msgid "Use soft marble"
 msgstr "Gunakan marmer halus"
+
+
+msgid "Sharp"
+msgstr "Tajam"
+
+
+msgid "Sharper"
+msgstr "Lebih Tajam"
 
 
 msgid "Noise Texture"
@@ -12026,6 +12010,10 @@ msgstr "Layer nilai angka floating-point yang didefinisikan pengguna"
 
 msgid "Skin Vertex"
 msgstr "Warna Standar"
+
+
+msgid "Root"
+msgstr "Akar"
 
 
 msgid "Mesh Skin Vertex Layer"
@@ -22939,10 +22927,6 @@ msgid "No mesh object"
 msgstr "Tidak ada objek mesh"
 
 
-msgid "Rename %d %s"
-msgstr "Ganti nama %d %s"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Buka..."
@@ -23014,6 +22998,10 @@ msgstr "Toko Blender"
 
 msgid "Characters"
 msgstr "Karakter"
+
+
+msgid "Rename %d %s"
+msgstr "Ganti nama %d %s"
 
 
 msgid "Date: %s %s"
@@ -23247,10 +23235,6 @@ msgstr "Ukuran Panah"
 msgctxt "Operator"
 msgid "Delete All Shape Keys"
 msgstr "Hapus Semua Kunci Bentuk"
-
-
-msgid "%s ▶ %s"
-msgstr "%s ▶ %s"
 
 
 msgctxt "Operator"
@@ -23632,18 +23616,6 @@ msgid "Strand Shape"
 msgstr "Partikel"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Iterations: %d .. %d (rata-rata. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Error: %.5f .. %.5f (rata-rata. %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Spasi: %g"
-
-
 msgid "Randomize Amplitude"
 msgstr "Acak Amplitudo"
 
@@ -23660,13 +23632,21 @@ msgid "Coordinate System"
 msgstr "Sistem Koordinasi"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "%d partikel cair untuk frame ini"
-
-
 msgctxt "Operator"
 msgid "Delete Edit"
 msgstr "Hapus Edit"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "Iterations: %d .. %d (rata-rata. %d)"
+
+
+msgid "Error: %.5f .. %.5f (avg. %.5f)"
+msgstr "Error: %.5f .. %.5f (rata-rata. %.5f)"
+
+
+msgid "Spacing: %g"
+msgstr "Spasi: %g"
 
 
 msgid "Not yet functional"
@@ -23681,6 +23661,10 @@ msgstr "Hubungkan Semua"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Putuskan Semua"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "%d partikel cair untuk frame ini"
 
 
 msgid "Speed Multiplier"
@@ -23833,6 +23817,10 @@ msgstr "Bahan Bakar"
 
 msgid "Guide Mode"
 msgstr "Mode Panduan"
+
+
+msgid "Second"
+msgstr "Kedua"
 
 
 msgid "X Stiffness"
@@ -24049,11 +24037,6 @@ msgstr "Set Keyframe B"
 
 
 msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "Perbesar %d:%d"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "Gunakan Tanda"
 
@@ -24063,12 +24046,12 @@ msgid "Frame All Fit"
 msgstr "Semua Frame Cukup/Fit"
 
 
-msgid "Solve error: %.2f px"
-msgstr "Memecahkan error: %.2f px"
-
-
 msgid "Zoom %d:%d"
 msgstr "Perbesar %d:%d"
+
+
+msgid "Solve error: %.2f px"
+msgstr "Memecahkan error: %.2f px"
 
 
 msgctxt "Operator"
@@ -24771,10 +24754,6 @@ msgid "Clip"
 msgstr "Klip"
 
 
-msgid "%dx%d"
-msgstr "%dx%d"
-
-
 msgid "Source Channel"
 msgstr "Saluran Sumber"
 
@@ -24918,14 +24897,6 @@ msgid "Save as Studio light"
 msgstr "Simpan sebagai cahaya Studio"
 
 
-msgid "Color Set %d"
-msgstr "Set Warna %d"
-
-
-msgid "Color %d"
-msgstr "Warna %d"
-
-
 msgid "Player"
 msgstr "Pemain"
 
@@ -24958,6 +24929,14 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Color Set %d"
+msgstr "Set Warna %d"
+
+
+msgid "Color %d"
+msgstr "Warna %d"
+
+
 msgid "Description:"
 msgstr "Deskripsi:"
 
@@ -24972,10 +24951,6 @@ msgstr "Dokumen:"
 
 msgid "Author:"
 msgstr "Pembuat:"
-
-
-msgid "author"
-msgstr "pembuat"
 
 
 msgid "Version:"
@@ -26715,18 +26690,6 @@ msgstr "Metabola '%s' tidak mengandung spline yang diberikan"
 
 msgid "Unable to create new strip"
 msgstr "Tidak dapat membuka dokumen"
-
-
-msgid "Functions"
-msgstr "Fungsi"
-
-
-msgid "Comparison"
-msgstr "Perbandingan"
-
-
-msgid "Conversion"
-msgstr "Konversi"
 
 
 msgid "Vertex not in group"

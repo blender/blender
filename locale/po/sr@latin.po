@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4533,10 +4533,6 @@ msgid "Effective but slow compression"
 msgstr "Efikasna, ali spora kompresija"
 
 
-msgid "Number"
-msgstr "Broj"
-
-
 msgid "p0"
 msgstr "p0"
 
@@ -5444,18 +5440,6 @@ msgstr "Oduzimanje boje"
 
 msgid "Mask Texture Overlay Alpha"
 msgstr "Maskiraj providnost preklapanja teksture"
-
-
-msgid "Root"
-msgstr "Koren"
-
-
-msgid "Sharp"
-msgstr "Oštro"
-
-
-msgid "Sharper"
-msgstr "Oštrije"
 
 
 msgid "Fill Threshold"
@@ -7638,6 +7622,10 @@ msgid "Roughness Curve"
 msgstr "Kriva hrapavosti"
 
 
+msgid "Number"
+msgstr "Broj"
+
+
 msgid "Show particle number"
 msgstr "Prikaži broj čestica"
 
@@ -8008,10 +7996,6 @@ msgid "Modified"
 msgstr "Izmenjen"
 
 
-msgid "Lines"
-msgstr "Linije"
-
-
 msgid "Lines of text"
 msgstr "Linije teksta"
 
@@ -8332,8 +8316,16 @@ msgid "Use soft marble"
 msgstr "Koristi meki mermer"
 
 
+msgid "Sharp"
+msgstr "Oštro"
+
+
 msgid "Use more clearly defined marble"
 msgstr "Koristi jesnije definisan mermer"
+
+
+msgid "Sharper"
+msgstr "Oštrije"
 
 
 msgid "Use very clearly defined marble"
@@ -9619,6 +9611,10 @@ msgid "Radius of the skin"
 msgstr "Radius kože"
 
 
+msgid "Root"
+msgstr "Koren"
+
+
 msgid "Name of skin layer"
 msgstr "Ime sloja kože"
 
@@ -10744,6 +10740,10 @@ msgstr "Izmeni putanju"
 
 msgid "Number of frames cached"
 msgstr "Broj kadrova u ostavi"
+
+
+msgid "Lines"
+msgstr "Linije"
 
 
 msgid "Free Run"
@@ -25127,10 +25127,6 @@ msgid "Invert Selection"
 msgstr "Obrni izbor"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "Praćenje"
 
@@ -25983,10 +25979,6 @@ msgstr "Datoteka:"
 
 msgid "Author:"
 msgstr "Autor:"
-
-
-msgid "author"
-msgstr "autor"
 
 
 msgid "Version:"
