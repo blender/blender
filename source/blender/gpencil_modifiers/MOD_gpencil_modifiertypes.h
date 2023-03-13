@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 
 /* ****************** Type structures for all modifiers ****************** */
 

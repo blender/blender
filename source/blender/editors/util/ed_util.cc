@@ -33,7 +33,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "ED_armature.h"
 #include "ED_asset.h"

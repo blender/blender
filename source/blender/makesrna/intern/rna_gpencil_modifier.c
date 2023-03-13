@@ -9,8 +9,8 @@
 #include <stdlib.h>
 
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -276,8 +276,8 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
-#  include "BKE_gpencil_modifier.h"
+#  include "BKE_gpencil_legacy.h"
+#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_object.h"
 
 #  include "DEG_depsgraph.h"

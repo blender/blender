@@ -32,7 +32,7 @@
 #include "BLI_uuid.h"
 
 #include "DNA_action_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"

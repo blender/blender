@@ -17,7 +17,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -108,7 +108,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #  include "BKE_collection.h"
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
 #  include "BKE_pbvh.h"
