@@ -3200,7 +3200,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
                                                                   Depsgraph *depsgraph,
                                                                   const ARegion *region,
                                                                   const View3D *v3d,
-                                                                  const eSnapMode snap_to_flag,
+                                                                  eSnapMode snap_to_flag,
                                                                   const SnapObjectParams *params,
                                                                   const float init_co[3],
                                                                   const float mval[2],
@@ -3235,7 +3235,16 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+  if (snap_to_flag & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) {
+    if (params->use_occlusion_test && XRAY_ENABLED(v3d)) {
+      /* Remove Snap to Face with Occlusion Test as they are not visible in wireframe mode. */
+      snap_to_flag &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+    }
+    else if (prev_co == nullptr || init_co == nullptr) {
+      /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
+      snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
+    }
+  }
 
   /* NOTE: if both face ray-cast and face nearest are enabled, first find result of nearest, then
    * override with ray-cast. */
@@ -3261,7 +3270,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST || use_occlusion_test) {
+  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true)) {
