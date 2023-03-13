@@ -248,7 +248,7 @@ class GRAPH_MT_key(Menu):
 
         layout.separator()
         layout.operator_menu_enum("graph.keyframe_insert", "type")
-        layout.operator_menu_enum("graph.fmodifier_add", "type")
+        layout.operator_menu_enum("graph.fmodifier_add", "type").only_active = False
         layout.operator("graph.sound_bake")
 
         layout.separator()
