@@ -2843,7 +2843,7 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
   ot->prop = prop;
 
   RNA_def_boolean(
-      ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
+      ot->srna, "only_active", false, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
 /** \} */
