@@ -8,7 +8,7 @@ void node_composite_luminance_matte(vec4 color,
                                     out float matte)
 {
   float luminance = get_luminance(color.rgb, luminance_coefficients);
-  float alpha = clamp(0.0, 1.0, (luminance - low) / (high - low));
+  float alpha = clamp((luminance - low) / (high - low), 0.0, 1.0);
   matte = min(alpha, color.a);
   result = color * matte;
 }
