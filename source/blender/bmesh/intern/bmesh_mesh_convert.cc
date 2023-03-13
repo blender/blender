@@ -1169,9 +1169,9 @@ static void bm_face_loop_table_build(BMesh &bm,
     pin_offsets[i] = ldata.layers[pin_layers[i]].offset;
   }
 
-  Array<bool> need_vert_sel(vert_sel_layers.size());
-  Array<bool> need_edge_sel(edge_sel_layers.size());
-  Array<bool> need_pin(pin_layers.size());
+  Array<bool> need_vert_sel(vert_sel_layers.size(), false);
+  Array<bool> need_edge_sel(edge_sel_layers.size(), false);
+  Array<bool> need_pin(pin_layers.size(), false);
   char hflag = 0;
   BMIter iter;
   int face_i = 0;
