@@ -130,7 +130,6 @@ bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
               "sharp_edge");
 }
 
-/* Static function for alloc (duplicate in modifiers_bmesh.c) */
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
                                          Span<MLoop> loops,
                                          Span<BMVert *> vtable,
@@ -594,7 +593,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 /**
  * \brief BMesh -> Mesh
  */
-static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
+static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
 {
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
   BMVert **vertMap = nullptr;
@@ -603,13 +602,13 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
   BMIter iter;
 
   /* Caller needs to ensure this. */
-  BLI_assert(ototvert > 0);
+  BLI_assert(old_verts_num > 0);
 
-  vertMap = static_cast<BMVert **>(MEM_callocN(sizeof(*vertMap) * ototvert, "vertMap"));
+  vertMap = static_cast<BMVert **>(MEM_callocN(sizeof(*vertMap) * old_verts_num, "vertMap"));
   if (cd_shape_keyindex_offset != -1) {
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-      if ((keyi != ORIGINDEX_NONE) && (keyi < ototvert) &&
+      if ((keyi != ORIGINDEX_NONE) && (keyi < old_verts_num) &&
           /* Not fool-proof, but chances are if we have many verts with the same index,
            * we will want to use the first one,
            * since the second is more likely to be a duplicate. */
@@ -620,7 +619,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
   }
   else {
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-      if (i < ototvert) {
+      if (i < old_verts_num) {
         vertMap[i] = eve;
       }
       else {
@@ -1377,20 +1376,16 @@ static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loop
 
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
-  SCOPED_TIMER_AVERAGED(__func__);
   using namespace blender;
-  const int ototvert = me->totvert;
+  const int old_verts_num = me->totvert;
 
-  /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
   CustomData_free(&me->edata, me->totedge);
   CustomData_free(&me->fdata, me->totface);
   CustomData_free(&me->ldata, me->totloop);
   CustomData_free(&me->pdata, me->totpoly);
-
   BKE_mesh_runtime_clear_geometry(me);
 
-  /* Add new custom data. */
   me->totvert = bm->totvert;
   me->totedge = bm->totedge;
   me->totface = 0;
@@ -1533,8 +1528,8 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
       },
       [&]() {
         /* Patch hook indices and vertex parents. */
-        if (params->calc_object_remap && (ototvert > 0)) {
-          bmesh_to_mesh_calc_object_remap(*bmain, *me, *bm, ototvert);
+        if (params->calc_object_remap && (old_verts_num > 0)) {
+          bmesh_to_mesh_calc_object_remap(*bmain, *me, *bm, old_verts_num);
         }
       },
       [&]() {
@@ -1596,7 +1591,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
   using namespace blender;
-
   /* Must be an empty mesh. */
   BLI_assert(me->totvert == 0);
   BLI_assert(cd_mask_extra == nullptr || (cd_mask_extra->vmask & CD_MASK_SHAPEKEY) == 0);
@@ -1609,7 +1603,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
 
-  /* Don't process shape-keys, we only feed them through the modifier stack as needed,
+  /* Don't process shape-keys. We only feed them through the modifier stack as needed,
    * e.g. for applying modifiers or the like. */
   CustomData_MeshMasks mask = CD_MASK_DERIVEDMESH;
   if (cd_mask_extra != nullptr) {
