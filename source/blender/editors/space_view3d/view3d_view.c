@@ -675,7 +675,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
 
-  /* If in xray mode, we select the wires in priority. */
+  /* If in X-ray mode, we select the wires in priority. */
   if (XRAY_ACTIVE(v3d) && use_nearest) {
     /* We need to call "GPU_select_*" API's inside DRW_draw_select_loop
      * because the OpenGL context created & destroyed inside this function. */

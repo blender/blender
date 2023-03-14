@@ -43,7 +43,7 @@ float3 poly_center_calc(Span<float3> vert_positions, Span<MLoop> poly_loops);
 /** Calculate the surface area of the polygon described by the indexed vertices. */
 float poly_area_calc(Span<float3> vert_positions, Span<MLoop> poly_loops);
 
-/** Calculate the angles at each of the polygons's corners. */
+/** Calculate the angles at each of the polygons corners. */
 void poly_angles_calc(Span<float3> vert_positions,
                       Span<MLoop> poly_loops,
                       MutableSpan<float> angles);

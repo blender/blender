@@ -1307,7 +1307,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         /* Cannot call stuff now (pointers!), done in #setup_app_data. */
         ob->id.recalc |= ID_RECALC_ALL;
 
-        /* new generic xray option */
+        /* New generic X-ray option. */
         arm = blo_do_versions_newlibadr(fd, lib, ob->data);
         enum { ARM_DRAWXRAY = (1 << 1) };
         if (arm->flag & ARM_DRAWXRAY) {

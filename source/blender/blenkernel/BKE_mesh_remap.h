@@ -45,7 +45,7 @@ void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, int index);
  * https://blenderartists.org/t/619105
  *
  * We could also use similar topology mappings inside a same mesh
- * (cf. Campbell's 'select face islands from similar topology' wip work).
+ * (cf. Campbell's 'select face islands from similar topology' WIP work).
  * Also, users will have to check, whether we can get rid of some modes here,
  * not sure all will be useful!
  */

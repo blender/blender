@@ -191,7 +191,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   BLO_read_data_address(reader, &gpd->adt);
   BKE_animdata_blend_read_data(reader, gpd->adt);
 
-  /* Ensure full objectmode for linked grease pencil. */
+  /* Ensure full object-mode for linked grease pencil. */
   if (ID_IS_LINKED(gpd)) {
     gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
     gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
@@ -1364,9 +1364,9 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
         gpl->actframe = gpl->frames.first;
       }
       else {
-        /* unresolved errogenous situation! */
+        /* Unresolved erogenous situation! */
         CLOG_STR_ERROR(&LOG, "cannot find appropriate gp-frame");
-        /* gpl->actframe should still be NULL */
+        /* `gpl->actframe` should still be NULL. */
       }
     }
   }
@@ -2324,7 +2324,7 @@ bool BKE_gpencil_from_image(
           pt->strength = 1.0f - color[3];
         }
 
-        /* Selet Alpha points. */
+        /* Select Alpha points. */
         if (pt->strength < 0.03f) {
           gps->flag |= GP_STROKE_SELECT;
           pt->flag |= GP_SPOINT_SELECT;

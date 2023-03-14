@@ -344,7 +344,7 @@ typedef enum eGP_GetFrame_Mode {
 
 /**
  * Get the appropriate gp-frame from a given layer
- * - this sets the layer's actframe var (if allowed to)
+ * - this sets the layer's `actframe` var (if allowed to)
  * - extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  *
  * \param gpl: Grease pencil layer
@@ -523,7 +523,7 @@ struct Material *BKE_gpencil_object_material_new(struct Main *bmain,
                                                  int *r_index);
 
 /**
- * Get material index (0-based like mat_nr not actcol).
+ * Get material index (0-based like mat_nr not #Object::actcol).
  * \param ob: Grease pencil object
  * \param ma: Material
  * \return Index of the material

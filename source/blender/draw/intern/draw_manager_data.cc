@@ -1243,7 +1243,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   DRWShadingGroup *shgrp = scd->shading_groups[index];
   if (geom != nullptr && shgrp != nullptr) {
     if (SCULPT_DEBUG_BUFFERS) {
-      /* Color each buffers in different colors. Only work in solid/Xray mode. */
+      /* Color each buffers in different colors. Only work in solid/X-ray mode. */
       shgrp = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_vec3(
           shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);

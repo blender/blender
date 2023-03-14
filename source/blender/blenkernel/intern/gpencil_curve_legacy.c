@@ -368,7 +368,7 @@ static void gpencil_convert_spline(Main *bmain,
       if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
         segments--;
       }
-      /* Get all interpolated curve points of Beziert */
+      /* Get all interpolated curve points of Bezier. */
       for (int s = 0; s < segments; s++) {
         int inext = (s + 1) % nu->pntsu;
         BezTriple *prevbezt = &nu->bezt[s];
@@ -915,7 +915,7 @@ static float *gpencil_stroke_points_from_editcurve_adaptive_resolu(
     bool is_cyclic,
     int *r_points_len)
 {
-  /* One stride contains: x, y, z, pressure, strength, Vr, Vg, Vb, Vmix_factor */
+  /* One stride contains: `x, y, z, pressure, strength, Vr, Vg, Vb, Vmix_factor`. */
   const uint stride = sizeof(float[9]);
   const uint cpt_last = curve_point_array_len - 1;
   const uint num_segments = (is_cyclic) ? curve_point_array_len : curve_point_array_len - 1;
