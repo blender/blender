@@ -8,6 +8,10 @@
 
 #include "IMB_imbuf.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Generic File Type
  * \{ */
@@ -269,3 +273,7 @@ struct ImBuf *imb_load_psd(const uchar *mem,
                            char colorspace[IM_MAX_SPACE]);
 
 /** \} */
+
+#ifdef __cplusplus
+};
+#endif
