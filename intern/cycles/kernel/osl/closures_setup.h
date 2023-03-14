@@ -78,7 +78,7 @@ ccl_device void osl_closure_diffuse_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
 
   sd->flag |= bsdf_diffuse_setup(bsdf);
 }
@@ -99,7 +99,7 @@ ccl_device void osl_closure_oren_nayar_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
   bsdf->roughness = closure->roughness;
 
   sd->flag |= bsdf_oren_nayar_setup(bsdf);
@@ -121,7 +121,7 @@ ccl_device void osl_closure_translucent_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
 
   sd->flag |= bsdf_translucent_setup(bsdf);
 }
@@ -999,7 +999,7 @@ ccl_device void osl_closure_principled_diffuse_setup(
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
   bsdf->roughness = closure->roughness;
 
   sd->flag |= bsdf_principled_diffuse_setup(bsdf);
@@ -1022,7 +1022,7 @@ ccl_device void osl_closure_principled_sheen_setup(
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
   bsdf->avg_value = 0.0f;
 
   sd->flag |= bsdf_principled_sheen_setup(sd, bsdf);
@@ -1109,7 +1109,7 @@ ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->N = closure->N;
 
   bsdf->colors = (float3 *)closure_alloc_extra(sd, sizeof(float3) * 8);
   if (!bsdf->colors) {
@@ -1185,7 +1185,7 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
 
   /* create one closure per color channel */
   bssrdf->albedo = closure->albedo;
-  bssrdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bssrdf->N = closure->N;
   bssrdf->roughness = closure->roughness;
   bssrdf->anisotropy = clamp(closure->anisotropy, 0.0f, 0.9f);
 

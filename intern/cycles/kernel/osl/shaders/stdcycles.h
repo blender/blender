@@ -65,38 +65,4 @@ closure color principled_hair(normal N,
 closure color henyey_greenstein(float g) BUILTIN;
 closure color absorption() BUILTIN;
 
-normal ensure_valid_reflection(normal Ng, vector I, normal N)
-{
-  /* The implementation here mirrors the one in bsdf_util.h,
-   * check there for an explanation of the algorithm. */
-
-  float sqr(float x)
-  {
-    return x * x;
-  }
-
-  vector R = 2 * dot(N, I) * N - I;
-
-  float Iz = dot(I, Ng);
-
-  float threshold = min(0.9 * Iz, 0.01);
-  if (dot(Ng, R) >= threshold) {
-    return N;
-  }
-
-  vector X = normalize(N - dot(N, Ng) * Ng);
-  float Ix = dot(I, X);
-
-  float a = sqr(Ix) + sqr(Iz);
-  float b = 2.0 * (a + Iz * threshold);
-  float c = sqr(threshold + Iz);
-
-  float Nz2 = (Ix < 0) ? 0.25 * (b + sqrt(sqr(b) - 4.0 * a * c)) / a :
-                         0.25 * (b - sqrt(sqr(b) - 4.0 * a * c)) / a;
-  float Nx = sqrt(1.0 - Nz2);
-  float Nz = sqrt(Nz2);
-
-  return Nx * X + Nz * Ng;
-}
-
 #endif /* CCL_STDOSL_H */

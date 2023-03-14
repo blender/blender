@@ -180,4 +180,14 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
   return Nx * X + Nz * Ng;
 }
 
+/* Do not call #ensure_valid_reflection if the primitive type is curve or if the geometry
+ * normal and the shading normal is the same. */
+ccl_device float3 maybe_ensure_valid_reflection(ccl_private ShaderData *sd, float3 N)
+{
+  if ((sd->type & PRIMITIVE_CURVE) || isequal(sd->Ng, N)) {
+    return N;
+  }
+  return ensure_valid_reflection(sd->Ng, sd->wi, N);
+}
+
 CCL_NAMESPACE_END
