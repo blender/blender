@@ -837,7 +837,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 static int calc_edge_subdivisions(const float (*vert_positions)[3],
                                   const MVertSkin *nodes,
                                   const MEdge *edge,
-                                  const int *degree)
+                                  const blender::Span<int> degree)
 {
   /* prevent memory errors #38003. */
 #define NUM_SUBDIVISIONS_MAX 128
@@ -905,21 +905,19 @@ static Mesh *subdivide_base(const Mesh *orig)
   int orig_edge_num = orig->totedge;
 
   /* Get degree of all vertices */
-  int *degree = MEM_cnew_array<int>(orig_vert_num, __func__);
+  blender::Array<int> degree(orig_vert_num, 0);
   for (i = 0; i < orig_edge_num; i++) {
     degree[orig_edges[i].v1]++;
     degree[orig_edges[i].v2]++;
   }
 
   /* Per edge, store how many subdivisions are needed */
-  int *edge_subd = MEM_cnew_array<int>(orig_edge_num, __func__);
+  blender::Array<int> edge_subd(orig_edge_num, 0);
   for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
     edge_subd[i] += calc_edge_subdivisions(orig_vert_positions, orignode, &orig_edges[i], degree);
     BLI_assert(edge_subd[i] >= 0);
     subd_num += edge_subd[i];
   }
-
-  MEM_freeN(degree);
 
   /* Allocate output mesh */
   Mesh *result = BKE_mesh_new_nomain_from_template(
@@ -1023,8 +1021,6 @@ static Mesh *subdivide_base(const Mesh *orig)
     result_edges[result_edge_i].v2 = edge->v2;
     result_edge_i++;
   }
-
-  MEM_freeN(edge_subd);
 
   return result;
 }
