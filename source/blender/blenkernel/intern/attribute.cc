@@ -778,11 +778,6 @@ const char *BKE_id_attributes_default_color_name(const ID *id)
   return nullptr;
 }
 
-CustomDataLayer *BKE_id_attributes_active_color_get(const ID *id)
-{
-  return BKE_id_attributes_color_find(id, BKE_id_attributes_active_color_name(id));
-}
-
 void BKE_id_attributes_active_color_set(ID *id, const char *name)
 {
   switch (GS(id->name)) {
@@ -797,11 +792,6 @@ void BKE_id_attributes_active_color_set(ID *id, const char *name)
     default:
       break;
   }
-}
-
-CustomDataLayer *BKE_id_attributes_default_color_get(const ID *id)
-{
-  return BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id));
 }
 
 void BKE_id_attributes_default_color_set(ID *id, const char *name)
@@ -822,21 +812,22 @@ void BKE_id_attributes_default_color_set(ID *id, const char *name)
 
 CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
 {
-  if (!name) {
-    return nullptr;
+  if (CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT)) {
+    return layer;
   }
-  CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
-  if (layer == nullptr) {
-    layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER);
+  if (CustomDataLayer *layer = BKE_id_attribute_find(
+          id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER)) {
+    return layer;
   }
-  if (layer == nullptr) {
-    layer = BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT);
+  if (CustomDataLayer *layer = BKE_id_attribute_find(
+          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT)) {
+    return layer;
   }
-  if (layer == nullptr) {
-    layer = BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER);
+  if (CustomDataLayer *layer = BKE_id_attribute_find(
+          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER)) {
+    return layer;
   }
-
-  return layer;
+  return nullptr;
 }
 
 void BKE_id_attribute_copy_domains_temp(short id_type,

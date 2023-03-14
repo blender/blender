@@ -3125,10 +3125,10 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    const Mesh *me = BKE_object_get_original_mesh(ob);
-    const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-
-    if (!layer || BKE_id_attribute_domain(&me->id, layer) != ATTR_DOMAIN_CORNER) {
+    Mesh *me = BKE_object_get_original_mesh(ob);
+    const CustomDataLayer *layer = BKE_id_attribute_search(
+        &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
+    if (!layer) {
       continue;
     }
 
@@ -3177,10 +3177,10 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const Mesh *me = BKE_object_get_original_mesh(obedit);
-    const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-
-    if (!layer || BKE_id_attribute_domain(&me->id, layer) != ATTR_DOMAIN_CORNER) {
+    Mesh *me = BKE_object_get_original_mesh(obedit);
+    const CustomDataLayer *layer = BKE_id_attribute_search(
+        &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_CORNER);
+    if (!layer) {
       continue;
     }
 

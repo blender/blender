@@ -1175,14 +1175,8 @@ DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_PROP_BYTE_COLOR)
 static PointerRNA rna_Mesh_vertex_color_active_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
-
-  if (!layer || layer->type != CD_PROP_BYTE_COLOR ||
-      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_CORNER) {
-    return PointerRNA_NULL;
-  }
-
+  CustomDataLayer *layer = BKE_id_attribute_search(
+      &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_CORNER);
   return rna_pointer_inherit_refine(ptr, &RNA_MeshLoopColorLayer, layer);
 }
 
@@ -1203,14 +1197,11 @@ static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
 static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
-
-  if (!layer || layer->type != CD_PROP_BYTE_COLOR ||
-      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_CORNER) {
+  CustomDataLayer *layer = BKE_id_attribute_search(
+      &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_CORNER);
+  if (!layer) {
     return 0;
   }
-
   CustomData *ldata = rna_mesh_ldata(ptr);
   return layer - ldata->layers + CustomData_get_layer_index(ldata, CD_PROP_BYTE_COLOR);
 }
@@ -1287,14 +1278,8 @@ DEFINE_CUSTOMDATA_LAYER_COLLECTION(sculpt_vertex_color, vdata, CD_PROP_COLOR)
 static PointerRNA rna_Mesh_sculpt_vertex_color_active_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
-
-  if (!layer || layer->type != CD_PROP_COLOR ||
-      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_POINT) {
-    return PointerRNA_NULL;
-  }
-
+  CustomDataLayer *layer = BKE_id_attribute_search(
+      &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_COLOR, ATTR_DOMAIN_POINT);
   return rna_pointer_inherit_refine(ptr, &RNA_MeshVertColorLayer, layer);
 }
 
@@ -1315,15 +1300,12 @@ static void rna_Mesh_sculpt_vertex_color_active_set(PointerRNA *ptr,
 static int rna_Mesh_sculpt_vertex_color_active_index_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&mesh->id);
-  CustomData *vdata = rna_mesh_vdata(ptr);
-
-  if (!layer || layer->type != CD_PROP_COLOR ||
-      BKE_id_attribute_domain(&mesh->id, layer) != ATTR_DOMAIN_POINT) {
+  CustomDataLayer *layer = BKE_id_attribute_search(
+      &mesh->id, mesh->active_color_attribute, CD_MASK_PROP_COLOR, ATTR_DOMAIN_POINT);
+  if (!layer) {
     return 0;
   }
-
+  CustomData *vdata = rna_mesh_vdata(ptr);
   return layer - vdata->layers + CustomData_get_layer_index(vdata, CD_PROP_COLOR);
 }
 

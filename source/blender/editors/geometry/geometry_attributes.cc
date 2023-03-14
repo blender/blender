@@ -591,9 +591,15 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
   if (GS(id->name) != ID_ME) {
     return false;
   }
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-  if (layer == nullptr) {
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+  if (!meta_data) {
+    return false;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
     return false;
   }
 
@@ -603,10 +609,10 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
 static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  ID *ob_data = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ob_data);
-  ED_geometry_attribute_convert(static_cast<Mesh *>(ob->data),
-                                layer->name,
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const char *name = mesh->active_color_attribute;
+  ED_geometry_attribute_convert(mesh,
+                                name,
                                 eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                 eAttrDomain(RNA_enum_get(op->ptr, "domain")),
                                 op->reports);
@@ -619,9 +625,8 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
 {
   Object *ob = ED_object_context(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
-      BKE_id_attributes_active_color_get(&mesh->id)->name);
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(name);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
