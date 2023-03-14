@@ -830,55 +830,6 @@ CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
   return nullptr;
 }
 
-void BKE_id_attribute_copy_domains_temp(short id_type,
-                                        const CustomData *vdata,
-                                        const CustomData *edata,
-                                        const CustomData *ldata,
-                                        const CustomData *pdata,
-                                        const CustomData *cdata,
-                                        ID *r_id)
-{
-  CustomData reset;
-
-  CustomData_reset(&reset);
-
-  switch (id_type) {
-    case ID_ME: {
-      Mesh *me = (Mesh *)r_id;
-      memset((void *)me, 0, sizeof(*me));
-
-      me->edit_mesh = nullptr;
-
-      me->vdata = vdata ? *vdata : reset;
-      me->edata = edata ? *edata : reset;
-      me->ldata = ldata ? *ldata : reset;
-      me->pdata = pdata ? *pdata : reset;
-
-      break;
-    }
-    case ID_PT: {
-      PointCloud *pointcloud = (PointCloud *)r_id;
-
-      memset((void *)pointcloud, 0, sizeof(*pointcloud));
-
-      pointcloud->pdata = vdata ? *vdata : reset;
-      break;
-    }
-    case ID_CV: {
-      Curves *curves = (Curves *)r_id;
-
-      memset((void *)curves, 0, sizeof(*curves));
-
-      curves->geometry.point_data = vdata ? *vdata : reset;
-      curves->geometry.curve_data = cdata ? *cdata : reset;
-      break;
-    }
-    default:
-      break;
-  }
-
-  *((short *)r_id->name) = id_type;
-}
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer)
 {
