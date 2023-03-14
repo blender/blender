@@ -1268,6 +1268,11 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "uint gl_PrimitiveID;" << std::endl;
     }
 
+    /* Global barycentrics. */
+    if (msl_iface.uses_barycentrics) {
+      ss_fragment << "vec3 gpu_BaryCoord;\n";
+    }
+
     /* Add Texture members. */
     for (const MSLTextureSampler &tex : msl_iface.texture_samplers) {
       if (bool(tex.stage & ShaderStage::FRAGMENT)) {
@@ -2036,33 +2041,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
 
   /* Barycentrics. */
   if (this->uses_barycentrics) {
-
-    /* Main barycentrics. */
     out << shader_stage_inst_name << ".gpu_BaryCoord = mtl_barycentric_coord.xyz;" << std::endl;
-
-    /* barycentricDist represents the world-space distance from the current world-space position
-     * to the opposite edge of the vertex. */
-    out << "float3 worldPos = " << shader_stage_inst_name << ".worldPosition.xyz;" << std::endl;
-    out << "float3 wpChange = (length(dfdx(worldPos))+length(dfdy(worldPos)));" << std::endl;
-    out << "float3 bcChange = "
-           "(length(dfdx(mtl_barycentric_coord))+length(dfdy(mtl_barycentric_coord)));"
-        << std::endl;
-    out << "float3 rateOfChange = wpChange/bcChange;" << std::endl;
-
-    /* Distance to edge using inverse barycentric value, as rather than the length of 0.7
-     * contribution, we'd want the distance to the opposite side. */
-    out << shader_stage_inst_name
-        << ".gpu_BarycentricDist.x = length(rateOfChange * "
-           "(1.0-mtl_barycentric_coord.x));"
-        << std::endl;
-    out << shader_stage_inst_name
-        << ".gpu_BarycentricDist.y = length(rateOfChange * "
-           "(1.0-mtl_barycentric_coord.y));"
-        << std::endl;
-    out << shader_stage_inst_name
-        << ".gpu_BarycentricDist.z = length(rateOfChange * "
-           "(1.0-mtl_barycentric_coord.z));"
-        << std::endl;
   }
 
   /* Populate Uniforms and uniform blocks. */
