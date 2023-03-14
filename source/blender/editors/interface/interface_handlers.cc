@@ -8767,12 +8767,12 @@ uiBlock *UI_region_block_find_mouse_over(const ARegion *region, const int xy[2],
   return ui_block_find_mouse_over_ex(region, xy, only_clip);
 }
 
-uiBut *UI_context_active_but_prop_get(const bContext *C,
+uiBut *UI_region_active_but_prop_get(const ARegion *region,
                                       PointerRNA *r_ptr,
                                       PropertyRNA **r_prop,
                                       int *r_index)
 {
-  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
+  uiBut *activebut = UI_region_active_but_get(region);
 
   if (activebut && activebut->rnapoin.data) {
     *r_ptr = activebut->rnapoin;
@@ -8786,6 +8786,16 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
   }
 
   return activebut;
+}
+
+uiBut *UI_context_active_but_prop_get(const bContext *C,
+                                      PointerRNA *r_ptr,
+                                      PropertyRNA **r_prop,
+                                      int *r_index)
+{
+  ARegion *region_menu = CTX_wm_menu(C);
+  return UI_region_active_but_prop_get(
+      region_menu ? region_menu : CTX_wm_region(C), r_ptr, r_prop, r_index);
 }
 
 void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)

@@ -2990,6 +2990,17 @@ uiBut *UI_context_active_but_prop_get(const struct bContext *C,
                                       struct PointerRNA *r_ptr,
                                       struct PropertyRNA **r_prop,
                                       int *r_index);
+
+/**
+ * As above, but for a specified region.
+ *
+ * \return active button, NULL if none found or if it doesn't contain valid RNA data.
+ */
+uiBut *UI_region_active_but_prop_get(const struct ARegion *region,
+                                     struct PointerRNA *r_ptr,
+                                     struct PropertyRNA **r_prop,
+                                     int *r_index);
+
 void UI_context_active_but_prop_handle(struct bContext *C, bool handle_undo);
 void UI_context_active_but_clear(struct bContext *C, struct wmWindow *win, struct ARegion *region);
 

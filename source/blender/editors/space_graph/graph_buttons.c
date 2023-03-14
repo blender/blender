@@ -1350,7 +1350,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   uiBut *but = NULL;
 
   /* Get active property to show driver properties for */
-  but = UI_context_active_but_prop_get((bContext *)C, &ptr, &prop, &index);
+  but = UI_region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
   if (but) {
     FCurve *fcu;
     bool driven, special;
