@@ -496,6 +496,7 @@ set(SRC
   nla_private.h
   particle_private.h
   tracking_private.h
+
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
@@ -507,6 +508,7 @@ set(SRC
   intern/multires_unsubdivide.h
   intern/ocean_intern.h
   intern/pbvh_intern.hh
+  intern/pbvh_pixels_copy.hh
   intern/pbvh_uv_islands.hh
   intern/subdiv_converter.h
   intern/subdiv_inline.h
