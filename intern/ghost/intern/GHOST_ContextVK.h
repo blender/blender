@@ -126,8 +126,8 @@ class GHOST_ContextVK : public GHOST_Context {
       void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id);
 
   /**
-   * Sets the swap interval for swapBuffers.
-   * \param interval The swap interval to use.
+   * Sets the swap interval for `swapBuffers`.
+   * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
   GHOST_TSuccess setSwapInterval(int /* interval */)
@@ -137,7 +137,7 @@ class GHOST_ContextVK : public GHOST_Context {
 
   /**
    * Gets the current swap interval for swapBuffers.
-   * \param intervalOut Variable to store the swap interval if it can be read.
+   * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
   GHOST_TSuccess getSwapInterval(int &)
