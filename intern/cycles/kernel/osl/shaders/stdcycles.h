@@ -67,7 +67,7 @@ closure color absorption() BUILTIN;
 
 normal ensure_valid_reflection(normal Ng, vector I, normal N)
 {
-  /* The implementation here mirrors the one in kernel_montecarlo.h,
+  /* The implementation here mirrors the one in bsdf_util.h,
    * check there for an explanation of the algorithm. */
 
   float sqr(float x)
@@ -77,55 +77,26 @@ normal ensure_valid_reflection(normal Ng, vector I, normal N)
 
   vector R = 2 * dot(N, I) * N - I;
 
-  float threshold = min(0.9 * dot(Ng, I), 0.01);
+  float Iz = dot(I, Ng);
+
+  float threshold = min(0.9 * Iz, 0.01);
   if (dot(Ng, R) >= threshold) {
     return N;
   }
 
-  float NdotNg = dot(N, Ng);
-  vector X = normalize(N - NdotNg * Ng);
+  vector X = normalize(N - dot(N, Ng) * Ng);
+  float Ix = dot(I, X);
 
-  float Ix = dot(I, X), Iz = dot(I, Ng);
-  float Ix2 = sqr(Ix), Iz2 = sqr(Iz);
-  float a = Ix2 + Iz2;
+  float a = sqr(Ix) + sqr(Iz);
+  float b = 2.0 * (a + Iz * threshold);
+  float c = sqr(threshold + Iz);
 
-  float b = sqrt(Ix2 * (a - sqr(threshold)));
-  float c = Iz * threshold + a;
+  float Nz2 = (Ix < 0) ? 0.25 * (b + sqrt(sqr(b) - 4.0 * a * c)) / a :
+                         0.25 * (b - sqrt(sqr(b) - 4.0 * a * c)) / a;
+  float Nx = sqrt(1.0 - Nz2);
+  float Nz = sqrt(Nz2);
 
-  float fac = 0.5 / a;
-  float N1_z2 = fac * (b + c), N2_z2 = fac * (-b + c);
-  int valid1 = (N1_z2 > 1e-5) && (N1_z2 <= (1.0 + 1e-5));
-  int valid2 = (N2_z2 > 1e-5) && (N2_z2 <= (1.0 + 1e-5));
-
-  float N_new_x, N_new_z;
-  if (valid1 && valid2) {
-    float N1_x = sqrt(1.0 - N1_z2), N1_z = sqrt(N1_z2);
-    float N2_x = sqrt(1.0 - N2_z2), N2_z = sqrt(N2_z2);
-
-    float R1 = 2 * (N1_x * Ix + N1_z * Iz) * N1_z - Iz;
-    float R2 = 2 * (N2_x * Ix + N2_z * Iz) * N2_z - Iz;
-
-    valid1 = (R1 >= 1e-5);
-    valid2 = (R2 >= 1e-5);
-    if (valid1 && valid2) {
-      N_new_x = (R1 < R2) ? N1_x : N2_x;
-      N_new_z = (R1 < R2) ? N1_z : N2_z;
-    }
-    else {
-      N_new_x = (R1 > R2) ? N1_x : N2_x;
-      N_new_z = (R1 > R2) ? N1_z : N2_z;
-    }
-  }
-  else if (valid1 || valid2) {
-    float Nz2 = valid1 ? N1_z2 : N2_z2;
-    N_new_x = sqrt(1.0 - Nz2);
-    N_new_z = sqrt(Nz2);
-  }
-  else {
-    return Ng;
-  }
-
-  return N_new_x * X + N_new_z * Ng;
+  return Nx * X + Nz * Ng;
 }
 
 #endif /* CCL_STDOSL_H */
