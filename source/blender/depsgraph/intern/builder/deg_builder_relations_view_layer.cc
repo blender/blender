@@ -53,7 +53,7 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
       continue;
     }
     if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-      build_collection(lc, nullptr, lc->collection);
+      build_collection(lc, lc->collection);
     }
     build_layer_collections(&lc->layer_collections);
   }
@@ -62,7 +62,7 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 void DepsgraphRelationBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
 {
   if (fls->group != nullptr) {
-    build_collection(nullptr, nullptr, fls->group);
+    build_collection(nullptr, fls->group);
   }
   if (fls->linestyle != nullptr) {
     build_freestyle_linestyle(fls->linestyle);

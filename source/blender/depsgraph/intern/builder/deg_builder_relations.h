@@ -133,9 +133,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_view_layer(Scene *scene,
                                 ViewLayer *view_layer,
                                 eDepsNode_LinkedState_Type linked_state);
-  virtual void build_collection(LayerCollection *from_layer_collection,
-                                Object *object,
-                                Collection *collection);
+  virtual void build_collection(LayerCollection *from_layer_collection, Collection *collection);
   virtual void build_object(Object *object);
   virtual void build_object_from_view_layer_base(Object *object);
   virtual void build_object_layer_component_relations(Object *object);
@@ -149,6 +147,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_object_data_speaker(Object *object);
   virtual void build_object_parent(Object *object);
   virtual void build_object_pointcache(Object *object);
+  virtual void build_object_instance_collection(Object *object);
   virtual void build_constraints(ID *id,
                                  NodeType component_type,
                                  const char *component_subdata,

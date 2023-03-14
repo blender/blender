@@ -504,7 +504,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_camera((Camera *)id);
       break;
     case ID_GR:
-      build_collection(nullptr, nullptr, (Collection *)id);
+      build_collection(nullptr, (Collection *)id);
       break;
     case ID_OB:
       build_object((Object *)id);
@@ -615,76 +615,60 @@ void DepsgraphRelationBuilder::build_idproperties(IDProperty *id_property)
 }
 
 void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_collection,
-                                                Object *object,
                                                 Collection *collection)
 {
   if (from_layer_collection != nullptr) {
-    /* If we came from layer collection we don't go deeper, view layer
-     * builder takes care of going deeper.
+    /* If we came from layer collection we don't go deeper, view layer builder takes care of going
+     * deeper.
      *
-     * NOTE: Do early output before tagging build as done, so possible
-     * subsequent builds from outside of the layer collection properly
-     * recurses into all the nested objects and collections. */
+     * NOTE: Do early output before tagging build as done, so possible subsequent builds from
+     * outside of the layer collection properly recurses into all the nested objects and
+     * collections. */
     return;
   }
 
+  if (built_map_.checkIsBuiltAndTag(collection)) {
+    return;
+  }
+
+  build_idproperties(collection->id.properties);
+
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(collection->id);
 
-  const bool group_done = built_map_.checkIsBuiltAndTag(collection);
-  OperationKey object_transform_final_key(object != nullptr ? &object->id : nullptr,
-                                          NodeType::TRANSFORM,
-                                          OperationCode::TRANSFORM_FINAL);
-  ComponentKey duplicator_key(object != nullptr ? &object->id : nullptr, NodeType::DUPLI);
-  if (!group_done) {
-    build_idproperties(collection->id.properties);
-    OperationKey collection_geometry_key{
-        &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-      build_object(cob->ob);
+  const OperationKey collection_geometry_key{
+      &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
 
-      /* The geometry of a collection depends on the positions of the elements in it. */
-      OperationKey object_transform_key{
-          &cob->ob->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
-      add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    build_object(cob->ob);
 
-      /* Only create geometry relations to child objects, if they have a geometry component. */
-      OperationKey object_geometry_key{
-          &cob->ob->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
-      if (find_node(object_geometry_key) != nullptr) {
-        add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
-      }
+    /* The geometry of a collection depends on the positions of the elements in it. */
+    const OperationKey object_transform_key{
+        &cob->ob->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
+    add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
 
-      /* An instance is part of the geometry of the collection. */
-      if (cob->ob->type == OB_EMPTY) {
-        Collection *collection_instance = cob->ob->instance_collection;
-        if (collection_instance != nullptr) {
-          OperationKey collection_instance_key{
-              &collection_instance->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-          add_relation(collection_instance_key, collection_geometry_key, "Collection Geometry");
-        }
-      }
+    /* Only create geometry relations to child objects, if they have a geometry component. */
+    const OperationKey object_geometry_key{
+        &cob->ob->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
+    if (find_node(object_geometry_key) != nullptr) {
+      add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
     }
-    LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-      build_collection(nullptr, nullptr, child->collection);
-      OperationKey child_collection_geometry_key{
-          &child->collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-      add_relation(child_collection_geometry_key, collection_geometry_key, "Collection Geometry");
+
+    /* An instance is part of the geometry of the collection. */
+    if (cob->ob->type == OB_EMPTY) {
+      Collection *collection_instance = cob->ob->instance_collection;
+      if (collection_instance != nullptr) {
+        const OperationKey collection_instance_key{
+            &collection_instance->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
+        add_relation(collection_instance_key, collection_geometry_key, "Collection Geometry");
+      }
     }
   }
-  if (object != nullptr) {
-    FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (collection, ob, graph_->mode) {
-      ComponentKey dupli_transform_key(&ob->id, NodeType::TRANSFORM);
-      add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
-      /* Hook to special component, to ensure proper visibility/evaluation
-       * optimizations. */
-      add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
-      const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
-      if (dupli_geometry_component_type != NodeType::UNDEFINED) {
-        ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
-        add_relation(dupli_geometry_component_key, duplicator_key, "Dupligroup");
-      }
-    }
-    FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    build_collection(nullptr, child->collection);
+    const OperationKey child_collection_geometry_key{
+        &child->collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
+    add_relation(child_collection_geometry_key, collection_geometry_key, "Collection Geometry");
   }
 }
 
@@ -796,12 +780,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
     build_texture(object->pd->tex);
   }
 
-  /* Object dupligroup. */
-  if (object->instance_collection != nullptr) {
-    build_collection(nullptr, object, object->instance_collection);
-  }
-
-  /* Point caches. */
+  build_object_instance_collection(object);
   build_object_pointcache(object);
 
   /* Synchronization back to original object. */
@@ -1208,6 +1187,35 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
                  RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
   }
   BLI_freelistN(&ptcache_id_list);
+}
+
+void DepsgraphRelationBuilder::build_object_instance_collection(Object *object)
+{
+  if (object->instance_collection == nullptr) {
+    return;
+  }
+
+  Collection *instance_collection = object->instance_collection;
+
+  build_collection(nullptr, instance_collection);
+
+  const OperationKey object_transform_final_key(
+      &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+  const ComponentKey duplicator_key(&object->id, NodeType::DUPLI);
+
+  FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (instance_collection, ob, graph_->mode) {
+    const ComponentKey dupli_transform_key(&ob->id, NodeType::TRANSFORM);
+    add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
+
+    /* Hook to special component, to ensure proper visibility/evaluation optimizations. */
+    add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
+    const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
+    if (dupli_geometry_component_type != NodeType::UNDEFINED) {
+      ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
+      add_relation(dupli_geometry_component_key, duplicator_key, "Dupligroup");
+    }
+  }
+  FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
 
 void DepsgraphRelationBuilder::build_constraints(ID *id,
@@ -2012,7 +2020,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
   }
   /* Objects. */
   if (rbw->group != nullptr) {
-    build_collection(nullptr, nullptr, rbw->group);
+    build_collection(nullptr, rbw->group);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
       if (object->type != OB_MESH) {
         continue;
@@ -2168,7 +2176,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
         break;
       case PART_DRAW_GR:
         if (part->instance_collection != nullptr) {
-          build_collection(nullptr, nullptr, part->instance_collection);
+          build_collection(nullptr, part->instance_collection);
           LISTBASE_FOREACH (CollectionObject *, go, &part->instance_collection->gobject) {
             build_particle_system_visualization_object(object, psys, go->ob);
           }
@@ -2632,7 +2640,7 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
   else if (socket->type == SOCK_COLLECTION) {
     Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
     if (collection != nullptr) {
-      build_collection(nullptr, nullptr, collection);
+      build_collection(nullptr, collection);
     }
   }
   else if (socket->type == SOCK_TEXTURE) {
