@@ -763,7 +763,8 @@ bool BKE_fcurve_calc_range(const FCurve *fcu,
                            float *r_end,
                            const bool selected_keys_only)
 {
-  float min, max = 0.0f;
+  float min = 0.0f;
+  float max = 0.0f;
   bool foundvert = false;
 
   if (fcu->totvert == 0) {
