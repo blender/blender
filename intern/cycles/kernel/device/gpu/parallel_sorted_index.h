@@ -38,7 +38,7 @@ ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
                                                      ccl_gpu_shared int *buckets,
                                                      const ushort local_id,
                                                      const ushort local_size,
-                                                     const ushort grid_id)
+                                                     const uint grid_id)
 {
   /* Zero the bucket sizes. */
   if (local_id < max_shaders) {
@@ -89,7 +89,7 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
                                                     ccl_gpu_shared int *local_offset,
                                                     const ushort local_id,
                                                     const ushort local_size,
-                                                    const ushort grid_id)
+                                                    const uint grid_id)
 {
   /* Calculate each partition's global offset from the prefix sum of the active state counts per
    * partition. */
