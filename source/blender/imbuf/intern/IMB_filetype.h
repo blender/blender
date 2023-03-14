@@ -256,3 +256,16 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 bool imb_savewebp(struct ImBuf *ibuf, const char *name, int flags);
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Format: PSD (#IMB_FTYPE_PSD)
+ * \{ */
+
+bool imb_is_a_psd(const unsigned char *buf, size_t size);
+
+struct ImBuf *imb_load_psd(const uchar *mem,
+                           size_t size,
+                           int flags,
+                           char colorspace[IM_MAX_SPACE]);
+
+/** \} */

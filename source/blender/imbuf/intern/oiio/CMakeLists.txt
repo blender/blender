@@ -18,8 +18,10 @@ set(INC_SYS
 
 set(SRC
   openimageio_api.h
+  openimageio_support.hh
 
   openimageio_api.cpp
+  openimageio_support.cc
 )
 
 set(LIB

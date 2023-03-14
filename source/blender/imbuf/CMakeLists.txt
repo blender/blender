@@ -18,6 +18,7 @@ set(INC_SYS
   ${JPEG_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
+  ${OPENIMAGEIO_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -29,6 +30,7 @@ set(SRC
   intern/divers.c
   intern/filetype.c
   intern/filter.c
+  intern/format_psd.cc
   intern/imageprocess.c
   intern/indexer.c
   intern/iris.c

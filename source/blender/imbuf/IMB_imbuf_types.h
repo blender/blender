@@ -318,9 +318,6 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
 
-/** Image formats that can only be loaded via filepath. */
-extern const char *imb_ext_image_filepath_only[];
-
 /* -------------------------------------------------------------------- */
 /** \name Imbuf Color Management Flag
  *

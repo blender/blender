@@ -184,9 +184,9 @@ const ImFileType IMB_FILE_TYPES[] = {
     {
         .init = NULL,
         .exit = NULL,
-        .is_a = imb_is_a_photoshop,
-        .load = NULL,
-        .load_filepath = imb_load_photoshop,
+        .is_a = imb_is_a_psd,
+        .load = imb_load_psd,
+        .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
         .save = NULL,
         .flag = IM_FTYPE_FLOAT,
