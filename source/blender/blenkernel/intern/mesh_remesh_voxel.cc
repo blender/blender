@@ -290,7 +290,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, nullptr, target->totvert);
+        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
   }
 
   blender::threading::parallel_for(IndexRange(target->totvert), 4096, [&](const IndexRange range) {
@@ -384,7 +384,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
 
       CustomData_add_layer_named(
-          target_cdata, layer->type, CD_SET_DEFAULT, nullptr, elem_num, layer->name);
+          target_cdata, eCustomDataType(layer->type), CD_SET_DEFAULT, elem_num, layer->name);
       layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
     }
 

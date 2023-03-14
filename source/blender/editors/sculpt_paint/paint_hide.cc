@@ -81,7 +81,7 @@ static void partialvis_update_mesh(Object *ob,
       CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me->totvert, ".hide_vert"));
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);

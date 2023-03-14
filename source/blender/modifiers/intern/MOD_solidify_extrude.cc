@@ -384,8 +384,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   float *result_edge_bweight = nullptr;
   if (do_bevel_convex) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer(
-        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, nullptr, result->totedge));
+    result_edge_bweight = static_cast<float *>(
+        CustomData_add_layer(&result->edata, CD_BWEIGHT, CD_SET_DEFAULT, result->totedge));
   }
 
   /* Initializes: (`i_end`, `do_shell_align`, `vert_index`). */
@@ -1037,7 +1037,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     float *result_edge_crease = nullptr;
     if (crease_rim || crease_outer || crease_inner) {
       result_edge_crease = (float *)CustomData_add_layer(
-          &result->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, result->totedge);
+          &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
     }
 
     /* add faces & edges */

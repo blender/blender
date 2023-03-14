@@ -582,34 +582,34 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->totcol = group->materials.size();
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, nullptr, mesh->totvert, "position");
+      &mesh->vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, mesh->totvert, "position");
   MEdge *edges = (MEdge *)CustomData_add_layer(
-      &mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
+      &mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
   MPoly *polys = (MPoly *)CustomData_add_layer(
-      &mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+      &mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, mesh->totpoly);
   MLoop *loops = (MLoop *)CustomData_add_layer(
-      &mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+      &mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, mesh->totloop);
   int *material_indices = (int *)CustomData_add_layer_named(
-      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, mesh->totpoly, "material_index");
+      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totpoly, "material_index");
   blender::float2 *loopsuv[2] = {nullptr};
 
   if (hasTex) {
     // First UV layer
     loopsuv[0] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[0]));
+        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[0]));
     CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 0);
 
     // Second UV layer
     loopsuv[1] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[1]));
+        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[1]));
     CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 1);
   }
 
   // colors and transparency (the latter represented by grayscale colors)
   MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Color");
+      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Alpha");
+      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Alpha");
   BKE_id_attributes_active_color_set(
       &mesh->id, CustomData_get_layer_name(&mesh->ldata, CD_PROP_BYTE_COLOR, 0));
 

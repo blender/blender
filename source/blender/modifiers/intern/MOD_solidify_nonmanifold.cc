@@ -2004,8 +2004,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   float *result_edge_bweight = static_cast<float *>(
       CustomData_get_layer_for_write(&result->edata, CD_BWEIGHT, result->totedge));
   if (bevel_convex != 0.0f || orig_vert_bweight != nullptr) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer(
-        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, nullptr, result->totedge));
+    result_edge_bweight = static_cast<float *>(
+        CustomData_add_layer(&result->edata, CD_BWEIGHT, CD_SET_DEFAULT, result->totedge));
   }
 
   /* Checks that result has dvert data. */
@@ -2021,7 +2021,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   float *result_edge_crease = nullptr;
   if (vertex_crease) {
     result_edge_crease = (float *)CustomData_add_layer(
-        &result->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, result->totedge);
+        &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);

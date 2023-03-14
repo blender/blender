@@ -59,12 +59,8 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
 
-  CustomData_add_layer_named(&this->point_data,
-                             CD_PROP_FLOAT3,
-                             CD_CONSTRUCT,
-                             nullptr,
-                             this->point_num,
-                             ATTR_POSITION.c_str());
+  CustomData_add_layer_named(
+      &this->point_data, CD_PROP_FLOAT3, CD_CONSTRUCT, this->point_num, ATTR_POSITION.c_str());
 
   this->curve_offsets = (int *)MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
 #ifdef DEBUG
@@ -230,8 +226,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   if (data != nullptr) {
     return {data, num};
   }
-  data = (T *)CustomData_add_layer_named(
-      &custom_data, type, CD_SET_DEFAULT, nullptr, num, name.c_str());
+  data = (T *)CustomData_add_layer_named(&custom_data, type, CD_SET_DEFAULT, num, name.c_str());
   MutableSpan<T> span = {data, num};
   if (num > 0 && span.first() != default_value) {
     span.fill(default_value);

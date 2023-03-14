@@ -1582,7 +1582,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         if (need_mdisps) {
-          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, me->totloop);
+          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, me->totloop);
         }
 
         return mmd;
@@ -1976,7 +1976,7 @@ bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
     return hide_poly;
   }
   return static_cast<bool *>(CustomData_add_layer_named(
-      &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, mesh->totpoly, ".hide_poly"));
+      &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totpoly, ".hide_poly"));
 }
 
 int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
@@ -2001,8 +2001,8 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int gridarea = gridsize * gridsize;
     int i, j;
 
-    gmask = static_cast<GridPaintMask *>(CustomData_add_layer(
-        &me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totloop));
+    gmask = static_cast<GridPaintMask *>(
+        CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
     for (i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
@@ -2050,7 +2050,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
   /* Create vertex paint mask layer if there isn't one already. */
   if (!paint_mask) {
-    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totvert);
+    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, me->totvert);
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
@@ -2512,7 +2512,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
       BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
 
-      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, nullptr, totelem, name);
+      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent) {

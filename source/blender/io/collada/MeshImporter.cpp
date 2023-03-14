@@ -351,8 +351,7 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
-  CustomData_add_layer_named(
-      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  CustomData_add_layer_named(&me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, me->totvert, "position");
   MutableSpan<float3> positions = me->vert_positions_for_write();
   for (const int i : positions.index_range()) {
     get_vector(positions[i], pos, i, stride);
@@ -456,8 +455,8 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   if (total_poly_count > 0) {
     me->totpoly = total_poly_count;
     me->totloop = total_loop_count;
-    CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);
-    CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
+    CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, me->totpoly);
+    CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, me->totloop);
 
     uint totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
     for (int i = 0; i < totuvset; i++) {
@@ -474,7 +473,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         COLLADAFW::String &uvname = info->mName;
         /* Allocate space for UV_data */
         CustomData_add_layer_named(
-            &me->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, me->totloop, uvname.c_str());
+            &me->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, me->totloop, uvname.c_str());
       }
       /* activate the first uv map */
       CustomData_set_layer_active(&me->ldata, CD_PROP_FLOAT2, 0);
@@ -487,7 +486,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
             collada_mesh->getColors().getInputInfosArray()[i];
         COLLADAFW::String colname = extract_vcolname(info->mName);
         CustomData_add_layer_named(
-            &me->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, me->totloop, colname.c_str());
+            &me->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, me->totloop, colname.c_str());
       }
       BKE_id_attributes_active_color_set(
           &me->id, CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, 0));
@@ -558,7 +557,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
   if (!CustomData_has_layer(&edata, CD_MEDGE)) {
-    CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, totedge);
+    CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
   }
 
   CustomData_free(&mesh->edata, mesh->totedge);
@@ -621,7 +620,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
       CustomData_get_layer_named_for_write(&me->pdata, CD_PROP_BOOL, "sharp_face", me->totpoly));
   if (!sharp_faces) {
     sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
-        &me->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, me->totpoly, "sharp_face"));
+        &me->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totpoly, "sharp_face"));
   }
 
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();

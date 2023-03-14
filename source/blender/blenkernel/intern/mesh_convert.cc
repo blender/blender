@@ -215,7 +215,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       "sharp_face", ATTR_DOMAIN_FACE);
 
   blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
+      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, DATA_("UVMap")));
 
   int dst_vert = 0;
   int dst_edge = 0;

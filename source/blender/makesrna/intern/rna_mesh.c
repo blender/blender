@@ -477,7 +477,7 @@ static void rna_MeshVertex_hide_set(PointerRNA *ptr, bool value)
       return;
     }
     hide_vert = (bool *)CustomData_add_layer_named(
-        &mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totvert, ".hide_vert");
+        &mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totvert, ".hide_vert");
   }
   const int index = rna_MeshVertex_index_get(ptr);
   hide_vert[index] = value;
@@ -503,7 +503,7 @@ static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
       return;
     }
     select_vert = (bool *)CustomData_add_layer_named(
-        &mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totvert, ".select_vert");
+        &mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totvert, ".select_vert");
   }
   const int index = rna_MeshVertex_index_get(ptr);
   select_vert[index] = value;
@@ -522,7 +522,7 @@ static void rna_MeshVertex_bevel_weight_set(PointerRNA *ptr, float value)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshVertex_index_get(ptr);
   float *values = (float *)CustomData_add_layer(
-      &mesh->vdata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, mesh->totvert);
+      &mesh->vdata, CD_BWEIGHT, CD_SET_DEFAULT, mesh->totvert);
   values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
@@ -539,7 +539,7 @@ static void rna_MEdge_bevel_weight_set(PointerRNA *ptr, float value)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshEdge_index_get(ptr);
   float *values = (float *)CustomData_add_layer(
-      &mesh->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, mesh->totedge);
+      &mesh->edata, CD_BWEIGHT, CD_SET_DEFAULT, mesh->totedge);
   values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
@@ -556,7 +556,7 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshEdge_index_get(ptr);
   float *values = (float *)CustomData_add_layer(
-      &mesh->edata, CD_CREASE, CD_SET_DEFAULT, NULL, mesh->totedge);
+      &mesh->edata, CD_CREASE, CD_SET_DEFAULT, mesh->totedge);
   values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
@@ -654,7 +654,7 @@ static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
       return;
     }
     hide_poly = (bool *)CustomData_add_layer_named(
-        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totpoly, ".hide_poly");
+        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totpoly, ".hide_poly");
   }
   const int index = rna_MeshPolygon_index_get(ptr);
   hide_poly[index] = value;
@@ -680,7 +680,7 @@ static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
       return;
     }
     sharp_faces = (bool *)CustomData_add_layer_named(
-        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totpoly, "sharp_face");
+        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totpoly, "sharp_face");
   }
   const int index = rna_MeshPolygon_index_get(ptr);
   sharp_faces[index] = !value;
@@ -706,7 +706,7 @@ static void rna_MeshPolygon_select_set(PointerRNA *ptr, bool value)
       return;
     }
     select_poly = (bool *)CustomData_add_layer_named(
-        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totpoly, ".select_poly");
+        &mesh->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totpoly, ".select_poly");
   }
   const int index = rna_MeshPolygon_index_get(ptr);
   select_poly[index] = value;
@@ -954,7 +954,7 @@ static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, bool value)
   FreestyleEdge *fed = CustomData_get_layer_for_write(&me->edata, CD_FREESTYLE_EDGE, me->totedge);
 
   if (!fed) {
-    fed = CustomData_add_layer(&me->edata, CD_FREESTYLE_EDGE, CD_SET_DEFAULT, NULL, me->totedge);
+    fed = CustomData_add_layer(&me->edata, CD_FREESTYLE_EDGE, CD_SET_DEFAULT, me->totedge);
   }
   if (value) {
     fed[index].flag |= FREESTYLE_EDGE_MARK;
@@ -980,7 +980,7 @@ static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, bool value)
   FreestyleFace *ffa = CustomData_get_layer_for_write(&me->pdata, CD_FREESTYLE_FACE, me->totpoly);
 
   if (!ffa) {
-    ffa = CustomData_add_layer(&me->pdata, CD_FREESTYLE_FACE, CD_SET_DEFAULT, NULL, me->totpoly);
+    ffa = CustomData_add_layer(&me->pdata, CD_FREESTYLE_FACE, CD_SET_DEFAULT, me->totpoly);
   }
   if (value) {
     ffa[index].flag |= FREESTYLE_FACE_MARK;
@@ -1032,7 +1032,7 @@ static MBoolProperty *MeshUVLoopLayer_get_bool_layer(Mesh *mesh, char const *nam
       &mesh->ldata, CD_PROP_BOOL, name, mesh->totloop);
   if (layer == NULL) {
     layer = CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totloop, name);
+        &mesh->ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totloop, name);
   }
 
   BLI_assert(layer);
@@ -1715,7 +1715,7 @@ static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
       return;
     }
     hide_edge = (bool *)CustomData_add_layer_named(
-        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, ".hide_edge");
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totedge, ".hide_edge");
   }
   const int index = rna_MeshEdge_index_get(ptr);
   hide_edge[index] = value;
@@ -1741,7 +1741,7 @@ static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
       return;
     }
     select_edge = (bool *)CustomData_add_layer_named(
-        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, ".select_edge");
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totedge, ".select_edge");
   }
   const int index = rna_MeshEdge_index_get(ptr);
   select_edge[index] = value;
@@ -1767,7 +1767,7 @@ static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
       return;
     }
     sharp_edge = (bool *)CustomData_add_layer_named(
-        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, "sharp_edge");
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totedge, "sharp_edge");
   }
   const int index = rna_MeshEdge_index_get(ptr);
   sharp_edge[index] = value;
@@ -1793,7 +1793,7 @@ static void rna_MeshEdge_use_seam_set(PointerRNA *ptr, bool value)
       return;
     }
     seam_edge = (bool *)CustomData_add_layer_named(
-        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, mesh->totedge, ".uv_seam");
+        &mesh->edata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->totedge, ".uv_seam");
   }
   const int index = rna_MeshEdge_index_get(ptr);
   seam_edge[index] = value;
@@ -2503,8 +2503,7 @@ static void rna_Mesh_sculpt_vertex_color_remove(struct Mesh *me,
       CustomDataLayer *cdl = NULL; \
       int index; \
 \
-      CustomData_add_layer_named( \
-          &me->cdata, cd_prop_type, CD_SET_DEFAULT, NULL, me->countvar, name); \
+      CustomData_add_layer_named(&me->cdata, cd_prop_type, CD_SET_DEFAULT, me->countvar, name); \
       index = CustomData_get_named_layer_index(&me->cdata, cd_prop_type, name); \
 \
       cdl = (index == -1) ? NULL : &(me->cdata.layers[index]); \

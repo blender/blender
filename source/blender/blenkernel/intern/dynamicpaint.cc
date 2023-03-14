@@ -1958,7 +1958,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
               mloopcol = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
                                                                             CD_PROP_BYTE_COLOR,
                                                                             CD_SET_DEFAULT,
-                                                                            nullptr,
                                                                             loops.size(),
                                                                             surface->output_name));
             }
@@ -1972,7 +1971,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                   CustomData_add_layer_named(&result->ldata,
                                              CD_PROP_BYTE_COLOR,
                                              CD_SET_DEFAULT,
-                                             nullptr,
                                              loops.size(),
                                              surface->output_name2));
             }
@@ -2003,7 +2001,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             /* apply weights into a vertex group, if doesn't exists add a new layer */
             if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0')) {
               dvert = static_cast<MDeformVert *>(CustomData_add_layer(
-                  &result->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, sData->total_points));
+                  &result->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, sData->total_points));
             }
             if (defgrp_index != -1 && dvert) {
               for (int i = 0; i < sData->total_points; i++) {

@@ -546,7 +546,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   if (clnors == nullptr) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, loops.size()));
+        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, loops.size()));
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);

@@ -1262,7 +1262,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
          * Again, use_create is not relevant in this case */
         if (!data_dst) {
           data_dst = static_cast<MDeformVert *>(
-              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
         }
 
         while (idx_src--) {
@@ -1323,8 +1323,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
           /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
            * use_create is not relevant in this case */
           if (!data_dst) {
-            data_dst = static_cast<MDeformVert *>(CustomData_add_layer(
-                cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+            data_dst = static_cast<MDeformVert *>(
+                CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
           }
 
           data_transfer_layersmapping_add_item(r_map,
@@ -1467,7 +1467,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
        * use_create is not relevant in this case */
       if (!data_dst) {
         data_dst = static_cast<MDeformVert *>(
-            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
       }
 
       data_transfer_layersmapping_add_item(r_map,

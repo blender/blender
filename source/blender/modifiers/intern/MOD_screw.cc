@@ -412,7 +412,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       "sharp_face", ATTR_DOMAIN_FACE);
 
   if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
-    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, int(maxPolys));
+    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, int(maxPolys));
   }
 
   int *origindex = static_cast<int *>(

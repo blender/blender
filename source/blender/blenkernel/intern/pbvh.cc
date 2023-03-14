@@ -3518,12 +3518,8 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh)
   if (pbvh->hide_vert) {
     return pbvh->hide_vert;
   }
-  pbvh->hide_vert = static_cast<bool *>(CustomData_add_layer_named(&pbvh->mesh->vdata,
-                                                                   CD_PROP_BOOL,
-                                                                   CD_SET_DEFAULT,
-                                                                   nullptr,
-                                                                   pbvh->mesh->totvert,
-                                                                   ".hide_vert"));
+  pbvh->hide_vert = static_cast<bool *>(CustomData_add_layer_named(
+      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, pbvh->mesh->totvert, ".hide_vert"));
   return pbvh->hide_vert;
 }
 
@@ -3889,7 +3885,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
           if (!hide_poly) {
             hide_poly = static_cast<bool *>(CustomData_add_layer_named(
-                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, nullptr, mesh->totpoly, ".hide_poly"));
+                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, mesh->totpoly, ".hide_poly"));
           }
         }
 

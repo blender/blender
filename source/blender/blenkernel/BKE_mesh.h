@@ -798,7 +798,7 @@ BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
     return indices;
   }
   return (int *)CustomData_add_layer_named(
-      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totpoly, "material_index");
+      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totpoly, "material_index");
 }
 
 BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
@@ -850,7 +850,7 @@ BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
     return dvert;
   }
   return (MDeformVert *)CustomData_add_layer(
-      &mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, mesh->totvert);
+      &mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->totvert);
 }
 
 #ifdef __cplusplus

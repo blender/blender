@@ -74,8 +74,7 @@ void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
 
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(
-        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, coarse_mesh->totloop);
+    CustomData_add_layer(&coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
   }
 
   if (new_top_level == 1) {

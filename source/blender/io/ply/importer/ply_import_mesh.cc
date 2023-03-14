@@ -23,14 +23,14 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   /* Add vertices to the mesh. */
   mesh->totvert = int(data.vertices.size());
   CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
+      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
   mesh->vert_positions_for_write().copy_from(data.vertices);
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   if (!data.edges.is_empty()) {
     mesh->totedge = int(data.edges.size());
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
+    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
     MutableSpan<MEdge> edges = mesh->edges_for_write();
     for (int i = 0; i < mesh->totedge; i++) {
       edges[i].v1 = data.edges[i].first;
@@ -47,8 +47,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
       /* Add number of loops from the vertex indices in the face. */
       mesh->totloop += data.faces[i].size();
     }
-    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, mesh->totpoly);
+    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, mesh->totloop);
     MutableSpan<MPoly> polys = mesh->polys_for_write();
     MutableSpan<MLoop> loops = mesh->loops_for_write();
 

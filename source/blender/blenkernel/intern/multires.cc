@@ -993,7 +993,7 @@ static void multiresModifier_disp_run(
   if (!mdisps) {
     if (op == CALC_DISPLACEMENTS) {
       mdisps = static_cast<MDisps *>(
-          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, me->totloop));
+          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, me->totloop));
     }
     else {
       return;
@@ -1528,7 +1528,7 @@ void multires_ensure_external_read(struct Mesh *mesh, int top_level)
       CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
   if (mdisps == nullptr) {
     mdisps = static_cast<MDisps *>(
-        CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, mesh->totloop));
+        CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, mesh->totloop));
   }
 
   const int totloop = mesh->totloop;
