@@ -47,7 +47,6 @@ struct CCLIntersectContext {
   uint num_hits;
   uint num_recorded_hits;
   float throughput;
-  float max_t;
   bool opaque_hit;
 
   /* for SSS Rays: */
@@ -67,7 +66,6 @@ struct CCLIntersectContext {
     num_hits = 0;
     num_recorded_hits = 0;
     throughput = 1.0f;
-    max_t = FLT_MAX;
     opaque_hit = false;
     isect_s = NULL;
     local_isect = NULL;
@@ -227,7 +225,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
   assert(args->N == 1);
 
-  const RTCRay *ray = (RTCRay *)args->ray;
+  RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
   CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
   const KernelGlobalsCPU *kg = ctx->kg;
@@ -268,7 +266,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
 
       /* Test if we need to record this transparent intersection. */
       const uint max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
-      if (ctx->num_recorded_hits < max_record_hits || ray->tfar < ctx->max_t) {
+      if (ctx->num_recorded_hits < max_record_hits) {
         /* If maximum number of hits was reached, replace the intersection with the
          * highest distance. We want to find the N closest intersections. */
         const uint num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
@@ -289,11 +287,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
             isect_index = max_recorded_hit;
           }
 
-          /* Limit the ray distance and stop counting hits beyond this.
-           * TODO: is there some way we can tell Embree to stop intersecting beyond
-           * this distance when max number of hits is reached?. Or maybe it will
-           * become irrelevant if we make max_hits a very high number on the CPU. */
-          ctx->max_t = max(current_isect.t, max_t);
+          /* Limit the ray distance and stop counting hits beyond this. */
+          ray->tfar = max(current_isect.t, max_t);
         }
 
         integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
