@@ -83,4 +83,7 @@ void pack_islands(const Span<PackIsland *> &islands,
                   const UVPackIsland_Params &params,
                   float r_scale[2]);
 
+/** Compute `r = mat * (a + b)` with high precision. */
+void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2]);
+
 }  // namespace blender::geometry

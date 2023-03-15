@@ -1040,19 +1040,6 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /** \} */
 
-/** Compute `r = mat * (a + b)` with high precision. */
-static void mul_v2_m2_add_v2v2(float r[2],
-                               const float mat[2][2],
-                               const float a[2],
-                               const float b[2])
-{
-  const double x = double(a[0]) + double(b[0]);
-  const double y = double(a[1]) + double(b[1]);
-
-  r[0] = float(mat[0][0] * x + mat[1][0] * y);
-  r[1] = float(mat[0][1] * x + mat[1][1] * y);
-}
-
 static void island_uv_transform(FaceIsland *island,
                                 const float matrix[2][2],    /* Scale and rotation. */
                                 const float pre_translate[2] /* (pre) Translation. */
@@ -1077,7 +1064,7 @@ static void island_uv_transform(FaceIsland *island,
     BMIter iter;
     BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-      mul_v2_m2_add_v2v2(luv, matrix, luv, pre_translate);
+      blender::geometry::mul_v2_m2_add_v2v2(luv, matrix, luv, pre_translate);
     }
   }
 }

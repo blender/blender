@@ -24,6 +24,29 @@
 
 namespace blender::geometry {
 
+/** Compute `r = mat * (a + b)` with high precision.
+ *
+ * Often, linear transforms are written as :
+ *  `A.x + b`
+ *
+ * When transforming UVs, the familiar expression can
+ * damage UVs due to round-off error, expecially when
+ * using UDIM and if there are large numbers of islands.
+ *
+ * Instead, we provide a helper which evaluates :
+ *  `A. (x + b)`
+ *
+ * To further reduce damage, all internal calculations are
+ * performed using double precision. */
+void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2])
+{
+  const double x = double(a[0]) + double(b[0]);
+  const double y = double(a[1]) + double(b[1]);
+
+  r[0] = float(mat[0][0] * x + mat[1][0] * y);
+  r[1] = float(mat[0][1] * x + mat[1][1] * y);
+}
+
 /* Compute signed distance squared to a line passing through `uva` and `uvb`.
  */
 static float dist_signed_squared_to_edge(float2 probe, float2 uva, float2 uvb)
