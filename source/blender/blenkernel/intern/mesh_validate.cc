@@ -299,14 +299,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     recalc_flag.edges = do_fixes;
   }
 
-  const float(*vert_normals)[3] = nullptr;
-  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
-    vert_normals = BKE_mesh_vert_normals_ensure(mesh);
-  }
-
   for (i = 0; i < totvert; i++) {
-    bool fix_normal = true;
-
     for (j = 0; j < 3; j++) {
       if (!isfinite(vert_positions[i][j])) {
         PRINT_ERR("\tVertex %u: has invalid coordinate", i);
@@ -314,31 +307,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         if (do_fixes) {
           zero_v3(vert_positions[i]);
 
-          fix_flag.verts = true;
-        }
-      }
-
-      if (vert_normals && vert_normals[i][j] != 0.0f) {
-        fix_normal = false;
-        break;
-      }
-    }
-
-    if (vert_normals && fix_normal) {
-      /* If the vertex normal accumulates to zero or isn't part of a face, the location is used.
-       * When the location is also zero, a zero normal warning should not be raised.
-       * since this is the expected behavior of normal calculation.
-       *
-       * This avoids false positives but isn't foolproof as it's possible the vertex
-       * is part of a polygon that has a normal which this vertex should be using,
-       * although it's also possible degenerate/opposite faces accumulate to a zero vector.
-       * To detect this a full normal recalculation would be needed, which is out of scope
-       * for a basic validity check (see "Vertex Normal" in the doc-string). */
-      if (!is_zero_v3(vert_positions[i])) {
-        PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
-        if (do_fixes) {
-          float *normal = (float *)vert_normals[i];
-          normal[2] = 1.0f;
           fix_flag.verts = true;
         }
       }
