@@ -112,31 +112,17 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
 
 ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg,
                                                           const RTCHit *hit,
-                                                          const Ray *ray)
+                                                          const Ray *ray,
+                                                          const intptr_t prim_offset)
 {
   int object, prim;
+  object = (hit->instID[0] != RTC_INVALID_GEOMETRY_ID ? hit->instID[0] : hit->geomID) / 2;
 
-  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    object = hit->instID[0] / 2;
-    if ((ray->self.object == object) || (ray->self.light_object == object)) {
-      RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-          rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
-      prim = hit->primID +
-             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-    }
-    else {
-      return false;
-    }
+  if ((ray->self.object == object) || (ray->self.light_object == object)) {
+    prim = hit->primID + prim_offset;
   }
   else {
-    object = hit->geomID / 2;
-    if ((ray->self.object == object) || (ray->self.light_object == object)) {
-      prim = hit->primID +
-             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
-    }
-    else {
-      return false;
-    }
+    return false;
   }
 
   const bool is_hair = hit->geomID & 1;
@@ -150,21 +136,12 @@ ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg
 ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
-                                                 Intersection *isect)
+                                                 Intersection *isect,
+                                                 const intptr_t prim_offset)
 {
   isect->t = ray->tfar;
-  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-        rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
-    isect->prim = hit->primID +
-                  (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-    isect->object = hit->instID[0] / 2;
-  }
-  else {
-    isect->prim = hit->primID + (intptr_t)rtcGetGeometryUserData(
-                                    rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
-    isect->object = hit->geomID / 2;
-  }
+  isect->prim = hit->primID + prim_offset;
+  isect->object = hit->instID[0] != RTC_INVALID_GEOMETRY_ID ? hit->instID[0] / 2 : hit->geomID / 2;
 
   const bool is_hair = hit->geomID & 1;
   if (is_hair) {
@@ -181,16 +158,35 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
   }
 }
 
-ccl_device_inline void kernel_embree_convert_sss_hit(
-    KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
+ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
+                                                 const RTCRay *ray,
+                                                 const RTCHit *hit,
+                                                 Intersection *isect)
+{
+  intptr_t prim_offset;
+  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
+    RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
+        rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
+    prim_offset = intptr_t(rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID)));
+  }
+  else {
+    prim_offset = intptr_t(
+        rtcGetGeometryUserData(rtcGetGeometry(kernel_data.device_bvh, hit->geomID)));
+  }
+  kernel_embree_convert_hit(kg, ray, hit, isect, prim_offset);
+}
+
+ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals kg,
+                                                     const RTCRay *ray,
+                                                     const RTCHit *hit,
+                                                     Intersection *isect,
+                                                     int object,
+                                                     const intptr_t prim_offset)
 {
   isect->u = hit->u;
   isect->v = hit->v;
   isect->t = ray->tfar;
-  RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-      rtcGetGeometry(kernel_data.device_bvh, object * 2));
-  isect->prim = hit->primID +
-                (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
+  isect->prim = hit->primID + prim_offset;
   isect->object = object;
   isect->type = kernel_data_fetch(objects, object).primitive_type;
 }
@@ -211,7 +207,8 @@ ccl_device void kernel_embree_filter_intersection_func(const RTCFilterFunctionNA
   const KernelGlobalsCPU *kg = ctx->kg;
   const Ray *cray = ctx->ray;
 
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+  if (kernel_embree_is_self_intersection(
+          kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
     *args->valid = 0;
   }
 }
@@ -235,7 +232,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL: {
       Intersection current_isect;
-      kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+      kernel_embree_convert_hit(
+          kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
       if (intersection_skip_self_shadow(cray->self, current_isect.object, current_isect.prim)) {
         *args->valid = 0;
         return;
@@ -309,10 +307,16 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       /* Check if it's hitting the correct object. */
       Intersection current_isect;
       if (ctx->type == CCLIntersectContext::RAY_SSS) {
-        kernel_embree_convert_sss_hit(kg, ray, hit, &current_isect, ctx->local_object_id);
+        kernel_embree_convert_sss_hit(kg,
+                                      ray,
+                                      hit,
+                                      &current_isect,
+                                      ctx->local_object_id,
+                                      reinterpret_cast<intptr_t>(args->geometryUserPtr));
       }
       else {
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        kernel_embree_convert_hit(
+            kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
         if (ctx->local_object_id != current_isect.object) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
@@ -387,7 +391,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       /* Append the intersection to the end of the array. */
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        kernel_embree_convert_hit(
+            kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
         if (intersection_skip_self(cray->self, current_isect.object, current_isect.prim)) {
           *args->valid = 0;
           return;
@@ -409,7 +414,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
     }
     case CCLIntersectContext::RAY_REGULAR:
     default:
-      if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+      if (kernel_embree_is_self_intersection(
+              kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
         *args->valid = 0;
         return;
       }
@@ -433,7 +439,8 @@ ccl_device void kernel_embree_filter_func_backface_cull(const RTCFilterFunctionN
   const KernelGlobalsCPU *kg = ctx->kg;
   const Ray *cray = ctx->ray;
 
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+  if (kernel_embree_is_self_intersection(
+          kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
     *args->valid = 0;
   }
 }
