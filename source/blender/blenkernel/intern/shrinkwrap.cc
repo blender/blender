@@ -60,7 +60,7 @@ struct ShrinkwrapCalcData {
   Object *ob; /* object we are applying shrinkwrap to */
 
   float (*vert_positions)[3]; /* Array of verts being projected. */
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   /* Vertices being shrink-wrapped. */
   float (*vertexCos)[3];
   int numVerts;
@@ -115,7 +115,7 @@ bool BKE_shrinkwrap_init_tree(
 
   data->mesh = mesh;
   data->polys = mesh->polys().data();
-  data->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+  data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data()),
   data->sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_face"));
 
@@ -136,7 +136,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-    data->poly_normals = BKE_mesh_poly_normals_ensure(mesh);
+    data->poly_normals = reinterpret_cast<const float(*)[3]>(mesh->poly_normals().data());
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
       data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
     }
@@ -297,7 +297,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
   MEM_freeN(vert_status);
 
   /* Finalize average direction and compute normal. */
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
   for (int i = 0; i < mesh->totvert; i++) {
     int bidx = vert_boundary_id[i];
 
@@ -1409,7 +1409,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertex positions, normals and deform weights */
     calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
-    calc.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+    calc.vert_normals = mesh->vert_normals();
 
     /* Using vertices positions/normals as if a subsurface was applied */
     if (smd->subsurfLevels) {
@@ -1570,7 +1570,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
   calc.vertexCos = vertexCos;
-  calc.vert_normals = BKE_mesh_vert_normals_ensure(src_me);
+  calc.vert_normals = src_me->vert_normals();
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;

@@ -680,8 +680,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
     }
     case SCULPT_FACE_SETS_FROM_NORMALS: {
-      const Span<float3> poly_normals(
-          reinterpret_cast<const float3 *>(BKE_mesh_poly_normals_ensure(mesh)), mesh->totpoly);
+      const Span<float3> poly_normals = mesh->poly_normals();
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
             return std::abs(math::dot(poly_normals[from_face], poly_normals[to_face])) > threshold;

@@ -429,8 +429,8 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      BKE_mesh_vert_normals_ensure(mesh);
-      BKE_mesh_poly_normals_ensure(mesh);
+      mesh->vert_normals();
+      mesh->poly_normals();
       break;
     case ME_WRAPPER_TYPE_BMESH: {
       BMEditMesh *em = mesh->edit_mesh;

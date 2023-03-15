@@ -554,7 +554,7 @@ struct VertexDupliData_Mesh {
 
   int totvert;
   Span<float3> vert_positions;
-  const float (*vert_normals)[3];
+  Span<float3> vert_normals;
 
   const float (*orco)[3];
 };
@@ -735,7 +735,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
     vdd.vert_positions = me_eval->vert_positions();
-    vdd.vert_normals = BKE_mesh_vert_normals_ensure(me_eval);
+    vdd.vert_normals = me_eval->vert_normals();
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);

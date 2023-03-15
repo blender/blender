@@ -1387,7 +1387,7 @@ BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const MLoop 
 }
 
 static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
-                                               const float (*vert_normals)[3],
+                                               const blender::Span<blender::float3> vert_normals,
                                                uint v_idx,
                                                RNG *rng,
                                                float max_length,
@@ -1530,7 +1530,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
-    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(tmp_mesh ? tmp_mesh : mesh);
+    const blender::Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :
+                                                                   mesh->vert_normals();
 
     for (int i = 0; i < mvert_num; i++) {
       if (find_internal_spring_target_vertex(

@@ -61,7 +61,7 @@ struct MultiresBakeResult {
 
 struct MResolvePixelData {
   const float (*vert_positions)[3];
-  const float (*vert_normals)[3];
+  const blender::float3 *vert_normals;
   int verts_num;
   const MPoly *polys;
   const int *material_indices;
@@ -71,7 +71,7 @@ struct MResolvePixelData {
   float uv_offset[2];
   const MLoopTri *mlooptri;
   float *pvtangent;
-  const float (*precomputed_normals)[3];
+  const blender::float3 *poly_normals;
   int w, h;
   int tri_index;
   DerivedMesh *lores_dm, *hires_dm;
@@ -123,8 +123,8 @@ static void multiresbake_get_normal(const MResolvePixelData *data,
     copy_v3_v3(r_normal, data->vert_normals[vi]);
   }
   else {
-    if (data->precomputed_normals) {
-      copy_v3_v3(r_normal, data->precomputed_normals[poly_index]);
+    if (data->poly_normals) {
+      copy_v3_v3(r_normal, data->poly_normals[poly_index]);
     }
     else {
       copy_v3_v3(
@@ -497,8 +497,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
   temp_mesh->polys_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly});
   temp_mesh->loops_for_write().copy_from({dm->getLoopArray(dm), temp_mesh->totloop});
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(temp_mesh);
-  const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
+  const blender::Span<blender::float3> vert_normals = temp_mesh->vert_normals();
+  const blender::Span<blender::float3> poly_normals = temp_mesh->poly_normals();
 
   if (require_tangent) {
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
@@ -515,8 +515,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
           true,
           nullptr,
           0,
-          vert_normals,
-          poly_normals,
+          reinterpret_cast<const float(*)[3]>(vert_normals.data()),
+          reinterpret_cast<const float(*)[3]>(poly_normals.data()),
           (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
           (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* May be nullptr. */
           /* result */
@@ -560,14 +560,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->data.sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
     handle->data.vert_positions = positions;
-    handle->data.vert_normals = vert_normals;
+    handle->data.vert_normals = vert_normals.data();
     handle->data.verts_num = dm->getNumVerts(dm);
     handle->data.mloopuv = mloopuv;
     BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
     handle->data.mlooptri = mlooptri;
     handle->data.mloop = mloop;
     handle->data.pvtangent = pvtangent;
-    handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
+    handle->data.poly_normals = poly_normals.data(); /* don't strictly need this */
     handle->data.w = ibuf->x;
     handle->data.h = ibuf->y;
     handle->data.lores_dm = dm;

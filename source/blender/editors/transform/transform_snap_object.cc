@@ -1427,7 +1427,7 @@ struct Nearest2dUserData {
     };
     struct {
       const float (*vert_positions)[3];
-      const float (*vert_normals)[3];
+      const blender::float3 *vert_normals;
       const MEdge *edges; /* only used for #BVHTreeFromMeshEdges */
       const MLoop *loop;
       const MLoopTri *looptris;
@@ -1716,7 +1716,7 @@ static void nearest2d_data_init_mesh(const Mesh *mesh,
   r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
 
   r_nearest2d->vert_positions = BKE_mesh_vert_positions(mesh);
-  r_nearest2d->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+  r_nearest2d->vert_normals = mesh->vert_normals().data();
   r_nearest2d->edges = mesh->edges().data();
   r_nearest2d->loop = mesh->loops().data();
   r_nearest2d->looptris = mesh->looptris().data();

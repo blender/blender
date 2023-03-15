@@ -500,7 +500,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
         CustomData_get_layer(&me_eval->ldata, CD_NORMAL));
   }
 
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me);
+  const blender::Span<blender::float3> vert_normals = me->vert_normals();
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
     const MPoly &poly = polys[lt->poly];

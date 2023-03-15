@@ -67,13 +67,14 @@ void BKE_mesh_foreach_mapped_vert(
   else {
     const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
-    const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                        BKE_mesh_vert_normals_ensure(mesh) :
-                                        nullptr;
+    blender::Span<blender::float3> vert_normals;
+    if (flag & MESH_FOREACH_USE_NORMAL) {
+      vert_normals = mesh->vert_normals();
+    }
 
     if (index) {
       for (int i = 0; i < mesh->totvert; i++) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : nullptr;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
           continue;
@@ -83,7 +84,7 @@ void BKE_mesh_foreach_mapped_vert(
     }
     else {
       for (int i = 0; i < mesh->totvert; i++) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : nullptr;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
         func(userData, i, positions[i], no);
       }
     }
@@ -315,9 +316,10 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const blender::Span<MPoly> polys = mesh->polys();
   const blender::Span<MLoop> loops = mesh->loops();
-  const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                      BKE_mesh_vert_normals_ensure(mesh) :
-                                      nullptr;
+  blender::Span<blender::float3> vert_normals;
+  if (flag & MESH_FOREACH_USE_NORMAL) {
+    vert_normals = mesh->vert_normals();
+  }
   const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
   const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
 
@@ -332,7 +334,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
           func(userData,
                orig,
                positions[loop.v],
-               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[loop.v] : nullptr);
+               (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[loop.v].x : nullptr);
         }
       }
     }
@@ -344,7 +346,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
           func(userData,
                i,
                positions[loop.v],
-               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[loop.v] : nullptr);
+               (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[loop.v].x : nullptr);
         }
       }
     }

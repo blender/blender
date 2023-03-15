@@ -277,9 +277,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     return;
   }
 
-  const float(*vert_normals)[3] = nullptr;
+  blender::Span<blender::float3> vert_normals;
   if (params->calc_vert_normal) {
-    vert_normals = BKE_mesh_vert_normals_ensure(me);
+    vert_normals = me->vert_normals();
   }
 
   if (is_new) {
@@ -433,7 +433,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       BM_vert_select_set(bm, v, true);
     }
 
-    if (vert_normals) {
+    if (!vert_normals.is_empty()) {
       copy_v3_v3(v->no, vert_normals[i]);
     }
 

@@ -50,11 +50,11 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 
 /**
  * \param mesh: Mesh to calculate normals for.
- * \param poly_nors: Precalculated face normals.
+ * \param poly_normals: Precalculated face normals.
  * \param r_vert_nors: Return vert normals.
  */
 static void mesh_calc_hq_normal(Mesh *mesh,
-                                const float (*poly_nors)[3],
+                                const blender::Span<blender::float3> poly_normals,
                                 float (*r_vert_nors)[3],
 #ifdef USE_NONMANIFOLD_WORKAROUND
                                 BLI_bitmap *edge_tmp_tag
@@ -115,13 +115,13 @@ static void mesh_calc_hq_normal(Mesh *mesh,
               angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
 #else
           mid_v3_v3v3_angle_weighted(
-              edge_normal, poly_nors[edge_ref->p1], poly_nors[edge_ref->p2]);
+              edge_normal, poly_normals[edge_ref->p1], poly_normals[edge_ref->p2]);
 #endif
         }
         else {
           /* only one face attached to that edge */
           /* an edge without another attached- the weight on this is undefined */
-          copy_v3_v3(edge_normal, poly_nors[edge_ref->p1]);
+          copy_v3_v3(edge_normal, poly_normals[edge_ref->p1]);
         }
         add_v3_v3(r_vert_nors[edge->v1], edge_normal);
         add_v3_v3(r_vert_nors[edge->v2], edge_normal);
@@ -131,7 +131,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
   }
 
   /* normalize vertex normals and assign */
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
   for (int i = 0; i < verts_num; i++) {
     if (normalize_v3(r_vert_nors[i]) == 0.0f) {
       copy_v3_v3(r_vert_nors[i], vert_normals[i]);
@@ -176,7 +176,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   int *edge_order = nullptr;
 
   float(*vert_nors)[3] = nullptr;
-  const float(*poly_nors)[3] = nullptr;
+  blender::Span<blender::float3> poly_normals;
 
   const bool need_poly_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) ||
                                  (smd->flag & MOD_SOLIDIFY_EVEN) ||
@@ -205,7 +205,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* array size is doubled in case of using a shell */
   const uint stride = do_shell ? 2 : 1;
 
-  const float(*mesh_vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -216,7 +216,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   if (need_poly_normals) {
     /* calculate only face normals */
-    poly_nors = BKE_mesh_poly_normals_ensure(mesh);
+    poly_normals = mesh->poly_normals();
   }
 
   STACK_INIT(new_vert_arr, verts_num * 2);
@@ -315,7 +315,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
     vert_nors = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(float[3]), __func__));
     mesh_calc_hq_normal(mesh,
-                        poly_nors,
+                        poly_normals,
                         vert_nors
 #ifdef USE_NONMANIFOLD_WORKAROUND
                         ,
@@ -540,8 +540,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (uint i = 0; i < edges_num; i++, edge++) {
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
-          const float *n0 = poly_nors[edge_user_pairs[i][0]];
-          const float *n1 = poly_nors[edge_user_pairs[i][1]];
+          const float *n0 = poly_normals[edge_user_pairs[i][0]];
+          const float *n1 = poly_normals[edge_user_pairs[i][1]];
           sub_v3_v3v3(e, orig_vert_positions[edge->v1], orig_vert_positions[edge->v2]);
           normalize_v3(e);
           const float angle = angle_signed_on_axis_v3v3_v3(n0, n1, e);
@@ -606,7 +606,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           madd_v3_v3fl(vert_positions[vert_index], vert_nors[i], ofs_new_vgroup);
         }
         else {
-          madd_v3_v3fl(vert_positions[vert_index], mesh_vert_normals[i], ofs_new_vgroup);
+          madd_v3_v3fl(vert_positions[vert_index], vert_normals[i], ofs_new_vgroup);
         }
       }
     }
@@ -658,7 +658,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           madd_v3_v3fl(vert_positions[vert_index], vert_nors[i], ofs_new_vgroup);
         }
         else {
-          madd_v3_v3fl(vert_positions[vert_index], mesh_vert_normals[i], ofs_new_vgroup);
+          madd_v3_v3fl(vert_positions[vert_index], vert_normals[i], ofs_new_vgroup);
         }
       }
     }
@@ -710,7 +710,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       vert_nors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(float[3]), "mod_solid_vno"));
       for (i = 0; i < verts_num; i++) {
-        copy_v3_v3(vert_nors[i], mesh_vert_normals[i]);
+        copy_v3_v3(vert_nors[i], vert_normals[i]);
       }
     }
 
@@ -746,14 +746,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if ((check_non_manifold == false) ||
             LIKELY(!BLI_BITMAP_TEST(edge_tmp_tag, ml[i_curr].e) &&
                    !BLI_BITMAP_TEST(edge_tmp_tag, ml[i_next].e))) {
-          vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_nors[i]) *
+          vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_normals[i]) *
                                angle;
         }
         else {
           vert_angles[vidx] += angle;
         }
 #else
-        vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_nors[i]) * angle;
+        vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_normals[i]) *
+                             angle;
 #endif
         /* --- end non-angle-calc section --- */
 
@@ -837,8 +838,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (i = 0; i < edges_num; i++, edge++) {
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
-          const float *n0 = poly_nors[edge_user_pairs[i][0]];
-          const float *n1 = poly_nors[edge_user_pairs[i][1]];
+          const float *n0 = poly_normals[edge_user_pairs[i][0]];
+          const float *n1 = poly_normals[edge_user_pairs[i][1]];
           if (do_angle_clamp) {
             const float angle = M_PI - angle_normalized_v3v3(n0, n1);
             vert_angs[edge->v1] = max_ff(vert_angs[edge->v1], angle);
@@ -976,7 +977,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     uint i;
     /* flip vertex normals for copied verts */
     for (i = 0; i < verts_num; i++) {
-      negate_v3((float *)mesh_vert_normals[i]);
+      negate_v3((float *)&vert_normals[i].x);
     }
   }
 
@@ -1183,10 +1184,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         normalize_v3_v3(nor_cpy, edge_vert_nos[edge_orig.v1]);
 
         for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
-          copy_v3_v3(nor, mesh_vert_normals[*(&edge.v1 + k)]);
+          copy_v3_v3(nor, vert_normals[*(&edge.v1 + k)]);
           add_v3_v3(nor, nor_cpy);
           normalize_v3(nor);
-          copy_v3_v3((float *)mesh_vert_normals[*(&edge.v1 + k)], nor);
+          copy_v3_v3((float *)&vert_normals[*(&edge.v1 + k)].x, nor);
         }
       }
 

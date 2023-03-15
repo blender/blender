@@ -1789,7 +1789,7 @@ struct DynamicPaintModifierApplyData {
   Object *ob;
 
   float (*vert_positions)[3];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   blender::Span<MPoly> polys;
   blender::Span<MLoop> loops;
 
@@ -1827,7 +1827,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
     DynamicPaintModifierApplyData data{};
     data.surface = surface;
     data.vert_positions = BKE_mesh_vert_positions_for_write(result);
-    data.vert_normals = BKE_mesh_vert_normals_ensure(result);
+    data.vert_normals = result->vert_normals();
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
@@ -2026,7 +2026,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             DynamicPaintModifierApplyData data{};
             data.surface = surface;
             data.vert_positions = BKE_mesh_vert_positions_for_write(result);
-            data.vert_normals = BKE_mesh_vert_normals_ensure(result);
+            data.vert_normals = result->vert_normals();
 
             TaskParallelSettings settings;
             BLI_parallel_range_settings_defaults(&settings);
@@ -4286,7 +4286,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
 
     mesh = BKE_mesh_copy_for_eval(brush_mesh, false);
     float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
-    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
+    const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
     const blender::Span<MLoopTri> looptris = mesh->looptris();
     const blender::Span<MLoop> loops = mesh->loops();
     numOfVerts = mesh->totvert;
@@ -5910,7 +5910,7 @@ struct DynamicPaintGenerateBakeData {
   Object *ob;
 
   const float (*positions)[3];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   const Vec3f *canvas_verts;
 
   bool do_velocity_data;
@@ -6147,7 +6147,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   data.surface = surface;
   data.ob = ob;
   data.positions = positions;
-  data.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+  data.vert_normals = mesh->vert_normals();
   data.canvas_verts = canvas_verts;
   data.do_velocity_data = do_velocity_data;
   data.new_bdata = new_bdata;

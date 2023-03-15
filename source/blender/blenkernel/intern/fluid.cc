@@ -1785,7 +1785,7 @@ static void update_distances(int index,
 
 static void sample_mesh(FluidFlowSettings *ffs,
                         const float (*vert_positions)[3],
-                        const float (*vert_normals)[3],
+                        const blender::Span<blender::float3> vert_normals,
                         const MLoop *mloop,
                         const MLoopTri *mlooptri,
                         const float (*mloopuv)[2],
@@ -1980,7 +1980,7 @@ struct EmitFromDMData {
   FluidFlowSettings *ffs;
 
   const float (*vert_positions)[3];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   blender::Span<MLoop> loops;
   blender::Span<MLoopTri> looptris;
   const float (*mloopuv)[2];
@@ -2091,17 +2091,10 @@ static void emit_from_mesh(
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    BKE_mesh_vert_normals_ensure(me);
-    float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
       mul_m4_v3(flow_ob->object_to_world, positions[i]);
       manta_pos_to_cell(fds, positions[i]);
-
-      /* Vertex normal. */
-      mul_mat3_m4_v3(flow_ob->object_to_world, vert_normals[i]);
-      mul_mat3_m4_v3(fds->imat, vert_normals[i]);
-      normalize_v3(vert_normals[i]);
 
       /* Vertex velocity. */
       if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
@@ -2117,6 +2110,7 @@ static void emit_from_mesh(
       /* Calculate emission map bounds. */
       bb_boundInsert(bb, positions[i]);
     }
+    BKE_mesh_tag_positions_changed(me);
     mul_m4_v3(flow_ob->object_to_world, flow_center);
     manta_pos_to_cell(fds, flow_center);
 
@@ -2141,7 +2135,7 @@ static void emit_from_mesh(
       data.fds = fds;
       data.ffs = ffs;
       data.vert_positions = positions;
-      data.vert_normals = vert_normals;
+      data.vert_normals = me->vert_normals();
       data.loops = loops;
       data.looptris = looptris;
       data.mloopuv = mloopuv;

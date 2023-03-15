@@ -845,7 +845,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->mloop = mloop;
   pbvh->looptri = looptri;
   pbvh->vert_positions = vert_positions;
-  BKE_mesh_vert_normals_ensure(mesh);
+  /* Make sure cached normals start out calculated. */
+  mesh->vert_normals();
   pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
   pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));

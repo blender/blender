@@ -155,7 +155,7 @@ struct DisplaceUserdata {
   float (*tex_co)[3];
   float (*vertexCos)[3];
   float local_mat[4][4];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   float (*vert_clnors)[3];
 };
 
@@ -336,7 +336,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+    data.vert_normals = mesh->vert_normals();
   }
   data.vert_clnors = vert_clnors;
   if (tex_target != nullptr) {

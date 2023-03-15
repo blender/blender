@@ -441,8 +441,8 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   else {
     /* Compute the loop normals based on the 'smooth' flag. */
     bke::AttributeAccessor attributes = mesh->attributes();
-    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
-    const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+    const Span<float3> vert_normals = mesh->vert_normals();
+    const Span<float3> poly_normals = mesh->poly_normals();
     const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
     for (const int i : polys.index_range()) {
@@ -450,7 +450,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
 
       if (sharp_faces[i]) {
         /* Flat shaded, use common normal for all verts. */
-        pxr::GfVec3f pxr_normal(face_normals[i]);
+        pxr::GfVec3f pxr_normal(&poly_normals[i].x);
         for (int loop_idx = 0; loop_idx < poly.totloop; ++loop_idx) {
           loop_normals.push_back(pxr_normal);
         }
@@ -458,7 +458,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
       else {
         /* Smooth shaded, use individual vert normals. */
         for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-          loop_normals.push_back(pxr::GfVec3f(vert_normals[loop.v]));
+          loop_normals.push_back(pxr::GfVec3f(&vert_normals[loop.v].x));
         }
       }
     }

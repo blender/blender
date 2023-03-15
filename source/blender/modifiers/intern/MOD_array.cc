@@ -576,10 +576,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  const float(*src_vert_normals)[3] = nullptr;
+  blender::Span<blender::float3> src_vert_normals;
   float(*dst_vert_normals)[3] = nullptr;
   if (!use_recalc_normals) {
-    src_vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+    src_vert_normals = mesh->vert_normals();
     dst_vert_normals = BKE_mesh_vert_normals_for_write(result);
     BKE_mesh_vert_normals_clear_dirty(result);
   }
