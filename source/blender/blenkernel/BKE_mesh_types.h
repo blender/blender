@@ -19,6 +19,7 @@
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
+#  include "BLI_vector.hh"
 
 #  include "DNA_customdata_types.h"
 #  include "DNA_meshdata_types.h"
@@ -158,8 +159,8 @@ struct MeshRuntime {
    */
   bool vert_normals_dirty = true;
   bool poly_normals_dirty = true;
-  float (*vert_normals)[3] = nullptr;
-  float (*poly_normals)[3] = nullptr;
+  mutable Vector<float3> vert_normals;
+  mutable Vector<float3> poly_normals;
 
   /**
    * A cache of data about the loose edges. Can be shared with other data-blocks with unchanged

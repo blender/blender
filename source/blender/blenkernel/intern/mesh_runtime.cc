@@ -78,10 +78,10 @@ static void free_bvh_cache(MeshRuntime &mesh_runtime)
   }
 }
 
-static void free_normals(MeshRuntime &mesh_runtime)
+static void reset_normals(MeshRuntime &mesh_runtime)
 {
-  MEM_SAFE_FREE(mesh_runtime.vert_normals);
-  MEM_SAFE_FREE(mesh_runtime.poly_normals);
+  mesh_runtime.vert_normals.clear_and_shrink();
+  mesh_runtime.poly_normals.clear_and_shrink();
   mesh_runtime.vert_normals_dirty = true;
   mesh_runtime.poly_normals_dirty = true;
 }
@@ -101,7 +101,6 @@ MeshRuntime::~MeshRuntime()
   free_bvh_cache(*this);
   free_edit_data(*this);
   free_batch_cache(*this);
-  free_normals(*this);
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
   }
@@ -216,7 +215,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
-  free_normals(*mesh->runtime);
+  reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
@@ -234,7 +233,7 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
    * Face normals didn't change either, but tag those anyway, since there is no API function to
    * only tag vertex normals dirty. */
   free_bvh_cache(*mesh->runtime);
-  free_normals(*mesh->runtime);
+  reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();

@@ -1114,13 +1114,6 @@ bool BKE_mesh_is_valid(Mesh *me)
       do_fixes,
       &changed);
 
-  if (!me->runtime->vert_normals_dirty) {
-    BLI_assert(me->runtime->vert_normals || me->totvert == 0);
-  }
-  if (!me->runtime->poly_normals_dirty) {
-    BLI_assert(me->runtime->poly_normals || me->totpoly == 0);
-  }
-
   BLI_assert(changed == false);
 
   return is_valid;

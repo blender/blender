@@ -102,38 +102,26 @@ static void add_v3_v3_atomic(float r[3], const float a[3])
 
 float (*BKE_mesh_vert_normals_for_write(Mesh *mesh))[3]
 {
-  if (mesh->runtime->vert_normals == nullptr) {
-    mesh->runtime->vert_normals = (float(*)[3])MEM_malloc_arrayN(
-        mesh->totvert, sizeof(float[3]), __func__);
-  }
-
-  BLI_assert(MEM_allocN_len(mesh->runtime->vert_normals) >= sizeof(float[3]) * mesh->totvert);
-
-  return mesh->runtime->vert_normals;
+  mesh->runtime->vert_normals.reinitialize(mesh->totvert);
+  return reinterpret_cast<float(*)[3]>(mesh->runtime->vert_normals.data());
 }
 
 float (*BKE_mesh_poly_normals_for_write(Mesh *mesh))[3]
 {
-  if (mesh->runtime->poly_normals == nullptr) {
-    mesh->runtime->poly_normals = (float(*)[3])MEM_malloc_arrayN(
-        mesh->totpoly, sizeof(float[3]), __func__);
-  }
-
-  BLI_assert(MEM_allocN_len(mesh->runtime->poly_normals) >= sizeof(float[3]) * mesh->totpoly);
-
-  return mesh->runtime->poly_normals;
+  mesh->runtime->poly_normals.reinitialize(mesh->totpoly);
+  return reinterpret_cast<float(*)[3]>(mesh->runtime->poly_normals.data());
 }
 
 void BKE_mesh_vert_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->vert_normals_dirty = false;
-  BLI_assert(mesh->runtime->vert_normals || mesh->totvert == 0);
+  BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
 }
 
 void BKE_mesh_poly_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->poly_normals_dirty = false;
-  BLI_assert(mesh->runtime->poly_normals || mesh->totpoly == 0);
+  BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
 }
 
 bool BKE_mesh_vert_normals_are_dirty(const Mesh *mesh)
@@ -341,9 +329,9 @@ void normals_calc_poly_vert(const Span<float3> positions,
 
 const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
 {
-  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime->vert_normals != nullptr || mesh->totvert == 0);
-    return mesh->runtime->vert_normals;
+  if (!mesh->runtime->vert_normals_dirty) {
+    BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
+    return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
   }
 
   if (mesh->totvert == 0) {
@@ -351,42 +339,34 @@ const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
   }
 
   std::lock_guard lock{mesh->runtime->normals_mutex};
-  if (!BKE_mesh_vert_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime->vert_normals != nullptr);
-    return mesh->runtime->vert_normals;
+  if (!mesh->runtime->vert_normals_dirty) {
+    BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
+    return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
   }
-
-  float(*vert_normals)[3];
-  float(*poly_normals)[3];
 
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
   blender::threading::isolate_task([&]() {
-    Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
-    const Span<float3> positions = mesh_mutable.vert_positions();
-    const Span<MPoly> polys = mesh_mutable.polys();
-    const Span<MLoop> loops = mesh_mutable.loops();
+    const Span<float3> positions = mesh->vert_positions();
+    const Span<MPoly> polys = mesh->polys();
+    const Span<MLoop> loops = mesh->loops();
 
-    vert_normals = BKE_mesh_vert_normals_for_write(&mesh_mutable);
-    poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
+    mesh->runtime->vert_normals.reinitialize(positions.size());
+    mesh->runtime->poly_normals.reinitialize(polys.size());
     blender::bke::mesh::normals_calc_poly_vert(
-        positions,
-        polys,
-        loops,
-        {reinterpret_cast<float3 *>(poly_normals), mesh->totpoly},
-        {reinterpret_cast<float3 *>(vert_normals), mesh->totvert});
+        positions, polys, loops, mesh->runtime->poly_normals, mesh->runtime->vert_normals);
 
-    BKE_mesh_vert_normals_clear_dirty(&mesh_mutable);
-    BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+    mesh->runtime->vert_normals_dirty = false;
+    mesh->runtime->poly_normals_dirty = false;
   });
 
-  return vert_normals;
+  return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
 }
 
 const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 {
-  if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime->poly_normals != nullptr || mesh->totpoly == 0);
-    return mesh->runtime->poly_normals;
+  if (!mesh->runtime->poly_normals_dirty) {
+    BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
+    return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
   }
 
   if (mesh->totpoly == 0) {
@@ -394,28 +374,24 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
   }
 
   std::lock_guard lock{mesh->runtime->normals_mutex};
-  if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-    BLI_assert(mesh->runtime->poly_normals != nullptr);
-    return mesh->runtime->poly_normals;
+  if (!mesh->runtime->poly_normals_dirty) {
+    BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
+    return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
   }
-
-  float(*poly_normals)[3];
 
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
   blender::threading::isolate_task([&]() {
-    Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
-    const Span<float3> positions = mesh_mutable.vert_positions();
-    const Span<MPoly> polys = mesh_mutable.polys();
-    const Span<MLoop> loops = mesh_mutable.loops();
+    const Span<float3> positions = mesh->vert_positions();
+    const Span<MPoly> polys = mesh->polys();
+    const Span<MLoop> loops = mesh->loops();
 
-    poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
-    blender::bke::mesh::normals_calc_polys(
-        positions, polys, loops, {reinterpret_cast<float3 *>(poly_normals), mesh->totpoly});
+    mesh->runtime->poly_normals.reinitialize(polys.size());
+    blender::bke::mesh::normals_calc_polys(positions, polys, loops, mesh->runtime->poly_normals);
 
-    BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+    mesh->runtime->poly_normals_dirty = false;
   });
 
-  return poly_normals;
+  return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
 }
 
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
