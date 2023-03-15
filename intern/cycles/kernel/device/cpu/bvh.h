@@ -15,6 +15,7 @@
 #include "kernel/bvh/util.h"
 #include "kernel/geom/object.h"
 #include "kernel/integrator/state.h"
+#include "kernel/integrator/state_util.h"
 #include "kernel/sample/lcg.h"
 
 #include "util/vector.h"
@@ -41,7 +42,7 @@ struct CCLIntersectContext {
   const Ray *ray;
 
   /* for shadow rays */
-  Intersection *isect_s;
+  IntegratorShadowState isect_s;
   uint max_hits;
   uint num_hits;
   uint num_recorded_hits;
@@ -53,6 +54,9 @@ struct CCLIntersectContext {
   LocalIntersection *local_isect;
   int local_object_id;
   uint *lcg_state;
+
+  /* for Volume */
+  Intersection *vol_isect;
 
   CCLIntersectContext(KernelGlobals kg_, RayType type_)
   {
@@ -270,13 +274,14 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
         const uint num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
         uint isect_index = num_recorded_hits;
         if (num_recorded_hits + 1 >= max_record_hits) {
-          float max_t = ctx->isect_s[0].t;
+          float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
           uint max_recorded_hit = 0;
 
           for (uint i = 1; i < num_recorded_hits; ++i) {
-            if (ctx->isect_s[i].t > max_t) {
+            const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
+            if (isect_t > max_t) {
               max_recorded_hit = i;
-              max_t = ctx->isect_s[i].t;
+              max_t = isect_t;
             }
           }
 
@@ -291,7 +296,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
           ctx->max_t = max(current_isect.t, max_t);
         }
 
-        ctx->isect_s[isect_index] = current_isect;
+        integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
       }
 
       /* Always increase the number of recorded hits, even beyond the maximum,
@@ -398,7 +403,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
           return;
         }
 
-        Intersection *isect = &ctx->isect_s[ctx->num_hits];
+        Intersection *isect = &ctx->vol_isect[ctx->num_hits];
         ++ctx->num_hits;
         *isect = current_isect;
         /* Only primitives from volume object. */
@@ -551,8 +556,7 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
                                                              ccl_private float *throughput)
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
-  Intersection *isect_array = (Intersection *)state->shadow_isect;
-  ctx.isect_s = isect_array;
+  ctx.isect_s = state;
   ctx.max_hits = max_hits;
   ctx.ray = ray;
   IntersectContext rtc_ctx(&ctx);
@@ -574,7 +578,7 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
                                                          const uint visibility)
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
-  ctx.isect_s = isect;
+  ctx.vol_isect = isect;
   ctx.max_hits = max_hits;
   ctx.num_hits = 0;
   ctx.ray = ray;
