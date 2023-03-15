@@ -11,10 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #ifdef WIN32
@@ -24,7 +22,6 @@
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
-#include "BKE_main.h"
 
 #include "BLO_readfile.h"
 
@@ -54,8 +51,6 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
-
-#include "AS_asset_representation.h"
 
 #include "filelist.h"
 
