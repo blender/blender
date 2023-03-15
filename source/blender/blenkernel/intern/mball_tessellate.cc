@@ -39,8 +39,8 @@
 
 #include "BLI_strict_flags.h"
 
-/* experimental (faster) normal calculation */
-// #define USE_ACCUM_NORMAL
+/* experimental (faster) normal calculation (see #103021) */
+#define USE_ACCUM_NORMAL
 
 #define MBALL_ARRAY_LEN_INIT 4096
 
