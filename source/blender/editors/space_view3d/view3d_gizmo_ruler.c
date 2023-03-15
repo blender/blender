@@ -1295,7 +1295,6 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = region->regiondata;
 
   if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
     BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
@@ -1304,7 +1303,6 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   wmGizmoMap *gzmap = region->gizmo_map;
   wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
-  const bool use_depth = (v3d->shading.type >= OB_SOLID);
 
   if (!gizmo_ruler_check_for_operator(gzgroup)) {
     return OPERATOR_CANCELLED;
@@ -1324,31 +1322,23 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
       OPERATOR_RUNNING_MODAL) {
     RulerInfo *ruler_info = gzgroup->customdata;
     RulerInteraction *inter = ruler_item->gz.interaction_data;
-    if (use_depth) {
-      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      /* snap the first point added, not essential but handy */
-      inter->co_index = 0;
-      view3d_ruler_item_mousemove(C,
-                                  depsgraph,
-                                  ruler_info,
-                                  ruler_item,
-                                  mval,
-                                  false
+    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    inter->co_index = 0;
+    view3d_ruler_item_mousemove(C,
+                                depsgraph,
+                                ruler_info,
+                                ruler_item,
+                                mval,
+                                false
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-                                  ,
-                                  true
+                                ,
+                                true
 #endif
-      );
-      copy_v3_v3(inter->drag_start_co, ruler_item->co[inter->co_index]);
-      RNA_property_float_set_array(ruler_info->snap_data.gizmo->ptr,
-                                   ruler_info->snap_data.prop_prevpoint,
-                                   inter->drag_start_co);
-    }
-    else {
-      negate_v3_v3(inter->drag_start_co, rv3d->ofs);
-      copy_v3_v3(ruler_item->co[0], inter->drag_start_co);
-      view3d_ruler_item_project(ruler_info, ruler_item->co[0], mval);
-    }
+    );
+    copy_v3_v3(inter->drag_start_co, ruler_item->co[inter->co_index]);
+    RNA_property_float_set_array(ruler_info->snap_data.gizmo->ptr,
+                                 ruler_info->snap_data.prop_prevpoint,
+                                 inter->drag_start_co);
 
     copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
     ruler_item->gz.highlight_part = inter->co_index = 2;
