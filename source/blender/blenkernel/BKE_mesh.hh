@@ -196,16 +196,4 @@ inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
   return {BKE_mesh_deform_verts_for_write(this), this->totvert};
 }
 
-inline blender::Span<blender::float3> Mesh::poly_normals() const
-{
-  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_poly_normals_ensure(this)),
-          this->totpoly};
-}
-
-inline blender::Span<blender::float3> Mesh::vert_normals() const
-{
-  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_vert_normals_ensure(this)),
-          this->totvert};
-}
-
 /** \} */

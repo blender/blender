@@ -327,71 +327,73 @@ void normals_calc_poly_vert(const Span<float3> positions,
 /** \name Mesh Normal Calculation
  * \{ */
 
-const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
+blender::Span<blender::float3> Mesh::vert_normals() const
 {
-  if (!mesh->runtime->vert_normals_dirty) {
-    BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
-    return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
+  if (!this->runtime->vert_normals_dirty) {
+    BLI_assert(this->runtime->vert_normals.size() == this->totvert);
+    return this->runtime->vert_normals;
   }
 
-  if (mesh->totvert == 0) {
-    return nullptr;
-  }
-
-  std::lock_guard lock{mesh->runtime->normals_mutex};
-  if (!mesh->runtime->vert_normals_dirty) {
-    BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
-    return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
+  std::lock_guard lock{this->runtime->normals_mutex};
+  if (!this->runtime->vert_normals_dirty) {
+    BLI_assert(this->runtime->vert_normals.size() == this->totvert);
+    return this->runtime->vert_normals;
   }
 
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
   blender::threading::isolate_task([&]() {
-    const Span<float3> positions = mesh->vert_positions();
-    const Span<MPoly> polys = mesh->polys();
-    const Span<MLoop> loops = mesh->loops();
+    const Span<float3> positions = this->vert_positions();
+    const Span<MPoly> polys = this->polys();
+    const Span<MLoop> loops = this->loops();
 
-    mesh->runtime->vert_normals.reinitialize(positions.size());
-    mesh->runtime->poly_normals.reinitialize(polys.size());
+    this->runtime->vert_normals.reinitialize(positions.size());
+    this->runtime->poly_normals.reinitialize(polys.size());
     blender::bke::mesh::normals_calc_poly_vert(
-        positions, polys, loops, mesh->runtime->poly_normals, mesh->runtime->vert_normals);
+        positions, polys, loops, this->runtime->poly_normals, this->runtime->vert_normals);
 
-    mesh->runtime->vert_normals_dirty = false;
-    mesh->runtime->poly_normals_dirty = false;
+    this->runtime->vert_normals_dirty = false;
+    this->runtime->poly_normals_dirty = false;
   });
 
-  return reinterpret_cast<const float(*)[3]>(mesh->runtime->vert_normals.data());
+  return this->runtime->vert_normals;
+}
+
+blender::Span<blender::float3> Mesh::poly_normals() const
+{
+  if (!this->runtime->poly_normals_dirty) {
+    BLI_assert(this->runtime->poly_normals.size() == this->totpoly);
+    return this->runtime->poly_normals;
+  }
+
+  std::lock_guard lock{this->runtime->normals_mutex};
+  if (!this->runtime->poly_normals_dirty) {
+    BLI_assert(this->runtime->poly_normals.size() == this->totpoly);
+    return this->runtime->poly_normals;
+  }
+
+  /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
+  blender::threading::isolate_task([&]() {
+    const Span<float3> positions = this->vert_positions();
+    const Span<MPoly> polys = this->polys();
+    const Span<MLoop> loops = this->loops();
+
+    this->runtime->poly_normals.reinitialize(polys.size());
+    blender::bke::mesh::normals_calc_polys(positions, polys, loops, this->runtime->poly_normals);
+
+    this->runtime->poly_normals_dirty = false;
+  });
+
+  return this->runtime->poly_normals;
+}
+
+const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
+{
+  return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
 }
 
 const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 {
-  if (!mesh->runtime->poly_normals_dirty) {
-    BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
-    return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
-  }
-
-  if (mesh->totpoly == 0) {
-    return nullptr;
-  }
-
-  std::lock_guard lock{mesh->runtime->normals_mutex};
-  if (!mesh->runtime->poly_normals_dirty) {
-    BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
-    return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
-  }
-
-  /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
-  blender::threading::isolate_task([&]() {
-    const Span<float3> positions = mesh->vert_positions();
-    const Span<MPoly> polys = mesh->polys();
-    const Span<MLoop> loops = mesh->loops();
-
-    mesh->runtime->poly_normals.reinitialize(polys.size());
-    blender::bke::mesh::normals_calc_polys(positions, polys, loops, mesh->runtime->poly_normals);
-
-    mesh->runtime->poly_normals_dirty = false;
-  });
-
-  return reinterpret_cast<const float(*)[3]>(mesh->runtime->poly_normals.data());
+  return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
 }
 
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
