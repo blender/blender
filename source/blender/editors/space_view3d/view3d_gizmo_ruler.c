@@ -329,12 +329,8 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                         RulerInfo *ruler_info,
                                         RulerItem *ruler_item,
                                         const int mval[2],
-                                        const bool do_thickness
-#ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-                                        ,
-                                        const bool do_snap
-#endif
-)
+                                        const bool do_thickness,
+                                        const bool do_snap)
 {
   wmGizmo *snap_gizmo = ruler_info->snap_data.gizmo;
   const float eps_bias = 0.0002f;
@@ -389,31 +385,28 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                              NULL);
       }
     }
-    else
-#ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-        if (do_snap)
-#endif
-    {
+    else {
       View3D *v3d = ruler_info->area->spacedata.first;
-      float *prev_point = NULL;
+      if (do_snap) {
+        float *prev_point = NULL;
+        BLI_assert(ED_gizmotypes_snap_3d_is_enabled(snap_gizmo));
 
-      if (inter->co_index != 1) {
-        if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-          prev_point = ruler_item->co[1];
+        if (inter->co_index != 1) {
+          if (ruler_item->flag & RULERITEM_USE_ANGLE) {
+            prev_point = ruler_item->co[1];
+          }
+          else if (inter->co_index == 0) {
+            prev_point = ruler_item->co[2];
+          }
+          else {
+            prev_point = ruler_item->co[0];
+          }
         }
-        else if (inter->co_index == 0) {
-          prev_point = ruler_item->co[2];
+        if (prev_point != NULL) {
+          RNA_property_float_set_array(
+              snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
         }
-        else {
-          prev_point = ruler_item->co[0];
-        }
-      }
-      if (prev_point != NULL) {
-        RNA_property_float_set_array(
-            snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
-      }
 
-      if (ED_gizmotypes_snap_3d_is_enabled(snap_gizmo)) {
         ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, NULL, NULL, NULL);
       }
 
@@ -1041,7 +1034,12 @@ static int gizmo_ruler_modal(bContext *C,
 
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   const bool do_snap = !(tweak_flag & WM_GIZMO_TWEAK_SNAP);
+#else
+  /* Ensure snap is up to date. */
+  ED_gizmotypes_snap_3d_data_get(C, ruler_info->snap_data.gizmo, NULL, NULL, NULL, NULL);
+  const bool do_snap = ED_gizmotypes_snap_3d_is_enabled(ruler_info->snap_data.gizmo);
 #endif
+
   const bool do_thickness = tweak_flag & WM_GIZMO_TWEAK_PRECISE;
   if (ruler_info->drag_state_prev.do_thickness != do_thickness) {
     do_cursor_update = true;
@@ -1050,17 +1048,8 @@ static int gizmo_ruler_modal(bContext *C,
   if (do_cursor_update) {
     if (ruler_info->state == RULER_STATE_DRAG) {
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      if (view3d_ruler_item_mousemove(C,
-                                      depsgraph,
-                                      ruler_info,
-                                      ruler_item,
-                                      event->mval,
-                                      do_thickness
-#ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-                                      ,
-                                      do_snap
-#endif
-                                      )) {
+      if (view3d_ruler_item_mousemove(
+              C, depsgraph, ruler_info, ruler_item, event->mval, do_thickness, do_snap)) {
         do_draw = true;
       }
     }
@@ -1119,17 +1108,8 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 
       /* update the new location */
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      view3d_ruler_item_mousemove(C,
-                                  depsgraph,
-                                  ruler_info,
-                                  ruler_item_pick,
-                                  event->mval,
-                                  false
-#ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-                                  ,
-                                  false
-#endif
-      );
+      view3d_ruler_item_mousemove(
+          C, depsgraph, ruler_info, ruler_item_pick, event->mval, false, false);
     }
   }
   else {
@@ -1324,17 +1304,15 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
     RulerInteraction *inter = ruler_item->gz.interaction_data;
     struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     inter->co_index = 0;
-    view3d_ruler_item_mousemove(C,
-                                depsgraph,
-                                ruler_info,
-                                ruler_item,
-                                mval,
-                                false
+
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-                                ,
-                                true
+    /* Snap the first point added, not essential but handy. */
+    const bool do_snap = true;
+#else
+    const bool do_snap = ED_gizmotypes_snap_3d_is_enabled(ruler_info->snap_data.gizmo);
 #endif
-    );
+
+    view3d_ruler_item_mousemove(C, depsgraph, ruler_info, ruler_item, mval, false, do_snap);
     copy_v3_v3(inter->drag_start_co, ruler_item->co[inter->co_index]);
     RNA_property_float_set_array(ruler_info->snap_data.gizmo->ptr,
                                  ruler_info->snap_data.prop_prevpoint,
