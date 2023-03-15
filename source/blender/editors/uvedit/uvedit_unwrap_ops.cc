@@ -1164,6 +1164,8 @@ static void face_island_uv_rotate_fit_aabb(FaceIsland *island)
     }
   }
 
+  /* As the UV Packing API doesn't yet support rotation, we need
+   * to pre-rotate each island into the smallest AABB. */
   float angle = BLI_convexhull_aabb_fit_points_2d(coords, coords_len);
 
   /* Rotate coords by `angle` before computing bounding box. */
@@ -1184,9 +1186,13 @@ static void face_island_uv_rotate_fit_aabb(FaceIsland *island)
     minmax_v2v2_v2(bounds_min, bounds_max, coords[i]);
   }
 
+  /* "Stand-up" islands.
+   * If we rotate the AABB by 90 degrees, the aspect ratio correction for the X axis will be
+   * `aspect_y` and for the Y axis will be `1.0f / aspect_y`. Applying both corrections gives
+   * a combined factor of `aspect_y / (1.0f / aspect_y) == aspect_y * aspect_y`. */
   float size[2];
   sub_v2_v2v2(size, bounds_max, bounds_min);
-  if (size[1] < size[0]) {
+  if (size[1] < size[0] * (aspect_y * aspect_y)) {
     angle += DEG2RADF(90.0f);
   }
 
