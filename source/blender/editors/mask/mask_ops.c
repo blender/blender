@@ -1732,7 +1732,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Clear Restrict View";
-  ot->description = "Reveal the layer by setting the hide flag";
+  ot->description = "Reveal temporarily hidden mask layers";
   ot->idname = "MASK_OT_hide_view_clear";
 
   /* api callbacks */
@@ -1792,7 +1792,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Set Restrict View";
-  ot->description = "Hide the layer by setting the hide flag";
+  ot->description = "Temporarily hide mask layers";
   ot->idname = "MASK_OT_hide_view_set";
 
   /* api callbacks */
