@@ -3882,6 +3882,16 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
   /* A valid, but empty file-list from now. */
   filelist->filelist.entries_num = 0;
 
+  asset_system::AssetLibrary *current_file_library;
+  {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = -1;
+    library_ref.type = ASSET_LIBRARY_LOCAL;
+
+    current_file_library = AS_asset_library_load(job_params->current_main, library_ref);
+  }
+
+  job_params->load_asset_library = current_file_library;
   filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
 
   /* When only doing partially reload for main data, we're done. */
@@ -3902,6 +3912,10 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
       [&](asset_system::AssetLibrary &nested_library) {
         StringRefNull root_path = nested_library.root_path();
         if (root_path.is_empty()) {
+          return;
+        }
+        if (&nested_library == current_file_library) {
+          /* Skip the "Current File" library, it's already loaded above. */
           return;
         }
 
