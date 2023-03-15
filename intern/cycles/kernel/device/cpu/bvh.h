@@ -22,6 +22,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+#if INTEGRATOR_SHADOW_ISECT_SIZE < 256
+using numhit_t = uint8_t;
+#else
+using numhit_t = uint32_t;
+#endif
+
 #define EMBREE_IS_HAIR(x) (x & 1)
 
 /* Intersection context. */
@@ -43,9 +49,9 @@ struct CCLIntersectContext {
 
   /* for shadow rays */
   IntegratorShadowState isect_s;
-  uint max_hits;
-  uint num_hits;
-  uint num_recorded_hits;
+  numhit_t max_hits;
+  numhit_t num_hits;
+  numhit_t num_recorded_hits;
   float throughput;
   bool opaque_hit;
 
@@ -62,9 +68,9 @@ struct CCLIntersectContext {
     kg = kg_;
     type = type_;
     ray = NULL;
-    max_hits = 1;
-    num_hits = 0;
-    num_recorded_hits = 0;
+    max_hits = numhit_t(1);
+    num_hits = numhit_t(0);
+    num_recorded_hits = numhit_t(0);
     throughput = 1.0f;
     opaque_hit = false;
     isect_s = NULL;
@@ -265,17 +271,17 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       }
 
       /* Test if we need to record this transparent intersection. */
-      const uint max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+      const numhit_t max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
       if (ctx->num_recorded_hits < max_record_hits) {
         /* If maximum number of hits was reached, replace the intersection with the
          * highest distance. We want to find the N closest intersections. */
-        const uint num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
-        uint isect_index = num_recorded_hits;
+        const numhit_t num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
+        numhit_t isect_index = num_recorded_hits;
         if (num_recorded_hits + 1 >= max_record_hits) {
           float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
-          uint max_recorded_hit = 0;
+          numhit_t max_recorded_hit = numhit_t(0);
 
-          for (uint i = 1; i < num_recorded_hits; ++i) {
+          for (numhit_t i = numhit_t(1); i < num_recorded_hits; ++i) {
             const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
             if (isect_t > max_t) {
               max_recorded_hit = i;
@@ -552,7 +558,7 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
   ctx.isect_s = state;
-  ctx.max_hits = max_hits;
+  ctx.max_hits = numhit_t(max_hits);
   ctx.ray = ray;
   IntersectContext rtc_ctx(&ctx);
   RTCRay rtc_ray;
@@ -574,8 +580,8 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
   ctx.vol_isect = isect;
-  ctx.max_hits = max_hits;
-  ctx.num_hits = 0;
+  ctx.max_hits = numhit_t(max_hits);
+  ctx.num_hits = numhit_t(0);
   ctx.ray = ray;
   IntersectContext rtc_ctx(&ctx);
   RTCRay rtc_ray;
