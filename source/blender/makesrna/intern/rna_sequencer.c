@@ -358,7 +358,7 @@ static void rna_Sequence_retiming_handle_frame_set(PointerRNA *ptr, int value)
     return;
   }
 
-  const int offset = value - SEQ_time_start_frame_get(seq) + handle->strip_frame_index;
+  const int offset = value - (SEQ_time_start_frame_get(seq) + handle->strip_frame_index);
   SEQ_retiming_offset_handle(scene, seq, handle, offset);
   SEQ_relations_invalidate_cache_raw(scene, seq);
 }
