@@ -324,7 +324,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
         obmat[3][0] = float((active_tile->tile_number - 1001) % 10);
         obmat[3][1] = float((active_tile->tile_number - 1001) / 10);
         grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
-        DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
+        DRW_shgroup_uniform_vec4_copy(grp, "ucolor", selected_color);
         DRW_shgroup_call_obmat(grp, geom, obmat);
       }
     }
@@ -370,7 +370,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", true);
       DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
       const float4 color = {1.0f, 1.0f, 1.0f, brush->clone.alpha};
-      DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+      DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
 
       float size_image[2];
       BKE_image_get_size_fl(image, nullptr, size_image);
