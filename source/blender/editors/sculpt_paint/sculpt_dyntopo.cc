@@ -309,37 +309,32 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
   return OPERATOR_INTERFACE;
 }
 
-static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers,
-                                               int totelem)
+static bool dyntopo_supports_layer(const CustomDataLayer &layer, const int elem_num)
 {
-  for (const CustomDataLayer &layer : layers) {
-    if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
-      if (layer.name[0] == '\0') {
-        return false;
-      }
-
-      if (STREQ(layer.name, ".sculpt_face_sets") && totelem > 0) {
-        int *fsets = static_cast<int *>(layer.data);
-        int fset = fsets[0];
-
-        /* Check if only one face set exists. */
-        for (int i : IndexRange(totelem)) {
-          if (fsets[i] != fset) {
-            return false;
-          }
+  if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
+    if (STREQ(layer.name, ".sculpt_face_set")) {
+      /* Check if only one face set exists. */
+      const blender::Span<int> face_sets(static_cast<const int *>(layer.data), elem_num);
+      for (const int i : face_sets.index_range()) {
+        if (face_sets[i] != face_sets.first()) {
+          return false;
         }
-
-        return true;
       }
-
-      /* Some data is stored as generic attributes on #Mesh but in flags or field on #BMesh. */
-      return BM_attribute_stored_in_bmesh_builtin(layer.name);
+      return true;
     }
-    /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
-    return ELEM(layer.type, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX);
+    /* Some data is stored as generic attributes on #Mesh but in flags or fields on #BMesh. */
+    return BM_attribute_stored_in_bmesh_builtin(layer.name);
   }
+  /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
+  return ELEM(layer.type, CD_MEDGE, CD_MPOLY, CD_MLOOP, CD_PAINT_MASK, CD_ORIGINDEX);
+}
 
-  return true;
+static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers,
+                                               const int elem_num)
+{
+  return std::all_of(layers.begin(), layers.end(), [&](const CustomDataLayer &layer) {
+    return dyntopo_supports_layer(layer, elem_num);
+  });
 }
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
