@@ -830,7 +830,6 @@ CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
   return nullptr;
 }
 
-
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer)
 {
   BLI_assert(strlen(UV_VERTSEL_NAME) == 2);

@@ -8768,9 +8768,9 @@ uiBlock *UI_region_block_find_mouse_over(const ARegion *region, const int xy[2],
 }
 
 uiBut *UI_region_active_but_prop_get(const ARegion *region,
-                                      PointerRNA *r_ptr,
-                                      PropertyRNA **r_prop,
-                                      int *r_index)
+                                     PointerRNA *r_ptr,
+                                     PropertyRNA **r_prop,
+                                     int *r_index)
 {
   uiBut *activebut = UI_region_active_but_get(region);
 
