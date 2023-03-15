@@ -6356,10 +6356,10 @@ void ED_paint_data_warning(ReportList *reports, bool uvs, bool mat, bool tex, bo
   BKE_reportf(reports,
               RPT_WARNING,
               "Missing%s%s%s%s detected!",
-              !uvs ? " UVs," : "",
-              !mat ? " Materials," : "",
-              !tex ? " Textures," : "",
-              !stencil ? " Stencil," : "");
+              !uvs ? TIP_(" UVs,") : "",
+              !mat ? TIP_(" Materials,") : "",
+              !tex ? TIP_(" Textures,") : "",
+              !stencil ? TIP_(" Stencil,") : "");
 }
 
 bool ED_paint_proj_mesh_data_check(
