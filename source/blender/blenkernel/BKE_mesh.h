@@ -323,16 +323,14 @@ void BKE_mesh_recalc_looptri(const struct MLoop *mloop,
 /* *** mesh_normals.cc *** */
 
 /**
- * Returns the normals for each vertex, which is defined as the weighted average of the normals
- * from a vertices surrounding faces, or the normalized position of vertices connected to no faces.
- * \warning May still return null if the mesh is empty.
+ * See #Mesh::vert_normals().
+ * \warning May return null if the mesh is empty.
  */
 const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
- * Return the normal direction of every polygon, which is defined by the winding direction of its
- * corners.
- * \warning May still return null if the mesh is empty or has no polygons.
+ * See #Mesh::poly_normals().
+ * \warning May return null if the mesh is empty or has no polygons.
  */
 const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
 
