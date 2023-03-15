@@ -167,11 +167,12 @@ GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,
                        eGPUSamplerState sampler_state);
-GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
-                             struct Image *ima,
-                             struct ImageUser *iuser,
-                             eGPUSamplerState sampler_state);
-GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
+void GPU_image_tiled(GPUMaterial *mat,
+                     struct Image *ima,
+                     struct ImageUser *iuser,
+                     eGPUSamplerState sampler_state,
+                     GPUNodeLink **r_image_tiled_link,
+                     GPUNodeLink **r_image_tiled_mapping_link);
 GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            int width,
                            int height,
