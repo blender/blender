@@ -791,6 +791,13 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->animation_flag |= USER_ANIM_HIGH_QUALITY_DRAWING;
   }
 
+  if (!USER_VERSION_ATLEAST(306, 4)) {
+    /* Increase the number of recently-used files if using the old default value. */
+    if (userdef->recent_files == 10) {
+      userdef->recent_files = 20;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
