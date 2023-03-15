@@ -92,6 +92,10 @@ class ColorRampShaderNode : public ShaderNode {
                          GPU_uniform(&color_band->data[0].r),
                          GPU_uniform(&color_band->data[1].r));
           return;
+        case COLBAND_INTERP_B_SPLINE:
+        case COLBAND_INTERP_CARDINAL:
+          /* Not optimized yet. Fallback to gradient texture. */
+          break;
         default:
           BLI_assert_unreachable();
           return;
