@@ -315,8 +315,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   if (do_polynors_fix &&
       polygons_check_flip(
           loops, nos.data(), &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
-    /* We need to recompute vertex normals! */
-    BKE_mesh_normals_tag_dirty(mesh);
+    mesh->runtime->vert_normals_dirty = true;
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
@@ -422,7 +421,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   if (do_polynors_fix &&
       polygons_check_flip(
           loops, nos.data(), &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
-    BKE_mesh_normals_tag_dirty(mesh);
+    mesh->runtime->vert_normals_dirty = true;
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));

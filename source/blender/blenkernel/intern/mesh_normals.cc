@@ -100,11 +100,6 @@ static void add_v3_v3_atomic(float r[3], const float a[3])
  * Related to managing normals but not directly related to calculating normals.
  * \{ */
 
-void BKE_mesh_normals_tag_dirty(Mesh *mesh)
-{
-  mesh->runtime->vert_normals_dirty = true;
-  mesh->runtime->poly_normals_dirty = true;
-}
 
 float (*BKE_mesh_vert_normals_for_write(Mesh *mesh))[3]
 {

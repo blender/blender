@@ -246,7 +246,8 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
 
 void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
-  BKE_mesh_normals_tag_dirty(mesh);
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->looptris_cache.tag_dirty();
   mesh->runtime->bounds_cache.tag_dirty();

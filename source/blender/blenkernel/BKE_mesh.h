@@ -337,14 +337,6 @@ const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
- * Tag mesh vertex and face normals to be recalculated when/if they are needed later.
- *
- * \note Dirty tagged normals are the default state of a new mesh, so tagging them
- * dirty explicitly is not always necessary if the mesh is created locally.
- */
-void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
-
-/**
  * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
  * that they are calculated. The provided vertex normals should be the same as if they were
  * calculated automatically.
