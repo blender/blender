@@ -5,9 +5,9 @@
  * \ingroup spfile
  */
 
-#include <errno.h>
-#include <math.h>
-#include <string.h>
+#include <cerrno>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -84,7 +84,7 @@ void ED_file_path_button(bScreen *screen,
                   "directory",
                   0,
                   0.0f,
-                  (float)FILE_MAX,
+                  float(FILE_MAX),
                   0.0f,
                   0.0f,
                   TIP_("File path"));
@@ -264,7 +264,7 @@ static void file_draw_string_multiline(int sx,
   font_style_params.align = UI_STYLE_TEXT_LEFT;
   font_style_params.word_wrap = true;
 
-  struct ResultBLF result;
+  ResultBLF result;
   UI_fontstyle_draw_ex(
       &style->widget, &rect, string, len, text_col, &font_style_params, nullptr, nullptr, &result);
   if (r_sx) {
@@ -347,13 +347,13 @@ static void file_draw_preview(const FileDirEntry *file,
   if (((ui_imbx > layout->prv_w) || (ui_imby > layout->prv_h)) ||
       (!is_icon && ((ui_imbx < layout->prv_w) || (ui_imby < layout->prv_h)))) {
     if (imb->x > imb->y) {
-      scaledx = (float)layout->prv_w;
-      scaledy = ((float)imb->y / (float)imb->x) * layout->prv_w;
+      scaledx = float(layout->prv_w);
+      scaledy = (float(imb->y) / float(imb->x)) * layout->prv_w;
       scale = scaledx / imb->x;
     }
     else {
-      scaledy = (float)layout->prv_h;
-      scaledx = ((float)imb->x / (float)imb->y) * layout->prv_h;
+      scaledy = float(layout->prv_h);
+      scaledx = (float(imb->x) / float(imb->y)) * layout->prv_h;
       scale = scaledy / imb->y;
     }
   }
@@ -363,14 +363,14 @@ static void file_draw_preview(const FileDirEntry *file,
     scale = UI_DPI_FAC;
   }
 
-  ex = (int)scaledx;
-  ey = (int)scaledy;
-  fx = ((float)layout->prv_w - (float)ex) / 2.0f;
-  fy = ((float)layout->prv_h - (float)ey) / 2.0f;
+  ex = int(scaledx);
+  ey = int(scaledy);
+  fx = (float(layout->prv_w) - float(ex)) / 2.0f;
+  fy = (float(layout->prv_h) - float(ey)) / 2.0f;
   dx = (fx + 0.5f + layout->prv_border_x);
   dy = (fy + 0.5f - layout->prv_border_y);
-  xco = tile_draw_rect->xmin + (int)dx;
-  yco = tile_draw_rect->ymax - layout->prv_h + (int)dy;
+  xco = tile_draw_rect->xmin + int(dx);
+  yco = tile_draw_rect->ymax - layout->prv_h + int(dy);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -400,8 +400,8 @@ static void file_draw_preview(const FileDirEntry *file,
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled_scaling(&state,
-                                (float)xco,
-                                (float)yco,
+                                float(xco),
+                                float(yco),
                                 imb->x,
                                 imb->y,
                                 GPU_RGBA8,
@@ -540,7 +540,7 @@ static void file_draw_preview(const FileDirEntry *file,
       border_color[2] = 0.0f;
     }
     immUniformColor4fv(border_color);
-    imm_draw_box_wire_2d(pos, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
+    imm_draw_box_wire_2d(pos, float(xco), float(yco), float(xco + ex), float(yco + ey));
     immUnbindProgram();
   }
 
@@ -606,16 +606,16 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
   /* alternating flat shade background */
   for (i = 2; (i <= layout->rows + 1); i += 2) {
-    sy = (int)v2d->cur.ymax - layout->offset_top - i * item_height - layout->tile_border_y;
+    sy = int(v2d->cur.ymax) - layout->offset_top - i * item_height - layout->tile_border_y;
 
     /* Offset pattern slightly to add scroll effect. */
     sy += round_fl_to_int(item_height * (v2d->tot.ymax - v2d->cur.ymax) / item_height);
 
     immRectf(pos,
              v2d->cur.xmin,
-             (float)sy,
+             float(sy),
              v2d->cur.xmax,
-             (float)(sy + layout->tile_h + 2 * layout->tile_border_y));
+             float(sy + layout->tile_h + 2 * layout->tile_border_y));
   }
 
   immUnbindProgram();
@@ -628,7 +628,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
   const int step = (layout->tile_w + 2 * layout->tile_border_x);
 
   uint vertex_len = 0;
-  int sx = (int)v2d->tot.xmin;
+  int sx = int(v2d->tot.xmin);
   while (sx < v2d->cur.xmax) {
     sx += step;
     vertex_len += 4; /* vertex_count = 2 points per line * 2 lines per divider */
@@ -652,7 +652,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
     immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
     immBegin(GPU_PRIM_LINES, vertex_len);
 
-    sx = (int)v2d->tot.xmin;
+    sx = int(v2d->tot.xmin);
     while (sx < v2d->cur.xmax) {
       sx += step;
 
@@ -848,14 +848,14 @@ static void draw_details_columns(const FileSelectParams *params,
 
 static rcti tile_draw_rect_get(const View2D *v2d,
                                const FileLayout *layout,
-                               const enum eFileDisplayType display,
+                               const eFileDisplayType display,
                                const int file_idx,
                                const int padx)
 {
   int tile_pos_x, tile_pos_y;
   ED_fileselect_layout_tilepos(layout, file_idx, &tile_pos_x, &tile_pos_y);
-  tile_pos_x += (int)(v2d->tot.xmin);
-  tile_pos_y = (int)(v2d->tot.ymax - tile_pos_y);
+  tile_pos_x += int(v2d->tot.xmin);
+  tile_pos_y = int(v2d->tot.ymax - tile_pos_y);
 
   rcti rect;
   rect.xmin = tile_pos_x + padx;
@@ -876,8 +876,8 @@ void file_draw_list(const bContext *C, ARegion *region)
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FileLayout *layout = ED_fileselect_get_layout(sfile, region);
   View2D *v2d = &region->v2d;
-  struct FileList *files = sfile->files;
-  struct FileDirEntry *file;
+  FileList *files = sfile->files;
+  FileDirEntry *file;
   ImBuf *imb;
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
@@ -890,7 +890,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   bool do_drag;
   uchar text_col[4];
   const bool draw_columnheader = (params->display == FILE_VERTICALDISPLAY);
-  const float thumb_icon_aspect = MIN2(64.0f / (float)(params->thumbnail_size), 1.0f);
+  const float thumb_icon_aspect = MIN2(64.0f / float(params->thumbnail_size), 1.0f);
 
   numfiles = filelist_files_ensure(files);
 
@@ -900,7 +900,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   }
 
   offset = ED_fileselect_layout_offset(
-      layout, (int)region->v2d.cur.xmin, (int)-region->v2d.cur.ymax);
+      layout, int(region->v2d.cur.xmin), int(-region->v2d.cur.ymax));
   if (offset < 0) {
     offset = 0;
   }
@@ -920,7 +920,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   column_width = (FILE_IMGDISPLAY == params->display) ?
                      layout->tile_w :
                      round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width);
-  textheight = (int)(layout->textheight * 3.0 / 2.0 + 0.5);
+  textheight = int(layout->textheight * 3.0 / 2.0 + 0.5);
 
   align = (FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
 
@@ -1077,7 +1077,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                             textheight,
                             params->renamefile,
                             1.0f,
-                            (float)sizeof(params->renamefile),
+                            float(sizeof(params->renamefile)),
                             0,
                             0,
                             "");
@@ -1111,7 +1111,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       const int twidth = (params->display == FILE_IMGDISPLAY) ?
                              column_width :
                              column_width - 1 - icon_ofs - padx - layout->tile_border_x;
-      file_draw_string(txpos, typos, file->name, (float)twidth, textheight, align, text_col);
+      file_draw_string(txpos, typos, file->name, float(twidth), textheight, align, text_col);
     }
 
     if (params->display != FILE_IMGDISPLAY) {
