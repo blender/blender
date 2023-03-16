@@ -15,6 +15,7 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(ViewLayerTesting):
     def test_shared_layer_collections_copy_full(self):
         """
@@ -59,7 +60,7 @@ class UnitTesting(ViewLayerTesting):
                     sub_collection.selectable = selectable_lookup_sub[j]
 
         # copy scene
-        bpy.ops.scene.new(type='FULL_COPY')
+        bpy.ops.scene.new(type="FULL_COPY")
         new_scene = bpy.context.scene
         self.assertNotEqual(scene, new_scene)
 
@@ -79,13 +80,15 @@ class UnitTesting(ViewLayerTesting):
                 for j, sub_collection in enumerate(layer.collections[i].collections):
                     new_sub_collection = new_collection.collections[j]
                     self.assertEqual(sub_collection.enabled, new_sub_collection.enabled)
-                    self.assertEqual(sub_collection.selectable, new_sub_collection.selectable)
+                    self.assertEqual(
+                        sub_collection.selectable, new_sub_collection.selectable
+                    )
 
 
 # ############################################################
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

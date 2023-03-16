@@ -25,6 +25,7 @@ filter_message = ignore_reg.match
 def init_spell_check(settings, lang="en_US"):
     try:
         from bl_i18n_utils import utils_spell_check
+
         return utils_spell_check.SpellChecker(settings, lang)
     except Exception as e:
         print("Failed to import utils_spell_check ({})".format(str(e)))
@@ -91,20 +92,23 @@ def check(check_ctxt, msgs, key, msgsrc, settings):
         if key in msgs and key not in multi_rnatip:
             multi_rnatip.add(key)
     if multi_lines is not None:
-        if '\n' in key[1]:
+        if "\n" in key[1]:
             multi_lines.add(key)
     if py_in_rna is not None:
         if key in py_in_rna[1]:
             py_in_rna[0].add(key)
     if not_capitalized is not None:
-        if (key[1] not in settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED and
-           key[1][0].isalpha() and not key[1][0].isupper()):
+        if (
+            key[1] not in settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED
+            and key[1][0].isalpha()
+            and not key[1][0].isupper()
+        ):
             not_capitalized.add(key)
     if end_point is not None:
         if (
-                key[1].strip().endswith('.') and
-                (not key[1].strip().endswith('...')) and
-                key[1] not in settings.WARN_MSGID_END_POINT_ALLOWED
+            key[1].strip().endswith(".")
+            and (not key[1].strip().endswith("..."))
+            and key[1] not in settings.WARN_MSGID_END_POINT_ALLOWED
         ):
             end_point.add(key)
     if undoc_ops is not None:
@@ -123,12 +127,24 @@ def print_info(reports, pot):
 
     pot.update_info()
 
-    _print("{} RNA structs were processed (among which {} were skipped), containing {} RNA properties "
-           "(among which {} were skipped).".format(len(reports["rna_structs"]), len(reports["rna_structs_skipped"]),
-                                                   len(reports["rna_props"]), len(reports["rna_props_skipped"])))
-    _print("{} messages were extracted from Python UI code (among which {} were skipped), and {} from C source code "
-           "(among which {} were skipped).".format(len(reports["py_messages"]), len(reports["py_messages_skipped"]),
-                                                   len(reports["src_messages"]), len(reports["src_messages_skipped"])))
+    _print(
+        "{} RNA structs were processed (among which {} were skipped), containing {} RNA properties "
+        "(among which {} were skipped).".format(
+            len(reports["rna_structs"]),
+            len(reports["rna_structs_skipped"]),
+            len(reports["rna_props"]),
+            len(reports["rna_props_skipped"]),
+        )
+    )
+    _print(
+        "{} messages were extracted from Python UI code (among which {} were skipped), and {} from C source code "
+        "(among which {} were skipped).".format(
+            len(reports["py_messages"]),
+            len(reports["py_messages_skipped"]),
+            len(reports["src_messages"]),
+            len(reports["src_messages_skipped"]),
+        )
+    )
     _print("{} messages were rejected.".format(len(reports["messages_skipped"])))
     _print("\n")
     _print("Current POT stats:")
@@ -164,13 +180,15 @@ def print_info(reports, pot):
                 if end_point and key in end_point:
                     _print("\t\t-> message with endpoint!")
                 # XXX Hide this one for now, too much false positives.
-#                if multi_rnatip and key in multi_rnatip:
-#                    _print("\t\t-> tip used in several RNA items")
-#                if py_in_rna and key in py_in_rna:
-#                    _print("\t\t-> RNA message also used in py UI code!")
+                #                if multi_rnatip and key in multi_rnatip:
+                #                    _print("\t\t-> tip used in several RNA items")
+                #                if py_in_rna and key in py_in_rna:
+                #                    _print("\t\t-> RNA message also used in py UI code!")
                 if spell_errors and spell_errors.get(key):
                     lines = [
-                        "\t\t-> {}: misspelled, suggestions are ({})".format(w, "'" + "', '".join(errs) + "'")
+                        "\t\t-> {}: misspelled, suggestions are ({})".format(
+                            w, "'" + "', '".join(errs) + "'"
+                        )
                         for w, errs in spell_errors[key]
                     ]
                     _print("\n".join(lines))
@@ -191,7 +209,9 @@ def process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt, settings):
     check(check_ctxt, msgs, key, msgsrc, settings)
     msgsrc = settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + msgsrc
     if key not in msgs:
-        msgs[key] = utils.I18nMessage([msgctxt], [msgid], [], [msgsrc], settings=settings)
+        msgs[key] = utils.I18nMessage(
+            [msgctxt], [msgid], [], [msgsrc], settings=settings
+        )
     else:
         msgs[key].comment_lines.append(msgsrc)
 
@@ -201,13 +221,29 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     """
     Dump into messages dict all RNA-defined UI messages (labels en tooltips).
     """
+
     def class_blacklist():
-        blacklist_rna_class = {getattr(bpy.types, cls_id) for cls_id in (
-            # core classes
-            "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
-            # registerable classes
-            "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
-        )
+        blacklist_rna_class = {
+            getattr(bpy.types, cls_id)
+            for cls_id in (
+                # core classes
+                "Context",
+                "Event",
+                "Function",
+                "UILayout",
+                "UnknownType",
+                "Property",
+                "Struct",
+                # registerable classes
+                "Panel",
+                "Menu",
+                "Header",
+                "RenderEngine",
+                "Operator",
+                "OperatorMacro",
+                "Macro",
+                "KeyingSetInfo",
+            )
         }
 
         # More builtin classes we don't need to parse.
@@ -278,30 +314,78 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             msgctxt = prop.translation_context or default_context
 
             if prop.name and prop_name_validate(cls, prop.name, prop.identifier):
-                process_msg(msgs, msgctxt, prop.name, msgsrc, reports, check_ctxt_rna, settings)
+                process_msg(
+                    msgs, msgctxt, prop.name, msgsrc, reports, check_ctxt_rna, settings
+                )
             if prop.description:
-                process_msg(msgs, default_context, prop.description, msgsrc, reports, check_ctxt_rna_tip, settings)
+                process_msg(
+                    msgs,
+                    default_context,
+                    prop.description,
+                    msgsrc,
+                    reports,
+                    check_ctxt_rna_tip,
+                    settings,
+                )
 
             if isinstance(prop, bpy.types.EnumProperty):
                 done_items = set()
                 for item in prop.enum_items:
-                    msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
+                    msgsrc = "bpy.types.{}.{}:'{}'".format(
+                        bl_rna.identifier, prop.identifier, item.identifier
+                    )
                     done_items.add(item.identifier)
-                    if item.name and prop_name_validate(cls, item.name, item.identifier):
-                        process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
+                    if item.name and prop_name_validate(
+                        cls, item.name, item.identifier
+                    ):
+                        process_msg(
+                            msgs,
+                            msgctxt,
+                            item.name,
+                            msgsrc,
+                            reports,
+                            check_ctxt_rna,
+                            settings,
+                        )
                     if item.description:
-                        process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
-                                    settings)
+                        process_msg(
+                            msgs,
+                            default_context,
+                            item.description,
+                            msgsrc,
+                            reports,
+                            check_ctxt_rna_tip,
+                            settings,
+                        )
                 for item in prop.enum_items_static:
                     if item.identifier in done_items:
                         continue
-                    msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
+                    msgsrc = "bpy.types.{}.{}:'{}'".format(
+                        bl_rna.identifier, prop.identifier, item.identifier
+                    )
                     done_items.add(item.identifier)
-                    if item.name and prop_name_validate(cls, item.name, item.identifier):
-                        process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
+                    if item.name and prop_name_validate(
+                        cls, item.name, item.identifier
+                    ):
+                        process_msg(
+                            msgs,
+                            msgctxt,
+                            item.name,
+                            msgsrc,
+                            reports,
+                            check_ctxt_rna,
+                            settings,
+                        )
                     if item.description:
-                        process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
-                                    settings)
+                        process_msg(
+                            msgs,
+                            default_context,
+                            item.description,
+                            msgsrc,
+                            reports,
+                            check_ctxt_rna_tip,
+                            settings,
+                        )
 
     def walk_tools_definitions(cls):
         from bl_ui.space_toolsystem_common import ToolDef
@@ -315,18 +399,38 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                     for t in tool(None):
                         process_tooldef(tool_context, t)
                 return
-            msgsrc = "bpy.types.{} Tools: '{}', '{}'".format(bl_rna.identifier, tool_context, tool.idname)
+            msgsrc = "bpy.types.{} Tools: '{}', '{}'".format(
+                bl_rna.identifier, tool_context, tool.idname
+            )
             if tool.label:
-                process_msg(msgs, op_default_context, tool.label, msgsrc, reports, check_ctxt_rna, settings)
+                process_msg(
+                    msgs,
+                    op_default_context,
+                    tool.label,
+                    msgsrc,
+                    reports,
+                    check_ctxt_rna,
+                    settings,
+                )
             # Callable (function) descriptions must handle their translations themselves.
             if tool.description and not callable(tool.description):
-                process_msg(msgs, default_context, tool.description, msgsrc, reports, check_ctxt_rna_tip, settings)
+                process_msg(
+                    msgs,
+                    default_context,
+                    tool.description,
+                    msgsrc,
+                    reports,
+                    check_ctxt_rna_tip,
+                    settings,
+                )
 
         for tool_context, tools_defs in cls.tools_all():
             for tools_group in tools_defs:
                 if tools_group is None:
                     continue
-                elif isinstance(tools_group, tuple) and not isinstance(tools_group, ToolDef):
+                elif isinstance(tools_group, tuple) and not isinstance(
+                    tools_group, ToolDef
+                ):
                     for tool in tools_group:
                         process_tooldef(tool_context, tool)
                 else:
@@ -339,24 +443,62 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgsrc = "bpy.types." + bl_rna.identifier
         msgctxt = bl_rna.translation_context or default_context
 
-        if bl_rna.name and (bl_rna.name != bl_rna.identifier or
-                            (msgctxt != default_context and not hasattr(bl_rna, 'bl_label'))):
-            process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
+        if bl_rna.name and (
+            bl_rna.name != bl_rna.identifier
+            or (msgctxt != default_context and not hasattr(bl_rna, "bl_label"))
+        ):
+            process_msg(
+                msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings
+            )
 
         if bl_rna.description:
-            process_msg(msgs, default_context, bl_rna.description, msgsrc, reports, check_ctxt_rna_tip, settings)
-        elif cls.__doc__:  # XXX Some classes (like KeyingSetInfo subclasses) have void description... :(
-            process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
+            process_msg(
+                msgs,
+                default_context,
+                bl_rna.description,
+                msgsrc,
+                reports,
+                check_ctxt_rna_tip,
+                settings,
+            )
+        elif (
+            cls.__doc__
+        ):  # XXX Some classes (like KeyingSetInfo subclasses) have void description... :(
+            process_msg(
+                msgs,
+                default_context,
+                cls.__doc__,
+                msgsrc,
+                reports,
+                check_ctxt_rna_tip,
+                settings,
+            )
 
         # Panels' "tabs" system.
-        if hasattr(bl_rna, 'bl_category') and bl_rna.bl_category:
-            process_msg(msgs, default_context, bl_rna.bl_category, msgsrc, reports, check_ctxt_rna, settings)
+        if hasattr(bl_rna, "bl_category") and bl_rna.bl_category:
+            process_msg(
+                msgs,
+                default_context,
+                bl_rna.bl_category,
+                msgsrc,
+                reports,
+                check_ctxt_rna,
+                settings,
+            )
 
-        if hasattr(bl_rna, 'bl_label') and bl_rna.bl_label:
-            process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
+        if hasattr(bl_rna, "bl_label") and bl_rna.bl_label:
+            process_msg(
+                msgs,
+                msgctxt,
+                bl_rna.bl_label,
+                msgsrc,
+                reports,
+                check_ctxt_rna,
+                settings,
+            )
 
         # Tools Panels definitions.
-        if hasattr(bl_rna, 'tools_all') and bl_rna.tools_all:
+        if hasattr(bl_rna, "tools_all") and bl_rna.tools_all:
             walk_tools_definitions(cls)
 
         walk_properties(cls)
@@ -368,18 +510,43 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                 for modal_event in keymap.modal_event_values:
                     msgsrc = msgsrc_prev + ":'{}'".format(modal_event.identifier)
                     if modal_event.name:
-                        process_msg(msgs, km_i18n_context, modal_event.name, msgsrc, reports, None, settings)
+                        process_msg(
+                            msgs,
+                            km_i18n_context,
+                            modal_event.name,
+                            msgsrc,
+                            reports,
+                            None,
+                            settings,
+                        )
                     if modal_event.description:
-                        process_msg(msgs, default_context, modal_event.description, msgsrc, reports, None, settings)
+                        process_msg(
+                            msgs,
+                            default_context,
+                            modal_event.description,
+                            msgsrc,
+                            reports,
+                            None,
+                            settings,
+                        )
 
     def walk_keymap_hierarchy(hier, msgsrc_prev):
         km_i18n_context = bpy.app.translations.contexts.id_windowmanager
         for lvl in hier:
             msgsrc = msgsrc_prev + "." + lvl[1]
-            if isinstance(lvl[0], str):  # Can be a function too, now, with tool system...
+            if isinstance(
+                lvl[0], str
+            ):  # Can be a function too, now, with tool system...
                 keymap_name = lvl[0]
-                process_msg(msgs, km_i18n_context, keymap_name, msgsrc, reports, None, settings)
-                walk_keymap_modal_events(bpy.data.window_managers[0].keyconfigs, keymap_name, msgsrc, km_i18n_context)
+                process_msg(
+                    msgs, km_i18n_context, keymap_name, msgsrc, reports, None, settings
+                )
+                walk_keymap_modal_events(
+                    bpy.data.window_managers[0].keyconfigs,
+                    keymap_name,
+                    msgsrc,
+                    km_i18n_context,
+                )
             if lvl[3]:
                 walk_keymap_hierarchy(lvl[3], msgsrc)
 
@@ -448,12 +615,20 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
     # Finalize generated 'operator categories' messages.
     for cat_str in operator_categories.values():
-        process_msg(msgs, bpy.app.translations.contexts.operator_default, cat_str, "Generated operator category",
-                    reports, check_ctxt_rna, settings)
+        process_msg(
+            msgs,
+            bpy.app.translations.contexts.operator_default,
+            cat_str,
+            "Generated operator category",
+            reports,
+            check_ctxt_rna,
+            settings,
+        )
 
     # Parse keymap preset preferences
     for preset_filename in sorted(
-            os.listdir(os.path.join(settings.PRESETS_DIR, "keyconfig"))):
+        os.listdir(os.path.join(settings.PRESETS_DIR, "keyconfig"))
+    ):
         preset_path = os.path.join(settings.PRESETS_DIR, "keyconfig", preset_filename)
         if not (os.path.isfile(preset_path) and preset_filename.endswith(".py")):
             continue
@@ -466,6 +641,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
     # And parse keymaps!
     from bl_keymap_utils import keymap_hierarchy
+
     walk_keymap_hierarchy(keymap_hierarchy.generate(), "KM_HIERARCHY")
 
 
@@ -480,7 +656,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     bpy_struct = bpy.types.ID.__base__
     i18n_contexts = bpy.app.translations.contexts
 
-    root_paths = tuple(bpy.utils.resource_path(t) for t in ('USER', 'LOCAL', 'SYSTEM'))
+    root_paths = tuple(bpy.utils.resource_path(t) for t in ("USER", "LOCAL", "SYSTEM"))
 
     def make_rel(path):
         for rp in root_paths:
@@ -506,13 +682,15 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             if eval_str and type(eval_str) == str:
                 yield (is_split, eval_str, (node,))
         else:
-            is_split = (type(node) in separate_nodes)
+            is_split = type(node) in separate_nodes
             for nd in ast.iter_child_nodes(node):
                 if type(nd) not in stopper_nodes:
                     yield from extract_strings_ex(nd, is_split=is_split)
 
     def _extract_string_merge(estr_ls, nds_ls):
-        return "".join(s for s in estr_ls if s is not None), tuple(n for n in nds_ls if n is not None)
+        return "".join(s for s in estr_ls if s is not None), tuple(
+            n for n in nds_ls if n is not None
+        )
 
     def extract_strings(node):
         estr_ls = []
@@ -570,14 +748,18 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         if not opname:
             return i18n_contexts.operator_default
         op = bpy.ops
-        for n in opname.split('.'):
+        for n in opname.split("."):
             op = getattr(op, n)
         try:
             return op.get_rna_type().translation_context
         except Exception as e:
             default_op_context = i18n_contexts.operator_default
             print("ERROR: ", str(e))
-            print("       Assuming default operator context '{}'".format(default_op_context))
+            print(
+                "       Assuming default operator context '{}'".format(
+                    default_op_context
+                )
+            )
             return default_op_context
 
     # Gather function names.
@@ -595,11 +777,11 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     # val: tuples of ((keywords,), context_getter_func) to get a context for that msgid.
     #      Note: order is important, first one wins!
     translate_kw = {
-        "text": ((("text_ctxt",), _ctxt_to_ctxt),
-                 (("operator",), _op_to_ctxt),
-                 ),
-        "msgid": ((("msgctxt",), _ctxt_to_ctxt),
-                  ),
+        "text": (
+            (("text_ctxt",), _ctxt_to_ctxt),
+            (("operator",), _op_to_ctxt),
+        ),
+        "msgid": ((("msgctxt",), _ctxt_to_ctxt),),
         "message": (),
         "heading": (),
     }
@@ -627,13 +809,17 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
         # check it has one or more arguments as defined in translate_kw
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
-            if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
+            if (
+                (arg_kw in translate_kw)
+                and (not arg.is_output)
+                and (arg.type == "STRING")
+            ):
                 func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
     for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
         if func_id not in func_translate_args:
             continue
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
-            if (not arg.is_output) and (arg.type == 'STRING'):
+            if (not arg.is_output) and (arg.type == "STRING"):
                 for msgid, msgctxts in context_kw_set.items():
                     if arg_kw in msgctxts:
                         func_translate_args[func_id][msgid][1][arg_kw] = arg_pos
@@ -641,7 +827,11 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     for func_id, func in bpy.types.Operator.bl_rna.functions.items():
         # check it has one or more arguments as defined in translate_kw
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
-            if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
+            if (
+                (arg_kw in translate_kw)
+                and (not arg.is_output)
+                and (arg.type == "STRING")
+            ):
                 func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
     # We manually add funcs from bpy.app.translations
     for func_id, func_ids in pgettext_variants:
@@ -671,8 +861,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
     for fp in files:
         # ~ print("Checking File ", fp)
-        with open(fp, 'r', encoding="utf8") as filedata:
-            root_node = ast.parse(filedata.read(), fp, 'exec')
+        with open(fp, "r", encoding="utf8") as filedata:
+            root_node = ast.parse(filedata.read(), fp, "exec")
 
         fp_rel = make_rel(fp)
 
@@ -740,10 +930,20 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                         # ~ print(estr, nds)
                         if estr:
                             if nds:
-                                msgsrc = "{}:{}".format(fp_rel, sorted({nd.lineno for nd in nds})[0])
+                                msgsrc = "{}:{}".format(
+                                    fp_rel, sorted({nd.lineno for nd in nds})[0]
+                                )
                             else:
                                 msgsrc = "{}:???".format(fp_rel)
-                            process_msg(msgs, msgctxt, estr, msgsrc, reports, check_ctxt_py, settings)
+                            process_msg(
+                                msgs,
+                                msgctxt,
+                                estr,
+                                msgsrc,
+                                reports,
+                                check_ctxt_py,
+                                settings,
+                            )
                             reports["py_messages"].append((msgctxt, estr, msgsrc))
 
 
@@ -752,14 +952,20 @@ def dump_py_messages(msgs, reports, addons, settings, addons_only=False):
         if not os.path.exists(path):
             return []
         if os.path.isdir(path):
-            return [os.path.join(dpath, fn) for dpath, _, fnames in os.walk(path) for fn in fnames
-                    if not fn.startswith("_") and fn.endswith(".py")]
+            return [
+                os.path.join(dpath, fn)
+                for dpath, _, fnames in os.walk(path)
+                for fn in fnames
+                if not fn.startswith("_") and fn.endswith(".py")
+            ]
         return [path]
 
     files = []
     if not addons_only:
         for path in settings.CUSTOM_PY_UI_FILES:
-            for root in (bpy.utils.resource_path(t) for t in ('USER', 'LOCAL', 'SYSTEM')):
+            for root in (
+                bpy.utils.resource_path(t) for t in ("USER", "LOCAL", "SYSTEM")
+            ):
                 files += _get_files(os.path.join(root, path))
 
     # Add all given addons.
@@ -777,7 +983,10 @@ def dump_py_messages(msgs, reports, addons, settings, addons_only=False):
 def dump_src_messages(msgs, reports, settings):
     def get_contexts():
         """Return a mapping {C_CTXT_NAME: ctxt_value}."""
-        return {k: getattr(bpy.app.translations.contexts, n) for k, n in bpy.app.translations.contexts_C_to_py.items()}
+        return {
+            k: getattr(bpy.app.translations.contexts, n)
+            for k, n in bpy.app.translations.contexts_C_to_py.items()
+        }
 
     contexts = get_contexts()
 
@@ -789,9 +998,11 @@ def dump_src_messages(msgs, reports, settings):
     def clean_str(s):
         # The encode/decode to/from 'raw_unicode_escape' allows to transform the C-type unicode hexadecimal escapes
         # (like '\u2715' for the '×' symbol) back into a proper unicode character.
-        return "".join(
-            m.group("clean") for m in _clean_str(s)
-        ).encode('raw_unicode_escape').decode('raw_unicode_escape')
+        return (
+            "".join(m.group("clean") for m in _clean_str(s))
+            .encode("raw_unicode_escape")
+            .decode("raw_unicode_escape")
+        )
 
     def dump_src_file(path, rel_path, msgs, reports, settings):
         def process_entry(_msgctxt, _msgid):
@@ -803,14 +1014,20 @@ def dump_src_messages(msgs, reports, settings):
                 elif '"' in _msgctxt or "'" in _msgctxt:
                     msgctxt = clean_str(_msgctxt)
                 else:
-                    print("WARNING: raw context “{}” couldn’t be resolved!".format(_msgctxt))
+                    print(
+                        "WARNING: raw context “{}” couldn’t be resolved!".format(
+                            _msgctxt
+                        )
+                    )
             # Message.
             msgid = ""
             if _msgid:
                 if '"' in _msgid or "'" in _msgid:
                     msgid = clean_str(_msgid)
                 else:
-                    print("WARNING: raw message “{}” couldn’t be resolved!".format(_msgid))
+                    print(
+                        "WARNING: raw message “{}” couldn’t be resolved!".format(_msgid)
+                    )
             return msgctxt, msgid
 
         check_ctxt_src = None
@@ -833,27 +1050,46 @@ def dump_src_messages(msgs, reports, settings):
             while m:
                 d = m.groupdict()
                 # Line.
-                line += data[pos:m.start()].count('\n')
+                line += data[pos: m.start()].count("\n")
                 msgsrc = rel_path + ":" + str(line)
                 _msgid = d.get("msg_raw")
                 if _msgid not in {'""', "''"}:
                     # First, try the "multi-contexts" stuff!
-                    _msgctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT))
+                    _msgctxts = tuple(
+                        d.get("ctxt_raw{}".format(i))
+                        for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT)
+                    )
                     if _msgctxts[0]:
                         for _msgctxt in _msgctxts:
                             if not _msgctxt:
                                 break
                             msgctxt, msgid = process_entry(_msgctxt, _msgid)
-                            process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
+                            process_msg(
+                                msgs,
+                                msgctxt,
+                                msgid,
+                                msgsrc,
+                                reports,
+                                check_ctxt_src,
+                                settings,
+                            )
                             reports["src_messages"].append((msgctxt, msgid, msgsrc))
                     else:
                         _msgctxt = d.get("ctxt_raw")
                         msgctxt, msgid = process_entry(_msgctxt, _msgid)
-                        process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
+                        process_msg(
+                            msgs,
+                            msgctxt,
+                            msgid,
+                            msgsrc,
+                            reports,
+                            check_ctxt_src,
+                            settings,
+                        )
                         reports["src_messages"].append((msgctxt, msgid, msgsrc))
 
                 pos = m.end()
-                line += data[m.start():pos].count('\n')
+                line += data[m.start(): pos].count("\n")
                 m = srch(data, pos)
 
     forbidden = set()
@@ -861,10 +1097,10 @@ def dump_src_messages(msgs, reports, settings):
     if os.path.isfile(settings.SRC_POTFILES):
         with open(settings.SRC_POTFILES, encoding="utf8") as src:
             for l in src:
-                if l[0] == '-':
-                    forbidden.add(l[1:].rstrip('\n'))
-                elif l[0] != '#':
-                    forced.add(l.rstrip('\n'))
+                if l[0] == "-":
+                    forbidden.add(l[1:].rstrip("\n"))
+                elif l[0] != "#":
+                    forced.add(l.rstrip("\n"))
     for root, dirs, files in os.walk(settings.POTFILES_SOURCE_DIR):
         if "/.svn" in root:
             continue
@@ -902,7 +1138,9 @@ def dump_preset_messages(msgs, reports, settings):
         msgsrc, msgid = os.path.split(rel_path)
         msgsrc = "Preset from " + msgsrc
         msgid = bpy.path.display_name(msgid, title_case=False)
-        process_msg(msgs, settings.DEFAULT_CONTEXT, msgid, msgsrc, reports, None, settings)
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, msgid, msgsrc, reports, None, settings
+        )
 
 
 def dump_template_messages(msgs, reports, settings):
@@ -920,24 +1158,21 @@ def dump_template_messages(msgs, reports, settings):
             names.append(template or "General")
 
     from bpy.app.translations import contexts as i18n_contexts
+
     msgctxt = i18n_contexts.id_workspace
     for workspace_name in sorted(workspace_names):
         for msgsrc in sorted(workspace_names[workspace_name]):
             msgsrc = "Workspace from template " + msgsrc
-            process_msg(msgs, msgctxt, workspace_name, msgsrc,
-                        reports, None, settings)
+            process_msg(msgs, msgctxt, workspace_name, msgsrc, reports, None, settings)
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):
-    for prop in ('name', 'location', 'description', 'warning'):
+    for prop in ("name", "location", "description", "warning"):
         process_msg(
             msgs,
             settings.DEFAULT_CONTEXT,
             module.bl_info[prop],
-            "Add-on " +
-            module.bl_info['name'] +
-            " info: " +
-            prop,
+            "Add-on " + module.bl_info["name"] + " info: " + prop,
             reports,
             None,
             settings,
@@ -948,10 +1183,18 @@ def dump_addon_bl_info(msgs, reports, module, settings):
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
     bl_hash = bpy.app.build_hash
-    bl_date = datetime.datetime.strptime(bpy.app.build_date.decode() + "T" + bpy.app.build_time.decode(),
-                                         "%Y-%m-%dT%H:%M:%S")
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, bl_ver, bl_hash, bl_date, bl_date.year,
-                                                settings=settings)
+    bl_date = datetime.datetime.strptime(
+        bpy.app.build_date.decode() + "T" + bpy.app.build_time.decode(),
+        "%Y-%m-%dT%H:%M:%S",
+    )
+    pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID,
+        bl_ver,
+        bl_hash,
+        bl_date,
+        bl_date.year,
+        settings=settings,
+    )
     msgs = pot.msgs
 
     # Enable all wanted addons.
@@ -984,40 +1227,80 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from addons' bl_info.
     import addon_utils
+
     for module in addon_utils.modules():
         # Only process official add-ons, i.e. those marked as 'OFFICIAL' and
         # existing in the system add-ons directory (not user-installed ones).
-        if (module.bl_info['support'] != 'OFFICIAL'
-                or not bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS'))):
+        if module.bl_info["support"] != "OFFICIAL" or not bpy.path.is_subdir(
+            module.__file__, bpy.utils.system_resource("SCRIPTS")
+        ):
             continue
         dump_addon_bl_info(msgs, reports, module, settings)
 
     # Get strings from addons' categories.
     system_categories = set()
     for module in addon_utils.modules():
-        if bpy.path.is_subdir(module.__file__, bpy.utils.system_resource('SCRIPTS')):
-            system_categories.add(module.bl_info['category'])
-    for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
-            bpy.context.window_manager,
-            bpy.context,
+        if bpy.path.is_subdir(module.__file__, bpy.utils.system_resource("SCRIPTS")):
+            system_categories.add(module.bl_info["category"])
+    for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords["items"](
+        bpy.context.window_manager,
+        bpy.context,
     ):
         if label in system_categories:
             # Only process add-on if it a system one (i.e shipped with Blender). Also,
             # we do want to translate official categories, even if they have no official add-ons,
             # hence the different test than below.
-            process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
+            process_msg(
+                msgs,
+                settings.DEFAULT_CONTEXT,
+                label,
+                "Add-ons' categories",
+                reports,
+                None,
+                settings,
+            )
         elif tip:
             # Only special categories get a tip (All and User).
-            process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
-            process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Add-ons' categories", reports, None, settings)
+            process_msg(
+                msgs,
+                settings.DEFAULT_CONTEXT,
+                label,
+                "Add-ons' categories",
+                reports,
+                None,
+                settings,
+            )
+            process_msg(
+                msgs,
+                settings.DEFAULT_CONTEXT,
+                tip,
+                "Add-ons' categories",
+                reports,
+                None,
+                settings,
+            )
 
     # Get strings specific to translations' menu.
     for lng in settings.LANGUAGES:
-        process_msg(msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from bl_i18n_utils/settings.py",
-                    reports, None, settings)
+        process_msg(
+            msgs,
+            settings.DEFAULT_CONTEXT,
+            lng[1],
+            "Languages’ labels from bl_i18n_utils/settings.py",
+            reports,
+            None,
+            settings,
+        )
     for cat in settings.LANGUAGES_CATEGORIES:
-        process_msg(msgs, settings.DEFAULT_CONTEXT, cat[1],
-                    "Language categories’ labels from bl_i18n_utils/settings.py", reports, None, settings)
+        process_msg(
+            msgs,
+            settings.DEFAULT_CONTEXT,
+            cat[1],
+            "Language categories’ labels from bl_i18n_utils/settings.py",
+            reports,
+            None,
+            settings,
+        )
 
     # pot.check()
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
@@ -1026,7 +1309,7 @@ def dump_messages(do_messages, do_checks, settings):
 
     if do_messages:
         print("Writing messages…")
-        pot.write('PO', settings.FILE_NAME_POT)
+        pot.write("PO", settings.FILE_NAME_POT)
 
     print("Finished extracting UI messages!")
 
@@ -1046,12 +1329,14 @@ def dump_addon_messages(module_name, do_checks, settings):
     ver = addon_info["name"] + " " + ".".join(str(v) for v in addon_info["version"])
     rev = 0
     date = datetime.datetime.now()
-    pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
-                                                settings=settings)
+    pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year, settings=settings
+    )
     msgs = pot.msgs
 
-    minus_pot = utils.I18nMessages.gen_empty_messages(settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year,
-                                                      settings=settings)
+    minus_pot = utils.I18nMessages.gen_empty_messages(
+        settings.PARSER_TEMPLATE_ID, ver, rev, date, date.year, settings=settings
+    )
     minus_msgs = minus_pot.msgs
 
     check_ctxt = _gen_check_ctxt(settings) if do_checks else None
@@ -1120,12 +1405,30 @@ def main():
     # Get rid of Blender args!
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 
-    parser = argparse.ArgumentParser(description="Process UI messages from inside Blender.")
-    parser.add_argument('-c', '--no_checks', default=True, action="store_false", help="No checks over UI messages.")
-    parser.add_argument('-m', '--no_messages', default=True, action="store_false", help="No export of UI messages.")
-    parser.add_argument('-o', '--output', default=None, help="Output POT file path.")
-    parser.add_argument('-s', '--settings', default=None,
-                        help="Override (some) default settings. Either a JSon file name, or a JSon string.")
+    parser = argparse.ArgumentParser(
+        description="Process UI messages from inside Blender."
+    )
+    parser.add_argument(
+        "-c",
+        "--no_checks",
+        default=True,
+        action="store_false",
+        help="No checks over UI messages.",
+    )
+    parser.add_argument(
+        "-m",
+        "--no_messages",
+        default=True,
+        action="store_false",
+        help="No export of UI messages.",
+    )
+    parser.add_argument("-o", "--output", default=None, help="Output POT file path.")
+    parser.add_argument(
+        "-s",
+        "--settings",
+        default=None,
+        help="Override (some) default settings. Either a JSon file name, or a JSon string.",
+    )
     args = parser.parse_args(argv)
 
     settings = settings_i18n.I18nSettings()
@@ -1134,7 +1437,9 @@ def main():
     if args.output:
         settings.FILE_NAME_POT = args.output
 
-    dump_messages(do_messages=args.no_messages, do_checks=args.no_checks, settings=settings)
+    dump_messages(
+        do_messages=args.no_messages, do_checks=args.no_checks, settings=settings
+    )
 
 
 if __name__ == "__main__":

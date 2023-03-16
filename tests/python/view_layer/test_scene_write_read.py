@@ -15,8 +15,11 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(ViewLayerTesting):
-    def do_scene_write_read(self, filepath_layers, filepath_layers_json, data_callbacks, do_read):
+    def do_scene_write_read(
+        self, filepath_layers, filepath_layers_json, data_callbacks, do_read
+    ):
         """
         See if write/read is working for scene collections and layers
         """
@@ -27,16 +30,16 @@ class UnitTesting(ViewLayerTesting):
         with tempfile.TemporaryDirectory() as dirpath:
             (self.path_exists(f) for f in (filepath_layers, filepath_layers_json))
 
-            filepath_doversion = os.path.join(dirpath, 'doversion.blend')
-            filepath_saved = os.path.join(dirpath, 'doversion_saved.blend')
+            filepath_doversion = os.path.join(dirpath, "doversion.blend")
+            filepath_saved = os.path.join(dirpath, "doversion_saved.blend")
             filepath_read_json = os.path.join(dirpath, "read.json")
 
             # doversion + write test
-            bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+            bpy.ops.wm.open_mainfile("EXEC_DEFAULT", filepath=filepath_layers)
             self.rename_collections()
-            bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_doversion)
+            bpy.ops.wm.save_mainfile("EXEC_DEFAULT", filepath=filepath_doversion)
 
-            datas = query_scene(filepath_doversion, 'Main', data_callbacks)
+            datas = query_scene(filepath_doversion, "Main", data_callbacks)
             self.assertTrue(datas, "Data is not valid")
 
             filepath_doversion_json = os.path.join(dirpath, "doversion.json")
@@ -44,30 +47,34 @@ class UnitTesting(ViewLayerTesting):
                 for data in datas:
                     f.write(dump(data))
 
-            self.assertTrue(compare_files(
-                filepath_doversion_json,
-                filepath_layers_json,
-            ),
-                "Run: test_scene_write_layers")
+            self.assertTrue(
+                compare_files(
+                    filepath_doversion_json,
+                    filepath_layers_json,
+                ),
+                "Run: test_scene_write_layers",
+            )
 
             if do_read:
                 # read test, simply open and save the file
-                bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_doversion)
+                bpy.ops.wm.open_mainfile("EXEC_DEFAULT", filepath=filepath_doversion)
                 self.rename_collections()
-                bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_saved)
+                bpy.ops.wm.save_mainfile("EXEC_DEFAULT", filepath=filepath_saved)
 
-                datas = query_scene(filepath_saved, 'Main', data_callbacks)
+                datas = query_scene(filepath_saved, "Main", data_callbacks)
                 self.assertTrue(datas, "Data is not valid")
 
                 with open(filepath_read_json, "w") as f:
                     for data in datas:
                         f.write(dump(data))
 
-                self.assertTrue(compare_files(
-                    filepath_read_json,
-                    filepath_layers_json,
-                ),
-                    "Scene dump files differ")
+                self.assertTrue(
+                    compare_files(
+                        filepath_read_json,
+                        filepath_layers_json,
+                    ),
+                    "Scene dump files differ",
+                )
 
     def test_scene_write_collections(self):
         """
@@ -75,14 +82,12 @@ class UnitTesting(ViewLayerTesting):
         """
 
         ROOT = self.get_root()
-        filepath_layers = os.path.join(ROOT, 'layers.blend')
-        filepath_layers_json = os.path.join(ROOT, 'layers_simple.json')
+        filepath_layers = os.path.join(ROOT, "layers.blend")
+        filepath_layers_json = os.path.join(ROOT, "layers_simple.json")
 
         self.do_scene_write_read(
-            filepath_layers,
-            filepath_layers_json,
-            (get_scene_collections,),
-            False)
+            filepath_layers, filepath_layers_json, (get_scene_collections,), False
+        )
 
     def test_scene_write_layers(self):
         """
@@ -90,14 +95,15 @@ class UnitTesting(ViewLayerTesting):
         """
 
         ROOT = self.get_root()
-        filepath_layers = os.path.join(ROOT, 'layers.blend')
-        filepath_layers_json = os.path.join(ROOT, 'layers.json')
+        filepath_layers = os.path.join(ROOT, "layers.blend")
+        filepath_layers_json = os.path.join(ROOT, "layers.json")
 
         self.do_scene_write_read(
             filepath_layers,
             filepath_layers_json,
             (get_scene_collections, get_layers),
-            False)
+            False,
+        )
 
     def test_scene_read_collections(self):
         """
@@ -106,14 +112,12 @@ class UnitTesting(ViewLayerTesting):
         """
 
         ROOT = self.get_root()
-        filepath_layers = os.path.join(ROOT, 'layers.blend')
-        filepath_layers_json = os.path.join(ROOT, 'layers_simple.json')
+        filepath_layers = os.path.join(ROOT, "layers.blend")
+        filepath_layers_json = os.path.join(ROOT, "layers_simple.json")
 
         self.do_scene_write_read(
-            filepath_layers,
-            filepath_layers_json,
-            (get_scene_collections,),
-            True)
+            filepath_layers, filepath_layers_json, (get_scene_collections,), True
+        )
 
     def test_scene_read_layers(self):
         """
@@ -122,20 +126,21 @@ class UnitTesting(ViewLayerTesting):
         """
 
         ROOT = self.get_root()
-        filepath_layers = os.path.join(ROOT, 'layers.blend')
-        filepath_layers_json = os.path.join(ROOT, 'layers.json')
+        filepath_layers = os.path.join(ROOT, "layers.blend")
+        filepath_layers_json = os.path.join(ROOT, "layers.json")
 
         self.do_scene_write_read(
             filepath_layers,
             filepath_layers_json,
             (get_scene_collections, get_layers),
-            True)
+            True,
+        )
 
 
 # ############################################################
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

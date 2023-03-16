@@ -86,16 +86,21 @@ def elems_depth_search(ele_init, depths, other_edges_over_cb, results_init=None)
     # which are candidates for matching with depths
     if type(ele_init) is bmesh.types.BMFace:
         test_ele = {
-            l.face for v, depth in vert_depths.items()
-            if depth >= depth_min for l in v.link_loops}
+            l.face
+            for v, depth in vert_depths.items()
+            if depth >= depth_min
+            for l in v.link_loops
+        }
     elif type(ele_init) is bmesh.types.BMEdge:
         test_ele = {
-            e for v, depth in vert_depths.items()
-            if depth >= depth_min for e in v.link_edges if not e.is_wire}
+            e
+            for v, depth in vert_depths.items()
+            if depth >= depth_min
+            for e in v.link_edges
+            if not e.is_wire
+        }
     else:
-        test_ele = {
-            v for v, depth in vert_depths.items()
-            if depth >= depth_min}
+        test_ele = {v for v, depth in vert_depths.items() if depth >= depth_min}
 
     result_ele = set()
 
@@ -183,7 +188,9 @@ def find_next(ele_dst, ele_src):
     depth_src = tuple(zip(depth_src_a, depth_src_b))
 
     candidates = elems_depth_search(ele_dst, depth_src_a, other_edges_over_edge)
-    candidates = elems_depth_search(ele_dst, depth_src_b, other_edges_over_face, candidates)
+    candidates = elems_depth_search(
+        ele_dst, depth_src_b, other_edges_over_face, candidates
+    )
     candidates.discard(ele_src)
     candidates.discard(ele_dst)
     if not candidates:
@@ -203,8 +210,10 @@ def find_next(ele_dst, ele_src):
             continue
         depth_test = tuple(zip(depth_test_a, depth_test_b))
         # square so a few high values win over many small ones
-        diff_test = sum((abs(a[0] - b[0]) ** 2) +
-                        (abs(a[1] - b[1]) ** 2) for a, b in zip(depth_src, depth_test))
+        diff_test = sum(
+            (abs(a[0] - b[0]) ** 2) + (abs(a[1] - b[1]) ** 2)
+            for a, b in zip(depth_src, depth_test)
+        )
         if diff_test > diff_best:
             diff_best = diff_test
             ele_best = ele_test
@@ -223,8 +232,7 @@ def find_next(ele_dst, ele_src):
             depth_test_b = elems_depth_measure(ele_src, ele_test, other_edges_over_face)
             if depth_test_a is None or depth_test_b is None:
                 continue
-            depth_accum_test = (
-                sum(depth_test_a) + sum(depth_test_b))
+            depth_accum_test = sum(depth_test_a) + sum(depth_test_b)
 
             if depth_accum_test > depth_accum_max:
                 depth_accum_max = depth_accum_test
@@ -246,7 +254,7 @@ def select_next(bm, report):
             break
 
     if ele_pair[-1] is None:
-        report({'INFO'}, "Selection pair not found")
+        report({"INFO"}, "Selection pair not found")
         return False
 
     ele_pair_next = find_next(*ele_pair)
@@ -259,7 +267,12 @@ def select_next(bm, report):
         def ele_uuid(ele):
             ele_type = type(ele)
             if ele_type is bmesh.types.BMFace:
-                ret = [len(f.verts) for l in ele.loops for f in l.edge.link_faces if f is not ele]
+                ret = [
+                    len(f.verts)
+                    for l in ele.loops
+                    for f in l.edge.link_faces
+                    if f is not ele
+                ]
             elif ele_type is bmesh.types.BMEdge:
                 ret = [len(l.face.verts) for l in ele.link_loops]
             elif ele_type is bmesh.types.BMVert:
@@ -269,7 +282,6 @@ def select_next(bm, report):
             return tuple(sorted(ret))
 
         def ele_uuid_filter():
-
             def pass_fn(seq):
                 return seq
 
@@ -284,7 +296,8 @@ def select_next(bm, report):
             for fn in (pass_fn, set, sum_set, len):
                 uuid_cmp_test = fn(uuid_cmp)
                 ele_pair_next_uuid_test = [
-                    (ele, uuid) for (ele, uuid) in ele_pair_next_uuid
+                    (ele, uuid)
+                    for (ele, uuid) in ele_pair_next_uuid
                     if uuid_cmp_test == fn(uuid)
                 ]
                 if len(ele_pair_next_uuid_test) > 1:
@@ -298,12 +311,12 @@ def select_next(bm, report):
         del ele_uuid, ele_uuid_filter
 
     if len(ele_pair_next) != 1:
-        report({'INFO'}, "No single next item found")
+        report({"INFO"}, "No single next item found")
         return False
 
     ele = ele_pair_next[0]
     if ele.hide:
-        report({'INFO'}, "Next element is hidden")
+        report({"INFO"}, "Next element is hidden")
         return False
 
     ele.select_set(False)
@@ -319,7 +332,7 @@ def select_prev(bm, report):
     for ele in reversed(bm.select_history):
         break
     else:
-        report({'INFO'}, "Last selected not found")
+        report({"INFO"}, "Last selected not found")
         return False
 
     ele.select_set(False)

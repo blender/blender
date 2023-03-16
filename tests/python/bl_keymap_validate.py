@@ -54,10 +54,10 @@ WRITE_OUTPUT_DIR = ""  # "/tmp", defaults to the systems temp directory.
 # this way would create too many combinations making the tests take too long to complete.
 PRESET_PREFS = {
     "Blender": (
-        (("select_mouse", 'LEFT'), ("use_alt_tool", False)),
-        (("select_mouse", 'LEFT'), ("use_alt_tool", True)),
-        (("select_mouse", 'RIGHT'), ("rmb_action", 'TWEAK')),
-        (("select_mouse", 'RIGHT'), ("rmb_action", 'FALLBACK_TOOL')),
+        (("select_mouse", "LEFT"), ("use_alt_tool", False)),
+        (("select_mouse", "LEFT"), ("use_alt_tool", True)),
+        (("select_mouse", "RIGHT"), ("rmb_action", "TWEAK")),
+        (("select_mouse", "RIGHT"), ("rmb_action", "FALLBACK_TOOL")),
     ),
 }
 
@@ -73,9 +73,11 @@ ALLOW_DUPLICATES = {
 
 @contextlib.contextmanager
 def temp_fn_argument_extractor(
-        mod: types.ModuleType,
-        mod_attr: str,
-) -> Generator[List[Tuple[Tuple[Tuple[Any], ...], Dict[str, Dict[str, Any]]]], None, None]:
+    mod: types.ModuleType,
+    mod_attr: str,
+) -> Generator[
+    List[Tuple[Tuple[Tuple[Any], ...], Dict[str, Dict[str, Any]]]], None, None
+]:
     """
     Temporarily intercept a function, so it's arguments can be extracted.
     The context manager gives us a list where each item is a tuple of
@@ -87,6 +89,7 @@ def temp_fn_argument_extractor(
     def wrap_fn(*args: Tuple[Any], **kw: Dict[str, Any]) -> Any:
         args_collected.append((args, kw))
         return real_fn(*args, **kw)
+
     setattr(mod, mod_attr, wrap_fn)
     try:
         yield args_collected
@@ -96,6 +99,7 @@ def temp_fn_argument_extractor(
 
 def round_float_32(f: float) -> float:
     from struct import pack, unpack
+
     return unpack("f", pack("f", f))[0]  # type: ignore
 
 
@@ -105,6 +109,7 @@ def report_humanly_readable_difference(a: Any, b: Any) -> Optional[str]:
     otherwise a humanly readable difference message.
     """
     import unittest
+
     cls = unittest.TestCase()
     try:
         cls.assertEqual(a, b)
@@ -116,11 +121,13 @@ def report_humanly_readable_difference(a: Any, b: Any) -> Optional[str]:
 # -----------------------------------------------------------------------------
 # Keymap Utilities.
 
+
 def keyconfig_preset_scan() -> List[str]:
     """
     Return all bundled presets (keymaps), not user presets.
     """
     from bpy import context
+
     # This assumes running with `--factory-settings`.
     default_keyconfig = context.window_manager.keyconfigs.active.name
     default_preset_filepath = bpy.utils.preset_find(default_keyconfig, "keyconfig")
@@ -192,24 +199,26 @@ def keyconfig_config_as_filename_component(values: Sequence[Tuple[str, Any]]) ->
     And returns a filename compatible path:
     """
     from urllib.parse import quote
+
     if not values:
         return ""
 
-    return "(" + quote(
-        ".".join([
-            "-".join((str(key), str(val)))
-            for key, val in values
-        ]),
-        # Needed so forward slashes aren't included in the resulting name.
-        safe="",
-    ) + ")"
+    return (
+        "("
+        + quote(
+            ".".join(["-".join((str(key), str(val))) for key, val in values]),
+            # Needed so forward slashes aren't included in the resulting name.
+            safe="",
+        )
+        + ")"
+    )
 
 
 def keyconfig_activate_and_extract_data(
-        filepath: str,
-        *,
-        relaxed: bool,
-        config: Sequence[Tuple[str, Any]],
+    filepath: str,
+    *,
+    relaxed: bool,
+    config: Sequence[Tuple[str, Any]],
 ) -> KeyConfigData:
     """
     Activate the key-map by filepath,
@@ -223,7 +232,9 @@ def keyconfig_activate_and_extract_data(
         for attr, value in config:
             setattr(km_prefs, attr, value)
 
-    with temp_fn_argument_extractor(bl_keymap_utils.io, "keyconfig_init_from_data") as args_collected:
+    with temp_fn_argument_extractor(
+        bl_keymap_utils.io, "keyconfig_init_from_data"
+    ) as args_collected:
         bpy.ops.preferences.keyconfig_activate(filepath=filepath)
 
         # If called multiple times, something strange is happening.
@@ -255,7 +266,9 @@ def keyconfig_report_duplicates(keyconfig_data: KeyConfigData) -> str:
             unique.setdefault(item_repr, []).append(i)
         for key, value in unique.items():
             if len(value) > 1:
-                error_text.append("\"%s\" %r indices %r for item %r" % (km_idname, km_args, value, key))
+                error_text.append(
+                    '"%s" %r indices %r for item %r' % (km_idname, km_args, value, key)
+                )
     return "\n".join(error_text)
 
 
@@ -264,7 +277,7 @@ def main() -> None:
     import pprint
     import tempfile
 
-    argv = (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 
     # Use `argparse` for full arg parsing, for now this is enough.
     relaxed = "--relaxed" not in argv
@@ -275,7 +288,9 @@ def main() -> None:
     for filepath in presets:
         name_only = os.path.splitext(os.path.basename(filepath))[0]
         for config in PRESET_PREFS.get(name_only, ((),)):
-            name_only_with_config = name_only + keyconfig_config_as_filename_component(config)
+            name_only_with_config = name_only + keyconfig_config_as_filename_component(
+                config
+            )
             print("KeyMap Validate:", name_only_with_config, end=" ... ")
             data_orig = keyconfig_activate_and_extract_data(
                 filepath,
@@ -299,11 +314,13 @@ def main() -> None:
 
             # Comparing a pretty printed string tends to give more useful
             # text output compared to the data-structure. Both will work.
-            if (cmp_message := report_humanly_readable_difference(
-                    pprint.pformat(data_orig, indent=0, width=120),
-                    pprint.pformat(data_reimport, indent=0, width=120),
-            )):
-                error_text_consistency = "Keymap %s has inconsistency on re-importing." % cmp_message
+            if cmp_message := report_humanly_readable_difference(
+                pprint.pformat(data_orig, indent=0, width=120),
+                pprint.pformat(data_reimport, indent=0, width=120),
+            ):
+                error_text_consistency = (
+                    "Keymap %s has inconsistency on re-importing." % cmp_message
+                )
             else:
                 error_text_consistency = ""
 
@@ -328,9 +345,9 @@ def main() -> None:
                 os.makedirs(WRITE_OUTPUT_DIR, exist_ok=True)
                 name_only_temp = os.path.join(WRITE_OUTPUT_DIR, name_only_with_config)
                 print("Writing data to:", name_only_temp + ".*.py")
-                with open(name_only_temp + ".orig.py", 'w') as fh:
+                with open(name_only_temp + ".orig.py", "w") as fh:
                     fh.write(pprint.pformat(data_orig, indent=0, width=120))
-                with open(name_only_temp + ".rewrite.py", 'w') as fh:
+                with open(name_only_temp + ".rewrite.py", "w") as fh:
                     fh.write(pprint.pformat(data_reimport, indent=0, width=120))
     if has_error:
         sys.exit(1)

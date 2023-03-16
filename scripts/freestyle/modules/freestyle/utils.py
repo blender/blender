@@ -60,6 +60,7 @@ from itertools import tee, compress
 
 # -- types -- #
 
+
 # A named tuple primitive used for storing data that has an upper and
 # lower bound (e.g., thickness, range and certain other values)
 class BoundedProperty(namedtuple("BoundedProperty", ["min", "max", "delta"])):
@@ -75,6 +76,7 @@ class BoundedProperty(namedtuple("BoundedProperty", ["min", "max", "delta"])):
 
 # -- real utility functions  -- #
 
+
 def rgb_to_bw(r, g, b):
     """Method to convert rgb to a bw intensity value."""
     return 0.35 * r + 0.45 * g + 0.2 * b
@@ -85,17 +87,22 @@ def bound(lower, x, higher):
     return min(max(x, lower), higher)
     """
     # this is about 50% quicker than min(max(x, lower), higher)
-    return (lower if x <= lower else higher if x >= higher else x)
+    return lower if x <= lower else higher if x >= higher else x
 
 
 def get_strokes():
     """Get all strokes that are currently available"""
-    return tuple(map(Operators().get_stroke_from_index, range(Operators().get_strokes_size())))
+    return tuple(
+        map(Operators().get_stroke_from_index, range(Operators().get_strokes_size()))
+    )
 
 
 def is_poly_clockwise(stroke):
     """True if the stroke is orientated in a clockwise way, False otherwise"""
-    v = sum((v2.point.x - v1.point.x) * (v1.point.y + v2.point.y) for v1, v2 in pairwise(stroke))
+    v = sum(
+        (v2.point.x - v1.point.x) * (v1.point.y + v2.point.y)
+        for v1, v2 in pairwise(stroke)
+    )
     v1, v2 = stroke[0], stroke[-1]
     if (v1.point - v2.point).length > 1e-3:
         v += (v2.point.x - v1.point.x) * (v1.point.y + v2.point.y)
@@ -132,7 +139,7 @@ def bounding_box(stroke):
 
 def normal_at_I0D(it: Interface0DIterator) -> Vector:
     """Normal at an Interface0D object. In contrast to Normal2DF0D this
-       function uses the actual data instead of underlying Fedge objects.
+    function uses the actual data instead of underlying Fedge objects.
     """
     if it.at_last and it.is_begin:
         # corner-case
@@ -165,7 +172,7 @@ def angle_x_normal(it: Interface0DIterator):
 
 def curvature_from_stroke_vertex(svert):
     """The 3D curvature of an stroke vertex' underlying geometry
-       The result is None or in the range [-inf, inf]"""
+    The result is None or in the range [-inf, inf]"""
     c1 = svert.first_svertex.curvatures
     c2 = svert.second_svertex.curvatures
     if c1 is None and c2 is None:
@@ -180,6 +187,7 @@ def curvature_from_stroke_vertex(svert):
 
 
 # -- General helper functions -- #
+
 
 @lru_cache(maxsize=32)
 def phase_to_direction(length):
@@ -198,13 +206,14 @@ def phase_to_direction(length):
 # -- simplification of a set of points; based on simplify.js by Vladimir Agafonkin --
 #    https://mourner.github.io/simplify-js/
 
+
 def getSquareSegmentDistance(p, p1, p2):
     """
     Square distance between point and a segment
     """
     x, y = p1
 
-    dx, dy = (p2 - p1)
+    dx, dy = p2 - p1
 
     if dx or dy:
         t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy)
@@ -294,9 +303,15 @@ class BoundingBox:
     def inside(self, other):
         """True if self inside other, False otherwise"""
         if self.size != other.size:
-            raise TypeError("Expected two BoundingBox of the same size, got", self, other)
-        return (self.minimum.x >= other.minimum.x and self.minimum.y >= other.minimum.y and
-                self.maximum.x <= other.maximum.x and self.maximum.y <= other.maximum.y)
+            raise TypeError(
+                "Expected two BoundingBox of the same size, got", self, other
+            )
+        return (
+            self.minimum.x >= other.minimum.x
+            and self.minimum.y >= other.minimum.y
+            and self.maximum.x <= other.maximum.x
+            and self.maximum.y <= other.maximum.y
+        )
 
 
 class StrokeCollector(StrokeShader):
@@ -312,9 +327,11 @@ class StrokeCollector(StrokeShader):
 
 # -- helper functions for chaining -- #
 
+
 def get_chain_length(ve, orientation):
     """Returns the 2d length of a given ViewEdge."""
     from freestyle.chainingiterators import pyChainSilhouetteGenericIterator
+
     length = 0.0
     # setup iterator
     _it = pyChainSilhouetteGenericIterator(False, False)
@@ -326,7 +343,7 @@ def get_chain_length(ve, orientation):
     # run iterator till end of chain
     while not (_it.is_end):
         length += _it.object.length_2d
-        if (_it.is_begin):
+        if _it.is_begin:
             # _it has looped back to the beginning;
             # break to prevent infinite loop
             break
@@ -354,8 +371,9 @@ def find_matching_vertex(id, it):
 
 # -- helper functions for iterating -- #
 
+
 def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
-    """Yields a tuple containing the previous and current object """
+    """Yields a tuple containing the previous and current object"""
     # use .incremented() for types that support it
     if type(iterable) in types:
         it = iter(iterable)
@@ -367,7 +385,7 @@ def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
 
 
 def tripplewise(iterable):
-    """Yields a tuple containing the current object and its immediate neighbors """
+    """Yields a tuple containing the current object and its immediate neighbors"""
     a, b, c = tee(iterable)
     next(b, None)
     next(c, None)
@@ -420,38 +438,38 @@ def iter_material_value(stroke, func, attribute):
     for svert in it:
         material = func(it)
         # main
-        if attribute == 'LINE':
+        if attribute == "LINE":
             value = rgb_to_bw(*material.line[0:3])
-        elif attribute == 'DIFF':
+        elif attribute == "DIFF":
             value = rgb_to_bw(*material.diffuse[0:3])
-        elif attribute == 'SPEC':
+        elif attribute == "SPEC":
             value = rgb_to_bw(*material.specular[0:3])
         # line separate
-        elif attribute == 'LINE_R':
+        elif attribute == "LINE_R":
             value = material.line[0]
-        elif attribute == 'LINE_G':
+        elif attribute == "LINE_G":
             value = material.line[1]
-        elif attribute == 'LINE_B':
+        elif attribute == "LINE_B":
             value = material.line[2]
-        elif attribute == 'LINE_A':
+        elif attribute == "LINE_A":
             value = material.line[3]
         # diffuse separate
-        elif attribute == 'DIFF_R':
+        elif attribute == "DIFF_R":
             value = material.diffuse[0]
-        elif attribute == 'DIFF_G':
+        elif attribute == "DIFF_G":
             value = material.diffuse[1]
-        elif attribute == 'DIFF_B':
+        elif attribute == "DIFF_B":
             value = material.diffuse[2]
-        elif attribute == 'ALPHA':
+        elif attribute == "ALPHA":
             value = material.diffuse[3]
         # specular separate
-        elif attribute == 'SPEC_R':
+        elif attribute == "SPEC_R":
             value = material.specular[0]
-        elif attribute == 'SPEC_G':
+        elif attribute == "SPEC_G":
             value = material.specular[1]
-        elif attribute == 'SPEC_B':
+        elif attribute == "SPEC_B":
             value = material.specular[2]
-        elif attribute == 'SPEC_HARDNESS':
+        elif attribute == "SPEC_HARDNESS":
             value = material.shininess
         else:
             raise ValueError("unexpected material attribute: " + attribute)
@@ -471,6 +489,7 @@ def iter_distance_along_stroke(stroke):
 
 # -- mathematical operations -- #
 
+
 def stroke_curvature(it):
     """
     Compute the 2D curvature at the stroke vertex pointed by the iterator 'it'.
@@ -478,18 +497,22 @@ def stroke_curvature(it):
     where R is the radius of the circle going through the current vertex and its neighbors
     """
     for _ in it:
-        if (it.is_begin or it.is_end):
+        if it.is_begin or it.is_end:
             yield 0.0
             continue
         else:
             it.decrement()
-            prev, current, succ = it.object.point.copy(), next(it).point.copy(), next(it).point.copy()
+            prev, current, succ = (
+                it.object.point.copy(),
+                next(it).point.copy(),
+                next(it).point.copy(),
+            )
             # return the iterator in an unchanged state
             it.decrement()
 
-        ab = (current - prev)
-        bc = (succ - current)
-        ac = (prev - succ)
+        ab = current - prev
+        bc = succ - current
+        ac = prev - succ
 
         a, b, c = ab.length, bc.length, ac.length
 
@@ -519,12 +542,18 @@ def stroke_normal(stroke):
 
 
 def get_test_stroke():
-    """Returns a static stroke object for testing """
+    """Returns a static stroke object for testing"""
     from freestyle.types import SVertex, Id, StrokeVertex
+
     # points for our fake stroke
-    points = (Vector((1.0, 5.0, 3.0)), Vector((1.0, 2.0, 9.0)),
-              Vector((6.0, 2.0, 3.0)), Vector((7.0, 2.0, 3.0)),
-              Vector((2.0, 6.0, 3.0)), Vector((2.0, 8.0, 3.0)))
+    points = (
+        Vector((1.0, 5.0, 3.0)),
+        Vector((1.0, 2.0, 9.0)),
+        Vector((6.0, 2.0, 3.0)),
+        Vector((7.0, 2.0, 3.0)),
+        Vector((2.0, 6.0, 3.0)),
+        Vector((2.0, 8.0, 3.0)),
+    )
     ids = (Id(0, 0), Id(1, 1), Id(2, 2), Id(3, 3), Id(4, 4), Id(5, 5))
 
     stroke = Stroke()
