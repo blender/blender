@@ -449,10 +449,16 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
 
   pxr::UsdGeomPrimvarsAPI primvarsAPI = pxr::UsdGeomPrimvarsAPI(mesh_prim_);
 
-  std::vector<pxr::UsdGeomPrimvar> primvars = primvarsAPI.GetPrimvars();
+  std::vector<pxr::UsdGeomPrimvar> primvars = primvarsAPI.GetPrimvarsWithValues();
+
+  pxr::TfToken active_color_name;
 
   /* Convert all color primvars to custom layer data. */
   for (pxr::UsdGeomPrimvar pv : primvars) {
+
+    if (!pv.HasValue()) {
+      continue;
+    }
 
     pxr::SdfValueTypeName type = pv.GetTypeName();
 
@@ -465,6 +471,13 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
 
     pxr::TfToken name = pv.GetPrimvarName();
 
+    /* Set the active color name to 'displayColor', if a color primvar
+     * with this name exists.  Otherwise, use the name of the first
+     * color primvar we find for the active color. */
+    if (active_color_name.IsEmpty() || name == usdtokens::displayColor) {
+      active_color_name = name;
+    }
+
     /* Skip if we read this primvar before and it isn't animated. */
     if (primvar_varying_map_.find(name) != primvar_varying_map_.end() &&
         !primvar_varying_map_.at(name)) {
@@ -472,6 +485,10 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
     }
 
     read_colors(mesh, pv, motionSampleTime);
+  }
+
+  if (!active_color_name.IsEmpty()) {
+    BKE_id_attributes_active_color_set(&mesh->id, active_color_name.GetText());
   }
 }
 
