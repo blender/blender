@@ -2,19 +2,18 @@
 
 import bpy
 
-header = '''
+header = """
 digraph ancestors           {
 graph [fontsize=30 labelloc="t" label="" splines=false overlap=true, rankdir=BT];
 ratio = "auto" ;
-'''
+"""
 
-footer = '''
+footer = """
 }
-'''
+"""
 
 
 def compat_str(text, line_length=0):
-
     if line_length:
         text_ls = []
         while len(text) > line_length:
@@ -23,7 +22,7 @@ def compat_str(text, line_length=0):
 
         if text:
             text_ls.append(text)
-        text = '\n  '.join(text_ls)
+        text = "\n  ".join(text_ls)
 
     # text = text.replace('.', '.\n')
     # text = text.replace(']', ']\n')
@@ -32,13 +31,18 @@ def compat_str(text, line_length=0):
     return text
 
 
-def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
+def graph_armature(
+    obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True
+):
     CONSTRAINTS = DRIVERS = True
 
     fileobject = open(filepath, "w")
     fw = fileobject.write
     fw(header)
-    fw('label = "%s::%s" ;' % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
+    fw(
+        'label = "%s::%s" ;'
+        % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name)
+    )
 
     arm = obj.data
 
@@ -47,7 +51,12 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     print("")
     for bone in bones:
         b = arm.bones[bone]
-        print(">>", bone, ["*>", "->"][b.use_connect], getattr(getattr(b, "parent", ""), "name", ""))
+        print(
+            ">>",
+            bone,
+            ["*>", "->"][b.use_connect],
+            getattr(getattr(b, "parent", ""), "name", ""),
+        )
         label = [bone]
         bone = arm.bones[bone]
 
@@ -67,17 +76,17 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             "regular=1",
             "style=filled",
             "fixedsize=false",
-            'label="%s"' % compat_str('\n'.join(label)),
+            'label="%s"' % compat_str("\n".join(label)),
         ]
 
-        if bone.name.startswith('ORG'):
+        if bone.name.startswith("ORG"):
             opts.append("fillcolor=yellow")
         else:
             opts.append("fillcolor=white")
 
-        fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
+        fw('"%s" [%s];\n' % (bone.name, ",".join(opts)))
 
-    fw('\n\n# Hierarchy:\n')
+    fw("\n\n# Hierarchy:\n")
 
     # Root node.
     if FAKE_PARENT:
@@ -91,7 +100,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             parent_name = parent.name
             connected = bone.use_connect
         elif FAKE_PARENT:
-            parent_name = 'Object::%s' % obj.name
+            parent_name = "Object::%s" % obj.name
             connected = False
         else:
             continue
@@ -100,12 +109,12 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         if not connected:
             opts.append("style=dotted")
 
-        fw('"%s" -> "%s" [%s] ;\n' % (bone.name, parent_name, ','.join(opts)))
+        fw('"%s" -> "%s" [%s] ;\n' % (bone.name, parent_name, ",".join(opts)))
     del bone
 
     # constraints
     if CONSTRAINTS:
-        fw('\n\n# Constraints:\n')
+        fw("\n\n# Constraints:\n")
         for bone in bones:
             pbone = obj.pose.bones[bone]
             # must be ordered
@@ -114,22 +123,25 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                 if subtarget:
                     # TODO, not internal links
                     opts = [
-                        'dir=forward',
+                        "dir=forward",
                         "weight=1",
                         "arrowhead=normal",
                         "arrowtail=none",
                         "constraint=false",
                         'color="red"',
-                        'labelfontsize=4',
+                        "labelfontsize=4",
                     ]
                     if XTRA_INFO:
                         label = "%s\n%s" % (constraint.type, constraint.name)
                         opts.append('label="%s"' % compat_str(label))
-                    fw('"%s" -> "%s" [%s] ;\n' % (pbone.name, subtarget, ','.join(opts)))
+                    fw(
+                        '"%s" -> "%s" [%s] ;\n'
+                        % (pbone.name, subtarget, ",".join(opts))
+                    )
 
     # Drivers
     if DRIVERS:
-        fw('\n\n# Drivers:\n')
+        fw("\n\n# Drivers:\n")
 
         def rna_path_as_pbone(rna_path):
             if not rna_path.startswith("pose.bones["):
@@ -142,7 +154,6 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
 
         animation_data = obj.animation_data
         if animation_data:
-
             fcurve_drivers = [fcurve_driver for fcurve_driver in animation_data.drivers]
             fcurve_drivers.sort(key=lambda fcurve_driver: fcurve_driver.data_path)
 
@@ -157,7 +168,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                             rna_path_target = target.data_path
                             if pbone_target:
                                 opts = [
-                                    'dir=forward',
+                                    "dir=forward",
                                     "weight=1",
                                     "arrowhead=normal",
                                     "arrowtail=none",
@@ -166,26 +177,34 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                                     "labelfontsize=4",
                                 ]
                                 display_source = rna_path.replace("pose.bones", "")
-                                display_target = rna_path_target.replace("pose.bones", "")
+                                display_target = rna_path_target.replace(
+                                    "pose.bones", ""
+                                )
                                 if XTRA_INFO:
                                     label = "%s\\n%s" % (display_source, display_target)
                                     opts.append('label="%s"' % compat_str(label))
-                                fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
+                                fw(
+                                    '"%s" -> "%s" [%s] ;\n'
+                                    % (pbone_target.name, pbone.name, ",".join(opts))
+                                )
 
     fw(footer)
     fileobject.close()
 
-    '''
+    """
     print(".", end="")
     import sys
     sys.stdout.flush()
-    '''
+    """
     print("\nSaved:", filepath)
     return True
 
 
 if __name__ == "__main__":
     import os
+
     tmppath = "/tmp/test.dot"
     graph_armature(bpy.context.object, tmppath, CONSTRAINTS=True, DRIVERS=True)
-    os.system("dot -Tpng %s > %s; eog %s &" % (tmppath, tmppath + '.png', tmppath + '.png'))
+    os.system(
+        "dot -Tpng %s > %s; eog %s &" % (tmppath, tmppath + ".png", tmppath + ".png")
+    )

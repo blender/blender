@@ -7,31 +7,31 @@ from bpy.types import Curve, SurfaceCurve, TextCurve
 
 
 class CurveButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return (context.curve is not None)
+        return context.curve is not None
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):
     @classmethod
     def poll(cls, context):
-        return (type(context.curve) is Curve)
+        return type(context.curve) is Curve
 
 
 class CurveButtonsPanelSurface(CurveButtonsPanel):
     @classmethod
     def poll(cls, context):
-        return (type(context.curve) is SurfaceCurve)
+        return type(context.curve) is SurfaceCurve
 
 
 class CurveButtonsPanelText(CurveButtonsPanel):
     @classmethod
     def poll(cls, context):
-        return (type(context.curve) is TextCurve)
+        return type(context.curve) is TextCurve
 
 
 class CurveButtonsPanelActive(CurveButtonsPanel):
@@ -40,12 +40,12 @@ class CurveButtonsPanelActive(CurveButtonsPanel):
     @classmethod
     def poll(cls, context):
         curve = context.curve
-        return (curve and type(curve) is not TextCurve and curve.splines.active)
+        return curve and type(curve) is not TextCurve and curve.splines.active
 
 
 class DATA_PT_context_curve(CurveButtonsPanel, Panel):
     bl_label = ""
-    bl_options = {'HIDE_HEADER'}
+    bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
         layout = self.layout
@@ -100,7 +100,9 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             col.separator()
 
             sub = col.column()
-            sub.active = (curve.dimensions == '2D' or (curve.bevel_mode != 'OBJECT' and curve.dimensions == '3D'))
+            sub.active = curve.dimensions == "2D" or (
+                curve.bevel_mode != "OBJECT" and curve.dimensions == "3D"
+            )
             sub.prop(curve, "fill_mode")
 
         if is_curve:
@@ -115,13 +117,14 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
     bl_label = "Texture Space"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
     COMPAT_ENGINES = {
-        'BLENDER_RENDER',
-        'BLENDER_EEVEE',
-        'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        "BLENDER_RENDER",
+        "BLENDER_EEVEE",
+        "BLENDER_EEVEE_NEXT",
+        "BLENDER_WORKBENCH",
+        "BLENDER_WORKBENCH_NEXT",
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -141,11 +144,11 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
 
 class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
     bl_label = "Geometry"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(cls, context):
-        return (type(context.curve) in {Curve, TextCurve})
+        return type(context.curve) in {Curve, TextCurve}
 
     def draw(self, context):
         layout = self.layout
@@ -157,7 +160,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         col.prop(curve, "offset")
 
         sub = col.column()
-        sub.active = (curve.bevel_mode != 'OBJECT')
+        sub.active = curve.bevel_mode != "OBJECT"
         sub.prop(curve, "extrude")
 
         col.prop(curve, "taper_object")
@@ -176,7 +179,7 @@ class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (type(context.curve) in {Curve, TextCurve})
+        return type(context.curve) in {Curve, TextCurve}
 
     def draw(self, context):
         layout = self.layout
@@ -187,26 +190,26 @@ class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
         layout.use_property_split = True
 
         col = layout.column()
-        if curve.bevel_mode == 'OBJECT':
+        if curve.bevel_mode == "OBJECT":
             col.prop(curve, "bevel_object", text="Object")
         else:
             col.prop(curve, "bevel_depth", text="Depth")
             col.prop(curve, "bevel_resolution", text="Resolution")
         col.prop(curve, "use_fill_caps")
 
-        if curve.bevel_mode == 'PROFILE':
+        if curve.bevel_mode == "PROFILE":
             col.template_curveprofile(curve, "bevel_profile")
 
 
 class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
     bl_label = "Start & End Mapping"
     bl_parent_id = "DATA_PT_geometry_curve"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(cls, context):
         # Text objects don't support these properties
-        return (type(context.curve) is Curve)
+        return type(context.curve) is Curve
 
     def draw(self, context):
         layout = self.layout
@@ -216,9 +219,8 @@ class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
 
         col = layout.column()
 
-        col.active = (
-            ((curve.bevel_depth > 0.0) or (curve.extrude > 0.0)) or
-            ((curve.bevel_mode == 'OBJECT') and curve.bevel_object is not None)
+        col.active = ((curve.bevel_depth > 0.0) or (curve.extrude > 0.0)) or (
+            (curve.bevel_mode == "OBJECT") and curve.bevel_object is not None
         )
         sub = col.column(align=True)
         sub.prop(curve, "bevel_factor_start", text="Factor Start")
@@ -231,7 +233,7 @@ class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
     bl_label = "Path Animation"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw_header(self, context):
         curve = context.curve
@@ -259,7 +261,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
     bl_label = "Active Spline"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -268,7 +270,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
         curve = context.curve
         act_spline = curve.splines.active
         is_surf = type(curve) is SurfaceCurve
-        is_poly = (act_spline.type == 'POLY')
+        is_poly = act_spline.type == "POLY"
 
         col = layout.column()
 
@@ -279,13 +281,12 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             col.prop(act_spline, "use_cyclic_u")
             col.prop(act_spline, "use_smooth")
         else:
-
             sub = col.column(heading="Cyclic", align=True)
             sub.prop(act_spline, "use_cyclic_u", text="U")
             if is_surf:
                 sub.prop(act_spline, "use_cyclic_v", text="V")
 
-            if act_spline.type == 'NURBS':
+            if act_spline.type == "NURBS":
                 sub = col.column(heading="Bezier", align=True)
                 # sub.active = (not act_spline.use_cyclic_u)
                 sub.prop(act_spline, "use_bezier_u", text="U")
@@ -312,18 +313,17 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             if is_surf:
                 sub.prop(act_spline, "resolution_v", text="V")
 
-            if act_spline.type == 'BEZIER':
-
+            if act_spline.type == "BEZIER":
                 col.separator()
 
                 sub = col.column()
-                sub.active = (curve.dimensions == '3D')
+                sub.active = curve.dimensions == "3D"
                 sub.prop(act_spline, "tilt_interpolation", text="Interpolation Tilt")
 
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")
-            if act_spline.type == 'NURBS':
+            if act_spline.type == "NURBS":
                 col = None
                 for direction in range(2):
                     message = act_spline.valid_message(direction)
@@ -332,13 +332,13 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                     if col is None:
                         layout.separator()
                         col = layout.column(align=True)
-                    col.label(text=message, icon='INFO')
+                    col.label(text=message, icon="INFO")
                 del col
 
 
 class DATA_PT_font(CurveButtonsPanelText, Panel):
     bl_label = "Font"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -358,9 +358,11 @@ class DATA_PT_font(CurveButtonsPanelText, Panel):
         row.template_ID(text, "font_italic", open="font.open", unlink="font.unlink")
         row = layout.split(factor=0.25)
         row.label(text="Bold & Italic")
-        row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
+        row.template_ID(
+            text, "font_bold_italic", open="font.open", unlink="font.unlink"
+        )
 
-        if mode == 'EDIT_TEXT':
+        if mode == "EDIT_TEXT":
             layout.separator()
 
             row = layout.row(align=True)
@@ -449,18 +451,17 @@ class DATA_PT_paragraph_spacing(CurveButtonsPanelText, Panel):
 
 class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
     bl_label = "Text Boxes"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
 
         text = context.curve
 
-        layout.operator("font.textbox_add", icon='ADD')
+        layout.operator("font.textbox_add", icon="ADD")
         layout.prop(text, "overflow", text="Overflow")
 
         for i, box in enumerate(text.text_boxes):
-
             boxy = layout.box()
 
             row = boxy.row()
@@ -476,16 +477,19 @@ class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
             sub.prop(box, "x", text="Offset X")
             sub.prop(box, "y", text="Y")
 
-            row.operator("font.textbox_remove", text="", icon='X', emboss=False).index = i
+            row.operator(
+                "font.textbox_remove", text="", icon="X", emboss=False
+            ).index = i
 
 
 class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {
-        'BLENDER_RENDER',
-        'BLENDER_EEVEE',
-        'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        "BLENDER_RENDER",
+        "BLENDER_EEVEE",
+        "BLENDER_EEVEE_NEXT",
+        "BLENDER_WORKBENCH",
+        "BLENDER_WORKBENCH_NEXT",
+    }
     _context_path = "object.data"
     _property_type = bpy.types.Curve
 
@@ -510,5 +514,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)
