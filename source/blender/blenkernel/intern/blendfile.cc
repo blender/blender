@@ -14,6 +14,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_fileops.h"
@@ -92,7 +93,7 @@ bool BKE_library_path_explode(const char *path, char *r_dir, char **r_group, cha
     return false;
   }
 
-  strcpy(r_dir, path);
+  BLI_strncpy(r_dir, path, FILE_MAX_LIBEXTRA);
 
   while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
     char tc = *slash;
