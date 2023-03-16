@@ -16,8 +16,21 @@
 
 #  include "kernel/device/gpu/kernel.h"
 
+#  include "device/kernel.cpp"
+
 static OneAPIErrorCallback s_error_cb = nullptr;
 static void *s_error_user_ptr = nullptr;
+
+#  ifdef WITH_EMBREE_GPU
+static const RTCFeatureFlags CYCLES_ONEAPI_EMBREE_BASIC_FEATURES =
+    (const RTCFeatureFlags)(RTC_FEATURE_FLAG_TRIANGLE | RTC_FEATURE_FLAG_INSTANCE |
+                            RTC_FEATURE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS |
+                            RTC_FEATURE_FLAG_POINT | RTC_FEATURE_FLAG_MOTION_BLUR);
+static const RTCFeatureFlags CYCLES_ONEAPI_EMBREE_ALL_FEATURES =
+    (const RTCFeatureFlags)(CYCLES_ONEAPI_EMBREE_BASIC_FEATURES |
+                            RTC_FEATURE_FLAG_ROUND_CATMULL_ROM_CURVE |
+                            RTC_FEATURE_FLAG_FLAT_CATMULL_ROM_CURVE);
+#  endif
 
 void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr)
 {
@@ -144,13 +157,55 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
 
 bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
 {
-#  ifdef SYCL_SKIP_KERNELS_PRELOAD
-  (void)queue_;
-  (void)requested_features;
-#  else
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
+#  ifdef WITH_EMBREE_GPU
+  /* Preloading intersection kernels is mandatory with Embree on GPU execution,
+   * because AoT will be not fully performant. */
+  try {
+    sycl::kernel_bundle<sycl::bundle_state::input> all_kernels_bundle =
+        sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(),
+                                                           {queue->get_device()});
 
+    for (const sycl::kernel_id &kernel_id : all_kernels_bundle.get_kernel_ids()) {
+      const std::string &kernel_name = kernel_id.get_name();
+
+      /* NOTE(@nsirgien): Names in this conditions below should match names from
+       * oneapi_call macro in oneapi_enqueue_kernel below */
+      /* Also, here we handle only intersection kernels (and skip the rest) */
+      if (kernel_name.find("_intersect_") == std::string::npos) {
+        continue;
+      }
+
+      if (((requested_features & KERNEL_FEATURE_VOLUME) == 0) &&
+          kernel_name.find("_intersect_volume") != std::string::npos) {
+        continue;
+      }
+
+      sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle =
+          sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
+
+      one_kernel_bundle.set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
+          CYCLES_ONEAPI_EMBREE_BASIC_FEATURES);
+      sycl::build(one_kernel_bundle);
+
+      one_kernel_bundle.set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
+          CYCLES_ONEAPI_EMBREE_ALL_FEATURES);
+      sycl::build(one_kernel_bundle);
+    }
+  }
+  catch (sycl::exception const &e) {
+    if (s_error_cb) {
+      s_error_cb(e.what(), s_error_user_ptr);
+    }
+    return false;
+  }
+#  endif
+
+#  ifdef SYCL_SKIP_KERNELS_PRELOAD
+  (void)queue_;
+  (void)kernel_features;
+#  else
   try {
     sycl::kernel_bundle<sycl::bundle_state::input> all_kernels_bundle =
         sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(),
@@ -195,6 +250,8 @@ bool oneapi_load_kernels(SyclQueue *queue_, const uint requested_features)
 bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                            int kernel,
                            size_t global_size,
+                           const uint kernel_features,
+                           bool use_hardware_raytracing,
                            void **args)
 {
   bool success = true;
@@ -246,8 +303,24 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 #    pragma GCC diagnostic error "-Wswitch"
 #  endif
 
+#  ifdef WITH_EMBREE_GPU
+  bool is_with_rthw_kernel = device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
+                             device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
+                             device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
+                             device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK;
+  const RTCFeatureFlags used_embree_features = (is_with_rthw_kernel && with_hwrt &&
+                                                !with_curve_features) ?
+                                                   CYCLES_ONEAPI_EMBREE_BASIC_FEATURES :
+                                                   CYCLES_ONEAPI_EMBREE_ALL_FEATURES;
+#  endif
+
   try {
     queue->submit([&](sycl::handler &cgh) {
+#  ifdef WITH_EMBREE_GPU
+      if (is_with_rthw_kernel)
+        cgh.set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
+            used_embree_features);
+#  endif
       switch (device_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_RESET: {
           oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_reset);
@@ -549,4 +622,5 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 #  endif
   return success;
 }
+
 #endif /* WITH_ONEAPI */

@@ -128,6 +128,12 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
+/* Intersection kernels need access to the kernel handler for specialization constants to work
+ * properly. */
+#ifdef __KERNEL_ONEAPI__
+#  include "kernel/device/oneapi/context_intersect_begin.h"
+#endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_closest,
                              ccl_global const int *path_index_array,

@@ -3,8 +3,9 @@
 
 #pragma once
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
-#  if EMBREE_MAJOR_VERSION >= 4
+#if (!defined(__KERNEL_GPU__) || (defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU))) && \
+    defined(WITH_EMBREE)
+#  if EMBREE_MAJOR_VERSION == 4
 #    include <embree4/rtcore.h>
 #    include <embree4/rtcore_scene.h>
 #  else

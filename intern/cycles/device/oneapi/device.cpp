@@ -87,7 +87,8 @@ Device *device_oneapi_create(const DeviceInfo &info, Stats &stats, Profiler &pro
 }
 
 #ifdef WITH_ONEAPI
-static void device_iterator_cb(const char *id, const char *name, int num, void *user_ptr)
+static void device_iterator_cb(
+    const char *id, const char *name, int num, bool hwrt_support, void *user_ptr)
 {
   vector<DeviceInfo> *devices = (vector<DeviceInfo> *)user_ptr;
 
@@ -111,6 +112,12 @@ static void device_iterator_cb(const char *id, const char *name, int num, void *
 
   /* NOTE(@nsirgien): Seems not possible to know from SYCL/oneAPI or Level0. */
   info.display_device = false;
+
+#  if WITH_EMBREE_GPU
+  info.use_hardware_raytracing = hwrt_support;
+#  else
+  info.use_hardware_raytracing = false;
+#  endif
 
   devices->push_back(info);
   VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
