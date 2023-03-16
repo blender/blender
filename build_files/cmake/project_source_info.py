@@ -7,9 +7,12 @@ __all__ = (
 
 
 import sys
+
 if sys.version_info.major < 3:
-    print("\nPython3.x or newer needed, found %s.\nAborting!\n" %
-          sys.version.partition(" ")[0])
+    print(
+        "\nPython3.x or newer needed, found %s.\nAborting!\n"
+        % sys.version.partition(" ")[0]
+    )
     sys.exit(1)
 
 
@@ -40,12 +43,12 @@ SOURCE_DIR = abspath(SOURCE_DIR)
 
 def is_c_header(filename: str) -> bool:
     ext = os.path.splitext(filename)[1]
-    return (ext in {".h", ".hpp", ".hxx", ".hh"})
+    return ext in {".h", ".hpp", ".hxx", ".hh"}
 
 
 def is_c(filename: str) -> bool:
     ext = os.path.splitext(filename)[1]
-    return (ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".osl"})
+    return ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".osl"}
 
 
 def is_c_any(filename: str) -> bool:
@@ -58,8 +61,9 @@ CMAKE_DIR = "."
 
 def cmake_cache_var_iter() -> Generator[Tuple[str, str, str], None, None]:
     import re
-    re_cache = re.compile(r'([A-Za-z0-9_\-]+)?:?([A-Za-z0-9_\-]+)?=(.*)$')
-    with open(join(CMAKE_DIR, "CMakeCache.txt"), 'r', encoding='utf-8') as cache_file:
+
+    re_cache = re.compile(r"([A-Za-z0-9_\-]+)?:?([A-Za-z0-9_\-]+)?=(.*)$")
+    with open(join(CMAKE_DIR, "CMakeCache.txt"), "r", encoding="utf-8") as cache_file:
         for l in cache_file:
             match = re_cache.match(l.strip())
             if match is not None:
@@ -91,7 +95,6 @@ def do_ignore(filepath: str, ignore_prefix_list: Optional[Sequence[str]]) -> boo
 
 
 def makefile_log() -> List[str]:
-    import subprocess
     import time
 
     # support both make and ninja
@@ -101,14 +104,16 @@ def makefile_log() -> List[str]:
 
     if make_exe_basename.startswith(("make", "gmake")):
         print("running 'make' with --dry-run ...")
-        process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                   stdout=subprocess.PIPE,
-                                   )
+        process = subprocess.Popen(
+            [make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
+            stdout=subprocess.PIPE,
+        )
     elif make_exe_basename.startswith("ninja"):
         print("running 'ninja' with -t commands ...")
-        process = subprocess.Popen([make_exe, "-t", "commands"],
-                                   stdout=subprocess.PIPE,
-                                   )
+        process = subprocess.Popen(
+            [make_exe, "-t", "commands"],
+            stdout=subprocess.PIPE,
+        )
 
     if process is None:
         print("Can't execute process")
@@ -127,9 +132,9 @@ def makefile_log() -> List[str]:
 
 
 def build_info(
-        use_c: bool = True,
-        use_cxx: bool = True,
-        ignore_prefix_list: Optional[List[str]] = None,
+    use_c: bool = True,
+    use_cxx: bool = True,
+    ignore_prefix_list: Optional[List[str]] = None,
 ) -> List[Tuple[str, List[str], List[str]]]:
     makelog = makefile_log()
 
@@ -148,14 +153,13 @@ def build_info(
     print("parsing make log ...")
 
     for line in makelog:
-
         args: Union[str, List[str]] = line.split()
 
         if not any([(c in args) for c in compilers]):
             continue
 
         # join args incase they are not.
-        args = ' '.join(args)
+        args = " ".join(args)
         args = args.replace(" -isystem", " -I")
         args = args.replace(" -D ", " -D")
         args = args.replace(" -I ", " -I")
@@ -166,13 +170,12 @@ def build_info(
         # end
 
         # remove compiler
-        args[:args.index(fake_compiler) + 1] = []
+        args[: args.index(fake_compiler) + 1] = []
 
         c_files = [f for f in args if is_c(f)]
-        inc_dirs = [f[2:].strip() for f in args if f.startswith('-I')]
-        defs = [f[2:].strip() for f in args if f.startswith('-D')]
+        inc_dirs = [f[2:].strip() for f in args if f.startswith("-I")]
+        defs = [f[2:].strip() for f in args if f.startswith("-D")]
         for c in sorted(c_files):
-
             if do_ignore(c, ignore_prefix_list):
                 continue
 
@@ -199,7 +202,6 @@ def build_defines_as_source() -> str:
     Returns a string formatted as an include:
         '#defines A=B\n#define....'
     """
-    import subprocess
     # works for both gcc and clang
     cmd = (cmake_cache_var_or_exit("CMAKE_C_COMPILER"), "-dM", "-E", "-")
     process = subprocess.Popen(
@@ -211,30 +213,32 @@ def build_defines_as_source() -> str:
     # We know this is always true based on the input arguments to `Popen`.
     stdout: IO[bytes] = process.stdout  # type: ignore
 
-    return cast(str, stdout.read().strip().decode('ascii'))
+    return cast(str, stdout.read().strip().decode("ascii"))
 
 
 def build_defines_as_args() -> List[str]:
     return [
         ("-D" + "=".join(l.split(maxsplit=2)[1:]))
         for l in build_defines_as_source().split("\n")
-        if l.startswith('#define')
+        if l.startswith("#define")
     ]
 
 
 # could be moved elsewhere!, this just happens to be used by scripts that also
 # use this module.
 def queue_processes(
-        process_funcs: Sequence[Tuple[Callable[..., subprocess.Popen[Any]], Tuple[Any, ...]]],
-        *,
-        job_total: int = -1,
-        sleep: float = 0.1,
+    process_funcs: Sequence[
+        Tuple[Callable[..., subprocess.Popen[Any]], Tuple[Any, ...]]
+    ],
+    *,
+    job_total: int = -1,
+    sleep: float = 0.1,
 ) -> None:
-    """ Takes a list of function arg pairs, each function must return a process
-    """
+    """Takes a list of function arg pairs, each function must return a process"""
 
     if job_total == -1:
         import multiprocessing
+
         job_total = multiprocessing.cpu_count()
         del multiprocessing
 

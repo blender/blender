@@ -31,20 +31,20 @@ op_blacklist = (
     "*.link_append",
     "render.render",
     "render.play_rendered_anim",
-    "sound.bake_animation",    # OK but slow
-    "sound.mixdown",           # OK but slow
-    "object.bake_image",       # OK but slow
+    "sound.bake_animation",  # OK but slow
+    "sound.mixdown",  # OK but slow
+    "object.bake_image",  # OK but slow
     "object.paths_calculate",  # OK but slow
-    "object.paths_update",     # OK but slow
-    "ptcache.bake_all",        # OK but slow
-    "nla.bake",                # OK but slow
+    "object.paths_update",  # OK but slow
+    "ptcache.bake_all",  # OK but slow
+    "nla.bake",  # OK but slow
     "*.*_export",
     "*.*_import",
     "ed.undo",
     "ed.undo_push",
     "preferences.studiolight_new",
     "script.autoexec_warn_clear",
-    "screen.delete",           # already used for random screens
+    "screen.delete",  # already used for random screens
     "wm.blenderplayer_start",
     "wm.recover_auto_save",
     "wm.quit_blender",
@@ -63,22 +63,20 @@ op_blacklist = (
     "wm.properties_context_change",
     "wm.operator_cheat_sheet",
     "wm.interface_theme_*",
-    "wm.previews_ensure",       # slow - but harmless
-    "wm.keyitem_add",           # just annoying - but harmless
-    "wm.keyconfig_activate",    # just annoying - but harmless
+    "wm.previews_ensure",  # slow - but harmless
+    "wm.keyitem_add",  # just annoying - but harmless
+    "wm.keyconfig_activate",  # just annoying - but harmless
     "wm.keyconfig_preset_add",  # just annoying - but harmless
-    "wm.keyconfig_test",        # just annoying - but harmless
-    "wm.memory_statistics",     # another annoying one
+    "wm.keyconfig_test",  # just annoying - but harmless
+    "wm.memory_statistics",  # another annoying one
     "wm.dependency_relations",  # another annoying one
-    "wm.keymap_restore",        # another annoying one
-    "wm.addon_*",               # harmless, but don't change state
-    "console.*",                # just annoying - but harmless
-    "wm.url_open_preset",       # Annoying but harmless (opens web pages).
-
+    "wm.keymap_restore",  # another annoying one
+    "wm.addon_*",  # harmless, but don't change state
+    "console.*",  # just annoying - but harmless
+    "wm.url_open_preset",  # Annoying but harmless (opens web pages).
     # FIXME:
     # Crashes with non-trivial fixes.
     #
-
     # Expects undo stack.
     "object.voxel_remesh",
     "mesh.paint_mask_slice",
@@ -107,7 +105,9 @@ def blend_list(mainpath):
 
     def is_blend(filename):
         ext = splitext(filename)[1]
-        return (ext in {".blend", })
+        return ext in {
+            ".blend",
+        }
 
     return list(sorted(file_list(mainpath, is_blend)))
 
@@ -139,6 +139,7 @@ def reset_blend():
 
     if USE_RANDOM_SCREEN:
         import random
+
         for _ in range(random.randint(0, len(bpy.data.screens))):
             bpy.ops.screen.delete()
         print("Scree IS", bpy.context.screen)
@@ -146,13 +147,14 @@ def reset_blend():
 
 def reset_file():
     import random
+
     f = USE_FILES_LS[random.randint(0, len(USE_FILES_LS) - 1)]
     bpy.ops.wm.open_mainfile(filepath=f)
 
 
 if USE_ATTRSET:
-    def build_property_typemap(skip_classes):
 
+    def build_property_typemap(skip_classes):
         property_typemap = {}
 
         for attr in dir(bpy.types):
@@ -171,6 +173,7 @@ if USE_ATTRSET:
             property_typemap[attr] = properties
 
         return property_typemap
+
     CLS_BLACKLIST = (
         bpy.types.BrushTextureSlot,
         bpy.types.Brush,
@@ -218,14 +221,29 @@ if USE_ATTRSET:
 
     # main function
     _random_values = (
-        None, object, type,
-        1, 0.1, -1,  # float("nan"),
-        "", "test", b"", b"test",
-        (), [], {},
-        (10,), (10, 20), (0, 0, 0),
-        {0: "", 1: "hello", 2: "test"}, {"": 0, "hello": 1, "test": 2},
-        set(), {"", "test", "."}, {None, ..., type},
-        range(10), (" " * i for i in range(10)),
+        None,
+        object,
+        type,
+        1,
+        0.1,
+        -1,  # float("nan"),
+        "",
+        "test",
+        b"",
+        b"test",
+        (),
+        [],
+        {},
+        (10,),
+        (10, 20),
+        (0, 0, 0),
+        {0: "", 1: "hello", 2: "test"},
+        {"": 0, "hello": 1, "test": 2},
+        set(),
+        {"", "test", "."},
+        {None, ..., type},
+        range(10),
+        (" " * i for i in range(10)),
     )
 
     def attrset_data():
@@ -233,7 +251,7 @@ if USE_ATTRSET:
             if attr == "window_managers":
                 continue
             seq = getattr(bpy.data, attr)
-            if seq.__class__.__name__ == 'bpy_prop_collection':
+            if seq.__class__.__name__ == "bpy_prop_collection":
                 for id_data in seq:
                     for val, prop, _tp in id_walk(id_data, bpy.data):
                         # print(id_data)
@@ -259,6 +277,7 @@ def run_ops(operators, setup_func=None, reset=True):
                 reset_test = True
                 if USE_RANDOM:
                     import random
+
                     if random.random() < (1.0 - RANDOM_RESET):
                         reset_test = False
 
@@ -278,7 +297,7 @@ def run_ops(operators, setup_func=None, reset=True):
             else:
                 setup_func()
 
-            for mode in {'EXEC_DEFAULT', 'INVOKE_DEFAULT'}:
+            for mode in {"EXEC_DEFAULT", "INVOKE_DEFAULT"}:
                 try:
                     op(mode)
                 except:
@@ -309,7 +328,7 @@ def ctx_clear_scene():  # copied from batch_import.py
 
 
 def ctx_editmode_mesh():
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_mesh_extra():
@@ -319,88 +338,88 @@ def ctx_editmode_mesh_extra():
     bpy.ops.mesh.uv_texture_add()
     bpy.ops.object.material_slot_add()
     # editmode last!
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_mesh_empty():
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.delete()
 
 
 def ctx_editmode_curves():
     bpy.ops.curve.primitive_nurbs_circle_add()
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_curves_empty():
     bpy.ops.curve.primitive_nurbs_circle_add()
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.curve.select_all(action='SELECT')
-    bpy.ops.curve.delete(type='VERT')
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.curve.select_all(action="SELECT")
+    bpy.ops.curve.delete(type="VERT")
 
 
 def ctx_editmode_surface():
     bpy.ops.surface.primitive_nurbs_surface_torus_add()
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_mball():
     bpy.ops.object.metaball_add()
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_text():
     bpy.ops.object.text_add()
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_armature():
     bpy.ops.object.armature_add()
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
 
 
 def ctx_editmode_armature_empty():
     bpy.ops.object.armature_add()
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.armature.select_all(action='SELECT')
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.armature.select_all(action="SELECT")
     bpy.ops.armature.delete()
 
 
 def ctx_editmode_lattice():
-    bpy.ops.object.add(type='LATTICE')
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.add(type="LATTICE")
+    bpy.ops.object.mode_set(mode="EDIT")
     # bpy.ops.object.vertex_group_add()
 
 
 def ctx_object_empty():
-    bpy.ops.object.add(type='EMPTY')
+    bpy.ops.object.add(type="EMPTY")
 
 
 def ctx_object_pose():
     bpy.ops.object.armature_add()
-    bpy.ops.object.mode_set(mode='POSE')
-    bpy.ops.pose.select_all(action='SELECT')
+    bpy.ops.object.mode_set(mode="POSE")
+    bpy.ops.pose.select_all(action="SELECT")
 
 
 def ctx_object_volume():
-    bpy.ops.object.add(type='VOLUME')
+    bpy.ops.object.add(type="VOLUME")
 
 
 def ctx_object_paint_weight():
-    bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+    bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
 
 
 def ctx_object_paint_vertex():
-    bpy.ops.object.mode_set(mode='VERTEX_PAINT')
+    bpy.ops.object.mode_set(mode="VERTEX_PAINT")
 
 
 def ctx_object_paint_sculpt():
-    bpy.ops.object.mode_set(mode='SCULPT')
+    bpy.ops.object.mode_set(mode="SCULPT")
 
 
 def ctx_object_paint_texture():
-    bpy.ops.object.mode_set(mode='TEXTURE_PAINT')
+    bpy.ops.object.mode_set(mode="TEXTURE_PAINT")
 
 
 def bpy_check_type_duplicates():
@@ -414,16 +433,11 @@ def bpy_check_type_duplicates():
             tot = bl_types.count(t)
             if tot > 1:
                 print("    '%s', %d" % (t, tot))
-        import sys
         sys.exit(1)
 
 
 def main():
-
     bpy_check_type_duplicates()
-
-    # reset_blend()
-    import bpy
     operators = []
     for mod_name in dir(bpy.ops):
         mod = getattr(bpy.ops, mod_name)
@@ -440,6 +454,7 @@ def main():
 
     if USE_RANDOM:
         import random
+
         random.seed(RANDOM_SEED[0])
         operators = operators * RANDOM_MULTIPLY
         random.shuffle(operators)

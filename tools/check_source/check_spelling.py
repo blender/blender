@@ -78,6 +78,7 @@ files_ignore = {
 
 def dictionary_create():  # type: ignore
     import enchant  # type: ignore
+
     dict_spelling = enchant.Dict("en_US")
 
     # Don't add ignore to the dictionary, since they will be suggested.
@@ -131,9 +132,11 @@ _dict = dictionary_create()  # type: ignore
 # -----------------------------------------------------------------------------
 # General Utilities
 
+
 def hash_of_file_and_len(fp: str) -> Tuple[bytes, int]:
     import hashlib
-    with open(fp, 'rb') as fh:
+
+    with open(fp, "rb") as fh:
         data = fh.read()
         m = hashlib.sha512()
         m.update(data)
@@ -141,48 +144,41 @@ def hash_of_file_and_len(fp: str) -> Tuple[bytes, int]:
 
 
 import re
+
 re_vars = re.compile("[A-Za-z]+")
 
 # First remove this from comments, so we don't spell check example code, doxygen commands, etc.
 re_ignore = re.compile(
-    r'('
-
+    r"("
     # URL.
-    r'\b(https?|ftp)://\S+|'
+    r"\b(https?|ftp)://\S+|"
     # Email address: <me@email.com>
     #                <someone@foo.bar-baz.com>
     r"<\w+@[\w\.\-]+>|"
-
     # Convention for TODO/FIXME messages: TODO(my name) OR FIXME(name+name) OR XXX(some-name) OR NOTE(name/other-name):
     r"\b(TODO|FIXME|XXX|NOTE|WARNING)\(@?[\w\s\+\-/]+\)|"
-
     # Doxygen style: <pre> ... </pre>
     r"<pre>.+</pre>|"
     # Doxygen style: \code ... \endcode
     r"\s+\\code\b.+\s\\endcode\b|"
     # Doxygen style #SOME_CODE.
-    r'#\S+|'
+    r"#\S+|"
     # Doxygen commands: \param foo
     r"\\(section|subsection|subsubsection|defgroup|ingroup|addtogroup|param|tparam|page|a|see)\s+\S+|"
     # Doxygen commands without any arguments after them: \command
     r"\\(retval|todo|name)\b|"
     # Doxygen 'param' syntax used rarely: \param foo[in,out]
     r"\\param\[[a-z,]+\]\S*|"
-
     # Words containing underscores: a_b
-    r'\S*\w+_\S+|'
+    r"\S*\w+_\S+|"
     # Words containing arrows: a->b
-    r'\S*\w+\->\S+'
+    r"\S*\w+\->\S+"
     # Words containing dot notation: a.b  (NOT  ab... since this is used in English).
-    r'\w+\.\w+\S*|'
-
+    r"\w+\.\w+\S*|"
     # Single and back-tick quotes (often used to reference code).
     # Allow white-space or any bracket prefix, e.g:
     # (`expr a+b`)
-    r"[\s\(\[\{]\`[^\n`]+\`|"
-    r"[\s\(\[\{]'[^\n']+'"
-
-    r')',
+    r"[\s\(\[\{]\`[^\n`]+\`|" r"[\s\(\[\{]'[^\n']+'" r")",
     re.MULTILINE | re.DOTALL,
 )
 # Then extract words.
@@ -202,8 +198,8 @@ if USE_SKIP_SINGLE_IDENTIFIER_COMMENTS:
 
 
 def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
-    """ Extract words to treat as English for spell checking.
-    """
+    """Extract words to treat as English for spell checking."""
+
     # Replace non-newlines with white-space, so all alignment is kept.
     def replace_ignore(match: re.Match[str]) -> str:
         start, end = match.span()
@@ -218,7 +214,7 @@ def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
 
     words = []
 
-    if check_type == 'SPELLING':
+    if check_type == "SPELLING":
         for match in re_words.finditer(text):
             words.append((match.group(0), match.start()))
 
@@ -227,9 +223,10 @@ def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
             if w.isupper():
                 return False
             return True
+
         words[:] = [w for w in words if word_ok(w[0])]
 
-    elif check_type == 'DUPLICATES':
+    elif check_type == "DUPLICATES":
         w_prev = ""
         w_prev_start = 0
         for match in re_words.finditer(text):
@@ -295,12 +292,16 @@ def extract_code_strings(filepath: str) -> Tuple[List[Comment], Set[str]]:
         lex = lexers.get_lexer_by_name("c")
 
     slineno = 0
-    with open(filepath, encoding='utf-8') as fh:
+    with open(filepath, encoding="utf-8") as fh:
         source = fh.read()
 
     for ty, ttext in lex.get_tokens(source):
-        if ty in {Token.Literal.String, Token.Literal.String.Double, Token.Literal.String.Single}:
-            comments.append(Comment(filepath, ttext, slineno, 'STRING'))
+        if ty in {
+            Token.Literal.String,
+            Token.Literal.String.Double,
+            Token.Literal.String.Single,
+        }:
+            comments.append(Comment(filepath, ttext, slineno, "STRING"))
         else:
             for match in re_vars.finditer(ttext):
                 code_words.add(match.group(0))
@@ -311,11 +312,10 @@ def extract_code_strings(filepath: str) -> Tuple[List[Comment], Set[str]]:
 
 
 def extract_py_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
-
     import token
     import tokenize
 
-    source = open(filepath, encoding='utf-8')
+    source = open(filepath, encoding="utf-8")
 
     comments = []
     code_words = set()
@@ -326,11 +326,11 @@ def extract_py_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
     for toktype, ttext, (slineno, scol), (elineno, ecol), ltext in tokgen:
         if toktype == token.STRING:
             if prev_toktype == token.INDENT:
-                comments.append(Comment(filepath, ttext, slineno, 'DOCSTRING'))
+                comments.append(Comment(filepath, ttext, slineno, "DOCSTRING"))
         elif toktype == tokenize.COMMENT:
             # non standard hint for commented CODE that we can ignore
             if not ttext.startswith("#~"):
-                comments.append(Comment(filepath, ttext, slineno, 'COMMENT'))
+                comments.append(Comment(filepath, ttext, slineno, "COMMENT"))
         else:
             for match in re_vars.finditer(ttext):
                 code_words.add(match.group(0))
@@ -347,7 +347,7 @@ def extract_c_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
          * This is a multi-line comment, notice the '*'s are aligned.
          */
     """
-    text = open(filepath, encoding='utf-8').read()
+    text = open(filepath, encoding="utf-8").read()
 
     BEGIN = "/*"
     END = "*/"
@@ -444,7 +444,7 @@ def extract_c_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
         block = (" " * (i - j)) + block
 
         slineno += text.count("\n", i_prev, i)
-        comments.append(Comment(filepath, block, slineno, 'COMMENT'))
+        comments.append(Comment(filepath, block, slineno, "COMMENT"))
         i_prev = i
 
     return comments, code_words
@@ -453,7 +453,7 @@ def extract_c_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
 def spell_check_report(filepath: str, check_type: str, report: Report) -> None:
     w, slineno, scol = report
 
-    if check_type == 'SPELLING':
+    if check_type == "SPELLING":
         w_lower = w.lower()
 
         if ONLY_ONCE:
@@ -466,41 +466,47 @@ def spell_check_report(filepath: str, check_type: str, report: Report) -> None:
         if suggest is None:
             _suggest_map[w_lower] = suggest = " ".join(dictionary_suggest(w))
 
-        print("%s:%d:%d: %s%s%s, suggest (%s)" % (
-            filepath,
-            slineno + 1,
-            scol + 1,
-            COLOR_WORD,
-            w,
-            COLOR_ENDC,
-            suggest,
-        ))
-    elif check_type == 'DUPLICATES':
-        print("%s:%d:%d: %s%s%s, duplicate" % (
-            filepath,
-            slineno + 1,
-            scol + 1,
-            COLOR_WORD,
-            w,
-            COLOR_ENDC,
-        ))
+        print(
+            "%s:%d:%d: %s%s%s, suggest (%s)"
+            % (
+                filepath,
+                slineno + 1,
+                scol + 1,
+                COLOR_WORD,
+                w,
+                COLOR_ENDC,
+                suggest,
+            )
+        )
+    elif check_type == "DUPLICATES":
+        print(
+            "%s:%d:%d: %s%s%s, duplicate"
+            % (
+                filepath,
+                slineno + 1,
+                scol + 1,
+                COLOR_WORD,
+                w,
+                COLOR_ENDC,
+            )
+        )
 
 
 def spell_check_file(
-        filepath: str,
-        check_type: str,
-        extract_type: str = 'COMMENTS',
+    filepath: str,
+    check_type: str,
+    extract_type: str = "COMMENTS",
 ) -> Generator[Report, None, None]:
-    if extract_type == 'COMMENTS':
+    if extract_type == "COMMENTS":
         if filepath.endswith(".py"):
             comment_list, code_words = extract_py_comments(filepath)
         else:
             comment_list, code_words = extract_c_comments(filepath)
-    elif extract_type == 'STRINGS':
+    elif extract_type == "STRINGS":
         comment_list, code_words = extract_code_strings(filepath)
-    if check_type == 'SPELLING':
+    if check_type == "SPELLING":
         for comment in comment_list:
-            words = comment.parse(check_type='SPELLING')
+            words = comment.parse(check_type="SPELLING")
             for w, pos in words:
                 w_lower = w.lower()
                 if w_lower in dict_ignore:
@@ -516,9 +522,9 @@ def spell_check_file(
 
                     slineno, scol = comment.line_and_column_from_comment_offset(pos)
                     yield (w, slineno, scol)
-    elif check_type == 'DUPLICATES':
+    elif check_type == "DUPLICATES":
         for comment in comment_list:
-            words = comment.parse(check_type='DUPLICATES')
+            words = comment.parse(check_type="DUPLICATES")
             for w, pos in words:
                 slineno, scol = comment.line_and_column_from_comment_offset(pos)
                 # print(filepath + ":" + str(slineno + 1) + ":" + str(scol), w, "(duplicates)")
@@ -528,17 +534,16 @@ def spell_check_file(
 
 
 def spell_check_file_recursive(
-        dirpath: str,
-        check_type: str,
-        extract_type: str = 'COMMENTS',
-        cache_data: Optional[CacheData] = None,
+    dirpath: str,
+    check_type: str,
+    extract_type: str = "COMMENTS",
+    cache_data: Optional[CacheData] = None,
 ) -> None:
-    import os
     from os.path import join, splitext
 
     def source_list(
-            path: str,
-            filename_check: Optional[Callable[[str], bool]] = None,
+        path: str,
+        filename_check: Optional[Callable[[str], bool]] = None,
     ) -> Generator[str, None, None]:
         for dirpath, dirnames, filenames in os.walk(path):
             # Only needed so this can be matches with ignore paths.
@@ -557,7 +562,7 @@ def spell_check_file_recursive(
 
     def is_source(filename: str) -> bool:
         ext = splitext(filename)[1]
-        return (ext in {
+        return ext in {
             ".c",
             ".cc",
             ".inl",
@@ -571,11 +576,14 @@ def spell_check_file_recursive(
             ".mm",
             ".osl",
             ".py",
-        })
+        }
 
     for filepath in source_list(dirpath, is_source):
         for report in spell_check_file_with_cache_support(
-                filepath, check_type, extract_type=extract_type, cache_data=cache_data,
+            filepath,
+            check_type,
+            extract_type=extract_type,
+            cache_data=cache_data,
         ):
             spell_check_report(filepath, check_type, report)
 
@@ -593,26 +601,31 @@ def spell_check_file_recursive(
 # )
 #
 
+
 def spell_cache_read(cache_filepath: str) -> Tuple[CacheData, SuggestMap]:
     import pickle
+
     cache_store: Tuple[CacheData, SuggestMap] = {}, {}
     if os.path.exists(cache_filepath):
-        with open(cache_filepath, 'rb') as fh:
+        with open(cache_filepath, "rb") as fh:
             cache_store = pickle.load(fh)
     return cache_store
 
 
-def spell_cache_write(cache_filepath: str, cache_store: Tuple[CacheData, SuggestMap]) -> None:
+def spell_cache_write(
+    cache_filepath: str, cache_store: Tuple[CacheData, SuggestMap]
+) -> None:
     import pickle
-    with open(cache_filepath, 'wb') as fh:
+
+    with open(cache_filepath, "wb") as fh:
         pickle.dump(cache_store, fh)
 
 
 def spell_check_file_with_cache_support(
-        filepath: str,
-        check_type: str,
-        extract_type: str = 'COMMENTS',
-        cache_data: Optional[CacheData] = None,
+    filepath: str,
+    check_type: str,
+    extract_type: str = "COMMENTS",
+    cache_data: Optional[CacheData] = None,
 ) -> Generator[Report, None, None]:
     """
     Iterator each item is a report: (word, line_number, column_number)
@@ -653,39 +666,39 @@ def spell_check_file_with_cache_support(
 # -----------------------------------------------------------------------------
 # Main & Argument Parsing
 
-def argparse_create() -> argparse.ArgumentParser:
 
+def argparse_create() -> argparse.ArgumentParser:
     # When --help or no args are given, print this help
     description = __doc__
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        '--extract',
-        dest='extract',
-        choices=('COMMENTS', 'STRINGS'),
-        default='COMMENTS',
+        "--extract",
+        dest="extract",
+        choices=("COMMENTS", "STRINGS"),
+        default="COMMENTS",
         required=False,
-        metavar='WHAT',
+        metavar="WHAT",
         help=(
-            'Text to extract for checking.\n'
-            '\n'
-            '- ``COMMENTS`` extracts comments from source code.\n'
-            '- ``STRINGS`` extracts text.'
+            "Text to extract for checking.\n"
+            "\n"
+            "- ``COMMENTS`` extracts comments from source code.\n"
+            "- ``STRINGS`` extracts text."
         ),
     )
 
     parser.add_argument(
-        '--check',
-        dest='check_type',
-        choices=('SPELLING', 'DUPLICATES'),
-        default='SPELLING',
+        "--check",
+        dest="check_type",
+        choices=("SPELLING", "DUPLICATES"),
+        default="SPELLING",
         required=False,
-        metavar='CHECK_TYPE',
+        metavar="CHECK_TYPE",
         help=(
-            'Text to extract for checking.\n'
-            '\n'
-            '- ``COMMENTS`` extracts comments from source code.\n'
-            '- ``STRINGS`` extracts text.'
+            "Text to extract for checking.\n"
+            "\n"
+            "- ``COMMENTS`` extracts comments from source code.\n"
+            "- ``STRINGS`` extracts text."
         ),
     )
 
@@ -701,7 +714,7 @@ def argparse_create() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "paths",
-        nargs='+',
+        nargs="+",
         help="Files or directories to walk recursively.",
     )
 
@@ -710,8 +723,6 @@ def argparse_create() -> argparse.ArgumentParser:
 
 def main() -> None:
     global _suggest_map
-
-    import os
 
     args = argparse_create().parse_args()
 
@@ -729,11 +740,20 @@ def main() -> None:
         for filepath in args.paths:
             if os.path.isdir(filepath):
                 # recursive search
-                spell_check_file_recursive(filepath, check_type, extract_type=extract_type, cache_data=cache_data)
+                spell_check_file_recursive(
+                    filepath,
+                    check_type,
+                    extract_type=extract_type,
+                    cache_data=cache_data,
+                )
             else:
                 # single file
                 for report in spell_check_file_with_cache_support(
-                        filepath, check_type, extract_type=extract_type, cache_data=cache_data):
+                    filepath,
+                    check_type,
+                    extract_type=extract_type,
+                    cache_data=cache_data,
+                ):
                     spell_check_report(filepath, check_type, report)
     except KeyboardInterrupt:
         clear_stale_cache = False
@@ -745,7 +765,9 @@ def main() -> None:
 
         if clear_stale_cache:
             # Don't keep suggestions for old misspellings.
-            _suggest_map = {w_lower: _suggest_map[w_lower] for w_lower in _words_visited}
+            _suggest_map = {
+                w_lower: _suggest_map[w_lower] for w_lower in _words_visited
+            }
 
             for filepath in list(cache_data.keys()):
                 if filepath not in _files_visited:

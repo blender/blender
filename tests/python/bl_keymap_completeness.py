@@ -5,7 +5,10 @@
 # Needed for 'bl_keymap_utils.keymap_hierarchy' which inspects tools.
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "scripts", "startup"))
+
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "scripts", "startup")
+)
 del sys, os
 
 from bl_keymap_utils import keymap_hierarchy
@@ -22,6 +25,7 @@ def check_maps():
     fill_maps(keymap_hierarchy.generate())
 
     import bpy
+
     keyconf = bpy.context.window_manager.keyconfigs.active
     maps_bl = set(keyconf.keymaps.keys())
     maps_py = set(maps.keys())
@@ -41,10 +45,14 @@ def check_maps():
 
     test = maps_bl - maps_py
     if test:
-        print("Keymaps that are in blender but not in 'bl_keymap_utils.keymap_hierarchy'")
+        print(
+            "Keymaps that are in blender but not in 'bl_keymap_utils.keymap_hierarchy'"
+        )
         for km_id in test:
             km = keyconf.keymaps[km_id]
-            print("    ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
+            print(
+                "    ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type)
+            )
         # TODO #65963, broken keymap hierarchy tests disabled until fixed.
         # err = True
 
@@ -56,8 +64,14 @@ def check_maps():
             km_space_type, km_region_type = km_py
             if km_space_type != km.space_type or km_region_type != km.region_type:
                 print("  Error:")
-                print("    expected -- ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
-                print("    got      -- ('%s', '%s', '%s', [])," % (km_id, km_space_type, km_region_type))
+                print(
+                    "    expected -- ('%s', '%s', '%s', []),"
+                    % (km_id, km.space_type, km.region_type)
+                )
+                print(
+                    "    got      -- ('%s', '%s', '%s', []),"
+                    % (km_id, km_space_type, km_region_type)
+                )
     print("done!")
 
     return err
@@ -67,9 +81,8 @@ def main():
     err = check_maps()
 
     import bpy
+
     if err and bpy.app.background:
-        # alert CTest we failed
-        import sys
         sys.exit(1)
 
 

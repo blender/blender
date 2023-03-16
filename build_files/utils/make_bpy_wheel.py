@@ -88,8 +88,10 @@ def find_dominating_file(
 # ------------------------------------------------------------------------------
 # CMake Cache Access
 
-def cmake_cache_var_iter(filepath_cmake_cache: str) -> Generator[Tuple[str, str, str], None, None]:
-    import re
+
+def cmake_cache_var_iter(
+    filepath_cmake_cache: str,
+) -> Generator[Tuple[str, str, str], None, None]:
     re_cache = re.compile(r"([A-Za-z0-9_\-]+)?:?([A-Za-z0-9_\-]+)?=(.*)$")
     with open(filepath_cmake_cache, "r", encoding="utf-8") as cache_file:
         for l in cache_file:
@@ -109,7 +111,9 @@ def cmake_cache_var(filepath_cmake_cache: str, var: str) -> Optional[str]:
 def cmake_cache_var_or_exit(filepath_cmake_cache: str, var: str) -> str:
     value = cmake_cache_var(filepath_cmake_cache, var)
     if value is None:
-        sys.stderr.write("Unable to find %r in %r, abort!\n" % (var, filepath_cmake_cache))
+        sys.stderr.write(
+            "Unable to find %r in %r, abort!\n" % (var, filepath_cmake_cache)
+        )
         sys.exit(1)
     return value
 
@@ -117,24 +121,27 @@ def cmake_cache_var_or_exit(filepath_cmake_cache: str, var: str) -> str:
 # ------------------------------------------------------------------------------
 # Argument Parser
 
+
 def argparse_create() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument(
         "install_dir",
-        metavar='INSTALL_DIR',
+        metavar="INSTALL_DIR",
         type=str,
-        help="The installation directory containing the \"bpy\" package.",
+        help='The installation directory containing the "bpy" package.',
     )
     parser.add_argument(
         "--build-dir",
-        metavar='BUILD_DIR',
+        metavar="BUILD_DIR",
         default=None,
         help="The build directory containing 'CMakeCache.txt' (search parent directories of INSTALL_DIR when omitted).",
         required=False,
     )
     parser.add_argument(
         "--output-dir",
-        metavar='OUTPUT_DIR',
+        metavar="OUTPUT_DIR",
         default=None,
         help="The destination directory for the '*.whl' file (use INSTALL_DIR when omitted).",
         required=False,
@@ -146,8 +153,8 @@ def argparse_create() -> argparse.ArgumentParser:
 # ------------------------------------------------------------------------------
 # Main Function
 
-def main() -> None:
 
+def main() -> None:
     # Parse arguments.
     args = argparse_create().parse_args()
 
@@ -165,13 +172,19 @@ def main() -> None:
         filepath_cmake_cache = find_dominating_file(install_dir, ("CMakeCache.txt",))
         if not filepath_cmake_cache:
             # Should never fail.
-            sys.stderr.write("Unable to find CMakeCache.txt in or above %r, abort!\n" % install_dir)
+            sys.stderr.write(
+                "Unable to find CMakeCache.txt in or above %r, abort!\n" % install_dir
+            )
             sys.exit(1)
 
     # Get the major and minor Python version.
     python_version = cmake_cache_var_or_exit(filepath_cmake_cache, "PYTHON_VERSION")
     python_version_number = (
-        tuple(int("".join(c for c in digit if c in string.digits)) for digit in python_version.split(".")) +
+        tuple(
+            int("".join(c for c in digit if c in string.digits))
+            for digit in python_version.split(".")
+        )
+        +
         # Support version without a minor version "3" (add zero).
         tuple((0, 0, 0))
     )
@@ -182,15 +195,19 @@ def main() -> None:
 
     # Set platform tag following conventions.
     if sys.platform == "darwin":
-        target = cmake_cache_var_or_exit(filepath_cmake_cache, "CMAKE_OSX_DEPLOYMENT_TARGET").split(".")
-        machine = cmake_cache_var_or_exit(filepath_cmake_cache, "CMAKE_OSX_ARCHITECTURES")
+        target = cmake_cache_var_or_exit(
+            filepath_cmake_cache, "CMAKE_OSX_DEPLOYMENT_TARGET"
+        ).split(".")
+        machine = cmake_cache_var_or_exit(
+            filepath_cmake_cache, "CMAKE_OSX_ARCHITECTURES"
+        )
         platform_tag = "macosx_%d_%d_%s" % (int(target[0]), int(target[1]), machine)
     elif sys.platform == "win32":
         platform_tag = "win_%s" % (platform.machine().lower())
     elif sys.platform == "linux":
         glibc = os.confstr("CS_GNU_LIBC_VERSION")
         if glibc is None:
-            sys.stderr.write("Unable to find \"CS_GNU_LIBC_VERSION\", abort!\n")
+            sys.stderr.write('Unable to find "CS_GNU_LIBC_VERSION", abort!\n')
             sys.exit(1)
         glibc = "%s_%s" % tuple(glibc.split()[1].split(".")[:2])
         platform_tag = "manylinux_%s_%s" % (glibc, platform.machine().lower())
@@ -219,19 +236,19 @@ def main() -> None:
         name="bpy",
         version=blender_version_str,
         install_requires=["cython", "numpy", "requests", "zstandard"],
-        python_requires="==%d.%d.*" % (python_version_number[0], python_version_number[1]),
+        python_requires="==%d.%d.*"
+        % (python_version_number[0], python_version_number[1]),
         packages=["bpy"],
         package_data={"": package_files("bpy")},
         distclass=BinaryDistribution,
         options={"bdist_wheel": {"plat_name": platform_tag}},
-
         description="Blender as a Python module",
         long_description=long_description,
-        long_description_content_type='text/markdown',
+        long_description_content_type="text/markdown",
         license="GPL-3.0",
         author="Blender Foundation",
         author_email="bf-committers@blender.org",
-        url="https://www.blender.org"
+        url="https://www.blender.org",
     )
 
     if not os.path.exists(output_dir):
@@ -247,7 +264,9 @@ def main() -> None:
             sys_py = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
             if hasattr(sys, "abiflags"):
                 sys_py_abi = sys_py + sys.abiflags
-                renamed_f = f.replace(sys_py_abi, blender_py).replace(sys_py, blender_py)
+                renamed_f = f.replace(sys_py_abi, blender_py).replace(
+                    sys_py, blender_py
+                )
             else:
                 renamed_f = f.replace(sys_py, blender_py)
 
