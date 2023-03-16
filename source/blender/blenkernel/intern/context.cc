@@ -1493,6 +1493,11 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
   return AssetHandle{nullptr};
 }
 
+AssetRepresentation *CTX_wm_asset(const bContext *C)
+{
+  return static_cast<AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
+}
+
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
