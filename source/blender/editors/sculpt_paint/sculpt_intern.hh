@@ -1894,9 +1894,9 @@ BLI_INLINE bool SCULPT_get_fset_projection(SculptSession *ss, float fset_project
   return fset_projection;
 }
 
-BLI_INLINE bool SCULPT_need_reproject(SculptSession *ss)
+BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
-  return ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_MLOOPUV);
+  return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_MLOOPUV);
 }
 
 void SCULPT_reproject_cdata(SculptSession *ss,

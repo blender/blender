@@ -117,40 +117,221 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       ss, result, vertex, projection, fset_projection, use_area_weights, bound_type, corner_type);
 }
 
+int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
+{
+  int bits = 0;
+
+  if (dot_v3v3(r_dir2, dir) < 0.0f) {
+    negate_v3(r_dir2);
+    bits |= 1;
+  }
+
+  float dir4[3];
+  cross_v3_v3v3(dir4, r_dir2, no);
+  normalize_v3(dir4);
+
+  if (dot_v3v3(dir4, dir) < 0.0f) {
+    negate_v3(dir4);
+    bits |= 2;
+  }
+
+  if (dot_v3v3(dir4, dir) > dot_v3v3(r_dir2, dir)) {
+    copy_v3_v3(r_dir2, dir4);
+    bits |= 4;
+  }
+
+  buckets[bits] += w;
+
+  return bits;
+}
+
+void vec_transform(float r_dir2[3], float no[3], int bits)
+{
+  if (bits & 4) {
+    float dir4[3];
+
+    copy_v3_v3(dir4, r_dir2);
+
+    if (bits & 2) {
+      negate_v3(dir4);
+    }
+
+    float dir5[3];
+
+    cross_v3_v3v3(dir5, no, dir4);
+    normalize_v3(dir5);
+
+    copy_v3_v3(r_dir2, dir5);
+  }
+
+  if (bits & 1) {
+    negate_v3(r_dir2);
+  }
+}
+
 void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float avg[3],
                                         float direction[3],
-                                        struct BMVert *v,
+                                        BMVert *v,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
                                         int cd_sculpt_vert,
                                         bool do_origco)
 {
-
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
   float tot_co = 0.0f;
 
+  float buckets[8] = {0};
+
+  // zero_v3(direction);
+
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
+
+  float *col = BM_ELEM_CD_PTR<float *>(v, cd_temp);
+  float dir[3];
+  float dir3[3] = {0.0f, 0.0f, 0.0f};
+
+  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
+  float *areas;
+
+  SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref(intptr_t(v)));
+
+  if (do_origco) {
+    // SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)v});
+    madd_v3_v3fl(direction, mv->origno, -dot_v3v3(mv->origno, direction));
+    normalize_v3(direction);
+  }
+
+  float *co1 = do_origco ? mv->origco : v->co;
+  float *no1 = do_origco ? mv->origno : v->no;
+
+  if (weighted) {
+    PBVHVertRef vertex = {(intptr_t)v};
+
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val * 2);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+    float totarea = 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      totarea += areas[i];
+    }
+
+    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      areas[i] *= totarea;
+    }
+  }
+
+  copy_v3_v3(dir, col);
+
+  if (dot_v3v3(dir, dir) == 0.0f) {
+    copy_v3_v3(dir, direction);
+  }
+  else {
+    closest_vec_to_perp(dir, direction, no1, buckets, 1.0f);  // col[3]);
+  }
+
+  float totdir3 = 0.0f;
+
+  const float selfw = (float)mv->valence * 0.0025f;
+  madd_v3_v3fl(dir3, direction, selfw);
+
+  totdir3 += selfw;
+
   BMIter eiter;
   BMEdge *e;
+  bool had_bound = false;
+  int area_i = 0;
 
-  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-    if (BM_edge_is_boundary(e)) {
-      copy_v3_v3(avg, v->co);
-      return;
-    }
+  BM_ITER_ELEM_INDEX (e, &eiter, v, BM_EDGES_OF_VERT, area_i) {
     BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
+
+    float dir2[3];
+    float *col2 = BM_ELEM_CD_PTR<float *>(v_other, cd_temp);
+
+    float bucketw = 1.0f;
+
+    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v_other);
+    float *co2;
+
+    if (!do_origco || mv2->stroke_id != ss->stroke_id) {
+      co2 = v_other->co;
+    }
+    else {
+      co2 = mv2->origco;
+    }
+
+    eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
+                            SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
+
+    int bound = SCULPT_edge_is_boundary(ss, BKE_pbvh_make_eref(intptr_t(e)), bflag);
+    float dirw = 1.0f;
+
+    if (bound) {
+      had_bound = true;
+
+      sub_v3_v3v3(dir2, co2, co1);
+      madd_v3_v3fl(dir2, no1, -dot_v3v3(no1, dir2));
+      normalize_v3(dir2);
+      dirw = 100000.0f;
+    }
+    else {
+      dirw = col2[3];
+
+      copy_v3_v3(dir2, col2);
+      if (dot_v3v3(dir2, dir2) == 0.0f) {
+        copy_v3_v3(dir2, dir);
+      }
+    }
+
+    closest_vec_to_perp(dir, dir2, no1, buckets, bucketw);  // col2[3]);
+
+    madd_v3_v3fl(dir3, dir2, dirw);
+    totdir3 += dirw;
+
+    if (had_bound) {
+      tot_co = 0.0f;
+      continue;
+    }
     float vec[3];
-    sub_v3_v3v3(vec, v_other->co, v->co);
-    madd_v3_v3fl(vec, v->no, -dot_v3v3(vec, v->no));
+    sub_v3_v3v3(vec, co2, co1);
+
+    madd_v3_v3fl(vec, no1, -dot_v3v3(vec, no1) * projection);
     normalize_v3(vec);
 
     /* fac is a measure of how orthogonal or parallel the edge is
      * relative to the direction. */
-    float fac = dot_v3v3(vec, direction);
+    float fac = dot_v3v3(vec, dir);
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+    float th = fabsf(saacos(fac)) / M_PI + 0.5f;
+    th -= floorf(th);
+
+    const float limit = 0.045;
+
+    if (fabsf(th - 0.25) < limit || fabsf(th - 0.75) < limit) {
+      BMEdge enew = *e, eold = *e;
+
+      enew.head.hflag &= ~BM_ELEM_DRAW;
+      // enew.head.hflag |= BM_ELEM_SEAM;  // XXX debug
+
+      atomic_cas_int64((intptr_t *)(&e->head.index),
+                       *(intptr_t *)(&eold.head.index),
+                       *(intptr_t *)(&enew.head.index));
+    }
+#endif
+
     fac = fac * fac - 0.5f;
     fac *= fac;
-    madd_v3_v3fl(avg_co, v_other->co, fac);
+
+    if (weighted) {
+      fac *= areas[area_i];
+    }
+
+    madd_v3_v3fl(avg_co, co2, fac);
     tot_co += fac;
   }
 
@@ -160,13 +341,51 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
     /* Preserve volume. */
     float vec[3];
-    sub_v3_v3(avg, v->co);
-    mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
+    sub_v3_v3(avg, co1);
+    mul_v3_v3fl(vec, no1, dot_v3v3(avg, no1) * projection);
     sub_v3_v3(avg, vec);
-    add_v3_v3(avg, v->co);
+    add_v3_v3(avg, co1);
   }
   else {
-    zero_v3(avg);
+    // zero_v3(avg);
+    copy_v3_v3(avg, co1);
+  }
+
+  PBVH_CHECK_NAN(avg);
+
+  // do not update in do_origco
+  if (do_origco) {
+    return;
+  }
+
+  if (totdir3 > 0.0f) {
+    float outdir = totdir3 / (float)mv->valence;
+
+    // mul_v3_fl(dir3, 1.0 / totdir3);
+    normalize_v3(dir3);
+    if (had_bound) {
+      copy_v3_v3(col, dir3);
+      col[3] = 1000.0f;
+    }
+    else {
+
+      mul_v3_fl(col, col[3]);
+      madd_v3_v3fl(col, dir3, outdir);
+
+      col[3] = (col[3] + outdir) * 0.4;
+      normalize_v3(col);
+    }
+
+    float maxb = 0.0f;
+    int bi = 0;
+    for (int i = 0; i < 8; i++) {
+      if (buckets[i] > maxb) {
+        maxb = buckets[i];
+        bi = i;
+      }
+    }
+
+    vec_transform(col, no1, bi);
   }
 }
 
@@ -344,6 +563,7 @@ ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   float bstrength = data->strength;
 
   PBVHVertexIter vd;
+  const bool do_reproject = SCULPT_need_reproject(ss);
 
   CLAMP(bstrength, 0.0f, 1.0f);
 
@@ -387,12 +607,22 @@ ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       CLAMP(*vd.mask, 0.0f, 1.0f);
     }
     else {
+      float oldco[3];
+      float oldno[3];
+      copy_v3_v3(oldco, vd.co);
+      SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
       float avg[3], val[3];
       SCULPT_neighbor_coords_average_interior(
           ss, avg, vd.vertex, projection, fset_projection, weighted);
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
+
+      if (do_reproject) {
+        SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+      }
+
       if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
@@ -831,9 +1061,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   }
 #endif
 
-  // build fake f with original coordinates
+  /* Build fake face with original coordinates. */
   for (int i = 0; i < totloop; i++) {
-    // create fake face
     BMLoop *l = ls[i];
     float no[3] = {0.0f, 0.0f, 0.0f};
 
@@ -852,7 +1081,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
       *fakev = *l2->v;
       fakel->v = fakev;
 
-      SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref((intptr_t)l2->v));
+      SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref(intptr_t(l2->v)));
 
       if (l2->v == v) {
         copy_v3_v3(fakev->co, origco);

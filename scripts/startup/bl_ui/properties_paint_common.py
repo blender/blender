@@ -572,6 +572,7 @@ def brush_settings(layout, context, brush, popover=False):
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
             layout.prop(brush, "topology_rake_factor", slider=True)
+            layout.prop(brush, "use_curvature_rake")
 
         # normal_weight
         if capabilities.has_normal_weight:

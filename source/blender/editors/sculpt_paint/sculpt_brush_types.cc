@@ -2822,6 +2822,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
 
+  const bool use_curvature = brush->flag2 & BRUSH_CURVATURE_RAKE;
+  const bool do_reproject = SCULPT_need_reproject(ss);
+
   float direction[3];
   copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
 
@@ -2830,11 +2833,6 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
   sub_v3_v3(direction, tmp);
   normalize_v3(direction);
-
-  /* Cancel if there's no grab data. */
-  if (is_zero_v3(direction)) {
-    return;
-  }
 
   const float bstrength = clamp_f(data->strength, 0.0f, 1.0f);
 
@@ -2847,8 +2845,25 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
+  if (use_curvature) {
+    SCULPT_curvature_begin(ss, data->nodes[n], false);
+  }
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    float direction2[3];
+
+    if (use_curvature) {
+      SCULPT_curvature_dir_get(ss, vd.vertex, direction2, false);
+    }
+    else {
+      copy_v3_v3(direction2, direction);
+    }
+
+    if (is_zero_v3(direction2)) {
+      continue;
+    }
+
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -2867,17 +2882,26 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                                     &automask_data) *
                        ss->cache->pressure;
 
+    float oldco[3];
+    float oldno[3];
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
     float avg[3], val[3];
 
     int cd_temp = data->scl->bmesh_cd_offset;
     SCULPT_bmesh_four_neighbor_average(
-        ss, avg, direction, vd.bm_vert, 1.0f, true, cd_temp, ss->cd_sculpt_vert, false);
+        ss, avg, direction2, vd.bm_vert, 1.0f, true, cd_temp, ss->cd_sculpt_vert, false);
 
     sub_v3_v3v3(val, avg, vd.co);
 
     madd_v3_v3v3fl(val, vd.co, val, fade);
 
     SCULPT_clip(sd, ss, vd.co, val);
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    }
 
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
@@ -2900,9 +2924,16 @@ void SCULPT_bmesh_topology_rake(
   const int count = iterations * strength + 1;
   const float factor = iterations * strength / count;
 
-  SculptAttributeParams params = {};
-  ss->attrs.rake_temp = BKE_sculpt_attribute_ensure(
-      ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
+  if (!ss->attrs.rake_temp) {
+    SculptAttributeParams params = {};
+    ss->attrs.rake_temp = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
+  }
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
 
   for (iteration = 0; iteration <= count; iteration++) {
 
