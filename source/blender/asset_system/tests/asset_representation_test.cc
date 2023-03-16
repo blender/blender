@@ -70,4 +70,33 @@ TEST_F(AssetRepresentationTest, weak_reference__custom_library)
   }
 }
 
+TEST_F(AssetRepresentationTest, weak_reference__resolve_to_full_path__current_file)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  AssetLibrary *library = get_builtin_library_from_type(ASSET_LIBRARY_LOCAL);
+  AssetRepresentation &asset = add_dummy_asset(*library, "path/to/an/asset");
+
+  std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
+
+  std::string resolved_path = service->resolve_asset_weak_reference_to_full_path(*weak_ref);
+  EXPECT_EQ(resolved_path, "");
+}
+
+/* #AssetLibraryService::resolve_asset_weak_reference_to_full_path() */
+TEST_F(AssetRepresentationTest, weak_reference__resolve_to_full_path__custom_library)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
+                                                                          asset_library_root_);
+  AssetRepresentation &asset = add_dummy_asset(*library, "path/to/an/asset");
+
+  std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
+
+  std::string expected_path = asset_library_root_ + "/" + "path/to/an/asset";
+  BLI_path_slash_native(expected_path.data());
+
+  std::string resolved_path = service->resolve_asset_weak_reference_to_full_path(*weak_ref);
+  EXPECT_EQ(resolved_path, expected_path);
+}
+
 }  // namespace blender::asset_system::tests

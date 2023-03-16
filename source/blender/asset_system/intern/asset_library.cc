@@ -127,6 +127,14 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
       true);
 }
 
+void AS_asset_full_path_resolve_from_weak_ref(const AssetWeakReference *asset_reference,
+                                              char r_path[1090 /* FILE_MAX_LIBEXTRA */])
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  std::string full_path = service->resolve_asset_weak_reference_to_full_path(*asset_reference);
+  BLI_strncpy(r_path, full_path.c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+}
+
 namespace blender::asset_system {
 
 AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, StringRef root_path)

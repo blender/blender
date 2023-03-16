@@ -61,6 +61,8 @@ class AssetLibraryService {
   static std::string root_path_from_library_ref(const AssetLibraryReference &library_reference);
   static bUserAssetLibrary *find_custom_asset_library_from_library_ref(
       const AssetLibraryReference &library_reference);
+  static bUserAssetLibrary *find_custom_preferences_asset_library_from_asset_weak_ref(
+      const AssetWeakReference &asset_reference);
 
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
@@ -75,6 +77,9 @@ class AssetLibraryService {
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
 
+  /* See #AS_asset_full_path_resolve_from_weak_ref(). */
+  std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
+
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;
 
@@ -85,6 +90,8 @@ class AssetLibraryService {
  protected:
   /** Allocate a new instance of the service and assign it to `instance_`. */
   static void allocate_service_instance();
+
+  AssetLibrary *find_loaded_on_disk_asset_library_from_name(StringRef name) const;
 
   /**
    * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.

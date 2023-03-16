@@ -7,6 +7,7 @@
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
+#include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 
 #include "DNA_asset_types.h"
@@ -221,6 +222,81 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   };
 
   return all_library_.get();
+}
+
+bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_from_asset_weak_ref(
+    const AssetWeakReference &asset_reference)
+{
+  if (!ELEM(asset_reference.asset_library_type, ASSET_LIBRARY_CUSTOM)) {
+    return nullptr;
+  }
+
+  return BKE_preferences_asset_library_find_from_name(&U,
+                                                      asset_reference.asset_library_identifier);
+}
+
+AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
+    StringRef name) const
+{
+  for (const std::unique_ptr<AssetLibrary> &library : on_disk_libraries_.values()) {
+    if (library->name_ == name) {
+      return library.get();
+    }
+  }
+  return nullptr;
+}
+
+/* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
+ * Once there is a proper registry of asset libraries, this could contain an asset library locator
+ * and/or identifier, so a full path (not necessarily file path) can be built for all asset
+ * libraries. */
+std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
+    const AssetWeakReference &asset_reference)
+{
+  if (asset_reference.relative_asset_identifier[0] == '\0') {
+    return "";
+  }
+
+  StringRef library_path;
+
+  switch (eAssetLibraryType(asset_reference.asset_library_type)) {
+    case ASSET_LIBRARY_CUSTOM: {
+      bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
+          asset_reference);
+      if (custom_lib) {
+        library_path = custom_lib->path;
+        break;
+      }
+
+      /* A bit of an odd-ball, the API supports loading custom libraries from arbitrary paths (used
+       * by unit tests). So check all loaded on-disk libraries too. */
+      AssetLibrary *loaded_custom_lib = find_loaded_on_disk_asset_library_from_name(
+          asset_reference.asset_library_identifier);
+      if (!loaded_custom_lib) {
+        return "";
+      }
+
+      library_path = *loaded_custom_lib->root_path_;
+      break;
+    }
+    case ASSET_LIBRARY_ESSENTIALS:
+      library_path = essentials_directory_path();
+      break;
+    case ASSET_LIBRARY_LOCAL:
+    case ASSET_LIBRARY_ALL:
+      return "";
+  }
+
+  std::string full_path = library_path + SEP_STR + asset_reference.relative_asset_identifier;
+
+  char *buf = BLI_strdupn(full_path.c_str(), full_path.size());
+  BLI_path_normalize(nullptr, buf);
+  BLI_path_slash_native(buf);
+
+  std::string normalized_full_path = buf;
+  MEM_freeN(buf);
+
+  return normalized_full_path;
 }
 
 bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_ref(

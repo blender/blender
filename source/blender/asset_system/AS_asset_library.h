@@ -6,6 +6,7 @@
 
 #pragma once
 
+struct AssetWeakReference;
 struct IDRemapper;
 
 #ifdef __cplusplus
@@ -42,6 +43,15 @@ bool AS_asset_library_has_any_unsaved_catalogs(void);
 /** An asset library can include local IDs (IDs in the current file). Their pointers need to be
  * remapped on change (or assets removed as IDs gets removed). */
 void AS_asset_library_remap_ids(const struct IDRemapper *mappings);
+
+/** Attempt to build a full path to an asset based on the currently available (not necessary
+ * loaded) asset libraries. The path is not guaranteed to exist.
+ * \note Only works for asset libraries on disk (others can't be resolved).
+ *
+ * \param r_path: Returns the resolved path with native slashes, or an empty string if the path
+ *                could not be resolved. Must be at least #FILE_MAX_LIBEXTRA long. */
+void AS_asset_full_path_resolve_from_weak_ref(const struct AssetWeakReference *asset_reference,
+                                              char r_path[1090 /* FILE_MAX_LIBEXTRA */]);
 
 #ifdef __cplusplus
 }
