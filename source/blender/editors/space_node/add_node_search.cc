@@ -40,7 +40,7 @@ namespace blender::ed::space_node {
 struct AddNodeItem {
   nodes::AddNodeInfo info;
   std::string identifier;
-  std::optional<AssetHandle> asset;
+  const AssetRepresentation *asset;
 };
 
 struct AddNodeSearchStorage {
@@ -66,24 +66,25 @@ static void add_node_search_listen_fn(const wmRegionListenerParams *params, void
 }
 
 static void search_items_for_asset_metadata(const bNodeTree &node_tree,
-                                            const AssetHandle asset,
+                                            const AssetHandle asset_handle,
                                             Vector<AddNodeItem> &search_items)
 {
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset);
+  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset_handle);
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
     return;
   }
 
+  const AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
   AddNodeItem item{};
-  item.info.ui_name = ED_asset_handle_get_name(&asset);
+  item.info.ui_name = ED_asset_handle_get_name(&asset_handle);
   item.identifier = node_tree.typeinfo->group_idname;
   item.info.description = asset_data.description == nullptr ? "" : asset_data.description;
   item.asset = asset;
   item.info.after_add_fn = [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
     Main &bmain = *CTX_data_main(&C);
     node.flag &= ~NODE_OPTIONS;
-    node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset);
+    node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT);
     id_us_plus(node.id);
     BKE_ntree_update_tag_node_property(&node_tree, &node);
     DEG_relations_tag_update(&bmain);
