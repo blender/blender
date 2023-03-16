@@ -16,7 +16,7 @@ pre_format_commit = format_commits[0] + '~1'
 
 
 def get_string(cmd):
-    return subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf8').strip()
+    return subprocess.run(cmd, stdout=subprocess.PIPE, check=True).stdout.decode('utf8', check=True).strip(check=True)
 
 
 # Parse arguments.

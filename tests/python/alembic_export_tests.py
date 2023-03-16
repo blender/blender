@@ -52,7 +52,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
         # Convert Path to str; Path works fine on Linux, but not on Windows.
         command_str = [str(arg) for arg in command]
         proc = subprocess.run(command_str, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=30)
+                              timeout=30, check=True)
 
         coloured_output = proc.stdout
         output = self.ansi_remove_re.sub(b'', coloured_output).decode('utf8')

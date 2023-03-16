@@ -110,7 +110,7 @@ def get_gpu_device_type(blender):
         str(pathlib.Path(__file__).parent / "gpu_info.py")
     ]
     try:
-        completed_process = subprocess.run(command, stdout=subprocess.PIPE)
+        completed_process = subprocess.run(command, stdout=subprocess.PIPE, check=True)
         for line in completed_process.stdout.read_text():
             if line.startswith("GPU_DEVICE_TYPE:"):
                 vendor = line.split(':')[1]

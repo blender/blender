@@ -22,27 +22,27 @@ rpath = sys.argv[1]
 file = sys.argv[2]
 
 # Find existing rpaths and delete them one by one.
-p = subprocess.run(['otool', '-l', file], capture_output=True)
+p = subprocess.run(['otool', '-l', file], capture_output=True, check=True)
 tokens = p.stdout.split()
 
 for i, token in enumerate(tokens):
     if token == b'LC_RPATH':
         old_rpath = tokens[i + 4]
-        subprocess.run(['install_name_tool', '-delete_rpath', old_rpath, file])
+        subprocess.run(['install_name_tool', '-delete_rpath', old_rpath, file], check=True)
 
-subprocess.run(['install_name_tool', '-add_rpath', rpath, file])
+subprocess.run(['install_name_tool', '-add_rpath', rpath, file], check=True)
 
 # Strip version from dependencies.
-p = subprocess.run(['otool', '-L', file], capture_output=True)
+p = subprocess.run(['otool', '-L', file], capture_output=True, check=True)
 tokens = p.stdout.split()
 for i, token in enumerate(tokens):
     token = token.decode("utf-8")
     if token.startswith("@rpath"):
         new_token = strip_lib_version(token)
-        subprocess.run(['install_name_tool', '-change', token, new_token, file])
+        subprocess.run(['install_name_tool', '-change', token, new_token, file], check=True)
 
 # Strip version from library itself.
 new_file = strip_lib_version(file)
 new_id = '@rpath/' + os.path.basename(new_file)
 os.rename(file, new_file)
-subprocess.run(['install_name_tool', '-id', new_id, new_file])
+subprocess.run(['install_name_tool', '-id', new_id, new_file], check=True)

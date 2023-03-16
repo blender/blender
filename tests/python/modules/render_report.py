@@ -462,7 +462,7 @@ class Report:
             crash = False
             output = None
             try:
-                completed_process = subprocess.run(command, stdout=subprocess.PIPE)
+                completed_process = subprocess.run(command, stdout=subprocess.PIPE, check=True)
                 if completed_process.returncode != 0:
                     crash = True
                 output = completed_process.stdout

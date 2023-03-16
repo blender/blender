@@ -75,7 +75,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
         )
 
         proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=timeout)
+                              timeout=timeout, check=True)
         output = proc.stdout.decode('utf8')
         if proc.returncode:
             self.fail('Error %d running Blender:\n%s' % (proc.returncode, output))
