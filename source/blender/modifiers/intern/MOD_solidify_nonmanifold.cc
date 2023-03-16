@@ -15,7 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_particle.h"
 
 #include "MOD_modifiertypes.h"
@@ -207,9 +207,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 #define MOD_SOLIDIFY_EMPTY_TAG uint(-1)
 
   /* Calculate only face normals. Copied because they are modified directly below. */
-  float(*poly_nors)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(polys_num, sizeof(float[3]), __func__));
-  memcpy(poly_nors, BKE_mesh_poly_normals_ensure(mesh), sizeof(float[3]) * polys_num);
+  blender::Array<blender::float3> poly_nors = mesh->poly_normals();
 
   NewFaceRef *face_sides_arr = static_cast<NewFaceRef *>(
       MEM_malloc_arrayN(polys_num * 2, sizeof(*face_sides_arr), __func__));
@@ -2004,8 +2002,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   float *result_edge_bweight = static_cast<float *>(
       CustomData_get_layer_for_write(&result->edata, CD_BWEIGHT, result->totedge));
   if (bevel_convex != 0.0f || orig_vert_bweight != nullptr) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer(
-        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, nullptr, result->totedge));
+    result_edge_bweight = static_cast<float *>(
+        CustomData_add_layer(&result->edata, CD_BWEIGHT, CD_SET_DEFAULT, result->totedge));
   }
 
   /* Checks that result has dvert data. */
@@ -2021,7 +2019,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   float *result_edge_crease = nullptr;
   if (vertex_crease) {
     result_edge_crease = (float *)CustomData_add_layer(
-        &result->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, result->totedge);
+        &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
@@ -2671,7 +2669,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       MEM_freeN(p->link_edges);
     }
     MEM_freeN(face_sides_arr);
-    MEM_freeN(poly_nors);
   }
 
 #undef MOD_SOLIDIFY_EMPTY_TAG

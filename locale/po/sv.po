@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -897,10 +897,6 @@ msgid "Global"
 msgstr "Global"
 
 
-msgid "Root"
-msgstr "Rot"
-
-
 msgid "Repeat"
 msgstr "Upprepa"
 
@@ -1323,6 +1319,10 @@ msgstr "Rigid kropp"
 
 msgid "Sculpt"
 msgstr "Skulptera"
+
+
+msgid "Root"
+msgstr "Rot"
 
 
 msgid "Active Clone"

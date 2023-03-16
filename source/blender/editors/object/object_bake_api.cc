@@ -32,7 +32,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -1034,12 +1034,8 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   MLoopTri *looptri = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
 
   const blender::Span<MLoop> loops = me_eval->loops();
-  BKE_mesh_recalc_looptri(loops.data(),
-                          me_eval->polys().data(),
-                          BKE_mesh_vert_positions(me_eval),
-                          me_eval->totloop,
-                          me_eval->totpoly,
-                          looptri);
+  blender::bke::mesh::looptris_calc(
+      me_eval->vert_positions(), me_eval->polys(), loops, {looptri, tottri});
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(

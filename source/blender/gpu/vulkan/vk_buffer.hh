@@ -49,6 +49,13 @@ class VKBuffer {
     return vk_buffer_;
   }
 
+  /**
+   * Get the reference to the mapped memory.
+   *
+   * Can only be called when the buffer is (still) mapped.
+   */
+  void *mapped_memory_get() const;
+
  private:
   /** Check if this buffer is mapped. */
   bool is_mapped() const;

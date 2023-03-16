@@ -668,6 +668,9 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 /* UNUSED macro, for function argument */
 #  if defined(__GNUC__) || defined(__clang__)
 #    define UNUSED(x) UNUSED_##x __attribute__((__unused__))
+#  elif defined(_MSC_VER)
+/* NOTE: This suppresses the warning for the line, not the attribute. */
+#    define UNUSED(x) UNUSED_##x __pragma(warning(suppress : 4100))
 #  else
 #    define UNUSED(x) UNUSED_##x
 #  endif

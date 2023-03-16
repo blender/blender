@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -972,6 +972,10 @@ msgstr "Aktivní značka"
 
 msgid "Index of the tag set for editing"
 msgstr "Index sady značek pro úpravy"
+
+
+msgid "Copyright"
+msgstr "Autorská práva"
 
 
 msgid "Description"
@@ -7511,10 +7515,6 @@ msgid "Compression"
 msgstr "Komprese"
 
 
-msgid "Number"
-msgstr "Číslo"
-
-
 msgid "Randomness"
 msgstr "Náhodnost"
 
@@ -8685,26 +8685,6 @@ msgstr "Nastavit barvu pro mříže"
 
 msgid "Editable falloff curve"
 msgstr "Křivka útlumu"
-
-
-msgid "Smoother"
-msgstr "Hladší"
-
-
-msgid "Root"
-msgstr "Kvadratické"
-
-
-msgid "Sharp"
-msgstr "Ostré"
-
-
-msgid "Sharper"
-msgstr "Ostřejší"
-
-
-msgid "Inverse Square"
-msgstr "Opustit Editační mód"
 
 
 msgid "Falloff Angle"
@@ -10305,6 +10285,10 @@ msgid "Inverse Linear"
 msgstr "Prohodit"
 
 
+msgid "Inverse Square"
+msgstr "Opustit Editační mód"
+
+
 msgid "Lin/Quad Weighted"
 msgstr "Lineární"
 
@@ -11680,6 +11664,10 @@ msgid "Strand shape parameter"
 msgstr "Vlákna"
 
 
+msgid "Number"
+msgstr "Číslo"
+
+
 msgid "Show particle number"
 msgstr "Nastavení částic"
 
@@ -12150,10 +12138,6 @@ msgid "Modified"
 msgstr "Modifikátory"
 
 
-msgid "Lines"
-msgstr "Čáry"
-
-
 msgid "Lines of text"
 msgstr "Pohled & Ovládání"
 
@@ -12508,6 +12492,14 @@ msgstr "Vzor"
 
 msgid "Use soft marble"
 msgstr "Zobrazit nastavení vláken pro statické částice"
+
+
+msgid "Sharp"
+msgstr "Ostré"
+
+
+msgid "Sharper"
+msgstr "Ostřejší"
 
 
 msgid "Noise Basis 2"
@@ -14852,6 +14844,10 @@ msgid "Skin Vertex"
 msgstr "Vrchol"
 
 
+msgid "Root"
+msgstr "Kvadratické"
+
+
 msgid "Mesh Skin Vertex Layer"
 msgstr "Přidat barvu"
 
@@ -16545,6 +16541,10 @@ msgstr "Počet opakování pro překreslení"
 
 msgid "Line Thickness"
 msgstr "Tloušťka čáry"
+
+
+msgid "Lines"
+msgstr "Čáry"
 
 
 msgid "Motion Path Points"
@@ -22100,10 +22100,6 @@ msgstr "Exportovat glTF 2.0"
 
 msgid "Export scene as glTF 2.0 file"
 msgstr "Exportovat scénu jako soubor glTF 2.0"
-
-
-msgid "Copyright"
-msgstr "Autorská práva"
 
 
 msgid "Apply sampling to all animations"
@@ -41908,16 +41904,8 @@ msgid "Lifetime Randomness"
 msgstr "Životní Náhodnost"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Iterace: %d .. %d (průměr %d)"
-
-
 msgid "Multiply Mass with Size"
 msgstr "Násobit Hmotnost s Velikostí"
-
-
-msgid "Spacing: %g"
-msgstr "Rozestup: %g"
 
 
 msgid "Show Emitter"
@@ -41959,6 +41947,14 @@ msgstr "Odstranit Úpravy"
 
 msgid "Use Timing"
 msgstr "Použít Čásování"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "Iterace: %d .. %d (průměr %d)"
+
+
+msgid "Spacing: %g"
+msgstr "Rozestup: %g"
 
 
 msgid "Not yet functional"
@@ -42502,11 +42498,6 @@ msgstr "Nastavit Klíčový Snímek A"
 msgctxt "Operator"
 msgid "Set Keyframe B"
 msgstr "Nastavit Klíčový Snímek B"
-
-
-msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "Přiblížit %d:%d"
 
 
 msgctxt "Operator"
@@ -43204,10 +43195,6 @@ msgid "Rotation"
 msgstr "Rotace"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Původní rozsah snímků: %d-%d (%d)"
-
-
 msgid "Resolutions"
 msgstr "Rozlišení"
 
@@ -43235,6 +43222,10 @@ msgstr "Rozbalit"
 
 msgid "Pack"
 msgstr "Zabalit"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "Původní rozsah snímků: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -43716,14 +43707,6 @@ msgid "Save as Studio light"
 msgstr "Uložit jako Studiové Světlo"
 
 
-msgid "Color Set %d"
-msgstr "Sada Barev %d"
-
-
-msgid "Color %d"
-msgstr "Barva %d"
-
-
 msgid "Player"
 msgstr "Hráč"
 
@@ -43744,6 +43727,14 @@ msgid "No custom %s configured"
 msgstr "Žádná vlastní %s nastavena"
 
 
+msgid "Color Set %d"
+msgstr "Sada Barev %d"
+
+
+msgid "Color %d"
+msgstr "Barva %d"
+
+
 msgid "Description:"
 msgstr "Popis:"
 
@@ -43758,10 +43749,6 @@ msgstr "Soubor:"
 
 msgid "Author:"
 msgstr "Autor:"
-
-
-msgid "author"
-msgstr "autor"
 
 
 msgid "Version:"
@@ -47531,22 +47518,6 @@ msgstr "Smínek současně zobrazovaný pro tuto vrstvu"
 
 msgid "Unable to create new strip"
 msgstr "Není možné otevřít soubor"
-
-
-msgid "Functions"
-msgstr "Funkce"
-
-
-msgid "Comparison"
-msgstr "Porovnat"
-
-
-msgid "Trigonometric"
-msgstr "Trigonometrie"
-
-
-msgid "Conversion"
-msgstr "Konvertovat"
 
 
 msgid "Unable to locate link in node tree"

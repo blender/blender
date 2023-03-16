@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_math_vector_types.hh"
 

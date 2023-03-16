@@ -82,6 +82,9 @@ struct v2dViewPanData {
   /** event starting pan, for modal exit */
   int invoke_event;
 
+  /** Tag if the scroll is done in the category tab. */
+  bool do_category_scroll;
+
   /** for MMB in scrollers (old feature in past, but now not that useful) */
   short in_scroller;
 
@@ -133,6 +136,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   vpd->facy = BLI_rctf_size_y(&vpd->v2d->cur) / winy;
 
   vpd->v2d->flag |= V2D_IS_NAVIGATING;
+
+  vpd->do_category_scroll = false;
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
@@ -144,14 +149,19 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
   dx *= vpd->facx;
   dy *= vpd->facy;
 
-  /* only move view on an axis if change is allowed */
-  if ((v2d->keepofs & V2D_LOCKOFS_X) == 0) {
-    v2d->cur.xmin += dx;
-    v2d->cur.xmax += dx;
+  if (!vpd->do_category_scroll) {
+    /* only move view on an axis if change is allowed */
+    if ((v2d->keepofs & V2D_LOCKOFS_X) == 0) {
+      v2d->cur.xmin += dx;
+      v2d->cur.xmax += dx;
+    }
+    if ((v2d->keepofs & V2D_LOCKOFS_Y) == 0) {
+      v2d->cur.ymin += dy;
+      v2d->cur.ymax += dy;
+    }
   }
-  if ((v2d->keepofs & V2D_LOCKOFS_Y) == 0) {
-    v2d->cur.ymin += dy;
-    v2d->cur.ymax += dy;
+  else {
+    vpd->region->category_scroll -= dy;
   }
 
   /* Inform v2d about changes after this operation. */
@@ -211,6 +221,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   vpd->startx = vpd->lastx = event->xy[0];
   vpd->starty = vpd->lasty = event->xy[1];
   vpd->invoke_event = event->type;
+
+  vpd->do_category_scroll = ED_region_panel_category_gutter_isect_xy(vpd->region, event->xy);
 
   if (event->type == MOUSEPAN) {
     RNA_int_set(op->ptr, "deltax", event->prev_xy[0] - event->xy[0]);
@@ -482,6 +494,10 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
+  const wmWindow *win = CTX_wm_window(C);
+  vpd->do_category_scroll = ED_region_panel_category_gutter_isect_xy(vpd->region,
+                                                                     win->eventstate->xy);
+
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
   RNA_int_set(op->ptr, "deltay", -40);
@@ -528,6 +544,10 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
     view_pan_exit(op);
     return OPERATOR_PASS_THROUGH;
   }
+
+  const wmWindow *win = CTX_wm_window(C);
+  vpd->do_category_scroll = ED_region_panel_category_gutter_isect_xy(vpd->region,
+                                                                     win->eventstate->xy);
 
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
@@ -2180,6 +2200,8 @@ static int reset_exec(bContext *C, wmOperator * /*op*/)
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
   const int snap_test = ED_region_snap_size_test(region);
+
+  region->category_scroll = 0;
 
   /* zoom 1.0 */
   const int winx = float(BLI_rcti_size_x(&v2d->mask) + 1);

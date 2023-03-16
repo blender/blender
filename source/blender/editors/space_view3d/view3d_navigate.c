@@ -5,7 +5,7 @@
  */
 
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -16,7 +16,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"

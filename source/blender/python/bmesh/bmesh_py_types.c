@@ -989,7 +989,11 @@ static PyObject *bpy_bmesh_free(BPy_BMesh *self)
 
     bm_dealloc_editmode_warn(self);
 
-    if ((self->flag & BPY_BMFLAG_IS_WRAPPED) == 0) {
+    if (self->flag & BPY_BMFLAG_IS_WRAPPED) {
+      /* Ensure further access doesn't return this invalid object, see: #105715. */
+      bm->py_handle = NULL;
+    }
+    else {
       BM_mesh_free(bm);
     }
 

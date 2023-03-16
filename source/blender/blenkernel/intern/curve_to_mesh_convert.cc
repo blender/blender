@@ -12,7 +12,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BKE_curve_to_mesh.hh"
 

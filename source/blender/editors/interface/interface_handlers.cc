@@ -7942,6 +7942,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
       return WM_UI_HANDLER_CONTINUE;
     }
 
+#ifdef WITH_INPUT_NDOF
+    /* 2D view navigation conflicts with using NDOF to adjust colors,
+     * especially in the node-editor, see: #105224. */
+    if (event->type == NDOF_MOTION) {
+      if (data->region->type->keymapflag & ED_KEYMAP_VIEW2D) {
+        return WM_UI_HANDLER_CONTINUE;
+      }
+    }
+#endif /* WITH_INPUT_NDOF */
+
     if (do_paste) {
       ui_but_paste(C, but, data, event->modifier & KM_ALT);
       return WM_UI_HANDLER_BREAK;
@@ -8741,15 +8751,6 @@ static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_c
   return but_found;
 }
 
-static bool ui_context_rna_button_active_test(const uiBut *but)
-{
-  return (but->rnapoin.data != nullptr);
-}
-static uiBut *ui_context_rna_button_active(const bContext *C)
-{
-  return ui_context_button_active(CTX_wm_region(C), ui_context_rna_button_active_test);
-}
-
 uiBut *UI_context_active_but_get(const bContext *C)
 {
   return ui_context_button_active(CTX_wm_region(C), nullptr);
@@ -8776,12 +8777,12 @@ uiBlock *UI_region_block_find_mouse_over(const ARegion *region, const int xy[2],
   return ui_block_find_mouse_over_ex(region, xy, only_clip);
 }
 
-uiBut *UI_context_active_but_prop_get(const bContext *C,
-                                      PointerRNA *r_ptr,
-                                      PropertyRNA **r_prop,
-                                      int *r_index)
+uiBut *UI_region_active_but_prop_get(const ARegion *region,
+                                     PointerRNA *r_ptr,
+                                     PropertyRNA **r_prop,
+                                     int *r_index)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_region_active_but_get(region);
 
   if (activebut && activebut->rnapoin.data) {
     *r_ptr = activebut->rnapoin;
@@ -8797,9 +8798,19 @@ uiBut *UI_context_active_but_prop_get(const bContext *C,
   return activebut;
 }
 
+uiBut *UI_context_active_but_prop_get(const bContext *C,
+                                      PointerRNA *r_ptr,
+                                      PropertyRNA **r_prop,
+                                      int *r_index)
+{
+  ARegion *region_menu = CTX_wm_menu(C);
+  return UI_region_active_but_prop_get(
+      region_menu ? region_menu : CTX_wm_region(C), r_ptr, r_prop, r_index);
+}
+
 void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
-  uiBut *activebut = ui_context_rna_button_active(C);
+  uiBut *activebut = UI_context_active_but_get_respect_menu(C);
   if (activebut) {
     /* TODO(@ideasman42): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the

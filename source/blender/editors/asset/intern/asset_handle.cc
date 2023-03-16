@@ -9,9 +9,11 @@
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
-#include "DNA_space_types.h"
+#include "BKE_blendfile.h"
 
 #include "BLO_readfile.h"
+
+#include "DNA_space_types.h"
 
 #include "ED_asset_handle.h"
 
@@ -58,7 +60,7 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
     return;
   }
 
-  BLO_library_path_explode(asset_path.c_str(), r_full_lib_path, nullptr, nullptr);
+  BKE_library_path_explode(asset_path.c_str(), r_full_lib_path, nullptr, nullptr);
 }
 
 namespace blender::ed::asset {

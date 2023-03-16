@@ -90,6 +90,12 @@ void VKBuffer::read(void *data) const
   memcpy(data, mapped_memory_, size_in_bytes_);
 }
 
+void *VKBuffer::mapped_memory_get() const
+{
+  BLI_assert_msg(is_mapped(), "Cannot access a non-mapped buffer.");
+  return mapped_memory_;
+}
+
 bool VKBuffer::is_mapped() const
 {
   return mapped_memory_ != nullptr;

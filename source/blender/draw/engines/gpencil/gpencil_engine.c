@@ -7,8 +7,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -23,7 +23,7 @@
 #include "BLI_memblock.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
@@ -536,7 +536,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
     gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
-  iter->stroke_index_last = gps->runtime.stroke_start + gps->totpoints + 1;
+  iter->stroke_index_last = gps->runtime.vertex_start + gps->totpoints + 1;
 }
 
 static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopulateData *iter)

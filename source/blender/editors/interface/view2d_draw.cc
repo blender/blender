@@ -102,17 +102,16 @@ static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
   for (int step = 1; step < fps; step *= 2) {
     possible_distances.append(step);
   }
-  possible_distances.append(fps);
-  possible_distances.append(2 * fps);
-  possible_distances.append(5 * fps);
-  possible_distances.append(10 * fps);
-  possible_distances.append(30 * fps);
-  possible_distances.append(60 * fps);
-  possible_distances.append(2 * 60 * fps);
-  possible_distances.append(5 * 60 * fps);
-  possible_distances.append(10 * 60 * fps);
-  possible_distances.append(30 * 60 * fps);
-  possible_distances.append(60 * 60 * fps);
+
+  for (int i = 0; i <= 5; i++) {
+    uint fac = pow(60, i);
+    possible_distances.append(fac * fps);
+    possible_distances.append(fac * 2 * fps);
+    possible_distances.append(fac * 5 * fps);
+    possible_distances.append(fac * 10 * fps);
+    possible_distances.append(fac * 30 * fps);
+    possible_distances.append(fac * 60 * fps);
+  }
 
   float distance = select_major_distance(possible_distances.data(),
                                          possible_distances.size(),

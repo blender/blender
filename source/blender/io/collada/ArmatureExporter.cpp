@@ -16,7 +16,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "ED_armature.h"
 

@@ -39,13 +39,14 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_blendfile.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curveprofile.h"
 #include "BKE_global.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -78,8 +79,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "BLO_readfile.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -6997,7 +6996,7 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
     uiItemFullO(layout,
                 "WM_OT_open_mainfile",
                 filename,
-                BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
+                BKE_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,
                 0,

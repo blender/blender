@@ -10,7 +10,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -155,10 +155,10 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
 #  include "BKE_deform.h"
-#  include "BKE_gpencil.h"
-#  include "BKE_gpencil_curve.h"
-#  include "BKE_gpencil_geom.h"
-#  include "BKE_gpencil_update_cache.h"
+#  include "BKE_gpencil_curve_legacy.h"
+#  include "BKE_gpencil_geom_legacy.h"
+#  include "BKE_gpencil_legacy.h"
+#  include "BKE_gpencil_update_cache_legacy.h"
 #  include "BKE_icons.h"
 
 #  include "DEG_depsgraph.h"

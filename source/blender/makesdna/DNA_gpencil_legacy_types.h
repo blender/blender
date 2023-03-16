@@ -505,7 +505,7 @@ typedef struct bGPDlayer {
   struct Object *parent;
   /** Inverse matrix (only used if parented). */
   float inverse[4][4];
-  /** String describing subobject info, MAX_ID_NAME-2. */
+  /** String describing sub-object info, `MAX_ID_NAME - 2`. */
   char parsubstr[64];
   short partype;
 
@@ -574,7 +574,7 @@ typedef enum eGPDlayer_Flag {
   GP_LAYER_SELECT = (1 << 5),
   /* current frame for layer can't be changed */
   GP_LAYER_FRAMELOCK = (1 << 6),
-  /* don't render xray (which is default) */
+  /* Don't render X-ray (which is default). */
   GP_LAYER_NO_XRAY = (1 << 7),
   /* "volumetric" strokes */
   GP_LAYER_VOLUMETRIC = (1 << 10),
@@ -852,7 +852,7 @@ typedef enum eGP_OnionModes {
   GP_ONION_MODE_SELECTED = 2,
 } eGP_OnionModes;
 
-/* xray modes (Depth Ordering) */
+/* X-ray modes (Depth Ordering). */
 typedef enum eGP_DepthOrdering {
   GP_XRAY_FRONT = 0,
   GP_XRAY_3DSPACE = 1,

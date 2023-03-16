@@ -22,7 +22,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"

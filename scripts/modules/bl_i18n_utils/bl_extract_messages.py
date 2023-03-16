@@ -929,7 +929,7 @@ def dump_template_messages(msgs, reports, settings):
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):
-    for prop in ('name', 'location', 'description'):
+    for prop in ('name', 'location', 'description', 'warning'):
         process_msg(
             msgs,
             settings.DEFAULT_CONTEXT,

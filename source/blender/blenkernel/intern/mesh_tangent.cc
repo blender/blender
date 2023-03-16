@@ -20,7 +20,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_report.h"
@@ -311,8 +311,7 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
 {
   if (CustomData_get_named_layer_index(tan_data, CD_TANGENT, layer_name) == -1 &&
       CustomData_get_named_layer_index(uv_data, CD_PROP_FLOAT2, layer_name) != -1) {
-    CustomData_add_layer_named(
-        tan_data, CD_TANGENT, CD_SET_DEFAULT, nullptr, numLoopData, layer_name);
+    CustomData_add_layer_named(tan_data, CD_TANGENT, CD_SET_DEFAULT, numLoopData, layer_name);
   }
 }
 
@@ -442,7 +441,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, int(loopdata_out_len), "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, int(loopdata_out_len), "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
@@ -592,8 +591,8 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
-      BKE_mesh_vert_normals_ensure(me_eval),
-      BKE_mesh_poly_normals_ensure(me_eval),
+      reinterpret_cast<const float(*)[3]>(me_eval->vert_normals().data()),
+      reinterpret_cast<const float(*)[3]>(me_eval->poly_normals().data()),
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->ldata, CD_NORMAL)),
       /* may be nullptr */
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vdata, CD_ORCO)),

@@ -54,6 +54,7 @@
 #define SHADOW_PAGE_PER_ROW 64
 #define SHADOW_ATLAS_SLOT 5
 #define SHADOW_BOUNDS_GROUP_SIZE 64
+#define SHADOW_CLIPMAP_GROUP_SIZE 64
 #define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
 
 /* Ray-tracing. */

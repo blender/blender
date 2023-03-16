@@ -25,8 +25,8 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
 
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -38,12 +38,12 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_curve.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_curve_legacy.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
@@ -2504,7 +2504,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   const Span<float3> vert_positions = me->vert_positions();
   const Span<MEdge> edges = me->edges();
   const Span<MDeformVert> dverts = me->deform_verts();
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me);
+  const blender::Span<blender::float3> vert_normals = me->vert_normals();
   const bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
       ".uv_seam", ATTR_DOMAIN_EDGE, false);

@@ -138,10 +138,10 @@ class QuickFur(ObjectModeOperator, Operator):
             generate_modifier.node_group = generate_group
             generate_modifier["Input_2"] = mesh_object
             generate_modifier["Input_18_attribute_name"] = curves.surface_uv_map
+            generate_modifier["Input_12"] = True
             generate_modifier["Input_20"] = self.length
             generate_modifier["Input_22"] = material
             generate_modifier["Input_15"] = density * 0.01
-            curves_object.modifiers.move(1, 0)
 
             radius_modifier = curves_object.modifiers.new(name="Set Hair Curve Profile", type='NODES')
             radius_modifier.node_group = radius_group
@@ -151,6 +151,7 @@ class QuickFur(ObjectModeOperator, Operator):
             interpolate_modifier.node_group = interpolate_group
             interpolate_modifier["Input_2"] = mesh_object
             interpolate_modifier["Input_18_attribute_name"] = curves.surface_uv_map
+            interpolate_modifier["Input_12"] = True
             interpolate_modifier["Input_15"] = density
             interpolate_modifier["Input_17"] = self.view_percentage
             interpolate_modifier["Input_24"] = True
@@ -166,6 +167,8 @@ class QuickFur(ObjectModeOperator, Operator):
             if self.apply_hair_guides:
                 with context.temp_override(object=curves_object):
                     bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
+
+            curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)
 
         return {'FINISHED'}
 

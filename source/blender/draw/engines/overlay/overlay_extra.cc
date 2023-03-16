@@ -15,7 +15,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"

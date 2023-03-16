@@ -10,7 +10,7 @@
 
 namespace blender::gpu::tests {
 
-static void test_gpu_index_buffer_subbuilders()
+static void test_index_buffer_subbuilders()
 {
   const uint num_subbuilders = 10;
   const uint verts_per_subbuilders = 100;
@@ -44,6 +44,6 @@ static void test_gpu_index_buffer_subbuilders()
   GPU_INDEXBUF_DISCARD_SAFE(index_buffer);
 }
 
-GPU_TEST(gpu_index_buffer_subbuilders)
+GPU_TEST(index_buffer_subbuilders)
 
 }  // namespace blender::gpu::tests

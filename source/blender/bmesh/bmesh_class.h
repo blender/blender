@@ -378,6 +378,8 @@ typedef struct BMesh {
    * This allows save invalidation of a #BMesh when it's freed,
    * so the Python object will report it as having been removed,
    * instead of crashing on invalid memory access.
+   *
+   * Doesn't hold a #PyObject reference, cleared when the last object is de-referenced.
    */
   void *py_handle;
 } BMesh;

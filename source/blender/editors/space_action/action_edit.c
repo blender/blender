@@ -17,7 +17,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
@@ -32,7 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_key.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
@@ -203,7 +203,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         float tmin, tmax;
 
         /* get range and apply necessary scaling before processing */
-        if (BKE_fcurve_calc_range(fcu, &tmin, &tmax, onlySel, false)) {
+        if (BKE_fcurve_calc_range(fcu, &tmin, &tmax, onlySel)) {
 
           if (adt) {
             tmin = BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);

@@ -105,17 +105,19 @@
  * support disabling some parts of this.
  * \{ */
 
-/* Scan first chunks (happy path when beginning of the array matches).
+/**
+ * Scan first chunks (happy path when beginning of the array matches).
  * When the array is a perfect match, we can re-use the entire list.
  *
  * Note that disabling makes some tests fail that check for output-size.
  */
 #define USE_FASTPATH_CHUNKS_FIRST
 
-/* Scan last chunks (happy path when end of the array matches).
+/**
+ * Scan last chunks (happy path when end of the array matches).
  * When the end of the array matches, we can quickly add these chunks.
  * note that we will add contiguous matching chunks
- * so this isn't as useful as USE_FASTPATH_CHUNKS_FIRST,
+ * so this isn't as useful as #USE_FASTPATH_CHUNKS_FIRST,
  * however it avoids adding matching chunks into the lookup table,
  * so creating the lookup table won't be as expensive.
  */
@@ -123,14 +125,16 @@
 #  define USE_FASTPATH_CHUNKS_LAST
 #endif
 
-/* For arrays of matching length, test that *enough* of the chunks are aligned,
+/**
+ * For arrays of matching length, test that *enough* of the chunks are aligned,
  * and simply step over both arrays, using matching chunks.
  * This avoids overhead of using a lookup table for cases
  * when we can assume they're mostly aligned.
  */
 #define USE_ALIGN_CHUNKS_TEST
 
-/* Accumulate hashes from right to left so we can create a hash for the chunk-start.
+/**
+ * Accumulate hashes from right to left so we can create a hash for the chunk-start.
  * This serves to increase uniqueness and will help when there is many values which are the same.
  */
 #define USE_HASH_TABLE_ACCUMULATE
@@ -138,28 +142,48 @@
 #ifdef USE_HASH_TABLE_ACCUMULATE
 /* Number of times to propagate hashes back.
  * Effectively a 'triangle-number'.
- * so 4 -> 7, 5 -> 10, 6 -> 15... etc.
+ * so 3 -> 7, 4 -> 11, 5 -> 16, 6 -> 22, 7 -> 29, ... etc.
+ *
+ * \note additional steps are expensive, so avoid high values unless necessary
+ * (with low strides, between 1-4) where a low value would cause the hashes to
+ * be un-evenly distributed.
  */
-#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS 4
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_DEFAULT 3
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_32BITS 4
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_16BITS 5
+/**
+ * Singe bytes (or boolean) arrays need a higher number of steps
+ * because the resulting values are not unique enough to result in evenly distributed values.
+ * Use more accumulation when the the size of the structs is small, see: #105046.
+ *
+ * With 6 -> 22, one byte each - means an array of booleans can be combine into 22 bits
+ * representing 4,194,303 different combinations.
+ */
+#  define BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_8BITS 6
 #else
-/* How many items to hash (multiplied by stride)
+/**
+ * How many items to hash (multiplied by stride).
+ * The more values, the greater the chance this block has a unique hash.
  */
-#  define BCHUNK_HASH_LEN 4
+#  define BCHUNK_HASH_LEN 16
 #endif
 
-/* Calculate the key once and reuse it
+/**
+ * Calculate the key once and reuse it
  */
 #define USE_HASH_TABLE_KEY_CACHE
 #ifdef USE_HASH_TABLE_KEY_CACHE
-#  define HASH_TABLE_KEY_UNSET ((uint64_t)-1)
-#  define HASH_TABLE_KEY_FALLBACK ((uint64_t)-2)
+#  define HASH_TABLE_KEY_UNSET ((hash_key)-1)
+#  define HASH_TABLE_KEY_FALLBACK ((hash_key)-2)
 #endif
 
-/* How much larger the table is then the total number of chunks.
+/**
+ * How much larger the table is then the total number of chunks.
  */
 #define BCHUNK_HASH_TABLE_MUL 3
 
-/* Merge too small/large chunks:
+/**
+ * Merge too small/large chunks:
  *
  * Using this means chunks below a threshold will be merged together.
  * Even though short term this uses more memory,
@@ -172,19 +196,20 @@
 #define USE_MERGE_CHUNKS
 
 #ifdef USE_MERGE_CHUNKS
-/* Merge chunks smaller then: (chunk_size / BCHUNK_MIN_SIZE_DIV)
- */
+/** Merge chunks smaller then: (#BArrayInfo::chunk_byte_size / #BCHUNK_SIZE_MIN_DIV). */
 #  define BCHUNK_SIZE_MIN_DIV 8
 
-/* Disallow chunks bigger than the regular chunk size scaled by this value
- * NOTE: must be at least 2!
+/**
+ * Disallow chunks bigger than the regular chunk size scaled by this value.
+ *
+ * \note must be at least 2!
  * however, this code runs won't run in tests unless it's ~1.1 ugh.
  * so lower only to check splitting works.
  */
 #  define BCHUNK_SIZE_MAX_MUL 2
 #endif /* USE_MERGE_CHUNKS */
 
-/* slow (keep disabled), but handy for debugging */
+/** Slow (keep disabled), but handy for debugging */
 // #define USE_VALIDATE_LIST_SIZE
 
 // #define USE_VALIDATE_LIST_DATA_PARTIAL
@@ -197,7 +222,7 @@
 /** \name Internal Structs
  * \{ */
 
-typedef uint64_t hash_key;
+typedef uint32_t hash_key;
 
 typedef struct BArrayInfo {
   size_t chunk_stride;
@@ -208,7 +233,10 @@ typedef struct BArrayInfo {
   /* min/max limits (inclusive) */
   size_t chunk_byte_size_min;
   size_t chunk_byte_size_max;
-
+  /**
+   * The read-ahead value should never exceed `chunk_byte_size`,
+   * otherwise the hash would be based on values in the next chunk.
+   */
   size_t accum_read_ahead_bytes;
 #ifdef USE_HASH_TABLE_ACCUMULATE
   size_t accum_steps;
@@ -251,20 +279,23 @@ struct BArrayStore {
 struct BArrayState {
   /** linked list in #BArrayStore.states */
   struct BArrayState *next, *prev;
-
-  struct BChunkList *chunk_list; /* BChunkList's */
+  /** Shared chunk list, this reference must hold a #BChunkList::users. */
+  struct BChunkList *chunk_list;
 };
 
 typedef struct BChunkList {
-  ListBase chunk_refs; /* BChunkRef's */
-  uint chunk_refs_len; /* BLI_listbase_count(chunks), store for reuse. */
-  size_t total_size;   /* size of all chunks */
+  /** List of #BChunkRef's */
+  ListBase chunk_refs;
+  /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
+  uint chunk_refs_len;
+  /** Size of all chunks (expanded). */
+  size_t total_expanded_size;
 
-  /** number of #BArrayState using this. */
+  /** Number of #BArrayState using this. */
   int users;
 } BChunkList;
 
-/* a chunk of an array */
+/** A chunk of memory in an array (unit of de-duplication). */
 typedef struct BChunk {
   const uchar *data;
   size_t data_len;
@@ -353,13 +384,13 @@ static bool bchunk_data_compare(const BChunk *chunk,
 /** \name Internal BChunkList API
  * \{ */
 
-static BChunkList *bchunk_list_new(BArrayMemory *bs_mem, size_t total_size)
+static BChunkList *bchunk_list_new(BArrayMemory *bs_mem, size_t total_expanded_size)
 {
   BChunkList *chunk_list = BLI_mempool_alloc(bs_mem->chunk_list);
 
   BLI_listbase_clear(&chunk_list->chunk_refs);
   chunk_list->chunk_refs_len = 0;
-  chunk_list->total_size = total_size;
+  chunk_list->total_expanded_size = total_expanded_size;
   chunk_list->users = 0;
   return chunk_list;
 }
@@ -734,19 +765,19 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 #define HASH_INIT (5381)
 
-BLI_INLINE uint hash_data_single(const uchar p)
+BLI_INLINE hash_key hash_data_single(const uchar p)
 {
-  return ((HASH_INIT << 5) + HASH_INIT) + (uint)(*((signed char *)&p));
+  return ((HASH_INIT << 5) + HASH_INIT) + (hash_key)(*((signed char *)&p));
 }
 
 /* hash bytes, from BLI_ghashutil_strhash_n */
-static uint hash_data(const uchar *key, size_t n)
+static hash_key hash_data(const uchar *key, size_t n)
 {
   const signed char *p;
-  uint h = HASH_INIT;
+  hash_key h = HASH_INIT;
 
   for (p = (const signed char *)key; n--; p++) {
-    h = (uint)((h << 5) + h) + (uint)*p;
+    h = (hash_key)((h << 5) + h) + (hash_key)*p;
   }
 
   return h;
@@ -802,6 +833,14 @@ static void hash_array_from_cref(const BArrayInfo *info,
   BLI_assert(i == hash_array_len);
 }
 
+BLI_INLINE void hash_accum_impl(hash_key *hash_array, const size_t i_dst, const size_t i_ahead)
+{
+  /* Tested to give good results when accumulating unique values from an array of booleans.
+   * (least unused cells in the `BTableRef **table`). */
+  BLI_assert(i_dst < i_ahead);
+  hash_array[i_dst] += ((hash_array[i_ahead] << 3) ^ (hash_array[i_dst] >> 1));
+}
+
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   /* _very_ unlikely, can happen if you select a chunk-size of 1 for example. */
@@ -812,8 +851,8 @@ static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t
   const size_t hash_array_search_len = hash_array_len - iter_steps;
   while (iter_steps != 0) {
     const size_t hash_offset = iter_steps;
-    for (uint i = 0; i < hash_array_search_len; i++) {
-      hash_array[i] += (hash_array[i + hash_offset]) * ((hash_array[i] & 0xff) + 1);
+    for (size_t i = 0; i < hash_array_search_len; i++) {
+      hash_accum_impl(hash_array, i, i + hash_offset);
     }
     iter_steps -= 1;
   }
@@ -838,7 +877,7 @@ static void hash_accum_single(hash_key *hash_array, const size_t hash_array_len,
     const size_t hash_array_search_len = hash_array_len - iter_steps_sub;
     const size_t hash_offset = iter_steps;
     for (uint i = 0; i < hash_array_search_len; i++) {
-      hash_array[i] += (hash_array[i + hash_offset]) * ((hash_array[i] & 0xff) + 1);
+      hash_accum_impl(hash_array, i, i + hash_offset);
     }
     iter_steps -= 1;
     iter_steps_sub += iter_steps;
@@ -932,9 +971,9 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
 static hash_key key_from_chunk_ref(const BArrayInfo *info, const BChunkRef *cref)
 {
-  const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride;
   hash_key key;
   BChunk *chunk = cref->link;
+  const size_t data_hash_len = MIN2(chunk->data_len, BCHUNK_HASH_LEN * info->chunk_stride);
 
 #  ifdef USE_HASH_TABLE_KEY_CACHE
   key = chunk->key;
@@ -1012,7 +1051,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
                                                const size_t data_len_original,
                                                const BChunkList *chunk_list_reference)
 {
-  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_size);
+  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_expanded_size);
 
   /* -----------------------------------------------------------------------
    * Fast-Path for exact match
@@ -1045,7 +1084,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
     }
 
     if (full_match) {
-      if (chunk_list_reference->total_size == data_len_original) {
+      if (chunk_list_reference->total_expanded_size == data_len_original) {
         return (BChunkList *)chunk_list_reference;
       }
     }
@@ -1135,9 +1174,9 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   bool use_aligned = false;
 
 #ifdef USE_ALIGN_CHUNKS_TEST
-  if (chunk_list->total_size == chunk_list_reference->total_size) {
+  if (chunk_list->total_expanded_size == chunk_list_reference->total_expanded_size) {
     /* if we're already a quarter aligned */
-    if (data_len - i_prev <= chunk_list->total_size / 4) {
+    if (data_len - i_prev <= chunk_list->total_expanded_size / 4) {
       use_aligned = true;
     }
     else {
@@ -1219,7 +1258,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 #endif
 
       const BChunkRef *cref;
-      size_t chunk_list_reference_bytes_remaining = chunk_list_reference->total_size -
+      size_t chunk_list_reference_bytes_remaining = chunk_list_reference->total_expanded_size -
                                                     chunk_list_reference_skip_bytes;
 
       if (cref_match_first) {
@@ -1371,7 +1410,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
   /* check we're the correct size and that we didn't accidentally modify the reference */
   ASSERT_CHUNKLIST_SIZE(chunk_list, data_len_original);
-  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_size);
+  ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_expanded_size);
 
   ASSERT_CHUNKLIST_DATA(chunk_list, data);
 
@@ -1387,6 +1426,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
 BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 {
+  BLI_assert(stride > 0 && chunk_count > 0);
+
   BArrayStore *bs = MEM_callocN(sizeof(BArrayStore), __func__);
 
   bs->info.chunk_stride = stride;
@@ -1399,14 +1440,32 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 #endif
 
 #ifdef USE_HASH_TABLE_ACCUMULATE
-  bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS - 1;
-  /* Triangle number, identifying now much read-ahead we need:
-   * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
-  bs->info.accum_read_ahead_len =
-      (uint)(((bs->info.accum_steps * (bs->info.accum_steps + 1)) / 2) + 1);
+  /* One is always subtracted from this `accum_steps`, this is intentional
+   * as it results in reading ahead the expected amount. */
+  if (stride <= sizeof(int8_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_8BITS + 1;
+  }
+  else if (stride <= sizeof(int16_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_16BITS + 1;
+  }
+  else if (stride <= sizeof(int32_t)) {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_32BITS + 1;
+  }
+  else {
+    bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS_DEFAULT + 1;
+  }
+
+  do {
+    bs->info.accum_steps -= 1;
+    /* Triangle number, identifying now much read-ahead we need:
+     * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
+    bs->info.accum_read_ahead_len = ((bs->info.accum_steps * (bs->info.accum_steps + 1)) / 2) + 1;
+    /* Only small chunk counts are likely to exceed the read-ahead length. */
+  } while (UNLIKELY(chunk_count < bs->info.accum_read_ahead_len));
+
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
-  bs->info.accum_read_ahead_bytes = BCHUNK_HASH_LEN * stride;
+  bs->info.accum_read_ahead_bytes = MIN2((size_t)BCHUNK_HASH_LEN, chunk_count) * stride;
 #endif
 
   bs->memory.chunk_list = BLI_mempool_create(sizeof(BChunkList), 0, 512, BLI_MEMPOOL_NOP);
@@ -1414,6 +1473,8 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
   /* allow iteration to simplify freeing, otherwise its not needed
    * (we could loop over all states as an alternative). */
   bs->memory.chunk = BLI_mempool_create(sizeof(BChunk), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+
+  BLI_assert(bs->info.accum_read_ahead_bytes <= bs->info.chunk_byte_size);
 
   return bs;
 }
@@ -1470,7 +1531,7 @@ size_t BLI_array_store_calc_size_expanded_get(const BArrayStore *bs)
 {
   size_t size_accum = 0;
   LISTBASE_FOREACH (const BArrayState *, state, &bs->states) {
-    size_accum += state->chunk_list->total_size;
+    size_accum += state->chunk_list->total_expanded_size;
   }
   return size_accum;
 }
@@ -1556,7 +1617,7 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state)
 
 size_t BLI_array_store_state_size_get(BArrayState *state)
 {
-  return state->chunk_list->total_size;
+  return state->chunk_list->total_expanded_size;
 }
 
 void BLI_array_store_state_data_get(BArrayState *state, void *data)
@@ -1566,7 +1627,7 @@ void BLI_array_store_state_data_get(BArrayState *state, void *data)
   LISTBASE_FOREACH (BChunkRef *, cref, &state->chunk_list->chunk_refs) {
     data_test_len += cref->link->data_len;
   }
-  BLI_assert(data_test_len == state->chunk_list->total_size);
+  BLI_assert(data_test_len == state->chunk_list->total_expanded_size);
 #endif
 
   uchar *data_step = (uchar *)data;
@@ -1579,9 +1640,9 @@ void BLI_array_store_state_data_get(BArrayState *state, void *data)
 
 void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len)
 {
-  void *data = MEM_mallocN(state->chunk_list->total_size, __func__);
+  void *data = MEM_mallocN(state->chunk_list->total_expanded_size, __func__);
   BLI_array_store_state_data_get(state, data);
-  *r_data_len = state->chunk_list->total_size;
+  *r_data_len = state->chunk_list->total_expanded_size;
   return data;
 }
 
@@ -1594,11 +1655,11 @@ void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_le
 /* only for test validation */
 static size_t bchunk_list_size(const BChunkList *chunk_list)
 {
-  size_t total_size = 0;
+  size_t total_expanded_size = 0;
   LISTBASE_FOREACH (BChunkRef *, cref, &chunk_list->chunk_refs) {
-    total_size += cref->link->data_len;
+    total_expanded_size += cref->link->data_len;
   }
-  return total_size;
+  return total_expanded_size;
 }
 
 bool BLI_array_store_is_valid(BArrayStore *bs)
@@ -1610,7 +1671,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 
   LISTBASE_FOREACH (BArrayState *, state, &bs->states) {
     BChunkList *chunk_list = state->chunk_list;
-    if (!(bchunk_list_size(chunk_list) == chunk_list->total_size)) {
+    if (!(bchunk_list_size(chunk_list) == chunk_list->total_expanded_size)) {
       return false;
     }
 
@@ -1620,7 +1681,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 
 #ifdef USE_MERGE_CHUNKS
     /* ensure we merge all chunks that could be merged */
-    if (chunk_list->total_size > bs->info.chunk_byte_size_min) {
+    if (chunk_list->total_expanded_size > bs->info.chunk_byte_size_min) {
       LISTBASE_FOREACH (BChunkRef *, cref, &chunk_list->chunk_refs) {
         if (cref->link->data_len < bs->info.chunk_byte_size_min) {
           return false;

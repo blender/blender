@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1503,10 +1503,6 @@ msgid "Compression"
 msgstr "Compressie"
 
 
-msgid "Number"
-msgstr "Nummer"
-
-
 msgid "Maximum Resolution"
 msgstr "Maximale Resolutie"
 
@@ -1957,22 +1953,6 @@ msgid "Subtract Color"
 msgstr "Trek Kleur Af"
 
 
-msgid "Smoother"
-msgstr "Gladder"
-
-
-msgid "Root"
-msgstr "Wortel"
-
-
-msgid "Sharp"
-msgstr "Scherp"
-
-
-msgid "Inverse Square"
-msgstr "Inverse Wortel"
-
-
 msgid "Cloth Simulation"
 msgstr "Kledingsimulatie"
 
@@ -2031,10 +2011,6 @@ msgstr "Aangepast Icoon"
 
 msgid "Forward"
 msgstr "Vooruit"
-
-
-msgid "Second"
-msgstr "Seconde"
 
 
 msgid "Clip End"
@@ -2260,6 +2236,10 @@ msgid "Falloff Type"
 msgstr "Type Afvlakking"
 
 
+msgid "Inverse Square"
+msgstr "Inverse Wortel"
+
+
 msgid "Shadow Color"
 msgstr "Schaduwkleur"
 
@@ -2416,6 +2396,10 @@ msgid "Size 2"
 msgstr "Grootte 2"
 
 
+msgid "Number"
+msgstr "Nummer"
+
+
 msgid "Random Size"
 msgstr "Willekeurige Grootte"
 
@@ -2487,6 +2471,10 @@ msgstr "Spiegel X"
 
 msgid "Mirror Y"
 msgstr "Spiegel Y"
+
+
+msgid "Sharp"
+msgstr "Scherp"
 
 
 msgid "Workspace"
@@ -2876,6 +2864,10 @@ msgstr "Punt indexen"
 
 msgid "Split Normals"
 msgstr "Splits Normalen"
+
+
+msgid "Root"
+msgstr "Wortel"
 
 
 msgid "Size X"
@@ -7804,6 +7796,10 @@ msgid "Resume"
 msgstr "Hervat"
 
 
+msgid "Second"
+msgstr "Seconde"
+
+
 msgid "Auto-Step"
 msgstr "Auto-Stap"
 
@@ -8397,10 +8393,6 @@ msgstr "Bestand:"
 
 msgid "Author:"
 msgstr "Auteur:"
-
-
-msgid "author"
-msgstr "auteur"
 
 
 msgid "Version:"

@@ -32,7 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"

@@ -85,40 +85,39 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     for (ale = anim_data.first; ale; ale = ale->next) {
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
-      float txmin, txmax, tymin, tymax;
+      rctf bounds;
       float unitFac, offset;
 
       /* Get range. */
-      if (BKE_fcurve_calc_bounds(
-              fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles, NULL)) {
+      if (BKE_fcurve_calc_bounds(fcu, do_sel_only, include_handles, NULL, &bounds)) {
         short mapping_flag = ANIM_get_normalization_flags(ac);
 
         /* Apply NLA scaling. */
         if (adt) {
-          txmin = BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
-          txmax = BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
+          bounds.xmin = BKE_nla_tweakedit_remap(adt, bounds.xmin, NLATIME_CONVERT_MAP);
+          bounds.xmax = BKE_nla_tweakedit_remap(adt, bounds.xmax, NLATIME_CONVERT_MAP);
         }
 
         /* Apply unit corrections. */
         unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
-        tymin += offset;
-        tymax += offset;
-        tymin *= unitFac;
-        tymax *= unitFac;
+        bounds.ymin += offset;
+        bounds.ymax += offset;
+        bounds.ymin *= unitFac;
+        bounds.ymax *= unitFac;
 
         /* Try to set cur using these values, if they're more extreme than previously set values.
          */
-        if ((xmin) && (txmin < *xmin)) {
-          *xmin = txmin;
+        if ((xmin) && (bounds.xmin < *xmin)) {
+          *xmin = bounds.xmin;
         }
-        if ((xmax) && (txmax > *xmax)) {
-          *xmax = txmax;
+        if ((xmax) && (bounds.xmax > *xmax)) {
+          *xmax = bounds.xmax;
         }
-        if ((ymin) && (tymin < *ymin)) {
-          *ymin = tymin;
+        if ((ymin) && (bounds.ymin < *ymin)) {
+          *ymin = bounds.ymin;
         }
-        if ((ymax) && (tymax > *ymax)) {
-          *ymax = tymax;
+        if ((ymax) && (bounds.ymax > *ymax)) {
+          *ymax = bounds.ymax;
         }
 
         foundBounds = true;

@@ -47,7 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -55,7 +55,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
@@ -1731,20 +1731,27 @@ static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
 
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
 {
-  Mesh *me = BKE_object_get_original_mesh(ob);
-  const CustomDataLayer *layer;
-
-  if (ob && me && (layer = BKE_id_attributes_active_color_get((ID *)me))) {
-    attr->domain = BKE_id_attribute_domain((ID *)me, layer);
-    BLI_strncpy(attr->name, layer->name, sizeof(attr->name));
-    attr->type = layer->type;
-  }
-  else {
-    attr->domain = NO_ACTIVE_LAYER;
-    attr->name[0] = 0;
-  }
-
+  using namespace blender;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
   attr->was_set = true;
+  attr->domain = NO_ACTIVE_LAYER;
+  attr->name[0] = 0;
+  if (!mesh) {
+    return;
+  }
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+  if (!meta_data) {
+    return;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
+    return;
+  }
+  attr->domain = meta_data->domain;
+  BLI_strncpy(attr->name, name, sizeof(attr->name));
+  attr->type = meta_data->data_type;
 }
 
 void SCULPT_undo_push_begin(Object *ob, const wmOperator *op)
@@ -1862,7 +1869,8 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     CustomData *cdata = attr->domain == ATTR_DOMAIN_POINT ? &me->vdata : &me->ldata;
     int totelem = attr->domain == ATTR_DOMAIN_POINT ? me->totvert : me->totloop;
 
-    CustomData_add_layer_named(cdata, attr->type, CD_SET_DEFAULT, nullptr, totelem, attr->name);
+    CustomData_add_layer_named(
+        cdata, eCustomDataType(attr->type), CD_SET_DEFAULT, totelem, attr->name);
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 

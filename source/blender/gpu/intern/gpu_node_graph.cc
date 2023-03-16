@@ -476,7 +476,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       ImageUser *iuser,
                                                       struct GPUTexture **colorband,
                                                       struct GPUTexture **sky,
-                                                      GPUNodeLinkType link_type,
+                                                      bool is_tiled,
                                                       eGPUSamplerState sampler_state)
 {
   /* Find existing texture. */
@@ -502,7 +502,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
     tex->sky = sky;
     tex->sampler_state = sampler_state;
     BLI_snprintf(tex->sampler_name, sizeof(tex->sampler_name), "samp%d", num_textures);
-    if (ELEM(link_type, GPU_NODE_LINK_IMAGE_TILED, GPU_NODE_LINK_IMAGE_TILED_MAPPING)) {
+    if (is_tiled) {
       BLI_snprintf(
           tex->tiled_mapping_name, sizeof(tex->tiled_mapping_name), "tsamp%d", num_textures);
     }
@@ -631,7 +631,7 @@ GPUNodeLink *GPU_image(GPUMaterial *mat,
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_IMAGE;
   link->texture = gpu_node_graph_add_texture(
-      graph, ima, iuser, nullptr, nullptr, link->link_type, sampler_state);
+      graph, ima, iuser, nullptr, nullptr, false, sampler_state);
   return link;
 }
 
@@ -648,31 +648,28 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_IMAGE_SKY;
   link->texture = gpu_node_graph_add_texture(
-      graph, nullptr, nullptr, nullptr, sky, link->link_type, sampler_state);
+      graph, nullptr, nullptr, nullptr, sky, false, sampler_state);
   return link;
 }
 
-GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
-                             Image *ima,
-                             ImageUser *iuser,
-                             eGPUSamplerState sampler_state)
+void GPU_image_tiled(GPUMaterial *mat,
+                     struct Image *ima,
+                     struct ImageUser *iuser,
+                     eGPUSamplerState sampler_state,
+                     GPUNodeLink **r_image_tiled_link,
+                     GPUNodeLink **r_image_tiled_mapping_link)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_IMAGE_TILED;
-  link->texture = gpu_node_graph_add_texture(
-      graph, ima, iuser, nullptr, nullptr, link->link_type, sampler_state);
-  return link;
-}
+  GPUMaterialTexture *texture = gpu_node_graph_add_texture(
+      graph, ima, iuser, nullptr, nullptr, true, sampler_state);
 
-GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, Image *ima, ImageUser *iuser)
-{
-  GPUNodeGraph *graph = gpu_material_node_graph(mat);
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_IMAGE_TILED_MAPPING;
-  link->texture = gpu_node_graph_add_texture(
-      graph, ima, iuser, nullptr, nullptr, link->link_type, GPU_SAMPLER_MAX);
-  return link;
+  (*r_image_tiled_link) = gpu_node_link_create();
+  (*r_image_tiled_link)->link_type = GPU_NODE_LINK_IMAGE_TILED;
+  (*r_image_tiled_link)->texture = texture;
+
+  (*r_image_tiled_mapping_link) = gpu_node_link_create();
+  (*r_image_tiled_mapping_link)->link_type = GPU_NODE_LINK_IMAGE_TILED_MAPPING;
+  (*r_image_tiled_mapping_link)->texture = texture;
 }
 
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row)
@@ -684,7 +681,7 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_COLORBAND;
   link->texture = gpu_node_graph_add_texture(
-      graph, nullptr, nullptr, colorband, nullptr, link->link_type, GPU_SAMPLER_MAX);
+      graph, nullptr, nullptr, colorband, nullptr, false, GPU_SAMPLER_MAX);
   return link;
 }
 

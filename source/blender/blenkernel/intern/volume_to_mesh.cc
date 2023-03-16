@@ -10,7 +10,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_volume_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_volume.h"
 
 #ifdef WITH_OPENVDB

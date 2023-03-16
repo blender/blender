@@ -741,22 +741,21 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
   set(sycl_compiler_flags
-    ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
-    -fsycl
-    -fsycl-unnamed-lambda
-    -fdelayed-template-parsing
-    -mllvm -inlinedefault-threshold=250
-    -mllvm -inlinehint-threshold=350
-    -fsycl-device-code-split=per_kernel
-    -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
-    -shared
-    -DWITH_ONEAPI
-    -ffast-math
-    -DNDEBUG
-    -O2
-    -o ${cycles_kernel_oneapi_lib}
-    -I${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${SYCL_CPP_FLAGS}
+      ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
+      -fsycl
+      -fsycl-unnamed-lambda
+      -fdelayed-template-parsing
+      -mllvm -inlinedefault-threshold=250
+      -mllvm -inlinehint-threshold=350
+      -fsycl-device-code-split=per_kernel
+      -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
+      -shared
+      -DWITH_ONEAPI
+      -ffast-math
+      -O2
+      -o"${cycles_kernel_oneapi_lib}"
+      -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
+      ${SYCL_CPP_FLAGS}
   )
 
   if(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
@@ -783,14 +782,14 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
     foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
       if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list(APPEND sycl_compiler_flags -Xsycl-target-backend=${target} "${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}")
+        list(APPEND sycl_compiler_flags "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\"")
       endif()
     endforeach()
   else()
     # If AOT is disabled, build for spir64
     list(APPEND sycl_compiler_flags
       -fsycl-targets=spir64
-      -Xsycl-target-backend=spir64 "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}")
+      "-Xsycl-target-backend=spir64 \"${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}\"")
   endif()
 
   if(WITH_NANOVDB)
@@ -804,7 +803,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
 
   get_filename_component(sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
-  get_filename_component(sycl_compiler_compiler_name ${SYCL_COMPILER} NAME_WE)
 
   if(UNIX AND NOT APPLE)
     if(NOT WITH_CXX11_ABI)
@@ -816,7 +814,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     endif()
   endif()
 
-  if(WIN32)
+  if(WIN32) # Add Windows specific compiler flags.
     list(APPEND sycl_compiler_flags
     -fuse-ld=link
     -fms-extensions
@@ -843,20 +841,43 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
     endif()
     list(APPEND sycl_compiler_flags
-                -L "${MSVC_TOOLS_DIR}/lib/x64"
-                -L "${WINDOWS_KIT_DIR}/um/x64"
-                -L "${WINDOWS_KIT_DIR}/ucrt/x64")
+                -L"${MSVC_TOOLS_DIR}/lib/x64"
+                -L"${WINDOWS_KIT_DIR}/um/x64"
+                -L"${WINDOWS_KIT_DIR}/ucrt/x64")
+  else() # Add Linux specific compiler flags.
+    list(APPEND sycl_compiler_flags -fPIC)
 
-    set(sycl_compiler_flags_Release ${sycl_compiler_flags})
-    set(sycl_compiler_flags_Debug ${sycl_compiler_flags})
-    set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
-    set(sycl_compiler_flags_MinSizeRel ${sycl_compiler_flags})
-    list(APPEND sycl_compiler_flags_RelWithDebInfo -g)
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 and Rocky-8
+    # until the compilation issues it triggers at either AoT or JIT stages gets fixed.
+    list(APPEND sycl_compiler_flags -fhonor-nans)
+
+    # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
+    # libpi_level_zero.so can be placed next to it and get found.
+    list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
+  endif()
+
+  # Create CONFIG specific compiler flags.
+  set(sycl_compiler_flags_Release ${sycl_compiler_flags})
+  set(sycl_compiler_flags_Debug ${sycl_compiler_flags})
+  set(sycl_compiler_flags_RelWithDebInfo ${sycl_compiler_flags})
+
+  list(APPEND sycl_compiler_flags_Release
+              -DNDEBUG
+              )
+  list(APPEND sycl_compiler_flags_RelWithDebInfo
+              -DNDEBUG
+              -g
+              )
+  list(APPEND sycl_compiler_flags_Debug
+              -g
+              )
+
+  if(WIN32)
     list(APPEND sycl_compiler_flags_Debug
-                -g
                 -D_DEBUG
-                -nostdlib -Xclang --dependent-lib=msvcrtd)
-
+                -nostdlib
+                -Xclang --dependent-lib=msvcrtd
+                )
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
@@ -867,30 +888,32 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
               "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo}>"
               "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug}>"
               "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release}>"
-              COMMAND_EXPAND_LISTS
-              DEPENDS ${cycles_oneapi_kernel_sources})
+      COMMAND_EXPAND_LISTS
+      DEPENDS ${cycles_oneapi_kernel_sources})
   else()
-    list(APPEND sycl_compiler_flags -fPIC)
-
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 until the compilation
-    # crash it triggers at either AoT or JIT stages gets fixed.
-    # TODO: check if this is still needed on Rocky-8.
-    list(APPEND sycl_compiler_flags -fhonor-nans)
-
-    # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
-    # libpi_level_zero.so can be placed next to it and get found.
-    list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
-
     if(NOT IGC_INSTALL_DIR)
       get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
     endif()
+    # The following join/replace operations are to prevent cmake from
+    # escaping space chars with backslashes in add_custom_command.
+    list(JOIN sycl_compiler_flags_Release " " sycl_compiler_flags_Release_str)
+    string(REPLACE " " ";" sycl_compiler_flags_Release_str ${sycl_compiler_flags_Release_str})
+    list(JOIN sycl_compiler_flags_RelWithDebInfo " " sycl_compiler_flags_RelWithDebInfo_str)
+    string(REPLACE " " ";" sycl_compiler_flags_RelWithDebInfo_str ${sycl_compiler_flags_RelWithDebInfo_str})
+    list(JOIN sycl_compiler_flags_Debug " " sycl_compiler_flags_Debug_str)
+    string(REPLACE " " ";" sycl_compiler_flags_Debug_str ${sycl_compiler_flags_Debug_str})
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib}
       COMMAND ${CMAKE_COMMAND} -E env
               "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
               # `$ENV{PATH}` is for compiler to find `ld`.
               "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}"
-              ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
+              ${SYCL_COMPILER}
+              "$<$<CONFIG:Release>:${sycl_compiler_flags_Release_str}>"
+              "$<$<CONFIG:RelWithDebInfo>:${sycl_compiler_flags_RelWithDebInfo_str}>"
+              "$<$<CONFIG:Debug>:${sycl_compiler_flags_Debug_str}>"
+              "$<$<CONFIG:MinSizeRel>:${sycl_compiler_flags_Release_str}>"
+      COMMAND_EXPAND_LISTS
       DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
 

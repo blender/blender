@@ -11,7 +11,6 @@
 #include "BLI_convexhull_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
@@ -22,6 +21,22 @@
 #include "MEM_guardedalloc.h"
 
 namespace blender::geometry {
+
+UVPackIsland_Params::UVPackIsland_Params()
+{
+  /* TEMPORARY, set every thing to "zero" for backwards compatibility. */
+  rotate = false;
+  only_selected_uvs = false;
+  only_selected_faces = false;
+  use_seams = false;
+  correct_aspect = false;
+  ignore_pinned = false;
+  pin_unselected = false;
+  margin = 0.001f;
+  margin_method = ED_UVPACK_MARGIN_SCALED;
+  udim_base_offset[0] = 0.0f;
+  udim_base_offset[1] = 0.0f;
+}
 
 /* Compact representation for AABB packers. */
 class UVAABBIsland {
@@ -302,9 +317,9 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
   return params.margin * aabb_length_sum * 0.1f;
 }
 
-BoxPack *pack_islands(const Span<PackIsland *> &island_vector,
-                      const UVPackIsland_Params &params,
-                      float r_scale[2])
+static BoxPack *pack_islands_box_array(const Span<PackIsland *> &island_vector,
+                                       const UVPackIsland_Params &params,
+                                       float r_scale[2])
 {
   BoxPack *box_array = static_cast<BoxPack *>(
       MEM_mallocN(sizeof(*box_array) * island_vector.size(), __func__));
@@ -349,6 +364,22 @@ BoxPack *pack_islands(const Span<PackIsland *> &island_vector,
     BLI_rctf_pad(&island->bounds_rect, margin, margin);
   }
   return box_array;
+}
+
+void pack_islands(const Span<PackIsland *> &islands,
+                  const UVPackIsland_Params &params,
+                  float r_scale[2])
+{
+  BoxPack *box_array = pack_islands_box_array(islands, params, r_scale);
+
+  for (int64_t i : islands.index_range()) {
+    BoxPack *box = box_array + i;
+    PackIsland *island = islands[box->index];
+    island->pre_translate.x = box->x - island->bounds_rect.xmin;
+    island->pre_translate.y = box->y - island->bounds_rect.ymin;
+  }
+
+  MEM_freeN(box_array);
 }
 
 }  // namespace blender::geometry

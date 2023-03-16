@@ -13,7 +13,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "DNA_mesh_types.h"
@@ -515,12 +515,8 @@ static void generate_margin(ImBuf *ibuf,
 
     tottri = poly_to_tri_count(me->totpoly, me->totloop);
     looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
-    BKE_mesh_recalc_looptri(mloop,
-                            polys,
-                            reinterpret_cast<const float(*)[3]>(me->vert_positions().data()),
-                            me->totloop,
-                            me->totpoly,
-                            looptri_mem);
+    bke::mesh::looptris_calc(
+        me->vert_positions(), me->polys(), me->loops(), {looptri_mem, tottri});
     looptri = looptri_mem;
   }
   else {

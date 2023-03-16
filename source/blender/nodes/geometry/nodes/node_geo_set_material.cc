@@ -12,7 +12,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 namespace blender::nodes::node_geo_set_material_cc {
 

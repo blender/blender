@@ -174,7 +174,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
             ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   if (U.animation_flag &
       USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) { /* FIXME: this should really be check for by the
-                                                    filtering code... */
+                                                  * filtering code. */
     filter |= ANIMFILTER_SEL;
   }
   mapping_flag |= ANIM_get_normalization_flags(ac);

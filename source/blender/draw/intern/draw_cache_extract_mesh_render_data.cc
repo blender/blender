@@ -17,7 +17,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "GPU_batch.h"
@@ -363,30 +363,25 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       mr->poly_normals = mr->me->poly_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
-      mr->loop_normals = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
+      mr->loop_normals.reinitialize(mr->loops.size());
       short(*clnors)[2] = static_cast<short(*)[2]>(
           CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
-      BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(mr->vert_positions.data()),
-                                  reinterpret_cast<const float(*)[3]>(mr->vert_normals.data()),
-                                  mr->vert_positions.size(),
-                                  mr->edges.data(),
-                                  mr->edges.size(),
-                                  mr->loops.data(),
-                                  mr->loop_normals,
-                                  mr->loops.size(),
-                                  mr->polys.data(),
-                                  reinterpret_cast<const float(*)[3]>(mr->poly_normals.data()),
-                                  mr->polys.size(),
-                                  is_auto_smooth,
-                                  split_angle,
-                                  sharp_edges,
-                                  mr->sharp_faces,
-                                  nullptr,
-                                  nullptr,
-                                  clnors);
+      blender::bke::mesh::normals_calc_loop(mr->vert_positions,
+                                            mr->edges,
+                                            mr->polys,
+                                            mr->loops,
+                                            {},
+                                            mr->vert_normals,
+                                            mr->poly_normals,
+                                            sharp_edges,
+                                            mr->sharp_faces,
+                                            is_auto_smooth,
+                                            split_angle,
+                                            clnors,
+                                            nullptr,
+                                            mr->loop_normals);
     }
   }
   else {
@@ -406,8 +401,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
         poly_normals = mr->bm_poly_normals;
       }
 
-      mr->loop_normals = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
+      mr->loop_normals.reinitialize(mr->loop_len);
       const int clnors_offset = CustomData_get_offset(&mr->bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr->bm,
                                 vert_coords,
@@ -415,7 +409,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                 poly_normals,
                                 is_auto_smooth,
                                 split_angle,
-                                mr->loop_normals,
+                                reinterpret_cast<float(*)[3]>(mr->loop_normals.data()),
                                 nullptr,
                                 nullptr,
                                 clnors_offset,
@@ -443,7 +437,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const bool do_uvedit,
                                         const ToolSettings *ts)
 {
-  MeshRenderData *mr = static_cast<MeshRenderData *>(MEM_callocN(sizeof(*mr), __func__));
+  MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
   mr->toolsettings = ts;
   mr->mat_len = mesh_render_mat_len_get(object, me);
 
@@ -596,13 +590,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
 void mesh_render_data_free(MeshRenderData *mr)
 {
-  MEM_SAFE_FREE(mr->loop_normals);
 
   /* Loose geometry are owned by #MeshBufferCache. */
   mr->ledges = nullptr;
   mr->lverts = nullptr;
 
-  MEM_freeN(mr);
+  MEM_delete(mr);
 }
 
 /** \} */

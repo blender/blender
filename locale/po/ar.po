@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -7801,10 +7801,6 @@ msgid "Effective but slow compression"
 msgstr "ءﻲﻄﺑ ﻦﻜﻟ ﻝﺎﻌﻓ ﻂﻐﺿ"
 
 
-msgid "Number"
-msgstr "ﺩﺪﻌﻟﺍ"
-
-
 msgid "Delete"
 msgstr "ﻑﺬﺣﺍ"
 
@@ -9385,22 +9381,6 @@ msgstr "ﻉﺎﻨﻘﻟﺍ ﺞﻴﺴﻨﻟ ﺔﻔﻠﻐﻤﻟﺍ ﺎﻔﻟﺍ"
 
 msgid "Editable falloff curve"
 msgstr "ﺮﻳﺮﺤﺘﻠﻟ ﻞﺑﺎﻗ ﻁﻮﻘﺳ ﻰﻨﺤﻨﻣ"
-
-
-msgid "Root"
-msgstr "ﺓﺪﻋﺎﻗ"
-
-
-msgid "Sharp"
-msgstr "ﺩﺎﺣ"
-
-
-msgid "Sharper"
-msgstr "ﺩﺎﺣ"
-
-
-msgid "Inverse Square"
-msgstr "ﻲﺴﻜﻋ ﻲﻌﻴﺑﺮﺗ"
 
 
 msgid "Fill Threshold"
@@ -11635,6 +11615,10 @@ msgid "Inverse Linear"
 msgstr "ﺱﻮﻜﻌﻣ ﻲﻄﺧ"
 
 
+msgid "Inverse Square"
+msgstr "ﻲﺴﻜﻋ ﻲﻌﻴﺑﺮﺗ"
+
+
 msgid "Lin/Quad Weighted"
 msgstr "ﻲﻌﻴﺑﺮﺗ/ﻲﻄﺧ ﻥﻭﺯﻮﻣ"
 
@@ -13463,6 +13447,10 @@ msgid "Show guide hairs"
 msgstr "ﻞﻴﻟﺪﻟﺍ ﺕﺍﺮﻌﺷ ﺮﻬﻇﺍ"
 
 
+msgid "Number"
+msgstr "ﺩﺪﻌﻟﺍ"
+
+
 msgid "Show particle number"
 msgstr "ءﻱﺰﺠﻟﺍ ﻢﻗﺭ ﺮﻬﻇﺃ"
 
@@ -14185,10 +14173,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "ﺓﺮﻛﺍﺬﻟﺍ ﻲﻓ ﺩﻮﺟﻮﻤﻟﺍ ﻦﻋ ﻒﻠﺘﺨﻣ ﺹﺮﻘﻟﺍ ﻰﻠﻋ ﻲﺼﻨﻟﺍ ﻒﻠﻤﻟﺍ"
 
 
-msgid "Lines"
-msgstr "ﻁﻮﻄﺨﻟﺍ"
-
-
 msgid "Lines of text"
 msgstr "ﺺﻨﻟﺍ ﺭﻮﻄﺳ"
 
@@ -14797,8 +14781,16 @@ msgid "Use soft marble"
 msgstr "ﻢﻋﺎﻧ ﻡﺎﺧﺭ ﻡﺪﺨﺘﺳﺍ"
 
 
+msgid "Sharp"
+msgstr "ﺩﺎﺣ"
+
+
 msgid "Use more clearly defined marble"
 msgstr "ﺎﺣﻮﺿﻭ ﺮﺜﻛﺍ ﻞﻜﺸﺑ ﻑﺮّﻌﻣ ﻡﺎﺧﺭ ﻡﺪﺨﺘﺳﺇ"
+
+
+msgid "Sharper"
+msgstr "ﺩﺎﺣ"
 
 
 msgid "Use very clearly defined marble"
@@ -17420,6 +17412,10 @@ msgid "Radius of the skin"
 msgstr "ﺓﺮﺸﻘﻟﺍ ﻚﻤﺳ"
 
 
+msgid "Root"
+msgstr "ﺓﺪﻋﺎﻗ"
+
+
 msgid "Mesh Skin Vertex Layer"
 msgstr "ﻢﺴﺠﻤﻟﺍ ﺓﺮﺸﻘﻟ ﺔﻄﻘﻨﻟﺍ ﺔﻘﺒﻃ"
 
@@ -19081,6 +19077,10 @@ msgstr "ﺎﻘﺒﺴﻣ ﺔﺑﻮﺴﺤﻤﻟﺍ ﺮﻃﻷ﻿ﺍ ﺩﺪﻋ"
 
 msgid "Line Thickness"
 msgstr "ﻂﺨﻟﺍ ﻚﻤﺳ"
+
+
+msgid "Lines"
+msgstr "ﻁﻮﻄﺨﻟﺍ"
 
 
 msgid "Motion Path Points"
@@ -38070,10 +38070,6 @@ msgstr ":ﻒﻠﻣ"
 
 msgid "Author:"
 msgstr ":ﺭﺮﺤﻣ"
-
-
-msgid "author"
-msgstr "ﺐﺗﺎﻛ"
 
 
 msgid "Version:"

@@ -114,44 +114,7 @@ ImBuf *IMB_ibImageFromMemory(
   return NULL;
 }
 
-static ImBuf *IMB_ibImageFromFile(const char *filepath,
-                                  int flags,
-                                  char colorspace[IM_MAX_SPACE],
-                                  const char *descr)
-{
-  ImBuf *ibuf;
-  const ImFileType *type;
-  char effective_colorspace[IM_MAX_SPACE] = "";
-
-  if (colorspace) {
-    BLI_strncpy(effective_colorspace, colorspace, sizeof(effective_colorspace));
-  }
-
-  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-    if (type->load_filepath) {
-      ibuf = type->load_filepath(filepath, flags, effective_colorspace);
-      if (ibuf) {
-        imb_handle_alpha(ibuf, flags, colorspace, effective_colorspace);
-        return ibuf;
-      }
-    }
-  }
-
-  if ((flags & IB_test) == 0) {
-    fprintf(stderr, "%s: unknown fileformat (%s)\n", __func__, descr);
-  }
-
-  return NULL;
-}
-
-static bool imb_is_filepath_format(const char *filepath)
-{
-  /* return true if this is one of the formats that can't be loaded from memory */
-  return BLI_path_extension_check_array(filepath, imb_ext_image_filepath_only);
-}
-
-ImBuf *IMB_loadifffile(
-    int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
+ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
 {
   ImBuf *ibuf;
   uchar *mem;
@@ -159,10 +122,6 @@ ImBuf *IMB_loadifffile(
 
   if (file == -1) {
     return NULL;
-  }
-
-  if (imb_is_filepath_format(filepath)) {
-    return IMB_ibImageFromFile(filepath, flags, colorspace, descr);
   }
 
   size = BLI_file_descriptor_size(file);
@@ -198,7 +157,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
     return NULL;
   }
 
-  ibuf = IMB_loadifffile(file, filepath, flags, colorspace, filepath);
+  ibuf = IMB_loadifffile(file, flags, colorspace, filepath);
 
   if (ibuf) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
@@ -277,7 +236,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
     return NULL;
   }
 
-  ibuf = IMB_loadifffile(file, filepath, flags | IB_test | IB_multilayer, colorspace, filepath);
+  ibuf = IMB_loadifffile(file, flags | IB_test | IB_multilayer, colorspace, filepath);
 
   if (ibuf) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));

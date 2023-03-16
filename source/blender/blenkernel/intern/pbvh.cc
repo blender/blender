@@ -20,7 +20,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -845,7 +845,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->mloop = mloop;
   pbvh->looptri = looptri;
   pbvh->vert_positions = vert_positions;
-  BKE_mesh_vert_normals_ensure(mesh);
+  /* Make sure cached normals start out calculated. */
+  mesh->vert_normals();
   pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
   pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
@@ -1409,7 +1410,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
   if (node->flag & PBVH_UpdateNormals) {
     uint mpoly_prev = UINT_MAX;
-    float fn[3];
+    blender::float3 fn;
 
     const int *faces = node->prim_indices;
     const int totface = node->totprim;
@@ -1426,7 +1427,9 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
       /* Face normal and mask */
       if (lt->poly != mpoly_prev) {
         const MPoly &poly = pbvh->polys[lt->poly];
-        BKE_mesh_calc_poly_normal(&poly, &pbvh->mloop[poly.loopstart], pbvh->vert_positions, fn);
+        fn = blender::bke::mesh::poly_normal_calc(
+            {reinterpret_cast<const blender::float3 *>(pbvh->vert_positions), pbvh->totvert},
+            {&pbvh->mloop[poly.loopstart], poly.totloop});
         mpoly_prev = lt->poly;
       }
 
@@ -3516,12 +3519,8 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh)
   if (pbvh->hide_vert) {
     return pbvh->hide_vert;
   }
-  pbvh->hide_vert = static_cast<bool *>(CustomData_add_layer_named(&pbvh->mesh->vdata,
-                                                                   CD_PROP_BOOL,
-                                                                   CD_SET_DEFAULT,
-                                                                   nullptr,
-                                                                   pbvh->mesh->totvert,
-                                                                   ".hide_vert"));
+  pbvh->hide_vert = static_cast<bool *>(CustomData_add_layer_named(
+      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, pbvh->mesh->totvert, ".hide_vert"));
   return pbvh->hide_vert;
 }
 
@@ -3887,7 +3886,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
           if (!hide_poly) {
             hide_poly = static_cast<bool *>(CustomData_add_layer_named(
-                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, nullptr, mesh->totpoly, ".hide_poly"));
+                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, mesh->totpoly, ".hide_poly"));
           }
         }
 

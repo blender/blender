@@ -32,7 +32,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
@@ -264,7 +264,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
   ac->ads = sipo->ads;
 
   /* set settings for Graph Editor - "Selected = Editable" */
-  if (U.animation_flag  & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
     sipo->ads->filterflag |= ADS_FILTER_SELEDIT;
   }
   else {

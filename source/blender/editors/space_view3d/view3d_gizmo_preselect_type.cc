@@ -22,7 +22,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

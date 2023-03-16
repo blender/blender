@@ -14,13 +14,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"

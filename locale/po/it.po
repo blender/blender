@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -8926,10 +8926,6 @@ msgid "Data Depth"
 msgstr "Profondità Dati"
 
 
-msgid "Number"
-msgstr "Numero"
-
-
 msgid "Randomness"
 msgstr "Casualità"
 
@@ -10661,22 +10657,6 @@ msgid "Color of cursor when subtracting"
 msgstr "Colore del cursore quando sottrae"
 
 
-msgid "Root"
-msgstr "Radice"
-
-
-msgid "Sharp"
-msgstr "Nitido"
-
-
-msgid "Sharper"
-msgstr "Più Nitido"
-
-
-msgid "Inverse Square"
-msgstr "Quadratico Inverso"
-
-
 msgid "Falloff Angle"
 msgstr "Angolo Decadimento"
 
@@ -11135,14 +11115,6 @@ msgstr "Sovrascrivi Frame"
 
 msgid "Up"
 msgstr "Su"
-
-
-msgid "Velocity Unit"
-msgstr "Unità Velocità"
-
-
-msgid "Second"
-msgstr "Secondi"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -12597,6 +12569,10 @@ msgstr "Decadimento dell'intensità con la distanza"
 
 msgid "Inverse Linear"
 msgstr "Lineare Inverso"
+
+
+msgid "Inverse Square"
+msgstr "Quadratico Inverso"
 
 
 msgid "Inverse Coefficients"
@@ -14454,6 +14430,10 @@ msgid "Show hair simulation grid"
 msgstr "Mostra griglia simulazione capelli"
 
 
+msgid "Number"
+msgstr "Numero"
+
+
 msgid "Show particle number"
 msgstr "Mostra il numero delle particelle"
 
@@ -15104,10 +15084,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "Il file di testo sul disco è differente da quello in memoria"
 
 
-msgid "Lines"
-msgstr "Linee"
-
-
 msgid "Lines of text"
 msgstr "Linee di testo"
 
@@ -15704,8 +15680,16 @@ msgid "Use soft marble"
 msgstr "Utilizza marmo morbido"
 
 
+msgid "Sharp"
+msgstr "Nitido"
+
+
 msgid "Use more clearly defined marble"
 msgstr "Usa un marmo definito più chiaramente"
+
+
+msgid "Sharper"
+msgstr "Più Nitido"
 
 
 msgid "Use very clearly defined marble"
@@ -19056,6 +19040,10 @@ msgid "Radius of the skin"
 msgstr "Raggio della pelle"
 
 
+msgid "Root"
+msgstr "Radice"
+
+
 msgid "Name of skin layer"
 msgstr "Nome del livello pelle"
 
@@ -21929,6 +21917,10 @@ msgstr "Numero di fotogrammi nella cache"
 
 msgid "Line Thickness"
 msgstr "Spessore Linea"
+
+
+msgid "Lines"
+msgstr "Linee"
 
 
 msgid "Motion Path Points"
@@ -52615,10 +52607,6 @@ msgid "Invert Selection"
 msgstr "Inverti Selezione"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "Tracciamento"
 
@@ -53134,20 +53122,8 @@ msgid "Strand Shape"
 msgstr "Forma Fibra"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Ripetizioni: %d .. %d (med. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Errore: %.5f .. %.5f (med. %.5f)"
-
-
 msgid "Multiply Mass with Size"
 msgstr "Moltiplica la Massa per la Dimensione"
-
-
-msgid "Spacing: %g"
-msgstr "Spaziatura: %g"
 
 
 msgid "Show Emitter"
@@ -53178,12 +53154,20 @@ msgid "Coordinate System"
 msgstr "Sistema di Coordinate"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "%d particelle fluide per questo frame"
-
-
 msgid "Use Timing"
 msgstr "Usa Tempistica"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "Ripetizioni: %d .. %d (med. %d)"
+
+
+msgid "Error: %.5f .. %.5f (avg. %.5f)"
+msgstr "Errore: %.5f .. %.5f (med. %.5f)"
+
+
+msgid "Spacing: %g"
+msgstr "Spaziatura: %g"
 
 
 msgid "Not yet functional"
@@ -53198,6 +53182,10 @@ msgstr "Connetti Tutto"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Disconnetti Tutto"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "%d particelle fluide per questo frame"
 
 
 msgid "Dynamic Mesh"
@@ -53281,6 +53269,10 @@ msgstr "Minuscolo"
 
 msgid "Fuel"
 msgstr "Combustibile"
+
+
+msgid "Second"
+msgstr "Secondi"
 
 
 msgid "Upper"
@@ -54210,10 +54202,6 @@ msgid "Rotation"
 msgstr "Rotazione"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Intervallo fotogrammi originale: %d-%d (%d)"
-
-
 msgctxt "Operator"
 msgid "Clip"
 msgstr "Filmato"
@@ -54233,6 +54221,10 @@ msgstr "Estrai"
 
 msgid "Pack"
 msgstr "Comprimi"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "Intervallo fotogrammi originale: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -54690,10 +54682,6 @@ msgstr "File:"
 
 msgid "Author:"
 msgstr "Autore:"
-
-
-msgid "author"
-msgstr "autore"
 
 
 msgid "Version:"
@@ -58672,10 +58660,6 @@ msgid "Frame: %d"
 msgstr "Fotogramma: %d"
 
 
-msgid "Group Input "
-msgstr "Ingresso Gruppo "
-
-
 msgid " (String)"
 msgstr "(Stringa)"
 
@@ -59705,14 +59689,6 @@ msgstr "Il numero di normali personalizzate non coincide con il numero dei verti
 
 msgid "Unable to create new strip"
 msgstr "Impossibile creare un nuovo spezzone"
-
-
-msgid "Functions"
-msgstr "Funzioni"
-
-
-msgid "Comparison"
-msgstr "Confronto"
 
 
 msgid "Unable to create socket"

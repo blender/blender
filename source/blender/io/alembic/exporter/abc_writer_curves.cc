@@ -12,7 +12,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "CLG_log.h"

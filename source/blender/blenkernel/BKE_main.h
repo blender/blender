@@ -185,8 +185,8 @@ typedef struct Main {
   ListBase particles;
   ListBase palettes;
   ListBase paintcurves;
-  ListBase wm; /* Singleton (exception). */
-  ListBase gpencils;
+  ListBase wm;       /* Singleton (exception). */
+  ListBase gpencils; /* Legacy Grease Pencil. */
   ListBase movieclips;
   ListBase masks;
   ListBase linestyles;
