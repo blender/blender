@@ -66,7 +66,7 @@ bool GPU_debug_group_match(const char *ref);
 /**
  * GPU Frame capture support.
  *
- * Allows instananeous frame capture of GPU calls between begin/end.
+ * Allows instantaneous frame capture of GPU calls between begin/end.
  */
 void GPU_debug_capture_begin(void);
 void GPU_debug_capture_end(void);
