@@ -342,9 +342,13 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
                                                          options:options
                                                            error:&error] autorelease];
     if (error) {
-      NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
-      BLI_assert(false);
-      return nullptr;
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
     }
 
     /* Fetch compute function. */
@@ -658,9 +662,13 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
                                                          options:options
                                                            error:&error] autorelease];
     if (error) {
-      NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
-      BLI_assert(false);
-      return nil;
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
     }
 
     /* Fetch compute function. */
