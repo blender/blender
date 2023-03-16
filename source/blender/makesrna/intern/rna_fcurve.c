@@ -161,7 +161,7 @@ const EnumPropertyItem rna_enum_driver_target_rotation_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_driver_target_context_property_items[] = {
+static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = {
     {DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE,
      "ACTIVE_SCENE",
      ICON_NONE,
