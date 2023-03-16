@@ -29,9 +29,8 @@
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
-#  include "BLO_readfile.h" /* only for BLO_has_bfile_extension */
-
 #  include "BKE_blender_version.h"
+#  include "BKE_blendfile.h"
 #  include "BKE_context.h"
 
 #  include "BKE_global.h"
@@ -2071,7 +2070,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
       return -1;
     }
 
-    if (BLO_has_bfile_extension(filepath)) {
+    if (BKE_has_bfile_extension(filepath)) {
       /* Just pretend a file was loaded, so the user can press Save and it'll
        * save at the filepath from the CLI. */
       STRNCPY(G_MAIN->filepath, filepath);

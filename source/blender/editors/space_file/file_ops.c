@@ -11,9 +11,8 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 
-#include "BLO_readfile.h"
-
 #include "BKE_appdir.h"
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -2539,7 +2538,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
         BLI_split_dirfile(
             path, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
       }
-      else if (BLO_library_path_explode(params->dir, tdir, &group, &name)) {
+      else if (BKE_library_path_explode(params->dir, tdir, &group, &name)) {
         if (group) {
           BLI_path_append(tdir, sizeof(tdir), group);
         }
@@ -2578,7 +2577,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       char tdir[FILE_MAX_LIBEXTRA];
 
       /* If we are 'inside' a blend library, we cannot do anything... */
-      if (lastdir && BLO_library_path_explode(lastdir, tdir, NULL, NULL)) {
+      if (lastdir && BKE_library_path_explode(lastdir, tdir, NULL, NULL)) {
         BLI_strncpy(params->dir, lastdir, sizeof(params->dir));
       }
       else {

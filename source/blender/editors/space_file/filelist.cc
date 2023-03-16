@@ -48,6 +48,7 @@
 #endif
 
 #include "BKE_asset.h"
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -56,7 +57,6 @@
 #include "BKE_main.h"
 #include "BKE_main_idmap.h"
 #include "BKE_preferences.h"
-#include "BLO_readfile.h"
 
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
@@ -1353,7 +1353,7 @@ static bool filelist_checkdir_lib(FileList * /*filelist*/, char *r_dir, const bo
   char *name;
 
   const bool is_valid = (BLI_is_dir(r_dir) ||
-                         (BLO_library_path_explode(r_dir, tdir, nullptr, &name) &&
+                         (BKE_library_path_explode(r_dir, tdir, nullptr, &name) &&
                           BLI_is_file(tdir) && !name));
 
   if (do_change && !is_valid) {
@@ -1950,7 +1950,7 @@ static const char *fileentry_uiname(const char *root, FileListInternEntry *entry
     char *group;
 
     BLI_path_join(abspath, sizeof(abspath), root, relpath);
-    BLO_library_path_explode(abspath, buff, &group, &name);
+    BKE_library_path_explode(abspath, buff, &group, &name);
     if (!name) {
       name = group;
     }
@@ -2623,7 +2623,7 @@ int ED_path_extension_type(const char *path)
   /* ATTENTION: Never return OR'ed bit-flags here, always return a single enum value! Some code
    * using this may do `ELEM()`-like checks. */
 
-  if (BLO_has_bfile_extension(path)) {
+  if (BKE_has_bfile_extension(path)) {
     return FILE_TYPE_BLENDER;
   }
   if (file_is_blend_backup(path)) {
@@ -2885,7 +2885,7 @@ bool filelist_islibrary(FileList *filelist, char *dir, char **r_group)
   if (filelist->asset_library) {
     return true;
   }
-  return BLO_library_path_explode(filelist->filelist.root, dir, r_group, nullptr);
+  return BKE_library_path_explode(filelist->filelist.root, dir, r_group, nullptr);
 }
 
 static int groupname_to_code(const char *group)
@@ -3041,7 +3041,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
       }
 
       if (!(entry->typeflag & FILE_TYPE_DIR)) {
-        if (do_lib && BLO_has_bfile_extension(target)) {
+        if (do_lib && BKE_has_bfile_extension(target)) {
           /* If we are considering .blend files as libraries, promote them to directory status. */
           entry->typeflag = FILE_TYPE_BLENDER;
           /* prevent current file being used as acceptable dir */
@@ -3234,7 +3234,7 @@ static std::optional<int> filelist_readjob_list_lib(FileListReadJob *job_params,
    * will do a dir listing only when this function does not return any entries. */
   /* TODO(jbakker): We should consider introducing its own function to detect if it is a lib and
    * call it directly from `filelist_readjob_do` to increase readability. */
-  const bool is_lib = BLO_library_path_explode(root, dir, &group, nullptr);
+  const bool is_lib = BKE_library_path_explode(root, dir, &group, nullptr);
   if (!is_lib) {
     return std::nullopt;
   }

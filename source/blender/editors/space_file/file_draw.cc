@@ -21,9 +21,8 @@
 
 #include "BIF_glutil.h"
 
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
-
-#include "BLO_readfile.h"
 
 #include "BLT_translation.h"
 
@@ -142,7 +141,7 @@ static void file_but_enable_drag(uiBut *but,
   else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
            (file->typeflag & FILE_TYPE_ASSET) != 0) {
     char blend_path[FILE_MAX_LIBEXTRA];
-    if (BLO_library_path_explode(path, blend_path, nullptr, nullptr)) {
+    if (BKE_library_path_explode(path, blend_path, nullptr, nullptr)) {
       const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
       BLI_assert(import_method > -1);
 

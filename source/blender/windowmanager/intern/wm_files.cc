@@ -43,6 +43,7 @@
 
 #include "PIL_time.h"
 
+#include "BLO_readfile.h"
 #include "BLT_translation.h"
 
 #include "BLF_api.h"
@@ -79,7 +80,6 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
 #include "BLO_undofile.h" /* to save from an undo memfile */
 #include "BLO_writefile.h"
 
@@ -3261,7 +3261,7 @@ static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
-  if (!BLO_has_bfile_extension(filepath)) {
+  if (!BKE_has_bfile_extension(filepath)) {
     /* some users would prefer BLI_path_extension_replace(),
      * we keep getting nitpicking bug reports about this - campbell */
     BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");

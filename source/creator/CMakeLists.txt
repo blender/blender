@@ -6,7 +6,6 @@ set(INC
   ../../intern/guardedalloc
   ../blender/blenkernel
   ../blender/blenlib
-  ../blender/blenloader
   ../blender/depsgraph
   ../blender/editors/include
   ../blender/gpu
