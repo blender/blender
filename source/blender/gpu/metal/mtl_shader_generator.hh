@@ -490,8 +490,12 @@ class MSLGeneratorInterface {
   std::string generate_msl_uniform_undefs(ShaderStage stage);
   std::string generate_ubo_block_undef_chain(ShaderStage stage);
   std::string generate_msl_texture_vars(ShaderStage shader_stage);
-  void generate_msl_textures_input_string(std::stringstream &out, ShaderStage stage);
-  void generate_msl_uniforms_input_string(std::stringstream &out, ShaderStage stage);
+  void generate_msl_textures_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
+  void generate_msl_uniforms_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
 
   /* Location is not always specified, so this will resolve outstanding locations. */
   void resolve_input_attribute_locations();
