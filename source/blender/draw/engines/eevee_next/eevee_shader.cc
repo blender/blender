@@ -98,6 +98,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_tiles_flatten_render";
     case MOTION_BLUR_TILE_FLATTEN_VIEWPORT:
       return "eevee_motion_blur_tiles_flatten_viewport";
+    case DEBUG_SURFELS:
+      return "eevee_debug_surfels";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:

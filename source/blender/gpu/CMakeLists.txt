@@ -606,6 +606,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/eevee_next/shaders/infos/eevee_depth_of_field_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_irradiance_cache_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
