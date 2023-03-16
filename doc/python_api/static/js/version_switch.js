@@ -5,7 +5,7 @@ var versionsFileUrl = "https://docs.blender.org/PROD/versions.json"
 
 var all_versions;
 
-var Popover = function() {
+var Popover = (function() {
   function Popover(id)
   {
     this.isOpen = false;
@@ -315,7 +315,7 @@ var Popover = function() {
     }
   };
   return Popover
-}();
+}());
 
 $(document).ready(function() {
   var lng_popover = new Popover("version-popover");
