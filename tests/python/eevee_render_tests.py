@@ -15,7 +15,7 @@ def setup():
     import bpy
 
     for scene in bpy.data.scenes:
-        scene.render.engine = 'BLENDER_EEVEE'
+        scene.render.engine = "BLENDER_EEVEE"
 
     # Enable Eevee features
     scene = bpy.context.scene
@@ -30,7 +30,7 @@ def setup():
     eevee.gtao_distance = 1
 
     eevee.use_volumetric_shadows = True
-    eevee.volumetric_tile_size = '2'
+    eevee.volumetric_tile_size = "2"
 
     for mat in bpy.data.materials:
         # This needs to be enabled case by case,
@@ -43,13 +43,13 @@ def setup():
     # Does not work in edit mode
     try:
         # Simple probe setup
-        bpy.ops.object.lightprobe_add(type='CUBEMAP', location=(0.5, 0, 1.5))
+        bpy.ops.object.lightprobe_add(type="CUBEMAP", location=(0.5, 0, 1.5))
         cubemap = bpy.context.selected_objects[0]
         cubemap.scale = (2.5, 2.5, 1.0)
         cubemap.data.falloff = 0
         cubemap.data.clip_start = 2.4
 
-        bpy.ops.object.lightprobe_add(type='GRID', location=(0, 0, 0.25))
+        bpy.ops.object.lightprobe_add(type="GRID", location=(0, 0, 0.25))
         grid = bpy.context.selected_objects[0]
         grid.scale = (1.735, 1.735, 1.735)
         grid.data.grid_resolution_x = 3
@@ -60,14 +60,14 @@ def setup():
 
     try:
         # Try to only include the plane in reflections
-        plane = bpy.data.objects['Plane']
+        plane = bpy.data.objects["Plane"]
 
         collection = bpy.data.collections.new("Reflection")
         collection.objects.link(plane)
         # Add all lights to light the plane
         if not invert:
             for light in bpy.data.objects:
-                if light.type == 'LIGHT':
+                if light.type == "LIGHT":
                     collection.objects.link(light)
 
         # Add collection to the scene
@@ -78,8 +78,8 @@ def setup():
         pass
 
     eevee.gi_diffuse_bounces = 1
-    eevee.gi_cubemap_resolution = '128'
-    eevee.gi_visibility_resolution = '16'
+    eevee.gi_cubemap_resolution = "128"
+    eevee.gi_visibility_resolution = "16"
     eevee.gi_irradiance_smoothing = 0
 
     bpy.ops.scene.light_cache_bake()
@@ -88,6 +88,7 @@ def setup():
 # When run from inside Blender, render and exit.
 try:
     import bpy
+
     inside_blender = True
 except ImportError:
     inside_blender = False
@@ -104,16 +105,15 @@ def get_gpu_device_type(blender):
     command = [
         blender,
         "-noaudio",
-        "--background"
-        "--factory-startup",
+        "--background" "--factory-startup",
         "--python",
-        str(pathlib.Path(__file__).parent / "gpu_info.py")
+        str(pathlib.Path(__file__).parent / "gpu_info.py"),
     ]
     try:
-        completed_process = subprocess.run(command, stdout=subprocess.PIPE)
+        completed_process = subprocess.run(command, stdout=subprocess.PIPE, check=True)
         for line in completed_process.stdout.read_text():
             if line.startswith("GPU_DEVICE_TYPE:"):
-                vendor = line.split(':')[1]
+                vendor = line.split(":")[1]
                 return vendor
     except BaseException as e:
         return None
@@ -129,12 +129,17 @@ def get_arguments(filepath, output_filepath):
         "--debug-memory",
         "--debug-exit-on-error",
         filepath,
-        "-E", "BLENDER_EEVEE",
+        "-E",
+        "BLENDER_EEVEE",
         "-P",
         os.path.realpath(__file__),
-        "-o", output_filepath,
-        "-F", "PNG",
-        "-f", "1"]
+        "-o",
+        output_filepath,
+        "-F",
+        "PNG",
+        "-f",
+        "1",
+    ]
 
 
 def create_argparse():
@@ -161,14 +166,15 @@ def main():
         reference_override_dir = "eevee_renders/amd"
 
     from modules import render_report
+
     report = render_report.Report("Eevee", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("eevee_renders")
     report.set_reference_override_dir(reference_override_dir)
-    report.set_compare_engine('cycles', 'CPU')
+    report.set_compare_engine("cycles", "CPU")
 
     test_dir_name = Path(test_dir).name
-    if test_dir_name.startswith('image'):
+    if test_dir_name.startswith("image"):
         report.set_fail_threshold(0.051)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)

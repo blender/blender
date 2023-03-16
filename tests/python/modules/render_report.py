@@ -14,7 +14,7 @@ import sys
 import time
 
 from . import global_report
-from .colored_print import (print_message, use_message_colors)
+from .colored_print import print_message, use_message_colors
 
 
 def blend_list(dirpath, device, blacklist):
@@ -73,30 +73,30 @@ def test_get_images(output_dir, filepath, reference_dir, reference_override_dir)
 
 class Report:
     __slots__ = (
-        'title',
-        'output_dir',
-        'global_dir',
-        'reference_dir',
-        'reference_override_dir',
-        'idiff',
-        'pixelated',
-        'fail_threshold',
-        'fail_percent',
-        'verbose',
-        'update',
-        'failed_tests',
-        'passed_tests',
-        'compare_tests',
-        'compare_engine',
-        'device',
-        'blacklist',
+        "title",
+        "output_dir",
+        "global_dir",
+        "reference_dir",
+        "reference_override_dir",
+        "idiff",
+        "pixelated",
+        "fail_threshold",
+        "fail_percent",
+        "verbose",
+        "update",
+        "failed_tests",
+        "passed_tests",
+        "compare_tests",
+        "compare_engine",
+        "device",
+        "blacklist",
     )
 
     def __init__(self, title, output_dir, idiff, device=None, blacklist=[]):
         self.title = title
         self.output_dir = output_dir
         self.global_dir = os.path.dirname(output_dir)
-        self.reference_dir = 'reference_renders'
+        self.reference_dir = "reference_renders"
         self.reference_override_dir = None
         self.idiff = idiff
         self.compare_engine = None
@@ -111,7 +111,7 @@ class Report:
 
         self.pixelated = False
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
-        self.update = os.getenv('BLENDER_TEST_UPDATE') is not None
+        self.update = os.getenv("BLENDER_TEST_UPDATE") is not None
 
         if os.environ.get("BLENDER_TEST_COLOR") is not None:
             use_message_colors()
@@ -167,13 +167,19 @@ class Report:
 
     def _navigation_item(self, title, href, active):
         if active:
-            return """<li class="breadcrumb-item active" aria-current="page">%s</li>""" % title
+            return (
+                """<li class="breadcrumb-item active" aria-current="page">%s</li>"""
+                % title
+            )
         else:
-            return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (href, title)
+            return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (
+                href,
+                title,
+            )
 
     def _engine_title(self, engine, device):
         if device:
-            return engine.title() + ' ' + device
+            return engine.title() + " " + device
         else:
             return engine.title()
 
@@ -200,10 +206,16 @@ class Report:
         # Gather intermediate data for all tests.
         if comparison:
             failed_data = []
-            passed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/compare.data")))
+            passed_data = sorted(
+                glob.glob(os.path.join(self.output_dir, "*/compare.data"))
+            )
         else:
-            failed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/failed.data")))
-            passed_data = sorted(glob.glob(os.path.join(self.output_dir, "*/passed.data")))
+            failed_data = sorted(
+                glob.glob(os.path.join(self.output_dir, "*/failed.data"))
+            )
+            passed_data = sorted(
+                glob.glob(os.path.join(self.output_dir, "*/passed.data"))
+            )
 
         failed_tests = ""
         passed_tests = ""
@@ -219,9 +231,9 @@ class Report:
 
         # Write html for all tests.
         if self.pixelated:
-            image_rendering = 'pixelated'
+            image_rendering = "pixelated"
         else:
-            image_rendering = 'auto'
+            image_rendering = "auto"
 
         # Navigation
         menu = self._navigation_html(comparison)
@@ -230,10 +242,15 @@ class Report:
         if failed:
             message = """<div class="alert alert-danger" role="alert">"""
             message += """<p>Run this command to regenerate reference (ground truth) images:</p>"""
-            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.title.lower()
-            message += """<p>This then happens for new and failing tests; reference images of """ \
-                       """passing test cases will not be updated. Be sure to commit the new reference """ \
-                       """images to the SVN repository afterwards.</p>"""
+            message += (
+                """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>"""
+                % self.title.lower()
+            )
+            message += (
+                """<p>This then happens for new and failing tests; reference images of """
+                """passing test cases will not be updated. Be sure to commit the new reference """
+                """images to the SVN repository afterwards.</p>"""
+            )
             message += """</div>"""
         else:
             message = ""
@@ -242,10 +259,15 @@ class Report:
             title = self.title + " Test Compare"
             engine_self = self.title
             engine_other = self._engine_title(*self.compare_engine)
-            columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % (engine_self, engine_other)
+            columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % (
+                engine_self,
+                engine_other,
+            )
         else:
             title = self.title + " Test Report"
-            columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff</th>"
+            columns_html = (
+                "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff</th>"
+            )
 
         html = """
 <html>
@@ -293,12 +315,14 @@ class Report:
     </div>
 </body>
 </html>
-            """ . format(title=title,
-                         menu=menu,
-                         message=message,
-                         image_rendering=image_rendering,
-                         tests_html=tests_html,
-                         columns_html=columns_html)
+            """.format(
+            title=title,
+            menu=menu,
+            message=message,
+            image_rendering=image_rendering,
+            tests_html=tests_html,
+            columns_html=columns_html,
+        )
 
         filename = "report.html" if not comparison else "compare.html"
         filepath = os.path.join(self.output_dir, filename)
@@ -309,7 +333,9 @@ class Report:
         # Update global report
         if not comparison:
             global_failed = failed if not comparison else None
-            global_report.add(self.global_dir, "Render", self.title, filepath, global_failed)
+            global_report.add(
+                self.global_dir, "Render", self.title, filepath, global_failed
+            )
 
     def _relative_url(self, filepath):
         relpath = os.path.relpath(filepath, self.output_dir)
@@ -317,10 +343,11 @@ class Report:
 
     def _write_test_html(self, testname, filepath, error):
         name = test_get_name(filepath)
-        name = name.replace('_', ' ')
+        name = name.replace("_", " ")
 
         old_img, ref_img, new_img, diff_img = test_get_images(
-            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
+            self.output_dir, filepath, self.reference_dir, self.reference_override_dir
+        )
 
         status = error if error else ""
         tr_style = """ class="table-danger" """ if error else ""
@@ -335,13 +362,15 @@ class Report:
                 <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                 <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
                 <td><img src="{diff_url}"></td>
-            </tr>""" . format(tr_style=tr_style,
-                              name=name,
-                              testname=testname,
-                              status=status,
-                              new_url=new_url,
-                              ref_url=ref_url,
-                              diff_url=diff_url)
+            </tr>""".format(
+            tr_style=tr_style,
+            name=name,
+            testname=testname,
+            status=status,
+            new_url=new_url,
+            ref_url=ref_url,
+            diff_url=diff_url,
+        )
 
         if error:
             self.failed_tests += test_html
@@ -350,25 +379,30 @@ class Report:
 
         if self.compare_engine:
             base_path = os.path.relpath(self.global_dir, self.output_dir)
-            ref_url = os.path.join(base_path, self._engine_path(*self.compare_engine), new_url)
+            ref_url = os.path.join(
+                base_path, self._engine_path(*self.compare_engine), new_url
+            )
 
             test_html = """
                 <tr{tr_style}>
                     <td><b>{name}</b><br/>{testname}<br/>{status}</td>
                     <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                     <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
-                </tr>""" . format(tr_style=tr_style,
-                                  name=name,
-                                  testname=testname,
-                                  status=status,
-                                  new_url=new_url,
-                                  ref_url=ref_url)
+                </tr>""".format(
+                tr_style=tr_style,
+                name=name,
+                testname=testname,
+                status=status,
+                new_url=new_url,
+                ref_url=ref_url,
+            )
 
             self.compare_tests += test_html
 
     def _diff_output(self, filepath, tmp_filepath):
         old_img, ref_img, new_img, diff_img = test_get_images(
-            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
+            self.output_dir, filepath, self.reference_dir, self.reference_override_dir
+        )
 
         # Create reference render directory.
         old_dirpath = os.path.dirname(old_img)
@@ -384,8 +418,10 @@ class Report:
             # Diff images test with threshold.
             command = (
                 self.idiff,
-                "-fail", str(self.fail_threshold),
-                "-failpercent", str(self.fail_percent),
+                "-fail",
+                str(self.fail_threshold),
+                "-failpercent",
+                str(self.fail_percent),
                 ref_img,
                 tmp_filepath,
             )
@@ -394,7 +430,7 @@ class Report:
                 failed = False
             except subprocess.CalledProcessError as e:
                 if self.verbose:
-                    print_message(e.output.decode("utf-8", 'ignore'))
+                    print_message(e.output.decode("utf-8", "ignore"))
                 failed = e.returncode != 1
         else:
             if not self.update:
@@ -411,17 +447,20 @@ class Report:
         # Generate diff image.
         command = (
             self.idiff,
-            "-o", diff_img,
-            "-abs", "-scale", "16",
+            "-o",
+            diff_img,
+            "-abs",
+            "-scale",
+            "16",
             ref_img,
-            tmp_filepath
+            tmp_filepath,
         )
 
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError as e:
             if self.verbose:
-                print_message(e.output.decode("utf-8", 'ignore'))
+                print_message(e.output.decode("utf-8", "ignore"))
 
         return not failed
 
@@ -440,10 +479,10 @@ class Report:
             # Construct output filepaths and command to run
             for filepath in remaining_filepaths:
                 testname = test_get_name(filepath)
-                print_message(testname, 'SUCCESS', 'RUN')
+                print_message(testname, "SUCCESS", "RUN")
 
                 base_output_filepath = os.path.join(self.output_dir, "tmp_" + testname)
-                output_filepath = base_output_filepath + '0001.png'
+                output_filepath = base_output_filepath + "0001.png"
                 output_filepaths.append(output_filepath)
 
                 if os.path.exists(output_filepath):
@@ -456,13 +495,15 @@ class Report:
                     break
 
             if self.device:
-                command.extend(['--', '--cycles-device', self.device])
+                command.extend(["--", "--cycles-device", self.device])
 
             # Run process
             crash = False
             output = None
             try:
-                completed_process = subprocess.run(command, stdout=subprocess.PIPE)
+                completed_process = subprocess.run(
+                    command, stdout=subprocess.PIPE, check=True
+                )
                 if completed_process.returncode != 0:
                     crash = True
                 output = completed_process.stdout
@@ -472,10 +513,12 @@ class Report:
             if verbose:
                 print(" ".join(command))
             if (verbose or crash) and output:
-                print(output.decode("utf-8", 'ignore'))
+                print(output.decode("utf-8", "ignore"))
 
             # Detect missing filepaths and consider those errors
-            for filepath, output_filepath in zip(remaining_filepaths[:], output_filepaths):
+            for filepath, output_filepath in zip(
+                remaining_filepaths[:], output_filepaths
+            ):
                 remaining_filepaths.pop(0)
 
                 if crash:
@@ -483,22 +526,25 @@ class Report:
                     if not os.path.exists(output_filepath):
                         errors.append("CRASH")
                         print_message("Crash running Blender")
-                        print_message(testname, 'FAILURE', 'FAILED')
+                        print_message(testname, "FAILURE", "FAILED")
                         break
 
                 testname = test_get_name(filepath)
 
-                if not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
+                if (
+                    not os.path.exists(output_filepath)
+                    or os.path.getsize(output_filepath) == 0
+                ):
                     errors.append("NO OUTPUT")
                     print_message("No render result file found")
-                    print_message(testname, 'FAILURE', 'FAILED')
+                    print_message(testname, "FAILURE", "FAILED")
                 elif not self._diff_output(filepath, output_filepath):
                     errors.append("VERIFY")
                     print_message("Render result is different from reference image")
-                    print_message(testname, 'FAILURE', 'FAILED')
+                    print_message(testname, "FAILURE", "FAILED")
                 else:
                     errors.append(None)
-                    print_message(testname, 'SUCCESS', 'OK')
+                    print_message(testname, "SUCCESS", "OK")
 
                 if os.path.exists(output_filepath):
                     os.remove(output_filepath)
@@ -510,9 +556,11 @@ class Report:
         failed_tests = []
         all_files = list(blend_list(dirpath, self.device, self.blacklist))
         all_files.sort()
-        print_message("Running {} tests from 1 test case." .
-                      format(len(all_files)),
-                      'SUCCESS', "==========")
+        print_message(
+            "Running {} tests from 1 test case.".format(len(all_files)),
+            "SUCCESS",
+            "==========",
+        )
         time_start = time.time()
         errors = self._run_tests(all_files, blender, arguments_cb, batch)
         for filepath, error in zip(all_files, errors):
@@ -529,18 +577,20 @@ class Report:
         time_end = time.time()
         elapsed_ms = int((time_end - time_start) * 1000)
         print_message("")
-        print_message("{} tests from 1 test case ran. ({} ms total)" .
-                      format(len(all_files), elapsed_ms),
-                      'SUCCESS', "==========")
-        print_message("{} tests." .
-                      format(len(passed_tests)),
-                      'SUCCESS', 'PASSED')
+        print_message(
+            "{} tests from 1 test case ran. ({} ms total)".format(
+                len(all_files), elapsed_ms
+            ),
+            "SUCCESS",
+            "==========",
+        )
+        print_message("{} tests.".format(len(passed_tests)), "SUCCESS", "PASSED")
         if failed_tests:
-            print_message("{} tests, listed below:" .
-                          format(len(failed_tests)),
-                          'FAILURE', 'FAILED')
+            print_message(
+                "{} tests, listed below:".format(len(failed_tests)), "FAILURE", "FAILED"
+            )
             failed_tests.sort()
             for test in failed_tests:
-                print_message("{}" . format(test), 'FAILURE', "FAILED")
+                print_message("{}".format(test), "FAILURE", "FAILED")
 
         return not bool(failed_tests)

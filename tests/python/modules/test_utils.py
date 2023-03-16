@@ -21,11 +21,14 @@ def with_tempdir(wrapped):
 
     @functools.wraps(wrapped)
     def decorator(*args, **kwargs):
-        dirname = tempfile.mkdtemp(prefix='blender-alembic-test')
+        dirname = tempfile.mkdtemp(prefix="blender-alembic-test")
         try:
             retval = wrapped(*args, pathlib.Path(dirname), **kwargs)
         except:
-            print('Exception in %s, not cleaning up temporary directory %s' % (wrapped, dirname))
+            print(
+                "Exception in %s, not cleaning up temporary directory %s"
+                % (wrapped, dirname)
+            )
             raise
         else:
             shutil.rmtree(dirname)
@@ -57,27 +60,35 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
 
         command = [
             self.blender,
-            '--background',
-            '-noaudio',
-            '--factory-startup',
-            '--enable-autoexec',
-            '--debug-memory',
-            '--debug-exit-on-error',
+            "--background",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            "--debug-memory",
+            "--debug-exit-on-error",
         ]
 
         if blendfile:
             command.append(str(blendfile))
 
-        command.extend([
-            '--python-exit-code', '47',
-            '--python-expr', python_script,
-        ]
+        command.extend(
+            [
+                "--python-exit-code",
+                "47",
+                "--python-expr",
+                python_script,
+            ]
         )
 
-        proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=timeout)
-        output = proc.stdout.decode('utf8')
+        proc = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            check=True,
+        )
+        output = proc.stdout.decode("utf8")
         if proc.returncode:
-            self.fail('Error %d running Blender:\n%s' % (proc.returncode, output))
+            self.fail("Error %d running Blender:\n%s" % (proc.returncode, output))
 
         return output
