@@ -380,6 +380,29 @@ void GLContext::debug_group_end()
   }
 }
 
+bool GLContext::debug_capture_begin()
+{
+  return false;
+}
+
+void GLContext::debug_capture_end()
+{
+}
+
+void *GLContext::debug_capture_scope_create(const char *name)
+{
+  return nullptr;
+}
+
+bool GLContext::debug_capture_scope_begin(void *scope)
+{
+  return false;
+}
+
+void GLContext::debug_capture_scope_end(void *scope)
+{
+}
+
 /** \} */
 
 }  // namespace blender::gpu

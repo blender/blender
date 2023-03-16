@@ -128,4 +128,27 @@ void VKContext::debug_group_end()
 {
 }
 
+bool VKContext::debug_capture_begin()
+{
+  return false;
+}
+
+void VKContext::debug_capture_end()
+{
+}
+
+void *VKContext::debug_capture_scope_create(const char *name)
+{
+  return nullptr;
+}
+
+bool VKContext::debug_capture_scope_begin(void *scope)
+{
+  return false;
+}
+
+void VKContext::debug_capture_scope_end(void *scope)
+{
+}
+
 }  // namespace blender::gpu
