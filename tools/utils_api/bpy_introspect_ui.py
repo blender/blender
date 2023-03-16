@@ -11,6 +11,7 @@ Example usage:
 """
 
 import sys
+
 ModuleType = type(sys)
 
 
@@ -21,18 +22,21 @@ def module_add(name):
 
 class AttributeBuilder:
     """__slots__ = (
-        "_attr", "_attr_list", "_item_set", "_args",
-        "active", "operator_context", "enabled", "index", "data"
-        )"""
+    "_attr", "_attr_list", "_item_set", "_args",
+    "active", "operator_context", "enabled", "index", "data"
+    )"""
 
     def _as_py(self):
-        data = [self._attr_single, self._args, [child._as_py() for child in self._attr_list]]
+        data = [
+            self._attr_single,
+            self._args,
+            [child._as_py() for child in self._attr_list],
+        ]
         return data
 
     def _as_xml(self, indent="  "):
-
         def to_xml_str(value):
-            if type(value) == str:
+            if type(value) is str:
                 # quick shoddy clean
                 value = value.replace("&", " ")
                 value = value.replace("<", " ")
@@ -50,7 +54,12 @@ class AttributeBuilder:
                     args_str += "arg" + str(i + 1) + "=" + to_xml_str(a) + " "
 
             if dict_args:
-                args_str += " ".join(["%s=%s" % (key, to_xml_str(value)) for key, value in sorted(dict_args.items())])
+                args_str += " ".join(
+                    [
+                        "%s=%s" % (key, to_xml_str(value))
+                        for key, value in sorted(dict_args.items())
+                    ]
+                )
 
             if args_str:
                 return " " + args_str
@@ -61,13 +70,27 @@ class AttributeBuilder:
 
         def py_to_xml(item, indent_ctx):
             if item._attr_list:
-                lines.append("%s<%s%s>" % (indent_ctx, item._attr_single, dict_to_kw(item._args_tuple, item._args)))
+                lines.append(
+                    "%s<%s%s>"
+                    % (
+                        indent_ctx,
+                        item._attr_single,
+                        dict_to_kw(item._args_tuple, item._args),
+                    )
+                )
                 for child in item._attr_list:
                     # print(child._attr)
                     py_to_xml(child, indent_ctx + indent)
                 lines.append("%s</%s>" % (indent_ctx, item._attr_single))
             else:
-                lines.append("%s<%s%s/>" % (indent_ctx, item._attr_single, dict_to_kw(item._args_tuple, item._args)))
+                lines.append(
+                    "%s<%s%s/>"
+                    % (
+                        indent_ctx,
+                        item._attr_single,
+                        dict_to_kw(item._args_tuple, item._args),
+                    )
+                )
 
         py_to_xml(self, indent)
 
@@ -168,17 +191,19 @@ class AttributeBuilder_Seq(AttributeBuilder):
 
 _attribute_builder_overrides = {
     "context.gpencil.layers": AttributeBuilder_Seq("context.gpencil.layers", "layers"),
-    "context.gpencil_data.layers": AttributeBuilder_Seq("context.gpencil_data.layers", "layers"),
+    "context.gpencil_data.layers": AttributeBuilder_Seq(
+        "context.gpencil_data.layers", "layers"
+    ),
     "context.object.material_slots": (),
     "context.selected_nodes": (),
     "context.selected_sequences": (),
     "context.space_data.bookmarks": (),
     "context.space_data.text.filepath": "",
     "context.preferences.filepaths.script_directory": "",
-    "context.tool_settings.snap_elements": (True, ) * 3,
+    "context.tool_settings.snap_elements": (True,) * 3,
     "context.selected_objects": (),
-    "context.tool_settings.mesh_select_mode": (True, ) * 3,
-    "context.mode": 'PAINT_TEXTURE',
+    "context.tool_settings.mesh_select_mode": (True,) * 3,
+    "context.mode": "PAINT_TEXTURE",
 }
 
 
@@ -193,13 +218,11 @@ def NewAttr_Seq(attr, attr_single):
 
 
 class BaseFakeUI:
-
     def __init__(self):
         self.layout = NewAttr("self.layout", "layout")
 
 
 class Panel(BaseFakeUI):
-
     @property
     def is_popover(self):
         return False
@@ -214,15 +237,20 @@ class Header(BaseFakeUI):
 
 
 class Menu(BaseFakeUI):
-
     def draw_preset(self, context):
         pass
 
     def path_menu(
-            self, searchpaths, operator, *,
-            props_default=None, prop_filepath="filepath",
-            filter_ext=None, filter_path=None, display_name=None,
-            add_operator=None,
+        self,
+        searchpaths,
+        operator,
+        *,
+        props_default=None,
+        prop_filepath="filepath",
+        filter_ext=None,
+        filter_path=None,
+        display_name=None,
+        add_operator=None,
     ):
         pass
 
@@ -336,7 +364,6 @@ def fake_main():
 
 
 def fake_helper():
-
     class PropertyPanel:
         pass
 
@@ -407,6 +434,7 @@ def fake_runtime():
 
     def _(refresh=False):
         return ()
+
     addon_utils.modules = _
     del _
     addon_utils.modules_refresh = lambda f: None
@@ -439,8 +467,8 @@ def module_classes(mod):
 
 
 def main():
-
     import os
+
     BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
     BASE_DIR = os.path.normpath(os.path.abspath(BASE_DIR))
     MODULE_DIR_UI = os.path.join(BASE_DIR, "scripts", "startup")
@@ -481,7 +509,7 @@ def main():
                     self = cls()
                     self.draw(NewAttr("context", "context"))
                     # print(self.layout._as_py())
-                    self.layout._args['id'] = mod.__name__ + "." + cls.__name__
+                    self.layout._args["id"] = mod.__name__ + "." + cls.__name__
                     print(self.layout._as_xml())
     print("</ui>")
 

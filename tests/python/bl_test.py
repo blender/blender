@@ -6,8 +6,7 @@ import os
 
 # may split this out into a new file
 def replace_bpy_app_version():
-    """ So MD5's are predictable from output which uses blenders versions.
-    """
+    """So MD5's are predictable from output which uses blenders versions."""
 
     import bpy
 
@@ -33,14 +32,23 @@ def clear_startup_blend():
 
 def blend_to_md5():
     import bpy
+
     scene = bpy.context.scene
     ROUND = 4
 
     def matrix2str(matrix):
-        return "".join([str(round(axis, ROUND)) for vector in matrix for axis in vector]).encode('ASCII')
+        return "".join(
+            [str(round(axis, ROUND)) for vector in matrix for axis in vector]
+        ).encode("ASCII")
 
     def coords2str(seq, attr):
-        return "".join([str(round(axis, ROUND)) for vertex in seq for axis in getattr(vertex, attr)]).encode('ASCII')
+        return "".join(
+            [
+                str(round(axis, ROUND))
+                for vertex in seq
+                for axis in getattr(vertex, attr)
+            ]
+        ).encode("ASCII")
 
     import hashlib
 
@@ -51,9 +59,9 @@ def blend_to_md5():
         md5_update(matrix2str(obj.matrix_world))
         data = obj.data
 
-        if type(data) == bpy.types.Mesh:
+        if type(data) is bpy.types.Mesh:
             md5_update(coords2str(data.vertices, "co"))
-        elif type(data) == bpy.types.Curve:
+        elif type(data) is bpy.types.Curve:
             for spline in data.splines:
                 md5_update(coords2str(spline.bezier_points, "co"))
                 md5_update(coords2str(spline.points, "co"))
@@ -122,16 +130,16 @@ def main():
 
     if write_blend is not None:
         print("  Writing Blend: %s" % write_blend)
-        bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=write_blend)
+        bpy.ops.wm.save_mainfile("EXEC_DEFAULT", filepath=write_blend)
 
     print("  Result: '%s'" % str(result))
     if not result:
         print("  Running: %s -> False" % run)
         sys.exit(1)
 
-    if md5_method == 'SCENE':
+    if md5_method == "SCENE":
         md5_new = blend_to_md5()
-    elif md5_method == 'FILE':
+    elif md5_method == "FILE":
         if not md5_source:
             print("  Missing --md5_source argument")
             sys.exit(1)
@@ -158,7 +166,10 @@ def main():
         sys.exit(1)
 
     if md5 != md5_new:
-        print("  Running: %s\n    MD5 Received: %s\n    MD5 Expected: %s" % (run, md5_new, md5))
+        print(
+            "  Running: %s\n    MD5 Received: %s\n    MD5 Expected: %s"
+            % (run, md5_new, md5)
+        )
         sys.exit(1)
 
     print("  Success: %s" % run)

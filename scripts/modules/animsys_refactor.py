@@ -29,23 +29,26 @@ def classes_recursive(base_type, clss=None):
 
 class DataPathBuilder:
     """Dummy class used to parse fcurve and driver data paths."""
-    __slots__ = ("data_path", )
+
+    __slots__ = ("data_path",)
 
     def __init__(self, attrs):
         self.data_path = attrs
 
     def __getattr__(self, attr):
         str_value = ".%s" % attr
-        return DataPathBuilder(self.data_path + (str_value, ))
+        return DataPathBuilder(self.data_path + (str_value,))
 
     def __getitem__(self, key):
         if type(key) is int:
-            str_value = '[%d]' % key
+            str_value = "[%d]" % key
         elif type(key) is str:
             str_value = '["%s"]' % bpy.utils.escape_identifier(key)
         else:
-            raise Exception("unsupported accessor %r of type %r (internal error)" % (key, type(key)))
-        return DataPathBuilder(self.data_path + (str_value, ))
+            raise Exception(
+                "unsupported accessor %r of type %r (internal error)" % (key, type(key))
+            )
+        return DataPathBuilder(self.data_path + (str_value,))
 
     def resolve(self, real_base, rna_update_from_map, fcurve, log):
         """Return (attribute, value) pairs."""
@@ -56,13 +59,14 @@ class DataPathBuilder:
                 base_new = Ellipsis
                 # find the new name
                 if item.startswith("."):
-                    for class_name, item_new, options in (
-                            rna_update_from_map.get(item[1:], []) +
-                            [(None, item[1:], None)]
-                    ):
+                    for class_name, item_new, options in rna_update_from_map.get(
+                        item[1:], []
+                    ) + [(None, item[1:], None)]:
                         if callable(item_new):
                             # No type check here, callback is assumed to know what it's doing.
-                            base_new, item_new = item_new(base, class_name, item[1:], fcurve, options)
+                            base_new, item_new = item_new(
+                                base, class_name, item[1:], fcurve, options
+                            )
                             if base_new is not Ellipsis:
                                 break  # found, don't keep looking
                         else:
@@ -104,7 +108,7 @@ def id_iter():
 
     for attr in dir(bpy.data):
         data_iter = getattr(bpy.data, attr, None)
-        if type(data_iter) == type_iter:
+        if type(data_iter) is type_iter:
             for id_data in data_iter:
                 if id_data.library is None:
                     yield id_data
@@ -148,7 +152,9 @@ def update_data_paths(rna_update, log=sys.stdout):
 
     rna_update_from_map = {}
     for ren_class, ren_from, ren_to, options in rna_update:
-        rna_update_from_map.setdefault(ren_from, []).append((ren_class, ren_to, options))
+        rna_update_from_map.setdefault(ren_from, []).append(
+            (ren_class, ren_to, options)
+        )
 
     for id_data in id_iter():
         # check node-trees too
@@ -163,42 +169,68 @@ def update_data_paths(rna_update, log=sys.stdout):
 
             for fcurve in anim_data.drivers:
                 data_path = fcurve.data_path
-                data_path_new = find_path_new(anim_data_base, data_path, rna_update_from_map, fcurve, log)
+                data_path_new = find_path_new(
+                    anim_data_base, data_path, rna_update_from_map, fcurve, log
+                )
                 # print(data_path_new)
                 if data_path_new != data_path:
                     if not IS_TESTING:
                         fcurve.data_path = data_path_new
-                        fcurve.driver.is_valid = True  # reset to allow this to work again
-                    print("driver-fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new), file=log)
+                        fcurve.driver.is_valid = (
+                            True  # reset to allow this to work again
+                        )
+                    print(
+                        "driver-fcurve (%s): %s -> %s"
+                        % (id_data.name, data_path, data_path_new),
+                        file=log,
+                    )
 
                 for var in fcurve.driver.variables:
-                    if var.type == 'SINGLE_PROP':
+                    if var.type == "SINGLE_PROP":
                         for tar in var.targets:
                             id_data_other = tar.id
                             data_path = tar.data_path
 
                             if id_data_other and data_path:
-                                data_path_new = find_path_new(id_data_other, data_path, rna_update_from_map, None, log)
+                                data_path_new = find_path_new(
+                                    id_data_other,
+                                    data_path,
+                                    rna_update_from_map,
+                                    None,
+                                    log,
+                                )
                                 # print(data_path_new)
                                 if data_path_new != data_path:
                                     if not IS_TESTING:
                                         tar.data_path = data_path_new
-                                    print("driver (%s): %s -> %s" % (id_data_other.name, data_path, data_path_new),
-                                          file=log)
+                                    print(
+                                        "driver (%s): %s -> %s"
+                                        % (
+                                            id_data_other.name,
+                                            data_path,
+                                            data_path_new,
+                                        ),
+                                        file=log,
+                                    )
 
             for action in anim_data_actions(anim_data):
                 for fcu in action.fcurves:
                     data_path = fcu.data_path
-                    data_path_new = find_path_new(anim_data_base, data_path, rna_update_from_map, fcu, log)
+                    data_path_new = find_path_new(
+                        anim_data_base, data_path, rna_update_from_map, fcu, log
+                    )
                     # print(data_path_new)
                     if data_path_new != data_path:
                         if not IS_TESTING:
                             fcu.data_path = data_path_new
-                        print("fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new), file=log)
+                        print(
+                            "fcurve (%s): %s -> %s"
+                            % (id_data.name, data_path, data_path_new),
+                            file=log,
+                        )
 
 
 if __name__ == "__main__":
-
     # Example, should be called externally
     # (class, from, to or to_callback, callback_options)
     replace_ls = [

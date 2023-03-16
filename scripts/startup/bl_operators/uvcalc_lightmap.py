@@ -23,7 +23,7 @@ class prettyface:
         self.xoff = 0
         self.yoff = 0
 
-        if type(data) == list:  # list of data
+        if type(data) is list:  # list of data
             self.uv = None
 
             # join the data
@@ -54,7 +54,7 @@ class prettyface:
 
             self.children = data
 
-        elif type(data) == tuple:
+        elif type(data) is tuple:
             # 2 blender faces
             # f, (len_min, len_mid, len_max)
             self.uv = data
@@ -79,7 +79,9 @@ class prettyface:
 
             if len(self.uv) == 4:
                 self.width = ((cos[0] - cos[1]).length + (cos[2] - cos[3]).length) / 2.0
-                self.height = ((cos[1] - cos[2]).length + (cos[0] - cos[3]).length) / 2.0
+                self.height = (
+                    (cos[1] - cos[2]).length + (cos[0] - cos[3]).length
+                ) / 2.0
             else:
                 # ngon, note:
                 # for ngons to calculate the width/height we need to do the
@@ -112,8 +114,7 @@ class prettyface:
                 # ngons work different, we store projected result
                 # in UVs to avoid having to re-project later.
                 for i, co in enumerate(cos_2d):
-                    self.uv[i][:] = ((co.x - xmin) / xspan,
-                                     (co.y - ymin) / yspan)
+                    self.uv[i][:] = ((co.x - xmin) / xspan, (co.y - ymin) / yspan)
 
             self.children = []
 
@@ -163,14 +164,15 @@ class prettyface:
                 return [(a1, 0), (a2, 1), (a3, 2)]
 
             def set_uv(f, p1, p2, p3):
-
                 # cos =
                 # v1 = cos[0]-cos[1]
                 # v2 = cos[1]-cos[2]
                 # v3 = cos[2]-cos[0]
 
                 # angles_co = get_tri_angles(*[v.co for v in f])
-                angles_co = get_tri_angles(*[f.id_data.vertices[v].co for v in f.vertices])  # XXX25
+                angles_co = get_tri_angles(
+                    *[f.id_data.vertices[v].co for v in f.vertices]
+                )  # XXX25
 
                 angles_co.sort()
                 I = [i for a, i in angles_co]
@@ -207,8 +209,7 @@ class prettyface:
                 yspan = y2 - y1
                 for uvco in uv:
                     x, y = uvco
-                    uvco[:] = ((x1 + (x * xspan)),
-                               (y1 + (y * yspan)))
+                    uvco[:] = ((x1 + (x * xspan)), (y1 + (y * yspan)))
 
     def __hash__(self):
         # None unique hash
@@ -216,14 +217,14 @@ class prettyface:
 
 
 def lightmap_uvpack(
-        meshes,
-        PREF_SEL_ONLY=True,
-        PREF_NEW_UVLAYER=False,
-        PREF_PACK_IN_ONE=False,
-        PREF_APPLY_IMAGE=False,
-        PREF_IMG_PX_SIZE=512,
-        PREF_BOX_DIV=8,
-        PREF_MARGIN_DIV=512,
+    meshes,
+    PREF_SEL_ONLY=True,
+    PREF_NEW_UVLAYER=False,
+    PREF_PACK_IN_ONE=False,
+    PREF_APPLY_IMAGE=False,
+    PREF_IMG_PX_SIZE=512,
+    PREF_BOX_DIV=8,
+    PREF_MARGIN_DIV=512,
 ):
     """
     BOX_DIV if the maximum division of the UV map that
@@ -241,7 +242,12 @@ def lightmap_uvpack(
 
     if PREF_PACK_IN_ONE:
         if PREF_APPLY_IMAGE:
-            image = bpy.data.images.new(name="lightmap", width=PREF_IMG_PX_SIZE, height=PREF_IMG_PX_SIZE, alpha=False)
+            image = bpy.data.images.new(
+                name="lightmap",
+                width=PREF_IMG_PX_SIZE,
+                height=PREF_IMG_PX_SIZE,
+                alpha=False,
+            )
         face_groups = [[]]
     else:
         face_groups = []
@@ -275,7 +281,6 @@ def lightmap_uvpack(
 
         # Do we have any triangles?
         if len(pretty_faces) != len(face_sel):
-
             # Now add triangles, not so simple because we need to pair them up.
             def trylens(f):
                 # f must be a tri
@@ -283,7 +288,11 @@ def lightmap_uvpack(
                 # cos = [v.co for v in f]
                 cos = [f.id_data.vertices[v].co for v in f.vertices]  # XXX25
 
-                lens = [(cos[0] - cos[1]).length, (cos[1] - cos[2]).length, (cos[2] - cos[0]).length]
+                lens = [
+                    (cos[0] - cos[1]).length,
+                    (cos[1] - cos[2]).length,
+                    (cos[2] - cos[0]).length,
+                ]
 
                 lens_min = lens.index(min(lens))
                 lens_max = lens.index(max(lens))
@@ -299,9 +308,11 @@ def lightmap_uvpack(
             del trylens
 
             def trilensdiff(t1, t2):
-                return (abs(t1[1][t1[2][0]] - t2[1][t2[2][0]]) +
-                        abs(t1[1][t1[2][1]] - t2[1][t2[2][1]]) +
-                        abs(t1[1][t1[2][2]] - t2[1][t2[2][2]]))
+                return (
+                    abs(t1[1][t1[2][0]] - t2[1][t2[2][0]])
+                    + abs(t1[1][t1[2][1]] - t2[1][t2[2][1]])
+                    + abs(t1[1][t1[2][2]] - t2[1][t2[2][2]])
+                )
 
             while tri_lengths:
                 tri1 = tri_lengths.pop()
@@ -469,7 +480,9 @@ def lightmap_uvpack(
                         ok = True
                         c += 1
 
-                        pf_parent = prettyface([boxes.pop(), boxes.pop(), boxes.pop(), boxes.pop()])
+                        pf_parent = prettyface(
+                            [boxes.pop(), boxes.pop(), boxes.pop(), boxes.pop()]
+                        )
                         pretty_faces.append(pf_parent)
                         w = pf_parent.width  # width and weight are the same
                         even_dict.setdefault(w, []).append(pf_parent)
@@ -499,7 +512,9 @@ def lightmap_uvpack(
 
         # boxes2Pack.append([islandIdx, w,h])
         print("\tPacking Boxes", len(pretty_faces), end="...")
-        boxes2Pack = [[0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)]
+        boxes2Pack = [
+            [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)
+        ]
         packWidth, packHeight = mathutils.geometry.box_pack_2d(boxes2Pack)
 
         # print(packWidth, packHeight)
@@ -516,14 +531,16 @@ def lightmap_uvpack(
         # Apply the boxes back to the UV coords.
         print("\twriting back UVs", end="")
         for i, box in enumerate(boxes2Pack):
-            pretty_faces[i].place(box[0], box[1], packWidth, packHeight, margin_w, margin_h)
+            pretty_faces[i].place(
+                box[0], box[1], packWidth, packHeight, margin_w, margin_h
+            )
             # pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
         print("done")
 
         if PREF_APPLY_IMAGE:
             pass
             # removed with texface
-            '''
+            """
             if not PREF_PACK_IN_ONE:
                 image = bpy.data.images.new(name="lightmap",
                                             width=PREF_IMG_PX_SIZE,
@@ -532,7 +549,7 @@ def lightmap_uvpack(
 
             for f in face_sel:
                 f.image = image
-            '''
+            """
 
     for me in meshes:
         me.update()
@@ -542,28 +559,31 @@ def lightmap_uvpack(
 
 def unwrap(operator, context, **kwargs):
     # switch to object mode
-    is_editmode = context.object and context.object.mode == 'EDIT'
+    is_editmode = context.object and context.object.mode == "EDIT"
     if is_editmode:
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
 
     # define list of meshes
-    meshes = list({
-        me for obj in context.selected_objects
-        if obj.type == 'MESH'
-        if (me := obj.data).polygons and me.library is None
-    })
+    meshes = list(
+        {
+            me
+            for obj in context.selected_objects
+            if obj.type == "MESH"
+            if (me := obj.data).polygons and me.library is None
+        }
+    )
 
     if not meshes:
-        operator.report({'ERROR'}, "No mesh object")
-        return {'CANCELLED'}
+        operator.report({"ERROR"}, "No mesh object")
+        return {"CANCELLED"}
 
     lightmap_uvpack(meshes, **kwargs)
 
     # switch back to edit mode
     if is_editmode:
-        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        bpy.ops.object.mode_set(mode="EDIT", toggle=False)
 
-    return {'FINISHED'}
+    return {"FINISHED"}
 
 
 from bpy.props import BoolProperty, FloatProperty, IntProperty
@@ -571,6 +591,7 @@ from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 class LightMapPack(Operator):
     """Pack each face's UVs into the UV bounds"""
+
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 
@@ -582,13 +603,13 @@ class LightMapPack(Operator):
     # but for now just disable redo. Keep undo here so unwanted changes to uv
     # coords might be undone.
     # This fixes infinite image creation reported there #30968 (sergey)
-    bl_options = {'UNDO'}
+    bl_options = {"UNDO"}
 
     PREF_CONTEXT: bpy.props.EnumProperty(
         name="Selection",
         items=(
-            ('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
-            ('ALL_FACES', "All Faces", "Average space UVs edge length of each loop"),
+            ("SEL_FACES", "Selected Faces", "Space all UVs evenly"),
+            ("ALL_FACES", "All Faces", "Average space UVs edge length of each loop"),
         ),
     )
 
@@ -596,8 +617,7 @@ class LightMapPack(Operator):
     PREF_PACK_IN_ONE: BoolProperty(
         name="Share Texture Space",
         description=(
-            "Objects share texture space, map all objects "
-            "into a single UV map"
+            "Objects share texture space, map all objects " "into a single UV map"
         ),
         default=True,
     )
@@ -617,7 +637,8 @@ class LightMapPack(Operator):
     PREF_IMG_PX_SIZE: IntProperty(
         name="Image Size",
         description="Width and height for the new image",
-        min=64, max=5000,
+        min=64,
+        max=5000,
         default=512,
     )
     # UV Packing...
@@ -627,13 +648,15 @@ class LightMapPack(Operator):
             "Quality of the packing. "
             "Higher values will be slower but waste less space"
         ),
-        min=1, max=48,
+        min=1,
+        max=48,
         default=12,
     )
     PREF_MARGIN_DIV: FloatProperty(
         name="Margin",
         description="Size of the margin as a division of the UV",
-        min=0.001, max=1.0,
+        min=0.001,
+        max=1.0,
         default=0.1,
     )
 
@@ -642,7 +665,7 @@ class LightMapPack(Operator):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        is_editmode = context.active_object.mode == 'EDIT'
+        is_editmode = context.active_object.mode == "EDIT"
         if is_editmode:
             layout.prop(self, "PREF_CONTEXT")
 
@@ -656,19 +679,19 @@ class LightMapPack(Operator):
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        return ob and ob.type == 'MESH'
+        return ob and ob.type == "MESH"
 
     def execute(self, context):
         kwargs = self.as_keywords()
         PREF_CONTEXT = kwargs.pop("PREF_CONTEXT")
 
-        is_editmode = context.active_object.mode == 'EDIT'
+        is_editmode = context.active_object.mode == "EDIT"
 
         if not is_editmode:
             kwargs["PREF_SEL_ONLY"] = False
-        elif PREF_CONTEXT == 'SEL_FACES':
+        elif PREF_CONTEXT == "SEL_FACES":
             kwargs["PREF_SEL_ONLY"] = True
-        elif PREF_CONTEXT == 'ALL_FACES':
+        elif PREF_CONTEXT == "ALL_FACES":
             kwargs["PREF_SEL_ONLY"] = False
         else:
             raise Exception("invalid context")
@@ -682,6 +705,4 @@ class LightMapPack(Operator):
         return wm.invoke_props_dialog(self)
 
 
-classes = (
-    LightMapPack,
-)
+classes = (LightMapPack,)

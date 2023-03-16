@@ -16,8 +16,12 @@ import os
 import re
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))))
-FILE_OP_DEFINES_C = os.path.join(SOURCE_DIR, "source", "blender", "bmesh", "intern", "bmesh_opdefines.c")
+SOURCE_DIR = os.path.normpath(
+    os.path.abspath(os.path.normpath(os.path.join(CURRENT_DIR, "..", "..")))
+)
+FILE_OP_DEFINES_C = os.path.join(
+    SOURCE_DIR, "source", "blender", "bmesh", "intern", "bmesh_opdefines.c"
+)
 OUT_RST = os.path.join(CURRENT_DIR, "rst", "bmesh.ops.rst")
 
 HEADER = r"""
@@ -41,7 +45,7 @@ This script shows how operators can be used to model a link of a chain.
 
 
 def main():
-    fsrc = open(FILE_OP_DEFINES_C, 'r', encoding="utf-8")
+    fsrc = open(FILE_OP_DEFINES_C, "r", encoding="utf-8")
 
     blocks = []
 
@@ -55,9 +59,9 @@ def main():
         l = l[:-1]
         # weak but ok
         if (
-            (("BMOpDefine" in l and l.split()[1] == "BMOpDefine") and "bmo_opdefines[]" not in l) or
-            ("static BMO_FlagSet " in l)
-        ):
+            ("BMOpDefine" in l and l.split()[1] == "BMOpDefine")
+            and "bmo_opdefines[]" not in l
+        ) or ("static BMO_FlagSet " in l):
             is_block = True
             block_ctx = []
             blocks.append((comment_ctx, block_ctx))
@@ -108,29 +112,23 @@ def main():
         "BMO_OP_SLOT_VEC",
         "BMO_OP_SLOT_PTR",
         "BMO_OP_SLOT_MAPPING",
-
         "BMO_OP_SLOT_SUBTYPE_MAP_ELEM",
         "BMO_OP_SLOT_SUBTYPE_MAP_BOOL",
         "BMO_OP_SLOT_SUBTYPE_MAP_INT",
         "BMO_OP_SLOT_SUBTYPE_MAP_FLT",
         "BMO_OP_SLOT_SUBTYPE_MAP_EMPTY",
         "BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL",
-
         "BMO_OP_SLOT_SUBTYPE_PTR_BMESH",
         "BMO_OP_SLOT_SUBTYPE_PTR_SCENE",
         "BMO_OP_SLOT_SUBTYPE_PTR_OBJECT",
         "BMO_OP_SLOT_SUBTYPE_PTR_MESH",
         "BMO_OP_SLOT_SUBTYPE_PTR_STRUCT",
-
         "BMO_OP_SLOT_SUBTYPE_INT_ENUM",
         "BMO_OP_SLOT_SUBTYPE_INT_FLAG",
-
         "BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE",
-
         "BM_VERT",
         "BM_EDGE",
         "BM_FACE",
-
         "BMO_OPTYPE_FLAG_NORMALS_CALC",
         "BMO_OPTYPE_FLAG_UNTAN_MULTIRES",
         "BMO_OPTYPE_FLAG_SELECT_FLUSH",
@@ -139,7 +137,7 @@ def main():
     )
     vars_dict = {}
     for i, v in enumerate(vars):
-        vars_dict[v] = (1 << i)
+        vars_dict[v] = 1 << i
     globals().update(vars_dict)
     # reverse lookup
     vars_dict_reverse = {v: k for k, v in vars_dict.items()}
@@ -184,7 +182,7 @@ def main():
             text = text.replace("[]", "")
             text = text.strip(";")
             text = text.replace("(", "[").replace(")", "]")
-            text = text.replace("\"", "'")
+            text = text.replace('"', "'")
 
             k, v = text.split("=", 1)
 
@@ -207,20 +205,20 @@ def main():
 
         text_a, text_b = text.split("=", 1)
         text = "result = " + text_b
-        exec(compile(text, "generated", 'exec'), global_namespace)
+        exec(compile(text, "generated", "exec"), global_namespace)
         # print(global_namespace["result"])
         blocks_py.append((comment, global_namespace["result"]))
 
     # ---------------------
     # Now convert into rst.
-    fout = open(OUT_RST, 'w', encoding="utf-8")
+    fout = open(OUT_RST, "w", encoding="utf-8")
     fw = fout.write
     fw(HEADER)
     for comment, b in blocks_py:
         args_in = None
         args_out = None
         for member in b[1:]:
-            if type(member) == tuple:
+            if type(member) is tuple:
                 if args_in is None:
                     args_in = member
                 elif args_out is None:
@@ -231,9 +229,11 @@ def main():
         args_out_index = []
 
         if args_in is not None:
-            args_in_index[:] = [i for (i, a) in enumerate(args_in) if type(a) == tuple]
+            args_in_index[:] = [i for (i, a) in enumerate(args_in) if type(a) is tuple]
         if args_out is not None:
-            args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) == tuple]
+            args_out_index[:] = [
+                i for (i, a) in enumerate(args_out) if type(a) is tuple
+            ]
 
         # get the args
         def get_args_wash(args, args_index, is_ret):
@@ -257,14 +257,16 @@ def main():
                 comment_next = ""
                 if i != 0:
                     comment_prev = args[i + 1]
-                    if type(comment_prev) == str and comment_prev.startswith("our <"):
+                    if type(comment_prev) is str and comment_prev.startswith("our <"):
                         comment_prev = comment_next[5:-1]  # strip inline <...>
                     else:
                         comment_prev = ""
 
                 if i + 1 < len(args):
                     comment_next = args[i + 1]
-                    if type(comment_next) == str and comment_next.startswith("inline <"):
+                    if type(comment_next) is str and comment_next.startswith(
+                        "inline <"
+                    ):
                         comment_next = comment_next[8:-1]  # strip inline <...>
                     else:
                         comment_next = ""
@@ -278,33 +280,35 @@ def main():
                 default_value = None
                 if tp == BMO_OP_SLOT_FLT:
                     tp_str = "float"
-                    default_value = '0'
+                    default_value = "0"
 
                 elif tp == BMO_OP_SLOT_INT:
                     if tp_sub == BMO_OP_SLOT_SUBTYPE_INT_ENUM:
                         default_value = enums.split(",", 1)[0].strip("[")
                         tp_str = "enum in " + enums + ", default " + default_value
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_INT_FLAG:
-                        default_value = 'set()'
-                        tp_str = "set of flags from " + enums + ", default " + default_value
+                        default_value = "set()"
+                        tp_str = (
+                            "set of flags from " + enums + ", default " + default_value
+                        )
                     else:
                         tp_str = "int"
-                        default_value = '0'
+                        default_value = "0"
                 elif tp == BMO_OP_SLOT_BOOL:
                     tp_str = "bool"
-                    default_value = 'False'
+                    default_value = "False"
                 elif tp == BMO_OP_SLOT_MAT:
                     tp_str = ":class:`mathutils.Matrix`"
-                    default_value = 'mathutils.Matrix.Identity(4)'
+                    default_value = "mathutils.Matrix.Identity(4)"
                 elif tp == BMO_OP_SLOT_VEC:
                     tp_str = ":class:`mathutils.Vector`"
-                    default_value = 'mathutils.Vector()'
+                    default_value = "mathutils.Vector()"
                     if not is_ret:
                         tp_str += " or any sequence of 3 floats"
                 elif tp == BMO_OP_SLOT_PTR:
                     assert tp_sub is not None
-                    if 'if None' in comment:
-                        default_value = 'None'
+                    if "if None" in comment:
+                        default_value = "None"
                     if tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_BMESH:
                         tp_str = ":class:`bmesh.types.BMesh`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_SCENE:
@@ -336,17 +340,17 @@ def main():
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
                         tp_str = "/".join(ls)
                     else:
-                        tp_str = ("list of (%s)" % ", ".join(ls))
-                        default_value = '[]'
+                        tp_str = "list of (%s)" % ", ".join(ls)
+                        default_value = "[]"
 
                     del ls
                 elif tp == BMO_OP_SLOT_MAPPING:
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_MAP_EMPTY:
                         tp_str = "set of vert/edge/face type"
-                        default_value = 'set()'
+                        default_value = "set()"
                     else:
                         tp_str = "dict mapping vert/edge/face types to "
-                        default_value = '{}'
+                        default_value = "{}"
                         if tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_BOOL:
                             tp_str += "bool"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INT:
@@ -356,7 +360,9 @@ def main():
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
                             tp_str += ":class:`bmesh.types.BMVert`/:class:`bmesh.types.BMEdge`/:class:`bmesh.types.BMFace`"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
-                            tp_str += "unknown internal data, not compatible with python"
+                            tp_str += (
+                                "unknown internal data, not compatible with python"
+                            )
                         else:
                             print("Can't find", vars_dict_reverse[tp_sub])
                             assert 0
@@ -366,19 +372,25 @@ def main():
 
                 args_wash.append((name, default_value, tp_str, comment))
             return args_wash
+
         # end get_args_wash
 
         args_in_wash = get_args_wash(args_in, args_in_index, False)
 
-        fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([arg_name_with_default(arg) for arg in args_in_wash])))
+        fw(
+            ".. function:: %s(bm, %s)\n\n"
+            % (b[0], ", ".join([arg_name_with_default(arg) for arg in args_in_wash]))
+        )
 
         # -- wash the comment
         comment_washed = []
         comment = [] if comment is None else comment
         for i, l in enumerate(comment):
-            assert ((l.strip() == "") or
-                    (l in {"/*", " *"}) or
-                    (l.startswith(("/* ", " * "))))
+            assert (
+                (l.strip() == "")
+                or (l in {"/*", " *"})
+                or (l.startswith(("/* ", " * ")))
+            )
 
             l = l[3:]
             if i == 0 and not l.strip():
@@ -397,7 +409,7 @@ def main():
 
         args_out_wash = get_args_wash(args_out, args_out_index, True)
 
-        for (name, _, tp, comment) in args_in_wash:
+        for name, _, tp, comment in args_in_wash:
             if comment == "":
                 comment = "Undocumented."
 
@@ -407,7 +419,7 @@ def main():
         if args_out_wash:
             fw("   :return:\n\n")
 
-            for (name, _, tp, comment) in args_out_wash:
+            for name, _, tp, comment in args_out_wash:
                 assert name.endswith(".out")
                 name = name[:-4]
                 fw("      - ``%s``: %s\n\n" % (name, comment))
@@ -427,7 +439,7 @@ def arg_name_with_default(arg):
     name, default_value, _, _ = arg
     if default_value is None:
         return name
-    return name + '=' + default_value
+    return name + "=" + default_value
 
 
 if __name__ == "__main__":

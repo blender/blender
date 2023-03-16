@@ -46,13 +46,13 @@ def open_blend(filename, access="rb"):
         bfile.is_compressed = False
         bfile.filepath_orig = filename
         return bfile
-    elif magic[:2] == b'\x1f\x8b':
+    elif magic[:2] == b"\x1f\x8b":
         log.debug("gzip blendfile detected")
         handle.close()
         log.debug("decompressing started")
         fs = gzip.open(filename, "rb")
         data = fs.read(FILE_BUFFER_SIZE)
-        magic = data[:len(magic_test)]
+        magic = data[: len(magic_test)]
         if magic == magic_test:
             handle = tempfile.TemporaryFile()
             while data:
@@ -84,6 +84,7 @@ class BlendFile:
     """
     Blend file.
     """
+
     __slots__ = (
         # file (result of open())
         "handle",
@@ -121,11 +122,12 @@ class BlendFile:
         self.sdna_index_from_id = {}
 
         block = BlendFileBlock(handle, self)
-        while block.code != b'ENDB':
-            if block.code == b'DNA1':
-                (self.structs,
-                 self.sdna_index_from_id,
-                 ) = BlendFile.decode_structs(self.header, block, handle)
+        while block.code != b"ENDB":
+            if block.code == b"DNA1":
+                (
+                    self.structs,
+                    self.sdna_index_from_id,
+                ) = BlendFile.decode_structs(self.header, block, handle)
             else:
                 handle.seek(block.size, os.SEEK_CUR)
 
@@ -137,13 +139,17 @@ class BlendFile:
         self.blocks.append(block)
 
         if not self.structs:
-            raise BlendFileError("No DNA1 block in file, this is not a valid .blend file!")
+            raise BlendFileError(
+                "No DNA1 block in file, this is not a valid .blend file!"
+            )
 
         # Cache (could lazy init, in case we never use?).
-        self.block_from_offset = {block.addr_old: block for block in self.blocks if block.code != b'ENDB'}
+        self.block_from_offset = {
+            block.addr_old: block for block in self.blocks if block.code != b"ENDB"
+        }
 
     def __repr__(self):
-        return '<%s %r>' % (self.__class__.__qualname__, self.handle)
+        return "<%s %r>" % (self.__class__.__qualname__, self.handle)
 
     def __enter__(self):
         return self
@@ -152,7 +158,7 @@ class BlendFile:
         self.close()
 
     def find_blocks_from_code(self, code):
-        assert type(code) == bytes
+        assert type(code) is bytes
         if code not in self.code_index:
             return []
         return self.code_index[code]
@@ -187,12 +193,14 @@ class BlendFile:
 
     def ensure_subtype_smaller(self, sdna_index_curr, sdna_index_next):
         # never refine to a smaller type
-        if (self.structs[sdna_index_curr].size >
-                self.structs[sdna_index_next].size):
-
-            raise RuntimeError("cant refine to smaller type (%s -> %s)" %
-                               (self.structs[sdna_index_curr].dna_type_id.decode('ascii'),
-                                self.structs[sdna_index_next].dna_type_id.decode('ascii')))
+        if self.structs[sdna_index_curr].size > self.structs[sdna_index_next].size:
+            raise RuntimeError(
+                "cant refine to smaller type (%s -> %s)"
+                % (
+                    self.structs[sdna_index_curr].dna_type_id.decode("ascii"),
+                    self.structs[sdna_index_next].dna_type_id.decode("ascii"),
+                )
+            )
 
     @staticmethod
     def decode_structs(header, block, handle):
@@ -201,7 +209,7 @@ class BlendFile:
         """
         log.debug("building DNA catalog")
         shortstruct = DNA_IO.USHORT[header.endian_index]
-        shortstruct2 = struct.Struct(header.endian_str + b'HH')
+        shortstruct2 = struct.Struct(header.endian_str + b"HH")
         intstruct = DNA_IO.UINT[header.endian_index]
 
         data = handle.read(block.size)
@@ -283,6 +291,7 @@ class BlendFileBlock:
     """
     Instance of a struct.
     """
+
     __slots__ = (
         # BlendFile
         "file",
@@ -296,18 +305,22 @@ class BlendFileBlock:
     )
 
     def __str__(self):
-        return ("<%s.%s (%s), size=%d at %s>" %
-                # fields=[%s]
-                (self.__class__.__name__,
-                 self.dna_type_name,
-                 self.code.decode(),
-                 self.size,
-                 # b", ".join(f.dna_name.name_only for f in self.dna_type.fields).decode('ascii'),
-                 hex(self.addr_old),
-                 ))
+        return (
+            "<%s.%s (%s), size=%d at %s>"
+            %
+            # fields=[%s]
+            (
+                self.__class__.__name__,
+                self.dna_type_name,
+                self.code.decode(),
+                self.size,
+                # b", ".join(f.dna_name.name_only for f in self.dna_type.fields).decode('ascii'),
+                hex(self.addr_old),
+            )
+        )
 
     def __init__(self, handle, bfile):
-        OLDBLOCK = struct.Struct(b'4sI')
+        OLDBLOCK = struct.Struct(b"4sI")
 
         self.file = bfile
         self.user_data = None
@@ -316,7 +329,7 @@ class BlendFileBlock:
 
         if len(data) != bfile.block_header_struct.size:
             print("WARNING! Blend file seems to be badly truncated!")
-            self.code = b'ENDB'
+            self.code = b"ENDB"
             self.size = 0
             self.addr_old = 0
             self.sdna_index = 0
@@ -329,8 +342,8 @@ class BlendFileBlock:
         # 24: normal headers 64 bit platform
         if len(data) > 15:
             blockheader = bfile.block_header_struct.unpack(data)
-            self.code = blockheader[0].partition(b'\0')[0]
-            if self.code != b'ENDB':
+            self.code = blockheader[0].partition(b"\0")[0]
+            if self.code != b"ENDB":
                 self.size = blockheader[1]
                 self.addr_old = blockheader[2]
                 self.sdna_index = blockheader[3]
@@ -344,7 +357,7 @@ class BlendFileBlock:
                 self.file_offset = 0
         else:
             blockheader = OLDBLOCK.unpack(data)
-            self.code = blockheader[0].partition(b'\0')[0]
+            self.code = blockheader[0].partition(b"\0")[0]
             self.code = DNA_IO.read_data0(blockheader[0])
             self.size = 0
             self.addr_old = 0
@@ -358,7 +371,7 @@ class BlendFileBlock:
 
     @property
     def dna_type_name(self):
-        return self.dna_type.dna_type_id.decode('ascii')
+        return self.dna_type.dna_type_id.decode("ascii")
 
     def refine_type_from_index(self, sdna_index_next):
         assert type(sdna_index_next) is int
@@ -371,10 +384,11 @@ class BlendFileBlock:
         self.refine_type_from_index(self.file.sdna_index_from_id[dna_type_id])
 
     def get_file_offset(
-            self, path,
-            default=...,
-            sdna_index_refine=None,
-            base_index=0,
+        self,
+        path,
+        default=...,
+        sdna_index_refine=None,
+        base_index=0,
     ):
         """
         Return (offset, length)
@@ -393,19 +407,19 @@ class BlendFileBlock:
             self.file.ensure_subtype_smaller(self.sdna_index, sdna_index_refine)
 
         dna_struct = self.file.structs[sdna_index_refine]
-        field = dna_struct.field_from_path(
-            self.file.header, self.file.handle, path)
+        field = dna_struct.field_from_path(self.file.header, self.file.handle, path)
 
         return (self.file.handle.tell(), field.dna_name.array_size)
 
     def get(
-            self, path,
-            default=...,
-            sdna_index_refine=None,
-            use_nil=True, use_str=True,
-            base_index=0,
+        self,
+        path,
+        default=...,
+        sdna_index_refine=None,
+        use_nil=True,
+        use_str=True,
+        base_index=0,
     ):
-
         ofs = self.file_offset
         if base_index != 0:
             assert base_index < self.count
@@ -419,19 +433,26 @@ class BlendFileBlock:
 
         dna_struct = self.file.structs[sdna_index_refine]
         return dna_struct.field_get(
-            self.file.header, self.file.handle, path,
+            self.file.header,
+            self.file.handle,
+            path,
             default=default,
-            use_nil=use_nil, use_str=use_str,
+            use_nil=use_nil,
+            use_str=use_str,
         )
 
     def get_raw_data(self, dna_type_id, base_index=0):
         dna_types_to_size = {
-            b'char': 1, b'uchar': 1,
-            b'short': 2, b'ushort': 2,
-            b'int': 4, b'uint': 4,
-            b'int64_t': 8, b'uint64_t': 8,
-            b'float': 4,
-            b'double': 8,
+            b"char": 1,
+            b"uchar": 1,
+            b"short": 2,
+            b"ushort": 2,
+            b"int": 4,
+            b"uint": 4,
+            b"int64_t": 8,
+            b"uint64_t": 8,
+            b"float": 4,
+            b"double": 8,
         }
         if dna_type_id not in dna_types_to_size:
             raise NotImplementedError("Cannot read raw data of type %r" % dna_type_id)
@@ -447,46 +468,69 @@ class BlendFileBlock:
         self.file.handle.seek(ofs, os.SEEK_SET)
 
         print(dna_type_id, array_size, dna_size)
-        return DNA_IO.read_data(self.file.handle, self.file.header,
-                                is_pointer,
-                                dna_type_id,
-                                dna_size,
-                                array_size)
+        return DNA_IO.read_data(
+            self.file.handle,
+            self.file.header,
+            is_pointer,
+            dna_type_id,
+            dna_size,
+            array_size,
+        )
 
     def get_recursive_iter(
-            self, path, path_root=b"",
-            default=...,
-            sdna_index_refine=None,
-            use_nil=True, use_str=True,
-            base_index=0,
+        self,
+        path,
+        path_root=b"",
+        default=...,
+        sdna_index_refine=None,
+        use_nil=True,
+        use_str=True,
+        base_index=0,
     ):
         if path_root:
-            path_full = (
-                (path_root if type(path_root) is tuple else (path_root, )) +
-                (path if type(path) is tuple else (path, )))
+            path_full = (path_root if type(path_root) is tuple else (path_root,)) + (
+                path if type(path) is tuple else (path,)
+            )
         else:
             path_full = path
 
         try:
-            yield (path_full, self.get(path_full, default, sdna_index_refine, use_nil, use_str, base_index))
+            yield (
+                path_full,
+                self.get(
+                    path_full, default, sdna_index_refine, use_nil, use_str, base_index
+                ),
+            )
         except NotImplementedError as ex:
             msg, dna_name, dna_type = ex.args
             struct_index = self.file.sdna_index_from_id.get(dna_type.dna_type_id, None)
             if struct_index is None:
-                yield (path_full, "<%s>" % dna_type.dna_type_id.decode('ascii'))
+                yield (path_full, "<%s>" % dna_type.dna_type_id.decode("ascii"))
             else:
                 struct = self.file.structs[struct_index]
                 if dna_name.array_size > 1:
                     for index in range(dna_name.array_size):
                         for f in struct.fields:
                             yield from self.get_recursive_iter(
-                                (index, f.dna_name.name_only), path_full,
-                                default, None, use_nil, use_str, 0)
+                                (index, f.dna_name.name_only),
+                                path_full,
+                                default,
+                                None,
+                                use_nil,
+                                use_str,
+                                0,
+                            )
                 else:
                     for f in struct.fields:
                         yield from self.get_recursive_iter(
-                            f.dna_name.name_only, path_full,
-                            default, None, use_nil, use_str, 0)
+                            f.dna_name.name_only,
+                            path_full,
+                            default,
+                            None,
+                            use_nil,
+                            use_str,
+                            0,
+                        )
 
     def items_recursive_iter(self, use_nil=True):
         for k in self.keys():
@@ -502,8 +546,11 @@ class BlendFileBlock:
         import zlib
 
         def _is_pointer(self, k):
-            return self.file.structs[self.sdna_index].field_from_path(
-                self.file.header, self.file.handle, k).dna_name.is_pointer
+            return (
+                self.file.structs[self.sdna_index]
+                .field_from_path(self.file.header, self.file.handle, k)
+                .dna_name.is_pointer
+            )
 
         hsh = 1
         for k, v in self.items_recursive_iter():
@@ -512,10 +559,11 @@ class BlendFileBlock:
         return hsh
 
     def set(
-            self, path, value,
-            sdna_index_refine=None,
+        self,
+        path,
+        value,
+        sdna_index_refine=None,
     ):
-
         if sdna_index_refine is None:
             sdna_index_refine = self.sdna_index
         else:
@@ -524,29 +572,34 @@ class BlendFileBlock:
         dna_struct = self.file.structs[sdna_index_refine]
         self.file.handle.seek(self.file_offset, os.SEEK_SET)
         self.file.is_modified = True
-        return dna_struct.field_set(
-            self.file.header, self.file.handle, path, value)
+        return dna_struct.field_set(self.file.header, self.file.handle, path, value)
 
     # ---------------
     # Utility get/set
     #
     #   avoid inline pointer casting
     def get_pointer(
-            self, path,
-            default=...,
-            sdna_index_refine=None,
-            base_index=0,
+        self,
+        path,
+        default=...,
+        sdna_index_refine=None,
+        base_index=0,
     ):
         if sdna_index_refine is None:
             sdna_index_refine = self.sdna_index
-        result = self.get(path, default, sdna_index_refine=sdna_index_refine, base_index=base_index)
+        result = self.get(
+            path, default, sdna_index_refine=sdna_index_refine, base_index=base_index
+        )
 
         # default
         if type(result) is not int:
             return result
 
-        assert self.file.structs[sdna_index_refine].field_from_path(
-            self.file.header, self.file.handle, path).dna_name.is_pointer
+        assert (
+            self.file.structs[sdna_index_refine]
+            .field_from_path(self.file.header, self.file.handle, path)
+            .dna_name.is_pointer
+        )
         if result != 0:
             # possible (but unlikely)
             # that this fails and returns None
@@ -574,7 +627,7 @@ class BlendFileBlock:
                 yield self[k]
             except NotImplementedError as ex:
                 msg, dna_name, dna_type = ex.args
-                yield "<%s>" % dna_type.dna_type_id.decode('ascii')
+                yield "<%s>" % dna_type.dna_type_id.decode("ascii")
 
     def items(self):
         for k in self.keys():
@@ -582,7 +635,7 @@ class BlendFileBlock:
                 yield (k, self[k])
             except NotImplementedError as ex:
                 msg, dna_name, dna_type = ex.args
-                yield (k, "<%s>" % dna_type.dna_type_id.decode('ascii'))
+                yield (k, "<%s>" % dna_type.dna_type_id.decode("ascii"))
 
 
 # -----------------------------------------------------------------------------
@@ -599,6 +652,7 @@ class BlendFileHeader:
     BlendFileHeader allocates the first 12 bytes of a blend file
     it contains information about the hardware architecture
     """
+
     __slots__ = (
         # str
         "magic",
@@ -615,27 +669,27 @@ class BlendFileHeader:
     )
 
     def __init__(self, handle):
-        FILEHEADER = struct.Struct(b'7s1s1s3s')
+        FILEHEADER = struct.Struct(b"7s1s1s3s")
 
         log.debug("reading blend-file-header")
         values = FILEHEADER.unpack(handle.read(FILEHEADER.size))
         self.magic = values[0]
         pointer_size_id = values[1]
-        if pointer_size_id == b'-':
+        if pointer_size_id == b"-":
             self.pointer_size = 8
-        elif pointer_size_id == b'_':
+        elif pointer_size_id == b"_":
             self.pointer_size = 4
         else:
             assert 0
         endian_id = values[2]
-        if endian_id == b'v':
+        if endian_id == b"v":
             self.is_little_endian = True
-            self.endian_str = b'<'
+            self.endian_str = b"<"
             self.endian_index = 0
-        elif endian_id == b'V':
+        elif endian_id == b"V":
             self.is_little_endian = False
             self.endian_index = 1
-            self.endian_str = b'>'
+            self.endian_str = b">"
         else:
             assert 0
 
@@ -643,18 +697,23 @@ class BlendFileHeader:
         self.version = int(version_id)
 
     def create_block_header_struct(self):
-        return struct.Struct(b''.join((
-            self.endian_str,
-            b'4sI',
-            b'I' if self.pointer_size == 4 else b'Q',
-            b'II',
-        )))
+        return struct.Struct(
+            b"".join(
+                (
+                    self.endian_str,
+                    b"4sI",
+                    b"I" if self.pointer_size == 4 else b"Q",
+                    b"II",
+                )
+            )
+        )
 
 
 class DNAName:
     """
     DNAName is a C-type name stored in the DNA
     """
+
     __slots__ = (
         "name_full",
         "name_only",
@@ -671,40 +730,40 @@ class DNAName:
         self.array_size = self.calc_array_size()
 
     def __repr__(self):
-        return '%s(%r)' % (type(self).__qualname__, self.name_full)
+        return "%s(%r)" % (type(self).__qualname__, self.name_full)
 
     def as_reference(self, parent):
         if parent is None:
-            result = b''
+            result = b""
         else:
-            result = parent + b'.'
+            result = parent + b"."
 
         result = result + self.name_only
         return result
 
     def calc_name_only(self):
-        result = self.name_full.strip(b'*()')
-        index = result.find(b'[')
+        result = self.name_full.strip(b"*()")
+        index = result.find(b"[")
         if index != -1:
             result = result[:index]
         return result
 
     def calc_is_pointer(self):
-        return (b'*' in self.name_full)
+        return b"*" in self.name_full
 
     def calc_is_method_pointer(self):
-        return (b'(*' in self.name_full)
+        return b"(*" in self.name_full
 
     def calc_array_size(self):
         result = 1
         temp = self.name_full
-        index = temp.find(b'[')
+        index = temp.find(b"[")
 
         while index != -1:
-            index_2 = temp.find(b']')
-            result *= int(temp[index + 1:index_2])
+            index_2 = temp.find(b"]")
+            result *= int(temp[index + 1: index_2])
             temp = temp[index_2 + 1:]
-            index = temp.find(b'[')
+            index = temp.find(b"[")
 
         return result
 
@@ -714,6 +773,7 @@ class DNAField:
     DNAField is a coupled DNAStruct and DNAName
     and cache offset for reuse
     """
+
     __slots__ = (
         # DNAName
         "dna_name",
@@ -737,6 +797,7 @@ class DNAStruct:
     """
     DNAStruct is a C-type structure stored in the DNA
     """
+
     __slots__ = (
         "dna_type_id",
         "size",
@@ -752,7 +813,7 @@ class DNAStruct:
         self.user_data = None
 
     def __repr__(self):
-        return '%s(%r)' % (type(self).__qualname__, self.dna_type_id)
+        return "%s(%r)" % (type(self).__qualname__, self.dna_type_id)
 
     def field_from_path(self, header, handle, path):
         """
@@ -794,54 +855,74 @@ class DNAStruct:
                 return field.dna_type.field_from_path(header, handle, name_tail)
 
     def field_get(
-            self, header, handle, path,
-            default=...,
-            use_nil=True, use_str=True,
+        self,
+        header,
+        handle,
+        path,
+        default=...,
+        use_nil=True,
+        use_str=True,
     ):
         field = self.field_from_path(header, handle, path)
         if field is None:
             if default is not ...:
                 return default
             else:
-                raise KeyError("%r not found in %r (%r)" %
-                               (path, [f.dna_name.name_only for f in self.fields], self.dna_type_id))
+                raise KeyError(
+                    "%r not found in %r (%r)"
+                    % (
+                        path,
+                        [f.dna_name.name_only for f in self.fields],
+                        self.dna_type_id,
+                    )
+                )
 
         dna_type = field.dna_type
         dna_name = field.dna_name
         dna_size = field.dna_size
 
         try:
-            return DNA_IO.read_data(handle, header,
-                                    dna_name.is_pointer,
-                                    dna_type.dna_type_id,
-                                    dna_size,
-                                    dna_name.array_size,
-                                    use_str=use_str,
-                                    use_str_nil=use_nil,
-                                    )
+            return DNA_IO.read_data(
+                handle,
+                header,
+                dna_name.is_pointer,
+                dna_type.dna_type_id,
+                dna_size,
+                dna_name.array_size,
+                use_str=use_str,
+                use_str_nil=use_nil,
+            )
         except NotImplementedError as e:
-            raise NotImplementedError("%r exists, but can't resolve field %r" %
-                                      (path, dna_name.name_only), dna_name, dna_type)
+            raise NotImplementedError(
+                "%r exists, but can't resolve field %r" % (path, dna_name.name_only),
+                dna_name,
+                dna_type,
+            )
 
     def field_set(self, header, handle, path, value):
-        assert type(path) == bytes
+        assert type(path) is bytes
 
         field = self.field_from_path(header, handle, path)
         if field is None:
-            raise KeyError("%r not found in %r" %
-                           (path, [f.dna_name.name_only for f in self.fields]))
+            raise KeyError(
+                "%r not found in %r"
+                % (path, [f.dna_name.name_only for f in self.fields])
+            )
 
         dna_type = field.dna_type
         dna_name = field.dna_name
 
-        if dna_type.dna_type_id == b'char':
+        if dna_type.dna_type_id == b"char":
             if type(value) is str:
                 return DNA_IO.write_string(handle, value, dna_name.array_size)
             else:
                 return DNA_IO.write_bytes(handle, value, dna_name.array_size)
         else:
-            raise NotImplementedError("Setting %r is not yet supported for %r" %
-                                      (dna_type, dna_name), dna_name, dna_type)
+            raise NotImplementedError(
+                "Setting %r is not yet supported for %r" % (dna_type, dna_name),
+                dna_name,
+                dna_type,
+            )
 
 
 class DNA_IO:
@@ -858,34 +939,39 @@ class DNA_IO:
 
     @classmethod
     def read_data(
-            cls,
-            handle, header,
-            is_pointer, dna_type_id, dna_size, array_size,
-            use_str=True, use_str_nil=True,
+        cls,
+        handle,
+        header,
+        is_pointer,
+        dna_type_id,
+        dna_size,
+        array_size,
+        use_str=True,
+        use_str_nil=True,
     ):
         if is_pointer:
             return cls.read_pointer(handle, header)
-        elif dna_type_id == b'int':
+        elif dna_type_id == b"int":
             if array_size > 1:
                 return [cls.read_int(handle, header) for i in range(array_size)]
             return cls.read_int(handle, header)
-        elif dna_type_id == b'short':
+        elif dna_type_id == b"short":
             if array_size > 1:
                 return [cls.read_short(handle, header) for i in range(array_size)]
             return cls.read_short(handle, header)
-        elif dna_type_id == b'ushort':
+        elif dna_type_id == b"ushort":
             if array_size > 1:
                 return [cls.read_ushort(handle, header) for i in range(array_size)]
             return cls.read_ushort(handle, header)
-        elif dna_type_id == b'uint64_t':
+        elif dna_type_id == b"uint64_t":
             if array_size > 1:
                 return [cls.read_ulong(handle, header) for i in range(array_size)]
             return cls.read_ulong(handle, header)
-        elif dna_type_id == b'float':
+        elif dna_type_id == b"float":
             if array_size > 1:
                 return [cls.read_float(handle, header) for i in range(array_size)]
             return cls.read_float(handle, header)
-        elif dna_type_id == b'char':
+        elif dna_type_id == b"char":
             if dna_size == 1 and array_size <= 1:
                 # Single char, assume it's bit-flag or int value, and not a string/bytes data.
                 return cls.read_char(handle, header)
@@ -899,12 +985,14 @@ class DNA_IO:
                     return cls.read_bytes0(handle, array_size)
                 else:
                     return cls.read_bytes(handle, array_size)
-        elif dna_type_id == b'uchar':
+        elif dna_type_id == b"uchar":
             if array_size > 1:
                 return [cls.read_uchar(handle, header) for i in range(array_size)]
             return cls.read_uchar(handle, header)
         else:
-            raise NotImplementedError("Reading %r type is not implemented" % dna_type_id)
+            raise NotImplementedError(
+                "Reading %r type is not implemented" % dna_type_id
+            )
 
     @staticmethod
     def write_string(handle, astring, fieldlen):
@@ -912,8 +1000,8 @@ class DNA_IO:
         if len(astring) >= fieldlen:
             stringw = astring[0:fieldlen]
         else:
-            stringw = astring + '\0'
-        handle.write(stringw.encode('utf-8'))
+            stringw = astring + "\0"
+        handle.write(stringw.encode("utf-8"))
 
     @staticmethod
     def write_bytes(handle, astring, fieldlen):
@@ -921,7 +1009,7 @@ class DNA_IO:
         if len(astring) >= fieldlen:
             stringw = astring[0:fieldlen]
         else:
-            stringw = astring + b'\0'
+            stringw = astring + b"\0"
 
         handle.write(stringw)
 
@@ -937,72 +1025,72 @@ class DNA_IO:
 
     @staticmethod
     def read_string(handle, length):
-        return DNA_IO.read_bytes(handle, length).decode('utf-8')
+        return DNA_IO.read_bytes(handle, length).decode("utf-8")
 
     @staticmethod
     def read_string0(handle, length):
-        return DNA_IO.read_bytes0(handle, length).decode('utf-8')
+        return DNA_IO.read_bytes0(handle, length).decode("utf-8")
 
     @staticmethod
     def read_data0_offset(data, offset):
-        add = data.find(b'\0', offset) - offset
-        return data[offset:offset + add]
+        add = data.find(b"\0", offset) - offset
+        return data[offset: offset + add]
 
     @staticmethod
     def read_data0(data):
-        add = data.find(b'\0')
+        add = data.find(b"\0")
         return data[:add]
 
-    UCHAR = struct.Struct(b'<B'), struct.Struct(b'>B')
+    UCHAR = struct.Struct(b"<B"), struct.Struct(b">B")
 
     @staticmethod
     def read_uchar(handle, fileheader):
         st = DNA_IO.UCHAR[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    SCHAR = struct.Struct(b'<b'), struct.Struct(b'>b')
+    SCHAR = struct.Struct(b"<b"), struct.Struct(b">b")
 
     @staticmethod
     def read_char(handle, fileheader):
         st = DNA_IO.SCHAR[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    USHORT = struct.Struct(b'<H'), struct.Struct(b'>H')
+    USHORT = struct.Struct(b"<H"), struct.Struct(b">H")
 
     @staticmethod
     def read_ushort(handle, fileheader):
         st = DNA_IO.USHORT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    SSHORT = struct.Struct(b'<h'), struct.Struct(b'>h')
+    SSHORT = struct.Struct(b"<h"), struct.Struct(b">h")
 
     @staticmethod
     def read_short(handle, fileheader):
         st = DNA_IO.SSHORT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    UINT = struct.Struct(b'<I'), struct.Struct(b'>I')
+    UINT = struct.Struct(b"<I"), struct.Struct(b">I")
 
     @staticmethod
     def read_uint(handle, fileheader):
         st = DNA_IO.UINT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    SINT = struct.Struct(b'<i'), struct.Struct(b'>i')
+    SINT = struct.Struct(b"<i"), struct.Struct(b">i")
 
     @staticmethod
     def read_int(handle, fileheader):
         st = DNA_IO.SINT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    FLOAT = struct.Struct(b'<f'), struct.Struct(b'>f')
+    FLOAT = struct.Struct(b"<f"), struct.Struct(b">f")
 
     @staticmethod
     def read_float(handle, fileheader):
         st = DNA_IO.FLOAT[fileheader.endian_index]
         return st.unpack(handle.read(st.size))[0]
 
-    ULONG = struct.Struct(b'<Q'), struct.Struct(b'>Q')
+    ULONG = struct.Struct(b"<Q"), struct.Struct(b">Q")
 
     @staticmethod
     def read_ulong(handle, fileheader):

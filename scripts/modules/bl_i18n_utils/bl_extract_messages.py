@@ -677,9 +677,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
         evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
         """
-        if type(node) == ast.Constant:
+        if type(node) is ast.Constant:
             eval_str = ast.literal_eval(node)
-            if eval_str and type(eval_str) == str:
+            if eval_str and type(eval_str) is str:
                 yield (is_split, eval_str, (node,))
         else:
             is_split = type(node) in separate_nodes
@@ -733,7 +733,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         # So non-literal contexts should be used that way:
         #     i18n_ctxt = bpy.app.translations.contexts
         #     foobar(text="Foo", text_ctxt=i18n_ctxt.id_object)
-        if type(node) == ast.Attribute:
+        if type(node) is ast.Attribute:
             if node.attr in i18n_ctxt_ids:
                 # print(node, node.attr, getattr(i18n_contexts, node.attr))
                 return getattr(i18n_contexts, node.attr)
@@ -867,12 +867,12 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         fp_rel = make_rel(fp)
 
         for node in ast.walk(root_node):
-            if type(node) == ast.Call:
+            if type(node) is ast.Call:
                 # ~ print("found function at")
                 # ~ print("%s:%d" % (fp, node.lineno))
 
                 # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
-                if type(node.func) == ast.Name:
+                if type(node.func) is ast.Name:
                     func_id = node.func.id
                 elif hasattr(node.func, "attr"):
                     func_id = node.func.attr
