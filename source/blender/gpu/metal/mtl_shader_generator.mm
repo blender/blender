@@ -2145,8 +2145,20 @@ std::string MSLGeneratorInterface::generate_msl_compute_entry_stub()
   return out.str();
 }
 
+/* If first parameter in function signature, do not print out a comma.
+ * Update first parameter flag to false for future invocations. */
+static char parameter_delimiter(bool &is_first_parameter)
+{
+  if (is_first_parameter) {
+    is_first_parameter = false;
+    return ' ';
+  }
+  return ',';
+}
+
 void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream &out,
-                                                               ShaderStage stage)
+                                                               ShaderStage stage,
+                                                               bool &is_first_parameter)
 {
   /* Note: Shader stage must be specified as the singular stage index for which the input
    * is generating. Compound stages are not valid inputs. */
@@ -2156,7 +2168,8 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
   BLI_assert(this->texture_samplers.size() <= GPU_max_textures_vert());
   for (const MSLTextureSampler &tex : this->texture_samplers) {
     if (bool(tex.stage & stage)) {
-      out << ",\n\t" << tex.get_msl_typestring(false) << " [[texture(" << tex.location << ")]]";
+      out << parameter_delimiter(is_first_parameter) << "\n\t" << tex.get_msl_typestring(false)
+          << " [[texture(" << tex.location << ")]]";
     }
   }
 
@@ -2166,7 +2179,8 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
    * If we exceed the hardware-supported limit, then follow a bind-less model using argument
    * buffers. */
   if (this->use_argument_buffer_for_samplers()) {
-    out << ",\n\tconstant SStruct& samplers [[buffer(MTL_uniform_buffer_base_index+"
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconstant SStruct& samplers [[buffer(MTL_uniform_buffer_base_index+"
         << (this->get_sampler_argument_buffer_bind_index(stage)) << ")]]";
   }
   else {
@@ -2175,7 +2189,8 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
     BLI_assert(this->texture_samplers.size() <= MTL_MAX_DEFAULT_SAMPLERS);
     for (const MSLTextureSampler &tex : this->texture_samplers) {
       if (bool(tex.stage & stage)) {
-        out << ",\n\tsampler " << tex.name << "_sampler [[sampler(" << tex.location << ")]]";
+        out << parameter_delimiter(is_first_parameter) << "\n\tsampler " << tex.name
+            << "_sampler [[sampler(" << tex.location << ")]]";
       }
     }
 
@@ -2189,12 +2204,13 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
 }
 
 void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream &out,
-                                                               ShaderStage stage)
+                                                               ShaderStage stage,
+                                                               bool &is_first_parameter)
 {
   for (const MSLUniformBlock &ubo : this->uniform_blocks) {
     if (bool(ubo.stage & stage)) {
       /* For literal/existing global types, we do not need the class name-space accessor. */
-      out << ",\n\tconstant ";
+      out << parameter_delimiter(is_first_parameter) << "\n\tconstant ";
       if (!is_builtin_type(ubo.type_name)) {
         out << get_stage_class_name(stage) << "::";
       }
@@ -2211,104 +2227,135 @@ void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream
 std::string MSLGeneratorInterface::generate_msl_vertex_inputs_string()
 {
   std::stringstream out;
+  bool is_first_parameter = true;
 
   if (this->uses_ssbo_vertex_fetch_mode) {
     /* Vertex Buffers bound as raw buffers. */
     for (int i = 0; i < MTL_SSBO_VERTEX_FETCH_MAX_VBOS; i++) {
-      out << "\tconstant uchar* MTL_VERTEX_DATA_" << i << " [[buffer(" << i << ")]],\n";
+      out << parameter_delimiter(is_first_parameter) << "\tconstant uchar* MTL_VERTEX_DATA_" << i
+          << " [[buffer(" << i << ")]]\n";
     }
-    out << "\tconstant ushort* MTL_INDEX_DATA[[buffer(MTL_SSBO_VERTEX_FETCH_IBO_INDEX)]],";
+    out << parameter_delimiter(is_first_parameter)
+        << "\tconstant ushort* MTL_INDEX_DATA[[buffer(MTL_SSBO_VERTEX_FETCH_IBO_INDEX)]]";
   }
   else {
     if (this->vertex_input_attributes.size() > 0) {
       /* Vertex Buffers use input assembly. */
-      out << get_stage_class_name(ShaderStage::VERTEX) << "::VertexIn v_in [[stage_in]],";
+      out << get_stage_class_name(ShaderStage::VERTEX) << "::VertexIn v_in [[stage_in]]";
+      is_first_parameter = false;
     }
   }
-  out << "\n\tconstant " << get_stage_class_name(ShaderStage::VERTEX)
-      << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
 
-  this->generate_msl_uniforms_input_string(out, ShaderStage::VERTEX);
+  if (this->uniforms.size() > 0) {
+    out << parameter_delimiter(is_first_parameter) << "\n\tconstant "
+        << get_stage_class_name(ShaderStage::VERTEX)
+        << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+    is_first_parameter = false;
+  }
+
+  this->generate_msl_uniforms_input_string(out, ShaderStage::VERTEX, is_first_parameter);
 
   /* Transform feedback buffer binding. */
   if (this->uses_transform_feedback) {
-    out << ",\n\tdevice " << get_stage_class_name(ShaderStage::VERTEX)
+    out << parameter_delimiter(is_first_parameter) << "\n\tdevice "
+        << get_stage_class_name(ShaderStage::VERTEX)
         << "::VertexOut_TF* "
            "transform_feedback_results[[buffer(MTL_transform_feedback_buffer_index)]]";
   }
 
   /* Generate texture signatures. */
-  this->generate_msl_textures_input_string(out, ShaderStage::VERTEX);
+  this->generate_msl_textures_input_string(out, ShaderStage::VERTEX, is_first_parameter);
 
   /* Entry point parameters for gl Globals. */
   if (this->uses_gl_VertexID) {
-    out << ",\n\tconst uint32_t gl_VertexID [[vertex_id]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint32_t gl_VertexID [[vertex_id]]";
   }
   if (this->uses_gl_InstanceID) {
-    out << ",\n\tconst uint32_t gl_InstanceID [[instance_id]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint32_t gl_InstanceID [[instance_id]]";
   }
   if (this->uses_gl_BaseInstanceARB) {
-    out << ",\n\tconst uint32_t gl_BaseInstanceARB [[base_instance]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint32_t gl_BaseInstanceARB [[base_instance]]";
   }
   return out.str();
 }
 
 std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
 {
+  bool is_first_parameter = true;
   std::stringstream out;
-  out << get_stage_class_name(ShaderStage::FRAGMENT)
-      << "::VertexOut v_in [[stage_in]],\n\tconstant "
-      << get_stage_class_name(ShaderStage::FRAGMENT)
-      << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+  out << parameter_delimiter(is_first_parameter) << get_stage_class_name(ShaderStage::FRAGMENT)
+      << "::VertexOut v_in [[stage_in]]";
 
-  this->generate_msl_uniforms_input_string(out, ShaderStage::FRAGMENT);
+  if (this->uniforms.size() > 0) {
+    out << parameter_delimiter(is_first_parameter) << "\n\tconstant "
+        << get_stage_class_name(ShaderStage::FRAGMENT)
+        << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+  }
+
+  this->generate_msl_uniforms_input_string(out, ShaderStage::FRAGMENT, is_first_parameter);
 
   /* Generate texture signatures. */
-  this->generate_msl_textures_input_string(out, ShaderStage::FRAGMENT);
+  this->generate_msl_textures_input_string(out, ShaderStage::FRAGMENT, is_first_parameter);
 
   if (this->uses_gl_PointCoord) {
-    out << ",\n\tconst float2 gl_PointCoord [[point_coord]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst float2 gl_PointCoord [[point_coord]]";
   }
   if (this->uses_gl_FrontFacing) {
-    out << ",\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
   }
   if (this->uses_gl_PrimitiveID) {
-    out << ",\n\tconst uint gl_PrimitiveID [[primitive_id]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint gl_PrimitiveID [[primitive_id]]";
   }
 
   /* Barycentrics. */
   if (this->uses_barycentrics) {
-    out << ",\n\tconst float3 mtl_barycentric_coord [[barycentric_coord]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst float3 mtl_barycentric_coord [[barycentric_coord]]";
   }
   return out.str();
 }
 
 std::string MSLGeneratorInterface::generate_msl_compute_inputs_string()
 {
+  bool is_first_parameter = true;
   std::stringstream out;
-  out << "constant " << get_stage_class_name(ShaderStage::COMPUTE)
-      << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+  if (this->uniforms.size() > 0) {
+    out << parameter_delimiter(is_first_parameter) << "constant "
+        << get_stage_class_name(ShaderStage::COMPUTE)
+        << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+  }
 
-  this->generate_msl_uniforms_input_string(out, ShaderStage::COMPUTE);
+  this->generate_msl_uniforms_input_string(out, ShaderStage::COMPUTE, is_first_parameter);
 
   /* Generate texture signatures. */
-  this->generate_msl_textures_input_string(out, ShaderStage::COMPUTE);
+  this->generate_msl_textures_input_string(out, ShaderStage::COMPUTE, is_first_parameter);
 
   /* Entry point parameters for gl Globals. */
   if (this->uses_gl_GlobalInvocationID) {
-    out << ",\n\tconst uint3 gl_GlobalInvocationID [[thread_position_in_grid]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint3 gl_GlobalInvocationID [[thread_position_in_grid]]";
   }
   if (this->uses_gl_WorkGroupID) {
-    out << ",\n\tconst uint3 gl_WorkGroupID [[threadgroup_position_in_grid]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint3 gl_WorkGroupID [[threadgroup_position_in_grid]]";
   }
   if (this->uses_gl_NumWorkGroups) {
-    out << ",\n\tconst uint3 gl_NumWorkGroups [[threadgroups_per_grid]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint3 gl_NumWorkGroups [[threadgroups_per_grid]]";
   }
   if (this->uses_gl_LocalInvocationIndex) {
-    out << ",\n\tconst uint gl_LocalInvocationIndex [[thread_index_in_threadgroup]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint gl_LocalInvocationIndex [[thread_index_in_threadgroup]]";
   }
   if (this->uses_gl_LocalInvocationID) {
-    out << ",\n\tconst uint3 gl_LocalInvocationID [[thread_position_in_threadgroup]]";
+    out << parameter_delimiter(is_first_parameter)
+        << "\n\tconst uint3 gl_LocalInvocationID [[thread_position_in_threadgroup]]";
   }
 
   return out.str();
@@ -2316,6 +2363,10 @@ std::string MSLGeneratorInterface::generate_msl_compute_inputs_string()
 
 std::string MSLGeneratorInterface::generate_msl_uniform_structs(ShaderStage shader_stage)
 {
+  /* Only generate PushConstantBlock if we have uniforms. */
+  if (this->uniforms.size() == 0) {
+    return "";
+  }
   BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT);
   std::stringstream out;
 
@@ -2624,6 +2675,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_out_struct()
 
 std::string MSLGeneratorInterface::generate_msl_global_uniform_population(ShaderStage stage)
 {
+  if (this->uniforms.size() == 0) {
+    return "";
+  }
   /* Populate Global Uniforms. */
   std::stringstream out;
 
