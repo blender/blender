@@ -980,7 +980,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
         rcti tile_bg_rect = tile_draw_rect;
         /* One pixel downwards, places it more in the center. */
-        BLI_rcti_translate(&tile_bg_rect, 0, -1);
+        BLI_rcti_translate(&tile_bg_rect, 0, -U.pixelsize);
         draw_tile_background(&tile_bg_rect, colorid, shade);
       }
     }
