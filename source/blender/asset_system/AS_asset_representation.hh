@@ -82,6 +82,9 @@ class AssetRepresentation {
    * #get_import_method(). Also returns true if there is no predefined import method
    * (when #get_import_method() returns no value). */
   bool may_override_import_method() const;
+  /** If this asset is stored inside this current file (#is_local_id() is true), this returns the
+   * ID's pointer, otherwise null. */
+  ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
   const AssetLibrary &owner_asset_library() const;

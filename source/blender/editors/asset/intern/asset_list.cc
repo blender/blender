@@ -112,6 +112,8 @@ class AssetList : NonCopyable {
   void ensurePreviewsJob(const bContext *C);
   void clear(bContext *C);
 
+  AssetHandle asset_get_by_index(int index) const;
+
   bool needsRefetch() const;
   bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
@@ -139,7 +141,7 @@ void AssetList::setup()
   filelist_setlibrary(files, &library_ref_);
   filelist_setfilter_options(
       files,
-      false,
+      true,
       true,
       true, /* Just always hide parent, prefer to not add an extra user option for this. */
       FILE_TYPE_BLENDERLIB,
@@ -244,6 +246,11 @@ void AssetList::clear(bContext *C)
   filelist_clear(files);
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
+}
+
+AssetHandle AssetList::asset_get_by_index(int index) const
+{
+  return {filelist_file(filelist_, index)};
 }
 
 /**
@@ -470,6 +477,13 @@ asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
     return nullptr;
   }
   return list->asset_library();
+}
+
+AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
+                                            int asset_index)
+{
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->asset_get_by_index(asset_index);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
