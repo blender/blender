@@ -15,7 +15,7 @@ def count_backslashes_before_pos(file_data: str, pos: int) -> int:
     slash_count = 0
     pos -= 1
     while pos >= 0:
-        if file_data[pos] != '\\':
+        if file_data[pos] != "\\":
             break
         pos -= 1
         slash_count += 1
@@ -41,7 +41,6 @@ def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Optional[str]:
 
         # The quote was back-slash escaped, step over it.
         pos = pos_next + 1
-        file_data[pos_next]
 
     assert file_data[pos_end] == '"'
 
@@ -49,21 +48,33 @@ def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Optional[str]:
         return None
 
     # See: https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#escape-sequences
-    text = file_data[pos_beg: pos_end].replace(
-        # Handle back-slash literals.
-        "\\\\", "\\",
-    ).replace(
-        # Handle tabs.
-        "\\t", "\t",
-    ).replace(
-        # Handle escaped quotes.
-        "\\\"", "\"",
-    ).replace(
-        # Handle tabs.
-        "\\;", ";",
-    ).replace(
-        # Handle trailing newlines.
-        "\\\n", "",
+    text = (
+        file_data[pos_beg:pos_end]
+        .replace(
+            # Handle back-slash literals.
+            "\\\\",
+            "\\",
+        )
+        .replace(
+            # Handle tabs.
+            "\\t",
+            "\t",
+        )
+        .replace(
+            # Handle escaped quotes.
+            '\\"',
+            '"',
+        )
+        .replace(
+            # Handle tabs.
+            "\\;",
+            ";",
+        )
+        .replace(
+            # Handle trailing newlines.
+            "\\\n",
+            "",
+        )
     )
 
     return text
@@ -71,9 +82,11 @@ def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Optional[str]:
 
 def main() -> None:
     options = []
-    with open(cmakelists_file, 'r', encoding="utf-8") as fh:
+    with open(cmakelists_file, "r", encoding="utf-8") as fh:
         file_data = fh.read()
-        for m in re.finditer(r"^\s*option\s*\(\s*(WITH_[a-zA-Z0-9_]+)\s+(\")", file_data, re.MULTILINE):
+        for m in re.finditer(
+            r"^\s*option\s*\(\s*(WITH_[a-zA-Z0-9_]+)\s+(\")", file_data, re.MULTILINE
+        ):
             option_name = m.group(1)
             option_descr = extract_cmake_string_at_pos(file_data, m.span(2)[1])
             if option_descr is None:
@@ -81,7 +94,7 @@ def main() -> None:
                 option_descr = "(UNDOCUMENTED)"
             options.append("{:s}: {:s}".format(option_name, option_descr))
 
-    print('\n'.join(options))
+    print("\n".join(options))
 
 
 if __name__ == "__main__":

@@ -16,28 +16,6 @@ vec4d = vec_a.to_4d()
 quat = mathutils.Quaternion()
 matrix = mathutils.Matrix()
 
-# Comparison operators can be done on Vector classes:
-
-# (In)equality operators == and != test component values, e.g. 1,2,3 != 3,2,1
-vec_a == vec_b
-vec_a != vec_b
-
-# Ordering operators >, >=, > and <= test vector length.
-vec_a > vec_b
-vec_a >= vec_b
-vec_a < vec_b
-vec_a <= vec_b
-
-
-# Math can be performed on Vector classes
-vec_a + vec_b
-vec_a - vec_b
-vec_a @ vec_b
-vec_a * 10.0
-matrix @ vec_a
-quat @ vec_a
--vec_a
-
 
 # You can access a vector object like a sequence
 x = vec_a[0]
