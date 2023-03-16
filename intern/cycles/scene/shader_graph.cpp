@@ -260,6 +260,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 
     if (to->type() == SocketType::CLOSURE) {
       EmissionNode *emission = create_node<EmissionNode>();
+      emission->from_auto_conversion = true;
       emission->set_color(one_float3());
       emission->set_strength(1.0f);
       convert = add(emission);

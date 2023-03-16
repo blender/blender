@@ -25,6 +25,7 @@ class AssetIdentifier {
   AssetIdentifier(const AssetIdentifier &) = default;
 
   std::string full_path() const;
+  std::string full_library_path() const;
 };
 
 }  // namespace blender::asset_system
