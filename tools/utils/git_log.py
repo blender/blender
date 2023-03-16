@@ -11,7 +11,6 @@ class GitCommit:
         "sha1",
         # to extract more info
         "_git_dir",
-
         # cached values
         "_author",
         "_date",
@@ -24,16 +23,10 @@ class GitCommit:
         self.sha1 = sha1
         self._git_dir = git_dir
 
-        self._author = \
-            self._date = \
-            self._body = \
-            self._files = \
-            self._files_status = \
-            None
+        self._author = self._date = self._body = self._files = self._files_status = None
 
     def cache(self):
-        """ Cache all properties
-        """
+        """Cache all properties"""
 
     def _log_format(self, format, args=()):
         # sha1 = self.sha1.decode('ascii')
@@ -68,7 +61,7 @@ class GitCommit:
             cmd,
             stdout=subprocess.PIPE,
         )
-        return p.stdout.read().strip().decode('ascii')
+        return p.stdout.read().strip().decode("ascii")
 
     @property
     def author(self):
@@ -84,6 +77,7 @@ class GitCommit:
         ret = self._date
         if ret is None:
             import datetime
+
             ret = datetime.datetime.fromtimestamp(int(self._log_format("%ct")))
             self._date = ret
         return ret
@@ -105,7 +99,11 @@ class GitCommit:
     def files(self):
         ret = self._files
         if ret is None:
-            ret = [f for f in self._log_format("format:", args=("--name-only",)).split(b"\n") if f]
+            ret = [
+                f
+                for f in self._log_format("format:", args=("--name-only",)).split(b"\n")
+                if f
+            ]
             self._files = ret
         return ret
 
@@ -113,7 +111,13 @@ class GitCommit:
     def files_status(self):
         ret = self._files_status
         if ret is None:
-            ret = [f.split(None, 1) for f in self._log_format("format:", args=("--name-status",)).split(b"\n") if f]
+            ret = [
+                f.split(None, 1)
+                for f in self._log_format("format:", args=("--name-status",)).split(
+                    b"\n"
+                )
+                if f
+            ]
             self._files_status = ret
         return ret
 
