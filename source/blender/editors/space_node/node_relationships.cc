@@ -525,6 +525,7 @@ static void remove_links_to_unavailable_viewer_sockets(bNodeTree &btree, bNode &
 static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
 {
   int last_linked_socket_index = -1;
+  bool has_linked_geometry_socket = false;
   for (bNodeSocket *socket : node_to_view.output_sockets()) {
     if (!socket_can_be_viewed(*socket)) {
       continue;
@@ -537,10 +538,8 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
           /* This socket is linked to a deactivated viewer, the viewer should be activated. */
           return socket;
         }
-        if (socket->type == SOCK_GEOMETRY && (target_node.flag & NODE_DO_OUTPUT)) {
-          /* Skip geometry sockets connected to viewer nodes when deciding whether to cycle through
-           * outputs. */
-          continue;
+        if (socket->type == SOCK_GEOMETRY) {
+          has_linked_geometry_socket = true;
         }
         last_linked_socket_index = socket->index();
       }
@@ -565,6 +564,11 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
     if (!socket_can_be_viewed(output_socket)) {
       continue;
     }
+    if (has_linked_geometry_socket && output_socket.type == SOCK_GEOMETRY) {
+      /* Skip geometry sockets when cycling if one is already viewed. */
+      continue;
+    }
+
     bool is_currently_viewed = false;
     for (const bNodeLink *link : output_socket.directly_linked_links()) {
       bNodeSocket &target_socket = *link->tosock;
