@@ -191,9 +191,7 @@ def compare_files(file_a, file_b):
             subprocess.call(["cp", "-u", file_a, file_b])
 
         if PDB:
-            import pdb
             print("Files differ:", file_b, file_a)
-            pdb.set_trace()
 
         return False
 
