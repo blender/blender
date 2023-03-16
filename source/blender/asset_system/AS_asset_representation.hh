@@ -82,6 +82,9 @@ class AssetRepresentation {
    * #get_import_method(). Also returns true if there is no predefined import method
    * (when #get_import_method() returns no value). */
   bool may_override_import_method() const;
+  /** If this asset is stored inside this current file (#is_local_id() is true), this returns the
+   * ID's pointer, otherwise null. */
+  ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
   const AssetLibrary &owner_asset_library() const;
@@ -92,7 +95,11 @@ class AssetRepresentation {
 /* C-Handle */
 struct AssetRepresentation;
 
-const std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
+std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
+/** Get the absolute path to the .blend file containing the given asset. String will be empty if
+ * the asset could not be mapped to a valid .blend file path. Valid in this case also means that
+ * the file needs to exist on disk. */
+std::string AS_asset_representation_full_library_path_get(const ::AssetRepresentation *asset);
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
     const ::AssetRepresentation *asset_handle);
 bool AS_asset_representation_may_override_import_method(const ::AssetRepresentation *asset_handle);

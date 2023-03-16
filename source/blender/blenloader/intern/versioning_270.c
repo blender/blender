@@ -20,7 +20,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_fluid_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"

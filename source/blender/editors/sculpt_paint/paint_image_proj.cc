@@ -60,7 +60,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.h"
@@ -411,7 +411,7 @@ struct ProjPaintState {
   int totvert_eval;
 
   const float (*vert_positions_eval)[3];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   blender::Span<MEdge> edges_eval;
   blender::Span<MPoly> polys_eval;
   blender::Span<MLoop> loops_eval;
@@ -4069,7 +4069,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->mat_array[totmat - 1] = nullptr;
 
   ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
-  ps->vert_normals = BKE_mesh_vert_normals_ensure(ps->me_eval);
+  ps->vert_normals = ps->me_eval->vert_normals();
   ps->edges_eval = ps->me_eval->edges();
   ps->polys_eval = ps->me_eval->polys();
   ps->loops_eval = ps->me_eval->loops();
@@ -6529,7 +6529,10 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
   return ima;
 }
 
-static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
+/**
+ * \return The name of the new attribute.
+ */
+static const char *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
 {
   char name[MAX_NAME] = "";
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -6543,22 +6546,20 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
     type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
-  ID *id = (ID *)ob->data;
-  CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
-
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const CustomDataLayer *layer = BKE_id_attribute_new(&mesh->id, name, type, domain, op->reports);
   if (!layer) {
     return nullptr;
   }
 
-  BKE_id_attributes_active_color_set(id, layer->name);
-
-  if (!BKE_id_attributes_default_color_get(id)) {
-    BKE_id_attributes_default_color_set(id, layer->name);
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+  if (!mesh->default_color_attribute) {
+    BKE_id_attributes_default_color_set(&mesh->id, layer->name);
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);
 
-  return layer;
+  return layer->name;
 }
 
 /**
@@ -6668,9 +6669,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
-        if ((layer = proj_paint_color_attribute_create(op, ob))) {
-          BLI_strncpy_utf8(
-              ((NodeShaderAttribute *)new_node->storage)->name, layer->name, MAX_NAME);
+        if (const char *name = proj_paint_color_attribute_create(op, ob)) {
+          BLI_strncpy_utf8(((NodeShaderAttribute *)new_node->storage)->name, name, MAX_NAME);
         }
         break;
       }

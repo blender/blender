@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -9840,10 +9840,6 @@ msgid "Data Depth"
 msgstr "Profundidade de dados"
 
 
-msgid "Number"
-msgstr "Número(s)"
-
-
 msgid "Randomness"
 msgstr "Aleatorização"
 
@@ -12086,22 +12082,6 @@ msgstr "Máscara de textura de sobreposição de alfa"
 
 msgid "Editable falloff curve"
 msgstr "Curva de decaimento editável."
-
-
-msgid "Root"
-msgstr "Raiz"
-
-
-msgid "Sharp"
-msgstr "Ressaltar"
-
-
-msgid "Sharper"
-msgstr "Aguçar"
-
-
-msgid "Inverse Square"
-msgstr "Inverso quadrático"
 
 
 msgid "Falloff Angle"
@@ -14690,6 +14670,10 @@ msgid "Inverse Linear"
 msgstr "Linear inverso"
 
 
+msgid "Inverse Square"
+msgstr "Inverso quadrático"
+
+
 msgid "Inverse Coefficients"
 msgstr "Coeficientes inversos"
 
@@ -16738,6 +16722,10 @@ msgid "Show hair simulation grid"
 msgstr "Mostra a grade de simulação de cabelos."
 
 
+msgid "Number"
+msgstr "Número(s)"
+
+
 msgid "Show particle number"
 msgstr "Mostra os números das partículas."
 
@@ -17548,10 +17536,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "O arquivo de texto no disco é diferente do que está na memória."
 
 
-msgid "Lines"
-msgstr "Linhas"
-
-
 msgid "Lines of text"
 msgstr "Linhas de texto"
 
@@ -18164,8 +18148,16 @@ msgid "Use soft marble"
 msgstr "Usa um mármore suave."
 
 
+msgid "Sharp"
+msgstr "Ressaltar"
+
+
 msgid "Use more clearly defined marble"
 msgstr "Usa um mármore bem definido."
+
+
+msgid "Sharper"
+msgstr "Aguçar"
 
 
 msgid "Use very clearly defined marble"
@@ -22921,6 +22913,10 @@ msgid "If vertex has multiple adjacent edges, it is hulled to them directly"
 msgstr "Caso o vértice tenha múltiplas arestas adjacentes, ele está corrigido por estas automaticamente."
 
 
+msgid "Root"
+msgstr "Raiz"
+
+
 msgid "Mesh Skin Vertex Layer"
 msgstr "Camada de vértices de malha de cobertura"
 
@@ -26219,6 +26215,10 @@ msgstr "Número de quadros em cache."
 
 msgid "Line Thickness"
 msgstr "Espessura das linhas"
+
+
+msgid "Lines"
+msgstr "Linhas"
 
 
 msgid "Motion Path Points"
@@ -46954,10 +46954,6 @@ msgid "Fill Range by Selection"
 msgstr "Preencher campo pela seleção"
 
 
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object "
-msgstr "Preenche as entradas de alcance mínima e máxima pela distância mínima e máxima entre os objetos de malhas selecionadas e o objeto fonte."
-
-
 msgid "Name of the modifier to work on"
 msgstr "Nome do modificador no qual trabalhar."
 
@@ -66425,10 +66421,6 @@ msgid "Invert Selection"
 msgstr "Inverter seleção"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
 
@@ -66457,10 +66449,6 @@ msgstr "Toróide"
 
 msgid "Active object is not a mesh"
 msgstr "Objeto ativo não é uma malha."
-
-
-msgid "Rename %d %s"
-msgstr "Renomear %d %s"
 
 
 msgid "Renamed %d of %d %s"
@@ -66529,6 +66517,10 @@ msgstr "Anexar..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Manual"
+
+
+msgid "Rename %d %s"
+msgstr "Renomear %d %s"
 
 
 msgctxt "Operator"
@@ -66741,10 +66733,6 @@ msgstr "Ajuste fino de sangramento"
 msgctxt "Operator"
 msgid "Lock Invert All"
 msgstr "Inverter a trava de todos"
-
-
-msgid "%s ▶ %s"
-msgstr "%s ▶ %s"
 
 
 msgctxt "Operator"
@@ -67032,18 +67020,6 @@ msgid "Strand Shape"
 msgstr "Formato das vertentes"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Interações: %d .. %d (média: %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Erros: %.5f .. %.5f (média: %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Espaçamento: %g"
-
-
 msgid "Strand Steps"
 msgstr "Passos do fio"
 
@@ -67056,12 +67032,20 @@ msgid "Jittering Amount"
 msgstr "Montante de tremulação"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "%d partículas de fluido para este quadro."
-
-
 msgid "Use Timing"
 msgstr "Usar temporizações"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "Interações: %d .. %d (média: %d)"
+
+
+msgid "Error: %.5f .. %.5f (avg. %.5f)"
+msgstr "Erros: %.5f .. %.5f (média: %.5f)"
+
+
+msgid "Spacing: %g"
+msgstr "Espaçamento: %g"
 
 
 msgid "Not yet functional"
@@ -67076,6 +67060,10 @@ msgstr "Conectar todos"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Desconectar todos"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "%d partículas de fluido para este quadro."
 
 
 msgid "Air Viscosity"
@@ -67461,11 +67449,6 @@ msgstr "Mostrar trilhas"
 msgctxt "Operator"
 msgid "Match Previous"
 msgstr "Combinar com Anterior"
-
-
-msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "Zoom %d:%d"
 
 
 msgctxt "Operator"
@@ -68314,10 +68297,6 @@ msgid "Stretch To Fill"
 msgstr "Esticar para preencher"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Intervalo de quadros original: %d-%d (%d)"
-
-
 msgctxt "Operator"
 msgid "Clip"
 msgstr "Clipe"
@@ -68332,16 +68311,12 @@ msgid "Effect Fader"
 msgstr "Esmaecedor de efeitos"
 
 
-msgid "%dx%d"
-msgstr "%dx%d"
-
-
-msgid "%.2f"
-msgstr "%.2f"
-
-
 msgid "Unpack"
 msgstr "Desempacotar"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "Intervalo de quadros original: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -68851,10 +68826,6 @@ msgstr "Arquivo:"
 
 msgid "Author:"
 msgstr "Autor:"
-
-
-msgid "author"
-msgstr "autor"
 
 
 msgid "Version:"
@@ -75300,10 +75271,6 @@ msgstr "Não é possível adicionar faixa. (a trilha não possui qualquer espaç
 
 msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Faixa de animação não linear '%s' não encontrada na trilha '%s'"
-
-
-msgid "Trigonometric"
-msgstr "Trigonométrico"
 
 
 msgid "Same input/output direction of sockets"

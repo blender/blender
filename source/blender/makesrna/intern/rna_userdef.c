@@ -4794,7 +4794,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   /* mini axis */
   static const EnumPropertyItem mini_axis_type_items[] = {
       {USER_MINI_AXIS_TYPE_NONE, "NONE", 0, "Off", ""},
-      {USER_MINI_AXIS_TYPE_MINIMAL, "MINIMAL", 0, "Simple Axis", ""},
+      {USER_MINI_AXIS_TYPE_MINIMAL, "MINIMAL", 0, "Simple Axes", ""},
       {USER_MINI_AXIS_TYPE_GIZMO, "GIZMO", 0, "Interactive Navigation", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4804,7 +4804,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Mini Axes Type",
-      "Show a small rotating 3D axes in the top right corner of the 3D viewport");
+      "Show small rotating 3D axes in the top right corner of the 3D viewport");
   RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_PIXEL);

@@ -2514,8 +2514,9 @@ ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
 
 void BKE_view_layer_remove_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
 {
-  BLI_assert(BLI_findindex(&view_layer->aovs, aov) != -1);
-  BLI_assert(aov != nullptr);
+  if (aov == nullptr || BLI_findindex(&view_layer->aovs, aov) == -1) {
+    return;
+  }
   if (view_layer->active_aov == aov) {
     if (aov->next) {
       viewlayer_aov_active_set(view_layer, aov->next);

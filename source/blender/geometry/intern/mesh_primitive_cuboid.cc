@@ -8,7 +8,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"
 

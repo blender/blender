@@ -715,7 +715,7 @@ void MetalKernelPipeline::compile()
           }
         }
       };
-      if (computePipelineStateDescriptor.linkedFunctions) {
+      if (linked_functions) {
         addComputePipelineFunctionsWithDescriptor();
       }
 
@@ -748,7 +748,7 @@ void MetalKernelPipeline::compile()
       }
 
       /* Add pipeline into the new archive (unless we did it earlier). */
-      if (pipeline && !computePipelineStateDescriptor.linkedFunctions) {
+      if (pipeline && !linked_functions) {
         addComputePipelineFunctionsWithDescriptor();
       }
     }

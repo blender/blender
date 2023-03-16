@@ -384,6 +384,13 @@ class CurvesGeometry : public ::CurvesGeometry {
   {
     return this->adapt_domain(GVArray(varray), from, to).typed<T>();
   }
+
+  /* --------------------------------------------------------------------
+   * File Read/Write.
+   */
+
+  void blend_read(BlendDataReader &reader);
+  void blend_write(BlendWriter &writer, ID &id);
 };
 
 static_assert(sizeof(blender::bke::CurvesGeometry) == sizeof(::CurvesGeometry));

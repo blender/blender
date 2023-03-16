@@ -310,7 +310,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_key_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_node_types.h"
@@ -323,7 +323,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
-#  include "BKE_gpencil_modifier.h"
+#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"

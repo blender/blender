@@ -23,7 +23,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_color_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -33,8 +33,8 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_report.h"
 
 #include "UI_interface.h"

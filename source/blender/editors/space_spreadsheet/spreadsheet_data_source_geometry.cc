@@ -13,7 +13,7 @@
 #include "BKE_global.h"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"

@@ -23,7 +23,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "ED_mesh.h"
@@ -213,10 +213,10 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
 }
 
 /**
- * Join all edges of each poly in the AtomicDisjointSet. This can be used to find out which polys
+ * Join all edges of each poly in the #AtomicDisjointSet. This can be used to find out which polys
  * are connected to each other.
- * \param islands Is expected to be of length mesh->totedge.
- * \param skip_seams Polys separated by a seam will be treated as not connected.
+ * \param islands: Is expected to be of length `mesh->totedge`.
+ * \param skip_seams: Polys separated by a seam will be treated as not connected.
  */
 static void build_poly_connections(blender::AtomicDisjointSet &islands,
                                    Mesh &mesh,

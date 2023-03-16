@@ -7,6 +7,8 @@
 
 #include <numeric>
 
+#include "AS_asset_representation.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
@@ -378,14 +380,16 @@ void NODE_OT_add_group(wmOperatorType *ot)
 /** \name Add Node Group Asset Operator
  * \{ */
 
-static bool add_node_group_asset(const bContext &C, const AssetHandle asset, ReportList &reports)
+static bool add_node_group_asset(const bContext &C,
+                                 const AssetRepresentation *asset,
+                                 ReportList &reports)
 {
   Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset));
+      ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT));
   if (!node_group) {
     return false;
   }
@@ -427,9 +431,8 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   if (!library_ref) {
     return OPERATOR_CANCELLED;
   }
-  bool is_valid;
-  const AssetHandle handle = CTX_wm_asset_handle(C, &is_valid);
-  if (!is_valid) {
+  const AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
     return OPERATOR_CANCELLED;
   }
 
@@ -442,7 +445,7 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 
   snode.runtime->cursor /= UI_DPI_FAC;
 
-  if (!add_node_group_asset(*C, handle, *op->reports)) {
+  if (!add_node_group_asset(*C, asset, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -460,12 +463,11 @@ static char *node_add_group_asset_get_description(struct bContext *C,
                                                   struct wmOperatorType * /*op*/,
                                                   struct PointerRNA * /*values*/)
 {
-  bool is_valid;
-  const AssetHandle handle = CTX_wm_asset_handle(C, &is_valid);
-  if (!is_valid) {
+  const AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
     return nullptr;
   }
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&handle);
+  const AssetMetaData &asset_data = *AS_asset_representation_metadata_get(asset);
   if (!asset_data.description) {
     return nullptr;
   }

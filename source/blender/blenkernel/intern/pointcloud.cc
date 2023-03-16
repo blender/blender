@@ -65,7 +65,6 @@ static void pointcloud_init_data(ID *id)
   CustomData_add_layer_named(&pointcloud->pdata,
                              CD_PROP_FLOAT3,
                              CD_SET_DEFAULT,
-                             nullptr,
                              pointcloud->totpoint,
                              POINTCLOUD_ATTR_POSITION);
 

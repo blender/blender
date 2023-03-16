@@ -5,6 +5,7 @@
  * \ingroup bke
  */
 
+#include "BLI_array.hh"
 #include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
@@ -14,7 +15,7 @@
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 
@@ -372,8 +373,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle custom split normals */
   if (ob->type == OB_MESH && (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->totpoly > 0) {
-    float(*loop_normals)[3] = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN(size_t(result->totloop), sizeof(*loop_normals), __func__));
+    blender::Array<blender::float3> loop_normals(result_loops.size());
     CustomData *ldata = &result->ldata;
     short(*clnors)[2] = static_cast<short(*)[2]>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, result->totloop));
@@ -391,24 +391,20 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         CustomData_get_layer_named(&result->edata, CD_PROP_BOOL, "sharp_edge"));
     const bool *sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(&result->pdata, CD_PROP_BOOL, "sharp_face"));
-    BKE_mesh_normals_loop_split(BKE_mesh_vert_positions(result),
-                                BKE_mesh_vert_normals_ensure(result),
-                                result->totvert,
-                                result_edges.data(),
-                                result_edges.size(),
-                                result_loops.data(),
-                                loop_normals,
-                                result_loops.size(),
-                                result_polys.data(),
-                                BKE_mesh_poly_normals_ensure(result),
-                                result_polys.size(),
-                                true,
-                                result->smoothresh,
-                                sharp_edges,
-                                sharp_faces,
-                                nullptr,
-                                &lnors_spacearr,
-                                clnors);
+    blender::bke::mesh::normals_calc_loop(result->vert_positions(),
+                                          result_edges,
+                                          result_polys,
+                                          result_loops,
+                                          {},
+                                          result->vert_normals(),
+                                          result->poly_normals(),
+                                          sharp_edges,
+                                          sharp_faces,
+                                          true,
+                                          result->smoothresh,
+                                          clnors,
+                                          &lnors_spacearr,
+                                          loop_normals);
 
     /* mirroring has to account for loops being reversed in polys in second half */
     for (const int i : src_polys.index_range()) {
@@ -427,7 +423,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       }
     }
 
-    MEM_freeN(loop_normals);
     BKE_lnor_spacearr_free(&lnors_spacearr);
   }
 

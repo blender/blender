@@ -5,7 +5,7 @@
  * \ingroup spclip
  */
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 

@@ -21,7 +21,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"

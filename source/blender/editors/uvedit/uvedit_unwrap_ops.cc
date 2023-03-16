@@ -39,7 +39,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"
@@ -141,8 +141,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 /** \name UDIM Access
  * \{ */
 
-static void ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
-                                                   UVPackIsland_Params *r_params)
+void blender::geometry::UVPackIsland_Params::setUDIMOffsetFromSpaceImage(const SpaceImage *sima)
 {
   if (!sima) {
     return; /* Nothing to do. */
@@ -155,8 +154,8 @@ static void ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
     ImageTile *active_tile = static_cast<ImageTile *>(
         BLI_findlink(&image->tiles, image->active_tile_index));
     if (active_tile) {
-      r_params->udim_base_offset[0] = (active_tile->tile_number - 1001) % 10;
-      r_params->udim_base_offset[1] = (active_tile->tile_number - 1001) / 10;
+      udim_base_offset[0] = (active_tile->tile_number - 1001) % 10;
+      udim_base_offset[1] = (active_tile->tile_number - 1001) / 10;
     }
     return;
   }
@@ -164,8 +163,8 @@ static void ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
   /* TODO: Support storing an active UDIM when there are no tiles present.
    * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
   if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, sima->cursor)) {
-    r_params->udim_base_offset[0] = floorf(sima->cursor[0]);
-    r_params->udim_base_offset[1] = floorf(sima->cursor[1]);
+    udim_base_offset[0] = floorf(sima->cursor[0]);
+    udim_base_offset[1] = floorf(sima->cursor[1]);
   }
 }
 /** \} */
@@ -194,6 +193,15 @@ struct UnwrapOptions {
   /** Treat unselected uvs as if they were pinned. */
   bool pin_unselected;
 };
+
+void blender::geometry::UVPackIsland_Params::setFromUnwrapOptions(const UnwrapOptions &options)
+{
+  only_selected_uvs = options.only_selected_uvs;
+  only_selected_faces = options.only_selected_faces;
+  use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams;
+  correct_aspect = options.correct_aspect;
+  pin_unselected = options.pin_unselected;
+}
 
 static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
 {
@@ -1156,6 +1164,8 @@ static void face_island_uv_rotate_fit_aabb(FaceIsland *island)
     }
   }
 
+  /* As the UV Packing API doesn't yet support rotation, we need
+   * to pre-rotate each island into the smallest AABB. */
   float angle = BLI_convexhull_aabb_fit_points_2d(coords, coords_len);
 
   /* Rotate coords by `angle` before computing bounding box. */
@@ -1176,9 +1186,13 @@ static void face_island_uv_rotate_fit_aabb(FaceIsland *island)
     minmax_v2v2_v2(bounds_min, bounds_max, coords[i]);
   }
 
+  /* "Stand-up" islands.
+   * If we rotate the AABB by 90 degrees, the aspect ratio correction for the X axis will be
+   * `aspect_y` and for the Y axis will be `1.0f / aspect_y`. Applying both corrections gives
+   * a combined factor of `aspect_y / (1.0f / aspect_y) == aspect_y * aspect_y`. */
   float size[2];
   sub_v2_v2v2(size, bounds_max, bounds_min);
-  if (size[1] < size[0]) {
+  if (size[1] < size[0] * (aspect_y * aspect_y)) {
     angle += DEG2RADF(90.0f);
   }
 
@@ -1250,7 +1264,7 @@ static float uv_nearest_grid_tile_distance(const int udim_grid[2],
 
 static bool island_has_pins(const Scene *scene,
                             FaceIsland *island,
-                            const UVPackIsland_Params *params)
+                            const blender::geometry::UVPackIsland_Params *params)
 {
   const bool pin_unselected = params->pin_unselected;
   const bool only_selected_faces = params->only_selected_faces;
@@ -1291,7 +1305,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                                       const int objects_len,
                                       BMesh **bmesh_override,
                                       const UVMapUDIM_Params *closest_udim,
-                                      const UVPackIsland_Params *params)
+                                      const blender::geometry::UVPackIsland_Params *params)
 {
   blender::Vector<FaceIsland *> island_vector;
 
@@ -1502,14 +1516,10 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
   }
 
-  UVPackIsland_Params pack_island_params{};
+  blender::geometry::UVPackIsland_Params pack_island_params;
+  pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate = RNA_boolean_get(op->ptr, "rotate");
-  pack_island_params.only_selected_uvs = options.only_selected_uvs;
-  pack_island_params.only_selected_faces = options.only_selected_faces;
-  pack_island_params.use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams;
-  pack_island_params.correct_aspect = options.correct_aspect;
   pack_island_params.ignore_pinned = false;
-  pack_island_params.pin_unselected = options.pin_unselected;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
@@ -1517,7 +1527,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   UVMapUDIM_Params closest_udim_buf;
   UVMapUDIM_Params *closest_udim = nullptr;
   if (udim_source == PACK_UDIM_SRC_ACTIVE) {
-    ED_uvedit_udim_params_from_image_space(sima, &pack_island_params);
+    pack_island_params.setUDIMOffsetFromSpaceImage(sima);
   }
   else if (sima) {
     BLI_assert(udim_source == PACK_UDIM_SRC_CLOSEST);
@@ -2290,15 +2300,10 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     options.correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0;
     uvedit_unwrap_multi(scene, objects, objects_len, &options, nullptr);
 
-    UVPackIsland_Params pack_island_params{};
+    blender::geometry::UVPackIsland_Params pack_island_params;
+    pack_island_params.setFromUnwrapOptions(options);
     pack_island_params.rotate = true;
-    pack_island_params.only_selected_uvs = options.only_selected_uvs;
-    pack_island_params.only_selected_faces = options.only_selected_faces;
-    pack_island_params.use_seams = !options.topology_from_uvs ||
-                                   options.topology_from_uvs_use_seams;
-    pack_island_params.correct_aspect = options.correct_aspect;
     pack_island_params.ignore_pinned = true;
-    pack_island_params.pin_unselected = options.pin_unselected;
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
 
@@ -2436,14 +2441,10 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   int count_failed = 0;
   uvedit_unwrap_multi(scene, objects, objects_len, &options, &count_changed, &count_failed);
 
-  UVPackIsland_Params pack_island_params{};
+  blender::geometry::UVPackIsland_Params pack_island_params;
+  pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate = true;
-  pack_island_params.only_selected_uvs = options.only_selected_uvs;
-  pack_island_params.only_selected_faces = options.only_selected_faces;
-  pack_island_params.use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams;
-  pack_island_params.correct_aspect = options.correct_aspect;
   pack_island_params.ignore_pinned = true;
-  pack_island_params.pin_unselected = options.pin_unselected;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
@@ -2819,7 +2820,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     /* Depsgraph refresh functions are called here. */
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
-    UVPackIsland_Params params{};
+    blender::geometry::UVPackIsland_Params params;
     params.rotate = true;
     params.only_selected_uvs = only_selected_uvs;
     params.only_selected_faces = true;
@@ -3808,7 +3809,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   uvedit_unwrap_cube_project(scene, bm, 2.0, false, false, nullptr);
 
   /* Pack UVs. */
-  UVPackIsland_Params params{};
+  blender::geometry::UVPackIsland_Params params;
   params.rotate = true;
   params.only_selected_uvs = false;
   params.only_selected_faces = false;

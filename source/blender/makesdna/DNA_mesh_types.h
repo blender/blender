@@ -279,13 +279,12 @@ typedef struct Mesh {
   void loose_edges_tag_none() const;
 
   /**
-   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
   blender::Span<blender::float3> poly_normals() const;
   /**
-   * Normal direction for each vertex, which is defined as the weighted average of the normals
-   * from a vertices surrounding faces, or the normalized position of vertices connected to no
-   * faces.
+   * Normal direction of vertices, defined as the weighted average of face normals
+   * surrounding each vertex and the normalized position for loose vertices.
    */
   blender::Span<blender::float3> vert_normals() const;
 #endif

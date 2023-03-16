@@ -37,6 +37,7 @@
 #include "BLO_readfile.h"
 
 #include "BKE_armature.h"
+#include "BKE_blendfile.h"
 #include "BKE_blendfile_link_append.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -216,7 +217,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   BLI_path_join(path, sizeof(path), root, relname);
 
   /* test if we have a valid data */
-  if (!BLO_library_path_explode(path, libname, &group, &name)) {
+  if (!BKE_library_path_explode(path, libname, &group, &name)) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': not a library", path);
     return OPERATOR_CANCELLED;
   }
@@ -289,7 +290,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
       BLI_path_join(path, sizeof(path), root, relname);
 
-      if (BLO_library_path_explode(path, libname, &group, &name)) {
+      if (BKE_library_path_explode(path, libname, &group, &name)) {
         if (!wm_link_append_item_poll(NULL, path, group, name, do_append)) {
           continue;
         }
@@ -308,7 +309,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
       BLI_path_join(path, sizeof(path), root, relname);
 
-      if (BLO_library_path_explode(path, libname, &group, &name)) {
+      if (BKE_library_path_explode(path, libname, &group, &name)) {
         BlendfileLinkAppendContextItem *item;
 
         if (!wm_link_append_item_poll(op->reports, path, group, name, do_append)) {
@@ -610,7 +611,7 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 {
-  if (!BLO_has_bfile_extension(lib->filepath_abs)) {
+  if (!BKE_has_bfile_extension(lib->filepath_abs)) {
     BKE_reportf(reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->filepath_abs);
     return;
   }
@@ -687,7 +688,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
     RNA_string_get(op->ptr, "directory", root);
     RNA_string_get(op->ptr, "filename", libname);
 
-    if (!BLO_has_bfile_extension(libname)) {
+    if (!BKE_has_bfile_extension(libname)) {
       BKE_report(op->reports, RPT_ERROR, "Not a library");
       return OPERATOR_CANCELLED;
     }
@@ -750,7 +751,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 
           BLI_path_join(path, sizeof(path), root, relname);
 
-          if (BLI_path_cmp(path, lib->filepath_abs) == 0 || !BLO_has_bfile_extension(relname)) {
+          if (BLI_path_cmp(path, lib->filepath_abs) == 0 || !BKE_has_bfile_extension(relname)) {
             continue;
           }
 

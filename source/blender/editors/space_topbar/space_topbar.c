@@ -13,9 +13,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
 #include "BLT_translation.h"
 
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -202,7 +202,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
   if (!BLI_listbase_is_empty(&G.recent_files)) {
     for (recent = G.recent_files.first; (recent); recent = recent->next) {
       const char *file = BLI_path_basename(recent->filepath);
-      const int icon = BLO_has_bfile_extension(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
+      const int icon = BKE_has_bfile_extension(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
       PointerRNA ptr;
       uiItemFullO(layout, "WM_OT_open_mainfile", file, icon, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
       RNA_string_set(&ptr, "filepath", recent->filepath);

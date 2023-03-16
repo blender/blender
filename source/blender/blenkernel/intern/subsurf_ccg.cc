@@ -33,7 +33,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -1180,8 +1180,8 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 
     BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_WRITE);
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->vertData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numVertData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numVertData));
 
     totorig = ccgSubSurf_getNumVerts(ss);
     totnone = dm->numVertData - totorig;
@@ -1219,8 +1219,8 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numEdgeData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numEdgeData));
 
     totedge = ccgSubSurf_getNumEdges(ss);
     totorig = totedge * (edgeSize - 1);
@@ -1262,8 +1262,8 @@ static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->polyData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numPolyData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->polyData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numPolyData));
 
     totface = ccgSubSurf_getNumFaces(ss);
 

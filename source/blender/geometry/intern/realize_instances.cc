@@ -19,7 +19,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
 

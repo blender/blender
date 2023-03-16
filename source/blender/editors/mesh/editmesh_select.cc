@@ -24,7 +24,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 
 #include "WM_api.h"

@@ -337,7 +337,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_ANGLE, 0, "MESH_EDGE_ANGLE", Inpu
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS, 0, "MESH_EDGE_NEIGHBORS",InputMeshEdgeNeighbors, "Edge Neighbors", "Retrieve the number of faces that use each edge as one of their sides")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_VERTICES, 0, "MESH_EDGE_VERTICES", InputMeshEdgeVertices, "Edge Vertices", "Retrieve topology information relating to each edge of a mesh")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_AREA, 0, "MESH_FACE_AREA", InputMeshFaceArea, "Face Area", "Calculate the surface area of a mesh's faces")
-DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, 0, "MESH_FACE_IS_PLANAR",InputMeshFaceIsPlanar, "Is Face Planar", "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal")
+DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, 0, "MESH_FACE_IS_PLANAR", InputMeshFaceIsPlanar, "Is Face Planar", "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the same normal")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_NEIGHBORS, 0, "MESH_FACE_NEIGHBORS",InputMeshFaceNeighbors, "Face Neighbors", "Retrieve topology information relating to each face of a mesh")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_ISLAND, 0, "MESH_ISLAND", InputMeshIsland, "Mesh Island", "Retrieve information about separate connected regions in a mesh")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS, 0, "MESH_VERTEX_NEIGHBORS", InputMeshVertexNeighbors, "Vertex Neighbors", "Retrieve topology information relating to each vertex of a mesh")

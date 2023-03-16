@@ -30,4 +30,8 @@ blender::asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
 
 /* Can return false to stop iterating. */
 using AssetListIterFn = blender::FunctionRef<bool(AssetHandle)>;
+/**
+ * \warning Never keep the asset handle passed to \a fn outside of \a fn's scope. While iterating,
+ * the file data wrapped by the asset handle can be freed, since the file cache has a maximum size.
+ */
 void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn);

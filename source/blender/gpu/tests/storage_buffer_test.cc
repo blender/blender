@@ -22,7 +22,7 @@ static Vector<int32_t> test_data()
   return data;
 }
 
-static void test_gpu_storage_buffer_create_update_read()
+static void test_storage_buffer_create_update_read()
 {
   GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
       SIZE_IN_BYTES, nullptr, GPU_USAGE_STATIC, __func__);
@@ -45,6 +45,6 @@ static void test_gpu_storage_buffer_create_update_read()
   GPU_storagebuf_free(ssbo);
 }
 
-GPU_TEST(gpu_storage_buffer_create_update_read);
+GPU_TEST(storage_buffer_create_update_read);
 
 }  // namespace blender::gpu::tests

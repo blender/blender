@@ -24,7 +24,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"

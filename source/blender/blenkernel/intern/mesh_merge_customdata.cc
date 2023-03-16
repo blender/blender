@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BLI_memarena.h"
 

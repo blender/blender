@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -376,7 +376,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
 
 #  include "BKE_brush.h"
 #  include "BKE_colorband.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
 #  include "BKE_material.h"
 #  include "BKE_paint.h"

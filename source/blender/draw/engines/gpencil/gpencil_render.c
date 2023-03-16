@@ -10,7 +10,7 @@
 
 #include "BKE_object.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "DEG_depsgraph_query.h"
 

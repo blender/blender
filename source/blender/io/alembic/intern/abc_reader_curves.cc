@@ -20,7 +20,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_curve.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 using Alembic::Abc::FloatArraySamplePtr;

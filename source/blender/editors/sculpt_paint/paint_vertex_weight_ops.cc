@@ -23,7 +23,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"

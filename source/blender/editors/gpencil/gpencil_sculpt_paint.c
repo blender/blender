@@ -24,7 +24,7 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -37,10 +37,10 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
-#include "BKE_gpencil_update_cache.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object_deform.h"
@@ -1411,7 +1411,8 @@ static float gpencil_sculpt_rotation_eval_get(tGP_BrushEditData *gso,
 
   const GP_SpaceConversion *gsc = &gso->gsc;
   bGPDstroke *gps_orig = (gps_eval->runtime.gps_orig) ? gps_eval->runtime.gps_orig : gps_eval;
-  bGPDspoint *pt_orig = &gps_orig->points[pt_eval->runtime.idx_orig];
+  bGPDspoint *pt_orig = (pt_eval->runtime.pt_orig) ? &gps_orig->points[pt_eval->runtime.idx_orig] :
+                                                     pt_eval;
   bGPDspoint *pt_prev_eval = NULL;
   bGPDspoint *pt_orig_prev = NULL;
   if (idx_eval != 0) {

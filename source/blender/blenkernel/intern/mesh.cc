@@ -50,7 +50,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
@@ -838,7 +838,7 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
   else {
     if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
       vs = (MVertSkin *)CustomData_add_layer(
-          &me->vdata, CD_MVERT_SKIN, CD_SET_DEFAULT, nullptr, me->totvert);
+          &me->vdata, CD_MVERT_SKIN, CD_SET_DEFAULT, me->totvert);
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -860,7 +860,7 @@ bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me)
   }
   else {
     if (!CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, nullptr, me->totpoly);
+      CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, me->totpoly);
       changed = true;
     }
   }
@@ -965,16 +965,16 @@ static void mesh_ensure_cdlayers_primary(Mesh *mesh)
 {
   if (!CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position")) {
     CustomData_add_layer_named(
-        &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
+        &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
   }
   if (!CustomData_get_layer(&mesh->edata, CD_MEDGE)) {
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
+    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
   }
   if (!CustomData_get_layer(&mesh->ldata, CD_MLOOP)) {
-    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, mesh->totloop);
   }
   if (!CustomData_get_layer(&mesh->pdata, CD_MPOLY)) {
-    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, mesh->totpoly);
   }
 }
 
@@ -1094,7 +1094,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
    * even in cases where the source mesh does not. */
   mesh_ensure_cdlayers_primary(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata, CD_MFACE)) {
-    CustomData_add_layer(&me_dst->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, me_dst->totface);
+    CustomData_add_layer(&me_dst->fdata, CD_MFACE, CD_SET_DEFAULT, me_dst->totface);
   }
 
   /* Expect that normals aren't copied at all, since the destination mesh is new. */
@@ -1183,7 +1183,7 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
   if (CustomData_has_layer(&data, CD_ORIGINDEX)) {
     return;
   }
-  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, size);
+  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, size);
   range_vn_i(indices, size, 0);
 }
 
@@ -1360,7 +1360,7 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
   /* Orcos are stored in normalized 0..1 range by convention. */
   float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
   BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
-  CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_ASSIGN, orcodata, mesh->totvert);
+  CustomData_add_layer_with_data(&mesh->vdata, CD_ORCO, orcodata, mesh->totvert);
 }
 
 Mesh *BKE_mesh_from_object(Object *ob)
@@ -1830,7 +1830,7 @@ static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
   }
   else {
     r_loop_normals = (float(*)[3])CustomData_add_layer(
-        &mesh.ldata, CD_NORMAL, CD_SET_DEFAULT, nullptr, mesh.totloop);
+        &mesh.ldata, CD_NORMAL, CD_SET_DEFAULT, mesh.totloop);
     CustomData_set_layer_flag(&mesh.ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   return r_loop_normals;
@@ -1854,29 +1854,22 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
-  const Span<float3> positions = mesh->vert_positions();
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
 
-  BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(positions.data()),
-                              BKE_mesh_vert_normals_ensure(mesh),
-                              positions.size(),
-                              edges.data(),
-                              edges.size(),
-                              loops.data(),
-                              r_corner_normals,
-                              loops.size(),
-                              polys.data(),
-                              BKE_mesh_poly_normals_ensure(mesh),
-                              polys.size(),
-                              use_split_normals,
-                              split_angle,
-                              sharp_edges,
-                              sharp_faces,
-                              nullptr,
-                              r_lnors_spacearr,
-                              clnors);
+  blender::bke::mesh::normals_calc_loop(
+      mesh->vert_positions(),
+      mesh->edges(),
+      mesh->polys(),
+      mesh->loops(),
+      {},
+      mesh->vert_normals(),
+      mesh->poly_normals(),
+      sharp_edges,
+      sharp_faces,
+      use_split_normals,
+      split_angle,
+      clnors,
+      nullptr,
+      {reinterpret_cast<float3 *>(r_corner_normals), mesh->totloop});
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)

@@ -30,7 +30,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
@@ -290,7 +290,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, nullptr, target->totvert);
+        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
   }
 
   blender::threading::parallel_for(IndexRange(target->totvert), 4096, [&](const IndexRange range) {
@@ -338,15 +338,12 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 
   blender::threading::parallel_for(IndexRange(target->totpoly), 2048, [&](const IndexRange range) {
     for (const int i : range) {
-      float from_co[3];
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
       const MPoly &poly = target_polys[i];
-      BKE_mesh_calc_poly_center(&poly,
-                                &target_loops[poly.loopstart],
-                                reinterpret_cast<const float(*)[3]>(target_positions.data()),
-                                from_co);
+      const float3 from_co = mesh::poly_center_calc(
+          target_positions, target_loops.slice(poly.loopstart, poly.totloop));
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
@@ -387,7 +384,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
 
       CustomData_add_layer_named(
-          target_cdata, layer->type, CD_SET_DEFAULT, nullptr, elem_num, layer->name);
+          target_cdata, eCustomDataType(layer->type), CD_SET_DEFAULT, elem_num, layer->name);
       layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
     }
 

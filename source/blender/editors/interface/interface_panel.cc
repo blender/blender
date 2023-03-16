@@ -1298,11 +1298,9 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   const int roundboxtype = is_left ? (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) :
                                      (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
   bool is_alpha;
-  bool do_scaletabs = false;
 #ifdef USE_FLAT_INACTIVE
   bool is_active_prev = false;
 #endif
-  float scaletabs = 1.0f;
   /* Same for all tabs. */
   /* Intentionally don't scale by 'px'. */
   const int rct_xmin = is_left ? v2d->mask.xmin + 3 : (v2d->mask.xmax - category_tabs_width);
@@ -1344,7 +1342,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     BLI_assert(UI_panel_category_is_visible(region));
   }
 
-  /* Calculate tab rectangle and check if we need to scale down. */
+  /* Calculate tab rectangle for each panel. */
   LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
     rcti *rct = &pc_dyn->rect;
     const char *category_id = pc_dyn->idname;
@@ -1360,16 +1358,13 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     y_ofs += category_width + tab_v_pad + (tab_v_pad_text * 2);
   }
 
-  if (y_ofs > BLI_rcti_size_y(&v2d->mask)) {
-    scaletabs = float(BLI_rcti_size_y(&v2d->mask)) / float(y_ofs);
-
-    LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
-      rcti *rct = &pc_dyn->rect;
-      rct->ymin = ((rct->ymin - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
-      rct->ymax = ((rct->ymax - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
-    }
-
-    do_scaletabs = true;
+  const int max_scroll = max_ii(y_ofs - BLI_rcti_size_y(&v2d->mask), 0);
+  const int scroll = clamp_i(region->category_scroll, 0, max_scroll);
+  region->category_scroll = scroll;
+  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
+    rcti *rct = &pc_dyn->rect;
+    rct->ymin += scroll;
+    rct->ymax += scroll;
   }
 
   /* Begin drawing. */
@@ -1405,14 +1400,17 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
     const rcti *rct = &pc_dyn->rect;
+    if (rct->ymin > v2d->mask.ymax) {
+      /* Scrolled outside the top of the view, check the next tab. */
+      continue;
+    }
+    if (rct->ymax < v2d->mask.ymin) {
+      /* Scrolled past visible bounds, no need to draw other tabs. */
+      break;
+    }
     const char *category_id = pc_dyn->idname;
     const char *category_id_draw = IFACE_(category_id);
-    const int category_width = BLI_rcti_size_y(rct) - (tab_v_pad_text * 2);
     size_t category_draw_len = BLF_DRAW_STR_DUMMY_MAX;
-#if 0
-    int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
-#endif
-
     const bool is_active = STREQ(category_id, category_id_active);
 
     GPU_blend(GPU_BLEND_ALPHA);
@@ -1468,11 +1466,6 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     }
 
     /* Tab titles. */
-
-    if (do_scaletabs) {
-      category_draw_len = BLF_width_to_strlen(
-          fontid, category_id_draw, category_draw_len, category_width, nullptr);
-    }
 
     BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
     BLF_color3ubv(fontid, is_active ? theme_col_text_hi : theme_col_text);
@@ -2255,7 +2248,9 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
     const char *category = UI_panel_category_active_get(region, false);
     if (LIKELY(category)) {
       PanelCategoryDyn *pc_dyn = UI_panel_category_find(region, category);
-      if (LIKELY(pc_dyn)) {
+      /* Cyclic behavior between categories
+       * using Ctrl+Tab (+Shift for backwards) or Ctrl+Wheel Up/Down. */
+      if (LIKELY(pc_dyn) && (event->modifier & KM_CTRL)) {
         if (is_mousewheel) {
           /* We can probably get rid of this and only allow Ctrl-Tabbing. */
           pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
@@ -2276,9 +2271,9 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
           UI_panel_category_active_set(region, pc_dyn->idname);
           ED_region_tag_redraw(region);
         }
+        return WM_UI_HANDLER_BREAK;
       }
     }
-    return WM_UI_HANDLER_BREAK;
   }
 
   return WM_UI_HANDLER_CONTINUE;

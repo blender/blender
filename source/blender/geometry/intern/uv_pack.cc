@@ -22,6 +22,22 @@
 
 namespace blender::geometry {
 
+UVPackIsland_Params::UVPackIsland_Params()
+{
+  /* TEMPORARY, set every thing to "zero" for backwards compatibility. */
+  rotate = false;
+  only_selected_uvs = false;
+  only_selected_faces = false;
+  use_seams = false;
+  correct_aspect = false;
+  ignore_pinned = false;
+  pin_unselected = false;
+  margin = 0.001f;
+  margin_method = ED_UVPACK_MARGIN_SCALED;
+  udim_base_offset[0] = 0.0f;
+  udim_base_offset[1] = 0.0f;
+}
+
 /* Compact representation for AABB packers. */
 class UVAABBIsland {
  public:

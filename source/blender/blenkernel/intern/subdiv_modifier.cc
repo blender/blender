@@ -11,7 +11,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_subdiv.h"
 

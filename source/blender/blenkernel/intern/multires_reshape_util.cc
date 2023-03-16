@@ -18,7 +18,7 @@
 #include "BLI_task.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"

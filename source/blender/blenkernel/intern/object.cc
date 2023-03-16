@@ -25,8 +25,8 @@
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -86,9 +86,9 @@
 #include "BKE_geometry_set.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -105,7 +105,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -1672,7 +1672,8 @@ static void copy_ccg_data(Mesh *mesh_destination, Mesh *mesh_source, int layer_t
   const int layer_index = CustomData_get_layer_index(data_destination, layer_type);
   CustomData_free_layer(data_destination, layer_type, num_elements, layer_index);
   BLI_assert(!CustomData_has_layer(data_destination, layer_type));
-  CustomData_add_layer(data_destination, layer_type, CD_SET_DEFAULT, nullptr, num_elements);
+  CustomData_add_layer(
+      data_destination, eCustomDataType(layer_type), CD_SET_DEFAULT, num_elements);
   BLI_assert(CustomData_has_layer(data_destination, layer_type));
   CustomData_copy_layer_type_data(data_source, data_destination, layer_type, 0, 0, num_elements);
 }

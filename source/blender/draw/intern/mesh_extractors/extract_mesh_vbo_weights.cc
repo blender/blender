@@ -8,7 +8,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"

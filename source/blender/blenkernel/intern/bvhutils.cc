@@ -24,7 +24,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "MEM_guardedalloc.h"

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_memory_utils.hh"

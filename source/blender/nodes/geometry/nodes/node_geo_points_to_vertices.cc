@@ -5,7 +5,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 

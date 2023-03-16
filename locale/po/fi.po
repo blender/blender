@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10217,10 +10217,6 @@ msgid "No packed file"
 msgstr "Ei pakattua tiedostoa"
 
 
-msgid "Group Input "
-msgstr "Ryhmäsyöte "
-
-
 msgid " (String)"
 msgstr "(Merkkijono)"
 
@@ -10626,22 +10622,6 @@ msgstr "Kuvaa ei ole pakattu"
 msgctxt "Key"
 msgid "Key"
 msgstr "Avain"
-
-
-msgid "Functions"
-msgstr "Funktiot"
-
-
-msgid "Comparison"
-msgstr "Vertailu"
-
-
-msgid "Trigonometric"
-msgstr "Trigonometrinen"
-
-
-msgid "Conversion"
-msgstr "Konversio"
 
 
 msgid "CustomGroup"

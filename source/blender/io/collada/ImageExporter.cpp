@@ -16,7 +16,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

@@ -9,7 +9,7 @@
  */
 
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 
@@ -19,7 +19,7 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"

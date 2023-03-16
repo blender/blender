@@ -57,7 +57,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
     return svm_node_closure_bsdf_skip(kg, offset, type);
   }
 
-  float3 N = stack_valid(data_node.x) ? stack_load_float3(stack, data_node.x) : sd->N;
+  float3 N = stack_valid(data_node.x) ? safe_normalize(stack_load_float3(stack, data_node.x)) :
+                                        sd->N;
   if (!(sd->type & PRIMITIVE_CURVE)) {
     N = ensure_valid_reflection(sd->Ng, sd->wi, N);
   }

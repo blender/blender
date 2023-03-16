@@ -70,6 +70,7 @@ void Instance::init(const int2 &output_res,
   shadows.init();
   motion_blur.init();
   main_view.init();
+  irradiance_cache.init();
 }
 
 void Instance::set_time(float time)
@@ -117,6 +118,7 @@ void Instance::begin_sync()
   main_view.sync();
   world.sync();
   film.sync();
+  irradiance_cache.sync();
 }
 
 void Instance::scene_sync()

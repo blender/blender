@@ -3,7 +3,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "UI_interface.h"

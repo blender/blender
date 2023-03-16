@@ -40,7 +40,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
@@ -76,6 +76,22 @@ using blender::StringRefNull;
 
 static CLG_LogRef LOG = {"bke.mesh_convert"};
 
+static void poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLoop *mloop)
+{
+  const MLoop *ml, *ml_next;
+  int i = poly->totloop;
+
+  ml_next = mloop;      /* first loop */
+  ml = &ml_next[i - 1]; /* last loop */
+
+  while (i-- != 0) {
+    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, nullptr);
+
+    ml = ml_next;
+    ml_next++;
+  }
+}
+
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
@@ -90,7 +106,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
   EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
   for (const MPoly &poly : polys) {
-    BKE_mesh_poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
+    poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
   }
 
   const int totedge_new = BLI_edgehash_len(eh);
@@ -199,7 +215,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       "sharp_face", ATTR_DOMAIN_FACE);
 
   blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
+      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, DATA_("UVMap")));
 
   int dst_vert = 0;
   int dst_edge = 0;

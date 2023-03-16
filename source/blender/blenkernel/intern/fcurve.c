@@ -556,9 +556,12 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
 
 /* ...................................... */
 
-/* Get the first and last index to the bezt array that satisfies the given parameters.
- * \param selected_keys_only Only accept indices of bezt that are selected. Is a subset of
- * frame_range. \param frame_range Only consider keyframes in that frame interval. Can be NULL.
+/**
+ * Get the first and last index to the bezt array that satisfies the given parameters.
+ *
+ * \param selected_keys_only: Only accept indices of bezt that are selected.
+ * Is a subset of frame_range.
+ * \param frame_range: Only consider keyframes in that frame interval. Can be NULL.
  */
 static bool get_bounding_bezt_indices(const FCurve *fcu,
                                       const bool selected_keys_only,
@@ -760,7 +763,8 @@ bool BKE_fcurve_calc_range(const FCurve *fcu,
                            float *r_end,
                            const bool selected_keys_only)
 {
-  float min, max = 0.0f;
+  float min = 0.0f;
+  float max = 0.0f;
   bool foundvert = false;
 
   if (fcu->totvert == 0) {

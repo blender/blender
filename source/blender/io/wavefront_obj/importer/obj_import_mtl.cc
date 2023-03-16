@@ -315,6 +315,7 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   }
   if (do_tranparency || (alpha >= 0.0f && alpha < 1.0f)) {
     mat->blend_method = MA_BM_BLEND;
+    mat->blend_flag |= MA_BL_HIDE_BACKFACE;
   }
 
   if (mtl_mat.sheen >= 0) {
@@ -393,6 +394,7 @@ static void add_image_textures(Main *bmain,
     else if (key == int(MTLTexMapType::Alpha)) {
       link_sockets(ntree, image_node, "Alpha", bsdf, tex_map_type_to_socket_id[key]);
       mat->blend_method = MA_BM_BLEND;
+      mat->blend_flag |= MA_BL_HIDE_BACKFACE;
     }
     else {
       link_sockets(ntree, image_node, "Color", bsdf, tex_map_type_to_socket_id[key]);

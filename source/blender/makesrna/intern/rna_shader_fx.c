@@ -8,7 +8,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"

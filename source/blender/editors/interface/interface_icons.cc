@@ -29,7 +29,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"

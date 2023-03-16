@@ -58,15 +58,8 @@ TEST(linear_allocator, CopyString)
   blender::AlignedBuffer<256, 1> buffer;
   allocator.provide_buffer(buffer);
 
-  /* False positive warning with GCC 12.2,
-   * considers assignment outside of array bounds (`char [0]`). */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-
   StringRefNull ref1 = allocator.copy_string("Hello");
   StringRefNull ref2 = allocator.copy_string("World");
-
-#pragma GCC diagnostic pop
 
   EXPECT_EQ(ref1, "Hello");
   EXPECT_EQ(ref2, "World");

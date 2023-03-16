@@ -3,7 +3,7 @@
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "BLO_readfile.h"

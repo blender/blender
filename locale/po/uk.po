@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -972,6 +972,10 @@ msgstr "Активний Значник"
 
 msgid "Index of the tag set for editing"
 msgstr "Індекс значника, заданого для редагування"
+
+
+msgid "Copyright"
+msgstr "Авторське право"
 
 
 msgid "Description"
@@ -12551,10 +12555,6 @@ msgid "Minimum number of particles per cell (ensures that each cell has at least
 msgstr "Мінімальна кількість частинок по комірках (гарантує, що кожна комірка має принаймні цю кількість частинок)"
 
 
-msgid "Number"
-msgstr "Номер"
-
-
 msgid "Particle number factor (higher value results in more particles)"
 msgstr "Фактор кількості частинок (вище значення дає більше частинок)"
 
@@ -17152,30 +17152,6 @@ msgid "Editable falloff curve"
 msgstr "Редагована крива спаду"
 
 
-msgid "Curve Preset"
-msgstr "Передустава Кривої"
-
-
-msgid "Smoother"
-msgstr "Згладженіше"
-
-
-msgid "Root"
-msgstr "Корінь"
-
-
-msgid "Sharp"
-msgstr "Гостро"
-
-
-msgid "Sharper"
-msgstr "Різкіше"
-
-
-msgid "Inverse Square"
-msgstr "Обернено до квадрату"
-
-
 msgid "Dash Ratio"
 msgstr "Пропорція Риски"
 
@@ -18480,16 +18456,8 @@ msgid "Name of the Alembic attribute used for generating motion blur data"
 msgstr "Назва атрибута Alembic, що використовується для генерування даних розмиву рухом"
 
 
-msgid "Velocity Unit"
-msgstr "Одиниця Скорості"
-
-
 msgid "Define how the velocity vectors are interpreted with regard to time, 'frame' means the delta time is 1 frame, 'second' means the delta time is 1 / FPS"
 msgstr "Визначає як вектори скорості інтерпретуються залежно від часу, кадр 'frame' означає, що дельта часу є 1 кадр, секунда 'second' означає, що дельта часу є одиниця на частоту кадрів за секунду 1 / FPS"
-
-
-msgid "Second"
-msgstr "Секунда"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -21000,6 +20968,10 @@ msgstr "Зменшення інтенсивності з відстанню"
 
 msgid "Inverse Linear"
 msgstr "Обернено пропорційно"
+
+
+msgid "Inverse Square"
+msgstr "Обернено до квадрату"
 
 
 msgid "Inverse Coefficients"
@@ -23869,6 +23841,10 @@ msgid "Show hair simulation grid"
 msgstr "Показати сітку моделювання волосся"
 
 
+msgid "Number"
+msgstr "Номер"
+
+
 msgid "Show particle number"
 msgstr "Показати кількість частинок"
 
@@ -24823,10 +24799,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "Текстовий файл на диску відрізняється від того, що у пам'яті"
 
 
-msgid "Lines"
-msgstr "Лінії"
-
-
 msgid "Lines of text"
 msgstr "Рядки тексту"
 
@@ -25455,8 +25427,16 @@ msgid "Use soft marble"
 msgstr "Використати м'який мармур"
 
 
+msgid "Sharp"
+msgstr "Гостро"
+
+
 msgid "Use more clearly defined marble"
 msgstr "Використати більш чіткий мармур"
+
+
+msgid "Sharper"
+msgstr "Різкіше"
 
 
 msgid "Use very clearly defined marble"
@@ -30918,6 +30898,10 @@ msgid "If vertex has multiple adjacent edges, it is hulled to them directly"
 msgstr "Якщо до вершини прилягає декілька ребер, обгортати їх напряму"
 
 
+msgid "Root"
+msgstr "Корінь"
+
+
 msgid "Vertex is a root for rotation calculations and armature generation, setting this flag does not clear other roots in the same mesh island"
 msgstr "Вершина є коренем для розрахунків обертання та генерування арматури, задання цього стяга не зчищає інші корені у цьому ж самому острові сіті"
 
@@ -35416,6 +35400,10 @@ msgstr "Кількість кешованих кадрів"
 
 msgid "Line Thickness"
 msgstr "Товщина лінії"
+
+
+msgid "Lines"
+msgstr "Лінії"
 
 
 msgid "Motion Path Points"
@@ -46164,10 +46152,6 @@ msgstr "Експортувати камери"
 
 msgid "Export vertex colors with meshes"
 msgstr "Експортувати кольори вершин із сітями"
-
-
-msgid "Copyright"
-msgstr "Авторське право"
 
 
 msgid "Legal rights and conditions for the model"
@@ -61320,10 +61304,6 @@ msgstr "Додати модифікатор кольору ліній до ст�
 msgctxt "Operator"
 msgid "Fill Range by Selection"
 msgstr "Заповнити діапазон вибраним"
-
-
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object "
-msgstr "Заповнити значення Мін та Макс Діапазону найменшою/найбільшою відстанню від вибраних сітьових об'єктів до джерельного об'єкта"
 
 
 msgid "Name of the modifier to work on"
@@ -89001,10 +88981,6 @@ msgid "Invert Selection"
 msgstr "Інвертувати Вибрання"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "Стеження"
 
@@ -89290,14 +89266,6 @@ msgid "The selected strips don't overlap"
 msgstr "Вибрані смужки не перекриваються"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Вилучити Додаток: %r?"
-
-
-msgid "Path: %r"
-msgstr "Шлях: %r"
-
-
 msgid "Reload Start-Up file to restore settings"
 msgstr "Перезавантажити Стартовий файл для відновлення устав"
 
@@ -89362,6 +89330,14 @@ msgid "Source file is in the add-on search path: %r"
 msgstr "Джерельний файл знаходиться по шляху пошуку додатка: %r"
 
 
+msgid "Remove Add-on: %r?"
+msgstr "Вилучити Додаток: %r?"
+
+
+msgid "Path: %r"
+msgstr "Шлях: %r"
+
+
 msgid "Active face must be a quad"
 msgstr "Активна грань повинна бути чотирикутною"
 
@@ -89382,10 +89358,6 @@ msgid "See OperatorList.txt text block"
 msgstr "Дивіться блок тексту OperatorList.txt"
 
 
-msgid "Rename %d %s"
-msgstr "Перейменувати %d %s"
-
-
 msgid "Renamed %d of %d %s"
 msgstr "Перейменовано %d з %d %s"
 
@@ -89401,18 +89373,6 @@ msgstr "Тема"
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Відкриття..."
-
-
-msgid "Date: %s %sutf-8replaceutf-8replace"
-msgstr "Дата: %s %sutf-8replaceutf-8replace"
-
-
-msgid "Hash: %sascii"
-msgstr "Хеш: %sascii"
-
-
-msgid "Branch: %sutf-8replace"
-msgstr "Гілка: %sutf-8replace"
 
 
 msgid "Blender is free software"
@@ -89552,6 +89512,10 @@ msgstr "Символи"
 
 msgid "Strip From"
 msgstr "Смужка Із"
+
+
+msgid "Rename %d %s"
+msgstr "Перейменувати %d %s"
 
 
 msgid "Date: %s %s"
@@ -90579,20 +90543,8 @@ msgid "Hair dynamics disabled"
 msgstr "Динаміку волосся вимкнено"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Повтори: %d .. %d (сер. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Помилка: %.5f .. %.5f (сер. %.5f)"
-
-
 msgid "Multiply Mass with Size"
 msgstr "Множити Масу на Розмір"
-
-
-msgid "Spacing: %g"
-msgstr "Інтервал: %g"
 
 
 msgid "Show Emitter"
@@ -90639,10 +90591,6 @@ msgid "Coordinate System"
 msgstr "Система Координат"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "%d частинок флюїду для цього кадру"
-
-
 msgctxt "Operator"
 msgid "Delete Edit"
 msgstr "Видалити Редагування"
@@ -90654,6 +90602,18 @@ msgstr "Вжити Часування"
 
 msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "Показ відсотків робить динаміку неточною без запікання"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "Повтори: %d .. %d (сер. %d)"
+
+
+msgid "Error: %.5f .. %.5f (avg. %.5f)"
+msgstr "Помилка: %.5f .. %.5f (сер. %.5f)"
+
+
+msgid "Spacing: %g"
+msgstr "Інтервал: %g"
 
 
 msgid "Not yet functional"
@@ -90668,6 +90628,10 @@ msgstr "З'єднати Все"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Від'єднати Все"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "%d частинок флюїду для цього кадру"
 
 
 msgid "Speed Multiplier"
@@ -91130,6 +91094,10 @@ msgid "This object is part of a compound shape"
 msgstr "Цей об'єкт є частиною складеної форми"
 
 
+msgid "Second"
+msgstr "Секунда"
+
+
 msgid "X Stiffness"
 msgstr "Тугість X"
 
@@ -91590,11 +91558,6 @@ msgstr "Відстеження для Обертання/Масштабу"
 
 
 msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "Зум %d:%d"
-
-
-msgctxt "Operator"
 msgid "View Fit"
 msgstr "Підгонка Огляду"
 
@@ -91614,12 +91577,12 @@ msgid "Frame All Fit"
 msgstr "Усе у Кадр Підгонка"
 
 
-msgid "Solve error: %.2f px"
-msgstr "Помилка рішача: %.2f px"
-
-
 msgid "Zoom %d:%d"
 msgstr "Зум %d:%d"
+
+
+msgid "Solve error: %.2f px"
+msgstr "Помилка рішача: %.2f px"
 
 
 msgctxt "Operator"
@@ -92804,10 +92767,6 @@ msgid "Default Fade"
 msgstr "Стандартне Зникання"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Оригінальний діапазон кадрів: %d-%d (%d)"
-
-
 msgid "Strip Offset Start"
 msgstr "Зсув Смужки Старт"
 
@@ -92861,10 +92820,6 @@ msgid "Effect Fader"
 msgstr "Зникач Ефекту"
 
 
-msgid "%dx%d"
-msgstr "%dx%d"
-
-
 msgid "Original Frame Range"
 msgstr "Оригінальний Діапазон Кадрів"
 
@@ -92883,6 +92838,10 @@ msgstr "Розпакувати"
 
 msgid "Pack"
 msgstr "Упакування"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "Оригінальний діапазон кадрів: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -92980,10 +92939,6 @@ msgstr "Перемістити Рядок(и) Уверх"
 msgctxt "Operator"
 msgid "Move Line(s) Down"
 msgstr "Перемістити Рядок(и) Вниз"
-
-
-msgid "Text: ExternalText: Internal"
-msgstr "Текст: Зовнішньо Текст: Внутрішньо"
 
 
 msgid "File: *%s (unsaved)"
@@ -93600,14 +93555,6 @@ msgid "Save as Studio light"
 msgstr "Зберегти як Студійний освітлювач"
 
 
-msgid "Color Set %d"
-msgstr "Набір Кольорів %d"
-
-
-msgid "Color %d"
-msgstr "Колір %d"
-
-
 msgid "Player"
 msgstr "Програвач"
 
@@ -93644,6 +93591,14 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Color Set %d"
+msgstr "Набір Кольорів %d"
+
+
+msgid "Color %d"
+msgstr "Колір %d"
+
+
 msgid "Description:"
 msgstr "Опис:"
 
@@ -93658,10 +93613,6 @@ msgstr "Файл:"
 
 msgid "Author:"
 msgstr "Автор:"
-
-
-msgid "author"
-msgstr "автор"
 
 
 msgid "Version:"
@@ -94687,10 +94638,6 @@ msgstr "Нульові Вагомості"
 
 msgid "Snap To"
 msgstr "Підхоп До"
-
-
-msgid "PAINT_GPENCILEDIT_GPENCILSCULPT_GPENCILWEIGHT_GPENCILVERTEX_GPENCILOBJECTDraw Grease PencilEdit Grease PencilSculpt Grease PencilWeight Grease PencilVertex Grease PencilGrease Pencil"
-msgstr "PAINT_GPENCILEDIT_GPENCILSCULPT_GPENCILWEIGHT_GPENCILVERTEX_GPENCILOBJECTDraw Grease PencilEdit Grease PencilSculpt Grease PencilWeight Grease PencilVertex Grease PencilGrease Pencil"
 
 
 msgctxt "Operator"
@@ -102594,22 +102541,6 @@ msgstr "Неможливо додати смужку (на доріжці не �
 
 msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Смужки НЛА '%s' не знайдено на доріжці '%s'"
-
-
-msgid "Functions"
-msgstr "Функції"
-
-
-msgid "Comparison"
-msgstr "Порівняння"
-
-
-msgid "Trigonometric"
-msgstr "Тригонометричне"
-
-
-msgid "Conversion"
-msgstr "Конверсія"
 
 
 msgid "Same input/output direction of sockets"

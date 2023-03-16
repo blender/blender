@@ -23,8 +23,8 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -37,9 +37,9 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_curve.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_curve_legacy.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
@@ -1715,6 +1715,10 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
          */
 
         for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+          /* Active frame is copied later, so don't need duplicate the stroke here. */
+          if (gpl->actframe == gpf) {
+            continue;
+          }
           if (gpf->flag & GP_FRAME_SELECT) {
             if (gpf) {
               /* Create new stroke */

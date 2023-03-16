@@ -20,7 +20,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -39,7 +39,7 @@ struct CDDerivedMesh {
   /* these point to data in the DerivedMesh custom data layers,
    * they are only here for efficiency and convenience */
   float (*vert_positions)[3];
-  const float (*vert_normals)[3];
+  const blender::float3 *vert_normals;
   MEdge *medge;
   MFace *mface;
   MLoop *mloop;
@@ -121,12 +121,11 @@ static void cdDM_recalc_looptri(DerivedMesh *dm)
   DM_ensure_looptri_data(dm);
   BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
 
-  BKE_mesh_recalc_looptri(cddm->mloop,
-                          cddm->mpoly,
-                          cddm->vert_positions,
-                          totloop,
-                          totpoly,
-                          cddm->dm.looptris.array_wip);
+  blender::bke::mesh::looptris_calc(
+      {reinterpret_cast<const blender::float3 *>(cddm->vert_positions), dm->numVertData},
+      {cddm->mpoly, totpoly},
+      {cddm->mloop, totloop},
+      {dm->looptris.array_wip, dm->looptris.num});
 
   BLI_assert(cddm->dm.looptris.array == NULL);
   atomic_cas_ptr(
@@ -222,7 +221,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
       &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
   /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
    * or dirty normals. */
-  cddm->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+  cddm->vert_normals = mesh->vert_normals().data();
   cddm->medge = static_cast<MEdge *>(
       CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge));
   cddm->mloop = static_cast<MLoop *>(
