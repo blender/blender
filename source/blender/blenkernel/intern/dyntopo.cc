@@ -21,7 +21,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
-#include "BLI_heap_minmax.h"
+#include "BLI_heap_minmax.hh"
 #include "BLI_heap_simple.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
@@ -747,7 +747,7 @@ static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
 
     // lensqr += (BLI_thread_frand(0) - 0.5f) * 0.1 * eq_ctx->limit_mid;
 
-    BLI_mm_heap_insert(eq_ctx->heap_mm, lensqr, e);
+    eq_ctx->edge_heap.insert(lensqr, e);
     e->head.hflag |= BM_ELEM_TAG;
   }
 }
@@ -2703,8 +2703,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     safe_smooth = DYNTOPO_SAFE_SMOOTH_FAC;
   }
 
-  EdgeQueueContext eq_ctx;
-  memset(static_cast<void *>(&eq_ctx), 0, sizeof(eq_ctx));
+  EdgeQueueContext eq_ctx = {};
 
   eq_ctx.pool = nullptr;
   eq_ctx.bm = pbvh->header.bm;
@@ -2724,7 +2723,6 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   eq_ctx.mode = mode;
 
 #ifdef DYNTOPO_USE_MINMAX_HEAP
-  eq_ctx.heap_mm = BLI_mm_heap_new_ex(max_ii(DYNTOPO_MAX_ITER, custom_max_steps));
   // eq_ctx.used_verts = BLI_table_gset_new(__func__);
   eq_ctx.max_heap_mm = DYNTOPO_MAX_ITER << 8;
   eq_ctx.limit_min = pbvh->bm_min_edge_len;
@@ -2833,7 +2831,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   SmallHash subd_edges;
   BLI_smallhash_init(&subd_edges);
 
-  while (totop > 0 && !BLI_mm_heap_is_empty(eq_ctx.heap_mm) && i < max_steps) {
+  while (totop > 0 && !eq_ctx.edge_heap.empty() && i < max_steps) {
     BMEdge *e = nullptr;
 
     if (count >= steps[curop]) {
@@ -2851,15 +2849,15 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     switch (ops[curop]) {
       case PBVH_Subdivide: {
-        if (BLI_mm_heap_max_value(eq_ctx.heap_mm) < limit_len_subd) {
+        if (eq_ctx.edge_heap.max_weight() < limit_len_subd) {
           break;
         }
 
-        e = (BMEdge *)BLI_mm_heap_pop_max(eq_ctx.heap_mm);
-        while (!BLI_mm_heap_is_empty(eq_ctx.heap_mm) && e &&
+        e = eq_ctx.edge_heap.pop_max();
+        while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
                 calc_weighted_length(&eq_ctx, e->v1, e->v2, -1.0) < limit_len_subd)) {
-          e = (BMEdge *)BLI_mm_heap_pop_max(eq_ctx.heap_mm);
+          e = eq_ctx.edge_heap.pop_max();
         }
 
         if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
@@ -2890,15 +2888,15 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         break;
       }
       case PBVH_Collapse: {
-        if (BLI_mm_heap_min_value(eq_ctx.heap_mm) > limit_len_cold) {
+        if (eq_ctx.edge_heap.min_weight() > limit_len_cold) {
           break;
         }
 
-        e = (BMEdge *)BLI_mm_heap_pop_min(eq_ctx.heap_mm);
-        while (!BLI_mm_heap_is_empty(eq_ctx.heap_mm) && e &&
+        e = eq_ctx.edge_heap.pop_min();
+        while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
                 calc_weighted_length(&eq_ctx, e->v1, e->v2, 1.0) > limit_len_cold)) {
-          e = (BMEdge *)BLI_mm_heap_pop_min(eq_ctx.heap_mm);
+          e = eq_ctx.edge_heap.pop_min();
         }
 
         if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
@@ -2984,10 +2982,6 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
 #ifdef DYNTOPO_USE_MINMAX_HEAP
-  if (eq_ctx.heap_mm) {
-    BLI_mm_heap_free(eq_ctx.heap_mm, nullptr);
-  }
-
   if (eq_ctx.used_verts) {
     MEM_SAFE_FREE(eq_ctx.used_verts);
     // BLI_table_gset_free(eq_ctx.used_verts, nullptr);

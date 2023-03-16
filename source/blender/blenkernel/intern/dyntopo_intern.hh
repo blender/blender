@@ -2,11 +2,11 @@
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BLI_asan.h"
+#include "BLI_heap_minmax.hh"
 #include "bmesh.h"
 #include "pbvh_intern.hh"
-#include "BLI_asan.h"
 
-struct MinMaxHeap;
 struct GHash;
 struct BLI_Buffer;
 
@@ -194,9 +194,9 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 struct EdgeQueue;
 
 typedef struct EdgeQueueContext {
-  BLI_mempool *pool;
-  BMesh *bm;
-  DyntopoMaskCB mask_cb;
+  BLI_mempool *pool = nullptr;
+  BMesh *bm = nullptr;
+  DyntopoMaskCB mask_cb = nullptr;
   void *mask_cb_data;
   int cd_sculpt_vert;
   int cd_vert_mask_offset;
@@ -209,10 +209,11 @@ typedef struct EdgeQueueContext {
   bool local_mode;
   float surface_smooth_fac;
 
-  struct MinMaxHeap *heap_mm;
+  blender::MinMaxHeap<BMEdge *> edge_heap;
+
   int max_heap_mm;
   // TableGSet *used_verts;
-  BMVert **used_verts;
+  BMVert **used_verts = nullptr;
   int used_verts_size;
   int tot_used_verts;
 
@@ -220,7 +221,7 @@ typedef struct EdgeQueueContext {
   bool use_view_normal;
   float limit_min, limit_max, limit_mid;
 
-  const float *center;
+  const float *center = nullptr;
   float center_proj[3]; /* for when we use projected coords. */
   float radius_squared;
   float limit_len_min;

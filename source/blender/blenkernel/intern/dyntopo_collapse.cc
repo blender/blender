@@ -701,9 +701,6 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BLI_ghash_insert(deleted_verts, (void *)v_del, nullptr);
   }
 
-  BMTracer tracer;
-  BM_empty_tracer(&tracer, &tdata);
-
   vert_ring_do(e->v1, e->v2, collapse_ring_callback_pre, &tdata, tag, facetag, log_rings - 1);
 
   if (!uvs_snapped) {
@@ -711,8 +708,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     copy_v3_v3(co, v_conn->co);
 
-    // full non-manifold collapse
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, &tracer);
+    /* Full non-manifold collapse. */
+    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, nullptr);
     copy_v3_v3(v_conn->co, co);
   }
   else {
@@ -721,8 +718,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     add_v3_v3v3(co, v_del->co, v_conn->co);
     mul_v3_fl(co, 0.5f);
 
-    // full non-manifold collapse
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, &tracer);
+    /* Full non-manifold collapse. */
+    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, nullptr);
     copy_v3_v3(v_conn->co, co);
   }
 
@@ -741,7 +738,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   validate_vert_faces(pbvh, pbvh->header.bm, v_conn, false, true);
 
-  /* Flag boundaries for update */
+  /* Flag boundaries for update. */
   e2 = v_conn->e;
   do {
     BMLoop *l = e2->l;

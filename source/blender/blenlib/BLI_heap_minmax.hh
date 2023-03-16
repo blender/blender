@@ -8,36 +8,224 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_vector.hh"
 
 using blender::IndexRange;
 using blender::Vector;
 
-namespace blender {
-template<typename T> class MinMaxHeapNode {
- public:
- private:
-  T *value;
-  float value;
-  int child1 = -1, child2 = -1, parent = -1;
-};
+#include <algorithm>
 
-template<typename T> class MinMaxHeap {
+namespace blender {
+template<typename Value = void *,
+         int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Value))>
+class MinMaxHeap {
+  struct MinMaxHeapNode {
+    Value value;
+    float weight;
+
+    int child1 = -1, child2 = -1, parent = -1;
+  };
+
  public:
   MinMaxHeap(int reserved = 0)
   {
-    nodes.reserve(reserved);
+    if (reserved > 0) {
+      nodes.reserve(reserved);
+    }
   }
 
   ~MinMaxHeap()
   {
   }
 
+  MinMaxHeapNode *insert(float weight, Value value)
+  {
+    MinMaxHeapNode *node = heap_make_node();
+
+    node->value = value;
+    node->weight = weight;
+
+    if (nodes.size() == 1) {
+      return node;
+    }
+
+    int i = node - nodes.data();
+
+    node->parent = (i - 1) >> 1;
+
+    MinMaxHeapNode *parent = &nodes[node->parent];
+    if (parent->child1 == -1) {
+      parent->child1 = i;
+    }
+    else {
+      parent->child2 = i;
+    }
+
+    return heap_push_up(node);
+  }
+
+  void insert_or_update(MinMaxHeapNode **node_p, float weight, Value value)
+  {
+    MinMaxHeapNode *node = *node_p;
+
+    if (!node) {
+      *node_p = insert(weight, value);
+      return;
+    }
+
+    node = heap_push_down(node);
+    node = heap_push_up(node);
+
+    *node_p = node;
+  }
+
+  bool empty() const
+  {
+    return nodes.size() == 0;
+  }
+
+  unsigned int len() const
+  {
+    return nodes.size();
+  }
+
+  float min_weight()
+  {
+    return nodes[0].weight;
+  }
+
+  float max_weight()
+  {
+    return max()->weight;
+  }
+
+  Value pop_min()
+  {
+    if (nodes.size() == 1) {
+      return nodes.pop_last().value;
+    }
+
+#ifdef BLI_MINMAX_HEAP_VALIDATE
+    if (!is_valid()) {
+      printf("invalid heap!\n");
+    }
+#endif
+
+    Value ret = nodes[0].value;
+    MinMaxHeapNode *last = heap_pop_last();
+
+    std::swap(last->weight, nodes[0].weight);
+    std::swap(last->value, nodes[0].value);
+
+    heap_push_down(&nodes[0]);
+
+#ifdef BLI_MINMAX_HEAP_VALIDATE
+    if (!is_valid()) {
+      printf("invalid heap!\n");
+    }
+#endif
+
+    return ret;
+  }
+
+  Value pop_max()
+  {
+    MinMaxHeapNode *node = max();
+
+    if (nodes.size() == 1) {
+      return nodes.pop_last().value;
+    }
+
+#ifdef BLI_MINMAX_HEAP_VALIDATE
+    if (!is_valid()) {
+      printf("invalid heap!\n");
+    }
+#endif
+
+    Value ret = node->value;
+    MinMaxHeapNode *last = heap_pop_last();
+
+    node->weight = last->weight;
+    node->value = last->value;
+
+    node = heap_push_down(node);
+
+#ifdef BLI_MINMAX_HEAP_VALIDATE
+    if (!is_valid()) {
+      printf("invalid heap!\n");
+    }
+#endif
+
+    return ret;
+  }
+
+  MinMaxHeapNode *node_weight_update(MinMaxHeapNode *node, float weight)
+  {
+    node->weight = weight;
+
+    node = heap_push_down(node);
+    node = heap_push_up(node);
+
+    return node;
+  }
+
+  MinMaxHeapNode *node_weight_update_value(MinMaxHeapNode *node, float weight, Value value)
+  {
+    node->weight = weight;
+    node->value = value;
+
+    node = heap_push_down(node);
+    node = heap_push_up(node);
+
+    return node;
+  }
+
  private:
+  MinMaxHeapNode *min()
+  {
+    return &nodes[0];
+  }
+
+  MinMaxHeapNode *max()
+  {
+    if (nodes.size() == 1) {
+      return &nodes[0];
+    }
+
+    if (nodes[0].child1 != -1) {
+      return &nodes[nodes[0].child1];
+    }
+    else {
+      return &nodes[nodes[0].child2];
+    }
+  }
+
   MinMaxHeapNode *heap_make_node()
   {
-    nodes.append(MinMaxHeapNode());
+    nodes.resize(nodes.size() + 1);
     return &nodes[nodes.size() - 1];
+  }
+
+  MinMaxHeapNode *heap_descent_min(MinMaxHeapNode *node)
+  {
+    if (node->child1 != -1 && node->child2 != -1) {
+      MinMaxHeapNode *n1 = &nodes[node->child1];
+      MinMaxHeapNode *n2 = &nodes[node->child2];
+
+      n1 = heap_descent_min2(n1);
+      n2 = heap_descent_min2(n2);
+
+      return n1->value < n2->value ? n1 : n2;
+    }
+    else if (node->child1 != -1) {
+      return heap_descent_min2(&nodes[node->child1]);
+    }
+    else if (node->child2 != -1) {
+      return heap_descent_min2(&nodes[node->child2]);
+    }
+
+    return nullptr;
   }
 
   MinMaxHeapNode *heap_descent_min2(MinMaxHeapNode *n)
@@ -46,7 +234,7 @@ template<typename T> class MinMaxHeap {
       MinMaxHeapNode *n1 = &nodes[n->child1];
       MinMaxHeapNode *n2 = &nodes[n->child2];
 
-      return n1->value < n2->value ? n1 : n2;
+      return n1->weight < n2->weight ? n1 : n2;
     }
     else if (n->child1 != -1) {
       return &nodes[n->child1];
@@ -64,7 +252,7 @@ template<typename T> class MinMaxHeap {
       MinMaxHeapNode *n1 = &nodes[n->child1];
       MinMaxHeapNode *n2 = &nodes[n->child2];
 
-      return n1->value > n2->value ? n1 : n2;
+      return n1->weight > n2->weight ? n1 : n2;
     }
     else if (n->child1 != -1) {
       return &nodes[n->child1];
@@ -83,10 +271,10 @@ template<typename T> class MinMaxHeap {
       MinMaxHeapNode *n1 = &nodes[node->child1];
       MinMaxHeapNode *n2 = &nodes[node->child2];
 
-      n1 = heap_descent_max2(heap, n1);
-      n2 = heap_descent_max2(heap, n2);
+      n1 = heap_descent_max2(n1);
+      n2 = heap_descent_max2(n2);
 
-      return n1->value > n2->value ? n1 : n2;
+      return n1->weight > n2->weight ? n1 : n2;
     }
     else if (node->child1 != -1) {
       return heap_descent_max2(&nodes[node->child1]);
@@ -95,9 +283,204 @@ template<typename T> class MinMaxHeap {
       return heap_descent_max2(&nodes[node->child2]);
     }
 
-    return NULL;
+    return nullptr;
   }
 
-  Vector<MinMaxHeapNode<T>> nodes;
+  MinMaxHeapNode *heap_push_down_min(MinMaxHeapNode *node)
+  {
+    MinMaxHeapNode *ret = nullptr;
+
+    while (node->child1 >= 0 || node->child2 >= 0) {
+      MinMaxHeapNode *node2 = heap_descent_min(node);
+
+      if (!node2) {
+        break;
+      }
+
+      if (node2->weight < node->weight) {
+        std::swap(node2->weight, node->weight);
+        std::swap(node2->value, node->value);
+
+        if (node2->parent != node - nodes.data()) {
+          MinMaxHeapNode *parent = &nodes[node2->parent];
+
+          if (node2->weight > parent->weight) {
+            std::swap(node2->weight, parent->weight);
+            std::swap(node2->value, parent->value);
+
+            /* this is a bit tricky, our return node has now
+               moved into the other interleaved heap side */
+            if (!ret) {
+              ret = parent;
+            }
+          }
+        }
+
+        node = node2;
+      }
+      else {
+        break;
+      }
+    }
+
+    return ret ? ret : node;
+  }
+
+  MinMaxHeapNode *heap_push_down_max(MinMaxHeapNode *node)
+  {
+    MinMaxHeapNode *ret = nullptr;
+
+    while (node->child1 >= 0 || node->child2 >= 0) {
+      MinMaxHeapNode *node2 = heap_descent_max(node);
+
+      if (node2->weight > node->weight) {
+        std::swap(node2->weight, node->weight);
+        std::swap(node2->value, node->value);
+
+        if (node2->parent != node - nodes.data()) {
+          MinMaxHeapNode *parent = &nodes[node2->parent];
+
+          if (node2->weight < parent->weight) {
+            std::swap(node2->weight, parent->weight);
+            std::swap(node2->value, parent->value);
+
+            /* this is a bit tricky, our return node has now
+               moved into the other interleaved heap side */
+            if (!ret) {
+              ret = parent;
+            }
+          }
+        }
+
+        node = node2;
+      }
+      else {
+        break;
+      }
+    }
+
+    return ret ? ret : node;
+  }
+
+  int heap_get_level(const MinMaxHeapNode *node)
+  {
+    int i = 0;
+
+    while (node->parent != -1) {
+      node = &nodes[node->parent];
+      i++;
+    }
+
+    return i;
+  }
+
+  MinMaxHeapNode *heap_push_down(MinMaxHeapNode *node)
+  {
+    int i = heap_get_level(node);
+
+    if (i & 1) {
+      return heap_push_down_max(node);
+    }
+    else {
+      return heap_push_down_min(node);
+    }
+  }
+
+  MinMaxHeapNode *heap_push_up_min(MinMaxHeapNode *node)
+  {
+    while (node->parent != -1) {
+      MinMaxHeapNode *parent = &nodes[node->parent];
+
+      if (parent->parent != -1 && node->weight < nodes[parent->parent].weight) {
+        parent = &nodes[parent->parent];
+
+        std::swap(node->weight, parent->weight);
+        std::swap(node->value, parent->value);
+
+        node = parent;
+      }
+      else {
+        break;
+      }
+    }
+
+    return node;
+  }
+
+  MinMaxHeapNode *heap_push_up_max(MinMaxHeapNode *node)
+  {
+    while (node->parent != -1) {
+      MinMaxHeapNode *parent = &nodes[node->parent];
+
+      if (parent->parent != -1 && node->weight > nodes[parent->parent].weight) {
+        parent = &nodes[parent->parent];
+
+        std::swap(node->weight, parent->weight);
+        std::swap(node->value, parent->value);
+
+        node = parent;
+      }
+      else {
+        break;
+      }
+    }
+
+    return node;
+  }
+
+  MinMaxHeapNode *heap_push_up(MinMaxHeapNode *node)
+  {
+    int i = heap_get_level(node);
+
+    if ((i & 1) == 0) {
+      MinMaxHeapNode *parent = &nodes[node->parent];
+
+      if (node->weight > parent->weight) {
+        std::swap(node->weight, parent->weight);
+        std::swap(node->value, parent->value);
+
+        return heap_push_up_max(parent);
+      }
+      else {
+        return heap_push_up_min(node);
+      }
+    }
+    else {
+      MinMaxHeapNode *parent = &nodes[node->parent];
+
+      if (node->weight < parent->weight) {
+        std::swap(node->weight, parent->weight);
+        std::swap(node->value, parent->value);
+
+        return heap_push_up_min(parent);
+      }
+      else {
+        return heap_push_up_max(node);
+      }
+    }
+
+    return node;
+  }
+
+  MinMaxHeapNode *heap_pop_last()
+  {
+    MinMaxHeapNode *last = &nodes[nodes.size() - 1];
+
+    if (last->parent) {
+      MinMaxHeapNode *parent = &nodes[last->parent];
+      if (parent->child1 == nodes.size() - 1) {
+        parent->child1 = -1;
+      }
+      else {
+        parent->child2 = -1;
+      }
+    }
+
+    nodes.pop_last();
+
+    return last;
+  }
+
+  Vector<MinMaxHeapNode, InlineBufferCapacity> nodes;
 };
 }  // namespace blender
