@@ -51,9 +51,9 @@ def blend_to_md5():
         md5_update(matrix2str(obj.matrix_world))
         data = obj.data
 
-        if type(data) == bpy.types.Mesh:
+        if type(data) is bpy.types.Mesh:
             md5_update(coords2str(data.vertices, "co"))
-        elif type(data) == bpy.types.Curve:
+        elif type(data) is bpy.types.Curve:
             for spline in data.splines:
                 md5_update(coords2str(spline.bezier_points, "co"))
                 md5_update(coords2str(spline.points, "co"))

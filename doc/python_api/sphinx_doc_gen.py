@@ -659,7 +659,7 @@ def range_str(val):
         return "-inf"
     elif val > 10000000:
         return "inf"
-    elif type(val) == float:
+    elif type(val) is float:
         return "%g" % val
     else:
         return str(val)
@@ -785,7 +785,7 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
     function or class method to sphinx
     """
 
-    if type(py_func) == MethodType:
+    if type(py_func) is MethodType:
         return
 
     arg_str = str(inspect.signature(py_func))
@@ -829,12 +829,12 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     if not doc:
         doc = undocumented_message(module_name, type_name, identifier)
 
-    if type(descr) == GetSetDescriptorType:
+    if type(descr) is GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
-    elif type(descr) == MemberDescriptorType:  # same as above but use "data"
+    elif type(descr) is MemberDescriptorType:  # same as above but use "data"
         fw(ident + ".. data:: %s\n\n" % identifier)
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).
         write_indented_lines(ident + "   ", fw, doc, False)
@@ -913,7 +913,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
     def module_grouping_heading(name):
         if module_grouping is not None:
             i = module_grouping_index(name) - 1
-            if i >= 0 and type(module_grouping[i]) == tuple:
+            if i >= 0 and type(module_grouping[i]) is tuple:
                 return module_grouping[i]
         return None, None
 
@@ -942,7 +942,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         submod_ls = []
         for submod_name in (module_all or ()):
             submod = import_value_from_module(module_name, submod_name)
-            if type(submod) == types.ModuleType:
+            if type(submod) is types.ModuleType:
                 submod_ls.append((submod_name, submod))
 
         for submod_name in module_all_extra:
@@ -984,7 +984,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         # `type_name` is only used for examples and messages:
         # `<class 'bpy.app.handlers'>` -> `bpy.app.handlers`.
         type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]
-        if type(descr) == types.GetSetDescriptorType:
+        if type(descr) is types.GetSetDescriptorType:
             py_descr2sphinx("", fw, descr, module_name, type_name, key)
             attribute_set.add(key)
     descr_sorted = []
@@ -992,7 +992,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         if key.startswith("__"):
             continue
 
-        if type(descr) == MemberDescriptorType:
+        if type(descr) is MemberDescriptorType:
             if descr.__doc__:
                 value = getattr(module, key, None)
 
@@ -1113,24 +1113,24 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
 
         for key, descr in descr_items:
-            if type(descr) == ClassMethodDescriptorType:
+            if type(descr) is ClassMethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         # Needed for pure Python classes.
         for key, descr in descr_items:
-            if type(descr) == FunctionType:
+            if type(descr) is FunctionType:
                 pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
         for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType:
+            if type(descr) is MethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
-            if type(descr) == GetSetDescriptorType:
+            if type(descr) is GetSetDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
-            if type(descr) == StaticMethodType:
+            if type(descr) is StaticMethodType:
                 descr = getattr(value, key)
                 write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
                 fw("\n")
@@ -1680,7 +1680,7 @@ def pyrna2sphinx(basepath):
 
             if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
-                    if type(descr) == GetSetDescriptorType:
+                    if type(descr) is GetSetDescriptorType:
                         lines.append("   * :class:`%s.%s`\n" % (_BPY_STRUCT_FAKE, key))
 
             for base in bases:
@@ -1705,7 +1705,7 @@ def pyrna2sphinx(basepath):
 
             if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
-                    if type(descr) == MethodDescriptorType:
+                    if type(descr) is MethodDescriptorType:
                         lines.append("   * :class:`%s.%s`\n" % (_BPY_STRUCT_FAKE, key))
 
             for base in bases:
@@ -1791,11 +1791,11 @@ def pyrna2sphinx(basepath):
 
             for key, descr in descr_items:
                 # `GetSetDescriptorType`, `GetSetDescriptorType` types are not documented yet.
-                if type(descr) == MethodDescriptorType:
+                if type(descr) is MethodDescriptorType:
                     py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
 
             for key, descr in descr_items:
-                if type(descr) == GetSetDescriptorType:
+                if type(descr) is GetSetDescriptorType:
                     py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
             file.close()
 

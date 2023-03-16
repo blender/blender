@@ -51,7 +51,7 @@ def range_str(val):
         return "-inf"
     elif val > 10000000:
         return "inf"
-    elif type(val) == float:
+    elif type(val) is float:
         return '%g' % val
     else:
         return str(val)
@@ -200,7 +200,7 @@ class InfoStructRNA:
             if (
                     (type(attr_func) in {types.BuiltinMethodType, types.BuiltinFunctionType}) or
                     # Without the `objclass` check, many inherited methods are included.
-                    (type(attr_func) == types.MethodDescriptorType and attr_func.__objclass__ == self.py_class)
+                    (type(attr_func) is types.MethodDescriptorType and attr_func.__objclass__ == self.py_class)
             ):
                 functions.append((identifier, attr))
         return functions
@@ -209,7 +209,7 @@ class InfoStructRNA:
         import types
         properties_getset = []
         for identifier, descr in self.py_class.__dict__.items():
-            if type(descr) == types.GetSetDescriptorType:
+            if type(descr) is types.GetSetDescriptorType:
                 properties_getset.append((identifier, descr))
         return properties_getset
 

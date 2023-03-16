@@ -220,7 +220,7 @@ def main():
         args_in = None
         args_out = None
         for member in b[1:]:
-            if type(member) == tuple:
+            if type(member) is tuple:
                 if args_in is None:
                     args_in = member
                 elif args_out is None:
@@ -231,9 +231,9 @@ def main():
         args_out_index = []
 
         if args_in is not None:
-            args_in_index[:] = [i for (i, a) in enumerate(args_in) if type(a) == tuple]
+            args_in_index[:] = [i for (i, a) in enumerate(args_in) if type(a) is tuple]
         if args_out is not None:
-            args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) == tuple]
+            args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) is tuple]
 
         # get the args
         def get_args_wash(args, args_index, is_ret):
@@ -257,14 +257,14 @@ def main():
                 comment_next = ""
                 if i != 0:
                     comment_prev = args[i + 1]
-                    if type(comment_prev) == str and comment_prev.startswith("our <"):
+                    if type(comment_prev) is str and comment_prev.startswith("our <"):
                         comment_prev = comment_next[5:-1]  # strip inline <...>
                     else:
                         comment_prev = ""
 
                 if i + 1 < len(args):
                     comment_next = args[i + 1]
-                    if type(comment_next) == str and comment_next.startswith("inline <"):
+                    if type(comment_next) is str and comment_next.startswith("inline <"):
                         comment_next = comment_next[8:-1]  # strip inline <...>
                     else:
                         comment_next = ""

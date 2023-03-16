@@ -214,7 +214,7 @@ def rna2xml(
             except:
                 ls = None
 
-            if type(ls) == list:
+            if type(ls) is list:
                 fw("%s<%s>\n" % (ident, attr))
                 for blend_id in ls:
                     rna2xml_node(ident + ident_val, blend_id, None)

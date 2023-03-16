@@ -152,7 +152,7 @@ class BlendFile:
         self.close()
 
     def find_blocks_from_code(self, code):
-        assert type(code) == bytes
+        assert type(code) is bytes
         if code not in self.code_index:
             return []
         return self.code_index[code]
@@ -824,7 +824,7 @@ class DNAStruct:
                                       (path, dna_name.name_only), dna_name, dna_type)
 
     def field_set(self, header, handle, path, value):
-        assert type(path) == bytes
+        assert type(path) is bytes
 
         field = self.field_from_path(header, handle, path)
         if field is None:

@@ -23,7 +23,7 @@ class prettyface:
         self.xoff = 0
         self.yoff = 0
 
-        if type(data) == list:  # list of data
+        if type(data) is list:  # list of data
             self.uv = None
 
             # join the data
@@ -54,7 +54,7 @@ class prettyface:
 
             self.children = data
 
-        elif type(data) == tuple:
+        elif type(data) is tuple:
             # 2 blender faces
             # f, (len_min, len_mid, len_max)
             self.uv = data

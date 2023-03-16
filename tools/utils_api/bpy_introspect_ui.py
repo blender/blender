@@ -32,7 +32,7 @@ class AttributeBuilder:
     def _as_xml(self, indent="  "):
 
         def to_xml_str(value):
-            if type(value) == str:
+            if type(value) is str:
                 # quick shoddy clean
                 value = value.replace("&", " ")
                 value = value.replace("<", " ")

@@ -104,7 +104,7 @@ def id_iter():
 
     for attr in dir(bpy.data):
         data_iter = getattr(bpy.data, attr, None)
-        if type(data_iter) == type_iter:
+        if type(data_iter) is type_iter:
             for id_data in data_iter:
                 if id_data.library is None:
                     yield id_data
