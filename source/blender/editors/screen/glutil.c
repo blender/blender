@@ -147,6 +147,18 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
                                             const float color[4])
 {
   int subpart_x, subpart_y, tex_w = 256, tex_h = 256;
+#ifdef __APPLE__
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    /* NOTE(Metal): The Metal backend will keep all temporary texture memory within a command
+     * submission in-flight, so using a partial tile size does not provide any tangible memory
+     * reduction, but does incur additional API overhead and significant cache inefficiency on AMD
+     * platforms.
+     * The Metal API also provides smart resource paging such that the application can
+     * still efficiently swap memory, even if system is low in physical memory. */
+    tex_w = img_w;
+    tex_h = img_h;
+  }
+#endif
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
   int components;
   const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
