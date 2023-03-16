@@ -33,8 +33,6 @@ class UnitTesting(ViewLayerTesting):
         self.assertEqual(1, len(bpy.data.groups))
         self.assertEqual(1, bpy.data.groups[0].users)
         self.assertEqual(3, len(bpy.data.groups[0].objects))
-
-        import os
         import tempfile
         with tempfile.TemporaryDirectory() as dirpath:
             filepath = os.path.join(dirpath, 'layers.blend')

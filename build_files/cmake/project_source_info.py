@@ -91,7 +91,6 @@ def do_ignore(filepath: str, ignore_prefix_list: Optional[Sequence[str]]) -> boo
 
 
 def makefile_log() -> List[str]:
-    import subprocess
     import time
 
     # support both make and ninja
@@ -199,7 +198,6 @@ def build_defines_as_source() -> str:
     Returns a string formatted as an include:
         '#defines A=B\n#define....'
     """
-    import subprocess
     # works for both gcc and clang
     cmd = (cmake_cache_var_or_exit("CMAKE_C_COMPILER"), "-dM", "-E", "-")
     process = subprocess.Popen(

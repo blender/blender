@@ -22,7 +22,6 @@ class UnitTesting(ViewLayerTesting):
         layer.collections.active_index works recursively
         """
         import bpy
-        import os
 
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')

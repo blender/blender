@@ -520,7 +520,7 @@ def stroke_normal(stroke):
 
 def get_test_stroke():
     """Returns a static stroke object for testing """
-    from freestyle.types import Stroke, Interface0DIterator, StrokeVertexIterator, SVertex, Id, StrokeVertex
+    from freestyle.types import SVertex, Id, StrokeVertex
     # points for our fake stroke
     points = (Vector((1.0, 5.0, 3.0)), Vector((1.0, 2.0, 9.0)),
               Vector((6.0, 2.0, 3.0)), Vector((7.0, 2.0, 3.0)),

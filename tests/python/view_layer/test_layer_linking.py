@@ -18,7 +18,6 @@ from view_layer_common import *
 class UnitTesting(ViewLayerTesting):
     def do_layer_linking(self, filepath_json, link_mode):
         import bpy
-        import os
         import tempfile
         import filecmp
 
@@ -76,7 +75,6 @@ class UnitTesting(ViewLayerTesting):
         """
         See if the creation of new layers is going well
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_new_layer.json')
         self.do_layer_linking(filepath_json, 'LAYER_NEW')
@@ -86,7 +84,6 @@ class UnitTesting(ViewLayerTesting):
         See if the creation of new layers is going well
         And linking a new scene collection in the layer works
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_layer_collection_link.json')
         self.do_layer_linking(filepath_json, 'COLLECTION_LINK')
@@ -96,7 +93,6 @@ class UnitTesting(ViewLayerTesting):
         See if the creation of new layers is going well
         And unlinking the origin scene collection works
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_layer_collection_unlink.json')
         self.do_layer_linking(filepath_json, 'COLLECTION_UNLINK')

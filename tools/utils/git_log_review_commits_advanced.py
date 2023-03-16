@@ -72,10 +72,8 @@ class _GetchUnix:
 
     def __init__(self):
         import tty
-        import sys
 
     def __call__(self):
-        import sys
         import tty
         import termios
         fd = sys.stdin.fileno()
@@ -404,7 +402,6 @@ def release_log_init(path, source_dir, blender_rev, start_sha1, end_sha1, rstate
 
 
 def write_release_log(path, release_log, c, cat, rstate, rstate_list):
-    import io
 
     main_cat, sub_cats = BUGFIX_CATEGORIES[cat[0]]
     sub_cat = sub_cats[cat[1]] if cat[1] is not None else None

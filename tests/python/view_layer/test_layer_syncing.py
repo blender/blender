@@ -18,7 +18,6 @@ from view_layer_common import *
 class UnitTesting(ViewLayerTesting):
     def do_syncing(self, filepath_json, unlink_mode):
         import bpy
-        import os
         import tempfile
         import filecmp
 
@@ -78,7 +77,6 @@ class UnitTesting(ViewLayerTesting):
         See if scene collections and layer collections are in sync
         when we create new subcollections and link new objects
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_nested.json')
         self.do_syncing(filepath_json, 'NONE')
@@ -89,7 +87,6 @@ class UnitTesting(ViewLayerTesting):
         when we create new subcollections, link new objects and unlink
         some.
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_nested.json')
         self.do_syncing(filepath_json, 'OBJECT')
@@ -100,7 +97,6 @@ class UnitTesting(ViewLayerTesting):
         when we create new subcollections, link new objects and unlink full collections
         some.
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers.json')
         self.do_syncing(filepath_json, 'COLLECTION')

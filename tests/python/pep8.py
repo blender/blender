@@ -149,7 +149,6 @@ def main():
     del re, import_check
 
     print("\n\n\n# checking class definitions...")
-    import re
     class_check = re.compile(r"\s*class\s+.*\(\):.*")
     for f, pep8_type in files:
         for i, l in enumerate(open(f, 'r', encoding='utf8')):

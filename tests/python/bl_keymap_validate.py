@@ -120,7 +120,6 @@ def keyconfig_preset_scan() -> List[str]:
     """
     Return all bundled presets (keymaps), not user presets.
     """
-    import os
     from bpy import context
     # This assumes running with `--factory-settings`.
     default_keyconfig = context.window_manager.keyconfigs.active.name
@@ -261,7 +260,6 @@ def keyconfig_report_duplicates(keyconfig_data: KeyConfigData) -> str:
 
 
 def main() -> None:
-    import os
     import sys
     import pprint
     import tempfile

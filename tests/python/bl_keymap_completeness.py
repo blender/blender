@@ -68,8 +68,6 @@ def main():
 
     import bpy
     if err and bpy.app.background:
-        # alert CTest we failed
-        import sys
         sys.exit(1)
 
 

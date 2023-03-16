@@ -238,7 +238,6 @@ def file_remove_empty_braces(source_dst):
 
 
 def main():
-    import sys
     blend, theme = theme_data(sys.argv[-1])
     with open(source_dst, 'w', encoding='utf-8') as fh:
         convert_data(blend, theme, fh)

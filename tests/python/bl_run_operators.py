@@ -414,16 +414,12 @@ def bpy_check_type_duplicates():
             tot = bl_types.count(t)
             if tot > 1:
                 print("    '%s', %d" % (t, tot))
-        import sys
         sys.exit(1)
 
 
 def main():
 
     bpy_check_type_duplicates()
-
-    # reset_blend()
-    import bpy
     operators = []
     for mod_name in dir(bpy.ops):
         mod = getattr(bpy.ops, mod_name)

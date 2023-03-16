@@ -21,7 +21,6 @@ class UnitTesting(ViewLayerTesting):
         See if new objects are added to the correct collection
         bpy.ops.mesh.primitive_torus_add()
         """
-        import os
         ROOT = self.get_root()
         filepath_json = os.path.join(ROOT, 'layers_object_add_torus.json')
         self.do_object_add(filepath_json, 'TORUS')

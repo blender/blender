@@ -21,7 +21,6 @@ class UnitTesting(ViewLayerTesting):
         See if write/read is working for scene collections and layers
         """
         import bpy
-        import os
         import tempfile
         import filecmp
 
@@ -74,7 +73,6 @@ class UnitTesting(ViewLayerTesting):
         """
         See if the doversion and writing are working for scene collections
         """
-        import os
 
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')
@@ -90,7 +88,6 @@ class UnitTesting(ViewLayerTesting):
         """
         See if the doversion and writing are working for collections and layers
         """
-        import os
 
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')
@@ -107,7 +104,6 @@ class UnitTesting(ViewLayerTesting):
         See if read is working for scene collections
         (run `test_scene_write_colections` first)
         """
-        import os
 
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')
@@ -124,7 +120,6 @@ class UnitTesting(ViewLayerTesting):
         See if read is working for scene layers
         (run `test_scene_write_layers` first)
         """
-        import os
 
         ROOT = self.get_root()
         filepath_layers = os.path.join(ROOT, 'layers.blend')

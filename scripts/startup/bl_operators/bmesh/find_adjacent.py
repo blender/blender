@@ -239,7 +239,6 @@ def find_next(ele_dst, ele_src):
 
 # expose for operators
 def select_next(bm, report):
-    import bmesh
     ele_pair = [None, None]
     for i, ele in enumerate(reversed(bm.select_history)):
         ele_pair[i] = ele
@@ -317,7 +316,6 @@ def select_next(bm, report):
 
 
 def select_prev(bm, report):
-    import bmesh
     for ele in reversed(bm.select_history):
         break
     else:

@@ -1428,7 +1428,6 @@ def process(layer_name, lineset_name):
         thickness_position = linestyle.thickness_position
     else:
         thickness_position = 'CENTER'
-        import bpy
         if bpy.app.debug_freestyle:
             print("Warning: Thickness position options are applied when chaining is disabled\n"
                   "         or the Plain chaining is used with the Same Object option enabled.")

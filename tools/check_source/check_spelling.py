@@ -533,7 +533,6 @@ def spell_check_file_recursive(
         extract_type: str = 'COMMENTS',
         cache_data: Optional[CacheData] = None,
 ) -> None:
-    import os
     from os.path import join, splitext
 
     def source_list(
@@ -710,8 +709,6 @@ def argparse_create() -> argparse.ArgumentParser:
 
 def main() -> None:
     global _suggest_map
-
-    import os
 
     args = argparse_create().parse_args()
 

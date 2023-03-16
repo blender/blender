@@ -22,7 +22,6 @@ class UnitTesting(ViewLayerTesting):
         when we set view_layer in context, the collection should change as well
         """
         import bpy
-        import os
 
         class SampleOperator(bpy.types.Operator):
             bl_idname = "testing.sample"

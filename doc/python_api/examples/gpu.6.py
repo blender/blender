@@ -37,9 +37,6 @@ bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_PIXEL')
 Similar to the 2D Image shader, but works with 3D positions for the image vertices.
 To use this example you have to provide an image that should be displayed.
 """
-import bpy
-import gpu
-from gpu_extras.batch import batch_for_shader
 
 IMAGE_NAME = "Untitled"
 image = bpy.data.images[IMAGE_NAME]

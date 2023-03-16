@@ -453,7 +453,7 @@ def do_clear_previews(do_objects, do_collections, do_scenes, do_data_intern):
 
 def main():
     try:
-        import bpy
+        pass
     except ImportError:
         print("This script must run from inside blender")
         return

@@ -13,7 +13,6 @@ from .test import TestCollection
 
 def get_build_hash(args: None) -> str:
     import bpy
-    import sys
     build_hash = bpy.app.build_hash.decode('utf-8')
     return '' if build_hash == 'Unknown' else build_hash
 

@@ -151,7 +151,6 @@ def deprecations() -> List[Tuple[datetime.datetime, Tuple[str, int], str]]:
 
 
 def main() -> None:
-    import datetime
     now = datetime.datetime.now()
 
     deps = deprecations()

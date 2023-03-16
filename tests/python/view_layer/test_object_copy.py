@@ -18,7 +18,6 @@ from view_layer_common import *
 class UnitTesting(ViewLayerTesting):
     def do_object_copy(self, mode):
         import bpy
-        import os
         import tempfile
         import filecmp
 

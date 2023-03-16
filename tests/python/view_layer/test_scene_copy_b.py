@@ -20,7 +20,6 @@ class UnitTesting(ViewLayerTesting):
         """
         See if scene copying 'LINK_OBJECTS' is working for scene collections
         """
-        import os
         ROOT = self.get_root()
 
         # note: nothing should change, so using `layers_simple.json`

@@ -4,7 +4,6 @@ from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 from bpy.app.translations import (
-    pgettext_tip as iface_,
     pgettext_tip as tip_,
 )
 

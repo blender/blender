@@ -21,7 +21,6 @@ class UnitTesting(ViewLayerTesting):
         See if scene copying 'FULL_COPY' is working for scene collections
         with a shared object
         """
-        import os
         import bpy
 
         scene = bpy.context.scene
