@@ -7934,6 +7934,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
       return WM_UI_HANDLER_CONTINUE;
     }
 
+#ifdef WITH_INPUT_NDOF
+    /* 2D view navigation conflicts with using NDOF to adjust colors,
+     * especially in the node-editor, see: #105224. */
+    if (event->type == NDOF_MOTION) {
+      if (data->region->type->keymapflag & ED_KEYMAP_VIEW2D) {
+        return WM_UI_HANDLER_CONTINUE;
+      }
+    }
+#endif /* WITH_INPUT_NDOF */
+
     if (do_paste) {
       ui_but_paste(C, but, data, event->modifier & KM_ALT);
       return WM_UI_HANDLER_BREAK;
