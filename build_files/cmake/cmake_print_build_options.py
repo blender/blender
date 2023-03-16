@@ -41,7 +41,6 @@ def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Optional[str]:
 
         # The quote was back-slash escaped, step over it.
         pos = pos_next + 1
-        file_data[pos_next]
 
     assert file_data[pos_end] == '"'
 

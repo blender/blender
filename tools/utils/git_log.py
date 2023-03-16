@@ -34,11 +34,6 @@ class GitCommit:
     def cache(self):
         """ Cache all properties
         """
-        self.author
-        self.date
-        self.body
-        self.files
-        self.files_status
 
     def _log_format(self, format, args=()):
         # sha1 = self.sha1.decode('ascii')
