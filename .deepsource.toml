@@ -1,2 +1,107 @@
-
 version = 1
+
+[[analyzers]]
+name = "cxx"
+
+[[analyzers]]
+name = "java"
+
+  [analyzers.meta]
+  runtime_version = "11"
+
+[[analyzers]]
+name = "python"
+
+  [analyzers.meta]
+  runtime_version = "3.x.x"
+
+[[analyzers]]
+name = "scala"
+
+[[analyzers]]
+name = "sql"
+
+[[analyzers]]
+name = "test-coverage"
+
+[[analyzers]]
+name = "shell"
+
+[[analyzers]]
+name = "rust"
+
+  [analyzers.meta]
+  msrv = "stable"
+
+[[analyzers]]
+name = "php"
+
+[[analyzers]]
+name = "go"
+
+  [analyzers.meta]
+  import_root = "github.com/fatman2021/blender"
+
+[[analyzers]]
+name = "csharp"
+
+[[analyzers]]
+name = "terraform"
+
+[[analyzers]]
+name = "secrets"
+
+[[analyzers]]
+name = "ruby"
+
+[[analyzers]]
+name = "javascript"
+
+  [analyzers.meta]
+  plugins = [
+    "react",
+    "angular",
+    "vue",
+    "ember",
+    "meteor",
+    "angularjs"
+  ]
+
+[[analyzers]]
+name = "docker"
+
+[[analyzers]]
+name = "ansible"
+
+[[transformers]]
+name = "google-java-format"
+
+[[transformers]]
+name = "black"
+
+[[transformers]]
+name = "autopep8"
+
+[[transformers]]
+name = "scalafmt"
+
+[[transformers]]
+name = "rustfmt"
+
+[[transformers]]
+name = "php-cs-fixer"
+
+[[transformers]]
+name = "gofmt"
+
+[[transformers]]
+name = "dotnet-format"
+
+[[transformers]]
+name = "rubocop"
+
+[[transformers]]
+name = "prettier"
+
+[[transformers]]
+name = "standardjs"
