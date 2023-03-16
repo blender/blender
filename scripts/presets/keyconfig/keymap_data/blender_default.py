@@ -3944,7 +3944,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=(params.use_fallback_tool_select_mouse == False)),
+        *_grease_pencil_selection(params, use_select_mouse=(params.use_fallback_tool_select_mouse is False)),
 
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
@@ -4235,7 +4235,7 @@ def km_grease_pencil_stroke_vertex_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=(params.use_fallback_tool_select_mouse == False)),
+        *_grease_pencil_selection(params, use_select_mouse=(params.use_fallback_tool_select_mouse is False)),
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [

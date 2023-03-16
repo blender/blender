@@ -66,7 +66,7 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects["Cube"]
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
         assert bpy.context.view_layer.depsgraph.ids["Cube"].is_runtime_data
 
         output_work_path = os.path.join(
@@ -78,7 +78,7 @@ class TestIdRuntimeTag(TestHelper):
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
         obj = bpy.data.objects["Cube"]
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
 
         obj.is_runtime_data = True
         assert obj.is_runtime_data
@@ -90,7 +90,7 @@ class TestIdRuntimeTag(TestHelper):
 
         assert "Cube" not in bpy.data.objects
         mesh = bpy.data.meshes["Cube"]
-        assert mesh.is_runtime_data == False
+        assert mesh.is_runtime_data is False
         assert mesh.users == 0
 
     def test_linking(self):
@@ -111,14 +111,14 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects["Cube"]
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
         obj.is_runtime_data = True
 
         link_dir = os.path.join(output_lib_path, "Material")
         bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
 
         linked_material = bpy.data.materials["LibMaterial"]
-        assert linked_material.is_library_indirect == False
+        assert linked_material.is_library_indirect is False
 
         obj.material_slots[0].link = "OBJECT"
         obj.material_slots[0].material = linked_material
@@ -139,7 +139,7 @@ class TestIdRuntimeTag(TestHelper):
         assert "Cube" not in bpy.data.objects
         assert "LibMaterial" not in bpy.data.materials
         mesh = bpy.data.meshes["Cube"]
-        assert mesh.is_runtime_data == False
+        assert mesh.is_runtime_data is False
         assert mesh.users == 0
 
 

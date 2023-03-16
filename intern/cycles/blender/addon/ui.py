@@ -1942,7 +1942,7 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
         scene = context.scene
         cscene = scene.cycles
         rd = scene.render
-        if rd.use_bake_multires == False and cscene.bake_type in {
+        if rd.use_bake_multires is False and cscene.bake_type in {
                 'NORMAL', 'COMBINED', 'DIFFUSE', 'GLOSSY', 'TRANSMISSION'}:
             return True
 
@@ -1997,7 +1997,7 @@ class CYCLES_RENDER_PT_bake_selected_to_active(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         scene = context.scene
         rd = scene.render
-        return rd.use_bake_multires == False
+        return rd.use_bake_multires is False
 
     def draw_header(self, context):
         scene = context.scene
