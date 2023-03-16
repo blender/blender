@@ -389,17 +389,17 @@ void GLContext::debug_capture_end()
 {
 }
 
-void *GLContext::debug_capture_scope_create(const char *name)
+void *GLContext::debug_capture_scope_create(const char * /*name*/)
 {
   return nullptr;
 }
 
-bool GLContext::debug_capture_scope_begin(void *scope)
+bool GLContext::debug_capture_scope_begin(void * /*scope*/)
 {
   return false;
 }
 
-void GLContext::debug_capture_scope_end(void *scope)
+void GLContext::debug_capture_scope_end(void * /*scope*/)
 {
 }
 

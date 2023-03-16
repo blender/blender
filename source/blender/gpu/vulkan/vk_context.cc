@@ -137,17 +137,17 @@ void VKContext::debug_capture_end()
 {
 }
 
-void *VKContext::debug_capture_scope_create(const char *name)
+void *VKContext::debug_capture_scope_create(const char * /*name*/)
 {
   return nullptr;
 }
 
-bool VKContext::debug_capture_scope_begin(void *scope)
+bool VKContext::debug_capture_scope_begin(void * /*scope*/)
 {
   return false;
 }
 
-void VKContext::debug_capture_scope_end(void *scope)
+void VKContext::debug_capture_scope_end(void * /*scope*/)
 {
 }
 
