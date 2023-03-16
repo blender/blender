@@ -958,18 +958,31 @@ static void node_swap_links(bNodeLinkDrag &nldrag, bNodeTree &ntree)
 
   if (linked_socket.is_input()) {
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-      if (link->tosock == &linked_socket) {
-        link->tosock = start_socket;
-        link->tonode = start_node;
+      if (link->tosock != &linked_socket) {
+        continue;
       }
+      if (link->fromnode == start_node) {
+        /* Don't link a node to itself. */
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+
+      link->tosock = start_socket;
+      link->tonode = start_node;
     }
   }
   else {
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-      if (link->fromsock == &linked_socket) {
-        link->fromsock = start_socket;
-        link->fromnode = start_node;
+      if (link->fromsock != &linked_socket) {
+        continue;
       }
+      if (link->tonode == start_node) {
+        /* Don't link a node to itself. */
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+      link->fromsock = start_socket;
+      link->fromnode = start_node;
     }
   }
 
