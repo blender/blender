@@ -108,6 +108,16 @@ class Vector {
   template<typename OtherT, int64_t OtherInlineBufferCapacity, typename OtherAllocator>
   friend class Vector;
 
+  /** Required in case `T` is an incomplete type. */
+  static constexpr bool is_nothrow_move_constructible()
+  {
+    if constexpr (InlineBufferCapacity == 0) {
+      return true;
+    }
+    else {
+      return std::is_nothrow_move_constructible_v<T>;
+    }
+  }
  public:
   /**
    * Create an empty vector.
@@ -234,7 +244,7 @@ class Vector {
    */
   template<int64_t OtherInlineBufferCapacity>
   Vector(Vector<T, OtherInlineBufferCapacity, Allocator> &&other) noexcept(
-      std::is_nothrow_move_constructible_v<T>)
+      is_nothrow_move_constructible())
       : Vector(NoExceptConstructor(), other.allocator_)
   {
     const int64_t size = other.size();
