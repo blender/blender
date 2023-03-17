@@ -34,9 +34,9 @@ class Test:
 class TestCollection:
     def __init__(self, env, names_filter: List = None, categories_filter: List = None):
         if names_filter is None:
-            names_filter = ['*']
+            names_filter = ["*"]
         if categories_filter is None:
-            categories_filter = ['*']
+            categories_filter = ["*"]
         import importlib
         import pkgutil
         import tests
@@ -45,7 +45,7 @@ class TestCollection:
 
         # Find and import all Python files in the tests folder, and generate
         # the list of tests for each.
-        for _, modname, _ in pkgutil.iter_modules(tests.__path__, 'tests.'):
+        for _, modname, _ in pkgutil.iter_modules(tests.__path__, "tests."):
             module = importlib.import_module(modname)
             tests = module.generate(env)
 

@@ -7,6 +7,7 @@ import os
 import re
 import struct
 import tempfile
+
 # import time
 
 from bl_i18n_utils import (
@@ -25,6 +26,7 @@ def is_valid_po_path(path):
 
 def get_best_similar(data):
     import difflib
+
     key, use_similar, similar_pool = data
 
     # try to find some close key in existing messages...
@@ -62,12 +64,17 @@ def locale_explode(locale):
     m = _locale_explode_re.match(locale)
     if m:
         lang, country, variant = m.groups()
-        return (lang, country, variant,
-                "%s_%s" % (lang, country) if country else None,
-                "%s@%s" % (lang, variant) if variant else None)
+        return (
+            lang,
+            country,
+            variant,
+            "%s_%s" % (lang, country) if country else None,
+            "%s@%s" % (lang, variant) if variant else None,
+        )
 
     try:
         import bpy.app.translations as bpy_translations
+
         assert ret == bpy_translations.locale_explode(locale)
     except ModuleNotFoundError:
         pass
@@ -126,7 +133,12 @@ def find_best_isocode_matches(uid, iso_codes):
     Return an ordered tuple of elements in iso_codes that can match the given uid, from most similar to lesser ones.
     """
     tmp = ((e, locale_match(e, uid)) for e in iso_codes)
-    return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
+    return tuple(
+        e[0]
+        for e in sorted(
+            (e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]
+        )
+    )
 
 
 def get_po_files_from_dir(root_dir, langs=None):
@@ -156,7 +168,11 @@ def get_po_files_from_dir(root_dir, langs=None):
         else:
             continue
         if uid in found_uids:
-            print("WARNING! {} id has been found more than once! only first one has been loaded!".format(uid))
+            print(
+                "WARNING! {} id has been found more than once! only first one has been loaded!".format(
+                    uid
+                )
+            )
             continue
         found_uids.add(uid)
         yield uid, po_file
@@ -171,9 +187,13 @@ def list_po_dir(root_path, settings):
 
     Note that po_path may not actually exists.
     """
-    isocodes = ((e, os.path.join(root_path, e, e + ".po")) for e in os.listdir(root_path))
+    isocodes = (
+        (e, os.path.join(root_path, e, e + ".po")) for e in os.listdir(root_path)
+    )
     isocodes = dict(e for e in isocodes if os.path.isfile(e[1]))
-    for num_id, name, uid in settings.LANGUAGES[2:]:  # Skip "default" and "en" languages!
+    for num_id, name, uid in settings.LANGUAGES[
+        2:
+    ]:  # Skip "default" and "en" languages!
         best_po = find_best_isocode_matches(uid, isocodes)
         # print(uid, "->", best_po)
         if best_po:
@@ -217,10 +237,17 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     black_list = {}
 
     ret = [
-        mod for mod in addon_utils.modules()
-        if (((addons and mod.__name__ in addons) or
-             (not addons and addon_utils.module_bl_info(mod)["support"] in support)) and
-            (mod.__name__ not in black_list))
+        mod
+        for mod in addon_utils.modules()
+        if (
+            (
+                (addons and mod.__name__ in addons)
+                or (
+                    not addons and addon_utils.module_bl_info(mod)["support"] in support
+                )
+            )
+            and (mod.__name__ not in black_list)
+        )
     ]
 
     if not check_only:
@@ -254,15 +281,32 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
 
 ##### Main Classes #####
 
+
 class I18nMessage:
     """
     Internal representation of a message.
     """
-    __slots__ = ("msgctxt_lines", "msgid_lines", "msgstr_lines", "comment_lines", "is_fuzzy", "is_commented",
-                 "settings")
 
-    def __init__(self, msgctxt_lines=None, msgid_lines=None, msgstr_lines=None, comment_lines=None,
-                 is_commented=False, is_fuzzy=False, settings=settings):
+    __slots__ = (
+        "msgctxt_lines",
+        "msgid_lines",
+        "msgstr_lines",
+        "comment_lines",
+        "is_fuzzy",
+        "is_commented",
+        "settings",
+    )
+
+    def __init__(
+        self,
+        msgctxt_lines=None,
+        msgid_lines=None,
+        msgstr_lines=None,
+        comment_lines=None,
+        is_commented=False,
+        is_fuzzy=False,
+        settings=settings,
+    ):
         self.settings = settings
         self.msgctxt_lines = msgctxt_lines or []
         self.msgid_lines = msgid_lines or []
@@ -272,16 +316,17 @@ class I18nMessage:
         self.is_commented = is_commented
 
     # ~ def __getstate__(self):
-        # ~ return {key: getattr(self, key) for key in self.__slots__}
+    # ~ return {key: getattr(self, key) for key in self.__slots__}
 
     # ~ def __getstate__(self):
-        # ~ return {key: getattr(self, key) for key in self.__slots__}
+    # ~ return {key: getattr(self, key) for key in self.__slots__}
 
     def _get_msgctxt(self):
         return "".join(self.msgctxt_lines)
 
     def _set_msgctxt(self, ctxt):
         self.msgctxt_lines = [ctxt]
+
     msgctxt = property(_get_msgctxt, _set_msgctxt)
 
     def _get_msgid(self):
@@ -289,6 +334,7 @@ class I18nMessage:
 
     def _set_msgid(self, msgid):
         self.msgid_lines = [msgid]
+
     msgid = property(_get_msgid, _set_msgid)
 
     def _get_msgstr(self):
@@ -296,21 +342,27 @@ class I18nMessage:
 
     def _set_msgstr(self, msgstr):
         self.msgstr_lines = [msgstr]
+
     msgstr = property(_get_msgstr, _set_msgstr)
 
     def _get_sources(self):
         lstrip1 = len(self.settings.PO_COMMENT_PREFIX_SOURCE)
         lstrip2 = len(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)
-        return ([l[lstrip1:] for l in self.comment_lines if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE)] +
-                [l[lstrip2:] for l in self.comment_lines
-                 if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)])
+        return [
+            l[lstrip1:]
+            for l in self.comment_lines
+            if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE)
+        ] + [
+            l[lstrip2:]
+            for l in self.comment_lines
+            if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)
+        ]
 
     def _set_sources(self, sources):
         cmmlines = self.comment_lines.copy()
         for l in cmmlines:
-            if (
-                    l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE) or
-                    l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)
+            if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE) or l.startswith(
+                self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM
             ):
                 self.comment_lines.remove(l)
         lines_src = []
@@ -319,20 +371,30 @@ class I18nMessage:
             if is_valid_po_path(src):
                 lines_src.append(self.settings.PO_COMMENT_PREFIX_SOURCE + src)
             else:
-                lines_src_custom.append(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + src)
+                lines_src_custom.append(
+                    self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + src
+                )
         self.comment_lines += lines_src_custom + lines_src
+
     sources = property(_get_sources, _set_sources)
 
     def _get_is_tooltip(self):
         # XXX For now, we assume that all messages > 30 chars are tooltips!
         return len(self.msgid) > 30
+
     is_tooltip = property(_get_is_tooltip)
 
     def copy(self):
         # Deepcopy everything but the settings!
-        return self.__class__(msgctxt_lines=self.msgctxt_lines[:], msgid_lines=self.msgid_lines[:],
-                              msgstr_lines=self.msgstr_lines[:], comment_lines=self.comment_lines[:],
-                              is_commented=self.is_commented, is_fuzzy=self.is_fuzzy, settings=self.settings)
+        return self.__class__(
+            msgctxt_lines=self.msgctxt_lines[:],
+            msgid_lines=self.msgid_lines[:],
+            msgstr_lines=self.msgstr_lines[:],
+            comment_lines=self.comment_lines[:],
+            is_commented=self.is_commented,
+            is_fuzzy=self.is_fuzzy,
+            settings=self.settings,
+        )
 
     def normalize(self, max_len=80):
         """
@@ -355,7 +417,7 @@ class I18nMessage:
             for l in lines:
                 tmp = []
                 cur_len = 0
-                words = l.split(' ')
+                words = l.split(" ")
                 for w in words:
                     cur_len += len(w) + 1
                     if cur_len > (max_len - 1) and tmp:
@@ -407,7 +469,7 @@ class I18nMessage:
         if "\t" in txt:
             txt.replace("\t", r"\t")
         if '"' in txt:
-            txt = cls._esc_quotes.sub(r'\1\"', txt)
+            txt = cls._esc_quotes.sub(r"\1\"", txt)
         return txt
 
     @classmethod
@@ -417,7 +479,7 @@ class I18nMessage:
             txt = txt.replace(r"\n", "\n")
         if r"\t" in txt:
             txt = txt.replace(r"\t", "\t")
-        if r'\"' in txt:
+        if r"\"" in txt:
             txt = cls._unesc_quotes.sub(r'\1"', txt)
         return txt
 
@@ -475,13 +537,27 @@ class I18nMessages:
 
     @staticmethod
     def _new_messages():
-        return getattr(collections, 'OrderedDict', dict)()
+        return getattr(collections, "OrderedDict", dict)()
 
     @classmethod
-    def gen_empty_messages(cls, uid, blender_ver, blender_hash, time, year, default_copyright=True, settings=settings):
+    def gen_empty_messages(
+        cls,
+        uid,
+        blender_ver,
+        blender_hash,
+        time,
+        year,
+        default_copyright=True,
+        settings=settings,
+    ):
         """Generate an empty I18nMessages object (only header is present!)."""
         fmt = settings.PO_HEADER_MSGSTR
-        msgstr = fmt.format(blender_ver=str(blender_ver), blender_hash=blender_hash, time=str(time), uid=str(uid))
+        msgstr = fmt.format(
+            blender_ver=str(blender_ver),
+            blender_hash=blender_hash,
+            time=str(time),
+            uid=str(uid),
+        )
         comment = ""
         if default_copyright:
             comment = settings.PO_HEADER_COMMENT_COPYRIGHT.format(year=str(year))
@@ -489,8 +565,15 @@ class I18nMessages:
 
         msgs = cls(uid=uid, settings=settings)
         key = settings.PO_HEADER_KEY
-        msgs.msgs[key] = I18nMessage([key[0]], [key[1]], msgstr.split("\n"), comment.split("\n"),
-                                     False, False, settings=settings)
+        msgs.msgs[key] = I18nMessage(
+            [key[0]],
+            [key[1]],
+            msgstr.split("\n"),
+            comment.split("\n"),
+            False,
+            False,
+            settings=settings,
+        )
         msgs.update_info()
 
         return msgs
@@ -524,7 +607,11 @@ class I18nMessages:
             msgctxt, msgid, msgstr = msg.msgctxt, msg.msgid, msg.msgstr
             real_key = (msgctxt or default_context, msgid)
             if key != real_key:
-                ret.append("Error! msg's context/message do not match its key ({} / {})".format(real_key, key))
+                ret.append(
+                    "Error! msg's context/message do not match its key ({} / {})".format(
+                        real_key, key
+                    )
+                )
                 if real_key in self.msgs:
                     ret.append("Error! msg's real_key already used!")
                     if fix:
@@ -532,10 +619,12 @@ class I18nMessages:
                 elif fix:
                     tmp[real_key] = msg
             done_keys.add(key)
-            if '%' in msgid and msgstr and _format(msgid) != _format(msgstr):
+            if "%" in msgid and msgstr and _format(msgid) != _format(msgstr):
                 if not msg.is_fuzzy:
-                    ret.append("Error! msg's format entities are not matched in msgid and msgstr ({} / \"{}\")"
-                               "".format(real_key, msgstr))
+                    ret.append(
+                        'Error! msg\'s format entities are not matched in msgid and msgstr ({} / "{}")'
+                        "".format(real_key, msgstr)
+                    )
                 if fix:
                     msg.msgstr = ""
         for k in rem:
@@ -576,9 +665,13 @@ class I18nMessages:
             if k not in self.msgs:
                 continue
             sm = self.msgs[k]
-            if (sm.is_commented or m.is_commented or not m.msgstr):
+            if sm.is_commented or m.is_commented or not m.msgstr:
                 continue
-            if (not sm.msgstr or replace or (sm.is_fuzzy and (not m.is_fuzzy or replace))):
+            if (
+                not sm.msgstr
+                or replace
+                or (sm.is_fuzzy and (not m.is_fuzzy or replace))
+            ):
                 sm.msgstr = m.msgstr
                 sm.is_fuzzy = m.is_fuzzy
 
@@ -613,8 +706,10 @@ class I18nMessages:
 
         # Next process new keys.
         if use_similar > 0.0:
-            for key, msgid in map(get_best_similar,
-                                  tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
+            for key, msgid in map(
+                get_best_similar,
+                tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys),
+            ):
                 if msgid:
                     # Try to get the same context, else just get one...
                     skey = (key[0], msgid)
@@ -699,11 +794,15 @@ class I18nMessages:
         if self.nbr_msgs > 0:
             lvl = float(self.nbr_trans_msgs) / float(self.nbr_msgs)
             lvl_ttips = float(self.nbr_ttips) / float(self.nbr_msgs)
-            lvl_comm = float(self.nbr_comm_msgs) / float(self.nbr_msgs + self.nbr_comm_msgs)
+            lvl_comm = float(self.nbr_comm_msgs) / float(
+                self.nbr_msgs + self.nbr_comm_msgs
+            )
         if self.nbr_ttips > 0:
             lvl_trans_ttips = float(self.nbr_trans_ttips) / float(self.nbr_ttips)
         if self.nbr_trans_msgs > 0:
-            lvl_ttips_in_trans = float(self.nbr_trans_ttips) / float(self.nbr_trans_msgs)
+            lvl_ttips_in_trans = float(self.nbr_trans_ttips) / float(
+                self.nbr_trans_msgs
+            )
 
         lines = []
         if print_stats:
@@ -716,14 +815,23 @@ class I18nMessages:
                 "{:>6.1%} of tooltips are translated ({} over {}).\n"
                 "".format(lvl_trans_ttips, self.nbr_trans_ttips, self.nbr_ttips),
                 "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
-                "".format(lvl_ttips_in_trans, self.nbr_trans_ttips, self.nbr_trans_msgs),
+                "".format(
+                    lvl_ttips_in_trans, self.nbr_trans_ttips, self.nbr_trans_msgs
+                ),
                 "{:>6.1%} of messages are commented ({} over {}).\n"
-                "".format(lvl_comm, self.nbr_comm_msgs, self.nbr_comm_msgs + self.nbr_msgs),
-                "This translation is currently made of {} signs.\n".format(self.nbr_trans_signs)
+                "".format(
+                    lvl_comm, self.nbr_comm_msgs, self.nbr_comm_msgs + self.nbr_msgs
+                ),
+                "This translation is currently made of {} signs.\n".format(
+                    self.nbr_trans_signs
+                ),
             ]
         if print_errors and self.parsing_errors:
             lines += ["WARNING! Errors during parsing:\n"]
-            lines += ["    Around line {}: {}\n".format(line, error) for line, error in self.parsing_errors]
+            lines += [
+                "    Around line {}: {}\n".format(line, error)
+                for line, error in self.parsing_errors
+            ]
         output(prefix.join(lines))
 
     def invalidate_reverse_cache(self, rebuild_now=False):
@@ -744,7 +852,9 @@ class I18nMessages:
                     src_to_msg.setdefault(src, set()).add(key)
             self._reverse_cache = (src_to_msg, ctxt_to_msg, msgid_to_msg, msgstr_to_msg)
 
-    def find_best_messages_matches(self, msgs, msgmap, rna_ctxt, rna_struct_name, rna_prop_name, rna_enum_name):
+    def find_best_messages_matches(
+        self, msgs, msgmap, rna_ctxt, rna_struct_name, rna_prop_name, rna_enum_name
+    ):
         """
         Try to find the best I18nMessages (i.e. context/msgid pairs) for the given UI messages:
             msgs: an object containing properties listed in msgmap's values.
@@ -762,7 +872,9 @@ class I18nMessages:
         try:
             import bpy
         except ModuleNotFoundError:
-            print("Could not import bpy, find_best_messages_matches must be run from within Blender.")
+            print(
+                "Could not import bpy, find_best_messages_matches must be run from within Blender."
+            )
             return
 
         # Build helper mappings.
@@ -771,10 +883,12 @@ class I18nMessages:
             self.invalidate_reverse_cache(True)
         src_to_msg, ctxt_to_msg, msgid_to_msg, msgstr_to_msg = self._reverse_cache
 
-    #    print(len(src_to_msg), len(ctxt_to_msg), len(msgid_to_msg), len(msgstr_to_msg))
+        #    print(len(src_to_msg), len(ctxt_to_msg), len(msgid_to_msg), len(msgstr_to_msg))
 
         # Build RNA key.
-        src, src_rna, src_enum = bpy.utils.make_rna_paths(rna_struct_name, rna_prop_name, rna_enum_name)
+        src, src_rna, src_enum = bpy.utils.make_rna_paths(
+            rna_struct_name, rna_prop_name, rna_enum_name
+        )
         print("src: ", src_rna, src_enum)
 
         # Labels.
@@ -810,9 +924,13 @@ class I18nMessages:
         blbls = [blbl]
         if blbl.endswith(self.settings.NUM_BUTTON_SUFFIX):
             # Num buttons report their label with a trailing ': '...
-            blbls.append(blbl[:-len(self.settings.NUM_BUTTON_SUFFIX)])
+            blbls.append(blbl[: -len(self.settings.NUM_BUTTON_SUFFIX)])
         print("button label: " + blbl)
-        if blbl and elbl not in blbls and (rlbl not in blbls or rna_ctxt != self.settings.DEFAULT_CONTEXT):
+        if (
+            blbl
+            and elbl not in blbls
+            and (rlbl not in blbls or rna_ctxt != self.settings.DEFAULT_CONTEXT)
+        ):
             # Always Default context for button label :/
             k = ctxt_to_msg[self.settings.DEFAULT_CONTEXT].copy()
             found = False
@@ -913,11 +1031,25 @@ class I18nMessages:
 
             # Never allow overriding existing msgid/msgctxt pairs!
             if msgkey in self.msgs:
-                self.parsing_errors.append((line_nr, "{} context/msgid is already in current messages!".format(msgkey)))
+                self.parsing_errors.append(
+                    (
+                        line_nr,
+                        "{} context/msgid is already in current messages!".format(
+                            msgkey
+                        ),
+                    )
+                )
                 return
 
-            self.msgs[msgkey] = I18nMessage(msgctxt_lines, msgid_lines, msgstr_lines, comment_lines,
-                                            is_commented, is_fuzzy, settings=self.settings)
+            self.msgs[msgkey] = I18nMessage(
+                msgctxt_lines,
+                msgid_lines,
+                msgstr_lines,
+                comment_lines,
+                is_commented,
+                is_fuzzy,
+                settings=self.settings,
+            )
 
             # Let's clean up and get ready for next message!
             reading_msgid = reading_msgstr = reading_msgctxt = reading_comment = False
@@ -935,7 +1067,7 @@ class I18nMessages:
                 return
             if not key:
                 key = src
-            with open(src, 'r', encoding="utf-8") as f:
+            with open(src, "r", encoding="utf-8") as f:
                 src = f.read()
 
         _msgctxt = self.settings.PO_MSGCTXT
@@ -976,7 +1108,9 @@ class I18nMessages:
                 reading_msgid = True
                 if line.startswith(_comm_str):
                     if not is_commented and reading_ctxt:
-                        self.parsing_errors.append((line_nr, "commented msgid following regular msgctxt"))
+                        self.parsing_errors.append(
+                            (line_nr, "commented msgid following regular msgctxt")
+                        )
                     is_commented = True
                     line = line[_len_comm_msgid:-1]
                 else:
@@ -986,18 +1120,24 @@ class I18nMessages:
 
             elif line.startswith(_msgstr) or line.startswith(_comm_msgstr):
                 if not reading_msgid:
-                    self.parsing_errors.append((line_nr, "msgstr without a prior msgid"))
+                    self.parsing_errors.append(
+                        (line_nr, "msgstr without a prior msgid")
+                    )
                 else:
                     reading_msgid = False
                 reading_msgstr = True
                 if line.startswith(_comm_str):
                     line = line[_len_comm_msgstr:-1]
                     if not is_commented:
-                        self.parsing_errors.append((line_nr, "commented msgstr following regular msgid"))
+                        self.parsing_errors.append(
+                            (line_nr, "commented msgstr following regular msgid")
+                        )
                 else:
                     line = line[_len_msgstr:-1]
                     if is_commented:
-                        self.parsing_errors.append((line_nr, "regular msgstr following commented msgid"))
+                        self.parsing_errors.append(
+                            (line_nr, "regular msgstr following commented msgid")
+                        )
                 msgstr_lines.append(line)
 
             elif line.startswith(_comm_str[0]):
@@ -1007,23 +1147,42 @@ class I18nMessages:
                             msgctxt_lines.append(line[_len_comm_str:-1])
                         else:
                             msgctxt_lines.append(line)
-                            self.parsing_errors.append((line_nr, "commented string while reading regular msgctxt"))
+                            self.parsing_errors.append(
+                                (
+                                    line_nr,
+                                    "commented string while reading regular msgctxt",
+                                )
+                            )
                     elif reading_msgid:
                         if is_commented:
                             msgid_lines.append(line[_len_comm_str:-1])
                         else:
                             msgid_lines.append(line)
-                            self.parsing_errors.append((line_nr, "commented string while reading regular msgid"))
+                            self.parsing_errors.append(
+                                (
+                                    line_nr,
+                                    "commented string while reading regular msgid",
+                                )
+                            )
                     elif reading_msgstr:
                         if is_commented:
                             msgstr_lines.append(line[_len_comm_str:-1])
                         else:
                             msgstr_lines.append(line)
-                            self.parsing_errors.append((line_nr, "commented string while reading regular msgstr"))
+                            self.parsing_errors.append(
+                                (
+                                    line_nr,
+                                    "commented string while reading regular msgstr",
+                                )
+                            )
                 else:
                     if reading_msgctxt or reading_msgid or reading_msgstr:
-                        self.parsing_errors.append((line_nr,
-                                                    "commented string within msgctxt, msgid or msgstr scope, ignored"))
+                        self.parsing_errors.append(
+                            (
+                                line_nr,
+                                "commented string within msgctxt, msgid or msgstr scope, ignored",
+                            )
+                        )
                     elif line.startswith(_comm_fuzzy):
                         is_fuzzy = True
                     else:
@@ -1039,7 +1198,12 @@ class I18nMessages:
                     line = line[1:-1]
                     msgstr_lines.append(line)
                 else:
-                    self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
+                    self.parsing_errors.append(
+                        (
+                            line_nr,
+                            "regular string outside msgctxt, msgid or msgstr scope",
+                        )
+                    )
                     # self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
 
         # If no final empty line, last message is not finalized!
@@ -1065,7 +1229,9 @@ class I18nMessages:
             self.escape()
 
             for num, msg in enumerate(self.msgs.values()):
-                if compact and (msg.is_commented or msg.is_fuzzy or not msg.msgstr_lines):
+                if compact and (
+                    msg.is_commented or msg.is_fuzzy or not msg.msgstr_lines
+                ):
                     continue
                 if not compact:
                     f.write("\n".join(msg.comment_lines))
@@ -1077,28 +1243,28 @@ class I18nMessages:
                 if msg.msgctxt and msg.msgctxt != default_context:
                     if len(msg.msgctxt_lines) > 1:
                         chunks += [
-                            "\n" + _p + _msgctxt + "\"\"\n" + _p + "\"",
-                            ("\"\n" + _p + "\"").join(msg.msgctxt_lines),
-                            "\"",
+                            "\n" + _p + _msgctxt + '""\n' + _p + '"',
+                            ('"\n' + _p + '"').join(msg.msgctxt_lines),
+                            '"',
                         ]
                     else:
-                        chunks += ["\n" + _p + _msgctxt + "\"" + msg.msgctxt + "\""]
+                        chunks += ["\n" + _p + _msgctxt + '"' + msg.msgctxt + '"']
                 if len(msg.msgid_lines) > 1:
                     chunks += [
-                        "\n" + _p + _msgid + "\"\"\n" + _p + "\"",
-                        ("\"\n" + _p + "\"").join(msg.msgid_lines),
-                        "\"",
+                        "\n" + _p + _msgid + '""\n' + _p + '"',
+                        ('"\n' + _p + '"').join(msg.msgid_lines),
+                        '"',
                     ]
                 else:
-                    chunks += ["\n" + _p + _msgid + "\"" + msg.msgid + "\""]
+                    chunks += ["\n" + _p + _msgid + '"' + msg.msgid + '"']
                 if len(msg.msgstr_lines) > 1:
                     chunks += [
-                        "\n" + _p + _msgstr + "\"\"\n" + _p + "\"",
-                        ("\"\n" + _p + "\"").join(msg.msgstr_lines),
-                        "\"",
+                        "\n" + _p + _msgstr + '""\n' + _p + '"',
+                        ('"\n' + _p + '"').join(msg.msgstr_lines),
+                        '"',
                     ]
                 else:
-                    chunks += ["\n" + _p + _msgstr + "\"" + msg.msgstr + "\""]
+                    chunks += ["\n" + _p + _msgstr + '"' + msg.msgstr + '"']
                 chunks += ["\n\n"]
                 f.write("".join(chunks))
 
@@ -1106,7 +1272,7 @@ class I18nMessages:
 
         self.normalize(max_len=0)  # No wrapping for now...
         if isinstance(fname, str):
-            with open(fname, 'w', encoding="utf-8") as f:
+            with open(fname, "w", encoding="utf-8") as f:
                 _write(self, f, compact)
         # Else assume fname is already a file(like) object!
         else:
@@ -1118,7 +1284,8 @@ class I18nMessages:
         """
         # XXX Temp solution, until I can make own mo generator working...
         import subprocess
-        with tempfile.NamedTemporaryFile(mode='w+', encoding="utf-8") as tmp_po_f:
+
+        with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as tmp_po_f:
             os.makedirs(os.path.dirname(fname), exist_ok=True)
             self.write_messages_to_po(tmp_po_f)
             cmd = (
@@ -1135,10 +1302,18 @@ class I18nMessages:
         # Not generating hash table!
         # Only translated, unfuzzy messages are taken into account!
         default_context = self.settings.DEFAULT_CONTEXT
-        msgs = tuple(v for v in self.msgs.values() if not (v.is_fuzzy or v.is_commented) and v.msgstr and v.msgid)
-        msgs = sorted(msgs[:2],
-                      key=lambda e: (e.msgctxt + e.msgid) if (e.msgctxt and e.msgctxt != default_context) else e.msgid)
-        magic_nbr = 0x950412de
+        msgs = tuple(
+            v
+            for v in self.msgs.values()
+            if not (v.is_fuzzy or v.is_commented) and v.msgstr and v.msgid
+        )
+        msgs = sorted(
+            msgs[:2],
+            key=lambda e: (e.msgctxt + e.msgid)
+            if (e.msgctxt and e.msgctxt != default_context)
+            else e.msgid,
+        )
+        magic_nbr = 0x950412DE
         format_rev = 0
         N = len(msgs)
         O = 32
@@ -1161,23 +1336,37 @@ class I18nMessages:
             # Don't forget the final NULL char!
             _msgid_len = len(msgid) + 1
             _msgstr_len = len(msgstr) + 1
-            ret = ((msgid, _msgid_len, _msgid_offset), (msgstr, _msgstr_len, _msgstr_offset))
+            ret = (
+                (msgid, _msgid_len, _msgid_offset),
+                (msgstr, _msgstr_len, _msgstr_offset),
+            )
             _msgid_offset += _msgid_len
             _msgstr_offset += _msgstr_len
             return ret
+
         msgs = tuple(_gen(v) for v in msgs)
         msgid_start = H
         msgstr_start = msgid_start + _msgid_offset
         print(N, msgstr_start + _msgstr_offset)
         print(msgs)
 
-        with open(fname, 'wb') as f:
+        with open(fname, "wb") as f:
             # Header...
             f.write(struct.pack("=8I", magic_nbr, format_rev, N, O, T, S, H, 0))
             # Msgid's length and offset.
-            f.write(b"".join(struct.pack("=2I", length, msgid_start + offset) for (_1, length, offset), _2 in msgs))
+            f.write(
+                b"".join(
+                    struct.pack("=2I", length, msgid_start + offset)
+                    for (_1, length, offset), _2 in msgs
+                )
+            )
             # Msgstr's length and offset.
-            f.write(b"".join(struct.pack("=2I", length, msgstr_start + offset) for _1, (_2, length, offset) in msgs))
+            f.write(
+                b"".join(
+                    struct.pack("=2I", length, msgstr_start + offset)
+                    for _1, (_2, length, offset) in msgs
+                )
+            )
             # No hash table!
             # Msgid's.
             f.write(b"\0".join(msgid for (msgid, _1, _2), _3 in msgs) + b"\0")
@@ -1201,9 +1390,12 @@ class I18n:
     """
 
     @staticmethod
-    def _parser_check_file(path, maxsize=settings.PARSER_MAX_FILE_SIZE,
-                           _begin_marker=settings.PARSER_PY_MARKER_BEGIN,
-                           _end_marker=settings.PARSER_PY_MARKER_END):
+    def _parser_check_file(
+        path,
+        maxsize=settings.PARSER_MAX_FILE_SIZE,
+        _begin_marker=settings.PARSER_PY_MARKER_BEGIN,
+        _end_marker=settings.PARSER_PY_MARKER_END,
+    ):
         if os.stat(path).st_size > maxsize:
             # Security, else we could read arbitrary huge files!
             print("WARNING: skipping file {}, too huge!".format(path))
@@ -1234,13 +1426,13 @@ class I18n:
     @staticmethod
     def _dst(self, path, uid, kind):
         if isinstance(path, str):
-            if kind == 'PO':
+            if kind == "PO":
                 if uid == self.settings.PARSER_TEMPLATE_ID:
                     if not path.endswith(".pot"):
                         return os.path.join(os.path.dirname(path), "blender.pot")
                 if not path.endswith(".po"):
                     return os.path.join(os.path.dirname(path), uid + ".po")
-            elif kind == 'PY':
+            elif kind == "PY":
                 if not path.endswith(".py"):
                     if os.path.isdir(path):
                         return os.path.join(path, "translations.py")
@@ -1252,7 +1444,9 @@ class I18n:
             langs = set()
         self.settings = settings
         self.trans = {}
-        self.src = {}  # Should have the same keys as self.trans (plus PARSER_PY_ID for py file)!
+        self.src = (
+            {}
+        )  # Should have the same keys as self.trans (plus PARSER_PY_ID for py file)!
         self.dst = self._dst  # A callable that transforms src_path into dst_path!
         if kind and src:
             self.parse(kind, src, langs)
@@ -1263,6 +1457,7 @@ class I18n:
 
     def _py_file_set(self, value):
         self.src[self.settings.PARSER_PY_ID] = value
+
     py_file = property(_py_file_get, _py_file_set)
 
     def escape(self, do_all=False):
@@ -1294,11 +1489,17 @@ class I18n:
             if msgs.nbr_msgs > 0:
                 self.lvl += float(msgs.nbr_trans_msgs) / float(msgs.nbr_msgs)
                 self.lvl_ttips += float(msgs.nbr_ttips) / float(msgs.nbr_msgs)
-                self.lvl_comm += float(msgs.nbr_comm_msgs) / float(msgs.nbr_msgs + msgs.nbr_comm_msgs)
+                self.lvl_comm += float(msgs.nbr_comm_msgs) / float(
+                    msgs.nbr_msgs + msgs.nbr_comm_msgs
+                )
             if msgs.nbr_ttips > 0:
-                self.lvl_trans_ttips = float(msgs.nbr_trans_ttips) / float(msgs.nbr_ttips)
+                self.lvl_trans_ttips = float(msgs.nbr_trans_ttips) / float(
+                    msgs.nbr_ttips
+                )
             if msgs.nbr_trans_msgs > 0:
-                self.lvl_ttips_in_trans = float(msgs.nbr_trans_ttips) / float(msgs.nbr_trans_msgs)
+                self.lvl_ttips_in_trans = float(msgs.nbr_trans_ttips) / float(
+                    msgs.nbr_trans_msgs
+                )
             if self.nbr_signs == 0:
                 self.nbr_signs = msgs.nbr_signs
             self.nbr_trans_signs += msgs.nbr_trans_signs
@@ -1325,19 +1526,38 @@ class I18n:
             _ctx_txt = "s are"
         else:
             _ctx_txt = " is"
-        lines = ((
-            "",
-            "Average stats for all {} translations:\n".format(self.nbr_trans),
-            "    {:>6.1%} done!\n".format(self.lvl / self.nbr_trans),
-            "    {:>6.1%} of messages are tooltips.\n".format(self.lvl_ttips / self.nbr_trans),
-            "    {:>6.1%} of tooltips are translated.\n".format(self.lvl_trans_ttips / self.nbr_trans),
-            "    {:>6.1%} of translated messages are tooltips.\n".format(self.lvl_ttips_in_trans / self.nbr_trans),
-            "    {:>6.1%} of messages are commented.\n".format(self.lvl_comm / self.nbr_trans),
-            "    The org msgids are currently made of {} signs.\n".format(self.nbr_signs),
-            "    All processed translations are currently made of {} signs.\n".format(self.nbr_trans_signs),
-            "    {} specific context{} present:\n".format(self.nbr_contexts, _ctx_txt)) +
-            tuple("            " + c + "\n" for c in self.contexts - {self.settings.DEFAULT_CONTEXT}) +
-            ("\n",)
+        lines = (
+            (
+                "",
+                "Average stats for all {} translations:\n".format(self.nbr_trans),
+                "    {:>6.1%} done!\n".format(self.lvl / self.nbr_trans),
+                "    {:>6.1%} of messages are tooltips.\n".format(
+                    self.lvl_ttips / self.nbr_trans
+                ),
+                "    {:>6.1%} of tooltips are translated.\n".format(
+                    self.lvl_trans_ttips / self.nbr_trans
+                ),
+                "    {:>6.1%} of translated messages are tooltips.\n".format(
+                    self.lvl_ttips_in_trans / self.nbr_trans
+                ),
+                "    {:>6.1%} of messages are commented.\n".format(
+                    self.lvl_comm / self.nbr_trans
+                ),
+                "    The org msgids are currently made of {} signs.\n".format(
+                    self.nbr_signs
+                ),
+                "    All processed translations are currently made of {} signs.\n".format(
+                    self.nbr_trans_signs
+                ),
+                "    {} specific context{} present:\n".format(
+                    self.nbr_contexts, _ctx_txt
+                ),
+            )
+            + tuple(
+                "            " + c + "\n"
+                for c in self.contexts - {self.settings.DEFAULT_CONTEXT}
+            )
+            + ("\n",)
         )
         print(prefix.join(lines))
 
@@ -1385,12 +1605,19 @@ class I18n:
             langs = set()
         root_dir, pot_file = src
         if pot_file and os.path.isfile(pot_file):
-            self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID, 'PO',
-                                                                        pot_file, pot_file, settings=self.settings)
+            self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(
+                self.settings.PARSER_TEMPLATE_ID,
+                "PO",
+                pot_file,
+                pot_file,
+                settings=self.settings,
+            )
             self.src_po[self.settings.PARSER_TEMPLATE_ID] = pot_file
 
         for uid, po_file in get_po_files_from_dir(root_dir, langs):
-            self.trans[uid] = I18nMessages(uid, 'PO', po_file, po_file, settings=self.settings)
+            self.trans[uid] = I18nMessages(
+                uid, "PO", po_file, po_file, settings=self.settings
+            )
             self.src_po[uid] = po_file
 
     def parse_from_py(self, src, langs=None):
@@ -1408,28 +1635,51 @@ class I18n:
             msgs = ()
         for key, (sources, gen_comments), *translations in msgs:
             if self.settings.PARSER_TEMPLATE_ID not in self.trans:
-                self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID,
-                                                                            settings=self.settings)
+                self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(
+                    self.settings.PARSER_TEMPLATE_ID, settings=self.settings
+                )
                 self.src[self.settings.PARSER_TEMPLATE_ID] = self.py_file
             if key in self.trans[self.settings.PARSER_TEMPLATE_ID].msgs:
-                print("ERROR! key {} is defined more than once! Skipping re-definitions!")
+                print(
+                    "ERROR! key {} is defined more than once! Skipping re-definitions!"
+                )
                 continue
             custom_src = [c for c in sources if c.startswith("bpy.")]
             src = [c for c in sources if not c.startswith("bpy.")]
-            common_comment_lines = [self.settings.PO_COMMENT_PREFIX_GENERATED + c for c in gen_comments] + \
-                                   [self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + c for c in custom_src] + \
-                                   [self.settings.PO_COMMENT_PREFIX_SOURCE + c for c in src]
+            common_comment_lines = (
+                [self.settings.PO_COMMENT_PREFIX_GENERATED + c for c in gen_comments]
+                + [
+                    self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + c
+                    for c in custom_src
+                ]
+                + [self.settings.PO_COMMENT_PREFIX_SOURCE + c for c in src]
+            )
             ctxt = [key[0]] if key[0] else [default_context]
-            self.trans[self.settings.PARSER_TEMPLATE_ID].msgs[key] = I18nMessage(ctxt, [key[1]], [""],
-                                                                                 common_comment_lines, False, False,
-                                                                                 settings=self.settings)
+            self.trans[self.settings.PARSER_TEMPLATE_ID].msgs[key] = I18nMessage(
+                ctxt,
+                [key[1]],
+                [""],
+                common_comment_lines,
+                False,
+                False,
+                settings=self.settings,
+            )
             for uid, msgstr, (is_fuzzy, user_comments) in translations:
                 if uid not in self.trans:
                     self.trans[uid] = I18nMessages(uid, settings=self.settings)
                     self.src[uid] = self.py_file
-                comment_lines = [self.settings.PO_COMMENT_PREFIX + c for c in user_comments] + common_comment_lines
-                self.trans[uid].msgs[key] = I18nMessage(ctxt, [key[1]], [msgstr], comment_lines, False, is_fuzzy,
-                                                        settings=self.settings)
+                comment_lines = [
+                    self.settings.PO_COMMENT_PREFIX + c for c in user_comments
+                ] + common_comment_lines
+                self.trans[uid].msgs[key] = I18nMessage(
+                    ctxt,
+                    [key[1]],
+                    [msgstr],
+                    comment_lines,
+                    False,
+                    is_fuzzy,
+                    settings=self.settings,
+                )
         # key = self.settings.PO_HEADER_KEY
         # for uid, trans in self.trans.items():
         #     if key not in trans.msgs:
@@ -1449,13 +1699,15 @@ class I18n:
         a custom self.dst function to write somewhere else!
         Note: If langs is set and you want to export the pot template as well, langs must contain PARSER_TEMPLATE_ID
               ({} currently).
-        """.format(self.settings.PARSER_TEMPLATE_ID)
+        """.format(
+            self.settings.PARSER_TEMPLATE_ID
+        )
         keys = self.trans.keys()
         if langs:
             keys &= langs
         for uid in keys:
-            dst = self.dst(self, self.src.get(uid, ""), uid, 'PO')
-            self.trans[uid].write('PO', dst)
+            dst = self.dst(self, self.src.get(uid, ""), uid, "PO")
+            self.trans[uid].write("PO", dst)
 
     def write_to_py(self, langs=None):
         if langs is None:
@@ -1465,7 +1717,9 @@ class I18n:
         specified file if self.py_file is set (default, as usual can be customized with self.dst callable!).
         Note: If langs is set and you want to export the pot template as well, langs must contain PARSER_TEMPLATE_ID
               ({} currently).
-        """.format(self.settings.PARSER_TEMPLATE_ID)
+        """.format(
+            self.settings.PARSER_TEMPLATE_ID
+        )
         default_context = self.settings.DEFAULT_CONTEXT
 
         def _gen_py(self, langs, tab="    "):
@@ -1489,12 +1743,21 @@ class I18n:
                 keys.update(trans.msgs)
             # Get the ref translation (ideally, PARSER_TEMPLATE_ID one, else the first one that pops up!
             # Ref translation will be used to generate sources "comments"
-            ref = self.trans.get(self.settings.PARSER_TEMPLATE_ID) or self.trans[list(self.trans.keys())[0]]
+            ref = (
+                self.trans.get(self.settings.PARSER_TEMPLATE_ID)
+                or self.trans[list(self.trans.keys())[0]]
+            )
             # Get all languages (uids) and sort them (PARSER_TEMPLATE_ID and PARSER_PY_ID excluded!)
-            translations = self.trans.keys() - {self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID}
+            translations = self.trans.keys() - {
+                self.settings.PARSER_TEMPLATE_ID,
+                self.settings.PARSER_PY_ID,
+            }
             if langs:
                 translations &= langs
-            translations = [('"' + lng + '"', " " * (len(lng) + 6), self.trans[lng]) for lng in sorted(translations)]
+            translations = [
+                ('"' + lng + '"', " " * (len(lng) + 6), self.trans[lng])
+                for lng in sorted(translations)
+            ]
             print(*(k for k in keys.keys()))
             for key in keys.keys():
                 if ref.msgs[key].is_commented:
@@ -1503,12 +1766,19 @@ class I18n:
                 msgctxt, msgid = ref.msgs[key].msgctxt, ref.msgs[key].msgid
                 if not msgctxt:
                     msgctxt = default_context
-                ret.append(tab + "(({}, \"{}\"),".format('"' + msgctxt + '"' if msgctxt else "None", msgid))
+                ret.append(
+                    tab
+                    + '(({}, "{}"),'.format(
+                        '"' + msgctxt + '"' if msgctxt else "None", msgid
+                    )
+                )
                 # Common comments (mostly sources!).
                 sources = []
                 gen_comments = []
                 for comment in ref.msgs[key].comment_lines:
-                    if comment.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM):
+                    if comment.startswith(
+                        self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM
+                    ):
                         sources.append(comment[_lencsrc:])
                     elif comment.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE):
                         sources.append(comment[_lensrc:])
@@ -1522,31 +1792,54 @@ class I18n:
                         ret += [tab + '   "' + s + '",' for s in sources[1:-1]]
                         ret.append(tab + '   "' + sources[-1] + '"),')
                     else:
-                        ret.append(tab + " ((" + ('"' + sources[0] + '",' if sources else "") + "),")
+                        ret.append(
+                            tab
+                            + " (("
+                            + ('"' + sources[0] + '",' if sources else "")
+                            + "),"
+                        )
                     if len(gen_comments) > 1:
                         ret.append(tab + '  ("' + gen_comments[0] + '",')
                         ret += [tab + '   "' + s + '",' for s in gen_comments[1:-1]]
                         ret.append(tab + '   "' + gen_comments[-1] + '")),')
                     else:
-                        ret.append(tab + "  (" + ('"' + gen_comments[0] + '",' if gen_comments else "") + ")),")
+                        ret.append(
+                            tab
+                            + "  ("
+                            + ('"' + gen_comments[0] + '",' if gen_comments else "")
+                            + ")),"
+                        )
                 # All languages
                 for lngstr, lngsp, trans in translations:
                     if trans.msgs[key].is_commented:
                         continue
                     # Language code and translation.
-                    ret.append(tab + " (" + lngstr + ', "' + trans.msgs[key].msgstr + '",')
+                    ret.append(
+                        tab + " (" + lngstr + ', "' + trans.msgs[key].msgstr + '",'
+                    )
                     # User comments and fuzzy.
                     comments = []
                     for comment in trans.msgs[key].comment_lines:
                         if comment.startswith(self.settings.PO_COMMENT_PREFIX):
                             comments.append(comment[_lencomm:])
-                    ret.append(tab + lngsp + "(" + ("True" if trans.msgs[key].is_fuzzy else "False") + ",")
+                    ret.append(
+                        tab
+                        + lngsp
+                        + "("
+                        + ("True" if trans.msgs[key].is_fuzzy else "False")
+                        + ","
+                    )
                     if len(comments) > 1:
                         ret.append(tab + lngsp + ' ("' + comments[0] + '",')
                         ret += [tab + lngsp + '  "' + s + '",' for s in comments[1:-1]]
                         ret.append(tab + lngsp + '  "' + comments[-1] + '"))),')
                     else:
-                        ret[-1] = ret[-1] + " (" + (('"' + comments[0] + '",') if comments else "") + "))),"
+                        ret[-1] = (
+                            ret[-1]
+                            + " ("
+                            + (('"' + comments[0] + '",') if comments else "")
+                            + "))),"
+                        )
 
                 ret.append(tab + "),")
             ret += [
@@ -1563,20 +1856,35 @@ class I18n:
             return ret
 
         self.escape(True)
-        dst = self.dst(self, self.src.get(self.settings.PARSER_PY_ID, ""), self.settings.PARSER_PY_ID, 'PY')
+        dst = self.dst(
+            self,
+            self.src.get(self.settings.PARSER_PY_ID, ""),
+            self.settings.PARSER_PY_ID,
+            "PY",
+        )
         print(dst)
         prev = txt = nxt = ""
         if os.path.exists(dst):
             if not os.path.isfile(dst):
-                print("WARNING: trying to write as python code into {}, which is not a file! Aborting.".format(dst))
+                print(
+                    "WARNING: trying to write as python code into {}, which is not a file! Aborting.".format(
+                        dst
+                    )
+                )
                 return
             prev, txt, nxt, _has_trans = self._parser_check_file(dst)
             if prev is None and nxt is None:
-                print("WARNING: Looks like given python file {} has no auto-generated translations yet, will be added "
-                      "at the end of the file, you can move that section later if needed...".format(dst))
-                txt = ([txt, "", self.settings.PARSER_PY_MARKER_BEGIN] +
-                       _gen_py(self, langs) +
-                       ["", self.settings.PARSER_PY_MARKER_END])
+                print(
+                    "WARNING: Looks like given python file {} has no auto-generated translations yet, will be added "
+                    "at the end of the file, you can move that section later if needed...".format(
+                        dst
+                    )
+                )
+                txt = (
+                    [txt, "", self.settings.PARSER_PY_MARKER_BEGIN]
+                    + _gen_py(self, langs)
+                    + ["", self.settings.PARSER_PY_MARKER_END]
+                )
             else:
                 # We completely replace the text found between start and end markers...
                 txt = _gen_py(self, langs)
@@ -1593,7 +1901,7 @@ class I18n:
                 "",
                 self.settings.PARSER_PY_MARKER_END,
             ]
-        with open(dst, 'w', encoding="utf8") as f:
+        with open(dst, "w", encoding="utf8") as f:
             f.write((prev or "") + "\n".join(txt) + (nxt or ""))
         self.unescape()
 
