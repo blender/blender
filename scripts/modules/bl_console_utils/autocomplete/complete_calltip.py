@@ -8,23 +8,24 @@ import re
 
 
 # regular expression constants
-DEF_DOC = r'%s\s*(\(.*?\))'
-DEF_SOURCE = r'def\s+%s\s*(\(.*?\)):'
-RE_EMPTY_LINE = re.compile(r'^\s*\n')
+DEF_DOC = r"%s\s*(\(.*?\))"
+DEF_SOURCE = r"def\s+%s\s*(\(.*?\)):"
+RE_EMPTY_LINE = re.compile(r"^\s*\n")
 RE_FLAG = re.MULTILINE | re.DOTALL
-RE_NEWLINE = re.compile('\n+')
-RE_SPACE = re.compile(r'\s+')
+RE_NEWLINE = re.compile("\n+")
+RE_SPACE = re.compile(r"\s+")
 RE_DEF_COMPLETE = re.compile(
     # don't start with a quote
-    '''(?:^|[^"'a-zA-Z0-9_])'''
+    """(?:^|[^"'a-zA-Z0-9_])"""
     # start with a \w = [a-zA-Z0-9_]
-    r'''((\w+'''
+    r"""((\w+"""
     # allow also dots and closed bracket pairs []
-    r'''(?:\w|[.]|\[.+?\])*'''
+    r"""(?:\w|[.]|\[.+?\])*"""
     # allow empty string
-    '''|)'''
+    """|)"""
     # allow opening bracket(s)
-    r'''(?:\(|\s)*)$''')
+    r"""(?:\(|\s)*)$"""
+)
 
 
 def reduce_newlines(text):
@@ -38,7 +39,7 @@ def reduce_newlines(text):
     >>> reduce_newlines('hello\\n\\nworld')
     'hello\\nworld'
     """
-    return RE_NEWLINE.sub('\n', text)
+    return RE_NEWLINE.sub("\n", text)
 
 
 def reduce_spaces(text):
@@ -52,7 +53,7 @@ def reduce_spaces(text):
     >>> reduce_spaces('hello    \\nworld')
     'hello world'
     """
-    return RE_SPACE.sub(' ', text)
+    return RE_SPACE.sub(" ", text)
 
 
 def get_doc(obj):
@@ -66,7 +67,7 @@ def get_doc(obj):
     'abs(number) -> number\\n\\nReturn the absolute value of the argument.'
     """
     result = inspect.getdoc(obj) or inspect.getcomments(obj)
-    return result and RE_EMPTY_LINE.sub('', result.rstrip()) or ''
+    return result and RE_EMPTY_LINE.sub("", result.rstrip()) or ""
 
 
 def get_argspec(func, *, strip_self=True, doc=None, source=None):
@@ -92,13 +93,13 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
     except AttributeError:
         pass
     # is callable?
-    if not hasattr(func, '__call__'):
-        return ''
+    if not hasattr(func, "__call__"):
+        return ""
     # func should have a name
     try:
         func_name = func.__name__
     except AttributeError:
-        return ''
+        return ""
     # from docstring
     if doc is None:
         doc = get_doc(func)
@@ -109,7 +110,7 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
             try:
                 source = inspect.getsource(func)
             except (TypeError, IOError):
-                source = ''
+                source = ""
         if source:
             match = re.search(DEF_SOURCE % func_name, source, RE_FLAG)
     if match:
@@ -120,12 +121,11 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
             argspec = inspect.formatargspec(*inspect.getfullargspec(func))
         except:
             try:
-                argspec = inspect.formatargvalues(
-                    *inspect.getargvalues(func))
+                argspec = inspect.formatargvalues(*inspect.getargvalues(func))
             except:
-                argspec = ''
+                argspec = ""
         if strip_self:
-            argspec = argspec.replace('self, ', '')
+            argspec = argspec.replace("self, ", "")
     return argspec
 
 
@@ -148,8 +148,8 @@ def complete(line, cursor, namespace):
     'abs(number) -> number\\nReturn the absolute value of the argument.'
     """
     matches = []
-    word = ''
-    scrollback = ''
+    word = ""
+    scrollback = ""
     match = RE_DEF_COMPLETE.search(line[:cursor])
 
     if match:
@@ -163,11 +163,11 @@ def complete(line, cursor, namespace):
         if func:
             doc = get_doc(func)
             argspec = get_argspec(func, doc=doc)
-            scrollback = func_word.split('.')[-1] + (argspec or '()')
+            scrollback = func_word.split(".")[-1] + (argspec or "()")
             if doc.startswith(scrollback):
                 scrollback = doc
             elif doc:
-                scrollback += '\n' + doc
+                scrollback += "\n" + doc
             scrollback = reduce_newlines(scrollback)
 
     return matches, word, scrollback

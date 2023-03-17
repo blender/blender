@@ -40,6 +40,7 @@ def batch_import(
     end=sys.maxsize,
 ):
     import addon_utils
+
     _reset_all = addon_utils.reset_all  # XXX, hack
     _disable_all = addon_utils.disable_all  # XXX, hack
 
@@ -72,9 +73,12 @@ def batch_import(
     files.sort()
     files = files[start:end]
     if len(files) != files_len:
-        print(" using a subset in (%d, %d), total %d" % (start, end, len(files)), end="")
+        print(
+            " using a subset in (%d, %d), total %d" % (start, end, len(files)), end=""
+        )
 
     import bpy
+
     op = ast.literal_eval(operator)
 
     tot_done = 0
@@ -94,7 +98,7 @@ def batch_import(
 
         result = op(filepath=f)
 
-        if 'FINISHED' in result:
+        if "FINISHED" in result:
             tot_done += 1
         else:
             tot_fail += 1
@@ -138,17 +142,39 @@ def main():
         "--operator",
         dest="operator",
         help="This text will be used to render an image",
-        type="string")
-    parser.add_option("-p", "--path", dest="path", help="Path to use for searching for files", type='string')
-    parser.add_option("-m", "--match", dest="match", help="Wildcard to match filename", type="string")
+        type="string",
+    )
+    parser.add_option(
+        "-p",
+        "--path",
+        dest="path",
+        help="Path to use for searching for files",
+        type="string",
+    )
+    parser.add_option(
+        "-m", "--match", dest="match", help="Wildcard to match filename", type="string"
+    )
     parser.add_option(
         "-s",
         "--save_path",
         dest="save_path",
         help="Save the input file to a blend file in a new location",
-        metavar='string')
-    parser.add_option("-S", "--start", dest="start", help="From collected files, start with this index", metavar='int')
-    parser.add_option("-E", "--end", dest="end", help="From collected files, end with this index", metavar='int')
+        metavar="string",
+    )
+    parser.add_option(
+        "-S",
+        "--start",
+        dest="start",
+        help="From collected files, start with this index",
+        metavar="int",
+    )
+    parser.add_option(
+        "-E",
+        "--end",
+        dest="end",
+        help="From collected files, end with this index",
+        metavar="int",
+    )
 
     options, _args = parser.parse_args(argv)  # In this example we won't use the args
 
@@ -157,7 +183,7 @@ def main():
         return
 
     if not options.operator:
-        print("Error: --operator=\"some string\" argument not given, aborting.")
+        print('Error: --operator="some string" argument not given, aborting.')
         parser.print_help()
         return
 
@@ -168,13 +194,14 @@ def main():
         options.end = sys.maxsize
 
     # Run the example function
-    batch_import(operator=options.operator,
-                 path=options.path,
-                 save_path=options.save_path,
-                 match=options.match,
-                 start=int(options.start),
-                 end=int(options.end),
-                 )
+    batch_import(
+        operator=options.operator,
+        path=options.path,
+        save_path=options.save_path,
+        match=options.match,
+        start=int(options.start),
+        end=int(options.end),
+    )
 
     print("batch job finished, exiting")
 

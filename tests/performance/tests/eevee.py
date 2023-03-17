@@ -7,10 +7,10 @@ import time
 
 
 class RecordStage(enum.Enum):
-    INIT = 0,
-    WAIT_SHADERS = 1,
-    WARMUP = 2,
-    RECORD = 3,
+    INIT = (0,)
+    WAIT_SHADERS = (1,)
+    WARMUP = (2,)
+    RECORD = (3,)
     FINISHED = 4
 
 
@@ -44,12 +44,12 @@ def frame_change_handler(scene):
 
     if record_stage == RecordStage.INIT:
         screen = bpy.context.window_manager.windows[0].screen
-        bpy.context.scene.sync_mode = 'NONE'
+        bpy.context.scene.sync_mode = "NONE"
 
         for area in screen.areas:
-            if area.type == 'VIEW_3D':
+            if area.type == "VIEW_3D":
                 space = area.spaces[0]
-                space.shading.type = 'RENDERED'
+                space.shading.type = "RENDERED"
                 space.overlay.show_overlays = False
 
         start_time = time.perf_counter()
@@ -57,11 +57,13 @@ def frame_change_handler(scene):
 
     elif record_stage == RecordStage.WAIT_SHADERS:
         shaders_compiled = False
-        if hasattr(bpy.app, 'is_job_running'):
+        if hasattr(bpy.app, "is_job_running"):
             shaders_compiled = not bpy.app.is_job_running("SHADER_COMPILATION")
         else:
             # Fallback when is_job_running doesn't exists by waiting for a time.
-            shaders_compiled = time.perf_counter() - start_time > SHADER_FALLBACK_SECONDS
+            shaders_compiled = (
+                time.perf_counter() - start_time > SHADER_FALLBACK_SECONDS
+            )
 
         if shaders_compiled:
             start_warmup_time = time.perf_counter()
@@ -70,7 +72,10 @@ def frame_change_handler(scene):
 
     elif record_stage == RecordStage.WARMUP:
         warmup_frame += 1
-        if time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
+        if (
+            time.perf_counter() - start_warmup_time > WARMUP_SECONDS
+            and warmup_frame > WARMUP_FRAMES
+        ):
             start_record_time = time.perf_counter()
             playback_iteration = 0
             scene = bpy.context.scene
@@ -98,7 +103,7 @@ def frame_change_handler(scene):
         bpy.ops.wm.quit_blender()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _run(None)
 
 else:
@@ -126,5 +131,5 @@ else:
             raise Exception("No playback performance result found in log.")
 
     def generate(env):
-        filepaths = env.find_blend_files('eevee/*')
+        filepaths = env.find_blend_files("eevee/*")
         return [EeveeTest(filepath) for filepath in filepaths]
