@@ -142,7 +142,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
 
   for (const int i : nodes.index_range()) {
-    create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_DPI_FAC);
+    create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_SCALE_FAC);
   }
 }
 
@@ -197,7 +197,7 @@ static void node_snap_grid_apply(TransInfo *t)
 static void flushTransNodes(TransInfo *t)
 {
   using namespace blender::ed;
-  const float dpi_fac = UI_DPI_FAC;
+  const float dpi_fac = UI_SCALE_FAC;
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
   TransCustomDataNode *customdata = (TransCustomDataNode *)t->custom.type.data;

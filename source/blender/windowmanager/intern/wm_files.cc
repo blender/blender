@@ -3553,7 +3553,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 
-  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
 
   return block;
 }
@@ -3892,7 +3892,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     wm_block_file_close_save_button(block, post_action);
   }
 
-  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
   return block;
 }
 

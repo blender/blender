@@ -145,7 +145,7 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
   uiLayout *subrow = uiLayoutRow(&row, true);
   uiLayoutSetFixedSize(subrow, true);
 
-  const float indent_size = count_parents() * UI_DPI_ICON_SIZE;
+  const float indent_size = count_parents() * UI_ICON_SIZE;
   uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, indent_size, 0, nullptr, 0.0, 0.0, 0, 0, "");
 
   /* Indent items without collapsing icon some more within their parent. Makes it clear that they

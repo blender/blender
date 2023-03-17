@@ -50,12 +50,12 @@ struct wmTimer;
 
 #define UI_MENU_WIDTH_MIN (UI_UNIT_Y * 9)
 /** Some extra padding added to menus containing sub-menu icons. */
-#define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC)
+#define UI_MENU_SUBMENU_PADDING (6 * UI_SCALE_FAC)
 
 /* menu scrolling */
-#define UI_MENU_SCROLL_ARROW (12 * UI_DPI_FAC)
-#define UI_MENU_SCROLL_MOUSE (UI_MENU_SCROLL_ARROW + 2 * UI_DPI_FAC)
-#define UI_MENU_SCROLL_PAD (4 * UI_DPI_FAC)
+#define UI_MENU_SCROLL_ARROW (12 * UI_SCALE_FAC)
+#define UI_MENU_SCROLL_MOUSE (UI_MENU_SCROLL_ARROW + 2 * UI_SCALE_FAC)
+#define UI_MENU_SCROLL_PAD (4 * UI_SCALE_FAC)
 
 /** Popover width (multiplied by #U.widget_unit) */
 #define UI_POPOVER_WIDTH_UNITS 10
@@ -1181,12 +1181,12 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     eFontStyle_Align text_align);
 
 #define UI_TEXT_MARGIN_X 0.4f
-#define UI_POPUP_MARGIN (UI_DPI_FAC * 12)
+#define UI_POPUP_MARGIN (UI_SCALE_FAC * 12)
 /**
  * Margin at top of screen for popups.
  * Note this value must be sufficient to draw a popover arrow to avoid cropping it.
  */
-#define UI_POPUP_MENU_TOP (int)(10 * UI_DPI_FAC)
+#define UI_POPUP_MENU_TOP (int)(10 * UI_SCALE_FAC)
 
 #define UI_PIXEL_AA_JITTER 8
 extern const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];

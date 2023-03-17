@@ -187,7 +187,7 @@ int WM_window_pixels_y(const struct wmWindow *win);
 void WM_window_rect_calc(const struct wmWindow *win, struct rcti *r_rect);
 /**
  * Get boundaries usable by screen-layouts, excluding global areas.
- * \note Depends on #U.dpi_fac. Should that be outdated, call #WM_window_set_dpi first.
+ * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_set_dpi first.
  */
 void WM_window_screen_rect_calc(const struct wmWindow *win, struct rcti *r_rect);
 bool WM_window_is_fullscreen(const struct wmWindow *win);

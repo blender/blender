@@ -1330,10 +1330,10 @@ static void draw_seq_strip(const bContext *C,
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION)) {
 
     /* Calculate height needed for drawing text on strip. */
-    text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
+    text_margin_y = y2 - min_ff(0.40f, 20 * UI_SCALE_FAC * pixely);
 
     /* Is there enough space for drawing something else than text? */
-    y_threshold = ((y2 - y1) / pixely) > 20 * U.dpi_fac;
+    y_threshold = ((y2 - y1) / pixely) > 20 * UI_SCALE_FAC;
   }
   else {
     text_margin_y = y2;
@@ -1423,7 +1423,7 @@ static void draw_seq_strip(const bContext *C,
 
   if (sseq->flag & SEQ_SHOW_OVERLAY) {
     /* Don't draw strip if there is not enough vertical or horizontal space. */
-    if (((x2 - x1) > 32 * pixelx * U.dpi_fac) && ((y2 - y1) > 8 * pixely * U.dpi_fac)) {
+    if (((x2 - x1) > 32 * pixelx * UI_SCALE_FAC) && ((y2 - y1) > 8 * pixely * UI_SCALE_FAC)) {
       /* Depending on the vertical space, draw text on top or in the center of strip. */
       draw_seq_text_overlay(
           scene, v2d, seq, sseq, x1, x2, y_threshold ? text_margin_y : y1, y2, seq_active);
@@ -1650,7 +1650,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniformThemeColor(TH_BACK);
   immUniform1i("colors_len", 0); /* Simple dashes. */
@@ -2470,7 +2470,7 @@ static bool draw_cache_view_iter_fn(void *userdata,
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
       (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
-    stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) - v2d->cur.ymin;
+    stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) - v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     stripe_top = stripe_bot + stripe_ht;
     vbo = drawdata->final_out_vbo;
@@ -2551,7 +2551,7 @@ static void draw_cache_view(const bContext *C)
 
   float stripe_bot, stripe_top;
   float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
-  float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
+  float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
                     v2d->cur.ymin;
 
   CLAMP_MAX(stripe_ht, 0.2f);

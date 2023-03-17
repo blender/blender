@@ -205,7 +205,7 @@ static void file_draw_string(int sx,
   fs = style->widget;
 
   BLI_strncpy(fname, string, FILE_MAXFILE);
-  UI_text_clip_middle_ex(&fs, fname, width, UI_DPI_ICON_SIZE, sizeof(fname), '\0');
+  UI_text_clip_middle_ex(&fs, fname, width, UI_ICON_SIZE, sizeof(fname), '\0');
 
   /* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict
    * (for buttons it works) */
@@ -340,8 +340,8 @@ static void file_draw_preview(const FileDirEntry *file,
 
   BLI_assert(imb != nullptr);
 
-  ui_imbx = imb->x * UI_DPI_FAC;
-  ui_imby = imb->y * UI_DPI_FAC;
+  ui_imbx = imb->x * UI_SCALE_FAC;
+  ui_imby = imb->y * UI_SCALE_FAC;
   /* Unlike thumbnails, icons are not scaled up. */
   if (((ui_imbx > layout->prv_w) || (ui_imby > layout->prv_h)) ||
       (!is_icon && ((ui_imbx < layout->prv_w) || (ui_imby < layout->prv_h)))) {
@@ -359,7 +359,7 @@ static void file_draw_preview(const FileDirEntry *file,
   else {
     scaledx = ui_imbx;
     scaledy = ui_imby;
-    scale = UI_DPI_FAC;
+    scale = UI_SCALE_FAC;
   }
 
   ex = int(scaledx);
@@ -417,7 +417,7 @@ static void file_draw_preview(const FileDirEntry *file,
   if (icon && is_icon) {
     /* Small icon in the middle of large image, scaled to fit container and UI scale */
     float icon_x, icon_y;
-    const float icon_size = 16.0f / icon_aspect * U.dpi_fac;
+    const float icon_size = 16.0f / icon_aspect * UI_SCALE_FAC;
     float icon_opacity = 0.3f;
     uchar icon_color[4] = {0, 0, 0, 255};
     float bgcolor[4];
@@ -432,7 +432,7 @@ static void file_draw_preview(const FileDirEntry *file,
     UI_icon_draw_ex(icon_x,
                     icon_y,
                     icon,
-                    icon_aspect / U.dpi_fac,
+                    icon_aspect / UI_SCALE_FAC,
                     icon_opacity,
                     0.0f,
                     icon_color,
@@ -443,8 +443,8 @@ static void file_draw_preview(const FileDirEntry *file,
   if (is_link || is_offline) {
     /* Icon at bottom to indicate it is a shortcut, link, alias, or offline. */
     float icon_x, icon_y;
-    icon_x = xco + (2.0f * UI_DPI_FAC);
-    icon_y = yco + (2.0f * UI_DPI_FAC);
+    icon_x = xco + (2.0f * UI_SCALE_FAC);
+    icon_y = yco + (2.0f * UI_SCALE_FAC);
     const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_URL;
     if (!is_icon) {
       /* At very bottom-left if preview style. */
@@ -453,7 +453,7 @@ static void file_draw_preview(const FileDirEntry *file,
       UI_icon_draw_ex(icon_x + 1,
                       icon_y - 1,
                       arrow,
-                      1.0f / U.dpi_fac,
+                      1.0f / UI_SCALE_FAC,
                       0.2f,
                       0.0f,
                       dark,
@@ -462,7 +462,7 @@ static void file_draw_preview(const FileDirEntry *file,
       UI_icon_draw_ex(icon_x,
                       icon_y,
                       arrow,
-                      1.0f / U.dpi_fac,
+                      1.0f / UI_SCALE_FAC,
                       0.6f,
                       0.0f,
                       light,
@@ -478,7 +478,7 @@ static void file_draw_preview(const FileDirEntry *file,
       UI_icon_draw_ex(icon_x,
                       icon_y,
                       arrow,
-                      icon_aspect / U.dpi_fac * 1.8,
+                      icon_aspect / UI_SCALE_FAC * 1.8f,
                       0.3f,
                       0.0f,
                       icon_color,
@@ -491,19 +491,26 @@ static void file_draw_preview(const FileDirEntry *file,
     float icon_x, icon_y;
     const uchar dark[4] = {0, 0, 0, 255};
     const uchar light[4] = {255, 255, 255, 255};
-    icon_x = xco + (2.0f * UI_DPI_FAC);
-    icon_y = yco + (2.0f * UI_DPI_FAC);
+    icon_x = xco + (2.0f * UI_SCALE_FAC);
+    icon_y = yco + (2.0f * UI_SCALE_FAC);
     UI_icon_draw_ex(icon_x + 1,
                     icon_y - 1,
                     icon,
-                    1.0f / U.dpi_fac,
+                    1.0f / UI_SCALE_FAC,
                     0.2f,
                     0.0f,
                     dark,
                     false,
                     UI_NO_ICON_OVERLAY_TEXT);
-    UI_icon_draw_ex(
-        icon_x, icon_y, icon, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false, UI_NO_ICON_OVERLAY_TEXT);
+    UI_icon_draw_ex(icon_x,
+                    icon_y,
+                    icon,
+                    1.0f / UI_SCALE_FAC,
+                    0.6f,
+                    0.0f,
+                    light,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
   }
 
   const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
@@ -517,7 +524,7 @@ static void file_draw_preview(const FileDirEntry *file,
     UI_icon_draw_ex(icon_x,
                     icon_y,
                     ICON_CURRENT_FILE,
-                    1.0f / U.dpi_fac,
+                    1.0f / UI_SCALE_FAC,
                     0.6f,
                     0.0f,
                     light,
@@ -1041,7 +1048,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                    0,
                                    0);
         UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
-        file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_DPI_FAC);
+        file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
       }
 
       /* Add this after the fake draggable button, so the icon button tooltip is displayed. */
@@ -1056,7 +1063,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (do_drag) {
         /* For some reason the dragging is unreliable for the icon button if we don't explicitly
          * enable dragging, even though the dummy drag button above covers the same area. */
-        file_but_enable_drag(icon_but, sfile, file, path, nullptr, icon, UI_DPI_FAC);
+        file_but_enable_drag(icon_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
       }
     }
 

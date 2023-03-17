@@ -129,8 +129,8 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 #define NODE_DYS (U.widget_unit / 2)
 #define NODE_DY U.widget_unit
 #define NODE_SOCKDY (0.1f * U.widget_unit)
-#define NODE_WIDTH(node) (node.width * UI_DPI_FAC)
-#define NODE_HEIGHT(node) (node.height * UI_DPI_FAC)
+#define NODE_WIDTH(node) (node.width * UI_SCALE_FAC)
+#define NODE_HEIGHT(node) (node.height * UI_SCALE_FAC)
 #define NODE_MARGIN_X (1.2f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
 #define NODE_SOCKSIZE_DRAW_MULIPLIER 2.25f

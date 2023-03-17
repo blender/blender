@@ -362,7 +362,7 @@ int WM_event_drag_threshold(const struct wmEvent *event)
     /* Typically keyboard, could be NDOF button or other less common types. */
     drag_threshold = U.drag_threshold;
   }
-  return drag_threshold * U.dpi_fac;
+  return drag_threshold * UI_SCALE_FAC;
 }
 
 bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])

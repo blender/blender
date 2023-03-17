@@ -1468,7 +1468,7 @@ void UI_ThemeClearColor(int colorid)
 int UI_ThemeMenuShadowWidth()
 {
   bTheme *btheme = UI_GetTheme();
-  return int(btheme->tui.menu_shadow_width * UI_DPI_FAC);
+  return int(btheme->tui.menu_shadow_width * UI_SCALE_FAC);
 }
 
 void UI_make_axis_color(const uchar src_col[3], uchar dst_col[3], const char axis)

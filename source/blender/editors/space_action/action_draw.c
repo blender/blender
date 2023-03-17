@@ -645,7 +645,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 
   /* Iterate over pointcaches on the active object, and draw each one's range. */
   float y_offset = 0.0f;
-  const float cache_draw_height = 4.0f * UI_DPI_FAC * U.pixelsize;
+  const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
     if (timeline_cache_is_hidden_by_setting(saction, pid)) {
       continue;

@@ -1675,8 +1675,8 @@ void node_link_bezier_points_evaluated(const Span<float2> socket_locations,
 
 #define NODELINK_GROUP_SIZE 256
 #define LINK_RESOL 24
-#define LINK_WIDTH (2.5f * UI_DPI_FAC)
-#define ARROW_SIZE (7 * UI_DPI_FAC)
+#define LINK_WIDTH (2.5f * UI_SCALE_FAC)
+#define ARROW_SIZE (7 * UI_SCALE_FAC)
 
 /* Reroute arrow shape and mute bar. These are expanded here and shrunk in the glsl code.
  * See: gpu_shader_2D_nodelink_vert.glsl */
@@ -2228,7 +2228,7 @@ static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &sn
                                                              const bNodeLink &link)
 {
   const bNodeTree &node_tree = *snode.edittree;
-  const float2 cursor = snode.runtime->cursor * UI_DPI_FAC;
+  const float2 cursor = snode.runtime->cursor * UI_SCALE_FAC;
   std::array<float2, 4> points;
   points[0] = link.fromsock ?
                   socket_link_connection_location(node_tree.runtime->all_socket_locations,

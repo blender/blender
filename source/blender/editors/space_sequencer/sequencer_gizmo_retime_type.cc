@@ -55,11 +55,11 @@
 using blender::MutableSpan;
 
 /** Pixels from bottom of strip. */
-#define REMOVE_GIZMO_HEIGHT (14.0f * U.dpi_fac)
+#define REMOVE_GIZMO_HEIGHT (14.0f * UI_SCALE_FAC)
 /** Size in pixels. */
-#define RETIME_HANDLE_TRIANGLE_SIZE (14.0f * U.dpi_fac)
+#define RETIME_HANDLE_TRIANGLE_SIZE (14.0f * UI_SCALE_FAC)
 /** Size in pixels. */
-#define RETIME_HANDLE_MOUSEOVER_THRESHOLD (16.0f * U.dpi_fac)
+#define RETIME_HANDLE_MOUSEOVER_THRESHOLD (16.0f * UI_SCALE_FAC)
 /** Factor based on icon size. */
 #define RETIME_BUTTON_SIZE 0.6f
 
@@ -182,8 +182,8 @@ static ButtonDimensions button_dimensions_get(const bContext *C, const RetimeBut
   const View2D *v2d = UI_view2d_fromcontext(C);
   const Sequence *seq = active_seq_from_context(C);
 
-  const float icon_height = UI_icon_get_height(gizmo->icon_id) * U.dpi_fac;
-  const float icon_width = UI_icon_get_width(gizmo->icon_id) * U.dpi_fac;
+  const float icon_height = UI_icon_get_height(gizmo->icon_id) * UI_SCALE_FAC;
+  const float icon_width = UI_icon_get_width(gizmo->icon_id) * UI_SCALE_FAC;
   const float icon_x = UI_view2d_view_to_region_x(v2d, BKE_scene_frame_get(scene)) +
                        icon_width / 2;
   const float icon_y = UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.5)) -

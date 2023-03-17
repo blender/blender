@@ -916,8 +916,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
       WM_event_drag_start_mval(event, region, mval);
       float mx, my;
       UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &mx, &my);
-      const float dx = (mx - nsw->mxstart) / UI_DPI_FAC;
-      const float dy = (my - nsw->mystart) / UI_DPI_FAC;
+      const float dx = (mx - nsw->mxstart) / UI_SCALE_FAC;
+      const float dy = (my - nsw->mystart) / UI_SCALE_FAC;
 
       if (node) {
         float *pwidth = &node->width;
@@ -941,8 +941,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         /* Height works the other way round. */
         {
-          float heightmin = UI_DPI_FAC * node->typeinfo->minheight;
-          float heightmax = UI_DPI_FAC * node->typeinfo->maxheight;
+          float heightmin = UI_SCALE_FAC * node->typeinfo->minheight;
+          float heightmax = UI_SCALE_FAC * node->typeinfo->maxheight;
           if (nsw->directions & NODE_RESIZE_TOP) {
             float locmin = nsw->oldlocy - nsw->oldheight;
 

@@ -308,7 +308,7 @@ float2 node_to_view(const bNode &node, const float2 &co)
 {
   float2 result;
   nodeToView(&node, co.x, co.y, &result.x, &result.y);
-  return result * UI_DPI_FAC;
+  return result * UI_SCALE_FAC;
 }
 
 void node_to_updated_rect(const bNode &node, rctf &r_rect)
@@ -324,8 +324,8 @@ void node_to_updated_rect(const bNode &node, rctf &r_rect)
 
 float2 node_from_view(const bNode &node, const float2 &co)
 {
-  const float x = co.x / UI_DPI_FAC;
-  const float y = co.y / UI_DPI_FAC;
+  const float x = co.x / UI_SCALE_FAC;
+  const float y = co.y / UI_SCALE_FAC;
   float2 result;
   nodeFromView(&node, x, y, &result.x, &result.y);
   return result;
@@ -768,10 +768,10 @@ static void node_socket_draw_multi_input(const float color[4],
                                          const float2 location)
 {
   /* The other sockets are drawn with the keyframe shader. There, the outline has a base thickness
-   * that can be varied but always scales with the size the socket is drawn at. Using `U.dpi_fac`
-   * has the same effect here. It scales the outline correctly across different screen DPI's
-   * and UI scales without being affected by the 'line-width'. */
-  const float outline_width = NODE_SOCK_OUTLINE_SCALE * U.dpi_fac;
+   * that can be varied but always scales with the size the socket is drawn at. Using
+   * `UI_SCALE_FAC` has the same effect here. It scales the outline correctly across different
+   * screen DPI's and UI scales without being affected by the 'line-width'. */
+  const float outline_width = NODE_SOCK_OUTLINE_SCALE * UI_SCALE_FAC;
 
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
   const rctf rect = {
@@ -2021,7 +2021,7 @@ static void node_draw_extra_info_row(const bNode &node,
                                      const int row,
                                      const NodeExtraInfoRow &extra_info_row)
 {
-  const float but_icon_left = rect.xmin + 6.0f * U.dpi_fac;
+  const float but_icon_left = rect.xmin + 6.0f * UI_SCALE_FAC;
   const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
   const float but_icon_right = but_icon_left + but_icon_width;
 
@@ -2031,7 +2031,7 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  extra_info_row.icon,
                                  int(but_icon_left),
-                                 int(rect.ymin + row * (20.0f * U.dpi_fac)),
+                                 int(rect.ymin + row * (20.0f * UI_SCALE_FAC)),
                                  but_icon_width,
                                  UI_UNIT_Y,
                                  nullptr,
@@ -2048,7 +2048,7 @@ static void node_draw_extra_info_row(const bNode &node,
   }
   UI_block_emboss_set(&block, UI_EMBOSS);
 
-  const float but_text_left = but_icon_right + 6.0f * U.dpi_fac;
+  const float but_text_left = but_icon_right + 6.0f * UI_SCALE_FAC;
   const float but_text_right = rect.xmax;
   const float but_text_width = but_text_right - but_text_left;
 
@@ -2057,7 +2057,7 @@ static void node_draw_extra_info_row(const bNode &node,
                              0,
                              extra_info_row.text.c_str(),
                              int(but_text_left),
-                             int(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             int(rect.ymin + row * (20.0f * UI_SCALE_FAC)),
                              short(but_text_width),
                              short(NODE_DY),
                              nullptr,
@@ -2087,19 +2087,19 @@ static void node_draw_extra_info_panel(TreeDrawContext &tree_draw_ctx,
   float color[4];
   rctf extra_info_rect;
 
-  const float width = (node.width - 6.0f) * U.dpi_fac;
+  const float width = (node.width - 6.0f) * UI_SCALE_FAC;
 
   if (node.is_frame()) {
     extra_info_rect.xmin = rct.xmin;
-    extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
-    extra_info_rect.ymin = rct.ymin + 2.0f * U.dpi_fac;
-    extra_info_rect.ymax = rct.ymin + 2.0f * U.dpi_fac;
+    extra_info_rect.xmax = rct.xmin + 95.0f * UI_SCALE_FAC;
+    extra_info_rect.ymin = rct.ymin + 2.0f * UI_SCALE_FAC;
+    extra_info_rect.ymax = rct.ymin + 2.0f * UI_SCALE_FAC;
   }
   else {
-    extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac;
+    extra_info_rect.xmin = rct.xmin + 3.0f * UI_SCALE_FAC;
     extra_info_rect.xmax = rct.xmin + width;
     extra_info_rect.ymin = rct.ymax;
-    extra_info_rect.ymax = rct.ymax + extra_info_rows.size() * (20.0f * U.dpi_fac);
+    extra_info_rect.ymax = rct.ymax + extra_info_rows.size() * (20.0f * UI_SCALE_FAC);
 
     if (node.flag & NODE_MUTED) {
       UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color);
@@ -2115,10 +2115,11 @@ static void node_draw_extra_info_panel(TreeDrawContext &tree_draw_ctx,
 
     /* Draw outline. */
     const float outline_width = 1.0f;
-    extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac - outline_width;
+    extra_info_rect.xmin = rct.xmin + 3.0f * UI_SCALE_FAC - outline_width;
     extra_info_rect.xmax = rct.xmin + width + outline_width;
     extra_info_rect.ymin = rct.ymax - outline_width;
-    extra_info_rect.ymax = rct.ymax + outline_width + extra_info_rows.size() * (20.0f * U.dpi_fac);
+    extra_info_rect.ymax = rct.ymax + outline_width +
+                           extra_info_rows.size() * (20.0f * UI_SCALE_FAC);
 
     UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.4f, -20, color);
     UI_draw_roundbox_corner_set(
@@ -2328,7 +2329,7 @@ static void node_draw_basis(const bContext &C,
                         showname,
                         int(rct.xmin + NODE_MARGIN_X + 0.4f),
                         int(rct.ymax - NODE_DY),
-                        short(iconofs - rct.xmin - (18.0f * U.dpi_fac)),
+                        short(iconofs - rct.xmin - (18.0f * UI_SCALE_FAC)),
                         short(NODE_DY),
                         nullptr,
                         0,
@@ -2560,7 +2561,7 @@ static void node_draw_hidden(const bContext &C,
                         showname,
                         round_fl_to_int(rct.xmin + NODE_MARGIN_X),
                         round_fl_to_int(centy - NODE_DY * 0.5f),
-                        short(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * U.dpi_fac)),
+                        short(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * UI_SCALE_FAC)),
                         short(NODE_DY),
                         nullptr,
                         0,
@@ -2718,7 +2719,7 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
 
 static float frame_node_label_height(const NodeFrame &frame_data)
 {
-  return frame_data.label_size * U.dpi_fac;
+  return frame_data.label_size * UI_SCALE_FAC;
 }
 
 #define NODE_FRAME_MARGIN (1.5f * U.widget_unit)
@@ -2854,7 +2855,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
-  BLF_size(fontid, font_size * U.dpi_fac);
+  BLF_size(fontid, font_size * UI_SCALE_FAC);
 
   /* Title color. */
   int color_id = node_get_colorid(tree_draw_ctx, node);
@@ -3118,7 +3119,7 @@ static void draw_tree_path(const bContext &C, ARegion &region)
   const rcti *rect = ED_region_visible_rect(&region);
 
   const uiStyle *style = UI_style_get_dpi();
-  const float padding_x = 16 * UI_DPI_FAC;
+  const float padding_x = 16 * UI_SCALE_FAC;
   const int x = rect->xmin + padding_x;
   const int y = region.winy - UI_UNIT_Y * 0.6f;
   const int width = BLI_rcti_size_x(rect) - 2 * padding_x;
@@ -3272,8 +3273,8 @@ void node_draw_space(const bContext &C, ARegion &region)
                            win->eventstate->xy[1] - region.winrct.ymin,
                            &snode.runtime->cursor[0],
                            &snode.runtime->cursor[1]);
-  snode.runtime->cursor[0] /= UI_DPI_FAC;
-  snode.runtime->cursor[1] /= UI_DPI_FAC;
+  snode.runtime->cursor[0] /= UI_SCALE_FAC;
+  snode.runtime->cursor[1] /= UI_SCALE_FAC;
 
   ED_region_draw_cb_draw(&C, &region, REGION_DRAW_PRE_VIEW);
 

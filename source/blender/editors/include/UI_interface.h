@@ -319,12 +319,6 @@ enum {
   UI_BUT_CHECKBOX_INVERT = 1 << 25,
 };
 
-/* scale fixed button widths by this to account for DPI */
-
-#define UI_DPI_FAC (U.dpi_fac)
-/* 16 to copy ICON_DEFAULT_HEIGHT */
-#define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_FAC)
-
 /**
  * Button types, bits stored in 1 value... and a short even!
  * - bits 0-4:  #uiBut.bitnr (0-31)

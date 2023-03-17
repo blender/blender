@@ -183,7 +183,7 @@ static void area_draw_azone_fullscreen(short /*x1*/, short /*y1*/, short x2, sho
   UI_icon_draw_ex(x2 - U.widget_unit,
                   y2 - U.widget_unit,
                   ICON_FULLSCREEN_EXIT,
-                  U.inv_dpi_fac,
+                  UI_INV_SCALE_FAC,
                   min_ff(alpha, 0.75f),
                   0.0f,
                   nullptr,
@@ -359,7 +359,7 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
   const float y = 0.4f * UI_UNIT_Y;
 
   if (overlap) {
-    const float pad = 2.0f * UI_DPI_FAC;
+    const float pad = 2.0f * UI_SCALE_FAC;
     const float x1 = x - (UI_UNIT_X - pad);
     const float x2 = x + width + (UI_UNIT_X - pad);
     const float y1 = pad;
@@ -1301,13 +1301,13 @@ static void region_rect_recursive(
   }
 
   /* `prefsizex/y`, taking into account DPI. */
-  int prefsizex = UI_DPI_FAC *
+  int prefsizex = UI_SCALE_FAC *
                   ((region->sizex > 1) ? region->sizex + 0.5f : region->type->prefsizex);
   int prefsizey;
 
   if (region->flag & RGN_FLAG_PREFSIZE_OR_HIDDEN) {
-    prefsizex = UI_DPI_FAC * region->type->prefsizex;
-    prefsizey = UI_DPI_FAC * region->type->prefsizey;
+    prefsizex = UI_SCALE_FAC * region->type->prefsizex;
+    prefsizey = UI_SCALE_FAC * region->type->prefsizey;
   }
   else if (region->regiontype == RGN_TYPE_HEADER) {
     prefsizey = ED_area_headersize();
@@ -1322,7 +1322,8 @@ static void region_rect_recursive(
     prefsizey = ED_region_global_size_y();
   }
   else {
-    prefsizey = UI_DPI_FAC * (region->sizey > 1 ? region->sizey + 0.5f : region->type->prefsizey);
+    prefsizey = UI_SCALE_FAC *
+                (region->sizey > 1 ? region->sizey + 0.5f : region->type->prefsizey);
   }
 
   if (region->flag & RGN_FLAG_HIDDEN) {
@@ -1510,12 +1511,12 @@ static void region_rect_recursive(
   region->winy = BLI_rcti_size_y(&region->winrct) + 1;
 
   /* If region opened normally, we store this for hide/reveal usage. */
-  /* Prevent rounding errors for UI_DPI_FAC multiply and divide. */
+  /* Prevent rounding errors for UI_SCALE_FAC multiply and divide. */
   if (region->winx > 1) {
-    region->sizex = (region->winx + 0.5f) / UI_DPI_FAC;
+    region->sizex = (region->winx + 0.5f) / UI_SCALE_FAC;
   }
   if (region->winy > 1) {
-    region->sizey = (region->winy + 0.5f) / UI_DPI_FAC;
+    region->sizey = (region->winy + 0.5f) / UI_SCALE_FAC;
   }
 
   /* exception for multiple overlapping regions on same spot */
@@ -3024,8 +3025,8 @@ void ED_region_panels_layout_ex(const bContext *C,
     Panel *panel = static_cast<Panel *>(region->panels.last);
     if (panel != nullptr) {
       const int size_dyn[2] = {
-          int(UI_UNIT_X * (UI_panel_is_closed(panel) ? 8 : 14) / UI_DPI_FAC),
-          int(UI_panel_size_y(panel) / UI_DPI_FAC),
+          int(UI_UNIT_X * (UI_panel_is_closed(panel) ? 8 : 14) / UI_SCALE_FAC),
+          int(UI_panel_size_y(panel) / UI_SCALE_FAC),
       };
       /* region size is layout based and needs to be updated */
       if ((region->sizex != size_dyn[0]) || (region->sizey != size_dyn[1])) {
@@ -3033,7 +3034,7 @@ void ED_region_panels_layout_ex(const bContext *C,
         region->sizey = size_dyn[1];
         area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
       }
-      y = fabsf(region->sizey * UI_DPI_FAC - 1);
+      y = fabsf(region->sizey * UI_SCALE_FAC - 1);
     }
   }
   else {
@@ -3288,7 +3289,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
 
   /* Height of buttons and scaling needed to achieve it. */
-  const int buttony = min_ii(UI_UNIT_Y, region->winy - 2 * UI_DPI_FAC);
+  const int buttony = min_ii(UI_UNIT_Y, region->winy - 2 * UI_SCALE_FAC);
   const float buttony_scale = buttony / float(UI_UNIT_Y);
 
   /* Vertically center buttons. */
@@ -3342,7 +3343,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
       maxco = xco;
     }
 
-    int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_DPI_FAC;
+    int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_SCALE_FAC;
 
     if (region_layout_based && (region->sizex != new_sizex)) {
       /* region size is layout based and needs to be updated */
@@ -3402,7 +3403,7 @@ void ED_region_header_init(ARegion *region)
 int ED_area_headersize(void)
 {
   /* Accommodate widget and padding. */
-  return U.widget_unit + int(UI_DPI_FAC * HEADER_PADDING_Y);
+  return U.widget_unit + int(UI_SCALE_FAC * HEADER_PADDING_Y);
 }
 
 int ED_area_footersize(void)
@@ -3413,17 +3414,17 @@ int ED_area_footersize(void)
 int ED_area_global_size_y(const ScrArea *area)
 {
   BLI_assert(ED_area_is_global(area));
-  return round_fl_to_int(area->global->cur_fixed_height * UI_DPI_FAC);
+  return round_fl_to_int(area->global->cur_fixed_height * UI_SCALE_FAC);
 }
 int ED_area_global_min_size_y(const ScrArea *area)
 {
   BLI_assert(ED_area_is_global(area));
-  return round_fl_to_int(area->global->size_min * UI_DPI_FAC);
+  return round_fl_to_int(area->global->size_min * UI_SCALE_FAC);
 }
 int ED_area_global_max_size_y(const ScrArea *area)
 {
   BLI_assert(ED_area_is_global(area));
-  return round_fl_to_int(area->global->size_max * UI_DPI_FAC);
+  return round_fl_to_int(area->global->size_max * UI_SCALE_FAC);
 }
 
 bool ED_area_is_global(const ScrArea *area)
@@ -3510,7 +3511,7 @@ void ED_region_info_draw_multiline(ARegion *region,
   rcti rect = *ED_region_visible_rect(region);
 
   /* Needed in case scripts leave the font size at an unexpected value, see: #102213. */
-  BLF_size(fontid, style->widget.points * U.dpi_fac);
+  BLF_size(fontid, style->widget.points * UI_SCALE_FAC);
 
   /* Box fill entire width or just around text. */
   if (!full_redraw) {
@@ -3764,7 +3765,7 @@ void ED_region_cache_draw_background(ARegion *region)
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ub(128, 128, 255, 64);
-  immRecti(pos, 0, region_bottom, region->winx, region_bottom + 8 * UI_DPI_FAC);
+  immRecti(pos, 0, region_bottom, region->winx, region_bottom + 8 * UI_SCALE_FAC);
   immUnbindProgram();
 }
 
@@ -3776,7 +3777,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
   float font_dims[2] = {0.0f, 0.0f};
 
   /* frame number */
-  BLF_size(fontid, 11.0f * U.dpi_fac);
+  BLF_size(fontid, 11.0f * UI_SCALE_FAC);
   BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
 
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
@@ -3810,7 +3811,7 @@ void ED_region_cache_draw_cached_segments(
       float x1 = float(points[a * 2] - sfra) / (efra - sfra + 1) * region->winx;
       float x2 = float(points[a * 2 + 1] - sfra + 1) / (efra - sfra + 1) * region->winx;
 
-      immRecti(pos, x1, region_bottom, x2, region_bottom + 8 * UI_DPI_FAC);
+      immRecti(pos, x1, region_bottom, x2, region_bottom + 8 * UI_SCALE_FAC);
       /* TODO(merwin): use primitive restart to draw multiple rects more efficiently */
     }
 

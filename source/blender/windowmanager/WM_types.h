@@ -767,7 +767,7 @@ typedef struct wmEvent {
  *
  * Always check for <= this value since it may be zero.
  */
-#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * U.dpi_fac)
+#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * UI_SCALE_FAC)
 
 /** Motion progress, for modal handlers. */
 typedef enum {

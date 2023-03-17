@@ -55,7 +55,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   region->alignment = RGN_ALIGN_LEFT;
 
   /* Use smaller size when opened in area like properties editor. */
-  if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_DPI_FAC) {
+  if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_SCALE_FAC) {
     region->sizex = UI_NARROW_NAVIGATION_REGION_WIDTH;
   }
 
