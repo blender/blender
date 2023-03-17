@@ -10,8 +10,12 @@ from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 def main():
     test = [
         # World coordinates of test and expected object should be same.
-        SpecMeshTest("PlaneOcean", "testObjPlaneOcean", "expObjPlaneOcean",
-                     [ModifierSpec('Ocean', 'OCEAN', {})]),
+        SpecMeshTest(
+            "PlaneOcean",
+            "testObjPlaneOcean",
+            "expObjPlaneOcean",
+            [ModifierSpec("Ocean", "OCEAN", {})],
+        ),
     ]
     ocean_test = RunTest(test)
 

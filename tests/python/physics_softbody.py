@@ -9,11 +9,26 @@ from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 
 def main():
     test = [
-
-        SpecMeshTest("SoftBodySimple", "testSoftBody", "expectedSoftBody",
-                     [ModifierSpec('Softbody', 'SOFT_BODY',
-                                   {'settings': {'use_goal': False, 'bend': 8, 'pull': 0.8, 'push': 0.8}},
-                                   45)]),
+        SpecMeshTest(
+            "SoftBodySimple",
+            "testSoftBody",
+            "expectedSoftBody",
+            [
+                ModifierSpec(
+                    "Softbody",
+                    "SOFT_BODY",
+                    {
+                        "settings": {
+                            "use_goal": False,
+                            "bend": 8,
+                            "pull": 0.8,
+                            "push": 0.8,
+                        }
+                    },
+                    45,
+                )
+            ],
+        ),
     ]
     soft_body_test = RunTest(test)
 

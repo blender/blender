@@ -19,9 +19,13 @@ def get_arguments(filepath, output_filepath):
         "--debug-memory",
         "--debug-exit-on-error",
         filepath,
-        "-o", output_filepath,
-        "-f", "1",
-        "-F", "PNG"]
+        "-o",
+        output_filepath,
+        "-f",
+        "1",
+        "-F",
+        "PNG",
+    ]
 
     return args
 
@@ -45,6 +49,7 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
+
     report = render_report.Report("Sequencer", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("reference")
