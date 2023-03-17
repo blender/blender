@@ -52,9 +52,7 @@ def create_nb_project_main():
             return
 
         # for some reason it doesn't give all internal includes
-        includes = list(
-            set(includes) | {dirname(f) for f in files if is_c_header(f)}
-        )
+        includes = list(set(includes) | {dirname(f) for f in files if is_c_header(f)})
         includes.sort()
 
         if 0:
