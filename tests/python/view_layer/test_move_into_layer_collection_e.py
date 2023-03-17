@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(MoveLayerCollectionTesting):
     def get_reference_scene_tree_map(self):
@@ -37,6 +36,6 @@ class UnitTesting(MoveLayerCollectionTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

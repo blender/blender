@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(MoveSceneCollectionSyncTesting):
     def get_reference_scene_tree_map(self):
@@ -25,7 +24,7 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
         Test outliner operations
         """
         tree = self.setup_tree()
-        self.assertFalse(tree['C'].move_above(tree['2']))
+        self.assertFalse(tree["C"].move_above(tree["2"]))
         self.compare_tree_maps()
 
     def test_scene_collection_move_b(self):
@@ -33,7 +32,7 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
         Test outliner operations
         """
         tree = self.setup_tree()
-        self.assertFalse(tree['C'].move_below(tree['2']))
+        self.assertFalse(tree["C"].move_below(tree["2"]))
         self.compare_tree_maps()
 
     def test_scene_collection_move_c(self):
@@ -41,7 +40,7 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
         Test outliner operations
         """
         tree = self.setup_tree()
-        self.assertFalse(tree['C'].move_above(tree['cat']))
+        self.assertFalse(tree["C"].move_above(tree["cat"]))
         self.compare_tree_maps()
 
     def test_scene_collection_move_d(self):
@@ -49,7 +48,7 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
         Test outliner operations
         """
         tree = self.setup_tree()
-        self.assertFalse(tree['C'].move_below(tree['cat']))
+        self.assertFalse(tree["C"].move_below(tree["cat"]))
         self.compare_tree_maps()
 
 
@@ -57,6 +56,6 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

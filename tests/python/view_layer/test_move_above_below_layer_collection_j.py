@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(MoveLayerCollectionTesting):
     def get_reference_scene_tree_map(self):
@@ -29,8 +28,8 @@ class UnitTesting(MoveLayerCollectionTesting):
         Test outliner operations
         """
         self.setup_tree()
-        self.assertTrue(self.move_below('Layer 1.3.dog', 'Layer 1.3.cat'))
-        self.assertTrue(self.move_above('Layer 1.3.dog', 'Layer 1.3.cat'))
+        self.assertTrue(self.move_below("Layer 1.3.dog", "Layer 1.3.cat"))
+        self.assertTrue(self.move_above("Layer 1.3.dog", "Layer 1.3.cat"))
         self.compare_tree_maps()
 
     def test_layer_collection_move_b(self):
@@ -40,18 +39,18 @@ class UnitTesting(MoveLayerCollectionTesting):
         self.setup_tree()
 
         # collection that will be moved
-        collection_original = self.parse_move('Layer 1.3.dog')
+        collection_original = self.parse_move("Layer 1.3.dog")
         collection_original.enabled = True
         collection_original.selectable = False
 
         # move
-        self.assertTrue(self.move_below('Layer 1.3.dog', 'Layer 1.3.cat'))
-        self.assertTrue(self.move_above('Layer 1.3.dog', 'Layer 1.3.cat'))
+        self.assertTrue(self.move_below("Layer 1.3.dog", "Layer 1.3.cat"))
+        self.assertTrue(self.move_above("Layer 1.3.dog", "Layer 1.3.cat"))
         self.compare_tree_maps()
 
         # we expect the settings to be carried along from the
         # original layer collection
-        collection_new = self.parse_move('Layer 1.3.dog')
+        collection_new = self.parse_move("Layer 1.3.dog")
         self.assertEqual(collection_new.enabled, True)
         self.assertEqual(collection_new.selectable, False)
 
@@ -60,6 +59,6 @@ class UnitTesting(MoveLayerCollectionTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()
