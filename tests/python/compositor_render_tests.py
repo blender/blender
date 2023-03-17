@@ -3,15 +3,13 @@
 
 import argparse
 import os
-import shlex
-import shutil
-import subprocess
 import sys
 
 
 # When run from inside Blender, render and exit.
 try:
     import bpy
+
     inside_blender = True
 except ImportError:
     inside_blender = False
@@ -28,9 +26,13 @@ def get_arguments(filepath, output_filepath):
         filepath,
         "-P",
         os.path.realpath(__file__),
-        "-o", output_filepath,
-        "-F", "PNG",
-        "-f", "1"]
+        "-o",
+        output_filepath,
+        "-F",
+        "PNG",
+        "-f",
+        "1",
+    ]
 
 
 def create_argparse():
@@ -52,12 +54,13 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
+
     report = render_report.Report("Compositor", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
 
     # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
-    if os.path.basename(test_dir) == 'filter':
+    if os.path.basename(test_dir) == "filter":
         report.set_fail_threshold(0.05)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)

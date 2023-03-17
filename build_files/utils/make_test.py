@@ -7,7 +7,6 @@
 
 import argparse
 import os
-import shutil
 import sys
 
 import make_utils
@@ -47,7 +46,7 @@ if make_utils.command_missing(git_command):
 branch = make_utils.git_branch(git_command)
 tag = make_utils.git_tag(git_command)
 release_version = make_utils.git_branch_release_version(branch, tag)
-lib_tests_dirpath = os.path.join('..', 'lib', "tests")
+lib_tests_dirpath = os.path.join("..", "lib", "tests")
 
 if not os.path.exists(lib_tests_dirpath):
     print("Tests files not found, downloading...")

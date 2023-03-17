@@ -1,21 +1,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
 
 
 def _run(args):
     import bpy
     import time
 
-    device_type = args['device_type']
-    device_index = args['device_index']
+    device_type = args["device_type"]
+    device_index = args["device_index"]
 
     scene = bpy.context.scene
-    scene.render.engine = 'CYCLES'
-    scene.render.filepath = args['render_filepath']
-    scene.render.image_settings.file_format = 'PNG'
-    scene.cycles.device = 'CPU' if device_type == 'CPU' else 'GPU'
+    scene.render.engine = "CYCLES"
+    scene.render.filepath = args["render_filepath"]
+    scene.render.image_settings.file_format = "PNG"
+    scene.cycles.device = "CPU" if device_type == "CPU" else "GPU"
 
     if scene.cycles.use_adaptive_sampling:
         # Render samples specified in file, no other way to measure
@@ -27,10 +26,10 @@ def _run(args):
         scene.cycles.samples = 16384
         scene.cycles.time_limit = 10.0
 
-    if scene.cycles.device == 'GPU':
+    if scene.cycles.device == "GPU":
         # Enable specified GPU in preferences.
         prefs = bpy.context.preferences
-        cprefs = prefs.addons['cycles'].preferences
+        cprefs = prefs.addons["cycles"].preferences
         cprefs.compute_device_type = device_type
         devices = cprefs.get_devices_for_type(device_type)
         for device in devices:
@@ -65,14 +64,18 @@ class CyclesTest(api.Test):
         return True
 
     def run(self, env, device_id):
-        tokens = device_id.split('_')
+        tokens = device_id.split("_")
         device_type = tokens[0]
         device_index = int(tokens[1]) if len(tokens) > 1 else 0
-        args = {'device_type': device_type,
-                'device_index': device_index,
-                'render_filepath': str(env.log_file.parent / (env.log_file.stem + '.png'))}
+        args = {
+            "device_type": device_type,
+            "device_index": device_index,
+            "render_filepath": str(env.log_file.parent / (env.log_file.stem + ".png")),
+        }
 
-        _, lines = env.run_in_blender(_run, args, ['--debug-cycles', '--verbose', '2', self.filepath])
+        _, lines = env.run_in_blender(
+            _run, args, ["--debug-cycles", "--verbose", "2", self.filepath]
+        )
 
         # Parse render time from output
         prefix_time = "Render time (without synchronization): "
@@ -95,7 +98,7 @@ class CyclesTest(api.Test):
             offset = line.find(prefix_memory)
             if offset != -1:
                 memory = line[offset + len(prefix_memory):]
-                memory = memory.split()[0].replace(',', '')
+                memory = memory.split()[0].replace(",", "")
                 memory = float(memory)
 
         if time_per_sample:
@@ -104,9 +107,9 @@ class CyclesTest(api.Test):
         if not (time and memory):
             raise Exception("Error parsing render time output")
 
-        return {'time': time, 'peak_memory': memory}
+        return {"time": time, "peak_memory": memory}
 
 
 def generate(env):
-    filepaths = env.find_blend_files('cycles/*')
+    filepaths = env.find_blend_files("cycles/*")
     return [CyclesTest(filepath) for filepath in filepaths]

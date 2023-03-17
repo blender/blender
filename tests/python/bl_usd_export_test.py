@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-import enum
 import pathlib
 import pprint
 import sys
@@ -45,7 +44,7 @@ class USDExportTest(AbstractUSDTest):
             export_materials=True,
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.assertEqual({"FINISHED"}, res, f"Unable to export to {export_path}")
 
         checker = UsdUtils.ComplianceChecker(
             arkit=False,
@@ -90,7 +89,7 @@ class USDExportTest(AbstractUSDTest):
             export_materials=True,
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+        self.assertEqual({"FINISHED"}, res, f"Unable to export to {export_path}")
 
         # if prims are missing, the exporter must have skipped some objects
         stats = UsdUtils.ComputeUsdStageStats(str(export_path))

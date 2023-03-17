@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
 
 
 def _run(args):
@@ -22,7 +21,7 @@ def _run(args):
         # Tag all objects with geometry nodes modifiers to be recalculated.
         for ob in bpy.context.view_layer.objects:
             for modifier in ob.modifiers:
-                if modifier.type == 'NODES':
+                if modifier.type == "NODES":
                     ob.update_tag()
                     break
 
@@ -31,13 +30,16 @@ def _run(args):
         elapsed_time = time.time() - start_time
         measured_times.append(elapsed_time)
 
-        if len(measured_times) >= min_measurements and test_time_start + timeout < time.time():
+        if (
+            len(measured_times) >= min_measurements
+            and test_time_start + timeout < time.time()
+        ):
             break
         if len(measured_times) >= max_measurements:
             break
 
     average_time = sum(measured_times) / len(measured_times)
-    result = {'time': average_time}
+    result = {"time": average_time}
     return result
 
 
@@ -60,5 +62,5 @@ class GeometryNodesTest(api.Test):
 
 
 def generate(env):
-    filepaths = env.find_blend_files('geometry_nodes/*')
+    filepaths = env.find_blend_files("geometry_nodes/*")
     return [GeometryNodesTest(filepath) for filepath in filepaths]

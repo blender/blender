@@ -24,8 +24,12 @@ def test_data():
             assert isinstance(value[0], str)
             assert isinstance(value[1], str)
         except:
-            print("Expected a tuple of 2 strings, instead item %d is a %s: %r" % (i, type(value), value))
+            print(
+                "Expected a tuple of 2 strings, instead item %d is a %s: %r"
+                % (i, type(value), value)
+            )
             import traceback
+
             traceback.print_exc()
             raise
 
@@ -37,6 +41,7 @@ def lookup_rna_url(rna_id, visit_indices):
     """
     import rna_manual_reference
     from fnmatch import fnmatchcase
+
     rna_id = rna_id.lower()
     for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
         if fnmatchcase(rna_id, pattern):
@@ -47,9 +52,9 @@ def lookup_rna_url(rna_id, visit_indices):
 
 # a stripped down version of api_dump() in rna_info_dump.py
 def test_lookup_coverage():
-
     def rna_ids():
         import rna_info
+
         struct = rna_info.BuildRNAInfo()[0]
         for struct_id, v in sorted(struct.items()):
             props = [(prop.identifier, prop) for prop in v.properties]
@@ -61,9 +66,6 @@ def test_lookup_coverage():
             op_path = "bpy.ops.%s" % submod_id
             for op_id in dir(getattr(bpy.ops, submod_id)):
                 yield (op_path, "%s.%s" % (op_path, op_id))
-
-    # check coverage
-    from bl_operators import wm
 
     set_group_all = set()
     set_group_doc = set()
@@ -93,6 +95,7 @@ def test_lookup_coverage():
     print("Unused RNA Patterns Known to the Manual")
 
     import rna_manual_reference
+
     for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
         if i not in visit_indices:
             print(pattern, url_suffix)
@@ -132,9 +135,9 @@ def test_urls():
     print("Testing URLS %s" % urls_len)
     print("")
 
-    color_red = '\033[0;31m'
-    color_green = '\033[1;32m'
-    color_normal = '\033[0m'
+    color_red = "\033[0;31m"
+    color_green = "\033[1;32m"
+    color_normal = "\033[0m"
 
     urls_fail = []
 
@@ -162,7 +165,9 @@ def test_urls():
                 print(color_red + "FAIL!" + color_normal)
                 urls_fail.append(url)
     else:
-        print("Skipping URL lookups, define LOCAL_PREFIX env variable, and point it to a manual build!")
+        print(
+            "Skipping URL lookups, define LOCAL_PREFIX env variable, and point it to a manual build!"
+        )
 
     if urls_fail:
         urls_len = "%d" % len(urls_fail)

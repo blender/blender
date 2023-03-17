@@ -4,7 +4,6 @@
 import bpy
 import unittest
 import builtins
-from types import ModuleType
 
 
 # -----------------------------------------------------------------------------
@@ -47,7 +46,8 @@ def is_expression_secure(expr_str, verbose):
     """
     # Internal function only for testing (not part of the public API).
     from _bpy import _driver_secure_code_test
-    expr_code = compile(expr_str, "<is_expression_secure>", 'eval')
+
+    expr_code = compile(expr_str, "<is_expression_secure>", "eval")
     ok = _driver_secure_code_test(expr_code, verbose=verbose)
     return ok, expr_code
 
@@ -80,8 +80,9 @@ class _TestExprMixIn:
         )
         if is_secure != expect_secure:
             raise self.failureException(
-                "Expression \"%s\" was expected to be %s" %
-                (expr_str, "secure" if expect_secure else "insecure"))
+                'Expression "%s" was expected to be %s'
+                % (expr_str, "secure" if expect_secure else "insecure")
+            )
         # NOTE: executing is not essential, it's just better to ensure the expressions make sense.
         try:
             exec(
@@ -98,13 +99,18 @@ class _TestExprMixIn:
             if ex and ex.args == (expect_unreachable_msg,):
                 ex = None
             elif not ex:
-                raise self.failureException("Expression \"%s\" failed to run `os.expect_os_unreachable`" % (expr_str,))
+                raise self.failureException(
+                    'Expression "%s" failed to run `os.expect_os_unreachable`'
+                    % (expr_str,)
+                )
             else:
                 # An unknown exception was raised, use the exception below.
                 pass
 
         if ex:
-            raise self.failureException("Expression \"%s\" failed to evaluate with error: %r" % (expr_str, ex))
+            raise self.failureException(
+                'Expression "%s" failed to evaluate with error: %r' % (expr_str, ex)
+            )
 
     def test_expr(self):
         expect_secure = self.expressions_expect_secure
@@ -141,7 +147,11 @@ class TestAcceptSequencesExpand(unittest.TestCase, TestExprMixIn_Accept):
 
 
 class TestAcceptSequencesComplex(unittest.TestCase, TestExprMixIn_Accept):
-    expressions = ("[1, 2, 3][-1:0:-1][0]", "1 in (1, 2)", "False if 1 in {1, 2} else True")
+    expressions = (
+        "[1, 2, 3][-1:0:-1][0]",
+        "1 in (1, 2)",
+        "False if 1 in {1, 2} else True",
+    )
 
 
 class TestAcceptMathOperators(unittest.TestCase, TestExprMixIn_Accept):
@@ -158,6 +168,7 @@ class TestAcceptMathFunctionsComplex(unittest.TestCase, TestExprMixIn_Accept):
 
 # -----------------------------------------------------------------------------
 # Tests (Reject)
+
 
 class TestRejectLiteralFStrings(unittest.TestCase, TestExprMixIn_Reject):
     # F-String's are not supported as `BUILD_STRING` op-code is disabled,
@@ -185,8 +196,8 @@ class TestRejectModuleAccess(unittest.TestCase, TestExprMixIn_Reject):
         count_expect = len(self.expressions)
         if count_actual != count_expect:
             raise Exception(
-                "Expected 'os.expect_os_unreachable' to be called %d times but was called %d times" %
-                (count_expect, count_actual),
+                "Expected 'os.expect_os_unreachable' to be called %d times but was called %d times"
+                % (count_expect, count_actual),
             )
 
 
@@ -209,12 +220,15 @@ class TestRejectOpenAccess(unittest.TestCase, TestExprMixIn_Reject):
         count_expect = len(self.expressions)
         if count_actual != count_expect:
             raise Exception(
-                "Expected 'open' to be called %d times but was called %d times" %
-                (count_expect, count_actual),
+                "Expected 'open' to be called %d times but was called %d times"
+                % (count_expect, count_actual),
             )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
-    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+
+    sys.argv = [__file__] + (
+        sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    )
     unittest.main()

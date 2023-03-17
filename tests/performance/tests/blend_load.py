@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
-import pathlib
 
 
 def _run(filepath):
@@ -18,7 +16,7 @@ def _run(filepath):
     bpy.ops.wm.open_mainfile(filepath=filepath)
     elapsed_time = time.time() - start_time
 
-    result = {'time': elapsed_time}
+    result = {"time": elapsed_time}
     return result
 
 
@@ -38,5 +36,5 @@ class BlendLoadTest(api.Test):
 
 
 def generate(env):
-    filepaths = env.find_blend_files('*/*')
+    filepaths = env.find_blend_files("*/*")
     return [BlendLoadTest(filepath) for filepath in filepaths]

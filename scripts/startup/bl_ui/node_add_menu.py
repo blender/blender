@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
-from bpy.types import Menu
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
@@ -12,7 +11,9 @@ def add_node_type(layout, node_type, *, label=None):
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
     if not label:
         label = bl_rna.name if bl_rna else iface_("Unknown")
-    translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
+    translation_context = (
+        bl_rna.translation_context if bl_rna else i18n_contexts.default
+    )
     props = layout.operator("node.add_node", text=label, text_ctxt=translation_context)
     props.type = node_type
     props.use_transform = True
@@ -36,15 +37,20 @@ def draw_node_group_add_menu(context, layout):
         from nodeitems_builtins import node_tree_group_type
 
         groups = [
-            group for group in context.blend_data.node_groups
-            if (group.bl_idname == node_tree.bl_idname and
-                not group.contains_tree(node_tree) and
-                not group.name.startswith('.'))
+            group
+            for group in context.blend_data.node_groups
+            if (
+                group.bl_idname == node_tree.bl_idname
+                and not group.contains_tree(node_tree)
+                and not group.name.startswith(".")
+            )
         ]
         if groups:
             layout.separator()
             for group in groups:
-                props = add_node_type(layout, node_tree_group_type[group.bl_idname], label=group.name)
+                props = add_node_type(
+                    layout, node_tree_group_type[group.bl_idname], label=group.name
+                )
                 ops = props.settings.add()
                 ops.name = "node_tree"
                 ops.value = "bpy.data.node_groups[%r]" % group.name
@@ -58,10 +64,10 @@ def draw_root_assets(layout):
     layout.menu_contents("NODE_MT_node_add_root_catalogs")
 
 
-classes = (
-)
+classes = ()
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)

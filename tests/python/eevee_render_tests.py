@@ -4,8 +4,6 @@
 import argparse
 import os
 import pathlib
-import shlex
-import shutil
 import subprocess
 import sys
 from pathlib import Path

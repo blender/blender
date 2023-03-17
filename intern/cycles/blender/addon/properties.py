@@ -15,211 +15,319 @@ from bpy.props import (
 from bpy.app.translations import pgettext_iface as iface_
 
 from math import pi
-
-# enums
-
-from . import engine
 from . import camera
 
 enum_devices = (
-    ('CPU', "CPU", "Use CPU for rendering"),
-    ('GPU', "GPU Compute",
-        "Use GPU compute device for rendering, configured in the system tab in the user preferences"),
+    ("CPU", "CPU", "Use CPU for rendering"),
+    (
+        "GPU",
+        "GPU Compute",
+        "Use GPU compute device for rendering, configured in the system tab in the user preferences",
+    ),
 )
 
 enum_feature_set = (
-    ('SUPPORTED',
-     "Supported",
-     "Only use finished and supported features"),
-    ('EXPERIMENTAL',
-     "Experimental",
-     "Use experimental and incomplete features that might be broken or change in the future",
-     'ERROR',
-     1),
+    ("SUPPORTED", "Supported", "Only use finished and supported features"),
+    (
+        "EXPERIMENTAL",
+        "Experimental",
+        "Use experimental and incomplete features that might be broken or change in the future",
+        "ERROR",
+        1,
+    ),
 )
 
 enum_displacement_methods = (
-    ('BUMP', "Bump Only", "Bump mapping to simulate the appearance of displacement"),
-    ('DISPLACEMENT', "Displacement Only", "Use true displacement of surface only, requires fine subdivision"),
-    ('BOTH', "Displacement and Bump", "Combination of true displacement and bump mapping for finer detail"),
+    ("BUMP", "Bump Only", "Bump mapping to simulate the appearance of displacement"),
+    (
+        "DISPLACEMENT",
+        "Displacement Only",
+        "Use true displacement of surface only, requires fine subdivision",
+    ),
+    (
+        "BOTH",
+        "Displacement and Bump",
+        "Combination of true displacement and bump mapping for finer detail",
+    ),
 )
 
 enum_bvh_layouts = (
-    ('BVH2', "BVH2", "", 1),
-    ('EMBREE', "Embree", "", 4),
+    ("BVH2", "BVH2", "", 1),
+    ("EMBREE", "Embree", "", 4),
 )
 
 enum_bvh_types = (
-    ('DYNAMIC_BVH', "Dynamic BVH", "Objects can be individually updated, at the cost of slower render time"),
-    ('STATIC_BVH', "Static BVH", "Any object modification requires a complete BVH rebuild, but renders faster"),
+    (
+        "DYNAMIC_BVH",
+        "Dynamic BVH",
+        "Objects can be individually updated, at the cost of slower render time",
+    ),
+    (
+        "STATIC_BVH",
+        "Static BVH",
+        "Any object modification requires a complete BVH rebuild, but renders faster",
+    ),
 )
 
 enum_filter_types = (
-    ('BOX', "Box", "Box filter"),
-    ('GAUSSIAN', "Gaussian", "Gaussian filter"),
-    ('BLACKMAN_HARRIS', "Blackman-Harris", "Blackman-Harris filter"),
+    ("BOX", "Box", "Box filter"),
+    ("GAUSSIAN", "Gaussian", "Gaussian filter"),
+    ("BLACKMAN_HARRIS", "Blackman-Harris", "Blackman-Harris filter"),
 )
 
 enum_panorama_types = (
-    ('EQUIRECTANGULAR', "Equirectangular", "Spherical camera for environment maps, also known as Lat Long panorama", 0),
-    ('EQUIANGULAR_CUBEMAP_FACE', "Equiangular Cubemap Face", "Single face of an equiangular cubemap", 5),
-    ('MIRRORBALL', "Mirror Ball", "Mirror ball mapping for environment maps", 3),
-    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions", 1),
-    ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
-                          "Similar to most fisheye modern lens, takes sensor dimensions into consideration", 2),
-    ('FISHEYE_LENS_POLYNOMIAL', "Fisheye Lens Polynomial",
-     "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked", 4),
+    (
+        "EQUIRECTANGULAR",
+        "Equirectangular",
+        "Spherical camera for environment maps, also known as Lat Long panorama",
+        0,
+    ),
+    (
+        "EQUIANGULAR_CUBEMAP_FACE",
+        "Equiangular Cubemap Face",
+        "Single face of an equiangular cubemap",
+        5,
+    ),
+    ("MIRRORBALL", "Mirror Ball", "Mirror ball mapping for environment maps", 3),
+    (
+        "FISHEYE_EQUIDISTANT",
+        "Fisheye Equidistant",
+        "Ideal for fulldomes, ignore the sensor dimensions",
+        1,
+    ),
+    (
+        "FISHEYE_EQUISOLID",
+        "Fisheye Equisolid",
+        "Similar to most fisheye modern lens, takes sensor dimensions into consideration",
+        2,
+    ),
+    (
+        "FISHEYE_LENS_POLYNOMIAL",
+        "Fisheye Lens Polynomial",
+        "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked",
+        4,
+    ),
 )
 
 enum_curve_shape = (
-    ('RIBBONS', "Rounded Ribbons", "Render curves as flat ribbons with rounded normals, for fast rendering"),
-    ('THICK', "3D Curves", "Render curves as circular 3D geometry, for accurate results when viewing closely"),
+    (
+        "RIBBONS",
+        "Rounded Ribbons",
+        "Render curves as flat ribbons with rounded normals, for fast rendering",
+    ),
+    (
+        "THICK",
+        "3D Curves",
+        "Render curves as circular 3D geometry, for accurate results when viewing closely",
+    ),
 )
 
 enum_use_layer_samples = (
-    ('USE', "Use", "Per render layer number of samples override scene samples"),
-    ('BOUNDED', "Bounded", "Bound per render layer number of samples by global samples"),
-    ('IGNORE', "Ignore", "Ignore per render layer number of samples"),
+    ("USE", "Use", "Per render layer number of samples override scene samples"),
+    (
+        "BOUNDED",
+        "Bounded",
+        "Bound per render layer number of samples by global samples",
+    ),
+    ("IGNORE", "Ignore", "Ignore per render layer number of samples"),
 )
 
 enum_sampling_pattern = (
-    ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
-    ('TABULATED_SOBOL', "Tabulated Sobol", "Use pre-computed tables of Owen-scrambled Sobol for random sampling", 1),
+    (
+        "SOBOL_BURLEY",
+        "Sobol-Burley",
+        "Use on-the-fly computed Owen-scrambled Sobol for random sampling",
+        0,
+    ),
+    (
+        "TABULATED_SOBOL",
+        "Tabulated Sobol",
+        "Use pre-computed tables of Owen-scrambled Sobol for random sampling",
+        1,
+    ),
 )
 
 enum_emission_sampling = (
-    ('NONE',
-     'None',
+    ("NONE",
+     "None",
      "Do not use this surface as a light for sampling",
      0),
-    ('AUTO',
-     'Auto',
+    ("AUTO",
+     "Auto",
      "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity",
-     1),
-    ('FRONT',
-     'Front',
+     1,
+     ),
+    ("FRONT",
+     "Front",
      "Treat only front side of the surface as a light, usually for closed meshes whose interior is not visible",
-     2),
-    ('BACK',
-     'Back',
+     2,
+     ),
+    ("BACK",
+     "Back",
      "Treat only back side of the surface as a light for sampling",
      3),
-    ('FRONT_BACK',
-     'Front and Back',
+    ("FRONT_BACK",
+     "Front and Back",
      "Treat surface as a light for sampling, emitting from both the front and back side",
-     4),
+     4,
+     ),
 )
 
 enum_volume_sampling = (
-    ('DISTANCE',
-     "Distance",
-     "Use distance sampling, best for dense volumes with lights far away"),
-    ('EQUIANGULAR',
-     "Equiangular",
-     "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
-    ('MULTIPLE_IMPORTANCE',
-     "Multiple Importance",
-     "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
+    (
+        "DISTANCE",
+        "Distance",
+        "Use distance sampling, best for dense volumes with lights far away",
+    ),
+    (
+        "EQUIANGULAR",
+        "Equiangular",
+        "Use equiangular sampling, best for volumes with low density with light inside or near the volume",
+    ),
+    (
+        "MULTIPLE_IMPORTANCE",
+        "Multiple Importance",
+        "Combine distance and equi-angular sampling for volumes where neither method is ideal",
+    ),
 )
 
 enum_volume_interpolation = (
-    ('LINEAR', "Linear", "Good smoothness and speed"),
-    ('CUBIC', "Cubic", "Smoothed high quality interpolation, but slower")
+    ("LINEAR", "Linear", "Good smoothness and speed"),
+    ("CUBIC", "Cubic", "Smoothed high quality interpolation, but slower"),
 )
 
 enum_world_mis = (
-    ('NONE',
+    ("NONE",
      "None",
-     "Don't sample the background, faster but might cause noise for non-solid backgrounds"),
-    ('AUTOMATIC',
+     "Don't sample the background, faster but might cause noise for non-solid backgrounds",
+     ),
+    ("AUTOMATIC",
      "Auto",
      "Automatically try to determine the best setting"),
-    ('MANUAL',
+    ("MANUAL",
      "Manual",
-     "Manually set the resolution of the sampling map, higher values are slower and require more memory but reduce noise"))
+     "Manually set the resolution of the sampling map, higher values are slower and require more memory but reduce noise",
+     ),
+)
 
 enum_device_type = (
-    ('CPU', "CPU", "CPU", 0),
-    ('CUDA', "CUDA", "CUDA", 1),
-    ('OPTIX', "OptiX", "OptiX", 3),
-    ('HIP', "HIP", "HIP", 4),
-    ('METAL', "Metal", "Metal", 5),
-    ('ONEAPI', "oneAPI", "oneAPI", 6)
+    ("CPU", "CPU", "CPU", 0),
+    ("CUDA", "CUDA", "CUDA", 1),
+    ("OPTIX", "OptiX", "OptiX", 3),
+    ("HIP", "HIP", "HIP", 4),
+    ("METAL", "Metal", "Metal", 5),
+    ("ONEAPI", "oneAPI", "oneAPI", 6),
 )
 
 enum_texture_limit = (
-    ('OFF', "No Limit", "No texture size limit", 0),
-    ('128', "128", "Limit texture size to 128 pixels", 1),
-    ('256', "256", "Limit texture size to 256 pixels", 2),
-    ('512', "512", "Limit texture size to 512 pixels", 3),
-    ('1024', "1024", "Limit texture size to 1024 pixels", 4),
-    ('2048', "2048", "Limit texture size to 2048 pixels", 5),
-    ('4096', "4096", "Limit texture size to 4096 pixels", 6),
-    ('8192', "8192", "Limit texture size to 8192 pixels", 7),
+    ("OFF", "No Limit", "No texture size limit", 0),
+    ("128", "128", "Limit texture size to 128 pixels", 1),
+    ("256", "256", "Limit texture size to 256 pixels", 2),
+    ("512", "512", "Limit texture size to 512 pixels", 3),
+    ("1024", "1024", "Limit texture size to 1024 pixels", 4),
+    ("2048", "2048", "Limit texture size to 2048 pixels", 5),
+    ("4096", "4096", "Limit texture size to 4096 pixels", 6),
+    ("8192", "8192", "Limit texture size to 8192 pixels", 7),
 )
 
 enum_fast_gi_method = (
-    ('REPLACE', "Replace", "Replace global illumination with ambient occlusion after a specified number of bounces"),
-    ('ADD', "Add", "Add ambient occlusion to diffuse surfaces"),
+    (
+        "REPLACE",
+        "Replace",
+        "Replace global illumination with ambient occlusion after a specified number of bounces",
+    ),
+    ("ADD", "Add", "Add ambient occlusion to diffuse surfaces"),
 )
 
 # NOTE: Identifiers are expected to be an upper case version of identifiers from  `Pass::get_type_enum()`
 enum_view3d_shading_render_pass = (
-    ('', "General", ""),
-
-    ('COMBINED', "Combined", "Show the Combined Render pass"),
-    ('EMISSION', "Emission", "Show the Emission render pass"),
-    ('BACKGROUND', "Background", "Show the Background render pass"),
-    ('AO', "Ambient Occlusion", "Show the Ambient Occlusion render pass"),
-    ('SHADOW_CATCHER', "Shadow Catcher", "Show the Shadow Catcher render pass"),
-
-    ('', "Light", ""),
-
-    ('DIFFUSE_DIRECT', "Diffuse Direct", "Show the Diffuse Direct render pass"),
-    ('DIFFUSE_INDIRECT', "Diffuse Indirect", "Show the Diffuse Indirect render pass"),
-    ('DIFFUSE_COLOR', "Diffuse Color", "Show the Diffuse Color render pass"),
-
-    ('GLOSSY_DIRECT', "Glossy Direct", "Show the Glossy Direct render pass"),
-    ('GLOSSY_INDIRECT', "Glossy Indirect", "Show the Glossy Indirect render pass"),
-    ('GLOSSY_COLOR', "Glossy Color", "Show the Glossy Color render pass"),
-
-    ('', "", ""),
-
-    ('TRANSMISSION_DIRECT', "Transmission Direct", "Show the Transmission Direct render pass"),
-    ('TRANSMISSION_INDIRECT', "Transmission Indirect", "Show the Transmission Indirect render pass"),
-    ('TRANSMISSION_COLOR', "Transmission Color", "Show the Transmission Color render pass"),
-
-    ('VOLUME_DIRECT', "Volume Direct", "Show the Volume Direct render pass"),
-    ('VOLUME_INDIRECT', "Volume Indirect", "Show the Volume Indirect render pass"),
-
-    ('', "Data", ""),
-
-    ('POSITION', "Position", "Show the Position render pass"),
-    ('NORMAL', "Normal", "Show the Normal render pass"),
-    ('UV', "UV", "Show the UV render pass"),
-    ('MIST', "Mist", "Show the Mist render pass"),
-    ('DENOISING_ALBEDO', "Denoising Albedo", "Albedo pass used by denoiser"),
-    ('DENOISING_NORMAL', "Denoising Normal", "Normal pass used by denoiser"),
-    ('SAMPLE_COUNT', "Sample Count", "Per-pixel number of samples"),
+    ("", "General", ""),
+    ("COMBINED", "Combined", "Show the Combined Render pass"),
+    ("EMISSION", "Emission", "Show the Emission render pass"),
+    ("BACKGROUND", "Background", "Show the Background render pass"),
+    ("AO", "Ambient Occlusion", "Show the Ambient Occlusion render pass"),
+    ("SHADOW_CATCHER", "Shadow Catcher", "Show the Shadow Catcher render pass"),
+    ("", "Light", ""),
+    ("DIFFUSE_DIRECT", "Diffuse Direct", "Show the Diffuse Direct render pass"),
+    ("DIFFUSE_INDIRECT", "Diffuse Indirect", "Show the Diffuse Indirect render pass"),
+    ("DIFFUSE_COLOR", "Diffuse Color", "Show the Diffuse Color render pass"),
+    ("GLOSSY_DIRECT", "Glossy Direct", "Show the Glossy Direct render pass"),
+    ("GLOSSY_INDIRECT", "Glossy Indirect", "Show the Glossy Indirect render pass"),
+    ("GLOSSY_COLOR", "Glossy Color", "Show the Glossy Color render pass"),
+    ("", "", ""),
+    (
+        "TRANSMISSION_DIRECT",
+        "Transmission Direct",
+        "Show the Transmission Direct render pass",
+    ),
+    (
+        "TRANSMISSION_INDIRECT",
+        "Transmission Indirect",
+        "Show the Transmission Indirect render pass",
+    ),
+    (
+        "TRANSMISSION_COLOR",
+        "Transmission Color",
+        "Show the Transmission Color render pass",
+    ),
+    ("VOLUME_DIRECT", "Volume Direct", "Show the Volume Direct render pass"),
+    ("VOLUME_INDIRECT", "Volume Indirect", "Show the Volume Indirect render pass"),
+    ("", "Data", ""),
+    ("POSITION", "Position", "Show the Position render pass"),
+    ("NORMAL", "Normal", "Show the Normal render pass"),
+    ("UV", "UV", "Show the UV render pass"),
+    ("MIST", "Mist", "Show the Mist render pass"),
+    ("DENOISING_ALBEDO", "Denoising Albedo", "Albedo pass used by denoiser"),
+    ("DENOISING_NORMAL", "Denoising Normal", "Normal pass used by denoiser"),
+    ("SAMPLE_COUNT", "Sample Count", "Per-pixel number of samples"),
 )
 
 enum_guiding_distribution = (
-    ('PARALLAX_AWARE_VMM', "Parallax-Aware VMM", "Use Parallax-aware von Mises-Fisher models as directional distribution", 0),
-    ('DIRECTIONAL_QUAD_TREE', "Directional Quad Tree", "Use Directional Quad Trees as directional distribution", 1),
-    ('VMM', "VMM", "Use von Mises-Fisher models as directional distribution", 2),
+    (
+        "PARALLAX_AWARE_VMM",
+        "Parallax-Aware VMM",
+        "Use Parallax-aware von Mises-Fisher models as directional distribution",
+        0,
+    ),
+    (
+        "DIRECTIONAL_QUAD_TREE",
+        "Directional Quad Tree",
+        "Use Directional Quad Trees as directional distribution",
+        1,
+    ),
+    ("VMM", "VMM", "Use von Mises-Fisher models as directional distribution", 2),
 )
 
 
 def enum_openimagedenoise_denoiser(self, context):
     import _cycles
+
     if _cycles.with_openimagedenoise:
-        return [('OPENIMAGEDENOISE', "OpenImageDenoise", "Use Intel OpenImageDenoise AI denoiser running on the CPU", 4)]
+        return [
+            (
+                "OPENIMAGEDENOISE",
+                "OpenImageDenoise",
+                "Use Intel OpenImageDenoise AI denoiser running on the CPU",
+                4,
+            )
+        ]
     return []
 
 
 def enum_optix_denoiser(self, context):
-    if not context or bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX')):
-        return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs", 2)]
+    if not context or bool(
+        context.preferences.addons[__package__].preferences.get_devices_for_type(
+            "OPTIX"
+        )
+    ):
+        return [
+            (
+                "OPTIX",
+                "OptiX",
+                "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs",
+                2,
+            )
+        ]
     return []
 
 
@@ -229,13 +337,20 @@ def enum_preview_denoiser(self, context):
 
     if len(optix_items) or len(oidn_items):
         items = [
-            ('AUTO',
-             "Automatic",
-             ("Use the fastest available denoiser for viewport rendering "
-              "(OptiX if available, OpenImageDenoise otherwise)"),
-             0)]
+            (
+                "AUTO",
+                "Automatic",
+                (
+                    "Use the fastest available denoiser for viewport rendering "
+                    "(OptiX if available, OpenImageDenoise otherwise)"
+                ),
+                0,
+            )
+        ]
     else:
-        items = [('AUTO', "None", "Blender was compiled without a viewport denoiser", 0)]
+        items = [
+            ("AUTO", "None", "Blender was compiled without a viewport denoiser", 0)
+        ]
 
     items += optix_items
     items += oidn_items
@@ -250,39 +365,49 @@ def enum_denoiser(self, context):
 
 
 enum_denoising_input_passes = (
-    ('RGB', "None", "Don't use utility passes for denoising", 1),
-    ('RGB_ALBEDO', "Albedo", "Use albedo pass for denoising", 2),
-    ('RGB_ALBEDO_NORMAL', "Albedo and Normal", "Use albedo and normal passes for denoising", 3),
+    ("RGB", "None", "Don't use utility passes for denoising", 1),
+    ("RGB_ALBEDO", "Albedo", "Use albedo pass for denoising", 2),
+    (
+        "RGB_ALBEDO_NORMAL",
+        "Albedo and Normal",
+        "Use albedo and normal passes for denoising",
+        3,
+    ),
 )
 
 enum_denoising_prefilter = (
-    ('NONE',
+    ("NONE",
      "None",
      "No prefiltering, use when guiding passes are noise-free",
      1),
-    ('FAST',
+    ("FAST",
      "Fast",
      "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time",
-     2),
-    ('ACCURATE',
+     2,
+     ),
+    ("ACCURATE",
      "Accurate",
      "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time",
-     3),
+     3,
+     ),
 )
 
 enum_direct_light_sampling_type = (
-    ('MULTIPLE_IMPORTANCE_SAMPLING',
+    ("MULTIPLE_IMPORTANCE_SAMPLING",
      "Multiple Importance Sampling",
      "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing",
-     0),
-    ('FORWARD_PATH_TRACING',
+     0,
+     ),
+    ("FORWARD_PATH_TRACING",
      "Forward Path Tracing",
      "Direct light contributions are only sampled using forward path tracing",
-     1),
-    ('NEXT_EVENT_ESTIMATION',
+     1,
+     ),
+    ("NEXT_EVENT_ESTIMATION",
      "Next-Event Estimation",
      "Direct light contributions are only sampled using next-event estimation",
-     2),
+     2,
+     ),
 )
 
 
@@ -297,18 +422,17 @@ def update_render_engine(self, context):
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
-
     device: EnumProperty(
         name="Device",
         description="Device to use for rendering",
         items=enum_devices,
-        default='CPU',
+        default="CPU",
     )
     feature_set: EnumProperty(
         name="Feature Set",
         description="Feature set to use for rendering",
         items=enum_feature_set,
-        default='SUPPORTED',
+        default="SUPPORTED",
         update=update_render_engine,
     )
     shading_system: BoolProperty(
@@ -340,13 +464,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Denoising Prefilter",
         description="Prefilter noisy guiding (albedo and normal) passes to improve denoising quality when using OpenImageDenoiser",
         items=enum_denoising_prefilter,
-        default='ACCURATE',
+        default="ACCURATE",
     )
     denoising_input_passes: EnumProperty(
         name="Denoising Input Passes",
         description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
         items=enum_denoising_input_passes,
-        default='RGB_ALBEDO_NORMAL',
+        default="RGB_ALBEDO_NORMAL",
     )
 
     use_preview_denoising: BoolProperty(
@@ -364,25 +488,27 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Viewport Denoising Prefilter",
         description="Prefilter noisy guiding (albedo and normal) passes to improve denoising quality when using OpenImageDenoiser",
         items=enum_denoising_prefilter,
-        default='FAST',
+        default="FAST",
     )
     preview_denoising_input_passes: EnumProperty(
         name="Viewport Denoising Input Passes",
         description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
         items=enum_denoising_input_passes,
-        default='RGB_ALBEDO',
+        default="RGB_ALBEDO",
     )
     preview_denoising_start_sample: IntProperty(
         name="Start Denoising",
         description="Sample to start denoising the preview at",
-        min=0, max=(1 << 24),
+        min=0,
+        max=(1 << 24),
         default=1,
     )
 
     samples: IntProperty(
         name="Samples",
         description="Number of samples to render for each pixel",
-        min=1, max=(1 << 24),
+        min=1,
+        max=(1 << 24),
         default=4096,
     )
     preview_samples: IntProperty(
@@ -397,7 +523,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     sample_offset: IntProperty(
         name="Sample Offset",
         description="Number of samples to skip when starting render",
-        min=0, max=(1 << 24),
+        min=0,
+        max=(1 << 24),
         default=0,
     )
 
@@ -408,14 +535,14 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0.0,
         default=0.0,
         step=100.0,
-        unit='TIME_ABSOLUTE',
+        unit="TIME_ABSOLUTE",
     )
 
     sampling_pattern: EnumProperty(
         name="Sampling Pattern",
         description="Random sampling pattern used by the integrator",
         items=enum_sampling_pattern,
-        default='TABULATED_SOBOL',
+        default="TABULATED_SOBOL",
     )
 
     scrambling_distance: FloatProperty(
@@ -441,7 +568,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Layer Samples",
         description="How to use per view layer sample settings",
         items=enum_use_layer_samples,
-        default='USE',
+        default="USE",
     )
 
     light_sampling_threshold: FloatProperty(
@@ -501,7 +628,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Direct Light Sampling",
         description="The type of strategy used for sampling direct light contributions",
         items=enum_direct_light_sampling_type,
-        default='MULTIPLE_IMPORTANCE_SAMPLING',
+        default="MULTIPLE_IMPORTANCE_SAMPLING",
     )
 
     use_light_tree: BoolProperty(
@@ -514,14 +641,16 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Min Light Bounces",
         description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
         "but can also be less efficient for more complex geometry like curves and volumes",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=0,
     )
     min_transparent_bounces: IntProperty(
         name="Min Transparent Bounces",
         description="Minimum number of transparent bounces. Setting this higher reduces noise in the first bounces, "
         "but can also be less efficient for more complex geometry like curves and volumes",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=0,
     )
 
@@ -541,7 +670,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Filter Glossy",
         description="Adaptively blur glossy shaders after blurry bounces, "
         "to reduce noise at the cost of accuracy",
-        min=0.0, max=10.0,
+        min=0.0,
+        max=10.0,
         default=1.0,
     )
 
@@ -565,7 +695,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Guiding Distribution Type",
         description="Type of representation for the guiding distribution",
         items=enum_guiding_distribution,
-        default='PARALLAX_AWARE_VMM',
+        default="PARALLAX_AWARE_VMM",
     )
 
     use_surface_guiding: BoolProperty(
@@ -577,7 +707,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     surface_guiding_probability: FloatProperty(
         name="Surface Guiding Probability",
         description="The probability of guiding a direction on a surface",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.5,
     )
 
@@ -601,7 +732,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     volume_guiding_probability: FloatProperty(
         name="Volume Guiding Probability",
         description="The probability of guiding a direction inside a volume",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.5,
     )
 
@@ -620,56 +752,70 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     max_bounces: IntProperty(
         name="Max Bounces",
         description="Total maximum number of bounces",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=12,
     )
 
     diffuse_bounces: IntProperty(
         name="Diffuse Bounces",
         description="Maximum number of diffuse reflection bounces, bounded by total maximum",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=4,
     )
     glossy_bounces: IntProperty(
         name="Glossy Bounces",
         description="Maximum number of glossy reflection bounces, bounded by total maximum",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=4,
     )
     transmission_bounces: IntProperty(
         name="Transmission Bounces",
         description="Maximum number of transmission bounces, bounded by total maximum",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=12,
     )
     volume_bounces: IntProperty(
         name="Volume Bounces",
         description="Maximum number of volumetric scattering events",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=0,
     )
 
     transparent_max_bounces: IntProperty(
         name="Transparent Max Bounces",
         description="Maximum number of transparent bounces. This is independent of maximum number of other bounces",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=8,
     )
 
     volume_step_rate: FloatProperty(
         name="Step Rate",
         description="Globally adjust detail for volume rendering, on top of automatically estimated step size. "
-                    "Higher values reduce render time, lower values render with more detail",
+        "Higher values reduce render time, lower values render with more detail",
         default=1.0,
-        min=0.01, max=100.0, soft_min=0.1, soft_max=10.0, precision=2
+        min=0.01,
+        max=100.0,
+        soft_min=0.1,
+        soft_max=10.0,
+        precision=2,
     )
 
     volume_preview_step_rate: FloatProperty(
         name="Step Rate",
         description="Globally adjust detail for volume rendering, on top of automatically estimated step size. "
-                    "Higher values reduce render time, lower values render with more detail",
+        "Higher values reduce render time, lower values render with more detail",
         default=1.0,
-        min=0.01, max=100.0, soft_min=0.1, soft_max=10.0, precision=2
+        min=0.01,
+        max=100.0,
+        soft_min=0.1,
+        soft_max=10.0,
+        precision=2,
     )
 
     volume_max_steps: IntProperty(
@@ -677,22 +823,27 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Maximum number of steps through the volume before giving up, "
         "to avoid extremely long render times with big objects or small step sizes",
         default=1024,
-        min=2, max=65536
+        min=2,
+        max=65536,
     )
 
     dicing_rate: FloatProperty(
         name="Dicing Rate",
         description="Size of a micropolygon in pixels",
-        min=0.1, max=1000.0, soft_min=0.5,
+        min=0.1,
+        max=1000.0,
+        soft_min=0.5,
         default=1.0,
-        subtype='PIXEL'
+        subtype="PIXEL",
     )
     preview_dicing_rate: FloatProperty(
         name="Viewport Dicing Rate",
         description="Size of a micropolygon in pixels during preview render",
-        min=0.1, max=1000.0, soft_min=0.5,
+        min=0.1,
+        max=1000.0,
+        soft_min=0.5,
         default=8.0,
-        subtype='PIXEL'
+        subtype="PIXEL",
     )
 
     max_subdivisions: IntProperty(
@@ -708,7 +859,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Camera to use as reference point when subdividing geometry, useful to avoid crawling "
         "artifacts in animations when the scene camera is moving",
         type=bpy.types.Object,
-        poll=lambda self, obj: obj.type == 'CAMERA',
+        poll=lambda self, obj: obj.type == "CAMERA",
     )
     offscreen_dicing_scale: FloatProperty(
         name="Offscreen Dicing Scale",
@@ -716,14 +867,16 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         "of objects is gradually increased the further they are outside the camera view. "
         "Lower values provide higher quality reflections and shadows for off screen objects, "
         "while higher values use less memory",
-        min=1.0, soft_max=25.0,
+        min=1.0,
+        soft_max=25.0,
         default=4.0,
     )
 
     film_exposure: FloatProperty(
         name="Exposure",
         description="Image brightness scale",
-        min=0.0, max=10.0,
+        min=0.0,
+        max=10.0,
         default=1.0,
     )
     film_transparent_glass: BoolProperty(
@@ -734,7 +887,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     film_transparent_roughness: FloatProperty(
         name="Transparent Roughness Threshold",
         description="For transparent transmission, keep surfaces with roughness above the threshold opaque",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.1,
     )
 
@@ -742,21 +896,23 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Filter Type",
         description="Pixel filter type",
         items=enum_filter_types,
-        default='BLACKMAN_HARRIS',
+        default="BLACKMAN_HARRIS",
     )
 
     filter_width: FloatProperty(
         name="Filter Width",
         description="Pixel filter width",
-        min=0.01, max=10.0,
+        min=0.01,
+        max=10.0,
         default=1.5,
-        subtype='PIXEL'
+        subtype="PIXEL",
     )
 
     seed: IntProperty(
         name="Seed",
         description="Seed value for integrator to get different noise patterns",
-        min=0, max=2147483647,
+        min=0,
+        max=2147483647,
         default=0,
     )
 
@@ -771,7 +927,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="If non-zero, the maximum value for a direct sample, "
         "higher values will be scaled down to avoid too "
         "much noise and slow convergence at the cost of accuracy",
-        min=0.0, max=1e8,
+        min=0.0,
+        max=1e8,
         default=0.0,
     )
 
@@ -780,7 +937,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="If non-zero, the maximum value for an indirect sample, "
         "higher values will be scaled down to avoid too "
         "much noise and slow convergence at the cost of accuracy",
-        min=0.0, max=1e8,
+        min=0.0,
+        max=1e8,
         default=10.0,
     )
 
@@ -788,7 +946,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Viewport BVH Type",
         description="Choose between faster updates, or faster render",
         items=enum_bvh_types,
-        default='DYNAMIC_BVH',
+        default="DYNAMIC_BVH",
     )
     debug_use_spatial_splits: BoolProperty(
         name="Use Spatial Splits",
@@ -809,26 +967,27 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="BVH Time Steps",
         description="Split BVH primitives by this number of time steps to speed up render time in cost of memory",
         default=0,
-        min=0, max=16,
+        min=0,
+        max=16,
     )
 
     bake_type: EnumProperty(
         name="Bake Type",
-        default='COMBINED',
+        default="COMBINED",
         description="Type of pass to bake",
         items=(
-            ('COMBINED', "Combined", "", 0),
-            ('AO', "Ambient Occlusion", "", 1),
-            ('SHADOW', "Shadow", "", 2),
-            ('POSITION', "Position", "", 11),
-            ('NORMAL', "Normal", "", 3),
-            ('UV', "UV", "", 4),
-            ('ROUGHNESS', "Roughness", "", 5),
-            ('EMIT', "Emit", "", 6),
-            ('ENVIRONMENT', "Environment", "", 7),
-            ('DIFFUSE', "Diffuse", "", 8),
-            ('GLOSSY', "Glossy", "", 9),
-            ('TRANSMISSION', "Transmission", "", 10),
+            ("COMBINED", "Combined", "", 0),
+            ("AO", "Ambient Occlusion", "", 1),
+            ("SHADOW", "Shadow", "", 2),
+            ("POSITION", "Position", "", 11),
+            ("NORMAL", "Normal", "", 3),
+            ("UV", "UV", "", 4),
+            ("ROUGHNESS", "Roughness", "", 5),
+            ("EMIT", "Emit", "", 6),
+            ("ENVIRONMENT", "Environment", "", 7),
+            ("DIFFUSE", "Diffuse", "", 8),
+            ("GLOSSY", "Glossy", "", 9),
+            ("TRANSMISSION", "Transmission", "", 10),
         ),
     )
 
@@ -842,8 +1001,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Camera Cull Margin",
         description="Margin for the camera space culling",
         default=0.1,
-        min=0.0, max=5.0,
-        subtype='FACTOR'
+        min=0.0,
+        max=5.0,
+        subtype="FACTOR",
     )
 
     use_distance_cull: BoolProperty(
@@ -857,79 +1017,86 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Cull objects which are further away from camera than this distance",
         default=50,
         min=0.0,
-        unit='LENGTH'
+        unit="LENGTH",
     )
 
     motion_blur_position: EnumProperty(
         name="Motion Blur Position",
-        default='CENTER',
+        default="CENTER",
         description="Offset for the shutter's time interval, allows to change the motion blur trails",
         items=(
-            ('START', "Start on Frame", "The shutter opens at the current frame"),
-            ('CENTER', "Center on Frame", "The shutter is open during the current frame"),
-            ('END', "End on Frame", "The shutter closes at the current frame"),
+            ("START", "Start on Frame", "The shutter opens at the current frame"),
+            (
+                "CENTER",
+                "Center on Frame",
+                "The shutter is open during the current frame",
+            ),
+            ("END", "End on Frame", "The shutter closes at the current frame"),
         ),
     )
 
     rolling_shutter_type: EnumProperty(
         name="Shutter Type",
-        default='NONE',
+        default="NONE",
         description="Type of rolling shutter effect matching CMOS-based cameras",
         items=(
-            ('NONE', "None", "No rolling shutter effect used"),
-            ('TOP', "Top-Bottom", "Sensor is being scanned from top to bottom")
+            ("NONE", "None", "No rolling shutter effect used"),
+            ("TOP", "Top-Bottom", "Sensor is being scanned from top to bottom")
             # TODO(seergey): Are there real cameras with different scanning direction?
         ),
     )
 
     rolling_shutter_duration: FloatProperty(
         name="Rolling Shutter Duration",
-        description="Scanline \"exposure\" time for the rolling shutter effect",
+        description='Scanline "exposure" time for the rolling shutter effect',
         default=0.1,
-        min=0.0, max=1.0,
-        subtype='FACTOR',
+        min=0.0,
+        max=1.0,
+        subtype="FACTOR",
     )
 
     texture_limit: EnumProperty(
         name="Viewport Texture Limit",
-        default='OFF',
+        default="OFF",
         description="Limit texture size used by viewport rendering",
-        items=enum_texture_limit
+        items=enum_texture_limit,
     )
 
     texture_limit_render: EnumProperty(
         name="Render Texture Limit",
-        default='OFF',
+        default="OFF",
         description="Limit texture size used by final rendering",
-        items=enum_texture_limit
+        items=enum_texture_limit,
     )
 
     use_fast_gi: BoolProperty(
         name="Fast GI Approximation",
         description="Approximate diffuse indirect light with background tinted ambient occlusion. "
-                    "This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality",
+        "This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality",
         default=False,
     )
 
     fast_gi_method: EnumProperty(
         name="Fast GI Method",
-        default='REPLACE',
+        default="REPLACE",
         description="Fast GI approximation method",
-        items=enum_fast_gi_method
+        items=enum_fast_gi_method,
     )
 
     ao_bounces: IntProperty(
         name="AO Bounces",
         default=1,
         description="After this number of light bounces, use approximate global illumination. 0 disables this feature",
-        min=0, max=1024,
+        min=0,
+        max=1024,
     )
 
     ao_bounces_render: IntProperty(
         name="AO Bounces Render",
         default=1,
         description="After this number of light bounces, use approximate global illumination. 0 disables this feature",
-        min=0, max=1024,
+        min=0,
+        max=1024,
     )
 
     use_auto_tile: BoolProperty(
@@ -941,13 +1108,15 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Tile Size",
         default=2048,
         description="",
-        min=8, max=8192,
+        min=8,
+        max=8192,
     )
 
     # Various fine-tuning debug flags
 
     def _devices_update_callback(self, context):
         import _cycles
+
         scene = context.scene.as_pointer()
         return _cycles.debug_flags_update(scene)
 
@@ -957,15 +1126,18 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",
         items=enum_bvh_layouts,
-        default='EMBREE',
+        default="EMBREE",
     )
 
-    debug_use_cuda_adaptive_compile: BoolProperty(name="Adaptive Compile", default=False)
+    debug_use_cuda_adaptive_compile: BoolProperty(
+        name="Adaptive Compile", default=False
+    )
 
     debug_use_optix_debug: BoolProperty(
         name="OptiX Module Debug",
         description="Load OptiX module in debug mode: lower logging verbosity level, enable validations, and lower optimization level",
-        default=False)
+        default=False,
+    )
 
     @classmethod
     def register(cls):
@@ -981,79 +1153,101 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
 
 class CyclesCameraSettings(bpy.types.PropertyGroup):
-
     panorama_type: EnumProperty(
         name="Panorama Type",
         description="Distortion to use for the calculation",
         items=enum_panorama_types,
-        default='FISHEYE_EQUISOLID',
+        default="FISHEYE_EQUISOLID",
     )
     fisheye_fov: FloatProperty(
         name="Field of View",
         description="Field of view for the fisheye lens",
-        min=0.1745, soft_max=2.0 * pi, max=10.0 * pi,
-        subtype='ANGLE',
+        min=0.1745,
+        soft_max=2.0 * pi,
+        max=10.0 * pi,
+        subtype="ANGLE",
         default=pi,
     )
     fisheye_lens: FloatProperty(
         name="Fisheye Lens",
         description="Lens focal length (mm)",
-        min=0.01, soft_max=15.0, max=100.0,
+        min=0.01,
+        soft_max=15.0,
+        max=100.0,
         default=10.5,
     )
     latitude_min: FloatProperty(
         name="Min Latitude",
         description="Minimum latitude (vertical angle) for the equirectangular lens",
-        min=-0.5 * pi, max=0.5 * pi,
-        subtype='ANGLE',
+        min=-0.5 * pi,
+        max=0.5 * pi,
+        subtype="ANGLE",
         default=-0.5 * pi,
     )
     latitude_max: FloatProperty(
         name="Max Latitude",
         description="Maximum latitude (vertical angle) for the equirectangular lens",
-        min=-0.5 * pi, max=0.5 * pi,
-        subtype='ANGLE',
+        min=-0.5 * pi,
+        max=0.5 * pi,
+        subtype="ANGLE",
         default=0.5 * pi,
     )
     longitude_min: FloatProperty(
         name="Min Longitude",
         description="Minimum longitude (horizontal angle) for the equirectangular lens",
-        min=-pi, max=pi,
-        subtype='ANGLE',
+        min=-pi,
+        max=pi,
+        subtype="ANGLE",
         default=-pi,
     )
     longitude_max: FloatProperty(
         name="Max Longitude",
         description="Maximum longitude (horizontal angle) for the equirectangular lens",
-        min=-pi, max=pi,
-        subtype='ANGLE',
+        min=-pi,
+        max=pi,
+        subtype="ANGLE",
         default=pi,
     )
 
     fisheye_polynomial_k0: FloatProperty(
         name="Fisheye Polynomial K0",
         description="Coefficient K0 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[0], precision=6, step=0.1, subtype='ANGLE',
+        default=camera.default_fisheye_polynomial[0],
+        precision=6,
+        step=0.1,
+        subtype="ANGLE",
     )
     fisheye_polynomial_k1: FloatProperty(
         name="Fisheye Polynomial K1",
         description="Coefficient K1 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[1], precision=6, step=0.1, subtype='ANGLE',
+        default=camera.default_fisheye_polynomial[1],
+        precision=6,
+        step=0.1,
+        subtype="ANGLE",
     )
     fisheye_polynomial_k2: FloatProperty(
         name="Fisheye Polynomial K2",
         description="Coefficient K2 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[2], precision=6, step=0.1, subtype='ANGLE',
+        default=camera.default_fisheye_polynomial[2],
+        precision=6,
+        step=0.1,
+        subtype="ANGLE",
     )
     fisheye_polynomial_k3: FloatProperty(
         name="Fisheye Polynomial K3",
         description="Coefficient K3 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[3], precision=6, step=0.1, subtype='ANGLE',
+        default=camera.default_fisheye_polynomial[3],
+        precision=6,
+        step=0.1,
+        subtype="ANGLE",
     )
     fisheye_polynomial_k4: FloatProperty(
         name="Fisheye Polynomial K4",
         description="Coefficient K4 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[4], precision=6, step=0.1, subtype='ANGLE',
+        default=camera.default_fisheye_polynomial[4],
+        precision=6,
+        step=0.1,
+        subtype="ANGLE",
     )
 
     @classmethod
@@ -1070,7 +1264,6 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
 
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
-
     emission_sampling: EnumProperty(
         name="Emission Sampling",
         description="Sampling strategy for emissive surfaces",
@@ -1094,29 +1287,33 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
         name="Volume Sampling",
         description="Sampling method to use for volumes",
         items=enum_volume_sampling,
-        default='MULTIPLE_IMPORTANCE',
+        default="MULTIPLE_IMPORTANCE",
     )
 
     volume_interpolation: EnumProperty(
         name="Volume Interpolation",
         description="Interpolation method to use for smoke/fire volumes",
         items=enum_volume_interpolation,
-        default='LINEAR',
+        default="LINEAR",
     )
 
     volume_step_rate: FloatProperty(
         name="Step Rate",
         description="Scale the distance between volume shader samples when rendering the volume "
-                    "(lower values give more accurate and detailed results, but also increased render time)",
+        "(lower values give more accurate and detailed results, but also increased render time)",
         default=1.0,
-        min=0.001, max=1000.0, soft_min=0.1, soft_max=10.0, precision=4
+        min=0.001,
+        max=1000.0,
+        soft_min=0.1,
+        soft_max=10.0,
+        precision=4,
     )
 
     displacement_method: EnumProperty(
         name="Displacement Method",
         description="Method to use for the displacement",
         items=enum_displacement_methods,
-        default='BUMP',
+        default="BUMP",
     )
 
     @classmethod
@@ -1133,7 +1330,6 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
 
 class CyclesLightSettings(bpy.types.PropertyGroup):
-
     cast_shadow: BoolProperty(
         name="Cast Shadow",
         description="Light casts shadows",
@@ -1142,7 +1338,8 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
     max_bounces: IntProperty(
         name="Max Bounces",
         description="Maximum number of bounces the light will contribute to the render",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=1024,
     )
     use_multiple_importance_sampling: BoolProperty(
@@ -1178,7 +1375,6 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
 
 
 class CyclesWorldSettings(bpy.types.PropertyGroup):
-
     is_caustics_light: BoolProperty(
         name="Shadow Caustics",
         description="Generate approximate caustics in shadows of refractive surfaces. "
@@ -1189,19 +1385,21 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
         name="Sampling Method",
         description="How to sample the background light",
         items=enum_world_mis,
-        default='AUTOMATIC',
+        default="AUTOMATIC",
     )
     sample_map_resolution: IntProperty(
         name="Map Resolution",
         description="Importance map size is resolution x resolution/2; "
         "higher values potentially produce less noise, at the cost of memory and speed",
-        min=4, max=8192,
+        min=4,
+        max=8192,
         default=1024,
     )
     max_bounces: IntProperty(
         name="Max Bounces",
         description="Maximum number of bounces the background light will contribute to the render",
-        min=0, max=1024,
+        min=0,
+        max=1024,
         default=1024,
     )
     homogeneous_volume: BoolProperty(
@@ -1214,20 +1412,24 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
         name="Volume Sampling",
         description="Sampling method to use for volumes",
         items=enum_volume_sampling,
-        default='EQUIANGULAR',
+        default="EQUIANGULAR",
     )
     volume_interpolation: EnumProperty(
         name="Volume Interpolation",
         description="Interpolation method to use for volumes",
         items=enum_volume_interpolation,
-        default='LINEAR',
+        default="LINEAR",
     )
     volume_step_size: FloatProperty(
         name="Step Size",
         description="Distance between volume shader samples when rendering the volume "
-                    "(lower values give more accurate and detailed results, but also increased render time)",
+        "(lower values give more accurate and detailed results, but also increased render time)",
         default=1.0,
-        min=0.0000001, max=100000.0, soft_min=0.1, soft_max=100.0, precision=4
+        min=0.0000001,
+        max=100000.0,
+        soft_min=0.1,
+        soft_max=100.0,
+        precision=4,
     )
 
     @classmethod
@@ -1244,7 +1446,6 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
 
 
 class CyclesVisibilitySettings(bpy.types.PropertyGroup):
-
     camera: BoolProperty(
         name="Camera",
         description="Object visibility for camera rays",
@@ -1316,7 +1517,6 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
 
 
 class CyclesObjectSettings(bpy.types.PropertyGroup):
-
     use_motion_blur: BoolProperty(
         name="Use Motion Blur",
         description="Use motion blur for this object",
@@ -1358,14 +1558,17 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
     dicing_rate: FloatProperty(
         name="Dicing Scale",
         description="Multiplier for scene dicing rate (located in the Subdivision panel)",
-        min=0.1, max=1000.0, soft_min=0.5,
+        min=0.1,
+        max=1000.0,
+        soft_min=0.5,
         default=1.0,
     )
 
     shadow_terminator_offset: FloatProperty(
         name="Shadow Terminator Shading Offset",
         description="Push the shadow terminator towards the light to hide artifacts on low poly geometry",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.0,
     )
 
@@ -1382,7 +1585,7 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         description="AO distance used for approximate global illumination (0 means use world setting)",
         min=0.0,
         default=0.0,
-        subtype='DISTANCE',
+        subtype="DISTANCE",
     )
 
     is_caustics_caster: BoolProperty(
@@ -1414,17 +1617,17 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
 
 
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
-
     shape: EnumProperty(
         name="Shape",
         description="Form of curves",
         items=enum_curve_shape,
-        default='RIBBONS',
+        default="RIBBONS",
     )
     subdivisions: IntProperty(
         name="Subdivisions",
         description="Number of subdivisions used in Cardinal curve intersection (power of 2)",
-        min=0, max=24,
+        min=0,
+        max=24,
         default=2,
     )
 
@@ -1442,7 +1645,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
-
     pass_debug_sample_count: BoolProperty(
         name="Debug Sample Count",
         description="Number of samples/camera rays per pixel",
@@ -1499,7 +1701,7 @@ class CyclesDeviceSettings(bpy.types.PropertyGroup):
     id: StringProperty(name="ID")
     name: StringProperty(name="Name")
     use: BoolProperty(name="Use", default=True)
-    type: EnumProperty(name="Type", items=enum_device_type, default='CUDA')
+    type: EnumProperty(name="Type", items=enum_device_type, default="CUDA")
 
 
 class CyclesPreferences(bpy.types.AddonPreferences):
@@ -1507,19 +1709,20 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_device_types(self, context):
         import _cycles
+
         has_cuda, has_optix, has_hip, has_metal, has_oneapi = _cycles.get_device_types()
 
-        list = [('NONE', "None", "Don't use compute device", 0)]
+        list = [("NONE", "None", "Don't use compute device", 0)]
         if has_cuda:
-            list.append(('CUDA', "CUDA", "Use CUDA for GPU acceleration", 1))
+            list.append(("CUDA", "CUDA", "Use CUDA for GPU acceleration", 1))
         if has_optix:
-            list.append(('OPTIX', "OptiX", "Use OptiX for GPU acceleration", 3))
+            list.append(("OPTIX", "OptiX", "Use OptiX for GPU acceleration", 3))
         if has_hip:
-            list.append(('HIP', "HIP", "Use HIP for GPU acceleration", 4))
+            list.append(("HIP", "HIP", "Use HIP for GPU acceleration", 4))
         if has_metal:
-            list.append(('METAL', "Metal", "Use Metal for GPU acceleration", 5))
+            list.append(("METAL", "Metal", "Use Metal for GPU acceleration", 5))
         if has_oneapi:
-            list.append(('ONEAPI', "oneAPI", "Use oneAPI for GPU acceleration", 6))
+            list.append(("ONEAPI", "oneAPI", "Use oneAPI for GPU acceleration", 6))
 
         return list
 
@@ -1540,20 +1743,29 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     use_metalrt: BoolProperty(
         name="MetalRT (Experimental)",
         description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better "
-                    "performance in specific cases. However this support is experimental and some scenes may render incorrectly",
+        "performance in specific cases. However this support is experimental and some scenes may render incorrectly",
         default=False,
     )
 
     kernel_optimization_level: EnumProperty(
         name="Kernel Optimization",
         description="Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. "
-                    "If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set "
-                    "is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)",
-        default='FULL',
+        "If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set "
+        "is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)",
+        default="FULL",
         items=(
-            ('OFF', "Off", "Disable kernel optimization. Slowest rendering, no extra background CPU usage"),
-            ('INTERSECT', "Intersection only", "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"),
-            ('FULL', "Full", "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"),
+            ("OFF",
+             "Off",
+             "Disable kernel optimization. Slowest rendering, no extra background CPU usage",
+             ),
+            ("INTERSECT",
+             "Intersection only",
+             "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage",
+             ),
+            ("FULL",
+             "Full",
+             "Optimize all kernels. Fastest rendering, may result in extra background CPU usage",
+             ),
         ),
     )
 
@@ -1565,7 +1777,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def update_device_entries(self, device_list):
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP', 'METAL', 'ONEAPI'}:
+            if not device[1] in {"CUDA", "OPTIX", "CPU", "HIP", "METAL", "ONEAPI"}:
                 continue
             # Try to find existing Device entry
             entry = self.find_existing_device_entry(device)
@@ -1575,7 +1787,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 entry.id = device[2]
                 entry.name = device[0]
                 entry.type = device[1]
-                entry.use = entry.type != 'CPU'
+                entry.use = entry.type != "CPU"
             elif entry.name != device[0]:
                 # Update name in case it changed
                 entry.name = device[0]
@@ -1583,6 +1795,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     # Gets all devices types for a compute device type.
     def get_devices_for_type(self, compute_device_type):
         import _cycles
+
         # Layout of the device tuples: (Name, Type, Persistent ID)
         device_list = _cycles.available_devices(compute_device_type)
         # Make sure device entries are up to date and not referenced before
@@ -1596,10 +1809,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             entry = self.find_existing_device_entry(device)
             if entry.type == compute_device_type:
                 devices.append(entry)
-            elif entry.type == 'CPU':
+            elif entry.type == "CPU":
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if len(devices) and compute_device_type != 'CPU':
+        if len(devices) and compute_device_type != "CPU":
             devices.extend(cpu_devices)
         return devices
 
@@ -1607,23 +1820,25 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     # startup due to unstable OpenCL implementations that can cause crashes.
     def refresh_devices(self):
         import _cycles
+
         # Ensure `self.devices` is not re-allocated when the second call to
         # get_devices_for_type is made, freeing items from the first list.
-        for device_type in ('CUDA', 'OPTIX', 'HIP', 'METAL', 'ONEAPI'):
+        for device_type in ("CUDA", "OPTIX", "HIP", "METAL", "ONEAPI"):
             self.update_device_entries(_cycles.available_devices(device_type))
 
     # Deprecated: use refresh_devices instead.
-    def get_devices(self, compute_device_type=''):
+    def get_devices(self, compute_device_type=""):
         self.refresh_devices()
         return None
 
     def get_compute_device_type(self):
-        if self.compute_device_type == '':
-            return 'NONE'
+        if self.compute_device_type == "":
+            return "NONE"
         return self.compute_device_type
 
     def get_num_gpu_devices(self):
         import _cycles
+
         compute_device_type = self.get_compute_device_type()
         device_list = _cycles.available_devices(compute_device_type)
         num = 0
@@ -1637,6 +1852,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def has_multi_device(self):
         import _cycles
+
         compute_device_type = self.get_compute_device_type()
         device_list = _cycles.available_devices(compute_device_type)
         for device in device_list:
@@ -1662,65 +1878,119 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if not found_device:
             col = box.column(align=True)
-            col.label(text="No compatible GPUs found for Cycles", icon='INFO')
+            col.label(text="No compatible GPUs found for Cycles", icon="INFO")
 
-            if device_type == 'CUDA':
+            if device_type == "CUDA":
                 compute_capability = "3.0"
-                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
-                          icon='BLANK1', translate=False)
-            elif device_type == 'OPTIX':
+                col.label(
+                    text=iface_("Requires NVIDIA GPU with compute capability %s")
+                    % compute_capability,
+                    icon="BLANK1",
+                    translate=False,
+                )
+            elif device_type == "OPTIX":
                 compute_capability = "5.0"
                 driver_version = "470"
-                col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
-                          icon='BLANK1', translate=False)
-                col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
-                          icon='BLANK1', translate=False)
-            elif device_type == 'HIP':
+                col.label(
+                    text=iface_("Requires NVIDIA GPU with compute capability %s")
+                    % compute_capability,
+                    icon="BLANK1",
+                    translate=False,
+                )
+                col.label(
+                    text=iface_("and NVIDIA driver version %s or newer")
+                    % driver_version,
+                    icon="BLANK1",
+                    translate=False,
+                )
+            elif device_type == "HIP":
                 if True:
-                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                    col.label(
+                        text="HIP temporarily disabled due to compiler bugs",
+                        icon="BLANK1",
+                    )
                 else:
                     import sys
+
                     if sys.platform[:3] == "win":
                         driver_version = "21.Q4"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                                  icon='BLANK1', translate=False)
+                        col.label(
+                            text="Requires AMD GPU with Vega or RDNA architecture",
+                            icon="BLANK1",
+                        )
+                        col.label(
+                            text=iface_("and AMD Radeon Pro %s driver or newer")
+                            % driver_version,
+                            icon="BLANK1",
+                            translate=False,
+                        )
                     elif sys.platform.startswith("linux"):
                         driver_version = "22.10"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
-                                  translate=False)
-            elif device_type == 'ONEAPI':
+                        col.label(
+                            text="Requires AMD GPU with Vega or RDNA architecture",
+                            icon="BLANK1",
+                        )
+                        col.label(
+                            text=iface_("and AMD driver version %s or newer")
+                            % driver_version,
+                            icon="BLANK1",
+                            translate=False,
+                        )
+            elif device_type == "ONEAPI":
                 import sys
+
                 if sys.platform.startswith("win"):
                     driver_version = "101.4032"
-                    col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
-                    col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
-                              icon='BLANK1', translate=False)
+                    col.label(
+                        text="Requires Intel GPU with Xe-HPG architecture",
+                        icon="BLANK1",
+                    )
+                    col.label(
+                        text=iface_("and Windows driver version %s or newer")
+                        % driver_version,
+                        icon="BLANK1",
+                        translate=False,
+                    )
                 elif sys.platform.startswith("linux"):
                     driver_version = "1.3.24931"
-                    col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
-                              icon='BLANK1', translate=False)
-                    col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
-            elif device_type == 'METAL':
+                    col.label(
+                        text="Requires Intel GPU with Xe-HPG architecture and",
+                        icon="BLANK1",
+                    )
+                    col.label(
+                        text=iface_("  - intel-level-zero-gpu version %s or newer")
+                        % driver_version,
+                        icon="BLANK1",
+                        translate=False,
+                    )
+                    col.label(text="  - oneAPI Level-Zero Loader", icon="BLANK1")
+            elif device_type == "METAL":
                 silicon_mac_version = "12.2"
                 amd_mac_version = "12.3"
-                col.label(text=iface_("Requires Apple Silicon with macOS %s or newer") % silicon_mac_version,
-                          icon='BLANK1', translate=False)
-                col.label(text=iface_("or AMD with macOS %s or newer") % amd_mac_version, icon='BLANK1',
-                          translate=False)
+                col.label(
+                    text=iface_("Requires Apple Silicon with macOS %s or newer")
+                    % silicon_mac_version,
+                    icon="BLANK1",
+                    translate=False,
+                )
+                col.label(
+                    text=iface_("or AMD with macOS %s or newer") % amd_mac_version,
+                    icon="BLANK1",
+                    translate=False,
+                )
             return
 
         for device in devices:
             import unicodedata
+
             box.prop(
-                device, "use", text=device.name
-                .replace('(TM)', unicodedata.lookup('TRADE MARK SIGN'))
-                .replace('(tm)', unicodedata.lookup('TRADE MARK SIGN'))
-                .replace('(R)', unicodedata.lookup('REGISTERED SIGN'))
-                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN')),
-                translate=False
+                device,
+                "use",
+                text=device.name.replace("(TM)", unicodedata.lookup("TRADE MARK SIGN"))
+                .replace("(tm)", unicodedata.lookup("TRADE MARK SIGN"))
+                .replace("(R)", unicodedata.lookup("REGISTERED SIGN"))
+                .replace("(C)", unicodedata.lookup("COPYRIGHT SIGN")),
+                translate=False,
             )
 
     def draw_impl(self, layout, context):
@@ -1728,13 +1998,14 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         row.prop(self, "compute_device_type", expand=True)
 
         compute_device_type = self.get_compute_device_type()
-        if compute_device_type == 'NONE':
+        if compute_device_type == "NONE":
             return
         row = layout.row()
         devices = self.get_devices_for_type(compute_device_type)
         self._draw_devices(row, compute_device_type, devices)
 
         import _cycles
+
         has_peer_memory = 0
         for device in _cycles.available_devices(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
@@ -1744,9 +2015,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             row.use_property_split = True
             row.prop(self, "peer_memory")
 
-        if compute_device_type == 'METAL':
+        if compute_device_type == "METAL":
             import platform
             import re
+
             is_navi_2 = False
             for device in devices:
                 if re.search(r"((RX)|(Pro)|(PRO))\s+W?6\d00X", device.name):
@@ -1754,7 +2026,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     break
 
             # MetalRT only works on Apple Silicon and Navi2.
-            is_arm64 = platform.machine() == 'arm64'
+            is_arm64 = platform.machine() == "arm64"
             if is_arm64 or is_navi_2:
                 col = layout.column()
                 col.use_property_split = True
@@ -1772,7 +2044,7 @@ class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
         name="Render Pass",
         description="Render pass to show in the 3D Viewport",
         items=enum_view3d_shading_render_pass,
-        default='COMBINED',
+        default="COMBINED",
     )
     show_active_pixels: BoolProperty(
         name="Show Active Pixels",

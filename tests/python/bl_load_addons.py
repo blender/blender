@@ -8,19 +8,14 @@
 
 import bpy
 import addon_utils
-
-import os
 import sys
 import importlib
 
-BLACKLIST_DIRS = (
-    bpy.utils.user_resource('SCRIPTS'),
-) + tuple(addon_utils.paths()[1:])
+BLACKLIST_DIRS = (bpy.utils.user_resource("SCRIPTS"),) + tuple(addon_utils.paths()[1:])
 BLACKLIST_ADDONS = set()
 
 
 def _init_addon_blacklist():
-
     # in case we built without cycles
     if not bpy.app.build_options.cycles:
         BLACKLIST_ADDONS.add("cycles")
@@ -36,7 +31,7 @@ def _init_addon_blacklist():
         BLACKLIST_ADDONS.add("viewport_vr_preview")
 
     for mod in addon_utils.modules():
-        if addon_utils.module_bl_info(mod)['blender'] < (2, 80, 0):
+        if addon_utils.module_bl_info(mod)["blender"] < (2, 80, 0):
             BLACKLIST_ADDONS.add(mod.__name__)
 
 
@@ -44,7 +39,8 @@ def addon_modules_sorted():
     # Pass in an empty module cache to prevent `addon_utils` local module cache being manipulated.
     modules = addon_utils.modules(module_cache={})
     modules[:] = [
-        mod for mod in modules
+        mod
+        for mod in modules
         if not (mod.__file__.startswith(BLACKLIST_DIRS))
         if not (mod.__name__ in BLACKLIST_ADDONS)
     ]
@@ -115,7 +111,6 @@ def reload_addons(do_reload=True, do_reverse=True):
 
 
 def main():
-
     _init_addon_blacklist()
 
     # first load addons, print a list of all addons that fail

@@ -6,7 +6,3 @@ elements), base classes for defining line stylization rules
 (predicates, functions, chaining iterators, and stroke shaders),
 as well as helper functions for style module writing.
 """
-
-
-# module members
-from . import chainingiterators, functions, predicates, shaders, types, utils
