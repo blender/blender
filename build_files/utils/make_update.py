@@ -320,6 +320,11 @@ def external_script_initialize_if_needed(args: argparse.Namespace,
     blender_url = make_utils.git_get_remote_url(args.git_command, origin_name)
     external_url = resolve_external_url(blender_url, repo_name)
 
+    # When running `make update` from a freshly cloned fork check whether the fork of the submodule is
+    # available, If not, switch to the submodule relative to the main blender repository.
+    if origin_name == "origin" and not make_utils.git_is_remote_repository(args.git_command, external_url):
+        external_url = resolve_external_url("https://projects.blender.org/blender/blender", repo_name)
+
     call((args.git_command, "clone", "--origin", origin_name, external_url, external_dir))
 
 
