@@ -48,11 +48,11 @@ static void create_transform_data_for_node(TransData &td,
 
   /* account for parents (nested nodes) */
   if (node.parent) {
-    nodeToView(node.parent, node.locx, node.locy, &locx, &locy);
+    nodeToView(node.parent, node.locx + node.offsetx, node.locy + node.offsety, &locx, &locy);
   }
   else {
-    locx = node.locx;
-    locy = node.locy;
+    locx = node.locx + node.offsetx;
+    locy = node.locy + node.offsety;
   }
 
   /* use top-left corner as the transform origin for nodes */
@@ -244,11 +244,16 @@ static void flushTransNodes(TransInfo *t)
 
       /* account for parents (nested nodes) */
       if (node->parent) {
-        nodeFromView(node->parent, loc[0], loc[1], &loc[0], &loc[1]);
+        nodeFromView(node->parent,
+                     loc[0] - node->offsetx,
+                     loc[1] - node->offsety,
+                     &node->locx,
+                     &node->locy);
       }
-
-      node->locx = loc[0];
-      node->locy = loc[1];
+      else {
+        node->locx = loc[0] - node->offsetx;
+        node->locy = loc[1] - node->offsety;
+      }
     }
 
     /* handle intersection with noodles */
