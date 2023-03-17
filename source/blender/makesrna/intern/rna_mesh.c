@@ -725,7 +725,7 @@ static void rna_MeshPolygon_material_index_set(PointerRNA *ptr, int value)
   Mesh *mesh = rna_mesh(ptr);
   int *material_indices = BKE_mesh_material_indices_for_write(mesh);
   const int index = rna_MeshPolygon_index_get(ptr);
-  material_indices[index] = value;
+  material_indices[index] = max_ii(0, value);
 }
 
 static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
