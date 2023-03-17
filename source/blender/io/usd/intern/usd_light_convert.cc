@@ -20,6 +20,7 @@
 #include "usd_light_convert.h"
 
 #include "usd.h"
+#include "usd_asset_utils.h"
 #include "usd_reader_prim.h"
 #include "usd_writer_material.h"
 
@@ -39,6 +40,7 @@
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
@@ -532,6 +534,26 @@ void dome_light_to_world_material(const USDImportParams &params,
     return;
   }
 
+  /* Optionally copy the asset if it's inside a USDZ package or has a URI. */
+
+  const bool import_textures = params.import_textures_mode != USD_TEX_IMPORT_NONE &&
+                               should_import_asset(tex_path_str);
+
+  if (import_textures) {
+    /* If we are packing the imported textures, we first write them
+     * to a temporary directory. */
+    const char *textures_dir = params.import_textures_mode == USD_TEX_IMPORT_PACK ?
+                                   temp_textures_dir() :
+                                   params.import_textures_dir;
+
+    const eUSDTexNameCollisionMode name_collision_mode = params.import_textures_mode ==
+                                                                 USD_TEX_IMPORT_PACK ?
+                                                             USD_TEX_NAME_COLLISION_OVERWRITE :
+                                                             params.tex_name_collision_mode;
+
+    tex_path_str = import_asset(tex_path_str.c_str(), textures_dir, name_collision_mode);
+  }
+
   Image *image = BKE_image_load_exists(bmain, tex_path_str.c_str());
   if (!image) {
     std::cerr << "WARNING: Couldn't open image file '" << tex_path_str
@@ -540,6 +562,14 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   tex->id = &image->id;
+
+  if (import_textures && params.import_textures_mode == USD_TEX_IMPORT_PACK &&
+      !BKE_image_has_packedfile(image)) {
+    BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain, &image->id));
+    if (BLI_is_dir(temp_textures_dir())) {
+      BLI_delete(temp_textures_dir(), true, true);
+    }
+  }
 
   /* Set the transform. */
   pxr::UsdGeomXformCache xf_cache(time);
