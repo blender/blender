@@ -329,7 +329,7 @@ float LightTree::min_split_saoh(const BoundBox &centroid_bbox,
     const float inv_extent = 1 / (centroid_bbox.size()[dim]);
 
     /* Fill in buckets with primitives. */
-    vector<LightTreeBucketInfo> buckets(LightTreeBucketInfo::num_buckets);
+    std::array<LightTreeBucketInfo, LightTreeBucketInfo::num_buckets> buckets;
     for (int i = start; i < end; i++) {
       const LightTreePrimitive &prim = prims[i];
 
@@ -348,7 +348,7 @@ float LightTree::min_split_saoh(const BoundBox &centroid_bbox,
     }
 
     /* Calculate the cost of splitting at each point between partitions. */
-    vector<float> bucket_costs(LightTreeBucketInfo::num_buckets - 1);
+    std::array<float, LightTreeBucketInfo::num_buckets - 1> bucket_costs;
     float energy_L, energy_R;
     BoundBox bbox_L, bbox_R;
     OrientationBounds bcone_L, bcone_R;
