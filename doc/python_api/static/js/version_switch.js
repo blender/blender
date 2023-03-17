@@ -50,7 +50,6 @@
           that.afterLoad()
           return true
         }).fail(function () {
-          
           that.$btn.addClass('disabled')
           return false
         })
