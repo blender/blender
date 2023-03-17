@@ -4,9 +4,6 @@
 import argparse
 import os
 import platform
-import shlex
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -15,14 +12,15 @@ def setup():
     import bpy
 
     for scene in bpy.data.scenes:
-        scene.render.engine = 'BLENDER_WORKBENCH'
-        scene.display.shading.light = 'STUDIO'
-        scene.display.shading.color_type = 'TEXTURE'
+        scene.render.engine = "BLENDER_WORKBENCH"
+        scene.display.shading.light = "STUDIO"
+        scene.display.shading.color_type = "TEXTURE"
 
 
 # When run from inside Blender, render and exit.
 try:
     import bpy
+
     inside_blender = True
 except ImportError:
     inside_blender = False
@@ -44,12 +42,17 @@ def get_arguments(filepath, output_filepath):
         "--debug-memory",
         "--debug-exit-on-error",
         filepath,
-        "-E", "BLENDER_WORKBENCH",
+        "-E",
+        "BLENDER_WORKBENCH",
         "-P",
         os.path.realpath(__file__),
-        "-o", output_filepath,
-        "-F", "PNG",
-        "-f", "1"]
+        "-o",
+        output_filepath,
+        "-F",
+        "PNG",
+        "-f",
+        "1",
+    ]
 
 
 def create_argparse():
@@ -71,13 +74,14 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
+
     report = render_report.Report("Workbench", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
-    report.set_compare_engine('eevee')
+    report.set_compare_engine("eevee")
 
     test_dir_name = Path(test_dir).name
-    if test_dir_name.startswith('hair') and platform.system() == "Darwin":
+    if test_dir_name.startswith("hair") and platform.system() == "Darwin":
         report.set_fail_threshold(0.050)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)

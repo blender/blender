@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(ViewLayerTesting):
     def test_scene_objects_a(self):
@@ -30,6 +29,7 @@ class UnitTesting(ViewLayerTesting):
         Test scene with nested collections
         """
         import bpy
+
         scene = bpy.context.scene
 
         # move default objects to a nested collection
@@ -50,6 +50,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

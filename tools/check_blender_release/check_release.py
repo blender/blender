@@ -4,8 +4,6 @@
 # Usage: ./check_release.py -- ../path/to/release/folder
 
 
-import os
-import sys
 import unittest
 
 import check_module_enabled
@@ -16,14 +14,18 @@ from check_utils import sliceCommandLineArguments
 
 
 def load_tests(loader, standard_tests, pattern):
-    standard_tests.addTests(loader.loadTestsFromTestCase(
-        check_module_enabled.UnitTesting))
-    standard_tests.addTests(loader.loadTestsFromTestCase(
-        check_module_numpy.UnitTesting))
-    standard_tests.addTests(loader.loadTestsFromTestCase(
-        check_module_requests.UnitTesting))
-    standard_tests.addTests(loader.loadTestsFromTestCase(
-        check_static_binaries.UnitTesting))
+    standard_tests.addTests(
+        loader.loadTestsFromTestCase(check_module_enabled.UnitTesting)
+    )
+    standard_tests.addTests(
+        loader.loadTestsFromTestCase(check_module_numpy.UnitTesting)
+    )
+    standard_tests.addTests(
+        loader.loadTestsFromTestCase(check_module_requests.UnitTesting)
+    )
+    standard_tests.addTests(
+        loader.loadTestsFromTestCase(check_static_binaries.UnitTesting)
+    )
     return standard_tests
 
 
