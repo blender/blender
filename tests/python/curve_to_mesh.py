@@ -3,7 +3,6 @@
 # To run all tests, use
 # BLENDER_VERBOSE=1 ./bin/blender ../lib/tests/modeling/curve_to_mesh.blend --python ../blender/tests/python/bl_curve_to_mesh.py -- --run-all-tests
 # (that assumes the test is run from a build directory in the same directory as the source code)
-import bpy
 import os
 import sys
 

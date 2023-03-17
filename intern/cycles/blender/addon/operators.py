@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2011-2022 Blender Foundation
 from __future__ import annotations
-
-import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 

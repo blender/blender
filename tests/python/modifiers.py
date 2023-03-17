@@ -3,7 +3,7 @@
 import math
 import os
 import sys
-from random import shuffle, seed
+from random import seed
 
 import bpy
 

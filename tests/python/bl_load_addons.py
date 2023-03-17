@@ -8,8 +8,6 @@
 
 import bpy
 import addon_utils
-
-import os
 import sys
 import importlib
 

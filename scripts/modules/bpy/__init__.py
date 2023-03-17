@@ -21,7 +21,6 @@ from _bpy import (
     app,
     context,
     data,
-    msgbus,
     props,
     types,
 )

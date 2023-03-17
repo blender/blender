@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import aud, math, time
+import aud, time
 length = 0.5
 fadelength = 0.05
 runtime = 10

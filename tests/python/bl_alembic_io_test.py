@@ -11,7 +11,6 @@ import tempfile
 import unittest
 
 import bpy
-from mathutils import Euler, Matrix, Vector
 
 args = None
 

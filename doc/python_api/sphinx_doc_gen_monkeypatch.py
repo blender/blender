@@ -10,7 +10,6 @@ expanding an operator into a menu.
 
 
 def main():
-    import bpy
     from bpy.types import Operator
 
     def dummy_func(test):

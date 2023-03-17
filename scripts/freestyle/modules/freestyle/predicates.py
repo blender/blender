@@ -119,7 +119,6 @@ from freestyle.functions import (
     CurveNatureF1D,
     DensityF1D,
     GetCompleteViewMapDensityF1D,
-    GetCurvilinearAbscissaF0D,
     GetDirectionalViewMapDensityF1D,
     GetOccludersF1D,
     GetProjectedXF1D,

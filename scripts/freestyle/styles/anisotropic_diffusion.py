@@ -20,7 +20,7 @@ from freestyle.shaders import (
     SamplingShader,
     pyDiffusion2Shader,
 )
-from freestyle.types import Operators, Stroke
+from freestyle.types import Operators
 
 
 # pyDiffusion2Shader parameters

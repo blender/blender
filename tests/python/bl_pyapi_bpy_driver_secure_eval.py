@@ -4,7 +4,6 @@
 import bpy
 import unittest
 import builtins
-from types import ModuleType
 
 
 # -----------------------------------------------------------------------------

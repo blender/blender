@@ -4,7 +4,6 @@ from bpy.types import Menu, Panel, UIList
 from bl_ui.utils import PresetPanel
 
 from bpy.app.translations import (
-    contexts as i18n_contexts,
     pgettext_tip as tip_,
 )
 

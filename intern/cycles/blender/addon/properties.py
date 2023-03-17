@@ -15,10 +15,6 @@ from bpy.props import (
 from bpy.app.translations import pgettext_iface as iface_
 
 from math import pi
-
-# enums
-
-from . import engine
 from . import camera
 
 enum_devices = (

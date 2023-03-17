@@ -3,6 +3,3 @@
 # Add directory with module to the path.
 import sys
 sys.path.append(sys.argv[1])
-
-# Just import bpy and see if there are any dynamic loader errors.
-import bpy

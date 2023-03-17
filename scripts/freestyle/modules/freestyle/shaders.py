@@ -104,20 +104,14 @@ from freestyle.types import (
     StrokeAttribute,
     StrokeShader,
     StrokeVertexIterator,
-    StrokeVertex,
-)
+    )
 from freestyle.functions import (
     Curvature2DAngleF0D,
     DensityF0D,
     GetProjectedZF0D,
     MaterialF0D,
     Normal2DF0D,
-    Orientation2DF1D,
     ZDiscontinuityF0D,
-)
-from freestyle.predicates import (
-    pyVertexNatureUP0D,
-    pyUEqualsUP0D,
 )
 
 from freestyle.utils import (
@@ -126,8 +120,6 @@ from freestyle.utils import (
     pairwise,
     phase_to_direction,
 )
-
-from freestyle.utils import ContextFunctions as CF
 
 import bpy
 import random

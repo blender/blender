@@ -16,7 +16,7 @@ from freestyle.shaders import (
     ConstantThicknessShader,
     py2DCurvatureColorShader,
 )
-from freestyle.types import Operators, Stroke
+from freestyle.types import Operators
 
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
