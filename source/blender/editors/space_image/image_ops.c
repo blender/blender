@@ -3008,6 +3008,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);
+  BKE_image_mark_dirty(ima, ibuf);
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
   ED_image_undo_push_end();
