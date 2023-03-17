@@ -129,12 +129,14 @@ def find_best_isocode_matches(uid, iso_codes):
     return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
 
 
-def get_po_files_from_dir(root_dir, langs=set()):
+def get_po_files_from_dir(root_dir, langs=None):
     """
     Yield tuples (uid, po_path) of translations for each po file found in the given dir, which should be either
     a dir containing po files using language uid's as names (e.g. fr.po, es_ES.po, etc.), or
     a dir containing dirs which names are language uids, and containing po files of the same names.
     """
+    if langs is None:
+        langs = set()
     found_uids = set()
     for p in os.listdir(root_dir):
         uid = None
@@ -1245,7 +1247,9 @@ class I18n:
                     return os.path.join(os.path.dirname(path), "translations.py")
         return path
 
-    def __init__(self, kind=None, src=None, langs=set(), settings=settings):
+    def __init__(self, kind=None, src=None, langs=None, settings=settings):
+        if langs is None:
+            langs = set()
         self.settings = settings
         self.trans = {}
         self.src = {}  # Should have the same keys as self.trans (plus PARSER_PY_ID for py file)!
@@ -1365,16 +1369,20 @@ class I18n:
                 return path, env[tuple_id]
         return None, None  # No data...
 
-    def parse(self, kind, src, langs=set()):
+    def parse(self, kind, src, langs=None):
+        if langs is None:
+            langs = set()
         self.parsers[kind](self, src, langs)
 
-    def parse_from_po(self, src, langs=set()):
+    def parse_from_po(self, src, langs=None):
         """
         src must be a tuple (dir_of_pos, pot_file), where:
             * dir_of_pos may either contains iso_CODE.po files, and/or iso_CODE/iso_CODE.po files.
             * pot_file may be None (in which case there will be no ref messages).
         if langs set is void, all languages found are loaded.
         """
+        if langs is None:
+            langs = set()
         root_dir, pot_file = src
         if pot_file and os.path.isfile(pot_file):
             self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID, 'PO',
@@ -1385,12 +1393,14 @@ class I18n:
             self.trans[uid] = I18nMessages(uid, 'PO', po_file, po_file, settings=self.settings)
             self.src_po[uid] = po_file
 
-    def parse_from_py(self, src, langs=set()):
+    def parse_from_py(self, src, langs=None):
         """
         src must be a valid path, either a py file or a module directory (in which case all py files inside it
         will be checked, first file matching will win!).
         if langs set is void, all languages found are loaded.
         """
+        if langs is None:
+            langs = set()
         default_context = self.settings.DEFAULT_CONTEXT
         self.py_file, msgs = self.check_py_module_has_translations(src, self.settings)
         if msgs is None:
@@ -1426,10 +1436,14 @@ class I18n:
         #         trans.msgs[key]
         self.unescape()
 
-    def write(self, kind, langs=set()):
+    def write(self, kind, langs=None):
+        if langs is None:
+            langs = set()
         self.writers[kind](self, langs)
 
-    def write_to_po(self, langs=set()):
+    def write_to_po(self, langs=None):
+        if langs is None:
+            langs = set()
         """
         Write all translations into po files. By default, write in the same files (or dir) as the source, specify
         a custom self.dst function to write somewhere else!
@@ -1443,7 +1457,9 @@ class I18n:
             dst = self.dst(self, self.src.get(uid, ""), uid, 'PO')
             self.trans[uid].write('PO', dst)
 
-    def write_to_py(self, langs=set()):
+    def write_to_py(self, langs=None):
+        if langs is None:
+            langs = set()
         """
         Write all translations as python code, either in a "translations.py" file under same dir as source(s), or in
         specified file if self.py_file is set (default, as usual can be customized with self.dst callable!).

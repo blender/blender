@@ -107,7 +107,9 @@ class TestEnvironment:
         self._init_default_blender_executable()
         return True
 
-    def set_blender_executable(self, executable_path: pathlib.Path, environment: Dict = {}) -> None:
+    def set_blender_executable(self, executable_path: pathlib.Path, environment: Dict = None) -> None:
+        if environment is None:
+            environment = {}
         # Run all Blender commands with this executable.
         self.blender_executable = executable_path
         self.blender_executable_environment = environment
@@ -166,7 +168,9 @@ class TestEnvironment:
     def unset_log_file(self) -> None:
         self.log_file = None
 
-    def call(self, args: List[str], cwd: pathlib.Path, silent: bool = False, environment: Dict = {}) -> List[str]:
+    def call(self, args: List[str], cwd: pathlib.Path, silent: bool = False, environment: Dict = None) -> List[str]:
+        if environment is None:
+            environment = {}
         # Execute command with arguments in specified directory,
         # and return combined stdout and stderr output.
 
@@ -221,8 +225,10 @@ class TestEnvironment:
     def run_in_blender(self,
                        function: Callable[[Dict], Dict],
                        args: Dict,
-                       blender_args: List = [],
+                       blender_args: List = None,
                        foreground=False) -> Dict:
+        if blender_args is None:
+            blender_args = []
         # Run function in a Blender instance. Arguments and return values are
         # passed as a Python object that must be serializable with pickle.
 

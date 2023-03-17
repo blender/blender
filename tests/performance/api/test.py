@@ -32,7 +32,11 @@ class Test:
 
 
 class TestCollection:
-    def __init__(self, env, names_filter: List = ['*'], categories_filter: List = ['*']):
+    def __init__(self, env, names_filter: List = None, categories_filter: List = None):
+        if names_filter is None:
+            names_filter = ['*']
+        if categories_filter is None:
+            categories_filter = ['*']
         import importlib
         import pkgutil
         import tests

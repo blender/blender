@@ -53,7 +53,7 @@ def rna2xml(
     fw=print_ln,
     root_node="",
     root_rna=None,  # must be set
-    root_rna_skip=set(),
+    root_rna_skip=None,
     root_ident="",
     ident_val="  ",
     skip_classes=(
@@ -67,6 +67,8 @@ def rna2xml(
     pretty_format=True,
     method="DATA",
 ):
+    if root_rna_skip is None:
+        root_rna_skip = set()
     from xml.sax.saxutils import quoteattr
 
     property_typemap = build_property_typemap(skip_classes, skip_typemap)
