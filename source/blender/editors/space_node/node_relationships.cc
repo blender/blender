@@ -900,7 +900,11 @@ static void displace_links(bNodeTree *ntree, const bNode *node, bNodeLink *inser
   if (linked_socket->is_input()) {
     BLI_assert(!linked_socket->is_multi_input());
     ntree->ensure_topology_cache();
-    bNodeLink *displaced_link = linked_socket->runtime->directly_linked_links.first();
+
+    if (linked_socket->directly_linked_links().is_empty()) {
+      return;
+    }
+    bNodeLink *displaced_link = linked_socket->directly_linked_links().first();
 
     if (!replacement_socket) {
       nodeRemLink(ntree, displaced_link);
