@@ -27,26 +27,32 @@ def usage():
     Prints script usage.
     """
     import sys
+
     scriptname = sys.argv[0]
-    sort_choices_string = '|'.join(sort_choices)
+    sort_choices_string = "|".join(sort_choices)
     message = "\nUSAGE:"
-    message += "\n%s input-file (.txt|.py) order-priority (%s).\n" % (font_bold(scriptname), sort_choices_string)
+    message += "\n%s input-file (.txt|.py) order-priority (%s).\n" % (
+        font_bold(scriptname),
+        sort_choices_string,
+    )
     message += "%s -h for help\n" % font_bold(scriptname)
     print(message)
-    exit()
+    sys.exit()
 
 
 def help():
     """
     Prints script' help.
     """
-    message = '\nHELP:'
-    message += '\nRun this script to re-format the edits you make in the input file.\n'
-    message += 'Do quick modification to important fields like \'to\' and don\'t care about fields like \'changed\' or \'description\' and save.\n'
-    message += 'The script outputs 3 files:\n'
-    message += '   1) *_clean.txt: is formatted same as the .txt input, can be edited by user.\n'
-    message += '   2) *_clean.py: is formatted same as the .py input, can be edited by user.\n'
-    message += '   3) rna_api.py is not formatted for readability and go under complete check. Can be used for rna cleanup.\n'
+    message = "\nHELP:"
+    message += "\nRun this script to re-format the edits you make in the input file.\n"
+    message += "Do quick modification to important fields like 'to' and don't care about fields like 'changed' or 'description' and save.\n"
+    message += "The script outputs 3 files:\n"
+    message += "   1) *_clean.txt: is formatted same as the .txt input, can be edited by user.\n"
+    message += (
+        "   2) *_clean.py: is formatted same as the .py input, can be edited by user.\n"
+    )
+    message += "   3) rna_api.py is not formatted for readability and go under complete check. Can be used for rna cleanup.\n"
     print(message)
     usage()
 
@@ -56,23 +62,27 @@ def check_commandline():
     Takes parameters from the commandline.
     """
     import sys
+
     # Usage
     if len(sys.argv) == 1 or len(sys.argv) > 3:
         usage()
-    if sys.argv[1] == '-h':
+    if sys.argv[1] == "-h":
         help()
     elif not sys.argv[1].endswith((".txt", ".py")):
-        print('\nBad input file extension... exiting.')
+        print("\nBad input file extension... exiting.")
         usage()
     else:
         inputfile = sys.argv[1]
     if len(sys.argv) == 2:
         sort_priority = default_sort_choice
-        print('\nSecond parameter missing: choosing to order by %s.' % font_bold(sort_priority))
+        print(
+            "\nSecond parameter missing: choosing to order by %s."
+            % font_bold(sort_priority)
+        )
     elif len(sys.argv) == 3:
         sort_priority = sys.argv[2]
         if sort_priority not in sort_choices:
-            print('\nWrong sort_priority... exiting.')
+            print("\nWrong sort_priority... exiting.")
             usage()
     return (inputfile, sort_priority)
 
@@ -80,25 +90,25 @@ def check_commandline():
 def check_prefix(prop, btype):
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
     if btype == "boolean":
-        if '_' in prop:
-            prefix = prop.split('_')[0]
+        if "_" in prop:
+            prefix = prop.split("_")[0]
             if prefix not in kw_prefixes:
-                return 'BAD-PREFIX: ' + prefix
+                return "BAD-PREFIX: " + prefix
             else:
-                return prefix + '_'
+                return prefix + "_"
         elif prop in kw:
-            return 'SPECIAL-KEYWORD: ' + prop
+            return "SPECIAL-KEYWORD: " + prop
         else:
-            return 'BAD-KEYWORD: ' + prop
+            return "BAD-KEYWORD: " + prop
     else:
         return ""
 
 
 def check_if_changed(a, b):
     if a != b:
-        return 'changed'
+        return "changed"
     else:
-        return 'same'
+        return "same"
 
 
 def get_props_from_txt(input_filename):
@@ -106,7 +116,7 @@ def get_props_from_txt(input_filename):
     If the file is *.txt, the script assumes it is formatted as outlined in this script docstring
     """
 
-    file = open(input_filename, 'r')
+    file = open(input_filename, "r")
     file_lines = file.readlines()
     file.close()
 
@@ -118,7 +128,6 @@ def get_props_from_txt(input_filename):
     tot = 0
 
     for iii, line in enumerate(file_lines):
-
         # debug
         # print(line)
         line_strip = line.strip()
@@ -133,32 +142,34 @@ def get_props_from_txt(input_filename):
             line = line[1:]
 
         # class
-        bclass, tail = [x.strip() for x in line.split('.', 1)]
+        bclass, tail = [x.strip() for x in line.split(".", 1)]
 
         # comment
-        if '*' in bclass:
-            comment, bclass = [x.strip() for x in bclass.split('*', 1)]
+        if "*" in bclass:
+            comment, bclass = [x.strip() for x in bclass.split("*", 1)]
         else:
-            comment = ''
+            comment = ""
 
         # skipping the header if we have one.
         # the header is assumed to be "NOTE * CLASS.FROM -> TO:   TYPE  DESCRIPTION"
-        if comment == 'NOTE' and bclass == 'CLASS':
+        if comment == "NOTE" and bclass == "CLASS":
             continue
 
         # from
-        bfrom, tail = [x.strip() for x in tail.split('->', 1)]
+        bfrom, tail = [x.strip() for x in tail.split("->", 1)]
 
         # to
-        bto, tail = [x.strip() for x in tail.split(':', 1)]
+        bto, tail = [x.strip() for x in tail.split(":", 1)]
 
         # type, description
         try:
             btype, description = tail.split(None, 1)
             # make life easy and strip quotes
-            description = description.replace("'", "").replace('"', "").replace("\\", "").strip()
+            description = (
+                description.replace("'", "").replace('"', "").replace("\\", "").strip()
+            )
         except ValueError:
-            btype, description = [tail, 'NO DESCRIPTION']
+            btype, description = [tail, "NO DESCRIPTION"]
 
         # keyword-check
         kwcheck = check_prefix(bto, btype)
@@ -188,16 +199,31 @@ def get_props_from_py(input_filename):
     # adds the list "rna_api" to this function's scope
     rna_api = __import__(input_filename[:-3]).rna_api
 
-    props_length_max = [0 for i in rna_api[0]]  # this way if the vector will take more elements we are safe
+    props_length_max = [
+        0 for i in rna_api[0]
+    ]  # this way if the vector will take more elements we are safe
     for index, props in enumerate(rna_api):
         comment, changed, bclass, bfrom, bto, kwcheck, btype, description = props
-        kwcheck = check_prefix(bto, btype)   # keyword-check
+        kwcheck = check_prefix(bto, btype)  # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
         description = repr(description)
-        description = description.replace("'", "").replace('"', "").replace("\\", "").strip()
-        rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
+        description = (
+            description.replace("'", "").replace('"', "").replace("\\", "").strip()
+        )
+        rna_api[index] = [
+            comment,
+            changed,
+            bclass,
+            bfrom,
+            bto,
+            kwcheck,
+            btype,
+            description,
+        ]
         props_length = list(map(len, props))  # lengths
-        props_length_max = list(map(max, zip(props_length_max, props_length)))    # max lengths
+        props_length_max = list(
+            map(max, zip(props_length_max, props_length))
+        )  # max lengths
     return (rna_api, props_length_max)
 
 
@@ -225,7 +251,7 @@ def sort(props_list, sort_priority):
         else:
             props_list = sorted(props_list, key=lambda p: p[i])
 
-    print('\nSorted by %s.' % font_bold(sort_priority))
+    print("\nSorted by %s." % font_bold(sort_priority))
     return props_list
 
 
@@ -253,14 +279,25 @@ def write_files(basename, props_list, props_length_max):
       * rna_api.py: unformatted, just as final output
     """
 
-    f_rna = open("rna_api.py", 'w')
-    f_txt = open(basename + '_work.txt', 'w')
-    f_py = open(basename + '_work.py', 'w')
+    f_rna = open("rna_api.py", "w")
+    f_txt = open(basename + "_work.txt", "w")
+    f_py = open(basename + "_work.py", "w")
 
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
     # [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
-    rna = py = txt = ''
-    props_list = [['NOTE', 'CHANGED', 'CLASS', 'FROM', 'TO', 'KEYWORD-CHECK', 'TYPE', 'DESCRIPTION']] + props_list
+    rna = py = txt = ""
+    props_list = [
+        [
+            "NOTE",
+            "CHANGED",
+            "CLASS",
+            "FROM",
+            "TO",
+            "KEYWORD-CHECK",
+            "TYPE",
+            "DESCRIPTION",
+        ]
+    ] + props_list
     for props in props_list:
         # txt
 
@@ -270,19 +307,28 @@ def write_files(basename, props_list, props_length_max):
         else:
             txt += " "
 
-        if props[0] != '':
-            txt += '%s * ' % props[0]   # comment
-        txt += '%s.%s -> %s:   %s  "%s"\n' % tuple(props[2:5] + props[6:])   # skipping keyword-check
+        if props[0] != "":
+            txt += "%s * " % props[0]  # comment
+        txt += '%s.%s -> %s:   %s  "%s"\n' % tuple(
+            props[2:5] + props[6:]
+        )  # skipping keyword-check
         # rna_api
-        if props[0] == 'NOTE':
-            indent = '#   '
+        if props[0] == "NOTE":
+            indent = "#   "
         else:
-            indent = '    '
+            indent = "    "
         # Description is already string formatted.
-        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])
+        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(
+            props[2:5] + props[6:]
+        )
         # py
-        blanks = [' ' * (x[0] - x[1]) for x in zip(props_length_max, list(map(len, props)))]
-        props = [('"%s"%s' if props[-1] != x[0] else "%s%s") % (x[0], x[1]) for x in zip(props, blanks)]
+        blanks = [
+            " " * (x[0] - x[1]) for x in zip(props_length_max, list(map(len, props)))
+        ]
+        props = [
+            ('"%s"%s' if props[-1] != x[0] else "%s%s") % (x[0], x[1])
+            for x in zip(props, blanks)
+        ]
         py += indent + '(%s, %s, %s, %s, %s, %s, %s, "%s"),\n' % tuple(props)
 
     f_txt.write(txt)
@@ -291,7 +337,9 @@ def write_files(basename, props_list, props_length_max):
 
     # write useful py script, won't hurt
     f_py.write("\n'''\n")
-    f_py.write("for p_note, p_changed, p_class, p_from, p_to, p_check, p_type, p_desc in rna_api:\n")
+    f_py.write(
+        "for p_note, p_changed, p_class, p_from, p_to, p_check, p_type, p_desc in rna_api:\n"
+    )
     f_py.write("    print(p_to)\n")
     f_py.write("\n'''\n")
 
@@ -299,19 +347,47 @@ def write_files(basename, props_list, props_length_max):
     f_py.close()
     f_rna.close()
 
-    print('\nSaved %s, %s and %s.\n' % (font_bold(f_txt.name), font_bold(f_py.name), font_bold(f_rna.name)))
+    print(
+        "\nSaved %s, %s and %s.\n"
+        % (font_bold(f_txt.name), font_bold(f_py.name), font_bold(f_rna.name))
+    )
 
 
 def main():
-
     global sort_choices, default_sort_choice
     global kw_prefixes, kw
 
-    sort_choices = ['note', 'changed', 'class', 'from', 'to', 'kw', 'class.to']
+    sort_choices = ["note", "changed", "class", "from", "to", "kw", "class.to"]
     default_sort_choice = sort_choices[-1]
-    kw_prefixes = ['active', 'apply', 'bl', 'exclude', 'has', 'invert', 'is', 'lock',
-                   'pressed', 'show', 'show_only', 'use', 'use_only', 'layers', 'states', 'select']
-    kw = ['active', 'hide', 'invert', 'select', 'layers', 'mute', 'states', 'use', 'lock']
+    kw_prefixes = [
+        "active",
+        "apply",
+        "bl",
+        "exclude",
+        "has",
+        "invert",
+        "is",
+        "lock",
+        "pressed",
+        "show",
+        "show_only",
+        "use",
+        "use_only",
+        "layers",
+        "states",
+        "select",
+    ]
+    kw = [
+        "active",
+        "hide",
+        "invert",
+        "select",
+        "layers",
+        "mute",
+        "states",
+        "use",
+        "lock",
+    ]
 
     input_filename, sort_priority = check_commandline()
     props_list, props_length_max = get_props(input_filename)
@@ -321,8 +397,9 @@ def main():
     write_files(output_basename, props_list, props_length_max)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     if sys.version_info.major < 3:
         print("Incorrect python version, use Python 3 or newer!")
     else:
