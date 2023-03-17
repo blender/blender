@@ -24,7 +24,7 @@ class ImBufTest(AbstractImBufTest):
             os.makedirs(cls.reference_load_dir, exist_ok=True)
 
     def _get_image_files(self, file_pattern):
-        return [f for f in pathlib.Path(self.reference_dir).glob(file_pattern)]
+        return list(pathlib.Path(self.reference_dir).glob(file_pattern))
 
     def _validate_metadata(self, img, ref_metadata_path, out_metadata_path):
         channels = img.channels

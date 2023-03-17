@@ -246,7 +246,7 @@ def world_to_camera_view(scene, obj, coord):
     z = -co_local.z
 
     camera = obj.data
-    frame = [v for v in camera.view_frame(scene=scene)[:3]]
+    frame = list(camera.view_frame(scene=scene)[:3])
     if camera.type != 'ORTHO':
         if z == 0.0:
             return Vector((0.5, 0.5, 0.0))

@@ -46,7 +46,7 @@ def curve_to_loops(ob):
 
     for e in edges:
         if e.is_manifold:
-            f_a, f_b = [f for f in e.link_faces]
+            f_a, f_b = list(e.link_faces)
             bmesh.utils.face_join((f_a, f_b), False)
 
     edges = bm.edges[:]

@@ -15,7 +15,7 @@ def _get_direct_attr(rna_type, attr):
     base = rna_type.base
 
     if not base:
-        return [prop for prop in props]
+        return list(props)
     else:
         props_base = getattr(base, attr).values()
         return [prop for prop in props if prop not in props_base]

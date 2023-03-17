@@ -32,7 +32,7 @@ def verts_from_elem(ele):
     if ele_type is bmesh.types.BMFace:
         return [l.vert for l in ele.loops]
     elif ele_type is bmesh.types.BMEdge:
-        return [v for v in ele.verts]
+        return list(ele.verts)
     elif ele_type is bmesh.types.BMVert:
         return [ele]
     else:
@@ -46,7 +46,7 @@ def edges_from_elem(ele):
     elif ele_type is bmesh.types.BMEdge:
         return [ele]
     elif ele_type is bmesh.types.BMVert:
-        return [e for e in ele.link_edges]
+        return list(ele.link_edges)
     else:
         raise TypeError("wrong type")
 

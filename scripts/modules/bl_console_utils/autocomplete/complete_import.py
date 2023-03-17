@@ -87,7 +87,7 @@ def module_list(path):
     elif path.endswith('.egg'):
         from zipimport import zipimporter
         try:
-            folder_list = [f for f in zipimporter(path)._files]
+            folder_list = list(zipimporter(path)._files)
         except:
             folder_list = []
     else:
