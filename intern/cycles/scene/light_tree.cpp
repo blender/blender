@@ -205,8 +205,8 @@ LightTree::LightTree(vector<LightTreePrimitive> &prims,
   }
 
   max_lights_in_leaf_ = max_lights_in_leaf;
-  int num_prims = prims.size();
-  int num_local_lights = num_prims - num_distant_lights;
+  const int num_prims = prims.size();
+  const int num_local_lights = num_prims - num_distant_lights;
   /* The amount of nodes is estimated to be twice the amount of primitives */
   nodes_.reserve(2 * num_prims);
 
@@ -240,8 +240,8 @@ int LightTree::recursive_build(
   OrientationBounds bcone = OrientationBounds::empty;
   BoundBox centroid_bounds = BoundBox::empty;
   float energy_total = 0.0;
-  int num_prims = end - start;
   int current_index = nodes_.size();
+  const int num_prims = end - start;
 
   for (int i = start; i < end; i++) {
     const LightTreePrimitive &prim = prims.at(i);
@@ -254,13 +254,13 @@ int LightTree::recursive_build(
 
   nodes_.emplace_back(bbox, bcone, energy_total, bit_trail);
 
-  bool try_splitting = num_prims > 1 && len(centroid_bounds.size()) > 0.0f;
+  const bool try_splitting = num_prims > 1 && len(centroid_bounds.size()) > 0.0f;
   int split_dim = -1, split_bucket = 0, num_left_prims = 0;
   bool should_split = false;
   if (try_splitting) {
     /* Find the best place to split the primitives into 2 nodes.
      * If the best split cost is no better than making a leaf node, make a leaf instead. */
-    float min_cost = min_split_saoh(
+    const float min_cost = min_split_saoh(
         centroid_bounds, start, end, bbox, bcone, split_dim, split_bucket, num_left_prims, prims);
     should_split = num_prims > max_lights_in_leaf_ || min_cost < energy_total;
   }
@@ -295,8 +295,8 @@ int LightTree::recursive_build(
 }
 
 float LightTree::min_split_saoh(const BoundBox &centroid_bbox,
-                                int start,
-                                int end,
+                                const int start,
+                                const int end,
                                 const BoundBox &bbox,
                                 const OrientationBounds &bcone,
                                 int &split_dim,
@@ -379,9 +379,10 @@ float LightTree::min_split_saoh(const BoundBox &centroid_bbox,
       /* Calculate the cost of splitting using the heuristic as described in the paper. */
       const float area_L = has_area ? bbox_L.area() : len(bbox_L.size());
       const float area_R = has_area ? bbox_R.area() : len(bbox_R.size());
-      float left = (bbox_L.valid()) ? energy_L * area_L * bcone_L.calculate_measure() : 0.0f;
-      float right = (bbox_R.valid()) ? energy_R * area_R * bcone_R.calculate_measure() : 0.0f;
-      float regularization = max_extent * inv_extent;
+      const float left = (bbox_L.valid()) ? energy_L * area_L * bcone_L.calculate_measure() : 0.0f;
+      const float right = (bbox_R.valid()) ? energy_R * area_R * bcone_R.calculate_measure() :
+                                             0.0f;
+      const float regularization = max_extent * inv_extent;
       bucket_costs[split] = regularization * (left + right) * inv_total_cost;
 
       if (bucket_costs[split] < min_cost) {
