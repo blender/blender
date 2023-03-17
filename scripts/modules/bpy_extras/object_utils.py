@@ -32,10 +32,11 @@ def add_object_align_init(context, operator):
     """
 
     from mathutils import Matrix, Vector
+
     properties = operator.properties if operator is not None else None
 
     space_data = context.space_data
-    if space_data and space_data.type != 'VIEW_3D':
+    if space_data and space_data.type != "VIEW_3D":
         space_data = None
 
     # location
@@ -54,23 +55,23 @@ def add_object_align_init(context, operator):
             # So one of "align" and "rotation" will be set
             properties.align = add_align_preference
 
-        if properties.align == 'WORLD':
+        if properties.align == "WORLD":
             rotation = properties.rotation.to_matrix().to_4x4()
-        elif properties.align == 'VIEW':
+        elif properties.align == "VIEW":
             rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
             rotation.resize_4x4()
             properties.rotation = rotation.to_euler()
-        elif properties.align == 'CURSOR':
+        elif properties.align == "CURSOR":
             rotation = context.scene.cursor.matrix
             rotation.col[3][0:3] = 0.0, 0.0, 0.0
             properties.rotation = rotation.to_euler()
         else:
             rotation = properties.rotation.to_matrix().to_4x4()
     else:
-        if (add_align_preference == 'VIEW') and space_data:
+        if (add_align_preference == "VIEW") and space_data:
             rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
             rotation.resize_4x4()
-        elif add_align_preference == 'CURSOR':
+        elif add_align_preference == "CURSOR":
             rotation = context.scene.cursor.rotation_euler.to_matrix().to_4x4()
         else:
             rotation = Matrix()
@@ -111,17 +112,17 @@ def object_data_add(context, obdata, operator=None, name=None):
     obj_new.matrix_world = add_object_align_init(context, operator)
 
     space_data = context.space_data
-    if space_data and space_data.type != 'VIEW_3D':
+    if space_data and space_data.type != "VIEW_3D":
         space_data = None
 
     if space_data:
         if space_data.local_view:
             obj_new.local_view_set(space_data, True)
 
-    if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
-        bpy.ops.mesh.select_all(action='DESELECT')
+    if obj_act and obj_act.mode == "EDIT" and obj_act.type == obj_new.type:
+        bpy.ops.mesh.select_all(action="DESELECT")
         obj_act.select_set(True)
-        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode="OBJECT")
 
         obj_act.select_set(True)
         layer.update()  # apply location
@@ -139,17 +140,26 @@ def object_data_add(context, obdata, operator=None, name=None):
         if obdata:
             bpy.data.meshes.remove(obdata)
 
-        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.object.mode_set(mode="EDIT")
     else:
         layer.objects.active = obj_new
         if context.preferences.edit.use_enter_edit_mode:
             if obdata and obdata.library is None:
                 obtype = obj_new.type
                 mode = None
-                if obtype in {'ARMATURE', 'CURVE', 'CURVES', 'FONT', 'LATTICE', 'MESH', 'META', 'SURFACE'}:
-                    mode = 'EDIT'
-                elif obtype == 'GPENCIL':
-                    mode = 'EDIT_GPENCIL'
+                if obtype in {
+                    "ARMATURE",
+                    "CURVE",
+                    "CURVES",
+                    "FONT",
+                    "LATTICE",
+                    "MESH",
+                    "META",
+                    "SURFACE",
+                }:
+                    mode = "EDIT"
+                elif obtype == "GPENCIL":
+                    mode = "EDIT_GPENCIL"
 
                 if mode is not None:
                     bpy.ops.object.mode_set(mode=mode)
@@ -159,26 +169,26 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 class AddObjectHelper:
     def align_update_callback(self, _context):
-        if self.align == 'WORLD':
+        if self.align == "WORLD":
             self.rotation.zero()
 
     align: EnumProperty(
         name="Align",
         items=(
-            ('WORLD', "World", "Align the new object to the world"),
-            ('VIEW', "View", "Align the new object to the view"),
-            ('CURSOR', "3D Cursor", "Use the 3D cursor orientation for the new object"),
+            ("WORLD", "World", "Align the new object to the world"),
+            ("VIEW", "View", "Align the new object to the view"),
+            ("CURSOR", "3D Cursor", "Use the 3D cursor orientation for the new object"),
         ),
-        default='WORLD',
+        default="WORLD",
         update=AddObjectHelper.align_update_callback,
     )
     location: FloatVectorProperty(
         name="Location",
-        subtype='TRANSLATION',
+        subtype="TRANSLATION",
     )
     rotation: FloatVectorProperty(
         name="Rotation",
-        subtype='EULER',
+        subtype="EULER",
     )
 
     @classmethod
@@ -194,7 +204,7 @@ def object_add_grid_scale(context):
 
     space_data = context.space_data
 
-    if space_data and space_data.type == 'VIEW_3D':
+    if space_data and space_data.type == "VIEW_3D":
         return space_data.overlay.grid_scale_unit
 
     return 1.0
@@ -212,9 +222,8 @@ def object_add_grid_scale_apply_operator(operator, context):
     for prop_id in properties_def.keys():
         if not properties.is_property_set(prop_id, ghost=False):
             prop_def = properties_def[prop_id]
-            if prop_def.unit == 'LENGTH' and prop_def.subtype == 'DISTANCE':
-                setattr(operator, prop_id,
-                        getattr(operator, prop_id) * grid_scale)
+            if prop_def.unit == "LENGTH" and prop_def.subtype == "DISTANCE":
+                setattr(operator, prop_id, getattr(operator, prop_id) * grid_scale)
 
 
 def world_to_camera_view(scene, obj, coord):
@@ -246,8 +255,8 @@ def world_to_camera_view(scene, obj, coord):
     z = -co_local.z
 
     camera = obj.data
-    frame = [v for v in camera.view_frame(scene=scene)[:3]]
-    if camera.type != 'ORTHO':
+    frame = list(camera.view_frame(scene=scene)[:3])
+    if camera.type != "ORTHO":
         if z == 0.0:
             return Vector((0.5, 0.5, 0.0))
         else:

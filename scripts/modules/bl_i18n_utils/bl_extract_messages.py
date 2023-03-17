@@ -247,7 +247,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         }
 
         # More builtin classes we don't need to parse.
-        blacklist_rna_class |= {cls for cls in bpy.types.Property.__subclasses__()}
+        blacklist_rna_class |= set(bpy.types.Property.__subclasses__())
 
         return blacklist_rna_class
 
@@ -722,7 +722,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
         return [_extract_string_merge(estr_ls, nds_ls) for estr_ls, nds_ls in bag]
 
-    i18n_ctxt_ids = {v for v in bpy.app.translations.contexts_C_to_py.values()}
+    i18n_ctxt_ids = set(bpy.app.translations.contexts_C_to_py.values())
 
     def _ctxt_to_ctxt(node):
         # We must try, to some extend, to get contexts from vars instead of only literal strings...

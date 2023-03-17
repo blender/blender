@@ -154,7 +154,7 @@ def graph_armature(
 
         animation_data = obj.animation_data
         if animation_data:
-            fcurve_drivers = [fcurve_driver for fcurve_driver in animation_data.drivers]
+            fcurve_drivers = list(animation_data.drivers)
             fcurve_drivers.sort(key=lambda fcurve_driver: fcurve_driver.data_path)
 
             for fcurve_driver in fcurve_drivers:

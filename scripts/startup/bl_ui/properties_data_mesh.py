@@ -699,7 +699,7 @@ class MESH_UL_attributes(UIList):
     def filter_items(self, _context, data, property):
         attributes = getattr(data, property)
         flags = []
-        indices = [i for i in range(len(attributes))]
+        indices = list(range(len(attributes)))
 
         # Filtering by name
         if self.filter_name:
@@ -828,7 +828,7 @@ class ColorAttributesListBase:
     def filter_items(self, _context, data, property):
         attributes = getattr(data, property)
         flags = []
-        indices = [i for i in range(len(attributes))]
+        indices = list(range(len(attributes)))
 
         # Filtering by name
         if self.filter_name:

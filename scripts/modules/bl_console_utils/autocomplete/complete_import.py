@@ -45,6 +45,7 @@ def get_root_modules():
     if not (ROOT_MODULES is None):
         return ROOT_MODULES
     from time import time
+
     t = time()
     store = False
     for path in sys.path:
@@ -63,8 +64,8 @@ def get_root_modules():
     modules += sys.modules.keys()
 
     modules = list(set(modules))
-    if '__init__' in modules:
-        modules.remove('__init__')
+    if "__init__" in modules:
+        modules.remove("__init__")
     modules = sorted(modules)
     if store:
         ROOT_MODULES = modules
@@ -84,22 +85,27 @@ def module_list(path):
 
     if os.path.isdir(path):
         folder_list = os.listdir(path)
-    elif path.endswith('.egg'):
+    elif path.endswith(".egg"):
         from zipimport import zipimporter
+
         try:
-            folder_list = [f for f in zipimporter(path)._files]
+            folder_list = list(zipimporter(path)._files)
         except:
             folder_list = []
     else:
         folder_list = []
     # folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [
-        p for p in folder_list
-        if (os.path.exists(os.path.join(path, p, '__init__.py')) or
-            p[-3:] in {'.py', '.so'} or
-            p[-4:] in {'.pyc', '.pyo', '.pyd'})]
+        p
+        for p in folder_list
+        if (
+            os.path.exists(os.path.join(path, p, "__init__.py"))
+            or p[-3:] in {".py", ".so"}
+            or p[-4:] in {".pyc", ".pyo", ".pyd"}
+        )
+    ]
 
-    folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
+    folder_list = [os.path.basename(p).split(".")[0] for p in folder_list]
     return folder_list
 
 
@@ -126,50 +132,51 @@ def complete(line):
     import inspect
 
     def try_import(mod, *, only_modules=False):
-
         def is_importable(module, attr):
             if only_modules:
                 return inspect.ismodule(getattr(module, attr))
             else:
-                return not (attr[:2] == '__' and attr[-2:] == '__')
+                return not (attr[:2] == "__" and attr[-2:] == "__")
 
         try:
             m = __import__(mod)
         except:
             return []
-        mods = mod.split('.')
+        mods = mod.split(".")
         for module in mods[1:]:
             m = getattr(m, module)
-        if (not hasattr(m, '__file__')) or (not only_modules) or\
-           (hasattr(m, '__file__') and '__init__' in m.__file__):
-            completion_list = [attr for attr in dir(m)
-                               if is_importable(m, attr)]
+        if (
+            (not hasattr(m, "__file__"))
+            or (not only_modules)
+            or (hasattr(m, "__file__") and "__init__" in m.__file__)
+        ):
+            completion_list = [attr for attr in dir(m) if is_importable(m, attr)]
         else:
             completion_list = []
-        completion_list.extend(getattr(m, '__all__', []))
-        if hasattr(m, '__file__') and '__init__' in m.__file__:
+        completion_list.extend(getattr(m, "__all__", []))
+        if hasattr(m, "__file__") and "__init__" in m.__file__:
             completion_list.extend(module_list(os.path.dirname(m.__file__)))
         completion_list = list(set(completion_list))
-        if '__init__' in completion_list:
-            completion_list.remove('__init__')
+        if "__init__" in completion_list:
+            completion_list.remove("__init__")
         return completion_list
 
     def filter_prefix(names, prefix):
         return [name for name in names if name.startswith(prefix)]
 
-    words = line.split(' ')
-    if len(words) == 3 and words[0] == 'from':
-        return ['import ']
-    if len(words) < 3 and (words[0] in {'import', 'from'}):
+    words = line.split(" ")
+    if len(words) == 3 and words[0] == "from":
+        return ["import "]
+    if len(words) < 3 and (words[0] in {"import", "from"}):
         if len(words) == 1:
             return get_root_modules()
-        mod = words[1].split('.')
+        mod = words[1].split(".")
         if len(mod) < 2:
             return filter_prefix(get_root_modules(), words[-1])
-        completion_list = try_import('.'.join(mod[:-1]), only_modules=True)
-        completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
+        completion_list = try_import(".".join(mod[:-1]), only_modules=True)
+        completion_list = [".".join(mod[:-1] + [el]) for el in completion_list]
         return filter_prefix(completion_list, words[-1])
-    if len(words) >= 3 and words[0] == 'from':
+    if len(words) >= 3 and words[0] == "from":
         mod = words[1]
         return filter_prefix(try_import(mod), words[-1])
 
