@@ -13,12 +13,14 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(ViewLayerTesting):
     def test_view_layer_rename(self):
         """
         See if we can rename view layers.
         """
         import bpy
+
         view_layer = bpy.context.view_layer
         print("View layer name: " + view_layer.name)
         view_layer.name = "New Name"
@@ -28,6 +30,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

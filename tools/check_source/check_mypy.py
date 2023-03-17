@@ -29,8 +29,8 @@ def is_source(filename: str) -> bool:
 
 
 def path_iter(
-        path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
+    path: str,
+    filename_check: Optional[Callable[[str], bool]] = None,
 ) -> Generator[str, None, None]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip ".git"
@@ -45,8 +45,8 @@ def path_iter(
 
 
 def path_expand_with_args(
-        paths_and_args: Tuple[FileAndArgs, ...],
-        filename_check: Optional[Callable[[str], bool]] = None,
+    paths_and_args: Tuple[FileAndArgs, ...],
+    filename_check: Optional[Callable[[str], bool]] = None,
 ) -> Generator[FileAndArgs, None, None]:
     for f_and_args in paths_and_args:
         f, f_args = f_and_args[0], f_and_args[1:]
