@@ -33,7 +33,7 @@ def usage():
     message += "\n%s input-file (.txt|.py) order-priority (%s).\n" % (font_bold(scriptname), sort_choices_string)
     message += "%s -h for help\n" % font_bold(scriptname)
     print(message)
-    exit()
+    sys.exit()
 
 
 def help():
