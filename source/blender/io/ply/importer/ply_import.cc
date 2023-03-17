@@ -14,7 +14,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_fileops.hh"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 
@@ -22,53 +21,137 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ply_data.hh"
-#include "ply_functions.hh"
 #include "ply_import.hh"
-#include "ply_import_ascii.hh"
-#include "ply_import_binary.hh"
+#include "ply_import_buffer.hh"
+#include "ply_import_data.hh"
 #include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
 
-void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli)
+/* If line starts with keyword, returns true and drops it from the line. */
+static bool parse_keyword(Span<char> &str, StringRef keyword)
 {
-  int pos;
-
-  while ((pos = int(str.find(deli))) != std::string::npos) {
-    words.append(str.substr(0, pos));
-    str.erase(0, pos + deli.size());
+  const size_t keyword_len = keyword.size();
+  if (str.size() < keyword_len) {
+    return false;
   }
-  /* We add the final word to the vector. */
-  words.append(str.substr());
+  if (memcmp(str.data(), keyword.data(), keyword_len) != 0) {
+    return false;
+  }
+  str = str.drop_front(keyword_len);
+  return true;
 }
 
-enum PlyDataTypes from_string(const StringRef &input)
+static Span<char> parse_word(Span<char> &str)
 {
-  if (input == "uchar") {
+  size_t len = 0;
+  while (len < str.size() && str[len] > ' ') {
+    ++len;
+  }
+  Span<char> word(str.begin(), len);
+  str = str.drop_front(len);
+  return word;
+}
+
+static void skip_space(Span<char> &str)
+{
+  while (!str.is_empty() && str[0] <= ' ')
+    str = str.drop_front(1);
+}
+
+static PlyDataTypes type_from_string(Span<char> word)
+{
+  StringRef input(word.data(), word.size());
+  if (input == "uchar" || input == "uint8") {
     return PlyDataTypes::UCHAR;
   }
-  if (input == "char") {
+  if (input == "char" || input == "int8") {
     return PlyDataTypes::CHAR;
   }
-  if (input == "ushort") {
+  if (input == "ushort" || input == "uint16") {
     return PlyDataTypes::USHORT;
   }
-  if (input == "short") {
+  if (input == "short" || input == "int16") {
     return PlyDataTypes::SHORT;
   }
-  if (input == "uint") {
+  if (input == "uint" || input == "uint32") {
     return PlyDataTypes::UINT;
   }
-  if (input == "int") {
+  if (input == "int" || input == "int32") {
     return PlyDataTypes::INT;
   }
-  if (input == "float") {
+  if (input == "float" || input == "float32") {
     return PlyDataTypes::FLOAT;
   }
-  if (input == "double") {
+  if (input == "double" || input == "float64") {
     return PlyDataTypes::DOUBLE;
   }
-  return PlyDataTypes::FLOAT;
+  return PlyDataTypes::NONE;
+}
+
+const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
+{
+  Span<char> word, line;
+  line = file.read_line();
+  if (StringRef(line.data(), line.size()) != "ply") {
+    return "Invalid PLY header.";
+  }
+
+  while (true) { /* We break when end_header is encountered. */
+    line = file.read_line();
+
+    if (parse_keyword(line, "format")) {
+      skip_space(line);
+      if (parse_keyword(line, "ascii")) {
+        r_header.type = PlyFormatType::ASCII;
+      }
+      else if (parse_keyword(line, "binary_big_endian")) {
+        r_header.type = PlyFormatType::BINARY_BE;
+      }
+      else if (parse_keyword(line, "binary_little_endian")) {
+        r_header.type = PlyFormatType::BINARY_LE;
+      }
+    }
+    else if (parse_keyword(line, "element")) {
+      PlyElement element;
+
+      skip_space(line);
+      word = parse_word(line);
+      element.name = std::string(word.data(), word.size());
+      skip_space(line);
+      word = parse_word(line);
+      element.count = std::stoi(std::string(word.data(), word.size()));
+      r_header.elements.append(element);
+    }
+    else if (parse_keyword(line, "property")) {
+      PlyProperty property;
+      skip_space(line);
+      if (parse_keyword(line, "list")) {
+        skip_space(line);
+        property.count_type = type_from_string(parse_word(line));
+      }
+      skip_space(line);
+      property.type = type_from_string(parse_word(line));
+      skip_space(line);
+      word = parse_word(line);
+      property.name = std::string(word.data(), word.size());
+      r_header.elements.last().properties.append(property);
+    }
+    else if (parse_keyword(line, "end_header")) {
+      break;
+    }
+    else if (line.is_empty() || (line.first() >= '0' && line.first() <= '9') ||
+             line.first() == '-') {
+      /* A value was found before we broke out of the loop. No end_header. */
+      return "No end_header.";
+    }
+  }
+
+  file.after_header(r_header.type != PlyFormatType::ASCII);
+  for (PlyElement &el : r_header.elements) {
+    el.calc_stride();
+  }
+  return nullptr;
 }
 
 void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op)
@@ -85,75 +168,42 @@ void importer_main(Main *bmain,
                    const PLYImportParams &import_params,
                    wmOperator *op)
 {
-
-  std::string line;
-  fstream infile(import_params.filepath, std::ios::in | std::ios::binary);
-
-  PlyHeader header;
-
-  while (true) { /* We break when end_header is encountered. */
-    safe_getline(infile, line);
-    if (header.header_size == 0 && line != "ply") {
-      fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
-      BKE_report(op->reports, RPT_ERROR, "PLY Importer: Invalid PLY header.");
-      return;
-    }
-    header.header_size++;
-    Vector<std::string> words{};
-    splitstr(line, words, " ");
-
-    if (STREQ(words[0].c_str(), "format")) {
-      if (STREQ(words[1].c_str(), "ascii")) {
-        header.type = PlyFormatType::ASCII;
-      }
-      else if (STREQ(words[1].c_str(), "binary_big_endian")) {
-        header.type = PlyFormatType::BINARY_BE;
-      }
-      else if (STREQ(words[1].c_str(), "binary_little_endian")) {
-        header.type = PlyFormatType::BINARY_LE;
-      }
-    }
-    else if (STREQ(words[0].c_str(), "element")) {
-      header.elements.append(std::make_pair(words[1], std::stoi(words[2])));
-      if (STREQ(words[1].c_str(), "vertex")) {
-        header.vertex_count = std::stoi(words[2]);
-      }
-      else if (STREQ(words[1].c_str(), "face")) {
-        header.face_count = std::stoi(words[2]);
-      }
-      else if (STREQ(words[1].c_str(), "edge")) {
-        header.edge_count = std::stoi(words[2]);
-      }
-    }
-    else if (STREQ(words[0].c_str(), "property")) {
-      std::pair<std::string, PlyDataTypes> property;
-      property.first = words[2];
-      property.second = from_string(words[1]);
-
-      while (header.properties.size() < header.elements.size()) {
-        Vector<std::pair<std::string, PlyDataTypes>> temp;
-        header.properties.append(temp);
-      }
-      header.properties[header.elements.size() - 1].append(property);
-    }
-    else if (words[0] == "end_header") {
-      break;
-    }
-    else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() ||
-             infile.eof()) {
-      /* A value was found before we broke out of the loop. No end_header. */
-      BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
-      return;
-    }
-  }
-
-  /* Name used for both mesh and object. */
+  /* File base name used for both mesh and object. */
   char ob_name[FILE_MAX];
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
-  Mesh *mesh = BKE_mesh_add(bmain, ob_name);
+  /* Parse header. */
+  PlyReadBuffer file(import_params.filepath, 64 * 1024);
 
+  PlyHeader header;
+  const char *err = read_header(file, header);
+  if (err != nullptr) {
+    fprintf(stderr, "PLY Importer: %s: %s\n", ob_name, err);
+    BKE_reportf(op->reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name, err);
+    return;
+  }
+
+  /* Parse actual file data. */
+  std::unique_ptr<PlyData> data = import_ply_data(file, header);
+  if (data == nullptr) {
+    fprintf(stderr, "PLY Importer: failed importing %s, unknown error\n", ob_name);
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, unknown error.");
+    return;
+  }
+  if (!data->error.empty()) {
+    fprintf(stderr, "PLY Importer: failed importing %s: %s\n", ob_name, data->error.c_str());
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, unknown error.");
+    return;
+  }
+  if (data->vertices.is_empty()) {
+    fprintf(stderr, "PLY Importer: file %s contains no vertices\n", ob_name);
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, no vertices.");
+    return;
+  }
+
+  /* Create mesh and do all prep work. */
+  Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
@@ -163,26 +213,13 @@ void importer_main(Main *bmain,
   Base *base = BKE_view_layer_base_find(view_layer, obj);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
-  try {
-    std::unique_ptr<PlyData> data;
-    if (header.type == PlyFormatType::ASCII) {
-      data = import_ply_ascii(infile, &header);
-    }
-    else {
-      data = import_ply_binary(infile, &header);
-    }
-
-    Mesh *temp_val = convert_ply_to_mesh(*data, mesh, import_params);
-    if (import_params.merge_verts && temp_val != mesh) {
-      BKE_mesh_nomain_to_mesh(temp_val, mesh, obj);
-    }
-  }
-  catch (std::exception &e) {
-    fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
-    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
-    return;
+  /* Stuff ply data into the mesh. */
+  Mesh *temp_val = convert_ply_to_mesh(*data, mesh, import_params);
+  if (import_params.merge_verts && temp_val != mesh) {
+    BKE_mesh_nomain_to_mesh(temp_val, mesh, obj);
   }
 
+  /* Object matrix and finishing up. */
   float global_scale = import_params.global_scale;
   if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {
     global_scale *= scene->unit.scale_length;
@@ -205,7 +242,5 @@ void importer_main(Main *bmain,
   DEG_id_tag_update_ex(bmain, &obj->id, flags);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
-
-  infile.close();
 }
 }  // namespace blender::io::ply

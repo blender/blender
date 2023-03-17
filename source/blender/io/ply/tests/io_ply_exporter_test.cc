@@ -21,7 +21,7 @@
 
 namespace blender::io::ply {
 
-class PlyExportTest : public BlendfileLoadingBaseTest {
+class ply_export_test : public BlendfileLoadingBaseTest {
  public:
   bool load_file_and_depsgraph(const std::string &filepath,
                                const eEvaluationMode eval_mode = DAG_EVAL_VIEWPORT)
@@ -68,8 +68,9 @@ static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
       {-1.122082, -1.122082, -1.122082},
   };
 
-  plyData->faces = {
-      {0, 2, 6, 4}, {3, 7, 6, 2}, {7, 5, 4, 6}, {5, 7, 3, 1}, {1, 3, 2, 0}, {5, 1, 0, 4}};
+  plyData->face_sizes = {4, 4, 4, 4, 4, 4};
+  plyData->face_vertices = {0, 2, 6, 4, 3, 7, 6, 2, 7, 5, 4, 6,
+                            5, 7, 3, 1, 1, 3, 2, 0, 5, 1, 0, 4};
 
   if (params.export_normals)
     plyData->vertex_normals = {
@@ -126,7 +127,7 @@ static std::vector<char> read_temp_file_in_vectorchar(const std::string &file_pa
   return res;
 }
 
-TEST_F(PlyExportTest, WriteHeaderAscii)
+TEST_F(ply_export_test, WriteHeaderAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -164,7 +165,7 @@ TEST_F(PlyExportTest, WriteHeaderAscii)
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
 
-TEST_F(PlyExportTest, WriteHeaderBinary)
+TEST_F(ply_export_test, WriteHeaderBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -202,7 +203,7 @@ TEST_F(PlyExportTest, WriteHeaderBinary)
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
 
-TEST_F(PlyExportTest, WriteVerticesAscii)
+TEST_F(ply_export_test, WriteVerticesAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -234,7 +235,7 @@ TEST_F(PlyExportTest, WriteVerticesAscii)
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
 
-TEST_F(PlyExportTest, WriteVerticesBinary)
+TEST_F(ply_export_test, WriteVerticesBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -270,7 +271,7 @@ TEST_F(PlyExportTest, WriteVerticesBinary)
   }
 }
 
-TEST_F(PlyExportTest, WriteFacesAscii)
+TEST_F(ply_export_test, WriteFacesAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -300,7 +301,7 @@ TEST_F(PlyExportTest, WriteFacesAscii)
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
 
-TEST_F(PlyExportTest, WriteFacesBinary)
+TEST_F(ply_export_test, WriteFacesBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -336,7 +337,7 @@ TEST_F(PlyExportTest, WriteFacesBinary)
   }
 }
 
-TEST_F(PlyExportTest, WriteVertexNormalsAscii)
+TEST_F(ply_export_test, WriteVertexNormalsAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -368,7 +369,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsAscii)
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
 
-TEST_F(PlyExportTest, WriteVertexNormalsBinary)
+TEST_F(ply_export_test, WriteVertexNormalsBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
   PLYExportParams _params = {};
@@ -410,7 +411,7 @@ TEST_F(PlyExportTest, WriteVertexNormalsBinary)
   }
 }
 
-class ply_exporter_ply_data_test : public PlyExportTest {
+class ply_exporter_ply_data_test : public ply_export_test {
  public:
   PlyData load_ply_data_from_blendfile(const std::string &blendfile, PLYExportParams &params)
   {

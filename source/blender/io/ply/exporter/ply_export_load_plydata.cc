@@ -120,11 +120,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
 
     /* Load faces into plyData. */
+    plyData.face_vertices.reserve(mesh->totloop);
+    plyData.face_sizes.reserve(mesh->totpoly);
     int loop_offset = 0;
     const Span<MLoop> loops = mesh->loops();
     for (const MPoly &poly : mesh->polys()) {
       const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-      Array<uint32_t> poly_verts(poly_loops.size());
 
       for (int i = 0; i < poly_loops.size(); ++i) {
         float2 uv;
@@ -136,11 +137,10 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         }
         UV_vertex_key key = UV_vertex_key(uv, poly_loops[i].v);
         int ply_vertex_index = vertex_map.lookup(key);
-        poly_verts[i] = (uint32_t(ply_vertex_index + vertex_offset));
+        plyData.face_vertices.append(ply_vertex_index + vertex_offset);
       }
-      loop_offset += poly_loops.size();
-
-      plyData.faces.append(std::move(poly_verts));
+      loop_offset += poly.totloop;
+      plyData.face_sizes.append(poly.totloop);
     }
 
     Array<int> mesh_vertex_index_LUT(vertex_map.size());
