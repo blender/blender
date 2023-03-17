@@ -387,7 +387,7 @@ TEST(BKE_fcurve, BKE_fcurve_calc_range)
   /* Curve samples. */
   const int sample_start = 1;
   const int sample_end = 20;
-  fcurve_store_samples(fcu, NULL, sample_start, sample_end, fcurve_samplingcb_evalcurve);
+  fcurve_store_samples(fcu, nullptr, sample_start, sample_end, fcurve_samplingcb_evalcurve);
 
   success = BKE_fcurve_calc_range(fcu, &min, &max, true);
   EXPECT_TRUE(success) << "FCurve samples should have a range.";
@@ -421,8 +421,11 @@ TEST(BKE_fcurve, BKE_fcurve_calc_bounds)
   bool success;
 
   /* All keys. */
-  success = BKE_fcurve_calc_bounds(
-      fcu, false /* select only */, false /* include handles */, NULL /* frame range */, &bounds);
+  success = BKE_fcurve_calc_bounds(fcu,
+                                   false /* select only */,
+                                   false /* include handles */,
+                                   nullptr /* frame range */,
+                                   &bounds);
   EXPECT_TRUE(success) << "A non-empty FCurve should have bounds.";
   EXPECT_FLOAT_EQ(fcu->bezt[0].vec[1][0], bounds.xmin);
   EXPECT_FLOAT_EQ(fcu->bezt[4].vec[1][0], bounds.xmax);
@@ -430,16 +433,22 @@ TEST(BKE_fcurve, BKE_fcurve_calc_bounds)
   EXPECT_FLOAT_EQ(fcu->bezt[2].vec[1][1], bounds.ymax);
 
   /* Only selected. */
-  success = BKE_fcurve_calc_bounds(
-      fcu, true /* select only */, false /* include handles */, NULL /* frame range */, &bounds);
+  success = BKE_fcurve_calc_bounds(fcu,
+                                   true /* select only */,
+                                   false /* include handles */,
+                                   nullptr /* frame range */,
+                                   &bounds);
   EXPECT_FALSE(success)
       << "Using selected keyframes only should not find bounds if nothing is selected.";
 
   fcu->bezt[1].f2 |= SELECT;
   fcu->bezt[3].f2 |= SELECT;
 
-  success = BKE_fcurve_calc_bounds(
-      fcu, true /* select only */, false /* include handles */, NULL /* frame range */, &bounds);
+  success = BKE_fcurve_calc_bounds(fcu,
+                                   true /* select only */,
+                                   false /* include handles */,
+                                   nullptr /* frame range */,
+                                   &bounds);
   EXPECT_TRUE(success) << "Selected keys should have been found.";
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], bounds.xmin);
   EXPECT_FLOAT_EQ(fcu->bezt[3].vec[1][0], bounds.xmax);
@@ -447,8 +456,11 @@ TEST(BKE_fcurve, BKE_fcurve_calc_bounds)
   EXPECT_FLOAT_EQ(fcu->bezt[3].vec[1][1], bounds.ymax);
 
   /* Including handles. */
-  success = BKE_fcurve_calc_bounds(
-      fcu, false /* select only */, true /* include handles */, NULL /* frame range */, &bounds);
+  success = BKE_fcurve_calc_bounds(fcu,
+                                   false /* select only */,
+                                   true /* include handles */,
+                                   nullptr /* frame range */,
+                                   &bounds);
   EXPECT_TRUE(success) << "A non-empty FCurve should have bounds including handles.";
   EXPECT_FLOAT_EQ(fcu->bezt[0].vec[0][0], bounds.xmin);
   EXPECT_FLOAT_EQ(fcu->bezt[4].vec[2][0], bounds.xmax);
@@ -499,10 +511,13 @@ TEST(BKE_fcurve, BKE_fcurve_calc_bounds)
   /* Curve samples. */
   const int sample_start = 1;
   const int sample_end = 20;
-  fcurve_store_samples(fcu, NULL, sample_start, sample_end, fcurve_samplingcb_evalcurve);
+  fcurve_store_samples(fcu, nullptr, sample_start, sample_end, fcurve_samplingcb_evalcurve);
 
-  success = BKE_fcurve_calc_bounds(
-      fcu, false /* select only */, false /* include handles */, NULL /* frame range */, &bounds);
+  success = BKE_fcurve_calc_bounds(fcu,
+                                   false /* select only */,
+                                   false /* include handles */,
+                                   nullptr /* frame range */,
+                                   &bounds);
   EXPECT_TRUE(success) << "FCurve samples should have a range.";
 
   EXPECT_FLOAT_EQ(sample_start, bounds.xmin);

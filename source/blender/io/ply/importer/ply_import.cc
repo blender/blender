@@ -102,30 +102,30 @@ void importer_main(Main *bmain,
     Vector<std::string> words{};
     splitstr(line, words, " ");
 
-    if (strcmp(words[0].c_str(), "format") == 0) {
-      if (strcmp(words[1].c_str(), "ascii") == 0) {
+    if (STREQ(words[0].c_str(), "format")) {
+      if (STREQ(words[1].c_str(), "ascii")) {
         header.type = PlyFormatType::ASCII;
       }
-      else if (strcmp(words[1].c_str(), "binary_big_endian") == 0) {
+      else if (STREQ(words[1].c_str(), "binary_big_endian")) {
         header.type = PlyFormatType::BINARY_BE;
       }
-      else if (strcmp(words[1].c_str(), "binary_little_endian") == 0) {
+      else if (STREQ(words[1].c_str(), "binary_little_endian")) {
         header.type = PlyFormatType::BINARY_LE;
       }
     }
-    else if (strcmp(words[0].c_str(), "element") == 0) {
+    else if (STREQ(words[0].c_str(), "element")) {
       header.elements.append(std::make_pair(words[1], std::stoi(words[2])));
-      if (strcmp(words[1].c_str(), "vertex") == 0) {
+      if (STREQ(words[1].c_str(), "vertex")) {
         header.vertex_count = std::stoi(words[2]);
       }
-      else if (strcmp(words[1].c_str(), "face") == 0) {
+      else if (STREQ(words[1].c_str(), "face")) {
         header.face_count = std::stoi(words[2]);
       }
-      else if (strcmp(words[1].c_str(), "edge") == 0) {
+      else if (STREQ(words[1].c_str(), "edge")) {
         header.edge_count = std::stoi(words[2]);
       }
     }
-    else if (strcmp(words[0].c_str(), "property") == 0) {
+    else if (STREQ(words[0].c_str(), "property")) {
       std::pair<std::string, PlyDataTypes> property;
       property.first = words[2];
       property.second = from_string(words[1]);

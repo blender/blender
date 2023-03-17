@@ -209,7 +209,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
     if (x_res > 0.0f && y_res > 0.0f) {
       double scale = 1.0;
       auto unit = spec.get_string_attribute("ResolutionUnit", "");
-      if (unit == "in" || unit == "inch") {
+      if (ELEM(unit, "in", "inch")) {
         scale = 100.0 / 2.54;
       }
       else if (unit == "cm") {

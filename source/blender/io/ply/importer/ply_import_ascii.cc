@@ -187,7 +187,7 @@ int get_index(const PlyHeader *header, std::string property, PlyDataTypes dataty
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
   const std::pair<std::string, blender::io::ply::PlyDataTypes> *it = std::find(
       header->properties[0].begin(), header->properties[0].end(), pair);
-  return (int)(it - header->properties[0].begin());
+  return int(it - header->properties[0].begin());
 }
 
 Vector<std::string> explode(const StringRef str, const char &ch)
