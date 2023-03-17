@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(MoveSceneCollectionSyncTesting):
     def get_reference_scene_tree_map(self):
@@ -25,6 +24,7 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
         Test outliner operations
         """
         import bpy
+
         master_collection = bpy.context.scene.master_collection
 
         tree = self.setup_tree()
@@ -40,6 +40,6 @@ class UnitTesting(MoveSceneCollectionSyncTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

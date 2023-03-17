@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -15,12 +13,14 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(ViewLayerTesting):
     def test_object_link_scene(self):
         """
         See if we can link objects
         """
         import bpy
+
         master_collection = bpy.context.scene.master_collection
         self.do_object_link(master_collection)
 
@@ -29,6 +29,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()
