@@ -44,7 +44,7 @@ typedef struct CfraElem {
 /* ************** F-Curve Modifiers *************** */
 
 /**
- * F-Curve Modifier Type-Info (fmi):
+ * F-Curve Modifier Type-Info (`fmi`):
  * This struct provides function pointers for runtime, so that functions can be
  * written more generally (with fewer/no special exceptions for various modifiers).
  *

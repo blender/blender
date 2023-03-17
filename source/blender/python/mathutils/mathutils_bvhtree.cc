@@ -803,7 +803,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
     }
     *p_plink_prev = nullptr;
 
-    /* all ngon's are parsed, now tessellate */
+    /* All NGON's are parsed, now tessellate. */
 
     pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
     tris = static_cast<uint(*)[3]>(MEM_mallocN(sizeof(*tris) * size_t(tris_len), __func__));
