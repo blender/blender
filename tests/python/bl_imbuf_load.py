@@ -44,7 +44,7 @@ class ImBufTest(AbstractImBufTest):
                 failed = not (actual_metadata == expected_metadata)
             except BaseException as e:
                 if self.verbose:
-                    print_message(e.output.decode("utf-8", 'ignore'))
+                    print_message(e.output.decode("utf-8", "ignore"))
                 failed = True
         else:
             if not self.update:
@@ -80,7 +80,7 @@ class ImBufTest(AbstractImBufTest):
             self.fail(f"No images found for pattern {file_pattern}")
 
         for image_path in image_files:
-            print_message(image_path.name, 'SUCCESS', 'RUN')
+            print_message(image_path.name, "SUCCESS", "RUN")
 
             # Load the image under test
             bpy.ops.image.open(filepath=str(image_path))
@@ -101,9 +101,9 @@ class ImBufTest(AbstractImBufTest):
             if not res1 or not res2:
                 self.errors += 1
                 print_message("Results are different from reference data")
-                print_message(image_path.name, 'FAILURE', 'FAILED')
+                print_message(image_path.name, "FAILURE", "FAILED")
             else:
-                print_message(image_path.name, 'SUCCESS', 'OK')
+                print_message(image_path.name, "SUCCESS", "OK")
 
 
 class ImBufLoadTest(ImBufTest):
@@ -160,20 +160,20 @@ def main():
     global args
     import argparse
 
-    if '--' in sys.argv:
-        argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]
+    if "--" in sys.argv:
+        argv = [sys.argv[0]] + sys.argv[sys.argv.index("--") + 1:]
     else:
         argv = sys.argv
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-test_dir', required=True, type=pathlib.Path)
-    parser.add_argument('-output_dir', required=True, type=pathlib.Path)
-    parser.add_argument('-idiff', required=True, type=pathlib.Path)
-    parser.add_argument('-optional_formats', required=True)
+    parser.add_argument("-test_dir", required=True, type=pathlib.Path)
+    parser.add_argument("-output_dir", required=True, type=pathlib.Path)
+    parser.add_argument("-idiff", required=True, type=pathlib.Path)
+    parser.add_argument("-optional_formats", required=True)
     args, remaining = parser.parse_known_args(argv)
 
     unittest.main(argv=remaining)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

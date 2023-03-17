@@ -22,77 +22,57 @@ USE_EXACT_COMPARE = False
 defs_precalc = {
     "glColor3bv": {0: 3},
     "glColor4bv": {0: 4},
-
     "glColor3ubv": {0: 3},
     "glColor4ubv": {0: 4},
-
     "glColor3usv": {0: 3},
     "glColor4usv": {0: 4},
-
     "glColor3fv": {0: 3},
     "glColor4fv": {0: 4},
-
     "glColor3dv": {0: 3},
     "glColor4dv": {0: 4},
-
     "glVertex2fv": {0: 2},
     "glVertex3fv": {0: 3},
     "glVertex4fv": {0: 4},
-
     "glEvalCoord1fv": {0: 1},
     "glEvalCoord1dv": {0: 1},
     "glEvalCoord2fv": {0: 2},
     "glEvalCoord2dv": {0: 2},
-
     "glRasterPos2dv": {0: 2},
     "glRasterPos3dv": {0: 3},
     "glRasterPos4dv": {0: 4},
-
     "glRasterPos2fv": {0: 2},
     "glRasterPos3fv": {0: 3},
     "glRasterPos4fv": {0: 4},
-
     "glRasterPos2sv": {0: 2},
     "glRasterPos3sv": {0: 3},
     "glRasterPos4sv": {0: 4},
-
     "glTexCoord2fv": {0: 2},
     "glTexCoord3fv": {0: 3},
     "glTexCoord4fv": {0: 4},
-
     "glTexCoord2dv": {0: 2},
     "glTexCoord3dv": {0: 3},
     "glTexCoord4dv": {0: 4},
-
     "glNormal3fv": {0: 3},
     "glNormal3dv": {0: 3},
     "glNormal3bv": {0: 3},
     "glNormal3iv": {0: 3},
     "glNormal3sv": {0: 3},
-
     # GPU immediate mode.
     "immVertex2iv": {1: 2},
-
     "immVertex2fv": {1: 2},
     "immVertex3fv": {1: 3},
-
     "immAttr2fv": {1: 2},
     "immAttr3fv": {1: 3},
     "immAttr4fv": {1: 4},
-
     "immAttr3ubv": {1: 3},
     "immAttr4ubv": {1: 4},
-
     "immUniform2fv": {1: 2},
     "immUniform3fv": {1: 3},
     "immUniform4fv": {1: 4},
-
     "immUniformColor3fv": {0: 3},
     "immUniformColor4fv": {0: 4},
-
     "immUniformColor3ubv": {1: 3},
     "immUniformColor4ubv": {1: 4},
-
     "immUniformColor3fvAlpha": {0: 3},
     "immUniformColor4fvAlpha": {0: 4},
 }
@@ -111,6 +91,7 @@ if 0:
     CLANG_LIB_DIR = "/opt/llvm/lib"
 else:
     import os
+
     CLANG_BIND_DIR = os.environ.get("CLANG_BIND_DIR")
     CLANG_LIB_DIR = os.environ.get("CLANG_LIB_DIR")
 
@@ -124,9 +105,7 @@ if CLANG_BIND_DIR:
 
 import clang
 import clang.cindex
-from clang.cindex import (CursorKind,
-                          TypeKind,
-                          TokenKind)
+from clang.cindex import CursorKind, TypeKind, TokenKind
 
 if CLANG_LIB_DIR:
     clang.cindex.Config.set_library_path(CLANG_LIB_DIR)
@@ -145,10 +124,11 @@ filepath = tu.spelling
 
 def function_parm_wash_tokens(parm):
     # print(parm.kind)
-    assert parm.kind in (CursorKind.PARM_DECL,
-                         CursorKind.VAR_DECL,  # XXX, double check this
-                         CursorKind.FIELD_DECL,
-                         )
+    assert parm.kind in (
+        CursorKind.PARM_DECL,
+        CursorKind.VAR_DECL,  # XXX, double check this
+        CursorKind.FIELD_DECL,
+    )
 
     """
     Return tokens without trailing commands and 'const'
@@ -176,13 +156,11 @@ def function_parm_wash_tokens(parm):
                 ok = False
             elif t_spelling.startswith("__"):
                 ok = False  # __restrict
-        elif t_kind in (TokenKind.COMMENT, ):
+        elif t_kind in (TokenKind.COMMENT,):
             ok = False
 
             # Use these
-        elif t_kind in (TokenKind.LITERAL,
-                        TokenKind.PUNCTUATION,
-                        TokenKind.IDENTIFIER):
+        elif t_kind in (TokenKind.LITERAL, TokenKind.PUNCTUATION, TokenKind.IDENTIFIER):
             # use but ignore
             pass
 
@@ -202,9 +180,13 @@ def parm_size(node_child):
 
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
     if len(tokens) >= 3:  # foo [ 1 ]
-        if ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
-            (tokens[-2].kind == TokenKind.LITERAL and tokens[-2].spelling.isdigit()) and
-                (tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]")):
+        if (
+            (tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[")
+            and (tokens[-2].kind == TokenKind.LITERAL and tokens[-2].spelling.isdigit())
+            and (
+                tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]"
+            )
+        ):
             # ---
             return int(tokens[-2].spelling)
     return -1
@@ -216,11 +198,13 @@ def function_get_arg_sizes(node):
     arg_sizes = {}
 
     if 1:  # node.spelling == "BM_vert_create", for debugging
-        node_parms = [node_child for node_child in node.get_children()
-                      if node_child.kind == CursorKind.PARM_DECL]
+        node_parms = [
+            node_child
+            for node_child in node.get_children()
+            if node_child.kind == CursorKind.PARM_DECL
+        ]
 
         for i, node_child in enumerate(node_parms):
-
             # print(node_child.kind, node_child.spelling)
             # print(node_child.type.kind, node_child.spelling)
             if node_child.type.kind == TypeKind.CONSTANTARRAY:
@@ -245,11 +229,11 @@ def lookup_function_size_def(func_id):
     else:
         return _defs.get(func_id, {})
 
+
 # -----------------------------------------------------------------------------
 
 
 def file_check_arg_sizes(tu):
-
     # main checking function
     def validate_arg_size(node):
         """
@@ -258,11 +242,15 @@ def file_check_arg_sizes(tu):
         assert node.kind == CursorKind.CALL_EXPR
 
         if 0:
-            print("---",
-                  " <~> ".join(
-                      [" ".join([t.spelling for t in C.get_tokens()])
-                       for C in node.get_children()]
-                  ))
+            print(
+                "---",
+                " <~> ".join(
+                    [
+                        " ".join([t.spelling for t in C.get_tokens()])
+                        for C in node.get_children()
+                    ]
+                ),
+            )
         # print(node.location)
 
         # first child is the function call, skip that.
@@ -309,9 +297,7 @@ def file_check_arg_sizes(tu):
 
             if len(children) == 1:
                 arg = children[0]
-                if arg.kind in (CursorKind.DECL_REF_EXPR,
-                                CursorKind.UNEXPOSED_EXPR):
-
+                if arg.kind in (CursorKind.DECL_REF_EXPR, CursorKind.UNEXPOSED_EXPR):
                     if arg.type.kind == TypeKind.CONSTANTARRAY:
                         dec = arg.get_definition()
                         if dec:
@@ -319,33 +305,43 @@ def file_check_arg_sizes(tu):
 
                             # size == 0 is for 'float *a'
                             if size != -1 and size != 0:
-
                                 # nice print!
                                 if 0:
-                                    print("".join([t.spelling for t in func.get_tokens()]),
-                                          i,
-                                          " ".join([t.spelling for t in dec.get_tokens()]))
+                                    print(
+                                        "".join(
+                                            [t.spelling for t in func.get_tokens()]
+                                        ),
+                                        i,
+                                        " ".join(
+                                            [t.spelling for t in dec.get_tokens()]
+                                        ),
+                                    )
 
                                 # testing
                                 # size_def = 100
                                 if size != 1:
                                     if USE_EXACT_COMPARE:
                                         # is_err = (size != size_def) and (size != 4 and size_def != 3)
-                                        is_err = (size != size_def)
+                                        is_err = size != size_def
                                     else:
-                                        is_err = (size < size_def)
+                                        is_err = size < size_def
 
                                     if is_err:
                                         location = node.location
                                         # if "math_color_inline.c" not in str(location.file):
                                         if 1:
-                                            print("%s:%d:%d: argument %d is size %d, should be %d (from %s)" %
-                                                  (location.file,
-                                                   location.line,
-                                                   location.column,
-                                                   i + 1, size, size_def,
-                                                   filepath  # always the same but useful when running threaded
-                                                   ))
+                                            print(
+                                                "%s:%d:%d: argument %d is size %d, should be %d (from %s)"
+                                                % (
+                                                    location.file,
+                                                    location.line,
+                                                    location.column,
+                                                    i + 1,
+                                                    size,
+                                                    size_def,
+                                                    filepath,  # always the same but useful when running threaded
+                                                )
+                                            )
 
     # we don't really care what we are looking at, just scan entire file for
     # function calls.
@@ -362,8 +358,11 @@ def file_check_arg_sizes(tu):
 
 # -- first pass, cache function definitions sizes
 
+
 # PRINT FUNC DEFINES
-def recursive_arg_sizes(node, ):
+def recursive_arg_sizes(
+    node,
+):
     # print(node.kind, node.spelling)
     if node.kind == CursorKind.FUNCTION_DECL:
         if USE_LAZY_INIT:

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-'''
+"""
 Created compact byte arrays which can be decoded into 2D shapes.
 (See 'GPU_batch_from_poly_2d_encoded').
 
@@ -13,7 +13,7 @@ Repeating the same value terminates the polygon, moving onto the next.
 Example Use::
 
    blender.bin -b --factory-startup my_shapes.blend --python make_shape_2d_from_blend.py
-'''
+"""
 import bpy
 import os
 
@@ -32,6 +32,7 @@ def float_to_ubyte(f):
 
 def curve_to_loops(ob):
     import bmesh
+
     cu = ob.data
 
     me = ob.to_mesh()
@@ -67,9 +68,7 @@ def curve_to_loops(ob):
         else:
             loops = reversed(f.loops)
         for l in loops:
-            points.append(
-                tuple(float_to_ubyte(axis) for axis in l.vert.co.xy)
-            )
+            points.append(tuple(float_to_ubyte(axis) for axis in l.vert.co.xy))
         data_all.append((points, f.material_index))
     bm.free()
     return data_all
@@ -78,7 +77,7 @@ def curve_to_loops(ob):
 def write_c(ob):
     cu = ob.data
     name = ob.name
-    with open(os.path.join(SUBDIR, name + ".c"), 'w') as fh:
+    with open(os.path.join(SUBDIR, name + ".c"), "w") as fh:
         fw = fh.write
         fw(f"/* {name} */\n")
         fw(f"const uchar {name}[] = {{")
@@ -86,7 +85,7 @@ def write_c(ob):
         line_is_first = True
         array_len = 0
         data_all = curve_to_loops(ob)
-        for (points, material_index) in data_all:
+        for points, material_index in data_all:
             # TODO, material_index
             for p in points + [points[-1]]:
                 line_len += 12
@@ -106,14 +105,14 @@ def write_c(ob):
 def write_py(ob):
     cu = ob.data
     name = ob.name
-    with open(os.path.join(SUBDIR, name + ".py"), 'w') as fh:
+    with open(os.path.join(SUBDIR, name + ".py"), "w") as fh:
         fw = fh.write
         fw(f"# {name}\n")
         fw("data = (")
         line_len = WRAP_LIMIT
         fw = fh.write
         data_all = curve_to_loops(ob)
-        for (points, material_index) in data_all:
+        for points, material_index in data_all:
             # TODO, material_index
             for p in points + [points[-1]]:
                 line_len += 8
@@ -129,9 +128,9 @@ def write_py(ob):
 def main():
     os.makedirs(SUBDIR, exist_ok=True)
     for ob in bpy.data.objects:
-        if ob.type not in {'MESH', 'CURVE'}:
+        if ob.type not in {"MESH", "CURVE"}:
             continue
-        if not ob.name.startswith('shape_'):
+        if not ob.name.startswith("shape_"):
             continue
         if USE_C_STYLE:
             write_c(ob)

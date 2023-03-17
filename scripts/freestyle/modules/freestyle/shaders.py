@@ -195,7 +195,9 @@ class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
         for svert in it:
             c = self._func(it)
             c = bound(self.threshold_min, c, self.threshold_max)
-            t = (self.threshold_max - c) / delta_threshold * delta_thickness + self._thicknessMin
+            t = (
+                self.threshold_max - c
+            ) / delta_threshold * delta_thickness + self._thicknessMin
             svert.attribute.thickness = (t / 2.0, t / 2.0)
 
 
@@ -244,7 +246,10 @@ class pyConstrainedIncreasingThicknessShader(StrokeShader):
                 t = (1.0 - c) * maxT + c * self._thicknessMin
 
             if i == (n - 1):
-                svert.attribute.thickness = (self._thicknessMin / 2.0, self._thicknessMin / 2.0)
+                svert.attribute.thickness = (
+                    self._thicknessMin / 2.0,
+                    self._thicknessMin / 2.0,
+                )
             else:
                 svert.attribute.thickness = (t / 2.0, t / 2.0)
 
@@ -310,9 +315,15 @@ class pySLERPThicknessShader(StrokeShader):
         for i, svert in enumerate(stroke):
             c = i / n
             if i < (n * 0.5):
-                t = sin((1 - c) * omega) / sinhyp * self._thicknessMin + sin(c * omega) / sinhyp * maxT
+                t = (
+                    sin((1 - c) * omega) / sinhyp * self._thicknessMin
+                    + sin(c * omega) / sinhyp * maxT
+                )
             else:
-                t = sin((1 - c) * omega) / sinhyp * maxT + sin(c * omega) / sinhyp * self._thicknessMin
+                t = (
+                    sin((1 - c) * omega) / sinhyp * maxT
+                    + sin(c * omega) / sinhyp * self._thicknessMin
+                )
             svert.attribute.thickness = (t / 2.0, t / 2.0)
 
 
@@ -332,13 +343,13 @@ class pyTVertexThickenerShader(StrokeShader):
 
         term = (a - 1.0) / (n - 1.0)
 
-        if (stroke[0].nature & Nature.T_VERTEX):
+        if stroke[0].nature & Nature.T_VERTEX:
             for count, svert in zip(range(n), stroke):
                 r = term * (n / (count + 1.0) - 1.0) + 1.0
                 (tr, tl) = svert.attribute.thickness
                 svert.attribute.thickness = (r * tr, r * tl)
 
-        if (stroke[-1].nature & Nature.T_VERTEX):
+        if stroke[-1].nature & Nature.T_VERTEX:
             for count, svert in zip(range(n), reversed(stroke)):
                 r = term * (n / (count + 1.0) - 1.0) + 1.0
                 (tr, tl) = svert.attribute.thickness
@@ -361,8 +372,11 @@ class pyImportance2DThicknessShader(StrokeShader):
     def shade(self, stroke):
         for svert in stroke:
             d = (svert.point_2d - self._origin).length
-            k = (self._kmin if (d > self._w) else
-                 (self._kmax * (self._w - d) + self._kmin * d) / self._w)
+            k = (
+                self._kmin
+                if (d > self._w)
+                else (self._kmax * (self._w - d) + self._kmin * d) / self._w
+            )
 
             (tr, tl) = svert.attribute.thickness
             svert.attribute.thickness = (k * tr / 2.0, k * tl / 2.0)
@@ -382,8 +396,11 @@ class pyImportance3DThicknessShader(StrokeShader):
     def shade(self, stroke):
         for svert in stroke:
             d = (svert.point_3d - self._origin).length
-            k = (self._kmin if (d > self._w) else
-                 (self._kmax * (self._w - d) + self._kmin * d) / self._w)
+            k = (
+                self._kmin
+                if (d > self._w)
+                else (self._kmax * (self._w - d) + self._kmin * d) / self._w
+            )
 
             (tr, tl) = svert.attribute.thickness
             svert.attribute.thickness = (k * tr / 2.0, k * tl / 2.0)
@@ -523,13 +540,13 @@ class pyMaterialColorShader(StrokeShader):
             u = 4.0 * X / (X + 15.0 * Y + 3.0 * Z)
             v = 9.0 * Y / (X + 15.0 * Y + 3.0 * Z)
 
-            L = 116. * pow((Y / Yn), (1. / 3.)) - 16
-            U = 13. * L * (u - un)
-            V = 13. * L * (v - vn)
+            L = 116.0 * pow((Y / Yn), (1.0 / 3.0)) - 16
+            U = 13.0 * L * (u - un)
+            V = 13.0 * L * (v - vn)
 
             if L > self._threshold:
                 L /= 1.3
-                U += 10.
+                U += 10.0
             else:
                 L = L + 2.5 * (100 - L) * 0.2
                 U /= 3.0
@@ -538,9 +555,9 @@ class pyMaterialColorShader(StrokeShader):
             u = U / (13.0 * L) + un
             v = V / (13.0 * L) + vn
 
-            Y = Yn * pow(((L + 16.) / 116.), 3.)
-            X = -9. * Y * u / ((u - 4.) * v - u * v)
-            Z = (9. * Y - 15 * v * Y - v * X) / (3. * v)
+            Y = Yn * pow(((L + 16.0) / 116.0), 3.0)
+            X = -9.0 * Y * u / ((u - 4.0) * v - u * v)
+            Z = (9.0 * Y - 15 * v * Y - v * X) / (3.0 * v)
 
             r = 3.240479 * X - 1.53715 * Y - 0.498535 * Z
             g = -0.969256 * X + 1.875991 * Y + 0.041556 * Z
@@ -563,9 +580,11 @@ class pyRandomColorShader(StrokeShader):
         random.seed = s
 
     def shade(self, stroke):
-        c = (random.uniform(15, 75) * 0.01,
-             random.uniform(15, 75) * 0.01,
-             random.uniform(15, 75) * 0.01)
+        c = (
+            random.uniform(15, 75) * 0.01,
+            random.uniform(15, 75) * 0.01,
+            random.uniform(15, 75) * 0.01,
+        )
         for svert in stroke:
             svert.attribute.color = c
 
@@ -695,7 +714,6 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
         self._l = l
 
     def shade(self, stroke):
-
         v0, v1 = stroke[0], stroke[1]
         vn, vn_1 = stroke[-1], stroke[-2]
 
@@ -729,7 +747,9 @@ class pyDiffusion2Shader(StrokeShader):
         for _i in range(1, self._nbIter):
             it = Interface0DIterator(stroke)
             for svert in it:
-                svert.point += self._normalInfo(it) * self._lambda * self._curvatureInfo(it)
+                svert.point += (
+                    self._normalInfo(it) * self._lambda * self._curvatureInfo(it)
+                )
         stroke.update_length()
 
 
@@ -746,14 +766,19 @@ class pyTipRemoverShader(StrokeShader):
     def check_vertex(v, length):
         # Returns True if the given strokevertex is less than self._l away
         # from the stroke's tip and therefore should be removed.
-        return (v.curvilinear_abscissa < length or v.stroke_length - v.curvilinear_abscissa < length)
+        return (
+            v.curvilinear_abscissa < length
+            or v.stroke_length - v.curvilinear_abscissa < length
+        )
 
     def shade(self, stroke):
         n = len(stroke)
         if n < 4:
             return
 
-        verticesToRemove = tuple(svert for svert in stroke if self.check_vertex(svert, self._l))
+        verticesToRemove = tuple(
+            svert for svert in stroke if self.check_vertex(svert, self._l)
+        )
         # explicit conversion to StrokeAttribute is needed
         oldAttributes = (StrokeAttribute(svert.attribute) for svert in stroke)
 
@@ -783,9 +808,9 @@ class pyTVertexRemoverShader(StrokeShader):
             return
 
         v0, vn = stroke[0], stroke[-1]
-        if (v0.nature & Nature.T_VERTEX):
+        if v0.nature & Nature.T_VERTEX:
             stroke.remove_vertex(v0)
-        if (vn.nature & Nature.T_VERTEX):
+        if vn.nature & Nature.T_VERTEX:
             stroke.remove_vertex(vn)
         stroke.update_length()
 
@@ -802,8 +827,8 @@ class pyHLRShader(StrokeShader):
 
         it = iter(stroke)
         for v1, v2 in zip(it, it.incremented()):
-            if (v1.nature & Nature.VIEW_VERTEX):
-                visible = (v1.get_fedge(v2).viewedge.qi != 0)
+            if v1.nature & Nature.VIEW_VERTEX:
+                visible = v1.get_fedge(v2).viewedge.qi != 0
             v1.attribute.visible = not visible
 
 
@@ -868,7 +893,9 @@ class pyPerlinNoise2DShader(StrokeShader):
 
     def shade(self, stroke):
         for svert in stroke:
-            nres = self.__noise.turbulence2(svert.point_2d, self.__freq, self.__amp, self.__oct)
+            nres = self.__noise.turbulence2(
+                svert.point_2d, self.__freq, self.__amp, self.__oct
+            )
             svert.point = (svert.projected_x + nres, svert.projected_y + nres)
         stroke.update_length()
 
@@ -886,7 +913,9 @@ class pyBluePrintCirclesShader(StrokeShader):
 
     def shade(self, stroke):
         # get minimum and maximum coordinates
-        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
+        p_min, p_max = BoundingBox.from_sequence(
+            svert.point for svert in stroke
+        ).corners
 
         stroke.resample(32 * self.__turns)
         sv_nb = len(stroke) // self.__turns
@@ -938,7 +967,9 @@ class pyBluePrintEllipsesShader(StrokeShader):
         self.__random_radius = random_radius
 
     def shade(self, stroke):
-        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
+        p_min, p_max = BoundingBox.from_sequence(
+            svert.point for svert in stroke
+        ).corners
 
         stroke.resample(32 * self.__turns)
         sv_nb = len(stroke) // self.__turns
@@ -985,7 +1016,9 @@ class pyBluePrintSquaresShader(StrokeShader):
             return
 
         # get minimum and maximum coordinates
-        p_min, p_max = BoundingBox.from_sequence(svert.point for svert in stroke).corners
+        p_min, p_max = BoundingBox.from_sequence(
+            svert.point for svert in stroke
+        ).corners
 
         stroke.resample(32 * self.__turns)
         num_segments = len(stroke) // self.__turns
@@ -1034,16 +1067,22 @@ class pyBluePrintSquaresShader(StrokeShader):
             for i, svert in zip(range(num_segments), it):
                 if i < first:
                     svert.point = points[0] + old_vecs[0] * i / (first - 1)
-                    svert.attribute.visible = (i != first - 1)
+                    svert.attribute.visible = i != first - 1
                 elif i < second:
-                    svert.point = points[2] + old_vecs[1] * (i - first) / (second - first - 1)
-                    svert.attribute.visible = (i != second - 1)
+                    svert.point = points[2] + old_vecs[1] * (i - first) / (
+                        second - first - 1
+                    )
+                    svert.attribute.visible = i != second - 1
                 elif i < third:
-                    svert.point = points[4] + old_vecs[2] * (i - second) / (third - second - 1)
-                    svert.attribute.visible = (i != third - 1)
+                    svert.point = points[4] + old_vecs[2] * (i - second) / (
+                        third - second - 1
+                    )
+                    svert.attribute.visible = i != third - 1
                 elif i < fourth:
-                    svert.point = points[6] + old_vecs[3] * (i - third) / (fourth - third - 1)
-                    svert.attribute.visible = (i != fourth - 1)
+                    svert.point = points[6] + old_vecs[3] * (i - third) / (
+                        fourth - third - 1
+                    )
+                    svert.attribute.visible = i != fourth - 1
                 else:
                     # special case; remove these vertices
                     verticesToRemove.append(svert)
@@ -1076,7 +1115,7 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
         p_var = Vector((0, 0))
         p_var_xy = 0.0
         for d in (svert.point - p_mean for svert in stroke):
-            p_var += Vector((d.x ** 2, d.y ** 2))
+            p_var += Vector((d.x**2, d.y**2))
             p_var_xy += d.x * d.y
 
         # divide by number of vertices
@@ -1094,11 +1133,21 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
         # Keep alignment for readability.
         # autopep8: off
         if p_var.y > p_var.x:
-            e1 = Vector((cos(theta + pi / 2), sin(theta + pi / 2))) * sqrt(lambda1) * self.__mult
-            e2 = Vector((cos(theta + pi    ), sin(theta + pi    ))) * sqrt(lambda2) * self.__mult
+            e1 = (
+                Vector((cos(theta + pi / 2), sin(theta + pi / 2)))
+                * sqrt(lambda1)
+                * self.__mult
+            )
+            e2 = (
+                Vector((cos(theta + pi), sin(theta + pi))) * sqrt(lambda2) * self.__mult
+            )
         else:
-            e1 = Vector((cos(theta), sin(theta)))                   * sqrt(lambda1) * self.__mult
-            e2 = Vector((cos(theta + pi / 2), sin(theta + pi / 2))) * sqrt(lambda2) * self.__mult
+            e1 = Vector((cos(theta), sin(theta))) * sqrt(lambda1) * self.__mult
+            e2 = (
+                Vector((cos(theta + pi / 2), sin(theta + pi / 2)))
+                * sqrt(lambda2)
+                * self.__mult
+            )
         # autopep8: on
 
         # partition the stroke
@@ -1129,16 +1178,22 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
             for i, svert in zip(range(num_segments), it):
                 if i < first:
                     svert.point = points[0] + old_vecs[0] * i / (first - 1)
-                    svert.attribute.visible = (i != first - 1)
+                    svert.attribute.visible = i != first - 1
                 elif i < second:
-                    svert.point = points[1] + old_vecs[1] * (i - first) / (second - first - 1)
-                    svert.attribute.visible = (i != second - 1)
+                    svert.point = points[1] + old_vecs[1] * (i - first) / (
+                        second - first - 1
+                    )
+                    svert.attribute.visible = i != second - 1
                 elif i < third:
-                    svert.point = points[2] + old_vecs[2] * (i - second) / (third - second - 1)
-                    svert.attribute.visible = (i != third - 1)
+                    svert.point = points[2] + old_vecs[2] * (i - second) / (
+                        third - second - 1
+                    )
+                    svert.attribute.visible = i != third - 1
                 elif i < fourth:
-                    svert.point = points[3] + old_vecs[3] * (i - third) / (fourth - third - 1)
-                    svert.attribute.visible = (i != fourth - 1)
+                    svert.point = points[3] + old_vecs[3] * (i - third) / (
+                        fourth - third - 1
+                    )
+                    svert.attribute.visible = i != fourth - 1
                 else:
                     # special case; remove these vertices
                     verticesToRemove.append(svert)
@@ -1165,12 +1220,14 @@ def iter_stroke_vertices(stroke, epsilon=1e-6):
 class RoundCapShader(StrokeShader):
     def round_cap_thickness(self, x):
         x = max(0.0, min(x, 1.0))
-        return pow(1.0 - (x ** 2.0), 0.5)
+        return pow(1.0 - (x**2.0), 0.5)
 
     def shade(self, stroke):
         # save the location and attribute of stroke vertices
-        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute))
-                       for sv in iter_stroke_vertices(stroke))
+        buffer = tuple(
+            (Vector(sv.point), StrokeAttribute(sv.attribute))
+            for sv in iter_stroke_vertices(stroke)
+        )
         nverts = len(buffer)
         if nverts < 2:
             return
@@ -1216,8 +1273,10 @@ class RoundCapShader(StrokeShader):
 class SquareCapShader(StrokeShader):
     def shade(self, stroke):
         # save the location and attribute of stroke vertices
-        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute))
-                       for sv in iter_stroke_vertices(stroke))
+        buffer = tuple(
+            (Vector(sv.point), StrokeAttribute(sv.attribute))
+            for sv in iter_stroke_vertices(stroke)
+        )
         nverts = len(buffer)
         if nverts < 2:
             return
