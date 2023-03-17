@@ -6,7 +6,6 @@
 
 import unittest
 import os
-import sys
 
 from view_layer_common import *
 
