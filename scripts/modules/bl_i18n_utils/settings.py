@@ -15,7 +15,9 @@ import types
 try:
     import bpy
 except ModuleNotFoundError:
-    print("Could not import bpy, some features are not available when not run from Blender.")
+    print(
+        "Could not import bpy, some features are not available when not run from Blender."
+    )
     bpy = None
 
 ###############################################################################
@@ -98,12 +100,23 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in /branches we do not want to import in /trunk currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ', 'es_ES',
+    "am_ET",
+    "bg_BG",
+    "el_GR",
+    "et_EE",
+    "ne_NP",
+    "ro_RO",
+    "uz_UZ",
+    "uz_UZ@cyrillic",
+    "kk_KZ",
+    "es_ES",
 }
 
 # Languages that need RTL pre-processing.
 IMPORT_LANGUAGES_RTL = {
-    'ar_EG', 'fa_IR', 'he_IL',
+    "ar_EG",
+    "fa_IR",
+    "he_IL",
 }
 
 # The comment prefix used in generated messages.txt file.
@@ -160,10 +173,7 @@ PO_HEADER_COMMENT_COPYRIGHT = (
     "# This file is distributed under the same license as the Blender package.\n"
     "#\n"
 )
-PO_HEADER_COMMENT = (
-    "# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n"
-    "#"
-)
+PO_HEADER_COMMENT = "# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n" "#"
 
 TEMPLATE_ISO_ID = "__TEMPLATE__"
 
@@ -184,11 +194,13 @@ PYGETTEXT_ALLOWED_EXTS = {".c", ".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx", ".
 PYGETTEXT_MAX_MULTI_CTXT = 16
 
 # Where to search contexts definitions, relative to SOURCE_DIR (defined below).
-PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blentranslation", "BLT_translation.h")
+PYGETTEXT_CONTEXTS_DEFSRC = os.path.join(
+    "source", "blender", "blentranslation", "BLT_translation.h"
+)
 
 # Regex to extract contexts defined in BLT_translation.h
 # XXX Not full-proof, but should be enough here!
-PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
+PYGETTEXT_CONTEXTS = '#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+"([^"]*)"'
 
 # autopep8: off
 
@@ -201,72 +213,105 @@ _str_base = (
     "|"
     # Or match non-void string
     "(?P<{_}2>[\"'])"  # Get opening quote (' or ").
-        "(?{capt}(?:"
-            # This one is for crazy things like "hi \\\\\" folks!"...
-            r"(?:(?!<\\)(?:\\\\)*\\(?=(?P={_}2)))|"
-            # The most common case.
-            ".(?!(?P={_}2))"
-        ")+.)"  # Don't forget the last char!
+    "(?{capt}(?:"
+    # This one is for crazy things like "hi \\\\\" folks!"...
+    r"(?:(?!<\\)(?:\\\\)*\\(?=(?P={_}2)))|"
+    # The most common case.
+    ".(?!(?P={_}2))"
+    ")+.)"  # Don't forget the last char!
     "(?P={_}2)"  # And closing quote.
 )
 str_clean_re = _str_base.format(_="g", capt="P<clean>")
 _inbetween_str_re = (
     # XXX Strings may have comments between their pieces too, not only spaces!
     r"(?:\s*(?:"
-        # A C comment
-        r"/\*.*(?!\*/).\*/|"
-        # Or a C++ one!
-        r"//[^\n]*\n"
+    # A C comment
+    r"/\*.*(?!\*/).\*/|"
+    # Or a C++ one!
+    r"//[^\n]*\n"
     # And we are done!
     r")?)*"
 )
 # Here we have to consider two different cases (empty string and other).
 _str_whole_re = (
-    _str_base.format(_="{_}1_", capt=":") +
+    _str_base.format(_="{_}1_", capt=":")
+    +
     # Optional loop start, this handles "split" strings...
-    "(?:(?<=[\"'])" + _inbetween_str_re + "(?=[\"'])(?:"
-        + _str_base.format(_="{_}2_", capt=":") +
+    "(?:(?<=[\"'])"
+    + _inbetween_str_re
+    + "(?=[\"'])(?:"
+    + _str_base.format(_="{_}2_", capt=":")
+    +
     # End of loop.
     "))*"
 )
-_ctxt_re_gen = lambda uid : r"(?P<ctxt_raw{uid}>(?:".format(uid=uid) + \
-                            _str_whole_re.format(_="_ctxt{uid}".format(uid=uid)) + \
-                            r")|(?:[A-Z_0-9]+))"
+_ctxt_re_gen = (
+    lambda uid: r"(?P<ctxt_raw{uid}>(?:".format(uid=uid)
+    + _str_whole_re.format(_="_ctxt{uid}".format(uid=uid))
+    + r")|(?:[A-Z_0-9]+))"
+)
 _ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
-PYGETTEXT_KEYWORDS = (() +
-    tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("IFACE_", "TIP_", "DATA_", "N_")) +
-
-    tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_DATA_", "CTX_N_")) +
-
-    tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
-                     "CTX_wm_operator_poll_msg_set")) +
-
-    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("BMO_error_raise",)) +
-
-    tuple(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BKE_modifier_set_error",)) +
-
+PYGETTEXT_KEYWORDS = (
+    ()
+    + tuple(
+        (r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
+        for it in ("IFACE_", "TIP_", "DATA_", "N_")
+    )
+    + tuple(
+        (r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
+        for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_DATA_", "CTX_N_")
+    )
+    + tuple(
+        ("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+        for it in (
+            "BKE_report",
+            "BKE_reportf",
+            "BKE_reports_prepend",
+            "BKE_reports_prependf",
+            "CTX_wm_operator_poll_msg_set",
+        )
+    )
+    + tuple(
+        ("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
+        for it in ("BMO_error_raise",)
+    )
+    + tuple(
+        ("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+        for it in ("BKE_modifier_set_error",)
+    )
+    +
     # This one is a tad more risky, but in practice would not expect a name/uid string parameter
     # (the second one in those functions) to ever have a comma in it, so think this is fine.
-    tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
-
+    tuple(
+        ("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+        for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")
+    )
+    +
     # bUnitDef unit names.
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
     # becomes extremely slow to process some (unrelated) source files.
-    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*NULL\s*,)){4}\s*" +
-      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
-      + "(?:\|?\s*B_UNIT_DEF_[_A-Z]+\s*)+\}"),) +
-
-    tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
-           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
-          for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
+    (
+        (
+            r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*NULL\s*,)){4}\s*"
+            + _msg_re
+            + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
+            + "(?:\|?\s*B_UNIT_DEF_[_A-Z]+\s*)+\}"
+        ),
+    )
+    + tuple(
+        (
+            r"{}\(\s*"
+            + _msg_re
+            + r"\s*,\s*(?:"
+            + r"\s*,\s*)?(?:".join(
+                _ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)
+            )
+            + r")?\s*\)"
+        ).format(it)
+        for it in ("BLT_I18N_MSGID_MULTI_CTXT",)
+    )
 )
 
 # autopep8: on
@@ -274,11 +319,11 @@ PYGETTEXT_KEYWORDS = (() +
 
 # Check printf mismatches between msgid and msgstr.
 CHECK_PRINTF_FORMAT = (
-    r"(?!<%)(?:%%)*%"          # Beginning, with handling for crazy things like '%%%%%s'
-    r"[-+#0]?"                 # Flags (note: do not add the ' ' (space) flag here, generates too much false positives!)
-    r"(?:\*|[0-9]+)?"          # Width
-    r"(?:\.(?:\*|[0-9]+))?"    # Precision
-    r"(?:[hljztL]|hh|ll)?"     # Length
+    r"(?!<%)(?:%%)*%"  # Beginning, with handling for crazy things like '%%%%%s'
+    r"[-+#0]?"  # Flags (note: do not add the ' ' (space) flag here, generates too much false positives!)
+    r"(?:\*|[0-9]+)?"  # Width
+    r"(?:\.(?:\*|[0-9]+))?"  # Precision
+    r"(?:[hljztL]|hh|ll)?"  # Length
     r"[tldiuoxXfFeEgGaAcspn]"  # Specifiers (note we have Blender-specific %t and %l ones too)
 )
 
@@ -287,7 +332,7 @@ WARN_MSGID_NOT_CAPITALIZED = True
 
 # Strings that should not raise above warning!
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
-    "",                              # Simplifies things... :p
+    "",  # Simplifies things... :p
     "ac3",
     "along X",
     "along Y",
@@ -300,14 +345,14 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "arcsin(A)",
     "arctan(A)",
     "ascii",
-    "author",                        # Addons' field. :/
+    "author",  # Addons' field. :/
     "bItasc",
     "blender.org",
     "color_index is invalid",
     "cos(A)",
     "cosh(A)",
-    "dbl-",                          # Compacted for 'double', for keymap items.
-    "description",                   # Addons' field. :/
+    "dbl-",  # Compacted for 'double', for keymap items.
+    "description",  # Addons' field. :/
     "dx",
     "fBM",
     "flac",
@@ -328,7 +373,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "iTaSC parameters",
     "kb",
     "local",
-    "location",                      # Addons' field. :/
+    "location",  # Addons' field. :/
     "locking %s X",
     "locking %s Y",
     "locking %s Z",
@@ -398,14 +443,16 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "jumps over",
     "left",
     "local",
-    "matrices", "no matrices",
+    "matrices",
+    "no matrices",
     "multi-res modifier",
     "name",
     "non-triangle face",
     "normal",
     "or AMD with macOS %s or newer",
     "performance impact!",
-    "positions", "no positions",
+    "positions",
+    "no positions",
     "read",
     "remove",
     "right",
@@ -435,7 +482,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "which was replaced by the Asset Browser",
     "write",
 }
-WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
+WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= {lng[2] for lng in LANGUAGES}
 
 WARN_MSGID_END_POINT_ALLOWED = {
     "Circle|Alt .",
@@ -453,7 +500,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Invalid surface UVs on %d curves.",
 }
 
-PARSER_CACHE_HASH = 'sha1'
+PARSER_CACHE_HASH = "sha1"
 
 PARSER_TEMPLATE_ID = "__POT__"
 PARSER_PY_ID = "__PY__"
@@ -461,7 +508,7 @@ PARSER_PY_ID = "__PY__"
 PARSER_PY_MARKER_BEGIN = "\n# ##### BEGIN AUTOGENERATED I18N SECTION #####\n"
 PARSER_PY_MARKER_END = "\n# ##### END AUTOGENERATED I18N SECTION #####\n"
 
-PARSER_MAX_FILE_SIZE = 2 ** 24  # in bytes, i.e. 16 Mb.
+PARSER_MAX_FILE_SIZE = 2**24  # in bytes, i.e. 16 Mb.
 
 ###############################################################################
 # PATHS
@@ -607,11 +654,14 @@ def _gen_get_set_path(ref, name):
 
     def _set(self, value):
         setattr(self, name, _do_set(getattr(self, ref), value))
+
     return _get, _set
 
 
 def _check_valid_data(uid, val):
-    return not uid.startswith("_") and type(val) not in tuple(types.__dict__.values()) + (type,)
+    return not uid.startswith("_") and type(val) not in tuple(
+        types.__dict__.values()
+    ) + (type,)
 
 
 class I18nSettings:
@@ -619,13 +669,18 @@ class I18nSettings:
     Class allowing persistence of our settings!
     Saved in JSon format, so settings should be JSon'able objects!
     """
+
     _settings = None
 
     def __new__(cls, *args, **kwargs):
         # Addon preferences are singleton by definition, so is this class!
         if not I18nSettings._settings:
             cls._settings = super(I18nSettings, cls).__new__(cls)
-            cls._settings.__dict__ = {uid: val for uid, val in globals().items() if _check_valid_data(uid, val)}
+            cls._settings.__dict__ = {
+                uid: val
+                for uid, val in globals().items()
+                if _check_valid_data(uid, val)
+            }
         return I18nSettings._settings
 
     def __getstate__(self):
@@ -642,7 +697,11 @@ class I18nSettings:
 
     def to_dict(self):
         glob = globals()
-        return {uid: val for uid, val in self.__dict__.items() if _check_valid_data(uid, val) and uid in glob}
+        return {
+            uid: val
+            for uid, val in self.__dict__.items()
+            if _check_valid_data(uid, val) and uid in glob
+        }
 
     def from_json(self, string):
         self.from_dict(dict(json.loads(string)))
@@ -651,7 +710,8 @@ class I18nSettings:
         # Only save the diff from default i18n_settings!
         glob = globals()
         export_dict = {
-            uid: val for uid, val in self.__dict__.items()
+            uid: val
+            for uid, val in self.__dict__.items()
             if _check_valid_data(uid, val) and glob.get(uid) != val
         }
         return json.dumps(export_dict)
@@ -659,7 +719,9 @@ class I18nSettings:
     def load(self, fname, reset=False):
         reset = reset or fname is None
         if reset:
-            self.__dict__ = {uid: data for uid, data in globals().items() if not uid.startswith("_")}
+            self.__dict__ = {
+                uid: data for uid, data in globals().items() if not uid.startswith("_")
+            }
         if fname is None:
             return
         if isinstance(fname, str):
@@ -675,7 +737,7 @@ class I18nSettings:
 
     def save(self, fname):
         if isinstance(fname, str):
-            with open(fname, 'w', encoding="utf8") as f:
+            with open(fname, "w", encoding="utf8") as f:
                 f.write(self.to_json())
         # Else assume fname is already a file(like) object!
         else:
@@ -686,13 +748,19 @@ class I18nSettings:
     TRUNK_PO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_PO_DIR")))
     TRUNK_MO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_MO_DIR")))
     GIT_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_GIT_I18N_DIR")))
-    GIT_I18N_PO_DIR = property(*(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR")))
-    POTFILES_SOURCE_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR")))
+    GIT_I18N_PO_DIR = property(
+        *(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR"))
+    )
+    POTFILES_SOURCE_DIR = property(
+        *(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR"))
+    )
     PRESETS_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_PRESETS_DIR")))
     TEMPLATES_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_TEMPLATES_DIR")))
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
     MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
-    MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))
+    MO_PATH_TEMPLATE = property(
+        *(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE"))
+    )
 
     def _get_py_sys_paths(self):
         return self.INTERN_PY_SYS_PATHS
@@ -706,4 +774,5 @@ class I18nSettings:
         for p in new_paths - old_paths:
             sys.path.append(p)
         self.INTERN_PY_SYS_PATHS = val
+
     PY_SYS_PATHS = property(_get_py_sys_paths, _set_py_sys_paths)

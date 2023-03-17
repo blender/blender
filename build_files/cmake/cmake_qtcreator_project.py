@@ -43,20 +43,25 @@ def create_qtc_project_main(name):
         # --- qtcreator specific, simple format
         PROJECT_NAME = name or "Blender"
         FILE_NAME = PROJECT_NAME.lower()
-        with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
+        with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), "w") as f:
             f.write("\n".join(files_rel))
 
-        with open(os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), 'w') as f:
-            f.write("\n".join(sorted(list(set(os.path.dirname(f)
-                                              for f in files_rel if is_c_header(f))))))
+        with open(os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), "w") as f:
+            f.write(
+                "\n".join(
+                    sorted(
+                        list({os.path.dirname(f) for f in files_rel if is_c_header(f)})
+                    )
+                )
+            )
 
         qtc_prj = os.path.join(PROJECT_DIR, "%s.creator" % FILE_NAME)
-        with open(qtc_prj, 'w') as f:
+        with open(qtc_prj, "w") as f:
             f.write("[General]\n")
 
         qtc_cfg = os.path.join(PROJECT_DIR, "%s.config" % FILE_NAME)
         if not os.path.exists(qtc_cfg):
-            with open(qtc_cfg, 'w') as f:
+            with open(qtc_cfg, "w") as f:
                 f.write("// ADD PREDEFINED MACROS HERE!\n")
     else:
         includes, defines = cmake_advanced_info()
@@ -65,35 +70,40 @@ def create_qtc_project_main(name):
             return
 
         # for some reason it doesn't give all internal includes
-        includes = list(set(includes) | set(os.path.dirname(f)
-                                            for f in files_rel if is_c_header(f)))
+        includes = list(
+            set(includes) | {os.path.dirname(f) for f in files_rel if is_c_header(f)}
+        )
         includes.sort()
 
         # be tricky, get the project name from CMake if we can!
         PROJECT_NAME = name or project_name_get()
 
         FILE_NAME = PROJECT_NAME.lower()
-        with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
+        with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), "w") as f:
             f.write("\n".join(files_rel))
 
-        with open(os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), 'w', encoding='utf-8') as f:
+        with open(
+            os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), "w", encoding="utf-8"
+        ) as f:
             f.write("\n".join(sorted(includes)))
 
         qtc_prj = os.path.join(PROJECT_DIR, "%s.creator" % FILE_NAME)
-        with open(qtc_prj, 'w') as f:
+        with open(qtc_prj, "w") as f:
             f.write("[General]\n")
 
         qtc_cfg = os.path.join(PROJECT_DIR, "%s.config" % FILE_NAME)
-        with open(qtc_cfg, 'w') as f:
+        with open(qtc_cfg, "w") as f:
             f.write("// ADD PREDEFINED MACROS TO %s_custom.config!\n" % FILE_NAME)
 
             qtc_custom_cfg = os.path.join(PROJECT_DIR, "%s_custom.config" % FILE_NAME)
             if os.path.exists(qtc_custom_cfg):
-                with open(qtc_custom_cfg, 'r') as fc:
+                with open(qtc_custom_cfg, "r") as fc:
                     f.write(fc.read())
                     f.write("\n")
 
-            defines_final = [("#define %s %s" % (item[0], quote_define(item[1]))) for item in defines]
+            defines_final = [
+                ("#define %s %s" % (item[0], quote_define(item[1]))) for item in defines
+            ]
             if os.name != "nt":
                 defines_final += cmake_compiler_defines()
             f.write("\n".join(defines_final))
@@ -121,16 +131,16 @@ def create_qtc_project_python(name):
     PROJECT_NAME = (name or project_name_get()) + "_Python"
 
     FILE_NAME = PROJECT_NAME.lower()
-    with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
+    with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), "w") as f:
         f.write("\n".join(files_rel))
 
     qtc_prj = os.path.join(PROJECT_DIR, "%s.creator" % FILE_NAME)
-    with open(qtc_prj, 'w') as f:
+    with open(qtc_prj, "w") as f:
         f.write("[General]\n")
 
     qtc_cfg = os.path.join(PROJECT_DIR, "%s.config" % FILE_NAME)
     if not os.path.exists(qtc_cfg):
-        with open(qtc_cfg, 'w') as f:
+        with open(qtc_cfg, "w") as f:
             f.write("// ADD PREDEFINED MACROS HERE!\n")
 
     print("Python project file written to:  %r" % qtc_prj)
@@ -144,17 +154,21 @@ def argparse_create():
     )
 
     parser.add_argument(
-        "-n", "--name",
+        "-n",
+        "--name",
         dest="name",
-        metavar='NAME', type=str,
-        help="Override default project name (\"Blender\")",
+        metavar="NAME",
+        type=str,
+        help='Override default project name ("Blender")',
         required=False,
     )
 
     parser.add_argument(
-        "-b", "--build-dir",
+        "-b",
+        "--build-dir",
         dest="build_dir",
-        metavar='BUILD_DIR', type=str,
+        metavar="BUILD_DIR",
+        type=str,
         help="Specify the build path (or fallback to the $PWD)",
         required=False,
     )
@@ -168,6 +182,7 @@ def main():
     name = args.name
 
     import project_info
+
     if not project_info.init(args.build_dir):
         return
 

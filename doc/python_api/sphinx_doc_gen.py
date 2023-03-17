@@ -403,9 +403,9 @@ EXTRA_SOURCE_FILES = (
 
 # examples
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set(
+EXAMPLE_SET = {
     os.path.splitext(f)[0] for f in os.listdir(EXAMPLES_DIR) if f.endswith(".py")
-)
+}
 EXAMPLE_SET_USED = set()
 
 # RST files directory.

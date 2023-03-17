@@ -8,27 +8,29 @@ from typing import (
 )
 
 PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
-    ("build_files/cmake/", (), {'MYPYPATH': "modules"}),
-    ("build_files/utils/", (), {'MYPYPATH': "modules"}),
+    ("build_files/cmake/", (), {"MYPYPATH": "modules"}),
+    ("build_files/utils/", (), {"MYPYPATH": "modules"}),
     ("doc/manpage/blender.1.py", (), {}),
     ("tools/check_blender_release/", (), {}),
-    ("tools/check_source/", (), {'MYPYPATH': "modules"}),
+    ("tools/check_source/", (), {"MYPYPATH": "modules"}),
     ("tools/check_wiki/", (), {}),
     ("tools/utils/", (), {}),
     ("tools/utils_api/", (), {}),
     ("tools/utils_build/", (), {}),
     ("tools/utils_doc/", (), {}),
     ("tools/utils_ide/", (), {}),
-    ("tools/utils_maintenance/", (), {'MYPYPATH': "modules"}),
+    ("tools/utils_maintenance/", (), {"MYPYPATH": "modules"}),
 )
 
-SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", ".."))))
+SOURCE_DIR = os.path.normpath(
+    os.path.abspath(
+        os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    )
+)
 
-PATHS_EXCLUDE = set(
+PATHS_EXCLUDE = {
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
-    for p in
-    (
+    for p in (
         "build_files/cmake/clang_array_check.py",
         "build_files/cmake/cmake_netbeans_project.py",
         "build_files/cmake/cmake_qtcreator_project.py",
@@ -75,7 +77,7 @@ PATHS_EXCLUDE = set(
         "tools/utils_maintenance/trailing_space_clean.py",
         "tools/utils_maintenance/trailing_space_clean_config.py",
     )
-)
+}
 
 PATHS = tuple(
     (os.path.join(SOURCE_DIR, p_items[0].replace("/", os.sep)), *p_items[1:])
