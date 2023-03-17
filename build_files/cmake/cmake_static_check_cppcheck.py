@@ -23,12 +23,12 @@ CHECKER_IGNORE_PREFIX = [
     "extern",
 ]
 
-CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
+CHECKER_EXCLUDE_SOURCE_FILES = {os.path.join(*f.split("/")) for f in (
     # These files hang (taking longer than 5min with v2.8.2 at time of writing).
     # All other files process in under around 10seconds.
     "source/blender/editors/space_text/text_format_pov.c",
     "source/blender/editors/space_text/text_format_pov_ini.c",
-))
+)}
 
 CHECKER_ARGS = [
     # Speed up execution.

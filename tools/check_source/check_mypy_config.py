@@ -25,8 +25,7 @@ PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(
     os.path.join(os.path.dirname(__file__), "..", ".."))))
 
-PATHS_EXCLUDE = set(
-    os.path.join(SOURCE_DIR, p.replace("/", os.sep))
+PATHS_EXCLUDE = {os.path.join(SOURCE_DIR, p.replace("/", os.sep))
     for p in
     (
         "build_files/cmake/clang_array_check.py",
@@ -74,8 +73,7 @@ PATHS_EXCLUDE = set(
         "tools/utils_maintenance/blender_update_themes.py",  # Uses `bpy`.
         "tools/utils_maintenance/trailing_space_clean.py",
         "tools/utils_maintenance/trailing_space_clean_config.py",
-    )
-)
+    )}
 
 PATHS = tuple(
     (os.path.join(SOURCE_DIR, p_items[0].replace("/", os.sep)), *p_items[1:])

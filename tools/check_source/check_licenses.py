@@ -55,9 +55,7 @@ SPDX_IDENTIFIER_FILE = os.path.join(
 SPDX_IDENTIFIER_UNKNOWN = "*Unknown License*"
 
 with open(SPDX_IDENTIFIER_FILE, "r", encoding="utf-8") as fh:
-    ACCEPTABLE_LICENSES = set(
-        l.split()[0] for l in sorted(fh) if "https://spdx.org/licenses/" in l
-    )
+    ACCEPTABLE_LICENSES = {l.split()[0] for l in sorted(fh) if "https://spdx.org/licenses/" in l}
 del fh
 
 
@@ -323,10 +321,10 @@ def source_files(
             files_exclude_list.append(f)
     del paths_exclude
 
-    dirs_exclude_set = set(p.rstrip("/") for p in dirs_exclude_list)
+    dirs_exclude_set = {p.rstrip("/") for p in dirs_exclude_list}
     dirs_exclude = tuple(p.rstrip("/") + "/" for p in dirs_exclude_list)
 
-    files_exclude_set = set(p.rstrip("/") for p in files_exclude_list)
+    files_exclude_set = {p.rstrip("/") for p in files_exclude_list}
     del dirs_exclude_list, files_exclude_list
 
     for dirpath, dirnames, filenames in os.walk(path):

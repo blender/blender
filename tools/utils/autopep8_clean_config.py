@@ -32,16 +32,14 @@ PATHS = tuple(
     for p in PATHS
 )
 
-PATHS_EXCLUDE: Set[str] = set(
-    os.path.join(SOURCE_DIR, p.replace("/", os.sep))
+PATHS_EXCLUDE: Set[str] = {os.path.join(SOURCE_DIR, p.replace("/", os.sep))
     for p in
     (
         "tools/svn_rev_map/sha1_to_rev.py",
         "tools/svn_rev_map/rev_to_sha1.py",
         "tools/svn_rev_map/rev_to_sha1.py",
         "scripts/modules/rna_manual_reference.py",
-    )
-)
+    )}
 
 
 def files(path: str, test_fn: Callable[[str], bool]) -> Generator[str, None, None]:

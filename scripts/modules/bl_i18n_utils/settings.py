@@ -435,7 +435,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "which was replaced by the Asset Browser",
     "write",
 }
-WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
+WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= {lng[2] for lng in LANGUAGES}
 
 WARN_MSGID_END_POINT_ALLOWED = {
     "Circle|Alt .",

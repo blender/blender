@@ -47,8 +47,8 @@ def create_qtc_project_main(name):
             f.write("\n".join(files_rel))
 
         with open(os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), 'w') as f:
-            f.write("\n".join(sorted(list(set(os.path.dirname(f)
-                                              for f in files_rel if is_c_header(f))))))
+            f.write("\n".join(sorted(list({os.path.dirname(f)
+                                              for f in files_rel if is_c_header(f)}))))
 
         qtc_prj = os.path.join(PROJECT_DIR, "%s.creator" % FILE_NAME)
         with open(qtc_prj, 'w') as f:
@@ -65,8 +65,8 @@ def create_qtc_project_main(name):
             return
 
         # for some reason it doesn't give all internal includes
-        includes = list(set(includes) | set(os.path.dirname(f)
-                                            for f in files_rel if is_c_header(f)))
+        includes = list(set(includes) | {os.path.dirname(f)
+                                            for f in files_rel if is_c_header(f)})
         includes.sort()
 
         # be tricky, get the project name from CMake if we can!
