@@ -372,8 +372,10 @@ def find_matching_vertex(id, it):
 # -- helper functions for iterating -- #
 
 
-def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
+def pairwise(iterable, types=None):
     """Yields a tuple containing the previous and current object"""
+    if types is None:
+        types = {Stroke, StrokeVertexIterator}
     # use .incremented() for types that support it
     if type(iterable) in types:
         it = iter(iterable)

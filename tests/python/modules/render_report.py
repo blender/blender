@@ -92,7 +92,9 @@ class Report:
         "blacklist",
     )
 
-    def __init__(self, title, output_dir, idiff, device=None, blacklist=[]):
+    def __init__(self, title, output_dir, idiff, device=None, blacklist=None):
+        if blacklist is None:
+            blacklist = []
         self.title = title
         self.output_dir = output_dir
         self.global_dir = os.path.dirname(output_dir)

@@ -488,7 +488,9 @@ class ColorMaterialShader(ColorRampModifier):
         self.use_ramp = use_ramp
         self.func = CurveMaterialF0D()
 
-    def shade(self, stroke, attributes={"DIFF", "SPEC", "LINE"}):
+    def shade(self, stroke, attributes=None):
+        if attributes is None:
+            attributes = {"DIFF", "SPEC", "LINE"}
         it = Interface0DIterator(stroke)
         if not self.use_ramp and self.attribute in attributes:
             for svert in it:
