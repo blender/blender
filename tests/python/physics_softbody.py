@@ -3,8 +3,6 @@
 import os
 import sys
 
-import bpy
-
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 
