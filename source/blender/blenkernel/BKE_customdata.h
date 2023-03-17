@@ -486,6 +486,8 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, int 
  */
 const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
+bool CustomData_layer_is_anonymous(const struct CustomData *data, int type, int n);
+
 void CustomData_bmesh_set(const struct CustomData *data,
                           void *block,
                           int type,
