@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -15,23 +13,33 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(MoveLayerCollectionTesting):
     def get_reference_scene_tree_map(self):
         reference_tree_map = [
-            ['A', [
-                ['i', None],
-                ['ii', None],
-                ['iii', None],
-            ]],
-            ['B', None],
-            ['C', [
-                ['1', None],
-                ['2', None],
-                ['3', [
-                    ['cat', None],
-                    ['dog', None],
-                ]],
-            ]],
+            [
+                "A",
+                [
+                    ["i", None],
+                    ["ii", None],
+                    ["iii", None],
+                ],
+            ],
+            ["B", None],
+            [
+                "C",
+                [
+                    ["1", None],
+                    ["2", None],
+                    [
+                        "3",
+                        [
+                            ["cat", None],
+                            ["dog", None],
+                        ],
+                    ],
+                ],
+            ],
         ]
         return reference_tree_map
 
@@ -44,7 +52,7 @@ class UnitTesting(MoveLayerCollectionTesting):
         Test outliner operations
         """
         self.setup_tree()
-        self.assertTrue(self.move_above('Layer 2.C.3.cat', 'Layer 2.3.dog'))
+        self.assertTrue(self.move_above("Layer 2.C.3.cat", "Layer 2.3.dog"))
         self.compare_tree_maps()
 
     def test_layer_collection_move_b(self):
@@ -54,22 +62,22 @@ class UnitTesting(MoveLayerCollectionTesting):
         self.setup_tree()
 
         # collection that will be moved
-        collection_original = self.parse_move('Layer 2.C.3.cat')
+        collection_original = self.parse_move("Layer 2.C.3.cat")
         collection_original.enabled = True
         collection_original.selectable = False
 
         # collection that will disappear
-        collection_old = self.parse_move('Layer 2.3.cat')
+        collection_old = self.parse_move("Layer 2.3.cat")
         collection_old.enabled = False
         collection_old.selectable = True
 
         # move
-        self.assertTrue(self.move_above('Layer 2.C.3.cat', 'Layer 2.3.dog'))
+        self.assertTrue(self.move_above("Layer 2.C.3.cat", "Layer 2.3.dog"))
         self.compare_tree_maps()
 
         # we expect the settings to be carried along from the
         # original layer collection
-        collection_new = self.parse_move('Layer 2.3.cat')
+        collection_new = self.parse_move("Layer 2.3.cat")
         self.assertEqual(collection_new.enabled, True)
         self.assertEqual(collection_new.selectable, False)
 
@@ -78,6 +86,6 @@ class UnitTesting(MoveLayerCollectionTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

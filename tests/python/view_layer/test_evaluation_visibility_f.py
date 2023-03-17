@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(ViewLayerTesting):
     def test_visibility(self):
@@ -24,9 +23,9 @@ class UnitTesting(ViewLayerTesting):
 
         scene = bpy.context.scene
         window = bpy.context.window
-        cube = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
+        cube = bpy.data.objects.new("guinea pig", bpy.data.meshes.new("mesh"))
 
-        layer = scene.view_layers.new('Visibility Test')
+        layer = scene.view_layers.new("Visibility Test")
         layer.collections.unlink(layer.collections[0])
         window.view_layer = layer
 
@@ -51,6 +50,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

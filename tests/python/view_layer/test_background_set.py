@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -14,6 +12,7 @@ from view_layer_common import *
 # ############################################################
 # Testing
 # ############################################################
+
 
 class UnitTesting(ViewLayerTesting):
     def test_background_set(self):
@@ -23,7 +22,7 @@ class UnitTesting(ViewLayerTesting):
         import bpy
 
         background_scene = bpy.data.scenes[0]
-        main_scene = bpy.data.scenes.new('main')
+        main_scene = bpy.data.scenes.new("main")
         bpy.context.window.scene = main_scene
 
         # Update depsgraph.
@@ -61,6 +60,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

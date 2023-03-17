@@ -5,8 +5,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -15,12 +13,14 @@ from view_layer_common import *
 # Testing
 # ############################################################
 
+
 class UnitTesting(ViewLayerTesting):
     def test_group_delete_object(self):
         """
         See if we can safely remove instanced objects
         """
         import bpy
+
         scene = bpy.context.scene
         view_layer = bpy.context.view_layer
         ob = bpy.context.object
@@ -46,7 +46,7 @@ class UnitTesting(ViewLayerTesting):
         empty = bpy.data.objects.new("Empty", None)
         bpy.context.scene_collection.objects.link(empty)
         layer_collection = bpy.context.layer_collection
-        empty.instance_type = 'GROUP'
+        empty.instance_type = "GROUP"
         empty.instance_collection = group
 
         # prepare to delete the original object
@@ -69,6 +69,6 @@ class UnitTesting(ViewLayerTesting):
 # Main - Same For All Render Layer Tests
 # ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()

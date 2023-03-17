@@ -6,7 +6,6 @@
 
 import unittest
 import os
-import sys
 
 from view_layer_common import *
 
@@ -20,7 +19,6 @@ class UnitTesting(ViewLayerTesting):
     def do_syncing(self, filepath_json, unlink_mode):
         import bpy
         import tempfile
-        import filecmp
 
         ROOT = self.get_root()
         with tempfile.TemporaryDirectory() as dirpath:
