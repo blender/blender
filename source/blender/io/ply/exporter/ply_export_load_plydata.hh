@@ -13,6 +13,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
+#include "BLI_hash.hh"
 #include "BLI_math.h"
 
 #include "RNA_types.h"
@@ -45,16 +46,14 @@ struct UV_vertex_key {
 
   uint64_t hash() const
   {
-    return ((std::hash<float>()(UV.x) ^ (std::hash<float>()(UV.y) << 1)) >> 1) ^
-           (std::hash<int>()(mesh_vertex_index) << 1);
+    return get_default_hash_3(UV.x, UV.y, mesh_vertex_index);
   }
 };
 
-blender::Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
-                                                     const float2 *uv_map,
-                                                     const PLYExportParams &export_params);
-
-void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params);
+void generate_vertex_map(const Mesh *mesh,
+                         const float2 *uv_map,
+                         const PLYExportParams &export_params,
+                         Map<UV_vertex_key, int> &r_map);
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params);
 }  // namespace blender::io::ply

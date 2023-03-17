@@ -33,7 +33,7 @@ namespace blender::io::ply {
  */
 class FileBuffer : private NonMovable {
   using VectorChar = Vector<char>;
-  Vector<VectorChar> blocks_;
+  std::vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
   const char *filepath_;
   FILE *outfile_;
@@ -84,7 +84,7 @@ class FileBuffer : private NonMovable {
     fmt::format_to(fmt::appender(buf), fmt, std::forward<T>(args)...);
     size_t len = buf.size();
     ensure_space(len);
-    VectorChar &bb = blocks_.last();
+    VectorChar &bb = blocks_.back();
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 

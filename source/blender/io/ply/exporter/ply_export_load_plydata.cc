@@ -114,7 +114,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     const float2 *uv_map = static_cast<const float2 *>(
         CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
 
-    Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
+    Map<UV_vertex_key, int> vertex_map;
+    generate_vertex_map(mesh, uv_map, export_params, vertex_map);
 
     set_world_axes_transform(
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
@@ -221,25 +222,24 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
   DEG_OBJECT_ITER_END;
 }
 
-Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
-                                            const float2 *uv_map,
-                                            const PLYExportParams &export_params)
+void generate_vertex_map(const Mesh *mesh,
+                         const float2 *uv_map,
+                         const PLYExportParams &export_params,
+                         Map<UV_vertex_key, int> &r_map)
 {
-
-  Map<UV_vertex_key, int> vertex_map;
 
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
   const int totvert = mesh->totvert;
 
-  vertex_map.reserve(totvert);
+  r_map.reserve(totvert);
 
   if (uv_map == nullptr || !export_params.export_uv) {
     for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
       UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      vertex_map.add_new(key, int(vertex_map.size()));
+      r_map.add_new(key, int(r_map.size()));
     }
-    return vertex_map;
+    return;
   }
 
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
@@ -259,7 +259,7 @@ Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
 
     if (uv_vert == nullptr) {
       UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      vertex_map.add_new(key, int(vertex_map.size()));
+      r_map.add_new(key, int(r_map.size()));
     }
 
     for (; uv_vert; uv_vert = uv_vert->next) {
@@ -267,10 +267,10 @@ Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
       const int loopstart = polys[uv_vert->poly_index].loopstart;
       float2 vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index]);
       UV_vertex_key key = UV_vertex_key(vert_uv_coords, vertex_index);
-      vertex_map.add(key, int(vertex_map.size()));
+      r_map.add(key, int(r_map.size()));
     }
   }
   BKE_mesh_uv_vert_map_free(uv_vert_map);
-  return vertex_map;
 }
+
 }  // namespace blender::io::ply
