@@ -19,15 +19,13 @@ from bpy.app.translations import pgettext_tip as tip_
 class NodeSetting(PropertyGroup):
     value: StringProperty(
         name="Value",
-        description="Python expression to be evaluated "
-        "as the initial node setting",
+        description="Python expression to be evaluated " "as the initial node setting",
         default="",
     )
 
 
 # Base class for node 'Add' operators
 class NodeAddOperator:
-
     type: StringProperty(
         name="Node Type",
         description="Node type",
@@ -41,7 +39,7 @@ class NodeAddOperator:
         name="Settings",
         description="Settings to be applied on the newly created node",
         type=NodeSetting,
-        options={'SKIP_SAVE'},
+        options={"SKIP_SAVE"},
     )
 
     @staticmethod
@@ -50,10 +48,11 @@ class NodeAddOperator:
         tree = space.edit_tree
 
         # convert mouse position to the View2D for later node placement
-        if context.region.type == 'WINDOW':
+        if context.region.type == "WINDOW":
             # convert mouse position to the View2D for later node placement
             space.cursor_location_from_region(
-                event.mouse_region_x, event.mouse_region_y)
+                event.mouse_region_x, event.mouse_region_y
+            )
         else:
             space.cursor_location = tree.view_center
 
@@ -75,7 +74,7 @@ class NodeAddOperator:
         try:
             node = tree.nodes.new(type=node_type)
         except RuntimeError as e:
-            self.report({'ERROR'}, str(e))
+            self.report({"ERROR"}, str(e))
             return None
 
         for setting in self.settings:
@@ -85,7 +84,7 @@ class NodeAddOperator:
             node_attr_name = setting.name
 
             # Support path to nested data.
-            if '.' in node_attr_name:
+            if "." in node_attr_name:
                 node_data_path, node_attr_name = node_attr_name.rsplit(".", 1)
                 node_data = node.path_resolve(node_data_path)
 
@@ -93,8 +92,8 @@ class NodeAddOperator:
                 setattr(node_data, node_attr_name, value)
             except AttributeError as e:
                 self.report(
-                    {'ERROR_INVALID_INPUT'},
-                    "Node has no attribute " + setting.name)
+                    {"ERROR_INVALID_INPUT"}, "Node has no attribute " + setting.name
+                )
                 print(str(e))
                 # Continue despite invalid attribute
 
@@ -107,16 +106,20 @@ class NodeAddOperator:
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree to add nodes to
-        return (space and (space.type == 'NODE_EDITOR') and
-                space.edit_tree and not space.edit_tree.library)
+        return (
+            space
+            and (space.type == "NODE_EDITOR")
+            and space.edit_tree
+            and not space.edit_tree.library
+        )
 
     # Default execute simply adds a node
     def execute(self, context):
         if self.properties.is_property_set("type"):
             self.create_node(context)
-            return {'FINISHED'}
+            return {"FINISHED"}
         else:
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator
@@ -124,9 +127,9 @@ class NodeAddOperator:
         self.store_mouse_cursor(context, event)
         result = self.execute(context)
 
-        if self.use_transform and ('FINISHED' in result):
+        if self.use_transform and ("FINISHED" in result):
             # removes the node again if transform is canceled
-            bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
+            bpy.ops.node.translate_attach_remove_on_cancel("INVOKE_DEFAULT")
 
         return result
 
@@ -142,24 +145,29 @@ class NodeAddOperator:
 
 # Simple basic operator for adding a node
 class NODE_OT_add_node(NodeAddOperator, Operator):
-    '''Add a node to the active tree'''
+    """Add a node to the active tree"""
+
     bl_idname = "node.add_node"
     bl_label = "Add Node"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
-    '''Toggle collapsed nodes and hide unused sockets'''
+    """Toggle collapsed nodes and hide unused sockets"""
+
     bl_idname = "node.collapse_hide_unused_toggle"
     bl_label = "Collapse and Hide Unused Sockets"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree
-        return (space and (space.type == 'NODE_EDITOR') and
-                (space.edit_tree and not space.edit_tree.library))
+        return (
+            space
+            and (space.type == "NODE_EDITOR")
+            and (space.edit_tree and not space.edit_tree.library)
+        )
 
     def execute(self, context):
         space = context.space_data
@@ -167,7 +175,7 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
 
         for node in tree.nodes:
             if node.select:
-                hide = (not node.hide)
+                hide = not node.hide
 
                 node.hide = hide
                 # Note: connected sockets are ignored internally
@@ -176,32 +184,32 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
                 for socket in node.outputs:
                     socket.hide = hide
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class NODE_OT_tree_path_parent(Operator):
-    '''Go to parent node tree'''
+    """Go to parent node tree"""
+
     bl_idname = "node.tree_path_parent"
     bl_label = "Parent Node Tree"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
         space = context.space_data
         # needs active node editor and a tree
-        return (space and (space.type == 'NODE_EDITOR') and len(space.path) > 1)
+        return space and (space.type == "NODE_EDITOR") and len(space.path) > 1
 
     def execute(self, context):
         space = context.space_data
 
         space.path.pop()
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 classes = (
     NodeSetting,
-
     NODE_OT_add_node,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_tree_path_parent,

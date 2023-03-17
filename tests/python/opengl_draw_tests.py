@@ -12,7 +12,7 @@ def screenshot():
     output_path = sys.argv[-1]
 
     # Force redraw and take screenshot.
-    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+    bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
     bpy.ops.screen.screenshot(filepath=output_path, full=True)
 
     bpy.ops.wm.quit_blender()
@@ -21,6 +21,7 @@ def screenshot():
 # When run from inside Blender, take screenshot and exit.
 try:
     import bpy
+
     inside_blender = True
 except ImportError:
     inside_blender = False
@@ -34,7 +35,10 @@ def get_arguments(filepath, output_filepath):
     return [
         "--no-window-focus",
         "--window-geometry",
-        "0", "0", "1024", "768",
+        "0",
+        "0",
+        "1024",
+        "768",
         "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
@@ -44,7 +48,8 @@ def get_arguments(filepath, output_filepath):
         "-P",
         os.path.realpath(__file__),
         "--",
-        output_filepath + '0001.png']
+        output_filepath + "0001.png",
+    ]
 
 
 def create_argparse():
@@ -66,6 +71,7 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
+
     report = render_report.Report("OpenGL Draw", output_dir, idiff)
     ok = report.run(test_dir, blender, get_arguments)
 

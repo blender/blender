@@ -9,22 +9,31 @@ from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 
 def main():
     test = [
-
-        SpecMeshTest("ClothSimple", "testClothPlane", "expectedClothPlane",
-                     [ModifierSpec('Cloth', 'CLOTH', {'settings': {'quality': 5}}, 15)], threshold=1e-3),
-
+        SpecMeshTest(
+            "ClothSimple",
+            "testClothPlane",
+            "expectedClothPlane",
+            [ModifierSpec("Cloth", "CLOTH", {"settings": {"quality": 5}}, 15)],
+            threshold=1e-3,
+        ),
         # Not reproducible
         # SpecMeshTest("ClothPressure", "testObjClothPressure", "expObjClothPressure",
         #           [ModifierSpec('Cloth2', 'CLOTH', {'settings': {'use_pressure': True,
         #           'uniform_pressure_force': 1}}, 16)]),
-
         # Not reproducible
         # SpecMeshTest("ClothSelfCollision", "testClothCollision", "expClothCollision",
         #           [ModifierSpec('Cloth', 'CLOTH', {'collision_settings': {'use_self_collision': True}}, 67)]),
-
-        SpecMeshTest("ClothSpring", "testTorusClothSpring", "expTorusClothSpring",
-                     [ModifierSpec('Cloth2', 'CLOTH', {'settings': {'use_internal_springs': True}}, 10)], threshold=1e-3),
-
+        SpecMeshTest(
+            "ClothSpring",
+            "testTorusClothSpring",
+            "expTorusClothSpring",
+            [
+                ModifierSpec(
+                    "Cloth2", "CLOTH", {"settings": {"use_internal_springs": True}}, 10
+                )
+            ],
+            threshold=1e-3,
+        ),
     ]
     cloth_test = RunTest(test)
 

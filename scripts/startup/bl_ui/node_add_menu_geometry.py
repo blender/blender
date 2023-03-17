@@ -33,7 +33,9 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeRGBCurve")
         layout.separator()
         node_add_menu.add_node_type(layout, "FunctionNodeCombineColor")
-        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Color"))
+        props = node_add_menu.add_node_type(
+            layout, "ShaderNodeMix", label=iface_("Mix Color")
+        )
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'RGBA'"
@@ -576,7 +578,9 @@ class NODE_MT_category_GEO_VECTOR(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")
         layout.separator()
         node_add_menu.add_node_type(layout, "ShaderNodeCombineXYZ")
-        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Vector"))
+        props = node_add_menu.add_node_type(
+            layout, "ShaderNodeMix", label=iface_("Mix Vector")
+        )
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'VECTOR'"
@@ -689,5 +693,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)

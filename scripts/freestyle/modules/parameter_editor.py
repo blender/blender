@@ -85,7 +85,7 @@ from freestyle.utils import (
 from _freestyle import (
     blendRamp,
     evaluateColorRamp,
-    )
+)
 
 import time
 import bpy

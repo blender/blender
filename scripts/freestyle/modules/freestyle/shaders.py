@@ -104,7 +104,7 @@ from freestyle.types import (
     StrokeAttribute,
     StrokeShader,
     StrokeVertexIterator,
-    )
+)
 from freestyle.functions import (
     Curvature2DAngleF0D,
     DensityF0D,

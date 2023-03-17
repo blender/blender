@@ -63,7 +63,9 @@ def main() -> None:
     print("Done!")
 
 
-def tarball_path(output_dir: Path, version: make_utils.BlenderVersion, cli_args: Any) -> Path:
+def tarball_path(
+    output_dir: Path, version: make_utils.BlenderVersion, cli_args: Any
+) -> Path:
     extra = ""
     if cli_args.include_packages:
         extra = "-with-libraries"
@@ -97,6 +99,7 @@ def packages_path(current_directory: Path, cli_args: Any) -> Optional[Path]:
     relpath = os.path.relpath(abspath, current_directory)
 
     return Path(relpath)
+
 
 # -----------------------------------------------------------------------------
 # Manifest creation

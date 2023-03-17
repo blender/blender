@@ -38,19 +38,24 @@ def main():
 
     # Possibly temp. addons path
     from os.path import join, dirname
-    sys.path.extend([
-        join(dirname(dirname(dirname(__file__))), "addons", "modules"),
-        join(utils.user_resource('SCRIPTS'), "addons", "modules"),
-    ])
+
+    sys.path.extend(
+        [
+            join(dirname(dirname(dirname(__file__))), "addons", "modules"),
+            join(utils.user_resource("SCRIPTS"), "addons", "modules"),
+        ]
+    )
 
     # fake module to allow:
     #   from bpy.types import Panel
-    sys.modules.update({
-        "bpy.app": app,
-        "bpy.app.handlers": app.handlers,
-        "bpy.app.translations": app.translations,
-        "bpy.types": types,
-    })
+    sys.modules.update(
+        {
+            "bpy.app": app,
+            "bpy.app.handlers": app.handlers,
+            "bpy.app.translations": app.translations,
+            "bpy.types": types,
+        }
+    )
 
     # Initializes Python classes.
     # (good place to run a profiler or trace).

@@ -20,14 +20,14 @@ BLACKLIST_ALL = [
 
 BLACKLIST_OSL = [
     # OSL only supported on CPU.
-    '.*_osl.blend',
-    'osl_.*.blend',
+    ".*_osl.blend",
+    "osl_.*.blend",
 ]
 
 BLACKLIST_OPTIX = [
     # Ray intersection precision issues
-    'T50164.blend',
-    'T43865.blend',
+    "T50164.blend",
+    "T43865.blend",
 ]
 
 BLACKLIST_METAL = [
@@ -37,20 +37,20 @@ BLACKLIST_METAL = [
 
 BLACKLIST_GPU = [
     # Uninvestigated differences with GPU.
-    'image_log.blend',
-    'T40964.blend',
-    'T45609.blend',
-    'smoke_color.blend',
-    'bevel_mblur.blend',
+    "image_log.blend",
+    "T40964.blend",
+    "T45609.blend",
+    "smoke_color.blend",
+    "bevel_mblur.blend",
     # Inconsistency between Embree and Hair primitive on GPU.
-    'denoise_hair.blend',
-    'hair_basemesh_intercept.blend',
-    'hair_instancer_uv.blend',
-    'hair_length_info.blend',
-    'hair_particle_random.blend',
+    "denoise_hair.blend",
+    "hair_basemesh_intercept.blend",
+    "hair_instancer_uv.blend",
+    "hair_length_info.blend",
+    "hair_particle_random.blend",
     "hair_transmission.blend",
-    'principled_hair_.*.blend',
-    'transparent_shadow_hair.*.blend',
+    "principled_hair_.*.blend",
+    "transparent_shadow_hair.*.blend",
     # Inconsistent handling of overlapping objects.
     "T41143.blend",
     "visibility_particles.blend",
@@ -72,25 +72,34 @@ def get_arguments(filepath, output_filepath):
         "--debug-memory",
         "--debug-exit-on-error",
         filepath,
-        "-E", "CYCLES",
-        "-o", output_filepath,
-        "-F", "PNG"]
+        "-E",
+        "CYCLES",
+        "-o",
+        output_filepath,
+        "-F",
+        "PNG",
+    ]
 
     # OSL and GPU examples
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
-    custom_args = os.getenv('CYCLESTEST_ARGS')
+    custom_args = os.getenv("CYCLESTEST_ARGS")
     if custom_args:
         args.extend(shlex.split(custom_args))
 
-    spp_multiplier = os.getenv('CYCLESTEST_SPP_MULTIPLIER')
+    spp_multiplier = os.getenv("CYCLESTEST_SPP_MULTIPLIER")
     if spp_multiplier:
-        args.extend(["--python-expr", f"import bpy; bpy.context.scene.cycles.samples *= {spp_multiplier}"])
+        args.extend(
+            [
+                "--python-expr",
+                f"import bpy; bpy.context.scene.cycles.samples *= {spp_multiplier}",
+            ]
+        )
 
-    if subject == 'bake':
-        args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
-    elif subject == 'denoise_animation':
-        args.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
+    if subject == "bake":
+        args.extend(["--python", os.path.join(basedir, "util", "render_bake.py")])
+    elif subject == "denoise_animation":
+        args.extend(["--python", os.path.join(basedir, "util", "render_denoise.py")])
     else:
         args.extend(["-f", "1"])
 
@@ -119,27 +128,28 @@ def main():
     device = args.device[0]
 
     blacklist = BLACKLIST_ALL
-    if device != 'CPU':
+    if device != "CPU":
         blacklist += BLACKLIST_GPU
-    if device != 'CPU' or 'OSL' in args.blacklist:
+    if device != "CPU" or "OSL" in args.blacklist:
         blacklist += BLACKLIST_OSL
-    if device == 'OPTIX':
+    if device == "OPTIX":
         blacklist += BLACKLIST_OPTIX
-    if device == 'METAL':
+    if device == "METAL":
         blacklist += BLACKLIST_METAL
 
     from modules import render_report
-    report = render_report.Report('Cycles', output_dir, idiff, device, blacklist)
+
+    report = render_report.Report("Cycles", output_dir, idiff, device, blacklist)
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
-    if device == 'CPU':
-        report.set_compare_engine('eevee')
+    if device == "CPU":
+        report.set_compare_engine("eevee")
     else:
-        report.set_compare_engine('cycles', 'CPU')
+        report.set_compare_engine("cycles", "CPU")
 
     # Increase threshold for motion blur, see #78777.
     test_dir_name = Path(test_dir).name
-    if test_dir_name == 'motion_blur':
+    if test_dir_name == "motion_blur":
         report.set_fail_threshold(0.032)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)

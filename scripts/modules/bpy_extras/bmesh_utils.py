@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-__all__ = (
-    "bmesh_linked_uv_islands",
-)
+__all__ = ("bmesh_linked_uv_islands",)
 
 
 def match_uv(face, vert, uv, uv_layer):

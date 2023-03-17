@@ -2,4 +2,5 @@
 
 # Add directory with module to the path.
 import sys
+
 sys.path.append(sys.argv[1])

@@ -4,11 +4,11 @@ from bpy.types import Header, Menu, Panel
 
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    )
+)
 
 
 class OUTLINER_HT_header(Header):
-    bl_space_type = 'OUTLINER'
+    bl_space_type = "OUTLINER"
 
     def draw(self, context):
         layout = self.layout
@@ -22,9 +22,9 @@ class OUTLINER_HT_header(Header):
 
         layout.prop(space, "display_mode", icon_only=True)
 
-        if display_mode == 'DATA_API':
+        if display_mode == "DATA_API":
             OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
-        if display_mode == 'LIBRARY_OVERRIDES':
+        if display_mode == "LIBRARY_OVERRIDES":
             layout.prop(space, "lib_override_view_mode", text="")
 
         layout.separator_spacer()
@@ -32,53 +32,60 @@ class OUTLINER_HT_header(Header):
         filter_text_supported = True
         # No text filtering for library override hierarchies. The tree is lazy built to avoid
         # performance issues in complex files.
-        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
+        if (
+            display_mode == "LIBRARY_OVERRIDES"
+            and space.lib_override_view_mode == "HIERARCHIES"
+        ):
             filter_text_supported = False
 
         if filter_text_supported:
             row = layout.row(align=True)
-            row.prop(space, "filter_text", icon='VIEWZOOM', text="")
+            row.prop(space, "filter_text", icon="VIEWZOOM", text="")
 
         layout.separator_spacer()
 
-        if display_mode == 'SEQUENCE':
+        if display_mode == "SEQUENCE":
             row = layout.row(align=True)
-            row.prop(space, "use_sync_select", icon='UV_SYNC_SELECT', text="")
+            row.prop(space, "use_sync_select", icon="UV_SYNC_SELECT", text="")
 
         row = layout.row(align=True)
-        if display_mode in {'SCENES', 'VIEW_LAYER', 'LIBRARY_OVERRIDES'}:
+        if display_mode in {"SCENES", "VIEW_LAYER", "LIBRARY_OVERRIDES"}:
             row.popover(
                 panel="OUTLINER_PT_filter",
                 text="",
-                icon='FILTER',
+                icon="FILTER",
             )
 
-        if display_mode in {'LIBRARIES', 'ORPHAN_DATA'}:
-            row.prop(space, "use_filter_id_type", text="", icon='FILTER')
+        if display_mode in {"LIBRARIES", "ORPHAN_DATA"}:
+            row.prop(space, "use_filter_id_type", text="", icon="FILTER")
             sub = row.row(align=True)
             sub.active = space.use_filter_id_type
             sub.prop(space, "filter_id_type", text="", icon_only=True)
 
-        if display_mode == 'VIEW_LAYER':
-            layout.operator("outliner.collection_new", text="", icon='COLLECTION_NEW').nested = True
+        if display_mode == "VIEW_LAYER":
+            layout.operator(
+                "outliner.collection_new", text="", icon="COLLECTION_NEW"
+            ).nested = True
 
-        elif display_mode == 'ORPHAN_DATA':
+        elif display_mode == "ORPHAN_DATA":
             layout.operator("outliner.orphans_purge", text="Purge").do_recursive = True
 
-        elif space.display_mode == 'DATA_API':
+        elif space.display_mode == "DATA_API":
             layout.separator()
 
             row = layout.row(align=True)
-            row.operator("outliner.keyingset_add_selected", icon='ADD', text="")
-            row.operator("outliner.keyingset_remove_selected", icon='REMOVE', text="")
+            row.operator("outliner.keyingset_add_selected", icon="ADD", text="")
+            row.operator("outliner.keyingset_remove_selected", icon="REMOVE", text="")
 
             if ks:
                 row = layout.row()
-                row.prop_search(scene.keying_sets, "active", scene, "keying_sets", text="")
+                row.prop_search(
+                    scene.keying_sets, "active", scene, "keying_sets", text=""
+                )
 
                 row = layout.row(align=True)
-                row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
-                row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
+                row.operator("anim.keyframe_insert", text="", icon="KEY_HLT")
+                row.operator("anim.keyframe_delete", text="", icon="KEY_DEHLT")
             else:
                 row = layout.row()
                 row.label(text="No Keying Set Active")
@@ -92,7 +99,7 @@ class OUTLINER_MT_editor_menus(Menu):
         layout = self.layout
         space = context.space_data
 
-        if space.display_mode == 'DATA_API':
+        if space.display_mode == "DATA_API":
             layout.menu("OUTLINER_MT_edit_datablocks")
 
 
@@ -120,7 +127,7 @@ class OUTLINER_MT_context_menu(Menu):
 
         layout = self.layout
 
-        if space.display_mode == 'VIEW_LAYER':
+        if space.display_mode == "VIEW_LAYER":
             OUTLINER_MT_collection_new.draw_without_context_menu(context, layout)
             layout.separator()
 
@@ -150,7 +157,7 @@ class OUTLINER_MT_view_pie(Menu):
 
         pie = layout.menu_pie()
         pie.operator("outliner.show_hierarchy")
-        pie.operator("outliner.show_active", icon='ZOOM_SELECTED')
+        pie.operator("outliner.show_active", icon="ZOOM_SELECTED")
 
 
 class OUTLINER_MT_edit_datablocks(Menu):
@@ -180,7 +187,7 @@ class OUTLINER_MT_collection_view_layer(Menu):
         layout.operator("outliner.collection_holdout_set")
         layout.operator("outliner.collection_holdout_clear")
 
-        if context.engine == 'CYCLES':
+        if context.engine == "CYCLES":
             layout.operator("outliner.collection_indirect_only_set")
             layout.operator("outliner.collection_indirect_only_clear")
 
@@ -195,19 +202,27 @@ class OUTLINER_MT_collection_visibility(Menu):
 
         layout.separator()
 
-        layout.operator("outliner.collection_show", text="Show", icon='HIDE_OFF')
+        layout.operator("outliner.collection_show", text="Show", icon="HIDE_OFF")
         layout.operator("outliner.collection_show_inside", text="Show All Inside")
-        layout.operator("outliner.collection_hide", text="Hide", icon='HIDE_ON')
+        layout.operator("outliner.collection_hide", text="Hide", icon="HIDE_ON")
         layout.operator("outliner.collection_hide_inside", text="Hide All Inside")
 
         layout.separator()
 
-        layout.operator("outliner.collection_enable", text="Enable in Viewports", icon='RESTRICT_VIEW_OFF')
+        layout.operator(
+            "outliner.collection_enable",
+            text="Enable in Viewports",
+            icon="RESTRICT_VIEW_OFF",
+        )
         layout.operator("outliner.collection_disable", text="Disable in Viewports")
 
         layout.separator()
 
-        layout.operator("outliner.collection_enable_render", text="Enable in Render", icon='RESTRICT_RENDER_OFF')
+        layout.operator(
+            "outliner.collection_enable_render",
+            text="Enable in Render",
+            icon="RESTRICT_RENDER_OFF",
+        )
         layout.operator("outliner.collection_disable_render", text="Disable in Render")
 
 
@@ -219,38 +234,43 @@ class OUTLINER_MT_collection(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.collection_new", text="New",
-                        text_ctxt=i18n_contexts.id_collection).nested = True
+        layout.operator(
+            "outliner.collection_new", text="New", text_ctxt=i18n_contexts.id_collection
+        ).nested = True
         layout.operator("outliner.collection_duplicate", text="Duplicate Collection")
         layout.operator("outliner.collection_duplicate_linked", text="Duplicate Linked")
-        layout.operator("outliner.id_copy", text="Copy", icon='COPYDOWN')
-        layout.operator("outliner.id_paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("outliner.id_copy", text="Copy", icon="COPYDOWN")
+        layout.operator("outliner.id_paste", text="Paste", icon="PASTEDOWN")
 
         layout.separator()
 
-        layout.operator("outliner.delete", text="Delete", icon='X')
+        layout.operator("outliner.delete", text="Delete", icon="X")
         layout.operator("outliner.delete", text="Delete Hierarchy").hierarchy = True
 
         layout.separator()
 
-        layout.operator("outliner.collection_objects_select", text="Select Objects", icon='RESTRICT_SELECT_OFF')
+        layout.operator(
+            "outliner.collection_objects_select",
+            text="Select Objects",
+            icon="RESTRICT_SELECT_OFF",
+        )
         layout.operator("outliner.collection_objects_deselect", text="Deselect Objects")
 
         layout.separator()
 
         layout.operator("outliner.collection_instance", text="Instance to Scene")
 
-        if space.display_mode != 'VIEW_LAYER':
+        if space.display_mode != "VIEW_LAYER":
             layout.operator("outliner.collection_link", text="Link to Scene")
-        layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
+        layout.operator("outliner.id_operation", text="Unlink").type = "UNLINK"
 
         layout.separator()
 
         layout.menu("OUTLINER_MT_collection_visibility")
 
-        if space.display_mode == 'VIEW_LAYER':
+        if space.display_mode == "VIEW_LAYER":
             layout.separator()
-            layout.menu("OUTLINER_MT_collection_view_layer", icon='RENDERLAYERS')
+            layout.menu("OUTLINER_MT_collection_view_layer", icon="RENDERLAYERS")
 
         layout.separator()
         row = layout.row(align=True)
@@ -271,7 +291,7 @@ class OUTLINER_MT_collection_new(Menu):
     @staticmethod
     def draw_without_context_menu(_context, layout):
         layout.operator("outliner.collection_new", text="New Collection").nested = True
-        layout.operator("outliner.id_paste", text="Paste Data-Blocks", icon='PASTEDOWN')
+        layout.operator("outliner.id_paste", text="Paste Data-Blocks", icon="PASTEDOWN")
 
     def draw(self, context):
         layout = self.layout
@@ -291,24 +311,28 @@ class OUTLINER_MT_object(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.id_copy", text="Copy", icon='COPYDOWN')
-        layout.operator("outliner.id_paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("outliner.id_copy", text="Copy", icon="COPYDOWN")
+        layout.operator("outliner.id_paste", text="Paste", icon="PASTEDOWN")
 
         layout.separator()
 
-        layout.operator("outliner.delete", text="Delete", icon='X')
+        layout.operator("outliner.delete", text="Delete", icon="X")
         layout.operator("outliner.delete", text="Delete Hierarchy").hierarchy = True
 
         layout.separator()
 
-        layout.operator("outliner.object_operation", text="Select", icon='RESTRICT_SELECT_OFF').type = 'SELECT'
-        layout.operator("outliner.object_operation", text="Select Hierarchy").type = 'SELECT_HIERARCHY'
-        layout.operator("outliner.object_operation", text="Deselect").type = 'DESELECT'
+        layout.operator(
+            "outliner.object_operation", text="Select", icon="RESTRICT_SELECT_OFF"
+        ).type = "SELECT"
+        layout.operator(
+            "outliner.object_operation", text="Select Hierarchy"
+        ).type = "SELECT_HIERARCHY"
+        layout.operator("outliner.object_operation", text="Deselect").type = "DESELECT"
 
         layout.separator()
 
-        if not (space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection):
-            layout.operator("outliner.id_operation", text="Unlink").type = 'UNLINK'
+        if not (space.display_mode == "VIEW_LAYER" and not space.use_filter_collection):
+            layout.operator("outliner.id_operation", text="Unlink").type = "UNLINK"
             layout.separator()
 
         layout.operator("outliner.collection_new", text="New Collection").nested = True
@@ -343,7 +367,9 @@ class OUTLINER_MT_asset(Menu):
 
         layout.operator("asset.mark")
         layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
-        layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
+        layout.operator(
+            "asset.clear", text="Clear Asset (Set Fake User)"
+        ).set_fake_user = True
 
 
 class OUTLINER_MT_liboverride(Menu):
@@ -356,24 +382,26 @@ class OUTLINER_MT_liboverride(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Make").type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
         layout.operator_menu_enum(
-            "outliner.liboverride_operation",
-            "selection_set",
-            text="Reset").type = 'OVERRIDE_LIBRARY_RESET'
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Clear").type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
+            "outliner.liboverride_operation", "selection_set", text="Make"
+        ).type = "OVERRIDE_LIBRARY_CREATE_HIERARCHY"
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set", text="Reset"
+        ).type = "OVERRIDE_LIBRARY_RESET"
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set", text="Clear"
+        ).type = "OVERRIDE_LIBRARY_CLEAR_SINGLE"
 
         layout.separator()
 
-        layout.operator_menu_enum("outliner.liboverride_troubleshoot_operation", "type",
-                                  text="Troubleshoot").selection_set = 'SELECTED'
+        layout.operator_menu_enum(
+            "outliner.liboverride_troubleshoot_operation", "type", text="Troubleshoot"
+        ).selection_set = "SELECTED"
 
 
 class OUTLINER_PT_filter(Panel):
-    bl_space_type = 'OUTLINER'
-    bl_region_type = 'HEADER'
+    bl_space_type = "OUTLINER"
+    bl_region_type = "HEADER"
     bl_label = "Filter"
 
     def draw(self, context):
@@ -382,7 +410,7 @@ class OUTLINER_PT_filter(Panel):
         space = context.space_data
         display_mode = space.display_mode
 
-        if display_mode == 'VIEW_LAYER':
+        if display_mode == "VIEW_LAYER":
             layout.label(text="Restriction Toggles")
             row = layout.row(align=True)
             row.prop(space, "show_restrict_column_enable", text="")
@@ -393,7 +421,7 @@ class OUTLINER_PT_filter(Panel):
             row.prop(space, "show_restrict_column_holdout", text="")
             row.prop(space, "show_restrict_column_indirect_only", text="")
             layout.separator()
-        elif display_mode == 'SCENES':
+        elif display_mode == "SCENES":
             layout.label(text="Restriction Toggles")
             row = layout.row(align=True)
             row.prop(space, "show_restrict_column_select", text="")
@@ -402,11 +430,11 @@ class OUTLINER_PT_filter(Panel):
             row.prop(space, "show_restrict_column_render", text="")
             layout.separator()
 
-        if display_mode != 'DATA_API':
+        if display_mode != "DATA_API":
             col = layout.column(align=True)
             col.prop(space, "use_sort_alpha")
 
-        if display_mode != 'LIBRARY_OVERRIDES':
+        if display_mode != "LIBRARY_OVERRIDES":
             row = layout.row(align=True)
             row.prop(space, "use_sync_select", text="Sync Selection")
 
@@ -416,7 +444,10 @@ class OUTLINER_PT_filter(Panel):
 
         filter_text_supported = True
         # Same exception for library overrides as in OUTLINER_HT_header.
-        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
+        if (
+            display_mode == "LIBRARY_OVERRIDES"
+            and space.lib_override_view_mode == "HIERARCHIES"
+        ):
             filter_text_supported = False
 
         if filter_text_supported:
@@ -425,12 +456,16 @@ class OUTLINER_PT_filter(Panel):
             col.prop(space, "use_filter_complete", text="Exact Match")
             col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
-        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'PROPERTIES' and bpy.data.libraries:
+        if (
+            display_mode == "LIBRARY_OVERRIDES"
+            and space.lib_override_view_mode == "PROPERTIES"
+            and bpy.data.libraries
+        ):
             row = layout.row()
-            row.label(icon='LIBRARY_DATA_OVERRIDE')
+            row.label(icon="LIBRARY_DATA_OVERRIDE")
             row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
-        if display_mode != 'VIEW_LAYER':
+        if display_mode != "VIEW_LAYER":
             return
 
         layout.separator()
@@ -440,70 +475,70 @@ class OUTLINER_PT_filter(Panel):
         col = layout.column(align=True)
 
         row = col.row()
-        row.label(icon='RENDERLAYERS')
+        row.label(icon="RENDERLAYERS")
         row.prop(space, "use_filter_view_layers", text="All View Layers")
 
         row = col.row()
-        row.label(icon='OUTLINER_COLLECTION')
+        row.label(icon="OUTLINER_COLLECTION")
         row.prop(space, "use_filter_collection", text="Collections")
 
         row = col.row()
-        row.label(icon='OBJECT_DATAMODE')
+        row.label(icon="OBJECT_DATAMODE")
         row.prop(space, "use_filter_object", text="Objects")
         row = col.row(align=True)
-        row.label(icon='BLANK1')
+        row.label(icon="BLANK1")
         row.prop(space, "filter_state", text="")
         sub = row.row(align=True)
-        sub.enabled = space.filter_state != 'ALL'
-        sub.prop(space, "filter_invert", text="", icon='ARROW_LEFTRIGHT')
+        sub.enabled = space.filter_state != "ALL"
+        sub.prop(space, "filter_invert", text="", icon="ARROW_LEFTRIGHT")
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object
 
         row = sub.row()
-        row.label(icon='BLANK1')
+        row.label(icon="BLANK1")
         row.prop(space, "use_filter_object_content", text="Object Contents")
         row = sub.row()
-        row.label(icon='BLANK1')
+        row.label(icon="BLANK1")
         row.prop(space, "use_filter_children", text="Object Children")
 
         if bpy.data.meshes:
             row = sub.row()
-            row.label(icon='MESH_DATA')
+            row.label(icon="MESH_DATA")
             row.prop(space, "use_filter_object_mesh", text="Meshes")
         if bpy.data.armatures:
             row = sub.row()
-            row.label(icon='ARMATURE_DATA')
+            row.label(icon="ARMATURE_DATA")
             row.prop(space, "use_filter_object_armature", text="Armatures")
         if bpy.data.lights:
             row = sub.row()
-            row.label(icon='LIGHT_DATA')
+            row.label(icon="LIGHT_DATA")
             row.prop(space, "use_filter_object_light", text="Lights")
         if bpy.data.cameras:
             row = sub.row()
-            row.label(icon='CAMERA_DATA')
+            row.label(icon="CAMERA_DATA")
             row.prop(space, "use_filter_object_camera", text="Cameras")
         if bpy.data.grease_pencils:
             row = sub.row()
-            row.label(icon='STROKE')
+            row.label(icon="STROKE")
             row.prop(space, "use_filter_object_grease_pencil", text="Grease Pencil")
         row = sub.row()
-        row.label(icon='EMPTY_DATA')
+        row.label(icon="EMPTY_DATA")
         row.prop(space, "use_filter_object_empty", text="Empties")
 
         if (
-                bpy.data.curves or
-                bpy.data.metaballs or
-                (hasattr(bpy.data, "hair_curves") and bpy.data.hair_curves) or
-                (hasattr(bpy.data, "pointclouds") and bpy.data.pointclouds) or
-                bpy.data.volumes or
-                bpy.data.lightprobes or
-                bpy.data.lattices or
-                bpy.data.fonts or
-                bpy.data.speakers
+            bpy.data.curves
+            or bpy.data.metaballs
+            or (hasattr(bpy.data, "hair_curves") and bpy.data.hair_curves)
+            or (hasattr(bpy.data, "pointclouds") and bpy.data.pointclouds)
+            or bpy.data.volumes
+            or bpy.data.lightprobes
+            or bpy.data.lattices
+            or bpy.data.fonts
+            or bpy.data.speakers
         ):
             row = sub.row()
-            row.label(icon='BLANK1')
+            row.label(icon="BLANK1")
             row.prop(space, "use_filter_object_others", text="Others")
 
 
@@ -526,5 +561,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)

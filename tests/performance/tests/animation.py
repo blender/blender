@@ -21,7 +21,7 @@ def _run(args):
 
     time_per_frame = elapsed_time / num_frames
 
-    result = {'time': time_per_frame}
+    result = {"time": time_per_frame}
     return result
 
 
@@ -42,5 +42,5 @@ class AnimationTest(api.Test):
 
 
 def generate(env):
-    filepaths = env.find_blend_files('animation/*')
+    filepaths = env.find_blend_files("animation/*")
     return [AnimationTest(filepath) for filepath in filepaths]
