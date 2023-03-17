@@ -226,7 +226,7 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
     int i;
     BM_ITER_MESH_INDEX (f, &iter, mr->bm, BM_FACES_OF_MESH, i) {
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        const int mat = min_ii(f->mat_nr, mat_last);
+        const int mat = clamp_i(f->mat_nr, 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += f->len - 2;
       }
@@ -239,7 +239,7 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
     for (int i = 0; i < mr->poly_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
         const MPoly *mp = &mr->mpoly[i];
-        const int mat = min_ii(mr->material_indices ? mr->material_indices[i] : 0, mat_last);
+        const int mat = mr->material_indices ? clamp_i(mr->material_indices[i], 0, mat_last) : 0;
         tri_first_index[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mp->totloop - 2;
       }
@@ -264,7 +264,7 @@ static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
   BMesh *bm = mr->bm;
   BMFace *efa = BM_face_at_index(bm, iter);
   if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-    int mat = min_ii(efa->mat_nr, mr->mat_len - 1);
+    int mat = clamp_i(efa->mat_nr, 0, mr->mat_len - 1);
     mat_tri_len[mat] += efa->len - 2;
   }
 }
@@ -278,7 +278,9 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
 
   const MPoly *mp = &mr->mpoly[iter];
   if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
-    int mat = min_ii(mr->material_indices ? mr->material_indices[iter] : 0, mr->mat_len - 1);
+    const int mat = mr->material_indices ?
+                        clamp_i(mr->material_indices[iter], 0, mr->mat_len - 1) :
+                        0;
     mat_tri_len[mat] += mp->totloop - 2;
   }
 }
