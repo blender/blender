@@ -892,6 +892,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
+        col.prop(sculpt, "dyntopo_spacing")
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 

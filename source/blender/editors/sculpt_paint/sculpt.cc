@@ -6476,11 +6476,22 @@ static void sculpt_stroke_update_step(bContext *C,
   const Brush *brush = BKE_paint_brush(&sd->paint);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   StrokeCache *cache = ss->cache;
-  cache->stroke_distance = paint_stroke_distance_get(stroke);
+
+  float stroke_distance = paint_stroke_distance_get(stroke);
+  float stroke_delta = stroke_distance - cache->stroke_distance;
+  cache->stroke_distance = stroke_distance;
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
   sculpt_update_cache_variants(C, sd, ob, itemptr);
   sculpt_restore_mesh(sd, ob);
+
+  if (brush->flag & BRUSH_SCENE_SPACING) {
+    stroke_delta /= ss->cache->radius;
+  }
+  else {
+    stroke_delta /= ups->pixel_radius;
+  }
+  cache->stroke_distance_t += stroke_delta;
 
   if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
     float object_space_constant_detail = 1.0f / (sd->constant_detail *
@@ -6498,7 +6509,14 @@ static void sculpt_stroke_update_step(bContext *C,
                                    0.4f);
   }
 
-  if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
+  float dyntopo_spacing = float(sd->dyntopo_spacing) / 50.0f;
+
+  bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
+  do_dyntopo = do_dyntopo &&
+               (ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t) > dyntopo_spacing;
+
+  if (do_dyntopo) {
+    ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
     do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
   }
 
