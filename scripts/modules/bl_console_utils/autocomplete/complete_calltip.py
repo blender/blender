@@ -2,6 +2,7 @@
 
 # Copyright (c) 2009 www.stani.be
 
+import ast
 import inspect
 import re
 
@@ -155,7 +156,7 @@ def complete(line, cursor, namespace):
         word = match.group(1)
         func_word = match.group(2)
         try:
-            func = eval(func_word, namespace)
+            func = ast.literal_eval(func_word, namespace)
         except Exception:
             func = None
 

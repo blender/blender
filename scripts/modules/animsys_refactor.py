@@ -6,6 +6,7 @@ rna values in fcurves and drivers.
 
 Currently unused, but might become useful later again.
 """
+import ast
 
 import sys
 import bpy
@@ -81,7 +82,7 @@ class DataPathBuilder:
                             if type_ok:
                                 try:
                                     # print("base." + item_new)
-                                    base_new = eval("base." + item_new)
+                                    base_new = ast.literal_eval("base." + item_new)
                                     break  # found, don't keep looking
                                 except:
                                     pass
@@ -89,7 +90,7 @@ class DataPathBuilder:
                 else:
                     item_new = item
                     try:
-                        base_new = eval("base" + item_new)
+                        base_new = ast.literal_eval("base" + item_new)
                     except:
                         pass
 
@@ -132,7 +133,7 @@ def find_path_new(id_data, data_path, rna_update_from_map, fcurve, log):
         return data_path
 
     # recursive path fixing, likely will be one in most cases.
-    data_path_builder = eval("DataPathBuilder(tuple())." + data_path)
+    data_path_builder = ast.literal_eval("DataPathBuilder(tuple())." + data_path)
     data_resolve = data_path_builder.resolve(id_data, rna_update_from_map, fcurve, log)
 
     path_new = [pair[0] for pair in data_resolve]

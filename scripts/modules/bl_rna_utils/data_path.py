@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import ast
 __all__ = (
     "property_definition_from_data_path",
     "decompose_data_path",
@@ -42,7 +43,7 @@ def decompose_data_path(data_path):
     Return the components of a data path split into a list.
     """
     ns = {"base": _TokenizeDataPath(())}
-    return list(eval("base" + data_path, ns, ns))
+    return list(ast.literal_eval("base" + data_path, ns, ns))
 
 
 def property_definition_from_data_path(base, data_path):
@@ -62,7 +63,7 @@ def property_definition_from_data_path(base, data_path):
     data_path_head = "".join(data[:-1])
     data_path_tail = data[-1]
 
-    value_head = eval("base" + data_path_head)
+    value_head = ast.literal_eval("base" + data_path_head)
     value_head_rna = getattr(value_head, "bl_rna", None)
     if value_head_rna is None:
         return None

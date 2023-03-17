@@ -3,6 +3,7 @@
 # Copyright (c) 2009 www.stani.be
 
 """Autocomplete with the standard library"""
+import ast
 
 import re
 import rlcompleter
@@ -72,7 +73,7 @@ def complete_indices(word, namespace, *, obj=None, base=None):
         base = word
     if obj is None:
         try:
-            obj = eval(base, namespace)
+            obj = ast.literal_eval(base, namespace)
         except Exception:
             return []
     if not hasattr(obj, '__getitem__'):
@@ -145,7 +146,7 @@ def complete(word, namespace, *, private=True):
         obj, attr = word.rsplit('.', 1)
         try:
             # do not run the obj expression in the console
-            namespace[TEMP] = eval(obj, namespace)
+            namespace[TEMP] = ast.literal_eval(obj, namespace)
         except Exception:
             return []
         matches = complete_names(TEMP + '.' + attr, namespace)
@@ -164,7 +165,7 @@ def complete(word, namespace, *, private=True):
 
         # try to retrieve the object
         try:
-            obj = eval(word, namespace)
+            obj = ast.literal_eval(word, namespace)
         except Exception:
             return []
         # ignore basic types

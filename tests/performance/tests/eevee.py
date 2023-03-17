@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
+import ast
 import os
 import enum
 import time
@@ -119,7 +120,7 @@ else:
             for line in log:
                 if line.startswith(LOG_KEY):
                     result_str = line[len(LOG_KEY):]
-                    result = eval(result_str)
+                    result = ast.literal_eval(result_str)
                     return result
 
             raise Exception("No playback performance result found in log.")

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import ast
 import sys
 import os
 
@@ -126,7 +127,7 @@ def main():
     print("  Running: '%s'" % run)
     print("  MD5: '%s'!" % md5)
 
-    result = eval(run)
+    result = ast.literal_eval(run)
 
     if write_blend is not None:
         print("  Writing Blend: %s" % write_blend)

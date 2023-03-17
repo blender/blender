@@ -80,6 +80,7 @@ or the context for executing the actions is not properly set (the case for timer
 
 This utility executes actions as if the user initiated them from a key shortcut.
 """
+import ast
 
 
 import os
@@ -451,7 +452,7 @@ class BlenderAction(argparse.Action):
             namespace = {op: lambda *args, **kwargs: (args, kwargs)}
             expr = value
             try:
-                args, kwargs = eval(expr, namespace, namespace)
+                args, kwargs = ast.literal_eval(expr, namespace, namespace)
             except Exception as ex:
                 raise ArgumentTypeError("Unable to parse \"%s\" at index %d, error: %s" % (expr, index, str(ex)))
 
