@@ -1006,6 +1006,77 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name View Auto-Depth Last State Access
+ *
+ * Calling consecutive track-pad gestures reuses the previous offset to prevent
+ * each track-pad event using a different offset, see: #103263.
+ * \{ */
+
+static const char *view3d_autodepth_last_id = "view3d_autodist_last";
+
+/**
+ * Auto-depth values for #ED_view3d_autodist_last_check and related functions.
+ */
+typedef struct View3D_AutoDistLast {
+  float ofs[3];
+  bool has_depth;
+} View3D_AutoDistLast;
+
+bool ED_view3d_autodist_last_check(wmWindow *win, const wmEvent *event)
+{
+  if (event->flag & WM_EVENT_IS_CONSECUTIVE) {
+    const View3D_AutoDistLast *autodepth_last = WM_event_consecutive_data_get(
+        win, view3d_autodepth_last_id);
+    if (autodepth_last) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ED_view3d_autodist_last_clear(wmWindow *win)
+{
+  WM_event_consecutive_data_free(win);
+}
+
+void ED_view3d_autodist_last_set(wmWindow *win,
+                                 const wmEvent *event,
+                                 const float ofs[3],
+                                 const bool has_depth)
+{
+  ED_view3d_autodist_last_clear(win);
+
+  if (WM_event_consecutive_gesture_test(event)) {
+    View3D_AutoDistLast *autodepth_last = MEM_callocN(sizeof(*autodepth_last), __func__);
+
+    autodepth_last->has_depth = has_depth;
+    copy_v3_v3(autodepth_last->ofs, ofs);
+
+    WM_event_consecutive_data_set(win, view3d_autodepth_last_id, autodepth_last);
+  }
+}
+
+bool ED_view3d_autodist_last_get(wmWindow *win, float r_ofs[3])
+{
+  const View3D_AutoDistLast *autodepth_last = WM_event_consecutive_data_get(
+      win, view3d_autodepth_last_id);
+  /* #ED_view3d_autodist_last_check should be called first. */
+  BLI_assert(autodepth_last);
+  if (autodepth_last == NULL) {
+    return false;
+  }
+
+  if (autodepth_last->has_depth == false) {
+    zero_v3(r_ofs);
+    return false;
+  }
+  copy_v3_v3(r_ofs, autodepth_last->ofs);
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name View Auto-Depth Utilities
  * \{ */
 

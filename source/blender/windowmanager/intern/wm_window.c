@@ -256,6 +256,9 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   if (win->event_last_handled) {
     MEM_freeN(win->event_last_handled);
   }
+  if (win->event_queue_consecutive_gesture_data) {
+    WM_event_consecutive_data_free(win);
+  }
 
   if (win->cursor_keymap_status) {
     MEM_freeN(win->cursor_keymap_status);

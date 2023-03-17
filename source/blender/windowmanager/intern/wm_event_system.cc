@@ -3955,6 +3955,27 @@ void wm_event_do_handlers(bContext *C)
       }
       const bool event_queue_check_drag_prev = win->event_queue_check_drag;
 
+      {
+        const bool is_consecutive = WM_event_consecutive_gesture_test(event);
+        if (win->event_queue_consecutive_gesture_type != 0) {
+          if (event->type == win->event_queue_consecutive_gesture_type) {
+            event->flag |= WM_EVENT_IS_CONSECUTIVE;
+          }
+          else if (is_consecutive || WM_event_consecutive_gesture_test_break(win, event)) {
+            CLOG_INFO(WM_LOG_HANDLERS, 1, "consecutive gesture break (%d)", event->type);
+            win->event_queue_consecutive_gesture_type = 0;
+            WM_event_consecutive_data_free(win);
+          }
+        }
+        else if (is_consecutive) {
+          CLOG_INFO(WM_LOG_HANDLERS, 1, "consecutive gesture begin (%d)", event->type);
+          win->event_queue_consecutive_gesture_type = event->type;
+          copy_v2_v2_int(win->event_queue_consecutive_gesture_xy, event->xy);
+          /* While this should not be set, it's harmless to free here. */
+          WM_event_consecutive_data_free(win);
+        }
+      }
+
       /* Active screen might change during handlers, update pointer. */
       screen = WM_window_get_active_screen(win);
 
@@ -4294,6 +4315,56 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   if (ctx_win != root_win) {
     CTX_wm_window_set(C, ctx_win);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Consecutive Event Access
+ * \{ */
+
+using wmEvent_ConsecutiveData = struct wmEvent_ConsecutiveData {
+  /** Owned custom-data. */
+  void *custom_data;
+  /** Unique identifier per struct type. */
+  char id[0];
+};
+
+void *WM_event_consecutive_data_get(wmWindow *win, const char *id)
+{
+  wmEvent_ConsecutiveData *cdata = win->event_queue_consecutive_gesture_data;
+  if (cdata && STREQ(cdata->id, id)) {
+    return cdata->custom_data;
+  }
+  return nullptr;
+}
+
+void WM_event_consecutive_data_set(wmWindow *win, const char *id, void *custom_data)
+{
+  if (win->event_queue_consecutive_gesture_data) {
+    WM_event_consecutive_data_free(win);
+  }
+
+  const size_t id_size = strlen(id) + 1;
+  wmEvent_ConsecutiveData *cdata = static_cast<wmEvent_ConsecutiveData *>(
+      MEM_mallocN(sizeof(*cdata) + id_size, __func__));
+  cdata->custom_data = custom_data;
+  memcpy((cdata + 1), id, id_size);
+  win->event_queue_consecutive_gesture_data = cdata;
+}
+
+void WM_event_consecutive_data_free(wmWindow *win)
+{
+  wmEvent_ConsecutiveData *cdata = win->event_queue_consecutive_gesture_data;
+  if (cdata == nullptr) {
+    return;
+  }
+
+  if (cdata->custom_data) {
+    MEM_freeN(cdata->custom_data);
+  }
+  MEM_freeN(cdata);
+  win->event_queue_consecutive_gesture_data = nullptr;
 }
 
 /** \} */

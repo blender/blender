@@ -103,6 +103,7 @@ void WM_event_print(const wmEvent *event)
       struct FlagIdentifierPair flag_data[] = {
           {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
           {"IS_REPEAT", WM_EVENT_IS_REPEAT},
+          {"IS_CONSECUTIVE", WM_EVENT_IS_CONSECUTIVE},
           {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
       };
       event_ids_from_flag(flag_id, sizeof(flag_id), flag_data, ARRAY_SIZE(flag_data), event->flag);
@@ -332,6 +333,51 @@ bool WM_cursor_test_motion_and_update(const int mval[2])
   bool use_cycle = (len_manhattan_v2v2_int(mval, mval_prev) <= WM_EVENT_CURSOR_MOTION_THRESHOLD);
   copy_v2_v2_int(mval_prev, mval);
   return !use_cycle;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Consecutive Checks
+ * \{ */
+
+/**
+ * Return true if this event type is a candidate for being flagged as consecutive.
+ *
+ * See: #WM_EVENT_IS_CONSECUTIVE doc-string.
+ */
+bool WM_event_consecutive_gesture_test(const wmEvent *event)
+{
+  return ISMOUSE_GESTURE(event->type) || (event->type == NDOF_MOTION);
+}
+
+/**
+ * Return true if this event should break the chain of consecutive gestures.
+ * Practically all intentional user input should, key presses or button clicks.
+ */
+bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent *event)
+{
+  /* Cursor motion breaks the chain. */
+  if (ISMOUSE_MOTION(event->type)) {
+    /* Mouse motion is checked because the user may navigate to a new area
+     * and perform the same gesture - logically it's best to view this as two separate gestures. */
+    if (len_manhattan_v2v2_int(event->xy, win->event_queue_consecutive_gesture_xy) >
+        WM_EVENT_CURSOR_MOTION_THRESHOLD) {
+      return true;
+    }
+  }
+  else if (ISKEYBOARD_OR_BUTTON(event->type)) {
+    /* Modifiers are excluded because from a user perspective,
+     * releasing a modifier (for e.g.) should not begin a new action. */
+    if (!ISKEYMODIFIER(event->type)) {
+      return true;
+    }
+  }
+  else if (event->type == WINDEACTIVATE) {
+    return true;
+  }
+
+  return false;
 }
 
 /** \} */

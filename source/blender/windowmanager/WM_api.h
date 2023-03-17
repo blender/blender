@@ -1251,6 +1251,15 @@ bool WM_gesture_is_modal_first(const struct wmGesture *gesture);
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int eventval);
 
+/* Event consecutive data. */
+
+/** Return a borrowed reference to the custom-data. */
+void *WM_event_consecutive_data_get(wmWindow *win, const char *id);
+/** Set the custom-data (and own the pointer), free with #MEM_freeN. */
+void WM_event_consecutive_data_set(wmWindow *win, const char *id, void *custom_data);
+/** Clear and free the consecutive custom-data. */
+void WM_event_consecutive_data_free(wmWindow *win);
+
 /**
  * Sets the active region for this space from the context.
  *
@@ -1629,6 +1638,9 @@ char WM_event_utf8_to_ascii(const struct wmEvent *event) ATTR_NONNULL(1) ATTR_WA
  * changing regions resets this value to (-1, -1).
  */
 bool WM_cursor_test_motion_and_update(const int mval[2]) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
+bool WM_event_consecutive_gesture_test(const wmEvent *event);
+bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent *event);
 
 int WM_event_drag_threshold(const struct wmEvent *event);
 bool WM_event_drag_test(const struct wmEvent *event, const int prev_xy[2]);

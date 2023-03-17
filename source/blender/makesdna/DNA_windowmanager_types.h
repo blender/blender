@@ -22,6 +22,7 @@ extern "C" {
 struct wmWindow;
 struct wmWindowManager;
 
+struct wmEvent_ConsecutiveData;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
@@ -280,6 +281,15 @@ typedef struct wmWindow {
   short grabcursor;
   /** Internal: tag this for extra mouse-move event,
    * makes cursors/buttons active on UI switching. */
+
+  /** Internal, lock pie creation from this event until released. */
+  short pie_event_type_lock;
+  /**
+   * Exception to the above rule for nested pies, store last pie event for operators
+   * that spawn a new pie right after destruction of last pie.
+   */
+  short pie_event_type_last;
+
   char addmousemove;
   char tag_cursor_refresh;
 
@@ -296,15 +306,12 @@ typedef struct wmWindow {
    */
   char event_queue_check_drag_handled;
 
-  char _pad0[1];
-
-  /** Internal, lock pie creation from this event until released. */
-  short pie_event_type_lock;
-  /**
-   * Exception to the above rule for nested pies, store last pie event for operators
-   * that spawn a new pie right after destruction of last pie.
-   */
-  short pie_event_type_last;
+  /** The last event type (that passed #WM_event_consecutive_gesture_test check). */
+  char event_queue_consecutive_gesture_type;
+  /** The cursor location when `event_queue_consecutive_gesture_type` was set. */
+  int event_queue_consecutive_gesture_xy[2];
+  /** See #WM_event_consecutive_data_get and related API. Freed when consecutive events end. */
+  struct wmEvent_ConsecutiveData *event_queue_consecutive_gesture_data;
 
   /**
    * Storage for event system.

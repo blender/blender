@@ -615,10 +615,18 @@ typedef enum eWM_EventFlag {
    */
   WM_EVENT_IS_REPEAT = (1 << 1),
   /**
+   * Generated for consecutive track-pad or NDOF-motion events,
+   * the repeat chain is broken by key/button events,
+   * or cursor motion exceeding #WM_EVENT_CURSOR_MOTION_THRESHOLD.
+   *
+   * Changing the type of track-pad or gesture event also breaks the chain.
+   */
+  WM_EVENT_IS_CONSECUTIVE = (1 << 2),
+  /**
    * Mouse-move events may have this flag set to force creating a click-drag event
    * even when the threshold has not been met.
    */
-  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 2),
+  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
 } eWM_EventFlag;
 ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 
