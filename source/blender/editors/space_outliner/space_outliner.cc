@@ -195,6 +195,11 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_ASSET:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+        ED_region_tag_redraw_no_rebuild(region);
+      }
+      break;
     case NC_MATERIAL:
       switch (wmn->data) {
         case ND_SHADING_LINKS:
