@@ -13,8 +13,6 @@ def set_pose_matrices(obj, matrix_map):
             matrix = matrix_map[pbone.name]
 
             # # Instead of:
-            # pbone.matrix = matrix
-            # bpy.context.view_layer.update()
 
             # Compute and assign local matrix, using the new parent matrix
             if pbone.parent:

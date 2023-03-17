@@ -286,7 +286,6 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                     if kmi_type_test is not None:
                         kmi_type_set.add(kmi_type_test)
                     else:
-                        # print("Unknown Type:", kmi_type)
 
                         # Partial match
                         for k, v in event_type_map.items():
@@ -365,7 +364,6 @@ def draw_keymaps(context, layout):
     kc_active = wm.keyconfigs.active
     spref = context.space_data
 
-    # row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config")
     text = bpy.path.display_name(kc_active.name, has_ext=False)
     if not text:
         text = "Blender (default)"
@@ -387,8 +385,6 @@ def draw_keymaps(context, layout):
     row = layout.row()
     col = layout.column()
 
-    # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
-    # row.operator("preferences.keyconfig_remove", text="", icon='X')
     rowsub = row.split(factor=0.4, align=True)
     # postpone drawing into rowsub, so we can set alert!
 

@@ -24,7 +24,6 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
 
         totface = mesh.total_face_sel
         totedge = mesh.total_edge_sel
-        # totvert = mesh.total_vert_sel
 
         if select_mode[2] and totface == 1:
             bpy.ops.mesh.extrude_region_move(
@@ -71,7 +70,6 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
         totface = mesh.total_face_sel
         totedge = mesh.total_edge_sel
-        # totvert = mesh.total_vert_sel
 
         if totface >= 1:
             if use_vert_normals:

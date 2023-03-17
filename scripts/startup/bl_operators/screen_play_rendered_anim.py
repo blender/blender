@@ -72,7 +72,6 @@ class PlayRenderedAnim(Operator):
         fps_final = rd.fps / rd.fps_base
 
         preset = prefs.filepaths.animation_player_preset
-        # file_path = bpy.path.abspath(rd.filepath)  # UNUSED
         is_movie = rd.is_movie_format
 
         views_format = rd.image_settings.views_format

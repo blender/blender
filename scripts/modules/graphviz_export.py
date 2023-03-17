@@ -24,8 +24,6 @@ def compat_str(text, line_length=0):
             text_ls.append(text)
         text = "\n  ".join(text_ls)
 
-    # text = text.replace('.', '.\n')
-    # text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
     text = text.replace('"', '\\"')
     return text

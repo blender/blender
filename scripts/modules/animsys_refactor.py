@@ -81,7 +81,6 @@ class DataPathBuilder:
                                         break
                             if type_ok:
                                 try:
-                                    # print("base." + item_new)
                                     base_new = ast.literal_eval("base." + item_new)
                                     break  # found, don't keep looking
                                 except:

@@ -160,7 +160,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
         sub = row.row(align=True)
         sub.operator("pose.group_assign", text="Assign")
-        # row.operator("pose.bone_group_remove_from", text="Remove")
         sub.operator("pose.group_unassign", text="Remove")
 
         sub = row.row(align=True)
@@ -217,7 +216,6 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
-    # bl_label = "Bones Motion Paths"
     bl_options = {'DEFAULT_CLOSED'}
     bl_context = "data"
 
@@ -227,7 +225,6 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        # layout = self.layout
 
         ob = context.object
         avs = ob.pose.animation_visualization
@@ -239,7 +236,6 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
 
 
 class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
-    # bl_label = "Bones Motion Paths"
     bl_context = "data"
     bl_parent_id = "DATA_PT_motion_paths"
     bl_options = {'DEFAULT_CLOSED'}
@@ -250,7 +246,6 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        # layout = self.layout
 
         ob = context.object
         avs = ob.pose.animation_visualization

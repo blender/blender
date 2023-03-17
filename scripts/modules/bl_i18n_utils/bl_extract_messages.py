@@ -735,7 +735,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         #     foobar(text="Foo", text_ctxt=i18n_ctxt.id_object)
         if type(node) is ast.Attribute:
             if node.attr in i18n_ctxt_ids:
-                # print(node, node.attr, getattr(i18n_contexts, node.attr))
                 return getattr(i18n_contexts, node.attr)
         return i18n_contexts.default
 
@@ -860,7 +859,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         }
 
     for fp in files:
-        # ~ print("Checking File ", fp)
         with open(fp, "r", encoding="utf8") as filedata:
             root_node = ast.parse(filedata.read(), fp, "exec")
 
@@ -868,8 +866,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
         for node in ast.walk(root_node):
             if type(node) is ast.Call:
-                # ~ print("found function at")
-                # ~ print("%s:%d" % (fp, node.lineno))
 
                 # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
                 if type(node.func) is ast.Name:
@@ -903,11 +899,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                                 if kw.arg == arg_kw:
                                     context_elements[arg_kw] = kw.value
                                     break
-                    # ~ print(context_elements)
                     for kws, proc in translate_kw[msgid]:
                         if set(kws) <= context_elements.keys():
                             args = tuple(context_elements[k] for k in kws)
-                            # ~ print("running ", proc, " with ", args)
                             ctxt = proc(*args)
                             if ctxt:
                                 msgctxts[msgid] = ctxt
@@ -923,11 +917,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                     else:
                         for kw in node.keywords:
                             if kw.arg == arg_kw:
-                                # ~ print(kw.arg, kw.value)
                                 estr_lst = extract_strings_split(kw.value)
                                 break
                     for estr, nds in estr_lst:
-                        # ~ print(estr, nds)
                         if estr:
                             if nds:
                                 msgsrc = "{}:{}".format(
@@ -1302,10 +1294,8 @@ def dump_messages(do_messages, do_checks, settings):
             settings,
         )
 
-    # pot.check()
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
     print_info(reports, pot)
-    # pot.check()
 
     if do_messages:
         print("Writing messages…")

@@ -2098,12 +2098,9 @@ except ModuleNotFoundError:
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
     fw("        'display_version': False,\n")
-    # fw("        'analytics_id': '',\n")
-    # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
     fw("        'navigation_depth': 1,\n")
     fw("        'includehidden': False,\n")
-    # fw("        'titles_only': False\n")
     fw("    }\n\n")
 
     # not helpful since the source is generated, adds to upload size.
@@ -2182,7 +2179,6 @@ def write_rst_index(basepath):
     fw("the free and open source 3D creation suite.\n")
     fw("\n")
 
-    # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
     fw(
         "This site can be used offline: `Download the full documentation (zipped HTML files) <%s>`__\n"
         % BLENDER_ZIP_FILENAME
@@ -2402,11 +2398,9 @@ def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
     filepath = os.path.join(basepath, "%s.rst" % key_no_prefix)
     with open(filepath, "w", encoding="utf-8") as fh:
         fw = fh.write
-        # fw(".. noindex::\n\n")
         fw(".. _%s:\n\n" % key)
 
         fw(title_string(key_no_prefix.replace("_", " ").title(), "#"))
-        # fw(".. rubric:: %s\n\n" % key_no_prefix.replace("_", " ").title())
 
         for item in enum_items:
             identifier = item.identifier

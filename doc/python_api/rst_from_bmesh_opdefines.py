@@ -173,8 +173,6 @@ def main():
 
             b[i] = l
 
-        # for l in b:
-        #     print(l)
 
         if is_enum:
             text = "".join(b)
@@ -206,7 +204,6 @@ def main():
         text_a, text_b = text.split("=", 1)
         text = "result = " + text_b
         exec(compile(text, "generated", "exec"), global_namespace)
-        # print(global_namespace["result"])
         blocks_py.append((comment, global_namespace["result"]))
 
     # ---------------------

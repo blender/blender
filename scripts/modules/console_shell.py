@@ -47,8 +47,6 @@ def execute(context, _is_interactive):
 
 
 def autocomplete(_context):
-    # sc = context.space_data
-    # TODO
     return {'CANCELLED'}
 
 

@@ -976,7 +976,6 @@ def unregister_tool(tool_cls):
                         tool_list_clean(tools)
                     del item_clean
 
-                    # tuple(sub_item for sub_item in items if sub_item is not tool_def)
                     changed = True
                     break
 

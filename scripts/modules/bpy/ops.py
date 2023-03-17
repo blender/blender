@@ -3,7 +3,6 @@
 # for slightly faster access
 from _bpy import ops as _ops_module
 
-# op_add = _ops_module.add
 _op_dir = _ops_module.dir
 _op_poll = _ops_module.poll
 _op_call = _ops_module.call

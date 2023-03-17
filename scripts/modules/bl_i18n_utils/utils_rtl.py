@@ -62,10 +62,7 @@ def protect_format_seq(msg):
     Find some specific escaping/formatting sequences (like \", %s, etc.,
     and protect them from any modification!
     """
-#    LRM = "\u200E"
-#    RLM = "\u200F"
     LRE = "\u202A"
-#    RLE = "\u202B"
     PDF = "\u202C"
     LRO = "\u202D"
 #    RLO = "\u202E"
@@ -135,7 +132,6 @@ def log2vis(msgs, settings):
 
         fbc_str = ctypes.create_unicode_buffer(msg)
         ln = len(fbc_str) - 1
-#        print(fbc_str.value, ln)
         btypes = (ctypes.c_int * ln)()
         embed_lvl = (ctypes.c_uint8 * ln)()
         pbase_dir = ctypes.c_int(FRIBIDI_PAR_ON)
@@ -145,19 +141,15 @@ def log2vis(msgs, settings):
         # Find out direction of each char.
         fbd.fribidi_get_bidi_types(fbc_str, ln, ctypes.byref(btypes))
 
-#        print(*btypes)
 
         fbd.fribidi_get_par_embedding_levels(btypes, ln,
                                              ctypes.byref(pbase_dir),
                                              embed_lvl)
 
-#        print(*embed_lvl)
 
         # Joinings for arabic chars.
         fbd.fribidi_get_joining_types(fbc_str, ln, jtypes)
-#        print(*jtypes)
         fbd.fribidi_join_arabic(btypes, ln, embed_lvl, jtypes)
-#        print(*jtypes)
 
         # Final Shaping!
         fbd.fribidi_shape(flags, embed_lvl, ln, jtypes, fbc_str)
@@ -169,7 +161,5 @@ def log2vis(msgs, settings):
         # fancy things...
         fbd.fribidi_reorder_line(flags, btypes, ln, 0, pbase_dir, embed_lvl,
                                  fbc_str, None)
-#        print(fbc_str.value)
-#        print(*(ord(c) for c in fbc_str))
 
         yield fbc_str.value

@@ -54,7 +54,6 @@ def ui_draw_filter_register(
                 real_func = UILayout.__getattribute__(self, attr)
 
                 def dummy_func(*args, **kw):
-                    # print("wrapped", attr)
                     ret = real_func(*args, **kw)
                     return UILayout_Fake(ret)
                 return dummy_func
@@ -66,7 +65,6 @@ def ui_draw_filter_register(
                 real_func = UILayout.__getattribute__(self, attr)
 
                 def dummy_func(*args, **kw):
-                    # print("wrapped", attr)
                     ui_test = ui_ignore_operator(args[0])
                     if ui_test is False:
                         ret = real_func(*args, **kw)
@@ -87,7 +85,6 @@ def ui_draw_filter_register(
                 real_func = UILayout.__getattribute__(self, attr)
 
                 def dummy_func(*args, **kw):
-                    # print("wrapped", attr)
                     ui_test = ui_ignore_property(args[0].__class__.__name__, args[1])
                     if ui_test is False:
                         ret = real_func(*args, **kw)
@@ -107,7 +104,6 @@ def ui_draw_filter_register(
                 real_func = UILayout.__getattribute__(self, attr)
 
                 def dummy_func(*args, **kw):
-                    # print("wrapped", attr)
                     ui_test = ui_ignore_menu(args[0])
                     if ui_test is False:
                         ret = real_func(*args, **kw)
@@ -127,7 +123,6 @@ def ui_draw_filter_register(
                 real_func = UILayout.__getattribute__(self, attr)
 
                 def dummy_func(*args, **kw):
-                    # print("wrapped", attr)
                     ui_test = ui_ignore_label(args[0] if args else kw.get("text", ""))
                     if ui_test is False:
                         ret = real_func(*args, **kw)
@@ -141,7 +136,6 @@ def ui_draw_filter_register(
                 return dummy_func
             else:
                 return UILayout.__getattribute__(self, attr)
-            # print(self, attr)
 
         def operator(*args, **kw):
             return super().operator(*args, **kw)
@@ -172,7 +166,6 @@ def ui_draw_filter_register(
 
             @property
             def layout(self):
-                # print("wrapped")
                 return self_real.layout
 
         return func_orig(Wrapper(self_real), context)

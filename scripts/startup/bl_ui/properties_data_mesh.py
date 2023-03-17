@@ -133,7 +133,6 @@ class MESH_UL_vgroups(UIList):
         _active_propname,
         _index,
     ):
-        # assert(isinstance(item, bpy.types.VertexGroup))
         vgroup = item
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
@@ -156,7 +155,6 @@ class MESH_UL_fmaps(UIList):
         _active_propname,
         _index,
     ):
-        # assert(isinstance(item, bpy.types.FaceMap))
         fmap = item
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             layout.prop(fmap, "name", text="", emboss=False, icon="FACE_MAPS")
@@ -169,9 +167,7 @@ class MESH_UL_shape_keys(UIList):
     def draw_item(
         self, _context, layout, _data, item, icon, active_data, _active_propname, index
     ):
-        # assert(isinstance(item, bpy.types.ShapeKey))
         obj = active_data
-        # key = data
         key_block = item
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             split = layout.split(factor=0.66, align=False)
@@ -207,7 +203,6 @@ class MESH_UL_uvmaps(UIList):
         _active_propname,
         _index,
     ):
-        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             layout.prop(item, "name", text="", emboss=False, icon="GROUP_UVS")
             icon = "RESTRICT_RENDER_OFF" if item.active_render else "RESTRICT_RENDER_ON"

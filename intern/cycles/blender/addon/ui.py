@@ -1228,7 +1228,6 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         rd = context.scene.render
-        # scene = context.scene
 
         layout.active = rd.use_motion_blur
 
@@ -1242,7 +1241,6 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         rd = context.scene.render
-        # scene = context.scene
 
         ob = context.object
         cob = ob.cycles
@@ -1899,7 +1897,6 @@ class CYCLES_MATERIAL_PT_volume(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         mat = context.material
-        # cmat = mat.cycles
 
         panel_node_draw(layout, mat, "OUTPUT_MATERIAL", "Volume")
 

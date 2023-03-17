@@ -41,7 +41,6 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         probe = context.lightprobe
 
-#        layout.prop(probe, "type")
 
         if probe.type == 'GRID':
             col = layout.column()

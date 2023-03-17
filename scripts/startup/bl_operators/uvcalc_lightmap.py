@@ -45,9 +45,6 @@ class prettyface:
 
                 self.width = self.height = d * 2
 
-            # else:
-            #     print(len(data), data)
-            #     raise "Error"
 
             for pf in data:
                 pf.has_parent = True
@@ -74,7 +71,6 @@ class prettyface:
             uv_layer = data.id_data.uv_layers.active.data
             self.uv = [uv_layer[i].uv for i in data.loop_indices]
 
-            # cos = [v.co for v in data]
             cos = [data.id_data.vertices[v].co for v in data.vertices]  # XXX25
 
             if len(self.uv) == 4:
@@ -125,7 +121,6 @@ class prettyface:
         self.width, self.height = self.height, self.width
         self.xoff, self.yoff = self.yoff, self.xoff  # not needed?
         self.rot = not self.rot  # only for tri pairs and ngons.
-        # print("spinning")
         for pf in self.children:
             pf.spin()
 
@@ -169,7 +164,6 @@ class prettyface:
                 # v2 = cos[1]-cos[2]
                 # v3 = cos[2]-cos[0]
 
-                # angles_co = get_tri_angles(*[v.co for v in f])
                 angles_co = get_tri_angles(
                     *[f.id_data.vertices[v].co for v in f.vertices]
                 )  # XXX25
@@ -285,7 +279,6 @@ def lightmap_uvpack(
             def trylens(f):
                 # f must be a tri
 
-                # cos = [v.co for v in f]
                 cos = [f.id_data.vertices[v].co for v in f.vertices]  # XXX25
 
                 lens = [
@@ -454,9 +447,7 @@ def lightmap_uvpack(
             # Tall boxes in groups of 2
             for d, boxes in list(odd_dict.items()):
                 if d[1] < max_int_dimension:
-                    # boxes.sort(key=lambda a: len(a.children))
                     while len(boxes) >= 2:
-                        # print("foo", len(boxes))
                         ok = True
                         c += 1
                         pf_parent = prettyface([boxes.pop(), boxes.pop()])
@@ -476,7 +467,6 @@ def lightmap_uvpack(
                     boxes.sort(key=lambda a: len(a.children))
 
                     while len(boxes) >= 4:
-                        # print("bar", len(boxes))
                         ok = True
                         c += 1
 
@@ -490,7 +480,6 @@ def lightmap_uvpack(
         del even_dict
         del odd_dict
 
-        # orig = len(pretty_faces)
 
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
@@ -505,19 +494,15 @@ def lightmap_uvpack(
                 d += 1
                 if d % 2:  # only pack every second
                     pf.spin()
-                    # pass
 
         print("Consolidated", c, "boxes, done")
-        # print("done", orig, len(pretty_faces))
 
-        # boxes2Pack.append([islandIdx, w,h])
         print("\tPacking Boxes", len(pretty_faces), end="...")
         boxes2Pack = [
             [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)
         ]
         packWidth, packHeight = mathutils.geometry.box_pack_2d(boxes2Pack)
 
-        # print(packWidth, packHeight)
 
         packWidth = float(packWidth)
         packHeight = float(packHeight)
@@ -525,7 +510,6 @@ def lightmap_uvpack(
         margin_w = ((packWidth) / PREF_MARGIN_DIV) / packWidth
         margin_h = ((packHeight) / PREF_MARGIN_DIV) / packHeight
 
-        # print(margin_w, margin_h)
         print("done")
 
         # Apply the boxes back to the UV coords.
@@ -534,7 +518,6 @@ def lightmap_uvpack(
             pretty_faces[i].place(
                 box[0], box[1], packWidth, packHeight, margin_w, margin_h
             )
-            # pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
         print("done")
 
         if PREF_APPLY_IMAGE:

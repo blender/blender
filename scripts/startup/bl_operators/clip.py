@@ -359,7 +359,6 @@ class CLIP_OT_delete_proxy(Operator):
         proxy = os.path.join(proxydir, clipfile)
         absproxy = bpy.path.abspath(proxy)
 
-        # proxy_<quality>[_undistorted]
         for x in (25, 50, 75, 100):
             d = os.path.join(absproxy, "proxy_%d" % x)
 

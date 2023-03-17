@@ -87,7 +87,6 @@ def create_nb_project_main():
         if not exists(PROJECT_DIR_NB):
             os.mkdir(PROJECT_DIR_NB)
 
-        # SOURCE_DIR_REL = relpath(SOURCE_DIR, PROJECT_DIR)
 
         f = open(join(PROJECT_DIR_NB, "project.xml"), 'w')
 
@@ -157,7 +156,6 @@ def create_nb_project_main():
         f.write('                   displayName="Important Files"\n')
         f.write('                   projectFiles="false"\n')
         f.write('                   kind="IMPORTANT_FILES_FOLDER">\n')
-        # f.write('      <itemPath>../GNUmakefile</itemPath>\n')
         f.write('    </logicalFolder>\n')
 
         f.write('  </logicalFolder>\n')

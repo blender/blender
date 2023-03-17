@@ -19,7 +19,6 @@ def build_property_typemap(skip_classes, skip_typemap):
             continue
 
         # # to support skip-save we can't get all props
-        # properties = bl_rna.properties.keys()
         properties = []
         for prop_id, prop in bl_rna.properties.items():
             if not prop.is_skip_save:
@@ -250,13 +249,11 @@ def xml2rna(
     root_rna=None,  # must be set
 ):
     def rna2xml_node(xml_node, value):
-        # print("evaluating:", xml_node.nodeName)
 
         # ---------------------------------------------------------------------
         # Simple attributes
 
         for attr in xml_node.attributes.keys():
-            # print("  ", attr)
             subvalue = getattr(value, attr, Ellipsis)
 
             if subvalue is Ellipsis:
@@ -265,19 +262,14 @@ def xml2rna(
                 value_xml = xml_node.attributes[attr].value
 
                 subvalue_type = type(subvalue)
-                # tp_name = 'UNKNOWN'
                 if subvalue_type == float:
                     value_xml_coerce = float(value_xml)
-                    # tp_name = 'FLOAT'
                 elif subvalue_type == int:
                     value_xml_coerce = int(value_xml)
-                    # tp_name = 'INT'
                 elif subvalue_type == bool:
                     value_xml_coerce = {"TRUE": True, "FALSE": False}[value_xml]
-                    # tp_name = 'BOOL'
                 elif subvalue_type == str:
                     value_xml_coerce = value_xml
-                    # tp_name = 'STR'
                 elif hasattr(subvalue, "__len__"):
                     if value_xml.startswith("#"):
                         # read hexadecimal value as float array
@@ -300,9 +292,7 @@ def xml2rna(
                                     for v in value_xml_split
                                 ]
                         del value_xml_split
-                    # tp_name = 'ARRAY'
 
-                    # print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
                 try:
                     setattr(value, attr, value_xml_coerce)
                 except ValueError:
@@ -321,8 +311,6 @@ def xml2rna(
         # Complex attributes
         for child_xml in xml_node.childNodes:
             if child_xml.nodeType == child_xml.ELEMENT_NODE:
-                # print()
-                # print(child_xml.nodeName)
                 subvalue = getattr(value, child_xml.nodeName, None)
                 if subvalue is not None:
                     elems = []
@@ -354,7 +342,6 @@ def xml2rna(
                             # sub node named by its type
                             (child_xml_real,) = elems
 
-                            # print(child_xml_real, subvalue)
                             rna2xml_node(child_xml_real, subvalue)
                         else:
                             # empty is valid too
@@ -394,7 +381,6 @@ def xml_file_run(context, filepath, rna_map):
         value = _get_context_val(context, rna_path)
 
         if value is not Ellipsis and value is not None:
-            # print("  loading XML: %r -> %r" % (filepath, rna_path))
             xml2rna(xml_node, root_rna=value)
 
 

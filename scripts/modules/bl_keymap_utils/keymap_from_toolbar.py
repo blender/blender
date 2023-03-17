@@ -129,7 +129,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname="wm.tool_set_by_id",
                 context='INVOKE_REGION_WIN',
-                # properties={"name": item.idname},
                 properties=kmi_hack_properties,
                 include={'KEYBOARD'},
             )[1]
@@ -162,7 +161,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname="wm.tool_set_by_id",
                 context='INVOKE_REGION_WIN',
-                # properties={"name": item.idname},
                 properties=kmi_hack_properties,
                 include={'KEYBOARD'},
             )[1]
@@ -229,7 +227,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                 if kmi_first is not None:
                     kmi_found = wm.keyconfigs.find_item_from_operator(
                         idname=kmi_first.idname,
-                        # properties=kmi_first.properties,  # prevents matches, don't use.
                         context='INVOKE_REGION_WIN',
                         include={'KEYBOARD'},
                     )[1]
@@ -237,7 +234,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                         # We need non-keyboard events so keys with 'key_modifier' key is found.
                         kmi_found = wm.keyconfigs.find_item_from_operator(
                             idname=kmi_first.idname,
-                            # properties=kmi_first.properties,  # prevents matches, don't use.
                             context='INVOKE_REGION_WIN',
                             exclude={'KEYBOARD'},
                         )[1]

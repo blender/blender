@@ -129,7 +129,6 @@ class SelectCamera(Operator):
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
             view_layer.objects.active = camera
-            # camera.hide = False  # XXX TODO where is this now?
             camera.select_set(True)
             return {'FINISHED'}
 
@@ -588,7 +587,6 @@ class MakeDupliFace(Operator):
                     )
 
         def matrix_to_quad(matrix):
-            # scale = matrix.median_scale
             trans = matrix.to_translation()
             rot = matrix.to_3x3()  # also contains scale
 

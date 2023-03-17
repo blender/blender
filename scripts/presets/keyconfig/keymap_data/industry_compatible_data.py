@@ -2095,8 +2095,6 @@ def km_clip_graph_editor(params):
          {"properties": [("extend", True)]}),
         ("clip.graph_select_box", {"type": 'Q', "value": 'PRESS'}, None),
         ("clip.graph_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
-        # ("clip.graph_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'DESELECT')]}),
-        # ("clip.graph_select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         ("clip.graph_delete_curve", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         ("clip.graph_delete_curve", {"type": 'DEL', "value": 'PRESS'}, None),
         ("clip.graph_delete_knot", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),

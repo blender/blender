@@ -353,7 +353,6 @@ class InfoPropertyRNA:
             self.default_str = '"%s"' % self.default
         elif self.type == "enum":
             if self.is_enum_flag:
-                # self.default_str = "%r" % self.default  # repr or set()
                 self.default_str = "{%s}" % repr(list(sorted(self.default)))[1:-1]
             else:
                 self.default_str = "'%s'" % self.default
@@ -521,7 +520,6 @@ class InfoFunctionRNA:
     def __init__(self, rna_func):
         self.bl_func = rna_func
         self.identifier = rna_func.identifier
-        # self.name = rna_func.name # functions have no name!
         self.description = rna_func.description.strip()
         self.is_classmethod = not rna_func.use_self
 
@@ -572,7 +570,6 @@ class InfoOperatorRNA:
         self.module_name = mod.lower()
         self.func_name = name
 
-        # self.name = rna_func.name # functions have no name!
         self.description = rna_op.description.strip()
 
         self.args = []
@@ -657,7 +654,6 @@ def BuildRNAInfo():
     rna_references_dict = (
         {}
     )  # store a list of rna path strings that reference this type
-    # rna_functions_dict = {}  # store all functions directly in this type (not inherited)
 
     def full_rna_struct_path(rna_struct):
         """
@@ -676,7 +672,6 @@ def BuildRNAInfo():
         except:
             return ""  # invalid id
 
-    # structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
     """
     structs = []
     for rna_struct in bpy.doc.structs.values():
@@ -794,7 +789,6 @@ def BuildRNAInfo():
 
     # precalculate vars to avoid a lot of looping
     for rna_base, identifier, rna_struct in structs:
-        # rna_struct_path = full_rna_struct_path(rna_struct)
         rna_struct_path = rna_full_path_dict[identifier]
 
         for rna_prop in get_direct_properties(rna_struct):
@@ -837,10 +831,7 @@ def BuildRNAInfo():
 
     info_structs = []
     for rna_base, identifier, rna_struct in structs:
-        # if rna_struct.nested:
-        #     continue
 
-        # write_struct(rna_struct, '')
         info_struct = GetInfoStructRNA(rna_struct)
         if rna_base:
             info_struct.base = GetInfoStructRNA(rna_struct_dict[rna_base])
@@ -918,8 +909,6 @@ def BuildRNAInfo():
         for rna_prop in rna_info.args:
             rna_prop.build()
 
-    # for rna_info in InfoStructRNA.global_lookup.values():
-    #     print(rna_info)
     return (
         InfoStructRNA.global_lookup,
         InfoFunctionRNA.global_lookup,
@@ -939,8 +928,6 @@ def main():
 
         props = [(prop.identifier, prop) for prop in v.properties]
         for _prop_id, prop in sorted(props):
-            # if prop.type == "boolean":
-            #     continue
             prop_type = prop.type
             if prop.array_length > 0:
                 prop_type += "[%d]" % prop.array_length

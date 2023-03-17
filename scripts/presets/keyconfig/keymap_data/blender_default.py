@@ -10253,9 +10253,6 @@ def _template_sequencer_preview_select(*, type, value, legacy):
             # TODO:
             # (("enumerate",), ("alt",)),
             (("toggle", "center"), ("shift", "ctrl")),
-            # (("center", "enumerate"), ("ctrl", "alt")),
-            # (("toggle", "enumerate"), ("shift", "alt")),
-            # (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
         )
     ]
 

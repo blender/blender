@@ -116,14 +116,12 @@ args = sys.argv[2:]
 # print(args)
 
 tu = index.parse(sys.argv[1], args)
-# print('Translation unit: %s' % tu.spelling)
 filepath = tu.spelling
 
 # -----------------------------------------------------------------------------
 
 
 def function_parm_wash_tokens(parm):
-    # print(parm.kind)
     assert parm.kind in (
         CursorKind.PARM_DECL,
         CursorKind.VAR_DECL,  # XXX, double check this
@@ -143,8 +141,6 @@ def function_parm_wash_tokens(parm):
     if tokens[-1].kind == TokenKind.PUNCTUATION:
         if tokens[-1].spelling in {",", ")", ";"}:
             tokens.pop()
-        # else:
-        #     print(tokens[-1].spelling)
 
     t_new = []
     for t in tokens:
@@ -176,7 +172,6 @@ def function_parm_wash_tokens(parm):
 def parm_size(node_child):
     tokens = function_parm_wash_tokens(node_child)
 
-    # print(" ".join([t.spelling for t in tokens]))
 
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
     if len(tokens) >= 3:  # foo [ 1 ]
@@ -205,8 +200,6 @@ def function_get_arg_sizes(node):
         ]
 
         for i, node_child in enumerate(node_parms):
-            # print(node_child.kind, node_child.spelling)
-            # print(node_child.type.kind, node_child.spelling)
             if node_child.type.kind == TypeKind.CONSTANTARRAY:
                 pointee = node_child.type.get_pointee()
                 size = parm_size(node_child)
@@ -251,7 +244,6 @@ def file_check_arg_sizes(tu):
                     ]
                 ),
             )
-        # print(node.location)
 
         # first child is the function call, skip that.
         children = list(node.get_children())
@@ -292,8 +284,6 @@ def file_check_arg_sizes(tu):
             if size_def == -1:
                 continue
 
-            # print([c.kind for c in children])
-            # print(" ".join([t.spelling for t in node_child.get_tokens()]))
 
             if len(children) == 1:
                 arg = children[0]
@@ -317,11 +307,8 @@ def file_check_arg_sizes(tu):
                                         ),
                                     )
 
-                                # testing
-                                # size_def = 100
                                 if size != 1:
                                     if USE_EXACT_COMPARE:
-                                        # is_err = (size != size_def) and (size != 4 and size_def != 3)
                                         is_err = size != size_def
                                     else:
                                         is_err = size < size_def
@@ -363,16 +350,12 @@ def file_check_arg_sizes(tu):
 def recursive_arg_sizes(
     node,
 ):
-    # print(node.kind, node.spelling)
     if node.kind == CursorKind.FUNCTION_DECL:
         if USE_LAZY_INIT:
             args_sizes = node
         else:
             args_sizes = function_get_arg_sizes(node)
-        # if args_sizes:
-        #     print(node.spelling, args_sizes)
         _defs[node.spelling] = args_sizes
-        # print("adding", node.spelling)
     for c in node.get_children():
         recursive_arg_sizes(c)
 

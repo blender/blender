@@ -29,7 +29,6 @@ def generate():
 
 # bpy.type.KeyMap: (km.name, km.space_type, km.region_type, [...])
 
-#    ('Script', 'EMPTY', 'WINDOW', []),
 
 
 # Access via 'km_hierarchy'.

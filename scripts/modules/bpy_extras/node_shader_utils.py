@@ -120,7 +120,6 @@ class ShaderWrapper():
         if self._node_texcoords is None and not self.is_readonly:
             tree = self.material.node_tree
             nodes = tree.nodes
-            # links = tree.links
 
             node_texcoords = nodes.new(type='ShaderNodeTexCoord')
             node_texcoords.label = "Texture Coords"
@@ -589,9 +588,6 @@ class ShaderImageTextureWrapper():
         self._node_image = ...
         self._node_mapping = ...
 
-        # tree = node_dst.id_data
-        # nodes = tree.nodes
-        # links = tree.links
 
         if socket_dst.is_linked:
             from_node = socket_dst.links[0].from_node

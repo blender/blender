@@ -81,7 +81,6 @@ print('test_float:', scene.test_float)
 scene.test_array = (True, False)
 print('test_array:', tuple(scene.test_array))
 
-# scene.test_date = "blah"   # this would fail, property is read-only
 print('test_date:', scene.test_date)
 
 scene.test_enum = 'BLUE'

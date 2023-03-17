@@ -193,11 +193,6 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
                 moduleId = substorage.attributes["moduleId"].value
 
-                # org.eclipse.cdt.core.settings
-                # org.eclipse.cdt.core.language.mapping
-                # org.eclipse.cdt.core.externalSettings
-                # org.eclipse.cdt.core.pathentry
-                # org.eclipse.cdt.make.core.buildtargets
 
                 if moduleId == "org.eclipse.cdt.core.pathentry":
                     for path in substorage.childNodes:

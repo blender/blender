@@ -94,7 +94,6 @@ def module_list(path):
             folder_list = []
     else:
         folder_list = []
-    # folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [
         p
         for p in folder_list

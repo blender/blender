@@ -121,8 +121,6 @@ def api_dump(args):
 
         props = [(prop.identifier, prop) for prop in struct_info.properties]
         for prop_id, prop in sorted(props):
-            # if prop.type == 'boolean':
-            #     continue
             prop_type = prop.type
             prop_length = prop.array_length
             prop_range = round(prop.min, 4), round(prop.max, 4)
@@ -188,7 +186,6 @@ def api_dump(args):
         # kludge func -> props
         funcs = struct_info.get_py_functions()
         for func_id, attr in funcs:
-            # arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
 
             sig = inspect.signature(attr)
             func_args_ids = [k for k, v in sig.parameters.items()]
