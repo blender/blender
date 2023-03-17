@@ -86,6 +86,11 @@ void VKCommandBuffer::push_constants(const VKPushConstants &push_constants,
                      push_constants.data());
 }
 
+void VKCommandBuffer::fill(VKBuffer &buffer, uint32_t clear_data)
+{
+  vkCmdFillBuffer(vk_command_buffer_, buffer.vk_handle(), 0, buffer.size_in_bytes(), clear_data);
+}
+
 void VKCommandBuffer::copy(VKBuffer &dst_buffer,
                            VKTexture &src_texture,
                            Span<VkBufferImageCopy> regions)

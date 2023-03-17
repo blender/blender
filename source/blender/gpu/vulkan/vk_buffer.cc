@@ -84,6 +84,12 @@ void VKBuffer::update(const void *data) const
   memcpy(mapped_memory_, data, size_in_bytes_);
 }
 
+void VKBuffer::clear(VKContext &context, uint32_t clear_value)
+{
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.fill(*this, clear_value);
+}
+
 void VKBuffer::read(void *data) const
 {
   BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");

@@ -23,7 +23,11 @@ void VKStorageBuffer::update(const void *data)
 
 void VKStorageBuffer::allocate(VKContext &context)
 {
-  buffer_.create(context, size_in_bytes_, usage_, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+  buffer_.create(context,
+                 size_in_bytes_,
+                 usage_,
+                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
 }
 
 void VKStorageBuffer::bind(int slot)
@@ -43,8 +47,13 @@ void VKStorageBuffer::unbind()
 {
 }
 
-void VKStorageBuffer::clear(uint32_t /*clear_value*/)
+void VKStorageBuffer::clear(uint32_t clear_value)
 {
+  VKContext &context = *VKContext::get();
+  if (!buffer_.is_allocated()) {
+    allocate(context);
+  }
+  buffer_.clear(context, clear_value);
 }
 
 void VKStorageBuffer::copy_sub(VertBuf * /*src*/,
