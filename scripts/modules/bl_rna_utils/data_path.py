@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import ast
+
 __all__ = (
     "property_definition_from_data_path",
     "decompose_data_path",
@@ -12,10 +13,10 @@ class _TokenizeDataPath:
     Class to split up tokens of a data-path.
 
     Note that almost all access generates new objects with additional paths,
-    with the exception of iteration which is the intended way to access the resulting data."""
-    __slots__ = (
-        "data_path",
-    )
+    with the exception of iteration which is the intended way to access the resulting data.
+    """
+
+    __slots__ = ("data_path",)
 
     def __init__(self, attrs):
         self.data_path = attrs
@@ -27,12 +28,17 @@ class _TokenizeDataPath:
         return _TokenizeDataPath(self.data_path + (("[%r]" % (key,)),))
 
     def __call__(self, *args, **kw):
-        value_str = ", ".join([
-            val for val in (
-                ", ".join(repr(value) for value in args),
-                ", ".join(["%s=%r" % (key, value) for key, value in kw.items()]),
-            ) if val])
-        return _TokenizeDataPath(self.data_path + ('(%s)' % value_str, ))
+        value_str = ", ".join(
+            [
+                val
+                for val in (
+                    ", ".join(repr(value) for value in args),
+                    ", ".join(["%s=%r" % (key, value) for key, value in kw.items()]),
+                )
+                if val
+            ]
+        )
+        return _TokenizeDataPath(self.data_path + ("(%s)" % value_str,))
 
     def __iter__(self):
         return iter(self.data_path)

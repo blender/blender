@@ -97,7 +97,7 @@ import bpy
 EVENT_TYPES = tuple(bpy.types.Event.bl_rna.properties["type"].enum_items.keys())
 EVENT_VALUES = tuple(bpy.types.Event.bl_rna.properties["value"].enum_items.keys())
 # `TAP` is just convenience for (`PRESS`, `RELEASE`).
-EVENT_VALUES_EXTRA = EVENT_VALUES + ('TAP',)
+EVENT_VALUES_EXTRA = EVENT_VALUES + ("TAP",)
 
 
 # -----------------------------------------------------------------------------
@@ -109,6 +109,7 @@ win = bpy.context.window_manager.windows[0]
 
 # -----------------------------------------------------------------------------
 # Utilities
+
 
 def find_main_area(ui_type=None):
     """
@@ -135,31 +136,32 @@ def gen_events_type_text(text):
     for ch in text:
         kw_extra = {}
         # The event type in this case is ignored as only the unicode value is used for text input.
-        type = 'SPACE'
-        if ch == '\t':
-            type = 'TAB'
-        elif ch == '\n':
-            type = 'RET'
+        type = "SPACE"
+        if ch == "\t":
+            type = "TAB"
+        elif ch == "\n":
+            type = "RET"
         else:
             kw_extra["unicode"] = ch
 
-        yield dict(type=type, value='PRESS', **kw_extra)
+        yield dict(type=type, value="PRESS", **kw_extra)
         kw_extra.pop("unicode", None)
-        yield dict(type=type, value='RELEASE', **kw_extra)
+        yield dict(type=type, value="RELEASE", **kw_extra)
 
 
 def repr_action(name, args, kwargs):
     return "%s(%s)" % (
         name,
         ", ".join(
-            [repr(value) for value in args] +
-            [("%s=%r" % (key, value)) for key, value in kwargs.items()]
-        )
+            [repr(value) for value in args]
+            + [("%s=%r" % (key, value)) for key, value in kwargs.items()]
+        ),
     )
 
 
 # -----------------------------------------------------------------------------
 # Simulate Events
+
 
 def mouse_location_get():
     return (
@@ -192,12 +194,12 @@ def run_event_simulate(*, event_iter, exit_fn):
                 val[attr] = last_event[attr]
 
         # Fake event value, since press, release is so common.
-        if val.get("value") == 'TAP':
+        if val.get("value") == "TAP":
             del val["value"]
-            win.event_simulate(**val, value='PRESS')
+            win.event_simulate(**val, value="PRESS")
             # Needed if new files are loaded.
             # win = bpy.context.window_manager.windows[0]
-            win.event_simulate(**val, value='RELEASE')
+            win.event_simulate(**val, value="RELEASE")
         else:
             # print("val", val)
             win.event_simulate(**val)
@@ -217,9 +219,9 @@ run_event_simulate.last_event = dict(
 # -----------------------------------------------------------------------------
 # Action Implementations
 
+
 # Static methods from this class are automatically exposed as actions and included in the help text.
 class action_handlers:
-
     @staticmethod
     def area_maximize(*, ui_type=None, only_validate=False):
         """
@@ -240,13 +242,13 @@ class action_handlers:
         x = area.x + (area.width // 2)
         y = area.y + (area.height // 2)
 
-        yield dict(type='MOUSEMOVE', value='NOTHING', x=x, y=y)
-        yield dict(type='SPACE', value='TAP', ctrl=True, alt=True)
+        yield dict(type="MOUSEMOVE", value="NOTHING", x=x, y=y)
+        yield dict(type="SPACE", value="TAP", ctrl=True, alt=True)
 
         x = win.width // 2
         y = win.height // 2
 
-        yield dict(type='MOUSEMOVE', value='NOTHING', x=x, y=y)
+        yield dict(type="MOUSEMOVE", value="NOTHING", x=x, y=y)
 
     @staticmethod
     def menu(text, *, only_validate=False):
@@ -259,12 +261,21 @@ class action_handlers:
         if only_validate:
             return
 
-        yield dict(type='F3', value='TAP')
+        yield dict(type="F3", value="TAP")
         yield from gen_events_type_text(text)
-        yield dict(type='RET', value='TAP')
+        yield dict(type="RET", value="TAP")
 
     @staticmethod
-    def event(*, type, value, ctrl=False, alt=False, shift=False, repeat=1, only_validate=False):
+    def event(
+        *,
+        type,
+        value,
+        ctrl=False,
+        alt=False,
+        shift=False,
+        repeat=1,
+        only_validate=False
+    ):
         """
         type: The event, typically key, e.g. 'ESC', 'RET', 'SPACE', 'A'.
         value: The event type, valid values include: 'PRESS', 'RELEASE', 'TAP'.
@@ -274,13 +285,19 @@ class action_handlers:
         """
         valid_items = EVENT_VALUES_EXTRA
         if value not in valid_items:
-            raise ArgumentTypeError("'value' argument %r not in %r" % (value, valid_items))
+            raise ArgumentTypeError(
+                "'value' argument %r not in %r" % (value, valid_items)
+            )
         valid_items = EVENT_TYPES
         if type not in valid_items:
-            raise ArgumentTypeError("'type' argument %r not in %r" % (value, valid_items))
+            raise ArgumentTypeError(
+                "'type' argument %r not in %r" % (value, valid_items)
+            )
         valid_items = range(1, sys.maxsize)
         if repeat not in valid_items:
-            raise ArgumentTypeError("'repeat' argument %r not in %r" % (repeat, valid_items))
+            raise ArgumentTypeError(
+                "'repeat' argument %r not in %r" % (repeat, valid_items)
+            )
         del valid_items
 
         if only_validate:
@@ -303,19 +320,27 @@ class action_handlers:
 
         valid_items = range(1, sys.maxsize)
         if steps not in valid_items:
-            raise ArgumentTypeError("'steps' argument %r not in %r" % (steps, valid_items))
+            raise ArgumentTypeError(
+                "'steps' argument %r not in %r" % (steps, valid_items)
+            )
 
         valid_items = range(1, sys.maxsize)
         if radius not in valid_items:
-            raise ArgumentTypeError("'radius' argument %r not in %r" % (steps, valid_items))
+            raise ArgumentTypeError(
+                "'radius' argument %r not in %r" % (steps, valid_items)
+            )
 
-        valid_items = ('CIRCLE',)
+        valid_items = ("CIRCLE",)
         if path not in valid_items:
-            raise ArgumentTypeError("'path' argument %r not in %r" % (path, valid_items))
+            raise ArgumentTypeError(
+                "'path' argument %r not in %r" % (path, valid_items)
+            )
 
         valid_items = range(1, sys.maxsize)
         if repeat not in valid_items:
-            raise ArgumentTypeError("'repeat' argument %r not in %r" % (repeat, valid_items))
+            raise ArgumentTypeError(
+                "'repeat' argument %r not in %r" % (repeat, valid_items)
+            )
         del valid_items
 
         if only_validate:
@@ -325,14 +350,14 @@ class action_handlers:
 
         y_init_ofs = y_init + radius
 
-        yield dict(type='MOUSEMOVE', value='NOTHING', x=x_init, y=y_init_ofs)
+        yield dict(type="MOUSEMOVE", value="NOTHING", x=x_init, y=y_init_ofs)
 
         print("\n" "Times for: %s" % os.path.basename(bpy.data.filepath))
 
         t = time.time()
         step_total = 0
 
-        if path == 'CIRCLE':
+        if path == "CIRCLE":
             for _ in range(repeat):
                 for i in range(1, steps + 1):
                     phi = (i / steps) * 2.0 * pi
@@ -340,8 +365,8 @@ class action_handlers:
                     y_ofs = +radius * cos(phi)
                     step_total += 1
                     yield dict(
-                        type='MOUSEMOVE',
-                        value='NOTHING',
+                        type="MOUSEMOVE",
+                        value="NOTHING",
                         x=int(x_init + x_ofs),
                         y=int(y_init + y_ofs),
                     )
@@ -353,7 +378,7 @@ class action_handlers:
             ("%.6f FPS" % (1 / delta_step)).rjust(10),
         )
 
-        yield dict(type='MOUSEMOVE', value='NOTHING', x=x_init, y=y_init)
+        yield dict(type="MOUSEMOVE", value="NOTHING", x=x_init, y=y_init)
 
     @staticmethod
     def operator(idname, *, only_validate=False, **kw):
@@ -367,7 +392,7 @@ class action_handlers:
         keyconf = wm.keyconfigs.user
 
         keymap_id = "Screen"
-        key_to_map = 'F24'
+        key_to_map = "F24"
 
         if only_validate:
             op_mod, op_submod = idname.partition(".")[0::2]
@@ -379,39 +404,43 @@ class action_handlers:
                 raise ArgumentTypeError("Operator %r does not exist" % (idname))
 
             keymap = keyconf.keymaps[keymap_id]
-            kmi = keymap.keymap_items.new(idname=idname, type=key_to_map, value='PRESS')
+            kmi = keymap.keymap_items.new(idname=idname, type=key_to_map, value="PRESS")
             kmi.idname = idname
             props = kmi.properties
             for key, value in kw.items():
                 if not hasattr(props, key):
-                    raise ArgumentTypeError("Operator %r does not have a %r property" % (idname, key))
+                    raise ArgumentTypeError(
+                        "Operator %r does not have a %r property" % (idname, key)
+                    )
 
                 try:
                     setattr(props, key, value)
                 except Exception as ex:
-                    raise ArgumentTypeError("Operator %r assign %r property with error %s" % (idname, key, str(ex)))
+                    raise ArgumentTypeError(
+                        "Operator %r assign %r property with error %s"
+                        % (idname, key, str(ex))
+                    )
 
             keymap.keymap_items.remove(kmi)
             return
 
         keymap = keyconf.keymaps[keymap_id]
-        kmi = keymap.keymap_items.new(idname=idname, type=key_to_map, value='PRESS')
+        kmi = keymap.keymap_items.new(idname=idname, type=key_to_map, value="PRESS")
         kmi.idname = idname
         props = kmi.properties
         for key, value in kw.items():
             setattr(props, key, value)
 
-        yield dict(type=key_to_map, value='TAP')
+        yield dict(type=key_to_map, value="TAP")
 
         keymap = keyconf.keymaps[keymap_id]
         kmi = keymap.keymap_items[-1]
         keymap.keymap_items.remove(kmi)
 
 
-ACTION_DIR = tuple([
-    key for key in sorted(action_handlers.__dict__.keys())
-    if not key.startswith("_")
-])
+ACTION_DIR = tuple(
+    [key for key in sorted(action_handlers.__dict__.keys()) if not key.startswith("_")]
+)
 
 
 def handle_action(op, args, kwargs, only_validate=False):
@@ -454,13 +483,19 @@ class BlenderAction(argparse.Action):
             try:
                 args, kwargs = ast.literal_eval(expr, namespace, namespace)
             except Exception as ex:
-                raise ArgumentTypeError("Unable to parse \"%s\" at index %d, error: %s" % (expr, index, str(ex)))
+                raise ArgumentTypeError(
+                    'Unable to parse "%s" at index %d, error: %s'
+                    % (expr, index, str(ex))
+                )
 
         # Creating a list is necessary since this is a generator.
         try:
             dummy_result = list(handle_action(op, args, kwargs, only_validate=True))
         except ArgumentTypeError as ex:
-            raise ArgumentTypeError("Invalid 'action' arguments \"%s\" at index %d, %s" % (value, index, str(ex)))
+            raise ArgumentTypeError(
+                "Invalid 'action' arguments \"%s\" at index %d, %s"
+                % (value, index, str(ex))
+            )
         # Validation should never yield any events.
         assert not dummy_result
 
@@ -469,10 +504,8 @@ class BlenderAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(
             namespace,
-            self.dest, [
-                self._parse_value(value, index)
-                for index, value in enumerate(values)
-            ],
+            self.dest,
+            [self._parse_value(value, index) for index, value in enumerate(values)],
         )
 
 
@@ -516,7 +549,9 @@ def argparse_create():
         action = getattr(action_handlers, action_key)
         args = str(inspect.signature(action))
         args = "(" + args[1:].removeprefix("*, ")
-        args = args.replace(", *, ", ", ")  # Needed in case the are positional arguments.
+        args = args.replace(
+            ", *, ", ", "
+        )  # Needed in case the are positional arguments.
         args = args.replace(", only_validate=False", "")
 
         actions_docstring.append("- %s%s\n" % (action_key, args))
@@ -527,12 +562,14 @@ def argparse_create():
     parser.add_argument(
         "--actions",
         dest="actions",
-        metavar='ACTIONS', type=str,
+        metavar="ACTIONS",
+        type=str,
         help=(
-            "\n" "Arguments must use one of the following prefix:\n"
+            "\n"
+            "Arguments must use one of the following prefix:\n"
             "\n" + "".join(actions_docstring)
         ),
-        nargs='+',
+        nargs="+",
         required=True,
         action=BlenderAction,
     )
@@ -568,13 +605,14 @@ def main_event_iter(*, action_list, time_actions):
     x_init = area.x + (area.width // 2)
     y_init = area.y + (area.height // 2)
 
-    yield dict(type='MOUSEMOVE', value='NOTHING', x=x_init, y=y_init)
+    yield dict(type="MOUSEMOVE", value="NOTHING", x=x_init, y=y_init)
 
     if time_actions:
         import time
+
         t_prev = time.time()
 
-    for (op, args, kwargs) in action_list:
+    for op, args, kwargs in action_list:
         yield from handle_action(op, args, kwargs)
 
         if time_actions:
@@ -585,6 +623,7 @@ def main_event_iter(*, action_list, time_actions):
 
 def main():
     from sys import argv
+
     argv = argv[argv.index("--") + 1:] if "--" in argv else []
 
     try:
@@ -602,7 +641,9 @@ def main():
             bpy.app.use_event_simulate = False
 
     run_event_simulate(
-        event_iter=main_event_iter(action_list=args.actions, time_actions=args.time_actions),
+        event_iter=main_event_iter(
+            action_list=args.actions, time_actions=args.time_actions
+        ),
         exit_fn=exit_fn,
     )
 

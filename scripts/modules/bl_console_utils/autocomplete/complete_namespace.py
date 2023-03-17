@@ -9,20 +9,20 @@ import re
 import rlcompleter
 
 
-RE_INCOMPLETE_INDEX = re.compile(r'(.*?)\[[^\]]+$')
+RE_INCOMPLETE_INDEX = re.compile(r"(.*?)\[[^\]]+$")
 
-TEMP = '__tEmP__'  # only \w characters are allowed!
+TEMP = "__tEmP__"  # only \w characters are allowed!
 TEMP_N = len(TEMP)
 
 
 def is_dict(obj):
     """Returns whether obj is a dictionary"""
-    return hasattr(obj, 'keys') and hasattr(getattr(obj, 'keys'), '__call__')
+    return hasattr(obj, "keys") and hasattr(getattr(obj, "keys"), "__call__")
 
 
 def is_struct_seq(obj):
     """Returns whether obj is a structured sequence subclass: sys.float_info"""
-    return isinstance(obj, tuple) and hasattr(obj, 'n_fields')
+    return isinstance(obj, tuple) and hasattr(obj, "n_fields")
 
 
 def complete_names(word, namespace):
@@ -76,7 +76,7 @@ def complete_indices(word, namespace, *, obj=None, base=None):
             obj = ast.literal_eval(base, namespace)
         except Exception:
             return []
-    if not hasattr(obj, '__getitem__'):
+    if not hasattr(obj, "__getitem__"):
         # obj is not a list or dictionary
         return []
 
@@ -91,10 +91,10 @@ def complete_indices(word, namespace, *, obj=None, base=None):
 
     if obj_is_dict:
         # dictionary type
-        matches = ['%s[%r]' % (base, key) for key in sorted(obj.keys())]
+        matches = ["%s[%r]" % (base, key) for key in sorted(obj.keys())]
     else:
         # list type
-        matches = ['%s[%d]' % (base, idx) for idx in range(obj_len)]
+        matches = ["%s[%d]" % (base, idx) for idx in range(obj_len)]
     if word != base:
         matches = [match for match in matches if match.startswith(word)]
     return matches
@@ -130,26 +130,25 @@ def complete(word, namespace, *, private=True):
     re_incomplete_index = RE_INCOMPLETE_INDEX.search(word)
     if re_incomplete_index:
         # ignore incomplete index at the end, e.g 'a[1' -> 'a'
-        matches = complete_indices(word, namespace,
-                                   base=re_incomplete_index.group(1))
+        matches = complete_indices(word, namespace, base=re_incomplete_index.group(1))
 
-    elif not ('[' in word):
+    elif not ("[" in word):
         matches = complete_names(word, namespace)
 
-    elif word[-1] == ']':
+    elif word[-1] == "]":
         matches = [word]
 
-    elif '.' in word:
+    elif "." in word:
         # brackets are normally not allowed -> work around
 
         # remove brackets by using a temp var without brackets
-        obj, attr = word.rsplit('.', 1)
+        obj, attr = word.rsplit(".", 1)
         try:
             # do not run the obj expression in the console
             namespace[TEMP] = ast.literal_eval(obj, namespace)
         except Exception:
             return []
-        matches = complete_names(TEMP + '.' + attr, namespace)
+        matches = complete_names(TEMP + "." + attr, namespace)
         matches = [obj + match[TEMP_N:] for match in matches]
         del namespace[TEMP]
 
@@ -162,7 +161,6 @@ def complete(word, namespace, *, private=True):
 
     # add '.', '('  or '[' if no match has been found
     elif len(matches) == 1 and matches[0] == word:
-
         # try to retrieve the object
         try:
             obj = ast.literal_eval(word, namespace)
@@ -172,20 +170,20 @@ def complete(word, namespace, *, private=True):
         if type(obj) in {bool, float, int, str}:
             return []
         # an extra char '[', '(' or '.' will be added
-        if hasattr(obj, '__getitem__') and not is_struct_seq(obj):
+        if hasattr(obj, "__getitem__") and not is_struct_seq(obj):
             # list or dictionary
             matches = complete_indices(word, namespace, obj=obj)
-        elif hasattr(obj, '__call__'):
+        elif hasattr(obj, "__call__"):
             # callables
-            matches = [word + '(']
+            matches = [word + "("]
         else:
             # any other type
-            matches = [word + '.']
+            matches = [word + "."]
 
     # separate public from private
-    public_matches = [match for match in matches if not ('._' in match)]
+    public_matches = [match for match in matches if not ("._" in match)]
     if private:
-        private_matches = [match for match in matches if '._' in match]
+        private_matches = [match for match in matches if "._" in match]
         return public_matches + private_matches
     else:
         return public_matches
