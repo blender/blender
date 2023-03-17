@@ -786,10 +786,26 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
 
   /* Set the texmap name. */
   pxr::UsdShadeInput varname_input = usd_shader.GetInput(usdtokens::varname);
+  
+  /* First check if the shader's "varname" input is connected to another source,
+   * and use that instead if so. */
+  if (varname_input) {
+    for (const pxr::UsdShadeConnectionSourceInfo& source_info : varname_input.GetConnectedSources()) {
+      pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
+      pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
+      if (secondary_varname_input) {
+        varname_input = secondary_varname_input;
+        break;
+      }
+    }
+  }
+  
   if (varname_input) {
     pxr::VtValue varname_val;
-    if (varname_input.Get(&varname_val) && varname_val.IsHolding<pxr::TfToken>()) {
-      std::string varname = varname_val.Get<pxr::TfToken>().GetString();
+    /* The varname input may be a string or TfToken, so just cast it to a string.
+     * The Cast function is defined to provide an empty result if it fails. */
+    if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
+      std::string varname = varname_val.Cast<std::string>().Get<std::string>();
       if (!varname.empty()) {
         NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
         BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
