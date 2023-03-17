@@ -2070,7 +2070,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
       return -1;
     }
 
-    if (BKE_has_bfile_extension(filepath)) {
+    if (BKE_blendfile_extension_check(filepath)) {
       /* Just pretend a file was loaded, so the user can press Save and it'll
        * save at the filepath from the CLI. */
       STRNCPY(G_MAIN->filepath, filepath);

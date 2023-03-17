@@ -3261,7 +3261,7 @@ static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
-  if (!BKE_has_bfile_extension(filepath)) {
+  if (!BKE_blendfile_extension_check(filepath)) {
     /* some users would prefer BLI_path_extension_replace(),
      * we keep getting nitpicking bug reports about this - campbell */
     BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");
