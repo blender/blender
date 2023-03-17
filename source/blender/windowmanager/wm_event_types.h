@@ -60,7 +60,7 @@ enum {
   /* More mouse buttons - can't use 9 and 10 here (wheel) */
   BUTTON6MOUSE = 0x0012,
   BUTTON7MOUSE = 0x0013,
-  /* Extra track-pad gestures. */
+  /* Extra track-pad gestures (check #WM_EVENT_IS_CONSECUTIVE to detect motion events). */
   MOUSEPAN = 0x000e,
   MOUSEZOOM = 0x000f,
   MOUSEROTATE = 0x0010,
@@ -247,6 +247,10 @@ enum {
    * These must be kept in sync with `GHOST_NDOFManager.h`.
    * Ordering matters, exact values do not. */
 
+  /**
+   * Motion from 3D input (translation & rotation).
+   * Check #WM_EVENT_IS_CONSECUTIVE to detect motion events.
+   */
   NDOF_MOTION = 0x0190, /* 400 */
 
 #define _NDOF_MIN NDOF_MOTION
