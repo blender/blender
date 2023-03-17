@@ -15,10 +15,14 @@ else:
 
 
 def update_po(args, settings):
-    pot = utils_i18n.I18nMessages(uid=None, kind='PO', src=args.template, settings=settings)
+    pot = utils_i18n.I18nMessages(
+        uid=None, kind="PO", src=args.template, settings=settings
+    )
     if os.path.isfile(args.dst):
         uid = os.path.splitext(os.path.basename(args.dst))[0]
-        po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=args.dst, settings=settings)
+        po = utils_i18n.I18nMessages(
+            uid=uid, kind="PO", src=args.dst, settings=settings
+        )
         po.update(pot)
     else:
         po = pot
@@ -29,7 +33,7 @@ def cleanup_po(args, settings):
     uid = os.path.splitext(os.path.basename(args.src))[0]
     if not args.dst:
         args.dst = args.src
-    po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=args.src, settings=settings)
+    po = utils_i18n.I18nMessages(uid=uid, kind="PO", src=args.src, settings=settings)
     po.check(fix=True)
     po.clean_commented()
     po.write(kind="PO", dest=args.dst)
@@ -39,7 +43,7 @@ def strip_po(args, settings):
     uid = os.path.splitext(os.path.basename(args.src))[0]
     if not args.dst:
         args.dst = args.src
-    po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=args.src, settings=settings)
+    po = utils_i18n.I18nMessages(uid=uid, kind="PO", src=args.src, settings=settings)
     po.clean_commented()
     po.write(kind="PO_COMPACT", dest=args.dst)
 
@@ -48,7 +52,7 @@ def rtl_process_po(args, settings):
     uid = os.path.splitext(os.path.basename(args.src))[0]
     if not args.dst:
         args.dst = args.src
-    po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=args.src, settings=settings)
+    po = utils_i18n.I18nMessages(uid=uid, kind="PO", src=args.src, settings=settings)
     po.rtl_process()
     po.write(kind="PO", dest=args.dst)
 
@@ -59,8 +63,9 @@ def language_menu(args, settings):
 
     po_to_uid = {
         os.path.basename(po_path_branch): uid
-        for can_use, uid, _num_id, _name, _isocode, po_path_branch
-        in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
+        for can_use, uid, _num_id, _name, _isocode, po_path_branch in utils_i18n.list_po_dir(
+            settings.BRANCHES_DIR, settings
+        )
         if can_use
     }
     for po_dir in os.listdir(settings.BRANCHES_DIR):
@@ -69,10 +74,11 @@ def language_menu(args, settings):
             continue
         for po_path in os.listdir(po_dir):
             uid = po_to_uid.get(po_path, None)
-            # print("Checking %s, found uid %s" % (po_path, uid))
             po_path = os.path.join(settings.TRUNK_PO_DIR, po_path)
             if uid is not None:
-                po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=settings)
+                po = utils_i18n.I18nMessages(
+                    uid=uid, kind="PO", src=po_path, settings=settings
+                )
                 stats[uid] = po.nbr_trans_msgs / po.nbr_msgs if po.nbr_msgs > 0 else 0
     utils_languages_menu.gen_menu_file(stats, settings)
 
@@ -81,47 +87,69 @@ def main():
     import sys
     import argparse
 
-    parser = argparse.ArgumentParser(description="Tool to perform common actions over PO/MO files.")
+    parser = argparse.ArgumentParser(
+        description="Tool to perform common actions over PO/MO files."
+    )
     parser.add_argument(
-        '-s', '--settings', default=None,
+        "-s",
+        "--settings",
+        default=None,
         help="Override (some) default settings. Either a JSon file name, or a JSon string.",
     )
     sub_parsers = parser.add_subparsers()
 
-    sub_parser = sub_parsers.add_parser('update_po', help="Update a PO file from a given POT template file")
+    sub_parser = sub_parsers.add_parser(
+        "update_po", help="Update a PO file from a given POT template file"
+    )
     sub_parser.add_argument(
-        '--template', metavar='template.pot', required=True,
+        "--template",
+        metavar="template.pot",
+        required=True,
         help="The source pot file to use as template for the update.",
     )
-    sub_parser.add_argument('--dst', metavar='dst.po', required=True, help="The destination po to update.")
+    sub_parser.add_argument(
+        "--dst", metavar="dst.po", required=True, help="The destination po to update."
+    )
     sub_parser.set_defaults(func=update_po)
 
     sub_parser = sub_parsers.add_parser(
-        'cleanup_po',
+        "cleanup_po",
         help="Cleanup a PO file (check for and fix some common errors, remove commented messages).",
     )
-    sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to clean up.")
-    sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
+    sub_parser.add_argument(
+        "--src", metavar="src.po", required=True, help="The source po file to clean up."
+    )
+    sub_parser.add_argument(
+        "--dst", metavar="dst.po", help="The destination po to write to."
+    )
     sub_parser.set_defaults(func=cleanup_po)
 
     sub_parser = sub_parsers.add_parser(
-        'strip_po',
+        "strip_po",
         help="Reduce all non-essential data from given PO file (reduce its size).",
     )
-    sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to strip.")
-    sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
+    sub_parser.add_argument(
+        "--src", metavar="src.po", required=True, help="The source po file to strip."
+    )
+    sub_parser.add_argument(
+        "--dst", metavar="dst.po", help="The destination po to write to."
+    )
     sub_parser.set_defaults(func=strip_po)
 
     sub_parser = sub_parsers.add_parser(
-        'rtl_process_po',
+        "rtl_process_po",
         help="Pre-process PO files for RTL languages.",
     )
-    sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to process.")
-    sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
+    sub_parser.add_argument(
+        "--src", metavar="src.po", required=True, help="The source po file to process."
+    )
+    sub_parser.add_argument(
+        "--dst", metavar="dst.po", help="The destination po to write to."
+    )
     sub_parser.set_defaults(func=rtl_process_po)
 
     sub_parser = sub_parsers.add_parser(
-        'language_menu',
+        "language_menu",
         help="Generate the text file used by Blender to create its language menu.",
     )
     sub_parser.set_defaults(func=language_menu)
@@ -131,7 +159,7 @@ def main():
     settings = settings_i18n.I18nSettings()
     settings.load(args.settings)
 
-    if getattr(args, 'template', None) is not None:
+    if getattr(args, "template", None) is not None:
         settings.FILE_NAME_POT = args.template
 
     args.func(args=args, settings=settings)

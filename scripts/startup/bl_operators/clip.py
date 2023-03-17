@@ -21,29 +21,31 @@ def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
 
 
 def CLIP_set_viewport_background(context, clip, clip_user):
-
     def check_camera_has_distortion(tracking_camera):
-        if tracking_camera.distortion_model == 'POLYNOMIAL':
-            return not all(k == 0 for k in (tracking_camera.k1,
-                                            tracking_camera.k2,
-                                            tracking_camera.k3))
-        elif tracking_camera.distortion_model == 'DIVISION':
-            return not all(k == 0 for k in (tracking_camera.division_k1,
-                                            tracking_camera.division_k2))
+        if tracking_camera.distortion_model == "POLYNOMIAL":
+            return not all(
+                k == 0
+                for k in (tracking_camera.k1, tracking_camera.k2, tracking_camera.k3)
+            )
+        elif tracking_camera.distortion_model == "DIVISION":
+            return not all(
+                k == 0
+                for k in (tracking_camera.division_k1, tracking_camera.division_k2)
+            )
         return False
 
     def set_background(cam, clip, user):
         bgpic = None
 
         for x in cam.background_images:
-            if x.source == 'MOVIE_CLIP':
+            if x.source == "MOVIE_CLIP":
                 bgpic = x
                 break
 
         if not bgpic:
             bgpic = cam.background_images.new()
 
-        bgpic.source = 'MOVIE_CLIP'
+        bgpic.source = "MOVIE_CLIP"
         bgpic.clip = clip
         bgpic.clip_user.proxy_render_size = user.proxy_render_size
         if check_camera_has_distortion(clip.tracking.camera):
@@ -53,7 +55,7 @@ def CLIP_set_viewport_background(context, clip, clip_user):
         cam.show_background_images = True
 
     scene_camera = context.scene.camera
-    if (not scene_camera) or (scene_camera.type != 'CAMERA'):
+    if (not scene_camera) or (scene_camera.type != "CAMERA"):
         return
     set_background(scene_camera.data, clip, clip_user)
 
@@ -63,9 +65,9 @@ def CLIP_camera_for_clip(context, clip):
     camera = scene.camera
 
     for ob in scene.objects:
-        if ob.type == 'CAMERA':
+        if ob.type == "CAMERA":
             for con in ob.constraints:
-                if con.type == 'CAMERA_SOLVER':
+                if con.type == "CAMERA_SOLVER":
                     cur_clip = scene.active_clip if con.use_active_clip else con.clip
 
                     if cur_clip == clip:
@@ -123,9 +125,10 @@ def CLIP_default_settings_from_track(clip, track, framenr):
 
 class CLIP_OT_filter_tracks(Operator):
     """Filter tracks which has weirdly looking spikes in motion curves"""
+
     bl_label = "Filter Tracks"
     bl_idname = "clip.filter_tracks"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     track_threshold: FloatProperty(
         name="Track Threshold",
@@ -135,7 +138,6 @@ class CLIP_OT_filter_tracks(Operator):
 
     @staticmethod
     def _filter_values(context, threshold):
-
         def get_marker_coordinates_in_pixels(clip_size, track, frame_number):
             marker = track.markers.find_frame(frame_number)
             return Vector((marker.co[0] * clip_size[0], marker.co[1] * clip_size[1]))
@@ -151,17 +153,19 @@ class CLIP_OT_filter_tracks(Operator):
         clip = context.space_data.clip
         clip_size = clip.size[:]
 
-        bpy.ops.clip.clean_tracks(frames=10, action='DELETE_TRACK')
+        bpy.ops.clip.clean_tracks(frames=10, action="DELETE_TRACK")
 
         tracks_to_clean = set()
 
         for frame in range(frame_start, frame_end + 1):
-
             # Find tracks with markers in both this frame and the previous one.
             relevant_tracks = [
-                track for track in clip.tracking.tracks
-                if (track.markers.find_frame(frame) and
-                    track.markers.find_frame(frame - 1))
+                track
+                for track in clip.tracking.tracks
+                if (
+                    track.markers.find_frame(frame)
+                    and track.markers.find_frame(frame - 1)
+                )
             ]
 
             if not relevant_tracks:
@@ -190,12 +194,12 @@ class CLIP_OT_filter_tracks(Operator):
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def execute(self, context):
         num_tracks = self._filter_values(context, self.track_threshold)
-        self.report({'INFO'}, tip_("Identified %d problematic tracks") % num_tracks)
-        return {'FINISHED'}
+        self.report({"INFO"}, tip_("Identified %d problematic tracks") % num_tracks)
+        return {"FINISHED"}
 
 
 class CLIP_OT_set_active_clip(Operator):
@@ -205,7 +209,7 @@ class CLIP_OT_set_active_clip(Operator):
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def execute(self, context):
         clip = context.space_data.clip
@@ -213,7 +217,7 @@ class CLIP_OT_set_active_clip(Operator):
         scene.active_clip = clip
         scene.render.resolution_x = clip.size[0]
         scene.render.resolution_y = clip.size[1]
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_track_to_empty(Operator):
@@ -221,7 +225,7 @@ class CLIP_OT_track_to_empty(Operator):
 
     bl_idname = "clip.track_to_empty"
     bl_label = "Link Empty to Track"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     @staticmethod
     def _link_track(context, clip, tracking_object, track):
@@ -235,12 +239,12 @@ class CLIP_OT_track_to_empty(Operator):
         context.view_layer.objects.active = ob
 
         for con in ob.constraints:
-            if con.type == 'FOLLOW_TRACK':
+            if con.type == "FOLLOW_TRACK":
                 constraint = con
                 break
 
         if constraint is None:
-            constraint = ob.constraints.new(type='FOLLOW_TRACK')
+            constraint = ob.constraints.new(type="FOLLOW_TRACK")
 
         constraint.use_active_clip = False
         constraint.clip = sc.clip
@@ -252,7 +256,7 @@ class CLIP_OT_track_to_empty(Operator):
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def execute(self, context):
         sc = context.space_data
@@ -263,7 +267,7 @@ class CLIP_OT_track_to_empty(Operator):
             if CLIP_track_view_selected(sc, track):
                 self._link_track(context, clip, tracking_object, track)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_bundles_to_mesh(Operator):
@@ -271,12 +275,12 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
     bl_idname = "clip.bundles_to_mesh"
     bl_label = "3D Markers to Mesh"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def execute(self, context):
         from bpy_extras.io_utils import unpack_list
@@ -293,7 +297,9 @@ class CLIP_OT_bundles_to_mesh(Operator):
         if camera:
             reconstruction = tracking_object.reconstruction
             framenr = scene.frame_current - clip.frame_start + 1
-            reconstructed_matrix = reconstruction.cameras.matrix_from_frame(frame=framenr)
+            reconstructed_matrix = reconstruction.cameras.matrix_from_frame(
+                frame=framenr
+            )
             matrix = camera.matrix_world @ reconstructed_matrix.inverted()
 
         for track in tracking_object.tracks:
@@ -310,9 +316,9 @@ class CLIP_OT_bundles_to_mesh(Operator):
             ob.select_set(True)
             context.view_layer.objects.active = ob
         else:
-            self.report({'WARNING'}, "No usable tracks selected")
+            self.report({"WARNING"}, "No usable tracks selected")
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_delete_proxy(Operator):
@@ -320,12 +326,12 @@ class CLIP_OT_delete_proxy(Operator):
 
     bl_idname = "clip.delete_proxy"
     bl_label = "Delete Proxy"
-    bl_options = {'REGISTER'}
+    bl_options = {"REGISTER"}
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -347,6 +353,7 @@ class CLIP_OT_delete_proxy(Operator):
 
     def execute(self, context):
         import os
+
         sc = context.space_data
         clip = sc.clip
         if clip.use_proxy_custom_directory:
@@ -359,7 +366,6 @@ class CLIP_OT_delete_proxy(Operator):
         proxy = os.path.join(proxydir, clipfile)
         absproxy = bpy.path.abspath(proxy)
 
-        # proxy_<quality>[_undistorted]
         for x in (25, 50, 75, 100):
             d = os.path.join(absproxy, "proxy_%d" % x)
 
@@ -390,36 +396,34 @@ class CLIP_OT_delete_proxy(Operator):
         except OSError:
             pass
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_set_viewport_background(Operator):
-    """Set current movie clip as a camera background in 3D Viewport """ \
-        """(works only when a 3D Viewport is visible)"""
+    """Set current movie clip as a camera background in 3D Viewport """ """(works only when a 3D Viewport is visible)"""
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
-    bl_options = {'REGISTER'}
+    bl_options = {"REGISTER"}
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        return sc and (sc.type == 'CLIP_EDITOR') and sc.clip
+        return sc and (sc.type == "CLIP_EDITOR") and sc.clip
 
     def execute(self, context):
         sc = context.space_data
         CLIP_set_viewport_background(context, sc.clip, sc.clip_user)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_constraint_to_fcurve(Operator):
-    """Create F-Curves for object which will copy """ \
-        """object's movement caused by this constraint"""
+    """Create F-Curves for object which will copy """ """object's movement caused by this constraint"""
 
     bl_idname = "clip.constraint_to_fcurve"
     bl_label = "Constraint to F-Curve"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     def _bake_object(self, scene, ob):
         con = None
@@ -433,14 +437,15 @@ class CLIP_OT_constraint_to_fcurve(Operator):
         # TODO: several camera solvers and track followers would fail,
         #       but can't think about real work-flow where it'll be useful
         for x in ob.constraints:
-            if x.type in {'CAMERA_SOLVER', 'FOLLOW_TRACK', 'OBJECT_SOLVER'}:
+            if x.type in {"CAMERA_SOLVER", "FOLLOW_TRACK", "OBJECT_SOLVER"}:
                 con = x
 
         if not con:
-            self.report({'ERROR'},
-                        "Motion Tracking constraint to be converted not found")
+            self.report(
+                {"ERROR"}, "Motion Tracking constraint to be converted not found"
+            )
 
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         # Get clip used for parenting.
         if con.use_active_clip:
@@ -449,28 +454,27 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             clip = con.clip
 
         if not clip:
-            self.report({'ERROR'},
-                        "Movie clip to use tracking data from isn't set")
+            self.report({"ERROR"}, "Movie clip to use tracking data from isn't set")
 
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
-        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
+        if con.type == "FOLLOW_TRACK" and con.use_3d_position:
             mat = ob.matrix_world.copy()
             ob.constraints.remove(con)
             ob.matrix_world = mat
 
-            return {'FINISHED'}
+            return {"FINISHED"}
 
         # Find start and end frames.
-        if con.type == 'CAMERA_SOLVER':
+        if con.type == "CAMERA_SOLVER":
             # Camera solver constraint is always referring to camera.
             tracks = clip.tracking.tracks
         elif con.object:
             tracking_object = clip.tracking.objects.get(con.object, None)
             if not tracking_object:
-                self.report({'ERROR'}, "Motion Tracking object not found")
+                self.report({"ERROR"}, "Motion Tracking object not found")
 
-                return {'CANCELLED'}
+                return {"CANCELLED"}
 
             tracks = tracking_object.tracks
         else:
@@ -505,7 +509,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
 
             ob.keyframe_insert("location")
 
-            if ob.rotation_mode == 'QUATERNION':
+            if ob.rotation_mode == "QUATERNION":
                 ob.keyframe_insert("rotation_quaternion")
             else:
                 ob.keyframe_insert("rotation_euler")
@@ -524,21 +528,22 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             if ob.select_get():
                 self._bake_object(scene, ob)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_setup_tracking_scene(Operator):
     """Prepare scene for compositing 3D objects into this footage"""
+
     # TODO: it will be great to integrate with other engines (other than Cycles)
 
     bl_idname = "clip.setup_tracking_scene"
     bl_label = "Setup Tracking Scene"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        if sc and sc.type == 'CLIP_EDITOR':
+        if sc and sc.type == "CLIP_EDITOR":
             clip = sc.clip
             if clip and clip.tracking.objects.active.reconstruction.is_valid:
                 return True
@@ -579,10 +584,10 @@ class CLIP_OT_setup_tracking_scene(Operator):
         scene.camera = camob
 
         camob.matrix_local = (
-            Matrix.Translation((7.481, -6.508, 5.344)) @
-            Matrix.Rotation(0.815, 4, 'Z') @
-            Matrix.Rotation(0.011, 4, 'Y') @
-            Matrix.Rotation(1.109, 4, 'X')
+            Matrix.Translation((7.481, -6.508, 5.344))
+            @ Matrix.Rotation(0.815, 4, "Z")
+            @ Matrix.Rotation(0.011, 4, "Y")
+            @ Matrix.Rotation(1.109, 4, "X")
         )
 
         return camob
@@ -600,7 +605,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         camob.constraints.clear()
 
         # Append camera solver constraint.
-        con = camob.constraints.new(type='CAMERA_SOLVER')
+        con = camob.constraints.new(type="CAMERA_SOLVER")
         con.use_active_clip = True
         con.influence = 1.0
 
@@ -632,7 +637,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
     @staticmethod
     def createCollection(context, collection_name):
         def collection_in_collection(collection, collection_to_query):
-            """Return true if collection is in any of the children or """
+            """Return true if collection is in any of the children or"""
             """grandchildren of collection_to_query"""
             for child in collection_to_query.children:
                 if collection == child:
@@ -663,7 +668,9 @@ class CLIP_OT_setup_tracking_scene(Operator):
                     setattr(collection, attr_name, True)
                     break
                 else:
-                    setup_collection_recursively(collection.children, collection_name, attr_name)
+                    setup_collection_recursively(
+                        collection.children, collection_name, attr_name
+                    )
 
         collections = context.scene.collection.children
         vlayers = context.scene.view_layers
@@ -694,7 +701,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         types = [node.type for node in tree.nodes]
         types.sort()
 
-        if types[0] == 'COMPOSITE' and types[1] == 'R_LAYERS':
+        if types[0] == "COMPOSITE" and types[1] == "R_LAYERS":
             while tree.nodes:
                 tree.nodes.remove(tree.nodes[0])
 
@@ -725,7 +732,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             return True
 
         for node in tree.nodes:
-            if node.type in {'MOVIECLIP', 'MOVIEDISTORTION'}:
+            if node.type in {"MOVIECLIP", "MOVIEDISTORTION"}:
                 return False
 
         return True
@@ -747,8 +754,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         def setup_space(space):
             space.show_backdrop = True
 
-        CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
-                         setup_space)
+        CLIP_spaces_walk(context, True, "NODE_EDITOR", "NODE_EDITOR", setup_space)
 
         sc = context.space_data
         scene = context.scene
@@ -763,31 +769,31 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._wipeDefaultNodes(tree)
 
         # Create nodes.
-        rlayer_fg = self._findOrCreateNode(tree, 'CompositorNodeRLayers')
-        rlayer_bg = tree.nodes.new(type='CompositorNodeRLayers')
-        composite = self._findOrCreateNode(tree, 'CompositorNodeComposite')
+        rlayer_fg = self._findOrCreateNode(tree, "CompositorNodeRLayers")
+        rlayer_bg = tree.nodes.new(type="CompositorNodeRLayers")
+        composite = self._findOrCreateNode(tree, "CompositorNodeComposite")
 
-        movieclip = tree.nodes.new(type='CompositorNodeMovieClip')
-        distortion = tree.nodes.new(type='CompositorNodeMovieDistortion')
+        movieclip = tree.nodes.new(type="CompositorNodeMovieClip")
+        distortion = tree.nodes.new(type="CompositorNodeMovieDistortion")
 
         if need_stabilization:
-            stabilize = tree.nodes.new(type='CompositorNodeStabilize2D')
+            stabilize = tree.nodes.new(type="CompositorNodeStabilize2D")
 
-        scale = tree.nodes.new(type='CompositorNodeScale')
-        shadowcatcher = tree.nodes.new(type='CompositorNodeAlphaOver')
-        alphaover = tree.nodes.new(type='CompositorNodeAlphaOver')
-        viewer = tree.nodes.new(type='CompositorNodeViewer')
+        scale = tree.nodes.new(type="CompositorNodeScale")
+        shadowcatcher = tree.nodes.new(type="CompositorNodeAlphaOver")
+        alphaover = tree.nodes.new(type="CompositorNodeAlphaOver")
+        viewer = tree.nodes.new(type="CompositorNodeViewer")
 
         # Setup nodes.
         movieclip.clip = clip
 
         distortion.clip = clip
-        distortion.distortion_type = 'UNDISTORT'
+        distortion.distortion_type = "UNDISTORT"
 
         if need_stabilization:
             stabilize.clip = clip
 
-        scale.space = 'RENDER_SIZE'
+        scale.space = "RENDER_SIZE"
 
         rlayer_bg.scene = scene
         rlayer_bg.layer = "Background"
@@ -799,8 +805,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         tree.links.new(movieclip.outputs["Image"], distortion.inputs["Image"])
 
         if need_stabilization:
-            tree.links.new(distortion.outputs["Image"],
-                           stabilize.inputs["Image"])
+            tree.links.new(distortion.outputs["Image"], stabilize.inputs["Image"])
             tree.links.new(stabilize.outputs["Image"], scale.inputs["Image"])
         else:
             tree.links.new(distortion.outputs["Image"], scale.inputs["Image"])
@@ -880,11 +885,12 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _getPlaneVertices(half_size, z):
-
-        return [(-half_size, -half_size, z),
-                (half_size, -half_size, z),
-                (half_size, half_size, z),
-                (-half_size, half_size, z)]
+        return [
+            (-half_size, -half_size, z),
+            (half_size, -half_size, z),
+            (half_size, half_size, z),
+            (-half_size, half_size, z),
+        ]
 
     def _createGround(self, collection):
         vertices = self._getPlaneVertices(4.0, 0.0)
@@ -900,14 +906,14 @@ class CLIP_OT_setup_tracking_scene(Operator):
         scene = context.scene
 
         for ob in scene.objects:
-            if ob.type == 'MESH' and "is_ground" in ob:
+            if ob.type == "MESH" and "is_ground" in ob:
                 return ob
 
         return None
 
     @staticmethod
     def _createLight():
-        light = bpy.data.lights.new(name="Light", type='POINT')
+        light = bpy.data.lights.new(name="Light", type="POINT")
         lightob = bpy.data.objects.new(name="Light", object_data=light)
 
         lightob.matrix_local = Matrix.Translation((4.076, 1.005, 5.904))
@@ -915,22 +921,14 @@ class CLIP_OT_setup_tracking_scene(Operator):
         return lightob
 
     def _createSampleObject(self, collection):
-        vertices = self._getPlaneVertices(1.0, -1.0) + \
-            self._getPlaneVertices(1.0, 1.0)
-        faces = (0, 1, 2, 3,
-                 4, 7, 6, 5,
-                 0, 4, 5, 1,
-                 1, 5, 6, 2,
-                 2, 6, 7, 3,
-                 3, 7, 4, 0)
+        vertices = self._getPlaneVertices(1.0, -1.0) + self._getPlaneVertices(1.0, 1.0)
+        faces = (0, 1, 2, 3, 4, 7, 6, 5, 0, 4, 5, 1, 1, 5, 6, 2, 2, 6, 7, 3, 3, 7, 4, 0)
 
         return self._createMesh(collection, "Cube", vertices, faces)
 
     def _setupObjects(self, context):
-
         def setup_shadow_catcher_objects(collection):
-            """Make all the newly created and the old objects of a collection """ \
-                """to be properly setup for shadow catch"""
+            """Make all the newly created and the old objects of a collection """ """to be properly setup for shadow catch"""
             for ob in collection.objects:
                 ob.is_shadow_catcher = True
                 for child in collection.children:
@@ -944,9 +942,9 @@ class CLIP_OT_setup_tracking_scene(Operator):
         has_light = False
         has_mesh = False
         for ob in scene.objects:
-            if ob.type == 'LIGHT':
+            if ob.type == "LIGHT":
                 has_light = True
-            elif ob.type == 'MESH' and "is_ground" not in ob:
+            elif ob.type == "MESH" and "is_ground" not in ob:
                 has_mesh = True
 
         # Create sample light if there is no lights in the scene.
@@ -978,7 +976,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self._setupNodes(context)
         self._setupObjects(context)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_track_settings_as_default(Operator):
@@ -986,12 +984,12 @@ class CLIP_OT_track_settings_as_default(Operator):
 
     bl_idname = "clip.track_settings_as_default"
     bl_label = "Track Settings as Default"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        if sc and sc.type == 'CLIP_EDITOR':
+        if sc and sc.type == "CLIP_EDITOR":
             clip = sc.clip
             if clip and clip.tracking.tracks.active:
                 return True
@@ -1006,7 +1004,7 @@ class CLIP_OT_track_settings_as_default(Operator):
 
         CLIP_default_settings_from_track(clip, track, framenr)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class CLIP_OT_track_settings_to_track(Operator):
@@ -1014,7 +1012,7 @@ class CLIP_OT_track_settings_to_track(Operator):
 
     bl_label = "Copy Track Settings"
     bl_idname = "clip.track_settings_to_track"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {"UNDO", "REGISTER"}
 
     _attrs_track = (
         "correlation_min",
@@ -1040,7 +1038,7 @@ class CLIP_OT_track_settings_to_track(Operator):
     @classmethod
     def poll(cls, context):
         sc = context.space_data
-        if sc and sc.type == 'CLIP_EDITOR':
+        if sc and sc.type == "CLIP_EDITOR":
             clip = sc.clip
             if clip and clip.tracking.tracks.active:
                 return True
@@ -1062,7 +1060,7 @@ class CLIP_OT_track_settings_to_track(Operator):
                 for attr in self._attrs_marker:
                     setattr(marker_selected, attr, getattr(marker, attr))
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 classes = (

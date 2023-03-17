@@ -4,7 +4,6 @@ from _bpy import types as bpy_types
 
 StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
-# StructRNA = bpy_types.Struct
 
 # Private dummy object use for comparison only.
 _sentinel = object()

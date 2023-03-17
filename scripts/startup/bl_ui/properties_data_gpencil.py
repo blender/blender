@@ -16,8 +16,8 @@ from bl_ui.properties_grease_pencil_common import (
 
 
 class DataButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "data"
 
     @classmethod
@@ -26,19 +26,19 @@ class DataButtonsPanel:
 
 
 class ObjectButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob and ob.type == 'GPENCIL'
+        return ob and ob.type == "GPENCIL"
 
 
 class LayerDataButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "data"
 
     @classmethod
@@ -50,9 +50,10 @@ class LayerDataButtonsPanel:
 ###############################
 # GP Object Properties Panels and Helper Classes
 
+
 class DATA_PT_context_gpencil(DataButtonsPanel, Panel):
     bl_label = ""
-    bl_options = {'HIDE_HEADER'}
+    bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
         layout = self.layout
@@ -75,29 +76,41 @@ class GPENCIL_MT_layer_context_menu(Menu):
         gpd = ob.data
         gpl = gpd.layers.active
 
-        layout.operator("gpencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').mode = 'ALL'
-        layout.operator("gpencil.layer_duplicate", text="Duplicate Empty Keyframes").mode = 'EMPTY'
+        layout.operator(
+            "gpencil.layer_duplicate", text="Duplicate", icon="DUPLICATE"
+        ).mode = "ALL"
+        layout.operator(
+            "gpencil.layer_duplicate", text="Duplicate Empty Keyframes"
+        ).mode = "EMPTY"
 
         layout.separator()
 
-        layout.operator("gpencil.reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
-        layout.operator("gpencil.hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
+        layout.operator("gpencil.reveal", icon="RESTRICT_VIEW_OFF", text="Show All")
+        layout.operator(
+            "gpencil.hide", icon="RESTRICT_VIEW_ON", text="Hide Others"
+        ).unselected = True
 
         layout.separator()
 
-        layout.operator("gpencil.lock_all", icon='LOCKED', text="Lock All")
-        layout.operator("gpencil.unlock_all", icon='UNLOCKED', text="Unlock All")
+        layout.operator("gpencil.lock_all", icon="LOCKED", text="Lock All")
+        layout.operator("gpencil.unlock_all", icon="UNLOCKED", text="Unlock All")
         layout.prop(gpd, "use_autolock_layers", text="Autolock Inactive Layers")
         layout.prop(gpl, "lock_material")
 
         layout.separator()
 
-        layout.operator("gpencil.layer_merge", icon='SORT_ASC', text="Merge Down").mode = 'ACTIVE'
-        layout.operator("gpencil.layer_merge", text="Merge All").mode = 'ALL'
+        layout.operator(
+            "gpencil.layer_merge", icon="SORT_ASC", text="Merge Down"
+        ).mode = "ACTIVE"
+        layout.operator("gpencil.layer_merge", text="Merge All").mode = "ALL"
 
         layout.separator()
-        layout.operator("gpencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True
-        layout.operator("gpencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active = False
+        layout.operator(
+            "gpencil.layer_duplicate_object", text="Copy Layer to Selected"
+        ).only_active = True
+        layout.operator(
+            "gpencil.layer_duplicate_object", text="Copy All Layers to Selected"
+        ).only_active = False
 
 
 class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
@@ -105,7 +118,6 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        # layout.use_property_split = True
         layout.use_property_decorate = False
 
         gpd = context.gpencil
@@ -117,38 +129,52 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
             self.draw_layers(context, layout, gpd)
 
     def draw_layers(self, _context, layout, gpd):
-
         gpl = gpd.layers.active
 
         row = layout.row()
         layer_rows = 7
 
         col = row.column()
-        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
-                          rows=layer_rows, sort_reverse=True, sort_lock=True)
+        col.template_list(
+            "GPENCIL_UL_layer",
+            "",
+            gpd,
+            "layers",
+            gpd.layers,
+            "active_index",
+            rows=layer_rows,
+            sort_reverse=True,
+            sort_lock=True,
+        )
 
         col = row.column()
         sub = col.column(align=True)
-        sub.operator("gpencil.layer_add", icon='ADD', text="")
-        sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
+        sub.operator("gpencil.layer_add", icon="ADD", text="")
+        sub.operator("gpencil.layer_remove", icon="REMOVE", text="")
 
         sub.separator()
 
         if gpl:
-            sub.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
+            sub.menu("GPENCIL_MT_layer_context_menu", icon="DOWNARROW_HLT", text="")
 
             if len(gpd.layers) > 1:
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                sub.operator("gpencil.layer_move", icon="TRIA_UP", text="").type = "UP"
+                sub.operator(
+                    "gpencil.layer_move", icon="TRIA_DOWN", text=""
+                ).type = "DOWN"
 
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-                sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator(
+                    "gpencil.layer_isolate", icon="RESTRICT_VIEW_ON", text=""
+                ).affect_visibility = True
+                sub.operator(
+                    "gpencil.layer_isolate", icon="LOCKED", text=""
+                ).affect_visibility = False
 
         # Layer main properties
         row = layout.row()
@@ -170,34 +196,44 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
             col.prop(gpl, "use_lights")
 
 
-class DATA_PT_gpencil_layer_masks(LayerDataButtonsPanel, GreasePencilLayerMasksPanel, Panel):
+class DATA_PT_gpencil_layer_masks(
+    LayerDataButtonsPanel, GreasePencilLayerMasksPanel, Panel
+):
     bl_label = "Masks"
-    bl_parent_id = 'DATA_PT_gpencil_layers'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_layers"
+    bl_options = {"DEFAULT_CLOSED"}
 
 
-class DATA_PT_gpencil_layer_transform(LayerDataButtonsPanel, GreasePencilLayerTransformPanel, Panel):
+class DATA_PT_gpencil_layer_transform(
+    LayerDataButtonsPanel, GreasePencilLayerTransformPanel, Panel
+):
     bl_label = "Transform"
-    bl_parent_id = 'DATA_PT_gpencil_layers'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_layers"
+    bl_options = {"DEFAULT_CLOSED"}
 
 
-class DATA_PT_gpencil_layer_adjustments(LayerDataButtonsPanel, GreasePencilLayerAdjustmentsPanel, Panel):
+class DATA_PT_gpencil_layer_adjustments(
+    LayerDataButtonsPanel, GreasePencilLayerAdjustmentsPanel, Panel
+):
     bl_label = "Adjustments"
-    bl_parent_id = 'DATA_PT_gpencil_layers'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_layers"
+    bl_options = {"DEFAULT_CLOSED"}
 
 
-class DATA_PT_gpencil_layer_relations(LayerDataButtonsPanel, GreasePencilLayerRelationsPanel, Panel):
+class DATA_PT_gpencil_layer_relations(
+    LayerDataButtonsPanel, GreasePencilLayerRelationsPanel, Panel
+):
     bl_label = "Relations"
-    bl_parent_id = 'DATA_PT_gpencil_layers'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_layers"
+    bl_options = {"DEFAULT_CLOSED"}
 
 
-class DATA_PT_gpencil_layer_display(LayerDataButtonsPanel, GreasePencilLayerDisplayPanel, Panel):
+class DATA_PT_gpencil_layer_display(
+    LayerDataButtonsPanel, GreasePencilLayerDisplayPanel, Panel
+):
     bl_label = "Display"
-    bl_parent_id = 'DATA_PT_gpencil_layers'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_layers"
+    bl_options = {"DEFAULT_CLOSED"}
 
 
 class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
@@ -214,11 +250,11 @@ class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
         col.prop(gpd, "onion_factor", text="Opacity", slider=True)
         col.prop(gpd, "onion_keyframe_type")
 
-        if gpd.onion_mode == 'ABSOLUTE':
+        if gpd.onion_mode == "ABSOLUTE":
             col = layout.column(align=True)
             col.prop(gpd, "ghost_before_range", text="Frames Before")
             col.prop(gpd, "ghost_after_range", text="Frames After")
-        elif gpd.onion_mode == 'RELATIVE':
+        elif gpd.onion_mode == "RELATIVE":
             col = layout.column(align=True)
             col.prop(gpd, "ghost_before_range", text="Keyframes Before")
             col.prop(gpd, "ghost_after_range", text="Keyframes After")
@@ -227,7 +263,7 @@ class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
 class DATA_PT_gpencil_onion_skinning_custom_colors(DataButtonsPanel, Panel):
     bl_parent_id = "DATA_PT_gpencil_onion_skinning"
     bl_label = "Custom Colors"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw_header(self, context):
         gpd = context.gpencil
@@ -248,7 +284,7 @@ class DATA_PT_gpencil_onion_skinning_custom_colors(DataButtonsPanel, Panel):
 class DATA_PT_gpencil_onion_skinning_display(DataButtonsPanel, Panel):
     bl_parent_id = "DATA_PT_gpencil_onion_skinning"
     bl_label = "Display"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         gpd = context.gpencil
@@ -262,7 +298,7 @@ class DATA_PT_gpencil_onion_skinning_display(DataButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(gpd, "use_onion_fade", text="Fade")
         sub = layout.column()
-        sub.active = gpd.onion_mode in {'RELATIVE', 'SELECTED'}
+        sub.active = gpd.onion_mode in {"RELATIVE", "SELECTED"}
         sub.prop(gpd, "use_onion_loop", text="Show Start Frame")
 
 
@@ -272,20 +308,30 @@ class GPENCIL_MT_gpencil_vertex_group(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_AREA'
+        layout.operator_context = "EXEC_AREA"
         layout.operator("object.vertex_group_add")
 
         ob = context.active_object
         if ob.vertex_groups.active:
             layout.separator()
 
-            layout.operator("gpencil.vertex_group_assign", text="Assign to Active Group")
-            layout.operator("gpencil.vertex_group_remove_from", text="Remove from Active Group")
+            layout.operator(
+                "gpencil.vertex_group_assign", text="Assign to Active Group"
+            )
+            layout.operator(
+                "gpencil.vertex_group_remove_from", text="Remove from Active Group"
+            )
 
             layout.separator()
-            layout.operator_menu_enum("object.vertex_group_set_active", "group", text="Set Active Group")
-            layout.operator("object.vertex_group_remove", text="Remove Active Group").all = False
-            layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
+            layout.operator_menu_enum(
+                "object.vertex_group_set_active", "group", text="Set Active Group"
+            )
+            layout.operator(
+                "object.vertex_group_remove", text="Remove Active Group"
+            ).all = False
+            layout.operator(
+                "object.vertex_group_remove", text="Remove All Groups"
+            ).all = True
 
             layout.separator()
             layout.operator("gpencil.vertex_group_select", text="Select Points")
@@ -293,20 +339,30 @@ class GPENCIL_MT_gpencil_vertex_group(Menu):
 
 
 class GPENCIL_UL_vgroups(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(
+        self,
+        _context,
+        layout,
+        _data,
+        item,
+        icon,
+        _active_data,
+        _active_propname,
+        _index,
+    ):
         vgroup = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+        if self.layout_type in {"DEFAULT", "COMPACT"}:
             layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
-            icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
+            icon = "LOCKED" if vgroup.lock_weight else "UNLOCKED"
             layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
+        elif self.layout_type == "GRID":
+            layout.alignment = "CENTER"
             layout.label(text="", icon_value=icon)
 
 
 class DATA_PT_gpencil_vertex_groups(ObjectButtonsPanel, Panel):
     bl_label = "Vertex Groups"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -319,16 +375,28 @@ class DATA_PT_gpencil_vertex_groups(ObjectButtonsPanel, Panel):
             rows = 4
 
         row = layout.row()
-        row.template_list("GPENCIL_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
+        row.template_list(
+            "GPENCIL_UL_vgroups",
+            "",
+            ob,
+            "vertex_groups",
+            ob.vertex_groups,
+            "active_index",
+            rows=rows,
+        )
 
         col = row.column(align=True)
-        col.operator("object.vertex_group_add", icon='ADD', text="")
-        col.operator("object.vertex_group_remove", icon='REMOVE', text="").all = False
+        col.operator("object.vertex_group_add", icon="ADD", text="")
+        col.operator("object.vertex_group_remove", icon="REMOVE", text="").all = False
 
         if group:
             col.separator()
-            col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
-            col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            col.operator(
+                "object.vertex_group_move", icon="TRIA_UP", text=""
+            ).direction = "UP"
+            col.operator(
+                "object.vertex_group_move", icon="TRIA_DOWN", text=""
+            ).direction = "DOWN"
 
         if ob.vertex_groups:
             row = layout.row()
@@ -346,7 +414,7 @@ class DATA_PT_gpencil_vertex_groups(ObjectButtonsPanel, Panel):
 
 class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
     bl_label = "Strokes"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -365,7 +433,7 @@ class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(gpd, "stroke_thickness_space")
         sub = col.column()
-        sub.active = gpd.stroke_thickness_space == 'WORLDSPACE'
+        sub.active = gpd.stroke_thickness_space == "WORLDSPACE"
         sub.prop(gpd, "pixel_factor", text="Thickness Scale")
 
         col.prop(gpd, "edit_curve_resolution")
@@ -373,7 +441,7 @@ class DATA_PT_gpencil_strokes(DataButtonsPanel, Panel):
 
 class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -387,8 +455,8 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
 
 class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
     bl_label = "Canvas"
-    bl_parent_id = 'DATA_PT_gpencil_display'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "DATA_PT_gpencil_display"
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -431,9 +499,7 @@ classes = (
     DATA_PT_gpencil_display,
     DATA_PT_gpencil_canvas,
     DATA_PT_custom_props_gpencil,
-
     GPENCIL_UL_vgroups,
-
     GPENCIL_MT_layer_context_menu,
     GPENCIL_MT_gpencil_vertex_group,
 )

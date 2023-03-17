@@ -48,7 +48,11 @@ FRIBIDI_FLAG_REMOVE_SPECIALS = 0x00040000
 FRIBIDI_FLAG_SHAPE_ARAB_PRES = 0x00000100
 FRIBIDI_FLAG_SHAPE_ARAB_LIGA = 0x00000200
 
-FRIBIDI_FLAGS_DEFAULT = FRIBIDI_FLAG_SHAPE_MIRRORING | FRIBIDI_FLAG_REORDER_NSM | FRIBIDI_FLAG_REMOVE_SPECIALS
+FRIBIDI_FLAGS_DEFAULT = (
+    FRIBIDI_FLAG_SHAPE_MIRRORING
+    | FRIBIDI_FLAG_REORDER_NSM
+    | FRIBIDI_FLAG_REMOVE_SPECIALS
+)
 
 FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | FRIBIDI_FLAG_SHAPE_ARAB_LIGA
 
@@ -62,13 +66,10 @@ def protect_format_seq(msg):
     Find some specific escaping/formatting sequences (like \", %s, etc.,
     and protect them from any modification!
     """
-#    LRM = "\u200E"
-#    RLM = "\u200F"
     LRE = "\u202A"
-#    RLE = "\u202B"
     PDF = "\u202C"
     LRO = "\u202D"
-#    RLO = "\u202E"
+    #    RLO = "\u202E"
     # uctrl = {LRE, RLE, PDF, LRO, RLO}
     # Most likely incomplete, but seems to cover current needs.
     format_codes = set("tslfd")
@@ -86,22 +87,27 @@ def protect_format_seq(msg):
     ln = len(msg)
     while idx < ln:
         dlt = 1
-#        # If we find a control char, skip any additional protection!
-#        if msg[idx] in uctrl:
-#            ret.append(msg[idx:])
-#            break
+        #        # If we find a control char, skip any additional protection!
+        #        if msg[idx] in uctrl:
+        #            ret.append(msg[idx:])
+        #            break
         # \" or \'
-        if idx < (ln - 1) and msg[idx] == '\\' and msg[idx + 1] in "\"\'":
+        if idx < (ln - 1) and msg[idx] == "\\" and msg[idx + 1] in "\"'":
             dlt = 2
         # %x12|
-        elif idx < (ln - 2) and msg[idx] == '%' and msg[idx + 1] in "x" and msg[idx + 2] in digits:
+        elif (
+            idx < (ln - 2)
+            and msg[idx] == "%"
+            and msg[idx + 1] in "x"
+            and msg[idx + 2] in digits
+        ):
             dlt = 2
             while (idx + dlt) < ln and msg[idx + dlt] in digits:
                 dlt += 1
-            if (idx + dlt) < ln and msg[idx + dlt] == '|':
+            if (idx + dlt) < ln and msg[idx + dlt] == "|":
                 dlt += 1
         # %.4f
-        elif idx < (ln - 3) and msg[idx] == '%' and msg[idx + 1] in digits:
+        elif idx < (ln - 3) and msg[idx] == "%" and msg[idx + 1] in digits:
             dlt = 2
             while (idx + dlt) < ln and msg[idx + dlt] in digits:
                 dlt += 1
@@ -110,12 +116,12 @@ def protect_format_seq(msg):
             else:
                 dlt = 1
         # %s
-        elif idx < (ln - 1) and msg[idx] == '%' and msg[idx + 1] in format_codes:
+        elif idx < (ln - 1) and msg[idx] == "%" and msg[idx + 1] in format_codes:
             dlt = 2
 
         if dlt > 1:
             ret.append(LRE)
-        ret += msg[idx:idx + dlt]
+        ret += msg[idx: idx + dlt]
         idx += dlt
         if dlt > 1:
             ret.append(PDF)
@@ -135,7 +141,6 @@ def log2vis(msgs, settings):
 
         fbc_str = ctypes.create_unicode_buffer(msg)
         ln = len(fbc_str) - 1
-#        print(fbc_str.value, ln)
         btypes = (ctypes.c_int * ln)()
         embed_lvl = (ctypes.c_uint8 * ln)()
         pbase_dir = ctypes.c_int(FRIBIDI_PAR_ON)
@@ -145,31 +150,24 @@ def log2vis(msgs, settings):
         # Find out direction of each char.
         fbd.fribidi_get_bidi_types(fbc_str, ln, ctypes.byref(btypes))
 
-#        print(*btypes)
-
-        fbd.fribidi_get_par_embedding_levels(btypes, ln,
-                                             ctypes.byref(pbase_dir),
-                                             embed_lvl)
-
-#        print(*embed_lvl)
+        fbd.fribidi_get_par_embedding_levels(
+            btypes, ln, ctypes.byref(pbase_dir), embed_lvl
+        )
 
         # Joinings for arabic chars.
         fbd.fribidi_get_joining_types(fbc_str, ln, jtypes)
-#        print(*jtypes)
         fbd.fribidi_join_arabic(btypes, ln, embed_lvl, jtypes)
-#        print(*jtypes)
 
         # Final Shaping!
         fbd.fribidi_shape(flags, embed_lvl, ln, jtypes, fbc_str)
 
-#        print(fbc_str.value)
-#        print(*(ord(c) for c in fbc_str))
+        #        print(fbc_str.value)
+        #        print(*(ord(c) for c in fbc_str))
         # And now, the reordering.
         # Note that here, we expect a single line, so no need to do
         # fancy things...
-        fbd.fribidi_reorder_line(flags, btypes, ln, 0, pbase_dir, embed_lvl,
-                                 fbc_str, None)
-#        print(fbc_str.value)
-#        print(*(ord(c) for c in fbc_str))
+        fbd.fribidi_reorder_line(
+            flags, btypes, ln, 0, pbase_dir, embed_lvl, fbc_str, None
+        )
 
         yield fbc_str.value

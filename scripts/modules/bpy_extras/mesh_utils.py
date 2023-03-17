@@ -205,25 +205,21 @@ def edge_loops_from_edges(mesh, edges=None):
                     vert_end = line_poly[-1]
                     ok = 1
                     del edges[i]
-                    # break
                 elif v2 == vert_end:
                     line_poly.append(v1)
                     vert_end = line_poly[-1]
                     ok = 1
                     del edges[i]
-                    # break
                 elif v1 == vert_start:
                     line_poly.insert(0, v2)
                     vert_start = line_poly[0]
                     ok = 1
                     del edges[i]
-                    # break
                 elif v2 == vert_start:
                     line_poly.insert(0, v1)
                     vert_start = line_poly[0]
                     ok = 1
                     del edges[i]
-                    # break
         line_polys.append(line_poly)
 
     return line_polys

@@ -20,7 +20,6 @@ from freestyle.types import IntegrationType, Operators
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator())
-# Operators.sequential_split(pyVertexNatureUP0D(Nature.VIEW_VERTEX), 2)
 Operators.sort(pyZBP1D())
 shaders_list = [
     ConstantThicknessShader(3),

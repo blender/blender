@@ -3,7 +3,6 @@
 # for slightly faster access
 from _bpy import ops as _ops_module
 
-# op_add = _ops_module.add
 _op_dir = _ops_module.dir
 _op_poll = _ops_module.poll
 _op_call = _ops_module.call
@@ -16,6 +15,7 @@ _ModuleType = type(_ops_module)
 
 # -----------------------------------------------------------------------------
 # Callable Operator Wrapper
+
 
 class _BPyOpsSubModOp:
     """
@@ -41,7 +41,7 @@ class _BPyOpsSubModOp:
     @staticmethod
     def _parse_args(args):
         C_dict = None
-        C_exec = 'EXEC_DEFAULT'
+        C_exec = "EXEC_DEFAULT"
         C_undo = False
 
         is_dict = is_exec = is_undo = False
@@ -72,6 +72,7 @@ class _BPyOpsSubModOp:
             view_layer.update()
         else:
             import bpy
+
             for scene in bpy.data.scenes:
                 for view_layer in scene.view_layers:
                     view_layer.update()
@@ -95,6 +96,7 @@ class _BPyOpsSubModOp:
 
     def __call__(self, *args, **kw):
         import bpy
+
         context = bpy.context
 
         # Get the operator from blender
@@ -112,7 +114,7 @@ class _BPyOpsSubModOp:
         else:
             ret = _op_call(self.idname_py(), None, kw)
 
-        if 'FINISHED' in ret and context.window_manager == wm:
+        if "FINISHED" in ret and context.window_manager == wm:
             _BPyOpsSubModOp._view_layer_update(context)
 
         return ret
@@ -129,12 +131,16 @@ class _BPyOpsSubModOp:
         return _op_as_string(self.idname())
 
     def __str__(self):  # used for print(...)
-        return ("<function bpy.ops.%s.%s at 0x%x'>" %
-                (self._module, self._func, id(self)))
+        return "<function bpy.ops.%s.%s at 0x%x'>" % (
+            self._module,
+            self._func,
+            id(self),
+        )
 
 
 # -----------------------------------------------------------------------------
 # Sub-Module Access
+
 
 def _bpy_ops_submodule__getattr__(module, func):
     # Return a value from `bpy.ops.{module}.{func}`
@@ -164,6 +170,7 @@ def _bpy_ops_submodule(module):
 
 # -----------------------------------------------------------------------------
 # Module Access
+
 
 def __getattr__(module):
     # Return a value from `bpy.ops.{module}`.

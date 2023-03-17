@@ -36,9 +36,9 @@ from typing import (
 
 
 import sys
+
 if sys.version_info.major < 3:
-    print("\nPython3.x needed, found %s.\nAborting!\n" %
-          sys.version.partition(" ")[0])
+    print("\nPython3.x needed, found %s.\nAborting!\n" % sys.version.partition(" ")[0])
     sys.exit(1)
 
 
@@ -73,9 +73,11 @@ def init(cmake_path: str) -> bool:
     if (not cmake_path) or (not exists(join(cmake_path, "CMakeCache.txt"))):
         cmake_path = os.getcwd()
     if not exists(join(cmake_path, "CMakeCache.txt")):
-        print("CMakeCache.txt not found in %r or %r\n"
-              "    Pass CMake build dir as an argument, or run from that dir, aborting" %
-              (cmake_path, os.getcwd()))
+        print(
+            "CMakeCache.txt not found in %r or %r\n"
+            "    Pass CMake build dir as an argument, or run from that dir, aborting"
+            % (cmake_path, os.getcwd())
+        )
         return False
 
     PROJECT_DIR = CMAKE_DIR = cmake_path
@@ -83,8 +85,8 @@ def init(cmake_path: str) -> bool:
 
 
 def source_list(
-        path: str,
-        filename_check: Optional[Callable[[str], bool]] = None,
+    path: str,
+    filename_check: Optional[Callable[[str], bool]] = None,
 ) -> Generator[str, None, None]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
@@ -104,22 +106,22 @@ def is_cmake(filename: str) -> bool:
 
 def is_c_header(filename: str) -> bool:
     ext = splitext(filename)[1]
-    return (ext in {".h", ".hpp", ".hxx", ".hh"})
+    return ext in {".h", ".hpp", ".hxx", ".hh"}
 
 
 def is_py(filename: str) -> bool:
     ext = splitext(filename)[1]
-    return (ext == ".py")
+    return ext == ".py"
 
 
 def is_glsl(filename: str) -> bool:
     ext = splitext(filename)[1]
-    return (ext == ".glsl")
+    return ext == ".glsl"
 
 
 def is_c(filename: str) -> bool:
     ext = splitext(filename)[1]
-    return (ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".osl"})
+    return ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".osl"}
 
 
 def is_c_any(filename: str) -> bool:
@@ -133,12 +135,15 @@ def is_svn_file(filename: str) -> bool:
 
 
 def is_project_file(filename: str) -> bool:
-    return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))  # and is_svn_file(filename)
+    return (
+        is_c_any(filename) or is_cmake(filename) or is_glsl(filename)
+    )  # and is_svn_file(filename)
 
 
-def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tuple[None, None]]:
-    """ Extract includes and defines from cmake.
-    """
+def cmake_advanced_info() -> (
+    Union[Tuple[List[str], List[Tuple[str, str]]], Tuple[None, None]]
+):
+    """Extract includes and defines from cmake."""
 
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
     if make_exe is None:
@@ -172,6 +177,7 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
         return None, None
 
     from xml.dom.minidom import parse
+
     tree = parse(project_path)
 
     # to check on nicer xml
@@ -180,7 +186,7 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
     ELEMENT_NODE = tree.ELEMENT_NODE
 
-    cproject, = tree.getElementsByTagName("cproject")
+    (cproject,) = tree.getElementsByTagName("cproject")
     for storage in cproject.childNodes:
         if storage.nodeType != ELEMENT_NODE:
             continue
@@ -193,12 +199,6 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
                 moduleId = substorage.attributes["moduleId"].value
 
-                # org.eclipse.cdt.core.settings
-                # org.eclipse.cdt.core.language.mapping
-                # org.eclipse.cdt.core.externalSettings
-                # org.eclipse.cdt.core.pathentry
-                # org.eclipse.cdt.make.core.buildtargets
-
                 if moduleId == "org.eclipse.cdt.core.pathentry":
                     for path in substorage.childNodes:
                         if path.nodeType != ELEMENT_NODE:
@@ -207,7 +207,12 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
                         if kind == "mac":
                             # <pathentry kind="mac" name="PREFIX" path="" value="&quot;/opt/blender25&quot;"/>
-                            defines.append((path.attributes["name"].value, path.attributes["value"].value))
+                            defines.append(
+                                (
+                                    path.attributes["name"].value,
+                                    path.attributes["value"].value,
+                                )
+                            )
                         elif kind == "inc":
                             # <pathentry include="/data/src/blender/blender/source/blender/editors/include" kind="inc" path="" system="true"/>
                             includes.append(path.attributes["include"].value)
@@ -218,9 +223,12 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
 
 def cmake_cache_var(var: str) -> Optional[str]:
-    with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
+    with open(
+        os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding="utf-8"
+    ) as cache_file:
         lines = [
-            l_strip for l in cache_file
+            l_strip
+            for l in cache_file
             if (l_strip := l.strip())
             if not l_strip.startswith(("//", "#"))
         ]
@@ -239,6 +247,7 @@ def cmake_compiler_defines() -> Optional[List[str]]:
         return None
 
     import tempfile
+
     temp_c = tempfile.mkstemp(suffix=".c")[1]
     temp_def = tempfile.mkstemp(suffix=".def")[1]
 

@@ -13,8 +13,6 @@ def set_pose_matrices(obj, matrix_map):
             matrix = matrix_map[pbone.name]
 
             # # Instead of:
-            # pbone.matrix = matrix
-            # bpy.context.view_layer.update()
 
             # Compute and assign local matrix, using the new parent matrix
             if pbone.parent:
@@ -23,13 +21,11 @@ def set_pose_matrices(obj, matrix_map):
                     pbone.bone.matrix_local,
                     parent_matrix=parent_matrix,
                     parent_matrix_local=pbone.parent.bone.matrix_local,
-                    invert=True
+                    invert=True,
                 )
             else:
                 pbone.matrix_basis = pbone.bone.convert_local_to_pose(
-                    matrix,
-                    pbone.bone.matrix_local,
-                    invert=True
+                    matrix, pbone.bone.matrix_local, invert=True
                 )
         else:
             # Compute the updated pose matrix from local and new parent matrix

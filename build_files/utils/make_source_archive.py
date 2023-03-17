@@ -233,9 +233,6 @@ def git_command(*cli_args: Union[bytes, str, Path]) -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = ("git", *cli_args)
 
-    # import shlex
-    # print(">", " ".join(shlex.quote(arg) for arg in command))
-
     git = subprocess.run(
         command, stdout=subprocess.PIPE, check=True, text=True, timeout=30
     )

@@ -22,25 +22,24 @@ def keyconfig_data_oskey_from_ctrl(keyconfig_data_src, *, filter_fn=None):
 
 def keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data_src):
     """Use for apple since Cmd is typically used in-place of Ctrl."""
+
     def filter_fn(item_event):
         if item_event.get("ctrl"):
             event_type = item_event["type"]
-            # Ctrl-{Key}
-            if (event_type in {
-                    'H',
-                    'M',
-                    'SPACE',
-                    'W',
-                    'ACCENT_GRAVE',
-                    'PERIOD',
-                    'TAB',
-            }):
+            if event_type in {
+                "H",
+                "M",
+                "SPACE",
+                "W",
+                "ACCENT_GRAVE",
+                "PERIOD",
+                "TAB",
+            }:
                 if (not item_event.get("alt")) and (not item_event.get("shift")):
                     return False
-            # Ctrl-Alt-{Key}
-            if (event_type in {
-                    'Q',
-            }):
+            if event_type in {
+                "Q",
+            }:
                 if item_event.get("alt") and (not item_event.get("shift")):
                     return False
         return True

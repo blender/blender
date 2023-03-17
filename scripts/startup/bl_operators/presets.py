@@ -31,9 +31,6 @@ class AddPresetBase:
      - preset_values
      - preset_subdir"""
 
-    # bl_idname = "script.preset_base_add"
-    # bl_label = "Add a Python Preset"
-
     # only because invoke_props_popup requires. Also do not add to search menu.
     bl_options = {"REGISTER", "INTERNAL"}
 

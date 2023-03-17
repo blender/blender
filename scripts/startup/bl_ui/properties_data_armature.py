@@ -10,8 +10,8 @@ from bl_ui.properties_animviz import (
 
 
 class ArmatureButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "data"
 
     @classmethod
@@ -21,7 +21,7 @@ class ArmatureButtonsPanel:
 
 class DATA_PT_context_arm(ArmatureButtonsPanel, Panel):
     bl_label = ""
-    bl_options = {'HIDE_HEADER'}
+    bl_options = {"HIDE_HEADER"}
 
     def draw(self, context):
         layout = self.layout
@@ -55,7 +55,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Viewport Display"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -88,14 +88,24 @@ class DATA_MT_bone_group_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("pose.group_sort", icon='SORTALPHA')
+        layout.operator("pose.group_sort", icon="SORTALPHA")
 
 
 class DATA_UL_bone_groups(UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
-        layout.prop(item, "name", text="", emboss=False, icon='GROUP_BONE')
+    def draw_item(
+        self,
+        _context,
+        layout,
+        _data,
+        item,
+        _icon,
+        _active_data,
+        _active_propname,
+        _index,
+    ):
+        layout.prop(item, "name", text="", emboss=False, icon="GROUP_BONE")
 
-        if item.is_custom_color_set or item.color_set == 'DEFAULT':
+        if item.is_custom_color_set or item.color_set == "DEFAULT":
             layout.prop(item, "color_set", icon_only=True, icon="COLOR")
         else:
             layout.prop(item, "color_set", icon_only=True)
@@ -103,11 +113,13 @@ class DATA_UL_bone_groups(UIList):
 
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Groups"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
+        return (
+            context.object and context.object.type == "ARMATURE" and context.object.pose
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -133,13 +145,15 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.operator("pose.group_add", icon='ADD', text="")
-        col.operator("pose.group_remove", icon='REMOVE', text="")
-        col.menu("DATA_MT_bone_group_context_menu", icon='DOWNARROW_HLT', text="")
+        col.operator("pose.group_add", icon="ADD", text="")
+        col.operator("pose.group_remove", icon="REMOVE", text="")
+        col.menu("DATA_MT_bone_group_context_menu", icon="DOWNARROW_HLT", text="")
         if group:
             col.separator()
-            col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
-            col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            col.operator("pose.group_move", icon="TRIA_UP", text="").direction = "UP"
+            col.operator(
+                "pose.group_move", icon="TRIA_DOWN", text=""
+            ).direction = "DOWN"
 
             if group.is_custom_color_set:
                 col = layout.column()
@@ -147,7 +161,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
                 col = split.column()
                 row = col.row()
-                row.alignment = 'RIGHT'
+                row.alignment = "RIGHT"
                 row.label(text="Custom Colors")
 
                 col = split.column(align=True)
@@ -160,7 +174,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
         sub = row.row(align=True)
         sub.operator("pose.group_assign", text="Assign")
-        # row.operator("pose.bone_group_remove_from", text="Remove")
         sub.operator("pose.group_unassign", text="Remove")
 
         sub = row.row(align=True)
@@ -188,12 +201,12 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 
         if itasc:
             layout.prop(itasc, "mode")
-            simulation = (itasc.mode == 'SIMULATION')
+            simulation = itasc.mode == "SIMULATION"
             if simulation:
                 layout.prop(itasc, "reiteration_method", expand=False)
 
             col = layout.column()
-            col.active = not simulation or itasc.reiteration_method != 'NEVER'
+            col.active = not simulation or itasc.reiteration_method != "NEVER"
             col.prop(itasc, "precision")
             col.prop(itasc, "iterations")
 
@@ -210,15 +223,14 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
             if simulation:
                 col.prop(itasc, "feedback")
                 col.prop(itasc, "velocity_max")
-            if itasc.solver == 'DLS':
+            if itasc.solver == "DLS":
                 col.separator()
                 col.prop(itasc, "damping_max", text="Damping Max", slider=True)
                 col.prop(itasc, "damping_epsilon", text="Damping Epsilon", slider=True)
 
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
-    # bl_label = "Bones Motion Paths"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
     bl_context = "data"
 
     @classmethod
@@ -227,8 +239,6 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        # layout = self.layout
-
         ob = context.object
         avs = ob.pose.animation_visualization
 
@@ -239,10 +249,9 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
 
 
 class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
-    # bl_label = "Bones Motion Paths"
     bl_context = "data"
     bl_parent_id = "DATA_PT_motion_paths"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(cls, context):
@@ -250,8 +259,6 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        # layout = self.layout
-
         ob = context.object
         avs = ob.pose.animation_visualization
 
@@ -262,7 +269,12 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
 
 
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {
+        "BLENDER_RENDER",
+        "BLENDER_EEVEE",
+        "BLENDER_WORKBENCH",
+        "BLENDER_WORKBENCH_NEXT",
+    }
     _context_path = "object.data"
     _property_type = bpy.types.Armature
 
@@ -282,5 +294,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)
