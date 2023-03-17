@@ -4,8 +4,6 @@
 # Usage: ./check_release.py -- ../path/to/release/folder
 
 
-import os
-import sys
 import unittest
 
 import check_module_enabled

@@ -9,7 +9,6 @@ This can be activated by calling "make check_licenses" from Blenders root direct
 """
 
 import os
-import sys
 import argparse
 import datetime
 import re
