@@ -25,6 +25,7 @@ Example Usage:
     --save_path=/tmp/test
 
 """
+import ast
 
 import os
 import sys
@@ -74,7 +75,7 @@ def batch_import(
         print(" using a subset in (%d, %d), total %d" % (start, end, len(files)), end="")
 
     import bpy
-    op = eval(operator)
+    op = ast.literal_eval(operator)
 
     tot_done = 0
     tot_fail = 0

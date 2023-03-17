@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+import ast
 from __future__ import annotations
 
 if "bpy" in locals():
@@ -384,7 +385,7 @@ class UpdateAnimatedTransformConstraint(Operator):
 
             data = ...
             try:
-                data = eval("base." + old_path)
+                data = ast.literal_eval("base." + old_path)
             except:
                 pass
             ret = (data, old_path)
@@ -401,7 +402,7 @@ class UpdateAnimatedTransformConstraint(Operator):
                 if new_path is not None:
                     data = ...
                     try:
-                        data = eval("base." + new_path)
+                        data = ast.literal_eval("base." + new_path)
                     except:
                         pass
                     ret = (data, new_path)

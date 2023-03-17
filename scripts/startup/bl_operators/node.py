@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+import ast
 from __future__ import annotations
 
 import bpy
@@ -81,7 +82,7 @@ class NodeAddOperator:
 
         for setting in self.settings:
             # XXX catch exceptions here?
-            value = eval(setting.value)
+            value = ast.literal_eval(setting.value)
             node_data = node
             node_attr_name = setting.name
 

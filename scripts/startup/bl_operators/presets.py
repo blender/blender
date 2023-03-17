@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import ast
 import bpy
 from bpy.types import (
     Menu,
@@ -153,7 +154,7 @@ class AddPresetBase:
                         file_preset.write("\n")
 
                     for rna_path in self.preset_values:
-                        value = eval(rna_path)
+                        value = ast.literal_eval(rna_path)
                         rna_recursive_attr_expand(value, rna_path, 1)
 
                     file_preset.close()
