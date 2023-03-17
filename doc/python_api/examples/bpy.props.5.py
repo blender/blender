@@ -30,6 +30,7 @@ bpy.types.Scene.test_float = bpy.props.FloatProperty(get=get_float, set=set_floa
 # Read-only string property, returns the current date
 def get_date(self):
     import datetime
+
     return str(datetime.datetime.now())
 
 
@@ -47,7 +48,9 @@ def set_array(self, values):
     self["somebool"] = values[0] and values[1]
 
 
-bpy.types.Scene.test_array = bpy.props.BoolVectorProperty(size=2, get=get_array, set=set_array)
+bpy.types.Scene.test_array = bpy.props.BoolVectorProperty(
+    size=2, get=get_array, set=set_array
+)
 
 
 # Enum property.
@@ -62,6 +65,7 @@ test_items = [
 
 def get_enum(self):
     import random
+
     return random.randint(1, 4)
 
 
@@ -69,22 +73,24 @@ def set_enum(self, value):
     print("setting value", value)
 
 
-bpy.types.Scene.test_enum = bpy.props.EnumProperty(items=test_items, get=get_enum, set=set_enum)
+bpy.types.Scene.test_enum = bpy.props.EnumProperty(
+    items=test_items, get=get_enum, set=set_enum
+)
 
 
 # Testing the properties:
 scene = bpy.context.scene
 
 scene.test_float = 12.34
-print('test_float:', scene.test_float)
+print("test_float:", scene.test_float)
 
 scene.test_array = (True, False)
-print('test_array:', tuple(scene.test_array))
+print("test_array:", tuple(scene.test_array))
 
-print('test_date:', scene.test_date)
+print("test_date:", scene.test_date)
 
-scene.test_enum = 'BLUE'
-print('test_enum:', scene.test_enum)
+scene.test_enum = "BLUE"
+print("test_enum:", scene.test_enum)
 
 # The above outputs:
 # test_float: 12.34000015258789

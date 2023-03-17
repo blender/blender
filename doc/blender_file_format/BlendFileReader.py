@@ -11,6 +11,7 @@ import gzip
 import tempfile
 
 import logging
+
 log = logging.getLogger("BlendFileReader")
 
 ######################################################
@@ -19,10 +20,10 @@ log = logging.getLogger("BlendFileReader")
 
 
 def ReadString(handle, length):
-    '''
+    """
     ReadString reads a String of given length or a zero terminating String
     from a file handle
-    '''
+    """
     if length != 0:
         return handle.read(length).decode()
     else:
@@ -36,37 +37,38 @@ def ReadString(handle, length):
 
 
 def Read(type, handle, fileheader):
-    '''
+    """
     Reads the chosen type from a file handle
-    '''
+    """
+
     def unpacked_bytes(type_char, size):
         return struct.unpack(fileheader.StructPre + type_char, handle.read(size))[0]
 
-    if type == 'ushort':
-        return unpacked_bytes("H", 2)   # unsigned short
-    elif type == 'short':
-        return unpacked_bytes("h", 2)   # short
-    elif type == 'uint':
-        return unpacked_bytes("I", 4)   # unsigned int
-    elif type == 'int':
-        return unpacked_bytes("i", 4)   # int
-    elif type == 'float':
-        return unpacked_bytes("f", 4)   # float
-    elif type == 'ulong':
-        return unpacked_bytes("Q", 8)   # unsigned long
-    elif type == 'pointer':
+    if type == "ushort":
+        return unpacked_bytes("H", 2)  # unsigned short
+    elif type == "short":
+        return unpacked_bytes("h", 2)  # short
+    elif type == "uint":
+        return unpacked_bytes("I", 4)  # unsigned int
+    elif type == "int":
+        return unpacked_bytes("i", 4)  # int
+    elif type == "float":
+        return unpacked_bytes("f", 4)  # float
+    elif type == "ulong":
+        return unpacked_bytes("Q", 8)  # unsigned long
+    elif type == "pointer":
         # The pointersize is given by the header (BlendFileHeader).
         if fileheader.PointerSize == 4:
-            return Read('uint', handle, fileheader)
+            return Read("uint", handle, fileheader)
         if fileheader.PointerSize == 8:
-            return Read('ulong', handle, fileheader)
+            return Read("ulong", handle, fileheader)
 
 
 def openBlendFile(filename):
-    '''
+    """
     Open a filename, determine if the file is compressed and returns a handle
-    '''
-    handle = open(filename, 'rb')
+    """
+    handle = open(filename, "rb")
     magic = ReadString(handle, 7)
     if magic in {"BLENDER", "BULLETf"}:
         log.debug("normal blendfile detected")
@@ -90,9 +92,9 @@ def openBlendFile(filename):
 
 
 def Align(handle):
-    '''
+    """
     Aligns the filehandle on 4 bytes
-    '''
+    """
     offset = handle.tell()
     trim = offset % 4
     if trim != 0:
@@ -103,15 +105,16 @@ def Align(handle):
 # module classes
 ######################################################
 
+
 class BlendFile:
-    '''
+    """
     Reads a blendfile and store the header, all the fileblocks, and catalogue
     structs found in the DNA fileblock
 
     - BlendFile.Header  (BlendFileHeader instance)
     - BlendFile.Blocks  (list of BlendFileBlock instances)
     - BlendFile.Catalog (DNACatalog instance)
-    '''
+    """
 
     def __init__(self, handle):
         log.debug("initializing reading blend-file")
@@ -144,7 +147,7 @@ class BlendFile:
 
 
 class BlendFileHeader:
-    '''
+    """
     BlendFileHeader allocates the first 12 bytes of a blend file.
     It contains information about the hardware architecture.
     Header example: BLENDER_v254
@@ -154,7 +157,7 @@ class BlendFileHeader:
     BlendFileHeader.LittleEndianness  (bool)
     BlendFileHeader.StructPre         (str)   see http://docs.python.org/py3k/library/struct.html#byte-order-size-and-alignment
     BlendFileHeader.Version           (int)
-    '''
+    """
 
     def __init__(self, handle):
         log.debug("reading blend-file-header")
@@ -182,14 +185,18 @@ class BlendFileHeader:
         log.debug(version)
         self.Version = int(version)
 
-        log.debug("{0} {1} {2} {3}".format(self.Magic, self.PointerSize, self.LittleEndianness, version))
+        log.debug(
+            "{0} {1} {2} {3}".format(
+                self.Magic, self.PointerSize, self.LittleEndianness, version
+            )
+        )
 
 
 class BlendFileBlock:
-    '''
+    """
     BlendFileBlock.File     (BlendFile)
     BlendFileBlock.Header   (FileBlockHeader)
-    '''
+    """
 
     def __init__(self, handle, blendfile):
         self.File = blendfile
@@ -205,7 +212,7 @@ class BlendFileBlock:
 
 
 class FileBlockHeader:
-    '''
+    """
     FileBlockHeader contains the information in a file-block-header.
     The class is needed for searching to the correct file-block (containing Code: DNA1)
 
@@ -215,37 +222,41 @@ class FileBlockHeader:
     SDNAIndex   (int)
     Count       (int)
     FileOffset  (= file pointer of datablock)
-    '''
+    """
 
     def __init__(self, handle, fileheader):
         self.Code = ReadString(handle, 4).strip()
         if self.Code != "ENDB":
-            self.Size = Read('uint', handle, fileheader)
-            self.OldAddress = Read('pointer', handle, fileheader)
-            self.SDNAIndex = Read('uint', handle, fileheader)
-            self.Count = Read('uint', handle, fileheader)
+            self.Size = Read("uint", handle, fileheader)
+            self.OldAddress = Read("pointer", handle, fileheader)
+            self.SDNAIndex = Read("uint", handle, fileheader)
+            self.Count = Read("uint", handle, fileheader)
             self.FileOffset = handle.tell()
         else:
-            self.Size = Read('uint', handle, fileheader)
+            self.Size = Read("uint", handle, fileheader)
             self.OldAddress = 0
             self.SDNAIndex = 0
             self.Count = 0
             self.FileOffset = handle.tell()
-        log.debug("found blend-file-block-fileheader {0} {1}".format(self.Code, self.FileOffset))
+        log.debug(
+            "found blend-file-block-fileheader {0} {1}".format(
+                self.Code, self.FileOffset
+            )
+        )
 
     def skip(self, handle):
         handle.read(self.Size)
 
 
 class DNACatalog:
-    '''
+    """
     DNACatalog is a catalog of all information in the DNA1 file-block
 
     Header = None
     Names = None
     Types = None
     Structs = None
-    '''
+    """
 
     def __init__(self, fileheader, handle):
         log.debug("building DNA catalog")
@@ -258,7 +269,7 @@ class DNACatalog:
 
         # names
         NAME = ReadString(handle, 4)
-        numberOfNames = Read('uint', handle, fileheader)
+        numberOfNames = Read("uint", handle, fileheader)
         log.debug("building #{0} names".format(numberOfNames))
         for i in range(numberOfNames):
             name = ReadString(handle, 0)
@@ -267,7 +278,7 @@ class DNACatalog:
 
         # types
         TYPE = ReadString(handle, 4)
-        numberOfTypes = Read('uint', handle, fileheader)
+        numberOfTypes = Read("uint", handle, fileheader)
         log.debug("building #{0} types".format(numberOfTypes))
         for i in range(numberOfTypes):
             type = ReadString(handle, 0)
@@ -278,35 +289,35 @@ class DNACatalog:
         TLEN = ReadString(handle, 4)
         log.debug("building #{0} type-lengths".format(numberOfTypes))
         for i in range(numberOfTypes):
-            length = Read('ushort', handle, fileheader)
+            length = Read("ushort", handle, fileheader)
             self.Types[i].Size = length
         Align(handle)
 
         # structs
         STRC = ReadString(handle, 4)
-        numberOfStructures = Read('uint', handle, fileheader)
+        numberOfStructures = Read("uint", handle, fileheader)
         log.debug("building #{0} structures".format(numberOfStructures))
         for structureIndex in range(numberOfStructures):
-            type = Read('ushort', handle, fileheader)
+            type = Read("ushort", handle, fileheader)
             Type = self.Types[type]
             structure = DNAStructure(Type)
             self.Structs.append(structure)
 
-            numberOfFields = Read('ushort', handle, fileheader)
+            numberOfFields = Read("ushort", handle, fileheader)
             for fieldIndex in range(numberOfFields):
-                fTypeIndex = Read('ushort', handle, fileheader)
-                fNameIndex = Read('ushort', handle, fileheader)
+                fTypeIndex = Read("ushort", handle, fileheader)
+                fNameIndex = Read("ushort", handle, fileheader)
                 fType = self.Types[fTypeIndex]
                 fName = self.Names[fNameIndex]
                 structure.Fields.append(DNAField(fType, fName))
 
 
 class DNAName:
-    '''
+    """
     DNAName is a C-type name stored in the DNA.
 
     Name = str
-    '''
+    """
 
     def __init__(self, name):
         self.Name = name
@@ -343,7 +354,7 @@ class DNAName:
 
         while Index != -1:
             Index2 = Temp.find("]")
-            result *= int(Temp[Index + 1:Index2])
+            result *= int(Temp[Index + 1: Index2])
             Temp = Temp[Index2 + 1:]
             Index = Temp.find("[")
 
@@ -351,13 +362,13 @@ class DNAName:
 
 
 class DNAType:
-    '''
+    """
     DNAType is a C-type stored in the DNA
 
     Name = str
     Size = int
     Structure = DNAStructure
-    '''
+    """
 
     def __init__(self, aName):
         self.Name = aName
@@ -365,12 +376,12 @@ class DNAType:
 
 
 class DNAStructure:
-    '''
+    """
     DNAType is a C-type structure stored in the DNA
 
     Type = DNAType
     Fields = [DNAField]
-    '''
+    """
 
     def __init__(self, aType):
         self.Type = aType
@@ -395,12 +406,12 @@ class DNAStructure:
 
 
 class DNAField:
-    '''
+    """
     DNAField is a coupled DNAType and DNAName.
 
     Type = DNAType
     Name = DNAName
-    '''
+    """
 
     def __init__(self, aType, aName):
         self.Type = aType
@@ -415,13 +426,13 @@ class DNAField:
     def DecodeField(self, header, handle, path):
         if path == "":
             if self.Name.IsPointer():
-                return Read('pointer', handle, header)
+                return Read("pointer", handle, header)
             if self.Type.Name == "int":
-                return Read('int', handle, header)
+                return Read("int", handle, header)
             if self.Type.Name == "short":
-                return Read('short', handle, header)
+                return Read("short", handle, header)
             if self.Type.Name == "float":
-                return Read('float', handle, header)
+                return Read("float", handle, header)
             if self.Type.Name == "char":
                 return ReadString(handle, self.Name.ArraySize())
         else:

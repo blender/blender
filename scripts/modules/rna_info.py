@@ -831,7 +831,6 @@ def BuildRNAInfo():
 
     info_structs = []
     for rna_base, identifier, rna_struct in structs:
-
         info_struct = GetInfoStructRNA(rna_struct)
         if rna_base:
             info_struct.base = GetInfoStructRNA(rna_struct_dict[rna_base])

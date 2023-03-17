@@ -72,7 +72,9 @@ _script_module_dirs = "startup", "modules"
 #
 # NOTE: in virtually all cases this should match `BLENDER_SYSTEM_SCRIPTS` as this script is it's self a system script,
 # it must be in the `BLENDER_SYSTEM_SCRIPTS` by definition and there is no need for a look-up from `_bpy_script_paths`.
-_script_base_dir = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.dirname(__file__))))
+_script_base_dir = _os.path.dirname(
+    _os.path.dirname(_os.path.dirname(_os.path.dirname(__file__)))
+)
 
 
 def execfile(filepath, *, mod=None):
@@ -88,6 +90,7 @@ def execfile(filepath, *, mod=None):
     """
 
     import importlib.util
+
     mod_name = "__main__"
     mod_spec = importlib.util.spec_from_file_location(mod_name, filepath)
     if mod is None:
@@ -118,18 +121,22 @@ def _test_import(module_name, loaded_modules):
     if module_name in loaded_modules:
         return None
     if "." in module_name:
-        print("Ignoring '%s', can't import files containing "
-              "multiple periods" % module_name)
+        print(
+            "Ignoring '%s', can't import files containing "
+            "multiple periods" % module_name
+        )
         return None
 
     if use_time:
         import time
+
         t = time.time()
 
     try:
         mod = __import__(module_name)
     except:
         import traceback
+
         traceback.print_exc()
         return None
 
@@ -204,6 +211,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
 
     if use_time:
         import time
+
         t_main = time.time()
 
     loaded_modules = set()
@@ -226,11 +234,13 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
                 register()
             except:
                 import traceback
+
                 traceback.print_exc()
         else:
-            print("\nWarning! '%s' has no register function, "
-                  "this is now a requirement for registerable scripts" %
-                  mod.__file__)
+            print(
+                "\nWarning! '%s' has no register function, "
+                "this is now a requirement for registerable scripts" % mod.__file__
+            )
 
     def unregister_module_call(mod):
         unregister = getattr(mod, "unregister", None)
@@ -239,10 +249,12 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
                 unregister()
             except:
                 import traceback
+
                 traceback.print_exc()
 
     def test_reload(mod):
         import importlib
+
         # reloading this causes internal errors
         # because the classes from this module are stored internally
         # possibly to refresh internal references too but for now, best not to.
@@ -253,10 +265,10 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
             return importlib.reload(mod)
         except:
             import traceback
+
             traceback.print_exc()
 
     def test_register(mod):
-
         if refresh_scripts and mod in original_modules:
             return
 
@@ -269,10 +281,10 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
             _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
-
         # module names -> modules
-        _global_loaded_modules[:] = [_sys.modules[mod_name]
-                                     for mod_name in _global_loaded_modules]
+        _global_loaded_modules[:] = [
+            _sys.modules[mod_name] for mod_name in _global_loaded_modules
+        ]
 
         # loop over and unload all scripts
         _global_loaded_modules.reverse()
@@ -301,6 +313,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
     # load template (if set)
     if any(_bpy.utils.app_template_paths()):
         import bl_app_template_utils
+
         bl_app_template_utils.reset(reload_scripts=reload_scripts)
         del bl_app_template_utils
 
@@ -318,6 +331,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
         _bpy.context.window_manager.tag_script_reload()
 
         import gc
+
         print("gc.collect() -> %d" % gc.collect())
 
     if use_time:
@@ -329,14 +343,14 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
                 for subcls in cls.__subclasses__():
                     if not subcls.is_registered:
                         print(
-                            "Warning, unregistered class: %s(%s)" %
-                            (subcls.__name__, cls.__name__)
+                            "Warning, unregistered class: %s(%s)"
+                            % (subcls.__name__, cls.__name__)
                         )
 
 
 def script_path_user():
     """returns the env var and falls back to home dir or None"""
-    path = _user_resource('SCRIPTS')
+    path = _user_resource("SCRIPTS")
     return _os.path.normpath(path) if path else None
 
 
@@ -367,7 +381,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True)
 
     if check_all:
         # Order: 'LOCAL', 'USER', 'SYSTEM' (where user is optional).
-        if path_local := resource_path('LOCAL'):
+        if path_local := resource_path("LOCAL"):
             base_paths.append(_os.path.join(path_local, "scripts"))
         if use_user:
             base_paths.append(path_user)
@@ -444,10 +458,12 @@ def app_template_paths(*, path=None):
     # Uses 'BLENDER_USER_SCRIPTS', 'BLENDER_SYSTEM_SCRIPTS'
     # ... in this case 'system' accounts for 'local' too.
     for resource_fn, module_name in (
-            (_user_resource, "bl_app_templates_user"),
-            (system_resource, "bl_app_templates_system"),
+        (_user_resource, "bl_app_templates_user"),
+        (system_resource, "bl_app_templates_system"),
     ):
-        path_test = resource_fn('SCRIPTS', path=_os.path.join("startup", module_name, *subdir_args))
+        path_test = resource_fn(
+            "SCRIPTS", path=_os.path.join("startup", module_name, *subdir_args)
+        )
         if path_test and _os.path.isdir(path_test):
             yield path_test
 
@@ -490,9 +506,9 @@ def is_path_builtin(path):
     # it's intended to be used to check if it's OK to remove presets.
     #
     # If this is used in a draw-loop for example, we could cache some of the values.
-    user_path = resource_path('USER')
+    user_path = resource_path("USER")
 
-    for res in ('SYSTEM', 'LOCAL'):
+    for res in ("SYSTEM", "LOCAL"):
         parent_path = resource_path(res)
         if not parent_path or parent_path == user_path:
             # Make sure that the current path is not empty string and that it is
@@ -502,8 +518,8 @@ def is_path_builtin(path):
 
         try:
             if _os.path.samefile(
-                    _os.path.commonpath([parent_path]),
-                    _os.path.commonpath([parent_path, path])
+                _os.path.commonpath([parent_path]),
+                _os.path.commonpath([parent_path, path]),
             ):
                 return True
         except FileNotFoundError:
@@ -530,9 +546,7 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
     """
 
     return smpte_from_frame(
-        time_to_frame(time, fps=fps, fps_base=fps_base),
-        fps=fps,
-        fps_base=fps_base
+        time_to_frame(time, fps=fps, fps_base=fps_base), fps=fps, fps_base=fps_base
     )
 
 
@@ -559,14 +573,13 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
     sign = "-" if frame < 0 else ""
     frame = abs(frame)
 
-    return (
-        "%s%02d:%02d:%02d:%02d" % (
-            sign,
-            int(frame / (3600 * fps)),          # HH
-            int((frame / (60 * fps)) % 60),     # MM
-            int((frame / fps) % 60),            # SS
-            int(frame % fps),                   # FF
-        ))
+    return "%s%02d:%02d:%02d:%02d" % (
+        sign,
+        int(frame / (3600 * fps)),  # HH
+        int((frame / (60 * fps)) % 60),  # MM
+        int((frame / fps) % 60),  # SS
+        int(frame % fps),  # FF
+    )
 
 
 def time_from_frame(frame, *, fps=None, fps_base=None):
@@ -628,11 +641,12 @@ def preset_find(name, preset_path, *, display_name=False, ext=".py"):
         return None
 
     for directory in preset_paths(preset_path):
-
         if display_name:
             filename = ""
             for fn in _os.listdir(directory):
-                if fn.endswith(ext) and name == _bpy.path.display_name(fn, title_case=False):
+                if fn.endswith(ext) and name == _bpy.path.display_name(
+                    fn, title_case=False
+                ):
                     filename = fn
                     break
         else:
@@ -673,6 +687,7 @@ def keyconfig_set(filepath, *, report=None):
         execfile(filepath)
     except:
         import traceback
+
         error_msg = traceback.format_exc()
 
     name = splitext(basename(filepath))[0]
@@ -680,7 +695,7 @@ def keyconfig_set(filepath, *, report=None):
 
     if error_msg:
         if report is not None:
-            report({'ERROR'}, error_msg)
+            report({"ERROR"}, error_msg)
         print(error_msg)
         if kc_new is not None:
             keyconfigs.remove(kc_new)
@@ -689,7 +704,7 @@ def keyconfig_set(filepath, *, report=None):
     # Get name, exception for default keymap to keep backwards compatibility.
     if kc_new is None:
         if report is not None:
-            report({'ERROR'}, "Failed to load keymap %r" % filepath)
+            report({"ERROR"}, "Failed to load keymap %r" % filepath)
         return False
     else:
         keyconfigs.active = kc_new
@@ -722,6 +737,7 @@ def user_resource(resource_type, *, path="", create=False):
                     _os.makedirs(target_path)
                 except:
                     import traceback
+
                     traceback.print_exc()
                     target_path = ""
             elif not _os.path.isdir(target_path):
@@ -736,6 +752,7 @@ def register_classes_factory(classes):
     Utility function to create register and unregister functions
     which simply registers and unregisters a sequence of classes.
     """
+
     def register():
         for cls in classes:
             register_class(cls)
@@ -778,6 +795,7 @@ def register_submodule_factory(module_name, submodule_names):
 
     def unregister():
         from sys import modules
+
         for mod in reversed(submodules):
             mod.unregister()
             name = mod.__name__
@@ -822,8 +840,10 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
 
     # First sanity check
     from bpy.types import WorkSpaceTool
+
     tools_id = {
-        item.idname for item in ToolSelectPanelHelper._tools_flatten(tools)
+        item.idname
+        for item in ToolSelectPanelHelper._tools_flatten(tools)
         if item is not None
     }
     if not issubclass(tool_cls, WorkSpaceTool):
@@ -835,21 +855,23 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     # Convert the class into a ToolDef.
     def tool_from_class(tool_cls):
         # Convert class to tuple, store in the class for removal.
-        tool_def = ToolDef.from_dict({
-            "idname": tool_cls.bl_idname,
-            "label": tool_cls.bl_label,
-            "description": getattr(tool_cls, "bl_description", tool_cls.__doc__),
-            "icon": getattr(tool_cls, "bl_icon", None),
-            "cursor": getattr(tool_cls, "bl_cursor", None),
-            "options": getattr(tool_cls, "bl_options", None),
-            "widget": getattr(tool_cls, "bl_widget", None),
-            "widget_properties": getattr(tool_cls, "bl_widget_properties", None),
-            "keymap": getattr(tool_cls, "bl_keymap", None),
-            "data_block": getattr(tool_cls, "bl_data_block", None),
-            "operator": getattr(tool_cls, "bl_operator", None),
-            "draw_settings": getattr(tool_cls, "draw_settings", None),
-            "draw_cursor": getattr(tool_cls, "draw_cursor", None),
-        })
+        tool_def = ToolDef.from_dict(
+            {
+                "idname": tool_cls.bl_idname,
+                "label": tool_cls.bl_label,
+                "description": getattr(tool_cls, "bl_description", tool_cls.__doc__),
+                "icon": getattr(tool_cls, "bl_icon", None),
+                "cursor": getattr(tool_cls, "bl_cursor", None),
+                "options": getattr(tool_cls, "bl_options", None),
+                "widget": getattr(tool_cls, "bl_widget", None),
+                "widget_properties": getattr(tool_cls, "bl_widget_properties", None),
+                "keymap": getattr(tool_cls, "bl_keymap", None),
+                "data_block": getattr(tool_cls, "bl_data_block", None),
+                "operator": getattr(tool_cls, "bl_operator", None),
+                "draw_settings": getattr(tool_cls, "draw_settings", None),
+                "draw_cursor": getattr(tool_cls, "draw_cursor", None),
+            }
+        )
         tool_cls._bl_tool = tool_def
 
         keymap_data = tool_def.keymap
@@ -859,6 +881,7 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
             else:
                 context_descr = context_mode.replace("_", " ").title()
             from bpy import context
+
             wm = context.window_manager
             keyconfigs = wm.keyconfigs
             kc_default = keyconfigs.default
@@ -866,7 +889,9 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
             # We need to use the add-ons for 3rd party tools so reloading the key-map doesn't clear them.
             kc = keyconfigs.addon
             if callable(keymap_data[0]):
-                cls._km_action_simple(kc_default, kc, context_descr, tool_def.label, keymap_data)
+                cls._km_action_simple(
+                    kc_default, kc, context_descr, tool_def.label, keymap_data
+                )
         return tool_def
 
     tool_converted = tool_from_class(tool_cls)
@@ -875,10 +900,7 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
         # Create a new group
         tool_converted = (tool_converted,)
 
-    tool_def_insert = (
-        (None, tool_converted) if separator else
-        (tool_converted,)
-    )
+    tool_def_insert = (None, tool_converted) if separator else (tool_converted,)
 
     def skip_to_end_of_group(seq, i):
         i_prev = i
@@ -895,7 +917,7 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
             elif isinstance(item, ToolDef):
                 if item.idname in after:
                     i = skip_to_end_of_group(item, i)
-                    tools[i + 1:i + 1] = tool_def_insert
+                    tools[i + 1: i + 1] = tool_def_insert
                     changed = True
                     break
             elif isinstance(item, tuple):
@@ -906,10 +928,10 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
                                 # Can't add a group within a group,
                                 # add a new group after this group.
                                 i = skip_to_end_of_group(tools, i)
-                                tools[i + 1:i + 1] = tool_def_insert
+                                tools[i + 1: i + 1] = tool_def_insert
                             else:
                                 j = skip_to_end_of_group(item, j)
-                                item = item[:j + 1] + tool_def_insert + item[j + 1:]
+                                item = item[: j + 1] + tool_def_insert + item[j + 1:]
                                 tools[i] = item
                             changed = True
                             break
@@ -927,6 +949,7 @@ def unregister_tool(tool_cls):
     context_mode = tool_cls.bl_context_mode
 
     from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     if cls is None:
         raise Exception("Space type %r has no toolbar" % space_type)
@@ -986,6 +1009,7 @@ def unregister_tool(tool_cls):
     keymap_data = tool_def.keymap
     if keymap_data is not None:
         from bpy import context
+
         wm = context.window_manager
         keyconfigs = wm.keyconfigs
         for kc in (keyconfigs.default, keyconfigs.addon):
@@ -1000,12 +1024,15 @@ def unregister_tool(tool_cls):
 # Manual lookups, each function has to return a basepath and a sequence
 # of...
 
+
 # we start with the built-in default mapping
 def _blender_default_map():
     # NOTE(@ideasman42): Avoid importing this as there is no need to keep the lookup table in memory.
     # As this runs when the user accesses the "Online Manual", the overhead loading the file is acceptable.
     # In my tests it's under 1/100th of a second loading from a `pyc`.
-    ref_mod = execfile(_os.path.join(_script_base_dir, "modules", "rna_manual_reference.py"))
+    ref_mod = execfile(
+        _os.path.join(_script_base_dir, "modules", "rna_manual_reference.py")
+    )
     return (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
 
 
@@ -1029,6 +1056,7 @@ def manual_map():
         except:
             print("Error calling %r" % cb)
             import traceback
+
             traceback.print_exc()
             continue
 
@@ -1077,7 +1105,7 @@ def manual_language_code(default="en"):
     :rtype: str
     """
     language = _bpy.context.preferences.view.language
-    if language == 'DEFAULT':
+    if language == "DEFAULT":
         language = _os.getenv("LANG", "").split(".")[0]
     return _manual_language_codes.get(language, default)
 

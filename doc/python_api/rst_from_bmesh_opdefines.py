@@ -173,7 +173,6 @@ def main():
 
             b[i] = l
 
-
         if is_enum:
             text = "".join(b)
             text = text.replace("static BMO_FlagSet ", "")

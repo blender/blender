@@ -45,7 +45,6 @@ class prettyface:
 
                 self.width = self.height = d * 2
 
-
             for pf in data:
                 pf.has_parent = True
 
@@ -480,7 +479,6 @@ def lightmap_uvpack(
         del even_dict
         del odd_dict
 
-
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
         # spin every second pretty-face
@@ -502,7 +500,6 @@ def lightmap_uvpack(
             [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)
         ]
         packWidth, packHeight = mathutils.geometry.box_pack_2d(boxes2Pack)
-
 
         packWidth = float(packWidth)
         packHeight = float(packHeight)

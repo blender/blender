@@ -172,7 +172,6 @@ def function_parm_wash_tokens(parm):
 def parm_size(node_child):
     tokens = function_parm_wash_tokens(node_child)
 
-
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
     if len(tokens) >= 3:  # foo [ 1 ]
         if (
@@ -283,7 +282,6 @@ def file_check_arg_sizes(tu):
 
             if size_def == -1:
                 continue
-
 
             if len(children) == 1:
                 arg = children[0]

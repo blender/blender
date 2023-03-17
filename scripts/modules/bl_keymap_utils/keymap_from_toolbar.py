@@ -3,9 +3,7 @@
 # Dynamically create a keymap which is used by the popup toolbar
 # for accelerator key access.
 
-__all__ = (
-    "generate",
-)
+__all__ = ("generate",)
 
 
 def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
@@ -16,13 +14,13 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
     def modifier_keywords_from_item(kmi):
         kw = {}
-        for (attr, default) in (
-                ("any", False),
-                ("shift", False),
-                ("ctrl", False),
-                ("alt", False),
-                ("oskey", False),
-                ("key_modifier", 'NONE'),
+        for attr, default in (
+            ("any", False),
+            ("shift", False),
+            ("ctrl", False),
+            ("alt", False),
+            ("oskey", False),
+            ("key_modifier", "NONE"),
         ):
             val = getattr(kmi, attr)
             if val != default:
@@ -39,7 +37,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         # 1: keymap item (direct access)
         # 2: keymap item (newly calculated for toolbar)
         [item, None, None]
-        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
+        for item in ToolSelectPanelHelper._tools_flatten(
+            cls.tools_from_context(context)
+        )
         if item is not None
     ]
     items_all_id = {item_container[0].idname for item_container in items_all}
@@ -74,7 +74,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
     keymap = keyconf_active.keymaps.get(km_name)
     if keymap is None:
-        keymap = keyconf_active.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
+        keymap = keyconf_active.keymaps.new(
+            km_name, space_type="EMPTY", region_type="TEMPORARY"
+        )
     for kmi in keymap.keymap_items:
         keymap.keymap_items.remove(kmi)
 
@@ -82,9 +84,8 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
     if keymap_src is not None:
         for kmi_src in keymap_src.keymap_items:
             # Skip tools that aren't currently shown.
-            if (
-                    (kmi_src.idname == "wm.tool_set_by_id") and
-                    (kmi_src.properties.name not in items_all_id)
+            if (kmi_src.idname == "wm.tool_set_by_id") and (
+                kmi_src.properties.name not in items_all_id
             ):
                 continue
             keymap.keymap_items.new_from_item(kmi_src)
@@ -101,11 +102,13 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
     if use_hack_properties:
-        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_id", 'NONE', 'PRESS')
+        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_id", "NONE", "PRESS")
         kmi_hack_properties = kmi_hack.properties
         kmi_hack.active = False
 
-        kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'NONE', 'PRESS')
+        kmi_hack_brush_select = keymap.keymap_items.new(
+            "paint.brush_select", "NONE", "PRESS"
+        )
         kmi_hack_brush_select_properties = kmi_hack_brush_select.properties
         kmi_hack_brush_select.active = False
 
@@ -116,7 +119,10 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         kmi_toolbar_type = None if not kmi_toolbar else kmi_toolbar.type
         if use_tap_reset and kmi_toolbar_type is not None:
             kmi_toolbar_args_type_only = {"type": kmi_toolbar_type}
-            kmi_toolbar_args = {**kmi_toolbar_args_type_only, **modifier_keywords_from_item(kmi_toolbar)}
+            kmi_toolbar_args = {
+                **kmi_toolbar_args_type_only,
+                **modifier_keywords_from_item(kmi_toolbar),
+            }
         else:
             use_tap_reset = False
         del kmi_toolbar
@@ -128,9 +134,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
             kmi_hack_properties.name = tap_reset_tool
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname="wm.tool_set_by_id",
-                context='INVOKE_REGION_WIN',
+                context="INVOKE_REGION_WIN",
                 properties=kmi_hack_properties,
-                include={'KEYBOARD'},
+                include={"KEYBOARD"},
             )[1]
             if kmi_found:
                 use_tap_reset = False
@@ -160,9 +166,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
             kmi_hack_properties.name = item.idname
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname="wm.tool_set_by_id",
-                context='INVOKE_REGION_WIN',
+                context="INVOKE_REGION_WIN",
                 properties=kmi_hack_properties,
-                include={'KEYBOARD'},
+                include={"KEYBOARD"},
             )[1]
 
             if kmi_found is None:
@@ -170,22 +176,22 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                     # PAINT_OT_brush_select
                     mode = context.active_object.mode
                     # See: BKE_paint_get_tool_prop_id_from_paintmode
-                    if space_type == 'IMAGE_EDITOR':
-                        if context.space_data.mode == 'PAINT':
+                    if space_type == "IMAGE_EDITOR":
+                        if context.space_data.mode == "PAINT":
                             attr = "image_tool"
                         else:
                             attr = None
-                    elif space_type == 'VIEW_3D':
+                    elif space_type == "VIEW_3D":
                         attr = {
-                            'SCULPT': "sculpt_tool",
-                            'VERTEX_PAINT': "vertex_tool",
-                            'WEIGHT_PAINT': "weight_tool",
-                            'TEXTURE_PAINT': "image_tool",
-                            'PAINT_GPENCIL': "gpencil_tool",
-                            'VERTEX_GPENCIL': "gpencil_vertex_tool",
-                            'SCULPT_GPENCIL': "gpencil_sculpt_tool",
-                            'WEIGHT_GPENCIL': "gpencil_weight_tool",
-                            'SCULPT_CURVES': "curves_sculpt_tool",
+                            "SCULPT": "sculpt_tool",
+                            "VERTEX_PAINT": "vertex_tool",
+                            "WEIGHT_PAINT": "weight_tool",
+                            "TEXTURE_PAINT": "image_tool",
+                            "PAINT_GPENCIL": "gpencil_tool",
+                            "VERTEX_GPENCIL": "gpencil_vertex_tool",
+                            "SCULPT_GPENCIL": "gpencil_sculpt_tool",
+                            "WEIGHT_GPENCIL": "gpencil_weight_tool",
+                            "SCULPT_CURVES": "curves_sculpt_tool",
                         }.get(mode, None)
                     else:
                         attr = None
@@ -194,11 +200,11 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                         setattr(kmi_hack_brush_select_properties, attr, item.data_block)
                         kmi_found = wm.keyconfigs.find_item_from_operator(
                             idname="paint.brush_select",
-                            context='INVOKE_REGION_WIN',
+                            context="INVOKE_REGION_WIN",
                             properties=kmi_hack_brush_select_properties,
-                            include={'KEYBOARD'},
+                            include={"KEYBOARD"},
                         )[1]
-                    elif mode in {'EDIT', 'PARTICLE_EDIT', 'SCULPT_GPENCIL'}:
+                    elif mode in {"EDIT", "PARTICLE_EDIT", "SCULPT_GPENCIL"}:
                         # Doesn't use brushes
                         pass
                     else:
@@ -213,8 +219,8 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         elif item.operator is not None:
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname=item.operator,
-                context='INVOKE_REGION_WIN',
-                include={'KEYBOARD'},
+                context="INVOKE_REGION_WIN",
+                include={"KEYBOARD"},
             )[1]
         elif item.keymap is not None:
             km = keyconf_user.keymaps.get(item.keymap[0])
@@ -227,18 +233,18 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                 if kmi_first is not None:
                     kmi_found = wm.keyconfigs.find_item_from_operator(
                         idname=kmi_first.idname,
-                        context='INVOKE_REGION_WIN',
-                        include={'KEYBOARD'},
+                        context="INVOKE_REGION_WIN",
+                        include={"KEYBOARD"},
                     )[1]
                     if kmi_found is None:
                         # We need non-keyboard events so keys with 'key_modifier' key is found.
                         kmi_found = wm.keyconfigs.find_item_from_operator(
                             idname=kmi_first.idname,
-                            context='INVOKE_REGION_WIN',
-                            exclude={'KEYBOARD'},
+                            context="INVOKE_REGION_WIN",
+                            exclude={"KEYBOARD"},
                         )[1]
                         if kmi_found is not None:
-                            if kmi_found.key_modifier == 'NONE':
+                            if kmi_found.key_modifier == "NONE":
                                 kmi_found = None
                 else:
                     kmi_found = None
@@ -260,13 +266,19 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
         # Only for single keys.
         if (
-                (len(kmi_found_type) == 1) or
-                # When a tool is being activated instead of running an operator, just copy the shortcut.
-                (kmi_found.idname in {"wm.tool_set_by_id", "WM_OT_tool_set_by_id"})
+            (len(kmi_found_type) == 1)
+            or
+            # When a tool is being activated instead of running an operator, just copy the shortcut.
+            (kmi_found.idname in {"wm.tool_set_by_id", "WM_OT_tool_set_by_id"})
         ):
-            kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
+            kmi_args = {
+                "type": kmi_found_type,
+                **modifier_keywords_from_item(kmi_found),
+            }
             if kmi_unique_or_pass(kmi_args):
-                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                kmi = keymap.keymap_items.new(
+                    idname="wm.tool_set_by_id", value="PRESS", **kmi_args
+                )
                 kmi.properties.name = item.idname
                 item_container[2] = kmi
 
@@ -284,21 +296,26 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
         kmi_found_type = kmi_found.type
         if kmi_found_type in {
-                'LEFTMOUSE',
-                'RIGHTMOUSE',
-                'MIDDLEMOUSE',
-                'BUTTON4MOUSE',
-                'BUTTON5MOUSE',
-                'BUTTON6MOUSE',
-                'BUTTON7MOUSE',
+            "LEFTMOUSE",
+            "RIGHTMOUSE",
+            "MIDDLEMOUSE",
+            "BUTTON4MOUSE",
+            "BUTTON5MOUSE",
+            "BUTTON6MOUSE",
+            "BUTTON7MOUSE",
         }:
             kmi_found_type = kmi_found.key_modifier
             # excludes 'NONE'
             if len(kmi_found_type) == 1:
-                kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
+                kmi_args = {
+                    "type": kmi_found_type,
+                    **modifier_keywords_from_item(kmi_found),
+                }
                 del kmi_args["key_modifier"]
                 if kmi_unique_or_pass(kmi_args):
-                    kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                    kmi = keymap.keymap_items.new(
+                        idname="wm.tool_set_by_id", value="PRESS", **kmi_args
+                    )
                     kmi.properties.name = item.idname
                     item_container[2] = kmi
 
@@ -314,7 +331,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         # First map A-Z.
         kmi_type_alpha_char = [chr(i) for i in range(65, 91)]
         kmi_type_alpha_args = {c: {"type": c} for c in kmi_type_alpha_char}
-        kmi_type_alpha_args_tuple = {c: dict_as_tuple(kmi_type_alpha_args[c]) for c in kmi_type_alpha_char}
+        kmi_type_alpha_args_tuple = {
+            c: dict_as_tuple(kmi_type_alpha_args[c]) for c in kmi_type_alpha_char
+        }
         for item_container in items_all:
             item, kmi_found, kmi_exist = item_container
             if kmi_exist:
@@ -325,7 +344,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                 kmi_unique_args.add(kmi_tuple)
                 kmi = keymap.keymap_items.new(
                     idname="wm.tool_set_by_id",
-                    value='PRESS',
+                    value="PRESS",
                     **kmi_type_alpha_args[kmi_type],
                 )
                 kmi.properties.name = item.idname
@@ -337,19 +356,30 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
     if use_auto_keymap_num:
         # Free events (last used first).
-        kmi_type_auto = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
+        kmi_type_auto = (
+            "ONE",
+            "TWO",
+            "THREE",
+            "FOUR",
+            "FIVE",
+            "SIX",
+            "SEVEN",
+            "EIGHT",
+            "NINE",
+            "ZERO",
+        )
         # Map both numbers and num-pad.
         kmi_type_dupe = {
-            'ONE': 'NUMPAD_1',
-            'TWO': 'NUMPAD_2',
-            'THREE': 'NUMPAD_3',
-            'FOUR': 'NUMPAD_4',
-            'FIVE': 'NUMPAD_5',
-            'SIX': 'NUMPAD_6',
-            'SEVEN': 'NUMPAD_7',
-            'EIGHT': 'NUMPAD_8',
-            'NINE': 'NUMPAD_9',
-            'ZERO': 'NUMPAD_0',
+            "ONE": "NUMPAD_1",
+            "TWO": "NUMPAD_2",
+            "THREE": "NUMPAD_3",
+            "FOUR": "NUMPAD_4",
+            "FIVE": "NUMPAD_5",
+            "SIX": "NUMPAD_6",
+            "SEVEN": "NUMPAD_7",
+            "EIGHT": "NUMPAD_8",
+            "NINE": "NUMPAD_9",
+            "ZERO": "NUMPAD_0",
         }
 
         def iter_free_events():
@@ -376,7 +406,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                     break
 
             if kmi_args is not None:
-                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                kmi = keymap.keymap_items.new(
+                    idname="wm.tool_set_by_id", value="PRESS", **kmi_args
+                )
                 kmi.properties.name = item.idname
                 item_container[2] = kmi
                 kmi_unique_args.add(kmi_tuple)
@@ -386,7 +418,9 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                     kmi_args["type"] = key
                     kmi_tuple = dict_as_tuple(kmi_args)
                     if kmi_tuple not in kmi_unique_args:
-                        kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
+                        kmi = keymap.keymap_items.new(
+                            idname="wm.tool_set_by_id", value="PRESS", **kmi_args
+                        )
                         kmi.properties.name = item.idname
                         kmi_unique_args.add(kmi_tuple)
 
@@ -414,7 +448,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
         kmi = keymap.keymap_items.new(
             "wm.tool_set_by_id",
-            value='DOUBLE_CLICK',
+            value="DOUBLE_CLICK",
             **kmi_toolbar_args_available,
         )
         kmi.properties.name = tap_reset_tool
@@ -423,7 +457,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         kmi = keymap.keymap_items.new(
             "ui.button_execute",
             type=kmi_toolbar_type,
-            value='RELEASE',
+            value="RELEASE",
             any=True,
         )
         kmi.properties.skip_depressed = True

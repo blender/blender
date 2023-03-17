@@ -38,11 +38,11 @@ class CyclesXMLSettings(bpy.types.PropertyGroup):
             description="Cycles XML export settings",
         )
         cls.filepath = StringProperty(
-            name='Filepath',
-            description='Filepath for the .xml file',
+            name="Filepath",
+            description="Filepath for the .xml file",
             maxlen=256,
-            default='',
-            subtype='FILE_PATH',
+            default="",
+            subtype="FILE_PATH",
         )
 
     @classmethod
@@ -53,14 +53,14 @@ class CyclesXMLSettings(bpy.types.PropertyGroup):
 # User Interface Drawing Code.
 
 
-class RenderButtonsPanel():
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+class RenderButtonsPanel:
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
     bl_context = "render"
 
     @classmethod
     def poll(cls, context):
-        return context.engine == 'CYCLES'
+        return context.engine == "CYCLES"
 
 
 class PHYSICS_PT_fluid_export(RenderButtonsPanel, bpy.types.Panel):
@@ -83,7 +83,7 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return (context.active_object is not None)
+        return context.active_object is not None
 
     def execute(self, context):
         filepath = bpy.path.ensure_ext(self.filepath, ".xml")
@@ -95,7 +95,7 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
         if not object:
             raise Exception("No active object")
 
-        mesh = object.to_mesh(scene, True, 'PREVIEW')
+        mesh = object.to_mesh(scene, True, "PREVIEW")
 
         if not mesh:
             raise Exception("No mesh data in active object")
@@ -125,18 +125,19 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
                 uvs += " " + str(uvf.uv4[0]) + " " + str(uvf.uv4[1]) + " "
 
         node = etree.Element(
-            'mesh',
+            "mesh",
             attrib={
-                'nverts': nverts.strip(),
-                'verts': verts.strip(),
-                'P': P,
-                'UV': uvs.strip(),
-            })
+                "nverts": nverts.strip(),
+                "verts": verts.strip(),
+                "P": P,
+                "UV": uvs.strip(),
+            },
+        )
 
         # write to file
         write(node, filepath)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 def register():

@@ -866,7 +866,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
         for node in ast.walk(root_node):
             if type(node) is ast.Call:
-
                 # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
                 if type(node.func) is ast.Name:
                     func_id = node.func.id

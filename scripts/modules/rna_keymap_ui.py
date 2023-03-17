@@ -20,7 +20,7 @@ from bpy.app.translations import (
 def _indented_layout(layout, level):
     indentpx = 16
     if level == 0:
-        level = 0.0001   # Tweak so that a percentage of 0 won't split by half
+        level = 0.0001  # Tweak so that a percentage of 0 won't split by half
     indent = level * indentpx / bpy.context.region.width
 
     split = layout.split(factor=indent)
@@ -33,10 +33,14 @@ def draw_entry(display_keymaps, entry, col, level=0):
     idname, spaceid, regionid, children = entry
 
     for km, kc in display_keymaps:
-        if km.name == idname and km.space_type == spaceid and km.region_type == regionid:
+        if (
+            km.name == idname
+            and km.space_type == spaceid
+            and km.region_type == regionid
+        ):
             draw_km(display_keymaps, kc, km, children, col, level)
 
-    '''
+    """
     km = kc.keymaps.find(idname, space_type=spaceid, region_type=regionid)
     if not km:
         kc = defkc
@@ -44,7 +48,7 @@ def draw_entry(display_keymaps, entry, col, level=0):
 
     if km:
         draw_km(kc, km, children, col, level)
-    '''
+    """
 
 
 def draw_km(display_keymaps, kc, km, children, layout, level):
@@ -60,12 +64,12 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
     if km.is_user_modified or km.is_modal:
         subrow = row.row()
-        subrow.alignment = 'RIGHT'
+        subrow.alignment = "RIGHT"
 
         if km.is_user_modified:
             subrow.operator("preferences.keymap_restore", text="Restore")
         if km.is_modal:
-            subrow.label(text="", icon='LINKED')
+            subrow.label(text="", icon="LINKED")
         del subrow
 
     if km.show_expanded_children:
@@ -75,7 +79,11 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             subcol = _indented_layout(col, level + 1)
             subrow = subcol.row(align=True)
             subrow.prop(km, "show_expanded_items", text="", emboss=False)
-            subrow.label(text=iface_("%s (Global)") % iface_(km.name, i18n_contexts.id_windowmanager), translate=False)
+            subrow.label(
+                text=iface_("%s (Global)")
+                % iface_(km.name, i18n_contexts.id_windowmanager),
+                translate=False,
+            )
         else:
             km.show_expanded_items = True
 
@@ -88,8 +96,12 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             # "Add New" at end of keymap item list
             subcol = _indented_layout(col, kmi_level)
             subcol = subcol.split(factor=0.2).column()
-            subcol.operator("preferences.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
-                            icon='ADD')
+            subcol.operator(
+                "preferences.keyitem_add",
+                text="Add New",
+                text_ctxt=i18n_contexts.id_windowmanager,
+                icon="ADD",
+            )
 
             col.separator()
 
@@ -127,29 +139,31 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
     row = split.row()
     row.prop(kmi, "map_type", text="")
-    if map_type == 'KEYBOARD':
+    if map_type == "KEYBOARD":
         row.prop(kmi, "type", text="", full_event=True)
-    elif map_type == 'MOUSE':
+    elif map_type == "MOUSE":
         row.prop(kmi, "type", text="", full_event=True)
-    elif map_type == 'NDOF':
+    elif map_type == "NDOF":
         row.prop(kmi, "type", text="", full_event=True)
-    elif map_type == 'TWEAK':
+    elif map_type == "TWEAK":
         subrow = row.row()
         subrow.prop(kmi, "type", text="")
         subrow.prop(kmi, "value", text="")
-    elif map_type == 'TIMER':
+    elif map_type == "TIMER":
         row.prop(kmi, "type", text="")
     else:
         row.label()
 
     if (not kmi.is_user_defined) and kmi.is_user_modified:
-        row.operator("preferences.keyitem_restore", text="", icon='BACK').item_id = kmi.id
+        row.operator(
+            "preferences.keyitem_restore", text="", icon="BACK"
+        ).item_id = kmi.id
     else:
         row.operator(
             "preferences.keyitem_remove",
             text="",
             # Abusing the tracking icon, but it works pretty well here.
-            icon=('TRACKING_CLEAR_BACKWARDS' if kmi.is_user_defined else 'X')
+            icon=("TRACKING_CLEAR_BACKWARDS" if kmi.is_user_defined else "X"),
         ).item_id = kmi.id
 
     # Expanded, additional event settings
@@ -166,21 +180,21 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             # sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
             sub.prop(kmi, "idname", text="")
 
-        if map_type not in {'TEXTINPUT', 'TIMER'}:
+        if map_type not in {"TEXTINPUT", "TIMER"}:
             sub = split.column()
             subrow = sub.row(align=True)
 
-            if map_type == 'KEYBOARD':
+            if map_type == "KEYBOARD":
                 subrow.prop(kmi, "type", text="", event=True)
                 subrow.prop(kmi, "value", text="")
                 subrow_repeat = subrow.row(align=True)
-                subrow_repeat.active = kmi.value in {'ANY', 'PRESS'}
+                subrow_repeat.active = kmi.value in {"ANY", "PRESS"}
                 subrow_repeat.prop(kmi, "repeat", text="Repeat")
-            elif map_type in {'MOUSE', 'NDOF'}:
+            elif map_type in {"MOUSE", "NDOF"}:
                 subrow.prop(kmi, "type", text="")
                 subrow.prop(kmi, "value", text="")
 
-            if map_type in {'KEYBOARD', 'MOUSE'} and kmi.value == 'CLICK_DRAG':
+            if map_type in {"KEYBOARD", "MOUSE"} and kmi.value == "CLICK_DRAG":
                 subrow = sub.row()
                 subrow.prop(kmi, "direction")
 
@@ -212,34 +226,35 @@ _EVENT_TYPE_MAP_EXTRA = {}
 
 
 def draw_filtered(display_keymaps, filter_type, filter_text, layout):
+    if filter_type == "NAME":
 
-    if filter_type == 'NAME':
         def filter_func(kmi):
-            return (filter_text in kmi.idname.lower() or
-                    filter_text in kmi.name.lower())
+            return filter_text in kmi.idname.lower() or filter_text in kmi.name.lower()
+
     else:
         if not _EVENT_TYPES:
             enum = bpy.types.Event.bl_rna.properties["type"].enum_items
             _EVENT_TYPES.update(enum.keys())
-            _EVENT_TYPE_MAP.update({item.name.replace(" ", "_").upper(): key
-                                    for key, item in enum.items()})
+            _EVENT_TYPE_MAP.update(
+                {item.name.replace(" ", "_").upper(): key for key, item in enum.items()}
+            )
 
             del enum
-            _EVENT_TYPE_MAP_EXTRA.update({
-                "`": 'ACCENT_GRAVE',
-                "*": 'NUMPAD_ASTERIX',
-                "/": 'NUMPAD_SLASH',
-                '+': 'NUMPAD_PLUS',
-                "-": 'NUMPAD_MINUS',
-                ".": 'NUMPAD_PERIOD',
-                "'": 'QUOTE',
-                "RMB": 'RIGHTMOUSE',
-                "LMB": 'LEFTMOUSE',
-                "MMB": 'MIDDLEMOUSE',
-            })
-            _EVENT_TYPE_MAP_EXTRA.update({
-                "%d" % i: "NUMPAD_%d" % i for i in range(10)
-            })
+            _EVENT_TYPE_MAP_EXTRA.update(
+                {
+                    "`": "ACCENT_GRAVE",
+                    "*": "NUMPAD_ASTERIX",
+                    "/": "NUMPAD_SLASH",
+                    "+": "NUMPAD_PLUS",
+                    "-": "NUMPAD_MINUS",
+                    ".": "NUMPAD_PERIOD",
+                    "'": "QUOTE",
+                    "RMB": "RIGHTMOUSE",
+                    "LMB": "LEFTMOUSE",
+                    "MMB": "MIDDLEMOUSE",
+                }
+            )
+            _EVENT_TYPE_MAP_EXTRA.update({"%d" % i: "NUMPAD_%d" % i for i in range(10)})
         # done with once off init
 
         filter_text_split = filter_text.strip()
@@ -286,7 +301,6 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                     if kmi_type_test is not None:
                         kmi_type_set.add(kmi_type_test)
                     else:
-
                         # Partial match
                         for k, v in event_type_map.items():
                             if (kmi_type in k) or (kmi_type in v):
@@ -314,11 +328,11 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             # special handling of 'type'
             for ki in kmi_test_type:
                 val = kmi.type
-                if val == 'NONE' or val not in ki:
+                if val == "NONE" or val not in ki:
                     # exception for 'type'
                     # also inspect 'key_modifier' as a fallback
                     val = kmi.key_modifier
-                    if not (val == 'NONE' or val not in ki):
+                    if not (val == "NONE" or val not in ki):
                         continue
                     return False
 
@@ -334,8 +348,9 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             col = layout.column()
 
             row = col.row()
-            row.label(text=km.name, icon='DOT',
-                      text_ctxt=i18n_contexts.id_windowmanager)
+            row.label(
+                text=km.name, icon="DOT", text_ctxt=i18n_contexts.id_windowmanager
+            )
 
             row.label()
             row.label()
@@ -352,6 +367,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
 def draw_hierarchy(display_keymaps, layout):
     from bl_keymap_utils import keymap_hierarchy
+
     for entry in keymap_hierarchy.generate():
         draw_entry(display_keymaps, entry, layout)
 
@@ -375,12 +391,14 @@ def draw_keymaps(context, layout):
     rowsub = row.row(align=True)
 
     rowsub.menu("USERPREF_MT_keyconfigs", text=text)
-    rowsub.operator("wm.keyconfig_preset_add", text="", icon='ADD')
-    rowsub.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
+    rowsub.operator("wm.keyconfig_preset_add", text="", icon="ADD")
+    rowsub.operator(
+        "wm.keyconfig_preset_add", text="", icon="REMOVE"
+    ).remove_active = True
 
     rowsub = split.row(align=True)
-    rowsub.operator("preferences.keyconfig_import", text="Import...", icon='IMPORT')
-    rowsub.operator("preferences.keyconfig_export", text="Export...", icon='EXPORT')
+    rowsub.operator("preferences.keyconfig_import", text="Import...", icon="IMPORT")
+    rowsub.operator("preferences.keyconfig_export", text="Export...", icon="EXPORT")
 
     row = layout.row()
     col = layout.column()
@@ -405,7 +423,7 @@ def draw_keymaps(context, layout):
     rowsubsub = rowsub.row(align=True)
     if not ok:
         rowsubsub.alert = True
-    rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
+    rowsubsub.prop(spref, "filter_text", text="", icon="VIEWZOOM")
 
     if not filter_text:
         # When the keyconfig defines its own preferences.
@@ -421,7 +439,9 @@ def draw_keymaps(context, layout):
                 keymappref,
                 "show_ui_keyconfig",
                 text="",
-                icon='DISCLOSURE_TRI_DOWN' if show_ui_keyconfig else 'DISCLOSURE_TRI_RIGHT',
+                icon="DISCLOSURE_TRI_DOWN"
+                if show_ui_keyconfig
+                else "DISCLOSURE_TRI_RIGHT",
                 emboss=False,
             )
             row.label(text="Preferences")
@@ -432,6 +452,7 @@ def draw_keymaps(context, layout):
                     kc_prefs.draw(box)
                 except Exception:
                     import traceback
+
                     traceback.print_exc()
             del box
         del kc_prefs

@@ -249,7 +249,6 @@ def xml2rna(
     root_rna=None,  # must be set
 ):
     def rna2xml_node(xml_node, value):
-
         # ---------------------------------------------------------------------
         # Simple attributes
 

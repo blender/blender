@@ -4,9 +4,7 @@ from bpy.types import Operator
 from mathutils import Vector
 
 
-def randomize_selected(context, seed, delta,
-                       loc, rot, scale, scale_even, _scale_min):
-
+def randomize_selected(context, seed, delta, loc, rot, scale, scale_even, _scale_min):
     import random
     from random import uniform
 
@@ -16,7 +14,6 @@ def randomize_selected(context, seed, delta,
         return Vector(uniform(-val, val) for val in vec_range)
 
     for obj in context.selected_objects:
-
         if loc:
             if delta:
                 obj.delta_location += rand_vec(loc)
@@ -29,8 +26,8 @@ def randomize_selected(context, seed, delta,
             vec = rand_vec(rot)
 
             rotation_mode = obj.rotation_mode
-            if rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
-                obj.rotation_mode = 'XYZ'
+            if rotation_mode in {"QUATERNION", "AXIS_ANGLE"}:
+                obj.rotation_mode = "XYZ"
 
             if delta:
                 obj.delta_rotation_euler[0] += vec[0]
@@ -50,9 +47,11 @@ def randomize_selected(context, seed, delta,
             else:
                 org_sca_x, org_sca_y, org_sca_z = obj.scale
 
-            sca_x, sca_y, sca_z = (uniform(-scale[0] + 2.0, scale[0]),
-                                   uniform(-scale[1] + 2.0, scale[1]),
-                                   uniform(-scale[2] + 2.0, scale[2]))
+            sca_x, sca_y, sca_z = (
+                uniform(-scale[0] + 2.0, scale[0]),
+                uniform(-scale[1] + 2.0, scale[1]),
+                uniform(-scale[2] + 2.0, scale[2]),
+            )
 
             if scale_even:
                 aX = sca_x * org_sca_x
@@ -80,9 +79,10 @@ from bpy.props import (
 
 class RandomizeLocRotSize(Operator):
     """Randomize objects location, rotation, and scale"""
+
     bl_idname = "object.randomize_transform"
     bl_label = "Randomize Transform"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     random_seed: IntProperty(
         name="Random Seed",
@@ -93,8 +93,9 @@ class RandomizeLocRotSize(Operator):
     )
     use_delta: BoolProperty(
         name="Transform Delta",
-        description=("Randomize delta transform values "
-                     "instead of regular transform"),
+        description=(
+            "Randomize delta transform values " "instead of regular transform"
+        ),
         default=False,
     )
     use_loc: BoolProperty(
@@ -104,12 +105,11 @@ class RandomizeLocRotSize(Operator):
     )
     loc: FloatVectorProperty(
         name="Location",
-        description=("Maximum distance the objects "
-                     "can spread over each axis"),
+        description=("Maximum distance the objects " "can spread over each axis"),
         min=-100.0,
         max=100.0,
         default=(0.0, 0.0, 0.0),
-        subtype='TRANSLATION',
+        subtype="TRANSLATION",
     )
     use_rot: BoolProperty(
         name="Randomize Rotation",
@@ -122,7 +122,7 @@ class RandomizeLocRotSize(Operator):
         min=-3.141592,  # math.pi
         max=+3.141592,
         default=(0.0, 0.0, 0.0),
-        subtype='EULER',
+        subtype="EULER",
     )
     use_scale: BoolProperty(
         name="Randomize Scale",
@@ -135,12 +135,12 @@ class RandomizeLocRotSize(Operator):
         default=False,
     )
 
-    '''scale_min: FloatProperty(
+    """scale_min: FloatProperty(
             name="Minimum Scale Factor",
             description="Lowest scale percentage possible",
             min=-1.0, max=1.0, precision=3,
             default=0.15,
-            )'''
+            )"""
 
     scale: FloatVectorProperty(
         name="Scale",
@@ -152,7 +152,7 @@ class RandomizeLocRotSize(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.mode == 'OBJECT'
+        return context.mode == "OBJECT"
 
     def execute(self, context):
         seed = self.random_seed
@@ -166,12 +166,9 @@ class RandomizeLocRotSize(Operator):
         scale_even = self.scale_even
         scale_min = 0
 
-        randomize_selected(context, seed, delta,
-                           loc, rot, scale, scale_even, scale_min)
+        randomize_selected(context, seed, delta, loc, rot, scale, scale_even, scale_min)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
-classes = (
-    RandomizeLocRotSize,
-)
+classes = (RandomizeLocRotSize,)

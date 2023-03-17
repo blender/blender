@@ -31,7 +31,6 @@ class AddPresetBase:
      - preset_values
      - preset_subdir"""
 
-
     # only because invoke_props_popup requires. Also do not add to search menu.
     bl_options = {"REGISTER", "INTERNAL"}
 

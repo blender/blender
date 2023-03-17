@@ -878,7 +878,6 @@ class I18nMessages:
             self.invalidate_reverse_cache(True)
         src_to_msg, ctxt_to_msg, msgid_to_msg, msgstr_to_msg = self._reverse_cache
 
-
         # Build RNA key.
         src, src_rna, src_enum = bpy.utils.make_rna_paths(
             rna_struct_name, rna_prop_name, rna_enum_name

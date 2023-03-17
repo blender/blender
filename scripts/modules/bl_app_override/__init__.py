@@ -18,8 +18,9 @@ def class_filter(cls_parent, **kw):
         if "bl_rna" in cls.__dict__:
             if blacklist is not None and cls.__name__ in blacklist:
                 continue
-            if ((whitelist is not None and cls.__name__ is whitelist) or
-                    all((getattr(cls, attr) in expect) for attr, expect in kw_items)):
+            if (whitelist is not None and cls.__name__ is whitelist) or all(
+                (getattr(cls, attr) in expect) for attr, expect in kw_items
+            ):
                 yield cls
 
 
@@ -56,9 +57,15 @@ def ui_draw_filter_register(
                 def dummy_func(*args, **kw):
                     ret = real_func(*args, **kw)
                     return UILayout_Fake(ret)
+
                 return dummy_func
 
-            elif attr in {"operator", "operator_menu_enum", "operator_enum", "operator_menu_hold"}:
+            elif attr in {
+                "operator",
+                "operator_menu_enum",
+                "operator_enum",
+                "operator_menu_hold",
+            }:
                 if ui_ignore_operator is None:
                     return UILayout.__getattribute__(self, attr)
 
@@ -76,6 +83,7 @@ def ui_draw_filter_register(
                         # may need to be set
                         ret = OperatorProperties_Fake()
                     return ret
+
                 return dummy_func
 
             elif attr in {"prop", "prop_enum"}:
@@ -95,6 +103,7 @@ def ui_draw_filter_register(
                             assert ui_test is True
                         ret = None
                     return ret
+
                 return dummy_func
 
             elif attr == "menu":
@@ -114,6 +123,7 @@ def ui_draw_filter_register(
                             assert ui_test is True
                         ret = None
                     return ret
+
                 return dummy_func
 
             elif attr == "label":
@@ -133,6 +143,7 @@ def ui_draw_filter_register(
                             assert ui_test is True
                         ret = None
                     return ret
+
                 return dummy_func
             else:
                 return UILayout.__getattribute__(self, attr)
@@ -182,6 +193,7 @@ def ui_draw_filter_register(
 
                     def draw(self, context):
                         return draw_override(draw_orig, self, context)
+
                     subcls.draw = draw
 
                 ui_ignore_store.append((subcls, "draw", subcls.draw))
@@ -192,5 +204,5 @@ def ui_draw_filter_register(
 
 
 def ui_draw_filter_unregister(ui_ignore_store):
-    for (obj, attr, value) in ui_ignore_store:
+    for obj, attr, value in ui_ignore_store:
         setattr(obj, attr, value)
