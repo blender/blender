@@ -105,6 +105,9 @@
 #define RBUFS_AOV_COLOR_SLOT 5
 #define RBUFS_AOV_VALUE_SLOT 6
 #define RBUFS_CRYPTOMATTE_SLOT 7
+/* G-buffer reuses render passes slots. */
+#define GBUF_CLOSURE_SLOT RBUFS_LIGHT_SLOT
+#define GBUF_COLOR_SLOT RBUFS_DIFF_COLOR_SLOT
 
 /* Uniform Buffers. */
 /* Only during prepass. */

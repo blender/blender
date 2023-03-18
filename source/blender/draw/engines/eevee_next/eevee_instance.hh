@@ -19,6 +19,7 @@
 #include "eevee_cryptomatte.hh"
 #include "eevee_depth_of_field.hh"
 #include "eevee_film.hh"
+#include "eevee_gbuffer.hh"
 #include "eevee_hizbuffer.hh"
 #include "eevee_irradiance_cache.hh"
 #include "eevee_light.hh"
@@ -54,6 +55,7 @@ class Instance {
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
   Cryptomatte cryptomatte;
+  GBuffer gbuffer;
   HiZBuffer hiz_buffer;
   Sampling sampling;
   Camera camera;

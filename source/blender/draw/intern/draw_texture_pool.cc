@@ -206,7 +206,8 @@ void DRW_texture_pool_reset(DRWTexturePool *pool)
     }
   }
 
-  BLI_assert(pool->tmp_tex_acquired.is_empty());
+  BLI_assert_msg(pool->tmp_tex_acquired.is_empty(),
+                 "Missing a TextureFromPool.release() before end of draw.");
   for (GPUTexture *tmp_tex : pool->tmp_tex_pruned) {
     GPU_texture_free(tmp_tex);
   }
