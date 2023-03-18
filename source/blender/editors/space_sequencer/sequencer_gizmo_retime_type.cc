@@ -54,14 +54,16 @@
 
 using blender::MutableSpan;
 
-/** Pixels from bottom of strip. */
-#define REMOVE_GIZMO_HEIGHT (14.0f * UI_SCALE_FAC)
-/** Size in pixels. */
-#define RETIME_HANDLE_TRIANGLE_SIZE (14.0f * UI_SCALE_FAC)
 /** Size in pixels. */
 #define RETIME_HANDLE_MOUSEOVER_THRESHOLD (16.0f * UI_SCALE_FAC)
 /** Factor based on icon size. */
 #define RETIME_BUTTON_SIZE 0.6f
+
+static float remove_gizmo_height_get(const View2D *v2d)
+{
+  const float max_size = (SEQ_STRIP_OFSTOP - SEQ_STRIP_OFSBOTTOM) * UI_view2d_scale_get_y(v2d);
+  return min_ff(14.0f * UI_SCALE_FAC, max_size * 0.4f);
+}
 
 static float strip_y_rescale(const Sequence *seq, const float y_value)
 {
@@ -147,8 +149,9 @@ static rctf strip_box_get(const bContext *C, const Sequence *seq)
 
 static rctf remove_box_get(const bContext *C, const Sequence *seq)
 {
+  const View2D *v2d = UI_view2d_fromcontext(C);
   rctf rect = strip_box_get(C, seq);
-  rect.ymax = rect.ymin + REMOVE_GIZMO_HEIGHT;
+  rect.ymax = rect.ymin + remove_gizmo_height_get(v2d);
   return rect;
 }
 
@@ -336,7 +339,7 @@ static void retime_handle_draw(const bContext *C,
     return; /* Handle out of strip bounds. */
   }
 
-  const int ui_triangle_size = RETIME_HANDLE_TRIANGLE_SIZE;
+  const int ui_triangle_size = remove_gizmo_height_get(v2d);
   const float bottom = UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.0f)) + 2;
   const float top = UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 1.0f)) - 2;
   const float handle_position = UI_view2d_view_to_region_x(v2d, handle_x);
@@ -457,8 +460,9 @@ static int gizmo_retime_handle_test_select(bContext *C, wmGizmo *gz, const int m
     return -1;
   }
 
+  const View2D *v2d = UI_view2d_fromcontext(C);
   rctf strip_box = strip_box_get(C, seq);
-  BLI_rctf_resize_x(&strip_box, BLI_rctf_size_x(&strip_box) + 2 * RETIME_HANDLE_TRIANGLE_SIZE);
+  BLI_rctf_resize_x(&strip_box, BLI_rctf_size_x(&strip_box) + 2 * remove_gizmo_height_get(v2d));
   if (!mouse_is_inside_box(&strip_box, mval)) {
     return -1;
   }
@@ -537,9 +541,9 @@ static int gizmo_retime_remove_test_select(bContext *C, wmGizmo *gz, const int m
     return -1; /* Last handle can not be removed. */
   }
 
+  const View2D *v2d = UI_view2d_fromcontext(C);
   rctf box = remove_box_get(C, seq);
-
-  BLI_rctf_resize_x(&box, BLI_rctf_size_x(&box) + 2 * RETIME_HANDLE_TRIANGLE_SIZE);
+  BLI_rctf_resize_x(&box, BLI_rctf_size_x(&box) + 2 * remove_gizmo_height_get(v2d));
   if (!mouse_is_inside_box(&box, mval)) {
     return -1;
   }
