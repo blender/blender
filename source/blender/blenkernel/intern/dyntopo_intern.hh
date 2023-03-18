@@ -298,7 +298,14 @@ void pbvh_bmesh_face_remove(
     PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool ensure_ownership_transfer);
 
 bool check_for_fins(PBVH *pbvh, BMVert *v);
-
+void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges);
+BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
+                               int node_index,
+                               BMVert *v_tri[3],
+                               BMEdge *e_tri[3],
+                               const BMFace *f_example,
+                               bool ensure_verts,
+                               bool log_face);
 }  // namespace blender::dyntopo
 
 extern "C" {
