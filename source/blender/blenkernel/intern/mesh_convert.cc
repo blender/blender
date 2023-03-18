@@ -472,8 +472,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
-  int totedges = 0;
-
   /* only to detect edge polylines */
   int *edge_users;
 
@@ -497,7 +495,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       edl->edge = &mesh_edges[i];
 
       BLI_addtail(&edges, edl);
-      totedges++;
     }
   }
   MEM_freeN(edge_users);
@@ -519,7 +516,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       appendPolyLineVert(&polyline, endVert);
       totpoly++;
       BLI_freelinkN(&edges, edges.last);
-      totedges--;
 
       while (ok) { /* while connected edges are found... */
         EdgeLink *edl = (EdgeLink *)edges.last;
@@ -531,10 +527,9 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
           if (edge->v1 == endVert) {
             endVert = edge->v2;
-            appendPolyLineVert(&polyline, edge->v2);
+            appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v2 == endVert) {
@@ -542,7 +537,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v1 == startVert) {
@@ -550,7 +544,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v2 == startVert) {
@@ -558,7 +551,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
 
