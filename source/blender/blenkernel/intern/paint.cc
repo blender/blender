@@ -2204,10 +2204,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
-    int totvert;
-    float(*v_cos)[3] = BKE_mesh_vert_coords_alloc(me_eval_deform, &totvert);
-    BKE_pbvh_vert_coords_apply(pbvh, v_cos, totvert);
-    MEM_freeN(v_cos);
+    BKE_pbvh_vert_coords_apply(
+        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
   }
 
   return pbvh;
