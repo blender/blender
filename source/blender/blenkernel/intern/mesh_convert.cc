@@ -574,18 +574,18 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         /* create new 'nurb' within the curve */
         nu = MEM_new<Nurb>("MeshNurb", blender::dna::shallow_zero_initialize());
 
-        nu->pntsu = polys.size();
+        nu->pntsu = totpoly;
         nu->pntsv = 1;
         nu->orderu = 4;
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = (BPoint *)MEM_calloc_arrayN(polys.size(), sizeof(BPoint), "bpoints");
+        nu->bp = (BPoint *)MEM_calloc_arrayN(totpoly, sizeof(BPoint), "bpoints");
 
         /* add points */
         vl = (VertLink *)polyline.first;
         int i;
-        for (i = 0, bp = nu->bp; i < polys.size(); i++, bp++, vl = (VertLink *)vl->next) {
+        for (i = 0, bp = nu->bp; i < totpoly; i++, bp++, vl = (VertLink *)vl->next) {
           copy_v3_v3(bp->vec, positions[vl->index]);
           bp->f1 = SELECT;
           bp->radius = bp->weight = 1.0;
