@@ -422,8 +422,8 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
                                                  StringRef(mesh->active_color_attribute);
           const bool is_default_color_attribute = name_copy.c_str() ==
                                                   StringRef(mesh->default_color_attribute);
-          const int active_index = color_name_to_index(id, mesh->active_color_attribute);
-          const int default_index = color_name_to_index(id, mesh->default_color_attribute);
+          const int active_color_index = color_name_to_index(id, mesh->active_color_attribute);
+          const int default_color_index = color_name_to_index(id, mesh->default_color_attribute);
 
           if (!BM_data_layer_free_named(em->bm, data, name_copy.c_str())) {
             BLI_assert_unreachable();
@@ -431,11 +431,11 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 
           if (is_active_color_attribute) {
             BKE_id_attributes_active_color_set(
-                id, color_name_from_index(id, color_clamp_index(id, active_index)));
+                id, color_name_from_index(id, color_clamp_index(id, active_color_index)));
           }
           if (is_default_color_attribute) {
             BKE_id_attributes_default_color_set(
-                id, color_name_from_index(id, color_clamp_index(id, default_index)));
+                id, color_name_from_index(id, color_clamp_index(id, default_color_index)));
           }
 
           if (type == CD_PROP_FLOAT2 && domain == ATTR_DOMAIN_CORNER) {
@@ -470,8 +470,8 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
     const bool is_active_color_attribute = name_copy == StringRef(mesh->active_color_attribute);
     const bool is_default_color_attribute = name_copy == StringRef(mesh->default_color_attribute);
-    const int active_index = color_name_to_index(id, mesh->active_color_attribute);
-    const int default_index = color_name_to_index(id, mesh->default_color_attribute);
+    const int active_color_index = color_name_to_index(id, mesh->active_color_attribute);
+    const int default_color_index = color_name_to_index(id, mesh->default_color_attribute);
 
     if (!attributes->remove(name_copy)) {
       BLI_assert_unreachable();
@@ -479,12 +479,13 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 
     if (is_active_color_attribute) {
       BKE_id_attributes_active_color_set(
-          id, color_name_from_index(id, color_clamp_index(id, active_index)));
+          id, color_name_from_index(id, color_clamp_index(id, active_color_index)));
     }
     if (is_default_color_attribute) {
       BKE_id_attributes_default_color_set(
-          id, color_name_from_index(id, color_clamp_index(id, default_index)));
+          id, color_name_from_index(id, color_clamp_index(id, default_color_index)));
     }
+
     if (metadata->data_type == CD_PROP_FLOAT2 && metadata->domain == ATTR_DOMAIN_CORNER) {
       char buffer[MAX_CUSTOMDATA_LAYER_NAME];
       attributes->remove(BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer));
