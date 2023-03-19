@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -996,6 +996,10 @@ msgstr "Autor"
 
 msgid "Catalog UUID"
 msgstr "Katalog UUID"
+
+
+msgid "Copyright"
+msgstr "Urheberrecht"
 
 
 msgid "Description"
@@ -10520,10 +10524,6 @@ msgid "Data Depth"
 msgstr "Datentiefe"
 
 
-msgid "Number"
-msgstr "Nummer"
-
-
 msgid "Randomness"
 msgstr "Zufälligkeit"
 
@@ -13085,30 +13085,6 @@ msgid "Mask Texture Overlay Alpha"
 msgstr "Maskentextur überlagert Alpha"
 
 
-msgid "Curve Preset"
-msgstr "Kurve Voreinstellung"
-
-
-msgid "Smoother"
-msgstr "Weicher"
-
-
-msgid "Root"
-msgstr "Wurzel"
-
-
-msgid "Sharp"
-msgstr "Scharf"
-
-
-msgid "Sharper"
-msgstr "Schärfer"
-
-
-msgid "Inverse Square"
-msgstr "Invers"
-
-
 msgid "Comb Curves"
 msgstr "Kombiniere Kurven"
 
@@ -13719,14 +13695,6 @@ msgstr "Hoch"
 
 msgid "Velocity Attribute"
 msgstr "Geschwindigkeitsattribut"
-
-
-msgid "Velocity Unit"
-msgstr "Geschwindigkeitseinheit"
-
-
-msgid "Second"
-msgstr "Sekunde"
 
 
 msgid "Field of View"
@@ -15241,6 +15209,10 @@ msgstr "Abfall-Typ"
 
 
 msgid "Inverse Linear"
+msgstr "Invers"
+
+
+msgid "Inverse Square"
 msgstr "Invers"
 
 
@@ -16891,6 +16863,10 @@ msgid "Strand shape parameter"
 msgstr "Strangformparameter"
 
 
+msgid "Number"
+msgstr "Nummer"
+
+
 msgid "Show particle size"
 msgstr "Dateien nach Größe sortieren"
 
@@ -17529,10 +17505,6 @@ msgid "Modified"
 msgstr "Modifizieren"
 
 
-msgid "Lines"
-msgstr "Zeilen"
-
-
 msgid "Lines of text"
 msgstr "Textzeilen"
 
@@ -17895,6 +17867,14 @@ msgstr "Muster"
 
 msgid "Use soft marble"
 msgstr "Weichen Marmor verwenden"
+
+
+msgid "Sharp"
+msgstr "Scharf"
+
+
+msgid "Sharper"
+msgstr "Schärfer"
 
 
 msgid "Sin"
@@ -21423,6 +21403,10 @@ msgid "Radius of the skin"
 msgstr "Radius der Haut"
 
 
+msgid "Root"
+msgstr "Wurzel"
+
+
 msgid "Mesh Skin Vertex Layer"
 msgstr "Maschenhaut Eckpunktebene"
 
@@ -23585,6 +23569,10 @@ msgstr "Pfad wird bearbeitet"
 
 msgid "Line Thickness"
 msgstr "Linienstärke"
+
+
+msgid "Lines"
+msgstr "Zeilen"
 
 
 msgid "Use Bone Heads"
@@ -30736,10 +30724,6 @@ msgstr "Exportiere glTF 2.0"
 
 msgid "Export cameras"
 msgstr "Kamera exportieren"
-
-
-msgid "Copyright"
-msgstr "Urheberrecht"
 
 
 msgid "Compression level"
@@ -54969,10 +54953,6 @@ msgid "Invert Selection"
 msgstr "Auswahl umkehren"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "Verfolgen"
 
@@ -55179,14 +55159,6 @@ msgstr ""
 "%s nicht gestartet werden"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Add-on entfernen: %r?"
-
-
-msgid "Path: %r"
-msgstr "Pfad: %r"
-
-
 msgid "Reload Start-Up file to restore settings"
 msgstr "Startdatei erneut laden um die Einstellungen wiederherzustellen"
 
@@ -55251,6 +55223,14 @@ msgid "Source file is in the add-on search path: %r"
 msgstr "Quelldatei ist in dem Add-On Suchpfad: %r"
 
 
+msgid "Remove Add-on: %r?"
+msgstr "Add-on entfernen: %r?"
+
+
+msgid "Path: %r"
+msgstr "Pfad: %r"
+
+
 msgid "Active face must be a quad"
 msgstr "Aktive Fläche muss ein Quadrat sein"
 
@@ -55271,10 +55251,6 @@ msgid "See OperatorList.txt text block"
 msgstr "OperatorList.txt Textblock anschauen"
 
 
-msgid "Rename %d %s"
-msgstr "Umbenennen %d %s"
-
-
 msgid "Renamed %d of %d %s"
 msgstr "Umbenannt %d of %d %s"
 
@@ -55290,18 +55266,6 @@ msgstr "Thema"
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Öffnen..."
-
-
-msgid "Date: %s %sutf-8replaceutf-8replace"
-msgstr "Datum: %s %sutf-8replaceutf-8replace"
-
-
-msgid "Hash: %sascii"
-msgstr "Hash: %sascii"
-
-
-msgid "Branch: %sutf-8replace"
-msgstr "Branch: %sutf-8replace"
 
 
 msgid "Blender is free software"
@@ -55362,11 +55326,6 @@ msgstr "Auswählen mit"
 
 msgid "Spacebar"
 msgstr "Leertaste"
-
-
-msgctxt "Operator"
-msgid "Load %d.%d SettingsOperator"
-msgstr "Lade %d.%d Einstellungsoperator"
 
 
 msgctxt "Operator"
@@ -55466,6 +55425,10 @@ msgstr "Buchstabe"
 
 msgid "Strip From"
 msgstr "Entfernen von"
+
+
+msgid "Rename %d %s"
+msgstr "Umbenennen %d %s"
 
 
 msgid "Date: %s %s"
@@ -55877,10 +55840,6 @@ msgstr "Bogengröße"
 msgctxt "Operator"
 msgid "Lock Invert All"
 msgstr "Alle Sperrungen invertieren"
-
-
-msgid "%s ▶ %s"
-msgstr "%s ▶ %s"
 
 
 msgctxt "Operator"
@@ -56388,10 +56347,6 @@ msgid "Coordinate System"
 msgstr "Koordinatensystem"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "%d Flüssigkeits-Partikel für diesen Frame"
-
-
 msgctxt "Operator"
 msgid "Delete Edit"
 msgstr "Lösche Bearbeitung"
@@ -56413,6 +56368,10 @@ msgstr "Alles verbinden"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Alles trennen"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "%d Flüssigkeits-Partikel für diesen Frame"
 
 
 msgid "Speed Multiplier"
@@ -56717,6 +56676,10 @@ msgstr "Pausenregel - ESC für Pause"
 
 msgid "Velocity Linear"
 msgstr "Lineare Geschwindigkeit"
+
+
+msgid "Second"
+msgstr "Sekunde"
 
 
 msgid "X Stiffness"
@@ -57108,11 +57071,6 @@ msgstr "Schlüsselbildtyp A festlegen"
 msgctxt "Operator"
 msgid "Set Keyframe B"
 msgstr "Schlüsselbildtyp B festlegen"
-
-
-msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "Zoom %d:%d"
 
 
 msgctxt "Operator"
@@ -58259,14 +58217,6 @@ msgid "Clear Fade"
 msgstr "Ausblendung löschen"
 
 
-msgid "%dx%d"
-msgstr "%dx%d"
-
-
-msgid "%.2f"
-msgstr "%.2f"
-
-
 msgid "Custom Proxy"
 msgstr "Benutzerdefinierter Proxy"
 
@@ -58370,10 +58320,6 @@ msgstr "Linie(n) nach oben bewegen"
 msgctxt "Operator"
 msgid "Move Line(s) Down"
 msgstr "Linie(n) nach unten bewegen"
-
-
-msgid "Text: ExternalText: Internal"
-msgstr "Text: ExternerText: Intern"
 
 
 msgid "File: *%s (unsaved)"
@@ -58907,14 +58853,6 @@ msgid "Save as Studio light"
 msgstr "Speichere als Studiolicht"
 
 
-msgid "Color Set %d"
-msgstr "Farbset %d"
-
-
-msgid "Color %d"
-msgstr "Farbe %d"
-
-
 msgid "Player"
 msgstr "Player"
 
@@ -58943,6 +58881,14 @@ msgid ":"
 msgstr ":"
 
 
+msgid "Color Set %d"
+msgstr "Farbset %d"
+
+
+msgid "Color %d"
+msgstr "Farbe %d"
+
+
 msgid "Description:"
 msgstr "Beschreibung:"
 
@@ -58957,10 +58903,6 @@ msgstr "Datei:"
 
 msgid "Author:"
 msgstr "Autor:"
-
-
-msgid "author"
-msgstr "Autor"
 
 
 msgid "Version:"
@@ -63746,10 +63688,6 @@ msgid "Undefined Socket Type"
 msgstr "Undefinierter Socket Typ"
 
 
-msgid "Group Input "
-msgstr "Gruppeneingabe "
-
-
 msgid " (String)"
 msgstr " (String)"
 
@@ -64723,22 +64661,6 @@ msgstr "Index %d ist ungültig"
 
 msgid "Unable to create new strip"
 msgstr "Neuer Streifen kann nicht erzeugt werden"
-
-
-msgid "Functions"
-msgstr "Funktionen"
-
-
-msgid "Comparison"
-msgstr "Vergleich"
-
-
-msgid "Trigonometric"
-msgstr "Trigonometrie"
-
-
-msgid "Conversion"
-msgstr "Konvertierung"
 
 
 msgid "Same input/output direction of sockets"

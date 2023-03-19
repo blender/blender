@@ -469,7 +469,8 @@ static void mask_draw_curve_type(const bContext *C,
 
       float viewport_size[4];
       GPU_viewport_size_get_f(viewport_size);
-      immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+      immUniform2f(
+          "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
       immUniform1i("colors_len", 2); /* "advanced" mode */
       immUniform4fv("color", colors[0]);
@@ -806,7 +807,7 @@ void ED_mask_draw_frames(
     int height = (frame == cfra) ? 22 : 10;
     int x = (frame - sfra) * framelen;
     immVertex2i(pos, x, region_bottom);
-    immVertex2i(pos, x, region_bottom + height * UI_DPI_FAC);
+    immVertex2i(pos, x, region_bottom + height * UI_SCALE_FAC);
   }
   immEnd();
   immUnbindProgram();

@@ -29,14 +29,16 @@ bool closure_select(float weight, inout float total_weight, inout float r)
   float x = weight / total_weight;
   bool chosen = (r < x);
   /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed within
-   * that interval, so you remapping to [0,1] again to explore this space of probability. */
+   * that interval, so remapping to [0,1] again to explore this space of probability. */
   r = (chosen) ? (r / x) : ((r - x) / (1.0 - x));
   return chosen;
 }
 
 #define SELECT_CLOSURE(destination, random, candidate) \
   if (closure_select(candidate.weight, destination.weight, random)) { \
+    float tmp = destination.weight; \
     destination = candidate; \
+    destination.weight = tmp; \
   }
 
 float g_closure_rand;

@@ -297,7 +297,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         shgrp = pd->wires_grp[is_xray][use_coloring];
       }
 
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
         /* TODO(fclem): Make GPencil objects have correct bound-box. */
         DRW_shgroup_call_no_cull(shgrp, geom, ob);
       }

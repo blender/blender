@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h" /* Types for registering panels. */
+#include "BKE_gpencil_modifier_legacy.h" /* Types for registering panels. */
 #include "BKE_lib_remap.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"

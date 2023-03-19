@@ -26,7 +26,6 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
-struct UVPackIsland_Params;
 struct View2D;
 struct ViewLayer;
 struct bContext;
@@ -355,26 +354,6 @@ struct UVMapUDIM_Params {
 bool uv_coords_isect_udim(const struct Image *image,
                           const int udim_grid[2],
                           const float coords[2]);
-
-/**
- * Pack UV islands from multiple objects.
- *
- * \param scene: Scene containing the objects to be packed.
- * \param objects: Array of Objects to pack.
- * \param objects_len: Length of `objects` array.
- * \param bmesh_override: BMesh array aligned with `objects`.
- * Optional, when non-null this overrides object's BMesh.
- * This is needed to perform UV packing on objects that aren't in edit-mode.
- * \param udim_params: Parameters to specify UDIM target and UDIM source image.
- * \param params: Parameters and options to pass to the packing engine.
- *
- */
-void ED_uvedit_pack_islands_multi(const struct Scene *scene,
-                                  Object **objects,
-                                  uint objects_len,
-                                  struct BMesh **bmesh_override,
-                                  const struct UVMapUDIM_Params *closest_udim,
-                                  const struct UVPackIsland_Params *params);
 
 #ifdef __cplusplus
 }

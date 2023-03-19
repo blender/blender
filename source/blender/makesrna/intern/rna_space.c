@@ -32,7 +32,7 @@
 #include "BLI_uuid.h"
 
 #include "DNA_action_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -923,7 +923,7 @@ static void rna_GPencil_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UN
   bool changed = false;
   /* need set all caches as dirty to recalculate onion skinning */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
       changed = true;
@@ -2624,8 +2624,8 @@ static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode,
   float cursor_location[2];
 
   UI_view2d_region_to_view(&region->v2d, x, y, &cursor_location[0], &cursor_location[1]);
-  cursor_location[0] /= UI_DPI_FAC;
-  cursor_location[1] /= UI_DPI_FAC;
+  cursor_location[0] /= UI_SCALE_FAC;
+  cursor_location[1] /= UI_SCALE_FAC;
 
   ED_node_cursor_location_set(snode, cursor_location);
 }
@@ -3394,9 +3394,8 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
      ICON_WORLD_DATA,
      "Environment",
      "Show worlds, lights, cameras and speakers"},
-    {FILTER_ID_BR, "category_brush", ICON_GREASEPENCIL, "Brushes", "Show brushes"},
-    {FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF |
-         FILTER_ID_CF | FILTER_ID_WS,
+    {FILTER_ID_BR | FILTER_ID_GD_LEGACY | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC |
+         FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
      "category_misc",
      ICON_GREASEPENCIL,
      "Miscellaneous",
@@ -3910,7 +3909,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   prop = RNA_def_property(srna, "use_filter_object_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_GPENCIL);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_GPENCIL_LEGACY);
   RNA_def_property_ui_text(prop, "Show Grease Pencil", "Show grease pencil objects");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
@@ -6351,25 +6350,10 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Handles", "Show handles of Bezier control points");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
-  prop = RNA_def_property(srna, "use_only_selected_curves_handles", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELCUVERTSONLY);
-  RNA_def_property_ui_text(prop,
-                           "Only Selected Curve Keyframes",
-                           "Only keyframes of selected F-Curves are visible and editable");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
-
   prop = RNA_def_property(srna, "use_only_selected_keyframe_handles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_SELVHANDLESONLY);
   RNA_def_property_ui_text(
       prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
-
-  prop = RNA_def_property(srna, "use_beauty_drawing", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_BEAUTYDRAW_OFF);
-  RNA_def_property_ui_text(prop,
-                           "Use High Quality Display",
-                           "Display F-Curves using Anti-Aliasing and other fancy effects "
-                           "(disable for better performance)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   prop = RNA_def_property(srna, "show_markers", PROP_BOOLEAN, PROP_NONE);

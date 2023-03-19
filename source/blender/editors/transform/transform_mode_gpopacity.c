@@ -13,7 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_unit.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "ED_screen.h"
 

@@ -913,11 +913,11 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
       modified = true;
 
       if (req->name) {
-        CustomData_add_layer_named(data, req->type, CD_ASSIGN, NULL, 0, req->name);
+        CustomData_add_layer_named(data, req->type, CD_SET_DEFAULT, 0, req->name);
         idx = CustomData_get_named_layer_index(data, req->type, req->name);
       }
       else {
-        CustomData_add_layer(data, req->type, CD_ASSIGN, NULL, 0);
+        CustomData_add_layer(data, req->type, CD_SET_DEFAULT, 0);
         idx = CustomData_get_layer_index(data, req->type);
       }
 
@@ -944,7 +944,7 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  CustomData_add_layer(data, type, CD_SET_DEFAULT, NULL, 0);
+  CustomData_add_layer(data, type, CD_SET_DEFAULT, 0);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
@@ -959,7 +959,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  CustomData_add_layer_named(data, type, CD_SET_DEFAULT, NULL, 0, name);
+  CustomData_add_layer_named(data, type, CD_SET_DEFAULT, 0, name);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {

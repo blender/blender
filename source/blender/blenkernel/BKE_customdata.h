@@ -242,17 +242,28 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  * backed by an external data array. the different allocation types are
  * defined above. returns the data of the layer.
  */
-void *CustomData_add_layer(
-    struct CustomData *data, int type, eCDAllocType alloctype, void *layer, int totelem);
+void *CustomData_add_layer(struct CustomData *data,
+                           eCustomDataType type,
+                           eCDAllocType alloctype,
+                           int totelem);
+const void *CustomData_add_layer_with_data(struct CustomData *data,
+                                           eCustomDataType type,
+                                           void *layer_data,
+                                           int totelem);
+
 /**
  * Same as above but accepts a name.
  */
 void *CustomData_add_layer_named(struct CustomData *data,
-                                 int type,
+                                 eCustomDataType type,
                                  eCDAllocType alloctype,
-                                 void *layer,
                                  int totelem,
                                  const char *name);
+const void *CustomData_add_layer_named_with_data(struct CustomData *data,
+                                                 eCustomDataType type,
+                                                 void *layer_data,
+                                                 int totelem,
+                                                 const char *name);
 void *CustomData_add_layer_anonymous(struct CustomData *data,
                                      int type,
                                      eCDAllocType alloctype,
@@ -495,6 +506,8 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, int 
  * if no such active layer is defined.
  */
 const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
+
+bool CustomData_layer_is_anonymous(const struct CustomData *data, int type, int n);
 
 void CustomData_bmesh_set(const struct CustomData *data,
                           void *block,

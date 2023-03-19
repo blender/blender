@@ -5,7 +5,7 @@
  */
 
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -16,7 +16,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -274,16 +274,29 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
 
   /* we need the depth info before changing any viewport options */
   if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    float fallback_depth_pt[3];
+    wmWindow *win = CTX_wm_window(C);
+    const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
 
-    view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
+    if (use_depth_last) {
+      vod->use_dyn_ofs = ED_view3d_autodist_last_get(win, vod->dyn_ofs);
+    }
+    else {
+      float fallback_depth_pt[3];
 
-    negate_v3_v3(fallback_depth_pt, rv3d->ofs);
+      view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
 
-    vod->use_dyn_ofs = ED_view3d_autodist(
-        depsgraph, vod->region, vod->v3d, event->mval, vod->dyn_ofs, true, fallback_depth_pt);
+      negate_v3_v3(fallback_depth_pt, rv3d->ofs);
+
+      vod->use_dyn_ofs = ED_view3d_autodist(
+          depsgraph, vod->region, vod->v3d, event->mval, vod->dyn_ofs, true, fallback_depth_pt);
+
+      ED_view3d_autodist_last_set(win, event, vod->dyn_ofs, vod->use_dyn_ofs);
+    }
   }
   else {
+    wmWindow *win = CTX_wm_window(C);
+    ED_view3d_autodist_last_clear(win);
+
     vod->use_dyn_ofs = false;
   }
   vod->init.persp = rv3d->persp;
@@ -882,7 +895,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
-  const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL) ? ob_eval->data : NULL;
+  const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL_LEGACY) ? ob_eval->data : NULL;
   const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
   const bool is_face_map = ((is_gp_edit == false) && region->gizmo_map &&
                             WM_gizmomap_is_any_selected(region->gizmo_map));

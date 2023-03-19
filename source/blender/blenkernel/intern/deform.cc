@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -31,7 +31,7 @@
 #include "BKE_customdata.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h" /* own include */
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
@@ -440,7 +440,7 @@ bool BKE_object_supports_vertex_groups(const Object *ob)
     return false;
   }
 
-  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD);
+  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD_LEGACY);
 }
 
 const ListBase *BKE_id_defgroup_list_get(const ID *id)
@@ -454,7 +454,7 @@ const ListBase *BKE_id_defgroup_list_get(const ID *id)
       const Lattice *lt = (const Lattice *)id;
       return &lt->vertex_group_names;
     }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       const bGPdata *gpd = (const bGPdata *)id;
       return &gpd->vertex_group_names;
     }
@@ -477,7 +477,7 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
       const Lattice *lattice = (const Lattice *)ob->data;
       return &lattice->vertex_group_active_index;
     }
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       const bGPdata *gpd = (const bGPdata *)ob->data;
       return &gpd->vertex_group_active_index;
     }
@@ -1262,7 +1262,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
          * Again, use_create is not relevant in this case */
         if (!data_dst) {
           data_dst = static_cast<MDeformVert *>(
-              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
         }
 
         while (idx_src--) {
@@ -1323,8 +1323,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
           /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
            * use_create is not relevant in this case */
           if (!data_dst) {
-            data_dst = static_cast<MDeformVert *>(CustomData_add_layer(
-                cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+            data_dst = static_cast<MDeformVert *>(
+                CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
           }
 
           data_transfer_layersmapping_add_item(r_map,
@@ -1467,7 +1467,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
        * use_create is not relevant in this case */
       if (!data_dst) {
         data_dst = static_cast<MDeformVert *>(
-            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
+            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
       }
 
       data_transfer_layersmapping_add_item(r_map,

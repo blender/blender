@@ -21,7 +21,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"

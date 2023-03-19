@@ -33,7 +33,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -1068,20 +1068,17 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *polys)
   int gridSize = ccgSubSurf_getGridSize(ss);
   /* int edgeSize = ccgSubSurf_getEdgeSize(ss); */ /* UNUSED */
   int i = 0, k = 0;
-  DMFlagMat *faceFlags = ccgdm->faceFlags;
 
   totface = ccgSubSurf_getNumFaces(ss);
   for (index = 0; index < totface; index++) {
     CCGFace *f = ccgdm->faceMap[index].face;
     int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-    char flag = (faceFlags) ? faceFlags[index].flag : char(ME_SMOOTH);
 
     for (S = 0; S < numVerts; S++) {
       for (y = 0; y < gridSize - 1; y++) {
         for (x = 0; x < gridSize - 1; x++) {
           polys[i].loopstart = k;
           polys[i].totloop = 4;
-          polys[i].flag = flag;
 
           k += 4;
           i++;
@@ -1183,8 +1180,8 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 
     BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_WRITE);
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->vertData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numVertData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numVertData));
 
     totorig = ccgSubSurf_getNumVerts(ss);
     totnone = dm->numVertData - totorig;
@@ -1222,8 +1219,8 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numEdgeData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numEdgeData));
 
     totedge = ccgSubSurf_getNumEdges(ss);
     totorig = totedge * (edgeSize - 1);
@@ -1265,8 +1262,8 @@ static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    origindex = static_cast<int *>(CustomData_add_layer(
-        &dm->polyData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, dm->numPolyData));
+    origindex = static_cast<int *>(
+        CustomData_add_layer(&dm->polyData, CD_ORIGINDEX, CD_SET_DEFAULT, dm->numPolyData));
 
     totface = ccgSubSurf_getNumFaces(ss);
 
@@ -1541,9 +1538,11 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
 
-  const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&dm->polyData, CD_MPOLY));
   const int *material_indices = static_cast<const int *>(
       CustomData_get_layer_named(&dm->polyData, CD_MPOLY, "material_index"));
+  const bool *sharp_faces = static_cast<const bool *>(
+      CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
+
   const int *base_polyOrigIndex = static_cast<const int *>(
       CustomData_get_layer(&dm->polyData, CD_ORIGINDEX));
 
@@ -1569,7 +1568,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     ccgdm->faceMap[index].startEdge = edgeNum;
     ccgdm->faceMap[index].startFace = faceNum;
 
-    faceFlags->flag = polys ? polys[origIndex].flag : 0;
+    faceFlags->sharp = sharp_faces ? sharp_faces[origIndex] : false;
     faceFlags->mat_nr = material_indices ? material_indices[origIndex] : 0;
     faceFlags++;
 

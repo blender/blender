@@ -44,7 +44,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -132,10 +132,13 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
     case PBVH_FACES:
     case PBVH_GRIDS: {
       const MPoly *mp = ss->polys + face.i;
-      BKE_mesh_calc_poly_normal(mp, ss->loops + mp->loopstart, ss->vert_positions, no);
+
+      no = blender::bke::mesh::poly_normal_calc(
+          {reinterpret_cast<float3 *>(ss->vert_positions), ss->totvert},
+          {ss->loops + mp->loopstart, mp->totloop});
       break;
     }
-    default:  // failed
+    default: /* Failed. */
       zero_v3(no);
       break;
   }
@@ -246,6 +249,34 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex)
     }
   }
   return nullptr;
+}
+
+void SCULPT_vertex_co_set(SculptSession *ss, PBVHVertRef vertex, const float *co)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      if (ss->shapekey_active || ss->deform_modifiers_active) {
+        float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
+        copy_v3_v3(positions[vertex.i], co);
+      }
+
+      copy_v3_v3(ss->vert_positions[vertex.i], co);
+      break;
+    }
+    case PBVH_BMESH:
+      copy_v3_v3(((BMVert *)vertex.i)->co, co);
+      break;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = vertex.i / key->grid_area;
+      const int vertex_index = vertex.i - grid_index * key->grid_area;
+      CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+      float *vertex_co = CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index));
+
+      copy_v3_v3(vertex_co, co);
+      break;
+    }
+  }
 }
 
 bool SCULPT_has_loop_colors(const Object *ob)
@@ -6274,9 +6305,9 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
       BKE_mesh_tag_positions_changed(mesh);
       /* Update the mesh's bounds eagerly since the PBVH already has that information. */
-      mesh->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
-        BKE_pbvh_bounding_box(ob->sculpt->pbvh, r_bounds.min, r_bounds.max);
-      });
+      Bounds<float3> bounds;
+      BKE_pbvh_bounding_box(ob->sculpt->pbvh, bounds.min, bounds.max);
+      mesh->bounds_set_eager(bounds);
     }
   }
 }

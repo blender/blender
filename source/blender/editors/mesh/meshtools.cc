@@ -33,7 +33,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
@@ -405,7 +405,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
         CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
-          pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, totpoly, "material_index");
     }
     if (material_indices) {
       for (a = 0; a < me->totpoly; a++) {
@@ -742,10 +742,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&pdata);
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, nullptr, totvert, "position");
-  edge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, totedge);
-  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, totloop);
-  polys = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, totpoly);
+      &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
+  edge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
+  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, totloop);
+  polys = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, totpoly);
 
   vertofs = 0;
   edgeofs = 0;

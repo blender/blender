@@ -10,7 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
 #include "BKE_screen.h"
 
@@ -40,7 +40,7 @@ static bool gpencil_modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   Object *ob = ED_object_active_context(C);
 
-  return (ob != NULL) && (ob->type == OB_GPENCIL);
+  return (ob != NULL) && (ob->type == OB_GPENCIL_LEGACY);
 }
 
 /* -------------------------------------------------------------------- */

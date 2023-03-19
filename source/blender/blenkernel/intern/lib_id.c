@@ -22,7 +22,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_node_types.h"
 #include "DNA_workspace_types.h"
@@ -44,7 +44,7 @@
 #include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -839,7 +839,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
         RNA_property_update(C, ptr, prop);
 
         /* tag grease pencil data-block and disable onion */
-        if (GS(id->name) == ID_GD) {
+        if (GS(id->name) == ID_GD_LEGACY) {
           DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
           DEG_id_tag_update(newid, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
           bGPdata *gpd = (bGPdata *)newid;

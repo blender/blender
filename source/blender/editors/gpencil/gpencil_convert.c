@@ -24,7 +24,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -39,8 +39,8 @@
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -1468,7 +1468,7 @@ static bool gpencil_convert_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
 
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 

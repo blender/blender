@@ -3260,13 +3260,13 @@ class VIEW3D_MT_sculpt(Menu):
         props = layout.operator("sculpt.trim_box_gesture", text="Box Trim")
         props.trim_mode = 'DIFFERENCE'
 
-        layout.operator("sculpt.trim_lasso_gesture", text="Lasso Trim")
+        props = layout.operator("sculpt.trim_lasso_gesture", text="Lasso Trim")
         props.trim_mode = 'DIFFERENCE'
 
         props = layout.operator("sculpt.trim_box_gesture", text="Box Add")
         props.trim_mode = 'JOIN'
 
-        layout.operator("sculpt.trim_lasso_gesture", text="Lasso Add")
+        props = layout.operator("sculpt.trim_lasso_gesture", text="Lasso Add")
         props.trim_mode = 'JOIN'
 
         layout.operator("sculpt.project_line_gesture", text="Line Project")

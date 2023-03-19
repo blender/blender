@@ -9,8 +9,8 @@
 #include <stdlib.h>
 
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -276,8 +276,8 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
-#  include "BKE_gpencil_modifier.h"
+#  include "BKE_gpencil_legacy.h"
+#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_object.h"
 
 #  include "DEG_depsgraph.h"
@@ -2548,7 +2548,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Time Alignment", "How should strokes start to appear/disappear");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  /* Which time mode to use: Current frames, manual percentage, or drawspeed.  */
+  /* Which time mode to use: Current frames, manual percentage, or drawspeed. */
   prop = RNA_def_property(srna, "time_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "time_mode");
   RNA_def_property_enum_items(prop, gpencil_build_time_mode_items);

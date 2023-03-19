@@ -6,7 +6,6 @@ set(INC
   ../../intern/guardedalloc
   ../blender/blenkernel
   ../blender/blenlib
-  ../blender/blenloader
   ../blender/depsgraph
   ../blender/editors/include
   ../blender/gpu
@@ -1215,6 +1214,16 @@ elseif(WIN32)
   windows_install_shared_manifest(
     FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
     ALL
+  )
+
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/shaderc/bin/shaderc_shared.dll
+    RELEASE
+  )
+
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/shaderc/bin/shaderc_shared_d.dll
+    DEBUG
   )
 
   windows_install_shared_manifest(

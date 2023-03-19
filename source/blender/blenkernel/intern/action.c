@@ -1408,7 +1408,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
          *   single-keyframe curves will increase the overall length by
          *   a phantom frame (#50354)
          */
-        BKE_fcurve_calc_range(fcu, &nmin, &nmax, false, false);
+        BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
 
         /* compare to the running tally */
         min = min_ff(min, nmin);

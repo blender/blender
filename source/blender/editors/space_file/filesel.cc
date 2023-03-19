@@ -630,8 +630,8 @@ void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool 
   /* Get DPI/pixel-size independent size to be stored in preferences. */
   WM_window_set_dpi(win); /* Ensure the DPI is taken from the right window. */
 
-  win_size[0] = WM_window_pixels_x(win) / UI_DPI_FAC;
-  win_size[1] = WM_window_pixels_y(win) / UI_DPI_FAC;
+  win_size[0] = WM_window_pixels_x(win) / UI_SCALE_FAC;
+  win_size[1] = WM_window_pixels_y(win) / UI_SCALE_FAC;
 
   *is_maximized = WM_window_is_maximized(win);
 }
@@ -967,7 +967,7 @@ float file_font_pointsize(void)
 #else
   const uiStyle *style = UI_style_get();
   UI_fontstyle_set(&style->widget);
-  return style->widget.points * UI_DPI_FAC;
+  return style->widget.points * UI_SCALE_FAC;
 #endif
 }
 

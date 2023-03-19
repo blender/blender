@@ -26,7 +26,7 @@
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -156,6 +156,10 @@ static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
   }
 
   Mesh *result = geometry::create_cuboid_mesh(max - min, 2, 2, 2);
+  if (org_mesh->mat) {
+    result->mat = static_cast<Material **>(MEM_dupallocN(org_mesh->mat));
+    result->totcol = org_mesh->totcol;
+  }
   BKE_mesh_translate(result, math::midpoint(min, max), false);
 
   return result;

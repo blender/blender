@@ -4,7 +4,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "bmesh.h"
 

@@ -17,7 +17,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"

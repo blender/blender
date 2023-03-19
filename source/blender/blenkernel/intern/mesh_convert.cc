@@ -40,7 +40,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
@@ -76,6 +76,22 @@ using blender::StringRefNull;
 
 static CLG_LogRef LOG = {"bke.mesh_convert"};
 
+static void poly_edgehash_insert(EdgeHash *ehash, const MPoly *poly, const MLoop *mloop)
+{
+  const MLoop *ml, *ml_next;
+  int i = poly->totloop;
+
+  ml_next = mloop;      /* first loop */
+  ml = &ml_next[i - 1]; /* last loop */
+
+  while (i-- != 0) {
+    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, nullptr);
+
+    ml = ml_next;
+    ml_next++;
+  }
+}
+
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
@@ -90,7 +106,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
   EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
   for (const MPoly &poly : polys) {
-    BKE_mesh_poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
+    poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
   }
 
   const int totedge_new = BLI_edgehash_len(eh);
@@ -195,8 +211,11 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
+  SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE);
+
   blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
+      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, DATA_("UVMap")));
 
   int dst_vert = 0;
   int dst_edge = 0;
@@ -278,9 +297,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           }
         }
 
-        if (is_smooth) {
-          polys[dst_poly].flag |= ME_SMOOTH;
-        }
+        sharp_faces.span[dst_poly] = !is_smooth;
         dst_poly++;
         dst_loop += 3;
         index += 3;
@@ -363,9 +380,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
             }
           }
 
-          if (is_smooth) {
-            polys[dst_poly].flag |= ME_SMOOTH;
-          }
+          sharp_faces.span[dst_poly] = !is_smooth;
           dst_poly++;
           dst_loop += 4;
 
@@ -383,6 +398,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   material_indices.finish();
+  sharp_faces.finish();
 
   return mesh;
 }
@@ -456,8 +472,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
-  int totedges = 0;
-
   /* only to detect edge polylines */
   int *edge_users;
 
@@ -481,7 +495,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       edl->edge = &mesh_edges[i];
 
       BLI_addtail(&edges, edl);
-      totedges++;
     }
   }
   MEM_freeN(edge_users);
@@ -503,7 +516,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       appendPolyLineVert(&polyline, endVert);
       totpoly++;
       BLI_freelinkN(&edges, edges.last);
-      totedges--;
 
       while (ok) { /* while connected edges are found... */
         EdgeLink *edl = (EdgeLink *)edges.last;
@@ -515,10 +527,9 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
           if (edge->v1 == endVert) {
             endVert = edge->v2;
-            appendPolyLineVert(&polyline, edge->v2);
+            appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v2 == endVert) {
@@ -526,7 +537,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v1 == startVert) {
@@ -534,7 +544,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
           else if (edge->v2 == startVert) {
@@ -542,7 +551,6 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
-            totedges--;
             ok = true;
           }
 
@@ -566,18 +574,18 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         /* create new 'nurb' within the curve */
         nu = MEM_new<Nurb>("MeshNurb", blender::dna::shallow_zero_initialize());
 
-        nu->pntsu = polys.size();
+        nu->pntsu = totpoly;
         nu->pntsv = 1;
         nu->orderu = 4;
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = (BPoint *)MEM_calloc_arrayN(polys.size(), sizeof(BPoint), "bpoints");
+        nu->bp = (BPoint *)MEM_calloc_arrayN(totpoly, sizeof(BPoint), "bpoints");
 
         /* add points */
         vl = (VertLink *)polyline.first;
         int i;
-        for (i = 0, bp = nu->bp; i < polys.size(); i++, bp++, vl = (VertLink *)vl->next) {
+        for (i = 0, bp = nu->bp; i < totpoly; i++, bp++, vl = (VertLink *)vl->next) {
           copy_v3_v3(bp->vec, positions[vl->index]);
           bp->f1 = SELECT;
           bp->radius = bp->weight = 1.0;

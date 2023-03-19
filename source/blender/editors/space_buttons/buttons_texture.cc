@@ -29,7 +29,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_modifier.h"

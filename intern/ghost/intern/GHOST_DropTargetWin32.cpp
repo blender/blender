@@ -78,7 +78,7 @@ ULONG __stdcall GHOST_DropTargetWin32::Release(void)
  * Implementation of IDropTarget::DragEnter
  */
 HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *p_data_object,
-                                                   DWORD grf_key_state,
+                                                   DWORD /*grf_key_state*/,
                                                    POINTL pt,
                                                    DWORD *pdw_effect)
 {
@@ -95,7 +95,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *p_data_object,
 /*
  * Implementation of IDropTarget::DragOver
  */
-HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grf_key_state,
+HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
                                                   POINTL pt,
                                                   DWORD *pdw_effect)
 {
@@ -128,7 +128,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
  * the implementation of IDropTarget::DragOver
  */
 HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *p_data_object,
-                                              DWORD grf_key_state,
+                                              DWORD /*grf_key_state*/,
                                               POINTL pt,
                                               DWORD *pdw_effect)
 {

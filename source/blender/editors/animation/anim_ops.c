@@ -41,7 +41,9 @@
 
 #include "anim_intern.h"
 
-/* ********************** frame change operator ***************************/
+/* -------------------------------------------------------------------- */
+/** \name Frame Change Operator
+ * \{ */
 
 /* Check if the operator can be run from the current context */
 static bool change_frame_poll(bContext *C)
@@ -349,7 +351,11 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ****************** Start/End Frame Operators *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Start/End Frame Operators
+ * \{ */
 
 static bool anim_set_end_frames_poll(bContext *C)
 {
@@ -483,7 +489,11 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****************** set preview range operator ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Preview Range Operator
+ * \{ */
 
 static int previewrange_define_exec(bContext *C, wmOperator *op)
 {
@@ -545,7 +555,11 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
   WM_operator_properties_border(ot);
 }
 
-/* ****************** clear preview range operator ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Preview Range Operator
+ * \{ */
 
 static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -586,7 +600,11 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************** registration **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void ED_operatortypes_anim(void)
 {
@@ -632,3 +650,5 @@ void ED_keymap_anim(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Animation", 0, 0);
 }
+
+/** \} */

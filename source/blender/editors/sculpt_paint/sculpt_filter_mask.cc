@@ -964,7 +964,8 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
   const float len = event->xy[0] - event->prev_press_xy[0];
-  const float target_step_fl = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
+  const float target_step_fl = len *
+                               IPMASK_FILTER_STEP_SENSITIVITY /* TODO: multiply by UI_DPI_FAC */;
   const int target_step = floorf(target_step_fl);
   const float step_interpolation = use_step_interpolation ? target_step_fl - target_step : 0.0f;
   const float full_step_strength = target_step_fl / IPMASK_FILTER_STEPS_PER_FULL_STRENGTH;

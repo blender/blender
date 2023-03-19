@@ -8,7 +8,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_modifier_types.h"
@@ -667,7 +667,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
 #  include "BKE_image_format.h"
@@ -724,7 +724,7 @@ static void rna_Gpencil_extend_selection(bContext *C, PointerRNA *UNUSED(ptr))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     bGPdata *gpd = (bGPdata *)ob->data;
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
       if ((gps->flag & GP_STROKE_SELECT) && (gps->totpoints > 1)) {
@@ -1193,7 +1193,9 @@ static char *rna_ImageFormatSettings_path(const PointerRNA *ptr)
       for (node = ntree->nodes.first; node; node = node->next) {
         if (node->type == CMP_NODE_OUTPUT_FILE) {
           if (&((NodeImageMultiFile *)node->storage)->format == imf) {
-            return BLI_sprintfN("nodes['%s'].format", node->name);
+            char node_name_esc[sizeof(node->name) * 2];
+            BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+            return BLI_sprintfN("nodes[\"%s\"].format", node_name_esc);
           }
           else {
             bNodeSocket *sock;
@@ -1201,8 +1203,14 @@ static char *rna_ImageFormatSettings_path(const PointerRNA *ptr)
             for (sock = node->inputs.first; sock; sock = sock->next) {
               NodeImageMultiFileSocket *sockdata = sock->storage;
               if (&sockdata->format == imf) {
+                char node_name_esc[sizeof(node->name) * 2];
+                BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+
+                char socketdata_path_esc[sizeof(sockdata->path) * 2];
+                BLI_str_escape(socketdata_path_esc, sockdata->path, sizeof(socketdata_path_esc));
+
                 return BLI_sprintfN(
-                    "nodes['%s'].file_slots['%s'].format", node->name, sockdata->path);
+                    "nodes[\"%s\"].file_slots[\"%s\"].format", node_name_esc, socketdata_path_esc);
               }
             }
           }
@@ -4318,6 +4326,12 @@ static void rna_def_view_layer_aovs(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "add", "BKE_view_layer_add_aov");
   parm = RNA_def_pointer(func, "aov", "AOV", "", "Newly created AOV");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "BKE_view_layer_remove_aov");
+  parm = RNA_def_pointer(func, "aov", "AOV", "", "AOV to remove");
+  RNA_def_function_ui_description(func, "Remove an AOV");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_view_layer_aov(BlenderRNA *brna)

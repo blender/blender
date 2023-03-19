@@ -79,8 +79,14 @@ ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
     }
     else {
       TreeElement &te_view_layer = *outliner_add_element(
-          &space_outliner_, &tree, scene, nullptr, TSE_R_LAYER, 0);
-      TREESTORE(&te_view_layer)->flag &= ~TSE_CLOSED;
+          &space_outliner_, &tree, view_layer, nullptr, TSE_R_LAYER, 0);
+
+      TreeStoreElem *tselem = TREESTORE(&te_view_layer);
+
+      if (!tselem->used) {
+        tselem->flag &= ~TSE_CLOSED;
+      }
+
       te_view_layer.name = view_layer->name;
       te_view_layer.directdata = view_layer;
 

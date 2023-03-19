@@ -23,7 +23,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -48,7 +48,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -56,7 +56,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
@@ -328,7 +328,7 @@ Material ***BKE_object_material_array_p(Object *ob)
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->mat);
   }
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->mat);
   }
@@ -361,7 +361,7 @@ short *BKE_object_material_len_p(Object *ob)
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->totcol);
   }
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->totcol);
   }
@@ -392,7 +392,7 @@ Material ***BKE_id_material_array_p(ID *id)
       return &(((Curve *)id)->mat);
     case ID_MB:
       return &(((MetaBall *)id)->mat);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(((bGPdata *)id)->mat);
     case ID_CV:
       return &(((Curves *)id)->mat);
@@ -418,7 +418,7 @@ short *BKE_id_material_len_p(ID *id)
       return &(((Curve *)id)->totcol);
     case ID_MB:
       return &(((MetaBall *)id)->totcol);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(((bGPdata *)id)->totcol);
     case ID_CV:
       return &(((Curves *)id)->totcol);
@@ -480,7 +480,7 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
     case ID_MB:
       /* Meta-elements don't support materials at the moment. */
       return false;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return BKE_gpencil_material_index_used((bGPdata *)ob_data, actcol - 1);
     default:
       return false;
@@ -1090,7 +1090,7 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_curve_material_remap(static_cast<Curve *>(ob->data), remap, ob->totcol);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_remap(static_cast<bGPdata *>(ob->data), remap, ob->totcol);
   }
   else {
@@ -1347,7 +1347,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     }
   }
   /* check indices from gpencil */
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_index_reassign((bGPdata *)ob->data, ob->totcol, actcol - 1);
   }
 

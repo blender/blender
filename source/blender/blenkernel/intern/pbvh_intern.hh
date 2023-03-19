@@ -462,7 +462,6 @@ void pbvh_bmesh_check_other_verts(PBVHNode *node);
 
 void pbvh_node_pixels_free(PBVHNode *node);
 void pbvh_pixels_free(PBVH *pbvh);
-void pbvh_pixels_free_brush_test(PBVHNode *node);
 void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
 
 BLI_INLINE bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, BMVert *v)

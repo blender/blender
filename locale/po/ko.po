@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -925,6 +925,10 @@ msgstr "활성 편집본"
 
 msgid "Armatures active edit bone"
 msgstr "아마튜어의 활성 편집본"
+
+
+msgid "Copyright"
+msgstr "저작권"
 
 
 msgid "Description"
@@ -11305,10 +11309,6 @@ msgid "Minimum number of particles per cell (ensures that each cell has at least
 msgstr "셀당 최소 파티클들의 수 (각 셀에 최소한이 정도의 파티클들이 있는지 보장)"
 
 
-msgid "Number"
-msgstr "번호"
-
-
 msgid "Particle number factor (higher value results in more particles)"
 msgstr "파티클 수 팩터 (값이 클수록 파티클들이 많아짐)"
 
@@ -14914,30 +14914,6 @@ msgid "Editable falloff curve"
 msgstr "편집 가능한 커브 감소"
 
 
-msgid "Curve Preset"
-msgstr "커브 프리셋"
-
-
-msgid "Smoother"
-msgstr "더 매끄럽게"
-
-
-msgid "Root"
-msgstr "루트"
-
-
-msgid "Sharp"
-msgstr "샤프"
-
-
-msgid "Sharper"
-msgstr "샤프터"
-
-
-msgid "Inverse Square"
-msgstr "제곱 반전"
-
-
 msgid "Dash Ratio"
 msgstr "대시 비율"
 
@@ -15840,10 +15816,6 @@ msgstr "월드의 원점과 관련하여 오브젝트를 확대 또는 축소하
 
 msgid "Up"
 msgstr "위쪽"
-
-
-msgid "Second"
-msgstr "초"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -18102,6 +18074,10 @@ msgstr "거리와 강도 소멸"
 
 msgid "Inverse Linear"
 msgstr "선형을 반전"
+
+
+msgid "Inverse Square"
+msgstr "제곱 반전"
 
 
 msgid "Inverse Coefficients"
@@ -20751,6 +20727,10 @@ msgid "Show hair simulation grid"
 msgstr "헤어 시뮬레이션 격자를 표시"
 
 
+msgid "Number"
+msgstr "번호"
+
+
 msgid "Show particle number"
 msgstr "파티클 번호를 표시"
 
@@ -21617,10 +21597,6 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "디스크상의 텍스트 파일은 메모리 것과 다름"
 
 
-msgid "Lines"
-msgstr "라인"
-
-
 msgid "Lines of text"
 msgstr "텍스트의 행"
 
@@ -22241,8 +22217,16 @@ msgid "Use soft marble"
 msgstr "소프트 마블을 사용"
 
 
+msgid "Sharp"
+msgstr "샤프"
+
+
 msgid "Use more clearly defined marble"
 msgstr "더 명확하게 정의된 대리석을 사용"
+
+
+msgid "Sharper"
+msgstr "샤프터"
 
 
 msgid "Use very clearly defined marble"
@@ -27336,6 +27320,10 @@ msgid "If vertex has multiple adjacent edges, it is hulled to them directly"
 msgstr "버텍스에 인접한 여러 에지가 있는 경우에는 버텍스에 직접 선체됨"
 
 
+msgid "Root"
+msgstr "루트"
+
+
 msgid "Vertex is a root for rotation calculations and armature generation, setting this flag does not clear other roots in the same mesh island"
 msgstr "버텍스는 회전 계산 및 아마튜어 생성을 위한 루트이며, 이 플래그를 설정하면 동일한 메시 아일랜드의 다른 루트가 지워지지 않습니다"
 
@@ -31138,6 +31126,10 @@ msgstr "캐시된 프레임 수"
 
 msgid "Line Thickness"
 msgstr "라인 두께"
+
+
+msgid "Lines"
+msgstr "라인"
 
 
 msgid "Motion Path Points"
@@ -40624,10 +40616,6 @@ msgstr "카메를 내보내기"
 
 msgid "Export vertex colors with meshes"
 msgstr "메쉬로 버텍스 컬러를 내보내기"
-
-
-msgid "Copyright"
-msgstr "저작권"
 
 
 msgid "Legal rights and conditions for the model"
@@ -53648,10 +53636,6 @@ msgstr "활성 라인 설정과 관련된 라인 스타일로 라인 컬러 모�
 msgctxt "Operator"
 msgid "Fill Range by Selection"
 msgstr "선택으로 범위를 채우기"
-
-
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object "
-msgstr "선택된 메쉬 오브젝트와 소스 오브젝트 사이의 최소/최대 거리로 최소/최대 범위 항목을 채우기 "
 
 
 msgid "Name of the modifier to work on"
@@ -77423,10 +77407,6 @@ msgid "Invert Selection"
 msgstr "선택을 반전"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgid "Tracking"
 msgstr "트래킹"
 
@@ -78310,20 +78290,8 @@ msgid "Hair dynamics disabled"
 msgstr "헤어 역학 사용 중지됨"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "반복: %d .. %d (avg. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "오류: %.5f .. %.5f (avg. %.5f)"
-
-
 msgid "Multiply Mass with Size"
 msgstr "크기에 질량을 곱하기"
-
-
-msgid "Spacing: %g"
-msgstr "간격: %g"
 
 
 msgid "Show Emitter"
@@ -78370,10 +78338,6 @@ msgid "Coordinate System"
 msgstr "좌표 시스템"
 
 
-msgid "%d fluid particles for this frame"
-msgstr "이 프레임에 대한 %d 유체 파티클"
-
-
 msgctxt "Operator"
 msgid "Delete Edit"
 msgstr "편집을 삭제"
@@ -78385,6 +78349,18 @@ msgstr "타이밍을 사용"
 
 msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "디스플레이 백분율은 배이킹하지 않고 역학을 부정확하게 만듭니다"
+
+
+msgid "Iterations: %d .. %d (avg. %d)"
+msgstr "반복: %d .. %d (avg. %d)"
+
+
+msgid "Error: %.5f .. %.5f (avg. %.5f)"
+msgstr "오류: %.5f .. %.5f (avg. %.5f)"
+
+
+msgid "Spacing: %g"
+msgstr "간격: %g"
 
 
 msgid "Not yet functional"
@@ -78399,6 +78375,10 @@ msgstr "모두 연결"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "모두 연결 끊기"
+
+
+msgid "%d fluid particles for this frame"
+msgstr "이 프레임에 대한 %d 유체 파티클"
 
 
 msgid "Speed Multiplier"
@@ -78785,6 +78765,10 @@ msgid "Velocity Linear"
 msgstr "속도 선형"
 
 
+msgid "Second"
+msgstr "초"
+
+
 msgid "X Stiffness"
 msgstr "X 강성"
 
@@ -79163,11 +79147,6 @@ msgstr "키 프레임 A를 설정"
 msgctxt "Operator"
 msgid "Set Keyframe B"
 msgstr "키 프레임 B를 설정"
-
-
-msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "줌 %d:%d"
 
 
 msgctxt "Operator"
@@ -80201,10 +80180,6 @@ msgid "Rotation"
 msgstr "회전"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "원본 프레임 범위: %d-%d (%d)"
-
-
 msgid "Strip Offset Start"
 msgstr "스트립 오프셋 시작"
 
@@ -80249,10 +80224,6 @@ msgid "Effect Fader"
 msgstr "이펙트 페더"
 
 
-msgid "%dx%d"
-msgstr "%dx%d"
-
-
 msgid "Original Frame Range"
 msgstr "원본 프레임 범위"
 
@@ -80267,6 +80238,10 @@ msgstr "포장 해제"
 
 msgid "Pack"
 msgstr "포장"
+
+
+msgid "Original frame range: %d-%d (%d)"
+msgstr "원본 프레임 범위: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -80355,10 +80330,6 @@ msgstr "라인을 위로 이동"
 msgctxt "Operator"
 msgid "Move Line(s) Down"
 msgstr "라인을 아래로 이동"
-
-
-msgid "Text: ExternalText: Internal"
-msgstr "텍스트: 외부 텍스트: 내부"
 
 
 msgid "File: *%s (unsaved)"
@@ -80797,10 +80768,6 @@ msgstr "파일:"
 
 msgid "Author:"
 msgstr "작성자:"
-
-
-msgid "author"
-msgstr "작성자"
 
 
 msgid "Version:"
@@ -88335,22 +88302,6 @@ msgstr "스트립을 추가 할 수 없습니다 (트랙에는 이 새 스트립
 
 msgid "NLA strip '%s' not found in track '%s'"
 msgstr "NLA 스트립 '%s'을 트랙 '%s'에서 찾을 수 없습니다"
-
-
-msgid "Functions"
-msgstr "함수"
-
-
-msgid "Comparison"
-msgstr "비교"
-
-
-msgid "Trigonometric"
-msgstr "삼각법"
-
-
-msgid "Conversion"
-msgstr "변환"
 
 
 msgid "Same input/output direction of sockets"

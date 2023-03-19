@@ -898,7 +898,7 @@ GHOST_TSuccess GHOST_WindowWin32::hasCursorShape(GHOST_TStandardCursor cursorSha
 }
 
 GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
-    std::vector<GHOST_PointerInfoWin32> &outPointerInfo, WPARAM wParam, LPARAM lParam)
+    std::vector<GHOST_PointerInfoWin32> &outPointerInfo, WPARAM wParam, LPARAM /*lParam*/)
 {
   int32_t pointerId = GET_POINTERID_WPARAM(wParam);
   int32_t isPrimary = IS_POINTER_PRIMARY_WPARAM(wParam);
@@ -1109,8 +1109,13 @@ static uint16_t uns16ReverseBits(uint16_t shrt)
 }
 #endif
 
-GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(
-    uint8_t *bitmap, uint8_t *mask, int sizeX, int sizeY, int hotX, int hotY, bool canInvertColor)
+GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(uint8_t *bitmap,
+                                                             uint8_t *mask,
+                                                             int sizeX,
+                                                             int sizeY,
+                                                             int hotX,
+                                                             int hotY,
+                                                             bool /*canInvertColor*/)
 {
   uint32_t andData[32];
   uint32_t xorData[32];
@@ -1175,7 +1180,7 @@ GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
 }
 
 #ifdef WITH_INPUT_IME
-void GHOST_WindowWin32::beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
+void GHOST_WindowWin32::beginIME(int32_t x, int32_t y, int32_t /*w*/, int32_t h, bool completed)
 {
   m_imeInput.BeginIME(m_hWnd, GHOST_Rect(x, y - h, x, y), completed);
 }

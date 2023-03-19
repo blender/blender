@@ -7,7 +7,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "node_geometry_util.hh"
@@ -140,6 +140,7 @@ static void transfer_attributes(
    * Remove anonymous attributes that don't need to be propagated. */
   Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
+  attribute_ids.remove("sharp_face");
   attribute_ids.remove_if([&](const AttributeIDRef &id) {
     return id.is_anonymous() && !propagation_info.propagate(id.anonymous_id());
   });
@@ -677,10 +678,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Vector<float3> vert_positions(src_mesh.totpoly);
   for (const int i : src_polys.index_range()) {
     const MPoly &poly = src_polys[i];
-    BKE_mesh_calc_poly_center(&poly,
-                              &src_loops[poly.loopstart],
-                              reinterpret_cast<const float(*)[3]>(src_positions.data()),
-                              vert_positions[i]);
+    vert_positions[i] = bke::mesh::poly_center_calc(src_positions,
+                                                    src_loops.slice(poly.loopstart, poly.totloop));
   }
 
   Array<int> boundary_edge_midpoint_index;
@@ -887,6 +886,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   }
   Mesh *mesh_out = BKE_mesh_new_nomain(
       vert_positions.size(), new_edges.size(), loops.size(), loop_lengths.size());
+  BKE_mesh_smooth_flag_set(mesh_out, false);
 
   transfer_attributes(vertex_types,
                       keep_boundaries,

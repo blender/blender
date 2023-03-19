@@ -2525,8 +2525,16 @@ static void lib_override_library_main_resync_on_library_indirect_level(
           BLI_assert(id_resync_root_iter == id_resync_roots->list &&
                      id_resync_root_iter == id_resync_roots->last_node);
         }
-        BLI_assert(!lib_override_resync_tagging_finalize_recurse(
-            bmain, id_resync_root, id_roots, library_indirect_level, true));
+        if (lib_override_resync_tagging_finalize_recurse(
+                bmain, id_resync_root, id_roots, library_indirect_level, true)) {
+          CLOG_WARN(&LOG,
+                    "Resync root ID still has ancestors tagged for resync, this should not happen "
+                    "at this point."
+                    "\n\tRoot ID: %s"
+                    "\n\tResync root ID: %s",
+                    id_root->name,
+                    id_resync_root->name);
+        }
       }
       BLI_ghashIterator_step(id_roots_iter);
     }

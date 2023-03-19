@@ -31,7 +31,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   /* HACK to fix #68857 */
   if (extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
-    if (layer != -1) {
+    if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
       uv_layers |= (1 << layer);
     }
   }

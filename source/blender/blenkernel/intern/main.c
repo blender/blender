@@ -625,7 +625,7 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->particles);
     case ID_WM:
       return &(bmain->wm);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(bmain->gpencils);
     case ID_MC:
       return &(bmain->movieclips);
@@ -669,7 +669,7 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   lb[INDEX_ID_PAL] = &(bmain->palettes);
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD] = &(bmain->gpencils);
+  lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
 
   lb[INDEX_ID_NT] = &(bmain->nodetrees);
   lb[INDEX_ID_IM] = &(bmain->images);

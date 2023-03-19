@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
@@ -30,7 +30,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mask.h"
@@ -3651,14 +3651,9 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
                                          rctf *r_bounds)
 {
   const bool fcu_selection_only = false;
-  const bool found_bounds = BKE_fcurve_calc_bounds(fcu,
-                                                   &r_bounds->xmin,
-                                                   &r_bounds->xmax,
-                                                   &r_bounds->ymin,
-                                                   &r_bounds->ymax,
-                                                   fcu_selection_only,
-                                                   include_handles,
-                                                   range);
+  const bool found_bounds = BKE_fcurve_calc_bounds(
+      fcu, fcu_selection_only, include_handles, range, r_bounds);
+
   if (!found_bounds) {
     return false;
   }
@@ -3736,8 +3731,8 @@ static void get_view_range(Scene *scene, const bool use_preview_range, float r_r
     r_range[1] = scene->r.pefra;
   }
   else {
-    r_range[0] = -FLT_MAX;
-    r_range[1] = FLT_MAX;
+    r_range[0] = scene->r.sfra;
+    r_range[1] = scene->r.efra;
   }
 }
 
@@ -3754,16 +3749,6 @@ static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
   BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
 }
 
-static ARegion *get_window_region(bAnimContext *ac)
-{
-  LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      return region;
-    }
-  }
-  return NULL;
-}
-
 static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -3772,8 +3757,7 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-
-  ARegion *window_region = get_window_region(&ac);
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
 
   if (!window_region) {
     return OPERATOR_CANCELLED;
@@ -3869,7 +3853,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
-  ARegion *window_region = get_window_region(&ac);
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
 
   if (!window_region) {
     return OPERATOR_CANCELLED;
@@ -3890,6 +3874,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   float range[2];
   const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
+
   get_view_range(ac.scene, use_preview_range, range);
 
   rctf bounds;

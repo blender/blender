@@ -54,11 +54,11 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
         /* Create rotations around the individual axis. This could be optimized to skip some axis
          * when the angle is zero. */
         const float3x3 rotation_x = from_rotation<float3x3>(
-            AxisAngle(instance_transform.x_axis(), euler.x));
+            AxisAngle(normalize(instance_transform.x_axis()), euler.x));
         const float3x3 rotation_y = from_rotation<float3x3>(
-            AxisAngle(instance_transform.y_axis(), euler.y));
+            AxisAngle(normalize(instance_transform.y_axis()), euler.y));
         const float3x3 rotation_z = from_rotation<float3x3>(
-            AxisAngle(instance_transform.z_axis(), euler.z));
+            AxisAngle(normalize(instance_transform.z_axis()), euler.z));
 
         /* Combine the previously computed rotations into the final rotation matrix. */
         rotation_matrix = float4x4(rotation_z * rotation_y * rotation_x);

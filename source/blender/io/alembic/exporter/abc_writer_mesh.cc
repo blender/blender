@@ -16,7 +16,7 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -451,7 +451,15 @@ static void get_topology(struct Mesh *mesh,
 {
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
-  r_has_flat_shaded_poly = false;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
+  for (const int i : sharp_faces.index_range()) {
+    if (sharp_faces[i]) {
+      r_has_flat_shaded_poly = true;
+      break;
+    }
+  }
 
   poly_verts.clear();
   loop_counts.clear();
@@ -462,8 +470,6 @@ static void get_topology(struct Mesh *mesh,
   for (const int i : polys.index_range()) {
     const MPoly &poly = polys[i];
     loop_counts.push_back(poly.totloop);
-
-    r_has_flat_shaded_poly |= (poly.flag & ME_SMOOTH) == 0;
 
     const MLoop *loop = &loops[poly.loopstart + (poly.totloop - 1)];
 

@@ -9,9 +9,13 @@
 
 #include "gpu_texture_private.hh"
 
+#include "vk_buffer.hh"
+
 namespace blender::gpu {
 
 class VKPixelBuffer : public PixelBuffer {
+  VKBuffer buffer_;
+
  public:
   VKPixelBuffer(int64_t size);
   void *map() override;

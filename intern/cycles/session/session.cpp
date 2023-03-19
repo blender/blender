@@ -507,7 +507,7 @@ void Session::do_delayed_reset()
   params = delayed_reset_.session_params;
   buffer_params_ = delayed_reset_.buffer_params;
 
-  /* Store parameters used for buffers access outside of scene graph.  */
+  /* Store parameters used for buffers access outside of scene graph. */
   buffer_params_.samples = params.samples;
   buffer_params_.exposure = scene->film->get_exposure();
   buffer_params_.use_approximate_shadow_catcher =

@@ -14,7 +14,7 @@ if NOT EXIST %PYTHON% (
     exit /b 1
 )
 
-set FORMAT_PATHS=%BLENDER_DIR%\source\tools\utils_maintenance\clang_format_paths.py
+set FORMAT_PATHS=%BLENDER_DIR%\tools\utils_maintenance\clang_format_paths.py
 
 REM The formatting script expects clang-format to be in the current PATH.
 set PATH=%CF_PATH%;%PATH%

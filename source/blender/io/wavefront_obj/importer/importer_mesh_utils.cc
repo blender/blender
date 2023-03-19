@@ -4,7 +4,7 @@
  * \ingroup obj
  */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "BLI_delaunay_2d.h"

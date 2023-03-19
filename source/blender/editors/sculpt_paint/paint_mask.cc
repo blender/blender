@@ -28,7 +28,7 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_fair.h"
 #include "BKE_mesh_types.h"
 #include "BKE_multires.h"
@@ -1356,6 +1356,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     loop_index += 3;
   }
 
+  BKE_mesh_smooth_flag_set(trim_operation->mesh, false);
+
   BKE_mesh_calc_edges(trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
 
@@ -1368,7 +1370,6 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     CustomData_add_layer(&trim_operation->mesh->edata,
                          CD_PROP_BOOL,
                          CD_CONSTRUCT,
-                         nullptr,
                          trim_operation->mesh->totedge);
     sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
@@ -1545,7 +1546,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &params, sculpt_mesh);
     BM_mesh_free(bm);
 
-    BKE_mesh_normals_tag_dirty(result);
     BKE_mesh_nomain_to_mesh(result, (Mesh *)sgcontext->vc.obact->data, sgcontext->vc.obact);
   }
 }
@@ -2020,7 +2020,11 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
 
 static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, object, false, true, false);
+
   SculptSession *ss = object->sculpt;
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {

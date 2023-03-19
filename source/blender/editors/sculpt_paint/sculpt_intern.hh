@@ -1189,12 +1189,13 @@ bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache);
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
 
 /** Ensure random access; required for PBVH_BMESH */
-void SCULPT_face_random_access_ensure(struct SculptSession *ss);
+void SCULPT_face_random_access_ensure(SculptSession *ss);
 
-int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex);
-int SCULPT_vertex_count_get(const struct SculptSession *ss);
+int SCULPT_vertex_valence_get(const SculptSession *ss, PBVHVertRef vertex);
+int SCULPT_vertex_count_get(const SculptSession *ss);
 
-const float *SCULPT_vertex_co_get(struct SculptSession *ss, PBVHVertRef vertex);
+const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex);
+void SCULPT_vertex_co_set(SculptSession *ss, PBVHVertRef vertex, const float *co);
 void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
 float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex);
 float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex);

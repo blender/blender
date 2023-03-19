@@ -3,6 +3,7 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.h"
 
 #include "BLI_multi_value_map.hh"
 
@@ -46,7 +47,7 @@ static void node_add_menu_assets_listen_fn(const wmRegionListenerParams *params)
 
 struct LibraryAsset {
   AssetLibraryReference library_ref;
-  AssetHandle handle;
+  AssetRepresentation &asset;
 };
 
 struct AssetItemTree {
@@ -93,11 +94,11 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     return {};
   }
 
-  ED_assetlist_iterate(all_library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&type_filter, &asset)) {
+  ED_assetlist_iterate(all_library_ref, [&](AssetHandle asset_handle) {
+    if (!ED_asset_filter_matches_asset(&type_filter, &asset_handle)) {
       return true;
     }
-    const AssetMetaData &meta_data = *ED_asset_handle_get_metadata(&asset);
+    const AssetMetaData &meta_data = *ED_asset_handle_get_metadata(&asset_handle);
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
     if (tree_type == nullptr || IDP_Int(tree_type) != node_tree->type) {
       return true;
@@ -111,7 +112,8 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     if (catalog == nullptr) {
       return true;
     }
-    assets_per_path.add(catalog->path, LibraryAsset{all_library_ref, asset});
+    AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
+    assets_per_path.add(catalog->path, LibraryAsset{all_library_ref, *asset});
     return true;
   });
 
@@ -178,16 +180,17 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 
   for (const LibraryAsset &item : asset_items) {
     uiLayout *col = uiLayoutColumn(layout, false);
-    PointerRNA file{
-        &screen.id, &RNA_FileSelectEntry, const_cast<FileDirEntry *>(item.handle.file_data)};
-    uiLayoutSetContextPointer(col, "active_file", &file);
+
+    PointerRNA asset_ptr{NULL, &RNA_AssetRepresentation, &item.asset};
+    uiLayoutSetContextPointer(col, "asset", &asset_ptr);
 
     PointerRNA library_ptr{&screen.id,
                            &RNA_AssetLibraryReference,
                            const_cast<AssetLibraryReference *>(&item.library_ref)};
     uiLayoutSetContextPointer(col, "asset_library_ref", &library_ptr);
 
-    uiItemO(col, ED_asset_handle_get_name(&item.handle), ICON_NONE, "NODE_OT_add_group_asset");
+    uiItemO(
+        col, AS_asset_representation_name_get(&item.asset), ICON_NONE, "NODE_OT_add_group_asset");
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {

@@ -14,7 +14,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -179,8 +179,7 @@ void multiresModifier_subdivide_to_level(Object *object,
    * are allocated at a proper level and return. */
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(
-        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, coarse_mesh->totloop);
+    CustomData_add_layer(&coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set

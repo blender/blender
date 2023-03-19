@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
@@ -66,7 +66,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
     return false;
   }
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->obedit_type, OB_MESH, OB_GPENCIL));
+  return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
+          ELEM(t->obedit_type, OB_MESH, OB_GPENCIL_LEGACY));
 }
 
 /* ************************** SPACE DEPENDENT CODE **************************** */

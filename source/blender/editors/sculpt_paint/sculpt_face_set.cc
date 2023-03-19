@@ -11,7 +11,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_smallhash.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -31,6 +34,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_fair.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_types.h"
@@ -141,6 +145,9 @@ bool SCULPT_face_select_get(SculptSession *ss, PBVHFaceRef face)
     return ss->select_poly ? ss->select_poly[face.i] : false;
   }
 }
+
+using blender::float3;
+using blender::Vector;
 
 /* Utils. */
 
@@ -348,7 +355,8 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         const MPoly *p = &ss->polys[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(p, &ss->loops[p->loopstart], vert_positions, poly_center);
+        BKE_mesh_calc_poly_center(
+            &ss->loops[p->loopstart], p->totloop, vert_positions, ss->totvert, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -1023,7 +1031,7 @@ static bool sculpt_face_sets_init_face_set_boundary_test(BMesh *bm,
                                                          const float /*UNUSED(threshold)*/)
 {
   const int cd_face_sets_offset = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
          BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
@@ -1676,6 +1684,16 @@ static void sculpt_face_set_grow_bmesh(Object *ob,
   }
 
   for (BMFace *f : faces) {
+    int ni = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
+    if (ni != DYNTOPO_NODE_NONE) {
+      PBVHNode *node = BKE_pbvh_node_from_index(ss->pbvh, ni);
+
+      if (node) {
+        BKE_pbvh_node_mark_update(node);
+        BKE_pbvh_node_mark_rebuild_draw(node);
+      }
+    }
+
     BMLoop *l = f->l_first;
 
     do {
@@ -1787,8 +1805,17 @@ static void sculpt_face_set_shrink_bmesh(Object *ob,
   }
 
   for (BMFace *f : faces) {
-    BMLoop *l = f->l_first;
+    int ni = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
+    if (ni != DYNTOPO_NODE_NONE) {
+      PBVHNode *node = BKE_pbvh_node_from_index(ss->pbvh, ni);
 
+      if (node) {
+        BKE_pbvh_node_mark_update(node);
+        BKE_pbvh_node_mark_rebuild_draw(node);
+      }
+    }
+
+    BMLoop *l = f->l_first;
     do {
       if (!modify_hidden && BM_elem_flag_test(l->radial_next->f, BM_ELEM_HIDDEN)) {
         l = l->next;
@@ -1950,42 +1977,58 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
 static void sculpt_face_set_edit_fair_face_set(Object *ob,
                                                const int active_face_set_id,
-                                               const int fair_order)
+                                               const int fair_order,
+                                               float strength)
 {
   SculptSession *ss = ob->sculpt;
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
   Mesh *mesh = (Mesh *)ob->data;
-  bool *fair_vertices = (bool *)MEM_malloc_arrayN(totvert, sizeof(bool), "fair vertices");
+  Vector<float3> orig_positions;
+  Vector<bool> fair_verts;
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+  orig_positions.resize(totvert);
+  fair_verts.resize(totvert);
 
-    fair_vertices[i] = !SCULPT_vertex_is_boundary(ss, vref, SCULPT_BOUNDARY_MESH) &&
-                       SCULPT_vertex_has_face_set(ss, vref, active_face_set_id) &&
-                       SCULPT_vertex_has_unique_face_set(ss, vref);
+  for (int i = 0; i < totvert; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    orig_positions[i] = SCULPT_vertex_co_get(ss, vertex);
+    fair_verts[i] = !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_MESH) &&
+                    SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id) &&
+                    SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
   if (ss->bm) {
-    BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_vertices, (eMeshFairingDepth)fair_order);
+    BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_verts.data(), (eMeshFairingDepth)fair_order);
   }
   else {
     float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
     BKE_mesh_prefair_and_fair_verts(
-        mesh, vert_positions, fair_vertices, (eMeshFairingDepth)fair_order);
+        mesh, vert_positions, fair_verts.data(), (eMeshFairingDepth)fair_order);
+  }
 
-    MEM_freeN(fair_vertices);
+  for (int i = 0; i < totvert; i++) {
+    if (fair_verts[i]) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+      float3 co = SCULPT_vertex_co_get(ss, vertex);
+
+      interp_v3_v3v3(co, orig_positions[i], co, strength);
+
+      SCULPT_vertex_co_set(ss, vertex, co);
+    }
   }
 }
 
 static void sculpt_face_set_apply_edit(Object *ob,
                                        const int active_face_set_id,
                                        const int mode,
-                                       const bool modify_hidden)
+                                       const bool modify_hidden,
+                                       const float strength = 1.0f)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2010,10 +2053,12 @@ static void sculpt_face_set_apply_edit(Object *ob,
       sculpt_face_set_delete_geometry(ob, ss, active_face_set_id, modify_hidden);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
-      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_POSITION);
+      sculpt_face_set_edit_fair_face_set(
+          ob, active_face_set_id, MESH_FAIRING_DEPTH_POSITION, strength);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
-      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
+      sculpt_face_set_edit_fair_face_set(
+          ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY, strength);
       break;
     case SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY: {
       GSet *face_sets_ids = BLI_gset_int_new("ids");
@@ -2024,13 +2069,14 @@ static void sculpt_face_set_apply_edit(Object *ob,
       GSetIterator gs_iter;
       GSET_ITER (gs_iter, face_sets_ids) {
         const int face_set_id = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-        sculpt_face_set_edit_fair_face_set(ob, face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
+        sculpt_face_set_edit_fair_face_set(ob, face_set_id, MESH_FAIRING_DEPTH_TANGENCY, strength);
       }
 
       BLI_gset_free(face_sets_ids, nullptr);
     } break;
     case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
-      sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_CURVATURE);
+      sculpt_face_set_edit_fair_face_set(
+          ob, active_face_set_id, MESH_FAIRING_DEPTH_CURVATURE, strength);
       break;
   }
 }
@@ -2131,13 +2177,17 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   PBVH *pbvh = ss->pbvh;
   PBVHNode **nodes;
   int totnode;
+
   BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+
+  const float strength = RNA_float_get(op->ptr, "strength");
+
   SCULPT_undo_push_begin(ob, op);
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update(nodes[i]);
     SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COORDS);
   }
-  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, false);
+  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, false, strength);
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
@@ -2183,11 +2233,11 @@ static void sculpt_bm_mesh_elem_hflag_disable_all(BMesh *bm, char htype, char hf
   }
 }
 
-static void sculpt_face_set_extrude_id(Object *ob,
-                                       bool no_islands,
-                                       SculptSession *ss,
-                                       const int active_face_set_id,
-                                       FaceSetExtrudeCD *fsecd)
+ATTR_NO_OPT static void sculpt_face_set_extrude_id(Object *ob,
+                                                   bool no_islands,
+                                                   SculptSession *ss,
+                                                   const int active_face_set_id,
+                                                   FaceSetExtrudeCD *fsecd)
 {
 
   Mesh *mesh = (Mesh *)ob->data;
@@ -2239,7 +2289,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
   Vector<BMEdge *> es;
 
   int cd_faceset_offset = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   const int tag1 = BM_ELEM_SELECT;
   const int tag2 = BM_ELEM_TAG_ALT;
@@ -2382,7 +2432,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   cd_faceset_offset = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");  // recalc in case bmop changed it
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");  // recalc in case bmop changed it
 
   const int cd_boundary_flag = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
@@ -2534,7 +2584,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   /* Set the new Face Set ID for the extrusion. */
   const int cd_face_sets_offset = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -2712,8 +2762,6 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
       PBVHFaceRef face2 = stack.pop_last();
       faces.append(face2);
 
-      int tot = stack.size();
-
       if (ss->bm) {
         island_stack_bmesh_do(ss, fset, face2, stack, visit);
       }
@@ -2790,7 +2838,9 @@ void SCULPT_face_set_island_free(SculptFaceSetIsland *island)
   }
 }
 
-static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+ATTR_NO_OPT static int sculpt_face_set_edit_modal(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -2818,6 +2868,10 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
 
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
+  }
+
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
   }
 
   FaceSetExtrudeCD *fsecd = (FaceSetExtrudeCD *)op->customdata;
@@ -2855,6 +2909,8 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     extrude_disp *= -1.0f;
   }
 
+  RNA_float_set(op->ptr, "extrude_disp", extrude_disp);
+
   if (!ss->bm) {
     float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
     for (int i = 0; i < fsecd->totvert; i++) {
@@ -2869,11 +2925,13 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
     for (int i = 0; i < totnode; i++) {
       BKE_pbvh_node_mark_update(nodes[i]);
+      BKE_pbvh_node_mark_rebuild_draw(nodes[i]);
     }
     MEM_SAFE_FREE(nodes);
   }
   else {
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
+    BM_mesh_elem_table_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
 
     for (int i = 0; i < fsecd->totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, fsecd->verts[i]);
@@ -2882,7 +2940,12 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
 
       int ni = BM_ELEM_CD_GET_INT(v, ss->cd_vert_node_offset);
       if (ni != DYNTOPO_NODE_NONE) {
-        BKE_pbvh_node_mark_update(BKE_pbvh_node_from_index(ss->pbvh, ni));
+        PBVHNode *node = BKE_pbvh_node_from_index(ss->pbvh, ni);
+
+        if (node) {
+          BKE_pbvh_node_mark_update(node);
+          BKE_pbvh_node_mark_rebuild_draw(node);
+        }
       }
 
       madd_v3_v3v3fl(v->co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
@@ -2890,12 +2953,14 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  SCULPT_tag_update_overlays(C);
+
   return OPERATOR_RUNNING_MODAL;
 }
 
 static void sculpt_face_set_extrude(bContext *C,
                                     wmOperator *op,
-                                    const wmEvent *event,
+                                    const int mval[2],
                                     Object *ob,
                                     const int active_face_set,
                                     const float cursor_location[3])
@@ -2905,7 +2970,7 @@ static void sculpt_face_set_extrude(bContext *C,
 
   fsecd->active_face_set = active_face_set;
   copy_v3_v3(fsecd->cursor_location, cursor_location);
-  float fmval[2] = {(float)event->mval[0], (float)event->mval[1]};
+  float fmval[2] = {(float)mval[0], (float)mval[1]};
   copy_v2_v2(fsecd->init_mval, fmval);
   op->customdata = fsecd;
 
@@ -2929,20 +2994,77 @@ static void sculpt_face_set_extrude(bContext *C,
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
-static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
+      RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
-  if (!sculpt_face_set_edit_is_operation_valid(ss, (eSculptFaceSetEditMode)mode, modify_hidden)) {
-    return OPERATOR_CANCELLED;
+  if (!sculpt_face_set_edit_is_operation_valid(ss, mode, modify_hidden)) {
+    return false;
   }
 
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+  return true;
+}
+
+static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
+{
+  if (!sculpt_face_set_edit_init(C, op)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+
+  const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
+  const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(
+      RNA_enum_get(op->ptr, "mode"));
+  const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
+
+  int mval[2];
+  float location[3];
+
+  RNA_int_get_array(op->ptr, "mouse", mval);
+  RNA_float_get_array(op->ptr, "location", location);
+
+  switch (mode) {
+    case SCULPT_FACE_SET_EDIT_EXTRUDE:
+      sculpt_face_set_extrude(C, op, mval, ob, active_face_set, location);
+
+      SCULPT_tag_update_overlays(C);
+      return OPERATOR_RUNNING_MODAL;
+    case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
+      sculpt_face_set_edit_modify_geometry(C, ob, active_face_set, mode, modify_hidden, op);
+      break;
+    case SCULPT_FACE_SET_EDIT_GROW:
+    case SCULPT_FACE_SET_EDIT_SHRINK:
+    case SCULPT_FACE_SET_EDIT_FILL_COMPONENT:
+      sculpt_face_set_edit_modify_face_sets(ob, active_face_set, mode, modify_hidden, op);
+      break;
+    case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
+    case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
+    case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
+    case SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY:
+      sculpt_face_set_edit_modify_coordinates(C, ob, active_face_set, mode, op);
+      break;
+  }
+
+  SCULPT_tag_update_overlays(C);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
@@ -2954,37 +3076,22 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  const int active_face_set = SCULPT_active_face_set_get(ss);
+  RNA_int_set(op->ptr, "active_face_set", SCULPT_active_face_set_get(ss));
+  RNA_int_set_array(op->ptr, "mouse", event->mval);
+  RNA_float_set_array(op->ptr, "location", sgi.location);
 
-  switch (mode) {
-    case SCULPT_FACE_SET_EDIT_EXTRUDE:
-      sculpt_face_set_extrude(C, op, event, ob, active_face_set, sgi.location);
+  const int mode = RNA_enum_get(op->ptr, "mode");
 
-      SCULPT_tag_update_overlays(C);
-      WM_event_add_modal_handler(C, op);
-      return OPERATOR_RUNNING_MODAL;
-    case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
-      sculpt_face_set_edit_modify_geometry(
-          C, ob, active_face_set, (eSculptFaceSetEditMode)mode, modify_hidden, op);
-      break;
-    case SCULPT_FACE_SET_EDIT_GROW:
-    case SCULPT_FACE_SET_EDIT_SHRINK:
-    case SCULPT_FACE_SET_EDIT_FILL_COMPONENT:
-      sculpt_face_set_edit_modify_face_sets(
-          ob, active_face_set, (eSculptFaceSetEditMode)mode, modify_hidden, op);
-      break;
-    case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
-    case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
-    case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
-    case SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY:
-      sculpt_face_set_edit_modify_coordinates(
-          C, ob, active_face_set, (eSculptFaceSetEditMode)mode, op);
-      break;
+  if (mode == SCULPT_FACE_SET_EDIT_EXTRUDE) {
+    const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
+
+    WM_event_add_modal_handler(C, op);
+    sculpt_face_set_extrude(C, op, event->mval, ob, active_face_set, sgi.location);
+
+    return OPERATOR_RUNNING_MODAL;
   }
 
-  SCULPT_tag_update_overlays(C);
-
-  return OPERATOR_FINISHED;
+  return sculpt_face_set_edit_exec(C, op);
 }
 
 void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
@@ -2996,13 +3103,20 @@ void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->invoke = sculpt_face_set_edit_invoke;
-  ot->modal = sculpt_face_set_edit_modal;
+  ot->exec = sculpt_face_set_edit_exec;
   ot->poll = SCULPT_mode_poll;
+  ot->modal = sculpt_face_set_edit_modal;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR | OPTYPE_BLOCKING;
+
+  PropertyRNA *prop = RNA_def_int(
+      ot->srna, "active_face_set", 1, 0, INT_MAX, "Active Face Set", "", 0, 64);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_enum(
       ot->srna, "mode", prop_sculpt_face_sets_edit_types, SCULPT_FACE_SET_EDIT_GROW, "Mode", "");
+  RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
+
   ot->prop = RNA_def_boolean(ot->srna,
                              "modify_hidden",
                              true,
@@ -3013,4 +3127,14 @@ void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
                              false,
                              "Ignore Disconnected",
                              "Apply the edit operation to a single island only");
+
+  prop = RNA_def_float_array(
+      ot->srna, "location", 3, nullptr, FLT_MIN, FLT_MAX, "Location", "", -100000, 100000);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_int_array(ot->srna, "mouse", 2, nullptr, 0, 16000, "Mouse", "", 0, 4000);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_float(ot->srna, "extrude_disp", 0.0, FLT_MIN, FLT_MAX, "", "", 0.0, 1.0);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }

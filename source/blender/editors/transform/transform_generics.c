@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -705,7 +705,7 @@ void postTrans(bContext *C, TransInfo *t)
   if (t->data_len_all != 0) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* free data malloced per trans-data */
-      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL) ||
+      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL_LEGACY) ||
           (t->spacetype == SPACE_GRAPH)) {
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {

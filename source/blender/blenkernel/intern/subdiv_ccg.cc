@@ -20,7 +20,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 

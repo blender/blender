@@ -649,7 +649,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
 
   draw::View drw_view("MainView", view);
 
-  DRW_manager_get()->submit(accumulate_ps_, drw_view);
+  inst_.manager->submit(accumulate_ps_, drw_view);
 
   combined_tx_.swap();
   weight_tx_.swap();

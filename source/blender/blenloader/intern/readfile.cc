@@ -75,7 +75,7 @@
 #include "BKE_main.h" /* for Main */
 #include "BKE_main_idmap.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.h" /* for tree type defines */
 #include "BKE_object.h"
@@ -1305,76 +1305,6 @@ void blo_filedata_free(FileData *fd)
 }
 
 /** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public Utilities
- * \{ */
-
-bool BLO_has_bfile_extension(const char *str)
-{
-  const char *ext_test[4] = {".blend", ".ble", ".blend.gz", nullptr};
-  return BLI_path_extension_check_array(str, ext_test);
-}
-
-bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name)
-{
-  /* We might get some data names with slashes,
-   * so we have to go up in path until we find blend file itself,
-   * then we know next path item is group, and everything else is data name. */
-  char *slash = nullptr, *prev_slash = nullptr, c = '\0';
-
-  r_dir[0] = '\0';
-  if (r_group) {
-    *r_group = nullptr;
-  }
-  if (r_name) {
-    *r_name = nullptr;
-  }
-
-  /* if path leads to an existing directory, we can be sure we're not (in) a library */
-  if (BLI_is_dir(path)) {
-    return false;
-  }
-
-  strcpy(r_dir, path);
-
-  while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
-    char tc = *slash;
-    *slash = '\0';
-    if (BLO_has_bfile_extension(r_dir) && BLI_is_file(r_dir)) {
-      break;
-    }
-    if (STREQ(r_dir, BLO_EMBEDDED_STARTUP_BLEND)) {
-      break;
-    }
-
-    if (prev_slash) {
-      *prev_slash = c;
-    }
-    prev_slash = slash;
-    c = tc;
-  }
-
-  if (!slash) {
-    return false;
-  }
-
-  if (slash[1] != '\0') {
-    BLI_assert(strlen(slash + 1) < BLO_GROUP_MAX);
-    if (r_group) {
-      *r_group = slash + 1;
-    }
-  }
-
-  if (prev_slash && (prev_slash[1] != '\0')) {
-    BLI_assert(strlen(prev_slash + 1) < MAX_ID_NAME - 2);
-    if (r_name) {
-      *r_name = prev_slash + 1;
-    }
-  }
-
-  return true;
-}
 
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
@@ -2963,7 +2893,7 @@ static const char *dataname(short id_code)
       return "Data from PAL";
     case ID_PC:
       return "Data from PCRV";
-    case ID_GD:
+    case ID_GD_LEGACY:
       return "Data from GD";
     case ID_WM:
       return "Data from WM";

@@ -396,7 +396,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_SCE:
       return FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA |
              FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO |
-             FILTER_ID_GD | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
+             FILTER_ID_GD_LEGACY | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
     case ID_OB:
       /* Could be more specific, but simpler to just always say 'yes' here. */
       return FILTER_ID_ALL;
@@ -435,7 +435,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_PA:
       return FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE;
     case ID_MC:
-      return FILTER_ID_GD | FILTER_ID_IM;
+      return FILTER_ID_GD_LEGACY | FILTER_ID_IM;
     case ID_MSK:
       /* WARNING! mask->parent.id, not typed. */
       return FILTER_ID_MC;
@@ -443,7 +443,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
       return FILTER_ID_TE | FILTER_ID_OB;
     case ID_LP:
       return FILTER_ID_IM;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return FILTER_ID_MA;
     case ID_WS:
       return FILTER_ID_SCE;

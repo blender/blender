@@ -51,6 +51,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);
   void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);
+  void fill(VKBuffer &buffer, uint32_t data);
 
   /**
    * Stop recording commands, encode + send the recordings to Vulkan, wait for the until the

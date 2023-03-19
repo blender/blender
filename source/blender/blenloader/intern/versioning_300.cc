@@ -14,6 +14,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_multi_value_map.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -62,7 +63,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -385,7 +386,7 @@ static void assert_sorted_ids(Main *bmain)
 static void move_vertex_group_names_to_object_data(Main *bmain)
 {
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY)) {
       ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
 
       /* Choose the longest vertex group name list among all linked duplicates. */
@@ -940,6 +941,139 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
   }
 }
 
+/**
+ * When extruding from loose edges, the extrude geometry node used to create flat faces due to the
+ * default of the old "shade_smooth" attribute. Since the "false" value has changed with the
+ * "sharp_face" attribute, add nodes to propagate the new attribute in its inverted "smooth" form.
+ */
+static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
+{
+  using namespace blender;
+  Vector<bNode *> new_nodes;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (node->idname != StringRef("GeometryNodeExtrudeMesh")) {
+      continue;
+    }
+    if (static_cast<const NodeGeometryExtrudeMesh *>(node->storage)->mode !=
+        GEO_NODE_EXTRUDE_MESH_EDGES) {
+      continue;
+    }
+    bNodeSocket *geometry_in_socket = nodeFindSocket(node, SOCK_IN, "Mesh");
+    bNodeSocket *geometry_out_socket = nodeFindSocket(node, SOCK_OUT, "Mesh");
+
+    Map<bNodeSocket *, bNodeLink *> in_links_per_socket;
+    MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+      in_links_per_socket.add(link->tosock, link);
+      out_links_per_socket.add(link->fromsock, link);
+    }
+
+    bNodeLink *geometry_in_link = in_links_per_socket.lookup_default(geometry_in_socket, nullptr);
+    Span<bNodeLink *> geometry_out_links = out_links_per_socket.lookup(geometry_out_socket);
+    if (!geometry_in_link || geometry_out_links.is_empty()) {
+      continue;
+    }
+
+    const bool versioning_already_done = [&]() {
+      if (geometry_in_link->fromnode->idname != StringRef("GeometryNodeCaptureAttribute")) {
+        return false;
+      }
+      bNode *capture_node = geometry_in_link->fromnode;
+      const NodeGeometryAttributeCapture &capture_storage =
+          *static_cast<const NodeGeometryAttributeCapture *>(capture_node->storage);
+      if (capture_storage.data_type != CD_PROP_BOOL ||
+          capture_storage.domain != ATTR_DOMAIN_FACE) {
+        return false;
+      }
+      bNodeSocket *capture_in_socket = nodeFindSocket(capture_node, SOCK_IN, "Value_003");
+      bNodeLink *capture_in_link = in_links_per_socket.lookup_default(capture_in_socket, nullptr);
+      if (!capture_in_link) {
+        return false;
+      }
+      if (capture_in_link->fromnode->idname != StringRef("GeometryNodeInputShadeSmooth")) {
+        return false;
+      }
+      if (geometry_out_links.size() != 1) {
+        return false;
+      }
+      bNodeLink *geometry_out_link = geometry_out_links.first();
+      if (geometry_out_link->tonode->idname != StringRef("GeometryNodeSetShadeSmooth")) {
+        return false;
+      }
+      bNode *set_smooth_node = geometry_out_link->tonode;
+      bNodeSocket *smooth_in_socket = nodeFindSocket(set_smooth_node, SOCK_IN, "Shade Smooth");
+      bNodeLink *connecting_link = in_links_per_socket.lookup_default(smooth_in_socket, nullptr);
+      if (!connecting_link) {
+        return false;
+      }
+      if (connecting_link->fromnode != capture_node) {
+        return false;
+      }
+      return true;
+    }();
+    if (versioning_already_done) {
+      continue;
+    }
+
+    bNode *capture_node = nodeAddNode(nullptr, &ntree, "GeometryNodeCaptureAttribute");
+    capture_node->parent = node->parent;
+    capture_node->locx = node->locx - 25;
+    capture_node->locy = node->locy;
+    new_nodes.append(capture_node);
+    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->data_type = CD_PROP_BOOL;
+    static_cast<NodeGeometryAttributeCapture *>(capture_node->storage)->domain = ATTR_DOMAIN_FACE;
+
+    bNode *is_smooth_node = nodeAddNode(nullptr, &ntree, "GeometryNodeInputShadeSmooth");
+    is_smooth_node->parent = node->parent;
+    is_smooth_node->locx = capture_node->locx - 25;
+    is_smooth_node->locy = capture_node->locy;
+    new_nodes.append(is_smooth_node);
+    nodeAddLink(&ntree,
+                is_smooth_node,
+                nodeFindSocket(is_smooth_node, SOCK_OUT, "Smooth"),
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_IN, "Value_003"));
+    nodeAddLink(&ntree,
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_OUT, "Geometry"),
+                capture_node,
+                geometry_in_socket);
+    geometry_in_link->tonode = capture_node;
+    geometry_in_link->tosock = nodeFindSocket(capture_node, SOCK_IN, "Geometry");
+
+    bNode *set_smooth_node = nodeAddNode(nullptr, &ntree, "GeometryNodeSetShadeSmooth");
+    set_smooth_node->parent = node->parent;
+    set_smooth_node->locx = node->locx + 25;
+    set_smooth_node->locy = node->locy;
+    new_nodes.append(set_smooth_node);
+    nodeAddLink(&ntree,
+                node,
+                geometry_out_socket,
+                set_smooth_node,
+                nodeFindSocket(set_smooth_node, SOCK_IN, "Geometry"));
+
+    bNodeSocket *smooth_geometry_out = nodeFindSocket(set_smooth_node, SOCK_OUT, "Geometry");
+    for (bNodeLink *link : geometry_out_links) {
+      link->fromnode = set_smooth_node;
+      link->fromsock = smooth_geometry_out;
+    }
+    nodeAddLink(&ntree,
+                capture_node,
+                nodeFindSocket(capture_node, SOCK_OUT, "Attribute_003"),
+                set_smooth_node,
+                nodeFindSocket(set_smooth_node, SOCK_IN, "Shade Smooth"));
+  }
+
+  /* Move nodes to the front so that they are drawn behind existing nodes. */
+  for (bNode *node : new_nodes) {
+    BLI_remlink(&ntree.nodes, node);
+    BLI_addhead(&ntree.nodes, node);
+  }
+  if (!new_nodes.is_empty()) {
+    nodeRebuildIDVector(&ntree);
+  }
+}
+
 void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -1044,7 +1178,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
     /* This was missing from #move_vertex_group_names_to_object_data. */
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY)) {
         /* This uses the fact that the active vertex group index starts counting at 1. */
         if (BKE_object_defgroup_active_index_get(object) == 0) {
           BKE_object_defgroup_active_index_set(object, object->actdef);
@@ -2347,7 +2481,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             }
           }
         }
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
@@ -2542,7 +2676,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_elem_find(
             fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
@@ -4033,16 +4167,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 3)) {
     /* Z bias for retopology overlay. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "retopology_offset")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -4065,6 +4190,24 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         SEQ_for_each_callback(&ed->seqbase, version_set_seq_single_frame_content, nullptr);
       }
     }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_extrude_smooth_propagation(*ntree);
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
     /* Keep this block, even when empty. */
   }
 }

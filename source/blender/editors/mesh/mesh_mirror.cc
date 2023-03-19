@@ -15,7 +15,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BLI_kdtree.h"
 
 #include "ED_mesh.h"

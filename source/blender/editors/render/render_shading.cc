@@ -758,7 +758,7 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     const char *name = DATA_("Material");
-    if (!(ob != nullptr && ob->type == OB_GPENCIL)) {
+    if (!(ob != nullptr && ob->type == OB_GPENCIL_LEGACY)) {
       ma = BKE_material_add(bmain, name);
     }
     else {

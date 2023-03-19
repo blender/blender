@@ -774,6 +774,24 @@ typedef struct ExtensionRNA {
   StructFreeFunc free;
 } ExtensionRNA;
 
+/* Primitive types. */
+
+typedef struct PrimitiveStringRNA {
+  const char *value;
+} PrimitiveStringRNA;
+
+typedef struct PrimitiveIntRNA {
+  int value;
+} PrimitiveIntRNA;
+
+typedef struct PrimitiveFloatRNA {
+  float value;
+} PrimitiveFloatRNA;
+
+typedef struct PrimitiveBooleanRNA {
+  bool value;
+} PrimitiveBooleanRNA;
+
 #ifdef __cplusplus
 }
 #endif

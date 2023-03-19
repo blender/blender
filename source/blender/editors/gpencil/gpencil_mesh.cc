@@ -13,14 +13,14 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_duplilist.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -215,7 +215,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   if (target == GP_TARGET_OB_SELECTED) {
     ob_gpencil = BKE_view_layer_non_active_selected_object(scene, CTX_data_view_layer(C), v3d);
     if (ob_gpencil != nullptr) {
-      if (ob_gpencil->type != OB_GPENCIL) {
+      if (ob_gpencil->type != OB_GPENCIL_LEGACY) {
         BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
         ob_gpencil = nullptr;
       }

@@ -60,7 +60,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.h"
@@ -406,19 +406,18 @@ struct ProjPaintState {
   SpinLock *tile_lock;
 
   Mesh *me_eval;
-  int totlooptri_eval;
   int totloop_eval;
   int totpoly_eval;
-  int totedge_eval;
   int totvert_eval;
 
   const float (*vert_positions_eval)[3];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   blender::Span<MEdge> edges_eval;
   blender::Span<MPoly> polys_eval;
   blender::Span<MLoop> loops_eval;
   const bool *select_poly_eval;
   const int *material_indices;
+  const bool *sharp_faces_eval;
   blender::Span<MLoopTri> looptris_eval;
 
   const float (*mloopuv_stencil_eval)[2];
@@ -1730,10 +1729,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
   if (ps->do_mask_normal) {
     const MLoopTri *lt = &ps->looptris_eval[tri_index];
     const int lt_vtri[3] = {PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt)};
-    const MPoly &poly = ps->polys_eval[lt->poly];
     float no[3], angle_cos;
 
-    if (poly.flag & ME_SMOOTH) {
+    if (!(ps->sharp_faces_eval && ps->sharp_faces_eval[lt->poly])) {
       const float *no1, *no2, *no3;
       no1 = ps->vert_normals[lt_vtri[0]];
       no2 = ps->vert_normals[lt_vtri[1]];
@@ -3929,8 +3927,8 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 {
   if (ps->seam_bleed_px > 0.0f) {
     ps->vertFaces = MEM_cnew_array<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
-    ps->faceSeamFlags = MEM_cnew_array<ushort>(ps->totlooptri_eval, "paint-faceSeamFlags");
-    ps->faceWindingFlags = MEM_cnew_array<char>(ps->totlooptri_eval, "paint-faceWindindFlags");
+    ps->faceSeamFlags = MEM_cnew_array<ushort>(ps->looptris_eval.size(), __func__);
+    ps->faceWindingFlags = MEM_cnew_array<char>(ps->looptris_eval.size(), __func__);
     ps->loopSeamData = static_cast<LoopSeamData *>(
         MEM_mallocN(sizeof(LoopSeamData) * ps->totloop_eval, "paint-loopSeamUVs"));
     ps->vertSeams = MEM_cnew_array<ListBase>(ps->totvert_eval, "paint-vertSeams");
@@ -4080,7 +4078,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->mat_array[totmat - 1] = nullptr;
 
   ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
-  ps->vert_normals = BKE_mesh_vert_normals_ensure(ps->me_eval);
+  ps->vert_normals = ps->me_eval->vert_normals();
   ps->edges_eval = ps->me_eval->edges();
   ps->polys_eval = ps->me_eval->polys();
   ps->loops_eval = ps->me_eval->loops();
@@ -4088,9 +4086,10 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
       &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
   ps->material_indices = (const int *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
+  ps->sharp_faces_eval = static_cast<const bool *>(
+      CustomData_get_layer_named(&ps->me_eval->pdata, CD_PROP_BOOL, "sharp_face"));
 
   ps->totvert_eval = ps->me_eval->totvert;
-  ps->totedge_eval = ps->me_eval->totedge;
   ps->totpoly_eval = ps->me_eval->totpoly;
   ps->totloop_eval = ps->me_eval->totloop;
 
@@ -4318,7 +4317,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 
   BLI_assert(ps->image_tot == 0);
 
-  for (tri_index = 0; tri_index < ps->totlooptri_eval; tri_index++) {
+  for (tri_index = 0; tri_index < ps->looptris_eval.size(); tri_index++) {
     bool is_face_sel;
     bool skip_tri = false;
 
@@ -6540,7 +6539,10 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
   return ima;
 }
 
-static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
+/**
+ * \return The name of the new attribute.
+ */
+static const char *proj_paint_color_attribute_create(wmOperator *op, Object *ob)
 {
   char name[MAX_NAME] = "";
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -6554,22 +6556,20 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
     type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
-  ID *id = (ID *)ob->data;
-  CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
-
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const CustomDataLayer *layer = BKE_id_attribute_new(&mesh->id, name, type, domain, op->reports);
   if (!layer) {
     return nullptr;
   }
 
-  BKE_id_attributes_active_color_set(id, layer->name);
-
-  if (!BKE_id_attributes_default_color_get(id)) {
-    BKE_id_attributes_default_color_set(id, layer->name);
+  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+  if (!mesh->default_color_attribute) {
+    BKE_id_attributes_default_color_set(&mesh->id, layer->name);
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);
 
-  return layer;
+  return layer->name;
 }
 
 /**
@@ -6679,9 +6679,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
-        if ((layer = proj_paint_color_attribute_create(op, ob))) {
-          BLI_strncpy_utf8(
-              ((NodeShaderAttribute *)new_node->storage)->name, layer->name, MAX_NAME);
+        if (const char *name = proj_paint_color_attribute_create(op, ob)) {
+          BLI_strncpy_utf8(((NodeShaderAttribute *)new_node->storage)->name, name, MAX_NAME);
         }
         break;
       }

@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -27,6 +27,7 @@
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -43,7 +44,7 @@
 #include "BKE_crazyspace.h"
 #include "BKE_deform.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -51,7 +52,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -83,6 +84,7 @@ static void init_sculptvert_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::StringRef;
 
 static void sculpt_attribute_update_refs(Object *ob);
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
@@ -1684,7 +1686,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
         if (need_mdisps) {
-          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, me->totloop);
+          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, me->totloop);
         }
 
         return mmd;
@@ -2383,8 +2385,8 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int gridarea = gridsize * gridsize;
     int i, j;
 
-    gmask = static_cast<GridPaintMask *>(CustomData_add_layer(
-        &me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totloop));
+    gmask = static_cast<GridPaintMask *>(
+        CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
     for (i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
@@ -2432,7 +2434,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
   /* Create vertex paint mask layer if there isn't one already. */
   if (!paint_mask) {
-    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totvert);
+    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, me->totvert);
     /* The evaluated mesh must be updated to contain the new data. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
@@ -2665,8 +2667,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
     MLoopTri *looptri = static_cast<MLoopTri *>(
         MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
 
-    BKE_mesh_recalc_looptri(
-        loops.data(), polys.data(), vert_cos, me->totloop, me->totpoly, looptri);
+    blender::bke::mesh::looptris_calc(positions, polys, loops, {looptri, looptris_num});
     BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
 
     BKE_pbvh_build_mesh(pbvh,
@@ -2693,10 +2694,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
-    int totvert;
-    float(*v_cos)[3] = BKE_mesh_vert_coords_alloc(me_eval_deform, &totvert);
-    BKE_pbvh_vert_coords_apply(pbvh, v_cos, totvert);
-    MEM_freeN(v_cos);
+    BKE_pbvh_vert_coords_apply(
+        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
   }
 
 #ifdef WITH_PBVH_CACHE
@@ -3049,6 +3048,22 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
   return 0;
 }
 
+static bool sculpt_attribute_stored_in_bmesh_builtin(const StringRef name)
+{
+  return ELEM(name,
+              "position",
+              ".hide_vert",
+              ".hide_edge",
+              /* ".hide_poly", sculpt mode uses hide_poly. */
+              ".uv_seam",
+              ".select_vert",
+              ".select_edge",
+              ".select_poly",
+              "material_index",
+              "sharp_face",
+              "sharp_edge");
+}
+
 /**
   Syncs customdata layers with internal bmesh, but ignores deleted layers.
 */
@@ -3086,6 +3101,9 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
     for (int j = 0; j < data1->totlayer; j++) {
       CustomDataLayer *cl1 = data1->layers + j;
 
+      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
+        continue;
+      }
       if ((1 << cl1->type) & badmask) {
         continue;
       }
@@ -3105,6 +3123,9 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
     for (int j = 0; j < data1->totlayer; j++) {
       CustomDataLayer *cl1 = data1->layers + j;
 
+      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
+        continue;
+      }
       if ((1 << cl1->type) & badmask) {
         continue;
       }
@@ -3126,6 +3147,9 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
     for (int j = 0; j < data1->totlayer; j++) {
       CustomDataLayer *cl1 = data1->layers + j;
 
+      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
+        continue;
+      }
       if ((1 << cl1->type) & badmask) {
         continue;
       }
@@ -3382,7 +3406,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
       BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
 
-      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, nullptr, totelem, name);
+      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent && !ss->save_temp_layers) {
@@ -3767,7 +3791,11 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
                                 ss->attrs.dyntopo_node_id_face->bmesh_cd_offset :
                                 -1;
 
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  CustomDataLayer *layer = BKE_id_attribute_search(&me->id,
+                                                   BKE_id_attributes_active_color_name(&me->id),
+                                                   CD_MASK_COLOR_ALL,
+                                                   ATTR_DOMAIN_MASK_POINT |
+                                                       ATTR_DOMAIN_MASK_CORNER);
   if (layer) {
     eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
@@ -3804,8 +3832,7 @@ static void sculpt_attribute_update_refs(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  /* run twice, in case sculpt_attr_update had to recreate a layer and
-     messed up the bmesh offsets. */
+  /* Run twice, in case sculpt_attr_update had to recreate a layer and messed up #BMesh offsets. */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < SCULPT_MAX_ATTRIBUTES; j++) {
       SculptAttribute *attr = ss->temp_attributes + j;

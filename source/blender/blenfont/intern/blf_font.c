@@ -60,7 +60,7 @@ static FT_Library ft_lib = NULL;
 static FTC_Manager ftc_manager = NULL;
 static FTC_CMapCache ftc_charmap_cache = NULL;
 
-/* Lock for FreeType library, used around face creation and deletion.  */
+/* Lock for FreeType library, used around face creation and deletion. */
 static ThreadMutex ft_lib_mutex;
 
 /* May be set to #UI_widgetbase_draw_cache_flush. */
@@ -1566,7 +1566,7 @@ FontBLF *blf_font_new_ex(const char *name,
     }
   }
 
-  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
+  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits. */
   if (font->unicode_ranges[0] == 0xffffffffU && font->unicode_ranges[1] == 0xffffffffU &&
       font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU) {
     font->flags |= BLF_LAST_RESORT;

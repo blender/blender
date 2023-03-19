@@ -46,7 +46,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
@@ -1358,13 +1358,13 @@ static void modifyGeometry(ModifierData *md,
        * #eModifierTypeFlag_SupportsMapping flag is set. If the layers did not exist before, it is
        * assumed that the output mesh does not have a mapping to the original mesh. */
       if (use_orig_index_verts) {
-        CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totvert);
+        CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_SET_DEFAULT, mesh->totvert);
       }
       if (use_orig_index_edges) {
-        CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totedge);
+        CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_SET_DEFAULT, mesh->totedge);
       }
       if (use_orig_index_polys) {
-        CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+        CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, mesh->totpoly);
       }
     }
   }

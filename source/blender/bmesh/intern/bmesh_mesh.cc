@@ -19,7 +19,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DNA_meshdata_types.h"
 
@@ -1619,7 +1619,7 @@ void bm_alloc_toolflags_cdlayers(BMesh *bm, bool set_elems)
         BM_data_layer_add(bm, cdata, CD_TOOLFLAGS);
       }
       else {
-        CustomData_add_layer(cdata, CD_TOOLFLAGS, CD_ASSIGN, nullptr, 0);
+        CustomData_add_layer(cdata, CD_TOOLFLAGS, CD_ASSIGN, 0);
       }
 
       int idx = CustomData_get_layer_index(cdata, CD_TOOLFLAGS);

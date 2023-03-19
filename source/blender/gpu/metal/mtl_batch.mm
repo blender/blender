@@ -619,7 +619,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(
    * Vertex Descriptors are required to generate a pipeline state, based on the current Batch's
    * buffer bindings. These bindings are a unique matching, depending on what input attributes a
    * batch has in its buffers, and those which are supported by the shader interface.
-
+   *
    * We iterate through the buffers and resolve which attributes satisfy the requirements of the
    * currently bound shader. We cache this data, for a given Batch<->ShderInterface pairing in a
    * VAO cache to avoid the need to recalculate this data. */

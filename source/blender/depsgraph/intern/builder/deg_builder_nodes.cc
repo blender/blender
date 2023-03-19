@@ -28,7 +28,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -61,8 +61,8 @@
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -75,7 +75,7 @@
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
@@ -604,7 +604,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_MB:
     case ID_CU_LEGACY:
     case ID_LT:
-    case ID_GD:
+    case ID_GD_LEGACY:
     case ID_CV:
     case ID_PT:
     case ID_VO:
@@ -933,7 +933,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
@@ -1616,7 +1616,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
 
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       /* GPencil evaluation operations. */
       op_node = add_operation_node(obdata,
                                    NodeType::GEOMETRY,

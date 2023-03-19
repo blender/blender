@@ -33,7 +33,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "ED_armature.h"
 #include "ED_asset.h"
@@ -101,7 +101,7 @@ void ED_editors_init(bContext *C)
       /* For multi-edit mode we may already have mode data. */
       continue;
     }
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       /* Grease pencil does not need a toggle of mode. However we may have a non-active object
        * stuck in a grease-pencil edit mode. */
       if (ob != obact) {

@@ -2,7 +2,7 @@
 
 #include "BLI_task.hh"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 

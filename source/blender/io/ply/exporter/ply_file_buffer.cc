@@ -64,14 +64,6 @@ void FileBuffer::write_newline()
   write_fstring("\n");
 }
 
-void FileBuffer::ensure_space(size_t at_least)
-{
-  if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
-    blocks_.append(VectorChar());
-    blocks_.reserve(std::max(at_least, buffer_chunk_size_));
-  }
-}
-
 void FileBuffer::write_bytes(Span<char> bytes)
 {
   ensure_space(bytes.size());

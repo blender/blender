@@ -274,7 +274,7 @@ static BMOpDefine bmo_reverse_faces_def = {
  * Flip Quad Tessellation
  *
  * Flip the tessellation direction of the selected quads.
-*/
+ */
 static BMOpDefine bmo_flip_quad_tessellation_def = {
   "flip_quad_tessellation",
   /* slot_in */

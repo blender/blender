@@ -1411,7 +1411,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   uiTemplateOperatorPropertyButs(
       C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
@@ -1486,7 +1486,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
 
   /* center around the mouse */
   UI_block_bounds_set_popup(
-      block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
+      block, 6 * UI_SCALE_FAC, (const int[2]){data->width / -2, data->height / 2});
 
   return block;
 }
@@ -1510,7 +1510,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
 
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
@@ -1549,7 +1549,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 {
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual used height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -1619,7 +1619,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width)
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -2173,8 +2173,8 @@ void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*f
 /** \name Radial Control Operator
  * \{ */
 
-#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)
-#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_DPI_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_SCALE_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_SCALE_FAC)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH \
   (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_MAX_STR 10
@@ -2558,7 +2558,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
   immUnbindProgram();
 
-  BLF_size(fontid, 1.75f * fstyle_points * U.dpi_fac);
+  BLF_size(fontid, 1.75f * fstyle_points * UI_SCALE_FAC);
   UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 

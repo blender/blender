@@ -35,7 +35,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
@@ -2085,7 +2085,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
   WM_operatortype_append(SCULPT_OT_reveal_all);
 }
-
 
 void ED_keymap_sculpt(wmKeyConfig *keyconf)
 {

@@ -20,6 +20,7 @@ set(INC
   ../../python
   ../../render
   ../../windowmanager
+  ../../../../intern/ghost
   ../../../../intern/guardedalloc
   ../../../../intern/atomic
   ../../bmesh

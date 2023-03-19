@@ -11,8 +11,8 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -28,8 +28,8 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -219,7 +219,7 @@ void outliner_item_mode_toggle(bContext *C,
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 {
   /* paranoia check */
-  if (te->idcode != ID_SCE) {
+  if (te->store_elem->type != TSE_R_LAYER) {
     return;
   }
 
@@ -1220,7 +1220,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       case ID_KE:
       case ID_SPK:
       case ID_AR:
-      case ID_GD:
+      case ID_GD_LEGACY:
       case ID_LP:
       case ID_CV:
       case ID_PT:
@@ -1270,7 +1270,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         if (tselem->type != TSE_MODIFIER_BASE) {
           Object *ob = (Object *)tselem->id;
 
-          if (ob->type == OB_GPENCIL) {
+          if (ob->type == OB_GPENCIL_LEGACY) {
             BKE_gpencil_modifier_panel_expand(static_cast<GpencilModifierData *>(te->directdata));
           }
           else {

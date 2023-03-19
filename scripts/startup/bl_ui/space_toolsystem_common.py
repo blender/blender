@@ -628,7 +628,7 @@ class ToolSelectPanelHelper:
         )
         width_scale = region.width * view2d_scale / system.ui_scale
 
-        if width_scale > 120.0:
+        if width_scale > 130.0:
             show_text = True
             column_count = 1
         else:

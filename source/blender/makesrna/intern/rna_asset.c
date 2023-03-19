@@ -64,7 +64,9 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
 static char *rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = ptr->data;
-  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
+  char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
+  BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
+  return BLI_sprintfN("asset_data.tags[\"%s\"]", asset_tag_name_esc);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -576,6 +578,17 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   rna_def_asset_handle_api(srna);
 }
 
+static void rna_def_asset_representation(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "AssetRepresentation", NULL);
+  RNA_def_struct_ui_text(srna,
+                         "Asset Representation",
+                         "Information about an entity that makes it possible for the asset system "
+                         "to deal with the entity as asset");
+}
+
 static void rna_def_asset_catalog_path(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetCatalogPath", NULL);
@@ -608,6 +621,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
   rna_def_asset_handle(brna);
+  rna_def_asset_representation(brna);
   rna_def_asset_catalog_path(brna);
 
   RNA_define_animate_sdna(true);
