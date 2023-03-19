@@ -110,14 +110,14 @@ static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
                                             BMesh *bm)
 {
   using namespace blender;
-  int elem_id;
+  int i;
   BMIter iter;
-  BMVert *eve;
+  BMVert *vert;
   int count = 0;
   Array<int> loose_verts(mr->vert_len);
-  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
-    if (eve->e == nullptr) {
-      loose_verts[count] = elem_id;
+  BM_ITER_MESH_INDEX (vert, &iter, bm, BM_VERTS_OF_MESH, i) {
+    if (vert->e == nullptr) {
+      loose_verts[count] = i;
       count++;
     }
   }
@@ -134,14 +134,14 @@ static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
                                             BMesh *bm)
 {
   using namespace blender;
-  int elem_id;
+  int i;
   BMIter iter;
-  BMEdge *ede;
+  BMEdge *edge;
   int count = 0;
   Array<int> loose_edges(mr->edge_len);
-  BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
-    if (ede->l == nullptr) {
-      loose_edges[count] = elem_id;
+  BM_ITER_MESH_INDEX (edge, &iter, bm, BM_EDGES_OF_MESH, i) {
+    if (edge->l == nullptr) {
+      loose_edges[count] = i;
       count++;
     }
   }
