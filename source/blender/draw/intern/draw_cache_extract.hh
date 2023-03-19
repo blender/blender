@@ -55,10 +55,10 @@ enum {
 enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
-  MR_ITER_LEDGE = 1 << 2,
-  MR_ITER_LVERT = 1 << 3,
+  MR_ITER_LOOSE_EDGE = 1 << 2,
+  MR_ITER_LOOSE_VERT = 1 << 3,
 };
-ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
+ENUM_OPERATORS(eMRIterType, MR_ITER_LOOSE_VERT)
 
 enum eMRDataType {
   MR_DATA_NONE = 0,

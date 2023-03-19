@@ -98,8 +98,8 @@ struct MeshRenderData {
   const bool *sharp_faces;
   blender::Array<blender::float3> loop_normals;
 
-  blender::Span<int> lverts;
-  blender::Span<int> ledges;
+  blender::Span<int> loose_verts;
+  blender::Span<int> loose_edges;
   const SortedPolyData *poly_sorted;
 
   const char *active_color_name;
@@ -313,10 +313,10 @@ struct MeshExtract {
   ExtractTriMeshFn *iter_looptri_mesh;
   ExtractPolyBMeshFn *iter_poly_bm;
   ExtractPolyMeshFn *iter_poly_mesh;
-  ExtractLEdgeBMeshFn *iter_ledge_bm;
-  ExtractLEdgeMeshFn *iter_ledge_mesh;
-  ExtractLVertBMeshFn *iter_lvert_bm;
-  ExtractLVertMeshFn *iter_lvert_mesh;
+  ExtractLEdgeBMeshFn *iter_loose_edge_bm;
+  ExtractLEdgeMeshFn *iter_loose_edge_mesh;
+  ExtractLVertBMeshFn *iter_loose_vert_bm;
+  ExtractLVertMeshFn *iter_loose_vert_mesh;
   ExtractLooseGeomSubdivFn *iter_loose_geom_subdiv;
   /** Executed on one worker thread after all elements iterations. */
   ExtractTaskReduceFn *task_reduce;

@@ -82,10 +82,10 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_lines_iter_ledge_bm(const MeshRenderData *mr,
-                                        const BMEdge *eed,
-                                        const int ledge_index,
-                                        void *data)
+static void extract_lines_iter_loose_edge_bm(const MeshRenderData *mr,
+                                             const BMEdge *eed,
+                                             const int ledge_index,
+                                             void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   const int l_index_offset = mr->edge_len + ledge_index;
@@ -100,14 +100,14 @@ static void extract_lines_iter_ledge_bm(const MeshRenderData *mr,
   GPU_indexbuf_set_line_restart(elb, BM_elem_index_get(eed));
 }
 
-static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
-                                          const MEdge *edge,
-                                          const int ledge_index,
-                                          void *data)
+static void extract_lines_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                               const MEdge *edge,
+                                               const int ledge_index,
+                                               void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   const int l_index_offset = mr->edge_len + ledge_index;
-  const int e_index = mr->ledges[ledge_index];
+  const int e_index = mr->loose_edges[ledge_index];
   const int *e_origindex = (mr->hide_unmapped_edges) ? mr->e_origindex : nullptr;
   if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[edge - mr->edges.data()]) ||
         ((e_origindex) && (e_origindex[e_index] == ORIGINDEX_NONE)))) {
@@ -244,8 +244,8 @@ constexpr MeshExtract create_extractor_lines()
   extractor.init = extract_lines_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
+  extractor.iter_loose_edge_bm = extract_lines_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_lines_iter_loose_edge_mesh;
   extractor.init_subdiv = extract_lines_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_lines_loose_geom_subdiv;
   extractor.task_reduce = extract_lines_task_reduce;
@@ -305,8 +305,8 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
   extractor.init = extract_lines_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
+  extractor.iter_loose_edge_bm = extract_lines_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_lines_iter_loose_edge_mesh;
   extractor.task_reduce = extract_lines_task_reduce;
   extractor.finish = extract_lines_with_lines_loose_finish;
   extractor.init_subdiv = extract_lines_init_subdiv;

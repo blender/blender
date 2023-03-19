@@ -30,12 +30,12 @@
 /** \name Update Loose Geometry
  * \{ */
 
-static void mesh_render_data_lverts_bm(const MeshRenderData *mr,
-                                       MeshBufferCache *cache,
-                                       BMesh *bm);
-static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
-                                       MeshBufferCache *cache,
-                                       BMesh *bm);
+static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
+                                            MeshBufferCache *cache,
+                                            BMesh *bm);
+static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
+                                            MeshBufferCache *cache,
+                                            BMesh *bm);
 static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache);
 static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache);
 
@@ -58,8 +58,8 @@ static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBuff
   else {
     /* #BMesh */
     BMesh *bm = mr->bm;
-    mesh_render_data_lverts_bm(mr, cache, bm);
-    mesh_render_data_ledges_bm(mr, cache, bm);
+    mesh_render_data_loose_verts_bm(mr, cache, bm);
+    mesh_render_data_loose_edges_bm(mr, cache, bm);
   }
 }
 
@@ -105,7 +105,9 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
   MEM_freeN(lvert_map);
 }
 
-static void mesh_render_data_lverts_bm(const MeshRenderData *mr, MeshBufferCache *cache, BMesh *bm)
+static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
+                                            MeshBufferCache *cache,
+                                            BMesh *bm)
 {
   using namespace blender;
   int elem_id;
@@ -127,7 +129,9 @@ static void mesh_render_data_lverts_bm(const MeshRenderData *mr, MeshBufferCache
   }
 }
 
-static void mesh_render_data_ledges_bm(const MeshRenderData *mr, MeshBufferCache *cache, BMesh *bm)
+static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
+                                            MeshBufferCache *cache,
+                                            BMesh *bm)
 {
   using namespace blender;
   int elem_id;
@@ -154,10 +158,11 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag)
 {
-  if ((iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) || (data_flag & MR_DATA_LOOSE_GEOM)) {
+  if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) ||
+      (data_flag & MR_DATA_LOOSE_GEOM)) {
     mesh_render_data_loose_geom_ensure(mr, cache);
-    mr->ledges = cache->loose_geom.edges;
-    mr->lverts = cache->loose_geom.verts;
+    mr->loose_edges = cache->loose_geom.edges;
+    mr->loose_verts = cache->loose_geom.verts;
     mr->vert_loose_len = cache->loose_geom.verts.size();
     mr->edge_loose_len = cache->loose_geom.edges.size();
 

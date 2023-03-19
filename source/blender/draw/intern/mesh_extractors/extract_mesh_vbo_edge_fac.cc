@@ -137,20 +137,20 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edge_fac_iter_ledge_bm(const MeshRenderData *mr,
-                                           const BMEdge * /*eed*/,
-                                           const int ledge_index,
-                                           void *_data)
+static void extract_edge_fac_iter_loose_edge_bm(const MeshRenderData *mr,
+                                                const BMEdge * /*eed*/,
+                                                const int ledge_index,
+                                                void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
   data->vbo_data[mr->loop_len + (ledge_index * 2) + 0] = 255;
   data->vbo_data[mr->loop_len + (ledge_index * 2) + 1] = 255;
 }
 
-static void extract_edge_fac_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge * /*edge*/,
-                                             const int ledge_index,
-                                             void *_data)
+static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                                  const MEdge * /*edge*/,
+                                                  const int ledge_index,
+                                                  void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
@@ -279,8 +279,8 @@ constexpr MeshExtract create_extractor_edge_fac()
   extractor.init = extract_edge_fac_init;
   extractor.iter_poly_bm = extract_edge_fac_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edge_fac_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_edge_fac_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_edge_fac_iter_ledge_mesh;
+  extractor.iter_loose_edge_bm = extract_edge_fac_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_edge_fac_iter_loose_edge_mesh;
   extractor.init_subdiv = extract_edge_fac_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_edge_fac_loose_geom_subdiv;
   extractor.finish = extract_edge_fac_finish;

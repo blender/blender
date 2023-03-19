@@ -32,8 +32,10 @@ eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
   eMRIterType type = (eMRIterType)0;
   SET_FLAG_FROM_TEST(type, (ext->iter_looptri_bm || ext->iter_looptri_mesh), MR_ITER_LOOPTRI);
   SET_FLAG_FROM_TEST(type, (ext->iter_poly_bm || ext->iter_poly_mesh), MR_ITER_POLY);
-  SET_FLAG_FROM_TEST(type, (ext->iter_ledge_bm || ext->iter_ledge_mesh), MR_ITER_LEDGE);
-  SET_FLAG_FROM_TEST(type, (ext->iter_lvert_bm || ext->iter_lvert_mesh), MR_ITER_LVERT);
+  SET_FLAG_FROM_TEST(
+      type, (ext->iter_loose_edge_bm || ext->iter_loose_edge_mesh), MR_ITER_LOOSE_EDGE);
+  SET_FLAG_FROM_TEST(
+      type, (ext->iter_loose_vert_bm || ext->iter_loose_vert_mesh), MR_ITER_LOOSE_VERT);
   return type;
 }
 
