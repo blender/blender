@@ -10,6 +10,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -64,6 +65,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+using blender::IndexRange;
 using blender::Vector;
 
 static int sculpt_face_material_get(SculptSession *ss, PBVHFaceRef face)
@@ -1705,6 +1707,20 @@ static void sculpt_face_set_grow_bmesh(Object *ob,
   }
 }
 
+static void rebuild_pbvh_draw_buffers(PBVH *pbvh)
+{
+  PBVHNode **nodes;
+  int nodes_num;
+
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &nodes_num);
+  for (int i : IndexRange(nodes_num)) {
+    BKE_pbvh_node_mark_update(nodes[i]);
+    BKE_pbvh_node_mark_rebuild_draw(nodes[i]);
+  }
+
+  MEM_SAFE_FREE(nodes);
+}
+
 static void sculpt_face_set_grow(Object *ob,
                                  SculptSession *ss,
                                  const int *prev_face_sets,
@@ -1739,6 +1755,8 @@ static void sculpt_face_set_grow(Object *ob,
       }
     }
   }
+
+  rebuild_pbvh_draw_buffers(ss->pbvh);
 }
 
 static void sculpt_face_set_fill_component(Object *ob,
@@ -1869,6 +1887,8 @@ static void sculpt_face_set_shrink(Object *ob,
       }
     }
   }
+
+  rebuild_pbvh_draw_buffers(ss->pbvh);
 }
 
 static bool check_single_face_set(SculptSession *ss, const bool check_visible_only)
@@ -2920,14 +2940,7 @@ ATTR_NO_OPT static int sculpt_face_set_edit_modal(bContext *C,
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(idx));
     }
 
-    PBVHNode **nodes;
-    int totnode;
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
-    for (int i = 0; i < totnode; i++) {
-      BKE_pbvh_node_mark_update(nodes[i]);
-      BKE_pbvh_node_mark_rebuild_draw(nodes[i]);
-    }
-    MEM_SAFE_FREE(nodes);
+    rebuild_pbvh_draw_buffers(ss->pbvh);
   }
   else {
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
