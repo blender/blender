@@ -1099,12 +1099,10 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
   }
 }
 
-static bool cursor_isect_multi_input_socket(const Span<float2> socket_locations,
-                                            const float2 &cursor,
-                                            const bNodeSocket &socket)
+static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)
 {
   const float node_socket_height = node_socket_calculate_height(socket);
-  const float2 location = socket_locations[socket.index_in_tree()];
+  const float2 location = socket.runtime->location;
   /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
@@ -1131,11 +1129,6 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
-  if (socket_locations.size() != node_tree.all_sockets().size()) {
-    /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
-    return nullptr;
-  }
   const Span<bNode *> nodes = node_tree.all_nodes();
   if (nodes.is_empty()) {
     return nullptr;
@@ -1160,9 +1153,9 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node.input_sockets()) {
         if (sock->is_visible()) {
-          const float2 location = socket_locations[sock->index_in_tree()];
+          const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
-            if (cursor_isect_multi_input_socket(socket_locations, cursor, *sock)) {
+            if (cursor_isect_multi_input_socket(cursor, *sock)) {
               if (!socket_is_occluded(location, node, snode)) {
                 return sock;
               }
@@ -1179,7 +1172,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_OUT) {
       for (bNodeSocket *sock : node.output_sockets()) {
         if (sock->is_visible()) {
-          const float2 location = socket_locations[sock->index_in_tree()];
+          const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, node, snode)) {
               return sock;
@@ -1199,16 +1192,14 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 /** \name Node Link Dimming
  * \{ */
 
-float node_link_dim_factor(const Span<float2> socket_locations,
-                           const View2D &v2d,
-                           const bNodeLink &link)
+float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
 {
   if (link.fromsock == nullptr || link.tosock == nullptr) {
     return 1.0f;
   }
 
-  const float2 from = socket_locations[link.fromsock->index_in_tree()];
-  const float2 to = socket_locations[link.tosock->index_in_tree()];
+  const float2 from = link.fromsock->runtime->location;
+  const float2 to = link.tosock->runtime->location;
 
   const float min_endpoint_distance = std::min(
       std::max(BLI_rctf_length_x(&v2d.cur, from.x), BLI_rctf_length_y(&v2d.cur, from.y)),
@@ -1221,11 +1212,9 @@ float node_link_dim_factor(const Span<float2> socket_locations,
   return std::clamp(1.0f - min_endpoint_distance / viewport_width * 10.0f, 0.05f, 1.0f);
 }
 
-bool node_link_is_hidden_or_dimmed(const Span<float2> socket_locations,
-                                   const View2D &v2d,
-                                   const bNodeLink &link)
+bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
 {
-  return nodeLinkIsHidden(&link) || node_link_dim_factor(socket_locations, v2d, link) < 0.5f;
+  return nodeLinkIsHidden(&link) || node_link_dim_factor(v2d, link) < 0.5f;
 }
 
 /** \} */
