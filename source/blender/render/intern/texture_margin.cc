@@ -54,31 +54,20 @@ class TextureMarginMap {
   uint32_t value_to_store_;
   char *mask_;
 
-  MPoly const *polys_;
-  MLoop const *mloop_;
-  float2 const *mloopuv_;
-  int totpoly_;
-  int totloop_;
+  Span<MPoly> polys_;
+  Span<MLoop> mloop_;
+  Span<float2> mloopuv_;
   int totedge_;
 
  public:
   TextureMarginMap(size_t w,
                    size_t h,
                    const float uv_offset[2],
-                   MPoly const *polys,
-                   MLoop const *mloop,
-                   float2 const *mloopuv,
-                   int totpoly,
-                   int totloop,
-                   int totedge)
-      : w_(w),
-        h_(h),
-        polys_(polys),
-        mloop_(mloop),
-        mloopuv_(mloopuv),
-        totpoly_(totpoly),
-        totloop_(totloop),
-        totedge_(totedge)
+                   const int totedge,
+                   const Span<MPoly> polys,
+                   const Span<MLoop> mloop,
+                   const Span<float2> mloopuv)
+      : w_(w), h_(h), polys_(polys), mloop_(mloop), mloopuv_(mloopuv), totedge_(totedge)
   {
     copy_v2_v2(uv_offset_, uv_offset);
 
@@ -290,15 +279,14 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map({polys_, totpoly_},
-                                                                            totloop_);
+    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys_, mloop_.size());
 
-    loop_adjacency_map_.resize(totloop_, -1);
+    loop_adjacency_map_.resize(mloop_.size(), -1);
 
     Vector<int> tmpmap;
     tmpmap.resize(totedge_, -1);
 
-    for (size_t i = 0; i < totloop_; i++) {
+    for (const int64_t i : mloop_.index_range()) {
       int edge = mloop_[i].e;
       if (tmpmap[edge] == -1) {
         loop_adjacency_map_[i] = -1;
@@ -481,60 +469,17 @@ const int TextureMarginMap::distances[8] = {2, 3, 2, 3, 2, 3, 2, 3};
 static void generate_margin(ImBuf *ibuf,
                             char *mask,
                             const int margin,
-                            const Mesh *me,
-                            DerivedMesh *dm,
-                            char const *uv_layer,
+                            const Span<float3> vert_positions,
+                            const int edges_num,
+                            const Span<MPoly> polys,
+                            const Span<MLoop> loops,
+                            const Span<float2> mloopuv,
                             const float uv_offset[2])
 {
+  Array<MLoopTri> looptris(poly_to_tri_count(polys.size(), loops.size()));
+  bke::mesh::looptris_calc(vert_positions, polys, loops, looptris);
 
-  const MPoly *polys;
-  const MLoop *mloop;
-  const float2 *mloopuv;
-  int totpoly, totloop, totedge;
-
-  int tottri;
-  const MLoopTri *looptri;
-  MLoopTri *looptri_mem = nullptr;
-
-  if (me) {
-    BLI_assert(dm == nullptr);
-    totpoly = me->totpoly;
-    totloop = me->totloop;
-    totedge = me->totedge;
-    polys = me->polys().data();
-    mloop = me->loops().data();
-
-    if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-      mloopuv = static_cast<const float2 *>(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
-    }
-    else {
-      int uv_id = CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, uv_layer);
-      mloopuv = static_cast<const float2 *>(
-          CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, uv_id));
-    }
-
-    tottri = poly_to_tri_count(me->totpoly, me->totloop);
-    looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
-    bke::mesh::looptris_calc(
-        me->vert_positions(), me->polys(), me->loops(), {looptri_mem, tottri});
-    looptri = looptri_mem;
-  }
-  else {
-    BLI_assert(dm != nullptr);
-    BLI_assert(me == nullptr);
-    totpoly = dm->getNumPolys(dm);
-    totedge = dm->getNumEdges(dm);
-    totloop = dm->getNumLoops(dm);
-    polys = dm->getPolyArray(dm);
-    mloop = dm->getLoopArray(dm);
-    mloopuv = static_cast<const float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
-
-    looptri = dm->getLoopTriArray(dm);
-    tottri = dm->getNumLoopTri(dm);
-  }
-
-  TextureMarginMap map(
-      ibuf->x, ibuf->y, uv_offset, polys, mloop, mloopuv, totpoly, totloop, totedge);
+  TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, polys, loops, mloopuv);
 
   bool draw_new_mask = false;
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
@@ -547,8 +492,8 @@ static void generate_margin(ImBuf *ibuf,
     draw_new_mask = true;
   }
 
-  for (int i = 0; i < tottri; i++) {
-    const MLoopTri *lt = &looptri[i];
+  for (const int i : looptris.index_range()) {
+    const MLoopTri *lt = &looptris[i];
     float vec[3][2];
 
     for (int a = 0; a < 3; a++) {
@@ -587,10 +532,6 @@ static void generate_margin(ImBuf *ibuf,
   IMB_filter_extend(ibuf, mask, margin);
 
   MEM_freeN(mask);
-
-  if (looptri_mem) {
-    MEM_freeN(looptri_mem);
-  }
 }
 
 }  // namespace blender::render::texturemargin
@@ -598,17 +539,45 @@ static void generate_margin(ImBuf *ibuf,
 void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char *mask,
                                              const int margin,
-                                             const Mesh *me,
+                                             const Mesh *mesh,
                                              char const *uv_layer,
                                              const float uv_offset[2])
 {
-  blender::render::texturemargin::generate_margin(
-      ibuf, mask, margin, me, nullptr, uv_layer, uv_offset);
+  const blender::float2 *mloopuv;
+  if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
+    mloopuv = static_cast<const blender::float2 *>(
+        CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
+  }
+  else {
+    mloopuv = static_cast<const blender::float2 *>(
+        CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uv_layer));
+  }
+
+  blender::render::texturemargin::generate_margin(ibuf,
+                                                  mask,
+                                                  margin,
+                                                  mesh->vert_positions(),
+                                                  mesh->totedge,
+                                                  mesh->polys(),
+                                                  mesh->loops(),
+                                                  {mloopuv, mesh->totloop},
+                                                  uv_offset);
 }
 
 void RE_generate_texturemargin_adjacentfaces_dm(
     ImBuf *ibuf, char *mask, const int margin, DerivedMesh *dm, const float uv_offset[2])
 {
+  const blender::float2 *mloopuv = static_cast<const blender::float2 *>(
+      dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
+
   blender::render::texturemargin::generate_margin(
-      ibuf, mask, margin, nullptr, dm, nullptr, uv_offset);
+      ibuf,
+      mask,
+      margin,
+      {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), dm->getNumVerts(dm)},
+      dm->getNumEdges(dm),
+      {dm->getPolyArray(dm), dm->getNumPolys(dm)},
+      {dm->getLoopArray(dm), dm->getNumLoops(dm)},
+      {mloopuv, dm->getNumLoops(dm)},
+      uv_offset);
 }
