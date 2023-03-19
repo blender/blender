@@ -438,8 +438,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
                 id, color_name_from_index(id, color_clamp_index(id, default_index)));
           }
 
-          if (type == CD_PROP_FLOAT2) {
-            /* free associated UV map bool layers */
+          if (type == CD_PROP_FLOAT2 && domain == ATTR_DOMAIN_CORNER) {
             char buffer[MAX_CUSTOMDATA_LAYER_NAME];
             BM_data_layer_free_named(
                 em->bm, data, BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer));
@@ -456,7 +455,6 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
   }
 
   std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(*id);
-
   if (!attributes) {
     return false;
   }
@@ -487,8 +485,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
       BKE_id_attributes_default_color_set(
           id, color_name_from_index(id, color_clamp_index(id, default_index)));
     }
-    if (metadata->data_type == CD_PROP_FLOAT2) {
-      /* remove UV sub-attributes. */
+    if (metadata->data_type == CD_PROP_FLOAT2 && metadata->domain == ATTR_DOMAIN_CORNER) {
       char buffer[MAX_CUSTOMDATA_LAYER_NAME];
       attributes->remove(BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer));
       attributes->remove(BKE_uv_map_edge_select_name_get(name_copy.c_str(), buffer));
