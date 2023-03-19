@@ -30,39 +30,6 @@
 /** \name Update Loose Geometry
  * \{ */
 
-static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
-                                            MeshBufferCache *cache,
-                                            BMesh *bm);
-static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
-                                            MeshBufferCache *cache,
-                                            BMesh *bm);
-static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache);
-static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache);
-
-static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr, MeshBufferCache *cache)
-{
-  /* Early exit: Are loose geometry already available.
-   * Only checking for loose verts as loose edges and verts are calculated at the same time. */
-  if (!cache->loose_geom.verts.is_empty()) {
-    return;
-  }
-  mesh_render_data_loose_geom_build(mr, cache);
-}
-
-static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache)
-{
-  if (mr->extract_type != MR_EXTRACT_BMESH) {
-    /* Mesh */
-    mesh_render_data_loose_geom_mesh(mr, cache);
-  }
-  else {
-    /* #BMesh */
-    BMesh *bm = mr->bm;
-    mesh_render_data_loose_verts_bm(mr, cache, bm);
-    mesh_render_data_loose_edges_bm(mr, cache, bm);
-  }
-}
-
 static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache)
 {
   using namespace blender;
@@ -153,6 +120,30 @@ static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
   }
 }
 
+static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache)
+{
+  if (mr->extract_type != MR_EXTRACT_BMESH) {
+    /* Mesh */
+    mesh_render_data_loose_geom_mesh(mr, cache);
+  }
+  else {
+    /* #BMesh */
+    BMesh *bm = mr->bm;
+    mesh_render_data_loose_verts_bm(mr, cache, bm);
+    mesh_render_data_loose_edges_bm(mr, cache, bm);
+  }
+}
+
+static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr, MeshBufferCache *cache)
+{
+  /* Early exit: Are loose geometry already available.
+   * Only checking for loose verts as loose edges and verts are calculated at the same time. */
+  if (!cache->loose_geom.verts.is_empty()) {
+    return;
+  }
+  mesh_render_data_loose_geom_build(mr, cache);
+}
+
 void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         MeshBufferCache *cache,
                                         const eMRIterType iter_type,
@@ -177,83 +168,6 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
  *
  * Contains polygon indices sorted based on their material.
  * \{ */
-
-static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache);
-static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache);
-static void mesh_render_data_mat_tri_len_build(MeshRenderData *mr,
-                                               blender::MutableSpan<int> mat_tri_len);
-
-void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
-                                          MeshBufferCache *cache,
-                                          const eMRDataType data_flag)
-{
-  if (data_flag & MR_DATA_POLYS_SORTED) {
-    mesh_render_data_polys_sorted_ensure(mr, cache);
-    mr->poly_sorted = &cache->poly_sorted;
-  }
-}
-
-static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
-{
-  if (!cache->poly_sorted.tri_first_index.is_empty()) {
-    return;
-  }
-  mesh_render_data_polys_sorted_build(mr, cache);
-}
-
-static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
-{
-  using namespace blender;
-  cache->poly_sorted.tri_first_index.reinitialize(mr->poly_len);
-  cache->poly_sorted.mat_tri_len.reinitialize(mr->mat_len);
-
-  mesh_render_data_mat_tri_len_build(mr, cache->poly_sorted.mat_tri_len);
-  const Span<int> mat_tri_len = cache->poly_sorted.mat_tri_len;
-
-  /* Apply offset. */
-  int visible_tri_len = 0;
-  blender::Array<int, 32> mat_tri_offs(mr->mat_len);
-  {
-    for (int i = 0; i < mr->mat_len; i++) {
-      mat_tri_offs[i] = visible_tri_len;
-      visible_tri_len += mat_tri_len[i];
-    }
-  }
-  cache->poly_sorted.visible_tri_len = visible_tri_len;
-
-  MutableSpan<int> tri_first_index = cache->poly_sorted.tri_first_index;
-
-  /* Sort per material. */
-  int mat_last = mr->mat_len - 1;
-  if (mr->extract_type == MR_EXTRACT_BMESH) {
-    BMIter iter;
-    BMFace *f;
-    int i;
-    BM_ITER_MESH_INDEX (f, &iter, mr->bm, BM_FACES_OF_MESH, i) {
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        const int mat = clamp_i(f->mat_nr, 0, mat_last);
-        tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += f->len - 2;
-      }
-      else {
-        tri_first_index[i] = -1;
-      }
-    }
-  }
-  else {
-    for (int i = 0; i < mr->poly_len; i++) {
-      if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const MPoly &poly = mr->polys[i];
-        const int mat = mr->material_indices ? clamp_i(mr->material_indices[i], 0, mat_last) : 0;
-        tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += poly.totloop - 2;
-      }
-      else {
-        tri_first_index[i] = -1;
-      }
-    }
-  }
-}
 
 static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
                                                      const int iter,
@@ -324,6 +238,78 @@ static void mesh_render_data_mat_tri_len_build(MeshRenderData *mr,
   else {
     mesh_render_data_mat_tri_len_build_threaded(
         mr, mr->poly_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
+  }
+}
+
+static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
+{
+  using namespace blender;
+  cache->poly_sorted.tri_first_index.reinitialize(mr->poly_len);
+  cache->poly_sorted.mat_tri_len.reinitialize(mr->mat_len);
+
+  mesh_render_data_mat_tri_len_build(mr, cache->poly_sorted.mat_tri_len);
+  const Span<int> mat_tri_len = cache->poly_sorted.mat_tri_len;
+
+  /* Apply offset. */
+  int visible_tri_len = 0;
+  blender::Array<int, 32> mat_tri_offs(mr->mat_len);
+  {
+    for (int i = 0; i < mr->mat_len; i++) {
+      mat_tri_offs[i] = visible_tri_len;
+      visible_tri_len += mat_tri_len[i];
+    }
+  }
+  cache->poly_sorted.visible_tri_len = visible_tri_len;
+
+  MutableSpan<int> tri_first_index = cache->poly_sorted.tri_first_index;
+
+  /* Sort per material. */
+  int mat_last = mr->mat_len - 1;
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    BMIter iter;
+    BMFace *f;
+    int i;
+    BM_ITER_MESH_INDEX (f, &iter, mr->bm, BM_FACES_OF_MESH, i) {
+      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+        const int mat = clamp_i(f->mat_nr, 0, mat_last);
+        tri_first_index[i] = mat_tri_offs[mat];
+        mat_tri_offs[mat] += f->len - 2;
+      }
+      else {
+        tri_first_index[i] = -1;
+      }
+    }
+  }
+  else {
+    for (int i = 0; i < mr->poly_len; i++) {
+      if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
+        const MPoly &poly = mr->polys[i];
+        const int mat = mr->material_indices ? clamp_i(mr->material_indices[i], 0, mat_last) : 0;
+        tri_first_index[i] = mat_tri_offs[mat];
+        mat_tri_offs[mat] += poly.totloop - 2;
+      }
+      else {
+        tri_first_index[i] = -1;
+      }
+    }
+  }
+}
+
+static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
+{
+  if (!cache->poly_sorted.tri_first_index.is_empty()) {
+    return;
+  }
+  mesh_render_data_polys_sorted_build(mr, cache);
+}
+
+void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
+                                          MeshBufferCache *cache,
+                                          const eMRDataType data_flag)
+{
+  if (data_flag & MR_DATA_POLYS_SORTED) {
+    mesh_render_data_polys_sorted_ensure(mr, cache);
+    mr->poly_sorted = &cache->poly_sorted;
   }
 }
 
