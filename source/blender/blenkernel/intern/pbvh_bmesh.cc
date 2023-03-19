@@ -2952,21 +2952,9 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       continue;
     }
 
-#ifdef SCULPT_DIAGONAL_EDGE_MARKS
-    int ecount = 0;
-#endif
-
-    // clear edgeflag for building edge indices later
+    /* Clear edgeflag for building edge indices later. */
     BMLoop *l = f->l_first;
     do {
-#ifdef SCULPT_DIAGONAL_EDGE_MARKS
-      BMEdge *e2 = l->v->e;
-      do {
-        if (e2->head.hflag & BM_ELEM_DRAW) {
-          ecount++;
-        }
-      } while ((e2 = BM_DISK_EDGE_NEXT(e2, l->v)) != l->v->e);
-#endif
       l->e->head.hflag &= ~edgeflag;
     } while ((l = l->next) != f->l_first);
 
@@ -3005,11 +2993,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         void **val = nullptr;
         BMEdge *e = BM_edge_exists(l->v, l2->v);
 
-#  ifdef SCULPT_DIAGONAL_EDGE_MARKS
-        if (e && (e->head.hflag & BM_ELEM_DRAW)) {
-#  else
         if (e) {
-#  endif
           tri->eflag |= 1 << j;
           mat_tri->eflag |= 1 << j;
         }

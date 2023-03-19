@@ -286,9 +286,9 @@ static int new_fset_apply_curve(SculptSession *ss,
   return new_fset;
 }
 
-void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
-                                        const int n,
-                                        const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict tls)
 {
   SculptFaceSetDrawData *data = (SculptFaceSetDrawData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -640,7 +640,10 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
+                                                Object *ob,
+                                                PBVHNode **nodes,
+                                                int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);

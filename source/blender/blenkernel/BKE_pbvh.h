@@ -28,8 +28,6 @@
 extern "C" {
 #endif
 
-/* Experimental feature to detect quad diagonals and mark (but not dissolve) them. */
-//#define SCULPT_DIAGONAL_EDGE_MARKS
 typedef struct SculptPMap {
   struct MeshElemMap *pmap;
   int *pmap_mem;

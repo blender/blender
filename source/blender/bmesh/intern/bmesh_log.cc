@@ -772,6 +772,8 @@ struct BMLog {
 
   ATTR_NO_OPT bool free_all_entries()
   {
+    printf("Freeing all log entries.\n");
+
     BMLogEntry *entry = first_entry;
 
     if (!entry) {
@@ -803,6 +805,8 @@ struct BMLog {
     }
 
     entry->prev = current_entry;
+    entry->log = this;
+    entry->idmap = idmap;
 
     if (!first_entry) {
       first_entry = entry;
@@ -1621,12 +1625,15 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry)
 
 bool BM_log_entry_drop(BMLogEntry *entry)
 {
+  printf("%s: Freeing log entry %p\n", __func__, entry);
+
   if (entry->prev) {
     entry->prev->next = entry->next;
   }
   if (entry->next) {
     entry->next->prev = entry->prev;
   }
+  
   if (entry->log && entry == entry->log->current_entry) {
     entry->log->current_entry = entry->prev;
   }
@@ -1637,4 +1644,5 @@ bool BM_log_entry_drop(BMLogEntry *entry)
 
 void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
 {
+  printf("entry: %p", entry);
 }

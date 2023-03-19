@@ -184,7 +184,7 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   }
 
   if (!useAccurateSolver || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
-    // do simple power solve in one direction
+    /* Do simple power solve in one direction. */
 
     float t[3];
     float t2[3];
@@ -238,7 +238,7 @@ void SCULPT_curvature_dir_get(SculptSession *ss,
 void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAccurateSolver)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-    // caching only happens for bmesh for now
+    /* Caching only happens for bmesh for now. */
     return;
   }
 

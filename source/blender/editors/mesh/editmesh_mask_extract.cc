@@ -52,10 +52,6 @@ static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob != nullptr && ob->mode == OB_MODE_SCULPT) {
-    if (ob->sculpt->bm) {
-      CTX_wm_operator_poll_msg_set(C, "The geometry can not be extracted with dyntopo activated");
-      return false;
-    }
     return ED_operator_object_active_editable_mesh(C);
   }
   return false;
@@ -78,16 +74,23 @@ struct GeometryExtractParams {
 /* Function that tags in BMesh the faces that should be deleted in the extracted object. */
 using GeometryExtractTagMeshFunc = void(BMesh *, GeometryExtractParams *);
 
-static int geometry_extract_apply(bContext *C,
-                                  wmOperator *op,
-                                  GeometryExtractTagMeshFunc *tag_fn,
-                                  GeometryExtractParams *params)
+ATTR_NO_OPT static int geometry_extract_apply(bContext *C,
+                                              wmOperator *op,
+                                              GeometryExtractTagMeshFunc *tag_fn,
+                                              GeometryExtractParams *params)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
+  bool use_sculpt_bmesh = ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->bm;
+  BMesh *bm;
+
+  if (use_sculpt_bmesh) {
+    bm = BM_mesh_copy(ob->sculpt->bm);
+    BM_mesh_toolflags_set(bm, true);
+  }
 
   ED_object_sculptmode_exit(C, depsgraph);
 
@@ -100,15 +103,17 @@ static int geometry_extract_apply(bContext *C,
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
-  BMeshCreateParams bm_create_params{};
-  bm_create_params.use_toolflags = true;
-  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
+  if (!use_sculpt_bmesh) {
+    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
+    BMeshCreateParams bm_create_params{};
+    bm_create_params.use_toolflags = true;
+    bm = BM_mesh_create(&allocsize, &bm_create_params);
 
-  BMeshFromMeshParams mesh_to_bm_params{};
-  mesh_to_bm_params.calc_face_normal = true;
-  mesh_to_bm_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
+    BMeshFromMeshParams mesh_to_bm_params{};
+    mesh_to_bm_params.calc_face_normal = true;
+    mesh_to_bm_params.calc_vert_normal = true;
+    BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
+  }
 
   BMEditMesh *em = BKE_editmesh_create(bm);
 

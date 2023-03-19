@@ -659,7 +659,7 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
 
   // forcibly copy mesh_id layers
   CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
-  //CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
+  // CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
 
   for (int i = 0; i < 4; i++) {
     CustomData *cdata = srcdatas[i];
@@ -730,16 +730,10 @@ BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params)
   BMIter iter;
   int i;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm_old);
-  struct BMeshCreateParams _params;
+  struct BMeshCreateParams _params = {0};
 
   if (!params) {
-    _params = ((struct BMeshCreateParams){
-        .use_toolflags = bm_old->use_toolflags,
-        .id_elem_mask = bm_old->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE),
-        .create_unique_ids = !!(bm_old->idmap.flag & BM_HAS_IDS),
-        .id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP),
-        .temporary_ids = !(bm_old->idmap.flag & BM_PERMANENT_IDS),
-        .no_reuse_ids = !!(bm_old->idmap.flag & BM_NO_REUSE_IDS)});
+    _params.use_toolflags = bm_old->use_toolflags;
     params = &_params;
   }
 
@@ -892,12 +886,6 @@ BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params)
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
   struct BMeshCreateParams params = {0};
-#ifndef USE_NEW_IDMAP
-  params.create_unique_ids = bm_old->idmap.flag & BM_HAS_IDS;
-  params.id_elem_mask = bm_old->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE);
-  params.id_map = bm_old->idmap.flag & BM_HAS_ID_MAP;
-  params.no_reuse_ids = bm_old->idmap.flag & BM_NO_REUSE_IDS;
-#endif
 
   params.copy_all_layers = true;
   return BM_mesh_copy_ex(bm_old, &params);

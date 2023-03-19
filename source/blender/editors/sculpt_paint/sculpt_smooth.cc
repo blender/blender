@@ -306,23 +306,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     /* fac is a measure of how orthogonal or parallel the edge is
      * relative to the direction. */
     float fac = dot_v3v3(vec, dir);
-#ifdef SCULPT_DIAGONAL_EDGE_MARKS
-    float th = fabsf(saacos(fac)) / M_PI + 0.5f;
-    th -= floorf(th);
-
-    const float limit = 0.045;
-
-    if (fabsf(th - 0.25) < limit || fabsf(th - 0.75) < limit) {
-      BMEdge enew = *e, eold = *e;
-
-      enew.head.hflag &= ~BM_ELEM_DRAW;
-      // enew.head.hflag |= BM_ELEM_SEAM;  // XXX debug
-
-      atomic_cas_int64((intptr_t *)(&e->head.index),
-                       *(intptr_t *)(&eold.head.index),
-                       *(intptr_t *)(&enew.head.index));
-    }
-#endif
 
     fac = fac * fac - 0.5f;
     fac *= fac;
@@ -335,7 +318,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     tot_co += fac;
   }
 
-  /* In case vert has no Edge s. */
+  /* In case vertex has no edges. */
   if (tot_co > 0.0f) {
     mul_v3_v3fl(avg, avg_co, 1.0f / tot_co);
 

@@ -2894,8 +2894,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     if (ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
       printf("%s: error\n", __func__);
     }
-    /* this should rarely happen */
-    // if (ni < 0 || ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
+
+    /* This should rarely happen. */
     if (ni == DYNTOPO_NODE_NONE) {
       ni = DYNTOPO_NODE_NONE;
 

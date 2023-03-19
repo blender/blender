@@ -477,7 +477,7 @@ int SCULPT_active_face_set_get(SculptSession *ss)
       return ss->face_sets[face_index];
     }
     case PBVH_BMESH:
-      if (ss->cd_faceset_offset && ss->active_face.i) {
+      if (ss->cd_faceset_offset && (ss->active_face.i != PBVH_REF_NONE)) {
         BMFace *f = (BMFace *)ss->active_face.i;
         return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
       }
@@ -4360,7 +4360,7 @@ static void do_brush_action(Sculpt *sd,
       undo_type = SCULPT_UNDO_COLOR;
     }
     else if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
-      if (ss->cache->invert) {
+      if (ss->cache->alt_smooth) {
         undo_type = SCULPT_UNDO_COORDS;
       }
       else {
@@ -5923,6 +5923,8 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   srd.face_normal = face_normal;
+  srd.active_face.i = PBVH_REF_NONE;
+  srd.active_vertex.i = PBVH_REF_NONE;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   BKE_pbvh_raycast(
@@ -5951,7 +5953,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
       ss->active_grid_index = ss->active_face.i;
       break;
     case PBVH_BMESH:
-      ss->active_face.i = PBVH_REF_NONE;
+      ss->active_face = srd.active_face;
       ss->active_grid_index = 0;
       break;
   }
@@ -6066,6 +6068,8 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     srd.depth = depth;
     srd.original = original;
     srd.face_normal = face_normal;
+    srd.active_face.i = PBVH_REF_NONE;
+    srd.active_vertex.i = PBVH_REF_NONE;
     isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
     BKE_pbvh_raycast(
@@ -7093,6 +7097,8 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   srd.face_normal = face_normal;
+  srd.active_face.i = PBVH_REF_NONE;
+  srd.active_vertex.i = PBVH_REF_NONE;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   BKE_pbvh_raycast(
