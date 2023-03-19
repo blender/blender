@@ -490,11 +490,9 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
     if (metadata->data_type == CD_PROP_FLOAT2) {
       /* remove UV sub-attributes. */
       char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-      BKE_id_attribute_remove(
-          id, BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer), reports);
-      BKE_id_attribute_remove(
-          id, BKE_uv_map_edge_select_name_get(name_copy.c_str(), buffer), reports);
-      BKE_id_attribute_remove(id, BKE_uv_map_pin_name_get(name_copy.c_str(), buffer), reports);
+      attributes->remove(BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer));
+      attributes->remove(BKE_uv_map_edge_select_name_get(name_copy.c_str(), buffer));
+      attributes->remove(BKE_uv_map_pin_name_get(name_copy.c_str(), buffer));
     }
     return true;
   }
