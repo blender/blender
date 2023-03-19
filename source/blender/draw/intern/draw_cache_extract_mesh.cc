@@ -397,13 +397,13 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       stop = mr->poly_len;
       break;
     case MR_ITER_LEDGE:
-      range_data.loose_elems = mr->ledges;
+      range_data.loose_elems = mr->ledges.data();
       range_data.elems = is_mesh ? mr->edges.data() : (void *)mr->bm->etable;
       func = is_mesh ? extract_range_iter_ledge_mesh : extract_range_iter_ledge_bm;
       stop = mr->edge_loose_len;
       break;
     case MR_ITER_LVERT:
-      range_data.loose_elems = mr->lverts;
+      range_data.loose_elems = mr->lverts.data();
       range_data.elems = is_mesh ? mr->vert_positions.data() : (void *)mr->bm->vtable;
       func = is_mesh ? extract_range_iter_lvert_mesh : extract_range_iter_lvert_bm;
       stop = mr->vert_loose_len;

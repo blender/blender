@@ -97,16 +97,13 @@ struct MeshRenderData {
   const bool *select_poly;
   const bool *sharp_faces;
   blender::Array<blender::float3> loop_normals;
-  int *lverts, *ledges;
+
+  blender::Span<int> lverts;
+  blender::Span<int> ledges;
+  const SortedPolyData *poly_sorted;
 
   const char *active_color_name;
   const char *default_color_name;
-
-  struct {
-    int *tri_first_index;
-    int *mat_tri_len;
-    int visible_tri_len;
-  } poly_sorted;
 };
 
 BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *me)

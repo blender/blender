@@ -39,21 +39,11 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
 static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache);
 static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache);
 
-static void mesh_render_data_loose_geom_load(MeshRenderData *mr, MeshBufferCache *cache)
-{
-  mr->ledges = cache->loose_geom.edges;
-  mr->lverts = cache->loose_geom.verts;
-  mr->vert_loose_len = cache->loose_geom.vert_len;
-  mr->edge_loose_len = cache->loose_geom.edge_len;
-
-  mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
-}
-
 static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr, MeshBufferCache *cache)
 {
   /* Early exit: Are loose geometry already available.
    * Only checking for loose verts as loose edges and verts are calculated at the same time. */
-  if (cache->loose_geom.verts) {
+  if (!cache->loose_geom.verts.is_empty()) {
     return;
   }
   mesh_render_data_loose_geom_build(mr, cache);
@@ -61,9 +51,6 @@ static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr, MeshBuf
 
 static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache)
 {
-  cache->loose_geom.vert_len = 0;
-  cache->loose_geom.edge_len = 0;
-
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     mesh_render_data_loose_geom_mesh(mr, cache);
@@ -83,14 +70,13 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
 
   const bke::LooseEdgeCache &loose_edges = mr->me->loose_edges();
   if (loose_edges.count > 0) {
-    cache->loose_geom.edges = static_cast<int *>(
-        MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));
+    cache->loose_geom.edges.reinitialize(loose_edges.count);
 
-    cache->loose_geom.edge_len = 0;
+    int count = 0;
     for (const int64_t i : loose_edges.is_loose_bits.index_range()) {
       if (loose_edges.is_loose_bits[i]) {
-        cache->loose_geom.edges[cache->loose_geom.edge_len] = int(i);
-        cache->loose_geom.edge_len++;
+        cache->loose_geom.edges[count] = int(i);
+        count++;
       }
     }
   }
@@ -101,16 +87,19 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
     BLI_BITMAP_ENABLE(lvert_map, edge.v2);
   }
 
-  cache->loose_geom.verts = static_cast<int *>(
-      MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__));
+  int count = 0;
+  Array<int> loose_verts(mr->vert_len);
   for (int v = 0; v < mr->vert_len; v++) {
     if (!BLI_BITMAP_TEST(lvert_map, v)) {
-      cache->loose_geom.verts[cache->loose_geom.vert_len++] = v;
+      loose_verts[count] = v;
+      count++;
     }
   }
-  if (cache->loose_geom.vert_len < mr->vert_len) {
-    cache->loose_geom.verts = static_cast<int *>(MEM_reallocN(
-        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts)));
+  if (count < mr->vert_len) {
+    cache->loose_geom.verts = loose_verts.as_span().take_front(count);
+  }
+  else {
+    cache->loose_geom.verts = std::move(loose_verts);
   }
 
   MEM_freeN(lvert_map);
@@ -118,37 +107,45 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
 
 static void mesh_render_data_lverts_bm(const MeshRenderData *mr, MeshBufferCache *cache, BMesh *bm)
 {
+  using namespace blender;
   int elem_id;
   BMIter iter;
   BMVert *eve;
-  cache->loose_geom.verts = static_cast<int *>(
-      MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__));
+  int count = 0;
+  Array<int> loose_verts(mr->vert_len);
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
     if (eve->e == nullptr) {
-      cache->loose_geom.verts[cache->loose_geom.vert_len++] = elem_id;
+      loose_verts[count] = elem_id;
+      count++;
     }
   }
-  if (cache->loose_geom.vert_len < mr->vert_len) {
-    cache->loose_geom.verts = static_cast<int *>(MEM_reallocN(
-        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts)));
+  if (count < mr->vert_len) {
+    cache->loose_geom.verts = loose_verts.as_span().take_front(count);
+  }
+  else {
+    cache->loose_geom.verts = std::move(loose_verts);
   }
 }
 
 static void mesh_render_data_ledges_bm(const MeshRenderData *mr, MeshBufferCache *cache, BMesh *bm)
 {
+  using namespace blender;
   int elem_id;
   BMIter iter;
   BMEdge *ede;
-  cache->loose_geom.edges = static_cast<int *>(
-      MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__));
+  int count = 0;
+  Array<int> loose_edges(mr->edge_len);
   BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
     if (ede->l == nullptr) {
-      cache->loose_geom.edges[cache->loose_geom.edge_len++] = elem_id;
+      loose_edges[count] = elem_id;
+      count++;
     }
   }
-  if (cache->loose_geom.edge_len < mr->edge_len) {
-    cache->loose_geom.edges = static_cast<int *>(MEM_reallocN(
-        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges)));
+  if (count < mr->edge_len) {
+    cache->loose_geom.edges = loose_edges.as_span().take_front(count);
+  }
+  else {
+    cache->loose_geom.edges = std::move(loose_edges);
   }
 }
 
@@ -159,7 +156,12 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
 {
   if ((iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) || (data_flag & MR_DATA_LOOSE_GEOM)) {
     mesh_render_data_loose_geom_ensure(mr, cache);
-    mesh_render_data_loose_geom_load(mr, cache);
+    mr->ledges = cache->loose_geom.edges;
+    mr->lverts = cache->loose_geom.verts;
+    mr->vert_loose_len = cache->loose_geom.verts.size();
+    mr->edge_loose_len = cache->loose_geom.edges.size();
+
+    mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
   }
 }
 
@@ -171,10 +173,10 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
  * Contains polygon indices sorted based on their material.
  * \{ */
 
-static void mesh_render_data_polys_sorted_load(MeshRenderData *mr, const MeshBufferCache *cache);
 static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache);
 static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache);
-static int *mesh_render_data_mat_tri_len_build(MeshRenderData *mr);
+static void mesh_render_data_mat_tri_len_build(MeshRenderData *mr,
+                                               blender::MutableSpan<int> mat_tri_len);
 
 void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
                                           MeshBufferCache *cache,
@@ -182,20 +184,13 @@ void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
 {
   if (data_flag & MR_DATA_POLYS_SORTED) {
     mesh_render_data_polys_sorted_ensure(mr, cache);
-    mesh_render_data_polys_sorted_load(mr, cache);
+    mr->poly_sorted = &cache->poly_sorted;
   }
-}
-
-static void mesh_render_data_polys_sorted_load(MeshRenderData *mr, const MeshBufferCache *cache)
-{
-  mr->poly_sorted.tri_first_index = cache->poly_sorted.tri_first_index;
-  mr->poly_sorted.mat_tri_len = cache->poly_sorted.mat_tri_len;
-  mr->poly_sorted.visible_tri_len = cache->poly_sorted.visible_tri_len;
 }
 
 static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
 {
-  if (cache->poly_sorted.tri_first_index) {
+  if (!cache->poly_sorted.tri_first_index.is_empty()) {
     return;
   }
   mesh_render_data_polys_sorted_build(mr, cache);
@@ -203,9 +198,12 @@ static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferC
 
 static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
 {
-  int *tri_first_index = static_cast<int *>(
-      MEM_mallocN(sizeof(*tri_first_index) * mr->poly_len, __func__));
-  int *mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
+  using namespace blender;
+  cache->poly_sorted.tri_first_index.reinitialize(mr->poly_len);
+  cache->poly_sorted.mat_tri_len.reinitialize(mr->mat_len);
+
+  mesh_render_data_mat_tri_len_build(mr, cache->poly_sorted.mat_tri_len);
+  const Span<int> mat_tri_len = cache->poly_sorted.mat_tri_len;
 
   /* Apply offset. */
   int visible_tri_len = 0;
@@ -216,6 +214,9 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
       visible_tri_len += mat_tri_len[i];
     }
   }
+  cache->poly_sorted.visible_tri_len = visible_tri_len;
+
+  MutableSpan<int> tri_first_index = cache->poly_sorted.tri_first_index;
 
   /* Sort per material. */
   int mat_last = mr->mat_len - 1;
@@ -247,10 +248,6 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
       }
     }
   }
-
-  cache->poly_sorted.tri_first_index = tri_first_index;
-  cache->poly_sorted.mat_tri_len = mat_tri_len;
-  cache->poly_sorted.visible_tri_len = visible_tri_len;
 }
 
 static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
@@ -296,35 +293,33 @@ static void mesh_render_data_mat_tri_len_reduce_fn(const void *__restrict userda
   }
 }
 
-static int *mesh_render_data_mat_tri_len_build_threaded(MeshRenderData *mr,
+static void mesh_render_data_mat_tri_len_build_threaded(MeshRenderData *mr,
                                                         int face_len,
-                                                        TaskParallelRangeFunc range_func)
+                                                        TaskParallelRangeFunc range_func,
+                                                        blender::MutableSpan<int> mat_tri_len)
 {
-  /* Extending the #MatOffsetUserData with an int per material slot. */
-  size_t mat_tri_len_size = sizeof(int) * mr->mat_len;
-  int *mat_tri_len = static_cast<int *>(MEM_callocN(mat_tri_len_size, __func__));
-
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.userdata_chunk = mat_tri_len;
-  settings.userdata_chunk_size = mat_tri_len_size;
+  settings.userdata_chunk = mat_tri_len.data();
+  settings.userdata_chunk_size = mat_tri_len.as_span().size_in_bytes();
   settings.min_iter_per_thread = MIN_RANGE_LEN;
   settings.func_reduce = mesh_render_data_mat_tri_len_reduce_fn;
   BLI_task_parallel_range(0, face_len, mr, range_func, &settings);
-
-  return mat_tri_len;
 }
 
 /* Count how many triangles for each material. */
-static int *mesh_render_data_mat_tri_len_build(MeshRenderData *mr)
+static void mesh_render_data_mat_tri_len_build(MeshRenderData *mr,
+                                               blender::MutableSpan<int> mat_tri_len)
 {
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     BMesh *bm = mr->bm;
-    return mesh_render_data_mat_tri_len_build_threaded(
-        mr, bm->totface, mesh_render_data_mat_tri_len_bm_range_fn);
+    mesh_render_data_mat_tri_len_build_threaded(
+        mr, bm->totface, mesh_render_data_mat_tri_len_bm_range_fn, mat_tri_len);
   }
-  return mesh_render_data_mat_tri_len_build_threaded(
-      mr, mr->poly_len, mesh_render_data_mat_tri_len_mesh_range_fn);
+  else {
+    mesh_render_data_mat_tri_len_build_threaded(
+        mr, mr->poly_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
+  }
 }
 
 /** \} */
@@ -594,11 +589,6 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
 void mesh_render_data_free(MeshRenderData *mr)
 {
-
-  /* Loose geometry are owned by #MeshBufferCache. */
-  mr->ledges = nullptr;
-  mr->lverts = nullptr;
-
   MEM_delete(mr);
 }
 
