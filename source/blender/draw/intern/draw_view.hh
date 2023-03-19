@@ -75,6 +75,12 @@ class View {
   /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
   void disable(IndexRange range);
 
+  /** Enable or disable every visibility test (frustum culling, HiZ culling). */
+  void visibility_test(bool enable)
+  {
+    do_visibility_ = enable;
+  }
+
   /**
    * Update culling data using a compute shader.
    * This is to be used if the matrices were updated externally
