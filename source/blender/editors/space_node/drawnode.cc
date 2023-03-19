@@ -2160,7 +2160,6 @@ void node_draw_link_bezier(const bContext &C,
                            const int th_col3,
                            const bool selected)
 {
-  const bNodeTree &node_tree = *snode.edittree;
   const std::array<float2, 4> points = node_link_bezier_points(link);
   if (!node_link_draw_is_visible(v2d, points)) {
     return;
@@ -2220,7 +2219,6 @@ void node_draw_link(const bContext &C,
 static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
                                                              const bNodeLink &link)
 {
-  const bNodeTree &node_tree = *snode.edittree;
   const float2 cursor = snode.runtime->cursor * UI_SCALE_FAC;
   std::array<float2, 4> points;
   points[0] = link.fromsock ?
