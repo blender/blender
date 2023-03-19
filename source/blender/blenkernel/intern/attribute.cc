@@ -411,26 +411,24 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
     if (BMEditMesh *em = mesh->edit_mesh) {
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
-          int layer_index = CustomData_get_named_layer_index_notype(data, name);
-          if (layer_index >= 0) {
-            if (data->layers[layer_index].type == CD_PROP_FLOAT2) {
-              /* free associated UV map bool layers */
-              char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
-              BM_data_layer_free_named(
-                  em->bm, data, BKE_uv_map_vert_select_name_get(name, buffer_src));
-              BM_data_layer_free_named(
-                  em->bm, data, BKE_uv_map_edge_select_name_get(name, buffer_src));
-              BM_data_layer_free_named(em->bm, data, BKE_uv_map_pin_name_get(name, buffer_src));
-            }
+          const std::string name_copy = name;
+          const int layer_index = CustomData_get_named_layer_index_notype(data, name_copy.c_str());
+          if (layer_index == -1) {
+            continue;
           }
-          /* Update active and default color attributes. */
-          const bool is_active_color_attribute = name == StringRef(mesh->active_color_attribute);
-          const bool is_default_color_attribute = name == StringRef(mesh->default_color_attribute);
+
+          const eCustomDataType type = eCustomDataType(data->layers[layer_index].type);
+          const bool is_active_color_attribute = name_copy.c_str() ==
+                                                 StringRef(mesh->active_color_attribute);
+          const bool is_default_color_attribute = name_copy.c_str() ==
+                                                  StringRef(mesh->default_color_attribute);
           const int active_index = color_name_to_index(id, mesh->active_color_attribute);
           const int default_index = color_name_to_index(id, mesh->default_color_attribute);
-          if (!BM_data_layer_free_named(em->bm, data, name)) {
-            return false;
+
+          if (!BM_data_layer_free_named(em->bm, data, name_copy.c_str())) {
+            BLI_assert_unreachable();
           }
+
           if (is_active_color_attribute) {
             BKE_id_attributes_active_color_set(
                 id, color_name_from_index(id, color_clamp_index(id, active_index)));
@@ -438,6 +436,17 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
           if (is_default_color_attribute) {
             BKE_id_attributes_default_color_set(
                 id, color_name_from_index(id, color_clamp_index(id, default_index)));
+          }
+
+          if (type == CD_PROP_FLOAT2) {
+            /* free associated UV map bool layers */
+            char buffer[MAX_CUSTOMDATA_LAYER_NAME];
+            BM_data_layer_free_named(
+                em->bm, data, BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer));
+            BM_data_layer_free_named(
+                em->bm, data, BKE_uv_map_edge_select_name_get(name_copy.c_str(), buffer));
+            BM_data_layer_free_named(
+                em->bm, data, BKE_uv_map_pin_name_get(name_copy.c_str(), buffer));
           }
           return true;
         }
@@ -453,23 +462,23 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
   }
 
   if (GS(id->name) == ID_ME) {
-    std::optional<blender::bke::AttributeMetaData> metadata = attributes->lookup_meta_data(name);
-    if (metadata->data_type == CD_PROP_FLOAT2) {
-      /* remove UV sub-attributes. */
-      char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
-      BKE_id_attribute_remove(id, BKE_uv_map_vert_select_name_get(name, buffer_src), reports);
-      BKE_id_attribute_remove(id, BKE_uv_map_edge_select_name_get(name, buffer_src), reports);
-      BKE_id_attribute_remove(id, BKE_uv_map_pin_name_get(name, buffer_src), reports);
+    const std::string name_copy = name;
+    std::optional<blender::bke::AttributeMetaData> metadata = attributes->lookup_meta_data(
+        name_copy);
+    if (!metadata) {
+      return false;
     }
     /* Update active and default color attributes. */
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
-    const bool is_active_color_attribute = name == StringRef(mesh->active_color_attribute);
-    const bool is_default_color_attribute = name == StringRef(mesh->default_color_attribute);
+    const bool is_active_color_attribute = name_copy == StringRef(mesh->active_color_attribute);
+    const bool is_default_color_attribute = name_copy == StringRef(mesh->default_color_attribute);
     const int active_index = color_name_to_index(id, mesh->active_color_attribute);
     const int default_index = color_name_to_index(id, mesh->default_color_attribute);
-    if (!attributes->remove(name)) {
-      return false;
+
+    if (!attributes->remove(name_copy)) {
+      BLI_assert_unreachable();
     }
+
     if (is_active_color_attribute) {
       BKE_id_attributes_active_color_set(
           id, color_name_from_index(id, color_clamp_index(id, active_index)));
@@ -477,6 +486,15 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
     if (is_default_color_attribute) {
       BKE_id_attributes_default_color_set(
           id, color_name_from_index(id, color_clamp_index(id, default_index)));
+    }
+    if (metadata->data_type == CD_PROP_FLOAT2) {
+      /* remove UV sub-attributes. */
+      char buffer[MAX_CUSTOMDATA_LAYER_NAME];
+      BKE_id_attribute_remove(
+          id, BKE_uv_map_vert_select_name_get(name_copy.c_str(), buffer), reports);
+      BKE_id_attribute_remove(
+          id, BKE_uv_map_edge_select_name_get(name_copy.c_str(), buffer), reports);
+      BKE_id_attribute_remove(id, BKE_uv_map_pin_name_get(name_copy.c_str(), buffer), reports);
     }
     return true;
   }
