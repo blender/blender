@@ -4,7 +4,7 @@
 #include "node_geometry_util.hh"
 
 #include "BKE_lib_id.h"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
@@ -15,39 +15,45 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "NOD_add_node_search.hh"
+#include "NOD_socket_search_link.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes::node_geo_mesh_to_volume_cc {
+namespace blender::nodes::node_geo_mesh_to_sdf_volume_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryMeshToVolume)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.01f).max(FLT_MAX);
   b.add_input<decl::Float>(N_("Voxel Size"))
       .default_value(0.3f)
       .min(0.01f)
       .max(FLT_MAX)
       .subtype(PROP_DISTANCE);
   b.add_input<decl::Float>(N_("Voxel Amount")).default_value(64.0f).min(0.0f).max(FLT_MAX);
-  b.add_input<decl::Float>(N_("Exterior Band Width"))
-      .default_value(0.1f)
-      .min(0.0f)
-      .max(FLT_MAX)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Width of the volume outside of the mesh"));
-  b.add_input<decl::Float>(N_("Interior Band Width"))
-      .default_value(0.0f)
-      .min(0.0f)
-      .max(FLT_MAX)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Width of the volume inside of the mesh"));
-  b.add_input<decl::Bool>(N_("Fill Volume"))
-      .default_value(true)
-      .description(N_("Initialize the density grid in every cell inside the enclosed volume"));
+  b.add_input<decl::Float>(N_("Half-Band Width"))
+      .description(N_("Half the width of the narrow band in voxel units"))
+      .default_value(3.0f)
+      .min(1.01f)
+      .max(10.0f);
   b.add_output<decl::Geometry>(N_("Volume"));
+}
+
+static void search_node_add_ops(GatherAddNodeSearchParams &params)
+{
+  if (U.experimental.use_new_volume_nodes) {
+    blender::nodes::search_node_add_ops_for_basic_node(params);
+  }
+}
+
+static void search_link_ops(GatherLinkSearchOpParams &params)
+{
+  if (U.experimental.use_new_volume_nodes) {
+    blender::nodes::search_link_ops_for_basic_node(params);
+  }
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -81,13 +87,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &params)
 {
-  const NodeGeometryMeshToVolume &storage =
-      *(const NodeGeometryMeshToVolume *)params.node().storage;
+  const NodeGeometryMeshToVolume &storage = node_storage(params.node());
 
-  const float density = params.get_input<float>("Density");
-  const float exterior_band_width = params.get_input<float>("Exterior Band Width");
-  const float interior_band_width = params.get_input<float>("Interior Band Width");
-  const bool fill_volume = params.get_input<bool>("Fill Volume");
+  const float half_band_width = params.get_input<float>("Half-Band Width");
 
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = (MeshToVolumeModifierResolutionMode)storage.resolution_mode;
@@ -104,7 +106,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
     }
   }
 
-  if (mesh.totvert == 0 || mesh.totpoly == 0) {
+  if (mesh.totpoly == 0) {
     return nullptr;
   }
 
@@ -118,24 +120,18 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
     r_max = max;
   };
 
-  const float voxel_size = geometry::volume_compute_voxel_size(params.depsgraph(),
-                                                               bounds_fn,
-                                                               resolution,
-                                                               exterior_band_width,
-                                                               mesh_to_volume_space_transform);
+  const float voxel_size = geometry::volume_compute_voxel_size(
+      params.depsgraph(), bounds_fn, resolution, half_band_width, mesh_to_volume_space_transform);
+
+  if (voxel_size < 1e-5f) {
+    /* The voxel size is too small. */
+    return nullptr;
+  }
 
   Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
 
   /* Convert mesh to grid and add to volume. */
-  geometry::fog_volume_grid_add_from_mesh(volume,
-                                          "density",
-                                          &mesh,
-                                          mesh_to_volume_space_transform,
-                                          voxel_size,
-                                          fill_volume,
-                                          exterior_band_width,
-                                          interior_band_width,
-                                          density);
+  geometry::sdf_volume_grid_add_from_mesh(volume, "distance", mesh, voxel_size, half_band_width);
 
   return volume;
 }
@@ -162,21 +158,24 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_mesh_to_volume_cc
+}  // namespace blender::nodes::node_geo_mesh_to_sdf_volume_cc
 
-void register_node_type_geo_mesh_to_volume()
+void register_node_type_geo_mesh_to_sdf_volume()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_to_volume_cc;
+  namespace file_ns = blender::nodes::node_geo_mesh_to_sdf_volume_cc;
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_VOLUME, "Mesh to Volume", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, GEO_NODE_MESH_TO_SDF_VOLUME, "Mesh to SDF Volume", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 200, 120, 700);
+  node_type_size(&ntype, 180, 120, 300);
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
+  ntype.gather_link_search_ops = file_ns::search_link_ops;
   node_type_storage(
       &ntype, "NodeGeometryMeshToVolume", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

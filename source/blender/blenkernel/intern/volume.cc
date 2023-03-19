@@ -1313,6 +1313,19 @@ const VolumeGrid *BKE_volume_grid_find_for_read(const Volume *volume, const char
   return nullptr;
 }
 
+VolumeGrid *BKE_volume_grid_find_for_write(Volume *volume, const char *name)
+{
+  int num_grids = BKE_volume_num_grids(volume);
+  for (int i = 0; i < num_grids; i++) {
+    VolumeGrid *grid = BKE_volume_grid_get_for_write(volume, i);
+    if (STREQ(BKE_volume_grid_name(grid), name)) {
+      return grid;
+    }
+  }
+
+  return nullptr;
+}
+
 /* Grid Loading */
 
 bool BKE_volume_grid_load(const Volume *volume, const VolumeGrid *grid)

@@ -26,6 +26,10 @@
 #include "node_geometry_register.hh"
 #include "node_util.h"
 
+#ifdef WITH_OPENVDB
+#  include <openvdb/Types.h>
+#endif
+
 struct BVHTreeFromMesh;
 
 void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
@@ -89,6 +93,17 @@ int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
 
 std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
+
+#ifdef WITH_OPENVDB
+/**
+ * Initializes the VolumeComponent of a GeometrySet with a new Volume from points.
+ * The grid class should be either openvdb::GRID_FOG_VOLUME or openvdb::GRID_LEVEL_SET.
+ */
+void initialize_volume_component_from_points(GeoNodeExecParams &params,
+                                             const NodeGeometryPointsToVolume &storage,
+                                             GeometrySet &r_geometry_set,
+                                             openvdb::GridClass gridClass);
+#endif
 
 class FieldAtIndexInput final : public bke::GeometryFieldInput {
  private:
