@@ -60,7 +60,7 @@ set(LIB
 
 blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-if (WITH_GTESTS)
+if(WITH_GTESTS)
   set(TEST_SRC
     tests/io_ply_importer_test.cc
     tests/io_ply_exporter_test.cc
