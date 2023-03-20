@@ -237,8 +237,8 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
     item->info.after_add_fn(*C, node_tree, *new_node);
   }
 
-  new_node->locx = storage.cursor.x / UI_DPI_FAC;
-  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20;
+  new_node->locx = storage.cursor.x / UI_SCALE_FAC;
+  new_node->locy = storage.cursor.y / UI_SCALE_FAC + 20;
 
   nodeSetSelected(new_node, true);
   nodeSetActive(&node_tree, new_node);

@@ -5262,7 +5262,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
      *       a callback available (e.g. broken F-Curve rename)
      */
     if (acf->name_prop(ale, &ptr, &prop)) {
-      const short margin_x = 3 * round_fl_to_int(UI_DPI_FAC);
+      const short margin_x = 3 * round_fl_to_int(UI_SCALE_FAC);
       const short width = ac->region->winx - offset - (margin_x * 2);
       uiBut *but;
 

@@ -122,10 +122,6 @@ static void pick_input_link_by_link_intersect(const bContext &C,
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
   bNodeTree &node_tree = *snode->edittree;
-  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
-  if (socket_locations.is_empty()) {
-    return;
-  }
 
   float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
@@ -133,14 +129,14 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   bNode &node = socket->owner_node();
 
   /* Distance to test overlapping of cursor on link. */
-  const float cursor_link_touch_distance = 12.5f * UI_DPI_FAC;
+  const float cursor_link_touch_distance = 12.5f * UI_SCALE_FAC;
 
   bNodeLink *link_to_pick = nullptr;
   clear_picking_highlight(&node_tree.links);
   for (bNodeLink *link : socket->directly_linked_links()) {
     /* Test if the cursor is near a link. */
     std::array<float2, NODE_LINK_RESOL + 1> coords;
-    node_link_bezier_points_evaluated(socket_locations, *link, coords);
+    node_link_bezier_points_evaluated(*link, coords);
 
     for (const int i : IndexRange(coords.size() - 1)) {
       const float distance = dist_squared_to_line_segment_v2(cursor, coords[i], coords[i + 1]);
@@ -293,12 +289,11 @@ struct LinkAndPosition {
   float2 multi_socket_position;
 };
 
-static void sort_multi_input_socket_links_with_drag(const Span<float2> socket_locations,
-                                                    bNodeSocket &socket,
+static void sort_multi_input_socket_links_with_drag(bNodeSocket &socket,
                                                     bNodeLink &drag_link,
                                                     const float2 &cursor)
 {
-  const float2 &socket_location = socket_locations[socket.index_in_tree()];
+  const float2 &socket_location = socket.runtime->location;
 
   Vector<LinkAndPosition, 8> links;
   for (bNodeLink *link : socket.directly_linked_links()) {
@@ -646,10 +641,10 @@ static int view_socket(const bContext &C,
     }
   }
   if (viewer_node == nullptr) {
-    const float2 socket_location =
-        btree.runtime->all_socket_locations[bsocket_to_view.index_in_tree()];
+    const float2 socket_location = bsocket_to_view.runtime->location;
     const int viewer_type = get_default_viewer_type(&C);
-    const float2 location{socket_location.x / UI_DPI_FAC + 100, socket_location.y / UI_DPI_FAC};
+    const float2 location{socket_location.x / UI_SCALE_FAC + 100,
+                          socket_location.y / UI_SCALE_FAC};
     viewer_node = add_static_node(C, viewer_type, location);
   }
 
@@ -823,17 +818,18 @@ static void draw_draglink_tooltip(const bContext * /*C*/, ARegion * /*region*/, 
   uchar text_col[4];
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
-  const int padding = 4 * UI_DPI_FAC;
+  const int padding = 4 * UI_SCALE_FAC;
   const float x = nldrag->in_out == SOCK_IN ? nldrag->cursor[0] - 3.3f * padding :
                                               nldrag->cursor[0];
-  const float y = nldrag->cursor[1] - 2.0f * UI_DPI_FAC;
+  const float y = nldrag->cursor[1] - 2.0f * UI_SCALE_FAC;
 
   const bool new_link = nldrag->in_out == nldrag->start_socket->in_out;
   const bool swap_links = nldrag->swap_links;
 
   const int icon = !swap_links ? ICON_ADD : (new_link ? ICON_ANIM : ICON_UV_SYNC_SELECT);
 
-  UI_icon_draw_ex(x, y, icon, U.inv_dpi_fac, 1.0f, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
+  UI_icon_draw_ex(
+      x, y, icon, UI_INV_SCALE_FAC, 1.0f, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 static void draw_draglink_tooltip_activate(const ARegion &region, bNodeLinkDrag &nldrag)
@@ -900,7 +896,11 @@ static void displace_links(bNodeTree *ntree, const bNode *node, bNodeLink *inser
   if (linked_socket->is_input()) {
     BLI_assert(!linked_socket->is_multi_input());
     ntree->ensure_topology_cache();
-    bNodeLink *displaced_link = linked_socket->runtime->directly_linked_links.first();
+
+    if (linked_socket->directly_linked_links().is_empty()) {
+      return;
+    }
+    bNodeLink *displaced_link = linked_socket->directly_linked_links().first();
 
     if (!replacement_socket) {
       nodeRemLink(ntree, displaced_link);
@@ -958,18 +958,31 @@ static void node_swap_links(bNodeLinkDrag &nldrag, bNodeTree &ntree)
 
   if (linked_socket.is_input()) {
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-      if (link->tosock == &linked_socket) {
-        link->tosock = start_socket;
-        link->tonode = start_node;
+      if (link->tosock != &linked_socket) {
+        continue;
       }
+      if (link->fromnode == start_node) {
+        /* Don't link a node to itself. */
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+
+      link->tosock = start_socket;
+      link->tonode = start_node;
     }
   }
   else {
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-      if (link->fromsock == &linked_socket) {
-        link->fromsock = start_socket;
-        link->fromnode = start_node;
+      if (link->fromsock != &linked_socket) {
+        continue;
       }
+      if (link->tonode == start_node) {
+        /* Don't link a node to itself. */
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+      link->fromsock = start_socket;
+      link->fromnode = start_node;
     }
   }
 
@@ -1097,12 +1110,7 @@ static void node_link_cancel(bContext *C, wmOperator *op)
 static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cursor)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
-  bNodeTree &node_tree = *snode.edittree;
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op.customdata);
-  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
-  if (socket_locations.is_empty()) {
-    return;
-  }
 
   if (nldrag.in_out == SOCK_OUT) {
     if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
@@ -1133,7 +1141,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
           continue;
         }
         if (tsock && tsock->is_multi_input()) {
-          sort_multi_input_socket_links_with_drag(socket_locations, *tsock, link, cursor);
+          sort_multi_input_socket_links_with_drag(*tsock, link, cursor);
         }
       }
     }
@@ -1506,15 +1514,14 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
 
   Set<bNodeLink *> links_to_remove;
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (node_link_is_hidden_or_dimmed(socket_locations, region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
 
-    if (link_path_intersection(socket_locations, *link, path)) {
+    if (link_path_intersection(*link, path)) {
 
       if (!found) {
         /* TODO(sergey): Why did we kill jobs twice? */
@@ -1592,7 +1599,6 @@ static int mute_links_exec(bContext *C, wmOperator *op)
   SpaceNode &snode = *CTX_wm_space_node(C);
   const ARegion &region = *CTX_wm_region(C);
   bNodeTree &ntree = *snode.edittree;
-  const Span<float2> socket_locations = ntree.runtime->all_socket_locations;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -1617,10 +1623,10 @@ static int mute_links_exec(bContext *C, wmOperator *op)
 
   Set<bNodeLink *> affected_links;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (node_link_is_hidden_or_dimmed(socket_locations, region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
-    if (!link_path_intersection(socket_locations, *link, path)) {
+    if (!link_path_intersection(*link, path)) {
       continue;
     }
     affected_links.add(link);
@@ -2069,10 +2075,6 @@ void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
 {
   bNodeTree &node_tree = *snode.edittree;
   node_tree.ensure_topology_cache();
-  const Span<float2> socket_locations = node_tree.runtime->all_socket_locations;
-  if (socket_locations.is_empty()) {
-    return;
-  }
 
   node_insert_on_link_flags_clear(node_tree);
 
@@ -2085,12 +2087,12 @@ void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region)
   bNodeLink *selink = nullptr;
   float dist_best = FLT_MAX;
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (node_link_is_hidden_or_dimmed(socket_locations, region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
 
     std::array<float2, NODE_LINK_RESOL + 1> coords;
-    node_link_bezier_points_evaluated(socket_locations, *link, coords);
+    node_link_bezier_points_evaluated(*link, coords);
     float dist = FLT_MAX;
 
     /* Loop over link coords to find shortest dist to upper left node edge of a intersected line
@@ -2308,7 +2310,7 @@ static void node_offset_apply(bNode &node, const float offset_x)
   /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
   if ((node.flag & NODE_TEST) == 0) {
     node.runtime->anim_init_locx = node.locx;
-    node.runtime->anim_ofsx = (offset_x / UI_DPI_FAC);
+    node.runtime->anim_ofsx = (offset_x / UI_SCALE_FAC);
     node.flag |= NODE_TEST;
   }
 }
@@ -2412,7 +2414,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   bNode *prev = iofsd->prev, *next = iofsd->next;
   bNode *init_parent = insert.parent; /* store old insert.parent for restoring later */
 
-  const float min_margin = U.node_margin * UI_DPI_FAC;
+  const float min_margin = U.node_margin * UI_SCALE_FAC;
   const float width = NODE_WIDTH(insert);
   const bool needs_alignment = (next->runtime->totr.xmin - prev->runtime->totr.xmax) <
                                (width + (min_margin * 2.0f));

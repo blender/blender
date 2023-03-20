@@ -971,6 +971,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   /* must recalculate normals with vgroups since they can displace unevenly #26888. */
   if (BKE_mesh_vert_normals_are_dirty(mesh) || do_rim || dvert) {
+    /* Pass. */
   }
   else if (do_shell) {
     uint i;

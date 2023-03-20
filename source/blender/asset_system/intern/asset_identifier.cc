@@ -32,7 +32,7 @@ std::string AssetIdentifier::full_library_path() const
   std::string asset_path = full_path();
 
   char blend_path[1090 /*FILE_MAX_LIBEXTRA*/];
-  if (!BKE_library_path_explode(asset_path.c_str(), blend_path, nullptr, nullptr)) {
+  if (!BKE_blendfile_library_path_explode(asset_path.c_str(), blend_path, nullptr, nullptr)) {
     return {};
   }
 

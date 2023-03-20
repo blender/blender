@@ -122,11 +122,11 @@ typedef struct PTCacheID {
   /* flags defined in DNA_object_force_types.h */
   unsigned int data_types, info_types;
 
-  /* copies point data to cache data */
+  /* Copies point data to cache data. */
   int (*write_point)(int index, void *calldata, void **data, int cfra);
-  /* copies cache cata to point data */
+  /* Copies cache data to point data. */
   void (*read_point)(int index, void *calldata, void **data, float cfra, const float *old_data);
-  /* interpolated between previously read point data and cache data */
+  /* Interpolated between previously read point data and cache data. */
   void (*interpolate_point)(int index,
                             void *calldata,
                             void **data,

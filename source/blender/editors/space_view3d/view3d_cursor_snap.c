@@ -320,7 +320,7 @@ static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
       color_alpha *= max_ff(0.3f, 1.0f - square_f(square_f(1.0f - view_dot)));
     }
 
-    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac / U.pixelsize;
+    const float scale_mod = U.gizmo_size * 2 * UI_SCALE_FAC / U.pixelsize;
 
     float final_scale = (scale_mod * pixel_size);
 

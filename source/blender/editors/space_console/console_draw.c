@@ -167,7 +167,7 @@ static void console_textview_draw_rect_calc(const ARegion *region,
                                             rcti *r_draw_rect,
                                             rcti *r_draw_rect_outer)
 {
-  const int margin = 4 * UI_DPI_FAC;
+  const int margin = 4 * UI_SCALE_FAC;
   r_draw_rect->xmin = margin;
   r_draw_rect->xmax = region->winx - V2D_SCROLL_WIDTH;
   r_draw_rect->ymin = margin;
@@ -209,7 +209,7 @@ static int console_textview_main__internal(SpaceConsole *sc,
   /* view */
   tvc.sel_start = sc->sel_start;
   tvc.sel_end = sc->sel_end;
-  tvc.lheight = sc->lheight * UI_DPI_FAC;
+  tvc.lheight = sc->lheight * UI_SCALE_FAC;
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 

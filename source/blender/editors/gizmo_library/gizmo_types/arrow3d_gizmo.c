@@ -126,7 +126,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
       const float stem_width = arrow->gizmo.line_width * U.pixelsize +
-                               (select ? ARROW_SELECT_THRESHOLD_PX * U.dpi_fac : 0);
+                               (select ? ARROW_SELECT_THRESHOLD_PX * UI_SCALE_FAC : 0);
       immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }

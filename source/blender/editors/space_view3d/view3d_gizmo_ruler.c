@@ -621,9 +621,9 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = ruler_info->region;
   RegionView3D *rv3d = region->regiondata;
-  const float cap_size = 4.0f * U.dpi_fac;
-  const float bg_margin = 4.0f * U.dpi_fac;
-  const float arc_size = 64.0f * U.dpi_fac;
+  const float cap_size = 4.0f * UI_SCALE_FAC;
+  const float bg_margin = 4.0f * UI_SCALE_FAC;
+  const float arc_size = 64.0f * UI_SCALE_FAC;
 #define ARC_STEPS 24
   const int arc_steps = ARC_STEPS;
   const float color_act[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -643,7 +643,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_line_width(1.0f);
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
-  BLF_size(blf_mono_font, 14.0f * U.dpi_fac);
+  BLF_size(blf_mono_font, 14.0f * UI_SCALE_FAC);
   BLF_rotation(blf_mono_font, 0.0f);
 
   UI_GetThemeColor3ubv(TH_TEXT, color_text);

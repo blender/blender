@@ -976,8 +976,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   const bool zoom_to_pos = use_cursor_init && vzd->zoom_to_mouse_pos;
 
   /* get amount to move view by */
-  float dx = RNA_float_get(op->ptr, "deltax") / U.dpi_fac;
-  float dy = RNA_float_get(op->ptr, "deltay") / U.dpi_fac;
+  float dx = RNA_float_get(op->ptr, "deltax") / UI_SCALE_FAC;
+  float dy = RNA_float_get(op->ptr, "deltay") / UI_SCALE_FAC;
 
   /* Check if the 'timer' is initialized, as zooming with the trackpad
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */

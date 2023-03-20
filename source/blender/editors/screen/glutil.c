@@ -629,8 +629,8 @@ int ED_draw_imbuf_method(ImBuf *ibuf)
 
 void immDrawBorderCorners(uint pos, const rcti *border, float zoomx, float zoomy)
 {
-  float delta_x = 4.0f * UI_DPI_FAC / zoomx;
-  float delta_y = 4.0f * UI_DPI_FAC / zoomy;
+  float delta_x = 4.0f * UI_SCALE_FAC / zoomx;
+  float delta_y = 4.0f * UI_SCALE_FAC / zoomy;
 
   delta_x = min_ff(delta_x, border->xmax - border->xmin);
   delta_y = min_ff(delta_y, border->ymax - border->ymin);

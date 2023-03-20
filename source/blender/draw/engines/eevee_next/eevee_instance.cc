@@ -105,6 +105,7 @@ void Instance::begin_sync()
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
   lights.begin_sync();
   shadows.begin_sync();
+  pipelines.begin_sync();
   cryptomatte.begin_sync();
 
   gpencil_engine_enabled = false;
@@ -114,7 +115,6 @@ void Instance::begin_sync()
   depth_of_field.sync();
   motion_blur.sync();
   hiz_buffer.sync();
-  pipelines.sync();
   main_view.sync();
   world.sync();
   film.sync();
@@ -206,6 +206,7 @@ void Instance::end_sync()
   sampling.end_sync();
   film.end_sync();
   cryptomatte.end_sync();
+  pipelines.end_sync();
 }
 
 void Instance::render_sync()

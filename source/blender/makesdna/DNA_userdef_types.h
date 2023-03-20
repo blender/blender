@@ -15,6 +15,20 @@
 extern "C" {
 #endif
 
+/**
+ * Scaling factor for all UI elements, based on the "Resolution Scale" user preference and the
+ * DPI/OS Scale of each monitor. This is a read-only, run-time value calculated by
+ * `WM_window_set_dpi` at various times, including between the drawing of each window and so can
+ * vary between monitors.
+ */
+#define UI_SCALE_FAC ((void)0, U.scale_factor)
+
+/* Inverse of UI_SCALE_FAC ( 1 / UI_SCALE_FAC). */
+#define UI_INV_SCALE_FAC ((void)0, U.inv_scale_factor)
+
+/* 16 to copy ICON_DEFAULT_HEIGHT */
+#define UI_ICON_SIZE ((float)16 * U.scale_factor)
+
 /* Themes; defines in `BIF_resource.h`. */
 
 struct ColorBand;
@@ -747,10 +761,10 @@ typedef struct UserDef {
   int ui_line_width;
   /** Runtime, full DPI divided by `pixelsize`. */
   int dpi;
-  /** Runtime, multiplier to scale UI elements based on DPI (fractional). */
-  float dpi_fac;
-  /** Runtime, `1.0 / dpi_fac` */
-  float inv_dpi_fac;
+  /** Runtime multiplier to scale UI elements. Use macro UI_SCALE_FAC instead of this. */
+  float scale_factor;
+  /** Runtime, `1.0 / scale_factor` */
+  float inv_scale_factor;
   /** Runtime, calculated from line-width and point-size based on DPI (rounded to int). */
   float pixelsize;
   /** Deprecated, for forward compatibility. */

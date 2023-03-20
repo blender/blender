@@ -63,18 +63,12 @@ TEST(math_rotation_types, Euler3Order)
   /* Asserts those match.
    * Do not do it in the header to avoid including the DNA header everywhere.
    */
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::XYZ) == static_cast<int>(eRotationModes::ROT_MODE_XYZ), "");
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::XZY) == static_cast<int>(eRotationModes::ROT_MODE_XZY), "");
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::YXZ) == static_cast<int>(eRotationModes::ROT_MODE_YXZ), "");
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::YZX) == static_cast<int>(eRotationModes::ROT_MODE_YZX), "");
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::ZXY) == static_cast<int>(eRotationModes::ROT_MODE_ZXY), "");
-  BLI_STATIC_ASSERT(
-      static_cast<int>(EulerOrder::ZYX) == static_cast<int>(eRotationModes::ROT_MODE_ZYX), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::XYZ) == int(eRotationModes::ROT_MODE_XYZ), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::XZY) == int(eRotationModes::ROT_MODE_XZY), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::YXZ) == int(eRotationModes::ROT_MODE_YXZ), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::YZX) == int(eRotationModes::ROT_MODE_YZX), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::ZXY) == int(eRotationModes::ROT_MODE_ZXY), "");
+  BLI_STATIC_ASSERT(int(EulerOrder::ZYX) == int(eRotationModes::ROT_MODE_ZYX), "");
 
   EXPECT_EQ(float3(Euler3(0, 1, 2, EulerOrder::XYZ).ijk()), float3(0, 1, 2));
   EXPECT_EQ(float3(Euler3(0, 1, 2, EulerOrder::XZY).ijk()), float3(0, 2, 1));

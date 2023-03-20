@@ -884,13 +884,13 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   col);
   }
   else {
-    int padding = 4 * UI_DPI_FAC;
+    int padding = 4 * UI_SCALE_FAC;
     x = xy[0] - 2 * padding;
-    y = xy[1] - 2 * UI_DPI_FAC;
+    y = xy[1] - 2 * UI_SCALE_FAC;
 
     const uchar text_col[] = {255, 255, 255, 255};
     UI_icon_draw_ex(
-        x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
+        x, y, drag->icon, UI_INV_SCALE_FAC, 0.8, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
 
@@ -903,8 +903,8 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
 
 void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
 {
-  int x = xy[0] + 10 * UI_DPI_FAC;
-  int y = xy[1] + 1 * UI_DPI_FAC;
+  int x = xy[0] + 10 * UI_SCALE_FAC;
+  int y = xy[1] + 1 * UI_SCALE_FAC;
 
   wm_drag_draw_item_name(drag, x, y);
 }
@@ -915,8 +915,8 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     /* Some callbacks require the region. */
     return;
   }
-  int iconsize = UI_DPI_ICON_SIZE;
-  int padding = 4 * UI_DPI_FAC;
+  int iconsize = UI_ICON_SIZE;
+  int padding = 4 * UI_SCALE_FAC;
 
   char *tooltip = nullptr;
   if (drag->drop_state.active_dropbox) {
@@ -973,13 +973,13 @@ static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const
 
   /* Item name. */
   if (drag->imb) {
-    int iconsize = UI_DPI_ICON_SIZE;
+    int iconsize = UI_ICON_SIZE;
     xy_tmp[0] = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
     xy_tmp[1] = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2) - iconsize;
   }
   else {
-    xy_tmp[0] = xy[0] + 10 * UI_DPI_FAC;
-    xy_tmp[1] = xy[1] + 1 * UI_DPI_FAC;
+    xy_tmp[0] = xy[0] + 10 * UI_SCALE_FAC;
+    xy_tmp[1] = xy[1] + 1 * UI_SCALE_FAC;
   }
   wm_drag_draw_item_name(drag, UNPACK2(xy_tmp));
 

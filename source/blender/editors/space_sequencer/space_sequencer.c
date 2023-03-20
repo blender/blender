@@ -292,7 +292,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
     case SEQ_VIEW_SEQUENCE_PREVIEW:
       if (region_main && region_preview) {
         /* Get available height (without DPI correction). */
-        const float height = (area->winy - ED_area_headersize()) / UI_DPI_FAC;
+        const float height = (area->winy - ED_area_headersize()) / UI_SCALE_FAC;
 
         /* We reuse hidden region's size, allows to find same layout as before if we just switch
          * between one 'full window' view and the combined one. This gets lost if we switch to both

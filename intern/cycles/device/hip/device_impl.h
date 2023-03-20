@@ -61,7 +61,7 @@ class HIPDevice : public GPUDevice {
   virtual void free_device(void *device_pointer) override;
   virtual bool alloc_host(void *&shared_pointer, size_t size) override;
   virtual void free_host(void *shared_pointer) override;
-  virtual bool transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
+  virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
   virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) override;
 
   void mem_alloc(device_memory &mem) override;

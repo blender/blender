@@ -782,6 +782,5 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
       std::make_unique<ed::asset_browser::AssetCatalogTreeView>(
           asset_library, params, *space_file));
 
-  ui::TreeViewBuilder builder(*block);
-  builder.build_tree_view(*tree_view);
+  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

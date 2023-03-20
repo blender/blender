@@ -1530,7 +1530,6 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
   Scene *sce = CTX_data_scene(C);
   ShrinkwrapModifierData ssmd = {{nullptr}};
   ModifierEvalContext ctx = {depsgraph, ob_source, ModifierApplyFlag(0)};
-  int totvert;
 
   ssmd.target = ob_target;
   ssmd.shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
@@ -1538,13 +1537,17 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
   ssmd.keepDist = 0.0f;
 
   Mesh *src_me = static_cast<Mesh *>(ob_source->data);
-  float(*vertexCos)[3] = BKE_mesh_vert_coords_alloc(src_me, &totvert);
 
-  shrinkwrapModifier_deform(&ssmd, &ctx, sce, ob_source, src_me, nullptr, -1, vertexCos, totvert);
-
-  BKE_mesh_vert_coords_apply(src_me, vertexCos);
-
-  MEM_freeN(vertexCos);
+  shrinkwrapModifier_deform(&ssmd,
+                            &ctx,
+                            sce,
+                            ob_source,
+                            src_me,
+                            nullptr,
+                            -1,
+                            BKE_mesh_vert_positions_for_write(src_me),
+                            src_me->totvert);
+  BKE_mesh_tag_positions_changed(src_me);
 }
 
 void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target)

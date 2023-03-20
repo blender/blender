@@ -29,7 +29,7 @@
  * It's mostly used for modifiers, and has the advantages of not taking much
  * resources.
  *
- * BMesh is a full-on brep, used for editmode, some modifiers, etc.  It's much
+ * BMesh is a full-on BREP, used for edit-mode, some modifiers, etc.  It's much
  * more capable (if memory-intensive) then CDDM.
  *
  * DerivedMesh is somewhat hackish.  Many places assumes that a DerivedMesh is

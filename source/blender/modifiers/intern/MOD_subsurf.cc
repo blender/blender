@@ -437,9 +437,6 @@ static void panel_draw(const bContext *C, Panel *panel)
           if (runtime_data->used_cpu) {
             uiItemL(layout, "Using both CPU and GPU subdivision", ICON_INFO);
           }
-          else {
-            uiItemL(layout, "Using GPU subdivision", ICON_INFO);
-          }
         }
       }
     }

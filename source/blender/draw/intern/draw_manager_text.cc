@@ -127,7 +127,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
 
   const uiStyle *style = UI_style_get();
 
-  BLF_size(font_id, style->widget.points * U.dpi_fac);
+  BLF_size(font_id, style->widget.points * UI_SCALE_FAC);
 
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
@@ -249,7 +249,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
     edge_tex_count += 1;
   }
-  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * U.dpi_fac);
+  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * UI_SCALE_FAC);
 
   /* Make the precision of the display value proportionate to the grid-size. */
 

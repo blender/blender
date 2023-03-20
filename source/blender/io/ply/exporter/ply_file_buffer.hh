@@ -6,11 +6,8 @@
 
 #pragma once
 
-#include <string>
 #include <type_traits>
-#include <vector>
 
-#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
@@ -75,7 +72,13 @@ class FileBuffer : private NonMovable {
  protected:
   /* Ensure the last block contains at least this amount of free space.
    * If not, add a new block with max of block size & the amount of space needed. */
-  void ensure_space(size_t at_least);
+  void ensure_space(size_t at_least)
+  {
+    if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
+      blocks_.append(VectorChar());
+      blocks_.last().reserve(std::max(at_least, buffer_chunk_size_));
+    }
+  }
 
   template<typename... T> void write_fstring(const char *fmt, T &&...args)
   {

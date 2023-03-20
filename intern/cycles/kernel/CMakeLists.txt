@@ -741,21 +741,21 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
   set(sycl_compiler_flags
-      ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
-      -fsycl
-      -fsycl-unnamed-lambda
-      -fdelayed-template-parsing
-      -mllvm -inlinedefault-threshold=250
-      -mllvm -inlinehint-threshold=350
-      -fsycl-device-code-split=per_kernel
-      -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
-      -shared
-      -DWITH_ONEAPI
-      -ffast-math
-      -O2
-      -o"${cycles_kernel_oneapi_lib}"
-      -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
-      ${SYCL_CPP_FLAGS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
+    -fsycl
+    -fsycl-unnamed-lambda
+    -fdelayed-template-parsing
+    -mllvm -inlinedefault-threshold=250
+    -mllvm -inlinehint-threshold=350
+    -fsycl-device-code-split=per_kernel
+    -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
+    -shared
+    -DWITH_ONEAPI
+    -ffast-math
+    -O2
+    -o"${cycles_kernel_oneapi_lib}"
+    -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
+    ${SYCL_CPP_FLAGS}
   )
 
   if(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)

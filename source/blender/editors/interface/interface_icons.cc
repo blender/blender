@@ -1741,7 +1741,7 @@ static void icon_draw_texture(float x,
                               bool with_border,
                               const IconTextOverlay *text_overlay)
 {
-  const float zoom_factor = w / UI_DPI_ICON_SIZE;
+  const float zoom_factor = w / UI_ICON_SIZE;
   float text_width = 0.0f;
 
   /* No need to show if too zoomed out, otherwise it just adds noise. */
@@ -2492,13 +2492,13 @@ int UI_icon_color_from_collection(const Collection *collection)
 void UI_icon_draw(float x, float y, int icon_id)
 {
   UI_icon_draw_ex(
-      x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+      x, y, icon_id, UI_INV_SCALE_FAC, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
   UI_icon_draw_ex(
-      x, y, icon_id, U.inv_dpi_fac, alpha, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+      x, y, icon_id, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)

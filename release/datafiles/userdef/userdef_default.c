@@ -66,8 +66,8 @@ const UserDef U_default = {
 
     /** Default so DPI is detected automatically. */
     .dpi = 0,
-    .dpi_fac = 0.0,
-    .inv_dpi_fac = 0.0, /* run-time. */
+    .scale_factor = 0.0,
+    .inv_scale_factor = 0.0, /* run-time. */
     .pixelsize = 1,
     .virtual_pixel = 0,
 

@@ -3651,7 +3651,12 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
                                          rctf *r_bounds)
 {
   const bool fcu_selection_only = false;
-  BKE_fcurve_calc_bounds(fcu, fcu_selection_only, include_handles, range, r_bounds);
+  const bool found_bounds = BKE_fcurve_calc_bounds(
+      fcu, fcu_selection_only, include_handles, range, r_bounds);
+
+  if (!found_bounds) {
+    return false;
+  }
 
   const short mapping_flag = ANIM_get_normalization_flags(ac);
 

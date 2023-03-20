@@ -1099,7 +1099,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
                     widget_rect.ymin + size_y * 0.2f,
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
-                    aspect * U.inv_dpi_fac,
+                    aspect * UI_INV_SCALE_FAC,
                     0.7f,
                     0.0f,
                     title_color,
@@ -1128,7 +1128,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     UI_icon_draw_ex(widget_rect.xmax - scaled_unit * 2.2f,
                     widget_rect.ymin + 5.0f / aspect,
                     ICON_PINNED,
-                    aspect * U.inv_dpi_fac,
+                    aspect * UI_INV_SCALE_FAC,
                     1.0f,
                     0.0f,
                     title_color,
@@ -1288,7 +1288,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   const float zoom = 1.0f / aspect;
   const int px = U.pixelsize;
   const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
-  const float dpi_fac = UI_DPI_FAC;
+  const float dpi_fac = UI_SCALE_FAC;
   /* Padding of tabs around text. */
   const int tab_v_pad_text = round_fl_to_int(TABS_PADDING_TEXT_FACTOR * dpi_fac * zoom) + 2 * px;
   /* Padding between tabs. */
@@ -1334,7 +1334,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, M_PI_2);
   ui_fontscale(&fstyle_points, aspect);
-  BLF_size(fontid, fstyle_points * U.dpi_fac);
+  BLF_size(fontid, fstyle_points * UI_SCALE_FAC);
 
   /* Check the region type supports categories to avoid an assert
    * for showing 3D view panels in the properties space. */

@@ -810,7 +810,7 @@ static void sculpt_mesh_update_strength(wmOperator *op,
 {
   const float len = prev_press_mouse[0] - mouse[0];
 
-  float filter_strength = ss->filter_cache->start_filter_strength * -len * 0.001f * UI_DPI_FAC;
+  float filter_strength = ss->filter_cache->start_filter_strength * -len * 0.001f * UI_SCALE_FAC;
   RNA_float_set(op->ptr, "strength", filter_strength);
 }
 static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)

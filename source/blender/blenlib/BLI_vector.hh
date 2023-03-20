@@ -118,6 +118,7 @@ class Vector {
       return std::is_nothrow_move_constructible_v<T>;
     }
   }
+
  public:
   /**
    * Create an empty vector.

@@ -527,7 +527,7 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
 
   path = file_path = filepath;
   if (source == THB_SOURCE_BLEND) {
-    if (BKE_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
+    if (BKE_blendfile_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
       if (blen_group) {
         if (!blen_id) {
           /* No preview for blen groups */
