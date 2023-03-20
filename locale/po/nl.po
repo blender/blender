@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -2697,6 +2697,10 @@ msgstr "Afvlakking"
 
 msgid "Calculate Holes"
 msgstr "Bereken Gaten"
+
+
+msgid "Active Point"
+msgstr "Actieve Punt"
 
 
 msgctxt "MovieClip"
@@ -6441,10 +6445,6 @@ msgstr "Palet Kleur"
 
 msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
-
-
-msgid "Active Point"
-msgstr "Actieve Punt"
 
 
 msgctxt "MovieClip"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -18365,6 +18365,10 @@ msgid "Weight of feather point"
 msgstr "Peso del punto sfumatura"
 
 
+msgid "Active Point"
+msgstr "Punto Attivo"
+
+
 msgid "Alignment"
 msgstr "Allineamento"
 
@@ -30999,17 +31003,9 @@ msgid "Clear Restrict View"
 msgstr "Pulisci Vista con Restrizioni"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Rivela il livello impostando il flag hide"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Imposta Vista con Restrizioni"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Nasconde il livello impostando il flag hide"
 
 
 msgctxt "Operator"
@@ -42409,10 +42405,6 @@ msgstr "Preimpostazioni Camera"
 
 msgid "2D Cursor"
 msgstr "Cursore 2D"
-
-
-msgid "Active Point"
-msgstr "Punto Attivo"
 
 
 msgid "Footage Settings"
@@ -54589,10 +54581,6 @@ msgstr "Formato Campione"
 
 msgid "View Name"
 msgstr "Nome Vista"
-
-
-msgid "3D Viewport Axis"
-msgstr "Assi Vista 3D"
 
 
 msgid "Limit Size"

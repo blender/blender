@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -20558,6 +20558,10 @@ msgstr "Sammlung von Masken-Splines"
 
 msgid "Active spline of masking layer"
 msgstr "Aktiver Spline der Maskierungsebene"
+
+
+msgid "Active Point"
+msgstr "Aktive Punkte"
 
 
 msgid "Grease Pencil Color"
@@ -43123,10 +43127,6 @@ msgid "2D Cursor"
 msgstr "2D Cursor"
 
 
-msgid "Active Point"
-msgstr "Aktive Punkte"
-
-
 msgid "Footage Settings"
 msgstr "Filmmaterial-Einstellungen"
 
@@ -46322,10 +46322,6 @@ msgstr "Größe des Koordinatensystem-Icons"
 
 msgid "Mini Axes Type"
 msgstr "Mini Achsentyp"
-
-
-msgid "Simple Axis"
-msgstr "Einfache Achse"
 
 
 msgid "Pie menu size in pixels"
@@ -58753,10 +58749,6 @@ msgstr "Pufferlimit"
 
 msgid "View Name"
 msgstr "Ansichtnamen"
-
-
-msgid "3D Viewport Axis"
-msgstr "3D Viewport Achsen"
 
 
 msgid "Smooth Wires"

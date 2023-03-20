@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -33498,6 +33498,10 @@ msgid "Active spline of masking layer"
 msgstr "遮罩层活动样条"
 
 
+msgid "Active Point"
+msgstr "活动点"
+
+
 msgid "Grease Pencil Color"
 msgstr "蜡笔颜色"
 
@@ -44638,10 +44642,6 @@ msgstr "计算网格面的表面积"
 
 msgid "Is Face Planar"
 msgstr "面是否平直"
-
-
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "检索面中的所有三角形是否在同一平面上，即是否具有相同的法向"
 
 
 msgid "Face Neighbors"
@@ -59879,17 +59879,9 @@ msgid "Clear Restrict View"
 msgstr "清除显示限制"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "通过对隐藏标记进行设置, 恢复层的可见性"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "设置显示限制"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "通过设置隐藏标识来隐藏图层"
 
 
 msgctxt "Operator"
@@ -81867,10 +81859,6 @@ msgid "2D Cursor"
 msgstr "2D 游标"
 
 
-msgid "Active Point"
-msgstr "活动点"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "预定义的轨迹摄像机内部参数"
 
@@ -86917,14 +86905,6 @@ msgstr "坐标轴图标的尺寸"
 
 msgid "Mini Axes Type"
 msgstr "迷你坐标轴类型"
-
-
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "在3D视图的左下角显示一个可旋转的小3D坐标轴"
-
-
-msgid "Simple Axis"
-msgstr "单一轴向"
 
 
 msgid "Interactive Navigation"
@@ -111164,10 +111144,6 @@ msgstr "视图名称"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "播放帧率(FPS)"
-
-
-msgid "3D Viewport Axis"
-msgstr "3D 视图轴向"
 
 
 msgid "Smooth Wires"

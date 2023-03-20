@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
-"PO-Revision-Date: 2023-03-12 17:34+0100\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
+"PO-Revision-Date: 2023-03-15 23:26+0100\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -1110,12 +1110,24 @@ msgid "Copyright"
 msgstr "Copyright"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Avis de droit d’auteur pour cet asset. Un champ vide ne signifie pas forcément que l’asset n’est soumis à aucun droit d’auteur. Contacter l’auteur pour obtenir toute clarification nécessaire"
+
+
 msgid "Description"
 msgstr "Description"
 
 
 msgid "A description of the asset to be displayed for the user"
 msgstr "Une description de l’asset affichée à l’utilisateur"
+
+
+msgid "License"
+msgstr "Licence"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "Le type de licence selon laquelle cet asset est distribué. Un champ vide ne signifie pas forcément que l’asset n’est soumis à aucune condition. Contacter l’auteur pour obtenir toute clarification nécessaire"
 
 
 msgid "Tags"
@@ -13701,6 +13713,11 @@ msgid "Minimum number of particles per cell (ensures that each cell has at least
 msgstr "Nombre minimum de particules par cellules (garantit que chaque cellule a au moins cette quantité de particules)"
 
 
+msgctxt "Amount"
+msgid "Number"
+msgstr "Nombre"
+
+
 msgid "Particle number factor (higher value results in more particles)"
 msgstr "Facteur de nombre de particules (des valeurs plus élevées donnent plus de particules)"
 
@@ -19542,6 +19559,61 @@ msgid "Editable falloff curve"
 msgstr "Courbe d’atténuation éditable"
 
 
+msgctxt "Curves"
+msgid "Curve Preset"
+msgstr "Préréglage de courbe"
+
+
+msgctxt "Curves"
+msgid "Custom"
+msgstr "Personnalisée"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "Douce"
+
+
+msgctxt "Curves"
+msgid "Smoother"
+msgstr "Plus douce"
+
+
+msgctxt "Curves"
+msgid "Sphere"
+msgstr "Sphère"
+
+
+msgctxt "Curves"
+msgid "Root"
+msgstr "Racine carrée"
+
+
+msgctxt "Curves"
+msgid "Sharp"
+msgstr "Dure"
+
+
+msgctxt "Curves"
+msgid "Linear"
+msgstr "Linéaire"
+
+
+msgctxt "Curves"
+msgid "Sharper"
+msgstr "Plus dure"
+
+
+msgctxt "Curves"
+msgid "Inverse Square"
+msgstr "Quadratique inverse"
+
+
+msgctxt "Curves"
+msgid "Constant"
+msgstr "Constante"
+
+
 msgid "Curves Sculpt Settings"
 msgstr "Réglages de peinture de courbes"
 
@@ -20986,8 +21058,23 @@ msgid "Name of the Alembic attribute used for generating motion blur data"
 msgstr "Nom de l’attribut Alembic utilisé pour générer les données de flou cinétique"
 
 
+msgctxt "Unit"
+msgid "Velocity Unit"
+msgstr "Unité de vélocité"
+
+
 msgid "Define how the velocity vectors are interpreted with regard to time, 'frame' means the delta time is 1 frame, 'second' means the delta time is 1 / FPS"
 msgstr "Définir comment les vecteurs vélocité sont interprétés par rapport au temps, « frame » signifie que le différentiel de temps est de 1 image, « seconde » que le différentiel de temps est de 1 / FPS"
+
+
+msgctxt "Unit"
+msgid "Second"
+msgstr "Seconde"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "Frame"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -26934,7 +27021,7 @@ msgstr "Afficher la santé des boids"
 
 
 msgid "Number"
-msgstr "Numéro/Nombre"
+msgstr "Numéro"
 
 
 msgid "Show particle number"
@@ -28010,6 +28097,11 @@ msgstr "Modifiées"
 
 msgid "Text file on disk is different than the one in memory"
 msgstr "Le fichier texte sur le disque est différent de celui en mémoire"
+
+
+msgctxt "Text"
+msgid "Lines"
+msgstr "Lignes"
 
 
 msgid "Lines of text"
@@ -33507,6 +33599,10 @@ msgid "Active spline of masking layer"
 msgstr "Courbe active du calque de masque"
 
 
+msgid "Active Point"
+msgstr "Point actif"
+
+
 msgid "Grease Pencil Color"
 msgstr "Couleur de crayon gras"
 
@@ -34042,6 +34138,11 @@ msgstr "Lecture"
 
 msgid "Write"
 msgstr "Écriture"
+
+
+msgctxt "NodeTree"
+msgid "Constant"
+msgstr "Constante"
 
 
 msgid "Instances"
@@ -41482,11 +41583,11 @@ msgstr "Nombre de lames"
 
 
 msgid "Rounding"
-msgstr "Arrondis"
+msgstr "Arrondi"
 
 
 msgid "Level of rounding of the bokeh"
-msgstr "Niveau d’arrondis du bokeh"
+msgstr "Niveau d’arrondi du bokeh"
 
 
 msgid "Lens Shift"
@@ -44659,10 +44760,6 @@ msgid "Is Face Planar"
 msgstr "La face est plane"
 
 
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "Savoir si tous les triangles d’une face sont sur le même plan, c-à-d s’ils ont la même normale"
-
-
 msgid "Face Neighbors"
 msgstr "Voisins de face"
 
@@ -47694,11 +47791,11 @@ msgstr "Sous-chemin utilisé pour cet emplacement"
 
 
 msgid "Save as Render"
-msgstr "Enregistrer rendu sous"
+msgstr "Enregistrer comme rendu"
 
 
 msgid "Apply render part of display transform when saving byte image"
-msgstr "Appliquer la partie rendu des transformations d’affichage à l’enregistrement binaire de l’image"
+msgstr "Appliquer la partie rendu des transformations d’affichage à l’enregistrement d’une image 8-bits"
 
 
 msgid "Use Node Format"
@@ -50162,7 +50259,7 @@ msgstr "Annule la dernière modification des catalogues d’assets"
 
 msgctxt "Operator"
 msgid "Store undo snapshot for asset catalog edits"
-msgstr "Enregistrer instantané d’annulation pour les modifications des catalogues d’assets"
+msgstr "Enregistrer un instantané d’annulation pour les modifications des catalogues d’assets"
 
 
 msgid "Store the current state of the asset catalogs in the undo buffer"
@@ -50171,11 +50268,11 @@ msgstr "Enregistrer l’état actuel des catalogues d’assets dans le tampon d�
 
 msgctxt "Operator"
 msgid "Save Asset Catalogs"
-msgstr "Enregistrer catalogues d’assets"
+msgstr "Enregistrer les catalogues d’assets"
 
 
 msgid "Make any edits to any catalogs permanent by writing the current set up to the asset library"
-msgstr "Rendre toutes les modifications de catalogues permanentes en enregistrant l’état actuel dans la bibliothèque d’assets"
+msgstr "Rendre permanentes toutes les modifications de catalogues en enregistrant l’état actuel dans la bibliothèque d’assets"
 
 
 msgctxt "Operator"
@@ -53510,7 +53607,7 @@ msgstr "Exporter STL"
 
 
 msgid "Save STL triangle mesh data"
-msgstr "Enregistrer données de maillage triangulé STL"
+msgstr "Enregistrer des données de maillage triangulé STL"
 
 
 msgid "Ascii"
@@ -54176,7 +54273,7 @@ msgstr "Format JPEG (.jpg)"
 
 
 msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) Be aware of a possible loss in quality"
-msgstr "Enregistrer des images en JPEG. (Les images qui ont besoin d’alpha sont quand même enregistrées en PNG.) Attention : une perte de qualité est possible"
+msgstr "Enregistrer les images en JPEG. (Les images qui ont besoin d’alpha sont quand même enregistrées en PNG.) Attention : une perte de qualité est possible"
 
 
 msgid "Don't export images"
@@ -57063,7 +57160,7 @@ msgstr "Inverser la sélection existante"
 
 
 msgid "Intersect existing selection"
-msgstr "Intersecter la sélection actuelle"
+msgstr "Intersecter avec la sélection existante"
 
 
 msgid "Select Grease Pencil strokes using brush selection"
@@ -58761,7 +58858,7 @@ msgstr "Début Y"
 
 msgctxt "Operator"
 msgid "Save Image"
-msgstr "Enregistrer image"
+msgstr "Enregistrer l’image"
 
 
 msgid "Save the image with current name and settings"
@@ -58779,7 +58876,7 @@ msgstr "Enregistrer toutes les images modifiées"
 
 msgctxt "Operator"
 msgid "Save As Image"
-msgstr "Enregistrer image sous"
+msgstr "Enregistrer l’image sous"
 
 
 msgid "Save the image with another name and/or settings"
@@ -58791,7 +58888,7 @@ msgstr "Créer un nouveau fichier image, sans modifier l’image actuelle dans b
 
 
 msgid "Save As Render"
-msgstr "Enregistrer rendu sous"
+msgstr "Enregistrer comme rendu"
 
 
 msgid ""
@@ -59918,17 +60015,9 @@ msgid "Clear Restrict View"
 msgstr "Annuler cacher dans la vue"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Afficher les calques de masque temporairement cachés"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Définir cacher dans la vue"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Cacher temporairement les calques de masque"
 
 
 msgctxt "Operator"
@@ -60285,11 +60374,11 @@ msgstr "Biseauter"
 
 
 msgid "Cut into selected items at an angle to create bevel or chamfer"
-msgstr "Couper dans l’élément sélectionné selon un angle, afin de créer un biseau ou un chanfrein"
+msgstr "Couper les éléments sélectionnés en biais, afin de créer un biseau ou un chanfrein"
 
 
 msgid "Do not allow beveled edges/vertices to overlap each other"
-msgstr "Interdire aux arêtes/sommets biseautés de se recouvrir mutuellement"
+msgstr "Interdire aux arêtes/sommets biseautés de se chevaucher"
 
 
 msgid "Face Strength Mode"
@@ -70754,11 +70843,11 @@ msgstr "Installer éclairages studio personnalisés"
 
 msgctxt "Operator"
 msgid "Save Custom Studio Light"
-msgstr "Enregistrer éclairages studio personnalisés"
+msgstr "Enregistrer les éclairages studio personnalisés"
 
 
 msgid "Save custom studio light from the studio light editor settings"
-msgstr "Enregistrer éclairages studio personnalisés depuis les réglages de l’éditeur d’éclairage studio"
+msgstr "Enregistrer les éclairages studio personnalisés depuis les réglages de l’éditeur d’éclairage studio"
 
 
 msgid "Show light preferences"
@@ -70928,7 +71017,7 @@ msgstr "Utiliser la vue 3D actuelle pour le rendu, sinon utiliser les réglages 
 
 
 msgid "Write Image"
-msgstr "Enregistrer image"
+msgstr "Enregistrer l’image"
 
 
 msgid "Save rendered the image to the output path (used only when animation is disabled)"
@@ -72084,7 +72173,7 @@ msgstr "Alterner entre les dispositions d’écran disponibles"
 
 msgctxt "Operator"
 msgid "Save Screenshot"
-msgstr "Enregistrer capture d’écran"
+msgstr "Enregistrer une capture d’écran"
 
 
 msgid "Capture a picture of the whole Blender window"
@@ -72093,7 +72182,7 @@ msgstr "Capturer une image de toute la fenêtre Blender"
 
 msgctxt "Operator"
 msgid "Save Screenshot (Editor)"
-msgstr "Enregistrer capture d’écran (éditeur)"
+msgstr "Enregistrer une capture d’écran (éditeur)"
 
 
 msgid "Capture a picture of an editor"
@@ -79547,7 +79636,7 @@ msgstr "Lier"
 
 
 msgid "Link from a Library .blend file"
-msgstr "Lier depuis autre fichier .blend bibliothèque"
+msgstr "Lier depuis un autre fichier .blend bibliothèque"
 
 
 msgctxt "Operator"
@@ -80278,7 +80367,7 @@ msgstr "Charger les réglages d’usine"
 
 
 msgid "Load factory default startup file and preferences. To make changes permanent, use \"Save Startup File\" and \"Save Preferences\""
-msgstr "Charger le fichier de démarrage et les préférences d’usine par défaut. Pour rendre les changements permanents, utiliser « Enregistrer fichier de démarrage » et « Enregistrer préférences »"
+msgstr "Charger le fichier de démarrage et les préférences d’usine par défaut. Pour rendre les changements permanents, utiliser « Enregistrer le fichier de démarrage » et « Enregistrer préférences »"
 
 
 msgid "Factory Startup App-Template Only"
@@ -80300,7 +80389,7 @@ msgstr "Recharger le fichier d’historique"
 
 
 msgid "Reloads history and bookmarks"
-msgstr "Recharge l’historique et les signets"
+msgstr "Recharger l’historique et les signets"
 
 
 msgctxt "Operator"
@@ -80309,7 +80398,7 @@ msgstr "Recharger le fichier de démarrage"
 
 
 msgid "Open the default file (doesn't save the current file)"
-msgstr "Ouvre le fichier par défaut (ne sauvegarde pas le fichier en cours)"
+msgstr "Ouvrir le fichier par défaut (ne pas sauvegarder le fichier en cours)"
 
 
 msgid "Path to an alternative start-up file"
@@ -80326,7 +80415,7 @@ msgstr "Démarrage d’usine"
 
 msgctxt "Operator"
 msgid "Load Preferences"
-msgstr "Charger préférences"
+msgstr "Charger les préférences"
 
 
 msgid "Load last saved preferences"
@@ -80335,20 +80424,20 @@ msgstr "Charger les dernières préférences enregistrées"
 
 msgctxt "Operator"
 msgid "Recover Auto Save"
-msgstr "Récupérer sauvegarde auto"
+msgstr "Récupérer une sauvegarde auto"
 
 
 msgid "Open an automatically saved file to recover it"
-msgstr "Ouvre un fichier automatiquement sauvegardé"
+msgstr "Ouvrir un fichier sauvegardé automatiquement"
 
 
 msgctxt "Operator"
 msgid "Recover Last Session"
-msgstr "Récupérer dernière session"
+msgstr "Récupérer la dernière session"
 
 
 msgid "Open the last closed file (\"quit.blend\")"
-msgstr "Ouvre la sauvegarde effectuée à la fermeture (« quit.blend »)"
+msgstr "Ouvrir la sauvegarde effectuée à la fermeture (« quit.blend »)"
 
 
 msgctxt "Operator"
@@ -80446,7 +80535,7 @@ msgstr "Écrire un fichier .blend compressé"
 
 
 msgid "Save Copy"
-msgstr "Enregistrer copie"
+msgstr "Enregistrer une copie"
 
 
 msgid "Save a copy of the actual working state but does not make saved file active"
@@ -80463,7 +80552,7 @@ msgstr "Actualiser les chemins relatifs lors d’un enregistrement dans un autre
 
 msgctxt "Operator"
 msgid "Save Startup File"
-msgstr "Enregistrer fichier de démarrage"
+msgstr "Enregistrer le fichier de démarrage"
 
 
 msgid "Make the current file the default .blend file"
@@ -80472,7 +80561,7 @@ msgstr "Faire du fichier actuel le fichier .blend par défaut"
 
 msgctxt "Operator"
 msgid "Save Blender File"
-msgstr "Enregistrer fichier Blender"
+msgstr "Enregistrer le fichier Blender"
 
 
 msgid "Save the current Blender file"
@@ -80485,7 +80574,7 @@ msgstr "Quitter Blender après avoir enregistré"
 
 msgctxt "Operator"
 msgid "Save Preferences"
-msgstr "Enregistrer préférences"
+msgstr "Enregistrer les préférences"
 
 
 msgid "Make the current preferences default"
@@ -80639,7 +80728,7 @@ msgstr "Valider et corriger les maillages importés (lent)"
 
 msgctxt "Operator"
 msgid "Save System Info"
-msgstr "Enregistrer infos système"
+msgstr "Enregistrer les infos système"
 
 
 msgid "Generate system information, saved into a text file"
@@ -81987,10 +82076,6 @@ msgid "2D Cursor"
 msgstr "Curseur 2D"
 
 
-msgid "Active Point"
-msgstr "Point actif"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "« Intrinsèques » de caméra de suivi prédéfinis"
 
@@ -83009,7 +83094,7 @@ msgstr "Paramètres de souris 3D"
 
 
 msgid "Save Preferences"
-msgstr "Enregistrer préférences"
+msgstr "Enregistrer les préférences"
 
 
 msgid "Auto Run Python Scripts"
@@ -85800,11 +85885,11 @@ msgstr "Le répertoire par défaut de sortie des rendus, pour les nouvelles scè
 
 
 msgid "Save Versions"
-msgstr "Enregistrer versions"
+msgstr "Versions de sauvegarde"
 
 
 msgid "The number of old versions to maintain in the current directory, when manually saving"
-msgstr "Nombre de précédentes versions à maintenir dans le dossier actuel,lors d’une sauvegarde manuelle"
+msgstr "Nombre de précédentes versions à garder dans le dossier actuel, lors d’une sauvegarde manuelle"
 
 
 msgid "Python Scripts Directory"
@@ -87049,14 +87134,6 @@ msgstr "Taille de l’icône des axes"
 
 msgid "Mini Axes Type"
 msgstr "Type des mini axes"
-
-
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "Afficher des petits axes 3D tournants dans le coin supérieur droit de la vue 3D"
-
-
-msgid "Simple Axis"
-msgstr "Axes simples"
 
 
 msgid "Interactive Navigation"
@@ -90064,8 +90141,23 @@ msgid "Additional subdivision along the curves"
 msgstr "Subdivision supplémentaire le long des courbes"
 
 
+msgctxt "Curves"
+msgid "Curves Shape Type"
+msgstr "Type de forme des courbes"
+
+
 msgid "Curves shape type"
 msgstr "Type de forme des courbes"
+
+
+msgctxt "Curves"
+msgid "Strand"
+msgstr "Fibre"
+
+
+msgctxt "Curves"
+msgid "Strip"
+msgstr "Bande"
 
 
 msgid "Multiple Engines"
@@ -106349,6 +106441,10 @@ msgid "Previews clear process failed for file '%s'!"
 msgstr "Le processus de nettoyage des prévisualisations a échoué pour le fichier « %s »"
 
 
+msgid "No active camera in the scene"
+msgstr "Aucune caméra active dans la scène"
+
+
 msgid "Unexpected modifier type: "
 msgstr "Type de modificateur inattendu : "
 
@@ -111128,7 +111224,7 @@ msgstr "Revenir au précédent"
 
 msgctxt "Operator"
 msgid "Save Copy..."
-msgstr "Enregistrer copie…"
+msgstr "Enregistrer une copie…"
 
 
 msgctxt "Operator"
@@ -111425,10 +111521,6 @@ msgid "Playback Frame Rate (FPS)"
 msgstr "Framerate durant la lecture (FPS)"
 
 
-msgid "3D Viewport Axis"
-msgstr "Axes de la vue 3D"
-
-
 msgid "Smooth Wires"
 msgstr "Adoucir filaire"
 
@@ -111692,7 +111784,7 @@ msgstr "Caméra"
 
 msgctxt "Operator"
 msgid "Orbit Opposite"
-msgstr "Orbiter en sens opposé"
+msgstr "Orbiter de l’autre côté"
 
 
 msgctxt "Operator"
@@ -116417,6 +116509,10 @@ msgid "Error evaluating number, see Info editor for details"
 msgstr "Erreur lors de l’évaluation du nombre, voir l’éditeur infos pour plus de détails"
 
 
+msgid "Press a key"
+msgstr "Appuyer sur une touche"
+
+
 msgid "Missing Panel: %s"
 msgstr "Panneau manquant : %s"
 
@@ -119600,7 +119696,7 @@ msgstr "Impossible de créer un tampon OpenGL hors-écran : %s"
 
 
 msgid "Missing%s%s%s%s detected!"
-msgstr "%s%s%s%s manquant détecté !"
+msgstr "%s%s%s%s manquants détectés !"
 
 
 msgid "Active group is locked, aborting"
@@ -123701,6 +123797,31 @@ msgstr "Nœud de groupe personnalisé"
 
 msgid "UNDEFINED"
 msgstr "INDÉFINI"
+
+
+msgctxt "NodeTree"
+msgid "Functions"
+msgstr "Fonctions"
+
+
+msgctxt "NodeTree"
+msgid "Comparison"
+msgstr "Comparaison"
+
+
+msgctxt "NodeTree"
+msgid "Rounding"
+msgstr "Arrondi"
+
+
+msgctxt "NodeTree"
+msgid "Trigonometric"
+msgstr "Trigonométrie"
+
+
+msgctxt "NodeTree"
+msgid "Conversion"
+msgstr "Conversion"
 
 
 msgid "Same input/output direction of sockets"
