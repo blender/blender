@@ -167,8 +167,7 @@ uiBlock *catalog_selector_block_draw(bContext *C, ARegion *region, void * /*arg1
         "asset catalog tree view",
         std::make_unique<AssetCatalogSelectorTree>(*library, *shelf_settings));
 
-    ui::TreeViewBuilder builder(*block);
-    builder.build_tree_view(*tree_view);
+    ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
   }
 
   UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
