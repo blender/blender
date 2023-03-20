@@ -458,10 +458,10 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
     return;
   }
 
-  void *cd_ptr = add_customdata_cb(mesh, "displayColors", CD_PROP_BYTE_COLOR);
+  void *cd_ptr = add_customdata_cb(mesh, "displayColor", CD_PROP_BYTE_COLOR);
 
   if (!cd_ptr) {
-    std::cerr << "WARNING: Couldn't add displayColors custom data.\n";
+    std::cerr << "WARNING: Couldn't add displayColor custom data.\n";
     return;
   }
 
@@ -504,6 +504,8 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
       colors[loop_index].a = unit_float_to_uchar_clamp(1.0);
     }
   }
+
+  BKE_id_attributes_active_color_set(&mesh->id, "displayColor");
 }
 
 void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
