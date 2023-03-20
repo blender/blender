@@ -1069,17 +1069,24 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
 
       case TFM_MODAL_SNAP_INV_ON:
-        t->modifiers |= MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
+        if (!(t->modifiers & MOD_SNAP_INVERT)) {
+          t->modifiers |= MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
+          t->redraw |= TREDRAW_HARD;
+        }
         handled = true;
         break;
       case TFM_MODAL_SNAP_INV_OFF:
-        t->modifiers &= ~MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
-        handled = true;
+        if (t->modifiers & MOD_SNAP_INVERT) {
+          t->modifiers &= ~MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
+          t->redraw |= TREDRAW_HARD;
+          handled = true;
+        }
         break;
       case TFM_MODAL_SNAP_TOGGLE:
         t->modifiers ^= MOD_SNAP;
+        transform_snap_flag_from_modifiers_set(t);
         t->redraw |= TREDRAW_HARD;
         handled = true;
         break;
