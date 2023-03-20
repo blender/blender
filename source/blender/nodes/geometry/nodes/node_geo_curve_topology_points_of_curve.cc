@@ -151,7 +151,7 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
     return VArray<int>::ForFunc(curves.curves_num(), [points_by_curve](const int64_t curve_i) {
-      return points_by_curve.size(curve_i);
+      return points_by_curve[curve_i].size();
     });
   }
 

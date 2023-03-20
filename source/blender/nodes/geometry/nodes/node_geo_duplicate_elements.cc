@@ -115,7 +115,7 @@ static void threaded_id_offset_copy(const OffsetIndices<int> offsets,
                                     MutableSpan<int> all_dst)
 {
   BLI_assert(offsets.total_size() == all_dst.size());
-  threading::parallel_for(IndexRange(offsets.ranges_num()), 512, [&](IndexRange range) {
+  threading::parallel_for(offsets.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
       MutableSpan<int> dst = all_dst.slice(offsets[i]);
       if (dst.is_empty()) {
@@ -280,7 +280,7 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
       const int i_src_curve = selection[i_selection];
       const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
       const IndexRange duplicates_range = offsets[i_selection];
-      for (const int i_duplicate : IndexRange(offsets.size(i_selection)).drop_front(1)) {
+      for (const int i_duplicate : IndexRange(offsets[i_selection].size()).drop_front(1)) {
         const int i_dst_curve = duplicates_range[i_duplicate];
         copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
       }
@@ -326,7 +326,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
     curve_offset_data[i_curve] = dst_curves_num;
     point_offset_data[i_curve] = dst_points_num;
     dst_curves_num += count;
-    dst_points_num += count * points_by_curve.size(selection[i_curve]);
+    dst_points_num += count * points_by_curve[selection[i_curve]].size();
   }
   curve_offset_data.last() = dst_curves_num;
   point_offset_data.last() = dst_points_num;

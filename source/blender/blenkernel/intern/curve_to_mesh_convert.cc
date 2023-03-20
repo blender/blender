@@ -254,7 +254,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   int poly_offset = 0;
   for (const int i_main : info.main.curves_range()) {
     const bool main_cyclic = info.main_cyclic[i_main];
-    const int main_point_num = main_offsets.size(i_main);
+    const int main_point_num = main_offsets[i_main].size();
     const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
     for (const int i_profile : info.profile.curves_range()) {
       result.vert[mesh_index] = vert_offset;
@@ -266,7 +266,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
       result.profile_indices[mesh_index] = i_profile;
 
       const bool profile_cyclic = info.profile_cyclic[i_profile];
-      const int profile_point_num = profile_offsets.size(i_profile);
+      const int profile_point_num = profile_offsets[i_profile].size();
       const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
       const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;

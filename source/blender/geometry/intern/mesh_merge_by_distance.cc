@@ -1341,8 +1341,8 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
   if (doubles_num) {
     int loop_kill_num = 0;
 
-    OffsetIndices<int> doubles_offset_indices = OffsetIndices<int>(doubles_offsets);
-    for (const int i : IndexRange(doubles_offset_indices.ranges_num())) {
+    OffsetIndices<int> doubles_offset_indices(doubles_offsets);
+    for (const int i : doubles_offset_indices.index_range()) {
       const int poly_dst = wpoly[doubles_buffer[doubles_offsets[i]]].poly_orig;
 
       for (const int offset : doubles_offset_indices[i].drop_front(1)) {

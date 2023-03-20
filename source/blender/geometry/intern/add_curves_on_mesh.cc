@@ -296,7 +296,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     interpolate_from_neighbors<int>(
         neighbors_per_curve,
         inputs.fallback_point_count,
-        [&](const int curve_i) { return old_points_by_curve.size(curve_i); },
+        [&](const int curve_i) { return old_points_by_curve[curve_i].size(); },
         new_point_counts_per_curve);
   }
   else {
