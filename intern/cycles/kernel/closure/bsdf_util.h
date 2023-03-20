@@ -105,7 +105,10 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
   return mix(F0, one_spectrum(), inverse_lerp(real_F0, 1.0f, real_F));
 }
 
-ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
+/* If the shading normal results in specular reflection in the lower hemisphere, raise the shading
+ * normal towards the geometry normal so that the specular reflection is just above the surface.
+ * Only used for glossy materials. */
+ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N)
 {
   const float3 R = 2 * dot(N, I) * N - I;
 
@@ -180,14 +183,14 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
   return Nx * X + Nz * Ng;
 }
 
-/* Do not call #ensure_valid_reflection if the primitive type is curve or if the geometry
+/* Do not call #ensure_valid_specular_reflection if the primitive type is curve or if the geometry
  * normal and the shading normal is the same. */
-ccl_device float3 maybe_ensure_valid_reflection(ccl_private ShaderData *sd, float3 N)
+ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
 {
   if ((sd->type & PRIMITIVE_CURVE) || isequal(sd->Ng, N)) {
     return N;
   }
-  return ensure_valid_reflection(sd->Ng, sd->wi, N);
+  return ensure_valid_specular_reflection(sd->Ng, sd->wi, N);
 }
 
 CCL_NAMESPACE_END

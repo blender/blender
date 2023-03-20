@@ -136,7 +136,7 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
 }
 
 /* Same thing as Cycles without the comments to make it shorter. */
-vec3 ensure_valid_reflection(vec3 Ng, vec3 I, vec3 N)
+vec3 ensure_valid_specular_reflection(vec3 Ng, vec3 I, vec3 N)
 {
   vec3 R = -reflect(I, N);
 
