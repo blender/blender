@@ -64,7 +64,9 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
 static char *rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = ptr->data;
-  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
+  char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
+  BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
+  return BLI_sprintfN("asset_data.tags[\"%s\"]", asset_tag_name_esc);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -202,6 +204,74 @@ static void rna_AssetMetaData_description_set(PointerRNA *ptr, const char *value
   }
   else {
     asset_data->description = NULL;
+  }
+}
+
+static void rna_AssetMetaData_copyright_get(PointerRNA *ptr, char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->copyright) {
+    strcpy(value, asset_data->copyright);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_AssetMetaData_copyright_length(PointerRNA *ptr)
+{
+  AssetMetaData *asset_data = ptr->data;
+  return asset_data->copyright ? strlen(asset_data->copyright) : 0;
+}
+
+static void rna_AssetMetaData_copyright_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->copyright) {
+    MEM_freeN(asset_data->copyright);
+  }
+
+  if (value[0]) {
+    asset_data->copyright = BLI_strdup(value);
+  }
+  else {
+    asset_data->copyright = NULL;
+  }
+}
+
+static void rna_AssetMetaData_license_get(PointerRNA *ptr, char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->license) {
+    strcpy(value, asset_data->license);
+  }
+  else {
+    value[0] = '\0';
+  }
+}
+
+static int rna_AssetMetaData_license_length(PointerRNA *ptr)
+{
+  AssetMetaData *asset_data = ptr->data;
+  return asset_data->license ? strlen(asset_data->license) : 0;
+}
+
+static void rna_AssetMetaData_license_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  if (asset_data->license) {
+    MEM_freeN(asset_data->license);
+  }
+
+  if (value[0]) {
+    asset_data->license = BLI_strdup(value);
+  }
+  else {
+    asset_data->license = NULL;
   }
 }
 
@@ -397,6 +467,30 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Description", "A description of the asset to be displayed for the user");
 
+  prop = RNA_def_property(srna, "copyright", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_copyright_get",
+                                "rna_AssetMetaData_copyright_length",
+                                "rna_AssetMetaData_copyright_set");
+  RNA_def_property_ui_text(
+      prop,
+      "Copyright",
+      "Copyright notice for this asset. An empty copyright notice does not necessarily indicate "
+      "that this is copyright-free. Contact the author if any clarification is needed");
+
+  prop = RNA_def_property(srna, "license", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_license_get",
+                                "rna_AssetMetaData_license_length",
+                                "rna_AssetMetaData_license_set");
+  RNA_def_property_ui_text(prop,
+                           "License",
+                           "The type of license this asset is distributed under. An empty license "
+                           "name does not necessarily indicate that this is free of licensing "
+                           "terms. Contact the author if any clarification is needed");
+
   prop = RNA_def_property(srna, "tags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "AssetTag");
   RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
@@ -484,6 +578,17 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   rna_def_asset_handle_api(srna);
 }
 
+static void rna_def_asset_representation(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "AssetRepresentation", NULL);
+  RNA_def_struct_ui_text(srna,
+                         "Asset Representation",
+                         "Information about an entity that makes it possible for the asset system "
+                         "to deal with the entity as asset");
+}
+
 static void rna_def_asset_catalog_path(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetCatalogPath", NULL);
@@ -516,6 +621,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
   rna_def_asset_handle(brna);
+  rna_def_asset_representation(brna);
   rna_def_asset_catalog_path(brna);
 
   RNA_define_animate_sdna(true);

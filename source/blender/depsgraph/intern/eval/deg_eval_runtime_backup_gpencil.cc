@@ -8,10 +8,10 @@
 #include "intern/eval/deg_eval_runtime_backup_gpencil.h"
 #include "intern/depsgraph.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_update_cache.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_update_cache_legacy.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 namespace blender::deg {
 

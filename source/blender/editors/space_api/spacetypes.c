@@ -193,6 +193,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
   ED_keymap_paint(keyconf);
   ED_keymap_mask(keyconf);
   ED_keymap_marker(keyconf);
+  ED_keymap_sculpt(keyconf);
 
   ED_keymap_view2d(keyconf);
   ED_keymap_ui(keyconf);

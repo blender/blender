@@ -15,11 +15,18 @@
 #include "kernel/bvh/util.h"
 #include "kernel/geom/object.h"
 #include "kernel/integrator/state.h"
+#include "kernel/integrator/state_util.h"
 #include "kernel/sample/lcg.h"
 
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
+
+#if INTEGRATOR_SHADOW_ISECT_SIZE < 256
+using numhit_t = uint8_t;
+#else
+using numhit_t = uint32_t;
+#endif
 
 #define EMBREE_IS_HAIR(x) (x & 1)
 
@@ -41,12 +48,11 @@ struct CCLIntersectContext {
   const Ray *ray;
 
   /* for shadow rays */
-  Intersection *isect_s;
-  uint max_hits;
-  uint num_hits;
-  uint num_recorded_hits;
+  IntegratorShadowState isect_s;
+  numhit_t max_hits;
+  numhit_t num_hits;
+  numhit_t num_recorded_hits;
   float throughput;
-  float max_t;
   bool opaque_hit;
 
   /* for SSS Rays: */
@@ -54,16 +60,18 @@ struct CCLIntersectContext {
   int local_object_id;
   uint *lcg_state;
 
+  /* for Volume */
+  Intersection *vol_isect;
+
   CCLIntersectContext(KernelGlobals kg_, RayType type_)
   {
     kg = kg_;
     type = type_;
     ray = NULL;
-    max_hits = 1;
-    num_hits = 0;
-    num_recorded_hits = 0;
+    max_hits = numhit_t(1);
+    num_hits = numhit_t(0);
+    num_recorded_hits = numhit_t(0);
     throughput = 1.0f;
-    max_t = FLT_MAX;
     opaque_hit = false;
     isect_s = NULL;
     local_isect = NULL;
@@ -112,31 +120,17 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
 
 ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg,
                                                           const RTCHit *hit,
-                                                          const Ray *ray)
+                                                          const Ray *ray,
+                                                          const intptr_t prim_offset)
 {
   int object, prim;
+  object = (hit->instID[0] != RTC_INVALID_GEOMETRY_ID ? hit->instID[0] : hit->geomID) / 2;
 
-  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    object = hit->instID[0] / 2;
-    if ((ray->self.object == object) || (ray->self.light_object == object)) {
-      RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-          rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
-      prim = hit->primID +
-             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-    }
-    else {
-      return false;
-    }
+  if ((ray->self.object == object) || (ray->self.light_object == object)) {
+    prim = hit->primID + prim_offset;
   }
   else {
-    object = hit->geomID / 2;
-    if ((ray->self.object == object) || (ray->self.light_object == object)) {
-      prim = hit->primID +
-             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
-    }
-    else {
-      return false;
-    }
+    return false;
   }
 
   const bool is_hair = hit->geomID & 1;
@@ -150,21 +144,12 @@ ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg
 ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
-                                                 Intersection *isect)
+                                                 Intersection *isect,
+                                                 const intptr_t prim_offset)
 {
   isect->t = ray->tfar;
-  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-        rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
-    isect->prim = hit->primID +
-                  (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-    isect->object = hit->instID[0] / 2;
-  }
-  else {
-    isect->prim = hit->primID + (intptr_t)rtcGetGeometryUserData(
-                                    rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
-    isect->object = hit->geomID / 2;
-  }
+  isect->prim = hit->primID + prim_offset;
+  isect->object = hit->instID[0] != RTC_INVALID_GEOMETRY_ID ? hit->instID[0] / 2 : hit->geomID / 2;
 
   const bool is_hair = hit->geomID & 1;
   if (is_hair) {
@@ -181,16 +166,35 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
   }
 }
 
-ccl_device_inline void kernel_embree_convert_sss_hit(
-    KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
+ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
+                                                 const RTCRay *ray,
+                                                 const RTCHit *hit,
+                                                 Intersection *isect)
+{
+  intptr_t prim_offset;
+  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
+    RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
+        rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
+    prim_offset = intptr_t(rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID)));
+  }
+  else {
+    prim_offset = intptr_t(
+        rtcGetGeometryUserData(rtcGetGeometry(kernel_data.device_bvh, hit->geomID)));
+  }
+  kernel_embree_convert_hit(kg, ray, hit, isect, prim_offset);
+}
+
+ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals kg,
+                                                     const RTCRay *ray,
+                                                     const RTCHit *hit,
+                                                     Intersection *isect,
+                                                     int object,
+                                                     const intptr_t prim_offset)
 {
   isect->u = hit->u;
   isect->v = hit->v;
   isect->t = ray->tfar;
-  RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-      rtcGetGeometry(kernel_data.device_bvh, object * 2));
-  isect->prim = hit->primID +
-                (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
+  isect->prim = hit->primID + prim_offset;
   isect->object = object;
   isect->type = kernel_data_fetch(objects, object).primitive_type;
 }
@@ -211,7 +215,8 @@ ccl_device void kernel_embree_filter_intersection_func(const RTCFilterFunctionNA
   const KernelGlobalsCPU *kg = ctx->kg;
   const Ray *cray = ctx->ray;
 
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+  if (kernel_embree_is_self_intersection(
+          kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
     *args->valid = 0;
   }
 }
@@ -226,7 +231,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
   assert(args->N == 1);
 
-  const RTCRay *ray = (RTCRay *)args->ray;
+  RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
   CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
   const KernelGlobalsCPU *kg = ctx->kg;
@@ -235,7 +240,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL: {
       Intersection current_isect;
-      kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+      kernel_embree_convert_hit(
+          kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
       if (intersection_skip_self_shadow(cray->self, current_isect.object, current_isect.prim)) {
         *args->valid = 0;
         return;
@@ -265,20 +271,21 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       }
 
       /* Test if we need to record this transparent intersection. */
-      const uint max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
-      if (ctx->num_recorded_hits < max_record_hits || ray->tfar < ctx->max_t) {
+      const numhit_t max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+      if (ctx->num_recorded_hits < max_record_hits) {
         /* If maximum number of hits was reached, replace the intersection with the
          * highest distance. We want to find the N closest intersections. */
-        const uint num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
-        uint isect_index = num_recorded_hits;
+        const numhit_t num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
+        numhit_t isect_index = num_recorded_hits;
         if (num_recorded_hits + 1 >= max_record_hits) {
-          float max_t = ctx->isect_s[0].t;
-          uint max_recorded_hit = 0;
+          float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
+          numhit_t max_recorded_hit = numhit_t(0);
 
-          for (uint i = 1; i < num_recorded_hits; ++i) {
-            if (ctx->isect_s[i].t > max_t) {
+          for (numhit_t i = numhit_t(1); i < num_recorded_hits; ++i) {
+            const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
+            if (isect_t > max_t) {
               max_recorded_hit = i;
-              max_t = ctx->isect_s[i].t;
+              max_t = isect_t;
             }
           }
 
@@ -286,14 +293,11 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
             isect_index = max_recorded_hit;
           }
 
-          /* Limit the ray distance and stop counting hits beyond this.
-           * TODO: is there some way we can tell Embree to stop intersecting beyond
-           * this distance when max number of hits is reached?. Or maybe it will
-           * become irrelevant if we make max_hits a very high number on the CPU. */
-          ctx->max_t = max(current_isect.t, max_t);
+          /* Limit the ray distance and stop counting hits beyond this. */
+          ray->tfar = max(current_isect.t, max_t);
         }
 
-        ctx->isect_s[isect_index] = current_isect;
+        integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
       }
 
       /* Always increase the number of recorded hits, even beyond the maximum,
@@ -309,10 +313,16 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       /* Check if it's hitting the correct object. */
       Intersection current_isect;
       if (ctx->type == CCLIntersectContext::RAY_SSS) {
-        kernel_embree_convert_sss_hit(kg, ray, hit, &current_isect, ctx->local_object_id);
+        kernel_embree_convert_sss_hit(kg,
+                                      ray,
+                                      hit,
+                                      &current_isect,
+                                      ctx->local_object_id,
+                                      reinterpret_cast<intptr_t>(args->geometryUserPtr));
       }
       else {
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        kernel_embree_convert_hit(
+            kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
         if (ctx->local_object_id != current_isect.object) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
@@ -387,13 +397,14 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       /* Append the intersection to the end of the array. */
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        kernel_embree_convert_hit(
+            kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
         if (intersection_skip_self(cray->self, current_isect.object, current_isect.prim)) {
           *args->valid = 0;
           return;
         }
 
-        Intersection *isect = &ctx->isect_s[ctx->num_hits];
+        Intersection *isect = &ctx->vol_isect[ctx->num_hits];
         ++ctx->num_hits;
         *isect = current_isect;
         /* Only primitives from volume object. */
@@ -409,7 +420,8 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
     }
     case CCLIntersectContext::RAY_REGULAR:
     default:
-      if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+      if (kernel_embree_is_self_intersection(
+              kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
         *args->valid = 0;
         return;
       }
@@ -433,7 +445,8 @@ ccl_device void kernel_embree_filter_func_backface_cull(const RTCFilterFunctionN
   const KernelGlobalsCPU *kg = ctx->kg;
   const Ray *cray = ctx->ray;
 
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+  if (kernel_embree_is_self_intersection(
+          kg, hit, cray, reinterpret_cast<intptr_t>(args->geometryUserPtr))) {
     *args->valid = 0;
   }
 }
@@ -544,9 +557,8 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
                                                              ccl_private float *throughput)
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
-  Intersection *isect_array = (Intersection *)state->shadow_isect;
-  ctx.isect_s = isect_array;
-  ctx.max_hits = max_hits;
+  ctx.isect_s = state;
+  ctx.max_hits = numhit_t(max_hits);
   ctx.ray = ray;
   IntersectContext rtc_ctx(&ctx);
   RTCRay rtc_ray;
@@ -567,9 +579,9 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
                                                          const uint visibility)
 {
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
-  ctx.isect_s = isect;
-  ctx.max_hits = max_hits;
-  ctx.num_hits = 0;
+  ctx.vol_isect = isect;
+  ctx.max_hits = numhit_t(max_hits);
+  ctx.num_hits = numhit_t(0);
   ctx.ray = ray;
   IntersectContext rtc_ctx(&ctx);
   RTCRay rtc_ray;

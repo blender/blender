@@ -54,6 +54,7 @@
 #define SHADOW_PAGE_PER_ROW 64
 #define SHADOW_ATLAS_SLOT 5
 #define SHADOW_BOUNDS_GROUP_SIZE 64
+#define SHADOW_CLIPMAP_GROUP_SIZE 64
 #define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
 
 /* Ray-tracing. */
@@ -104,6 +105,9 @@
 #define RBUFS_AOV_COLOR_SLOT 5
 #define RBUFS_AOV_VALUE_SLOT 6
 #define RBUFS_CRYPTOMATTE_SLOT 7
+/* G-buffer reuses render passes slots. */
+#define GBUF_CLOSURE_SLOT RBUFS_LIGHT_SLOT
+#define GBUF_COLOR_SLOT RBUFS_DIFF_COLOR_SLOT
 
 /* Uniform Buffers. */
 /* Only during prepass. */

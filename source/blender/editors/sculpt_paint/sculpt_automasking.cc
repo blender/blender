@@ -24,7 +24,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -179,6 +179,10 @@ static float sculpt_automasking_normal_calc(SculptSession *ss,
 
 static bool sculpt_automasking_is_constrained_by_radius(const Brush *br)
 {
+  if (br == nullptr) {
+    return false;
+  }
+
   /* 2D falloff is not constrained by radius. */
   if (br->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
     return false;

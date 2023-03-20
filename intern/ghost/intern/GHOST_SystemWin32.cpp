@@ -217,7 +217,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
                                                uint32_t height,
                                                GHOST_TWindowState state,
                                                GHOST_GLSettings glSettings,
-                                               const bool exclusive,
+                                               const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
 {
@@ -568,7 +568,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
  * This function was added in response to bug #25715.
  * This is going to be a long list #42426.
  */
-GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short /*scanCode*/) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
   if (vKey == 0xFF) {
@@ -1148,7 +1148,9 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
                                GHOST_TABLET_DATA_NONE);
 }
 
-void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
+void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window,
+                                          WPARAM wParam,
+                                          LPARAM /*lParam*/)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -1826,10 +1828,13 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (!window->m_mousePresent) {
             WINTAB_PRINTF("HWND %p mouse enter\n", window->getHWND());
             TRACKMOUSEEVENT tme = {sizeof(tme)};
-            /* Request WM_MOUSELEAVE message when the cursor leaves the client area, and
-             * WM_MOUSEHOVER message after 50ms when in the client area. */
-            tme.dwFlags = TME_LEAVE | TME_HOVER;
-            tme.dwHoverTime = 50;
+            /* Request WM_MOUSELEAVE message when the cursor leaves the client area. */
+            tme.dwFlags = TME_LEAVE;
+            if (system->m_autoFocus) {
+              /* Request WM_MOUSEHOVER message after 100ms when in the client area. */
+              tme.dwFlags |= TME_HOVER;
+              tme.dwHoverTime = 100;
+            }
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);
             window->m_mousePresent = true;
@@ -2213,7 +2218,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
   return lResult;
 }
 
-char *GHOST_SystemWin32::getClipboard(bool selection) const
+char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 {
   if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
     wchar_t *buffer;

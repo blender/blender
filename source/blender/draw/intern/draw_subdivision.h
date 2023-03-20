@@ -209,10 +209,6 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, struct MeshBufferCac
 
 void DRW_subdiv_cache_free(struct Subdiv *subdiv);
 
-void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
-                                       struct MeshRenderData *mr,
-                                       const struct ToolSettings *toolsettings);
-
 void draw_subdiv_init_origindex_buffer(struct GPUVertBuf *buffer,
                                        int32_t *vert_origindex,
                                        uint num_loops,

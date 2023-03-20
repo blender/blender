@@ -22,7 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
@@ -515,7 +515,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
         dverts_len = lt->pntsu * lt->pntsv * lt->pntsw;
       }
     }
-    else if (ob_target->type == OB_GPENCIL) {
+    else if (ob_target->type == OB_GPENCIL_LEGACY) {
       target_data_id = (const ID *)ob_target->data;
       dverts = gps_target->dvert;
       if (dverts) {

@@ -9,7 +9,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -757,7 +757,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
   const Span<MPoly> polys = mesh->polys();
   for (const int i : polys.index_range()) {
     uint32_t flag = 0;
-    if ((polys[i].flag & ME_SMOOTH) != 0) {
+    if (!(mr->sharp_faces && mr->sharp_faces[i])) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
     if (mr->select_poly && mr->select_poly[i]) {
@@ -786,7 +786,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     /* Selection and hiding from bmesh. */
     uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr->efa_act) : 0;
     /* Smooth from mesh. */
-    if ((polys[i].flag & ME_SMOOTH) != 0) {
+    if (!(mr->sharp_faces && mr->sharp_faces[i])) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
     flags_data[i] = uint(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
@@ -838,8 +838,12 @@ static DRWSubdivCache *mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache *mbc)
 
 static void draw_subdiv_invalidate_evaluator_for_orco(Subdiv *subdiv, Mesh *mesh)
 {
+  if (!(subdiv && subdiv->evaluator)) {
+    return;
+  }
+
   const bool has_orco = CustomData_has_layer(&mesh->vdata, CD_ORCO);
-  if (has_orco && subdiv->evaluator && !subdiv->evaluator->hasVertexData(subdiv->evaluator)) {
+  if (has_orco && !subdiv->evaluator->hasVertexData(subdiv->evaluator)) {
     /* If we suddenly have/need original coordinates, recreate the evaluator if the extra
      * source was not created yet. The refiner also has to be recreated as refinement for source
      * and vertex data is done only once. */
@@ -2113,12 +2117,12 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
     bm = mesh->edit_mesh->bm;
   }
 
+  draw_subdiv_invalidate_evaluator_for_orco(runtime_data->subdiv_gpu, mesh_eval);
+
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, mesh_eval, true);
   if (!subdiv) {
     return false;
   }
-
-  draw_subdiv_invalidate_evaluator_for_orco(subdiv, mesh_eval);
 
   if (!BKE_subdiv_eval_begin_from_mesh(
           subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache)) {

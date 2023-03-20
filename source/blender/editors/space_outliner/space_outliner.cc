@@ -195,6 +195,11 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_ASSET:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+        ED_region_tag_redraw_no_rebuild(region);
+      }
+      break;
     case NC_MATERIAL:
       switch (wmn->data) {
         case ND_SHADING_LINKS:
@@ -521,7 +526,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       /* TODO the mempool could be moved to #SpaceOutliner_Runtime so that #SpaceOutliner could
        * hold the #TreeStore directly. */
 
-      /* Address relative to the tree-store, as noted above.  */
+      /* Address relative to the tree-store, as noted above. */
       void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA

@@ -99,6 +99,8 @@ struct GPUPass {
   /** Hint that an optimized variant of this pass should be created based on a complexity heuristic
    * during pass code generation. */
   bool should_optimize;
+  /** Whether pass is in the GPUPass cache. */
+  bool cached;
 };
 
 /* -------------------------------------------------------------------- */
@@ -132,6 +134,7 @@ static GPUPass *gpu_pass_cache_lookup(uint32_t hash)
 static void gpu_pass_cache_insert_after(GPUPass *node, GPUPass *pass)
 {
   BLI_spin_lock(&pass_cache_spin);
+  pass->cached = true;
   if (node != nullptr) {
     /* Add after the first pass having the same hash. */
     pass->next = node->next;
@@ -775,6 +778,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->create_info = codegen.create_info;
     pass->hash = codegen.hash_get();
     pass->compiled = false;
+    pass->cached = false;
     /* Only flag pass optimization hint if this is the first generated pass for a material.
      * Optimized passes cannot be optimized further, even if the heuristic is still not
      * favorable. */
@@ -881,14 +885,6 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
   return pass->shader;
 }
 
-void GPU_pass_release(GPUPass *pass)
-{
-  BLI_spin_lock(&pass_cache_spin);
-  BLI_assert(pass->refcount > 0);
-  pass->refcount--;
-  BLI_spin_unlock(&pass_cache_spin);
-}
-
 static void gpu_pass_free(GPUPass *pass)
 {
   BLI_assert(pass->refcount == 0);
@@ -897,6 +893,18 @@ static void gpu_pass_free(GPUPass *pass)
   }
   delete pass->create_info;
   MEM_freeN(pass);
+}
+
+void GPU_pass_release(GPUPass *pass)
+{
+  BLI_spin_lock(&pass_cache_spin);
+  BLI_assert(pass->refcount > 0);
+  pass->refcount--;
+  /* Un-cached passes will not be filtered by garbage collection, so release here. */
+  if (pass->refcount == 0 && !pass->cached) {
+    gpu_pass_free(pass);
+  }
+  BLI_spin_unlock(&pass_cache_spin);
 }
 
 void GPU_pass_cache_garbage_collect(void)

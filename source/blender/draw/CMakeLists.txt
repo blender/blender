@@ -144,6 +144,7 @@ set(SRC
   engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_hizbuffer.cc
   engines/eevee_next/eevee_instance.cc
+  engines/eevee_next/eevee_irradiance_cache.cc
   engines/eevee_next/eevee_light.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
@@ -275,6 +276,7 @@ set(SRC
   engines/eevee_next/eevee_film.hh
   engines/eevee_next/eevee_hizbuffer.hh
   engines/eevee_next/eevee_instance.hh
+  engines/eevee_next/eevee_irradiance_cache.hh
   engines/eevee_next/eevee_light.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
@@ -425,6 +427,9 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
   engines/eevee_next/shaders/eevee_transparency_lib.glsl
+  engines/eevee_next/shaders/eevee_debug_surfels_vert.glsl
+  engines/eevee_next/shaders/eevee_debug_surfels_frag.glsl
+  engines/eevee_next/shaders/eevee_deferred_light_frag.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
@@ -444,6 +449,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_film_cryptomatte_post_comp.glsl
   engines/eevee_next/shaders/eevee_film_frag.glsl
   engines/eevee_next/shaders/eevee_film_lib.glsl
+  engines/eevee_next/shaders/eevee_gbuffer_lib.glsl
   engines/eevee_next/shaders/eevee_geom_curves_vert.glsl
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl
@@ -467,6 +473,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl
   engines/eevee_next/shaders/eevee_shadow_lib.glsl
+  engines/eevee_next/shaders/eevee_shadow_clipmap_clear_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_page_allocate_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_page_clear_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_page_defrag_comp.glsl
@@ -483,6 +490,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_finalize_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
+  engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
@@ -822,7 +830,6 @@ if(WITH_GTESTS)
       tests/draw_pass_test.cc
       tests/draw_testing.cc
       tests/eevee_test.cc
-      tests/shaders_test.cc
 
       tests/draw_testing.hh
     )

@@ -25,12 +25,13 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
@@ -118,6 +119,7 @@ static bool object_remesh_poll(bContext *C)
 
 static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -132,8 +134,10 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   /* Output mesh will be all smooth or all flat shading. */
-  const Span<MPoly> polys = mesh->polys();
-  const bool smooth_normals = polys.first().flag & ME_SMOOTH;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
+  const bool smooth_normals = !sharp_faces[0];
 
   float isovalue = 0.0f;
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
@@ -176,9 +180,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  if (smooth_normals) {
-    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
-  }
+  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_end(ob);
@@ -352,7 +354,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
 
   GPU_matrix_push();
   GPU_matrix_mul(cd->text_mat);
-  BLF_size(fontid, 10.0f * fstyle_points * U.dpi_fac);
+  BLF_size(fontid, 10.0f * fstyle_points * UI_SCALE_FAC);
   BLF_color3f(fontid, 1.0f, 1.0f, 1.0f);
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
   BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
@@ -898,9 +900,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  if (qj->smooth_normals) {
-    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
-  }
+  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_end(ob);

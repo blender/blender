@@ -3957,49 +3957,48 @@ void uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
 }
 
 void uv_parametrizer_construct_end(ParamHandle *phandle,
-                                   bool fill,
+                                   bool fill_holes,
                                    bool topology_from_uvs,
-                                   int *count_fail)
+                                   int *r_count_failed)
 {
-  PChart *chart = phandle->construction_chart;
   int i, j;
-  PEdge *outer;
 
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
   phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
-  phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
+  phandle->charts = p_split_charts(phandle, phandle->construction_chart, phandle->ncharts);
 
   MEM_freeN(phandle->construction_chart);
   phandle->construction_chart = nullptr;
 
   phash_delete(phandle->hash_verts);
+  phandle->hash_verts = nullptr;
   phash_delete(phandle->hash_edges);
+  phandle->hash_edges = nullptr;
   phash_delete(phandle->hash_faces);
-  phandle->hash_verts = phandle->hash_edges = phandle->hash_faces = nullptr;
+  phandle->hash_faces = nullptr;
 
   for (i = j = 0; i < phandle->ncharts; i++) {
-    PVert *v;
-    chart = phandle->charts[i];
+    PChart *chart = phandle->charts[i];
 
+    PEdge *outer;
     p_chart_boundaries(chart, &outer);
 
     if (!topology_from_uvs && chart->nboundaries == 0) {
       MEM_freeN(chart);
-      if (count_fail != nullptr) {
-        *count_fail += 1;
+      if (r_count_failed) {
+        *r_count_failed += 1;
       }
       continue;
     }
 
-    phandle->charts[j] = chart;
-    j++;
+    phandle->charts[j++] = chart;
 
-    if (fill && (chart->nboundaries > 1)) {
+    if (fill_holes && chart->nboundaries > 1) {
       p_chart_fill_boundaries(phandle, chart, outer);
     }
 
-    for (v = chart->verts; v; v = v->nextlink) {
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
       p_vert_load_pin_select_uvs(phandle, v);
     }
   }
@@ -4168,6 +4167,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     }
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
+    pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
 
     float minv[2];
@@ -4179,62 +4179,35 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     pack_island->bounds_rect.ymax = maxv[1];
   }
 
-  UVPackIsland_Params params{};
+  UVPackIsland_Params params;
   params.rotate = do_rotate;
-  params.only_selected_uvs = false;
-  params.only_selected_faces = false;
-  params.use_seams = false;
-  params.correct_aspect = false;
-  params.ignore_pinned = false;
-  params.pin_unselected = false;
   params.margin = margin;
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
-  params.udim_base_offset[0] = 0.0f;
-  params.udim_base_offset[1] = 0.0f;
 
   float scale[2] = {1.0f, 1.0f};
-  BoxPack *box_array = pack_islands(pack_island_vector, params, scale);
+  pack_islands(pack_island_vector, params, scale);
 
   for (int64_t i : pack_island_vector.index_range()) {
-    BoxPack *box = box_array + i;
-    PackIsland *pack_island = pack_island_vector[box->index];
-    pack_island->bounds_rect.xmin = box->x;
-    pack_island->bounds_rect.ymin = box->y;
-    pack_island->bounds_rect.xmax = box->x + box->w;
-    pack_island->bounds_rect.ymax = box->y + box->h;
-  }
-
-  unpacked = 0;
-  for (int i = 0; i < handle->ncharts; i++) {
-    PChart *chart = handle->charts[i];
-
-    if (ignore_pinned && chart->has_pins) {
-      unpacked++;
-      continue;
-    }
-    PackIsland *pack_island = pack_island_vector[i - unpacked];
-
-    float minv[2];
-    float maxv[2];
-    p_chart_uv_bbox(chart, minv, maxv);
+    PackIsland *pack_island = pack_island_vector[i];
+    PChart *chart = handle->charts[pack_island->caller_index];
 
     /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
     float m[2];
     float b[2];
     m[0] = scale[0];
     m[1] = scale[1];
-    b[0] = pack_island->bounds_rect.xmin - minv[0];
-    b[1] = pack_island->bounds_rect.ymin - minv[1];
+    b[0] = pack_island->pre_translate.x;
+    b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
       v->uv[0] = m[0] * (v->uv[0] + b[0]);
       v->uv[1] = m[1] * (v->uv[1] + b[1]);
     }
 
-    pack_island_vector[i - unpacked] = nullptr;
+    pack_island_vector[i] = nullptr;
     delete pack_island;
   }
-  MEM_freeN(box_array);
+
   if (handle->aspx != handle->aspy) {
     uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
   }

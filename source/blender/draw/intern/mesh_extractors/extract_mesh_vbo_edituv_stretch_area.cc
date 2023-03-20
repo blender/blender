@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "extract_mesh.hh"
 
@@ -77,10 +77,8 @@ static void compute_area_ratio(const MeshRenderData *mr,
     const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
     for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
       const MPoly &poly = mr->polys[poly_index];
-      float area = BKE_mesh_calc_poly_area(
-          &poly,
-          &mr->loops[poly.loopstart],
-          reinterpret_cast<const float(*)[3]>(mr->vert_positions.data()));
+      const float area = bke::mesh::poly_area_calc(mr->vert_positions,
+                                                   mr->loops.slice(poly.loopstart, poly.totloop));
       float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[poly.loopstart]),
                                   poly.totloop);
       tot_area += area;

@@ -7,11 +7,11 @@
 
 #include "DRW_render.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "UI_resources.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -45,7 +45,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
 
-  if (gpd == nullptr || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
 
@@ -223,7 +223,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   pd->edit_curve.show_handles = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
   pd->edit_curve.handle_display = v3d->overlay.handle_display;
 
-  if (gpd == nullptr || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
 

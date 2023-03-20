@@ -6,7 +6,7 @@
  */
 
 #include "DNA_ID.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -15,7 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.h"
@@ -616,8 +616,8 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   node_set_cursor(*win, *snode, snode->runtime->cursor);
 
   /* XXX snode->runtime->cursor is in placing new nodes space */
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 }
 
 /* Initialize main region, setting handlers. */
@@ -950,7 +950,7 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
       snode->from = new_id;
     }
   }
-  else if (GS(old_id->name) == ID_GD) {
+  else if (GS(old_id->name) == ID_GD_LEGACY) {
     if ((ID *)snode->gpd == old_id) {
       snode->gpd = (bGPdata *)new_id;
       id_us_min(old_id);

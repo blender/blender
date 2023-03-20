@@ -56,8 +56,8 @@ class BoundBox {
 
   __forceinline void grow(const BoundBox &bbox)
   {
-    grow(bbox.min);
-    grow(bbox.max);
+    min = ccl::min(bbox.min, min);
+    max = ccl::max(bbox.max, max);
   }
 
   __forceinline void grow_safe(const float3 &pt)
@@ -81,8 +81,12 @@ class BoundBox {
 
   __forceinline void grow_safe(const BoundBox &bbox)
   {
-    grow_safe(bbox.min);
-    grow_safe(bbox.max);
+    if (isfinite_safe(bbox.min)) {
+      min = ccl::min(bbox.min, min);
+    }
+    if (isfinite_safe(bbox.max)) {
+      max = ccl::max(bbox.max, max);
+    }
   }
 
   __forceinline void intersect(const BoundBox &bbox)

@@ -109,7 +109,7 @@ enum {
   /* Display the hover region (edge or corner) of the underlying bounding box. */
   ED_GIZMO_CAGE2D_STYLE_BOX = 0,
   /* Display the bounding box plus dots on four corners while hovering, usually used for
-     transforming a 2D shape. */
+   * transforming a 2D shape. */
   ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM,
   /* Display the bounding circle while hovering. */
   ED_GIZMO_CAGE2D_STYLE_CIRCLE,

@@ -78,17 +78,13 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   command_buffer.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&region, 1));
   command_buffer.submit();
 
-  void *mapped_data;
-  staging_buffer.map(context, &mapped_data);
-
   void *data = MEM_mallocN(host_memory_size, __func__);
 
   /* TODO: add conversion when data format is different. */
   BLI_assert_msg(device_memory_size == host_memory_size,
                  "Memory data conversions not implemented yet");
 
-  memcpy(data, mapped_data, host_memory_size);
-  staging_buffer.unmap(context);
+  staging_buffer.read(data);
 
   return data;
 }

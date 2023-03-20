@@ -8,7 +8,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "DNA_collection_types.h"

@@ -9,7 +9,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_paint.h"
 
 #include "draw_subdivision.h"

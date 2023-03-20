@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4e3286478670')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 08:08:35\n"
+"POT-Creation-Date: 2023-03-13 11:29:34\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -3819,10 +3819,6 @@ msgstr "ﻞﯾﺎﻓ:"
 
 msgid "Author:"
 msgstr "ﻩﺪﻨﺴﯾﻮﻧ:"
-
-
-msgid "author"
-msgstr "ﻩﺪﻨﺴﯾﻮﻧ"
 
 
 msgid "Version:"

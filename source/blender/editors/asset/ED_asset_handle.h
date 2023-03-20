@@ -21,6 +21,7 @@ extern "C" {
 
 struct AssetHandle;
 
+struct AssetRepresentation *ED_asset_handle_get_representation(const struct AssetHandle *asset);
 const char *ED_asset_handle_get_name(const struct AssetHandle *asset);
 struct AssetMetaData *ED_asset_handle_get_metadata(const struct AssetHandle *asset);
 struct ID *ED_asset_handle_get_local_id(const struct AssetHandle *asset);
@@ -47,12 +48,5 @@ std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const struct AssetHandle *asset);
 
 blender::StringRefNull ED_asset_handle_get_relative_path(const AssetHandle &asset);
-
-namespace blender::ed::asset {
-
-/** If the ID already exists in the database, return it, otherwise add it. */
-ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain, AssetHandle asset);
-
-}  // namespace blender::ed::asset
 
 #endif

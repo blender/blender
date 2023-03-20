@@ -38,7 +38,7 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
   const float surface_guiding_probability = kernel_data.integrator.surface_guiding_probability;
   float rand_bsdf_guiding = path_state_rng_1D(kg, rng_state, PRNG_SURFACE_BSDF_GUIDING);
 
-  /* Compute proportion of diffuse BSDF and BSSRDFs .*/
+  /* Compute proportion of diffuse BSDF and BSSRDFs. */
   float diffuse_sampling_fraction = 0.0f;
   float bssrdf_sampling_fraction = 0.0f;
   float bsdf_bssrdf_sampling_sum = 0.0f;

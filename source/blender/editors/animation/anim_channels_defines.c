@@ -20,7 +20,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -50,7 +50,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -695,7 +695,7 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_VOLUME;
     case OB_EMPTY:
       return ICON_OUTLINER_OB_EMPTY;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return ICON_OUTLINER_OB_GREASEPENCIL;
     default:
       return ICON_OBJECT_DATA;
@@ -5262,7 +5262,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
      *       a callback available (e.g. broken F-Curve rename)
      */
     if (acf->name_prop(ale, &ptr, &prop)) {
-      const short margin_x = 3 * round_fl_to_int(UI_DPI_FAC);
+      const short margin_x = 3 * round_fl_to_int(UI_SCALE_FAC);
       const short width = ac->region->winx - offset - (margin_x * 2);
       uiBut *but;
 

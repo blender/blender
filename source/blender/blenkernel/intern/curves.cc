@@ -130,30 +130,12 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
-  Vector<CustomDataLayer, 16> point_layers;
-  Vector<CustomDataLayer, 16> curve_layers;
-  CustomData_blend_write_prepare(curves->geometry.point_data, point_layers);
-  CustomData_blend_write_prepare(curves->geometry.curve_data, curve_layers);
-
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
   BKE_id_blend_write(writer, &curves->id);
 
   /* Direct data */
-  CustomData_blend_write(writer,
-                         &curves->geometry.point_data,
-                         point_layers,
-                         curves->geometry.point_num,
-                         CD_MASK_ALL,
-                         &curves->id);
-  CustomData_blend_write(writer,
-                         &curves->geometry.curve_data,
-                         curve_layers,
-                         curves->geometry.curve_num,
-                         CD_MASK_ALL,
-                         &curves->id);
-
-  BLO_write_int32_array(writer, curves->geometry.curve_num + 1, curves->geometry.curve_offsets);
+  curves->geometry.wrap().blend_write(*writer, curves->id);
 
   BLO_write_string(writer, curves->surface_uv_map);
 
@@ -170,10 +152,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_animdata_blend_read_data(reader, curves->adt);
 
   /* Geometry */
-  CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_num);
-  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_num);
-
-  BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
+  curves->geometry.wrap().blend_read(*reader);
 
   BLO_read_data_address(reader, &curves->surface_uv_map);
 

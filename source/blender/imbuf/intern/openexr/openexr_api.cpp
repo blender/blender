@@ -441,7 +441,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
     IDProperty *prop;
 
     for (prop = (IDProperty *)ibuf->metadata->data.group.first; prop; prop = prop->next) {
-      if (prop->type == IDP_STRING) {
+      if (prop->type == IDP_STRING && !STREQ(prop->name, "compression")) {
         header->insert(prop->name, StringAttribute(IDP_String(prop)));
       }
     }

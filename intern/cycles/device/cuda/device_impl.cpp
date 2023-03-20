@@ -536,12 +536,11 @@ void CUDADevice::free_host(void *shared_pointer)
   cuMemFreeHost(shared_pointer);
 }
 
-bool CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
 {
   CUDAContextScope scope(this);
 
   cuda_assert(cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, shared_pointer, 0));
-  return true;
 }
 
 void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)

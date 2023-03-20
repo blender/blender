@@ -8,7 +8,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_task.hh"
 
@@ -105,6 +105,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   /* The delaunay triangulation doesn't seem to return all of the necessary edges, even in
    * triangulation mode. */
   BKE_mesh_calc_edges(mesh, true, false);
+  BKE_mesh_smooth_flag_set(mesh, false);
   return mesh;
 }
 

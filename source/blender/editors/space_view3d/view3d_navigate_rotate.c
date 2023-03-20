@@ -234,7 +234,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
     float xaxis[3];
 
     /* Radians per-pixel. */
-    const float sensitivity = U.view_rotate_sensitivity_turntable / U.dpi_fac;
+    const float sensitivity = U.view_rotate_sensitivity_turntable / UI_SCALE_FAC;
 
     /* Get the 3x3 matrix and its inverse from the quaternion */
     quat_to_mat3(m, vod->curr.viewquat);

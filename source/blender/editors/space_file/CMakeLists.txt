@@ -29,7 +29,7 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
-  file_draw.c
+  file_draw.cc
   file_indexer.cc
   file_ops.c
   file_panels.c

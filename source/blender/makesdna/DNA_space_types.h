@@ -341,12 +341,12 @@ typedef enum eSpaceOutliner_Filter {
 
   SO_FILTER_ID_TYPE = (1 << 19),
 
-  SO_FILTER_NO_OB_GPENCIL = (1 << 20),
+  SO_FILTER_NO_OB_GPENCIL_LEGACY = (1 << 20),
 } eSpaceOutliner_Filter;
 
 #define SO_FILTER_OB_TYPE \
   (SO_FILTER_NO_OB_MESH | SO_FILTER_NO_OB_ARMATURE | SO_FILTER_NO_OB_EMPTY | \
-   SO_FILTER_NO_OB_LAMP | SO_FILTER_NO_OB_CAMERA | SO_FILTER_NO_OB_GPENCIL | \
+   SO_FILTER_NO_OB_LAMP | SO_FILTER_NO_OB_CAMERA | SO_FILTER_NO_OB_GPENCIL_LEGACY | \
    SO_FILTER_NO_OB_OTHERS)
 
 #define SO_FILTER_OB_STATE \
@@ -488,8 +488,6 @@ typedef enum eGraphEdit_Flag {
   /* SIPO_NODRAWCFRANUM = (1 << 3), DEPRECATED */
   /* show timing in seconds instead of frames */
   SIPO_DRAWTIME = (1 << 4),
-  /* only show keyframes for selected F-Curves */
-  SIPO_SELCUVERTSONLY = (1 << 5),
   /* draw names of F-Curves beside the respective curves */
   /* NOTE: currently not used */
   /* SIPO_DRAWNAMES = (1 << 6), */ /* UNUSED */
@@ -501,8 +499,6 @@ typedef enum eGraphEdit_Flag {
   SIPO_SELVHANDLESONLY = (1 << 9),
   /* don't perform realtime updates */
   SIPO_NOREALTIMEUPDATES = (1 << 11),
-  /* don't draw curves with AA ("beauty-draw") for performance */
-  SIPO_BEAUTYDRAW_OFF = (1 << 12),
   /* draw grouped channels with colors set in group */
   /* SIPO_NODRAWGCOLORS = (1 << 13), DEPRECATED */
   /* normalize curves on display */

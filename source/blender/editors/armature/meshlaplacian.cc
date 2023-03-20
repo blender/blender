@@ -20,7 +20,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
@@ -656,7 +656,7 @@ void heat_bone_weighting(Object *ob,
   int a, tris_num, j, bbone, firstsegment, lastsegment;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> vert_positions = me->vert_positions();
   const blender::Span<MPoly> polys = me->polys();
   const blender::Span<MLoop> loops = me->loops();
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -705,8 +705,7 @@ void heat_bone_weighting(Object *ob,
   mlooptri = static_cast<MLoopTri *>(
       MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__));
 
-  BKE_mesh_recalc_looptri(
-      loops.data(), polys.data(), vert_positions, me->totloop, me->totpoly, mlooptri);
+  blender::bke::mesh::looptris_calc(vert_positions, polys, loops, {mlooptri, sys->heat.tris_num});
 
   sys->heat.mlooptri = mlooptri;
   sys->heat.loops = loops;
@@ -929,7 +928,7 @@ typedef struct MeshDeformBind {
     blender::Span<MPoly> polys;
     blender::Span<MLoop> loops;
     blender::Span<MLoopTri> looptris;
-    const float (*poly_nors)[3];
+    blender::Span<blender::float3> poly_normals;
   } cagemesh_cache;
 } MeshDeformBind;
 
@@ -959,7 +958,7 @@ static void harmonic_ray_callback(void *userdata,
   MeshRayCallbackData *data = static_cast<MeshRayCallbackData *>(userdata);
   MeshDeformBind *mdb = data->mdb;
   const blender::Span<MLoop> loops = mdb->cagemesh_cache.loops;
-  const float(*poly_nors)[3] = mdb->cagemesh_cache.poly_nors;
+  const blender::Span<blender::float3> poly_normals = mdb->cagemesh_cache.poly_normals;
   MeshDeformIsect *isec = data->isec;
   float no[3], co[3], dist;
   float *face[3];
@@ -977,8 +976,8 @@ static void harmonic_ray_callback(void *userdata,
     return;
   }
 
-  if (poly_nors) {
-    copy_v3_v3(no, poly_nors[lt->poly]);
+  if (!poly_normals.is_empty()) {
+    copy_v3_v3(no, poly_normals[lt->poly]);
   }
   else {
     normal_tri_v3(no, UNPACK3(face));
@@ -1632,7 +1631,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
     mdb->cagemesh_cache.polys = me->polys();
     mdb->cagemesh_cache.loops = me->loops();
     mdb->cagemesh_cache.looptris = me->looptris();
-    mdb->cagemesh_cache.poly_nors = BKE_mesh_poly_normals_ensure(me);
+    mdb->cagemesh_cache.poly_normals = me->poly_normals();
   }
 
   /* make bounding box equal size in all directions, add padding, and compute

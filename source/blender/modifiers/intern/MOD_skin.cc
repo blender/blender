@@ -59,7 +59,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -236,6 +236,8 @@ static bool quad_crosses_symmetry_plane(BMVert *quad[4], const SkinModifierData 
   return false;
 }
 
+#ifdef WITH_BULLET
+
 /* Returns true if the frame is filled by precisely two faces (and
  * outputs those faces to fill_faces), otherwise returns false. */
 static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_faces[2])
@@ -254,6 +256,8 @@ static bool skin_frame_find_contained_faces(const Frame *frame, BMFace *fill_fac
 
   return false;
 }
+
+#endif
 
 /* Returns true if hull is successfully built, false otherwise */
 static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
@@ -370,7 +374,7 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
 
   return true;
 #else
-  UNUSED_VARS(so, frames, totframe, skin_frame_find_contained_faces);
+  UNUSED_VARS(so, frames, totframe);
   return false;
 #endif
 }
@@ -833,7 +837,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 static int calc_edge_subdivisions(const float (*vert_positions)[3],
                                   const MVertSkin *nodes,
                                   const MEdge *edge,
-                                  const int *degree)
+                                  const blender::Span<int> degree)
 {
   /* prevent memory errors #38003. */
 #define NUM_SUBDIVISIONS_MAX 128
@@ -901,21 +905,19 @@ static Mesh *subdivide_base(const Mesh *orig)
   int orig_edge_num = orig->totedge;
 
   /* Get degree of all vertices */
-  int *degree = MEM_cnew_array<int>(orig_vert_num, __func__);
+  blender::Array<int> degree(orig_vert_num, 0);
   for (i = 0; i < orig_edge_num; i++) {
     degree[orig_edges[i].v1]++;
     degree[orig_edges[i].v2]++;
   }
 
   /* Per edge, store how many subdivisions are needed */
-  int *edge_subd = MEM_cnew_array<int>(orig_edge_num, __func__);
+  blender::Array<int> edge_subd(orig_edge_num, 0);
   for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
     edge_subd[i] += calc_edge_subdivisions(orig_vert_positions, orignode, &orig_edges[i], degree);
     BLI_assert(edge_subd[i] >= 0);
     subd_num += edge_subd[i];
   }
-
-  MEM_freeN(degree);
 
   /* Allocate output mesh */
   Mesh *result = BKE_mesh_new_nomain_from_template(
@@ -1019,8 +1021,6 @@ static Mesh *subdivide_base(const Mesh *orig)
     result_edges[result_edge_i].v2 = edge->v2;
     result_edge_i++;
   }
-
-  MEM_freeN(edge_subd);
 
   return result;
 }
@@ -1892,7 +1892,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 static void skin_set_orig_indices(Mesh *mesh)
 {
   int *orig = static_cast<int *>(
-      CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CONSTRUCT, nullptr, mesh->totpoly));
+      CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh->totpoly));
   copy_vn_i(orig, mesh->totpoly, ORIGINDEX_NONE);
 }
 

@@ -32,7 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -1426,4 +1426,9 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(SCULPT_OT_reveal_all);
+}
+
+void ED_keymap_sculpt(wmKeyConfig *keyconf)
+{
+  filter_mesh_modal_keymap(keyconf);
 }

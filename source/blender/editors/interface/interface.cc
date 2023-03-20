@@ -281,7 +281,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
   rcti rect;
   ui_but_to_pixelrect(&rect, region, block, static_cast<const uiBut *>(block->buttons.last));
   const float buttons_width = float(rect.xmax) + UI_HEADER_OFFSET;
-  const float region_width = float(region->sizex) * U.dpi_fac;
+  const float region_width = float(region->sizex) * UI_SCALE_FAC;
 
   if (region_width <= buttons_width) {
     return;
@@ -470,7 +470,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
   /* hardcoded exception... but that one is annoying with larger safety */
   uiBut *bt = static_cast<uiBut *>(block->buttons.first);
-  const int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * U.dpi_fac;
+  const int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * UI_SCALE_FAC;
 
   block->safety.xmin = block->rect.xmin - xof;
   block->safety.ymin = block->rect.ymin - xof;
@@ -3882,7 +3882,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     case UI_BTYPE_KEY_EVENT: {
       const char *str;
       if (but->flag & UI_SELECT) {
-        str = "Press a key";
+        str = IFACE_("Press a key");
       }
       else {
         UI_GET_BUT_VALUE_INIT(but, value);
@@ -3915,7 +3915,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
           (void)str; /* UNUSED */
         }
         else {
-          BLI_strncpy(but->drawstr, "Press a key", UI_MAX_DRAW_STR);
+          BLI_strncpy(but->drawstr, IFACE_("Press a key"), UI_MAX_DRAW_STR);
         }
       }
       else {
@@ -4998,7 +4998,7 @@ int UI_preview_tile_size_x(void)
 int UI_preview_tile_size_y(void)
 {
   const uiStyle *style = UI_style_get();
-  const float font_height = style->widget.points * UI_DPI_FAC;
+  const float font_height = style->widget.points * UI_SCALE_FAC;
   const float pad = PREVIEW_TILE_PAD;
 
   return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +

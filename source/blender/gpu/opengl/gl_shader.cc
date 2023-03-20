@@ -360,9 +360,16 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
   return os;
 }
 
-static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &res)
+static void print_resource(std::ostream &os,
+                           const ShaderCreateInfo::Resource &res,
+                           bool auto_resource_location)
 {
-  if (GLContext::explicit_location_support) {
+  if (auto_resource_location && res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
+    /* Skip explicit binding location for samplers when not needed, since drivers can usually
+     * handle more sampler declarations this way (as long as they're not actually used by the
+     * shader). See #105661. */
+  }
+  else if (GLContext::explicit_location_support) {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       os << ", " << to_string(res.image.format);
@@ -466,14 +473,14 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
 
   ss << "\n/* Pass Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    print_resource(ss, res);
+    print_resource(ss, res, info.auto_resource_location_);
   }
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
     print_resource_alias(ss, res);
   }
   ss << "\n/* Batch Resources. */\n";
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    print_resource(ss, res);
+    print_resource(ss, res, info.auto_resource_location_);
   }
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
     print_resource_alias(ss, res);

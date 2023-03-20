@@ -72,6 +72,12 @@ typedef struct AssetMetaData {
   /** Optional description of this asset for display in the UI. Dynamic length. */
   char *description;
 
+  /** Optional copyright of this asset for display in the UI. Dynamic length. */
+  char *copyright;
+
+  /** Optional license of this asset for display in the UI. Dynamic length. */
+  char *license;
+
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)
    * is up to the asset-engine. */
@@ -134,6 +140,10 @@ typedef struct AssetLibraryReference {
  * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry
  * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
  * pass to the UI.
+ *
+ * \warning Never store this! When using #ED_assetlist_iterate(), only access it within the
+ *          iterator function. The contained file data can be freed since the file cache has a
+ *          maximum number of items.
  */
 #
 #

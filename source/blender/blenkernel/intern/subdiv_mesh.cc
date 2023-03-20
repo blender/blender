@@ -21,7 +21,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_key.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"

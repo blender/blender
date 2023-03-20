@@ -1288,7 +1288,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
-  const float min_point_size = 2.0f * UI_DPI_FAC;
+  const float min_point_size = 2.0f * UI_SCALE_FAC;
   const float point_size_factor = 1.5f;
   const float max_point_size = point_size_factor * min_point_size;
 

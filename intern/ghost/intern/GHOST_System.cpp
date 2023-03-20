@@ -23,6 +23,7 @@
 GHOST_System::GHOST_System()
     : m_nativePixel(false),
       m_windowFocus(true),
+      m_autoFocus(true),
       m_displayManager(nullptr),
       m_timerManager(nullptr),
       m_windowManager(nullptr),
@@ -410,6 +411,11 @@ bool GHOST_System::useNativePixel()
 void GHOST_System::useWindowFocus(const bool use_focus)
 {
   m_windowFocus = use_focus;
+}
+
+void GHOST_System::setAutoFocus(const bool auto_focus)
+{
+  m_autoFocus = auto_focus;
 }
 
 bool GHOST_System::supportsCursorWarp()

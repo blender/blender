@@ -49,9 +49,9 @@ void uv_parametrizer_face_add(ParamHandle *handle,
 void uv_parametrizer_edge_set_seam(ParamHandle *handle, ParamKey *vkeys);
 
 void uv_parametrizer_construct_end(ParamHandle *handle,
-                                   bool fill,
+                                   bool fill_holes,
                                    bool topology_from_uvs,
-                                   int *count_fail);
+                                   int *r_count_failed = nullptr);
 void uv_parametrizer_delete(ParamHandle *handle);
 
 /** \} */

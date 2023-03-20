@@ -45,7 +45,7 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh,
 static void rna_Mesh_create_normals_split(Mesh *mesh)
 {
   if (!CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
-    CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_SET_DEFAULT, NULL, mesh->totloop);
+    CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_SET_DEFAULT, mesh->totloop);
     CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 }
@@ -65,7 +65,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
   }
   else {
     r_looptangents = CustomData_add_layer(
-        &mesh->ldata, CD_MLOOPTANGENT, CD_SET_DEFAULT, NULL, mesh->totloop);
+        &mesh->ldata, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->totloop);
     CustomData_set_layer_flag(&mesh->ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 
@@ -93,12 +93,15 @@ static void rna_Mesh_calc_smooth_groups(
   *r_poly_group_len = mesh->totpoly;
   const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
       &mesh->edata, CD_PROP_BOOL, "sharp_edge");
+  const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, "sharp_face");
   *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
                                              BKE_mesh_polys(mesh),
                                              mesh->totpoly,
                                              BKE_mesh_loops(mesh),
                                              mesh->totloop,
                                              sharp_edges,
+                                             sharp_faces,
                                              r_group_total,
                                              use_bitflags);
 }
@@ -242,7 +245,7 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna, "split_faces", "rna_Mesh_split_faces");
   RNA_def_function_ui_description(func, "Split faces based on the edge angle");
   /* TODO: This parameter has no effect anymore, since the internal code does not need to
-   * compute temporary CD_NORMAL loop data. It should be removed for next major release (4.0).  */
+   * compute temporary CD_NORMAL loop data. It should be removed for next major release (4.0). */
   RNA_def_boolean(func, "free_loop_normals", 1, "Free Loop Normals", "Deprecated, has no effect");
 
   func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");

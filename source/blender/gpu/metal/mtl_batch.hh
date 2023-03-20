@@ -40,7 +40,7 @@ class MTLBatch : public Batch {
     VertexBufferID bufferIds[GPU_BATCH_VBO_MAX_LEN] = {};
     /* Cache life index compares a cache entry with the active MTLBatch state.
      * This is initially set to the cache life index of MTLBatch. If the batch has been modified,
-     * this index is incremented to cheaply invalidate existing cache entries.  */
+     * this index is incremented to cheaply invalidate existing cache entries. */
     uint32_t cache_life_index = 0;
   };
 

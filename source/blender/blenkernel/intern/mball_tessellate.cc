@@ -30,7 +30,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball_tessellate.h" /* own include */
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -39,8 +39,8 @@
 
 #include "BLI_strict_flags.h"
 
-/* experimental (faster) normal calculation */
-// #define USE_ACCUM_NORMAL
+/* experimental (faster) normal calculation (see #103021) */
+#define USE_ACCUM_NORMAL
 
 #define MBALL_ARRAY_LEN_INIT 4096
 
@@ -1463,15 +1463,15 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
 
   mesh->totvert = int(process.curvertex);
-  CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_ASSIGN, process.co, mesh->totvert, "position");
+  CustomData_add_layer_named_with_data(
+      &mesh->vdata, CD_PROP_FLOAT3, process.co, mesh->totvert, "position");
   process.co = nullptr;
 
   mesh->totpoly = int(process.curindex);
   MPoly *polys = static_cast<MPoly *>(
-      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, nullptr, mesh->totpoly));
+      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, mesh->totpoly));
   MLoop *mloop = static_cast<MLoop *>(
-      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, nullptr, mesh->totpoly * 4));
+      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, mesh->totpoly * 4));
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->totpoly; i++) {
@@ -1480,7 +1480,6 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
     const int count = indices[2] != indices[3] ? 4 : 3;
     polys[i].loopstart = loop_offset;
     polys[i].totloop = count;
-    polys[i].flag = ME_SMOOTH;
 
     mloop[loop_offset].v = uint32_t(indices[0]);
     mloop[loop_offset + 1].v = uint32_t(indices[1]);

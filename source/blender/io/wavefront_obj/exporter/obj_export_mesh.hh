@@ -11,6 +11,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+#include "BLI_virtual_array.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -40,6 +41,7 @@ class OBJMesh : NonCopyable {
   Span<MEdge> mesh_edges_;
   Span<MPoly> mesh_polys_;
   Span<MLoop> mesh_loops_;
+  VArray<bool> sharp_faces_;
 
   /**
    * Final transform of an object obtained from export settings (up_axis, forward_axis) and the

@@ -529,7 +529,7 @@ static void sequencer_preprocess_transform_crop(
       break;
     case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
       filter = IMB_FILTER_NEAREST;
-      num_subsamples = context->for_render ? 3 : 1;
+      num_subsamples = 3;
       break;
   }
 

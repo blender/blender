@@ -13,7 +13,7 @@
 
 #include "spreadsheet_draw.hh"
 
-#define CELL_RIGHT_PADDING (2.0f * UI_DPI_FAC)
+#define CELL_RIGHT_PADDING (2.0f * UI_SCALE_FAC)
 
 namespace blender::ed::spreadsheet {
 

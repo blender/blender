@@ -106,28 +106,11 @@ int BKE_id_attribute_to_index(const struct ID *id,
                               eAttrDomainMask domain_mask,
                               eCustomDataMask layer_mask);
 
-/**
- * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will
- * be zero initialized with ID type id_type and any non-nullptr
- * CustomData parameter will be copied into the appropriate struct members.
- *
- * \param r_id: Pointer to storage sufficient for ID type-code id_type.
- */
-void BKE_id_attribute_copy_domains_temp(short id_type,
-                                        const struct CustomData *vdata,
-                                        const struct CustomData *edata,
-                                        const struct CustomData *ldata,
-                                        const struct CustomData *pdata,
-                                        const struct CustomData *cdata,
-                                        struct ID *r_id);
-
 const char *BKE_id_attributes_active_color_name(const struct ID *id);
 const char *BKE_id_attributes_default_color_name(const struct ID *id);
-
-struct CustomDataLayer *BKE_id_attributes_active_color_get(const struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
-struct CustomDataLayer *BKE_id_attributes_default_color_get(const struct ID *id);
 void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
+
 struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);

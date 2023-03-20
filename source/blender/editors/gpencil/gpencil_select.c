@@ -20,7 +20,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -28,9 +28,9 @@
 #include "DNA_space_types.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_curve.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_curve_legacy.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
 
@@ -2039,24 +2039,16 @@ static bool gpencil_generic_stroke_select(bContext *C,
   /* init space conversion stuff */
   gpencil_point_conversion_init(C, &gsc);
 
+  /* Use only object transform matrix because all layer transformations are already included
+   * in the evaluated stroke. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob_eval = depsgraph != NULL ? DEG_get_evaluated_object(depsgraph, ob) : ob;
+  float select_mat[4][4];
+  copy_m4_m4(select_mat, ob_eval->object_to_world);
+
   /* deselect all strokes first? */
-  if (SEL_OP_USE_PRE_DESELECT(sel_op) || GPENCIL_PAINT_MODE(gpd)) {
-    /* Set selection index to 0. */
-    gpd->select_last_index = 0;
-
-    CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-      bGPDspoint *pt;
-      int i;
-
-      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-        pt->flag &= ~GP_SPOINT_SELECT;
-      }
-
-      gps->flag &= ~GP_STROKE_SELECT;
-      BKE_gpencil_stroke_select_index_reset(gps);
-    }
-    CTX_DATA_END;
-
+  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+    deselect_all_selected(C);
     changed = true;
   }
 
@@ -2071,9 +2063,9 @@ static bool gpencil_generic_stroke_select(bContext *C,
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
-      /* Convert point coords to screen-space. */
-      const bool is_inside = is_inside_fn(
-          gsc.region, gpstroke_iter.diff_mat, &pt_active->x, user_data);
+      /* Convert point coords to screen-space. Needs to use the evaluated point
+       * to consider modifiers. */
+      const bool is_inside = is_inside_fn(gsc.region, select_mat, &pt->x, user_data);
       if (strokemode == false) {
         const bool is_select = (pt_active->flag & GP_SPOINT_SELECT) != 0;
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -2761,7 +2753,7 @@ static bool gpencil_select_vertex_color_poll(bContext *C)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;

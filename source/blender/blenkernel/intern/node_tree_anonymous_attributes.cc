@@ -23,6 +23,11 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
 {
   if (node.is_group()) {
     if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id)) {
+      /* Undefined tree types have no relations. */
+      if (!ntreeIsRegistered(group)) {
+        return scope.construct<aal::RelationsInNode>();
+      }
+
       BLI_assert(group->runtime->anonymous_attribute_relations);
       return *group->runtime->anonymous_attribute_relations;
     }

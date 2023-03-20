@@ -113,12 +113,7 @@ typedef struct Object_Runtime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping;
 
-  /** Opaque data reserved for management of objects in collection context.
-   *  E.g. used currently to check for potential duplicates of objects in a collection, after
-   * remapping process. */
-  char collection_management;
-
-  char _pad0[2];
+  char _pad0[3];
 
   /** Only used for drawing the parent/child help-line. */
   float parent_display_origin[3];
@@ -514,7 +509,7 @@ enum {
   OB_ARMATURE = 25,
 
   /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
-  OB_GPENCIL = 26,
+  OB_GPENCIL_LEGACY = 26,
 
   OB_CURVES = 27,
 
@@ -528,7 +523,8 @@ enum {
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
-  (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) >= OB_GPENCIL && (_type) <= OB_VOLUME))
+  (((_type) >= OB_MESH && (_type) <= OB_MBALL) || \
+   ((_type) >= OB_GPENCIL_LEGACY && (_type) <= OB_VOLUME))
 /** Does the object have some render-able geometry (unlike empties, cameras, etc.). */
 #define OB_TYPE_IS_GEOMETRY(_type) \
   (ELEM(_type, \
@@ -536,11 +532,11 @@ enum {
         OB_SURF, \
         OB_FONT, \
         OB_MBALL, \
-        OB_GPENCIL, \
+        OB_GPENCIL_LEGACY, \
         OB_CURVES, \
         OB_POINTCLOUD, \
         OB_VOLUME))
-#define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
+#define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, \
         OB_MESH, \
@@ -569,7 +565,7 @@ enum {
         ID_LP, \
         ID_CA, \
         ID_LT, \
-        ID_GD, \
+        ID_GD_LEGACY, \
         ID_AR, \
         ID_CV, \
         ID_PT, \
@@ -584,7 +580,7 @@ enum {
   case ID_LP: \
   case ID_CA: \
   case ID_LT: \
-  case ID_GD: \
+  case ID_GD_LEGACY: \
   case ID_AR: \
   case ID_CV: \
   case ID_PT: \

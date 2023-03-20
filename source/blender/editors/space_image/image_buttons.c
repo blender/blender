@@ -789,7 +789,7 @@ void uiTemplateImage(uiLayout *layout,
     else if (ima->type == IMA_TYPE_R_RESULT) {
       /* browse layer/passes */
       RenderResult *rr;
-      const float dpi_fac = UI_DPI_FAC;
+      const float dpi_fac = UI_SCALE_FAC;
       const int menus_width = 230 * dpi_fac;
 
       /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
@@ -880,7 +880,7 @@ void uiTemplateImage(uiLayout *layout,
   if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
     uiItemS(layout);
 
-    const float dpi_fac = UI_DPI_FAC;
+    const float dpi_fac = UI_SCALE_FAC;
     uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
   }
 
@@ -1162,7 +1162,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
   /* render layers and passes */
   if (ima && iuser) {
     RenderResult *rr;
-    const float dpi_fac = UI_DPI_FAC;
+    const float dpi_fac = UI_SCALE_FAC;
     const int menus_width = 160 * dpi_fac;
     const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
 

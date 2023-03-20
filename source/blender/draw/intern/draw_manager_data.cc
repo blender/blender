@@ -15,7 +15,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -1235,15 +1235,13 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
 
   if (scd->use_mats) {
     index = drw_pbvh_material_index_get(batches);
-    if (index >= scd->num_shading_groups) {
-      index = 0;
-    }
+    index = clamp_i(index, 0, scd->num_shading_groups - 1);
   }
 
   DRWShadingGroup *shgrp = scd->shading_groups[index];
   if (geom != nullptr && shgrp != nullptr) {
     if (SCULPT_DEBUG_BUFFERS) {
-      /* Color each buffers in different colors. Only work in solid/Xray mode. */
+      /* Color each buffers in different colors. Only work in solid/X-ray mode. */
       shgrp = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_vec3(
           shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);

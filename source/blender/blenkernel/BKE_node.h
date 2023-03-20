@@ -345,11 +345,6 @@ typedef struct bNodeType {
 
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
-  /**
-   * If true, the geometry nodes evaluator can call the execute function multiple times to improve
-   * performance by specifying required data in one call and using it for calculations in another.
-   */
-  bool geometry_node_execute_supports_laziness;
 
   /* Declares which sockets the node has. */
   NodeDeclareFunction declare;
@@ -1560,6 +1555,11 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_IMAGE 1191
 #define GEO_NODE_INTERPOLATE_CURVES 1192
 #define GEO_NODE_EDGES_TO_FACE_GROUPS 1193
+#define GEO_NODE_POINTS_TO_SDF_VOLUME 1194
+#define GEO_NODE_MESH_TO_SDF_VOLUME 1195
+#define GEO_NODE_SDF_VOLUME_SPHERE 1196
+#define GEO_NODE_MEAN_FILTER_SDF_VOLUME 1197
+#define GEO_NODE_OFFSET_SDF_VOLUME 1198
 
 /** \} */
 

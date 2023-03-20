@@ -34,7 +34,7 @@
 #include "BKE_geometry_set.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
@@ -1427,7 +1427,7 @@ struct Nearest2dUserData {
     };
     struct {
       const float (*vert_positions)[3];
-      const float (*vert_normals)[3];
+      const blender::float3 *vert_normals;
       const MEdge *edges; /* only used for #BVHTreeFromMeshEdges */
       const MLoop *loop;
       const MLoopTri *looptris;
@@ -1716,7 +1716,7 @@ static void nearest2d_data_init_mesh(const Mesh *mesh,
   r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
 
   r_nearest2d->vert_positions = BKE_mesh_vert_positions(mesh);
-  r_nearest2d->vert_normals = BKE_mesh_vert_normals_ensure(mesh);
+  r_nearest2d->vert_normals = mesh->vert_normals().data();
   r_nearest2d->edges = mesh->edges().data();
   r_nearest2d->loop = mesh->loops().data();
   r_nearest2d->looptris = mesh->looptris().data();
@@ -2968,7 +2968,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
         break;
       }
       case OB_EMPTY:
-      case OB_GPENCIL:
+      case OB_GPENCIL_LEGACY:
       case OB_LAMP:
         retval = snap_object_center(
             sctx, ob_eval, obmat, dt->dist_px, sctx->ret.loc, sctx->ret.no, &sctx->ret.index);
@@ -3200,7 +3200,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
                                                                   Depsgraph *depsgraph,
                                                                   const ARegion *region,
                                                                   const View3D *v3d,
-                                                                  const eSnapMode snap_to_flag,
+                                                                  eSnapMode snap_to_flag,
                                                                   const SnapObjectParams *params,
                                                                   const float init_co[3],
                                                                   const float mval[2],
@@ -3235,7 +3235,16 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+  if (snap_to_flag & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) {
+    if (params->use_occlusion_test && XRAY_ENABLED(v3d)) {
+      /* Remove Snap to Face with Occlusion Test as they are not visible in wireframe mode. */
+      snap_to_flag &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+    }
+    else if (prev_co == nullptr || init_co == nullptr) {
+      /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
+      snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
+    }
+  }
 
   /* NOTE: if both face ray-cast and face nearest are enabled, first find result of nearest, then
    * override with ray-cast. */
@@ -3261,7 +3270,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST || use_occlusion_test) {
+  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true)) {

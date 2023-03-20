@@ -97,6 +97,11 @@ bool AssetRepresentation::may_override_import_method() const
   return owner_asset_library_->may_override_import_method_;
 }
 
+ID *AssetRepresentation::local_id() const
+{
+  return is_local_id_ ? local_asset_id_ : nullptr;
+}
+
 bool AssetRepresentation::is_local_id() const
 {
   return is_local_id_;
@@ -120,12 +125,19 @@ const StringRefNull AS_asset_representation_relative_path_get(
   return identifier.relative_path();
 }
 
-const std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
+std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   const asset_system::AssetIdentifier &identifier = asset->get_identifier();
   return identifier.full_path();
+}
+
+std::string AS_asset_representation_full_library_path_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->get_identifier().full_library_path();
 }
 
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
@@ -159,6 +171,13 @@ AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *a
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return &asset->get_metadata();
+}
+
+ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->local_id();
 }
 
 bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle)

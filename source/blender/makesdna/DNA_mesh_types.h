@@ -16,6 +16,7 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 
+#  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
 
 namespace blender {
@@ -261,6 +262,9 @@ typedef struct Mesh {
    */
   blender::Span<MLoopTri> looptris() const;
 
+  /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
+  void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
+
   /**
    * Cached information about loose edges, calculated lazily when necessary.
    */
@@ -275,13 +279,12 @@ typedef struct Mesh {
   void loose_edges_tag_none() const;
 
   /**
-   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
   blender::Span<blender::float3> poly_normals() const;
   /**
-   * Normal direction for each vertex, which is defined as the weighted average of the normals
-   * from a vertices surrounding faces, or the normalized position of vertices connected to no
-   * faces.
+   * Normal direction of vertices, defined as the weighted average of face normals
+   * surrounding each vertex and the normalized position for loose vertices.
    */
   blender::Span<blender::float3> vert_normals() const;
 #endif

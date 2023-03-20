@@ -5,7 +5,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "ED_screen.h"

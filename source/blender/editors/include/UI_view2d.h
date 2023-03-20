@@ -60,11 +60,11 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_MIN_ALPHA (0.4f)
 
 /* Minimum size needs to include outline which varies with line width. */
-#define V2D_SCROLL_MIN_WIDTH ((5.0f * U.dpi_fac) + (2.0f * U.pixelsize))
+#define V2D_SCROLL_MIN_WIDTH ((5.0f * UI_SCALE_FAC) + (2.0f * U.pixelsize))
 
 /* When to start showing the full-width scroller. */
-#define V2D_SCROLL_HIDE_WIDTH (AREAMINX * U.dpi_fac)
-#define V2D_SCROLL_HIDE_HEIGHT (HEADERY * U.dpi_fac)
+#define V2D_SCROLL_HIDE_WIDTH (AREAMINX * UI_SCALE_FAC)
+#define V2D_SCROLL_HIDE_HEIGHT (HEADERY * UI_SCALE_FAC)
 
 /** Scroll bars with 'handles' used for scale (zoom). */
 #define V2D_SCROLL_HANDLE_HEIGHT (0.6f * U.widget_unit)
@@ -74,7 +74,7 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_HANDLE_SIZE_HOTSPOT (0.6f * U.widget_unit)
 
 /** Don't allow scroll thumb to show below this size (so it's never too small to click on). */
-#define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_DPI_FAC)
+#define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_SCALE_FAC)
 
 /** \} */
 
@@ -490,8 +490,8 @@ void UI_view2d_smooth_view(const struct bContext *C,
                            const struct rctf *cur,
                            int smooth_viewtx);
 
-#define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
-#define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)
+#define UI_MARKER_MARGIN_Y (42 * UI_SCALE_FAC)
+#define UI_TIME_SCRUB_MARGIN_Y (23 * UI_SCALE_FAC)
 
 /** \} */
 

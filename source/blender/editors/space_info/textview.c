@@ -15,7 +15,7 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "DNA_userdef_types.h" /* For 'U.dpi_fac' */
+#include "DNA_userdef_types.h" /* For 'UI_SCALE_FAC' */
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -205,7 +205,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
   if (icon_bg) {
     float col[4];
-    int bg_size = UI_DPI_ICON_SIZE * 1.2;
+    int bg_size = UI_ICON_SIZE * 1.2;
     float vpadding = (tds->lheight + (tds->row_vpadding * 2) - bg_size) / 2;
     float hpadding = tds->draw_rect->xmin - (bg_size * 1.2f);
 
@@ -219,19 +219,19 @@ static bool textview_draw_string(TextViewDrawState *tds,
             .ymax = line_top - vpadding,
         },
         true,
-        4 * UI_DPI_FAC,
+        4 * UI_SCALE_FAC,
         col);
   }
 
   if (icon) {
-    int vpadding = (tds->lheight + (tds->row_vpadding * 2) - UI_DPI_ICON_SIZE) / 2;
-    int hpadding = tds->draw_rect->xmin - (UI_DPI_ICON_SIZE * 1.3f);
+    int vpadding = (tds->lheight + (tds->row_vpadding * 2) - UI_ICON_SIZE) / 2;
+    int hpadding = tds->draw_rect->xmin - (UI_ICON_SIZE * 1.3f);
 
     GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(hpadding,
-                    line_top - UI_DPI_ICON_SIZE - vpadding,
+                    line_top - UI_ICON_SIZE - vpadding,
                     icon,
-                    (16 / UI_DPI_ICON_SIZE),
+                    (16 / UI_ICON_SIZE),
                     1.0f,
                     0.0f,
                     icon_fg,

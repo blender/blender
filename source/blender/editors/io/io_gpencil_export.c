@@ -10,10 +10,10 @@
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_space_types.h"
 
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 #  include "BKE_screen.h"

@@ -6,7 +6,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -315,6 +315,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   threading::parallel_invoke(
       1024 < segments * rings,

@@ -50,10 +50,11 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
       modifier = nmd;
     }
   }
-
-  ModifierViewerPathElem *modifier_elem = BKE_viewer_path_elem_new_modifier();
-  modifier_elem->modifier_name = BLI_strdup(modifier->modifier.name);
-  BLI_addtail(&r_dst.path, modifier_elem);
+  if (modifier != nullptr) {
+    ModifierViewerPathElem *modifier_elem = BKE_viewer_path_elem_new_modifier();
+    modifier_elem->modifier_name = BLI_strdup(modifier->modifier.name);
+    BLI_addtail(&r_dst.path, modifier_elem);
+  }
 
   Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
   for (const int i : tree_path.index_range().drop_back(1)) {

@@ -16,13 +16,13 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 
@@ -92,7 +92,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
   if ((!is_annotation) && (view_layer != NULL)) {
     Object *ob;
     ob = BKE_object_add_for_data(
-        bmain, scene, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
+        bmain, scene, view_layer, OB_GPENCIL_LEGACY, "GP_Scene", &scene->gpd->id, false);
     zero_v3(ob->loc);
     DEG_relations_tag_update(bmain); /* added object */
 

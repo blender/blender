@@ -260,7 +260,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
     float2 mouse_location;
     RNA_property_float_get_array(op->ptr, offset_prop, mouse_location);
-    const float2 offset = (mouse_location - center) / UI_DPI_FAC;
+    const float2 offset = (mouse_location - center) / UI_SCALE_FAC;
 
     for (bNode *new_node : node_map.values()) {
       new_node->locx += offset.x;

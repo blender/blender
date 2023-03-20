@@ -24,7 +24,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_subdiv.h"
@@ -436,9 +436,6 @@ static void panel_draw(const bContext *C, Panel *panel)
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {
             uiItemL(layout, "Using both CPU and GPU subdivision", ICON_INFO);
-          }
-          else {
-            uiItemL(layout, "Using GPU subdivision", ICON_INFO);
           }
         }
       }

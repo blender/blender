@@ -36,7 +36,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_vfont.h"
@@ -743,11 +743,9 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      int totvert;
-      float(*vertex_coords)[3] = BKE_mesh_vert_coords_alloc(mesh, &totvert);
-      mti->deformVerts(md, &mectx_deform, mesh, vertex_coords, totvert);
-      BKE_mesh_vert_coords_apply(mesh, vertex_coords);
-      MEM_freeN(vertex_coords);
+      mti->deformVerts(
+          md, &mectx_deform, mesh, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert);
+      BKE_mesh_tag_positions_changed(mesh);
     }
     else {
       Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);

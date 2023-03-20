@@ -462,6 +462,10 @@ typedef struct ARegion {
   rcti drawrct;
   /** Size. */
   short winx, winy;
+  /* This is a Y offset on the panel tabs that represents pixels, where zero represents no scroll -
+   * the first category always shows first at the top. */
+  int category_scroll;
+  char _pad0[4];
 
   /** Region is currently visible on screen. */
   short visible;
@@ -473,7 +477,7 @@ typedef struct ARegion {
   short flag;
 
   /** Current split size in unscaled pixels (if zero it uses regiontype).
-   * To convert to pixels use: `UI_DPI_FAC * region->sizex + 0.5f`.
+   * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
    * However to get the current region size, you should usually use winx/winy from above, not this!
    */
   short sizex, sizey;

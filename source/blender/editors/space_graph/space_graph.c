@@ -68,7 +68,7 @@ static SpaceLink *graph_create(const ScrArea *UNUSED(area), const Scene *scene)
 
   /* settings for making it easier by default to just see what you're interested in tweaking */
   sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
-  sipo->flag |= SIPO_SELVHANDLESONLY | SIPO_SHOW_MARKERS;
+  sipo->flag |= SIPO_SHOW_MARKERS;
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for graphedit");
@@ -314,7 +314,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   {
     rcti rect;
     BLI_rcti_init(
-        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+        &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
   }
 }

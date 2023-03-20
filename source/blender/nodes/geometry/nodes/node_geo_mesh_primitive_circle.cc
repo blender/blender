@@ -4,7 +4,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -112,6 +112,7 @@ static Mesh *create_circle_mesh(const float radius,
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   /* Assign vertex coordinates. */
   const float angle_delta = 2.0f * (M_PI / float(verts_num));

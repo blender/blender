@@ -107,16 +107,9 @@ class GRAPH_MT_view(Menu):
             layout.separator()
             layout.prop(st, "show_markers")
 
-        layout.separator()
-        layout.prop(st, "use_beauty_drawing")
-
-        layout.separator()
-
         layout.prop(st, "show_extrapolation")
 
         layout.prop(st, "show_handles")
-
-        layout.prop(st, "use_only_selected_curves_handles")
         layout.prop(st, "use_only_selected_keyframe_handles")
 
         layout.prop(st, "show_seconds")
@@ -255,7 +248,7 @@ class GRAPH_MT_key(Menu):
 
         layout.separator()
         layout.operator_menu_enum("graph.keyframe_insert", "type")
-        layout.operator_menu_enum("graph.fmodifier_add", "type")
+        layout.operator_menu_enum("graph.fmodifier_add", "type").only_active = False
         layout.operator("graph.sound_bake")
 
         layout.separator()

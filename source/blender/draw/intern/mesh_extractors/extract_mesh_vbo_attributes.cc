@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "draw_attributes.hh"
 #include "draw_subdivision.h"

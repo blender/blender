@@ -648,7 +648,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
     }
 
     if (mem_alloc_result) {
-      assert(transform_host_pointer(device_pointer, shared_pointer));
+      transform_host_pointer(device_pointer, shared_pointer);
       map_host_used += size;
       status = " in host memory";
     }

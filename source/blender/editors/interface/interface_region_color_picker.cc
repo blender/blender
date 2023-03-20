@@ -868,7 +868,6 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 {
   uiBut *but = static_cast<uiBut *>(arg_but);
   uiBlock *block;
-  bool show_picker = true;
 
   block = UI_block_begin(C, handle->region, __func__, UI_EMBOSS);
 
@@ -876,17 +875,9 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
     block->is_color_gamma_picker = true;
   }
 
-  if (but->block) {
-    /* if color block is invoked from a popup we wouldn't be able to set color properly
-     * this is because color picker will close popups first and then will try to figure
-     * out active button RNA, and of course it'll fail
-     */
-    show_picker = (but->block->flag & UI_BLOCK_POPUP) == 0;
-  }
-
   copy_v3_v3(handle->retvec, but->editvec);
 
-  ui_block_colorpicker(block, but, handle->retvec, show_picker);
+  ui_block_colorpicker(block, but, handle->retvec, true);
 
   block->flag = UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1 | UI_BLOCK_MOVEMOUSE_QUIT;
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);

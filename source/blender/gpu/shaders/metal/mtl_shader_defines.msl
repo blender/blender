@@ -7,6 +7,10 @@
  * and texture2d types in metal).
  */
 
+/* Suppress unhelpful shader compiler warnings. */
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wcomment"
+
 /* Base instance with offsets. */
 #define gpu_BaseInstance gl_BaseInstanceARB
 #define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)

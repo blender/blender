@@ -27,6 +27,7 @@ class AssetIdentifier {
   AssetIdentifier(const AssetIdentifier &) = default;
 
   std::string full_path() const;
+  std::string full_library_path() const;
   /**
    * Get the identifier to locate the asset within the asset library.
    */
