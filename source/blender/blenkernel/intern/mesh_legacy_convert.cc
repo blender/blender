@@ -1655,6 +1655,19 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
 /** \name Generic UV Map Conversion
  * \{ */
 
+static const bool *layers_find_bool_named(const Span<CustomDataLayer> layers,
+                                          const blender::StringRef name)
+{
+  for (const CustomDataLayer &layer : layers) {
+    if (layer.type == CD_PROP_BOOL) {
+      if (layer.name == name) {
+        return static_cast<const bool *>(layer.data);
+      }
+    }
+  }
+  return nullptr;
+}
+
 void BKE_mesh_legacy_convert_uvs_to_struct(
     Mesh *mesh,
     blender::ResourceScope &temp_mloopuv_for_convert,
@@ -1662,6 +1675,7 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
 {
   using namespace blender;
   using namespace blender::bke;
+  const int loops_num = mesh->totloop;
   Vector<CustomDataLayer, 16> new_layer_to_write;
 
   /* Don't write the boolean UV map sublayers which will be written in the legacy #MLoopUV type. */
@@ -1686,20 +1700,19 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
       new_layer_to_write.append(layer);
       continue;
     }
-    const Span<float2> coords{static_cast<const float2 *>(layer.data), mesh->totloop};
+    const Span<float2> coords{static_cast<const float2 *>(layer.data), loops_num};
     CustomDataLayer mloopuv_layer = layer;
     mloopuv_layer.type = CD_MLOOPUV;
-    MutableSpan<MLoopUV> mloopuv = temp_mloopuv_for_convert.construct<Array<MLoopUV>>(
-        mesh->totloop);
+    MutableSpan<MLoopUV> mloopuv = temp_mloopuv_for_convert.construct<Array<MLoopUV>>(loops_num);
     mloopuv_layer.data = mloopuv.data();
 
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-    const bool *vert_selection = static_cast<const bool *>(CustomData_get_layer_named(
-        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(layer.name, buffer)));
-    const bool *edge_selection = static_cast<const bool *>(CustomData_get_layer_named(
-        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(layer.name, buffer)));
-    const bool *pin = static_cast<const bool *>(CustomData_get_layer_named(
-        &mesh->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(layer.name, buffer)));
+    const bool *vert_selection = layers_find_bool_named(
+        loop_layers_to_write, BKE_uv_map_vert_select_name_get(layer.name, buffer));
+    const bool *edge_selection = layers_find_bool_named(
+        loop_layers_to_write, BKE_uv_map_edge_select_name_get(layer.name, buffer));
+    const bool *pin = layers_find_bool_named(loop_layers_to_write,
+                                             BKE_uv_map_pin_name_get(layer.name, buffer));
 
     threading::parallel_for(mloopuv.index_range(), 2048, [&](IndexRange range) {
       for (const int i : range) {
