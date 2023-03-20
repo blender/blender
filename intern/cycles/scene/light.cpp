@@ -7,6 +7,7 @@
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
+#include "scene/light_tree.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/scene.h"
@@ -557,31 +558,43 @@ void LightManager::device_update_tree(Device *,
   }
 
   /* First initialize the light tree's nodes. */
-  const vector<LightTreeNode> &linearized_bvh = light_tree.get_nodes();
-  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(linearized_bvh.size());
+  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(light_tree.size());
   KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(
       light_prims.size());
-  for (int index = 0; index < linearized_bvh.size(); index++) {
-    const LightTreeNode &node = linearized_bvh[index];
 
-    light_tree_nodes[index].energy = node.energy;
+  /* Copy the light tree nodes to an array in the device. */
+  /* The nodes are arranged in a depth-first order, meaning the left child of each inner node
+   * always comes immediately after that inner node in the array, so that we only need to store the
+   * index of the right child.
+   * To do so, we repeatedly move to the left child of the current node until we reach the leftmost
+   * descendant, while keeping track of the right child of each node we visited by storing the
+   * pointer in the `right_node_stack`.
+   * Once finished visiting the left subtree, we retrieve the the last stored pointer from
+   * `right_node_stack`, assign it to its parent (retrieved from `left_index_stack`), and repeat
+   * the process from there. */
+  int left_index_stack[32]; /* sizeof(bit_trail) * 8 == 32 */
+  LightTreeNode *right_node_stack[32];
+  int stack_id = 0;
+  const LightTreeNode *node = light_tree.get_root();
+  for (int index = 0; index < light_tree.size(); index++) {
+    light_tree_nodes[index].energy = node->energy;
 
-    light_tree_nodes[index].bbox.min = node.bbox.min;
-    light_tree_nodes[index].bbox.max = node.bbox.max;
+    light_tree_nodes[index].bbox.min = node->bbox.min;
+    light_tree_nodes[index].bbox.max = node->bbox.max;
 
-    light_tree_nodes[index].bcone.axis = node.bcone.axis;
-    light_tree_nodes[index].bcone.theta_o = node.bcone.theta_o;
-    light_tree_nodes[index].bcone.theta_e = node.bcone.theta_e;
+    light_tree_nodes[index].bcone.axis = node->bcone.axis;
+    light_tree_nodes[index].bcone.theta_o = node->bcone.theta_o;
+    light_tree_nodes[index].bcone.theta_e = node->bcone.theta_e;
 
-    light_tree_nodes[index].bit_trail = node.bit_trail;
-    light_tree_nodes[index].num_prims = node.num_prims;
+    light_tree_nodes[index].bit_trail = node->bit_trail;
+    light_tree_nodes[index].num_prims = node->num_prims;
 
     /* Here we need to make a distinction between interior and leaf nodes. */
-    if (node.is_leaf()) {
-      light_tree_nodes[index].child_index = -node.first_prim_index;
+    if (node->is_leaf()) {
+      light_tree_nodes[index].child_index = -node->first_prim_index;
 
-      for (int i = 0; i < node.num_prims; i++) {
-        int emitter_index = i + node.first_prim_index;
+      for (int i = 0; i < node->num_prims; i++) {
+        int emitter_index = i + node->first_prim_index;
         LightTreePrimitive &prim = light_prims[emitter_index];
 
         light_tree_emitters[emitter_index].energy = prim.energy;
@@ -628,12 +641,23 @@ void LightManager::device_update_tree(Device *,
           light_tree_emitters[emitter_index].emission_sampling = EMISSION_SAMPLING_FRONT_BACK;
           light_array[~prim.prim_id] = emitter_index;
         }
-
         light_tree_emitters[emitter_index].parent_index = index;
       }
+
+      /* Retrieve from the stacks. */
+      if (stack_id == 0) {
+        break;
+      }
+      stack_id--;
+      light_tree_nodes[left_index_stack[stack_id]].child_index = index + 1;
+      node = right_node_stack[stack_id];
     }
     else {
-      light_tree_nodes[index].child_index = node.right_child_index;
+      /* Fill in the stacks. */
+      left_index_stack[stack_id] = index;
+      right_node_stack[stack_id] = node->children[LightTree::right].get();
+      node = node->children[LightTree::left].get();
+      stack_id++;
     }
   }
 
