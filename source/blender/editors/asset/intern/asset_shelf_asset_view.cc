@@ -170,7 +170,7 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_c
 
 /* ---------------------------------------------------------------------- */
 
-void build_asset_view(uiBlock *block,
+void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelfSettings *shelf_settings,
                       const bContext &C,
@@ -188,11 +188,12 @@ void build_asset_view(uiBlock *block,
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf_settings, *library));
   asset_view->set_tile_size(UI_preview_tile_size_x() * 0.8, UI_preview_tile_size_y() * 0.8);
 
+  uiBlock *block = uiLayoutGetBlock(&layout);
   ui::AbstractGridView *grid_view = UI_block_add_view(
       *block, "asset shelf asset view", std::move(asset_view));
 
   ui::GridViewBuilder builder(*block);
-  builder.build_grid_view(*grid_view, region.v2d);
+  builder.build_grid_view(*grid_view, region.v2d, layout);
 }
 
 /* ---------------------------------------------------------------------- */

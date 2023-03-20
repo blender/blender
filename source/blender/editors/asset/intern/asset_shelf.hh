@@ -13,6 +13,7 @@ struct AssetLibraryReference;
 struct AssetShelfSettings;
 struct bContext;
 struct uiBlock;
+struct uiLayout;
 
 namespace blender::asset_system {
 class AssetCatalogPath;
@@ -20,7 +21,7 @@ class AssetCatalogPath;
 
 namespace blender::ed::asset::shelf {
 
-void build_asset_view(uiBlock *block,
+void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelfSettings *shelf_settings,
                       const bContext &C,

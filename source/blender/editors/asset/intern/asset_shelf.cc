@@ -124,17 +124,17 @@ void ED_asset_shelf_region_draw(const bContext *C,
 
   const uiStyle *style = UI_style_get();
   const float padding = style->panelouter;
-  UI_block_layout(block,
-                  UI_LAYOUT_VERTICAL,
-                  UI_LAYOUT_PANEL,
-                  padding,
-                  -padding,
-                  region->winx - 2 * padding,
-                  1,
-                  0,
-                  style);
+  uiLayout *layout = UI_block_layout(block,
+                                     UI_LAYOUT_VERTICAL,
+                                     UI_LAYOUT_PANEL,
+                                     padding,
+                                     -padding,
+                                     region->winx - 2 * padding,
+                                     1,
+                                     0,
+                                     style);
 
-  shelf::build_asset_view(block, all_library_ref, shelf_settings, *C, *region);
+  shelf::build_asset_view(*layout, all_library_ref, shelf_settings, *C, *region);
 
   int layout_width, layout_height;
   UI_block_layout_resolve(block, &layout_width, &layout_height);
