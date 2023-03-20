@@ -306,12 +306,8 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
  * \{ */
 
 class TreeViewBuilder {
-  uiBlock &block_;
-
  public:
-  TreeViewBuilder(uiBlock &block);
-
-  void build_tree_view(AbstractTreeView &tree_view);
+  static void build_tree_view(AbstractTreeView &tree_view, uiLayout &layout);
 };
 
 /** \} */

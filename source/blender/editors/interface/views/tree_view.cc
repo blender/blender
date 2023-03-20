@@ -405,30 +405,30 @@ class TreeViewLayoutBuilder {
   void build_row(AbstractTreeViewItem &item) const;
 
   uiBlock &block() const;
-  uiLayout *current_layout() const;
+  uiLayout &current_layout() const;
 
  private:
-  /* Created through #TreeViewBuilder. */
-  TreeViewLayoutBuilder(uiBlock &block);
+  /* Created through #TreeViewBuilder (friend class). */
+  TreeViewLayoutBuilder(uiLayout &layout);
 
   static void polish_layout(const uiBlock &block);
 };
 
-TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiBlock &block) : block_(block)
+TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
 {
 }
 
 void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
 {
-  uiLayout *prev_layout = current_layout();
+  uiLayout &parent_layout = current_layout();
 
-  uiLayout *box = uiLayoutBox(prev_layout);
+  uiLayout *box = uiLayoutBox(&parent_layout);
   uiLayoutColumn(box, false);
 
   tree_view.foreach_item([this](AbstractTreeViewItem &item) { build_row(item); },
                          AbstractTreeView::IterOptions::SkipCollapsed);
 
-  UI_block_layout_set_current(&block(), prev_layout);
+  UI_block_layout_set_current(&block(), &parent_layout);
 }
 
 void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
@@ -450,10 +450,10 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 {
   uiBlock &block_ = block();
 
-  uiLayout *prev_layout = current_layout();
+  uiLayout &prev_layout = current_layout();
   eUIEmbossType previous_emboss = UI_block_emboss_get(&block_);
 
-  uiLayout *overlap = uiLayoutOverlap(prev_layout);
+  uiLayout *overlap = uiLayoutOverlap(&prev_layout);
 
   uiLayoutRow(overlap, false);
   /* Every item gets one! Other buttons can be overlapped on top. */
@@ -475,7 +475,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   polish_layout(block_);
 
   UI_block_emboss_set(&block_, previous_emboss);
-  UI_block_layout_set_current(&block_, prev_layout);
+  UI_block_layout_set_current(&block_, &prev_layout);
 }
 
 uiBlock &TreeViewLayoutBuilder::block() const
@@ -483,24 +483,25 @@ uiBlock &TreeViewLayoutBuilder::block() const
   return block_;
 }
 
-uiLayout *TreeViewLayoutBuilder::current_layout() const
+uiLayout &TreeViewLayoutBuilder::current_layout() const
 {
-  return block().curlayout;
+  return *block().curlayout;
 }
 
 /* ---------------------------------------------------------------------- */
 
-TreeViewBuilder::TreeViewBuilder(uiBlock &block) : block_(block)
+void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view, uiLayout &layout)
 {
-}
+  uiBlock &block = *uiLayoutGetBlock(&layout);
 
-void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view)
-{
   tree_view.build_tree();
-  tree_view.update_from_old(block_);
+  tree_view.update_from_old(block);
   tree_view.change_state_delayed();
 
-  TreeViewLayoutBuilder builder(block_);
+  /* Ensure the given layout is actually active. */
+  UI_block_layout_set_current(&block, &layout);
+
+  TreeViewLayoutBuilder builder(layout);
   builder.build_from_tree(tree_view);
 }
 

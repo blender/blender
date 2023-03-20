@@ -219,8 +219,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       std::make_unique<GeometryDataSetTreeView>(
           spreadsheet_get_display_geometry_set(sspreadsheet, object), *C));
 
-  ui::TreeViewBuilder builder(*block);
-  builder.build_tree_view(*tree_view);
+  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
 
 }  // namespace blender::ed::spreadsheet
