@@ -118,6 +118,8 @@ bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
 {
   return ELEM(name,
               "position",
+              ".corner_vert",
+              ".corner_edge",
               ".hide_vert",
               ".hide_edge",
               ".hide_poly",
@@ -131,19 +133,21 @@ bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
 }
 
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
-                                         Span<MLoop> loops,
+                                         Span<int> poly_verts,
+                                         Span<int> poly_edges,
                                          Span<BMVert *> vtable,
                                          Span<BMEdge *> etable)
 {
-  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(loops.size());
-  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(loops.size());
+  const int size = poly_verts.size();
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(size);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(size);
 
-  for (const int i : loops.index_range()) {
-    verts[i] = vtable[loops[i].v];
-    edges[i] = etable[loops[i].e];
+  for (const int i : IndexRange(size)) {
+    verts[i] = vtable[poly_verts[i]];
+    edges[i] = etable[poly_edges[i]];
   }
 
-  return BM_face_create(&bm, verts.data(), edges.data(), loops.size(), nullptr, BM_CREATE_SKIP_CD);
+  return BM_face_create(&bm, verts.data(), edges.data(), size, nullptr, BM_CREATE_SKIP_CD);
 }
 
 struct MeshToBMeshLayerInfo {
@@ -484,7 +488,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   }
 
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> mloop = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
+  const Span<int> corner_edges = me->corner_edges();
 
   /* Only needed for selection. */
 
@@ -495,8 +500,11 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   int totloops = 0;
   for (const int i : polys.index_range()) {
-    BMFace *f = bm_face_create_from_mpoly(
-        *bm, mloop.slice(polys[i].loopstart, polys[i].totloop), vtable, etable);
+    BMFace *f = bm_face_create_from_mpoly(*bm,
+                                          corner_verts.slice(polys[i].loopstart, polys[i].totloop),
+                                          corner_edges.slice(polys[i].loopstart, polys[i].totloop),
+                                          vtable,
+                                          etable);
     if (!ftable.is_empty()) {
       ftable[i] = f;
     }
@@ -950,6 +958,8 @@ static void assert_bmesh_has_no_mesh_only_attributes(const BMesh &bm)
 {
   (void)bm; /* Unused in the release builds. */
   BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_FLOAT3, "position") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.ldata, CD_PROP_FLOAT3, ".corner_vert") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.ldata, CD_PROP_FLOAT3, ".corner_edge") == nullptr);
 
   /* The "hide" attributes are stored as flags on #BMesh. */
   BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".hide_vert") == nullptr);
@@ -1354,15 +1364,16 @@ static void bm_to_mesh_faces(const BMesh &bm,
 
 static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loops, Mesh &mesh)
 {
-  CustomData_add_layer(&mesh.ldata, CD_MLOOP, CD_SET_DEFAULT, mesh.totloop);
+  CustomData_add_layer_named(&mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
+  CustomData_add_layer_named(&mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.ldata, mesh.ldata);
-  MutableSpan<MLoop> dst_loops = mesh.loops_for_write();
-  threading::parallel_for(dst_loops.index_range(), 1024, [&](const IndexRange range) {
+  MutableSpan<int> dst_corner_verts = mesh.corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = mesh.corner_edges_for_write();
+  threading::parallel_for(dst_corner_verts.index_range(), 1024, [&](const IndexRange range) {
     for (const int loop_i : range) {
       const BMLoop &src_loop = *bm_loops[loop_i];
-      MLoop &dst_loop = dst_loops[loop_i];
-      dst_loop.v = BM_elem_index_get(src_loop.v);
-      dst_loop.e = BM_elem_index_get(src_loop.e);
+      dst_corner_verts[loop_i] = BM_elem_index_get(src_loop.v);
+      dst_corner_edges[loop_i] = BM_elem_index_get(src_loop.e);
       bmesh_block_copy_to_mesh_attributes(info, loop_i, src_loop.head.data);
     }
   });

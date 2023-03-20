@@ -43,7 +43,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
     mesh_polys_ = export_mesh_->polys();
-    mesh_loops_ = export_mesh_->loops();
+    mesh_corner_verts_ = export_mesh_->corner_verts();
     sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
   }
@@ -77,7 +77,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   mesh_positions_ = mesh->vert_positions();
   mesh_edges_ = mesh->edges();
   mesh_polys_ = mesh->polys();
-  mesh_loops_ = mesh->loops();
+  mesh_corner_verts_ = mesh->corner_verts();
   sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 }
@@ -203,8 +203,8 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_polys_.data(),
                                                    mesh_polys_.size(),
-                                                   mesh_loops_.data(),
-                                                   mesh_loops_.size(),
+                                                   export_mesh_->corner_edges().data(),
+                                                   export_mesh_->totloop,
                                                    sharp_edges,
                                                    sharp_faces,
                                                    &tot_smooth_groups_,
@@ -282,16 +282,10 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scal
   return r_coords;
 }
 
-Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
+Span<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 {
   const MPoly &poly = mesh_polys_[poly_index];
-  const MLoop *mloop = &mesh_loops_[poly.loopstart];
-  const int totloop = poly.totloop;
-  Vector<int> r_poly_vertex_indices(totloop);
-  for (int loop_index = 0; loop_index < totloop; loop_index++) {
-    r_poly_vertex_indices[loop_index] = mloop[loop_index].v;
-  }
-  return r_poly_vertex_indices;
+  return mesh_corner_verts_.slice(poly.loopstart, poly.totloop);
 }
 
 void OBJMesh::store_uv_coords_and_indices()
@@ -312,7 +306,7 @@ void OBJMesh::store_uv_coords_and_indices()
       mesh_polys_.data(),
       nullptr,
       nullptr,
-      mesh_loops_.data(),
+      mesh_corner_verts_.data(),
       reinterpret_cast<const float(*)[2]>(uv_map.data()),
       mesh_polys_.size(),
       totvert,
@@ -363,7 +357,7 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   const MPoly &poly = mesh_polys_[poly_index];
   float3 r_poly_normal = bke::mesh::poly_normal_calc(
-      mesh_positions_, mesh_loops_.slice(poly.loopstart, poly.totloop));
+      mesh_positions_, mesh_corner_verts_.slice(poly.loopstart, poly.totloop));
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;
@@ -477,9 +471,8 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
   group_weights.fill(0);
   bool found_any_group = false;
   const MPoly &poly = mesh_polys_[poly_index];
-  const MLoop *mloop = &mesh_loops_[poly.loopstart];
-  for (int loop_i = 0; loop_i < poly.totloop; ++loop_i, ++mloop) {
-    const MDeformVert &dv = dverts[mloop->v];
+  for (const int vert : mesh_corner_verts_.slice(poly.loopstart, poly.totloop)) {
+    const MDeformVert &dv = dverts[vert];
     for (int weight_i = 0; weight_i < dv.totweight; ++weight_i) {
       const auto group = dv.dw[weight_i].def_nr;
       if (group < group_weights.size()) {

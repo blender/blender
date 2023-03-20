@@ -93,7 +93,7 @@ class MeshImporter : public MeshImporterBase {
   std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom;
 
   bool set_poly_indices(
-      MPoly *poly, MLoop *mloop, int loop_index, const unsigned int *indices, int loop_count);
+      MPoly *poly, int *poly_verts, int loop_index, const unsigned int *indices, int loop_count);
 
   void set_face_uv(blender::float2 *mloopuv,
                    UVDataWrapper &uvs,

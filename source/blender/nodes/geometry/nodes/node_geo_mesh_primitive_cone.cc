@@ -365,7 +365,8 @@ static void calculate_cone_edges(const ConeConfig &config, MutableSpan<MEdge> ed
 }
 
 static void calculate_cone_faces(const ConeConfig &config,
-                                 MutableSpan<MLoop> loops,
+                                 MutableSpan<int> corner_verts,
+                                 MutableSpan<int> corner_edges,
                                  MutableSpan<MPoly> polys)
 {
   int rings_poly_start = 0;
@@ -384,14 +385,15 @@ static void calculate_cone_faces(const ConeConfig &config,
       poly.loopstart = loop_start;
       poly.totloop = 3;
 
-      loops[loop_start + 0].v = config.first_ring_verts_start + i;
-      loops[loop_start + 0].e = config.first_ring_edges_start + i;
+      corner_verts[loop_start + 0] = config.first_ring_verts_start + i;
+      corner_edges[loop_start + 0] = config.first_ring_edges_start + i;
 
-      loops[loop_start + 1].v = config.first_ring_verts_start + ((i + 1) % config.circle_segments);
-      loops[loop_start + 1].e = top_fan_edges_start + ((i + 1) % config.circle_segments);
+      corner_verts[loop_start + 1] = config.first_ring_verts_start +
+                                     ((i + 1) % config.circle_segments);
+      corner_edges[loop_start + 1] = top_fan_edges_start + ((i + 1) % config.circle_segments);
 
-      loops[loop_start + 2].v = top_center_vert;
-      loops[loop_start + 2].e = top_fan_edges_start + i;
+      corner_verts[loop_start + 2] = top_center_vert;
+      corner_edges[loop_start + 2] = top_fan_edges_start + i;
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
@@ -403,8 +405,8 @@ static void calculate_cone_faces(const ConeConfig &config,
     poly.loopstart = 0;
     poly.totloop = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
-      loops[i].v = i;
-      loops[i].e = i;
+      corner_verts[i] = i;
+      corner_edges[i] = i;
     }
   }
 
@@ -426,17 +428,17 @@ static void calculate_cone_faces(const ConeConfig &config,
       poly.loopstart = loop_start;
       poly.totloop = 4;
 
-      loops[loop_start + 0].v = this_ring_vert_start + j;
-      loops[loop_start + 0].e = ring_connections_start + j;
+      corner_verts[loop_start + 0] = this_ring_vert_start + j;
+      corner_edges[loop_start + 0] = ring_connections_start + j;
 
-      loops[loop_start + 1].v = next_ring_vert_start + j;
-      loops[loop_start + 1].e = next_ring_edges_start + j;
+      corner_verts[loop_start + 1] = next_ring_vert_start + j;
+      corner_edges[loop_start + 1] = next_ring_edges_start + j;
 
-      loops[loop_start + 2].v = next_ring_vert_start + ((j + 1) % config.circle_segments);
-      loops[loop_start + 2].e = ring_connections_start + ((j + 1) % config.circle_segments);
+      corner_verts[loop_start + 2] = next_ring_vert_start + ((j + 1) % config.circle_segments);
+      corner_edges[loop_start + 2] = ring_connections_start + ((j + 1) % config.circle_segments);
 
-      loops[loop_start + 3].v = this_ring_vert_start + ((j + 1) % config.circle_segments);
-      loops[loop_start + 3].e = this_ring_edges_start + j;
+      corner_verts[loop_start + 3] = this_ring_vert_start + ((j + 1) % config.circle_segments);
+      corner_edges[loop_start + 3] = this_ring_edges_start + j;
     }
   }
 
@@ -452,14 +454,16 @@ static void calculate_cone_faces(const ConeConfig &config,
       poly.loopstart = loop_start;
       poly.totloop = 3;
 
-      loops[loop_start + 0].v = config.last_ring_verts_start + i;
-      loops[loop_start + 0].e = config.last_fan_edges_start + i;
+      corner_verts[loop_start + 0] = config.last_ring_verts_start + i;
+      corner_edges[loop_start + 0] = config.last_fan_edges_start + i;
 
-      loops[loop_start + 1].v = config.last_vert;
-      loops[loop_start + 1].e = config.last_fan_edges_start + (i + 1) % config.circle_segments;
+      corner_verts[loop_start + 1] = config.last_vert;
+      corner_edges[loop_start + 1] = config.last_fan_edges_start +
+                                     (i + 1) % config.circle_segments;
 
-      loops[loop_start + 2].v = config.last_ring_verts_start + (i + 1) % config.circle_segments;
-      loops[loop_start + 2].e = config.last_ring_edges_start + i;
+      corner_verts[loop_start + 2] = config.last_ring_verts_start +
+                                     (i + 1) % config.circle_segments;
+      corner_edges[loop_start + 2] = config.last_ring_edges_start + i;
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
@@ -470,8 +474,8 @@ static void calculate_cone_faces(const ConeConfig &config,
 
     for (const int i : IndexRange(config.circle_segments)) {
       /* Go backwards to reverse surface normal. */
-      loops[bottom_loop_start + i].v = config.last_vert - i;
-      loops[bottom_loop_start + i].e = config.last_edge - ((i + 1) % config.circle_segments);
+      corner_verts[bottom_loop_start + i] = config.last_vert - i;
+      corner_edges[bottom_loop_start + i] = config.last_edge - ((i + 1) % config.circle_segments);
     }
   }
 }
@@ -691,12 +695,13 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_cone_verts(config, positions);
   calculate_cone_edges(config, edges);
-  calculate_cone_faces(config, loops, polys);
+  calculate_cone_faces(config, corner_verts, corner_edges, polys);
   if (attribute_outputs.uv_map_id) {
     calculate_cone_uvs(config, mesh, attribute_outputs.uv_map_id.get());
   }

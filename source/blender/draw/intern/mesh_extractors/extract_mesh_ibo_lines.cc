@@ -62,13 +62,13 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
     const int ml_index_last = poly->loopstart + (poly->totloop - 1);
     int ml_index = ml_index_last, ml_index_next = poly->loopstart;
     do {
-      const MLoop *ml = &mr->loops[ml_index];
-      if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[ml->e]) ||
-            ((e_origindex) && (e_origindex[ml->e] == ORIGINDEX_NONE)))) {
-        GPU_indexbuf_set_line_verts(elb, ml->e, ml_index, ml_index_next);
+      const int edge = mr->corner_edges[ml_index];
+      if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[edge]) ||
+            ((e_origindex) && (e_origindex[edge] == ORIGINDEX_NONE)))) {
+        GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
       }
       else {
-        GPU_indexbuf_set_line_restart(elb, ml->e);
+        GPU_indexbuf_set_line_restart(elb, edge);
       }
     } while ((ml_index = ml_index_next++) != ml_index_last);
   }
@@ -76,8 +76,8 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
     const int ml_index_last = poly->loopstart + (poly->totloop - 1);
     int ml_index = ml_index_last, ml_index_next = poly->loopstart;
     do {
-      const MLoop *ml = &mr->loops[ml_index];
-      GPU_indexbuf_set_line_verts(elb, ml->e, ml_index, ml_index_next);
+      const int edge = mr->corner_edges[ml_index];
+      GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
     } while ((ml_index = ml_index_next++) != ml_index_last);
   }
 }

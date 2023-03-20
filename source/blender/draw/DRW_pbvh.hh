@@ -10,6 +10,7 @@
 /* Needed for BKE_ccg.h. */
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"
+#include "BLI_span.hh"
 
 #include "BKE_ccg.h"
 
@@ -23,7 +24,6 @@ struct DMFlagMat;
 struct Mesh;
 struct MLoopTri;
 struct CustomData;
-struct MLoop;
 struct MPoly;
 struct SubdivCCG;
 struct BMesh;
@@ -34,7 +34,8 @@ struct PBVH_GPU_Args {
   BMesh *bm;
   const Mesh *me;
   const float (*vert_positions)[3];
-  const MLoop *mloop;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
   const MPoly *polys;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
   CustomData *vdata, *ldata, *pdata;

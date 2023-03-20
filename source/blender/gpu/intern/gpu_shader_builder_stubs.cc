@@ -147,14 +147,6 @@ bool paint_is_grid_face_hidden(const uint * /*grid_hidden*/,
 /** \name Stubs of BKE_mesh.h
  * \{ */
 
-void BKE_mesh_looptri_get_real_edges(const struct MEdge * /*edges*/,
-                                     const struct MLoop * /*loops*/,
-                                     const struct MLoopTri * /*looptri*/,
-                                     int[3] /*col*/)
-{
-  BLI_assert_unreachable();
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

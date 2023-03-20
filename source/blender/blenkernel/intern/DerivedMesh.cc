@@ -122,19 +122,32 @@ static MEdge *dm_getEdgeArray(DerivedMesh *dm)
   return edge;
 }
 
-static MLoop *dm_getLoopArray(DerivedMesh *dm)
+static int *dm_getCornerVertArray(DerivedMesh *dm)
 {
-  MLoop *mloop = (MLoop *)CustomData_get_layer_for_write(
-      &dm->loopData, CD_MLOOP, dm->getNumLoops(dm));
+  int *corner_verts = (int *)CustomData_get_layer_named_for_write(
+      &dm->loopData, CD_PROP_INT32, ".corner_vert", dm->getNumLoops(dm));
 
-  if (!mloop) {
-    mloop = (MLoop *)CustomData_add_layer(
-        &dm->loopData, CD_MLOOP, CD_SET_DEFAULT, dm->getNumLoops(dm));
-    CustomData_set_layer_flag(&dm->loopData, CD_MLOOP, CD_FLAG_TEMPORARY);
-    dm->copyLoopArray(dm, mloop);
+  if (!corner_verts) {
+    corner_verts = (int *)CustomData_add_layer_named(
+        &dm->loopData, CD_PROP_INT32, CD_SET_DEFAULT, dm->getNumLoops(dm), ".corner_vert");
+    dm->copyCornerVertArray(dm, corner_verts);
   }
 
-  return mloop;
+  return corner_verts;
+}
+
+static int *dm_getCornerEdgeArray(DerivedMesh *dm)
+{
+  int *corner_edges = (int *)CustomData_get_layer_named(
+      &dm->loopData, CD_PROP_INT32, ".corner_edge");
+
+  if (!corner_edges) {
+    corner_edges = (int *)CustomData_add_layer_named(
+        &dm->loopData, CD_PROP_INT32, CD_SET_DEFAULT, dm->getNumLoops(dm), ".corner_edge");
+    dm->copyCornerEdgeArray(dm, corner_edges);
+  }
+
+  return corner_edges;
 }
 
 static MPoly *dm_getPolyArray(DerivedMesh *dm)
@@ -188,7 +201,8 @@ void DM_init_funcs(DerivedMesh *dm)
   /* default function implementations */
   dm->getVertArray = dm_getVertArray;
   dm->getEdgeArray = dm_getEdgeArray;
-  dm->getLoopArray = dm_getLoopArray;
+  dm->getCornerVertArray = dm_getCornerVertArray;
+  dm->getCornerEdgeArray = dm_getCornerEdgeArray;
   dm->getPolyArray = dm_getPolyArray;
 
   dm->getLoopTriArray = dm_getLoopTriArray;
@@ -1891,7 +1905,7 @@ static void mesh_init_origspace(Mesh *mesh)
       &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const Span<float3> positions = mesh->vert_positions();
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   int j, k;
 
@@ -1907,7 +1921,6 @@ static void mesh_init_origspace(Mesh *mesh)
       }
     }
     else {
-      const MLoop *l = &loops[poly.loopstart];
       float co[3];
       float mat[3][3];
 
@@ -1915,13 +1928,13 @@ static void mesh_init_origspace(Mesh *mesh)
       float translate[2], scale[2];
 
       const float3 p_nor = blender::bke::mesh::poly_normal_calc(
-          positions, loops.slice(poly.loopstart, poly.totloop));
+          positions, corner_verts.slice(poly.loopstart, poly.totloop));
 
       axis_dominant_v3_to_m3(mat, p_nor);
 
       vcos_2d.resize(poly.totloop);
-      for (j = 0; j < poly.totloop; j++, l++) {
-        mul_v3_m3v3(co, mat, positions[l->v]);
+      for (j = 0; j < poly.totloop; j++) {
+        mul_v3_m3v3(co, mat, positions[corner_verts[poly.loopstart + j]]);
         copy_v2_v2(vcos_2d[j], co);
 
         for (k = 0; k < 2; k++) {

@@ -43,9 +43,8 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
   const int ml_index_end = poly->loopstart + poly->totloop;
   for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mr->loops[ml_index];
+    const int e_index = mr->corner_edges[ml_index];
 
-    const int e_index = ml->e;
     if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[e_index]) ||
           ((mr->e_origindex) && (mr->e_origindex[e_index] == ORIGINDEX_NONE)))) {
 

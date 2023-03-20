@@ -89,7 +89,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   const blender::Span<MEdge> edges = mesh->edges();
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const blender::Span<int> corner_edges = mesh->corner_edges();
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
@@ -100,8 +101,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
                                   edges.size(),
                                   polys.data(),
                                   polys.size(),
-                                  loops.data(),
-                                  loops.size());
+                                  corner_edges.data(),
+                                  corner_edges.size());
   }
   if (!ss->vemap) {
     BKE_mesh_vert_edge_map_create(
@@ -183,8 +184,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           }
 
           for (int loop_index = 0; loop_index < polys[poly].totloop; loop_index++) {
-            const MLoop *mloop = &loops[loop_index + polys[poly].loopstart];
-            const int v_other = mloop->v;
+            const int v_other = corner_verts[loop_index + polys[poly].loopstart];
             if (ELEM(v_other, v1, v2)) {
               continue;
             }

@@ -104,7 +104,8 @@ struct MeshRealizeInfo {
   Span<float3> positions;
   Span<MEdge> edges;
   Span<MPoly> polys;
-  Span<MLoop> loops;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
 
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
@@ -846,6 +847,8 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                                     options.propagation_info,
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
+  attributes_to_propagate.remove(".corner_vert");
+  attributes_to_propagate.remove(".corner_edge");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
@@ -900,7 +903,8 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.positions = mesh->vert_positions();
     mesh_info.edges = mesh->edges();
     mesh_info.polys = mesh->polys();
-    mesh_info.loops = mesh->loops();
+    mesh_info.corner_verts = mesh->corner_verts();
+    mesh_info.corner_edges = mesh->corner_edges();
 
     /* Create material index mapping. */
     mesh_info.material_index_map.reinitialize(std::max<int>(mesh->totcol, 1));
@@ -946,7 +950,8 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       MutableSpan<float3> all_dst_positions,
                                       MutableSpan<MEdge> all_dst_edges,
                                       MutableSpan<MPoly> all_dst_polys,
-                                      MutableSpan<MLoop> all_dst_loops,
+                                      MutableSpan<int> all_dst_corner_verts,
+                                      MutableSpan<int> all_dst_corner_edges,
                                       MutableSpan<int> all_dst_vertex_ids,
                                       MutableSpan<int> all_dst_material_indices)
 {
@@ -956,17 +961,19 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const Span<float3> src_positions = mesh_info.positions;
   const Span<MEdge> src_edges = mesh_info.edges;
   const Span<MPoly> src_polys = mesh_info.polys;
-  const Span<MLoop> src_loops = mesh_info.loops;
+  const Span<int> src_corner_verts = mesh_info.corner_verts;
+  const Span<int> src_corner_edges = mesh_info.corner_edges;
 
   const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
-  const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
+  const IndexRange dst_loop_range(task.start_indices.loop, src_corner_verts.size());
 
   MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
-  MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
+  MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
+  MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
 
   threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
@@ -982,13 +989,14 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_edge.v2 += task.start_indices.vertex;
     }
   });
-  threading::parallel_for(src_loops.index_range(), 1024, [&](const IndexRange loop_range) {
+  threading::parallel_for(src_corner_verts.index_range(), 1024, [&](const IndexRange loop_range) {
     for (const int i : loop_range) {
-      const MLoop &src_loop = src_loops[i];
-      MLoop &dst_loop = dst_loops[i];
-      dst_loop = src_loop;
-      dst_loop.v += task.start_indices.vertex;
-      dst_loop.e += task.start_indices.edge;
+      dst_corner_verts[i] = src_corner_verts[i] + task.start_indices.vertex;
+    }
+  });
+  threading::parallel_for(src_corner_edges.index_range(), 1024, [&](const IndexRange loop_range) {
+    for (const int i : loop_range) {
+      dst_corner_edges[i] = src_corner_edges[i] + task.start_indices.edge;
     }
   });
   threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
@@ -1079,7 +1087,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
-  MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
+  MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
 
   /* Copy settings from the first input geometry set with a mesh. */
   const RealizeMeshTask &first_task = tasks.first();
@@ -1128,7 +1137,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 dst_positions,
                                 dst_edges,
                                 dst_polys,
-                                dst_loops,
+                                dst_corner_verts,
+                                dst_corner_edges,
                                 vertex_ids.span,
                                 material_indices.span);
     }

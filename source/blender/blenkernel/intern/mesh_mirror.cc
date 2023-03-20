@@ -288,7 +288,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
-  blender::MutableSpan<MLoop> result_loops = result->loops_for_write();
+  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   /* adjust mirrored edge vertex indices */
   for (const int i : result_edges.index_range().drop_front(src_edges_num)) {
@@ -315,18 +316,20 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       CustomData_copy_data(&mesh->ldata, &result->ldata, src_poly[j], mirror_poly.last(j - 1), 1);
     }
 
-    blender::MutableSpan<MLoop> mirror_loops = result_loops.slice(mirror_poly);
-    const int e = mirror_loops.first().e;
+    blender::MutableSpan<int> mirror_poly_edges = result_corner_edges.slice(mirror_poly);
+    const int e = mirror_poly_edges.first();
     for (int j = 0; j < mirror_poly.size() - 1; j++) {
-      mirror_loops[j].e = mirror_loops[j + 1].e;
+      mirror_poly_edges[j] = mirror_poly_edges[j + 1];
     }
-    mirror_loops.last().e = e;
+    mirror_poly_edges.last() = e;
   }
 
   /* adjust mirrored loop vertex and edge indices */
-  for (const int i : result_loops.index_range().drop_front(src_loops_num)) {
-    result_loops[i].v += src_verts_num;
-    result_loops[i].e += src_edges_num;
+  for (const int i : result_corner_verts.index_range().drop_front(src_loops_num)) {
+    result_corner_verts[i] += src_verts_num;
+  }
+  for (const int i : result_corner_edges.index_range().drop_front(src_loops_num)) {
+    result_corner_edges[i] += src_edges_num;
   }
 
   /* handle uvs,
@@ -373,7 +376,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle custom split normals */
   if (ob->type == OB_MESH && (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->totpoly > 0) {
-    blender::Array<blender::float3> loop_normals(result_loops.size());
+    blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     CustomData *ldata = &result->ldata;
     short(*clnors)[2] = static_cast<short(*)[2]>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, result->totloop));
@@ -394,7 +397,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     blender::bke::mesh::normals_calc_loop(result->vert_positions(),
                                           result_edges,
                                           result_polys,
-                                          result_loops,
+                                          result_corner_verts,
+                                          result_corner_edges,
                                           {},
                                           result->vert_normals(),
                                           result->poly_normals(),
@@ -456,6 +460,5 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   if (mesh_bisect != nullptr) {
     BKE_id_free(nullptr, mesh_bisect);
   }
-
   return result;
 }

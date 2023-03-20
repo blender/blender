@@ -127,8 +127,8 @@ static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
 {
   const int ml_index_end = poly->loopstart + poly->totloop;
   for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mr->loops[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
+    const int edge = mr->corner_edges[ml_index];
+    (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[edge] : edge;
   }
 }
 
@@ -139,8 +139,8 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
 {
   const int ml_index_end = poly->loopstart + poly->totloop;
   for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mr->loops[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
+    const int vert = mr->corner_verts[ml_index];
+    (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[vert] : vert;
   }
 }
 

@@ -55,7 +55,7 @@ class TextureMarginMap {
   char *mask_;
 
   Span<MPoly> polys_;
-  Span<MLoop> mloop_;
+  Span<int> corner_edges_;
   Span<float2> mloopuv_;
   int totedge_;
 
@@ -65,9 +65,14 @@ class TextureMarginMap {
                    const float uv_offset[2],
                    const int totedge,
                    const Span<MPoly> polys,
-                   const Span<MLoop> mloop,
+                   const Span<int> corner_edges,
                    const Span<float2> mloopuv)
-      : w_(w), h_(h), polys_(polys), mloop_(mloop), mloopuv_(mloopuv), totedge_(totedge)
+      : w_(w),
+        h_(h),
+        polys_(polys),
+        corner_edges_(corner_edges),
+        mloopuv_(mloopuv),
+        totedge_(totedge)
   {
     copy_v2_v2(uv_offset_, uv_offset);
 
@@ -279,15 +284,16 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys_, mloop_.size());
+    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys_,
+                                                                            corner_edges_.size());
 
-    loop_adjacency_map_.resize(mloop_.size(), -1);
+    loop_adjacency_map_.resize(corner_edges_.size(), -1);
 
     Vector<int> tmpmap;
     tmpmap.resize(totedge_, -1);
 
-    for (const int64_t i : mloop_.index_range()) {
-      int edge = mloop_[i].e;
+    for (const int64_t i : corner_edges_.index_range()) {
+      int edge = corner_edges_[i];
       if (tmpmap[edge] == -1) {
         loop_adjacency_map_[i] = -1;
         tmpmap[edge] = i;
@@ -472,14 +478,14 @@ static void generate_margin(ImBuf *ibuf,
                             const Span<float3> vert_positions,
                             const int edges_num,
                             const Span<MPoly> polys,
-                            const Span<MLoop> loops,
+                            const Span<int> corner_edges,
                             const Span<float2> mloopuv,
                             const float uv_offset[2])
 {
-  Array<MLoopTri> looptris(poly_to_tri_count(polys.size(), loops.size()));
-  bke::mesh::looptris_calc(vert_positions, polys, loops, looptris);
+  Array<MLoopTri> looptris(poly_to_tri_count(polys.size(), corner_edges.size()));
+  bke::mesh::looptris_calc(vert_positions, polys, corner_edges, looptris);
 
-  TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, polys, loops, mloopuv);
+  TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, polys, corner_edges, mloopuv);
 
   bool draw_new_mask = false;
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
@@ -559,7 +565,7 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                                   mesh->vert_positions(),
                                                   mesh->totedge,
                                                   mesh->polys(),
-                                                  mesh->loops(),
+                                                  mesh->corner_edges(),
                                                   {mloopuv, mesh->totloop},
                                                   uv_offset);
 }
@@ -577,7 +583,7 @@ void RE_generate_texturemargin_adjacentfaces_dm(
       {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), dm->getNumVerts(dm)},
       dm->getNumEdges(dm),
       {dm->getPolyArray(dm), dm->getNumPolys(dm)},
-      {dm->getLoopArray(dm), dm->getNumLoops(dm)},
+      {dm->getCornerEdgeArray(dm), dm->getNumLoops(dm)},
       {mloopuv, dm->getNumLoops(dm)},
       uv_offset);
 }

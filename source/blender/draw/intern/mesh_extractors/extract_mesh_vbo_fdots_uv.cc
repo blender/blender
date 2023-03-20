@@ -78,9 +78,9 @@ static void extract_fdots_uv_iter_poly_mesh(const MeshRenderData *mr,
 
   const int ml_index_end = poly->loopstart + poly->totloop;
   for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mr->loops[ml_index];
+    const int vert = mr->corner_verts[ml_index];
     if (mr->use_subsurf_fdots) {
-      if (facedot_tags[ml->v]) {
+      if (facedot_tags[vert]) {
         copy_v2_v2(data->vbo_data[poly_index], data->uv_data[ml_index]);
       }
     }

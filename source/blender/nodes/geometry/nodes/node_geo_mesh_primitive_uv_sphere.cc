@@ -177,7 +177,8 @@ BLI_NOINLINE static void calculate_sphere_faces(MutableSpan<MPoly> polys, const 
   }
 }
 
-BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
+BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<int> corner_verts,
+                                                  MutableSpan<int> corner_edges,
                                                   const int segments,
                                                   const int rings)
 {
@@ -191,14 +192,14 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
     const int loop_start = segment * 3;
     const int segment_next = segment_next_or_first(segment);
 
-    loops[loop_start + 0].v = 0;
-    loops[loop_start + 0].e = segment;
+    corner_verts[loop_start + 0] = 0;
+    corner_edges[loop_start + 0] = segment;
 
-    loops[loop_start + 1].v = first_vert_ring_start + segment;
-    loops[loop_start + 1].e = segments + segment;
+    corner_verts[loop_start + 1] = first_vert_ring_start + segment;
+    corner_edges[loop_start + 1] = segments + segment;
 
-    loops[loop_start + 2].v = first_vert_ring_start + segment_next;
-    loops[loop_start + 2].e = segment_next;
+    corner_verts[loop_start + 2] = first_vert_ring_start + segment_next;
+    corner_edges[loop_start + 2] = segment_next;
   }
 
   const int rings_vert_start = 1;
@@ -217,17 +218,17 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
       const int loop_start = ring_loop_start + segment * 4;
       const int segment_next = segment_next_or_first(segment);
 
-      loops[loop_start + 0].v = ring_vert_start + segment;
-      loops[loop_start + 0].e = ring_vertical_edge_start + segment;
+      corner_verts[loop_start + 0] = ring_vert_start + segment;
+      corner_edges[loop_start + 0] = ring_vertical_edge_start + segment;
 
-      loops[loop_start + 1].v = next_ring_vert_start + segment;
-      loops[loop_start + 1].e = next_ring_edge_start + segment;
+      corner_verts[loop_start + 1] = next_ring_vert_start + segment;
+      corner_edges[loop_start + 1] = next_ring_edge_start + segment;
 
-      loops[loop_start + 2].v = next_ring_vert_start + segment_next;
-      loops[loop_start + 2].e = ring_vertical_edge_start + segment_next;
+      corner_verts[loop_start + 2] = next_ring_vert_start + segment_next;
+      corner_edges[loop_start + 2] = ring_vertical_edge_start + segment_next;
 
-      loops[loop_start + 3].v = ring_vert_start + segment_next;
-      loops[loop_start + 3].e = ring_edge_start + segment;
+      corner_verts[loop_start + 3] = ring_vert_start + segment_next;
+      corner_edges[loop_start + 3] = ring_edge_start + segment;
     }
   }
 
@@ -241,14 +242,14 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
     const int loop_start = bottom_loop_start + segment * 3;
     const int segment_next = segment_next_or_first(segment);
 
-    loops[loop_start + 0].v = last_vert_index;
-    loops[loop_start + 0].e = bottom_edge_fan_start + segment_next;
+    corner_verts[loop_start + 0] = last_vert_index;
+    corner_edges[loop_start + 0] = bottom_edge_fan_start + segment_next;
 
-    loops[loop_start + 1].v = last_vert_ring_start + segment_next;
-    loops[loop_start + 1].e = last_edge_ring_start + segment;
+    corner_verts[loop_start + 1] = last_vert_ring_start + segment_next;
+    corner_edges[loop_start + 1] = last_edge_ring_start + segment;
 
-    loops[loop_start + 2].v = last_vert_ring_start + segment;
-    loops[loop_start + 2].e = bottom_edge_fan_start + segment;
+    corner_verts[loop_start + 2] = last_vert_ring_start + segment;
+    corner_edges[loop_start + 2] = bottom_edge_fan_start + segment;
   }
 }
 
@@ -314,7 +315,8 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   threading::parallel_invoke(
@@ -327,7 +329,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
       [&]() { calculate_sphere_faces(polys, segments); },
-      [&]() { calculate_sphere_corners(loops, segments, rings); },
+      [&]() { calculate_sphere_corners(corner_verts, corner_edges, segments, rings); },
       [&]() {
         if (uv_map_id) {
           calculate_sphere_uvs(mesh, segments, rings, uv_map_id);

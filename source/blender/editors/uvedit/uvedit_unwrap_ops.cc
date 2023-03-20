@@ -639,7 +639,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   const float(*subsurfedPositions)[3] = BKE_mesh_vert_positions(subdiv_mesh);
   const blender::Span<MEdge> subsurf_edges = subdiv_mesh->edges();
   const blender::Span<MPoly> subsurf_polys = subdiv_mesh->polys();
-  const blender::Span<MLoop> subsurf_loops = subdiv_mesh->loops();
+  const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
       CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
@@ -691,32 +691,52 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const MLoop *mloop = &subsurf_loops[poly.loopstart];
+    const int *poly_corner_verts = &subsurf_corner_verts[poly.loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(poly.totloop == 4);
     key = (ParamKey)i;
-    vkeys[0] = (ParamKey)mloop[0].v;
-    vkeys[1] = (ParamKey)mloop[1].v;
-    vkeys[2] = (ParamKey)mloop[2].v;
-    vkeys[3] = (ParamKey)mloop[3].v;
+    vkeys[0] = (ParamKey)poly_corner_verts[0];
+    vkeys[1] = (ParamKey)poly_corner_verts[1];
+    vkeys[2] = (ParamKey)poly_corner_verts[2];
+    vkeys[3] = (ParamKey)poly_corner_verts[3];
 
-    co[0] = subsurfedPositions[mloop[0].v];
-    co[1] = subsurfedPositions[mloop[1].v];
-    co[2] = subsurfedPositions[mloop[2].v];
-    co[3] = subsurfedPositions[mloop[3].v];
+    co[0] = subsurfedPositions[poly_corner_verts[0]];
+    co[1] = subsurfedPositions[poly_corner_verts[1]];
+    co[2] = subsurfedPositions[poly_corner_verts[2]];
+    co[3] = subsurfedPositions[poly_corner_verts[3]];
 
     /* This is where all the magic is done.
      * If the vertex exists in the, we pass the original uv pointer to the solver, thus
      * flushing the solution to the edit mesh. */
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[0].v], &uv[0], &pin[0], &select[0]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[1].v], &uv[1], &pin[1], &select[1]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[2].v], &uv[2], &pin[2], &select[2]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[3].v], &uv[3], &pin[3], &select[3]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[0]],
+                                &uv[0],
+                                &pin[0],
+                                &select[0]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[1]],
+                                &uv[1],
+                                &pin[1],
+                                &select[1]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[2]],
+                                &uv[2],
+                                &pin[2],
+                                &select[2]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[3]],
+                                &uv[3],
+                                &pin[3],
+                                &select[3]);
 
     blender::geometry::uv_parametrizer_face_add(handle, key, 4, vkeys, co, uv, pin, select);
   }

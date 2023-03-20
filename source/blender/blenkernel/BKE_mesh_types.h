@@ -49,7 +49,7 @@ typedef enum eMeshBatchDirtyMode {
 
 /** #MeshRuntime.wrapper_type */
 typedef enum eMeshWrapperType {
-  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
+  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.corner_verts(), #Mesh.mpoly). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,

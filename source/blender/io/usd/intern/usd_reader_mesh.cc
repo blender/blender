@@ -263,7 +263,7 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
 void USDMeshReader::read_mpolys(Mesh *mesh)
 {
   MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_index = 0;
 
@@ -280,12 +280,12 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     if (is_left_handed_) {
       int loop_end_index = loop_index + (face_size - 1);
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        loops[loop_index].v = face_indices_[loop_end_index - f];
+        corner_verts[loop_index] = face_indices_[loop_end_index - f];
       }
     }
     else {
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        loops[loop_index].v = face_indices_[loop_index];
+        corner_verts[loop_index] = face_indices_[loop_index];
       }
     }
   }
@@ -351,7 +351,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
     }
   }
 
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
@@ -387,7 +387,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         /* For Vertex interpolation, use the vertex index. */
         int usd_uv_index = sample.interpolation == pxr::UsdGeomTokens->vertex ?
-                               loops[loop_index].v :
+                               corner_verts[loop_index] :
                                loop_index;
 
         if (usd_uv_index >= sample.uvs.size()) {
@@ -468,7 +468,7 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
   MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
 
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
   for (const int i : polys.index_range()) {
     const MPoly &poly = polys[i];
     for (int j = 0; j < poly.totloop; ++j) {
@@ -478,7 +478,7 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
       int usd_index = 0;
 
       if (interp == pxr::UsdGeomTokens->vertex) {
-        usd_index = loops[loop_index].v;
+        usd_index = corner_verts[loop_index];
       }
       else if (interp == pxr::UsdGeomTokens->faceVarying) {
         usd_index = poly.loopstart;

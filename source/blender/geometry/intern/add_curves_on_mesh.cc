@@ -252,7 +252,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Find faces that the passed in uvs belong to. */
   const Span<float3> surface_positions = inputs.surface->vert_positions();
-  const Span<MLoop> surface_loops = inputs.surface->loops();
+  const Span<int> surface_corner_verts = inputs.surface->corner_verts();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
@@ -265,9 +265,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        surface_positions[surface_loops[looptri.tri[0]].v],
-        surface_positions[surface_loops[looptri.tri[1]].v],
-        surface_positions[surface_loops[looptri.tri[2]].v]);
+        surface_positions[surface_corner_verts[looptri.tri[0]]],
+        surface_positions[surface_corner_verts[looptri.tri[1]]],
+        surface_positions[surface_corner_verts[looptri.tri[2]]]);
     root_positions_cu.append(
         math::transform_point(inputs.transforms->surface_to_curves, root_position_su));
     used_uvs.append(uv);

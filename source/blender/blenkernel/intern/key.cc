@@ -2235,7 +2235,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   BKE_keyblock_convert_to_mesh(kb, positions, mesh->totvert);
   const blender::Span<MEdge> edges = mesh->edges();
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const blender::Span<int> corner_edges = mesh->corner_edges();
 
   const bool loop_normals_needed = r_loop_normals != nullptr;
   const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
@@ -2261,20 +2262,20 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     blender::bke::mesh::normals_calc_polys(
         {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
         polys,
-        loops,
+        corner_verts,
         {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()});
   }
   if (vert_normals_needed) {
     blender::bke::mesh::normals_calc_poly_vert(
         {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
         polys,
-        loops,
+        corner_verts,
         {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
   if (loop_normals_needed) {
     short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
-        &mesh->ldata, CD_CUSTOMLOOPNORMAL, loops.size())); /* May be nullptr. */
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size())); /* May be nullptr. */
     const bool *sharp_edges = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     const bool *sharp_faces = static_cast<const bool *>(
@@ -2283,7 +2284,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         {reinterpret_cast<const blender::float3 *>(positions), mesh->totvert},
         edges,
         polys,
-        loops,
+        corner_verts,
+        corner_edges,
         {},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert},
         {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
@@ -2293,7 +2295,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         mesh->smoothresh,
         clnors,
         nullptr,
-        {reinterpret_cast<blender::float3 *>(r_loop_normals), loops.size()});
+        {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
   }
 
   if (free_vert_normals) {

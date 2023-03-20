@@ -155,7 +155,7 @@ static bool dependsOnNormals(ModifierData *md)
 struct GenerateOceanGeometryData {
   float (*vert_positions)[3];
   blender::MutableSpan<MPoly> polys;
-  blender::MutableSpan<MLoop> loops;
+  blender::MutableSpan<int> corner_verts;
   float (*mloopuvs)[2];
 
   int res_x, res_y;
@@ -191,16 +191,11 @@ static void generate_ocean_geometry_polys(void *__restrict userdata,
   for (x = 0; x < gogd->res_x; x++) {
     const int fi = y * gogd->res_x + x;
     const int vi = y * (gogd->res_x + 1) + x;
-    MLoop *ml = &gogd->loops[fi * 4];
 
-    ml->v = vi;
-    ml++;
-    ml->v = vi + 1;
-    ml++;
-    ml->v = vi + 1 + gogd->res_x + 1;
-    ml++;
-    ml->v = vi + gogd->res_x + 1;
-    ml++;
+    gogd->corner_verts[fi * 4 + 0] = vi;
+    gogd->corner_verts[fi * 4 + 1] = vi + 1;
+    gogd->corner_verts[fi * 4 + 2] = vi + 1 + gogd->res_x + 1;
+    gogd->corner_verts[fi * 4 + 3] = vi + gogd->res_x + 1;
 
     gogd->polys[fi].loopstart = fi * 4;
     gogd->polys[fi].totloop = 4;
@@ -268,7 +263,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
 
   gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);
   gogd.polys = result->polys_for_write();
-  gogd.loops = result->loops_for_write();
+  gogd.corner_verts = result->corner_verts_for_write();
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -365,20 +360,26 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* Add vertex-colors before displacement: allows lookup based on position. */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-    const blender::Span<MLoop> loops = result->loops();
-    MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(
-        &result->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, loops.size(), omd->foamlayername));
+    const blender::Span<int> corner_verts = result->corner_verts();
+    MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
+                                                                             CD_PROP_BYTE_COLOR,
+                                                                             CD_SET_DEFAULT,
+                                                                             corner_verts.size(),
+                                                                             omd->foamlayername));
 
     MLoopCol *mloopcols_spray = nullptr;
     if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-      mloopcols_spray = static_cast<MLoopCol *>(CustomData_add_layer_named(
-          &result->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, loops.size(), omd->spraylayername));
+      mloopcols_spray = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
+                                                                           CD_PROP_BYTE_COLOR,
+                                                                           CD_SET_DEFAULT,
+                                                                           corner_verts.size(),
+                                                                           omd->spraylayername));
     }
 
     if (mloopcols) { /* unlikely to fail */
 
       for (const int i : polys.index_range()) {
-        const MLoop *ml = &loops[polys[i].loopstart];
+        const int *corner_vert = &corner_verts[polys[i].loopstart];
         MLoopCol *mlcol = &mloopcols[polys[i].loopstart];
 
         MLoopCol *mlcolspray = nullptr;
@@ -386,8 +387,8 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
           mlcolspray = &mloopcols_spray[polys[i].loopstart];
         }
 
-        for (j = polys[i].totloop; j--; ml++, mlcol++) {
-          const float *vco = positions[ml->v];
+        for (j = polys[i].totloop; j--; corner_vert++, mlcol++) {
+          const float *vco = positions[*corner_vert];
           const float u = OCEAN_CO(size_co_inv, vco[0]);
           const float v = OCEAN_CO(size_co_inv, vco[1]);
           float foam;

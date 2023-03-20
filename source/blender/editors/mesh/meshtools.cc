@@ -74,7 +74,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              const float imat[4][4],
                              float3 **vert_positions_pp,
                              MEdge **medge_pp,
-                             MLoop **mloop_pp,
+                             int **corner_verts_pp,
+                             int **corner_edges_pp,
                              MPoly **mpoly_pp,
                              CustomData *vdata,
                              CustomData *edata,
@@ -99,7 +100,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
   Mesh *me = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
   MEdge *edge = *medge_pp;
-  MLoop *mloop = *mloop_pp;
+  int *corner_verts = *corner_verts_pp;
+  int *corner_edges = *corner_edges_pp;
 
   if (me->totvert) {
     /* standard data */
@@ -227,9 +229,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
-    for (a = 0; a < me->totloop; a++, mloop++) {
-      mloop->v += *vertofs;
-      mloop->e += *edgeofs;
+    for (a = 0; a < me->totloop; a++) {
+      corner_verts[a] += *vertofs;
+      corner_edges[a] += *edgeofs;
     }
   }
 
@@ -293,7 +295,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
   *edgeofs += me->totedge;
   *medge_pp += me->totedge;
   *loopofs += me->totloop;
-  *mloop_pp += me->totloop;
+  *corner_verts_pp += me->totloop;
+  *corner_edges_pp += me->totloop;
   *polyofs += me->totpoly;
   *mpoly_pp += me->totpoly;
 }
@@ -334,7 +337,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Mesh *me;
   MEdge *edge = nullptr;
   MPoly *polys = nullptr;
-  MLoop *mloop = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
@@ -585,7 +587,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
       &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   edge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
-  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, totloop);
+  int *corner_verts = (int *)CustomData_add_layer_named(
+      &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
+  int *corner_edges = (int *)CustomData_add_layer_named(
+      &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_edge");
   polys = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, totpoly);
 
   vertofs = 0;
@@ -610,7 +615,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                    imat,
                    &vert_positions,
                    &edge,
-                   &mloop,
+                   &corner_verts,
+                   &corner_edges,
                    &polys,
                    &vdata,
                    &edata,
@@ -644,7 +650,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                        imat,
                        &vert_positions,
                        &edge,
-                       &mloop,
+                       &corner_verts,
+                       &corner_edges,
                        &polys,
                        &vdata,
                        &edata,
@@ -1225,16 +1232,14 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     /* mesh data (evaluated) */
     const MPoly *poly,
     const Span<float3> vert_positions,
-    const MLoop *mloop,
+    const int *corner_verts,
     /* return values */
     float *r_len_best,
     int *r_v_idx_best)
 {
-  const MLoop *ml;
-  int j = poly->totloop;
-  for (ml = &mloop[poly->loopstart]; j--; ml++) {
+  for (int j = poly->totloop; j--;) {
     float sco[2];
-    const int v_idx = ml->v;
+    const int v_idx = corner_verts[poly->loopstart + j];
     if (ED_view3d_project_float_object(region, vert_positions[v_idx], sco, V3D_PROJ_TEST_NOP) ==
         V3D_PROJ_RET_OK) {
       const float len_test = len_manhattan_v2v2(mval, sco);
@@ -1271,7 +1276,7 @@ bool ED_mesh_pick_face_vert(
 
     const Span<float3> vert_positions = me_eval->vert_positions();
     const Span<MPoly> polys = me_eval->polys();
-    const Span<MLoop> loops = me_eval->loops();
+    const Span<int> corner_verts = me_eval->corner_verts();
 
     const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
@@ -1279,8 +1284,13 @@ bool ED_mesh_pick_face_vert(
     if (index_mp_to_orig) {
       for (const int i : polys.index_range()) {
         if (index_mp_to_orig[i] == poly_index) {
-          ed_mesh_pick_face_vert__mpoly_find(
-              region, mval_f, &polys[i], vert_positions, loops.data(), &len_best, &v_idx_best);
+          ed_mesh_pick_face_vert__mpoly_find(region,
+                                             mval_f,
+                                             &polys[i],
+                                             vert_positions,
+                                             corner_verts.data(),
+                                             &len_best,
+                                             &v_idx_best);
         }
       }
     }
@@ -1290,7 +1300,7 @@ bool ED_mesh_pick_face_vert(
                                            mval_f,
                                            &polys[poly_index],
                                            vert_positions,
-                                           loops.data(),
+                                           corner_verts.data(),
                                            &len_best,
                                            &v_idx_best);
       }

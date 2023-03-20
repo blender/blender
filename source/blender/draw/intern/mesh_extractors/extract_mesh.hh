@@ -78,7 +78,8 @@ struct MeshRenderData {
   blender::Span<blender::float3> vert_positions;
   blender::Span<MEdge> edges;
   blender::Span<MPoly> polys;
-  blender::Span<MLoop> loops;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
   BMVert *eve_act;
   BMEdge *eed_act;
   BMFace *efa_act;

@@ -288,13 +288,13 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   usd_mesh_data.face_indices.reserve(mesh->totloop);
 
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   for (const int i : polys.index_range()) {
     const MPoly &poly = polys[i];
     usd_mesh_data.face_vertex_counts.push_back(poly.totloop);
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      usd_mesh_data.face_indices.push_back(loop.v);
+    for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+      usd_mesh_data.face_indices.push_back(vert);
     }
   }
 }
@@ -427,7 +427,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&mesh->ldata, CD_NORMAL));
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   pxr::VtVec3fArray loop_normals;
   loop_normals.reserve(mesh->totloop);
@@ -457,8 +457,8 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
       }
       else {
         /* Smooth shaded, use individual vert normals. */
-        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-          loop_normals.push_back(pxr::GfVec3f(&vert_normals[loop.v].x));
+        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+          loop_normals.push_back(pxr::GfVec3f(&vert_normals[vert].x));
         }
       }
     }
