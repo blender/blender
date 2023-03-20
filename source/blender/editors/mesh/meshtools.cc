@@ -1058,7 +1058,7 @@ static float *editmesh_get_mirror_uv(
         BMLoop *l;
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          float *luv2 = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          float *luv2 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
           if ((fabsf(luv[0] - vec[0]) < 0.001f) && (fabsf(luv[1] - vec[1]) < 0.001f)) {
             return luv;
           }
