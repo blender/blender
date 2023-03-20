@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -32828,6 +32828,10 @@ msgid "Active spline of masking layer"
 msgstr "Mẫu cong hoạt động của lớp mặt nạ"
 
 
+msgid "Active Point"
+msgstr "Điểm Hoạt Động"
+
+
 msgid "Grease Pencil Color"
 msgstr "Màu Bút Sáp"
 
@@ -43643,10 +43647,6 @@ msgstr "Diện tích bề mặt từng mặt của một mạng lưới"
 
 msgid "Is Face Planar"
 msgstr "Mặt Là Mặt Phẳng"
-
-
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "Rút thông tin về tất cả tam giác nằm trên cùng mặt phẳng, ví dụ: có cùnh pháp tuyến"
 
 
 msgid "Face Neighbors"
@@ -58326,17 +58326,9 @@ msgid "Clear Restrict View"
 msgstr "Xóa Hạn Chế Hiển Thị"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Hiện lớp bằng đặt cờ ẩn"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Đặt Hạn Chế Hiển Thị"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Ẩn lớp bằng đặt cờ ẩn"
 
 
 msgctxt "Operator"
@@ -79542,10 +79534,6 @@ msgid "2D Cursor"
 msgstr "Con Trỏ 2D"
 
 
-msgid "Active Point"
-msgstr "Điểm Hoạt Động"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Bản chất theo dõi máy quay phim được đặt sẵn"
 
@@ -84474,14 +84462,6 @@ msgstr "Kích Cỡ biểu tượng của tiểu trục"
 
 msgid "Mini Axes Type"
 msgstr "Loại Tiểu Trục"
-
-
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "Cho xem một bộ trục 3D xoay trong góc trên phải của màn chiếu 3D"
-
-
-msgid "Simple Axis"
-msgstr "Trục Đơn Giản"
 
 
 msgid "Interactive Navigation"
@@ -107454,10 +107434,6 @@ msgstr "Hiện Tên"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "Tốc Độ Hát Lại (Bức Ảnh/Giây)"
-
-
-msgid "3D Viewport Axis"
-msgstr "Trục Màn Chiếu 3D"
 
 
 msgid "Smooth Wires"

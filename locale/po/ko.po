@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -26193,6 +26193,10 @@ msgid "Active spline of masking layer"
 msgstr "마스킹 레이어의 활성 스플라인"
 
 
+msgid "Active Point"
+msgstr "활성 포인트"
+
+
 msgid "Grease Pencil Color"
 msgstr "그리스 펜슬 컬러"
 
@@ -44683,17 +44687,9 @@ msgid "Clear Restrict View"
 msgstr "제한 뷰를 지우기"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "숨기기 플레그를 설정하여 레이어를 보이기"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "제한 뷰를 설정"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "숨기기 플레그를 설정하여 레이어를 숨기기"
 
 
 msgctxt "Operator"
@@ -60696,10 +60692,6 @@ msgid "2D Cursor"
 msgstr "2D 커서"
 
 
-msgid "Active Point"
-msgstr "활성 포인트"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "미리 정의된 트래킹 카메라 내장"
 
@@ -64647,10 +64639,6 @@ msgstr "축 아이콘의 크기"
 
 msgid "Mini Axes Type"
 msgstr "미니 축 유형"
-
-
-msgid "Simple Axis"
-msgstr "심플 축"
 
 
 msgid "Interactive Navigation"
@@ -80658,10 +80646,6 @@ msgstr "가비지 컬렉션 비율"
 
 msgid "View Name"
 msgstr "뷰 이름"
-
-
-msgid "3D Viewport Axis"
-msgstr "3D 뷰포트 축"
 
 
 msgid "Limit Size"

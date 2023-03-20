@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -20652,6 +20652,10 @@ msgid "Active spline of masking layer"
 msgstr "Spline ativa da camada de máscara."
 
 
+msgid "Active Point"
+msgstr "Ponto ativo"
+
+
 msgid "Alignment"
 msgstr "Alinhamento"
 
@@ -35586,17 +35590,9 @@ msgid "Clear Restrict View"
 msgstr "Limpar visualização restrita"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Revela a camada pela definição da bandeira de ocultação."
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Definir restrição de visualização"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Oculta a camada definindo a bandeira de ocultação."
 
 
 msgctxt "Operator"
@@ -48264,10 +48260,6 @@ msgstr "Predefinições de câmara"
 
 msgid "2D Cursor"
 msgstr "Cursor 2D"
-
-
-msgid "Active Point"
-msgstr "Ponto ativo"
 
 
 msgid "Predefined tracking camera intrinsics"

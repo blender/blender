@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -19148,6 +19148,10 @@ msgid "Weight of feather point"
 msgstr "羽毛點的權重"
 
 
+msgid "Active Point"
+msgstr "作用中的點"
+
+
 msgid "Alignment"
 msgstr "對齊"
 
@@ -32215,17 +32219,9 @@ msgid "Clear Restrict View"
 msgstr "清除限制視圖"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "揭開設有隱藏旗幟的層"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "設定限制視圖"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "隱藏設有隱藏旗幟的層"
 
 
 msgctxt "Operator"
@@ -43720,10 +43716,6 @@ msgstr "攝影機預置"
 
 msgid "2D Cursor"
 msgstr "2D 游標"
-
-
-msgid "Active Point"
-msgstr "作用中的點"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -55610,10 +55602,6 @@ msgstr "取樣格式"
 
 msgid "View Name"
 msgstr "視圖名稱"
-
-
-msgid "3D Viewport Axis"
-msgstr "3D 視接口座標軸"
 
 
 msgid "Limit Size"
