@@ -1645,7 +1645,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
-      RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
+      RNA_boolean_set(op->ptr, "use_snap_project", (t->tsnap.flag & SCE_SNAP_PROJECT) != 0);
       RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
       eSnapTargetOP target = t->tsnap.target_operation;
