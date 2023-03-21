@@ -336,6 +336,20 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   }
 }
 
+void BKE_image_ensure_gpu_texture(Image *image, ImageUser *image_user)
+{
+  if (!image) {
+    return;
+  }
+
+  /* Note that the image can cache both sterio views, so we only invalidate the cache if the view
+   * index is more than 2. */
+  if (image->gpu_pass != image_user->pass || image->gpu_layer != image_user->layer ||
+      (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2)) {
+    BKE_image_partial_update_mark_full_update(image);
+  }
+}
+
 static GPUTexture *image_get_gpu_texture(Image *ima,
                                          ImageUser *iuser,
                                          ImBuf *ibuf,
@@ -365,6 +379,9 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
+    /* The cache should be invalidated here, but it is intentionally isn't due to possible
+     * performance implications, see the BKE_image_ensure_gpu_texture function for more
+     * information. */
   }
 #undef GPU_FLAGS_TO_CHECK
 
