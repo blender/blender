@@ -1410,6 +1410,9 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     selection_center[1] = (selection_min_co[1] + selection_max_co[1]) / 2.0f;
   }
 
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new();
+
   float scale[2] = {1.0f, 1.0f};
   blender::Vector<blender::geometry::PackIsland *> pack_island_vector;
   for (int i = 0; i < island_vector.size(); i++) {
@@ -1418,7 +1421,29 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     pack_island->bounds_rect = face_island->bounds_rect;
     pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
+
+    for (int i = 0; i < face_island->faces_len; i++) {
+      BMFace *f = face_island->faces[i];
+
+      /* Storage. */
+      blender::Array<blender::float2> uvs(f->len);
+
+      /* Obtain UVs of polygon. */
+      BMLoop *l;
+      BMIter iter;
+      int j;
+      BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
+        copy_v2_v2(uvs[j], BM_ELEM_CD_GET_FLOAT_P(l, face_island->offsets.uv));
+      }
+
+      pack_island->add_polygon(uvs, arena, heap);
+
+      BLI_memarena_clear(arena);
+    }
+    pack_island->finalize_geometry(*params, arena, heap);
   }
+  BLI_heap_free(heap, nullptr);
+  BLI_memarena_free(arena);
   pack_islands(pack_island_vector, *params, scale);
 
   float base_offset[2] = {0.0f, 0.0f};
@@ -1543,6 +1568,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
+  pack_island_params.shape_method = eUVPackIsland_ShapeMethod(
+      RNA_enum_get(op->ptr, "shape_method"));
 
   UVMapUDIM_Params closest_udim_buf;
   UVMapUDIM_Params *closest_udim = nullptr;
@@ -1576,6 +1603,14 @@ static const EnumPropertyItem pack_margin_method_items[] = {
      0,
      "Fraction",
      "Specify a precise fraction of final UV output"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem pack_shape_method_items[] = {
+    {ED_UVPACK_SHAPE_CONCAVE, "CONCAVE", 0, "Exact shape (Concave)", "Uses exact geometry"},
+    {ED_UVPACK_SHAPE_CONVEX, "CONVEX", 0, "Boundary shape (Convex)", "Uses convex hull"},
+    RNA_ENUM_ITEM_SEPR,
+    {ED_UVPACK_SHAPE_AABB, "AABB", 0, "Bounding box", "Uses bounding boxes"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1613,6 +1648,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
                "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+  RNA_def_enum(ot->srna,
+               "shape_method",
+               pack_shape_method_items,
+               ED_UVPACK_SHAPE_CONCAVE,
+               "Shape Method",
+               "");
 }
 
 /** \} */
