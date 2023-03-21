@@ -2023,6 +2023,20 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
   }
 }
 
+static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
+                                             const float bone_head[3],
+                                             const float parent_head[3],
+                                             const float parent_tail[3],
+                                             const eArmature_Flag armature_flags)
+{
+  if (armature_flags & ARM_DRAW_RELATION_FROM_HEAD) {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_head);
+  }
+  else {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_tail);
+  }
+}
+
 static void draw_bone_relations(ArmatureDrawContext *ctx,
                                 EditBone *ebone,
                                 bPoseChannel *pchan,
@@ -2036,7 +2050,8 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
        * since riggers will want to know about the links between bones
        */
       if ((boneflag & BONE_CONNECTED) == 0) {
-        drw_shgroup_bone_relationship_lines(ctx, ebone->head, ebone->parent->tail);
+        draw_bone_bone_relationship_line(
+            ctx, ebone->head, ebone->parent->head, ebone->parent->tail, eArmature_Flag(arm->flag));
       }
     }
   }
@@ -2047,7 +2062,11 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
       if ((boneflag & BONE_SELECTED) ||
           (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED))) {
         if ((boneflag & BONE_CONNECTED) == 0) {
-          drw_shgroup_bone_relationship_lines(ctx, pchan->pose_head, pchan->parent->pose_tail);
+          draw_bone_bone_relationship_line(ctx,
+                                           pchan->pose_head,
+                                           pchan->parent->pose_head,
+                                           pchan->parent->pose_tail,
+                                           eArmature_Flag(arm->flag));
         }
       }
     }
