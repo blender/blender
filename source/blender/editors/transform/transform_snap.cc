@@ -861,7 +861,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
   }
   /* use scene defaults only when transform is modal */
   else if (t->flag & T_MODAL) {
-    if (transformModeUseSnap(t) && (t->tsnap.flag & SCE_SNAP)) {
+    if (t->tsnap.flag & SCE_SNAP) {
       t->modifiers |= MOD_SNAP;
     }
 
@@ -880,6 +880,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
   }
 
   t->tsnap.source_operation = snap_source;
+
+  transform_snap_flag_from_modifiers_set(t);
 
   initSnappingMode(t);
 }
