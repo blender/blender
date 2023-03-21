@@ -1431,6 +1431,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   /* On remapping of object or collection pointers free caches. */
   /* TODO: try to make this faster */
 
+  BKE_main_collections_object_cache_free(bmain);
+
   for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next)) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -1447,14 +1449,12 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       view_layer_bases_hash_create(view_layer, true);
     }
 
-    BKE_collection_object_cache_free(scene->master_collection);
     DEG_id_tag_update_ex((Main *)bmain, &scene->master_collection->id, ID_RECALC_COPY_ON_WRITE);
     DEG_id_tag_update_ex((Main *)bmain, &scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 
   for (Collection *collection = static_cast<Collection *>(bmain->collections.first); collection;
        collection = static_cast<Collection *>(collection->id.next)) {
-    BKE_collection_object_cache_free(collection);
     DEG_id_tag_update_ex((Main *)bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
   }
 

@@ -192,7 +192,7 @@ struct LightTreeNode {
  * and considers additional orientation and energy information */
 class LightTree {
   unique_ptr<LightTreeNode> root_;
-  atomic<int> num_nodes_ = 0;
+  std::atomic<int> num_nodes_ = 0;
   uint max_lights_in_leaf_;
 
  public:

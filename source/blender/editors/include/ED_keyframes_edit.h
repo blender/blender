@@ -148,6 +148,7 @@ typedef enum eKeyframeIterFlags {
    * iterator callbacks then. */
   KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE = (1 << 3),
 } eKeyframeIterFlags;
+ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
 
 /** \} */
 
