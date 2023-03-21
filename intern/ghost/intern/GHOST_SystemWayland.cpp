@@ -537,6 +537,8 @@ struct GWL_SeatStatePointerScroll {
   wl_fixed_t smooth_xy[2] = {0, 0};
   /** Discrete scrolling (handled & reset with pointer "frame" callback). */
   int32_t discrete_xy[2] = {0, 0};
+  /** True when the axis is inverted (also known is "natural" scrolling). */
+  bool inverted_xy[2] = {false, false};
   /** The source of scroll event. */
   enum wl_pointer_axis_source axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 };
@@ -2666,6 +2668,8 @@ static void pointer_handle_enter(void *data,
   seat->pointer_scroll.smooth_xy[1] = 0;
   seat->pointer_scroll.discrete_xy[0] = 0;
   seat->pointer_scroll.discrete_xy[1] = 0;
+  seat->pointer_scroll.inverted_xy[0] = false;
+  seat->pointer_scroll.inverted_xy[1] = false;
   seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
 
   seat->pointer.wl_surface_window = wl_surface;
@@ -2851,7 +2855,9 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
            * has already been applied so there is no need to read this preference. */
           -wl_fixed_to_int(seat->pointer_scroll.smooth_xy[0]),
           -wl_fixed_to_int(seat->pointer_scroll.smooth_xy[1]),
-          false));
+          /* NOTE: GHOST does not support per-axis inversion.
+           * Assume inversion is used or not. */
+          seat->pointer_scroll.inverted_xy[0] || seat->pointer_scroll.inverted_xy[1]));
     }
 
     seat->pointer_scroll.smooth_xy[0] = 0;
@@ -2859,6 +2865,8 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
   }
 
   seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
+  seat->pointer_scroll.inverted_xy[0] = false;
+  seat->pointer_scroll.inverted_xy[1] = false;
 }
 static void pointer_handle_axis_source(void *data,
                                        struct wl_pointer * /*wl_pointer*/,
@@ -2890,6 +2898,31 @@ static void pointer_handle_axis_discrete(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.discrete_xy[index] = discrete;
 }
+static void pointer_handle_axis_value120(void * /*data*/,
+                                         struct wl_pointer * /*wl_pointer*/,
+                                         uint32_t axis,
+                                         int32_t value120)
+{
+  /* NOTE: the axis handler seems high resolution enough.
+   * Nevertheless, we might want to support this. */
+  CLOG_INFO(LOG, 2, "axis_value120 (axis=%u, value120=%d)", axis, value120);
+}
+#ifdef WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM /* Requires WAYLAND 1.22 or newer. */
+static void pointer_handle_axis_relative_direction(void *data,
+                                                   struct wl_pointer * /*wl_pointer*/,
+                                                   uint32_t axis,
+                                                   uint32_t direction)
+{
+  CLOG_INFO(LOG, 2, "axis_relative_direction (axis=%u, direction=%u)", axis, direction);
+  const int index = pointer_axis_as_index(axis);
+  if (UNLIKELY(index == -1)) {
+    return;
+  }
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer_scroll.inverted_xy[index] = (direction ==
+                                             WL_POINTER_AXIS_RELATIVE_DIRECTION_INVERTED);
+}
+#endif /* WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM */
 
 static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_enter,
@@ -2901,6 +2934,10 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_axis_source,
     pointer_handle_axis_stop,
     pointer_handle_axis_discrete,
+    pointer_handle_axis_value120,
+#ifdef WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM
+    pointer_handle_axis_relative_direction,
+#endif
 };
 
 #undef LOG
