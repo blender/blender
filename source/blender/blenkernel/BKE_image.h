@@ -494,10 +494,33 @@ struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
 struct GPUTexture *BKE_image_create_gpu_texture_from_ibuf(struct Image *image, struct ImBuf *ibuf);
 
 /**
+ * Ensure that the cached GPU texture inside the image matches the pass, layer, and view of the
+ * given image user, if not, invalidate the cache such that the next call to the GPU texture
+ * retrieval functions such as BKE_image_get_gpu_texture updates the cache with an image that
+ * matches the give image user.
+ *
+ * This is provided as a separate function and not implemented as part of the GPU texture retrieval
+ * functions because the current cache system only allows a single pass, layer, and stereo view to
+ * be cached, so possible frequent invalidations of the cache can have performance implications,
+ * and making invalidation explicit by calling this function will help make that clear and pave the
+ * way for a more complete cache system in the future.
+ */
+void BKE_image_ensure_gpu_texture(struct Image *image, struct ImageUser *iuser);
+
+/**
  * Get the #GPUTexture for a given `Image`.
  *
  * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
  * available. It is also required when requesting the #GPUTexture for a render result.
+ *
+ * The requested GPU texture will be cached for subsequent calls, but only a single layer, pass,
+ * and view can be cached at a time, so the cache should be invalidated in operators and RNA
+ * callbacks that change the layer, pass, or view of the image to maintain a correct cache state.
+ * However, in some cases, multiple layers, passes, or views might be needed at the same time, like
+ * is the case for the realtime compositor. This is currently not supported, so the caller should
+ * ensure that the requested layer is indeed the cached one and invalidated the cached otherwise by
+ * calling BKE_image_ensure_gpu_texture. This is a workaround until image can support a more
+ * complete caching system.
  */
 struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
                                              struct ImageUser *iuser,
