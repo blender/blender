@@ -5,10 +5,10 @@
  * \ingroup spaction
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -52,7 +52,7 @@
 
 #include "UI_interface.h"
 
-#include "action_intern.h"
+#include "action_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
@@ -62,7 +62,7 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
   Object *ob = CTX_data_active_object(C);
-  AnimData *adt = NULL;
+  AnimData *adt = nullptr;
 
   /* Get AnimData block to use */
   if (saction->mode == SACTCONT_ACTION) {
@@ -146,11 +146,11 @@ static void actedit_change_action(bContext *C, bAction *act)
   RNA_pointer_create(&screen->id, &RNA_SpaceDopeSheetEditor, saction, &ptr);
   prop = RNA_struct_find_property(&ptr, "action");
 
-  /* NOTE: act may be NULL here, so better to just use a cast here */
+  /* NOTE: act may be nullptr here, so better to just use a cast here */
   RNA_id_pointer_create((ID *)act, &idptr);
 
   /* set the new pointer, and force a refresh */
-  RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+  RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
   RNA_property_update(C, &ptr, prop);
 }
 
@@ -181,7 +181,7 @@ static bool action_new_poll(bContext *C)
     if (saction->mode == SACTCONT_ACTION) {
       /* XXX: This assumes that actions are assigned to the active object in this mode */
       if (ob) {
-        if ((ob->adt == NULL) || (ob->adt->flag & ADT_NLA_EDIT_ON) == 0) {
+        if ((ob->adt == nullptr) || (ob->adt->flag & ADT_NLA_EDIT_ON) == 0) {
           return true;
         }
       }
@@ -189,7 +189,7 @@ static bool action_new_poll(bContext *C)
     else if (saction->mode == SACTCONT_SHAPEKEY) {
       Key *key = BKE_key_from_object(ob);
       if (key) {
-        if ((key->adt == NULL) || (key->adt->flag & ADT_NLA_EDIT_ON) == 0) {
+        if ((key->adt == nullptr) || (key->adt->flag & ADT_NLA_EDIT_ON) == 0) {
           return true;
         }
       }
@@ -205,14 +205,14 @@ static bool action_new_poll(bContext *C)
   return false;
 }
 
-static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
+static int action_new_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
 
-  bAction *oldact = NULL;
-  AnimData *adt = NULL;
-  ID *adt_id_owner = NULL;
+  bAction *oldact = nullptr;
+  AnimData *adt = nullptr;
+  ID *adt_id_owner = nullptr;
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
@@ -225,7 +225,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
 
     /* stash the old action to prevent it from being lost */
     if (ptr.type == &RNA_AnimData) {
-      adt = ptr.data;
+      adt = static_cast<AnimData *>(ptr.data);
       adt_id_owner = ptr.owner_id;
     }
     else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
@@ -237,11 +237,11 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
     oldact = adt->action;
   }
   {
-    bAction *action = NULL;
+    bAction *action = nullptr;
 
     /* Perform stashing operation - But only if there is an action */
     if (adt && oldact) {
-      BLI_assert(adt_id_owner != NULL);
+      BLI_assert(adt_id_owner != nullptr);
       /* stash the action */
       if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
         /* The stash operation will remove the user already
@@ -252,8 +252,8 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
          * or else the user gets decremented twice!
          */
         if (ptr.type == &RNA_SpaceDopeSheetEditor) {
-          SpaceAction *saction = ptr.data;
-          saction->action = NULL;
+          SpaceAction *saction = static_cast<SpaceAction *>(ptr.data);
+          saction->action = nullptr;
         }
       }
       else {
@@ -272,13 +272,13 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
        * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
        */
       RNA_id_pointer_create(&action->id, &idptr);
-      RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+      RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
       RNA_property_update(C, &ptr, prop);
     }
   }
 
   /* set notifier that keyframes have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -313,7 +313,7 @@ static bool action_pushdown_poll(bContext *C)
 {
   if (ED_operator_action_active(C)) {
     SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-    AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
 
     /* Check for AnimData, Actions, and that tweak-mode is off. */
     if (adt && saction->action) {
@@ -333,7 +333,7 @@ static bool action_pushdown_poll(bContext *C)
 static int action_pushdown_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-  ID *adt_id_owner = NULL;
+  ID *adt_id_owner = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
 
   /* Do the deed... */
@@ -349,7 +349,7 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
     /* action can be safely added */
     BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner));
 
-    struct Main *bmain = CTX_data_main(C);
+    Main *bmain = CTX_data_main(C);
     DEG_id_tag_update_ex(bmain, adt_id_owner, ID_RECALC_ANIMATION);
 
     /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
@@ -359,11 +359,11 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
      */
-    saction->action = NULL;
+    saction->action = nullptr;
   }
 
   /* Send notifiers that stuff has changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -391,7 +391,7 @@ void ACTION_OT_push_down(wmOperatorType *ot)
 static int action_stash_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-  ID *adt_id_owner = NULL;
+  ID *adt_id_owner = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
 
   /* Perform stashing operation */
@@ -410,7 +410,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
        * the user-count fixes. Hence, we must unset this ref
        * first before setting the new action.
        */
-      saction->action = NULL;
+      saction->action = nullptr;
     }
     else {
       /* action has already been added - simply warn about this, and clear */
@@ -418,11 +418,11 @@ static int action_stash_exec(bContext *C, wmOperator *op)
     }
 
     /* clear action refs from editor, and then also the backing data (not necessary) */
-    actedit_change_action(C, NULL);
+    actedit_change_action(C, nullptr);
   }
 
   /* Send notifiers that stuff has changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -461,7 +461,7 @@ void ACTION_OT_stash(wmOperatorType *ot)
 static bool action_stash_create_poll(bContext *C)
 {
   if (ED_operator_action_active(C)) {
-    AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
 
     /* Check tweak-mode is off (as you don't want to be tampering with the action in that case) */
     /* NOTE: unlike for pushdown,
@@ -494,13 +494,13 @@ static bool action_stash_create_poll(bContext *C)
 static int action_stash_create_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-  ID *adt_id_owner = NULL;
+  ID *adt_id_owner = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
 
   /* Check for no action... */
-  if (saction->action == NULL) {
+  if (saction->action == nullptr) {
     /* just create a new action */
-    bAction *action = action_create_new(C, NULL);
+    bAction *action = action_create_new(C, nullptr);
     actedit_change_action(C, action);
   }
   else if (adt) {
@@ -513,29 +513,29 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
 
     /* stash the action */
     if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
-      bAction *new_action = NULL;
+      bAction *new_action = nullptr;
 
       /* Create new action not based on the old one
        * (since the "new" operator already does that). */
-      new_action = action_create_new(C, NULL);
+      new_action = action_create_new(C, nullptr);
 
       /* The stash operation will remove the user already,
        * so the flushing step later shouldn't double up
        * the user-count fixes. Hence, we must unset this ref
        * first before setting the new action.
        */
-      saction->action = NULL;
+      saction->action = nullptr;
       actedit_change_action(C, new_action);
     }
     else {
       /* action has already been added - simply warn about this, and clear */
       BKE_report(op->reports, RPT_ERROR, "Action has already been stashed");
-      actedit_change_action(C, NULL);
+      actedit_change_action(C, nullptr);
     }
   }
 
   /* Send notifiers that stuff has changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -598,19 +598,19 @@ void ED_animedit_unlink_action(
       NlaTrack *nlt, *nlt_next;
       NlaStrip *strip, *nstrip;
 
-      for (nlt = adt->nla_tracks.first; nlt; nlt = nlt_next) {
+      for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt_next) {
         nlt_next = nlt->next;
 
         if (strstr(nlt->name, DATA_("[Action Stash]"))) {
-          for (strip = nlt->strips.first; strip; strip = nstrip) {
+          for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = nstrip) {
             nstrip = strip->next;
 
             if (strip->act == act) {
               /* Remove this strip, and the track too if it doesn't have anything else */
               BKE_nlastrip_remove_and_free(&nlt->strips, strip, true);
 
-              if (nlt->strips.first == NULL) {
-                BLI_assert(nstrip == NULL);
+              if (nlt->strips.first == nullptr) {
+                BLI_assert(nstrip == nullptr);
                 BKE_nlatrack_remove_and_free(&adt->nla_tracks, nlt, true);
               }
             }
@@ -628,15 +628,15 @@ void ED_animedit_unlink_action(
     BKE_nla_tweakmode_exit(adt);
 
     Scene *scene = CTX_data_scene(C);
-    if (scene != NULL) {
+    if (scene != nullptr) {
       scene->flag &= ~SCE_NLA_EDIT_ON;
     }
   }
   else {
-    /* Unlink normally - Setting it to NULL should be enough to get the old one unlinked */
+    /* Unlink normally - Setting it to nullptr should be enough to get the old one unlinked */
     if (area->spacetype == SPACE_ACTION) {
       /* clear action editor -> action */
-      actedit_change_action(C, NULL);
+      actedit_change_action(C, nullptr);
     }
     else {
       /* clear AnimData -> action */
@@ -648,7 +648,7 @@ void ED_animedit_unlink_action(
       prop = RNA_struct_find_property(&ptr, "action");
 
       /* clear... */
-      RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, NULL);
+      RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);
       RNA_property_update(C, &ptr, prop);
     }
   }
@@ -660,7 +660,7 @@ static bool action_unlink_poll(bContext *C)
 {
   if (ED_operator_action_active(C)) {
     SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
-    AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
 
     /* Only when there's an active action, in the right modes... */
     if (saction->action && adt) {
@@ -674,15 +674,15 @@ static bool action_unlink_poll(bContext *C)
 
 static int action_unlink_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
   bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
 
   if (adt && adt->action) {
-    ED_animedit_unlink_action(C, NULL, adt, adt->action, op->reports, force_delete);
+    ED_animedit_unlink_action(C, nullptr, adt, adt->action, op->reports, force_delete);
   }
 
   /* Unlink is also abused to exit NLA tweak mode. */
-  WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
+  WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -733,24 +733,24 @@ static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 {
   NlaStrip *strip;
 
-  for (strip = strips->first; strip; strip = strip->next) {
+  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
     /* Can we use this? */
     if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
       /* in range - use this one */
       return strip;
     }
-    if ((ctime < strip->start) && (strip->prev == NULL)) {
+    if ((ctime < strip->start) && (strip->prev == nullptr)) {
       /* before first - use this one */
       return strip;
     }
-    if ((ctime > strip->end) && (strip->next == NULL)) {
+    if ((ctime > strip->end) && (strip->next == nullptr)) {
       /* after last - use this one */
       return strip;
     }
   }
 
   /* nothing suitable found... */
-  return NULL;
+  return nullptr;
 }
 
 /* Switch NLA Strips/Actions. */
@@ -809,7 +809,7 @@ static bool action_layer_next_poll(bContext *C)
 {
   /* Action Editor's action editing modes only */
   if (ED_operator_action_active(C)) {
-    AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
     if (adt) {
       /* only allow if we're in tweak-mode, and there's something above us... */
       if (adt->flag & ADT_NLA_EDIT_ON) {
@@ -829,7 +829,7 @@ static bool action_layer_next_poll(bContext *C)
              * to "move to an empty layer", even though this means
              * that we won't actually have an action.
              */
-            // return (adt->tmpact != NULL);
+            // return (adt->tmpact != nullptr);
             return true;
           }
         }
@@ -843,7 +843,7 @@ static bool action_layer_next_poll(bContext *C)
 
 static int action_layer_next_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
   NlaTrack *act_track;
 
   Scene *scene = CTX_data_scene(C);
@@ -852,7 +852,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
   /* Get active track */
   act_track = BKE_nlatrack_find_tweaked(adt);
 
-  if (act_track == NULL) {
+  if (act_track == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Could not find current NLA Track");
     return OPERATOR_CANCELLED;
   }
@@ -924,7 +924,7 @@ static bool action_layer_prev_poll(bContext *C)
 {
   /* Action Editor's action editing modes only */
   if (ED_operator_action_active(C)) {
-    AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+    AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
     if (adt) {
       if (adt->flag & ADT_NLA_EDIT_ON) {
         /* Tweak Mode: We need to check if there are any tracks below the active one
@@ -947,7 +947,7 @@ static bool action_layer_prev_poll(bContext *C)
       }
       else {
         /* Normal Mode: If there are any tracks, we can try moving to those */
-        return (adt->nla_tracks.first != NULL);
+        return (adt->nla_tracks.first != nullptr);
       }
     }
   }
@@ -958,7 +958,7 @@ static bool action_layer_prev_poll(bContext *C)
 
 static int action_layer_prev_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, NULL);
+  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
   NlaTrack *act_track;
   NlaTrack *nlt;
 
@@ -966,7 +966,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
   float ctime = BKE_scene_ctime_get(scene);
 
   /* Sanity Check */
-  if (adt == NULL) {
+  if (adt == nullptr) {
     BKE_report(
         op->reports, RPT_ERROR, "Internal Error: Could not find Animation Data/NLA Stack to use");
     return OPERATOR_CANCELLED;
@@ -982,7 +982,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Active Action - Use the top-most track */
-    nlt = adt->nla_tracks.last;
+    nlt = static_cast<NlaTrack *>(adt->nla_tracks.last);
   }
 
   /* Find previous action and hook it up */
