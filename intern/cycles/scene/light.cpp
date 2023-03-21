@@ -577,14 +577,14 @@ void LightManager::device_update_tree(Device *,
   int stack_id = 0;
   const LightTreeNode *node = light_tree.get_root();
   for (int index = 0; index < light_tree.size(); index++) {
-    light_tree_nodes[index].energy = node->energy;
+    light_tree_nodes[index].energy = node->measure.energy;
 
-    light_tree_nodes[index].bbox.min = node->bbox.min;
-    light_tree_nodes[index].bbox.max = node->bbox.max;
+    light_tree_nodes[index].bbox.min = node->measure.bbox.min;
+    light_tree_nodes[index].bbox.max = node->measure.bbox.max;
 
-    light_tree_nodes[index].bcone.axis = node->bcone.axis;
-    light_tree_nodes[index].bcone.theta_o = node->bcone.theta_o;
-    light_tree_nodes[index].bcone.theta_e = node->bcone.theta_e;
+    light_tree_nodes[index].bcone.axis = node->measure.bcone.axis;
+    light_tree_nodes[index].bcone.theta_o = node->measure.bcone.theta_o;
+    light_tree_nodes[index].bcone.theta_e = node->measure.bcone.theta_e;
 
     light_tree_nodes[index].bit_trail = node->bit_trail;
     light_tree_nodes[index].num_prims = node->num_prims;
@@ -597,9 +597,9 @@ void LightManager::device_update_tree(Device *,
         int emitter_index = i + node->first_prim_index;
         LightTreePrimitive &prim = light_prims[emitter_index];
 
-        light_tree_emitters[emitter_index].energy = prim.energy;
-        light_tree_emitters[emitter_index].theta_o = prim.bcone.theta_o;
-        light_tree_emitters[emitter_index].theta_e = prim.bcone.theta_e;
+        light_tree_emitters[emitter_index].energy = prim.measure.energy;
+        light_tree_emitters[emitter_index].theta_o = prim.measure.bcone.theta_o;
+        light_tree_emitters[emitter_index].theta_e = prim.measure.bcone.theta_e;
 
         if (prim.is_triangle()) {
           light_tree_emitters[emitter_index].mesh_light.object_id = prim.object_id;

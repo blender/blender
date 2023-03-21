@@ -9,6 +9,10 @@ CCL_NAMESPACE_BEGIN
 
 float OrientationBounds::calculate_measure() const
 {
+  if (this->is_empty()) {
+    return 0.0f;
+  }
+
   float theta_w = fminf(M_PI_F, theta_o + theta_e);
   float cos_theta_o = cosf(theta_o);
   float sin_theta_o = sinf(theta_o);
@@ -20,10 +24,10 @@ float OrientationBounds::calculate_measure() const
 
 OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds &cone_b)
 {
-  if (is_zero(cone_a.axis)) {
+  if (cone_a.is_empty()) {
     return cone_b;
   }
-  if (is_zero(cone_b.axis)) {
+  if (cone_b.is_empty()) {
     return cone_a;
   }
 
@@ -62,9 +66,6 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
 LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
     : prim_id(prim_id), object_id(object_id)
 {
-  bcone = OrientationBounds::empty;
-  bbox = BoundBox::empty;
-
   if (is_triangle()) {
     float3 vertices[3];
     Object *object = scene->objects[object_id];
@@ -88,7 +89,7 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
 
     /* TODO: need a better way to handle this when textures are used. */
     float area = triangle_area(vertices[0], vertices[1], vertices[2]);
-    energy = area * average(shader->emission_estimate);
+    measure.energy = area * average(shader->emission_estimate);
 
     /* NOTE: the original implementation used the bounding box centroid, but primitive centroid
      * seems to work fine */
@@ -98,24 +99,25 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
     const bool is_back_only = (shader->emission_sampling == EMISSION_SAMPLING_BACK);
     if (is_front_only || is_back_only) {
       /* One-sided. */
-      bcone.axis = safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+      measure.bcone.axis = safe_normalize(
+          cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
       if (is_back_only) {
-        bcone.axis = -bcone.axis;
+        measure.bcone.axis = -measure.bcone.axis;
       }
       if (transform_negative_scale(object->get_tfm())) {
-        bcone.axis = -bcone.axis;
+        measure.bcone.axis = -measure.bcone.axis;
       }
-      bcone.theta_o = 0;
+      measure.bcone.theta_o = 0;
     }
     else {
       /* Double sided: any vector in the plane. */
-      bcone.axis = safe_normalize(vertices[0] - vertices[1]);
-      bcone.theta_o = M_PI_2_F;
+      measure.bcone.axis = safe_normalize(vertices[0] - vertices[1]);
+      measure.bcone.theta_o = M_PI_2_F;
     }
-    bcone.theta_e = M_PI_2_F;
+    measure.bcone.theta_e = M_PI_2_F;
 
     for (int i = 0; i < 3; i++) {
-      bbox.grow(vertices[i]);
+      measure.bbox.grow(vertices[i]);
     }
   }
   else {
@@ -125,74 +127,75 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
     float3 strength = lamp->get_strength();
 
     centroid = scene->lights[object_id]->get_co();
-    bcone.axis = normalize(lamp->get_dir());
+    measure.bcone.axis = normalize(lamp->get_dir());
 
     if (type == LIGHT_AREA) {
-      bcone.theta_o = 0;
-      bcone.theta_e = lamp->get_spread() * 0.5f;
+      measure.bcone.theta_o = 0;
+      measure.bcone.theta_e = lamp->get_spread() * 0.5f;
 
       /* For an area light, sizeu and sizev determine the 2 dimensions of the area light,
        * while axisu and axisv determine the orientation of the 2 dimensions.
        * We want to add all 4 corners to our bounding box. */
       const float3 half_extentu = 0.5f * lamp->get_sizeu() * lamp->get_axisu() * size;
       const float3 half_extentv = 0.5f * lamp->get_sizev() * lamp->get_axisv() * size;
-      bbox.grow(centroid + half_extentu + half_extentv);
-      bbox.grow(centroid + half_extentu - half_extentv);
-      bbox.grow(centroid - half_extentu + half_extentv);
-      bbox.grow(centroid - half_extentu - half_extentv);
+      measure.bbox.grow(centroid + half_extentu + half_extentv);
+      measure.bbox.grow(centroid + half_extentu - half_extentv);
+      measure.bbox.grow(centroid - half_extentu + half_extentv);
+      measure.bbox.grow(centroid - half_extentu - half_extentv);
 
       strength *= 0.25f; /* eval_fac scaling in `area.h` */
     }
     else if (type == LIGHT_POINT) {
-      bcone.theta_o = M_PI_F;
-      bcone.theta_e = M_PI_2_F;
+      measure.bcone.theta_o = M_PI_F;
+      measure.bcone.theta_e = M_PI_2_F;
 
       /* Point and spot lights can emit light from any point within its radius. */
       const float3 radius = make_float3(size);
-      bbox.grow(centroid - radius);
-      bbox.grow(centroid + radius);
+      measure.bbox.grow(centroid - radius);
+      measure.bbox.grow(centroid + radius);
 
       strength *= 0.25f * M_1_PI_F; /* eval_fac scaling in `spot.h` and `point.h` */
     }
     else if (type == LIGHT_SPOT) {
-      bcone.theta_o = 0;
+      measure.bcone.theta_o = 0;
 
       const float unscaled_theta_e = lamp->get_spot_angle() * 0.5f;
       const float len_u = len(lamp->get_axisu());
       const float len_v = len(lamp->get_axisv());
       const float len_w = len(lamp->get_dir());
 
-      bcone.theta_e = fast_atanf(fast_tanf(unscaled_theta_e) * fmaxf(len_u, len_v) / len_w);
+      measure.bcone.theta_e = fast_atanf(fast_tanf(unscaled_theta_e) * fmaxf(len_u, len_v) /
+                                         len_w);
 
       /* Point and spot lights can emit light from any point within its radius. */
       const float3 radius = make_float3(size);
-      bbox.grow(centroid - radius);
-      bbox.grow(centroid + radius);
+      measure.bbox.grow(centroid - radius);
+      measure.bbox.grow(centroid + radius);
 
       strength *= 0.25f * M_1_PI_F; /* eval_fac scaling in `spot.h` and `point.h` */
     }
     else if (type == LIGHT_BACKGROUND) {
       /* Set an arbitrary direction for the background light. */
-      bcone.axis = make_float3(0.0f, 0.0f, 1.0f);
+      measure.bcone.axis = make_float3(0.0f, 0.0f, 1.0f);
       /* TODO: this may depend on portal lights as well. */
-      bcone.theta_o = M_PI_F;
-      bcone.theta_e = 0;
+      measure.bcone.theta_o = M_PI_F;
+      measure.bcone.theta_e = 0;
 
       /* integrate over cosine-weighted hemisphere */
       strength *= lamp->get_average_radiance() * M_PI_F;
     }
     else if (type == LIGHT_DISTANT) {
-      bcone.theta_o = 0;
-      bcone.theta_e = 0.5f * lamp->get_angle();
+      measure.bcone.theta_o = 0;
+      measure.bcone.theta_e = 0.5f * lamp->get_angle();
     }
 
     if (lamp->get_shader()) {
       strength *= lamp->get_shader()->emission_estimate;
     }
 
-    /* Use absolute value of energy so lights with negative strength are properly
-     * supported in the light tree. */
-    energy = fabsf(average(strength));
+    /* Use absolute value of energy so lights with negative strength are properly supported in the
+     * light tree. */
+    measure.energy = fabsf(average(strength));
   }
 }
 
@@ -208,22 +211,18 @@ LightTree::LightTree(vector<LightTreePrimitive> &prims,
   const int num_prims = prims.size();
   const int num_local_lights = num_prims - num_distant_lights;
 
-  root = create_node(BoundBox::empty, OrientationBounds::empty, 0.0f, 0);
+  root_ = create_node(LightTreePrimitivesMeasure::empty, 0);
+
   /* All local lights are grouped to the left child as an inner node. */
-  recursive_build(left, root.get(), 0, num_local_lights, &prims, 0, 1);
+  recursive_build(left, root_.get(), 0, num_local_lights, &prims, 0, 1);
   task_pool.wait_work();
 
-  OrientationBounds bcone = OrientationBounds::empty;
-  float energy_total = 0.0;
   /* All distant lights are grouped to the right child as a leaf node. */
+  root_->children[right] = create_node(LightTreePrimitivesMeasure::empty, 1);
   for (int i = num_local_lights; i < num_prims; i++) {
-    const LightTreePrimitive &prim = prims.at(i);
-    bcone = merge(bcone, prim.bcone);
-    energy_total += prim.energy;
+    root_->children[right]->add(prims[i]);
   }
-
-  root->children[right] = create_node(BoundBox::empty, bcone, energy_total, 1);
-  root->children[right]->make_leaf(num_local_lights, num_distant_lights);
+  root_->children[right]->make_leaf(num_local_lights, num_distant_lights);
 }
 
 void LightTree::recursive_build(const Child child,
@@ -234,41 +233,21 @@ void LightTree::recursive_build(const Child child,
                                 const uint bit_trail,
                                 const int depth)
 {
-  BoundBox bbox = BoundBox::empty;
-  OrientationBounds bcone = OrientationBounds::empty;
   BoundBox centroid_bounds = BoundBox::empty;
-  float energy_total = 0.0f;
-  const int num_prims = end - start;
-
   for (int i = start; i < end; i++) {
-    const LightTreePrimitive &prim = (*prims)[i];
-    bbox.grow(prim.bbox);
-    bcone = merge(bcone, prim.bcone);
-    centroid_bounds.grow(prim.centroid);
-
-    energy_total += prim.energy;
+    centroid_bounds.grow((*prims)[i].centroid);
   }
 
-  parent->children[child] = create_node(bbox, bcone, energy_total, bit_trail);
-  LightTreeNode *current_node = parent->children[child].get();
+  parent->children[child] = create_node(LightTreePrimitivesMeasure::empty, bit_trail);
+  LightTreeNode *node = parent->children[child].get();
 
-  const bool try_splitting = num_prims > 1 && len(centroid_bounds.size()) > 0.0f;
-  int split_dim = -1, split_bucket = 0, num_left_prims = 0;
-  bool should_split = false;
-  if (try_splitting) {
-    /* Find the best place to split the primitives into 2 nodes.
-     * If the best split cost is no better than making a leaf node, make a leaf instead. */
-    const float min_cost = min_split_saoh(
-        centroid_bounds, start, end, bbox, bcone, split_dim, split_bucket, num_left_prims, *prims);
-    should_split = num_prims > max_lights_in_leaf_ || min_cost < energy_total;
-  }
-  if (should_split) {
-    int middle;
+  /* Find the best place to split the primitives into 2 nodes.
+   * If the best split cost is no better than making a leaf node, make a leaf instead. */
+  int split_dim = -1, middle;
+  if (should_split(*prims, start, middle, end, node->measure, centroid_bounds, split_dim)) {
 
     if (split_dim != -1) {
-      /* Partition the primitives between start and end based on the split dimension and bucket
-       * calculated by `split_saoh` */
-      middle = start + num_left_prims;
+      /* Partition the primitives between start and end based on the centroids.  */
       std::nth_element(prims->begin() + start,
                        prims->begin() + middle,
                        prims->begin() + end,
@@ -276,141 +255,131 @@ void LightTree::recursive_build(const Child child,
                          return l.centroid[split_dim] < r.centroid[split_dim];
                        });
     }
-    else {
-      /* Degenerate case with many lights in the same place. */
-      middle = (start + end) / 2;
-    }
 
     /* Recursively build the left branch. */
     if (middle - start > MIN_PRIMS_PER_THREAD) {
-      task_pool.push([=] {
-        recursive_build(left, current_node, start, middle, prims, bit_trail, depth + 1);
-      });
+      task_pool.push(
+          [=] { recursive_build(left, node, start, middle, prims, bit_trail, depth + 1); });
     }
     else {
-      recursive_build(left, current_node, start, middle, prims, bit_trail, depth + 1);
+      recursive_build(left, node, start, middle, prims, bit_trail, depth + 1);
     }
 
     /* Recursively build the right branch. */
     if (end - middle > MIN_PRIMS_PER_THREAD) {
       task_pool.push([=] {
-        recursive_build(
-            right, current_node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
+        recursive_build(right, node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
       });
     }
     else {
-      recursive_build(
-          right, current_node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
+      recursive_build(right, node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
     }
   }
   else {
-    current_node->make_leaf(start, num_prims);
+    node->make_leaf(start, end - start);
   }
 }
 
-float LightTree::min_split_saoh(const BoundBox &centroid_bbox,
-                                const int start,
-                                const int end,
-                                const BoundBox &bbox,
-                                const OrientationBounds &bcone,
-                                int &split_dim,
-                                int &split_bucket,
-                                int &num_left_prims,
-                                const vector<LightTreePrimitive> &prims)
+bool LightTree::should_split(const vector<LightTreePrimitive> &prims,
+                             const int start,
+                             int &middle,
+                             const int end,
+                             LightTreePrimitivesMeasure &measure,
+                             const BoundBox &centroid_bbox,
+                             int &split_dim)
 {
-  /* Even though this factor is used for every bucket, we use it to compare
-   * the min_cost and total_energy (when deciding between creating a leaf or interior node. */
-  const float bbox_area = bbox.area();
-  const bool has_area = bbox_area != 0.0f;
-  const float total_area = has_area ? bbox_area : len(bbox.size());
-  const float total_cost = total_area * bcone.calculate_measure();
-  if (total_cost == 0.0f) {
-    return FLT_MAX;
-  }
-
-  const float inv_total_cost = 1.0f / total_cost;
+  middle = (start + end) / 2;
+  const int num_prims = end - start;
   const float3 extent = centroid_bbox.size();
   const float max_extent = max4(extent.x, extent.y, extent.z, 0.0f);
 
   /* Check each dimension to find the minimum splitting cost. */
+  float total_cost = 0.0f;
   float min_cost = FLT_MAX;
   for (int dim = 0; dim < 3; dim++) {
     /* If the centroid bounding box is 0 along a given dimension, skip it. */
-    if (centroid_bbox.size()[dim] == 0.0f) {
+    if (centroid_bbox.size()[dim] == 0.0f && dim != 0) {
       continue;
     }
 
     const float inv_extent = 1 / (centroid_bbox.size()[dim]);
 
     /* Fill in buckets with primitives. */
-    std::array<LightTreeBucketInfo, LightTreeBucketInfo::num_buckets> buckets;
+    std::array<LightTreeBucket, LightTreeBucket::num_buckets> buckets;
     for (int i = start; i < end; i++) {
       const LightTreePrimitive &prim = prims[i];
 
-      /* Place primitive into the appropriate bucket,
-       * where the centroid box is split into equal partitions. */
-      int bucket_idx = LightTreeBucketInfo::num_buckets *
+      /* Place primitive into the appropriate bucket, where the centroid box is split into equal
+       * partitions. */
+      int bucket_idx = LightTreeBucket::num_buckets *
                        (prim.centroid[dim] - centroid_bbox.min[dim]) * inv_extent;
-      if (bucket_idx == LightTreeBucketInfo::num_buckets) {
-        bucket_idx = LightTreeBucketInfo::num_buckets - 1;
+      bucket_idx = clamp(bucket_idx, 0, LightTreeBucket::num_buckets - 1);
+
+      buckets[bucket_idx].add(prim);
+    }
+
+    /* Precompute the left bucket measure cumulatively. */
+    std::array<LightTreeBucket, LightTreeBucket::num_buckets - 1> left_buckets;
+    left_buckets.front() = buckets.front();
+    for (int i = 1; i < LightTreeBucket::num_buckets - 1; i++) {
+      left_buckets[i] = left_buckets[i - 1] + buckets[i];
+    }
+
+    if (dim == 0) {
+      /* Calculate node measure by summing up the bucket measure. */
+      measure = left_buckets.back().measure + buckets.back().measure;
+
+      /* Do not try to split if there are only one primitive. */
+      if (num_prims < 2) {
+        return false;
       }
 
-      buckets[bucket_idx].count++;
-      buckets[bucket_idx].energy += prim.energy;
-      buckets[bucket_idx].bbox.grow(prim.bbox);
-      buckets[bucket_idx].bcone = merge(buckets[bucket_idx].bcone, prim.bcone);
+      /* Degenerate case with co-located primitives. */
+      if (is_zero(centroid_bbox.size())) {
+        break;
+      }
+
+      total_cost = measure.calculate();
+      if (total_cost == 0.0f) {
+        break;
+      }
+    }
+
+    /* Precompute the right bucket measure cumulatively. */
+    std::array<LightTreeBucket, LightTreeBucket::num_buckets - 1> right_buckets;
+    right_buckets.back() = buckets.back();
+    for (int i = LightTreeBucket::num_buckets - 3; i >= 0; i--) {
+      right_buckets[i] = right_buckets[i + 1] + buckets[i + 1];
     }
 
     /* Calculate the cost of splitting at each point between partitions. */
-    std::array<float, LightTreeBucketInfo::num_buckets - 1> bucket_costs;
-    float energy_L, energy_R;
-    BoundBox bbox_L, bbox_R;
-    OrientationBounds bcone_L, bcone_R;
-    for (int split = 0; split < LightTreeBucketInfo::num_buckets - 1; split++) {
-      energy_L = 0;
-      energy_R = 0;
-      bbox_L = BoundBox::empty;
-      bbox_R = BoundBox::empty;
-      bcone_L = OrientationBounds::empty;
-      bcone_R = OrientationBounds::empty;
+    const float regularization = max_extent * inv_extent;
+    for (int split = 0; split < LightTreeBucket::num_buckets - 1; split++) {
+      const float left_cost = left_buckets[split].measure.calculate();
+      const float right_cost = right_buckets[split].measure.calculate();
+      const float cost = regularization * (left_cost + right_cost);
 
-      for (int left = 0; left <= split; left++) {
-        if (buckets[left].bbox.valid()) {
-          energy_L += buckets[left].energy;
-          bbox_L.grow(buckets[left].bbox);
-          bcone_L = merge(bcone_L, buckets[left].bcone);
-        }
-      }
-
-      for (int right = split + 1; right < LightTreeBucketInfo::num_buckets; right++) {
-        if (buckets[right].bbox.valid()) {
-          energy_R += buckets[right].energy;
-          bbox_R.grow(buckets[right].bbox);
-          bcone_R = merge(bcone_R, buckets[right].bcone);
-        }
-      }
-
-      /* Calculate the cost of splitting using the heuristic as described in the paper. */
-      const float area_L = has_area ? bbox_L.area() : len(bbox_L.size());
-      const float area_R = has_area ? bbox_R.area() : len(bbox_R.size());
-      const float left = (bbox_L.valid()) ? energy_L * area_L * bcone_L.calculate_measure() : 0.0f;
-      const float right = (bbox_R.valid()) ? energy_R * area_R * bcone_R.calculate_measure() :
-                                             0.0f;
-      const float regularization = max_extent * inv_extent;
-      bucket_costs[split] = regularization * (left + right) * inv_total_cost;
-
-      if (bucket_costs[split] < min_cost) {
-        min_cost = bucket_costs[split];
+      if (cost < total_cost && cost < min_cost) {
+        min_cost = cost;
         split_dim = dim;
-        split_bucket = split;
-        num_left_prims = 0;
-        for (int i = 0; i <= split_bucket; i++) {
-          num_left_prims += buckets[i].count;
-        }
+        middle = start + left_buckets[split].count;
       }
     }
   }
-  return min_cost;
+  return min_cost < total_cost || num_prims > max_lights_in_leaf_;
+}
+
+__forceinline LightTreePrimitivesMeasure operator+(const LightTreePrimitivesMeasure &a,
+                                                   const LightTreePrimitivesMeasure &b)
+{
+  LightTreePrimitivesMeasure c(a);
+  c.add(b);
+  return c;
+}
+
+LightTreeBucket operator+(const LightTreeBucket &a, const LightTreeBucket &b)
+{
+  return LightTreeBucket(a.measure + b.measure, a.count + b.count);
 }
 
 CCL_NAMESPACE_END
