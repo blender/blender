@@ -336,6 +336,7 @@ static void spacetype_free(SpaceType *st)
   }
 
   BLI_freelistN(&st->regiontypes);
+  BLI_freelistN(&st->asset_shelf_types);
 }
 
 void BKE_spacetypes_free(void)
