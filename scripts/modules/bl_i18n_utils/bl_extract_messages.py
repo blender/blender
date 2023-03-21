@@ -928,6 +928,55 @@ def dump_template_messages(msgs, reports, settings):
                         reports, None, settings)
 
 
+def dump_asset_messages(msgs, reports, settings):
+    # Where to search for assets, relative to the local user resources.
+    assets_dir = os.path.join(bpy.utils.resource_path('LOCAL'), "datafiles", "assets")
+
+    # Parse the catalog sidecar file
+    catalog_file = os.path.join(assets_dir, settings.ASSET_CATALOG_FILE)
+    with open(catalog_file, encoding="utf8") as f:
+        data = f.readlines()
+
+    catalogs = set()
+
+    for line in data:
+        if (line == "\n" or line.startswith("VERSION") or line.startswith("#")):
+            continue
+        _UUID, catalog_path, _simple_catalog_name = line.split(":")
+        catalogs.update(catalog_path.split("/"))
+
+    msgsrc = "Asset catalog from " + settings.ASSET_CATALOG_FILE
+    for catalog in sorted(catalogs):
+        process_msg(msgs, settings.DEFAULT_CONTEXT, catalog, msgsrc,
+                    reports, None, settings)
+
+    # Parse the asset blend files
+    asset_files = {}
+
+    bfiles = glob.glob(assets_dir + "/**/*.blend", recursive=True)
+    for bfile in bfiles:
+        basename = os.path.basename(bfile)
+        bpy.ops.wm.open_mainfile(filepath=bfile)
+        # For now, only parse node groups.
+        # Perhaps some other assets will need to be extracted later?
+        for asset_type in ("node_groups",):
+            for asset in getattr(bpy.data, asset_type):
+                if asset.asset_data is None:  # Not an asset
+                    continue
+                assets = asset_files.setdefault(basename, [])
+                assets.append((asset.name, asset.asset_data.description))
+
+    for asset_file in sorted(asset_files):
+        for asset in sorted(asset_files[asset_file]):
+            name, description = asset
+            msgsrc = "Asset name from file " + asset_file
+            process_msg(msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
+                        reports, None, settings)
+            msgsrc = "Asset description from file " + asset_file
+            process_msg(msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
+                        reports, None, settings)
+
+
 def dump_addon_bl_info(msgs, reports, module, settings):
     for prop in ('name', 'location', 'description', 'warning'):
         process_msg(
@@ -980,6 +1029,7 @@ def dump_messages(do_messages, do_checks, settings):
     dump_preset_messages(msgs, reports, settings)
 
     # Get strings from startup templates.
+    # This loads each startup blend file in turn.
     dump_template_messages(msgs, reports, settings)
 
     # Get strings from addons' bl_info.
@@ -1018,6 +1068,10 @@ def dump_messages(do_messages, do_checks, settings):
     for cat in settings.LANGUAGES_CATEGORIES:
         process_msg(msgs, settings.DEFAULT_CONTEXT, cat[1],
                     "Language categories’ labels from bl_i18n_utils/settings.py", reports, None, settings)
+
+    # Get strings from asset catalogs and blend files.
+    # This loads each asset blend file in turn.
+    dump_asset_messages(msgs, reports, settings)
 
     # pot.check()
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...

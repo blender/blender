@@ -334,7 +334,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
                                              dst.slice(dst_points));
           }
           else {
-            evaluated_buffer.reinitialize(sizeof(T) * evaluated_points_by_curve.size(i_curve));
+            evaluated_buffer.reinitialize(sizeof(T) * evaluated_points_by_curve[i_curve].size());
             MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
             src_curves.interpolate_to_evaluated(i_curve, src.slice(src_points), evaluated);
 

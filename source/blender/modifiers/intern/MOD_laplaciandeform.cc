@@ -140,7 +140,7 @@ static void deleteLaplacianSystem(LaplacianSystem *sys)
 
 static void createFaceRingMap(const int mvert_tot,
                               blender::Span<MLoopTri> looptris,
-                              blender::Span<MLoop> loops,
+                              blender::Span<int> corner_verts,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
@@ -151,7 +151,7 @@ static void createFaceRingMap(const int mvert_tot,
   for (const int i : looptris.index_range()) {
     const MLoopTri &mlt = looptris[i];
     for (int j = 0; j < 3; j++) {
-      const uint v_index = loops[mlt.tri[j]].v;
+      const int v_index = corner_verts[mlt.tri[j]];
       map[v_index].count++;
       indices_num++;
     }
@@ -166,7 +166,7 @@ static void createFaceRingMap(const int mvert_tot,
   for (const int i : looptris.index_range()) {
     const MLoopTri &mlt = looptris[i];
     for (int j = 0; j < 3; j++) {
-      const uint v_index = loops[mlt.tri[j]].v;
+      const int v_index = corner_verts[mlt.tri[j]];
       map[v_index].indices[map[v_index].count] = i;
       map[v_index].count++;
     }
@@ -548,7 +548,7 @@ static void initSystem(
     }
 
     const blender::Span<MEdge> edges = mesh->edges();
-    const blender::Span<MLoop> loops = mesh->loops();
+    const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<MLoopTri> looptris = mesh->looptris();
 
     anchors_num = STACK_SIZE(index_anchors);
@@ -562,13 +562,13 @@ static void initSystem(
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
 
-    createFaceRingMap(mesh->totvert, looptris, loops, &sys->ringf_map, &sys->ringf_indices);
+    createFaceRingMap(mesh->totvert, looptris, corner_verts, &sys->ringf_map, &sys->ringf_indices);
     createVertRingMap(mesh->totvert, edges, &sys->ringv_map, &sys->ringv_indices);
 
     for (i = 0; i < sys->tris_num; i++) {
-      sys->tris[i][0] = loops[looptris[i].tri[0]].v;
-      sys->tris[i][1] = loops[looptris[i].tri[1]].v;
-      sys->tris[i][2] = loops[looptris[i].tri[2]].v;
+      sys->tris[i][0] = corner_verts[looptris[i].tri[0]];
+      sys->tris[i][1] = corner_verts[looptris[i].tri[1]];
+      sys->tris[i][2] = corner_verts[looptris[i].tri[2]];
     }
   }
 }

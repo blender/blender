@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -11629,6 +11629,10 @@ msgid "Weight of feather point"
 msgstr "Kamera"
 
 
+msgid "Active Point"
+msgstr "Titik Aktif"
+
+
 msgid "Grease Pencil Color"
 msgstr "Warna Pensil Grease"
 
@@ -20107,10 +20111,6 @@ msgstr "Bentuk Kustom"
 
 msgid "Camera Presets"
 msgstr "Preset Kamera"
-
-
-msgid "Active Point"
-msgstr "Titik Aktif"
 
 
 msgid "Clip Display"

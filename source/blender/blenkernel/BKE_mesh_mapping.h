@@ -15,7 +15,6 @@ extern "C" {
 #endif
 
 struct MEdge;
-struct MLoop;
 struct MLoopTri;
 struct MPoly;
 
@@ -104,7 +103,7 @@ typedef struct MeshElemMap {
 UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *polys,
                                        const bool *hide_poly,
                                        const bool *select_poly,
-                                       const struct MLoop *mloop,
+                                       const int *corner_verts,
                                        const float (*mloopuv)[2],
                                        unsigned int totpoly,
                                        unsigned int totvert,
@@ -122,7 +121,7 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const struct MPoly *polys,
-                                   const struct MLoop *mloop,
+                                   const int *corner_verts,
                                    int totvert,
                                    int totpoly,
                                    int totloop);
@@ -134,7 +133,7 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
 void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const struct MPoly *polys,
-                                   const struct MLoop *mloop,
+                                   const int *corner_verts,
                                    int totvert,
                                    int totpoly,
                                    int totloop);
@@ -148,7 +147,7 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int totvert,
                                       const struct MLoopTri *mlooptri,
                                       int totlooptri,
-                                      const struct MLoop *mloop,
+                                      const int *corner_verts,
                                       int totloop);
 /**
  * Generates a map where the key is the vertex and the value
@@ -173,7 +172,7 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    int totedge,
                                    const struct MPoly *polys,
                                    int totpoly,
-                                   const struct MLoop *mloop,
+                                   const int *corner_edges,
                                    int totloop);
 /**
  * Generates a map where the key is the edge and the value
@@ -185,7 +184,7 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    int totedge,
                                    const struct MPoly *polys,
                                    int totpoly,
-                                   const struct MLoop *mloop,
+                                   const int *corner_edges,
                                    int totloop);
 /**
  * This function creates a map so the source-data (vert/edge/loop/poly)
@@ -263,7 +262,8 @@ typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
                                      const bool *uv_seams,
                                      const struct MPoly *polys,
                                      int totpoly,
-                                     const struct MLoop *loops,
+                                     const int *corner_verts,
+                                     const int *corner_edges,
                                      int totloop,
                                      struct MeshIslandStore *r_island_store);
 
@@ -281,7 +281,8 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
                                               const bool *uv_seams,
                                               const struct MPoly *polys,
                                               int totpoly,
-                                              const struct MLoop *loops,
+                                              const int *corner_verts,
+                                              const int *corner_edges,
                                               int totloop,
                                               MeshIslandStore *r_island_store);
 
@@ -305,7 +306,8 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
                                            const bool *uv_seams,
                                            struct MPoly *polys,
                                            int totpoly,
-                                           struct MLoop *loops,
+                                           const int *corner_verts,
+                                           const int *corner_edges,
                                            int totloop,
                                            const float (*luvs)[2],
                                            MeshIslandStore *r_island_store);
@@ -321,7 +323,7 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
 int *BKE_mesh_calc_smoothgroups(int totedge,
                                 const struct MPoly *polys,
                                 int totpoly,
-                                const struct MLoop *mloop,
+                                const int *corner_edges,
                                 int totloop,
                                 const bool *sharp_edges,
                                 const bool *sharp_faces,
@@ -351,11 +353,15 @@ namespace blender::bke::mesh_topology {
 Array<int> build_loop_to_poly_map(Span<MPoly> polys, int loops_num);
 
 Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
-Array<Vector<int>> build_vert_to_poly_map(Span<MPoly> polys, Span<MLoop> loops, int verts_num);
-Array<Vector<int>> build_vert_to_loop_map(Span<MLoop> loops, int verts_num);
-Array<Vector<int>> build_edge_to_loop_map(Span<MLoop> loops, int edges_num);
-Array<Vector<int, 2>> build_edge_to_poly_map(Span<MPoly> polys, Span<MLoop> loops, int edges_num);
-Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<MLoop> loops, int edges_num);
+Array<Vector<int>> build_vert_to_poly_map(Span<MPoly> polys,
+                                          Span<int> corner_verts,
+                                          int verts_num);
+Array<Vector<int>> build_vert_to_loop_map(Span<int> corner_verts, int verts_num);
+Array<Vector<int>> build_edge_to_loop_map(Span<int> corner_edges, int edges_num);
+Array<Vector<int, 2>> build_edge_to_poly_map(Span<MPoly> polys,
+                                             Span<int> corner_edges,
+                                             int edges_num);
+Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<int> corner_edges, int edges_num);
 
 inline int poly_loop_prev(const MPoly &poly, int loop_i)
 {

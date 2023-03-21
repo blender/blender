@@ -348,7 +348,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
     int prev_i = obj_mesh_data.remap_poly_index(idx - 1);
     int i = obj_mesh_data.remap_poly_index(idx);
 
-    Vector<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
+    Span<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
     Span<int> poly_uv_indices = obj_mesh_data.calc_poly_uv_indices(i);
     Vector<int> poly_normal_indices = obj_mesh_data.calc_poly_normal_indices(i);
 

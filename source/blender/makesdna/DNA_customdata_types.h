@@ -191,7 +191,6 @@ typedef enum eCustomDataType {
 // #define CD_MASK_RECAST (1 << CD_RECAST)  /* DEPRECATED */
 
 #define CD_MASK_MPOLY (1 << CD_MPOLY)
-#define CD_MASK_MLOOP (1 << CD_MLOOP)
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
 #define CD_MASK_BWEIGHT (1 << CD_BWEIGHT)

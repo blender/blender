@@ -94,6 +94,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Object *ob,
                                   Mesh *mesh)
 {
+  using namespace blender;
   float(*coords)[3], (*co)[3];
   int i, verts_num;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
@@ -182,10 +183,10 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
-  float(*mloop_uv)[2] = static_cast<float(*)[2]>(
-      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops.size()));
+  float(*mloop_uv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
+      &mesh->ldata, CD_PROP_FLOAT2, uvname, corner_verts.size()));
 
   coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
 
@@ -209,7 +210,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = poly.totloop - 1;
         do {
           uint lidx = poly.loopstart + fidx;
-          uint vidx = loops[lidx].v;
+          const int vidx = corner_verts[lidx];
           BLI_uvproject_from_camera(
               mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
         } while (fidx--);
@@ -219,7 +220,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = poly.totloop - 1;
         do {
           uint lidx = poly.loopstart + fidx;
-          uint vidx = loops[lidx].v;
+          const int vidx = corner_verts[lidx];
           copy_v2_v2(mloop_uv[lidx], coords[vidx]);
         } while (fidx--);
       }
@@ -232,7 +233,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
       /* get the untransformed face normal */
       const blender::float3 face_no = blender::bke::mesh::poly_normal_calc(
-          positions, loops.slice(poly.loopstart, poly.totloop));
+          positions, corner_verts.slice(poly.loopstart, poly.totloop));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -252,7 +253,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = poly.totloop - 1;
         do {
           uint lidx = poly.loopstart + fidx;
-          uint vidx = loops[lidx].v;
+          const int vidx = corner_verts[lidx];
           BLI_uvproject_from_camera(
               mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
         } while (fidx--);
@@ -261,7 +262,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = poly.totloop - 1;
         do {
           uint lidx = poly.loopstart + fidx;
-          uint vidx = loops[lidx].v;
+          const int vidx = corner_verts[lidx];
           mul_v2_project_m4_v3(mloop_uv[lidx], best_projector->projmat, coords[vidx]);
         } while (fidx--);
       }

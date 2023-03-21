@@ -81,7 +81,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 
 struct UVWarpData {
   blender::Span<MPoly> polys;
-  blender::Span<MLoop> loops;
+  blender::Span<int> corner_verts;
   float (*mloopuv)[2];
 
   const MDeformVert *dvert;
@@ -98,7 +98,7 @@ static void uv_warp_compute(void *__restrict userdata,
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
 
   const MPoly &poly = data->polys[i];
-  const MLoop *ml = &data->loops[poly.loopstart];
+  const int *poly_verts = &data->corner_verts[poly.loopstart];
   float(*mluv)[2] = &data->mloopuv[poly.loopstart];
 
   const MDeformVert *dvert = data->dvert;
@@ -109,11 +109,12 @@ static void uv_warp_compute(void *__restrict userdata,
   int l;
 
   if (dvert) {
-    for (l = 0; l < poly.totloop; l++, ml++, mluv++) {
+    for (l = 0; l < poly.totloop; l++, mluv++) {
+      const int vert_i = poly_verts[l];
       float uv[2];
       const float weight = data->invert_vgroup ?
-                               1.0f - BKE_defvert_find_weight(&dvert[ml->v], defgrp_index) :
-                               BKE_defvert_find_weight(&dvert[ml->v], defgrp_index);
+                               1.0f - BKE_defvert_find_weight(&dvert[vert_i], defgrp_index) :
+                               BKE_defvert_find_weight(&dvert[vert_i], defgrp_index);
 
       uv_warp_from_mat4_pair(uv, (*mluv), warp_mat);
       interp_v2_v2v2((*mluv), (*mluv), uv, weight);
@@ -192,15 +193,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  float(*mloopuv)[2] = static_cast<float(*)[2]>(
-      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops.size()));
+  float(*mloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
+      &mesh->ldata, CD_PROP_FLOAT2, uvname, corner_verts.size()));
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
   data.polys = polys;
-  data.loops = loops;
+  data.corner_verts = corner_verts;
   data.mloopuv = mloopuv;
   data.dvert = dvert;
   data.defgrp_index = defgrp_index;

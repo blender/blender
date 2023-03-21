@@ -112,7 +112,14 @@ struct MVert *BKE_mesh_legacy_convert_positions_to_verts(
 
 void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh);
 
+struct MLoop *BKE_mesh_legacy_convert_corners_to_loops(
+    Mesh *mesh,
+    blender::ResourceScope &temp_arrays_for_convert,
+    blender::Vector<CustomDataLayer, 16> &loop_layers_to_write);
+
 #endif
+
+void BKE_mesh_legacy_convert_loops_to_corners(struct Mesh *mesh);
 
 /**
  * Recreate #MFace Tessellation.

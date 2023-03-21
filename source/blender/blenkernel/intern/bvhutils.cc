@@ -276,9 +276,9 @@ static void mesh_looptri_nearest_point(void *userdata,
   const float(*positions)[3] = data->vert_positions;
   const MLoopTri *lt = &data->looptri[index];
   const float *vtri_co[3] = {
-      positions[data->loop[lt->tri[0]].v],
-      positions[data->loop[lt->tri[1]].v],
-      positions[data->loop[lt->tri[2]].v],
+      positions[data->corner_verts[lt->tri[0]]],
+      positions[data->corner_verts[lt->tri[1]]],
+      positions[data->corner_verts[lt->tri[2]]],
   };
   float nearest_tmp[3], dist_sq;
 
@@ -376,9 +376,9 @@ static void mesh_looptri_spherecast(void *userdata,
   const float(*positions)[3] = data->vert_positions;
   const MLoopTri *lt = &data->looptri[index];
   const float *vtri_co[3] = {
-      positions[data->loop[lt->tri[0]].v],
-      positions[data->loop[lt->tri[1]].v],
-      positions[data->loop[lt->tri[2]].v],
+      positions[data->corner_verts[lt->tri[0]]],
+      positions[data->corner_verts[lt->tri[1]]],
+      positions[data->corner_verts[lt->tri[2]]],
   };
   float dist;
 
@@ -579,7 +579,7 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
                                          const float (*positions)[3],
                                          const MEdge *edge,
                                          const MFace *face,
-                                         const MLoop *loop,
+                                         const int *corner_verts,
                                          const Span<MLoopTri> looptris,
                                          BVHTreeFromMesh *r_data)
 {
@@ -590,7 +590,7 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
   r_data->vert_positions = positions;
   r_data->edge = edge;
   r_data->face = face;
-  r_data->loop = loop;
+  r_data->corner_verts = corner_verts;
   r_data->looptri = looptris.data();
 
   switch (bvh_cache_type) {
@@ -1036,7 +1036,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
                                                       int tree_type,
                                                       int axis,
                                                       const float (*positions)[3],
-                                                      const MLoop *mloop,
+                                                      const int *corner_verts,
                                                       const Span<MLoopTri> looptris,
                                                       const BitSpan looptri_mask,
                                                       int looptri_num_active)
@@ -1065,9 +1065,9 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
         continue;
       }
 
-      copy_v3_v3(co[0], positions[mloop[looptris[i].tri[0]].v]);
-      copy_v3_v3(co[1], positions[mloop[looptris[i].tri[1]].v]);
-      copy_v3_v3(co[2], positions[mloop[looptris[i].tri[2]].v]);
+      copy_v3_v3(co[0], positions[corner_verts[looptris[i].tri[0]]]);
+      copy_v3_v3(co[1], positions[corner_verts[looptris[i].tri[1]]]);
+      copy_v3_v3(co[2], positions[corner_verts[looptris[i].tri[2]]]);
 
       BLI_bvhtree_insert(tree, i, co[0], 3);
     }
@@ -1106,7 +1106,7 @@ BVHTree *bvhtree_from_editmesh_looptri(
 
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const float (*vert_positions)[3],
-                                      const struct MLoop *mloop,
+                                      const int *corner_verts,
                                       const struct MLoopTri *looptri,
                                       const int looptri_num,
                                       const BitSpan looptri_mask,
@@ -1119,7 +1119,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                                         tree_type,
                                                         axis,
                                                         vert_positions,
-                                                        mloop,
+                                                        corner_verts,
                                                         {looptri, looptri_num},
                                                         looptri_mask,
                                                         looptri_num_active);
@@ -1133,7 +1133,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                  vert_positions,
                                  nullptr,
                                  nullptr,
-                                 mloop,
+                                 corner_verts,
                                  {looptri, looptri_num},
                                  data);
   }
@@ -1218,7 +1218,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   }
   const float(*positions)[3] = reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data());
   const Span<MEdge> edges = mesh->edges();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   /* Setup BVHTreeFromMesh */
   bvhtree_from_mesh_setup_data(nullptr,
@@ -1226,7 +1226,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                positions,
                                edges.data(),
                                (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
-                               loops.data(),
+                               corner_verts.data(),
                                looptris,
                                data);
 
@@ -1286,7 +1286,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
     }
     case BVHTREE_FROM_LOOPTRI:
       data->tree = bvhtree_from_mesh_looptri_create_tree(
-          0.0f, tree_type, 6, positions, loops.data(), looptris, mask, mask_bits_act_len);
+          0.0f, tree_type, 6, positions, corner_verts.data(), looptris, mask, mask_bits_act_len);
       break;
     case BVHTREE_FROM_EM_VERTS:
     case BVHTREE_FROM_EM_EDGES:

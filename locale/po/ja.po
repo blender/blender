@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -1115,12 +1115,24 @@ msgid "Copyright"
 msgstr "コピーライト"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "このアセットの著作権情報。著作権情報が空の場合でも著作権フリーとは限りません。明確にする必要がある場合は作者に連絡してください"
+
+
 msgid "Description"
 msgstr "詳細"
 
 
 msgid "A description of the asset to be displayed for the user"
 msgstr "ユーザー用に表示されるアセットの解説"
+
+
+msgid "License"
+msgstr "ライセンス"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "このアセットのライセンスタイプ。"
 
 
 msgid "Tags"
@@ -13873,8 +13885,13 @@ msgstr ""
 "（各セルは少なくともこのパーティクル数を持つようになります）"
 
 
+msgctxt "Amount"
+msgid "Number"
+msgstr "数"
+
+
 msgid "Particle number factor (higher value results in more particles)"
-msgstr "パーティクル係数（大きな値でパーティクルが増加）"
+msgstr "パーティクル数の係数（大きな値でパーティクルが増加）"
 
 
 msgid "Particle radius factor. Increase this value if the simulation appears to leak volume, decrease it if the simulation seems to gain volume"
@@ -19794,6 +19811,61 @@ msgid "Editable falloff curve"
 msgstr "減衰曲線を有効化します"
 
 
+msgctxt "Curves"
+msgid "Curve Preset"
+msgstr "カーブプリセット"
+
+
+msgctxt "Curves"
+msgid "Custom"
+msgstr "カスタム"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "スムーズ"
+
+
+msgctxt "Curves"
+msgid "Smoother"
+msgstr "強スムーズ"
+
+
+msgctxt "Curves"
+msgid "Sphere"
+msgstr "球状"
+
+
+msgctxt "Curves"
+msgid "Root"
+msgstr "ルート"
+
+
+msgctxt "Curves"
+msgid "Sharp"
+msgstr "シャープ"
+
+
+msgctxt "Curves"
+msgid "Linear"
+msgstr "リニア"
+
+
+msgctxt "Curves"
+msgid "Sharper"
+msgstr "強シャープ"
+
+
+msgctxt "Curves"
+msgid "Inverse Square"
+msgstr "逆二乗式"
+
+
+msgctxt "Curves"
+msgid "Constant"
+msgstr "一定"
+
+
 msgid "Curves Sculpt Settings"
 msgstr "ヘアーカーブスカルプト設定"
 
@@ -21263,11 +21335,26 @@ msgid "Name of the Alembic attribute used for generating motion blur data"
 msgstr "モーションブラーデータの生成に使用される Alembic の属性の名前"
 
 
+msgctxt "Unit"
+msgid "Velocity Unit"
+msgstr "速度の単位"
+
+
 msgid "Define how the velocity vectors are interpreted with regard to time, 'frame' means the delta time is 1 frame, 'second' means the delta time is 1 / FPS"
 msgstr ""
 "時間に対する速度ベクトルの解釈方法\n"
 "「フレーム」ではデルタタイムが1フレーム\n"
 "「秒数」はデルタタイムが 1/FPS"
+
+
+msgctxt "Unit"
+msgid "Second"
+msgstr "秒数"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "フレーム"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -28351,8 +28438,13 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "ディスク上のテキストファイルはメモリ内のものと異なります"
 
 
+msgctxt "Text"
+msgid "Lines"
+msgstr "行数"
+
+
 msgid "Lines of text"
-msgstr "テキストの行"
+msgstr "テキストの行数"
 
 
 msgid "Selection End Character"
@@ -29033,7 +29125,7 @@ msgstr "よりクリアに設定されたマーブルを使用"
 
 
 msgid "Sharper"
-msgstr "よりシャープ"
+msgstr "強シャープ"
 
 
 msgid "Use very clearly defined marble"
@@ -33879,6 +33971,10 @@ msgid "Active spline of masking layer"
 msgstr "マスキングレイヤーのアクティブスプライン"
 
 
+msgid "Active Point"
+msgstr "アクティブポイント"
+
+
 msgid "Grease Pencil Color"
 msgstr "グリースペンシルカラー"
 
@@ -34414,6 +34510,11 @@ msgstr "読込"
 
 msgid "Write"
 msgstr "書込"
+
+
+msgctxt "NodeTree"
+msgid "Constant"
+msgstr "定数"
 
 
 msgid "Instances"
@@ -45079,10 +45180,6 @@ msgstr "メッシュの面の表面積を計算します"
 
 msgid "Is Face Planar"
 msgstr "平面判定"
-
-
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "1つの面内の全三角形が同一平面上にあるかどうか（同じ法線かどうか）を計算します"
 
 
 msgid "Face Neighbors"
@@ -60483,17 +60580,9 @@ msgid "Clear Restrict View"
 msgstr "ビューの制限を解除"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "非表示フラグを解除しオブジェクトを再表示します"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "ビューの制限を設定"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "非表示フラグを設定し、レイヤーを隠します"
 
 
 msgctxt "Operator"
@@ -82685,10 +82774,6 @@ msgid "2D Cursor"
 msgstr "2Dカーソル"
 
 
-msgid "Active Point"
-msgstr "アクティブポイント"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "定義済トラッキングカメラ固有値"
 
@@ -87791,14 +87876,6 @@ msgid "Mini Axes Type"
 msgstr "ミニ軸のタイプ"
 
 
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "3Dビューポートの右上隅に、回転する小さな3D座標軸を表示します"
-
-
-msgid "Simple Axis"
-msgstr "シンプルな軸"
-
-
 msgid "Interactive Navigation"
 msgstr "インタラクティブナビゲーション"
 
@@ -90872,8 +90949,23 @@ msgid "Additional subdivision along the curves"
 msgstr "カーブに沿ってさらに細分化します"
 
 
+msgctxt "Curves"
+msgid "Curves Shape Type"
+msgstr "カーブの形状タイプ"
+
+
 msgid "Curves shape type"
 msgstr "カーブの形状タイプ"
+
+
+msgctxt "Curves"
+msgid "Strand"
+msgstr "ストランド"
+
+
+msgctxt "Curves"
+msgid "Strip"
+msgstr "ストリップ"
 
 
 msgid "Multiple Engines"
@@ -107222,6 +107314,10 @@ msgid "Previews clear process failed for file '%s'!"
 msgstr "ファイル「%s」のプレビュークリアプロセスに失敗しました"
 
 
+msgid "No active camera in the scene"
+msgstr "シーンにアクティブカメラがありません"
+
+
 msgid "Unexpected modifier type: "
 msgstr "未知のモディファイアータイプ："
 
@@ -109574,7 +109670,7 @@ msgstr "このオブジェクトは複合形状の一部です"
 
 
 msgid "Second"
-msgstr "秒数"
+msgstr "2つめ"
 
 
 msgid "X Stiffness"
@@ -112296,10 +112392,6 @@ msgstr "ビュー名"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "再生フレームレート（FPS）"
-
-
-msgid "3D Viewport Axis"
-msgstr "3Dビューポートの軸"
 
 
 msgid "Smooth Wires"
@@ -117294,6 +117386,10 @@ msgstr "LMB: ストローク、+Shift:フィル、+Shift+Ctrl:ストローク＋
 
 msgid "Error evaluating number, see Info editor for details"
 msgstr "数値の評価エラー。詳細は情報エディターを参照してください"
+
+
+msgid "Press a key"
+msgstr "キーを押下"
 
 
 msgid "Missing Panel: %s"
@@ -124588,6 +124684,31 @@ msgstr "カスタムグループノード"
 
 msgid "UNDEFINED"
 msgstr "未定義"
+
+
+msgctxt "NodeTree"
+msgid "Functions"
+msgstr "関数"
+
+
+msgctxt "NodeTree"
+msgid "Comparison"
+msgstr "比較"
+
+
+msgctxt "NodeTree"
+msgid "Rounding"
+msgstr "丸め"
+
+
+msgctxt "NodeTree"
+msgid "Trigonometric"
+msgstr "三角関数"
+
+
+msgctxt "NodeTree"
+msgid "Conversion"
+msgstr "変換"
 
 
 msgid "Same input/output direction of sockets"

@@ -125,7 +125,7 @@ static void mix_normals(const float mix_factor,
                         const float mix_limit,
                         const short mix_mode,
                         const int verts_num,
-                        const blender::Span<MLoop> loops,
+                        const blender::Span<int> corner_verts,
                         blender::float3 *nos_old,
                         blender::float3 *nos_new)
 {
@@ -135,12 +135,18 @@ static void mix_normals(const float mix_factor,
   int i;
 
   if (dvert) {
-    facs = static_cast<float *>(MEM_malloc_arrayN(size_t(loops.size()), sizeof(*facs), __func__));
-    BKE_defvert_extract_vgroup_to_loopweights(
-        dvert, defgrp_index, verts_num, loops.data(), loops.size(), use_invert_vgroup, facs);
+    facs = static_cast<float *>(
+        MEM_malloc_arrayN(size_t(corner_verts.size()), sizeof(*facs), __func__));
+    BKE_defvert_extract_vgroup_to_loopweights(dvert,
+                                              defgrp_index,
+                                              verts_num,
+                                              corner_verts.data(),
+                                              corner_verts.size(),
+                                              use_invert_vgroup,
+                                              facs);
   }
 
-  for (i = loops.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;
+  for (i = corner_verts.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;
        no_new++, no_old++, wfac++) {
     const float fac = facs ? *wfac * mix_factor : mix_factor;
 
@@ -173,14 +179,15 @@ static void mix_normals(const float mix_factor,
 
 /* Check poly normals and new loop normals are compatible, otherwise flip polygons
  * (and invert matching poly normals). */
-static bool polygons_check_flip(blender::MutableSpan<MLoop> loops,
+static bool polygons_check_flip(blender::MutableSpan<int> corner_verts,
+                                blender::MutableSpan<int> corner_edges,
                                 blender::float3 *nos,
                                 CustomData *ldata,
                                 const blender::Span<MPoly> polys,
                                 float (*poly_normals)[3])
 {
   MDisps *mdisp = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(ldata, CD_MDISPS, loops.size()));
+      CustomData_get_layer_for_write(ldata, CD_MDISPS, corner_verts.size()));
   bool flipped = false;
 
   for (const int i : polys.index_range()) {
@@ -197,8 +204,13 @@ static bool polygons_check_flip(blender::MutableSpan<MLoop> loops,
 
     /* If average of new loop normals is opposed to polygon normal, flip polygon. */
     if (dot_v3v3(poly_normals[i], norsum) < 0.0f) {
-      BKE_mesh_polygon_flip_ex(
-          &poly, loops.data(), ldata, reinterpret_cast<float(*)[3]>(nos), mdisp, true);
+      BKE_mesh_polygon_flip_ex(&poly,
+                               corner_verts.data(),
+                               corner_edges.data(),
+                               ldata,
+                               reinterpret_cast<float(*)[3]>(nos),
+                               mdisp,
+                               true);
       negate_v3(poly_normals[i]);
       flipped = true;
     }
@@ -222,7 +234,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          blender::Span<blender::float3> vert_positions,
                                          const blender::Span<MEdge> edges,
                                          blender::MutableSpan<bool> sharp_edges,
-                                         blender::MutableSpan<MLoop> loops,
+                                         blender::MutableSpan<int> corner_verts,
+                                         blender::MutableSpan<int> corner_edges,
                                          const blender::Span<MPoly> polys)
 {
   Object *ob_target = enmd->target;
@@ -231,7 +244,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   float(*cos)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(size_t(vert_positions.size()), sizeof(*cos), __func__));
-  blender::Array<blender::float3> nos(loops.size());
+  blender::Array<blender::float3> nos(corner_verts.size());
   float size[3];
 
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(vert_positions.size()), __func__);
@@ -275,8 +288,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     const float n2 = (c * c) / (a * a);
 
     /* We reuse cos to now store the ellipsoid-normal of the verts! */
-    for (const int64_t i : loops.index_range()) {
-      const int vidx = loops[i].v;
+    for (const int64_t i : corner_verts.index_range()) {
+      const int vidx = corner_verts[i];
       float *co = cos[vidx];
 
       if (!BLI_BITMAP_TEST(done_verts, vidx)) {
@@ -306,14 +319,17 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 mix_limit,
                 mix_mode,
                 vert_positions.size(),
-                loops,
+                corner_verts,
                 loop_normals.data(),
                 nos.data());
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          loops, nos.data(), &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
+  if (do_polynors_fix && polygons_check_flip(corner_verts,
+                                             corner_edges,
+                                             nos.data(),
+                                             &mesh->ldata,
+                                             polys,
+                                             BKE_mesh_poly_normals_for_write(mesh))) {
     mesh->runtime->vert_normals_dirty = true;
   }
   const bool *sharp_faces = static_cast<const bool *>(
@@ -321,7 +337,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   blender::bke::mesh::normals_loop_custom_set(vert_positions,
                                               edges,
                                               polys,
-                                              loops,
+                                              corner_verts,
+                                              corner_edges,
                                               mesh->vert_normals(),
                                               mesh->poly_normals(),
                                               sharp_faces,
@@ -348,7 +365,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const blender::Span<blender::float3> positions,
                                               const blender::Span<MEdge> edges,
                                               blender::MutableSpan<bool> sharp_edges,
-                                              blender::MutableSpan<MLoop> loops,
+                                              blender::MutableSpan<int> corner_verts,
+                                              blender::MutableSpan<int> corner_edges,
                                               const blender::Span<MPoly> polys)
 {
   Object *ob_target = enmd->target;
@@ -356,7 +374,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   const bool do_polynors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
   const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
-  blender::Array<blender::float3> nos(loops.size());
+  blender::Array<blender::float3> nos(corner_verts.size());
 
   float target_co[3];
   int i;
@@ -374,7 +392,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     sub_v3_v3v3(no, target_co, enmd->offset);
     normalize_v3(no);
 
-    for (i = loops.size(); i--;) {
+    for (i = corner_verts.size(); i--;) {
       copy_v3_v3(nos[i], no);
     }
   }
@@ -386,8 +404,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(positions.size()), __func__);
 
     /* We reuse cos to now store the 'to target' normal of the verts! */
-    for (const int64_t i : loops.index_range()) {
-      const int vidx = loops[i].v;
+    for (const int64_t i : corner_verts.index_range()) {
+      const int vidx = corner_verts[i];
       float *co = cos[vidx];
 
       if (!BLI_BITMAP_TEST(done_verts, vidx)) {
@@ -411,14 +429,17 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 mix_limit,
                 mix_mode,
                 positions.size(),
-                loops,
+                corner_verts,
                 loop_normals.data(),
                 nos.data());
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          loops, nos.data(), &mesh->ldata, polys, BKE_mesh_poly_normals_for_write(mesh))) {
+  if (do_polynors_fix && polygons_check_flip(corner_verts,
+                                             corner_edges,
+                                             nos.data(),
+                                             &mesh->ldata,
+                                             polys,
+                                             BKE_mesh_poly_normals_for_write(mesh))) {
     mesh->runtime->vert_normals_dirty = true;
   }
   const bool *sharp_faces = static_cast<const bool *>(
@@ -426,7 +447,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   blender::bke::mesh::normals_loop_custom_set(positions,
                                               edges,
                                               polys,
-                                              loops,
+                                              corner_verts,
+                                              corner_edges,
                                               mesh->vert_normals(),
                                               mesh->poly_normals(),
                                               sharp_faces,
@@ -501,7 +523,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   const blender::Span<blender::float3> positions = result->vert_positions();
   const blender::Span<MEdge> edges = result->edges();
   const blender::Span<MPoly> polys = result->polys();
-  blender::MutableSpan<MLoop> loops = result->loops_for_write();
+  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   int defgrp_index;
   const MDeformVert *dvert;
@@ -515,17 +538,18 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
   short(*clnors)[2] = static_cast<short(*)[2]>(
-      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops.size()));
+      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
   if (use_current_clnors) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops.size()));
-    loop_normals.reinitialize(loops.size());
+        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
+    loop_normals.reinitialize(corner_verts.size());
     const bool *sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(&result->pdata, CD_PROP_BOOL, "sharp_face"));
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           polys,
-                                          loops,
+                                          corner_verts,
+                                          corner_edges,
                                           {},
                                           result->vert_normals(),
                                           result->poly_normals(),
@@ -540,7 +564,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   if (clnors == nullptr) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, loops.size()));
+        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -561,7 +585,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  positions,
                                  edges,
                                  sharp_edges.span,
-                                 loops,
+                                 corner_verts,
+                                 corner_edges,
                                  polys);
   }
   else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
@@ -580,7 +605,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       positions,
                                       edges,
                                       sharp_edges.span,
-                                      loops,
+                                      corner_verts,
+                                      corner_edges,
                                       polys);
   }
 

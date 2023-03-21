@@ -177,7 +177,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
   m_custom_data_config.mesh = mesh;
   m_custom_data_config.polys = mesh->polys_for_write().data();
-  m_custom_data_config.mloop = mesh->loops_for_write().data();
+  m_custom_data_config.corner_verts = mesh->corner_verts_for_write().data();
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
   m_custom_data_config.totvert = mesh->totvert;
@@ -450,7 +450,7 @@ static void get_topology(struct Mesh *mesh,
                          bool &r_has_flat_shaded_poly)
 {
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
@@ -463,7 +463,7 @@ static void get_topology(struct Mesh *mesh,
 
   poly_verts.clear();
   loop_counts.clear();
-  poly_verts.reserve(loops.size());
+  poly_verts.reserve(corner_verts.size());
   loop_counts.reserve(polys.size());
 
   /* NOTE: data needs to be written in the reverse order. */
@@ -471,10 +471,9 @@ static void get_topology(struct Mesh *mesh,
     const MPoly &poly = polys[i];
     loop_counts.push_back(poly.totloop);
 
-    const MLoop *loop = &loops[poly.loopstart + (poly.totloop - 1)];
-
-    for (int j = 0; j < poly.totloop; j++, loop--) {
-      poly_verts.push_back(loop->v);
+    int corner = poly.loopstart + (poly.totloop - 1);
+    for (int j = 0; j < poly.totloop; j++, corner--) {
+      poly_verts.push_back(corner_verts[corner]);
     }
   }
 }

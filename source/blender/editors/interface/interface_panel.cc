@@ -1332,7 +1332,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 
   BLF_enable(fontid, BLF_ROTATION);
-  BLF_rotation(fontid, M_PI_2);
+  BLF_rotation(fontid, is_left ? M_PI_2 : -M_PI_2);
   ui_fontscale(&fstyle_points, aspect);
   BLF_size(fontid, fstyle_points * UI_SCALE_FAC);
 
@@ -1467,7 +1467,10 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
     /* Tab titles. */
 
-    BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
+    BLF_position(fontid,
+                 is_left ? rct->xmax - text_v_ofs : rct->xmin + text_v_ofs,
+                 is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
+                 0.0f);
     BLF_color3ubv(fontid, is_active ? theme_col_text_hi : theme_col_text);
     BLF_draw(fontid, category_id_draw, category_draw_len);
 

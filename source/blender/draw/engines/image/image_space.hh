@@ -69,6 +69,7 @@ class AbstractSpaceAccessor {
    * (0..1) to texture space UV coordinates.
    */
   virtual void init_ss_to_texture_matrix(const ARegion *region,
+                                         const float image_offset[2],
                                          const float image_resolution[2],
                                          float r_uv_to_texture[4][4]) const = 0;
 };

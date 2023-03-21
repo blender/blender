@@ -347,7 +347,7 @@ struct PBVHBatches {
           const MPoly &poly = args->polys[tri->poly];
           const float3 fno = blender::bke::mesh::poly_normal_calc(
               {reinterpret_cast<const float3 *>(args->vert_positions), args->mesh_verts_num},
-              {&args->mloop[poly.loopstart], poly.totloop});
+              {&args->corner_verts[poly.loopstart], poly.totloop});
           normal_float_to_short_v3(no, fno);
         }
       }
@@ -546,10 +546,10 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
+    const blender::Span<int> corner_verts = args->corner_verts;
     auto foreach_faces =
         [&](std::function<void(int buffer_i, int tri_i, int vertex_i, const MLoopTri *tri)> func) {
           int buffer_i = 0;
-          const MLoop *mloop = args->mloop;
 
           for (int i : IndexRange(args->totprim)) {
             int face_index = args->mlooptri[args->prim_indices[i]].poly;
@@ -561,7 +561,7 @@ struct PBVHBatches {
             const MLoopTri *tri = args->mlooptri + args->prim_indices[i];
 
             for (int j : IndexRange(3)) {
-              func(buffer_i, j, mloop[tri->tri[j]].v, tri);
+              func(buffer_i, j, corner_verts[tri->tri[j]], tri);
               buffer_i++;
             }
           }
@@ -990,7 +990,8 @@ struct PBVHBatches {
       }
 
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(
+          edges.data(), args->corner_verts.data(), args->corner_edges.data(), lt, r_edges);
 
       if (r_edges[0] != -1) {
         edge_count++;
@@ -1015,7 +1016,8 @@ struct PBVHBatches {
       }
 
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(
+          edges.data(), args->corner_verts.data(), args->corner_edges.data(), lt, r_edges);
 
       if (r_edges[0] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);

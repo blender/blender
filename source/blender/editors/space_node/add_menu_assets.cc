@@ -181,7 +181,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   for (const LibraryAsset &item : asset_items) {
     uiLayout *col = uiLayoutColumn(layout, false);
 
-    PointerRNA asset_ptr{NULL, &RNA_AssetRepresentation, &item.asset};
+    PointerRNA asset_ptr{nullptr, &RNA_AssetRepresentation, &item.asset};
     uiLayoutSetContextPointer(col, "asset", &asset_ptr);
 
     PointerRNA library_ptr{&screen.id,
@@ -190,7 +190,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     uiLayoutSetContextPointer(col, "asset_library_ref", &library_ptr);
 
     uiItemO(
-        col, AS_asset_representation_name_get(&item.asset), ICON_NONE, "NODE_OT_add_group_asset");
+        col, IFACE_(AS_asset_representation_name_get(&item.asset)), ICON_NONE, "NODE_OT_add_group_asset");
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {
@@ -200,7 +200,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
         &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(col, "NODE_MT_node_add_catalog_assets", path.name().c_str(), ICON_NONE);
+    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(path.name().c_str()), ICON_NONE);
   });
 }
 
@@ -270,7 +270,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
         &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(col, "NODE_MT_node_add_catalog_assets", path.name().c_str(), ICON_NONE);
+    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(path.name().c_str()), ICON_NONE);
   });
 }
 

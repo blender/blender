@@ -165,16 +165,11 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       return {};
     }
     case ATTR_DOMAIN_CORNER: {
-      const Span<MLoop> loops = mesh.loops();
       if (name == "Vertex") {
-        return std::make_unique<ColumnValues>(
-            name,
-            VArray<int>::ForFunc(loops.size(), [loops](int64_t index) { return loops[index].v; }));
+        return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan(mesh.corner_verts()));
       }
       if (name == "Edge") {
-        return std::make_unique<ColumnValues>(
-            name,
-            VArray<int>::ForFunc(loops.size(), [loops](int64_t index) { return loops[index].e; }));
+        return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan(mesh.corner_edges()));
       }
       return {};
     }

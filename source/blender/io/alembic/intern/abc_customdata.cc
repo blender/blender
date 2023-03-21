@@ -58,7 +58,7 @@ static void get_uvs(const CDStreamConfig &config,
 
   const int num_poly = config.totpoly;
   MPoly *polys = config.polys;
-  MLoop *mloop = config.mloop;
+  int *corner_verts = config.corner_verts;
 
   if (!config.pack_uvs) {
     int count = 0;
@@ -86,18 +86,18 @@ static void get_uvs(const CDStreamConfig &config,
 
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polys[i];
-      MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
+      int *poly_verts = corner_verts + current_poly.loopstart + current_poly.totloop;
       const float2 *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++) {
-        looppoly--;
+        poly_verts--;
         loopuv--;
 
         Imath::V2f uv((*loopuv)[0], (*loopuv)[1]);
         bool found_same = false;
 
         /* Find UV already in uvs array. */
-        for (uint32_t uv_idx : idx_map[looppoly->v]) {
+        for (uint32_t uv_idx : idx_map[*poly_verts]) {
           if (uvs[uv_idx] == uv) {
             found_same = true;
             uvidx.push_back(uv_idx);
@@ -108,7 +108,7 @@ static void get_uvs(const CDStreamConfig &config,
         /* UV doesn't exists for this vertex, add it. */
         if (!found_same) {
           uint32_t uv_idx = idx_count++;
-          idx_map[looppoly->v].push_back(uv_idx);
+          idx_map[*poly_verts].push_back(uv_idx);
           uvidx.push_back(uv_idx);
           uvs.push_back(uv);
         }
@@ -316,7 +316,7 @@ static void read_uvs(const CDStreamConfig &config,
                      const UInt32ArraySamplePtr &indices)
 {
   MPoly *polys = config.polys;
-  MLoop *mloops = config.mloop;
+  const int *corner_verts = config.corner_verts;
   float2 *mloopuvs = static_cast<float2 *>(data);
 
   uint uv_index, loop_index, rev_loop_index;
@@ -330,7 +330,7 @@ static void read_uvs(const CDStreamConfig &config,
 
     for (int f = 0; f < poly.totloop; f++) {
       rev_loop_index = rev_loop_offset - f;
-      loop_index = do_uvs_per_loop ? poly.loopstart + f : mloops[rev_loop_index].v;
+      loop_index = do_uvs_per_loop ? poly.loopstart + f : corner_verts[rev_loop_index];
       uv_index = (*indices)[loop_index];
       const Imath::V2f &uv = (*uvs)[uv_index];
 
@@ -412,7 +412,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
       config.mesh, prop_header.getName().c_str(), CD_PROP_BYTE_COLOR);
   MCol *cfaces = static_cast<MCol *>(cd_data);
   const MPoly *polys = config.polys;
-  MLoop *mloops = config.mloop;
+  const int *corner_verts = config.corner_verts;
 
   size_t face_index = 0;
   size_t color_index;
@@ -427,13 +427,13 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
   for (int i = 0; i < config.totpoly; i++) {
     const MPoly &poly = polys[i];
     MCol *cface = &cfaces[poly.loopstart + poly.totloop];
-    MLoop *mloop = &mloops[poly.loopstart + poly.totloop];
+    const int *poly_verts = &corner_verts[poly.loopstart + poly.totloop];
 
     for (int j = 0; j < poly.totloop; j++, face_index++) {
       cface--;
-      mloop--;
+      poly_verts--;
 
-      color_index = is_facevarying ? face_index : mloop->v;
+      color_index = is_facevarying ? face_index : *poly_verts;
       if (use_dual_indexing) {
         color_index = (*indices)[color_index];
       }

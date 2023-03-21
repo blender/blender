@@ -4191,17 +4191,16 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 
-    /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
-    float m[2];
+    float m[2][2];
     float b[2];
-    m[0] = scale[0];
-    m[1] = scale[1];
+    m[0][0] = scale[0];
+    m[0][1] = 0.0f;
+    m[1][0] = 0.0f;
+    m[1][1] = scale[1];
     b[0] = pack_island->pre_translate.x;
     b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
-      v->uv[0] = m[0] * (v->uv[0] + b[0]);
-      v->uv[1] = m[1] * (v->uv[1] + b[1]);
+      blender::geometry::mul_v2_m2_add_v2v2(v->uv, m, v->uv, b);
     }
 
     pack_island_vector[i] = nullptr;

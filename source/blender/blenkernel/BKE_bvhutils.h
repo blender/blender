@@ -61,7 +61,7 @@ typedef struct BVHTreeFromMesh {
   const float (*vert_positions)[3];
   const struct MEdge *edge;
   const struct MFace *face;
-  const struct MLoop *loop;
+  const int *corner_verts;
   const struct MLoopTri *looptri;
 
   /* Private data */
@@ -181,7 +181,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
  */
 BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       const float (*vert_positions)[3],
-                                      const struct MLoop *mloop,
+                                      const int *corner_verts,
                                       const struct MLoopTri *looptri,
                                       int looptri_num,
                                       blender::BitSpan mask,

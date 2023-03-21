@@ -129,7 +129,7 @@ static bke::curves::CurvePoint lookup_point_bezier(
     const int num_curve_points)
 {
   if (bke::curves::bezier::has_vector_handles(
-          num_curve_points, evaluated_points_by_curve.size(curve_index), cyclic, resolution)) {
+          num_curve_points, evaluated_points_by_curve[curve_index].size(), cyclic, resolution)) {
     const Span<int> bezier_offsets = src_curves.bezier_evaluated_offsets_for_curve(curve_index);
     return lookup_point_bezier(
         bezier_offsets, accumulated_lengths, sample_length, cyclic, num_curve_points);
@@ -176,7 +176,7 @@ static bke::curves::CurvePoint lookup_curve_point(
     /* Handle evaluated curve. */
     BLI_assert(resolution > 0);
     return lookup_point_polygonal(
-        accumulated_lengths, sample_length, cyclic, evaluated_points_by_curve.size(curve_index));
+        accumulated_lengths, sample_length, cyclic, evaluated_points_by_curve[curve_index].size());
   }
 }
 
@@ -793,7 +793,7 @@ static void trim_evaluated_curves(const bke::CurvesGeometry &src_curves,
           const IndexRange src_points = src_points_by_curve[curve_i];
 
           /* Interpolate onto the evaluated point domain and sample the evaluated domain. */
-          evaluated_buffer.reinitialize(sizeof(T) * src_evaluated_points_by_curve.size(curve_i));
+          evaluated_buffer.reinitialize(sizeof(T) * src_evaluated_points_by_curve[curve_i].size());
           MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
           src_curves.interpolate_to_evaluated(curve_i, attribute.src.slice(src_points), evaluated);
           sample_interval_linear<T>(evaluated,
@@ -849,10 +849,10 @@ static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
       int point_count;
       if (curve_type == CURVE_TYPE_NURBS) {
         /* The result curve is a poly curve. */
-        point_count = evaluated_points_by_curve.size(curve_i);
+        point_count = evaluated_points_by_curve[curve_i].size();
       }
       else {
-        point_count = points_by_curve.size(curve_i);
+        point_count = points_by_curve[curve_i].size();
       }
       if (point_count == 1) {
         /* Single point. */

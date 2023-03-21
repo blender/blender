@@ -406,7 +406,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
     tottri = BKE_mesh_runtime_looptri_len(mesh);
-    const MLoop *mloop = BKE_mesh_loops(mesh);
+    const int *corner_verts = BKE_mesh_corner_verts(mesh);
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -431,9 +431,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
           const MLoopTri *lt = &looptri[i];
           int vtri[3];
 
-          vtri[0] = mloop[lt->tri[0]].v;
-          vtri[1] = mloop[lt->tri[1]].v;
-          vtri[2] = mloop[lt->tri[2]].v;
+          vtri[0] = corner_verts[lt->tri[0]];
+          vtri[1] = corner_verts[lt->tri[1]];
+          vtri[2] = corner_verts[lt->tri[2]];
 
           RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
         }
@@ -681,10 +681,10 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = BKE_mesh_runtime_looptri_len(mesh);
-        const MLoop *mloop = BKE_mesh_loops(mesh);
+        const int *corner_verts = BKE_mesh_corner_verts(mesh);
 
         if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(positions, totvert, lt, tottri, mloop, &volume, NULL);
+          BKE_mesh_calc_volume(positions, totvert, lt, tottri, corner_verts, &volume, NULL);
           const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
           volume *= fabsf(volume_scale);
         }
@@ -755,10 +755,10 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = BKE_mesh_runtime_looptri_len(mesh);
-        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(positions, totvert, looptri, tottri, mloop, NULL, r_center);
+          BKE_mesh_calc_volume(
+              positions, totvert, looptri, tottri, BKE_mesh_corner_verts(mesh), NULL, r_center);
         }
       }
       break;

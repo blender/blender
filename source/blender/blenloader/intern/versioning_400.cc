@@ -39,6 +39,7 @@ static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
   BKE_mesh_legacy_uv_seam_from_flags(&mesh);
   BKE_mesh_legacy_convert_verts_to_positions(&mesh);
   BKE_mesh_legacy_attribute_flags_to_strings(&mesh);
+  BKE_mesh_legacy_convert_loops_to_corners(&mesh);
 }
 
 static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)

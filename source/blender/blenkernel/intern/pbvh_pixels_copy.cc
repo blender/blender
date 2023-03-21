@@ -157,9 +157,9 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
                         int vertex_i)
   {
     for (int i = 0; i < 3; i++) {
-      int loop_i = loop_tri.tri[i];
-      const MLoop &loop = mesh_data.loops[loop_i];
-      if (loop.v == vertex_i) {
+      const int loop_i = loop_tri.tri[i];
+      const int vert = mesh_data.corner_verts[loop_i];
+      if (vert == vertex_i) {
         return mesh_data.uv_map[loop_i];
       }
     }

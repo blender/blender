@@ -395,8 +395,8 @@ static int rna_MeshPolygon_index_get(PointerRNA *ptr)
 static int rna_MeshLoop_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const MLoop *mloop = (MLoop *)ptr->data;
-  const int index = (int)(mloop - BKE_mesh_loops(mesh));
+  const int *corner_vert = (const int *)ptr->data;
+  const int index = (int)(corner_vert - BKE_mesh_corner_verts(mesh));
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->totloop);
   return index;
@@ -560,6 +560,30 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
   values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
+static int rna_MeshLoop_vertex_index_get(PointerRNA *ptr)
+{
+  return *(int *)ptr->data;
+}
+
+static void rna_MeshLoop_vertex_index_set(PointerRNA *ptr, int value)
+{
+  *(int *)ptr->data = value;
+}
+
+static int rna_MeshLoop_edge_index_get(PointerRNA *ptr)
+{
+  const Mesh *me = rna_mesh(ptr);
+  const int index = rna_MeshLoop_index_get(ptr);
+  return BKE_mesh_corner_edges(me)[index];
+}
+
+static void rna_MeshLoop_edge_index_set(PointerRNA *ptr, int value)
+{
+  Mesh *me = rna_mesh(ptr);
+  const int index = rna_MeshLoop_index_get(ptr);
+  BKE_mesh_corner_edges_for_write(me)[index] = value;
+}
+
 static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
@@ -629,9 +653,9 @@ static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
   Mesh *me = rna_mesh(ptr);
   MPoly *poly = (MPoly *)ptr->data;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const int *corner_verts = BKE_mesh_corner_verts(me);
   BKE_mesh_calc_poly_normal(
-      &loops[poly->loopstart], poly->totloop, positions, me->totvert, values);
+      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert, values);
 }
 
 static bool rna_MeshPolygon_hide_get(PointerRNA *ptr)
@@ -733,9 +757,9 @@ static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
   Mesh *me = rna_mesh(ptr);
   MPoly *poly = (MPoly *)ptr->data;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const int *corner_verts = BKE_mesh_corner_verts(me);
   BKE_mesh_calc_poly_center(
-      &loops[poly->loopstart], poly->totloop, positions, me->totvert, values);
+      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert, values);
 }
 
 static float rna_MeshPolygon_area_get(PointerRNA *ptr)
@@ -743,15 +767,17 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
   Mesh *me = (Mesh *)ptr->owner_id;
   MPoly *poly = (MPoly *)ptr->data;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MLoop *loops = BKE_mesh_loops(me);
-  return BKE_mesh_calc_poly_area(&loops[poly->loopstart], poly->totloop, positions, me->totvert);
+  const int *corner_verts = BKE_mesh_corner_verts(me);
+  return BKE_mesh_calc_poly_area(
+      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert);
 }
 
 static void rna_MeshPolygon_flip(ID *id, MPoly *poly)
 {
   Mesh *me = (Mesh *)id;
-  MLoop *loops = BKE_mesh_loops_for_write(me);
-  BKE_mesh_polygon_flip(poly, loops, &me->ldata, me->totloop);
+  int *corner_verts = BKE_mesh_corner_verts_for_write(me);
+  int *corner_edges = BKE_mesh_corner_edges_for_write(me);
+  BKE_mesh_polygon_flip(poly, corner_verts, corner_edges, &me->ldata, me->totloop);
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
 }
@@ -759,11 +785,11 @@ static void rna_MeshPolygon_flip(ID *id, MPoly *poly)
 static void rna_MeshLoopTriangle_verts_get(PointerRNA *ptr, int *values)
 {
   Mesh *me = rna_mesh(ptr);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const int *corner_verts = BKE_mesh_corner_verts(me);
   MLoopTri *lt = (MLoopTri *)ptr->data;
-  values[0] = loops[lt->tri[0]].v;
-  values[1] = loops[lt->tri[1]].v;
-  values[2] = loops[lt->tri[2]].v;
+  values[0] = corner_verts[lt->tri[0]];
+  values[1] = corner_verts[lt->tri[1]];
+  values[2] = corner_verts[lt->tri[2]];
 }
 
 static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
@@ -771,10 +797,10 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
   Mesh *me = rna_mesh(ptr);
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MLoop *loops = BKE_mesh_loops(me);
-  uint v1 = loops[lt->tri[0]].v;
-  uint v2 = loops[lt->tri[1]].v;
-  uint v3 = loops[lt->tri[2]].v;
+  const int *corner_verts = BKE_mesh_corner_verts(me);
+  const int v1 = corner_verts[lt->tri[0]];
+  const int v2 = corner_verts[lt->tri[1]];
+  const int v3 = corner_verts[lt->tri[2]];
 
   normal_tri_v3(values, positions[v1], positions[v2], positions[v3]);
 }
@@ -802,10 +828,10 @@ static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
   Mesh *me = rna_mesh(ptr);
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
-  const MLoop *loops = BKE_mesh_loops(me);
-  uint v1 = loops[lt->tri[0]].v;
-  uint v2 = loops[lt->tri[1]].v;
-  uint v3 = loops[lt->tri[2]].v;
+  const int *corner_verts = BKE_mesh_corner_verts(me);
+  const int v1 = corner_verts[lt->tri[0]];
+  const int v2 = corner_verts[lt->tri[1]];
+  const int v3 = corner_verts[lt->tri[2]];
   return area_tri_v3(positions[v1], positions[v2], positions[v3]);
 }
 
@@ -1643,27 +1669,17 @@ static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
 
 static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
 {
-  Mesh *me = rna_mesh(ptr);
-  MPoly *poly = (MPoly *)ptr->data;
-  const MLoop *loops = BKE_mesh_loops(me);
-  const MLoop *ml = &loops[poly->loopstart];
-  uint i;
-  for (i = poly->totloop; i > 0; i--, values++, ml++) {
-    *values = ml->v;
-  }
+  const Mesh *me = rna_mesh(ptr);
+  const MPoly *poly = (const MPoly *)ptr->data;
+  memcpy(values, BKE_mesh_corner_verts(me) + poly->loopstart, sizeof(int) * poly->totloop);
 }
 
 static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
 {
   Mesh *me = rna_mesh(ptr);
   const MPoly *poly = (const MPoly *)ptr->data;
-  MLoop *loops = BKE_mesh_loops_for_write(me);
-
-  MLoop *ml = &loops[poly->loopstart];
-  uint i;
-  for (i = poly->totloop; i > 0; i--, values++, ml++) {
-    ml->v = *values;
-  }
+  memcpy(
+      BKE_mesh_corner_verts_for_write(me) + poly->loopstart, values, sizeof(int) * poly->totloop);
 }
 
 /* disabling, some importers don't know the total material count when assigning materials */
@@ -2009,7 +2025,7 @@ static void rna_Mesh_loops_begin(CollectionPropertyIterator *iter, PointerRNA *p
 {
   Mesh *mesh = rna_mesh(ptr);
   rna_iterator_array_begin(
-      iter, BKE_mesh_loops_for_write(mesh), sizeof(MLoop), mesh->totloop, false, NULL);
+      iter, BKE_mesh_corner_verts_for_write(mesh), sizeof(int), mesh->totloop, false, NULL);
 }
 static int rna_Mesh_loops_length(PointerRNA *ptr)
 {
@@ -2024,7 +2040,7 @@ int rna_Mesh_loops_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   }
   r_ptr->owner_id = &mesh->id;
   r_ptr->type = &RNA_MeshLoop;
-  r_ptr->data = &BKE_mesh_loops_for_write(mesh)[index];
+  r_ptr->data = &BKE_mesh_corner_verts_for_write(mesh)[index];
   return true;
 }
 
@@ -2856,17 +2872,18 @@ static void rna_def_mloop(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MeshLoop", NULL);
-  RNA_def_struct_sdna(srna, "MLoop");
   RNA_def_struct_ui_text(srna, "Mesh Loop", "Loop in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshLoop_path");
   RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
   prop = RNA_def_property(srna, "vertex_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "v");
+  RNA_def_property_int_funcs(
+      prop, "rna_MeshLoop_vertex_index_get", "rna_MeshLoop_vertex_index_set", false);
   RNA_def_property_ui_text(prop, "Vertex", "Vertex index");
 
   prop = RNA_def_property(srna, "edge_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "e");
+  RNA_def_property_int_funcs(
+      prop, "rna_MeshLoop_edge_index_get", "rna_MeshLoop_edge_index_set", false);
   RNA_def_property_ui_text(prop, "Edge", "Edge index");
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);

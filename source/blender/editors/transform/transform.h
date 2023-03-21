@@ -290,10 +290,6 @@ typedef struct TransSnap {
   eSnapSourceOP source_operation;
   /* Determines which objects are possible target */
   eSnapTargetOP target_operation;
-  bool align;
-  bool project;
-  bool peel;
-  bool use_backface_culling;
   short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */

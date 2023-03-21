@@ -74,7 +74,7 @@ struct PuffOperationExecutor {
   Object *surface_ob_ = nullptr;
   Mesh *surface_ = nullptr;
   Span<float3> surface_positions_;
-  Span<MLoop> surface_loops_;
+  Span<int> surface_corner_verts_;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
   BVHTreeFromMesh surface_bvh_;
@@ -125,7 +125,7 @@ struct PuffOperationExecutor {
         surface_->totloop};
 
     surface_positions_ = surface_->vert_positions();
-    surface_loops_ = surface_->loops();
+    surface_corner_verts_ = surface_->corner_verts();
     surface_looptris_ = surface_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
@@ -315,9 +315,9 @@ struct PuffOperationExecutor {
 
         const MLoopTri &looptri = surface_looptris_[nearest.index];
         const float3 closest_pos_su = nearest.co;
-        const float3 &v0_su = surface_positions_[surface_loops_[looptri.tri[0]].v];
-        const float3 &v1_su = surface_positions_[surface_loops_[looptri.tri[1]].v];
-        const float3 &v2_su = surface_positions_[surface_loops_[looptri.tri[2]].v];
+        const float3 &v0_su = surface_positions_[surface_corner_verts_[looptri.tri[0]]];
+        const float3 &v1_su = surface_positions_[surface_corner_verts_[looptri.tri[1]]];
+        const float3 &v2_su = surface_positions_[surface_corner_verts_[looptri.tri[2]]];
         float3 bary_coords;
         interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
         const float3 normal_su = geometry::compute_surface_point_normal(

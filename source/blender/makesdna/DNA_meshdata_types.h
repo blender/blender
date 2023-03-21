@@ -52,7 +52,8 @@ enum {
 
 /**
  * Mesh Faces.
- * This only stores the polygon size & flags, the vertex & edge indices are stored in the #MLoop.
+ * This only stores the polygon size & flags, the vertex & edge indices are stored in the "corner
+ * edges" array.
  *
  * Typically accessed with #Mesh.polys().
  */
@@ -77,19 +78,6 @@ enum {
   /* ME_HIDE = (1 << 4), */
 };
 #endif
-
-/**
- * Mesh Face Corners.
- * "Loop" is an internal name for the corner of a polygon (#MPoly).
- *
- * Typically accessed with #Mesh.loops().
- */
-typedef struct MLoop {
-  /** Vertex index. */
-  unsigned int v;
-  /** Edge index into an #MEdge array. */
-  unsigned int e;
-} MLoop;
 
 /** \} */
 
@@ -126,7 +114,7 @@ enum {
 /**
  * #MLoopTri's are lightweight triangulation data,
  * for functionality that doesn't support ngons (#MPoly).
- * This is cache data created from (#MPoly, #MLoop & position arrays).
+ * This is cache data created from (#MPoly, corner vert & position arrays).
  * There is no attempt to maintain this data's validity over time,
  * any changes to the underlying mesh invalidate the #MLoopTri array,
  * which will need to be re-calculated.
@@ -153,9 +141,9 @@ enum {
  *
  * // access vertex locations.
  * float *vtri_co[3] = {
- *     positions[mloop[lt->tri[0]].v],
- *     positions[mloop[lt->tri[1]].v],
- *     positions[mloop[lt->tri[2]].v],
+ *     positions[corner_verts[lt->tri[0]]],
+ *     positions[corner_verts[lt->tri[1]]],
+ *     positions[corner_verts[lt->tri[2]]],
  * };
  *
  * // access UV coordinates (works for all loop data, vertex colors... etc).
@@ -179,10 +167,10 @@ enum {
  * int j, lt_tot = ME_POLY_TRI_TOT(poly);
  *
  * for (j = 0; j < lt_tot; j++, lt++) {
- *     unsigned int vtri[3] = {
- *         mloop[lt->tri[0]].v,
- *         mloop[lt->tri[1]].v,
- *         mloop[lt->tri[2]].v,
+ *     int vtri[3] = {
+ *         corner_verts[lt->tri[0]],
+ *         corner_verts[lt->tri[1]],
+ *         corner_verts[lt->tri[2]],
  *     };
  *     printf("tri %u %u %u\n", vtri[0], vtri[1], vtri[2]);
  * };
@@ -191,16 +179,16 @@ enum {
  * It may also be useful to check whether or not two vertices of a triangle
  * form an edge in the underlying mesh.
  *
- * This can be done by checking the edge of the referenced loop (#MLoop.e),
- * the winding of the #MLoopTri and the #MLoop's will always match,
+ * This can be done by checking the edge of the referenced corner,
+ * the winding of the #MLoopTri and the corners's will always match,
  * however the order of vertices in the edge is undefined.
  *
  * \code{.c}
  * // print real edges from an MLoopTri: lt
  * int j, j_next;
  * for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
- *     MEdge *ed = &medge[mloop[lt->tri[j]].e];
- *     unsigned int tri_edge[2]  = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
+ *     MEdge *ed = &medge[corner_edges[lt->tri[j]]];
+ *     unsigned int tri_edge[2]  = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
  *
  *     if (((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
  *         ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])))
@@ -410,10 +398,9 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-#define ME_POLY_LOOP_PREV(mloop, poly, i) \
-  (&(mloop)[(poly)->loopstart + (((i) + (poly)->totloop - 1) % (poly)->totloop)])
-#define ME_POLY_LOOP_NEXT(mloop, poly, i) \
-  (&(mloop)[(poly)->loopstart + (((i) + 1) % (poly)->totloop)])
+#define ME_POLY_LOOP_PREV(poly, i) \
+  ((poly)->loopstart + (((i) + (poly)->totloop - 1) % (poly)->totloop))
+#define ME_POLY_LOOP_NEXT(poly, i) ((poly)->loopstart + (((i) + 1) % (poly)->totloop))
 
 /** Number of tri's that make up this polygon once tessellated. */
 #define ME_POLY_TRI_TOT(poly) ((poly)->totloop - 2)
@@ -452,12 +439,10 @@ enum {
   MLOOPUV_PINNED = (1 << 2),
 };
 
-#endif
-
 /**
  * Deprecated mesh vertex data structure. Now stored with generic attributes.
  */
-#ifdef DNA_DEPRECATED_ALLOW
+
 typedef struct MVert {
   float co_legacy[3];
   /**
@@ -479,11 +464,24 @@ enum {
   /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
   ME_HIDE = (1 << 4),
 };
+
+/**
+ * Mesh Face Corners.
+ * Deprecated storage for the vertex of a face corner and the following edge.
+ * Replaced by the "corner_verts" and "corner_edges" arrays.
+ */
+typedef struct MLoop {
+  /** Vertex index. */
+  unsigned int v;
+  /** Edge index into an #MEdge array. */
+  unsigned int e;
+} MLoop;
+
 #endif
 
 /**
- * Used in Blender pre 2.63, See #MLoop, #MPoly for face data stored in the blend file.
- * Use for reading old files and in a handful of cases which should be removed eventually.
+ * Used in Blender pre 2.63, See #Mesh::corner_verts(), #MPoly for face data stored in the blend
+ * file. Use for reading old files and in a handful of cases which should be removed eventually.
  */
 typedef struct MFace {
   unsigned int v1, v2, v3, v4;

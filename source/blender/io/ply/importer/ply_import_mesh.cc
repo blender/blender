@@ -54,9 +54,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     mesh->totpoly = int(data.face_sizes.size());
     mesh->totloop = int(data.face_vertices.size());
     CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, mesh->totpoly);
-    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, mesh->totloop);
+    CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_vert");
     MutableSpan<MPoly> polys = mesh->polys_for_write();
-    MutableSpan<MLoop> loops = mesh->loops_for_write();
+    MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
     /* Fill in face data. */
     uint32_t offset = 0;
@@ -70,7 +71,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
           fprintf(stderr, "Invalid PLY vertex index in face %i loop %i: %u\n", i, j, v);
           v = 0;
         }
-        loops[offset + j].v = v;
+        corner_verts[offset + j] = data.face_vertices[offset + j];
       }
       offset += size;
     }

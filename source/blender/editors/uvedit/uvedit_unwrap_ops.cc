@@ -639,7 +639,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   const float(*subsurfedPositions)[3] = BKE_mesh_vert_positions(subdiv_mesh);
   const blender::Span<MEdge> subsurf_edges = subdiv_mesh->edges();
   const blender::Span<MPoly> subsurf_polys = subdiv_mesh->polys();
-  const blender::Span<MLoop> subsurf_loops = subdiv_mesh->loops();
+  const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
       CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
@@ -691,32 +691,52 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const MLoop *mloop = &subsurf_loops[poly.loopstart];
+    const int *poly_corner_verts = &subsurf_corner_verts[poly.loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(poly.totloop == 4);
     key = (ParamKey)i;
-    vkeys[0] = (ParamKey)mloop[0].v;
-    vkeys[1] = (ParamKey)mloop[1].v;
-    vkeys[2] = (ParamKey)mloop[2].v;
-    vkeys[3] = (ParamKey)mloop[3].v;
+    vkeys[0] = (ParamKey)poly_corner_verts[0];
+    vkeys[1] = (ParamKey)poly_corner_verts[1];
+    vkeys[2] = (ParamKey)poly_corner_verts[2];
+    vkeys[3] = (ParamKey)poly_corner_verts[3];
 
-    co[0] = subsurfedPositions[mloop[0].v];
-    co[1] = subsurfedPositions[mloop[1].v];
-    co[2] = subsurfedPositions[mloop[2].v];
-    co[3] = subsurfedPositions[mloop[3].v];
+    co[0] = subsurfedPositions[poly_corner_verts[0]];
+    co[1] = subsurfedPositions[poly_corner_verts[1]];
+    co[2] = subsurfedPositions[poly_corner_verts[2]];
+    co[3] = subsurfedPositions[poly_corner_verts[3]];
 
     /* This is where all the magic is done.
      * If the vertex exists in the, we pass the original uv pointer to the solver, thus
      * flushing the solution to the edit mesh. */
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[0].v], &uv[0], &pin[0], &select[0]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[1].v], &uv[1], &pin[1], &select[1]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[2].v], &uv[2], &pin[2], &select[2]);
-    texface_from_original_index(
-        scene, offsets, origFace, origVertIndices[mloop[3].v], &uv[3], &pin[3], &select[3]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[0]],
+                                &uv[0],
+                                &pin[0],
+                                &select[0]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[1]],
+                                &uv[1],
+                                &pin[1],
+                                &select[1]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[2]],
+                                &uv[2],
+                                &pin[2],
+                                &select[2]);
+    texface_from_original_index(scene,
+                                offsets,
+                                origFace,
+                                origVertIndices[poly_corner_verts[3]],
+                                &uv[3],
+                                &pin[3],
+                                &select[3]);
 
     blender::geometry::uv_parametrizer_face_add(handle, key, 4, vkeys, co, uv, pin, select);
   }
@@ -1020,19 +1040,6 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /** \} */
 
-/** Compute `r = mat * (a + b)` with high precision. */
-static void mul_v2_m2_add_v2v2(float r[2],
-                               const float mat[2][2],
-                               const float a[2],
-                               const float b[2])
-{
-  const double x = double(a[0]) + double(b[0]);
-  const double y = double(a[1]) + double(b[1]);
-
-  r[0] = float(mat[0][0] * x + mat[1][0] * y);
-  r[1] = float(mat[0][1] * x + mat[1][1] * y);
-}
-
 static void island_uv_transform(FaceIsland *island,
                                 const float matrix[2][2],    /* Scale and rotation. */
                                 const float pre_translate[2] /* (pre) Translation. */
@@ -1057,7 +1064,7 @@ static void island_uv_transform(FaceIsland *island,
     BMIter iter;
     BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-      mul_v2_m2_add_v2v2(luv, matrix, luv, pre_translate);
+      blender::geometry::mul_v2_m2_add_v2v2(luv, matrix, luv, pre_translate);
     }
   }
 }
@@ -1390,6 +1397,9 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     selection_center[1] = (selection_min_co[1] + selection_max_co[1]) / 2.0f;
   }
 
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new();
+
   float scale[2] = {1.0f, 1.0f};
   blender::Vector<blender::geometry::PackIsland *> pack_island_vector;
   for (int i = 0; i < island_vector.size(); i++) {
@@ -1398,7 +1408,29 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     pack_island->bounds_rect = face_island->bounds_rect;
     pack_island->caller_index = i;
     pack_island_vector.append(pack_island);
+
+    for (int i = 0; i < face_island->faces_len; i++) {
+      BMFace *f = face_island->faces[i];
+
+      /* Storage. */
+      blender::Array<blender::float2> uvs(f->len);
+
+      /* Obtain UVs of polygon. */
+      BMLoop *l;
+      BMIter iter;
+      int j;
+      BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
+        copy_v2_v2(uvs[j], BM_ELEM_CD_GET_FLOAT_P(l, face_island->offsets.uv));
+      }
+
+      pack_island->add_polygon(uvs, arena, heap);
+
+      BLI_memarena_clear(arena);
+    }
+    pack_island->finalize_geometry(*params, arena, heap);
   }
+  BLI_heap_free(heap, nullptr);
+  BLI_memarena_free(arena);
   pack_islands(pack_island_vector, *params, scale);
 
   float base_offset[2] = {0.0f, 0.0f};
@@ -1523,6 +1555,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
+  pack_island_params.shape_method = eUVPackIsland_ShapeMethod(
+      RNA_enum_get(op->ptr, "shape_method"));
 
   UVMapUDIM_Params closest_udim_buf;
   UVMapUDIM_Params *closest_udim = nullptr;
@@ -1556,6 +1590,14 @@ static const EnumPropertyItem pack_margin_method_items[] = {
      0,
      "Fraction",
      "Specify a precise fraction of final UV output"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem pack_shape_method_items[] = {
+    {ED_UVPACK_SHAPE_CONCAVE, "CONCAVE", 0, "Exact shape (Concave)", "Uses exact geometry"},
+    {ED_UVPACK_SHAPE_CONVEX, "CONVEX", 0, "Boundary shape (Convex)", "Uses convex hull"},
+    RNA_ENUM_ITEM_SEPR,
+    {ED_UVPACK_SHAPE_AABB, "AABB", 0, "Bounding box", "Uses bounding boxes"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1593,6 +1635,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
                "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+  RNA_def_enum(ot->srna,
+               "shape_method",
+               pack_shape_method_items,
+               ED_UVPACK_SHAPE_CONCAVE,
+               "Shape Method",
+               "");
 }
 
 /** \} */

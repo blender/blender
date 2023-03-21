@@ -933,6 +933,8 @@ void WM_reportf(eReportType type, const char *format, ...)
 {
   va_list args;
 
+  format = TIP_(format);
+
   DynStr *ds = BLI_dynstr_new();
   va_start(args, format);
   BLI_dynstr_vappendf(ds, format, args);

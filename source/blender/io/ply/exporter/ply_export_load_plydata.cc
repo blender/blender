@@ -124,11 +124,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     plyData.face_vertices.reserve(mesh->totloop);
     plyData.face_sizes.reserve(mesh->totpoly);
     int loop_offset = 0;
-    const Span<MLoop> loops = mesh->loops();
+    const Span<int> corner_verts = mesh->corner_verts();
     for (const MPoly &poly : mesh->polys()) {
-      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      const Span<int> mesh_poly_verts = corner_verts.slice(poly.loopstart, poly.totloop);
+      Array<uint32_t> poly_verts(mesh_poly_verts.size());
 
-      for (int i = 0; i < poly_loops.size(); ++i) {
+      for (int i = 0; i < mesh_poly_verts.size(); ++i) {
         float2 uv;
         if (export_params.export_uv && uv_map != nullptr) {
           uv = uv_map[i + loop_offset];
@@ -136,7 +137,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         else {
           uv = {0, 0};
         }
-        UV_vertex_key key = UV_vertex_key(uv, poly_loops[i].v);
+        UV_vertex_key key = UV_vertex_key(uv, mesh_poly_verts[i]);
         int ply_vertex_index = vertex_map.lookup(key);
         plyData.face_vertices.append(ply_vertex_index + vertex_offset);
       }
@@ -229,7 +230,7 @@ void generate_vertex_map(const Mesh *mesh,
 {
 
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
   const int totvert = mesh->totvert;
 
   r_map.reserve(totvert);
@@ -246,7 +247,7 @@ void generate_vertex_map(const Mesh *mesh,
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(polys.data(),
                                                        nullptr,
                                                        nullptr,
-                                                       loops.data(),
+                                                       corner_verts.data(),
                                                        reinterpret_cast<const float(*)[2]>(uv_map),
                                                        uint(polys.size()),
                                                        totvert,

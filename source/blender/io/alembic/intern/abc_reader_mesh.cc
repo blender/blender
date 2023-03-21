@@ -176,7 +176,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
   MPoly *polys = config.polys;
-  MLoop *mloops = config.mloop;
+  int *corner_verts = config.corner_verts;
   float2 *mloopuvs = config.mloopuv;
 
   const Int32ArraySamplePtr &face_indices = mesh_data.face_indices;
@@ -209,18 +209,18 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
     uint last_vertex_index = 0;
     for (int f = 0; f < face_size; f++, loop_index++, rev_loop_index--) {
-      MLoop &loop = mloops[rev_loop_index];
-      loop.v = (*face_indices)[loop_index];
+      const int vert = (*face_indices)[loop_index];
+      corner_verts[rev_loop_index] = vert;
 
-      if (f > 0 && loop.v == last_vertex_index) {
+      if (f > 0 && vert == last_vertex_index) {
         /* This face is invalid, as it has consecutive loops from the same vertex. This is caused
          * by invalid geometry in the Alembic file, such as in #76514. */
         seen_invalid_geometry = true;
       }
-      last_vertex_index = loop.v;
+      last_vertex_index = vert;
 
       if (do_uvs) {
-        uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : loop.v];
+        uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : last_vertex_index];
 
         /* Some Alembic files are broken (or at least export UVs in a way we don't expect). */
         if (uv_index >= uvs_size) {
@@ -517,7 +517,7 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
   CDStreamConfig config;
   config.mesh = mesh;
   config.positions = mesh->vert_positions_for_write().data();
-  config.mloop = mesh->loops_for_write().data();
+  config.corner_verts = mesh->corner_verts_for_write().data();
   config.polys = mesh->polys_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;

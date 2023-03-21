@@ -315,11 +315,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxloop, maxpoly);
 
   const blender::Span<MPoly> orig_polys = mesh->polys();
-  const blender::Span<MLoop> orig_loops = mesh->loops();
+  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
+  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> edges = result->edges_for_write();
   blender::MutableSpan<MPoly> polys = result->polys_for_write();
-  blender::MutableSpan<MLoop> loops = result->loops_for_write();
+  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
       &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
@@ -485,23 +487,23 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       poly.loopstart += p_skip * totloop;
 
       {
-        const MLoop *inML = &orig_loops[in_poly.loopstart];
-        MLoop *ml = &loops[poly.loopstart];
+        int orig_corner_i = in_poly.loopstart;
+        int dst_corner_i = poly.loopstart;
         int j = poly.totloop;
 
         CustomData_copy_data(&mesh->ldata, &result->ldata, in_poly.loopstart, poly.loopstart, j);
-        for (; j; j--, ml++, inML++) {
-          ml->v = inML->v + (p_skip * totvert);
-          ml->e = inML->e + (p_skip * totedge);
-          const int ml_index = (ml - loops.data());
+        for (; j; j--, orig_corner_i++, dst_corner_i++) {
+          corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
+          corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);
+          const int vert = corner_verts[orig_corner_i];
           if (mloopcols_index != nullptr) {
-            const int part_index = vert_part_index[ml->v];
-            store_float_in_vcol(&mloopcols_index[ml_index],
+            const int part_index = vert_part_index[vert];
+            store_float_in_vcol(&mloopcols_index[dst_corner_i],
                                 float(part_index) / float(psys->totpart - 1));
           }
           if (mloopcols_value != nullptr) {
-            const float part_value = vert_part_value[ml->v];
-            store_float_in_vcol(&mloopcols_value[ml_index], part_value);
+            const float part_value = vert_part_value[vert];
+            store_float_in_vcol(&mloopcols_value[dst_corner_i], part_value);
           }
         }
       }

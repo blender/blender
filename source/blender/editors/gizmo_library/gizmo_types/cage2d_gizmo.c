@@ -638,15 +638,15 @@ static void cage2d_draw_rect_edge_handles(const rctf *r,
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
       const float rad[2] = {0.2f * margin[0], 0.4f * size[1]};
-      imm_draw_point_aspect_2d(pos, r->xmin, 0.f, rad[0], rad[1], solid);
-      imm_draw_point_aspect_2d(pos, r->xmax, 0.f, rad[0], rad[1], solid);
+      imm_draw_point_aspect_2d(pos, r->xmin, 0.0f, rad[0], rad[1], solid);
+      imm_draw_point_aspect_2d(pos, r->xmax, 0.0f, rad[0], rad[1], solid);
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
       const float rad[2] = {0.4f * size[0], 0.2f * margin[1]};
-      imm_draw_point_aspect_2d(pos, 0.f, r->ymin, rad[0], rad[1], solid);
-      imm_draw_point_aspect_2d(pos, 0.f, r->ymax, rad[0], rad[1], solid);
+      imm_draw_point_aspect_2d(pos, 0.0f, r->ymin, rad[0], rad[1], solid);
+      imm_draw_point_aspect_2d(pos, 0.0f, r->ymax, rad[0], rad[1], solid);
       break;
     }
   }
