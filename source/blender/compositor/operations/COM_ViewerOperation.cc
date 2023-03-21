@@ -12,8 +12,6 @@
 
 namespace blender::compositor {
 
-static int MAX_VIEWER_TRANSLATION_PADDING = 12000;
-
 ViewerOperation::ViewerOperation()
 {
   this->set_image(nullptr);
