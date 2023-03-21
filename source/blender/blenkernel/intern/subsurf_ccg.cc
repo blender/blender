@@ -1041,7 +1041,7 @@ static void ccgDM_copyFinalCornerVertArray(DerivedMesh *dm, int *r_corner_verts)
   CopyFinalLoopArrayData data;
   data.ccgdm = ccgdm;
   data.corner_verts = r_corner_verts;
-  data.corner_edges = NULL;
+  data.corner_edges = nullptr;
   data.grid_size = ccgSubSurf_getGridSize(ss);
   data.grid_offset = dm->getGridOffset(dm);
   data.edge_size = ccgSubSurf_getEdgeSize(ss);
@@ -1085,7 +1085,7 @@ static void ccgDM_copyFinalCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
 
   CopyFinalLoopArrayData data;
   data.ccgdm = ccgdm;
-  data.corner_verts = NULL;
+  data.corner_verts = nullptr;
   data.corner_edges = r_corner_edges;
   data.grid_size = ccgSubSurf_getGridSize(ss);
   data.grid_offset = dm->getGridOffset(dm);

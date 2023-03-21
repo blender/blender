@@ -603,8 +603,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
     }
     for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
       int ty = source_cd->layers[source_layer_i].type;
-      if (STREQ(source_cd->layers[source_layer_i].name, ".corner_vert") ||
-          STREQ(source_cd->layers[source_layer_i].name, ".corner_edge")) {
+      if (STR_ELEM(source_cd->layers[source_layer_i].name, ".corner_vert", ".corner_edge")) {
         continue;
       }
       const char *name = source_cd->layers[source_layer_i].name;

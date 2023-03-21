@@ -53,7 +53,7 @@ class ply_import_test : public testing::Test {
     BLI_hash_mm2a_init(&hash, 0);
     uint32_t offset = 0;
     for (uint32_t face_size : data->face_sizes) {
-      BLI_hash_mm2a_add(&hash, (const unsigned char *)&data->face_vertices[offset], face_size * 4);
+      BLI_hash_mm2a_add(&hash, (const uchar *)&data->face_vertices[offset], face_size * 4);
       offset += face_size;
     }
     uint16_t face_hash = BLI_hash_mm2a_end(&hash);
@@ -62,9 +62,8 @@ class ply_import_test : public testing::Test {
     }
 
     if (!data->edges.is_empty()) {
-      uint16_t edge_hash = BLI_hash_mm2((const unsigned char *)data->edges.data(),
-                                        data->edges.size() * sizeof(data->edges[0]),
-                                        0);
+      uint16_t edge_hash = BLI_hash_mm2(
+          (const uchar *)data->edges.data(), data->edges.size() * sizeof(data->edges[0]), 0);
       ASSERT_EQ(edge_hash, exp.edgehash);
     }
 

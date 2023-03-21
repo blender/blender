@@ -1177,9 +1177,9 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
       for (i = 0; i < tris_len; i++, lt++) {
         float co[3][3];
 
-        tris[i][0] = (uint)corner_verts[lt->tri[0]];
-        tris[i][1] = (uint)corner_verts[lt->tri[1]];
-        tris[i][2] = (uint)corner_verts[lt->tri[2]];
+        tris[i][0] = uint(corner_verts[lt->tri[0]]);
+        tris[i][1] = uint(corner_verts[lt->tri[1]]);
+        tris[i][2] = uint(corner_verts[lt->tri[2]]);
 
         copy_v3_v3(co[0], coords[tris[i][0]]);
         copy_v3_v3(co[1], coords[tris[i][1]]);

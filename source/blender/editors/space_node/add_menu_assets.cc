@@ -181,7 +181,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   for (const LibraryAsset &item : asset_items) {
     uiLayout *col = uiLayoutColumn(layout, false);
 
-    PointerRNA asset_ptr{NULL, &RNA_AssetRepresentation, &item.asset};
+    PointerRNA asset_ptr{nullptr, &RNA_AssetRepresentation, &item.asset};
     uiLayoutSetContextPointer(col, "asset", &asset_ptr);
 
     PointerRNA library_ptr{&screen.id,

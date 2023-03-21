@@ -256,7 +256,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         const int vert_i = orig_corner_verts[corner_i];
         const int prev_vert_i = orig_corner_verts[corner_i_prev];
         /* add edge user */
-        eidx = (int)(orig_corner_edges[corner_i_prev]);
+        eidx = int(orig_corner_edges[corner_i_prev]);
         if (edge_users[eidx] == INVALID_UNUSED) {
           edge = &orig_edges[eidx];
           BLI_assert(ELEM(prev_vert_i, edge->v1, edge->v2) && ELEM(vert_i, edge->v1, edge->v2));
