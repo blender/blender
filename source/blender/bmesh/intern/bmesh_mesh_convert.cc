@@ -1123,11 +1123,11 @@ static void bm_edge_table_build(BMesh &bm,
     BM_elem_index_set(edge, i); /* set_inline */
     table[i] = edge;
     hflag |= edge->head.hflag;
+    need_sharp_edge |= (edge->head.hflag & BM_ELEM_SMOOTH) == 0;
     BM_CHECK_ELEMENT(edge);
   }
   need_select_edge = (hflag & BM_ELEM_SELECT) != 0;
   need_hide_edge = (hflag & BM_ELEM_HIDDEN) != 0;
-  need_sharp_edge = (hflag & BM_ELEM_SMOOTH) != 0;
   need_uv_seams = (hflag & BM_ELEM_SEAM) != 0;
 }
 
