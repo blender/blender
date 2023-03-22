@@ -82,7 +82,7 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
         mesh.totloop,
         [polys, corner_edges, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const MPoly &poly = polys[loop_to_poly_map[corner_i]];
-          return corner_edges[bke::mesh_topology::poly_loop_prev(poly, corner_i)];
+          return corner_edges[bke::mesh::poly_corner_prev(poly, corner_i)];
         });
   }
 

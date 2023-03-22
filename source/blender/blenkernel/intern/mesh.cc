@@ -1505,45 +1505,6 @@ void BKE_mesh_auto_smooth_flag_set(Mesh *me,
   }
 }
 
-int poly_find_loop_from_vert(const MPoly *poly, const int *poly_corner_verts, int vert)
-{
-  for (int j = 0; j < poly->totloop; j++) {
-    if (poly_corner_verts[j] == vert) {
-      return j;
-    }
-  }
-
-  return -1;
-}
-
-int poly_get_adj_loops_from_vert(const MPoly *poly,
-                                 const int *corner_verts,
-                                 int vert,
-                                 int r_adj[2])
-{
-  int corner = poly_find_loop_from_vert(poly, &corner_verts[poly->loopstart], vert);
-
-  if (corner != -1) {
-    /* vertex was found */
-    r_adj[0] = corner_verts[ME_POLY_LOOP_PREV(poly, corner)];
-    r_adj[1] = corner_verts[ME_POLY_LOOP_NEXT(poly, corner)];
-  }
-
-  return corner;
-}
-
-int BKE_mesh_edge_other_vert(const MEdge *edge, int v)
-{
-  if (edge->v1 == v) {
-    return edge->v2;
-  }
-  if (edge->v2 == v) {
-    return edge->v1;
-  }
-
-  return -1;
-}
-
 void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
                                      const int *corner_verts,
                                      const int *corner_edges,

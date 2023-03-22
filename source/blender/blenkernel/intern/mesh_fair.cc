@@ -237,11 +237,12 @@ class MeshFairingContext : public FairingContext {
                                   float r_adj_next[3],
                                   float r_adj_prev[3]) override
   {
+    using namespace blender;
     const int vert = corner_verts_[loop];
     const MPoly &poly = polys[loop_to_poly_map_[loop]];
-    const int corner = poly_find_loop_from_vert(&poly, &corner_verts_[poly.loopstart], vert);
-    copy_v3_v3(r_adj_next, co_[corner_verts_[ME_POLY_LOOP_NEXT(&poly, corner)]]);
-    copy_v3_v3(r_adj_prev, co_[corner_verts_[ME_POLY_LOOP_PREV(&poly, corner)]]);
+    const int2 adjecent_verts = bke::mesh::poly_find_adjecent_verts(poly, corner_verts_, vert);
+    copy_v3_v3(r_adj_next, co_[adjecent_verts[0]]);
+    copy_v3_v3(r_adj_prev, co_[adjecent_verts[1]]);
   }
 
   int other_vertex_index_from_loop(const int loop, const uint v) override

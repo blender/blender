@@ -740,13 +740,13 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       nearest.index = -1;
 
       for (i = 0; i < numedges_dst; i++) {
-        const MEdge *e_dst = &edges_dst[i];
+        const MEdge &e_dst = edges_dst[i];
         float best_totdist = FLT_MAX;
         int best_eidx_src = -1;
         int j = 2;
 
         while (j--) {
-          const uint vidx_dst = j ? e_dst->v1 : e_dst->v2;
+          const uint vidx_dst = j ? e_dst.v1 : e_dst.v2;
 
           /* Compute closest verts only once! */
           if (v_dst_to_src_map[vidx_dst].hit_dist == -1.0f) {
@@ -772,7 +772,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         /* Now, check all source edges of closest sources vertices,
          * and select the one giving the smallest total verts-to-verts distance. */
         for (j = 2; j--;) {
-          const uint vidx_dst = j ? e_dst->v1 : e_dst->v2;
+          const uint vidx_dst = j ? e_dst.v1 : e_dst.v2;
           const float first_dist = v_dst_to_src_map[vidx_dst].hit_dist;
           const int vidx_src = v_dst_to_src_map[vidx_dst].index;
           int *eidx_src, k;
@@ -785,10 +785,11 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
           k = vert_to_edge_src_map[vidx_src].count;
 
           for (; k--; eidx_src++) {
-            const MEdge *edge_src = &edges_src[*eidx_src];
-            const float *other_co_src = vcos_src[BKE_mesh_edge_other_vert(edge_src, vidx_src)];
+            const MEdge &edge_src = edges_src[*eidx_src];
+            const float *other_co_src =
+                vcos_src[blender::bke::mesh::edge_other_vert(edge_src, vidx_src)];
             const float *other_co_dst =
-                vert_positions_dst[BKE_mesh_edge_other_vert(e_dst, int(vidx_dst))];
+                vert_positions_dst[blender::bke::mesh::edge_other_vert(e_dst, int(vidx_dst))];
             const float totdist = first_dist + len_v3v3(other_co_src, other_co_dst);
 
             if (totdist < best_totdist) {
@@ -801,8 +802,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         if (best_eidx_src >= 0) {
           const float *co1_src = vcos_src[edges_src[best_eidx_src].v1];
           const float *co2_src = vcos_src[edges_src[best_eidx_src].v2];
-          const float *co1_dst = vert_positions_dst[e_dst->v1];
-          const float *co2_dst = vert_positions_dst[e_dst->v2];
+          const float *co1_dst = vert_positions_dst[e_dst.v1];
+          const float *co2_dst = vert_positions_dst[e_dst.v2];
           float co_src[3], co_dst[3];
 
           /* TODO: would need an isect_seg_seg_v3(), actually! */

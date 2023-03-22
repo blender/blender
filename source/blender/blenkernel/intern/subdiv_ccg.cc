@@ -1996,13 +1996,14 @@ static void adjacet_vertices_index_from_adjacent_edge(const SubdivCCG *subdiv_cc
   const MPoly &poly = polys[poly_index];
   *r_v1 = corner_verts[coord->grid_index];
 
-  const int corner = poly_find_loop_from_vert(&poly, &corner_verts[poly.loopstart], *r_v1);
+  const blender::Span poly_verts(&corner_verts[poly.loopstart], poly.totloop);
+  const int i = poly_verts.first_index(*r_v1);
   if (coord->x == grid_size_1) {
-    const int next = ME_POLY_LOOP_NEXT(&poly, corner);
+    const int next = ME_POLY_LOOP_NEXT(&poly, i);
     *r_v2 = corner_verts[next];
   }
   if (coord->y == grid_size_1) {
-    const int prev = ME_POLY_LOOP_PREV(&poly, corner);
+    const int prev = ME_POLY_LOOP_PREV(&poly, i);
     *r_v2 = corner_verts[prev];
   }
 }

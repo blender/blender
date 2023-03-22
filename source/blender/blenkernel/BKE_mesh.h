@@ -105,26 +105,6 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
 
 /**
- * Find the index of the loop in 'poly' which references vertex,
- * returns -1 if not found
- */
-int poly_find_loop_from_vert(const struct MPoly *poly, const int *poly_verts, int vert);
-/**
- * Fill \a r_adj with the loop indices in \a poly adjacent to the
- * vertex. Returns the index of the loop matching vertex, or -1 if the
- * vertex is not in \a poly
- */
-int poly_get_adj_loops_from_vert(const struct MPoly *poly,
-                                 const int *corner_verts,
-                                 int vert,
-                                 int r_adj[2]);
-
-/**
- * Return the index of the edge vert that is not equal to \a v. If
- * neither edge vertex is equal to \a v, returns -1.
- */
-int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
-/**
  * Sets each output array element to the edge index if it is a real edge, or -1.
  */
 void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,

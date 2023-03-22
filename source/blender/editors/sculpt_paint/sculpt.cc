@@ -888,12 +888,11 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       continue;
     }
     const MPoly &poly = ss->polys[vert_map->indices[i]];
-    int f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(&poly, ss->corner_verts.data(), vertex.i, f_adj_v) != -1) {
-      for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-        if (f_adj_v[j] != vertex.i) {
-          sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
-        }
+    const blender::int2 f_adj_v = blender::bke::mesh::poly_find_adjecent_verts(
+        poly, ss->corner_verts, vertex.i);
+    for (int j = 0; j < 2; j++) {
+      if (f_adj_v[j] != vertex.i) {
+        sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
       }
     }
   }
