@@ -2011,19 +2011,19 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
           MEM_callocN(sizeof(float) * gridarea, "GridPaintMask.data"));
     }
 
-    /* if vertices already have mask, copy into multires data */
+    /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
       for (const int i : polys.index_range()) {
         const MPoly &poly = polys[i];
 
-        /* mask center */
+        /* Mask center. */
         float avg = 0.0f;
         for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
           avg += paint_mask[vert];
         }
         avg /= float(poly.totloop);
 
-        /* fill in multires mask corner */
+        /* Fill in multires mask corner. */
         for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
           GridPaintMask *gpm = &gmask[corner];
           const int vert = corner_verts[corner];
@@ -2031,8 +2031,8 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
           const int next = corner_verts[blender::bke::mesh::poly_corner_next(poly, vert)];
 
           gpm->data[0] = avg;
-          gpm->data[1] = (paint_mask[vert] + paint_mask[vert]) * 0.5f;
-          gpm->data[2] = (paint_mask[vert] + paint_mask[vert]) * 0.5f;
+          gpm->data[1] = (paint_mask[vert] + paint_mask[next]) * 0.5f;
+          gpm->data[2] = (paint_mask[vert] + paint_mask[prev]) * 0.5f;
           gpm->data[3] = paint_mask[vert];
         }
       }
