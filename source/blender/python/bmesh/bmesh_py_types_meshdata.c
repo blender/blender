@@ -710,7 +710,7 @@ static struct PyMethodDef bpy_bmdeformvert_methods[] = {
     {"values", (PyCFunction)bpy_bmdeformvert_values, METH_NOARGS, bpy_bmdeformvert_values_doc},
     {"items", (PyCFunction)bpy_bmdeformvert_items, METH_NOARGS, bpy_bmdeformvert_items_doc},
     {"get", (PyCFunction)bpy_bmdeformvert_get, METH_VARARGS, bpy_bmdeformvert_get_doc},
-    /* BMESH_TODO pop, popitem, update */
+    /* BMESH_TODO `pop`, `popitem`, `update`. */
     {"clear", (PyCFunction)bpy_bmdeformvert_clear, METH_NOARGS, bpy_bmdeformvert_clear_doc},
     {NULL, NULL, 0, NULL},
 };

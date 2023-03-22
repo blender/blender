@@ -312,7 +312,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     int nverts = poly.totloop;
     int j, j_next;
     CCGFace *origf = ccgSubSurf_getFace(origss, POINTER_FROM_INT(i));
-    /* uint *fv = &poly.v1; */
+    // uint *fv = &poly.v1;
 
     fverts.reinitialize(nverts);
 

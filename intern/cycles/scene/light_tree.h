@@ -160,7 +160,7 @@ struct LightTreeNode {
   int num_prims = -1;                    /* The number of primitives a leaf node stores. A negative
                                             number indicates it is an inner node. */
   int first_prim_index;                  /* Leaf nodes contain an index to first primitive. */
-  unique_ptr<LightTreeNode> children[2]; /* Inner node has two chlidren. */
+  unique_ptr<LightTreeNode> children[2]; /* Inner node has two children. */
 
   LightTreeNode() = default;
 

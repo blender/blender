@@ -24,22 +24,22 @@
 
 namespace blender::geometry {
 
-/** Compute `r = mat * (a + b)` with high precision.
- *
- * Often, linear transforms are written as :
- *  `A.x + b`
- *
- * When transforming UVs, the familiar expression can
- * damage UVs due to round-off error, expecially when
- * using UDIM and if there are large numbers of islands.
- *
- * Instead, we provide a helper which evaluates :
- *  `A. (x + b)`
- *
- * To further reduce damage, all internal calculations are
- * performed using double precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2])
 {
+  /* Compute `r = mat * (a + b)` with high precision.
+   *
+   * Often, linear transforms are written as:
+   *  `A.x + b`
+   *
+   * When transforming UVs, the familiar expression can damage UVs due to round-off error,
+   * especially when using UDIM and if there are large numbers of islands.
+   *
+   * Instead, we provide a helper which evaluates:
+   *  `A. (x + b)`
+   *
+   * To further reduce damage, all internal calculations are
+   * performed using double precision. */
+
   const double x = double(a[0]) + double(b[0]);
   const double y = double(a[1]) + double(b[1]);
 
@@ -47,7 +47,8 @@ void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], con
   r[1] = float(mat[0][1] * x + mat[1][1] * y);
 }
 
-/* Compute signed distance squared to a line passing through `uva` and `uvb`.
+/**
+ * Compute signed distance squared to a line passing through `uva` and `uvb`.
  */
 static float dist_signed_squared_to_edge(float2 probe, float2 uva, float2 uvb)
 {
@@ -459,12 +460,12 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
 }
 
 /**
- * Pack irregular islands using the "xatlas" strategy, with no rotation.
+ * Pack irregular islands using the `xatlas` strategy, with no rotation.
  *
  * Loosely based on the 'xatlas' code by Jonathan Young
  * from https://github.com/jpcy/xatlas
  *
- * A brute force packer (BFPacker) with accelerators:
+ * A brute force packer (BF-Packer) with accelerators:
  * - Uses a Bitmap Occupancy class.
  * - Uses a "Witness Pixel" and a "Triangle Hint".
  * - Write with `margin * 2`, read with `margin == 0`.
@@ -489,9 +490,9 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   int i = 0;
 
   /* The following `while` loop is setting up a three-way race:
-   * for (scan_line=0; scan_line<bitmap_radix; scan_line++)
-   * for (i : island_indices.index_range())
-   * while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }
+   * `for (scan_line = 0; scan_line < bitmap_radix; scan_line++)`
+   * `for (i : island_indices.index_range())`
+   * `while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }`
    */
 
   while (i < island_indices.size()) {
@@ -507,10 +508,9 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
       else {
         /* Increasing by 2 here has the effect of changing the sampling pattern.
          * The parameter '2' is not "free" in the sense that changing it requires
-         * a change to `bitmap_radix` and then retuning `alpaca_cutoff`.
+         * a change to `bitmap_radix` and then returning `alpaca_cutoff`.
          * Possible values here *could* be 1, 2 or 3, however the only *reasonable*
-         * choice is 2.
-         */
+         * choice is 2. */
         scan_line += 2;
       }
       if (scan_line < occupancy.bitmap_radix) {
@@ -592,10 +592,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* Partition `islands`, largest will go to a slow packer, the rest alpaca_turbo.
    * See discussion above for details. */
-  int64_t alpaca_cutoff = int64_t(
-      1024); /* Regular situation, pack 1024 islands with slow packer. */
-  int64_t alpaca_cutoff_fast = int64_t(
-      80); /* Reduced problem size, only 80 islands with slow packer. */
+  int64_t alpaca_cutoff = 1024;    /* Regular situation, pack 1024 islands with slow packer. */
+  int64_t alpaca_cutoff_fast = 80; /* Reduced problem size, only 80 islands with slow packer. */
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION) {
     if (margin > 0.0f) {
       alpaca_cutoff = alpaca_cutoff_fast;

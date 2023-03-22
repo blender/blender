@@ -342,7 +342,7 @@ void BKE_image_ensure_gpu_texture(Image *image, ImageUser *image_user)
     return;
   }
 
-  /* Note that the image can cache both sterio views, so we only invalidate the cache if the view
+  /* Note that the image can cache both stereo views, so we only invalidate the cache if the view
    * index is more than 2. */
   if (image->gpu_pass != image_user->pass || image->gpu_layer != image_user->layer ||
       (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2)) {
