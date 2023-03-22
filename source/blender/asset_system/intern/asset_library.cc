@@ -127,12 +127,61 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
       true);
 }
 
-void AS_asset_full_path_resolve_from_weak_ref(const AssetWeakReference *asset_reference,
-                                              char r_path[1090 /* FILE_MAX_LIBEXTRA */])
+void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
+                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char **r_dir,
+                                              char **r_group,
+                                              char **r_name)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  std::string full_path = service->resolve_asset_weak_reference_to_full_path(*asset_reference);
-  BLI_strncpy(r_path, full_path.c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+  StringRef dir, group, name;
+  std::string full_path = service->asset_weak_reference_library_path_explode(
+      *asset_reference, dir, group, name);
+
+  if (full_path.length() == 0) {
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = nullptr;
+    }
+    if (r_name) {
+      *r_name = nullptr;
+    }
+    return;
+  }
+
+  BLI_assert(!group.is_empty() && !name.is_empty());
+
+  BLI_strncpy(r_path_buffer, full_path.c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+
+  if (!dir.is_empty()) {
+    r_path_buffer[dir.size()] = '\0';
+    r_path_buffer[dir.size() + 1 + group.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = r_path_buffer;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer + dir.size() + 1;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + dir.size() + 1 + group.size() + 1;
+    }
+  }
+  else {
+    r_path_buffer[group.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + group.size() + 1;
+    }
+  }
 }
 
 namespace blender::asset_system {

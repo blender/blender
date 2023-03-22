@@ -70,6 +70,7 @@ void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaDat
 
 /** Frees the weak reference and its data, and nulls the given pointer. */
 void BKE_asset_weak_reference_free(AssetWeakReference **weak_ref);
+AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_write(struct BlendWriter *writer,
                                     const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(struct BlendDataReader *reader, AssetWeakReference *weak_ref);

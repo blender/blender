@@ -50,8 +50,11 @@ void AS_asset_library_remap_ids(const struct IDRemapper *mappings);
  *
  * \param r_path: Returns the resolved path with native slashes, or an empty string if the path
  *                could not be resolved. Must be at least #FILE_MAX_LIBEXTRA long. */
-void AS_asset_full_path_resolve_from_weak_ref(const struct AssetWeakReference *asset_reference,
-                                              char r_path[1090 /* FILE_MAX_LIBEXTRA */]);
+void AS_asset_full_path_explode_from_weak_ref(const struct AssetWeakReference *asset_reference,
+                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char **r_dir,
+                                              char **r_group,
+                                              char **r_name);
 
 #ifdef __cplusplus
 }

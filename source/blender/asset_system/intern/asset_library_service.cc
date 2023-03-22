@@ -246,18 +246,10 @@ AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
   return nullptr;
 }
 
-/* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
- * Once there is a proper registry of asset libraries, this could contain an asset library locator
- * and/or identifier, so a full path (not necessarily file path) can be built for all asset
- * libraries. */
-std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
+std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
     const AssetWeakReference &asset_reference)
 {
-  if (asset_reference.relative_asset_identifier[0] == '\0') {
-    return "";
-  }
-
-  StringRef library_path;
+  StringRefNull library_path;
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_CUSTOM: {
@@ -287,16 +279,97 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
       return "";
   }
 
-  std::string full_path = library_path + SEP_STR + asset_reference.relative_asset_identifier;
+  std::string normalized_library_path = utils::normalize_path(library_path);
+  return normalized_library_path;
+}
 
-  char *buf = BLI_strdupn(full_path.c_str(), full_path.size());
-  BLI_path_normalize(nullptr, buf);
-  BLI_path_slash_native(buf);
+/* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
+ * Once there is a proper registry of asset libraries, this could contain an asset library locator
+ * and/or identifier, so a full path (not necessarily file path) can be built for all asset
+ * libraries. */
+std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
+    const AssetWeakReference &asset_reference)
+{
+  if (asset_reference.relative_asset_identifier[0] == '\0') {
+    return "";
+  }
 
-  std::string normalized_full_path = buf;
-  MEM_freeN(buf);
+  std::string library_path = resolve_asset_weak_reference_to_library_path(asset_reference);
 
+  std::string normalized_full_path = utils::normalize_path(
+      library_path + SEP_STR + asset_reference.relative_asset_identifier);
   return normalized_full_path;
+}
+
+std::string AssetLibraryService::asset_weak_reference_library_path_explode(
+    const AssetWeakReference &asset_reference,
+    StringRef &r_dir,
+    StringRef &r_group,
+    StringRef &r_name)
+{
+  std::string full_path = "";
+  r_dir = full_path;
+  r_group = full_path;
+  r_name = full_path;
+
+  if (asset_reference.relative_asset_identifier[0] == '\0') {
+    return full_path;
+  }
+
+  switch (eAssetLibraryType(asset_reference.asset_library_type)) {
+    case ASSET_LIBRARY_LOCAL: {
+      full_path = utils::normalize_path(asset_reference.relative_asset_identifier);
+      r_dir = r_group = r_name = full_path;
+
+      const int64_t group_len = int64_t(full_path.find(SEP));
+      r_dir = r_dir.substr(0, 0);
+      r_group = r_group.substr(0, group_len);
+      r_name = r_name.substr(group_len + 1);
+
+      return full_path;
+    }
+    case ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_ESSENTIALS: {
+      std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
+      r_dir = r_group = r_name = full_path;
+
+      if (full_path.empty()) {
+        return full_path;
+      }
+
+      const std::vector<std::string> blendfile_extensions = {".blend/", ".blend.gz/", ".ble/"};
+      size_t blendfile_extension_pos = std::string::npos;
+      for (std::string blendfile_ext : blendfile_extensions) {
+        size_t ext_pos = full_path.rfind(blendfile_ext);
+        if (ext_pos != std::string::npos &&
+            (blendfile_extension_pos < ext_pos || blendfile_extension_pos == std::string::npos)) {
+          blendfile_extension_pos = ext_pos;
+        }
+      }
+      BLI_assert(blendfile_extension_pos != std::string::npos);
+
+      size_t group_pos = full_path.find(SEP, blendfile_extension_pos);
+      BLI_assert(group_pos != std::string::npos);
+
+      size_t name_pos = full_path.find(SEP, group_pos + 1);
+      BLI_assert(group_pos != std::string::npos);
+
+      const int64_t dir_len = int64_t(group_pos);
+      const int64_t group_len = int64_t(name_pos - group_pos - 1);
+      r_dir = r_dir.substr(0, dir_len);
+      r_group = r_group.substr(dir_len + 1, group_len);
+      r_name = r_name.substr(dir_len + 1 + group_len + 1);
+
+      std::cout << full_path << "\n";
+      std::cout << r_dir << "\t\t" << r_group << "\t\t" << r_name << "\n";
+
+      return full_path;
+    }
+    case ASSET_LIBRARY_ALL:
+      return full_path;
+  }
+
+  return full_path;
 }
 
 bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_ref(

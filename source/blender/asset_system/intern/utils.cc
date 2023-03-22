@@ -27,4 +27,15 @@ std::string normalize_directory_path(StringRef directory)
   return std::string(dir_normalized);
 }
 
+std::string normalize_path(StringRefNull path)
+{
+  char *buf = BLI_strdupn(path.c_str(), size_t(path.size()));
+  BLI_path_normalize(nullptr, buf);
+  BLI_path_slash_native(buf);
+
+  std::string normalized_path = buf;
+  MEM_freeN(buf);
+  return normalized_path;
+}
+
 }  // namespace blender::asset_system::utils
