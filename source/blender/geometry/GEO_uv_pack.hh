@@ -75,7 +75,7 @@ class PackIsland {
   void finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
  private:
-  blender::Vector<float2> triangleVertices;
+  blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
 };
 
