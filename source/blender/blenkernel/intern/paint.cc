@@ -1999,12 +1999,11 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
-    int i, j;
 
     gmask = static_cast<GridPaintMask *>(
         CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
-    for (i = 0; i < me->totloop; i++) {
+    for (int i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
 
       gpm->level = level;
@@ -2014,27 +2013,26 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
     /* if vertices already have mask, copy into multires data */
     if (paint_mask) {
-      for (i = 0; i < me->totpoly; i++) {
+      for (const int i : polys.index_range()) {
         const MPoly &poly = polys[i];
-        float avg = 0;
 
         /* mask center */
-        for (j = 0; j < poly.totloop; j++) {
-          const int vert = corner_verts[poly.loopstart + j];
+        float avg = 0.0f;
+        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
           avg += paint_mask[vert];
         }
         avg /= float(poly.totloop);
 
         /* fill in multires mask corner */
-        for (j = 0; j < poly.totloop; j++) {
-          GridPaintMask *gpm = &gmask[poly.loopstart + j];
-          const int vert = corner_verts[poly.loopstart + j];
-          const int prev = ME_POLY_LOOP_PREV(&poly, j);
-          const int next = ME_POLY_LOOP_NEXT(&poly, j);
+        for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
+          GridPaintMask *gpm = &gmask[corner];
+          const int vert = corner_verts[corner];
+          const int prev = corner_verts[blender::bke::mesh::poly_corner_prev(poly, vert)];
+          const int next = corner_verts[blender::bke::mesh::poly_corner_next(poly, vert)];
 
           gpm->data[0] = avg;
-          gpm->data[1] = (paint_mask[vert] + paint_mask[corner_verts[next]]) * 0.5f;
-          gpm->data[2] = (paint_mask[vert] + paint_mask[corner_verts[prev]]) * 0.5f;
+          gpm->data[1] = (paint_mask[vert] + paint_mask[vert]) * 0.5f;
+          gpm->data[2] = (paint_mask[vert] + paint_mask[vert]) * 0.5f;
           gpm->data[3] = paint_mask[vert];
         }
       }

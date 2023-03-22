@@ -768,7 +768,13 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts.data(), ss->polys.data(), &v1, &v2);
+          ss->subdiv_ccg,
+          &coord,
+          ss->corner_verts.data(),
+          ss->corner_verts.size(),
+          ss->polys.data(),
+          &v1,
+          &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
@@ -1002,7 +1008,13 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts.data(), ss->polys.data(), &v1, &v2);
+          ss->subdiv_ccg,
+          &coord,
+          ss->corner_verts.data(),
+          ss->corner_verts.size(),
+          ss->polys.data(),
+          &v1,
+          &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);

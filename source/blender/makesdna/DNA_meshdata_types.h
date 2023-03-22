@@ -398,10 +398,6 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-#define ME_POLY_LOOP_PREV(poly, i) \
-  ((poly)->loopstart + (((i) + (poly)->totloop - 1) % (poly)->totloop))
-#define ME_POLY_LOOP_NEXT(poly, i) ((poly)->loopstart + (((i) + 1) % (poly)->totloop))
-
 /** Number of tri's that make up this polygon once tessellated. */
 #define ME_POLY_TRI_TOT(poly) ((poly)->totloop - 2)
 
