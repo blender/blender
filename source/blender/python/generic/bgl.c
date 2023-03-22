@@ -48,7 +48,7 @@ static void report_deprecated_call(const char *function_name)
   }
   char message[256];
   SNPRINTF(message,
-           "'bgl.gl%s' is deprecated and will be removed in Blender 3.7. Report or update your "
+           "'bgl.gl%s' is deprecated and will be removed in Blender 4.0. Report or update your "
            "script to use 'gpu' module.",
            function_name);
   CLOG_WARN(&LOG, "%s", message);
@@ -2653,7 +2653,7 @@ PyObject *BPyInit_bgl(void)
   if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
     CLOG_WARN(&LOG,
               "'bgl' imported without an OpenGL backend. Please update your add-ons to use the "
-              "'gpu' module. In Blender 3.7 'bgl' will be removed.");
+              "'gpu' module. In Blender 4.0 'bgl' will be removed.");
   }
 
   PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
