@@ -1320,14 +1320,26 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
         BLI_assert(table_ref_stack_n < chunk_list_reference_remaining_len);
 #ifdef USE_HASH_TABLE_DEDUPLICATE
         bool is_duplicate = false;
-        for (BTableRef *tref_iter = tref_prev; tref_iter; tref_iter = tref_iter->next) {
-          if ((cref->link->data_len == tref_iter->cref->link->data_len) &&
-              (memcmp(cref->link->data,
-                      tref_iter->cref->link->data,
-                      tref_iter->cref->link->data_len) == 0)) {
-            is_duplicate = true;
-            break;
-          }
+        if (tref_prev) {
+          const BChunk *chunk_a = cref->link;
+          const BTableRef *tref = tref_prev;
+          do {
+            const BChunk *chunk_b = tref->cref->link;
+#  ifdef USE_HASH_TABLE_KEY_CACHE
+            if (key == chunk_b->key)
+#  endif
+            {
+              /* Not an error, it just isn't expected, in the case chunks are shared
+               * matching chunks should also be skipped to avoid a redundant `memcmp` call. */
+              BLI_assert(chunk_a != chunk_b);
+              if (chunk_a->data_len == chunk_b->data_len) {
+                if (memcmp(chunk_a->data, chunk_b->data, chunk_a->data_len) == 0) {
+                  is_duplicate = true;
+                  break;
+                }
+              }
+            }
+          } while ((tref = tref->next));
         }
 
         if (!is_duplicate)
