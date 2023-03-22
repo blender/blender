@@ -557,7 +557,7 @@ if(WITH_XR_OPENXR)
     # Header only library.
     ../../extern/tinygltf/tiny_gltf.h
   )
-  list(APPEND INC
+  list(APPEND INC_SYS
     ../../extern/json/include
     ../../extern/tinygltf
   )
