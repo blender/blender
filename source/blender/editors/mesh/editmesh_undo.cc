@@ -51,8 +51,15 @@
 
 #  include "BLI_array_store.h"
 #  include "BLI_array_store_utils.h"
-/* check on best size later... */
-#  define ARRAY_CHUNK_SIZE 256
+/**
+ * This used to be much smaller (256), but this caused too much overhead
+ * when selection moved to boolean arrays. Especially with high-poly meshes
+ * where managing a large number of small chunks could be slow, blocking user interactivity.
+ * Use a larger value (in bytes) which calculates the chunk size using #array_chunk_size_calc.
+ * See: #105046 & #105205.
+ */
+#  define ARRAY_CHUNK_SIZE_IN_BYTES 65536
+#  define ARRAY_CHUNK_NUM_MIN 256
 
 #  define USE_ARRAY_STORE_THREAD
 #endif
@@ -69,6 +76,14 @@ static CLG_LogRef LOG = {"ed.undo.mesh"};
  * \{ */
 
 #ifdef USE_ARRAY_STORE
+
+static size_t array_chunk_size_calc(const size_t stride)
+{
+  /* Return a chunk size that targets a size in bytes,
+   * this is done so boolean arrays don't add so much overhead and
+   * larger arrays aren't unreasonably big, see: #105205. */
+  return std::max(ARRAY_CHUNK_NUM_MIN, ARRAY_CHUNK_SIZE_IN_BYTES / power_of_2_max_i(stride));
+}
 
 /* Single linked list of layers stored per type */
 struct BArrayCustomData {
@@ -190,8 +205,9 @@ static void um_arraystore_cd_compact(CustomData *cdata,
     }
 
     const int stride = CustomData_sizeof(type);
-    BArrayStore *bs = create ? BLI_array_store_at_size_ensure(
-                                   &um_arraystore.bs_stride[bs_index], stride, ARRAY_CHUNK_SIZE) :
+    BArrayStore *bs = create ? BLI_array_store_at_size_ensure(&um_arraystore.bs_stride[bs_index],
+                                                              stride,
+                                                              array_chunk_size_calc(stride)) :
                                nullptr;
     const int layer_len = layer_end - layer_start;
 
@@ -372,7 +388,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
           BArrayStore *bs = create ? BLI_array_store_at_size_ensure(
                                          &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
                                          stride,
-                                         ARRAY_CHUNK_SIZE) :
+                                         array_chunk_size_calc(stride)) :
                                      nullptr;
           if (create) {
             um->store.keyblocks = static_cast<BArrayState **>(
@@ -403,7 +419,9 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
             BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
             const size_t stride = sizeof(*me->mselect);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
-                &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL], stride, ARRAY_CHUNK_SIZE);
+                &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
+                stride,
+                array_chunk_size_calc(stride));
             um->store.mselect = BLI_array_store_state_add(
                 bs, me->mselect, size_t(me->totselect) * stride, state_reference);
           }
