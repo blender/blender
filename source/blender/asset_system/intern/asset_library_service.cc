@@ -295,51 +295,45 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
   }
 
   std::string library_path = resolve_asset_weak_reference_to_library_path(asset_reference);
+  if (library_path.empty()) {
+    return "";
+  }
 
   std::string normalized_full_path = utils::normalize_path(
       library_path + SEP_STR + asset_reference.relative_asset_identifier);
   return normalized_full_path;
 }
 
-std::string AssetLibraryService::asset_weak_reference_library_path_explode(
-    const AssetWeakReference &asset_reference,
-    StringRef &r_dir,
-    StringRef &r_group,
-    StringRef &r_name)
+std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
+    resolve_asset_weak_reference_to_exploded_path(const AssetWeakReference &asset_reference)
 {
-  std::string full_path = "";
-  r_dir = full_path;
-  r_group = full_path;
-  r_name = full_path;
-
   if (asset_reference.relative_asset_identifier[0] == '\0') {
-    return full_path;
+    return {};
   }
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_LOCAL: {
-      full_path = utils::normalize_path(asset_reference.relative_asset_identifier);
-      r_dir = r_group = r_name = full_path;
+      std::string path_in_file = utils::normalize_path(asset_reference.relative_asset_identifier);
+      const int64_t group_len = int64_t(path_in_file.find(SEP));
 
-      const int64_t group_len = int64_t(full_path.find(SEP));
-      r_dir = r_dir.substr(0, 0);
-      r_group = r_group.substr(0, group_len);
-      r_name = r_name.substr(group_len + 1);
+      ExplodedPath exploded{};
+      exploded.full_path = path_in_file;
+      exploded.group_component = StringRef(exploded.full_path).substr(0, group_len);
+      exploded.name_component = StringRef(exploded.full_path).substr(group_len + 1);
 
-      return full_path;
+      return exploded;
     }
     case ASSET_LIBRARY_CUSTOM:
     case ASSET_LIBRARY_ESSENTIALS: {
       std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
-      r_dir = r_group = r_name = full_path;
 
       if (full_path.empty()) {
-        return full_path;
+        return {};
       }
 
       const std::vector<std::string> blendfile_extensions = {".blend/", ".blend.gz/", ".ble/"};
       size_t blendfile_extension_pos = std::string::npos;
-      for (std::string blendfile_ext : blendfile_extensions) {
+      for (const std::string &blendfile_ext : blendfile_extensions) {
         size_t ext_pos = full_path.rfind(blendfile_ext);
         if (ext_pos != std::string::npos &&
             (blendfile_extension_pos < ext_pos || blendfile_extension_pos == std::string::npos)) {
@@ -356,20 +350,21 @@ std::string AssetLibraryService::asset_weak_reference_library_path_explode(
 
       const int64_t dir_len = int64_t(group_pos);
       const int64_t group_len = int64_t(name_pos - group_pos - 1);
-      r_dir = r_dir.substr(0, dir_len);
-      r_group = r_group.substr(dir_len + 1, group_len);
-      r_name = r_name.substr(dir_len + 1 + group_len + 1);
 
-      std::cout << full_path << "\n";
-      std::cout << r_dir << "\t\t" << r_group << "\t\t" << r_name << "\n";
+      ExplodedPath exploded{};
+      exploded.full_path = full_path;
+      StringRef full_path_ref = exploded.full_path;
+      exploded.dir_component = full_path_ref.substr(0, dir_len);
+      exploded.group_component = full_path_ref.substr(dir_len + 1, group_len);
+      exploded.name_component = full_path_ref.substr(dir_len + 1 + group_len + 1);
 
-      return full_path;
+      return exploded;
     }
     case ASSET_LIBRARY_ALL:
-      return full_path;
+      return {};
   }
 
-  return full_path;
+  return {};
 }
 
 bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_ref(

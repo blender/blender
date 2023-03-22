@@ -44,12 +44,23 @@ bool AS_asset_library_has_any_unsaved_catalogs(void);
  * remapped on change (or assets removed as IDs gets removed). */
 void AS_asset_library_remap_ids(const struct IDRemapper *mappings);
 
-/** Attempt to build a full path to an asset based on the currently available (not necessary
- * loaded) asset libraries. The path is not guaranteed to exist.
+/**
+ * Attempt to resolve a full path to an asset based on the currently available (not necessary
+ * loaded) asset libraries, and split it into it's directory, ID group and ID name components. The
+ * path is not guaranteed to exist on disk. On failure to resolve the reference, return arguments
+ * will point to null.
+ *
  * \note Only works for asset libraries on disk (others can't be resolved).
  *
- * \param r_path: Returns the resolved path with native slashes, or an empty string if the path
- *                could not be resolved. Must be at least #FILE_MAX_LIBEXTRA long. */
+ * \param r_path_buffer: Buffer to hold the result in on success. Will be the full path with null
+ *                       terminators instead of slashes separating the directory, group and name
+ *                       components.
+ * \param r_dir: Returns the .blend file path with native slashes on success. Optional (passing
+ *               null is allowed).
+ * \param r_group: Returns the ID group such as "Object", "Material" or "Brush". Optional (passing
+ *                 null is allowed).
+ * \param r_name: Returns the ID name on success. Optional (passing null is allowed).
+ */
 void AS_asset_full_path_explode_from_weak_ref(const struct AssetWeakReference *asset_reference,
                                               char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
                                               char **r_dir,

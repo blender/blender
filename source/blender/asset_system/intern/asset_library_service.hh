@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "AS_asset_library.hh"
 
 #include "BLI_function_ref.hh"
@@ -83,13 +85,23 @@ class AssetLibraryService {
       const AssetWeakReference &asset_reference);
   /* See #AS_asset_full_path_resolve_from_weak_ref(). */
   std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
+  /** Struct to hold results from path explosion functions
+   * (#resolve_asset_weak_reference_to_exploded_path()). */
+  struct ExplodedPath {
+    /* The string buffer containing the fully resolved path, if resolving was successful. */
+    std::string full_path = "";
+    /* Reference into the part of #full_path that is the directory path. */
+    StringRef dir_component = "";
+    /* Reference into the part of #full_path that is the ID group name ("Object", "Brush", ...). */
+    StringRef group_component = "";
+    /* Reference into the part of #full_path that is the ID name. */
+    StringRef name_component = "";
+  };
   /** Similar to #BKE_blendfile_library_path_explode, returns the full path as
    * #resolve_asset_weak_reference_to_library_path, with StringRefs to the `dir` (i.e. blendfile
    * path), `group` (i.e. ID type) and `name` (i.e. ID name) parts. */
-  std::string asset_weak_reference_library_path_explode(const AssetWeakReference &asset_reference,
-                                                        StringRef &r_dir,
-                                                        StringRef &r_group,
-                                                        StringRef &r_name);
+  std::optional<ExplodedPath> resolve_asset_weak_reference_to_exploded_path(
+      const AssetWeakReference &asset_reference);
 
   /** Returns whether there are any known asset libraries with unsaved catalog edits. */
   bool has_any_unsaved_catalogs() const;

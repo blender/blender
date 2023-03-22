@@ -134,11 +134,10 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
                                               char **r_name)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  StringRef dir, group, name;
-  std::string full_path = service->asset_weak_reference_library_path_explode(
-      *asset_reference, dir, group, name);
+  std::optional<AssetLibraryService::ExplodedPath> exploded =
+      service->resolve_asset_weak_reference_to_exploded_path(*asset_reference);
 
-  if (full_path.length() == 0) {
+  if (!exploded) {
     if (r_dir) {
       *r_dir = nullptr;
     }
@@ -151,26 +150,28 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
     return;
   }
 
-  BLI_assert(!group.is_empty() && !name.is_empty());
+  BLI_assert(!exploded->group_component.is_empty());
+  BLI_assert(!exploded->name_component.is_empty());
 
-  BLI_strncpy(r_path_buffer, full_path.c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+  BLI_strncpy(r_path_buffer, exploded->full_path.c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
 
-  if (!dir.is_empty()) {
-    r_path_buffer[dir.size()] = '\0';
-    r_path_buffer[dir.size() + 1 + group.size()] = '\0';
+  if (!exploded->dir_component.is_empty()) {
+    r_path_buffer[exploded->dir_component.size()] = '\0';
+    r_path_buffer[exploded->dir_component.size() + 1 + exploded->group_component.size()] = '\0';
 
     if (r_dir) {
       *r_dir = r_path_buffer;
     }
     if (r_group) {
-      *r_group = r_path_buffer + dir.size() + 1;
+      *r_group = r_path_buffer + exploded->dir_component.size() + 1;
     }
     if (r_name) {
-      *r_name = r_path_buffer + dir.size() + 1 + group.size() + 1;
+      *r_name = r_path_buffer + exploded->dir_component.size() + 1 +
+                exploded->group_component.size() + 1;
     }
   }
   else {
-    r_path_buffer[group.size()] = '\0';
+    r_path_buffer[exploded->group_component.size()] = '\0';
 
     if (r_dir) {
       *r_dir = nullptr;
@@ -179,7 +180,7 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
       *r_group = r_path_buffer;
     }
     if (r_name) {
-      *r_name = r_path_buffer + group.size() + 1;
+      *r_name = r_path_buffer + exploded->group_component.size() + 1;
     }
   }
 }
