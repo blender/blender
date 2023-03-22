@@ -115,8 +115,8 @@ static int act_markers_make_local_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  /* Now enable the "show posemarkers only" setting,
-   * so that we can see that something did happen */
+  /* Now enable the "show pose-markers only" setting,
+   * so that we can see that something did happen. */
   sact->flag |= SACTION_POSEMARKERS_SHOW;
 
   /* notifiers - both sets, as this change affects both */
@@ -376,7 +376,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
   }
 
   if (fabsf(max - min) < 1.0f) {
-    /* Exception - center the single keyfrme */
+    /* Exception - center the single keyframe. */
     float xwidth = BLI_rctf_size_x(&v2d->cur);
 
     v2d->cur.xmin = min - xwidth / 2.0f;

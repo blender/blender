@@ -24,22 +24,22 @@
 
 namespace blender::geometry {
 
-/** Compute `r = mat * (a + b)` with high precision.
- *
- * Often, linear transforms are written as :
- *  `A.x + b`
- *
- * When transforming UVs, the familiar expression can
- * damage UVs due to round-off error, expecially when
- * using UDIM and if there are large numbers of islands.
- *
- * Instead, we provide a helper which evaluates :
- *  `A. (x + b)`
- *
- * To further reduce damage, all internal calculations are
- * performed using double precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2])
 {
+  /* Compute `r = mat * (a + b)` with high precision.
+   *
+   * Often, linear transforms are written as:
+   *  `A.x + b`
+   *
+   * When transforming UVs, the familiar expression can damage UVs due to round-off error,
+   * especially when using UDIM and if there are large numbers of islands.
+   *
+   * Instead, we provide a helper which evaluates:
+   *  `A. (x + b)`
+   *
+   * To further reduce damage, all internal calculations are
+   * performed using double precision. */
+
   const double x = double(a[0]) + double(b[0]);
   const double y = double(a[1]) + double(b[1]);
 
@@ -47,7 +47,8 @@ void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], con
   r[1] = float(mat[0][1] * x + mat[1][1] * y);
 }
 
-/* Compute signed distance squared to a line passing through `uva` and `uvb`.
+/**
+ * Compute signed distance squared to a line passing through `uva` and `uvb`.
  */
 static float dist_signed_squared_to_edge(float2 probe, float2 uva, float2 uvb)
 {
@@ -70,14 +71,14 @@ void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 u
 {
   /* Be careful with winding. */
   if (dist_signed_squared_to_edge(uv0, uv1, uv2) < 0.0f) {
-    triangleVertices.append(uv0);
-    triangleVertices.append(uv1);
-    triangleVertices.append(uv2);
+    triangle_vertices_.append(uv0);
+    triangle_vertices_.append(uv1);
+    triangle_vertices_.append(uv2);
   }
   else {
-    triangleVertices.append(uv0);
-    triangleVertices.append(uv2);
-    triangleVertices.append(uv1);
+    triangle_vertices_.append(uv0);
+    triangle_vertices_.append(uv2);
+    triangle_vertices_.append(uv1);
   }
 }
 
@@ -124,32 +125,28 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
 
 void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
-  BLI_assert(triangleVertices.size() >= 3);
+  BLI_assert(triangle_vertices_.size() >= 3);
   const eUVPackIsland_ShapeMethod shape_method = params.shape_method;
   if (shape_method == ED_UVPACK_SHAPE_CONVEX) {
     /* Compute convex hull of existing triangles. */
-    if (triangleVertices.size() <= 3) {
+    if (triangle_vertices_.size() <= 3) {
       return; /* Trivial case, nothing to do. */
     }
 
-    int vert_count = int(triangleVertices.size());
+    int vert_count = int(triangle_vertices_.size());
 
     /* Allocate storage. */
     int *index_map = static_cast<int *>(
         BLI_memarena_alloc(arena, sizeof(*index_map) * vert_count));
-    float(*source)[2] = static_cast<float(*)[2]>(
-        BLI_memarena_alloc(arena, sizeof(*source) * size_t(vert_count)));
 
     /* Prepare input for convex hull. */
-    for (int i = 0; i < vert_count; i++) {
-      copy_v2_v2(source[i], triangleVertices[i]);
-    }
+    float(*source)[2] = reinterpret_cast<float(*)[2]>(triangle_vertices_.data());
 
     /* Compute convex hull. */
     int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
 
     /* Write back. */
-    triangleVertices.clear();
+    triangle_vertices_.clear();
     blender::Array<float2> convexVertices(convex_len);
     for (int i = 0; i < convex_len; i++) {
       convexVertices[i] = source[index_map[i]];
@@ -277,17 +274,17 @@ class Occupancy {
   int bitmap_radix;              /* Width and Height of `bitmap`. */
   float bitmap_scale_reciprocal; /* == 1.0f / `bitmap_scale`. */
  private:
-  mutable blender::Array<float> bitmap;
+  mutable blender::Array<float> bitmap_;
 
-  mutable float2 witness;         /* Witness to a previously known occupied pixel. */
-  mutable float witness_distance; /* Signed distance to nearest placed island. */
-  mutable uint triangle_hint;     /* Hint to a previously suspected overlapping triangle. */
+  mutable float2 witness_;         /* Witness to a previously known occupied pixel. */
+  mutable float witness_distance_; /* Signed distance to nearest placed island. */
+  mutable uint triangle_hint_;     /* Hint to a previously suspected overlapping triangle. */
 
   const float terminal = 1048576.0f; /* A "very" large number, much bigger than 4 * bitmap_radix */
 };
 
 Occupancy::Occupancy(const float initial_scale)
-    : bitmap_radix(800), bitmap(bitmap_radix * bitmap_radix, false)
+    : bitmap_radix(800), bitmap_(bitmap_radix * bitmap_radix, false)
 {
   increase_scale();
   bitmap_scale_reciprocal = bitmap_radix / initial_scale;
@@ -297,12 +294,12 @@ void Occupancy::increase_scale()
 {
   bitmap_scale_reciprocal *= 0.5f;
   for (int i = 0; i < bitmap_radix * bitmap_radix; i++) {
-    bitmap[i] = terminal;
+    bitmap_[i] = terminal;
   }
-  witness.x = -1;
-  witness.y = -1;
-  witness_distance = 0.0f;
-  triangle_hint = 0;
+  witness_.x = -1;
+  witness_.y = -1;
+  witness_distance_ = 0.0f;
+  triangle_hint_ = 0;
 }
 
 static float signed_distance_fat_triangle(const float2 probe,
@@ -351,10 +348,10 @@ float Occupancy::trace_triangle(const float2 &uv0,
   epsilon = std::max(epsilon, 2 * margin * bitmap_scale_reciprocal);
 
   if (!write) {
-    if (ix0 <= witness.x && witness.x < ix1) {
-      if (iy0 <= witness.y && witness.y < iy1) {
-        const float distance = signed_distance_fat_triangle(witness, uv0s, uv1s, uv2s);
-        const float extent = epsilon - distance - witness_distance;
+    if (ix0 <= witness_.x && witness_.x < ix1) {
+      if (iy0 <= witness_.y && witness_.y < iy1) {
+        const float distance = signed_distance_fat_triangle(witness_, uv0s, uv1s, uv2s);
+        const float extent = epsilon - distance - witness_distance_;
         if (extent > 0.0f) {
           return extent; /* Witness observes occupied. */
         }
@@ -365,7 +362,7 @@ float Occupancy::trace_triangle(const float2 &uv0,
   /* Iterate in opposite direction to outer search to improve witness effectiveness. */
   for (int y = iy1 - 1; y >= iy0; y--) {
     for (int x = ix1 - 1; x >= ix0; x--) {
-      float *hotspot = &bitmap[y * bitmap_radix + x];
+      float *hotspot = &bitmap_[y * bitmap_radix + x];
       if (!write && *hotspot > epsilon) {
         continue;
       }
@@ -377,8 +374,8 @@ float Occupancy::trace_triangle(const float2 &uv0,
       }
       const float extent = epsilon - distance - *hotspot;
       if (extent > 0.0f) {
-        witness = probe;
-        witness_distance = *hotspot;
+        witness_ = probe;
+        witness_distance_ = *hotspot;
         return extent; /* Occupied. */
       }
     }
@@ -400,17 +397,17 @@ float Occupancy::trace_island(PackIsland *island,
   }
   const float2 origin(island->bounds_rect.xmin, island->bounds_rect.ymin);
   const float2 delta = uv - origin * scale;
-  uint vert_count = uint(island->triangleVertices.size());
+  uint vert_count = uint(island->triangle_vertices_.size());
   for (uint i = 0; i < vert_count; i += 3) {
-    uint j = (i + triangle_hint) % vert_count;
-    float extent = trace_triangle(delta + island->triangleVertices[j] * scale,
-                                  delta + island->triangleVertices[j + 1] * scale,
-                                  delta + island->triangleVertices[j + 2] * scale,
+    uint j = (i + triangle_hint_) % vert_count;
+    float extent = trace_triangle(delta + island->triangle_vertices_[j] * scale,
+                                  delta + island->triangle_vertices_[j + 1] * scale,
+                                  delta + island->triangle_vertices_[j + 2] * scale,
                                   margin,
                                   write);
 
     if (!write && extent >= 0.0f) {
-      triangle_hint = j;
+      triangle_hint_ = j;
       return extent; /* Occupied. */
     }
   }
@@ -463,12 +460,12 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
 }
 
 /**
- * Pack irregular islands using the "xatlas" strategy, with no rotation.
+ * Pack irregular islands using the `xatlas` strategy, with no rotation.
  *
  * Loosely based on the 'xatlas' code by Jonathan Young
  * from https://github.com/jpcy/xatlas
  *
- * A brute force packer (BFPacker) with accelerators:
+ * A brute force packer (BF-Packer) with accelerators:
  * - Uses a Bitmap Occupancy class.
  * - Uses a "Witness Pixel" and a "Triangle Hint".
  * - Write with `margin * 2`, read with `margin == 0`.
@@ -493,9 +490,9 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   int i = 0;
 
   /* The following `while` loop is setting up a three-way race:
-   * for (scan_line=0; scan_line<bitmap_radix; scan_line++)
-   * for (i : island_indices.index_range())
-   * while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }
+   * `for (scan_line = 0; scan_line < bitmap_radix; scan_line++)`
+   * `for (i : island_indices.index_range())`
+   * `while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }`
    */
 
   while (i < island_indices.size()) {
@@ -511,10 +508,9 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
       else {
         /* Increasing by 2 here has the effect of changing the sampling pattern.
          * The parameter '2' is not "free" in the sense that changing it requires
-         * a change to `bitmap_radix` and then retuning `alpaca_cutoff`.
+         * a change to `bitmap_radix` and then returning `alpaca_cutoff`.
          * Possible values here *could* be 1, 2 or 3, however the only *reasonable*
-         * choice is 2.
-         */
+         * choice is 2. */
         scan_line += 2;
       }
       if (scan_line < occupancy.bitmap_radix) {
@@ -596,10 +592,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* Partition `islands`, largest will go to a slow packer, the rest alpaca_turbo.
    * See discussion above for details. */
-  int64_t alpaca_cutoff = int64_t(
-      1024); /* Regular situation, pack 1024 islands with slow packer. */
-  int64_t alpaca_cutoff_fast = int64_t(
-      80); /* Reduced problem size, only 80 islands with slow packer. */
+  int64_t alpaca_cutoff = 1024;    /* Regular situation, pack 1024 islands with slow packer. */
+  int64_t alpaca_cutoff_fast = 80; /* Reduced problem size, only 80 islands with slow packer. */
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION) {
     if (margin > 0.0f) {
       alpaca_cutoff = alpaca_cutoff_fast;
@@ -678,11 +672,11 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
 
   /* Scaling smaller than `min_scale_roundoff` is unlikely to fit and
    * will destroy information in existing UVs. */
-  float min_scale_roundoff = 1e-5f;
+  const float min_scale_roundoff = 1e-5f;
 
   /* Certain inputs might have poor convergence properties.
    * Use `max_iteration` to prevent an infinite loop. */
-  int max_iteration = 25;
+  const int max_iteration = 25;
   for (int iteration = 0; iteration < max_iteration; iteration++) {
     float scale = 1.0f;
 
@@ -728,9 +722,9 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
 
     /* Evaluate our `f`. */
     scale_last = scale;
-    float max_uv = pack_islands_scale_margin(
+    const float max_uv = pack_islands_scale_margin(
         island_vector, box_array, scale_last, margin_fraction, params);
-    float value = sqrtf(max_uv) - 1.0f;
+    const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
       scale_low = scale;
@@ -752,7 +746,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
     /* Write back best pack as a side-effect. First get best pack. */
     if (scale_last != scale_low) {
       scale_last = scale_low;
-      float max_uv = pack_islands_scale_margin(
+      const float max_uv = pack_islands_scale_margin(
           island_vector, box_array, scale_last, margin_fraction, params);
       UNUSED_VARS(max_uv);
       /* TODO (?): `if (max_uv < 1.0f) { scale_last /= max_uv; }` */

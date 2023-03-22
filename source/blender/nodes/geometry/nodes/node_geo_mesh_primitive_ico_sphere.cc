@@ -28,6 +28,34 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
 }
 
+static Bounds<float3> calculate_bounds_ico_sphere(const float radius, const int subdivisions)
+{
+  const float delta_phi = (2.0f * M_PI) / 5.0f;
+  const float theta = std::cos(std::atan(0.5f));
+  const float ro = radius * std::sin(delta_phi);
+
+  float x_max = radius;
+  float x_min = -radius;
+  float y_max = radius;
+  float y_min = -radius;
+
+  if (subdivisions == 1) {
+    x_max = radius * theta;
+    x_min = -x_max;
+    y_max = ro * theta;
+    y_min = -y_max;
+  }
+  else if (subdivisions == 2) {
+    x_max = ro;
+    x_min = -x_max;
+  }
+
+  const float3 bounds_min(x_min, y_min, -radius);
+  const float3 bounds_max(x_max, y_max, radius);
+
+  return {bounds_min, bounds_max};
+}
+
 static Mesh *create_ico_sphere_mesh(const int subdivisions,
                                     const float radius,
                                     const AttributeIDRef &uv_map_id)
@@ -72,6 +100,8 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
     uv_map.finish();
   }
   attributes.remove("UVMap");
+
+  mesh->bounds_set_eager(calculate_bounds_ico_sphere(radius, subdivisions));
 
   return mesh;
 }

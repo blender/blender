@@ -689,7 +689,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Iterate over pointcaches on the active object, and draw each one's range. */
+  /* Iterate over point-caches on the active object, and draw each one's range. */
   float y_offset = 0.0f;
   const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {

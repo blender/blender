@@ -104,7 +104,7 @@ if(WITH_TBB)
 endif()
 
 if(WIN32)
-    add_definitions(-DNOMINMAX)
+  add_definitions(-DNOMINMAX)
 endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

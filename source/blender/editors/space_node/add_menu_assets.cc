@@ -189,8 +189,10 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
                            const_cast<AssetLibraryReference *>(&item.library_ref)};
     uiLayoutSetContextPointer(col, "asset_library_ref", &library_ptr);
 
-    uiItemO(
-        col, IFACE_(AS_asset_representation_name_get(&item.asset)), ICON_NONE, "NODE_OT_add_group_asset");
+    uiItemO(col,
+            IFACE_(AS_asset_representation_name_get(&item.asset)),
+            ICON_NONE,
+            "NODE_OT_add_group_asset");
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {

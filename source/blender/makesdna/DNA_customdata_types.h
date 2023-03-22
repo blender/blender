@@ -41,7 +41,7 @@ typedef struct CustomDataLayer {
   int active_clone;
   /** Number of the layer to render. */
   int active_mask;
-  /** Shape keyblock unique id reference. */
+  /** Shape key-block unique id reference. */
   int uid;
   /** Layer name, MAX_CUSTOMDATA_LAYER_NAME. */
   char name[68];
@@ -84,7 +84,7 @@ typedef struct CustomData {
   int totsize;
   /** (BMesh Only): Memory pool for allocation of blocks. */
   struct BLI_mempool *pool;
-  /** External file storing customdata layers. */
+  /** External file storing custom-data layers. */
   CustomDataExternal *external;
 } CustomData;
 

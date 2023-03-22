@@ -13,11 +13,12 @@ set(INC
   ../../../intern/atomic
   ../../../intern/eigen
   ../../../intern/guardedalloc
-  ../../../extern/wcwidth
-  ../../../extern/json/include
 )
 
 set(INC_SYS
+  ../../../extern/wcwidth
+  ../../../extern/json/include
+
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}

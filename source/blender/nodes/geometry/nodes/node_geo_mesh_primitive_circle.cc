@@ -99,6 +99,11 @@ static int circle_face_total(const GeometryNodeMeshCircleFillType fill_type, con
   return 0;
 }
 
+static Bounds<float3> calculate_bounds_circle(const float radius, const int verts_num)
+{
+  return calculate_bounds_radial_primitive(0.0f, radius, verts_num, 0.0f);
+}
+
 static Mesh *create_circle_mesh(const float radius,
                                 const int verts_num,
                                 const GeometryNodeMeshCircleFillType fill_type)
@@ -166,6 +171,8 @@ static Mesh *create_circle_mesh(const float radius,
       corner_edges[3 * i + 2] = verts_num + i;
     }
   }
+
+  mesh->bounds_set_eager(calculate_bounds_circle(radius, verts_num));
 
   return mesh;
 }
