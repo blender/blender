@@ -137,13 +137,9 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
     /* Allocate storage. */
     int *index_map = static_cast<int *>(
         BLI_memarena_alloc(arena, sizeof(*index_map) * vert_count));
-    float(*source)[2] = static_cast<float(*)[2]>(
-        BLI_memarena_alloc(arena, sizeof(*source) * size_t(vert_count)));
 
     /* Prepare input for convex hull. */
-    for (int i = 0; i < vert_count; i++) {
-      copy_v2_v2(source[i], triangle_vertices_[i]);
-    }
+    float(*source)[2] = reinterpret_cast<float(*)[2]>(triangle_vertices_.data());
 
     /* Compute convex hull. */
     int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
