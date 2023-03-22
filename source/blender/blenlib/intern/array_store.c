@@ -178,6 +178,16 @@
 #endif
 
 /**
+ * Ensure duplicate entries aren't added to temporary hash table
+ * needed for arrays where many values match (an array of booleans all true/false for e.g.).
+ *
+ * Without this, a huge number of duplicates are added a single bucket, making hash lookups slow.
+ * While de-duplication adds some cost, it's only performed with other chunks in the same bucket
+ * so cases when all chunks are unique will quickly detect and exit the `memcmp` in most cases.
+ */
+#define USE_HASH_TABLE_DEDUPLICATE
+
+/**
  * How much larger the table is then the total number of chunks.
  */
 #define BCHUNK_HASH_TABLE_MUL 3
@@ -367,13 +377,23 @@ static void bchunk_decref(BArrayMemory *bs_mem, BChunk *chunk)
   }
 }
 
+BLI_INLINE bool bchunk_data_compare_unchecked(const BChunk *chunk,
+                                              const uchar *data_base,
+                                              const size_t data_base_len,
+                                              const size_t offset)
+{
+  BLI_assert(offset + (size_t)chunk->data_len <= data_base_len);
+  UNUSED_VARS_NDEBUG(data_base_len);
+  return (memcmp(&data_base[offset], chunk->data, chunk->data_len) == 0);
+}
+
 static bool bchunk_data_compare(const BChunk *chunk,
                                 const uchar *data_base,
                                 const size_t data_base_len,
                                 const size_t offset)
 {
   if (offset + (size_t)chunk->data_len <= data_base_len) {
-    return (memcmp(&data_base[offset], chunk->data, chunk->data_len) == 0);
+    return bchunk_data_compare_unchecked(chunk, data_base, data_base_len, offset);
   }
   return false;
 }
@@ -944,23 +964,26 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
                                      const size_t offset,
                                      const hash_key *table_hash_array)
 {
-  size_t size_left = data_len - offset;
   hash_key key = table_hash_array[((offset - i_table_start) / info->chunk_stride)];
-  size_t key_index = (size_t)(key % (hash_key)table_len);
-  for (const BTableRef *tref = table[key_index]; tref; tref = tref->next) {
-    const BChunkRef *cref = tref->cref;
+  uint key_index = (uint)(key % (hash_key)table_len);
+  const BTableRef *tref = table[key_index];
+  if (tref != NULL) {
+    const size_t size_left = data_len - offset;
+    do {
+      const BChunkRef *cref = tref->cref;
 #  ifdef USE_HASH_TABLE_KEY_CACHE
-    if (cref->link->key == key)
+      if (cref->link->key == key)
 #  endif
-    {
-      BChunk *chunk_test = cref->link;
-      if (chunk_test->data_len <= size_left) {
-        if (bchunk_data_compare(chunk_test, data, data_len, offset)) {
-          /* we could remove the chunk from the table, to avoid multiple hits */
-          return cref;
+      {
+        BChunk *chunk_test = cref->link;
+        if (chunk_test->data_len <= size_left) {
+          if (bchunk_data_compare_unchecked(chunk_test, data, data_len, offset)) {
+            /* we could remove the chunk from the table, to avoid multiple hits */
+            return cref;
+          }
         }
       }
-    }
+    } while ((tref = tref->next));
   }
   return NULL;
 }
@@ -1009,7 +1032,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
   size_t size_left = data_len - offset;
   hash_key key = hash_data(&data[offset], MIN2(data_hash_len, size_left));
-  size_t key_index = (size_t)(key % (hash_key)table_len);
+  uint key_index = (uint)(key % (hash_key)table_len);
   for (BTableRef *tref = table[key_index]; tref; tref = tref->next) {
     const BChunkRef *cref = tref->cref;
 #  ifdef USE_HASH_TABLE_KEY_CACHE
@@ -1018,7 +1041,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
     {
       BChunk *chunk_test = cref->link;
       if (chunk_test->data_len <= size_left) {
-        if (bchunk_data_compare(chunk_test, data, data_len, offset)) {
+        if (bchunk_data_compare_unchecked(chunk_test, data, data_len, offset)) {
           /* we could remove the chunk from the table, to avoid multiple hits */
           return cref;
         }
@@ -1292,13 +1315,29 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
                                           hash_store_len
 #endif
         );
-        size_t key_index = (size_t)(key % (hash_key)table_len);
+        uint key_index = (uint)(key % (hash_key)table_len);
         BTableRef *tref_prev = table[key_index];
         BLI_assert(table_ref_stack_n < chunk_list_reference_remaining_len);
-        BTableRef *tref = &table_ref_stack[table_ref_stack_n++];
-        tref->cref = cref;
-        tref->next = tref_prev;
-        table[key_index] = tref;
+#ifdef USE_HASH_TABLE_DEDUPLICATE
+        bool is_duplicate = false;
+        for (BTableRef *tref_iter = tref_prev; tref_iter; tref_iter = tref_iter->next) {
+          if ((cref->link->data_len == tref_iter->cref->link->data_len) &&
+              (memcmp(cref->link->data,
+                      tref_iter->cref->link->data,
+                      tref_iter->cref->link->data_len) == 0)) {
+            is_duplicate = true;
+            break;
+          }
+        }
+
+        if (!is_duplicate)
+#endif /* USE_HASH_TABLE_DEDUPLICATE */
+        {
+          BTableRef *tref = &table_ref_stack[table_ref_stack_n++];
+          tref->cref = cref;
+          tref->next = tref_prev;
+          table[key_index] = tref;
+        }
 
         chunk_list_reference_bytes_remaining -= cref->link->data_len;
         cref = cref->next;
