@@ -2242,8 +2242,7 @@ bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
-  SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
-  return (ss && ss->bm);
+  return BKE_object_sculpt_use_dyntopo((Object *)ptr->owner_id);
 }
 
 static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

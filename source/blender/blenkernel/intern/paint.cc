@@ -1696,16 +1696,16 @@ static void sculpt_update_object(
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->polys = me->polys().data();
-    ss->corner_verts = me->corner_verts().data();
+    ss->polys = me->polys();
+    ss->corner_verts = me->corner_verts();
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->polys = me->polys().data();
-    ss->corner_verts = me->corner_verts().data();
+    ss->polys = me->polys();
+    ss->corner_verts = me->corner_verts();
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
@@ -2283,6 +2283,24 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   sculpt_attribute_update_refs(ob);
   return pbvh;
+}
+
+PBVH *BKE_object_sculpt_pbvh_get(Object *object)
+{
+  if (!object->sculpt) {
+    return nullptr;
+  }
+  return object->sculpt->pbvh;
+}
+
+bool BKE_object_sculpt_use_dyntopo(const Object *object)
+{
+  return object->sculpt && object->sculpt->bm;
+}
+
+void BKE_object_sculpt_dyntopo_smooth_shading_set(Object *object, const bool value)
+{
+  object->sculpt->bm_smooth_shading = value;
 }
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)

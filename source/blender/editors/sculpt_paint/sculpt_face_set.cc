@@ -129,7 +129,6 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   const Span<float3> positions(
       reinterpret_cast<const float3 *>(SCULPT_mesh_deformed_positions_get(ss)),
       SCULPT_vertex_count_get(ss));
-  const Span<int> corner_verts(ss->corner_verts, data->me->totloop);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
@@ -144,7 +143,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         const MPoly &poly = ss->polys[vert_map->indices[j]];
 
         const float3 poly_center = bke::mesh::poly_center_calc(
-            positions, corner_verts.slice(poly.loopstart, poly.totloop));
+            positions, ss->corner_verts.slice(poly.loopstart, poly.totloop));
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;

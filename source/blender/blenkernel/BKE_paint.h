@@ -51,6 +51,7 @@ struct PaletteColor;
 struct Scene;
 struct StrokeCache;
 struct Sculpt;
+struct SculptSession;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -563,6 +564,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *dyntopo_node_id_face;
 } SculptAttributePointers;
 
+#ifdef __cplusplus
+
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -576,8 +579,8 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   float (*vert_positions)[3];
-  const struct MPoly *polys;
-  const int *corner_verts;
+  blender::Span<MPoly> polys;
+  blender::Span<int> corner_verts;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;
@@ -758,12 +761,14 @@ typedef struct SculptSession {
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
+#endif
+
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-int BKE_sculptsession_vertex_count(const SculptSession *ss);
+int BKE_sculptsession_vertex_count(const struct SculptSession *ss);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
@@ -910,6 +915,11 @@ enum {
 bool BKE_object_attributes_active_color_fill(struct Object *ob,
                                              const float fill_color[4],
                                              bool only_selected);
+
+/** C accessor for #Object::sculpt::pbvh. */
+struct PBVH *BKE_object_sculpt_pbvh_get(struct Object *object);
+bool BKE_object_sculpt_use_dyntopo(const struct Object *object);
+void BKE_object_sculpt_dyntopo_smooth_shading_set(struct Object *object, bool value);
 
 /* paint_canvas.cc */
 

@@ -37,6 +37,7 @@ struct PBVH;
 struct PBVHBatches;
 struct PBVHNode;
 struct PBVH_GPU_Args;
+struct SculptSession;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
