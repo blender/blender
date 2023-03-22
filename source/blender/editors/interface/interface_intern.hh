@@ -1452,6 +1452,7 @@ void ui_interface_tag_script_reload_queries();
 /* interface_view.cc */
 
 void ui_block_free_views(uiBlock *block);
+void ui_block_views_bounds_calc(const uiBlock *block);
 void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params);
 uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
                                                        const uiViewHandle *new_view);

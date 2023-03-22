@@ -47,6 +47,7 @@
 #include "RNA_types.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "interface_intern.hh"
 
@@ -64,6 +65,8 @@
 #include "BLI_ghash.h"
 #include "ED_screen.h"
 #include "ED_text.h"
+
+using namespace blender::ui;
 
 /* -------------------------------------------------------------------- */
 /** \name Immediate redraw helper
@@ -2351,7 +2354,7 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name UI Tree-View Drop Operator
+/** \name UI View Drop Operator
  * \{ */
 
 static bool ui_view_drop_poll(bContext *C)
@@ -2361,9 +2364,7 @@ static bool ui_view_drop_poll(bContext *C)
   if (region == nullptr) {
     return false;
   }
-  const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, win->eventstate->xy);
-
-  return hovered_item != nullptr;
+  return region_views_find_drop_target_at(region, win->eventstate->xy) != nullptr;
 }
 
 static int ui_view_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
@@ -2373,10 +2374,11 @@ static int ui_view_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
   }
 
   const ARegion *region = CTX_wm_region(C);
-  uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, event->xy);
+  std::unique_ptr<DropTargetInterface> drop_target = region_views_find_drop_target_at(
+      region, event->xy);
 
-  if (!UI_view_item_drop_handle(
-          C, hovered_item, static_cast<const ListBase *>(event->customdata))) {
+  if (!drop_target_apply_drop(
+          *C, *drop_target, *static_cast<const ListBase *>(event->customdata))) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -2385,9 +2387,9 @@ static int ui_view_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
 
 static void UI_OT_view_drop(wmOperatorType *ot)
 {
-  ot->name = "View drop";
+  ot->name = "View Drop";
   ot->idname = "UI_OT_view_drop";
-  ot->description = "Drag and drop items onto a data-set item";
+  ot->description = "Drag and drop onto a data-set or item within the data-set";
 
   ot->invoke = ui_view_drop_invoke;
   ot->poll = ui_view_drop_poll;
