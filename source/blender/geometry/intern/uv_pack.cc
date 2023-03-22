@@ -124,7 +124,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
 
 void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
-  BLI_assert(triangleVertices.size() >= 3);
+  BLI_assert(triangle_vertices_.size() >= 3);
   const eUVPackIsland_ShapeMethod shape_method = params.shape_method;
   if (shape_method == ED_UVPACK_SHAPE_CONVEX) {
     /* Compute convex hull of existing triangles. */
