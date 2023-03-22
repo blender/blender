@@ -81,7 +81,7 @@ static size_t array_chunk_size_calc(const size_t stride)
 {
   /* Return a chunk size that targets a size in bytes,
    * this is done so boolean arrays don't add so much overhead and
-   * larger arrays aren't unreasonably big, see: #105205. */
+   * larger arrays aren't so big as to waste memory, see: #105205. */
   return std::max(ARRAY_CHUNK_NUM_MIN, ARRAY_CHUNK_SIZE_IN_BYTES / power_of_2_max_i(stride));
 }
 
