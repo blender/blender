@@ -421,27 +421,29 @@ static float2 find_best_fit_for_island(
   const float size_x_scaled = BLI_rctf_size_x(&island->bounds_rect) * scale;
   const float size_y_scaled = BLI_rctf_size_y(&island->bounds_rect) * scale;
 
+  /* Scan using an "Alpaca"-style search, first vertically. */
+
   int t = 0;
   while (t <= scan_line) {
     const float t_bscaled = t / occupancy.bitmap_scale_reciprocal;
-
-    /* Scan using an "Alpaca"-style search, both horizontally and vertically at the same time. */
-
-    const float2 horiz(scan_line_bscaled - size_x_scaled, t_bscaled - size_y_scaled);
-    const float extentH = occupancy.trace_island(island, scale, margin, horiz, false);
-    if (extentH < 0.0f) {
-      return horiz;
+    const float2 probe(scan_line_bscaled - size_x_scaled, t_bscaled - size_y_scaled);
+    const float extent = occupancy.trace_island(island, scale, margin, probe, false);
+    if (extent < 0.0f) {
+      return probe;
     }
+    t = t + std::max(1, int(extent));
+  }
 
-    const float2 vert(t_bscaled - size_x_scaled, scan_line_bscaled - size_y_scaled);
-    const float extentV = occupancy.trace_island(island, scale, margin, vert, false);
-    if (extentV < 0.0f) {
-      return vert;
+  /* Now scan horizontally. */
+  t = 0;
+  while (t <= scan_line) {
+    const float t_bscaled = t / occupancy.bitmap_scale_reciprocal;
+    const float2 probe(t_bscaled - size_x_scaled, scan_line_bscaled - size_y_scaled);
+    const float extent = occupancy.trace_island(island, scale, margin, probe, false);
+    if (extent < 0.0f) {
+      return probe;
     }
-
-    const float min_extent = std::min(extentH, extentV);
-
-    t = t + std::max(1, int(min_extent));
+    t = t + std::max(1, int(extent));
   }
   return float2(-1, -1);
 }
