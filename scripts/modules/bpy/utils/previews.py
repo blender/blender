@@ -21,10 +21,7 @@ __all__ = (
     "ImagePreviewCollection",
 )
 
-import _bpy
-_utils_previews = _bpy._utils_previews
-del _bpy
-
+from _bpy import _utils_previews
 
 _uuid_open = set()
 
