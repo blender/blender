@@ -608,7 +608,7 @@ bool autokeyframe_cfra_can_key(const struct Scene *scene, struct ID *id);
  * Checks if some F-Curve has a keyframe for a given frame.
  * \note Used for the buttons to check for keyframes.
  */
-bool fcurve_frame_has_keyframe(const struct FCurve *fcu, float frame, short filter);
+bool fcurve_frame_has_keyframe(const struct FCurve *fcu, float frame);
 
 /**
  * \brief Lesser Keyframe Checking API call.
@@ -629,23 +629,7 @@ bool fcurve_is_changed(struct PointerRNA ptr,
  * in case some detail of the implementation changes...
  * \param frame: The value of this is quite often result of #BKE_scene_ctime_get()
  */
-bool id_frame_has_keyframe(struct ID *id, float frame, short filter);
-
-/**
- * Filter flags for #id_frame_has_keyframe.
- *
- * \warning do not alter order of these, as also stored in files (for `v3d->keyflags`).
- */
-typedef enum eAnimFilterFlags {
-  /* general */
-  ANIMFILTER_KEYS_LOCAL = (1 << 0),  /* only include locally available anim data */
-  ANIMFILTER_KEYS_MUTED = (1 << 1),  /* include muted elements */
-  ANIMFILTER_KEYS_ACTIVE = (1 << 2), /* only include active-subelements */
-
-  /* object specific */
-  ANIMFILTER_KEYS_NOMAT = (1 << 9),   /* don't include material keyframes */
-  ANIMFILTER_KEYS_NOSKEY = (1 << 10), /* don't include shape keys (for geometry) */
-} eAnimFilterFlags;
+bool id_frame_has_keyframe(struct ID *id, float frame);
 
 /* Utility functions for auto key-frame. */
 

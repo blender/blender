@@ -113,6 +113,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
+#include "DRW_engine.h"
+
 #include "bmesh.h"
 
 CurveMapping *BKE_sculpt_default_cavity_curve()
@@ -380,9 +382,10 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
 
 static void scene_free_data(ID *id)
 {
-
   Scene *scene = (Scene *)id;
   const bool do_id_user = false;
+
+  DRW_drawdata_free(id);
 
   SEQ_editing_free(scene, do_id_user);
 

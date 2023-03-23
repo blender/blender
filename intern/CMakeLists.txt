@@ -67,6 +67,10 @@ if(UNIX AND NOT APPLE)
   add_subdirectory(libc_compat)
 endif()
 
+if (WITH_RENDERDOC)
+  add_subdirectory(renderdoc_dynload)
+endif()
+
 if(UNIX AND NOT APPLE)
   # Important this comes after "ghost" as it uses includes defined by GHOST's CMake.
   if(WITH_GHOST_WAYLAND AND WITH_GHOST_WAYLAND_DYNLOAD)
