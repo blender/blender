@@ -147,6 +147,7 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
     if (r_name) {
       *r_name = nullptr;
     }
+    r_path_buffer[0] = '\0';
     return;
   }
 

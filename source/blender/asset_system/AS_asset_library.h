@@ -50,13 +50,14 @@ void AS_asset_library_remap_ids(const struct IDRemapper *mappings);
  * path is not guaranteed to exist on disk. On failure to resolve the reference, return arguments
  * will point to null.
  *
- * \note Only works for asset libraries on disk (others can't be resolved).
+ * \note Only works for asset libraries on disk and the "Current File" one (others can't be
+ *       resolved).
  *
  * \param r_path_buffer: Buffer to hold the result in on success. Will be the full path with null
  *                       terminators instead of slashes separating the directory, group and name
- *                       components.
+ *                       components. Must be at least #FILE_MAX_LIBEXTRA long.
  * \param r_dir: Returns the .blend file path with native slashes on success. Optional (passing
- *               null is allowed).
+ *               null is allowed). For the "Current File" library this will be empty.
  * \param r_group: Returns the ID group such as "Object", "Material" or "Brush". Optional (passing
  *                 null is allowed).
  * \param r_name: Returns the ID name on success. Optional (passing null is allowed).
