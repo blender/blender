@@ -552,7 +552,15 @@ def brush_settings(layout, context, brush, popover=False):
 
         layout.prop(brush.dyntopo, "disabled")
 
-        # auto_smooth_factor and use_inverse_smooth_pressure
+        if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "autosmooth_fset_slide",
+                slider=True,
+            )
+
         if capabilities.has_auto_smooth:
             UnifiedPaintPanel.prop_unified(
                 layout,
@@ -562,7 +570,7 @@ def brush_settings(layout, context, brush, popover=False):
                 pressure_name="use_inverse_smooth_pressure",
                 slider=True,
             )
-
+            
         if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
             layout.prop(brush, "use_weighted_smooth")
             

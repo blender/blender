@@ -3368,7 +3368,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, -2.0f, 2.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(
-      prop, "Face Set Slide", "Slide face set boundaries instead of sharpening them");
+      prop, "Face Set Projection", "Slide face set boundaries instead of sharpening them");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "vcol_boundary_exponent", PROP_FLOAT, PROP_FACTOR);

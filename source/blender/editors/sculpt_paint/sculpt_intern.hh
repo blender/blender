@@ -1889,7 +1889,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 BLI_INLINE bool SCULPT_get_fset_projection(SculptSession *ss, float fset_projection)
 {
   if (ss->hard_edge_mode) {
-    return 1.0f;
+    return 0.0f;
   }
 
   return fset_projection;

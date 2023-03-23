@@ -4148,6 +4148,12 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "autosmooth_fset_slide")) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->autosmooth_fset_slide = 1.0f;
+    }
+  }
+
   if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (ELEM(brush->sculpt_tool,
