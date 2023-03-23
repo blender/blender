@@ -40,10 +40,10 @@ static CLG_LogRef LOG = {"bgl"};
 
 static void report_deprecated_call(const char *function_name)
 {
-  /* Only report first 100 deprecated calls. BGL is typically used inside an handler that is
+  /* Only report first 10 deprecated calls. BGL is typically used inside an handler that is
    * triggered at refresh. */
   static int times = 0;
-  while (times >= 100) {
+  while (times >= 10) {
     return;
   }
   char message[256];
