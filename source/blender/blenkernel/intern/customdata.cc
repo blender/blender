@@ -2583,8 +2583,12 @@ const char *CustomData_get_render_layer_name(const CustomData *data, const int t
 
 void CustomData_set_layer_active(CustomData *data, const int type, const int n)
 {
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
+      BLI_assert(uint(n) < uint(layer_num));
       data->layers[i].active = n;
     }
   }
@@ -2592,8 +2596,12 @@ void CustomData_set_layer_active(CustomData *data, const int type, const int n)
 
 void CustomData_set_layer_render(CustomData *data, const int type, const int n)
 {
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
+      BLI_assert(uint(n) < uint(layer_num));
       data->layers[i].active_rnd = n;
     }
   }
@@ -2601,8 +2609,12 @@ void CustomData_set_layer_render(CustomData *data, const int type, const int n)
 
 void CustomData_set_layer_clone(CustomData *data, const int type, const int n)
 {
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
+      BLI_assert(uint(n) < uint(layer_num));
       data->layers[i].active_clone = n;
     }
   }
@@ -2610,8 +2622,12 @@ void CustomData_set_layer_clone(CustomData *data, const int type, const int n)
 
 void CustomData_set_layer_stencil(CustomData *data, const int type, const int n)
 {
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
+      BLI_assert(uint(n) < uint(layer_num));
       data->layers[i].active_mask = n;
     }
   }
@@ -2619,48 +2635,64 @@ void CustomData_set_layer_stencil(CustomData *data, const int type, const int n)
 
 void CustomData_set_layer_active_index(CustomData *data, const int type, const int n)
 {
-  const int layer_index = data->typemap[type];
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
+  const int layer_index = n - data->typemap[type];
   BLI_assert(customdata_typemap_is_valid(data));
 
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active = n - layer_index;
+      BLI_assert(uint(layer_index) < uint(layer_num));
+      data->layers[i].active = layer_index;
     }
   }
 }
 
 void CustomData_set_layer_render_index(CustomData *data, const int type, const int n)
 {
-  const int layer_index = data->typemap[type];
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
+  const int layer_index = n - data->typemap[type];
   BLI_assert(customdata_typemap_is_valid(data));
 
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active_rnd = n - layer_index;
+      BLI_assert(uint(layer_index) < uint(layer_num));
+      data->layers[i].active_rnd = layer_index;
     }
   }
 }
 
 void CustomData_set_layer_clone_index(CustomData *data, const int type, const int n)
 {
-  const int layer_index = data->typemap[type];
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
+  const int layer_index = n - data->typemap[type];
   BLI_assert(customdata_typemap_is_valid(data));
 
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active_clone = n - layer_index;
+      BLI_assert(uint(layer_index) < uint(layer_num));
+      data->layers[i].active_clone = layer_index;
     }
   }
 }
 
 void CustomData_set_layer_stencil_index(CustomData *data, const int type, const int n)
 {
-  const int layer_index = data->typemap[type];
+#ifndef NDEBUG
+  const int layer_num = CustomData_number_of_layers(data, type);
+#endif
+  const int layer_index = n - data->typemap[type];
   BLI_assert(customdata_typemap_is_valid(data));
 
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active_mask = n - layer_index;
+      BLI_assert(uint(layer_index) < uint(layer_num));
+      data->layers[i].active_mask = layer_index;
     }
   }
 }
