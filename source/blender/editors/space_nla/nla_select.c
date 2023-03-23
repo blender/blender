@@ -85,7 +85,6 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
   short smode;
 
   /* determine type-based settings */
-  /* FIXME: double check whether ANIMFILTER_LIST_VISIBLE is needed! */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
 
   /* filter data */
