@@ -67,13 +67,16 @@
 /** \name Blend/Library Paths
  * \{ */
 
-bool BKE_has_bfile_extension(const char *str)
+bool BKE_blendfile_extension_check(const char *str)
 {
   const char *ext_test[4] = {".blend", ".ble", ".blend.gz", nullptr};
   return BLI_path_extension_check_array(str, ext_test);
 }
 
-bool BKE_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name)
+bool BKE_blendfile_library_path_explode(const char *path,
+                                        char *r_dir,
+                                        char **r_group,
+                                        char **r_name)
 {
   /* We might get some data names with slashes,
    * so we have to go up in path until we find blend file itself,
@@ -98,7 +101,7 @@ bool BKE_library_path_explode(const char *path, char *r_dir, char **r_group, cha
   while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
     char tc = *slash;
     *slash = '\0';
-    if (BKE_has_bfile_extension(r_dir) && BLI_is_file(r_dir)) {
+    if (BKE_blendfile_extension_check(r_dir) && BLI_is_file(r_dir)) {
       break;
     }
     if (STREQ(r_dir, BLO_EMBEDDED_STARTUP_BLEND)) {

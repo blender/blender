@@ -859,4 +859,14 @@ TEST(vector, RemoveChunkExceptions)
   EXPECT_EQ(vec.size(), 7);
 }
 
+struct RecursiveType {
+  Vector<RecursiveType, 0> my_vector;
+};
+
+TEST(vector, RecursiveStructure)
+{
+  RecursiveType my_recursive_type;
+  my_recursive_type.my_vector.append({});
+}
+
 }  // namespace blender::tests

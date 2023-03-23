@@ -829,7 +829,7 @@ PyObject *BPY_app_translations_struct(void)
 {
   PyObject *ret;
 
-  /* Let's finalize our contexts structseq definition! */
+  /* Let's finalize our contexts `PyStructSequence` definition! */
   {
     BLT_i18n_contexts_descriptor *ctxt;
     PyStructSequence_Field *desc;

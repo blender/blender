@@ -217,7 +217,11 @@ bool BKE_collection_object_cyclic_check(struct Main *bmain,
 
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
+/** Free the object cache of given `collection` and all of its ancestors (recursively). */
 void BKE_collection_object_cache_free(struct Collection *collection);
+/** Free the object cache of all collections in given `bmain`, including master collections of
+ * scenes. */
+void BKE_main_collections_object_cache_free(const struct Main *bmain);
 
 struct Base *BKE_collection_or_layer_objects(const struct Scene *scene,
                                              struct ViewLayer *view_layer,

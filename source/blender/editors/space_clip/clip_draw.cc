@@ -59,11 +59,11 @@ static void draw_keyframe(int frame, int cfra, int sfra, float framelen, int wid
   if (width == 1) {
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2i(pos, x, 0);
-    immVertex2i(pos, x, height * UI_DPI_FAC);
+    immVertex2i(pos, x, height * UI_SCALE_FAC);
     immEnd();
   }
   else {
-    immRecti(pos, x, 0, x + width, height * UI_DPI_FAC);
+    immRecti(pos, x, 0, x + width, height * UI_SCALE_FAC);
   }
 }
 
@@ -191,7 +191,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
                  (i - sfra + clip->start_frame - 1) * framelen,
                  0,
                  (i - sfra + clip->start_frame) * framelen,
-                 4 * UI_DPI_FAC);
+                 4 * UI_SCALE_FAC);
       }
     }
   }
@@ -223,7 +223,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
                  (i - sfra + clip->start_frame - 1) * framelen,
                  0,
                  (i - sfra + clip->start_frame) * framelen,
-                 8 * UI_DPI_FAC);
+                 8 * UI_SCALE_FAC);
       }
     }
   }
@@ -234,11 +234,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
   x = (sc->user.framenr - sfra) / (efra - sfra + 1) * region->winx;
 
   immUniformThemeColor(TH_CFRAME);
-  immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
+  immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_SCALE_FAC);
 
   immUnbindProgram();
 
-  ED_region_cache_draw_curfra_label(sc->user.framenr, x, 8.0f * UI_DPI_FAC);
+  ED_region_cache_draw_curfra_label(sc->user.framenr, x, 8.0f * UI_SCALE_FAC);
 
   pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -368,7 +368,8 @@ static void draw_stabilization_border(
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+    immUniform2f(
+        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
@@ -743,7 +744,7 @@ static void draw_marker_areas(SpaceClip *sc,
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniform1i("colors_len", 0); /* "simple" mode */
 
@@ -954,11 +955,11 @@ static void draw_marker_slide_zones(SpaceClip *sc,
   dy = 6.0f / height / sc->zoom;
 
   side = get_shortest_pattern_side(marker);
-  patdx = min_ff(dx * 2.0f / 3.0f, side / 6.0f) * UI_DPI_FAC;
-  patdy = min_ff(dy * 2.0f / 3.0f, side * width / height / 6.0f) * UI_DPI_FAC;
+  patdx = min_ff(dx * 2.0f / 3.0f, side / 6.0f) * UI_SCALE_FAC;
+  patdy = min_ff(dy * 2.0f / 3.0f, side * width / height / 6.0f) * UI_SCALE_FAC;
 
-  searchdx = min_ff(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f) * UI_DPI_FAC;
-  searchdy = min_ff(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f) * UI_DPI_FAC;
+  searchdx = min_ff(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f) * UI_SCALE_FAC;
+  searchdy = min_ff(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f) * UI_SCALE_FAC;
 
   px[0] = 1.0f / sc->zoom / width / sc->scale;
   px[1] = 1.0f / sc->zoom / height / sc->scale;
@@ -1035,7 +1036,7 @@ static void draw_marker_texts(SpaceClip *sc,
     return;
   }
 
-  BLF_size(fontid, 11.0f * U.dpi_fac);
+  BLF_size(fontid, 11.0f * UI_SCALE_FAC);
   fontsize = BLF_height_max(fontid);
 
   if (marker->flag & MARKER_DISABLED) {
@@ -1288,7 +1289,8 @@ static void draw_plane_marker_ex(SpaceClip *sc,
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+    immUniform2f(
+        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
     immUniform1i("colors_len", 0); /* "simple" mode */
 

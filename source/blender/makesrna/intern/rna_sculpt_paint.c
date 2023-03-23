@@ -385,8 +385,8 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
     if (ob->sculpt) {
-      ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
-                                        SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
+      BKE_object_sculpt_dyntopo_smooth_shading_set(
+          ob, ((scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) != 0));
     }
   }
 }

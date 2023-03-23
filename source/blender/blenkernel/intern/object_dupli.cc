@@ -1057,7 +1057,7 @@ struct FaceDupliData_Mesh {
 
   int totface;
   const MPoly *polys;
-  const MLoop *mloop;
+  const int *corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
   const float2 *mloopuv;
@@ -1156,15 +1156,14 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
 
                                          /* Mesh variables. */
                                          const MPoly &poly,
-                                         const MLoop *mloopstart,
+                                         const int *poly_verts,
                                          const Span<float3> vert_positions)
 {
   const int coords_len = poly.totloop;
   Array<float3, 64> coords(coords_len);
 
-  const MLoop *ml = mloopstart;
-  for (int i = 0; i < coords_len; i++, ml++) {
-    coords[i] = vert_positions[ml->v];
+  for (int i = 0; i < coords_len; i++) {
+    coords[i] = vert_positions[poly_verts[i]];
   }
 
   return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
@@ -1207,7 +1206,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
   const MPoly *polys = fdd->polys;
-  const MLoop *mloop = fdd->mloop;
+  const int *corner_verts = fdd->corner_verts;
   const float(*orco)[3] = fdd->orco;
   const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
@@ -1222,7 +1221,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 
   for (const int a : blender::IndexRange(totface)) {
     const MPoly &poly = polys[a];
-    const MLoop *loopstart = mloop + poly.loopstart;
+    const int *poly_verts = &corner_verts[poly.loopstart];
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
                                             child_imat,
@@ -1230,13 +1229,13 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                             use_scale,
                                             scale_fac,
                                             poly,
-                                            loopstart,
+                                            poly_verts,
                                             fdd->vert_positions);
 
     const float w = 1.0f / float(poly.totloop);
     if (orco) {
       for (int j = 0; j < poly.totloop; j++) {
-        madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
+        madd_v3_v3fl(dob->orco, orco[poly_verts[j]], w);
       }
     }
     if (mloopuv) {
@@ -1320,7 +1319,7 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
     fdd.polys = me_eval->polys().data();
-    fdd.mloop = me_eval->loops().data();
+    fdd.corner_verts = me_eval->corner_verts().data();
     fdd.vert_positions = me_eval->vert_positions();
     fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
                                        &me_eval->ldata, CD_PROP_FLOAT2, uv_idx) :
@@ -1331,9 +1330,8 @@ static void make_duplis_faces(const DupliContext *ctx)
   }
 }
 
-static const DupliGenerator gen_dupli_faces = {
-    /*type*/ OB_DUPLIFACES,
-    /*make_duplis*/ make_duplis_faces};
+static const DupliGenerator gen_dupli_faces = {/*type*/ OB_DUPLIFACES,
+                                               /*make_duplis*/ make_duplis_faces};
 
 /** \} */
 
@@ -1680,9 +1678,8 @@ static void make_duplis_particles(const DupliContext *ctx)
   }
 }
 
-static const DupliGenerator gen_dupli_particles = {
-    /*type*/ OB_DUPLIPARTS,
-    /*make_duplis*/ make_duplis_particles};
+static const DupliGenerator gen_dupli_particles = {/*type*/ OB_DUPLIPARTS,
+                                                   /*make_duplis*/ make_duplis_particles};
 
 /** \} */
 

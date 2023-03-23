@@ -470,7 +470,7 @@ typedef struct ARegion {
   short flag;
 
   /** Current split size in unscaled pixels (if zero it uses regiontype).
-   * To convert to pixels use: `UI_DPI_FAC * region->sizex + 0.5f`.
+   * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
    * However to get the current region size, you should usually use winx/winy from above, not this!
    */
   short sizex, sizey;

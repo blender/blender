@@ -864,7 +864,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   const OffsetIndices points_by_curve = this->points_by_curve();
   const IndexRange points = points_by_curve[curve_index];
   BLI_assert(src.size() == points.size());
-  BLI_assert(dst.size() == this->evaluated_points_by_curve().size(curve_index));
+  BLI_assert(dst.size() == this->evaluated_points_by_curve()[curve_index].size());
   evaluate_generic_data_for_curve(curve_index,
                                   points,
                                   this->curve_types(),

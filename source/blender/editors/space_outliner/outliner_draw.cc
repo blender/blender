@@ -1803,7 +1803,7 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                                              const ListBase *lb,
                                              const int x)
 {
-  const float pad_x = 2.0f * UI_DPI_FAC;
+  const float pad_x = 2.0f * UI_SCALE_FAC;
   const float pad_y = 0.5f * U.pixelsize;
   const float item_max_width = round_fl_to_int(OL_RNA_COL_SIZEX - 2 * pad_x);
   const float item_height = round_fl_to_int(UI_UNIT_Y - 2.0f * pad_y);
@@ -2903,7 +2903,7 @@ static bool tselem_draw_icon(uiBlock *block,
         UI_icon_draw_ex(x,
                         y,
                         data.icon,
-                        U.inv_dpi_fac,
+                        UI_INV_SCALE_FAC,
                         alpha,
                         0.0f,
                         btheme->collection_color[collection->color_tag].color,
@@ -2919,10 +2919,11 @@ static bool tselem_draw_icon(uiBlock *block,
     /* Restrict column clip. it has been coded by simply overdrawing, doesn't work for buttons. */
     uchar color[4];
     if (UI_icon_get_theme_color(data.icon, color)) {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true, &text_overlay);
+      UI_icon_draw_ex(x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, color, true, &text_overlay);
     }
     else {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, nullptr, false, &text_overlay);
+      UI_icon_draw_ex(
+          x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, &text_overlay);
     }
   }
   else {
@@ -3529,7 +3530,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
   immUniform1i("colors_len", 0); /* "simple"  mode */
   immUniform1f("dash_width", 8.0f);
   UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
@@ -3813,7 +3814,8 @@ static int outliner_width(SpaceOutliner *space_outliner,
                           float right_column_width)
 {
   if (space_outliner->outlinevis == SO_DATA_API) {
-    return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX + 10 * UI_DPI_FAC;
+    return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX +
+           10 * UI_SCALE_FAC;
   }
   return max_tree_width + right_column_width;
 }

@@ -82,6 +82,8 @@ static CollectionParent *collection_find_parent(Collection *child, Collection *c
 static bool collection_find_child_recursive(const Collection *parent,
                                             const Collection *collection);
 
+static void collection_object_cache_free(Collection *collection);
+
 static void collection_gobject_hash_ensure(Collection *collection);
 static void collection_gobject_hash_update_object(Collection *collection,
                                                   Object *ob_old,
@@ -160,7 +162,7 @@ static void collection_free_data(ID *id)
   BLI_freelistN(&collection->children);
   BLI_freelistN(&collection->runtime.parents);
 
-  BKE_collection_object_cache_free(collection);
+  collection_object_cache_free(collection);
 }
 
 static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -887,15 +889,27 @@ static void collection_object_cache_free(Collection *collection)
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
+}
+
+void BKE_collection_object_cache_free(Collection *collection)
+{
+  collection_object_cache_free(collection);
 
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
     collection_object_cache_free(parent->collection);
   }
 }
 
-void BKE_collection_object_cache_free(Collection *collection)
+void BKE_main_collections_object_cache_free(const Main *bmain)
 {
-  collection_object_cache_free(collection);
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    collection_object_cache_free(scene->master_collection);
+  }
+
+  for (Collection *collection = bmain->collections.first; collection != NULL;
+       collection = collection->id.next) {
+    collection_object_cache_free(collection);
+  }
 }
 
 Base *BKE_collection_or_layer_objects(const Scene *scene,

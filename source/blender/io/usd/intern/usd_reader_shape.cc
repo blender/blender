@@ -143,7 +143,7 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
   }
 
   MutableSpan<MPoly> polys = active_mesh->polys_for_write();
-  MutableSpan<MLoop> loops = active_mesh->loops_for_write();
+  MutableSpan<int> corner_verts = active_mesh->corner_verts_for_write();
 
   /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
   BKE_mesh_smooth_flag_set(active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
@@ -157,7 +157,7 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
     poly.totloop = face_size;
 
     for (int f = 0; f < face_size; ++f, ++loop_index) {
-      loops[loop_index].v = face_indices[loop_index];
+      corner_verts[loop_index] = face_indices[loop_index];
     }
   }
 

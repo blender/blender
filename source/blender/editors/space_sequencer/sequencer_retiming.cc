@@ -229,15 +229,16 @@ void SEQUENCER_OT_retiming_handle_move(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_int(ot->srna,
-              "handle_index",
-              0,
-              0,
-              INT_MAX,
-              "Handle Index",
-              "Index of handle to be moved",
-              0,
-              INT_MAX);
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "handle_index",
+                                  0,
+                                  0,
+                                  INT_MAX,
+                                  "Handle Index",
+                                  "Index of handle to be moved",
+                                  0,
+                                  INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
@@ -367,15 +368,16 @@ void SEQUENCER_OT_retiming_handle_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_int(ot->srna,
-              "handle_index",
-              0,
-              0,
-              INT_MAX,
-              "Handle Index",
-              "Index of handle to be removed",
-              0,
-              INT_MAX);
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "handle_index",
+                                  0,
+                                  0,
+                                  INT_MAX,
+                                  "Handle Index",
+                                  "Index of handle to be removed",
+                                  0,
+                                  INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

@@ -64,7 +64,7 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
         assert bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
@@ -72,7 +72,7 @@ class TestIdRuntimeTag(TestHelper):
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
 
         obj.is_runtime_data = True
         assert obj.is_runtime_data
@@ -82,7 +82,7 @@ class TestIdRuntimeTag(TestHelper):
 
         assert 'Cube' not in bpy.data.objects
         mesh = bpy.data.meshes['Cube']
-        assert mesh.is_runtime_data == False
+        assert mesh.is_runtime_data is False
         assert mesh.users == 0
 
     def test_linking(self):
@@ -91,7 +91,11 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         material = bpy.data.materials.new("LibMaterial")
-        material.use_fake_user = True
+        # Use a dummy mesh as user of the material, such that the material is saved
+        # without having to use fake user on it.
+        mesh = bpy.data.meshes.new("LibMesh")
+        mesh.materials.append(material)
+        mesh.use_fake_user = True
 
         output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_runtimetag_basic"))
         bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
@@ -99,15 +103,22 @@ class TestIdRuntimeTag(TestHelper):
         bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
 
         obj = bpy.data.objects['Cube']
-        assert obj.is_runtime_data == False
+        assert obj.is_runtime_data is False
         obj.is_runtime_data = True
 
         link_dir = os.path.join(output_lib_path, "Material")
         bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
 
         linked_material = bpy.data.materials['LibMaterial']
-        assert linked_material.is_library_indirect == False
+        assert linked_material.is_library_indirect is False
 
+        link_dir = os.path.join(output_lib_path, "Mesh")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
+
+        linked_mesh = bpy.data.meshes['LibMesh']
+        assert linked_mesh.is_library_indirect is False
+
+        obj.data = linked_mesh
         obj.material_slots[0].link = 'OBJECT'
         obj.material_slots[0].material = linked_material
 
@@ -118,13 +129,17 @@ class TestIdRuntimeTag(TestHelper):
         # so writing .blend file will have properly reset its tag to indirectly linked data.
         assert linked_material.is_library_indirect
 
+        # Only usage of this linked mesh is a runtime ID (object), but it is flagged as 'fake user' in its library,
+        # so writing .blend file will have kept its tag to directly linked data.
+        assert not linked_mesh.is_library_indirect
+
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
         assert 'Cube' not in bpy.data.objects
-        assert 'LibMaterial' not in bpy.data.materials
-        mesh = bpy.data.meshes['Cube']
-        assert mesh.is_runtime_data == False
-        assert mesh.users == 0
+        assert 'LibMaterial' in bpy.data.materials  # Pulled-in by the linked mesh.
+        linked_mesh = bpy.data.meshes['LibMesh']
+        assert linked_mesh.use_fake_user is True
+        assert linked_mesh.is_library_indirect is False
 
 
 TESTS = (

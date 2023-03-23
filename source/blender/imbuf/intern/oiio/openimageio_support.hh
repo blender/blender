@@ -24,13 +24,13 @@ struct ReadContext {
   const eImbFileType file_type;
   const int flags;
 
-  /* Override the automatic color-role choice with the value specified here. */
+  /** Override the automatic color-role choice with the value specified here. */
   int use_colorspace_role = -1;
 
-  /* Allocate and use all ImBuf image planes even if the image has fewer. */
+  /** Allocate and use all #ImBuf image planes even if the image has fewer. */
   bool use_all_planes = false;
 
-  /* Use the colorspace provided in the image metadata when available. */
+  /** Use the `colorspace` provided in the image metadata when available. */
   bool use_embedded_colorspace = false;
 };
 
@@ -58,7 +58,7 @@ bool imb_oiio_check(const uchar *mem, size_t mem_size, const char *file_format);
  * The primary method for reading data into an #ImBuf.
  *
  * During the `IB_test` phase of loading, the `colorspace` parameter will be populated
- * with the appropriate colorspace name.
+ * with the appropriate `colorspace` name.
  *
  * Upon return, the `r_newspec` parameter will contain image format information
  * which can be inspected afterwards if necessary.
@@ -91,7 +91,7 @@ WriteContext imb_create_write_context(const char *file_format,
                                       bool prefer_float = true);
 
 /**
- * Returns an ImageSpec filled in with all common attributes associated with the #ImBuf
+ * Returns an #ImageSpec filled in with all common attributes associated with the #ImBuf
  * provided as part of the #WriteContext.
  *
  * This includes optional metadata that has been attached to the #ImBuf and which should be

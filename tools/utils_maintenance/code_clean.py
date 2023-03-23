@@ -1081,11 +1081,15 @@ class edit_generators:
           float(foo(a + b))
         """
         @staticmethod
-        def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+        def edit_list_from_file(source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+
+            edits: List[Edit] = []
+
+            # The user might include C & C++, if they forget, it is better not to operate on C.
+            if source.lower().endswith((".h", ".c")):
+                return edits
 
             any_number_re = "(" + "|".join(BUILT_IN_NUMERIC_TYPES) + ")"
-
-            edits = []
 
             # Handle both:
             # - Simple case:  `(float)(a + b)` -> `float(a + b)`.

@@ -2316,7 +2316,7 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
   Base *basact = nullptr;
 
   /* Put the active object at a disadvantage to cycle through other objects. */
-  const float penalty_dist = 10.0f * UI_DPI_FAC;
+  const float penalty_dist = 10.0f * UI_SCALE_FAC;
   Base *base = startbase;
   while (base) {
     if (BASE_SELECTABLE(v3d, base)) {

@@ -99,6 +99,11 @@ static int circle_face_total(const GeometryNodeMeshCircleFillType fill_type, con
   return 0;
 }
 
+static Bounds<float3> calculate_bounds_circle(const float radius, const int verts_num)
+{
+  return calculate_bounds_radial_primitive(0.0f, radius, verts_num, 0.0f);
+}
+
 static Mesh *create_circle_mesh(const float radius,
                                 const int verts_num,
                                 const GeometryNodeMeshCircleFillType fill_type)
@@ -111,7 +116,8 @@ static Mesh *create_circle_mesh(const float radius,
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   /* Assign vertex coordinates. */
@@ -144,13 +150,10 @@ static Mesh *create_circle_mesh(const float radius,
   if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
     MPoly &poly = polys[0];
     poly.loopstart = 0;
-    poly.totloop = loops.size();
+    poly.totloop = corner_verts.size();
 
-    for (const int i : IndexRange(verts_num)) {
-      MLoop &loop = loops[i];
-      loop.e = i;
-      loop.v = i;
-    }
+    std::iota(corner_verts.begin(), corner_verts.end(), 0);
+    std::iota(corner_edges.begin(), corner_edges.end(), 0);
   }
   else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
     for (const int i : IndexRange(verts_num)) {
@@ -158,17 +161,18 @@ static Mesh *create_circle_mesh(const float radius,
       poly.loopstart = 3 * i;
       poly.totloop = 3;
 
-      MLoop &loop_a = loops[3 * i];
-      loop_a.e = i;
-      loop_a.v = i;
-      MLoop &loop_b = loops[3 * i + 1];
-      loop_b.e = verts_num + ((i + 1) % verts_num);
-      loop_b.v = (i + 1) % verts_num;
-      MLoop &loop_c = loops[3 * i + 2];
-      loop_c.e = verts_num + i;
-      loop_c.v = verts_num;
+      corner_verts[3 * i] = i;
+      corner_edges[3 * i] = i;
+
+      corner_verts[3 * i + 1] = (i + 1) % verts_num;
+      corner_edges[3 * i + 1] = verts_num + ((i + 1) % verts_num);
+
+      corner_verts[3 * i + 2] = verts_num;
+      corner_edges[3 * i + 2] = verts_num + i;
     }
   }
+
+  mesh->bounds_set_eager(calculate_bounds_circle(radius, verts_num));
 
   return mesh;
 }

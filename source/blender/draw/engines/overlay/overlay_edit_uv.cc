@@ -158,7 +158,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.uv_opacity = sima->uv_opacity;
   pd->edit_uv.do_tiled_image_overlay = show_overlays && is_image_type && is_tiled_image;
   pd->edit_uv.do_tiled_image_border_overlay = is_image_type && is_tiled_image;
-  pd->edit_uv.dash_length = 4.0f * UI_DPI_FAC;
+  pd->edit_uv.dash_length = 4.0f * UI_SCALE_FAC;
   pd->edit_uv.line_style = edit_uv_line_style_from_space_image(sima);
   pd->edit_uv.do_smooth_wire = ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0);
   pd->edit_uv.do_stencil_overlay = show_overlays && do_stencil_overlay;
@@ -237,7 +237,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       GPUShader *sh = OVERLAY_shader_edit_uv_verts_get();
       pd->edit_uv_verts_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
 
-      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * U.dpi_fac;
+      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC;
 
       DRW_shgroup_uniform_block(pd->edit_uv_verts_grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(
@@ -261,7 +261,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
     /* uv face dots */
     if (pd->edit_uv.do_face_dots) {
-      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * U.dpi_fac;
+      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
       GPUShader *sh = OVERLAY_shader_edit_uv_face_dots_get();
       pd->edit_uv_face_dots_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
       DRW_shgroup_uniform_block(pd->edit_uv_face_dots_grp, "globalsBlock", G_draw.block_ubo);

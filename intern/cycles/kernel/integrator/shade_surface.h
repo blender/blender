@@ -24,10 +24,10 @@ ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
                                                            ccl_private ShaderData *sd)
 {
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(kg, state, &isect);
+  integrator_state_read_isect(state, &isect);
 
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(kg, state, &ray);
+  integrator_state_read_ray(state, &ray);
 
   shader_setup_from_ray(kg, sd, &ray, &isect);
 }
@@ -253,7 +253,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   }
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  integrator_state_write_shadow_ray(shadow_state, &ray);
   // Save memory by storing the light and object indices in the shadow_isect
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
@@ -548,7 +548,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  integrator_state_write_shadow_ray(shadow_state, &ray);
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;

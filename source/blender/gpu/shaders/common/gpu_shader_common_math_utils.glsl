@@ -1,18 +1,23 @@
 /* Float Math */
 
+/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+#ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
+
 float safe_divide(float a, float b)
 {
   return (b != 0.0) ? a / b : 0.0;
 }
 
+#endif
+
 /* fmod function compatible with OSL (copy from OSL/dual.h) */
 float compatible_fmod(float a, float b)
 {
-  if (b != 0.0f) {
+  if (b != 0.0) {
     int N = int(a / b);
     return a - N * b;
   }
-  return 0.0f;
+  return 0.0;
 }
 
 float compatible_pow(float x, float y)
@@ -59,10 +64,15 @@ vec3 wrap(vec3 a, vec3 b, vec3 c)
   return vec3(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z));
 }
 
+/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+#ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
+
 float hypot(float x, float y)
 {
   return sqrt(x * x + y * y);
 }
+
+#endif
 
 int floor_to_int(float x)
 {
@@ -75,6 +85,9 @@ int quick_floor(float x)
 }
 
 /* Vector Math */
+
+/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+#ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 
 vec2 safe_divide(vec2 a, vec2 b)
 {
@@ -106,6 +119,8 @@ vec4 safe_divide(vec4 a, float b)
 {
   return (b != 0.0) ? a / b : vec4(0.0);
 }
+
+#endif
 
 vec3 compatible_fmod(vec3 a, vec3 b)
 {

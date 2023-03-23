@@ -82,7 +82,7 @@ void main()
 {
   vec2 screen_uv = gl_FragCoord.xy / vec2(fb_resolution);
 
-  float opaque_depth = texelFetch(hiz_tx, int2(gl_FragCoord.xy), fb_lod).r;
+  float opaque_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), fb_lod).r;
   vec3 ws_opaque = get_world_space_from_depth(screen_uv, opaque_depth);
 
   vec3 ws_near_plane = get_world_space_from_depth(screen_uv, 0);

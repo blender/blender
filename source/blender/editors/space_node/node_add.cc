@@ -57,8 +57,8 @@ namespace blender::ed::space_node {
 
 static void position_node_based_on_mouse(bNode &node, const float2 &location)
 {
-  node.locx = location.x - NODE_DY * 1.5f / UI_DPI_FAC;
-  node.locy = location.y + NODE_DY * 0.5f / UI_DPI_FAC;
+  node.locx = location.x - NODE_DY * 1.5f / UI_SCALE_FAC;
+  node.locy = location.y + NODE_DY * 0.5f / UI_SCALE_FAC;
 }
 
 bNode *add_node(const bContext &C, const StringRef idname, const float2 &location)
@@ -109,12 +109,10 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 /** \name Add Reroute Operator
  * \{ */
 
-std::optional<float2> link_path_intersection(const Span<float2> socket_locations,
-                                             const bNodeLink &link,
-                                             const Span<float2> path)
+std::optional<float2> link_path_intersection(const bNodeLink &link, const Span<float2> path)
 {
   std::array<float2, NODE_LINK_RESOL + 1> coords;
-  node_link_bezier_points_evaluated(socket_locations, link, coords);
+  node_link_bezier_points_evaluated(link, coords);
 
   for (const int i : path.index_range().drop_back(1)) {
     for (const int j : IndexRange(NODE_LINK_RESOL)) {
@@ -140,7 +138,6 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   const ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
-  const Span<float2> socket_locations = ntree.runtime->all_socket_locations;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -172,10 +169,10 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   Map<bNodeSocket *, RerouteCutsForSocket> cuts_per_socket;
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (node_link_is_hidden_or_dimmed(socket_locations, region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
-    const std::optional<float2> cut = link_path_intersection(socket_locations, *link, path);
+    const std::optional<float2> cut = link_path_intersection(*link, path);
     if (!cut) {
       continue;
     }
@@ -206,8 +203,8 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     const float2 insert_point = std::accumulate(
                                     cuts.values().begin(), cuts.values().end(), float2(0)) /
                                 cuts.size();
-    reroute->locx = insert_point.x / UI_DPI_FAC;
-    reroute->locy = insert_point.y / UI_DPI_FAC;
+    reroute->locx = insert_point.x / UI_SCALE_FAC;
+    reroute->locy = insert_point.y / UI_SCALE_FAC;
 
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
@@ -350,8 +347,8 @@ static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *eve
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_group_exec(C, op);
 }
@@ -443,7 +440,7 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
                            &snode.runtime->cursor[0],
                            &snode.runtime->cursor[1]);
 
-  snode.runtime->cursor /= UI_DPI_FAC;
+  snode.runtime->cursor /= UI_SCALE_FAC;
 
   if (!add_node_group_asset(*C, asset, *op->reports)) {
     return OPERATOR_CANCELLED;
@@ -471,7 +468,7 @@ static char *node_add_group_asset_get_description(struct bContext *C,
   if (!asset_data.description) {
     return nullptr;
   }
-  return BLI_strdup(asset_data.description);
+  return BLI_strdup(DATA_(asset_data.description));
 }
 
 void NODE_OT_add_group_asset(wmOperatorType *ot)
@@ -543,8 +540,8 @@ static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *ev
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_object_exec(C, op);
 }
@@ -630,8 +627,8 @@ static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_collection_exec(C, op);
 }
@@ -745,8 +742,8 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   if (WM_operator_properties_id_lookup_is_set(op->ptr) ||
       RNA_struct_property_is_set(op->ptr, "filepath")) {

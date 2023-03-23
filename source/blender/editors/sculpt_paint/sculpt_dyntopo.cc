@@ -326,7 +326,7 @@ static bool dyntopo_supports_layer(const CustomDataLayer &layer, const int elem_
     return BM_attribute_stored_in_bmesh_builtin(layer.name);
   }
   /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
-  return ELEM(layer.type, CD_MEDGE, CD_MPOLY, CD_MLOOP, CD_PAINT_MASK, CD_ORIGINDEX);
+  return ELEM(layer.type, CD_MEDGE, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX);
 }
 
 static bool dyntopo_supports_customdata_layers(const blender::Span<CustomDataLayer> layers,

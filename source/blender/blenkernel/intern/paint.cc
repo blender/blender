@@ -1696,16 +1696,16 @@ static void sculpt_update_object(
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->polys = me->polys().data();
-    ss->mloop = me->loops().data();
+    ss->polys = me->polys();
+    ss->corner_verts = me->corner_verts();
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->polys = me->polys().data();
-    ss->mloop = me->loops().data();
+    ss->polys = me->polys();
+    ss->corner_verts = me->corner_verts();
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
@@ -1766,7 +1766,7 @@ static void sculpt_update_object(
     BKE_mesh_vert_poly_map_create(&ss->pmap,
                                   &ss->pmap_mem,
                                   me->polys().data(),
-                                  me->loops().data(),
+                                  me->corner_verts().data(),
                                   me->totvert,
                                   me->totpoly,
                                   me->totloop);
@@ -1986,7 +1986,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
   int ret = 0;
 
   const float *paint_mask = static_cast<const float *>(
@@ -1999,12 +1999,11 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
-    int i, j;
 
     gmask = static_cast<GridPaintMask *>(
         CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
-    for (i = 0; i < me->totloop; i++) {
+    for (int i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
 
       gpm->level = level;
@@ -2012,30 +2011,29 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
           MEM_callocN(sizeof(float) * gridarea, "GridPaintMask.data"));
     }
 
-    /* if vertices already have mask, copy into multires data */
+    /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
-      for (i = 0; i < me->totpoly; i++) {
+      for (const int i : polys.index_range()) {
         const MPoly &poly = polys[i];
-        float avg = 0;
 
-        /* mask center */
-        for (j = 0; j < poly.totloop; j++) {
-          const MLoop *l = &loops[poly.loopstart + j];
-          avg += paint_mask[l->v];
+        /* Mask center. */
+        float avg = 0.0f;
+        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+          avg += paint_mask[vert];
         }
         avg /= float(poly.totloop);
 
-        /* fill in multires mask corner */
-        for (j = 0; j < poly.totloop; j++) {
-          GridPaintMask *gpm = &gmask[poly.loopstart + j];
-          const MLoop *l = &loops[poly.loopstart + j];
-          const MLoop *prev = ME_POLY_LOOP_PREV(loops, &poly, j);
-          const MLoop *next = ME_POLY_LOOP_NEXT(loops, &poly, j);
+        /* Fill in multires mask corner. */
+        for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
+          GridPaintMask *gpm = &gmask[corner];
+          const int vert = corner_verts[corner];
+          const int prev = corner_verts[blender::bke::mesh::poly_corner_prev(poly, vert)];
+          const int next = corner_verts[blender::bke::mesh::poly_corner_next(poly, vert)];
 
           gpm->data[0] = avg;
-          gpm->data[1] = (paint_mask[l->v] + paint_mask[next->v]) * 0.5f;
-          gpm->data[2] = (paint_mask[l->v] + paint_mask[prev->v]) * 0.5f;
-          gpm->data[3] = paint_mask[l->v];
+          gpm->data[1] = (paint_mask[vert] + paint_mask[next]) * 0.5f;
+          gpm->data[2] = (paint_mask[vert] + paint_mask[prev]) * 0.5f;
+          gpm->data[3] = paint_mask[vert];
         }
       }
     }
@@ -2183,17 +2181,17 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
 
   MLoopTri *looptri = static_cast<MLoopTri *>(
       MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
 
-  blender::bke::mesh::looptris_calc(positions, polys, loops, {looptri, looptris_num});
+  blender::bke::mesh::looptris_calc(positions, polys, corner_verts, {looptri, looptris_num});
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
                       polys.data(),
-                      loops.data(),
+                      corner_verts.data(),
                       reinterpret_cast<float(*)[3]>(positions.data()),
                       me->totvert,
                       &me->vdata,
@@ -2204,10 +2202,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
-    int totvert;
-    float(*v_cos)[3] = BKE_mesh_vert_coords_alloc(me_eval_deform, &totvert);
-    BKE_pbvh_vert_coords_apply(pbvh, v_cos, totvert);
-    MEM_freeN(v_cos);
+    BKE_pbvh_vert_coords_apply(
+        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
   }
 
   return pbvh;
@@ -2285,6 +2281,24 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   sculpt_attribute_update_refs(ob);
   return pbvh;
+}
+
+PBVH *BKE_object_sculpt_pbvh_get(Object *object)
+{
+  if (!object->sculpt) {
+    return nullptr;
+  }
+  return object->sculpt->pbvh;
+}
+
+bool BKE_object_sculpt_use_dyntopo(const Object *object)
+{
+  return object->sculpt && object->sculpt->bm;
+}
+
+void BKE_object_sculpt_dyntopo_smooth_shading_set(Object *object, const bool value)
+{
+  object->sculpt->bm_smooth_shading = value;
 }
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)

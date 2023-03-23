@@ -71,13 +71,13 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
 
     const float(*positions)[3] = BKE_mesh_vert_positions(me);
     const blender::Span<MPoly> polys = me->polys();
-    const blender::Span<MLoop> loops = me->loops();
+    const blender::Span<int> corner_verts = me->corner_verts();
     const blender::Span<MLoopTri> looptris = me->looptris();
 
     facemap_data = static_cast<const int *>(CustomData_get_layer(&me->pdata, CD_FACEMAP));
 
     /* Make a batch and free it each time for now. */
-    const int looptris_len = poly_to_tri_count(polys.size(), loops.size());
+    const int looptris_len = poly_to_tri_count(polys.size(), corner_verts.size());
     const int vbo_len_capacity = looptris_len * 3;
     int vbo_len_used = 0;
 
@@ -97,11 +97,11 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
       if (facemap_data[i] == facemap) {
         for (int j = 2; j < poly.totloop; j++) {
           copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                     positions[loops[looptris[tri_index].tri[0]].v]);
+                     positions[corner_verts[looptris[tri_index].tri[0]]]);
           copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                     positions[loops[looptris[tri_index].tri[1]].v]);
+                     positions[corner_verts[looptris[tri_index].tri[1]]]);
           copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                     positions[loops[looptris[tri_index].tri[2]].v]);
+                     positions[corner_verts[looptris[tri_index].tri[2]]]);
           vbo_len_used += 3;
           tri_index++;
         }

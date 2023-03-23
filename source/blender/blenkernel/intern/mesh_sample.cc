@@ -21,7 +21,7 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const IndexMask mask,
                                                 const MutableSpan<T> dst)
 {
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : mask) {
@@ -29,9 +29,9 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
     const MLoopTri &looptri = looptris[looptri_index];
     const float3 &bary_coord = bary_coords[i];
 
-    const int v0_index = loops[looptri.tri[0]].v;
-    const int v1_index = loops[looptri.tri[1]].v;
-    const int v2_index = loops[looptri.tri[2]].v;
+    const int v0_index = corner_verts[looptri.tri[0]];
+    const int v1_index = corner_verts[looptri.tri[1]];
+    const int v2_index = corner_verts[looptri.tri[2]];
 
     const T v0 = src[v0_index];
     const T v1 = src[v1_index];
@@ -157,21 +157,17 @@ Span<float3> MeshAttributeInterpolator::ensure_barycentric_coords()
   bary_coords_.reinitialize(mask_.min_array_size());
 
   const Span<float3> positions = mesh_->vert_positions();
-  const Span<MLoop> loops = mesh_->loops();
+  const Span<int> corner_verts = mesh_->corner_verts();
   const Span<MLoopTri> looptris = mesh_->looptris();
 
   for (const int i : mask_) {
     const int looptri_index = looptri_indices_[i];
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const int v0_index = loops[looptri.tri[0]].v;
-    const int v1_index = loops[looptri.tri[1]].v;
-    const int v2_index = loops[looptri.tri[2]].v;
-
     interp_weights_tri_v3(bary_coords_[i],
-                          positions[v0_index],
-                          positions[v1_index],
-                          positions[v2_index],
+                          positions[corner_verts[looptri.tri[0]]],
+                          positions[corner_verts[looptri.tri[1]]],
+                          positions[corner_verts[looptri.tri[2]]],
                           positions_[i]);
   }
   return bary_coords_;
@@ -186,20 +182,16 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
   nearest_weights_.reinitialize(mask_.min_array_size());
 
   const Span<float3> positions = mesh_->vert_positions();
-  const Span<MLoop> loops = mesh_->loops();
+  const Span<int> corner_verts = mesh_->corner_verts();
   const Span<MLoopTri> looptris = mesh_->looptris();
 
   for (const int i : mask_) {
     const int looptri_index = looptri_indices_[i];
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const int v0_index = loops[looptri.tri[0]].v;
-    const int v1_index = loops[looptri.tri[1]].v;
-    const int v2_index = loops[looptri.tri[2]].v;
-
-    const float d0 = len_squared_v3v3(positions_[i], positions[v0_index]);
-    const float d1 = len_squared_v3v3(positions_[i], positions[v1_index]);
-    const float d2 = len_squared_v3v3(positions_[i], positions[v2_index]);
+    const float d0 = len_squared_v3v3(positions_[i], positions[corner_verts[looptri.tri[0]]]);
+    const float d1 = len_squared_v3v3(positions_[i], positions[corner_verts[looptri.tri[1]]]);
+    const float d2 = len_squared_v3v3(positions_[i], positions[corner_verts[looptri.tri[2]]]);
 
     nearest_weights_[i] = MIN3_PAIR(d0, d1, d2, float3(1, 0, 0), float3(0, 1, 0), float3(0, 0, 1));
   }
@@ -259,7 +251,7 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                     Vector<float3> &r_positions)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<MLoopTri> looptris = mesh.looptris();
 
   const float sample_radius_sq = pow2f(sample_radius);
@@ -272,9 +264,9 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
   for (const int looptri_index : looptri_indices_to_sample) {
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const float3 &v0 = positions[loops[looptri.tri[0]].v];
-    const float3 &v1 = positions[loops[looptri.tri[1]].v];
-    const float3 &v2 = positions[loops[looptri.tri[2]].v];
+    const float3 &v0 = positions[corner_verts[looptri.tri[0]]];
+    const float3 &v1 = positions[corner_verts[looptri.tri[1]]];
+    const float3 &v2 = positions[corner_verts[looptri.tri[2]]];
 
     const float looptri_area = area_tri_v3(v0, v1, v2);
 
@@ -356,7 +348,7 @@ int sample_surface_points_projected(
     Vector<float3> &r_positions)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
   const Span<MLoopTri> looptris = mesh.looptris();
 
   int point_count = 0;
@@ -398,7 +390,7 @@ int sample_surface_points_projected(
     const float3 pos = ray_hit.co;
 
     const float3 bary_coords = compute_bary_coord_in_triangle(
-        positions, loops, looptris[looptri_index], pos);
+        positions, corner_verts, looptris[looptri_index], pos);
 
     r_positions.append(pos);
     r_bary_coords.append(bary_coords);
@@ -409,13 +401,13 @@ int sample_surface_points_projected(
 }
 
 float3 compute_bary_coord_in_triangle(const Span<float3> vert_positions,
-                                      const Span<MLoop> loops,
+                                      const Span<int> corner_verts,
                                       const MLoopTri &looptri,
                                       const float3 &position)
 {
-  const float3 &v0 = vert_positions[loops[looptri.tri[0]].v];
-  const float3 &v1 = vert_positions[loops[looptri.tri[1]].v];
-  const float3 &v2 = vert_positions[loops[looptri.tri[2]].v];
+  const float3 &v0 = vert_positions[corner_verts[looptri.tri[0]]];
+  const float3 &v1 = vert_positions[corner_verts[looptri.tri[1]]];
+  const float3 &v2 = vert_positions[corner_verts[looptri.tri[2]]];
   float3 bary_coords;
   interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
   return bary_coords;

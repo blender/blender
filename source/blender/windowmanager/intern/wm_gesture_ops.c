@@ -580,7 +580,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
           /* Make a simple distance check to get a smoother lasso
            * add only when at least 2 pixels between this and previous location. */
-          else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
+          else if ((x * x + y * y) > pow2f(2.0f * UI_SCALE_FAC)) {
             lasso[gesture->points][0] = event->xy[0] - gesture->winrct.xmin;
             lasso[gesture->points][1] = event->xy[1] - gesture->winrct.ymin;
             gesture->points++;

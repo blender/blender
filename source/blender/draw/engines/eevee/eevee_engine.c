@@ -280,7 +280,7 @@ static void eevee_draw_scene(void *vedata)
     SET_FLAG_FROM_TEST(clear_bits, (stl->effects->enabled_effects & EFFECT_SSS), GPU_STENCIL_BIT);
     GPU_framebuffer_clear(fbl->main_fb, clear_bits, clear_col, clear_depth, clear_stencil);
 
-    /* Depth prepass */
+    /* Depth pre-pass. */
     DRW_stats_group_start("Prepass");
     DRW_draw_pass(psl->depth_ps);
     DRW_stats_group_end();

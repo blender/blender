@@ -267,7 +267,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
                                             Mesh *mesh,
                                             float *data_color)
 {
-  const MLoop *mloop = BKE_mesh_loops(mesh);
+  const int *corner_verts = BKE_mesh_corner_verts(mesh);
   const int totloop = mesh->totloop;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
@@ -288,7 +288,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   int *mcorners = MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count");
 
   for (i = 0; i < totloop; i++) {
-    int v = mloop[i].v;
+    int v = corner_verts[i];
 
     if (mcorners[v] == 0) {
       rgb_uchar_to_float(&data_color[v * 3], &mcol[i].r);

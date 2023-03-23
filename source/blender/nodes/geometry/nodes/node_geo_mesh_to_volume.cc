@@ -127,15 +127,15 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
   Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
 
   /* Convert mesh to grid and add to volume. */
-  geometry::volume_grid_add_from_mesh(volume,
-                                      "density",
-                                      &mesh,
-                                      mesh_to_volume_space_transform,
-                                      voxel_size,
-                                      fill_volume,
-                                      exterior_band_width,
-                                      interior_band_width,
-                                      density);
+  geometry::fog_volume_grid_add_from_mesh(volume,
+                                          "density",
+                                          &mesh,
+                                          mesh_to_volume_space_transform,
+                                          voxel_size,
+                                          fill_volume,
+                                          exterior_band_width,
+                                          interior_band_width,
+                                          density);
 
   return volume;
 }

@@ -69,7 +69,8 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* NOTE: ConvexHull from Bullet uses a half-edge data structure
    * for its mesh. To convert that, each half-edge needs to be converted
    * to a loop and edges need to be created from that. */
-  Array<MLoop> mloop_src(loops_num);
+  Array<int> corner_verts(loops_num);
+  Array<int> corner_edges(loops_num);
   uint edge_index = 0;
   MutableSpan<MEdge> edges = result->edges_for_write();
 
@@ -78,7 +79,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     int v_to;
     plConvexHullGetLoop(hull, i, &v_from, &v_to);
 
-    mloop_src[i].v = uint(v_from);
+    corner_verts[i] = v_from;
     /* Add edges for ascending order loops only. */
     if (v_from < v_to) {
       MEdge &edge = edges[edge_index];
@@ -87,8 +88,8 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 
       /* Write edge index into both loops that have it. */
       int reverse_index = plConvexHullGetReversedLoopIndex(hull, i);
-      mloop_src[i].e = edge_index;
-      mloop_src[reverse_index].e = edge_index;
+      corner_edges[i] = edge_index;
+      corner_edges[reverse_index] = edge_index;
       edge_index++;
     }
   }
@@ -105,8 +106,9 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   Array<int> loops;
   int j = 0;
   MutableSpan<MPoly> polys = result->polys_for_write();
-  MutableSpan<MLoop> mesh_loops = result->loops_for_write();
-  MLoop *loop = mesh_loops.data();
+  MutableSpan<int> mesh_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> mesh_corner_edges = result->corner_edges_for_write();
+  int dst_corner = 0;
 
   for (const int i : IndexRange(faces_num)) {
     const int len = plConvexHullGetFaceSize(hull, i);
@@ -121,10 +123,9 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     face.loopstart = j;
     face.totloop = len;
     for (const int k : IndexRange(len)) {
-      MLoop &src_loop = mloop_src[loops[k]];
-      loop->v = src_loop.v;
-      loop->e = src_loop.e;
-      loop++;
+      mesh_corner_verts[dst_corner] = corner_verts[loops[k]];
+      mesh_corner_edges[dst_corner] = corner_edges[loops[k]];
+      dst_corner++;
     }
     j += len;
   }

@@ -983,7 +983,7 @@ static float *gpencil_stroke_points_from_editcurve_fixed_resolu(bGPDcurve_point 
                                                                 bool is_cyclic,
                                                                 int *r_points_len)
 {
-  /* One stride contains: x, y, z, pressure, strength, Vr, Vg, Vb, Vmix_factor */
+  /* One stride contains: `x, y, z, pressure, strength, Vr, Vg, Vb, Vmix_factor`. */
   const uint stride = sizeof(float[9]);
   const uint array_last = curve_point_array_len - 1;
   const uint resolu_stride = resolution * stride;

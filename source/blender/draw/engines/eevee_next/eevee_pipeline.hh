@@ -114,6 +114,75 @@ class ForwardPipeline {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Deferred lighting.
+ * \{ */
+
+class DeferredLayer {
+ private:
+  Instance &inst_;
+
+  PassMain prepass_ps_ = {"Prepass"};
+  PassMain::Sub *prepass_single_sided_static_ps_ = nullptr;
+  PassMain::Sub *prepass_single_sided_moving_ps_ = nullptr;
+  PassMain::Sub *prepass_double_sided_static_ps_ = nullptr;
+  PassMain::Sub *prepass_double_sided_moving_ps_ = nullptr;
+
+  PassMain gbuffer_ps_ = {"Shading"};
+  PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
+  PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
+
+  PassSimple eval_light_ps_ = {"EvalLights"};
+
+  /* Closures bits from the materials in this pass. */
+  eClosureBits closure_bits_;
+
+  /**
+   * Accumulation textures for all stages of lighting evaluation (Light, SSR, SSSS, SSGI ...).
+   * These are split and separate from the main radiance buffer in order to accumulate light for
+   * the render passes and avoid too much bandwidth waste. Otherwise, we would have to load the
+   * BSDF color and do additive blending for each of the lighting step.
+   *
+   * NOTE: Not to be confused with the render passes.
+   */
+  TextureFromPool diffuse_light_tx_ = {"diffuse_light_accum_tx"};
+  TextureFromPool specular_light_tx_ = {"specular_light_accum_tx"};
+
+ public:
+  DeferredLayer(Instance &inst) : inst_(inst){};
+
+  void begin_sync();
+  void end_sync();
+
+  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+
+  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb, int2 extent);
+};
+
+class DeferredPipeline {
+ private:
+  /* Gbuffer filling passes. We could have an arbitrary number of them but for now we just have
+   * a hardcoded number of them. */
+  DeferredLayer opaque_layer_;
+  DeferredLayer refraction_layer_;
+  DeferredLayer volumetric_layer_;
+
+ public:
+  DeferredPipeline(Instance &inst)
+      : opaque_layer_(inst), refraction_layer_(inst), volumetric_layer_(inst){};
+
+  void begin_sync();
+  void end_sync();
+
+  PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
+
+  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb, int2 extent);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Utility texture
  *
  * 64x64 2D array texture containing LUT tables and blue noises.
@@ -197,22 +266,25 @@ class UtilityTexture : public Texture {
 class PipelineModule {
  public:
   WorldPipeline world;
-  // DeferredPipeline deferred;
+  DeferredPipeline deferred;
   ForwardPipeline forward;
   ShadowPipeline shadow;
-  // VelocityPipeline velocity;
 
   UtilityTexture utility_tx;
 
  public:
-  PipelineModule(Instance &inst) : world(inst), forward(inst), shadow(inst){};
+  PipelineModule(Instance &inst) : world(inst), deferred(inst), forward(inst), shadow(inst){};
 
-  void sync()
+  void begin_sync()
   {
-    // deferred.sync();
+    deferred.begin_sync();
     forward.sync();
     shadow.sync();
-    // velocity.sync();
+  }
+
+  void end_sync()
+  {
+    deferred.end_sync();
   }
 
   PassMain::Sub *material_add(Object *ob,
@@ -222,7 +294,7 @@ class PipelineModule {
   {
     switch (pipeline_type) {
       case MAT_PIPE_DEFERRED_PREPASS:
-        // return deferred.prepass_add(blender_mat, gpumat, false);
+        return deferred.prepass_add(blender_mat, gpumat, false);
       case MAT_PIPE_FORWARD_PREPASS:
         if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
           return forward.prepass_transparent_add(ob, blender_mat, gpumat);
@@ -230,7 +302,7 @@ class PipelineModule {
         return forward.prepass_opaque_add(blender_mat, gpumat, false);
 
       case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
-        // return deferred.prepass_add(blender_mat, gpumat, true);
+        return deferred.prepass_add(blender_mat, gpumat, true);
       case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
         if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
           return forward.prepass_transparent_add(ob, blender_mat, gpumat);
@@ -238,7 +310,7 @@ class PipelineModule {
         return forward.prepass_opaque_add(blender_mat, gpumat, true);
 
       case MAT_PIPE_DEFERRED:
-        // return deferred.material_add(blender_mat, gpumat);
+        return deferred.material_add(blender_mat, gpumat);
       case MAT_PIPE_FORWARD:
         if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
           return forward.material_transparent_add(ob, blender_mat, gpumat);

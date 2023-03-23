@@ -30,7 +30,7 @@ static void extract_tris_init(const MeshRenderData *mr,
                               void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->poly_sorted.visible_tri_len, mr->loop_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->poly_sorted->visible_tri_len, mr->loop_len);
 }
 
 static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
@@ -38,7 +38,7 @@ static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
                                       const int f_index,
                                       void *_data)
 {
-  int tri_first_index = mr->poly_sorted.tri_first_index[f_index];
+  int tri_first_index = mr->poly_sorted->tri_first_index[f_index];
   if (tri_first_index == -1) {
     return;
   }
@@ -64,7 +64,7 @@ static void extract_tris_iter_poly_mesh(const MeshRenderData *mr,
                                         const int poly_index,
                                         void *_data)
 {
-  int tri_first_index = mr->poly_sorted.tri_first_index[poly_index];
+  int tri_first_index = mr->poly_sorted->tri_first_index[poly_index];
   if (tri_first_index == -1) {
     return;
   }
@@ -99,7 +99,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
       if (cache->tris_per_mat[i] == nullptr) {
         cache->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
-      const int mat_tri_len = mr->poly_sorted.mat_tri_len[i];
+      const int mat_tri_len = mr->poly_sorted->mat_tri_len[i];
       /* Multiply by 3 because these are triangle indices. */
       const int start = mat_start * 3;
       const int len = mat_tri_len * 3;

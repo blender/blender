@@ -209,7 +209,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
     if (x_res > 0.0f && y_res > 0.0f) {
       double scale = 1.0;
       auto unit = spec.get_string_attribute("ResolutionUnit", "");
-      if (unit == "in" || unit == "inch") {
+      if (ELEM(unit, "in", "inch")) {
         scale = 100.0 / 2.54;
       }
       else if (unit == "cm") {
@@ -234,8 +234,8 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
 }
 
 /**
- * Returns an ImageInput for the precise `format` requested using the provided IOMemReader.
- * If successful, the ImageInput will be opened and ready for operations. Null will be returned if
+ * Returns an #ImageInput for the precise `format` requested using the provided #IOMemReader.
+ * If successful, the #ImageInput will be opened and ready for operations. Null will be returned if
  * the format was not found or if the open call fails.
  */
 static unique_ptr<ImageInput> get_oiio_reader(const char *format,
@@ -358,10 +358,10 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
   /* Populate the spec with all common attributes.
    *
    * Care must be taken with the metadata:
-   *  - It should be processed first, before the "Resolution" metadata below, to
-   *    ensure the proper values end up in the ImageSpec
-   *  - It needs to filter format-specific metadata that may no longer apply to
-   *    the current format being written (e.g. metadata for tiff being written to a png)
+   * - It should be processed first, before the "Resolution" metadata below, to
+   *   ensure the proper values end up in the #ImageSpec
+   * - It needs to filter format-specific metadata that may no longer apply to
+   *   the current format being written (e.g. metadata for tiff being written to a `PNG`)
    */
 
   if (ctx.ibuf->metadata) {

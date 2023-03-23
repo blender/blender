@@ -35,6 +35,7 @@ class VKBuffer {
               int64_t size,
               GPUUsageType usage,
               VkBufferUsageFlagBits buffer_usage);
+  void clear(VKContext &context, uint32_t clear_value);
   void update(const void *data) const;
   void read(void *data) const;
   bool free(VKContext &context);

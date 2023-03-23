@@ -414,6 +414,7 @@ if(WITH_PYTHON)
     DESTINATION ${TARGETDIR_VER}
     PATTERN ".git" EXCLUDE
     PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
     PATTERN ".github" EXCLUDE
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
@@ -535,6 +536,9 @@ macro(install_dir from to)
     DESTINATION ${to}
     # Irrelevant files and caches.
     PATTERN ".git" EXCLUDE
+    PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
+    PATTERN ".github" EXCLUDE
     PATTERN ".svn" EXCLUDE
     PATTERN "*.pyc" EXCLUDE
     PATTERN "*.pyo" EXCLUDE
@@ -1293,33 +1297,6 @@ elseif(APPLE)
     # Uppercase name for app bundle.
     set_target_properties(blender PROPERTIES OUTPUT_NAME Blender)
   endif()
-
-  # Handy install macro to exclude files, we use \$ escape for the "to"
-  # argument when calling so `${BUILD_TYPE}` does not get expanded.
-  macro(install_dir from to)
-    install(
-      DIRECTORY ${from}
-      DESTINATION ${to}
-      PATTERN ".git" EXCLUDE
-      PATTERN ".svn" EXCLUDE
-      PATTERN "*.pyc" EXCLUDE
-      PATTERN "*.pyo" EXCLUDE
-      PATTERN "*.orig" EXCLUDE
-      PATTERN "*.rej" EXCLUDE
-      PATTERN "__pycache__" EXCLUDE
-      PATTERN "__MACOSX" EXCLUDE
-      PATTERN ".DS_Store" EXCLUDE
-      PATTERN "config-${PYTHON_VERSION}/*.a" EXCLUDE  # static lib
-      PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
-      PATTERN "tkinter" EXCLUDE                   # ./tkinter
-      PATTERN "lib-dynload/_tkinter.*" EXCLUDE    # ./lib-dynload/_tkinter.co
-      PATTERN "idlelib" EXCLUDE                   # ./idlelib
-      PATTERN "test" EXCLUDE                      # ./test
-      PATTERN "turtledemo" EXCLUDE                # ./turtledemo
-      PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
-      PATTERN "wininst*.exe" EXCLUDE              # from distutils, avoid malware false positive
-    )
-  endmacro()
 
   set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/Blender.app)
 

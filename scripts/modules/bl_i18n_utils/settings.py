@@ -243,7 +243,7 @@ PYGETTEXT_KEYWORDS = (() +
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
-                     "CTX_wm_operator_poll_msg_set")) +
+                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf")) +
 
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("BMO_error_raise",)) +
@@ -526,6 +526,9 @@ REL_PRESETS_DIR = os.path.join("scripts", "presets")
 
 # Where to search for templates (relative to SOURCE_DIR).
 REL_TEMPLATES_DIR = os.path.join("scripts", "startup", "bl_app_templates_system")
+
+# Name of the built-in asset catalog file.
+ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")

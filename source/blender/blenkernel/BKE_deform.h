@@ -18,7 +18,6 @@ struct ID;
 struct ListBase;
 struct MDeformVert;
 struct MEdge;
-struct MLoop;
 struct MPoly;
 struct Object;
 struct bDeformGroup;
@@ -270,14 +269,14 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const struct MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_loopweights(const struct MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const struct MLoop *loops,
+                                               const int *corner_verts,
                                                int loops_num,
                                                bool invert_vgroup,
                                                float *r_weights);
 void BKE_defvert_extract_vgroup_to_polyweights(const struct MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const struct MLoop *loops,
+                                               const int *corner_verts,
                                                int loops_num,
                                                const struct MPoly *polys,
                                                int polys_num,

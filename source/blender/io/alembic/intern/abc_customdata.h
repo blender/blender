@@ -16,7 +16,6 @@
 #include "BLI_math_vector_types.hh"
 
 struct CustomData;
-struct MLoop;
 struct MPoly;
 struct Mesh;
 
@@ -30,7 +29,7 @@ struct UVSample {
 };
 
 struct CDStreamConfig {
-  MLoop *mloop;
+  int *corner_verts;
   int totloop;
 
   MPoly *polys;
@@ -73,7 +72,7 @@ struct CDStreamConfig {
   std::map<std::string, Alembic::AbcGeom::OC4fGeomParam> abc_vertex_colors;
 
   CDStreamConfig()
-      : mloop(NULL),
+      : corner_verts(NULL),
         totloop(0),
         polys(NULL),
         totpoly(0),

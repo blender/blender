@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2023-03-08 07:56+0100\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
@@ -33509,6 +33509,10 @@ msgid "Active spline of masking layer"
 msgstr "Aktívna drážka vrstvy maskovania"
 
 
+msgid "Active Point"
+msgstr "Aktívny bod"
+
+
 msgid "Grease Pencil Color"
 msgstr "Farba pastelky"
 
@@ -44658,10 +44662,6 @@ msgstr "Vypočíta povrch oblasti plôšok povrchovej siete"
 
 msgid "Is Face Planar"
 msgstr "Je plôška rovinná"
-
-
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "Zisťuje, či sú všetky trojuholníky na plôške v rovnakej rovine, t. j. či majú rovnaký normál"
 
 
 msgid "Face Neighbors"
@@ -59919,17 +59919,9 @@ msgid "Clear Restrict View"
 msgstr "Zmazať obmedzené zobrazenie"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Odhalí vrstvu nastavením príznaku skrytia"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Nastaviť obmedzenie zobrazenia"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Skryje vrstvu nastavením príznaku skrytia"
 
 
 msgctxt "Operator"
@@ -81988,10 +81980,6 @@ msgid "2D Cursor"
 msgstr "2D kurzor"
 
 
-msgid "Active Point"
-msgstr "Aktívny bod"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Preddefinované snímanie vnútornej kamery"
 
@@ -87050,14 +87038,6 @@ msgstr "Veľkosť ikon osí"
 
 msgid "Mini Axes Type"
 msgstr "Typ mini osí"
-
-
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "Zobrazí malé rotujúce 3D osi v pravom hornom rohu 3D záberu"
-
-
-msgid "Simple Axis"
-msgstr "Jednoduchá os"
 
 
 msgid "Interactive Navigation"
@@ -111426,10 +111406,6 @@ msgstr "Zobraziť názov"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "Frekvencia prehrávania (sním/s)"
-
-
-msgid "3D Viewport Axis"
-msgstr "Osi 3D záberu"
 
 
 msgid "Smooth Wires"

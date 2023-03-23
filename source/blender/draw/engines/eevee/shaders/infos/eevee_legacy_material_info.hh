@@ -31,7 +31,10 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_empty_base_volume)
 
 /**** MATERIAL VERTEX SHADER PERMUTATIONS ****/
 
-/** -- Volumetric -- **/
+/* -------------------------------------------------------------------- */
+/** \name Volumetric
+ * \{ */
+
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_vert)
     .additional_info("eevee_legacy_material_empty_base_volume")
     .vertex_out(legacy_volume_vert_geom_iface)
@@ -45,7 +48,12 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_vert_no_geom)
     .additional_info("draw_resource_id_varying");
 #endif
 
-/** -- World Shader -- **/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name World Shader
+ * \{ */
+
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_world_vert)
     .additional_info("eevee_legacy_material_empty_base")
     .additional_info("eevee_legacy_common_utiltex_lib")
@@ -54,7 +62,12 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_world_vert)
     .additional_info("draw_resource_id_varying")
     .vertex_in(0, Type::VEC2, "pos");
 
-/** -- Surface Shader -- **/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Surface Shader
+ * \{ */
+
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_vert_common)
     .additional_info("eevee_legacy_material_empty_base")
     .additional_info("draw_resource_id_varying")
@@ -81,7 +94,13 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_mateiral_surface_vert_pointcloud)
     .auto_resource_location(true);
 
 /**** MATERIAL GEOMETRY SHADER PERMUTATIONS ****/
-/** -- Volumetric -- **/
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volumetric
+ * \{ */
+
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_geom)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("draw_view")
@@ -89,9 +108,14 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_geom)
     .geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3)
     .additional_info("draw_resource_id_varying");
 
+/** \} */
+
 /**** MATERIAL FRAGMENT SHADER PERMUTATIONS ****/
 
-/** -- Volumetric Shader -- **/
+/* -------------------------------------------------------------------- */
+/** \name Volumetric Shader
+ * \{ */
+
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_frag)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("draw_view")
@@ -102,7 +126,11 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_frag)
     .fragment_out(2, Type::VEC4, "volumeEmissive")
     .fragment_out(3, Type::VEC4, "volumePhase");
 
-/** -- Prepass Shader -- **/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pre-pass Shader
+ * \{ */
 
 /* Common info for all `prepass_frag` variants. */
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_prepass_frag_common)
@@ -148,7 +176,11 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_prepass_frag_alpha_hash_pointcloud)
     .additional_info("eevee_legacy_material_prepass_frag_alpha_hash_common")
     .additional_info("draw_pointcloud");
 
-/** -- Surface Shader -- **/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Surface Shader
+ * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_frag_common)
     .additional_info("eevee_legacy_common_lib")
@@ -172,6 +204,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_frag_alpha_blend)
     .additional_info("eevee_legacy_material_surface_frag_common")
     .fragment_out(0, Type::VEC4, "outRadiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "outTransmittance", DualBlend::SRC_1);
+
+/** \} */
 
 /* hair_refine_shader_transform_feedback_create */
 

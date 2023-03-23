@@ -50,8 +50,8 @@ static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
 
     const int ml_index_end = poly->loopstart + poly->totloop;
     for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-      const MLoop *ml = &mr->loops[ml_index];
-      if (facedot_tags[ml->v] && !hidden) {
+      const int vert = mr->corner_verts[ml_index];
+      if (facedot_tags[vert] && !hidden) {
         GPU_indexbuf_set_point_vert(elb, poly_index, poly_index);
         return;
       }

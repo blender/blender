@@ -47,11 +47,10 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
     Array<bool> edge_visited(mesh.totedge, false);
     Array<int> edge_face_set(mesh.totedge, 0);
     const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
+    const Span<int> corner_edges = mesh.corner_edges();
     for (const int i : polys.index_range()) {
       const MPoly &poly = polys[i];
-      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-        const int edge = loop.e;
+      for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
         if (edge_visited[edge]) {
           if (edge_face_set[edge] != face_set[i]) {
             /* This edge is connected to two faces on different face sets. */

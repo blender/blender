@@ -511,7 +511,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     int yi = 200;
     const float tilt_limit = DEG2RADF(21600.0f);
     const int butw = 200;
-    const int buth = 20 * UI_DPI_FAC;
+    const int buth = 20 * UI_SCALE_FAC;
     const int but_margin = 2;
     const char *c;
 
@@ -1210,7 +1210,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     BLI_assert(C == NULL);
     int yi = 200;
     const int butw = 200;
-    const int buth = 20 * UI_DPI_FAC;
+    const int buth = 20 * UI_SCALE_FAC;
 
     BKE_object_dimensions_get(ob, tfp->ob_dims);
     copy_v3_v3(tfp->ob_dims_orig, tfp->ob_dims);

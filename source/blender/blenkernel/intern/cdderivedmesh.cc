@@ -42,7 +42,8 @@ struct CDDerivedMesh {
   const blender::float3 *vert_normals;
   MEdge *medge;
   MFace *mface;
-  MLoop *mloop;
+  int *corner_verts;
+  int *corner_edges;
   MPoly *mpoly;
 
   /* Cached */
@@ -87,10 +88,16 @@ static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *r_edge)
   memcpy(r_edge, cddm->medge, sizeof(*r_edge) * dm->numEdgeData);
 }
 
-static void cdDM_copyLoopArray(DerivedMesh *dm, MLoop *r_loop)
+static void cdDM_copyCornerVertArray(DerivedMesh *dm, int *r_corner_verts)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_loop, cddm->mloop, sizeof(*r_loop) * dm->numLoopData);
+  memcpy(r_corner_verts, cddm->corner_verts, sizeof(*r_corner_verts) * dm->numLoopData);
+}
+
+static void cdDM_copyCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
+{
+  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
+  memcpy(r_corner_edges, cddm->corner_edges, sizeof(*r_corner_edges) * dm->numLoopData);
 }
 
 static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *r_poly)
@@ -124,7 +131,7 @@ static void cdDM_recalc_looptri(DerivedMesh *dm)
   blender::bke::mesh::looptris_calc(
       {reinterpret_cast<const blender::float3 *>(cddm->vert_positions), dm->numVertData},
       {cddm->mpoly, totpoly},
-      {cddm->mloop, totloop},
+      {cddm->corner_verts, totloop},
       {dm->looptris.array_wip, dm->looptris.num});
 
   BLI_assert(cddm->dm.looptris.array == NULL);
@@ -166,7 +173,8 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->copyVertArray = cdDM_copyVertArray;
   dm->copyEdgeArray = cdDM_copyEdgeArray;
-  dm->copyLoopArray = cdDM_copyLoopArray;
+  dm->copyCornerVertArray = cdDM_copyCornerVertArray;
+  dm->copyCornerEdgeArray = cdDM_copyCornerEdgeArray;
   dm->copyPolyArray = cdDM_copyPolyArray;
 
   dm->getVertDataArray = DM_get_vert_data_layer;
@@ -224,8 +232,10 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   cddm->vert_normals = mesh->vert_normals().data();
   cddm->medge = static_cast<MEdge *>(
       CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge));
-  cddm->mloop = static_cast<MLoop *>(
-      CustomData_get_layer_for_write(&dm->loopData, CD_MLOOP, mesh->totloop));
+  cddm->corner_verts = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->totloop));
+  cddm->corner_edges = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->totloop));
   cddm->mpoly = static_cast<MPoly *>(
       CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly));
 #if 0

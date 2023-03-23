@@ -48,6 +48,7 @@ struct bPoseChannel;
 struct bScreen;
 struct rctf;
 struct rcti;
+struct wmEvent;
 struct wmGizmo;
 struct wmWindow;
 struct wmWindowManager;
@@ -862,6 +863,20 @@ void ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
 int ED_view3d_backbuf_sample_size_clamp(struct ARegion *region, float dist);
 
 void ED_view3d_select_id_validate(struct ViewContext *vc);
+
+/** Check if the last auto-dist can be used. */
+bool ED_view3d_autodist_last_check(struct wmWindow *win, const struct wmEvent *event);
+/**
+ * \return true when `r_ofs` is set.
+ * \warning #ED_view3d_autodist_last_check should be called first to ensure the data is available.
+ */
+bool ED_view3d_autodist_last_get(struct wmWindow *win, float r_ofs[3]);
+void ED_view3d_autodist_last_set(struct wmWindow *win,
+                                 const struct wmEvent *event,
+                                 const float ofs[3],
+                                 const bool has_depth);
+/** Clear and free auto-dist data. */
+void ED_view3d_autodist_last_clear(struct wmWindow *win);
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.

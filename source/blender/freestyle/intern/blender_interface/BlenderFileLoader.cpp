@@ -385,18 +385,19 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
 static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt, int i)
 {
   const Span<MEdge> edges = me->edges();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
+  const Span<int> corner_edges = me->corner_edges();
 
-  const MLoop *mloop = &loops[lt->tri[i]];
-  const MLoop *mloop_next = &loops[lt->tri[(i + 1) % 3]];
-  const MEdge *edge = &edges[mloop->e];
+  const int corner = lt->tri[i];
+  const int corner_next = lt->tri[(i + 1) % 3];
+  const MEdge *edge = &edges[corner_edges[corner]];
 
-  if (!ELEM(mloop_next->v, edge->v1, edge->v2)) {
+  if (!ELEM(corner_verts[corner_next], edge->v1, edge->v2)) {
     /* Not an edge in the original mesh before triangulation. */
     return false;
   }
 
-  return (fed[mloop->e].flag & FREESTYLE_EDGE_MARK) != 0;
+  return (fed[corner_edges[corner]].flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
 void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
@@ -406,12 +407,12 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   const Span<float3> vert_positions = me->vert_positions();
   const Span<MPoly> mesh_polys = me->polys();
-  const Span<MLoop> mesh_loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
 
   // Compute loop triangles
   int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, mesh_loops, {mlooptri, tottri});
+  blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
@@ -448,9 +449,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
 
-    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
-    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
-    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
+    copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
+    copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
+    copy_v3_v3(v3, vert_positions[corner_verts[lt->tri[2]]]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);
@@ -523,9 +524,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     const MLoopTri *lt = &mlooptri[a];
     Material *mat = BKE_object_material_get(ob, material_indices[lt->poly] + 1);
 
-    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
-    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
-    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
+    copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
+    copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
+    copy_v3_v3(v3, vert_positions[corner_verts[lt->tri[2]]]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);

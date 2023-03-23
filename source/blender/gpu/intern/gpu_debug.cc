@@ -112,12 +112,12 @@ void *GPU_debug_capture_scope_create(const char *name)
 {
   /* GPU Frame capture is only enabled when --debug-gpu is specified. */
   if (!(G.debug & G_DEBUG_GPU)) {
-    return NULL;
+    return nullptr;
   }
 
   Context *ctx = Context::get();
   if (!ctx) {
-    return NULL;
+    return nullptr;
   }
   return ctx->debug_capture_scope_create(name);
 }

@@ -11,8 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Ray */
 
-ccl_device_forceinline void integrator_state_write_ray(KernelGlobals kg,
-                                                       IntegratorState state,
+ccl_device_forceinline void integrator_state_write_ray(IntegratorState state,
                                                        ccl_private const Ray *ccl_restrict ray)
 {
   INTEGRATOR_STATE_WRITE(state, ray, P) = ray->P;
@@ -24,8 +23,7 @@ ccl_device_forceinline void integrator_state_write_ray(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, ray, dD) = ray->dD;
 }
 
-ccl_device_forceinline void integrator_state_read_ray(KernelGlobals kg,
-                                                      ConstIntegratorState state,
+ccl_device_forceinline void integrator_state_read_ray(ConstIntegratorState state,
                                                       ccl_private Ray *ccl_restrict ray)
 {
   ray->P = INTEGRATOR_STATE(state, ray, P);
@@ -40,7 +38,7 @@ ccl_device_forceinline void integrator_state_read_ray(KernelGlobals kg,
 /* Shadow Ray */
 
 ccl_device_forceinline void integrator_state_write_shadow_ray(
-    KernelGlobals kg, IntegratorShadowState state, ccl_private const Ray *ccl_restrict ray)
+    IntegratorShadowState state, ccl_private const Ray *ccl_restrict ray)
 {
   INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray->P;
   INTEGRATOR_STATE_WRITE(state, shadow_ray, D) = ray->D;
@@ -50,8 +48,7 @@ ccl_device_forceinline void integrator_state_write_shadow_ray(
   INTEGRATOR_STATE_WRITE(state, shadow_ray, dP) = ray->dP;
 }
 
-ccl_device_forceinline void integrator_state_read_shadow_ray(KernelGlobals kg,
-                                                             ConstIntegratorShadowState state,
+ccl_device_forceinline void integrator_state_read_shadow_ray(ConstIntegratorShadowState state,
                                                              ccl_private Ray *ccl_restrict ray)
 {
   ray->P = INTEGRATOR_STATE(state, shadow_ray, P);
@@ -66,7 +63,7 @@ ccl_device_forceinline void integrator_state_read_shadow_ray(KernelGlobals kg,
 /* Intersection */
 
 ccl_device_forceinline void integrator_state_write_isect(
-    KernelGlobals kg, IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
+    IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
 {
   INTEGRATOR_STATE_WRITE(state, isect, t) = isect->t;
   INTEGRATOR_STATE_WRITE(state, isect, u) = isect->u;
@@ -77,7 +74,7 @@ ccl_device_forceinline void integrator_state_write_isect(
 }
 
 ccl_device_forceinline void integrator_state_read_isect(
-    KernelGlobals kg, ConstIntegratorState state, ccl_private Intersection *ccl_restrict isect)
+    ConstIntegratorState state, ccl_private Intersection *ccl_restrict isect)
 {
   isect->prim = INTEGRATOR_STATE(state, isect, prim);
   isect->object = INTEGRATOR_STATE(state, isect, object);

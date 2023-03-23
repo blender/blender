@@ -153,12 +153,11 @@ static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
 
   const int ml_index_end = poly->loopstart + poly->totloop;
   for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mr->loops[ml_index];
     EditLoopData *data = vbo_data + ml_index;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, poly_index);
-    BMEdge *eed = bm_original_edge_get(mr, ml->e);
-    BMVert *eve = bm_original_vert_get(mr, ml->v);
+    BMVert *eve = bm_original_vert_get(mr, mr->corner_verts[ml_index]);
+    BMEdge *eed = bm_original_edge_get(mr, mr->corner_edges[ml_index]);
     if (efa) {
       mesh_render_data_face_flag(mr, efa, {-1, -1, -1, -1}, data);
     }
@@ -171,10 +170,10 @@ static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edit_data_iter_ledge_bm(const MeshRenderData *mr,
-                                            const BMEdge *eed,
-                                            const int ledge_index,
-                                            void *_data)
+static void extract_edit_data_iter_loose_edge_bm(const MeshRenderData *mr,
+                                                 const BMEdge *eed,
+                                                 const int ledge_index,
+                                                 void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   EditLoopData *data = vbo_data + mr->loop_len + (ledge_index * 2);
@@ -185,15 +184,15 @@ static void extract_edit_data_iter_ledge_bm(const MeshRenderData *mr,
   mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
 }
 
-static void extract_edit_data_iter_ledge_mesh(const MeshRenderData *mr,
-                                              const MEdge *edge,
-                                              const int ledge_index,
-                                              void *_data)
+static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                                   const MEdge *edge,
+                                                   const int ledge_index,
+                                                   void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   EditLoopData *data = vbo_data + mr->loop_len + ledge_index * 2;
   memset(data, 0x0, sizeof(*data) * 2);
-  const int e_index = mr->ledges[ledge_index];
+  const int e_index = mr->loose_edges[ledge_index];
   BMEdge *eed = bm_original_edge_get(mr, e_index);
   BMVert *eve1 = bm_original_vert_get(mr, edge->v1);
   BMVert *eve2 = bm_original_vert_get(mr, edge->v2);
@@ -209,10 +208,10 @@ static void extract_edit_data_iter_ledge_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edit_data_iter_lvert_bm(const MeshRenderData *mr,
-                                            const BMVert *eve,
-                                            const int lvert_index,
-                                            void *_data)
+static void extract_edit_data_iter_loose_vert_bm(const MeshRenderData *mr,
+                                                 const BMVert *eve,
+                                                 const int lvert_index,
+                                                 void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
@@ -221,16 +220,16 @@ static void extract_edit_data_iter_lvert_bm(const MeshRenderData *mr,
   mesh_render_data_vert_flag(mr, eve, data);
 }
 
-static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
-                                              const int lvert_index,
-                                              void *_data)
+static void extract_edit_data_iter_loose_vert_mesh(const MeshRenderData *mr,
+                                                   const int lvert_index,
+                                                   void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
   EditLoopData *data = vbo_data + offset + lvert_index;
   memset(data, 0x0, sizeof(*data));
-  const int v_index = mr->lverts[lvert_index];
+  const int v_index = mr->loose_verts[lvert_index];
   BMVert *eve = bm_original_vert_get(mr, v_index);
   if (eve) {
     mesh_render_data_vert_flag(mr, eve, data);
@@ -346,10 +345,10 @@ constexpr MeshExtract create_extractor_edit_data()
   extractor.init = extract_edit_data_init;
   extractor.iter_poly_bm = extract_edit_data_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edit_data_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_edit_data_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_edit_data_iter_ledge_mesh;
-  extractor.iter_lvert_bm = extract_edit_data_iter_lvert_bm;
-  extractor.iter_lvert_mesh = extract_edit_data_iter_lvert_mesh;
+  extractor.iter_loose_edge_bm = extract_edit_data_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_edit_data_iter_loose_edge_mesh;
+  extractor.iter_loose_vert_bm = extract_edit_data_iter_loose_vert_bm;
+  extractor.iter_loose_vert_mesh = extract_edit_data_iter_loose_vert_mesh;
   extractor.init_subdiv = extract_edit_data_init_subdiv;
   extractor.iter_subdiv_bm = extract_edit_data_iter_subdiv_bm;
   extractor.iter_subdiv_mesh = extract_edit_data_iter_subdiv_mesh;

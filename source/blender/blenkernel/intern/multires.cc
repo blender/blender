@@ -673,7 +673,6 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 
   if (mdisps && levels > 0) {
     if (lvl > 0) {
-      // MLoop *ml = me->mloop; /*UNUSED*/
       int nsize = multires_side_tot[lvl];
       int hsize = multires_side_tot[mmd->totlvl];
       int j;
@@ -1629,7 +1628,7 @@ int mdisp_rot_face_to_crn(
     float mindist = FLT_MAX;
 
     for (i = 0; i < poly->totloop; i++) {
-      float len = len_v3v3(nullptr, positions[mloop[poly->loopstart + i].v]);
+      float len = len_v3v3(nullptr, positions[corner_verts[poly->loopstart + i]]);
       if (len < mindist) {
         mindist = len;
         minS = i;

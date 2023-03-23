@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://www.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -29060,6 +29060,10 @@ msgid "Active spline of masking layer"
 msgstr "Активный сплайн слоя маски"
 
 
+msgid "Active Point"
+msgstr "Активная точка"
+
+
 msgid "Grease Pencil Color"
 msgstr "Цвет Grease Pencil"
 
@@ -47215,17 +47219,9 @@ msgid "Clear Restrict View"
 msgstr "Очистить ограничение просмотра"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Отобразить слой, установив переключатель скрытия"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Установить ограничение просмотра"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Скрыть слой, установив переключатель скрытия"
 
 
 msgctxt "Operator"
@@ -63202,10 +63198,6 @@ msgid "2D Cursor"
 msgstr "2D-курсор"
 
 
-msgid "Active Point"
-msgstr "Активная точка"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Предопределённые характеристики отслеживаемой камеры"
 
@@ -67166,10 +67158,6 @@ msgstr "Размер значков осей"
 
 msgid "Mini Axes Type"
 msgstr "Тип миниосей"
-
-
-msgid "Simple Axis"
-msgstr "Простые оси"
 
 
 msgid "Interactive Navigation"
@@ -83313,10 +83301,6 @@ msgstr "Ограничение кэша"
 
 msgid "View Name"
 msgstr "Имена видов"
-
-
-msgid "3D Viewport Axis"
-msgstr "Оси 3D-вьюпорта"
 
 
 msgid "Limit Size"

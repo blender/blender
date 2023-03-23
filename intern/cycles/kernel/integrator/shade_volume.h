@@ -827,7 +827,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  integrator_state_write_shadow_ray(shadow_state, &ray);
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
@@ -1172,10 +1172,10 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 #ifdef __VOLUME__
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(kg, state, &ray);
+  integrator_state_read_ray(state, &ray);
 
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(kg, state, &isect);
+  integrator_state_read_isect(state, &isect);
 
   /* Set ray length to current segment. */
   ray.tmax = (isect.prim != PRIM_NONE) ? isect.t : FLT_MAX;

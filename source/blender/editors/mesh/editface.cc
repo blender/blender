@@ -224,7 +224,7 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 {
   using namespace blender;
   const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
@@ -240,23 +240,23 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
         continue;
       }
       const MPoly &poly = polys[poly_index];
-      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      const Span<int> poly_edges = corner_edges.slice(poly.loopstart, poly.totloop);
 
-      for (const int poly_loop_index : poly_loops.index_range()) {
-        const MLoop &outer_mloop = poly_loops[poly_loop_index];
-        if (skip_seams && uv_seams[outer_mloop.e]) {
+      for (const int poly_loop_index : poly_edges.index_range()) {
+        const int outer_edge = poly_edges[poly_loop_index];
+        if (skip_seams && uv_seams[outer_edge]) {
           continue;
         }
 
-        for (const MLoop &inner_mloop :
-             poly_loops.slice(poly_loop_index, poly_loops.size() - poly_loop_index)) {
-          if (&outer_mloop == &inner_mloop) {
+        for (const int inner_edge :
+             poly_edges.slice(poly_loop_index, poly_edges.size() - poly_loop_index)) {
+          if (outer_edge == inner_edge) {
             continue;
           }
-          if (skip_seams && uv_seams[inner_mloop.e]) {
+          if (skip_seams && uv_seams[inner_edge]) {
             continue;
           }
-          islands.join(inner_mloop.e, outer_mloop.e);
+          islands.join(inner_edge, outer_edge);
         }
       }
     }
@@ -274,7 +274,7 @@ static void paintface_select_linked_faces(Mesh &mesh,
   build_poly_connections(islands, mesh);
 
   const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
@@ -285,11 +285,11 @@ static void paintface_select_linked_faces(Mesh &mesh,
   Set<int> selected_roots;
   for (const int i : face_indices) {
     const MPoly &poly = polys[i];
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      if (uv_seams[loop.e]) {
+    for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+      if (uv_seams[edge]) {
         continue;
       }
-      const int root = islands.find_root(loop.e);
+      const int root = islands.find_root(edge);
       selected_roots.add(root);
     }
   }
@@ -297,8 +297,8 @@ static void paintface_select_linked_faces(Mesh &mesh,
   threading::parallel_for(select_poly.span.index_range(), 1024, [&](const IndexRange range) {
     for (const int poly_index : range) {
       const MPoly &poly = polys[poly_index];
-      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-        const int root = islands.find_root(loop.e);
+      for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+        const int root = islands.find_root(edge);
         if (selected_roots.contains(root)) {
           select_poly.span[poly_index] = select;
           break;
@@ -424,7 +424,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 
   const Span<float3> positions = me->vert_positions();
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
   bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
@@ -437,9 +437,9 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     }
 
     const MPoly &poly = polys[i];
-    const MLoop *ml = &loops[poly.loopstart];
-    for (int b = 0; b < poly.totloop; b++, ml++) {
-      mul_v3_m3v3(vec, bmat, positions[ml->v]);
+    for (int b = 0; b < poly.totloop; b++) {
+      const int corner = poly.loopstart + b;
+      mul_v3_m3v3(vec, bmat, positions[corner_verts[corner]]);
       add_v3_v3v3(vec, vec, ob->object_to_world[3]);
       minmax_v3v3_v3(r_min, r_max, vec);
     }

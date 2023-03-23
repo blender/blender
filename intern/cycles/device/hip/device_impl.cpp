@@ -499,12 +499,11 @@ void HIPDevice::free_host(void *shared_pointer)
   hipHostFree(shared_pointer);
 }
 
-bool HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
 {
   HIPContextScope scope(this);
 
   hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
-  return true;
 }
 
 void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)

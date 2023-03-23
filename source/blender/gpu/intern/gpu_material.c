@@ -953,7 +953,7 @@ void GPU_material_compile(GPUMaterial *mat)
        * configurations to ensure compile time remains fast, as these first
        * entries will be the most commonly used PSOs. As not all PSOs are necessarily
        * required immediately, this limit should remain low (1-3 at most). */
-      if (mat->default_mat != NULL && mat->default_mat != mat) {
+      if (!ELEM(mat->default_mat, NULL, mat)) {
         if (mat->default_mat->pass != NULL) {
           GPUShader *parent_sh = GPU_pass_shader_get(mat->default_mat->pass);
           if (parent_sh) {

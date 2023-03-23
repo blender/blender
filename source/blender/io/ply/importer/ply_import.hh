@@ -11,7 +11,7 @@
 
 namespace blender::io::ply {
 
-enum PlyDataTypes from_string(const StringRef &input);
+class PlyReadBuffer;
 
 void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);
 
@@ -24,5 +24,7 @@ void importer_main(Main *bmain,
                    ViewLayer *view_layer,
                    const PLYImportParams &import_params,
                    wmOperator *op);
+
+const char *read_header(PlyReadBuffer &file, PlyHeader &r_header);
 
 }  // namespace blender::io::ply

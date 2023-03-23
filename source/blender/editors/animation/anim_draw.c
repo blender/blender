@@ -177,8 +177,8 @@ void ANIM_draw_action_framerange(
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
-  immUniform1i("size1", 2 * U.dpi_fac);
-  immUniform1i("size2", 4 * U.dpi_fac);
+  immUniform1i("size1", 2 * UI_SCALE_FAC);
+  immUniform1i("size2", 4 * UI_SCALE_FAC);
 
   if (sfra < efra) {
     immRectf(pos, v2d->cur.xmin, ymin, sfra, ymax);

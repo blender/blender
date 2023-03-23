@@ -280,7 +280,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
   rcti rect;
   ui_but_to_pixelrect(&rect, region, block, static_cast<const uiBut *>(block->buttons.last));
   const float buttons_width = float(rect.xmax) + UI_HEADER_OFFSET;
-  const float region_width = float(region->sizex) * U.dpi_fac;
+  const float region_width = float(region->sizex) * UI_SCALE_FAC;
 
   if (region_width <= buttons_width) {
     return;
@@ -469,7 +469,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
   /* hardcoded exception... but that one is annoying with larger safety */
   uiBut *bt = static_cast<uiBut *>(block->buttons.first);
-  const int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * U.dpi_fac;
+  const int xof = ((bt && STRPREFIX(bt->str, "ERROR")) ? 10 : 40) * UI_SCALE_FAC;
 
   block->safety.xmin = block->rect.xmin - xof;
   block->safety.ymin = block->rect.ymin - xof;
@@ -2013,6 +2013,8 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
       ui_block_bounds_calc_popup(window, block, block->bounds_type, xy, r_xy);
       break;
   }
+
+  ui_block_views_bounds_calc(block);
 
   if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
     UI_block_bounds_set_normal(block, 0);
@@ -4993,7 +4995,7 @@ int UI_preview_tile_size_x(void)
 int UI_preview_tile_size_y(void)
 {
   const uiStyle *style = UI_style_get();
-  const float font_height = style->widget.points * UI_DPI_FAC;
+  const float font_height = style->widget.points * UI_SCALE_FAC;
   const float pad = PREVIEW_TILE_PAD;
 
   return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +

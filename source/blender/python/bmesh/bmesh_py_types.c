@@ -3468,8 +3468,8 @@ static Py_hash_t bpy_bm_hash(PyObject *self)
   return _Py_HashPointer(((BPy_BMesh *)self)->bm);
 }
 
-/* Type Docstrings
- * =============== */
+/* Type Doc-strings
+ * ================ */
 
 PyDoc_STRVAR(bpy_bmesh_doc, "The BMesh data structure\n");
 PyDoc_STRVAR(bpy_bmvert_doc, "The BMesh vertex type\n");
@@ -3694,7 +3694,7 @@ void BPy_BM_init_types(void)
   BPy_BMFaceSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
   BPy_BMLoopSeq_Type.tp_iter = NULL; /* no mapping */
 
-  /* only 1 iteratir so far */
+  /* Only 1 iterator so far. */
   BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bmiter_next;
   BPy_BMIter_Type.tp_iter = PyObject_SelfIter;
 

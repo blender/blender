@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -33447,6 +33447,10 @@ msgid "Active spline of masking layer"
 msgstr "Curva activa de la capa de máscara"
 
 
+msgid "Active Point"
+msgstr "Punto activo"
+
+
 msgid "Grease Pencil Color"
 msgstr "Color del lápiz de cera"
 
@@ -44379,10 +44383,6 @@ msgstr "Calcula el área de la superficie de las caras de una malla"
 
 msgid "Is Face Planar"
 msgstr "Es cara plana"
-
-
-msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether have the same normal"
-msgstr "Proporciona información acerca de si todos los triángulos de una cara se encuentran sobre un mismo plano o, lo que es lo mismo, si tienen normales idénticas"
 
 
 msgid "Face Neighbors"
@@ -59451,17 +59451,9 @@ msgid "Clear Restrict View"
 msgstr "Eliminar restricción visibilidad"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Revela la capa, restableciendo su indicador de ocultamiento"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Impedir visibilidad"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Oculta la capa, activando su indicador de ocultamiento"
 
 
 msgctxt "Operator"
@@ -81106,10 +81098,6 @@ msgid "2D Cursor"
 msgstr "Cursor 2D"
 
 
-msgid "Active Point"
-msgstr "Punto activo"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Ajustes predefinidos de cámara para el rastreo"
 
@@ -86095,14 +86083,6 @@ msgstr "El tamaño del ícono de los ejes"
 
 msgid "Mini Axes Type"
 msgstr "Tipo de mini ejes"
-
-
-msgid "Show a small rotating 3D axes in the top right corner of the 3D viewport"
-msgstr "Muestra pequeños ejes 3D rotatorios en la esquina superior derecha de la vista 3D"
-
-
-msgid "Simple Axis"
-msgstr "Ejes simples"
 
 
 msgid "Interactive Navigation"
@@ -110008,10 +109988,6 @@ msgstr "Nombre de la vista"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "Velocidad de reproducción (fps)"
-
-
-msgid "3D Viewport Axis"
-msgstr "Ejes de vista 3D"
 
 
 msgid "Smooth Wires"

@@ -420,7 +420,7 @@ struct CartesianBasis {
 };
 
 /**
- * Create an CartesianBasis for converting from \a a orientation to \a b orientation.
+ * Create an CartesianBasis using two orthogonal axes.
  * The third axis is chosen by right hand rule to follow blender coordinate system.
  * \a forward is Y axis in blender coordinate system.
  * \a up is Z axis in blender coordinate system.

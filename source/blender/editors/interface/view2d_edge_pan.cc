@@ -174,7 +174,7 @@ static float edge_pan_speed(View2DEdgePanData *vpd,
   const float zoom_factor = 1.0f + CLAMPIS(vpd->zoom_influence, 0.0f, 1.0f) * (zoomx - 1.0f);
 
   return distance_factor * delay_factor * zoom_factor * vpd->max_speed * U.widget_unit *
-         float(U.dpi_fac);
+         float(UI_SCALE_FAC);
 }
 
 static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, float dy)

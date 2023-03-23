@@ -685,11 +685,9 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   mesh->totcol = mball->totcol;
 
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
-    int verts_num;
-    float(*positions)[3] = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
-    BKE_lattice_deform_coords(ob->parent, ob, positions, verts_num, 0, nullptr, 1.0f);
-    BKE_mesh_vert_coords_apply(mesh, positions);
-    MEM_freeN(positions);
+    BKE_lattice_deform_coords(
+        ob->parent, ob, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert, 0, nullptr, 1.0f);
+    BKE_mesh_tag_positions_changed(mesh);
   }
 
   ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
