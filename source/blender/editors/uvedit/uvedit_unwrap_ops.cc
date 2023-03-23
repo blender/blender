@@ -1287,15 +1287,17 @@ static bool island_has_pins(const Scene *scene,
  * \param bmesh_override: BMesh array aligned with `objects`.
  * Optional, when non-null this overrides object's BMesh.
  * This is needed to perform UV packing on objects that aren't in edit-mode.
- * \param udim_params: Parameters to specify UDIM target and UDIM source image.
+ * \param udim_source_closest: UDIM source SpaceImage.
+ * \param original_selection: Pack to original selection.
  * \param params: Parameters and options to pass to the packing engine.
  */
 static void uvedit_pack_islands_multi(const Scene *scene,
                                       Object **objects,
                                       const int objects_len,
                                       BMesh **bmesh_override,
-                                      const UVMapUDIM_Params *closest_udim,
-                                      const blender::geometry::UVPackIsland_Params *params)
+                                      const SpaceImage *udim_source_closest,
+                                      const bool original_selection,
+                                      blender::geometry::UVPackIsland_Params *params)
 {
   blender::Vector<FaceIsland *> island_vector;
 
@@ -1357,12 +1359,10 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
   for (int index = 0; index < island_vector.size(); index++) {
     FaceIsland *island = island_vector[index];
-    if (closest_udim) {
-      /* Only calculate selection bounding box if using closest_udim. */
-      for (int i = 0; i < island->faces_len; i++) {
-        BMFace *f = island->faces[i];
-        BM_face_uv_minmax(f, selection_min_co, selection_max_co, island->offsets.uv);
-      }
+
+    for (int i = 0; i < island->faces_len; i++) {
+      BMFace *f = island->faces[i];
+      BM_face_uv_minmax(f, selection_min_co, selection_max_co, island->offsets.uv);
     }
 
     if (params->rotate) {
@@ -1375,9 +1375,15 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
   /* Center of bounding box containing all selected UVs. */
   float selection_center[2];
-  if (closest_udim) {
-    selection_center[0] = (selection_min_co[0] + selection_max_co[0]) / 2.0f;
-    selection_center[1] = (selection_min_co[1] + selection_max_co[1]) / 2.0f;
+  mid_v2_v2v2(selection_center, selection_min_co, selection_max_co);
+
+  if (original_selection) {
+    /* Protect against degenerate source AABB. */
+    if ((selection_max_co[0] - selection_min_co[0]) * (selection_max_co[1] - selection_min_co[1]) >
+        1e-40f) {
+      params->target_aspect_y = (selection_max_co[0] - selection_min_co[0]) /
+                                (selection_max_co[1] - selection_min_co[1]);
+    }
   }
 
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -1415,14 +1421,15 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   }
   BLI_heap_free(heap, nullptr);
   BLI_memarena_free(arena);
+
   pack_islands(pack_island_vector, *params, scale);
 
   float base_offset[2] = {0.0f, 0.0f};
   copy_v2_v2(base_offset, params->udim_base_offset);
 
-  if (closest_udim) {
-    const Image *image = closest_udim->image;
-    const int *udim_grid = closest_udim->grid_shape;
+  if (udim_source_closest) {
+    const Image *image = udim_source_closest->image;
+    const int *udim_grid = udim_source_closest->tile_grid_shape;
     /* Check if selection lies on a valid UDIM grid tile. */
     bool is_valid_udim = uv_coords_isect_udim(image, udim_grid, selection_center);
     if (is_valid_udim) {
@@ -1470,6 +1477,20 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     /* Perform the transformation. */
     island_uv_transform(island, matrix, pre_translate);
 
+    if (original_selection) {
+      const float rescale_x = (selection_max_co[0] - selection_min_co[0]) /
+                              params->target_aspect_y;
+      const float rescale_y = (selection_max_co[1] - selection_min_co[1]);
+      const float rescale = std::min(rescale_x, rescale_y);
+      matrix[0][0] = rescale;
+      matrix[0][1] = 0.0f;
+      matrix[1][0] = 0.0f;
+      matrix[1][1] = rescale;
+      pre_translate[0] = selection_min_co[0] / rescale;
+      pre_translate[1] = selection_min_co[1] / rescale;
+      island_uv_transform(island, matrix, pre_translate);
+    }
+
     /* Cleanup memory. */
     pack_island_vector[i] = nullptr;
     delete pack_island;
@@ -1494,7 +1515,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 /* Packing targets. */
 enum {
   PACK_UDIM_SRC_CLOSEST = 0,
-  PACK_UDIM_SRC_ACTIVE = 1,
+  PACK_UDIM_SRC_ACTIVE,
+  PACK_ORIGINAL_AABB,
 };
 
 static int pack_islands_exec(bContext *C, wmOperator *op)
@@ -1539,21 +1561,17 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_island_params.shape_method = eUVPackIsland_ShapeMethod(
       RNA_enum_get(op->ptr, "shape_method"));
 
-  UVMapUDIM_Params closest_udim_buf;
-  UVMapUDIM_Params *closest_udim = nullptr;
   if (udim_source == PACK_UDIM_SRC_ACTIVE) {
     pack_island_params.setUDIMOffsetFromSpaceImage(sima);
   }
-  else if (sima) {
-    BLI_assert(udim_source == PACK_UDIM_SRC_CLOSEST);
-    closest_udim = &closest_udim_buf;
-    closest_udim->image = sima->image;
-    closest_udim->grid_shape[0] = sima->tile_grid_shape[0];
-    closest_udim->grid_shape[1] = sima->tile_grid_shape[1];
-  }
 
-  uvedit_pack_islands_multi(
-      scene, objects, objects_len, nullptr, closest_udim, &pack_island_params);
+  uvedit_pack_islands_multi(scene,
+                            objects,
+                            objects_len,
+                            nullptr,
+                            (udim_source == PACK_UDIM_SRC_CLOSEST) ? sima : nullptr,
+                            (udim_source == PACK_ORIGINAL_AABB),
+                            &pack_island_params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -1591,6 +1609,11 @@ void UV_OT_pack_islands(wmOperatorType *ot)
        0,
        "Active UDIM",
        "Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located"},
+      {PACK_ORIGINAL_AABB,
+       "ORIGINAL_AABB",
+       0,
+       "Original bounding box",
+       "Pack to starting bounding box of islands"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   /* identifiers */
@@ -2336,7 +2359,8 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
 
-    uvedit_pack_islands_multi(scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
+    uvedit_pack_islands_multi(
+        scene, objects, objects_len, nullptr, nullptr, false, &pack_island_params);
   }
 }
 
@@ -2478,7 +2502,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
 
-  uvedit_pack_islands_multi(scene, objects, objects_len, nullptr, nullptr, &pack_island_params);
+  uvedit_pack_islands_multi(
+      scene, objects, objects_len, nullptr, nullptr, false, &pack_island_params);
 
   MEM_freeN(objects);
 
@@ -2859,7 +2884,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     params.margin = RNA_float_get(op->ptr, "island_margin");
 
     uvedit_pack_islands_multi(
-        scene, objects_changed, object_changed_len, nullptr, nullptr, &params);
+        scene, objects_changed, object_changed_len, nullptr, nullptr, false, &params);
 
     /* #uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
@@ -3847,7 +3872,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
   params.margin = 0.001f;
 
-  uvedit_pack_islands_multi(scene, &ob, 1, &bm, nullptr, &params);
+  uvedit_pack_islands_multi(scene, &ob, 1, &bm, nullptr, false, &params);
 
   /* Write back from BMesh to Mesh. */
   BMeshToMeshParams bm_to_me_params{};

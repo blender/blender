@@ -444,10 +444,11 @@ static void uv_parametrizer_scale_x(ParamHandle *phandle, const float scale_x)
     return; /* Identity transform. */
   }
 
+  /* Scale every chart. */
   for (int i = 0; i < phandle->ncharts; i++) {
     PChart *chart = phandle->charts[i];
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      v->uv[0] *= scale_x;
+      v->uv[0] *= scale_x; /* Only scale x axis. */
     }
   }
 }

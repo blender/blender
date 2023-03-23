@@ -66,6 +66,8 @@ class UVPackIsland_Params {
   eUVPackIsland_MarginMethod margin_method;
   /** Additional translation for bottom left corner. */
   float udim_base_offset[2];
+  /** Target aspect ratio. */
+  float target_aspect_y;
   /** Which shape to use when packing. */
   eUVPackIsland_ShapeMethod shape_method;
 };

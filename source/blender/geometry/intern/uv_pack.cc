@@ -181,6 +181,7 @@ UVPackIsland_Params::UVPackIsland_Params()
   margin_method = ED_UVPACK_MARGIN_SCALED;
   udim_base_offset[0] = 0.0f;
   udim_base_offset[1] = 0.0f;
+  target_aspect_y = 1.0f;
   shape_method = ED_UVPACK_SHAPE_AABB;
 }
 
@@ -205,13 +206,14 @@ class UVAABBIsland {
  * the input must be pre-sorted, which costs an additional `O(nlogn)` time complexity.
  */
 static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
+                                      const float target_aspect_y,
                                       float *r_max_u,
                                       float *r_max_v)
 {
   /* Exclude an initial AABB near the origin. */
   float next_u1 = *r_max_u;
   float next_v1 = *r_max_v;
-  bool zigzag = next_u1 < next_v1; /* Horizontal or Vertical strip? */
+  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
 
   float u0 = zigzag ? next_u1 : 0.0f;
   float v0 = zigzag ? 0.0f : next_v1;
@@ -230,7 +232,7 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
     }
     if (restart) {
       /* We're at the end of a strip. Restart from U axis or V axis. */
-      zigzag = next_u1 < next_v1;
+      zigzag = next_u1 / target_aspect_y < next_v1;
       u0 = zigzag ? next_u1 : 0.0f;
       v0 = zigzag ? 0.0f : next_v1;
     }
@@ -262,6 +264,7 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
                                     const Span<PackIsland *> islands,
                                     const float scale,
                                     const float margin,
+                                    const float target_aspect_y,
                                     float *r_max_u,
                                     float *r_max_v)
 {
@@ -273,21 +276,24 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
   for (const int64_t i : aabbs.index_range()) {
     PackIsland *island = islands[aabbs[i]->index];
     BoxPack *box = box_array + i;
-    box->w = island->half_diagonal_.x * 2 * scale + 2 * margin;
+    box->w = (island->half_diagonal_.x * 2 * scale + 2 * margin) / target_aspect_y;
     box->h = island->half_diagonal_.y * 2 * scale + 2 * margin;
   }
 
   const bool sort_boxes = false; /* Use existing ordering from `aabbs`. */
 
   /* \note Writes to `*r_max_u` and `*r_max_v`. */
-  BLI_box_pack_2d(box_array, int(islands.size()), sort_boxes, r_max_u, r_max_v);
+  BLI_box_pack_2d(box_array, int(aabbs.size()), sort_boxes, r_max_u, r_max_v);
+
+  *r_max_u *= target_aspect_y;
 
   /* Write back box_pack UVs. */
   for (const int64_t i : aabbs.index_range()) {
     PackIsland *island = islands[aabbs[i]->index];
     BoxPack *box = box_array + i;
     island->angle = 0.0f; /* #BLI_box_pack_2d never rotates. */
-    island->pre_translate.x = (box->x + box->w * 0.5f) / scale - island->pivot_.x;
+    island->pre_translate.x = (box->x + box->w * 0.5f) * target_aspect_y / scale -
+                              island->pivot_.x;
     island->pre_translate.y = (box->y + box->h * 0.5f) / scale - island->pivot_.y;
   }
 
@@ -464,17 +470,26 @@ float Occupancy::trace_island(PackIsland *island,
   return -1.0f; /* Available. */
 }
 
-static float2 find_best_fit_for_island(
-    PackIsland *island, int scan_line, Occupancy &occupancy, const float scale, const float margin)
+static float2 find_best_fit_for_island(PackIsland *island,
+                                       int scan_line,
+                                       Occupancy &occupancy,
+                                       const float scale,
+                                       const float margin,
+                                       const float target_aspect_y)
 {
   const float bitmap_scale = 1.0f / occupancy.bitmap_scale_reciprocal;
   const float half_x_scaled = island->half_diagonal_.x * scale;
   const float half_y_scaled = island->half_diagonal_.y * scale;
 
+  const float sqrt_target_aspect_y = sqrtf(target_aspect_y);
+  int scan_line_x = int(scan_line * sqrt_target_aspect_y);
+  int scan_line_y = int(scan_line / sqrt_target_aspect_y);
+
   /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
   int t = int(ceilf((2 * half_x_scaled + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t < scan_line) {
-    const float2 probe(t * bitmap_scale - half_x_scaled, scan_line * bitmap_scale - half_y_scaled);
+  while (t < scan_line_x) {
+    const float2 probe(t * bitmap_scale - half_x_scaled,
+                       scan_line_y * bitmap_scale - half_y_scaled);
     const float extent = occupancy.trace_island(island, scale, margin, probe, false);
     if (extent < 0.0f) {
       return probe; /* Success. */
@@ -484,8 +499,9 @@ static float2 find_best_fit_for_island(
 
   /* Then scan vertically using "less-than-or-equal" */
   t = int(ceilf((2 * half_y_scaled + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t <= scan_line) {
-    const float2 probe(scan_line * bitmap_scale - half_x_scaled, t * bitmap_scale - half_y_scaled);
+  while (t <= scan_line_y) {
+    const float2 probe(scan_line_x * bitmap_scale - half_x_scaled,
+                       t * bitmap_scale - half_y_scaled);
     const float extent = occupancy.trace_island(island, scale, margin, probe, false);
     if (extent < 0.0f) {
       return probe; /* Success. */
@@ -528,6 +544,7 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                const Span<PackIsland *> islands,
                                const float scale,
                                const float margin,
+                               const float target_aspect_y,
                                float *r_max_u,
                                float *r_max_v)
 {
@@ -546,7 +563,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 
   while (i < island_indices.size()) {
     PackIsland *island = islands[island_indices[i]->index];
-    const float2 best = find_best_fit_for_island(island, scan_line, occupancy, scale, margin);
+    const float2 best = find_best_fit_for_island(
+        island, scan_line, occupancy, scale, margin, target_aspect_y);
 
     if (best.x <= -1.0f) {
       /* Unable to find a fit on this scan_line. */
@@ -562,7 +580,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
          * choice is 2. */
         scan_line += 2;
       }
-      if (scan_line < occupancy.bitmap_radix) {
+      if (scan_line <
+          occupancy.bitmap_radix * sqrtf(std::min(target_aspect_y, 1.0f / target_aspect_y))) {
         continue; /* Try again on next scan_line. */
       }
 
@@ -654,13 +673,14 @@ static void update_hole_rotate(float2 &hole,
  * Tracking the "Hole" has a slight performance cost, while improving packing efficiency.
  */
 static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
+                                       const float target_aspect_y,
                                        float *r_max_u,
                                        float *r_max_v)
 {
   /* Exclude an initial AABB near the origin. */
   float next_u1 = *r_max_u;
   float next_v1 = *r_max_v;
-  bool zigzag = next_u1 < next_v1; /* Horizontal or Vertical strip? */
+  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
 
   /* Track an AABB "hole" which may be filled at any time. */
   float2 hole(0.0f);
@@ -716,7 +736,7 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
     if (restart) {
       update_hole_rotate(hole, hole_diagonal, hole_rotate, u0, v0, next_u1, next_v1);
       /* We're at the end of a strip. Restart from U axis or V axis. */
-      zigzag = next_u1 < next_v1;
+      zigzag = next_u1 / target_aspect_y < next_v1;
       u0 = zigzag ? next_u1 : 0.0f;
       v0 = zigzag ? 0.0f : next_v1;
     }
@@ -842,7 +862,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       alpaca_cutoff = alpaca_cutoff_fast;
     }
   }
-
   const int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
 
   /* Call box_pack_2d (slow for large N.) */
@@ -851,23 +870,35 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   switch (params.shape_method) {
     case ED_UVPACK_SHAPE_CONVEX:
     case ED_UVPACK_SHAPE_CONCAVE:
-      pack_island_xatlas(
-          aabbs.as_span().take_front(max_box_pack), islands, scale, margin, &max_u, &max_v);
+      pack_island_xatlas(aabbs.as_span().take_front(max_box_pack),
+                         islands,
+                         scale,
+                         margin,
+                         params.target_aspect_y,
+                         &max_u,
+                         &max_v);
       break;
     default:
-      pack_island_box_pack_2d(
-          aabbs.as_span().take_front(max_box_pack), islands, scale, margin, &max_u, &max_v);
+      pack_island_box_pack_2d(aabbs.as_span().take_front(max_box_pack),
+                              islands,
+                              scale,
+                              margin,
+                              params.target_aspect_y,
+                              &max_u,
+                              &max_v);
       break;
   }
 
-  /* At this stage, `max_u` and `max_v` contain the box_pack UVs. */
+  /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
 
   /* Call Alpaca. */
   if (params.rotate && !contains_non_square_islands) {
-    pack_islands_alpaca_rotate(aabbs.as_mutable_span().drop_front(max_box_pack), &max_u, &max_v);
+    pack_islands_alpaca_rotate(
+        aabbs.as_mutable_span().drop_front(max_box_pack), params.target_aspect_y, &max_u, &max_v);
   }
   else {
-    pack_islands_alpaca_turbo(aabbs.as_mutable_span().drop_front(max_box_pack), &max_u, &max_v);
+    pack_islands_alpaca_turbo(
+        aabbs.as_mutable_span().drop_front(max_box_pack), params.target_aspect_y, &max_u, &max_v);
   }
 
   /* Write back Alpaca UVs. */
@@ -888,7 +919,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     delete aabb;
   }
 
-  return std::max(max_u, max_v);
+  return std::max(max_u / params.target_aspect_y, max_v);
 }
 
 /** Find the optimal scale to pack islands into the unit square.
