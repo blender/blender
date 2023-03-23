@@ -147,6 +147,7 @@ set(SRC
   intern/task_pool.cc
   intern/task_range.cc
   intern/task_scheduler.cc
+  intern/tempfile.c
   intern/threads.cc
   intern/time.c
   intern/timecode.c
@@ -347,6 +348,7 @@ set(SRC
   BLI_system.h
   BLI_task.h
   BLI_task.hh
+  BLI_tempfile.h
   BLI_threads.h
   BLI_timecode.h
   BLI_timeit.hh
@@ -533,6 +535,7 @@ if(WITH_GTESTS)
     tests/BLI_string_utf8_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
+    tests/BLI_tempfile_test.cc
     tests/BLI_uuid_test.cc
     tests/BLI_vector_set_test.cc
     tests/BLI_vector_test.cc
