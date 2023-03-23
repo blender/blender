@@ -4805,7 +4805,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, cfra)) {
       flag |= INSERTKEY_REPLACE;
     }
 
@@ -4867,7 +4867,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     FCurve *fcu = ED_action_fcurve_ensure(bmain, act, NULL, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, remapped_frame, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, remapped_frame)) {
       flag |= INSERTKEY_REPLACE;
     }
 
@@ -4927,7 +4927,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
 
   if (fcu && prop) {
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, cfra)) {
       flag |= INSERTKEY_REPLACE;
     }
 
