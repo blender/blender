@@ -1284,7 +1284,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
     const MPoly &poly = polys[poly_index];
 
     for (const int ml_curr_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int ml_prev_index = mesh_topology::poly_loop_prev(poly, ml_curr_index);
+      const int ml_prev_index = mesh::poly_corner_prev(poly, ml_curr_index);
 
 #if 0
       printf("Checking loop %d / edge %u / vert %u (sharp edge: %d, skiploop: %d)",

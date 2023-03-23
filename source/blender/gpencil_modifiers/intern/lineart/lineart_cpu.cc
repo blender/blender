@@ -1476,7 +1476,6 @@ struct EdgeFeatData {
   Object *ob_eval; /* For evaluated materials. */
   const int *material_indices;
   blender::Span<MEdge> edges;
-  blender::Span<MPoly> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   blender::Span<MLoopTri> looptris;
@@ -2106,7 +2105,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.ob_eval = ob_info->original_ob_eval;
   edge_feat_data.material_indices = material_indices;
   edge_feat_data.edges = me->edges();
-  edge_feat_data.polys = me->polys();
   edge_feat_data.corner_verts = me->corner_verts();
   edge_feat_data.corner_edges = me->corner_edges();
   edge_feat_data.looptris = looptris;

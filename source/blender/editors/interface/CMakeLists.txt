@@ -46,6 +46,7 @@ set(SRC
   interface_context_path.cc
   interface_drag.cc
   interface_draw.cc
+  interface_drop.cc
   interface_dropboxes.cc
   interface_handlers.cc
   interface_icons.cc

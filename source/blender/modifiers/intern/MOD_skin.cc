@@ -464,8 +464,8 @@ static Frame **collect_hull_frames(int v,
   hull_frames = MEM_cnew_array<Frame *>(*tothullframe, __func__);
   hull_frames_num = 0;
   for (i = 0; i < emap[v].count; i++) {
-    const MEdge *edge = &edges[emap[v].indices[i]];
-    f = &frames[BKE_mesh_edge_other_vert(edge, v)];
+    const MEdge &edge = edges[emap[v].indices[i]];
+    f = &frames[blender::bke::mesh::edge_other_vert(edge, v)];
     /* Can't have adjacent branch nodes yet */
     if (f->totframe) {
       hull_frames[hull_frames_num++] = &f->frames[0];
@@ -745,7 +745,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   parent_is_branch = ((emap[parent_v].count > 2) || (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
-  v = BKE_mesh_edge_other_vert(&edges[e], parent_v);
+  v = blender::bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
 
   /* If parent is a branch node, start a new edge chain */
@@ -796,9 +796,10 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   for (v = 0; v < verts_num; v++) {
     if (vs[v].flag & MVERT_SKIN_ROOT) {
       if (emap[v].count >= 1) {
-        const MEdge *edge = &edges[emap[v].indices[0]];
-        calc_edge_mat(
-            stack_elem.mat, vert_positions[v], vert_positions[BKE_mesh_edge_other_vert(edge, v)]);
+        const MEdge &edge = edges[emap[v].indices[0]];
+        calc_edge_mat(stack_elem.mat,
+                      vert_positions[v],
+                      vert_positions[blender::bke::mesh::edge_other_vert(edge, v)]);
         stack_elem.parent_v = v;
 
         /* Add adjacent edges to stack */

@@ -108,6 +108,12 @@
     Mesh *me = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     if (data) { \
+      if (UNLIKELY(value < 0)) { \
+        value = 0; \
+      } \
+      else if (value > 0) { \
+        value = min_ii(value, CustomData_number_of_layers(data, layer_type) - 1); \
+      } \
       CustomData_set_layer_##active_type(data, layer_type, value); \
       BKE_mesh_tessface_clear(me); \
     } \

@@ -929,16 +929,57 @@ static bool mesh_validate_customdata(CustomData *data,
 
   PRINT_MSG("%s: Checking %d CD layers...\n", __func__, data->totlayer);
 
+  /* Set dummy values so the layer-type is always initialized on first access. */
+  int layer_num = -1;
+  int layer_num_type = -1;
+
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
     bool ok = true;
 
+    /* Count layers when the type changes. */
+    if (layer_num_type != layer->type) {
+      layer_num = CustomData_number_of_layers(data, layer->type);
+      layer_num_type = layer->type;
+    }
+
+    /* Validate active index, for a time this could be set to a negative value, see: #105860. */
+    int *active_index_array[] = {
+        &layer->active,
+        &layer->active_rnd,
+        &layer->active_clone,
+        &layer->active_mask,
+    };
+    for (int *active_index : Span(active_index_array, ARRAY_SIZE(active_index_array))) {
+      if (*active_index < 0) {
+        PRINT_ERR("\tCustomDataLayer type %d has a negative active index (%d)\n",
+                  layer->type,
+                  *active_index);
+        if (do_fixes) {
+          *active_index = 0;
+          has_fixes = true;
+        }
+      }
+      else {
+        if (*active_index >= layer_num) {
+          PRINT_ERR("\tCustomDataLayer type %d has an out of bounds active index (%d >= %d)\n",
+                    layer->type,
+                    *active_index,
+                    layer_num);
+          if (do_fixes) {
+            BLI_assert(layer_num > 0);
+            *active_index = layer_num - 1;
+            has_fixes = true;
+          }
+        }
+      }
+    }
+
     if (CustomData_layertype_is_singleton(layer->type)) {
-      const int layer_tot = CustomData_number_of_layers(data, layer->type);
-      if (layer_tot > 1) {
+      if (layer_num > 1) {
         PRINT_ERR("\tCustomDataLayer type %d is a singleton, found %d in Mesh structure\n",
                   layer->type,
-                  layer_tot);
+                  layer_num);
         ok = false;
       }
     }

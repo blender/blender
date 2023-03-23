@@ -2664,13 +2664,7 @@ static void pointer_handle_enter(void *data,
 
   /* Resetting scroll events is likely unnecessary,
    * do this to avoid any possible problems as it's harmless. */
-  seat->pointer_scroll.smooth_xy[0] = 0;
-  seat->pointer_scroll.smooth_xy[1] = 0;
-  seat->pointer_scroll.discrete_xy[0] = 0;
-  seat->pointer_scroll.discrete_xy[1] = 0;
-  seat->pointer_scroll.inverted_xy[0] = false;
-  seat->pointer_scroll.inverted_xy[1] = false;
-  seat->pointer_scroll.axis_source = WL_POINTER_AXIS_SOURCE_WHEEL;
+  seat->pointer_scroll = GWL_SeatStatePointerScroll{};
 
   seat->pointer.wl_surface_window = wl_surface;
 

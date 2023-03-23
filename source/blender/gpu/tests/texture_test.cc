@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
 #include "gpu_testing.hh"
 
 #include "MEM_guardedalloc.h"

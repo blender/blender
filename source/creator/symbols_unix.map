@@ -39,6 +39,9 @@ global:
   realpath;
   sched_*;
   valloc;
+  /* needed on FreeBSD */
+  __progname;
+  environ;
 local:
   *;
 };

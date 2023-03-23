@@ -178,7 +178,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         /* Find gp-frame which is less than or equal to current-frame. */
         for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
           if (!onlySel || (gpf->flag & GP_FRAME_SELECT)) {
-            const float framenum = (float)gpf->framenum;
+            const float framenum = float(gpf->framenum);
             *min = min_ff(*min, framenum);
             *max = max_ff(*max, framenum);
             found = true;
@@ -193,7 +193,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
              masklay_shape;
              masklay_shape = masklay_shape->next) {
-          const float framenum = (float)masklay_shape->frame;
+          const float framenum = float(masklay_shape->frame);
           *min = min_ff(*min, framenum);
           *max = max_ff(*max, framenum);
           found = true;
@@ -231,8 +231,8 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   else {
     /* set default range */
     if (ac->scene) {
-      *min = (float)ac->scene->r.sfra;
-      *max = (float)ac->scene->r.efra;
+      *min = float(ac->scene->r.sfra);
+      *max = float(ac->scene->r.efra);
     }
     else {
       *min = -5;
@@ -397,7 +397,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
     /* view all -> the summary channel is usually the shows everything,
      * and resides right at the top... */
     v2d->cur.ymax = 0.0f;
-    v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
+    v2d->cur.ymin = float(-BLI_rcti_size_y(&v2d->mask));
   }
   else {
     /* locate first selected channel (or the active one), and frame those */
@@ -850,7 +850,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 
   /* insert keyframes */
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      ac->depsgraph, (float)scene->r.cfra);
+      ac->depsgraph, float(scene->r.cfra));
   for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
     switch (ale->type) {
       case ANIMTYPE_GPLAYER:
@@ -1962,7 +1962,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
     TimeMarker *marker = ED_markers_get_first_selected(ac->markers);
 
     if (marker) {
-      ked.f1 = (float)marker->frame;
+      ked.f1 = float(marker->frame);
     }
     else {
       return;

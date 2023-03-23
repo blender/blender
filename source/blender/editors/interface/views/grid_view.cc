@@ -389,7 +389,7 @@ uiLayout *GridViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
+GridViewBuilder::GridViewBuilder(uiBlock & /*block*/)
 {
 }
 

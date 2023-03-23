@@ -57,7 +57,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
 
   /* Rotate new axis to be between a and b. */
   float theta_r = theta_o - a->theta_o;
-  float3 new_axis = rotate_around_axis(a->axis, cross(a->axis, b->axis), theta_r);
+  float3 new_axis = rotate_around_axis(a->axis, normalize(cross(a->axis, b->axis)), theta_r);
   new_axis = normalize(new_axis);
 
   return OrientationBounds({new_axis, theta_o, theta_e});
