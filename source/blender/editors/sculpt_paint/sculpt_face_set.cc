@@ -1183,11 +1183,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
-
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;

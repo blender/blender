@@ -7150,8 +7150,10 @@ void SCULPT_stroke_id_next(Object *ob)
 int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH:
-      return 0;
+    case PBVH_BMESH: {
+      BMFace *f = reinterpret_cast<BMFace *>(face.i);
+      return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+    }
     case PBVH_FACES:
     case PBVH_GRIDS:
       return ss->face_sets[face.i];
@@ -7165,8 +7167,11 @@ int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face)
 void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMFace *f = reinterpret_cast<BMFace *>(face.i);
+      BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
       break;
+    }
     case PBVH_FACES:
     case PBVH_GRIDS:
       ss->face_sets[face.i] = fset;
