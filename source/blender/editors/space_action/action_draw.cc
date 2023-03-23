@@ -656,14 +656,14 @@ static void timeline_cache_draw_cached_segments(PointCache *cache, uint pos_id)
 static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float height, uint pos_id)
 {
   GPU_matrix_push();
-  GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HANDLE_HEIGHT + y_offset);
+  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
   GPU_matrix_scale_2f(1.0, height);
 
   float color[4];
   timeline_cache_color_get(pid, color);
 
   immUniformColor4fv(color);
-  immRectf(pos_id, (float)pid->cache->startframe, 0.0, (float)pid->cache->endframe, 1.0);
+  immRectf(pos_id, float(pid->cache->startframe), 0.0, float(pid->cache->endframe), 1.0);
 
   color[3] = 0.4f;
   timeline_cache_modify_color_based_on_state(pid->cache, color);

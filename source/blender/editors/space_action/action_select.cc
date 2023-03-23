@@ -163,8 +163,10 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
   /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
   key_hsize = roundf(key_hsize / 2.0f);
 
-  const Range2f range = {UI_view2d_region_to_view_x(v2d, region_x - (int)key_hsize),
-                         UI_view2d_region_to_view_x(v2d, region_x + (int)key_hsize)};
+  const Range2f range = {
+      UI_view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
+      UI_view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
+  };
   const ActKeyColumn *ak = ED_keylist_find_any_between(keylist, range);
   if (ak) {
 
@@ -1075,7 +1077,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
       ce = MEM_cnew<CfraElem>("cfraElem");
       BLI_addtail(&ked.list, ce);
 
-      ce->cfra = (float)scene->r.cfra;
+      ce->cfra = float(scene->r.cfra);
       break;
 
     case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
@@ -1416,10 +1418,10 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 
   if (leftright == ACTKEYS_LRSEL_LEFT) {
     ked.f1 = MINAFRAMEF;
-    ked.f2 = (float)(scene->r.cfra + 0.1f);
+    ked.f2 = float(scene->r.cfra + 0.1f);
   }
   else {
-    ked.f1 = (float)(scene->r.cfra - 0.1f);
+    ked.f1 = float(scene->r.cfra - 0.1f);
     ked.f2 = MAXFRAMEF;
   }
 
