@@ -281,6 +281,12 @@ static bool find_fcurve_segment(FCurve *fcu,
 ListBase find_fcurve_segments(FCurve *fcu)
 {
   ListBase segments = {NULL, NULL};
+
+  /* Ignore baked curves. */
+  if (!fcu->bezt) {
+    return segments;
+  }
+
   int segment_start_idx = 0;
   int segment_len = 0;
   int current_index = 0;

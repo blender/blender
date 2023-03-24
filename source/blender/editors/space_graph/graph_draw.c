@@ -703,7 +703,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
                                       const uint shdr_pos,
                                       const bool draw_extrapolation)
 {
-  if (!draw_extrapolation) {
+  if (!draw_extrapolation && fcu->totvert == 1) {
     return;
   }
 
@@ -816,7 +816,7 @@ static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 static void draw_fcurve_curve_bezts(
     bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
 {
-  if (!draw_extrapolation) {
+  if (!draw_extrapolation && fcu->totvert == 1) {
     return;
   }
 
