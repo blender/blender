@@ -1136,12 +1136,11 @@ static void gaussian_smooth_free_operator_data(void *operator_data)
 static void gaussian_smooth_draw_status_header(bContext *C, tGraphSliderOp *gso)
 {
   char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
   char slider_string[UI_MAX_DRAW_STR];
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  strcpy(mode_str, TIP_("Gauss Smooth"));
+  const char *mode_str = TIP_("Gaussian Smooth");
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1274,7 +1273,7 @@ void GRAPH_OT_gaussian_smooth(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Gaussian Smooth";
   ot->idname = "GRAPH_OT_gaussian_smooth";
-  ot->description = "Smooth the curve using a Gauss filter";
+  ot->description = "Smooth the curve using a Gaussian filter";
 
   /* API callbacks. */
   ot->invoke = gaussian_smooth_invoke;
@@ -1301,7 +1300,7 @@ void GRAPH_OT_gaussian_smooth(wmOperatorType *ot)
                 0.001f,
                 FLT_MAX,
                 "Sigma",
-                "The shape of the gauss distribution, lower values make it sharper",
+                "The shape of the gaussian distribution, lower values make it sharper",
                 0.001f,
                 100.0f);
 
