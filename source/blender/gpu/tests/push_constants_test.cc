@@ -78,6 +78,11 @@ struct Shader {
   GPUShader *shader = nullptr;
   Vector<CallData> call_datas;
 
+  Shader()
+  {
+    call_datas.reserve(10);
+  }
+
   ~Shader()
   {
     if (shader != nullptr) {
@@ -117,7 +122,9 @@ struct Shader {
 
   void dispatch()
   {
-    GPU_compute_dispatch(shader, 1, 1, 1);
+    /* Dispatching 1000000 times to add some stress to the GPU. Without it tests may succeed when
+     * using too simple shaders. */
+    GPU_compute_dispatch(shader, 1000, 1000, 1);
   }
 };
 
@@ -177,11 +184,7 @@ static void test_push_constants_512bytes()
 }
 GPU_TEST(push_constants_512bytes)
 
-#if 0
 /* Schedule multiple simultaneously. */
-/* These test have been disabled for now as this will to be solved in a separate PR.
- * - `DescriptorSets` may not be altered, when they are in the command queue or being executed.
- */
 static void test_push_constants_multiple()
 {
   do_push_constants_test("gpu_push_constants_test", 10);
@@ -205,6 +208,5 @@ static void test_push_constants_multiple_512bytes()
   do_push_constants_test("gpu_push_constants_512bytes_test", 10);
 }
 GPU_TEST(push_constants_multiple_512bytes)
-#endif
 
 }  // namespace blender::gpu::tests

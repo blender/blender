@@ -32,6 +32,7 @@ void VKCommandBuffer::init(const VkDevice vk_device,
   vk_device_ = vk_device;
   vk_queue_ = vk_queue;
   vk_command_buffer_ = vk_command_buffer;
+  submission_id_.reset();
 
   if (vk_fence_ == VK_NULL_HANDLE) {
     VK_ALLOCATION_CALLBACKS;
@@ -160,6 +161,7 @@ void VKCommandBuffer::submit_encoded_commands()
   submit_info.pCommandBuffers = &vk_command_buffer_;
 
   vkQueueSubmit(vk_queue_, 1, &submit_info, vk_fence_);
+  submission_id_.next();
 }
 
 }  // namespace blender::gpu

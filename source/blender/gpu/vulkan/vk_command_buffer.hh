@@ -8,6 +8,7 @@
 #pragma once
 
 #include "vk_common.hh"
+#include "vk_resource_tracker.hh"
 
 #include "BLI_utility_mixins.hh"
 
@@ -27,6 +28,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
 
   /** Owning handles */
   VkFence vk_fence_ = VK_NULL_HANDLE;
+  VKSubmissionID submission_id_;
 
  public:
   virtual ~VKCommandBuffer();
@@ -58,6 +60,11 @@ class VKCommandBuffer : NonCopyable, NonMovable {
    * commands have been executed and start the command buffer to accept recordings again.
    */
   void submit();
+
+  const VKSubmissionID &submission_id_get() const
+  {
+    return submission_id_;
+  }
 
  private:
   void encode_recorded_commands();
