@@ -934,6 +934,11 @@ extern bool GHOST_SupportsCursorWarp(void);
 extern bool GHOST_SupportsWindowPosition(void);
 
 /**
+ * Support a separate primary clipboard.
+ */
+extern bool GHOST_SupportsPrimaryClipboard(void);
+
+/**
  * Assign the callback which generates a back-trace (may be NULL).
  */
 extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);

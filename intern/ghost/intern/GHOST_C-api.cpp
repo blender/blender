@@ -907,6 +907,12 @@ bool GHOST_SupportsWindowPosition(void)
   return system->supportsWindowPosition();
 }
 
+bool GHOST_SupportsPrimaryClipboard(void)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->supportsPrimaryClipboard();
+}
+
 void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
 {
   GHOST_ISystem::setBacktraceFn(backtrace_fn);

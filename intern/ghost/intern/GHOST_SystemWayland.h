@@ -144,6 +144,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool supportsCursorWarp() override;
   bool supportsWindowPosition() override;
+  bool supportsPrimaryClipboard() override;
 
   /* WAYLAND utility functions (share window/system logic). */
 

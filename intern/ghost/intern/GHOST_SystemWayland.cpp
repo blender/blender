@@ -6682,6 +6682,11 @@ bool GHOST_SystemWayland::supportsWindowPosition()
   return false;
 }
 
+bool GHOST_SystemWayland::supportsPrimaryClipboard()
+{
+  return true;
+}
+
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
 {
   /* Caller must lock `server_mutex`. */

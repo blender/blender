@@ -1450,7 +1450,7 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
+char *txt_sel_to_buf(const Text *text, size_t *r_buf_strlen)
 {
   char *buf;
   size_t length = 0;

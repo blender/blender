@@ -1834,6 +1834,10 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (GHOST_SupportsWindowPosition()) {
     flag |= WM_CAPABILITY_WINDOW_POSITION;
   }
+  if (GHOST_SupportsPrimaryClipboard()) {
+    flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
+  }
+
   return flag;
 }
 
