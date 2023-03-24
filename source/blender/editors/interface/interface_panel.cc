@@ -1831,6 +1831,10 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (block->active && block->panel) {
       ui_offset_panel_block(block);
+
+      /* Update bounds for all "views" in this block. Usually this is done in #UI_block_end(), but
+       * that wouldn't work because of the offset applied above. */
+      ui_block_views_bounds_calc(block);
     }
   }
 
