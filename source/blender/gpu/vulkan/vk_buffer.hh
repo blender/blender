@@ -10,9 +10,9 @@
 #include "gpu_context_private.hh"
 
 #include "vk_common.hh"
-#include "vk_context.hh"
 
 namespace blender::gpu {
+class VKContext;
 
 /**
  * Class for handing vulkan buffers (allocation/updating/binding).

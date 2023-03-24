@@ -93,7 +93,7 @@ void txt_sel_all(struct Text *text);
 void txt_sel_clear(struct Text *text);
 void txt_sel_line(struct Text *text);
 void txt_sel_set(struct Text *text, int startl, int startc, int endl, int endc);
-char *txt_sel_to_buf(struct Text *text, size_t *r_buf_strlen);
+char *txt_sel_to_buf(const struct Text *text, size_t *r_buf_strlen);
 void txt_insert_buf(struct Text *text, const char *in_buffer, int in_buffer_len)
     ATTR_NONNULL(1, 2);
 void txt_split_curline(struct Text *text);

@@ -9,9 +9,12 @@
 
 #include "vk_buffer.hh"
 #include "vk_context.hh"
+#include "vk_data_conversion.hh"
 #include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
+
+#include "BLI_math_vector.hh"
 
 #include "BKE_global.h"
 
@@ -34,8 +37,64 @@ void VKTexture::copy_to(Texture * /*tex*/)
 {
 }
 
-void VKTexture::clear(eGPUDataFormat /*format*/, const void * /*data*/)
+template<typename T> void copy_color(T dst[4], const T *src)
 {
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
+}
+
+static VkClearColorValue to_vk_clear_color_value(eGPUDataFormat format, const void *data)
+{
+  VkClearColorValue result = {0.0f};
+  switch (format) {
+    case GPU_DATA_FLOAT: {
+      const float *float_data = static_cast<const float *>(data);
+      copy_color<float>(result.float32, float_data);
+      break;
+    }
+
+    case GPU_DATA_INT: {
+      const int32_t *int_data = static_cast<const int32_t *>(data);
+      copy_color<int32_t>(result.int32, int_data);
+      break;
+    }
+
+    case GPU_DATA_UINT: {
+      const uint32_t *uint_data = static_cast<const uint32_t *>(data);
+      copy_color<uint32_t>(result.uint32, uint_data);
+      break;
+    }
+
+    case GPU_DATA_HALF_FLOAT:
+    case GPU_DATA_UBYTE:
+    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_10_11_11_REV:
+    case GPU_DATA_2_10_10_10_REV: {
+      BLI_assert_unreachable();
+      break;
+    }
+  }
+  return result;
+}
+
+void VKTexture::clear(eGPUDataFormat format, const void *data)
+{
+  if (!is_allocated()) {
+    allocate();
+  }
+
+  VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VkClearColorValue clear_color = to_vk_clear_color_value(format, data);
+  VkImageSubresourceRange range = {0};
+  range.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  range.levelCount = VK_REMAINING_MIP_LEVELS;
+  range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+  command_buffer.clear(
+      vk_image_, VK_IMAGE_LAYOUT_GENERAL, clear_color, Span<VkImageSubresourceRange>(&range, 1));
 }
 
 void VKTexture::swizzle_set(const char /*swizzle_mask*/[4])
@@ -79,22 +138,41 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   command_buffer.submit();
 
   void *data = MEM_mallocN(host_memory_size, __func__);
-
-  /* TODO: add conversion when data format is different. */
-  BLI_assert_msg(device_memory_size == host_memory_size,
-                 "Memory data conversions not implemented yet");
-
-  staging_buffer.read(data);
-
+  convert_device_to_host(data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
   return data;
 }
 
-void VKTexture::update_sub(int /*mip*/,
-                           int /*offset*/[3],
-                           int /*extent*/[3],
-                           eGPUDataFormat /*format*/,
-                           const void * /*data*/)
+void VKTexture::update_sub(
+    int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data)
 {
+  if (!is_allocated()) {
+    allocate();
+  }
+
+  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
+  VKContext &context = *VKContext::get();
+  VKBuffer staging_buffer;
+  size_t sample_len = extent[0] * extent[1] * extent[2];
+  size_t device_memory_size = sample_len * to_bytesize(format_);
+
+  staging_buffer.create(
+      context, device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+  convert_host_to_device(staging_buffer.mapped_memory_get(), data, sample_len, format, format_);
+
+  VkBufferImageCopy region = {};
+  region.imageExtent.width = extent[0];
+  region.imageExtent.height = extent[1];
+  region.imageExtent.depth = extent[2];
+  region.imageOffset.x = offset[0];
+  region.imageOffset.y = offset[1];
+  region.imageOffset.z = offset[2];
+  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.imageSubresource.mipLevel = mip;
+  region.imageSubresource.layerCount = 1;
+
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.copy(*this, staging_buffer, Span<VkBufferImageCopy>(&region, 1));
+  command_buffer.submit();
 }
 
 void VKTexture::update_sub(int /*offset*/[3],
@@ -115,6 +193,8 @@ bool VKTexture::init_internal()
   /* Initialization can only happen after the usage is known. By the current API this isn't set
    * at this moment, so we cannot initialize here. The initialization is postponed until the
    * allocation of the texture on the device. */
+
+  /* TODO: return false when texture format isn't supported. */
   return true;
 }
 
@@ -152,12 +232,12 @@ bool VKTexture::allocate()
   image_info.format = to_vk_format(format_);
   image_info.tiling = VK_IMAGE_TILING_LINEAR;
   image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
-                     VK_IMAGE_USAGE_STORAGE_BIT;
+  image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                     VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
   image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
   VkResult result;
-  if (G.debug &= G_DEBUG_GPU) {
+  if (G.debug & G_DEBUG_GPU) {
     VkImageFormatProperties image_format = {};
     result = vkGetPhysicalDeviceImageFormatProperties(context.physical_device_get(),
                                                       image_info.format,

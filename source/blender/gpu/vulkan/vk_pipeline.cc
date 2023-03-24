@@ -12,10 +12,10 @@
 namespace blender::gpu {
 
 VKPipeline::VKPipeline(VkPipeline vk_pipeline,
-                       VKDescriptorSet &&descriptor_set,
+                       VkDescriptorSetLayout vk_descriptor_set_layout,
                        VKPushConstants &&push_constants)
     : vk_pipeline_(vk_pipeline),
-      descriptor_set_(std::move(descriptor_set)),
+      descriptor_set_(vk_descriptor_set_layout),
       push_constants_(std::move(push_constants))
 {
 }
@@ -56,9 +56,8 @@ VKPipeline VKPipeline::create_compute_pipeline(
     return VKPipeline();
   }
 
-  VKDescriptorSet descriptor_set = context.descriptor_pools_get().allocate(descriptor_set_layout);
   VKPushConstants push_constants(&push_constants_layout);
-  return VKPipeline(vk_pipeline, std::move(descriptor_set), std::move(push_constants));
+  return VKPipeline(vk_pipeline, descriptor_set_layout, std::move(push_constants));
 }
 
 VkPipeline VKPipeline::vk_handle() const

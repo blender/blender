@@ -47,7 +47,7 @@ void register_node_type_tex_valtorgb(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
+  tex_node_type_base(&ntype, TEX_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   ntype.initfunc = valtorgb_init;

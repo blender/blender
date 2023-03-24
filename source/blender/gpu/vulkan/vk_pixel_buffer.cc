@@ -7,6 +7,8 @@
 
 #include "vk_pixel_buffer.hh"
 
+#include "vk_context.hh"
+
 namespace blender::gpu {
 
 VKPixelBuffer::VKPixelBuffer(int64_t size) : PixelBuffer(size)

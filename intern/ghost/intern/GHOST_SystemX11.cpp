@@ -1740,6 +1740,11 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
   return GHOST_kSuccess;
 }
 
+bool GHOST_SystemX11::supportsPrimaryClipboard()
+{
+  return true;
+}
+
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
 {
   GHOST_ASSERT((bad_wind != nullptr), "addDirtyWindow() nullptr ptr trapped (window)");
