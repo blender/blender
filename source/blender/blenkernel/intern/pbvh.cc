@@ -688,8 +688,10 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->face_sets_color_default = pbvh->face_sets_color_default;
   args->face_sets_color_seed = pbvh->face_sets_color_seed;
   args->vert_positions = pbvh->vert_positions;
-  args->corner_verts = {pbvh->corner_verts, pbvh->mesh->totloop};
-  args->corner_edges = pbvh->mesh ? pbvh->mesh->corner_edges() : blender::Span<int>();
+  if (pbvh->mesh) {
+    args->corner_verts = {pbvh->corner_verts, pbvh->mesh->totloop};
+    args->corner_edges = pbvh->mesh->corner_edges();
+  }
   args->polys = pbvh->polys;
   args->mlooptri = pbvh->looptri;
 
