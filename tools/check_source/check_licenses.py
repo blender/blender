@@ -418,7 +418,7 @@ def main() -> None:
             source_paths_include=(".",),
             source_paths_exclude=(
                 # Directories:
-                # This is an exception, it has it's own CMake files we do not maintain.
+                # This is an exception, it has its own CMake files we do not maintain.
                 "./extern/audaspace",
                 "./extern/quadriflow/3rd/lemon-1.3.1",
             ),
@@ -428,7 +428,7 @@ def main() -> None:
             source_paths_include=(".",),
             source_paths_exclude=(
                 # Directories:
-                # This is an exception, it has it's own CMake files we do not maintain.
+                # This is an exception, it has its own CMake files we do not maintain.
                 "./extern",
                 "./scripts/addons_contrib",
                 # Just data.

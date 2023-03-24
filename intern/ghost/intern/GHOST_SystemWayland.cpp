@@ -1117,7 +1117,7 @@ using GWL_RegistryHandler_UpdateFn = void (*)(GWL_Display *display,
 using GWL_RegistryEntry_RemoveFn = void (*)(GWL_Display *display, void *user_data, bool on_exit);
 
 struct GWL_RegistryHandler {
-  /** Pointer to the name (not the name it's self), needed as the values aren't set on startup. */
+  /** Pointer to the name (not the name itself), needed as the values aren't set on startup. */
   const char *const *interface_p = nullptr;
 
   /** Add the interface. */
@@ -3627,7 +3627,7 @@ static void tablet_seat_handle_tool_added(void *data,
   GWL_TabletTool *tablet_tool = new GWL_TabletTool();
   tablet_tool->seat = seat;
 
-  /* Every tool has it's own cursor wl_surface. */
+  /* Every tool has its own cursor wl_surface. */
   tablet_tool->wl_surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor());
   ghost_wl_surface_tag_cursor_tablet(tablet_tool->wl_surface_cursor);
 
@@ -3969,7 +3969,7 @@ static void keyboard_handle_key(void *data,
     }
     else if (xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code)) {
       if (etype == GHOST_kEventKeyDown) {
-        /* Any other key-down always cancels (and may start it's own repeat timer). */
+        /* Any other key-down always cancels (and may start its own repeat timer). */
         timer_action = CANCEL;
       }
       else {

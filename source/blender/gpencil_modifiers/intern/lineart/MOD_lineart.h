@@ -374,7 +374,7 @@ typedef struct LineartData {
     bool do_shadow_cast;
     bool light_reference_available;
 
-    /* Keep an copy of these data so when line art is running it's self-contained. */
+    /* Keep an copy of these data so when line art is running itself contained. */
     bool cam_is_persp;
     /* "Secondary" ones are from viewing camera
      * (as opposed to shadow camera), during shadow calculation. */

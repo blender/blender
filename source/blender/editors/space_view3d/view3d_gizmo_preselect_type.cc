@@ -52,7 +52,7 @@
  * would be used for this purpose. The problem with using poll is once the gizmo is visible again
  * is there is a visible flicker showing the previous location before cursor motion causes the
  * pre selection to be updated. While this is only a glitch, it's distracting.
- * The gizmo system it's self could support this use case by tracking which gizmos draw and ensure
+ * The gizmo system itself could support this use case by tracking which gizmos draw and ensure
  * gizmos always run #wmGizmoType.test_select before drawing, however pre-selection is already
  * outside the scope of what gizmos are meant to be used for, so keep this workaround localized
  * to this gizmo type unless this seems worth supporting for more typical use-cases.
