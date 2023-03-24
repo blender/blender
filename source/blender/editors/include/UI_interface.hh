@@ -111,8 +111,8 @@ bool drop_target_apply_drop(bContext &C,
  */
 char *drop_target_tooltip(const DropTargetInterface &drop_target, const wmDrag &drag);
 
-std::unique_ptr<DropTargetInterface> view_drop_target(const uiViewHandle *view_handle);
-std::unique_ptr<DropTargetInterface> view_item_drop_target(const uiViewItemHandle *item_handle);
+std::unique_ptr<DropTargetInterface> view_drop_target(uiViewHandle *view_handle);
+std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle);
 /**
  * Try to find a view item with a drop target under the mouse cursor, or if not found, a view
  * with a drop target.
