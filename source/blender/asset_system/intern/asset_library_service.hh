@@ -88,13 +88,14 @@ class AssetLibraryService {
   /** Struct to hold results from path explosion functions
    * (#resolve_asset_weak_reference_to_exploded_path()). */
   struct ExplodedPath {
-    /** The string buffer containing the fully resolved path, if resolving was successful. */
-    std::string full_path = "";
+    /** The string buffer containing the fully resolved path, if resolving was successful. Pointer
+     * so that the contained string address doesn't change when moving this object. */
+    std::unique_ptr<std::string> full_path;
     /** Reference into the part of #full_path that is the library directory path. That is, it ends
      * with the library .blend file ("directory" is misleading). */
     StringRef dir_component = "";
-    /** Reference into the part of #full_path that is the ID group name ("Object", "Brush", ...).
-     */
+    /** Reference into the part of #full_path that is the ID group name ("Object", "Material",
+     * "Brush", ...). */
     StringRef group_component = "";
     /** Reference into the part of #full_path that is the ID name. */
     StringRef name_component = "";

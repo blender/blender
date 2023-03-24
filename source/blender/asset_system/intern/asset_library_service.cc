@@ -316,10 +316,10 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
       std::string path_in_file = utils::normalize_path(asset_reference.relative_asset_identifier);
       const int64_t group_len = int64_t(path_in_file.find(SEP));
 
-      ExplodedPath exploded{};
-      exploded.full_path = path_in_file;
-      exploded.group_component = StringRef(exploded.full_path).substr(0, group_len);
-      exploded.name_component = StringRef(exploded.full_path).substr(group_len + 1);
+      ExplodedPath exploded;
+      exploded.full_path = std::make_unique<std::string>(path_in_file);
+      exploded.group_component = StringRef(*exploded.full_path).substr(0, group_len);
+      exploded.name_component = StringRef(*exploded.full_path).substr(group_len + 1);
 
       return exploded;
     }
@@ -351,9 +351,9 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
       const int64_t dir_len = int64_t(group_pos);
       const int64_t group_len = int64_t(name_pos - group_pos - 1);
 
-      ExplodedPath exploded{};
-      exploded.full_path = full_path;
-      StringRef full_path_ref = exploded.full_path;
+      ExplodedPath exploded;
+      exploded.full_path = std::make_unique<std::string>(full_path);
+      StringRef full_path_ref = *exploded.full_path;
       exploded.dir_component = full_path_ref.substr(0, dir_len);
       exploded.group_component = full_path_ref.substr(dir_len + 1, group_len);
       exploded.name_component = full_path_ref.substr(dir_len + 1 + group_len + 1);
