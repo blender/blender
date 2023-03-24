@@ -34,9 +34,9 @@ namespace gpu {
 class GLBackend : public GPUBackend {
  private:
   GLSharedOrphanLists shared_orphan_list_;
-  #ifdef WITH_RENDERDOC
+#ifdef WITH_RENDERDOC
   renderdoc::api::Renderdoc renderdoc_;
-  #endif
+#endif
 
  public:
   GLBackend()
