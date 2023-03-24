@@ -2016,7 +2016,13 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
 {
   struct ByteChunk {
     ByteChunk *next;
-    char data[4096 - sizeof(ByteChunk *)];
+    /* NOTE(@ideasman42): On GNOME-SHELL-43.3, non powers of two values
+     * (1023 or 4088 for e.g.) makes `read()` *intermittently* include uninitialized memory
+     * (failing to read the end of the chunk) as well as truncating the end of the whole buffer.
+     * The WAYLAND spec doesn't mention buffer-size so this may be a bug in GNOME-SHELL.
+     * Whatever the case, using a power of two isn't a problem (besides some slop-space waste).
+     * This workaround isn't necessary for KDE & WLROOTS based compositors, see: #106040. */
+    char data[4096];
   };
   ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
   bool ok = true;
