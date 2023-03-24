@@ -308,7 +308,7 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
     resolve_asset_weak_reference_to_exploded_path(const AssetWeakReference &asset_reference)
 {
   if (asset_reference.relative_asset_identifier[0] == '\0') {
-    return {};
+    return std::nullopt;
   }
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
@@ -328,7 +328,7 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
       std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
 
       if (full_path.empty()) {
-        return {};
+        return std::nullopt;
       }
 
       const std::vector<std::string> blendfile_extensions = {".blend/", ".blend.gz/", ".ble/"};
@@ -361,10 +361,10 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
       return exploded;
     }
     case ASSET_LIBRARY_ALL:
-      return {};
+      return std::nullopt;
   }
 
-  return {};
+  return std::nullopt;
 }
 
 bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_ref(
