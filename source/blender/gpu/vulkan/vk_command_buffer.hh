@@ -50,9 +50,17 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
   /** Copy the contents of a texture MIP level to the dst buffer. */
   void copy(VKBuffer &dst_buffer, VKTexture &src_texture, Span<VkBufferImageCopy> regions);
+  void copy(VKTexture &dst_texture, VKBuffer &src_buffer, Span<VkBufferImageCopy> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);
   void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);
+  /**
+   * Clear color image resource.
+   */
+  void clear(VkImage vk_image,
+             VkImageLayout vk_image_layout,
+             const VkClearColorValue &vk_clear_color,
+             Span<VkImageSubresourceRange> ranges);
   void fill(VKBuffer &buffer, uint32_t data);
 
   /**
