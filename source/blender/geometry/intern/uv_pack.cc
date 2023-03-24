@@ -280,7 +280,7 @@ class Occupancy {
   mutable float witness_distance_; /* Signed distance to nearest placed island. */
   mutable uint triangle_hint_;     /* Hint to a previously suspected overlapping triangle. */
 
-  const float terminal = 1048576.0f; /* A "very" large number, much bigger than 4 * bitmap_radix */
+  const float terminal = 1048576.0f; /* 4 * bitmap_radix < terminal < INT_MAX / 4. */
 };
 
 Occupancy::Occupancy(const float initial_scale)
@@ -352,8 +352,9 @@ float Occupancy::trace_triangle(const float2 &uv0,
       if (iy0 <= witness_.y && witness_.y < iy1) {
         const float distance = signed_distance_fat_triangle(witness_, uv0s, uv1s, uv2s);
         const float extent = epsilon - distance - witness_distance_;
-        if (extent > 0.0f) {
-          return extent; /* Witness observes occupied. */
+        const float pixel_round_off = -0.1f; /* Go faster on nearly-axis aligned edges. */
+        if (extent > pixel_round_off) {
+          return std::max(0.0f, extent); /* Witness observes occupied. */
         }
       }
     }
@@ -392,7 +393,7 @@ float Occupancy::trace_island(PackIsland *island,
 
   if (!write) {
     if (uv.x <= 0.0f || uv.y <= 0.0f) {
-      return std::max(-uv.x, -uv.y); /* Occupied. */
+      return terminal; /* Occupied. */
     }
   }
   const float2 origin(island->bounds_rect.xmin, island->bounds_rect.ymin);
@@ -421,9 +422,21 @@ static float2 find_best_fit_for_island(
   const float size_x_scaled = BLI_rctf_size_x(&island->bounds_rect) * scale;
   const float size_y_scaled = BLI_rctf_size_y(&island->bounds_rect) * scale;
 
-  /* Scan using an "Alpaca"-style search, first vertically. */
+  /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
 
-  int t = 0;
+  int t = int(ceilf(size_x_scaled * occupancy.bitmap_scale_reciprocal));
+  while (t < scan_line) {
+    const float t_bscaled = t / occupancy.bitmap_scale_reciprocal;
+    const float2 probe(t_bscaled - size_x_scaled, scan_line_bscaled - size_y_scaled);
+    const float extent = occupancy.trace_island(island, scale, margin, probe, false);
+    if (extent < 0.0f) {
+      return probe;
+    }
+    t = t + std::max(1, int(extent));
+  }
+
+  /* Then scan vertically using "less-than-or-equal" */
+  t = int(ceilf(size_y_scaled * occupancy.bitmap_scale_reciprocal));
   while (t <= scan_line) {
     const float t_bscaled = t / occupancy.bitmap_scale_reciprocal;
     const float2 probe(scan_line_bscaled - size_x_scaled, t_bscaled - size_y_scaled);
@@ -434,17 +447,6 @@ static float2 find_best_fit_for_island(
     t = t + std::max(1, int(extent));
   }
 
-  /* Now scan horizontally. */
-  t = 0;
-  while (t <= scan_line) {
-    const float t_bscaled = t / occupancy.bitmap_scale_reciprocal;
-    const float2 probe(t_bscaled - size_x_scaled, scan_line_bscaled - size_y_scaled);
-    const float extent = occupancy.trace_island(island, scale, margin, probe, false);
-    if (extent < 0.0f) {
-      return probe;
-    }
-    t = t + std::max(1, int(extent));
-  }
   return float2(-1, -1);
 }
 
@@ -458,7 +460,7 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
     sum += BLI_rctf_size_x(&island->bounds_rect) * scale + 2 * margin;
     sum += BLI_rctf_size_y(&island->bounds_rect) * scale + 2 * margin;
   }
-  return sqrtf(sum) / 3.0f;
+  return sqrtf(sum) / 6.0f;
 }
 
 /**
