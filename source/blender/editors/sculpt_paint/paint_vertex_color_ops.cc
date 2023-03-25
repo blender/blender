@@ -34,11 +34,13 @@
 #include "ED_mesh.h"
 
 #include "paint_intern.h" /* own include */
+#include "sculpt_intern.hh"
 
 using blender::Array;
 using blender::ColorGeometry4f;
 using blender::GMutableSpan;
 using blender::IndexMask;
+using blender::IndexRange;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
@@ -245,20 +247,20 @@ void PAINT_OT_vertex_color_smooth(wmOperatorType *ot)
  * \{ */
 
 template<typename TransformFn>
-static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
+static void transform_active_color_data(Mesh &mesh, const TransformFn &transform_fn)
 {
   using namespace blender;
   const StringRef name = mesh.active_color_attribute;
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (!attributes.contains(name)) {
     BLI_assert_unreachable();
-    return false;
+    return;
   }
 
   bke::GAttributeWriter color_attribute = attributes.lookup_for_write(name);
   if (!color_attribute) {
     BLI_assert_unreachable();
-    return false;
+    return;
   }
 
   Vector<int64_t> indices;
@@ -286,8 +288,34 @@ static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
   color_attribute.finish();
 
   DEG_id_tag_update(&mesh.id, 0);
+}
 
-  return true;
+template<typename TransformFn>
+static void transform_active_color(bContext *C, wmOperator *op, const TransformFn &transform_fn)
+{
+  Object *obact = CTX_data_active_object(C);
+
+  /* Ensure valid sculpt state. */
+  BKE_sculpt_update_object_for_edit(
+      CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
+
+  SCULPT_undo_push_begin(obact, op);
+  PBVHNode **nodes;
+  int nodes_num;
+
+  BKE_pbvh_search_gather(obact->sculpt->pbvh, nullptr, nullptr, &nodes, &nodes_num);
+  for (int i : IndexRange(nodes_num)) {
+    SCULPT_undo_push_node(obact, nodes[i], SCULPT_UNDO_COLOR);
+  }
+
+  transform_active_color_data(*BKE_mesh_from_object(obact), transform_fn);
+
+  for (int i : IndexRange(nodes_num)) {
+    BKE_pbvh_node_mark_update_color(nodes[i]);
+  }
+
+  SCULPT_undo_push_end(obact);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
 }
 
 static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
@@ -323,13 +351,11 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(*me, [&](ColorGeometry4f &color) {
+  transform_active_color(C, op, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = gain * color[i] + offset;
     }
   });
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
 
   return OPERATOR_FINISHED;
 }
@@ -371,7 +397,7 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(*me, [&](ColorGeometry4f &color) {
+  transform_active_color(C, op, [&](ColorGeometry4f &color) {
     float hsv[3];
     rgb_to_hsv_v(color, hsv);
 
@@ -387,8 +413,6 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 
     hsv_to_rgb_v(hsv, color);
   });
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
 
   return OPERATOR_FINISHED;
 }
@@ -413,7 +437,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
 }
 
-static int vertex_color_invert_exec(bContext *C, wmOperator * /*op*/)
+static int vertex_color_invert_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
@@ -423,13 +447,11 @@ static int vertex_color_invert_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(*me, [&](ColorGeometry4f &color) {
+  transform_active_color(C, op, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = 1.0f - color[i];
     }
   });
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
 
   return OPERATOR_FINISHED;
 }
@@ -462,7 +484,7 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(*me, [&](ColorGeometry4f &color) {
+  transform_active_color(C, op, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = gain * (color[i] + offset);
     }
