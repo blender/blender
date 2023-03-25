@@ -579,8 +579,6 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
         return;
       }
 
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
-
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
         int node = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
@@ -589,7 +587,7 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
           continue;
         }
 
-        BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, !visible);
+        BM_elem_flag_set(f, BM_ELEM_HIDDEN, !visible);
 
         if (node != DYNTOPO_NODE_NONE) {
           BKE_pbvh_vert_tag_update_normal_triangulation(BKE_pbvh_node_from_index(ss->pbvh, node));
@@ -616,13 +614,10 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        int state = BM_ELEM_CD_GET_BOOL(f, cd_hide_poly);
-        state ^= true;
-
-        BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, state);
+        bool state = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+        BM_elem_flag_set(f, BM_ELEM_HIDDEN, state ^ true);
       }
       break;
     }
@@ -675,10 +670,8 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       BMLoop *l;
       BMVert *v = (BMVert *)vertex.i;
 
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
-
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-        if (!BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly)) {
+        if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
           return true;
         }
       }
@@ -709,7 +702,6 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)vertex.i;
       BMEdge *e = v->e;
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
 
       if (!e) {
         return true;
@@ -723,7 +715,7 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
         }
 
         do {
-          if (BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly)) {
+          if (BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
             return false;
           }
         } while ((l = l->radial_next) != e->l);
@@ -777,11 +769,9 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
       BMLoop *l;
       BMVert *v = (BMVert *)vertex.i;
 
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
-
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
-        if (!BM_ELEM_CD_GET_BOOL(l->f, cd_hide_poly) && fset != face_set) {
+        if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) && fset != face_set) {
           BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
         }
 
@@ -995,8 +985,6 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
         return;
       }
 
-      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
-
       /* Hide all verts and edges attached to faces. */
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         BMLoop *l = f->l_first;
@@ -1008,8 +996,7 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
 
       /* Unhide verts and edges attached to visible faces. */
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        if (BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
-          BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
           continue;
         }
 

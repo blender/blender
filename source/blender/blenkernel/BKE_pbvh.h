@@ -481,7 +481,6 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_hide_poly,
                              const int cd_boudnary_flags);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
@@ -1002,7 +1001,7 @@ typedef struct PBVHFaceIter {
   int verts_size_;
   int bm_faces_iter_;
   const struct TableGSet *bm_faces_;
-  int cd_hide_poly_, cd_face_set_;
+  int cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
   const struct MPoly *polys_;

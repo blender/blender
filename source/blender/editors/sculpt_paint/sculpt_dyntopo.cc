@@ -509,9 +509,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
               ss->bm->totloop == me->totloop && ss->bm->totface == me->totpoly;
 
     if (!ok) {
-      /* Ensure ss->pbvh is in the cache so it can be destroyed in BKE_pbvh_free_bmesh. */
-
 #ifdef WITH_PBVH_CACHE
+      /* Ensure ss->pbvh is in the cache so it can be destroyed in BKE_pbvh_free_bmesh. */
       if (ss->pbvh) {
         BKE_pbvh_set_cached(ob, ss->pbvh);
       }
@@ -575,7 +574,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     params.active_shapekey = ob->shapenr;
 
     BM_mesh_bm_from_me(ss->bm, me, &params);
-
+    
     if (ss->pbvh) {
       BKE_sculptsession_update_attr_refs(ob);
       BKE_pbvh_set_bmesh(ss->pbvh, ss->bm);
@@ -650,7 +649,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
-  /* Destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH). */
+  /* Destroy temporary layers. */
   BKE_sculpt_attribute_destroy_temporary_all(ob);
 
   if (ss->attrs.dyntopo_node_id_vertex) {
@@ -661,6 +660,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
   }
 
+  BKE_sculptsession_update_attr_refs(ob);
   BKE_sculptsession_bm_to_me(ob, true);
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;

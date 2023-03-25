@@ -223,15 +223,19 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
   TGSET_ITER_END
 }
 
-static void partialvis_update_bmesh_faces(TableGSet *faces, int cd_hide_poly)
+static void partialvis_update_bmesh_faces(TableGSet *faces)
 {
   BMFace *f;
-  
-  TGSET_ITER (f, faces) {
-    bool hidden = paint_is_bmesh_face_hidden(f);
-    BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, hidden);
 
-    if (paint_is_bmesh_face_hidden(f)) {
+  TGSET_ITER (f, faces) {
+    bool hidden = false;
+
+    BMLoop *l = f->l_first;
+    do {
+      hidden |= BM_elem_flag_test(l->v, BM_ELEM_HIDDEN);
+    } while ((l = l->next) != f->l_first);
+
+    if (hidden) {  
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
     else {
@@ -264,7 +268,7 @@ static void partialvis_update_bmesh(Object *ob,
   partialvis_update_bmesh_verts(bm, other, action, area, planes, &any_changed, &any_visible);
 
   /* Finally loop over node faces and tag the ones that are fully hidden. */
-  partialvis_update_bmesh_faces(faces, ob->sculpt->attrs.hide_poly->bmesh_cd_offset);
+  partialvis_update_bmesh_faces(faces);
 
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);

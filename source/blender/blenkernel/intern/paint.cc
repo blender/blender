@@ -1295,17 +1295,7 @@ bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int
 
 bool paint_is_bmesh_face_hidden(BMFace *f)
 {
-  BMLoop *l_iter;
-  BMLoop *l_first;
-
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    if (BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN)) {
-      return true;
-    }
-  } while ((l_iter = l_iter->next) != l_first);
-
-  return false;
+  return BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 }
 
 float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y)
@@ -1472,19 +1462,15 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (ss->bm) {
-    if (ob->data) {
-      // Mesh *me = BKE_object_get_original_mesh(ob);
+  if (ss->bm && ob->data) {
+    BKE_sculptsession_update_attr_refs(ob);
 
-      BMeshToMeshParams params = {0};
-      params.update_shapekey_indices = true;
+    BMeshToMeshParams params = {0};
+    params.update_shapekey_indices = true;
 
-      params.cd_mask_extra.vmask = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT;
-      params.cd_mask_extra.emask = CD_MASK_MESH_ID;
-      params.cd_mask_extra.pmask = CD_MASK_MESH_ID;
+    params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
-      BM_mesh_bm_to_me(nullptr, ss->bm, static_cast<Mesh *>(ob->data), &params);
-    }
+    BM_mesh_bm_to_me(nullptr, ss->bm, static_cast<Mesh *>(ob->data), &params);
   }
 }
 
@@ -2346,14 +2332,6 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
 
 bool *BKE_sculpt_hide_poly_ensure(Object *ob)
 {
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
-  if (hide_poly != nullptr) {
-    return hide_poly;
-  }
-
   SculptAttributeParams params = {0};
   params.permanent = true;
 
@@ -3373,9 +3351,9 @@ static bool sculpt_attribute_create(SculptSession *ss,
           return false;
       }
 
-      BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
-
-      BM_data_layer_add_named(ss->bm, cdata, proptype, name);
+      if (CustomData_get_named_layer_index(cdata, proptype, name) == -1) {
+        BM_data_layer_add_named(ss->bm, cdata, proptype, name);
+      }
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent && !ss->save_temp_layers) {
@@ -3404,9 +3382,9 @@ static bool sculpt_attribute_create(SculptSession *ss,
           return false;
       }
 
-      BLI_assert(CustomData_get_named_layer_index(cdata, proptype, name) == -1);
-
-      CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
+      if (CustomData_get_named_layer_index(cdata, proptype, name) == -1) {
+        CustomData_add_layer_named(cdata, proptype, CD_SET_DEFAULT, totelem, name);
+      }
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent && !ss->save_temp_layers) {
@@ -3645,7 +3623,6 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
   if (ss->pbvh) {
     int cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
     int cd_face_area = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
-    int cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
     int cd_boundary_flags = ss->attrs.boundary_flags ? ss->attrs.boundary_flags->bmesh_cd_offset :
                                                        -1;
     int cd_dyntopo_vert = ss->attrs.dyntopo_node_id_vertex ?
@@ -3661,7 +3638,6 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
                             cd_dyntopo_face,
                             cd_sculpt_vert,
                             cd_face_area,
-                            cd_hide_poly,
                             cd_boundary_flags);
   }
 }
@@ -3710,7 +3686,6 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   ss->cd_face_node_offset = ss->attrs.dyntopo_node_id_face->bmesh_cd_offset;
   ss->cd_face_areas = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
   ss->cd_sculpt_vert = ss->attrs.sculpt_vert->bmesh_cd_offset;
-  ss->cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 }
 
 template<typename T> static void sculpt_clear_attribute_bmesh(BMesh *bm, SculptAttribute *attr)
@@ -3812,7 +3787,6 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
   ss->cd_faceset_offset = CustomData_get_offset_named(
       &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   ss->cd_face_areas = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
-  ss->cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
 
   int cd_boundary_flags = ss->attrs.boundary_flags ? ss->attrs.boundary_flags->bmesh_cd_offset :
                                                      -1;
@@ -3823,7 +3797,6 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
                             ss->cd_face_node_offset,
                             ss->cd_sculpt_vert,
                             ss->cd_face_areas,
-                            ss->cd_hide_poly,
                             cd_boundary_flags);
   }
 }

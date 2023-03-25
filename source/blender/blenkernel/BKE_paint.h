@@ -233,7 +233,7 @@ bool paint_is_face_hidden(const struct MLoopTri *lt, const bool *hide_poly);
  */
 bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, int x, int y);
 /**
- * Return true if all vertices in the face are visible, false otherwise.
+ * Return true if face is visible.
  */
 bool paint_is_bmesh_face_hidden(struct BMFace *f);
 
@@ -813,7 +813,6 @@ typedef struct SculptSession {
   int cd_vert_mask_offset;
   int cd_faceset_offset;
   int cd_face_areas;
-  int cd_hide_poly;
 
   int totuv;
 

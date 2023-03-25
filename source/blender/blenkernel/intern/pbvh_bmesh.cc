@@ -739,8 +739,6 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   BB_reset(&n->orig_vb);
   BMFace *f;
 
-  int cd_hide_poly = pbvh->cd_hide_poly;
-
   TGSET_ITER (f, n->bm_faces) {
     /* Update ownership of faces */
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
@@ -770,7 +768,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
       BB_expand(&n->orig_vb, mv->origco);
     } while ((l_iter = l_iter->next) != l_first);
 
-    if (cd_hide_poly == -1 || !BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
+    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       has_visible = true;
     }
   }
@@ -1370,7 +1368,7 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
 
 static bool pbvh_poly_hidden(PBVH *pbvh, BMFace *f)
 {
-  return pbvh->cd_hide_poly != -1 && BM_ELEM_CD_GET_BOOL(f, pbvh->cd_hide_poly);
+  return BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 }
 
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
@@ -2459,8 +2457,6 @@ ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->bm_idmap = idmap;
 
-  pbvh->cd_hide_poly = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_face_areas");
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -4006,10 +4002,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_hide_poly,
                              const int cd_boundary_flag)
 {
-  pbvh->cd_hide_poly = cd_hide_poly;
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;

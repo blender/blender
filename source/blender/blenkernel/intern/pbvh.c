@@ -5603,9 +5603,8 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
         fd->face_set = (int *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_face_set_);
       }
 
-      if (fd->cd_hide_poly_ != -1) {
-        fd->hide = (bool *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_hide_poly_);
-      }
+      /* TODO: BMesh doesn't yet use .hide_poly. */
+      fd->hide = nullptr; 
 
       pbvh_face_iter_verts_reserve(fd, f->len);
       int vertex_i = 0;
@@ -5705,8 +5704,6 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->bm = pbvh->header.bm;
       fd->cd_face_set_ = CustomData_get_offset_named(
           &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-      fd->cd_hide_poly_ = CustomData_get_offset_named(
-          &pbvh->header.bm->pdata, CD_PROP_INT32, ".hide_poly");
 
       fd->bm_faces_iter_ = 0;
       fd->bm_faces_ = node->bm_faces;
