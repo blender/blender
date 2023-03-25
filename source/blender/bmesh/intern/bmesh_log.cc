@@ -354,7 +354,7 @@ template<typename T> constexpr char get_elem_type()
 }
 
 struct BMLogEntry {
-  struct BMLogEntry *next = nullptr, *prev = nullptr;
+  BMLogEntry *next = nullptr, *prev = nullptr;
 
   Vector<BMLogSetBase *> sets;
   LogElemAlloc<BMLogVert> vpool;
@@ -365,6 +365,7 @@ struct BMLogEntry {
   BMIdMap *idmap = nullptr;
 
   BMLog *log = nullptr;
+  bool dead = false;
 
   ATTR_NO_OPT BMLogEntry(BMIdMap *_idmap,
                          CustomData *src_vdata,
@@ -386,6 +387,8 @@ struct BMLogEntry {
 
   ATTR_NO_OPT ~BMLogEntry()
   {
+    dead = true;
+
     for (BMLogSetBase *set : sets) {
       switch (set->type) {
         case LOG_SET_DIFF:
@@ -1627,15 +1630,25 @@ bool BM_log_entry_drop(BMLogEntry *entry)
 {
   printf("%s: Freeing log entry %p\n", __func__, entry);
 
+  if (!entry->log) {
+    printf("%s: error, missing bm log!\n", __func__);
+  }
+
   if (entry->prev) {
     entry->prev->next = entry->next;
   }
   if (entry->next) {
     entry->next->prev = entry->prev;
   }
-  
-  if (entry->log && entry == entry->log->current_entry) {
-    entry->log->current_entry = entry->prev;
+
+  if (entry->log) {
+    if (entry == entry->log->current_entry) {
+      entry->log->current_entry = entry->prev;
+    }
+
+    if (entry == entry->log->first_entry) {
+      entry->log->first_entry = entry->next;
+    }
   }
 
   MEM_delete<BMLogEntry>(entry);
