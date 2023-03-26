@@ -6675,22 +6675,16 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_visibility_set(const bool visible)
   return GHOST_kSuccess;
 }
 
-bool GHOST_SystemWayland::supportsCursorWarp()
+GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
 {
-  /* WAYLAND doesn't support setting the cursor position directly,
-   * this is an intentional choice, forcing us to use a software cursor in this case. */
-  return false;
-}
-
-bool GHOST_SystemWayland::supportsWindowPosition()
-{
-  /* WAYLAND doesn't support accessing the window position. */
-  return false;
-}
-
-bool GHOST_SystemWayland::supportsPrimaryClipboard()
-{
-  return true;
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* WAYLAND doesn't support accessing the window position. */
+          GHOST_kCapabilityWindowPosition |
+          /* WAYLAND doesn't support setting the cursor position directly,
+           * this is an intentional choice, forcing us to use a software cursor in this case. */
+          GHOST_kCapabilityCursorWarp));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
@@ -7038,7 +7032,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   const struct GWL_SeatStateGrab grab_state_next = seat_grab_state_from_mode(mode,
                                                                              use_software_confine);
 
-  /* Check for wrap as #supportsCursorWarp isn't supported. */
+  /* Check for wrap as #GHOST_kCapabilityCursorWarp isn't supported. */
   const bool use_visible = !(ELEM(mode, GHOST_kGrabHide, GHOST_kGrabWrap) || use_software_confine);
   const bool is_hardware_cursor = !cursor_is_software(mode, use_software_confine);
 

@@ -142,9 +142,7 @@ class GHOST_SystemWayland : public GHOST_System {
                               const bool is_dialog,
                               const GHOST_IWindow *parentWindow) override;
 
-  bool supportsCursorWarp() override;
-  bool supportsWindowPosition() override;
-  bool supportsPrimaryClipboard() override;
+  GHOST_TCapabilityFlag getCapabilities() const override;
 
   /* WAYLAND utility functions (share window/system logic). */
 

@@ -318,19 +318,11 @@ class GHOST_ISystem {
   virtual bool useNativePixel(void) = 0;
 
   /**
-   * Return true when warping the cursor is supported.
+   * Return features supported by the system back-end.
+   *
+   * The resulting value doesn't change at run-time.
    */
-  virtual bool supportsCursorWarp() = 0;
-
-  /**
-   * Return true getting/setting the window position is supported.
-   */
-  virtual bool supportsWindowPosition() = 0;
-
-  /**
-   * Return true when a separate primary clipboard is supported.
-   */
-  virtual bool supportsPrimaryClipboard() = 0;
+  virtual GHOST_TCapabilityFlag getCapabilities() const = 0;
 
   /**
    * Focus window after opening, or put them in the background.

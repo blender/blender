@@ -751,6 +751,15 @@ GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
+GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
+{
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* This SDL back-end has not yet implemented primary clipboard. */
+          GHOST_kCapabilityPrimaryClipboard));
+}
+
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
 {
   return (char *)SDL_GetClipboardText();

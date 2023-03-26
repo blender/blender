@@ -5165,7 +5165,8 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
   /* If GHOST doesn't support window positioning, don't use this feature at all. */
-  const static int8_t supports_window_position = GHOST_SupportsWindowPosition();
+  const static int8_t supports_window_position = (WM_capabilities_flag() &
+                                                  WM_CAPABILITY_WINDOW_POSITION) != 0;
   if (!supports_window_position) {
     return nullptr;
   }
