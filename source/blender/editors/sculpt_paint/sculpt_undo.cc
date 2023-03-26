@@ -2146,9 +2146,7 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
   }
 }
 
-ATTR_NO_OPT static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
-                                                          PBVHNode *node,
-                                                          SculptUndoType type)
+static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;

@@ -759,7 +759,7 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
+  void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
@@ -916,8 +916,6 @@ struct PBVHBatches {
       case CD_PBVH_ID_TYPE: {
         const int cd_id = CustomData_get_offset_named(
             &args->bm->vdata, CD_PROP_INT32, "vertex_id");
-
-        printf("cd_id: %d\n", cd_id);
 
         foreach_bmesh([&](BMLoop *l) {
           int *id = BM_ELEM_CD_PTR<int *>(l->v, cd_id);

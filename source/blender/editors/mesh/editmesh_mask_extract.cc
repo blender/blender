@@ -74,10 +74,10 @@ struct GeometryExtractParams {
 /* Function that tags in BMesh the faces that should be deleted in the extracted object. */
 using GeometryExtractTagMeshFunc = void(BMesh *, GeometryExtractParams *);
 
-ATTR_NO_OPT static int geometry_extract_apply(bContext *C,
-                                              wmOperator *op,
-                                              GeometryExtractTagMeshFunc *tag_fn,
-                                              GeometryExtractParams *params)
+static int geometry_extract_apply(bContext *C,
+                                  wmOperator *op,
+                                  GeometryExtractTagMeshFunc *tag_fn,
+                                  GeometryExtractParams *params)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);

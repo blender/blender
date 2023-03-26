@@ -4229,7 +4229,7 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   *block = nullptr;
 }
 
-ATTR_NO_OPT void CustomData_bmesh_free_block_data(CustomData *data, void *block)
+void CustomData_bmesh_free_block_data(CustomData *data, void *block)
 {
   if (block == nullptr) {
     return;
@@ -4310,10 +4310,7 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
   CustomData_bmesh_asan_poison(data, block);
 }
 
-ATTR_NO_OPT void CustomData_data_set_default_value(const CustomData *data,
-                                                   const int type,
-                                                   int n,
-                                                   void *elem)
+void CustomData_data_set_default_value(const CustomData *data, const int type, int n, void *elem)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   int base_idx = data->typemap[type];
@@ -4329,14 +4326,13 @@ ATTR_NO_OPT void CustomData_data_set_default_value(const CustomData *data,
   }
 }
 
-ATTR_NO_OPT static void CustomData_bmesh_set_default_n(CustomData *data,
-                                                       void **block,
-                                                       const int idx)
+static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int idx)
 {
   const int offset = data->layers[idx].offset;
   int n = idx - data->typemap[data->layers[idx].type];
 
-  CustomData_data_set_default_value(data, data->layers[idx].type, n, POINTER_OFFSET(*block, offset));
+  CustomData_data_set_default_value(
+      data, data->layers[idx].type, n, POINTER_OFFSET(*block, offset));
 }
 
 void CustomData_bmesh_set_default(CustomData *data, void **block)
@@ -4451,11 +4447,11 @@ void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
-ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
-                                                            CustomData *dest,
-                                                            void *src_block,
-                                                            void **dest_block,
-                                                            const eCustomDataMask mask_exclude)
+void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+                                                CustomData *dest,
+                                                void *src_block,
+                                                void **dest_block,
+                                                const eCustomDataMask mask_exclude)
 {
   /* Note: having a version of this function without a 'mask_exclude'
    * would cause too much duplicate code, so add a check instead. */

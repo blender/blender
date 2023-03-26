@@ -957,6 +957,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
                          const MPoly *polys,
                          const int *corner_verts,
+                         const int *corner_edges,
                          float (*vert_positions)[3],
                          MSculptVert *msculptverts,
                          int totvert,
@@ -986,6 +987,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->material_indices = static_cast<const int *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
   pbvh->corner_verts = corner_verts;
+  pbvh->corner_edges = corner_edges;
   pbvh->looptri = looptri;
   pbvh->msculptverts = msculptverts;
   pbvh->vert_positions = vert_positions;
@@ -4127,12 +4129,12 @@ static void pbvh_pmap_to_edges_add(PBVH *pbvh,
   (*len)++;
 }
 
-void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
-                            PBVHVertRef vertex,
-                            int **r_edges,
-                            int *r_edges_size,
-                            bool *r_heap_alloc,
-                            int **r_polys)
+ATTR_NO_OPT void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
+                                        PBVHVertRef vertex,
+                                        int **r_edges,
+                                        int *r_edges_size,
+                                        bool *r_heap_alloc,
+                                        int **r_polys)
 {
   MeshElemMap *map = pbvh->pmap->pmap + vertex.i;
   int len = 0;
@@ -4179,10 +4181,7 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
   pbvh->vemap = vemap;
 }
 
-ATTR_NO_OPT void BKE_pbvh_get_vert_face_areas(PBVH *pbvh,
-                                              PBVHVertRef vertex,
-                                              float *r_areas,
-                                              int valence)
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
 {
   const int cur_i = pbvh->face_area_i;
 

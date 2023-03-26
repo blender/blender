@@ -35,7 +35,7 @@ static void bm_idmap_debug_check_init(BMesh *bm)
 }
 #endif
 
-ATTR_NO_OPT static void idmap_log_message(const char *fmt, ...)
+static void idmap_log_message(const char *fmt, ...)
 {
   char msg[64];
 
@@ -46,7 +46,7 @@ ATTR_NO_OPT static void idmap_log_message(const char *fmt, ...)
 }
 
 #ifdef DEBUG_BM_IDMAP
-ATTR_NO_OPT static void _idmap_debug_insert(const char *func, BMIdMap *idmap, BMElem *elem, int id)
+static void _idmap_debug_insert(const char *func, BMIdMap *idmap, BMElem *elem, int id)
 {
   if (id == BM_ID_NONE) {
     idmap_log_message("%s: Tried to assign a null id\n", func);
@@ -120,7 +120,7 @@ template<typename T> static constexpr char get_elem_type()
 }
 
 #ifdef DEBUG_BM_IDMAP
-ATTR_NO_OPT static bool _idmap_check_elem(const char *func, BMIdMap *idmap, BMElem *elem)
+static bool _idmap_check_elem(const char *func, BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_idmap_get_id(idmap, elem);
   bool exists = idmap->elem2id->contains(elem);
@@ -187,7 +187,7 @@ static void idmap_grow_map(BMIdMap *idmap, int newid)
   idmap->map_size = newsize;
 }
 
-ATTR_NO_OPT void BM_idmap_check_ids(BMIdMap *idmap)
+void BM_idmap_check_ids(BMIdMap *idmap)
 {
   BMIter iter;
   BMVert *v;
@@ -297,7 +297,7 @@ ATTR_NO_OPT void BM_idmap_check_ids(BMIdMap *idmap)
   idmap->maxid = max_id + 1;
 }
 
-ATTR_NO_OPT void BM_idmap_check_attributes(BMIdMap *idmap)
+void BM_idmap_check_attributes(BMIdMap *idmap)
 {
   auto check_attr = [&](int type) {
     if (!(idmap->flag & type)) {
@@ -354,7 +354,7 @@ ATTR_NO_OPT void BM_idmap_check_attributes(BMIdMap *idmap)
   check_attr(BM_FACE);
 }
 
-ATTR_NO_OPT void BM_idmap_destroy(BMIdMap *idmap)
+void BM_idmap_destroy(BMIdMap *idmap)
 {
 #ifdef DEBUG_BM_IDMAP
   delete idmap->elem2id;
@@ -365,7 +365,7 @@ ATTR_NO_OPT void BM_idmap_destroy(BMIdMap *idmap)
   MEM_delete<BMIdMap>(idmap);
 }
 
-ATTR_NO_OPT static void check_idx_map(BMIdMap *idmap)
+static void check_idx_map(BMIdMap *idmap)
 {
   if (idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_LOW) {
     // idmap_log_message("%s: Deleting free_idx_map\n", __func__);
@@ -384,7 +384,7 @@ ATTR_NO_OPT static void check_idx_map(BMIdMap *idmap)
   }
 }
 
-ATTR_NO_OPT int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
+int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_ID_NONE;
 
@@ -445,7 +445,7 @@ ATTR_NO_OPT int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
   return id;
 }
 
-ATTR_NO_OPT void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
+void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
 {
   /* Remove id from freelist. */
   if (idmap->free_idx_map) {
@@ -500,7 +500,7 @@ ATTR_NO_OPT void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
 #endif
 }
 
-ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
+void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
 {
 #ifdef DEBUG_BM_IDMAP
   idmap_check_elem(idmap, elem);
@@ -541,7 +541,7 @@ ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
   }
 }
 
-ATTR_NO_OPT int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
+int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 

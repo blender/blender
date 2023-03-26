@@ -403,7 +403,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, 
   SCULPT_vertex_normal_get(ss, vertex, no);
 }
 
-ATTR_NO_OPT float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
+float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -2917,11 +2917,11 @@ void SCULPT_calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
-                                        const StrokeCache *cache,
-                                        const float feather,
-                                        const UnifiedPaintSettings *ups,
-                                        const PaintModeSettings * /*paint_mode_settings*/)
+static float brush_strength(const Sculpt *sd,
+                            const StrokeCache *cache,
+                            const float feather,
+                            const UnifiedPaintSettings *ups,
+                            const PaintModeSettings * /*paint_mode_settings*/)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);

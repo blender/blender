@@ -95,7 +95,7 @@ static void _debugprint(const char *fmt, ...)
 }
 
 #ifdef PBVH_BMESH_DEBUG
-ATTR_NO_OPT void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
+void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -2439,19 +2439,19 @@ void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
 }
 
 /* Build a PBVH from a BMesh */
-ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                                      Mesh *me,
-                                      BMesh *bm,
-                                      bool smooth_shading,
-                                      BMLog *log,
-                                      BMIdMap *idmap,
-                                      const int cd_vert_node_offset,
-                                      const int cd_face_node_offset,
-                                      const int cd_sculpt_vert,
-                                      const int cd_face_areas,
-                                      const int cd_boundary_flag,
-                                      bool fast_draw,
-                                      bool update_sculptverts)
+void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          Mesh *me,
+                          BMesh *bm,
+                          bool smooth_shading,
+                          BMLog *log,
+                          BMIdMap *idmap,
+                          const int cd_vert_node_offset,
+                          const int cd_face_node_offset,
+                          const int cd_sculpt_vert,
+                          const int cd_face_areas,
+                          const int cd_boundary_flag,
+                          bool fast_draw,
+                          bool update_sculptverts)
 {
   // coalese_pbvh(pbvh, bm);
 
@@ -2898,7 +2898,7 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->header.bm;
 
@@ -3298,7 +3298,6 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
   const int size_lower = pbvh->leaf_limit - (pbvh->leaf_limit >> 1);
 
   if (node->flag & PBVH_Leaf) {
-    // pbvh_bmesh_node_limit_ensure(pbvh, (int)(node - pbvh->nodes));
     return;
   }
 
@@ -3745,40 +3744,132 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(depthmap);
 }
 
-static void pbvh_bmesh_join_nodes(PBVH *bvh)
+/* Fix any orphaned empty leaves that survived other stages of culling.*/
+ATTR_NO_OPT static void pbvh_fix_orphan_leaves(PBVH *pbvh)
 {
-  if (bvh->totnode < 2) {
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf) || (node->flag & PBVH_Delete) ||
+        BLI_table_gset_len(node->bm_faces) != 0) {
+      continue;
+    }
+
+    /* Find parent node. */
+    PBVHNode *parent = nullptr;
+
+    for (int j = 0; j < pbvh->totnode; j++) {
+      if (pbvh->nodes[j].children_offset == i || pbvh->nodes[j].children_offset + 1 == i) {
+        parent = pbvh->nodes + j;
+        break;
+      }
+    }
+
+    if (!parent) {
+      printf("%s: node corruption, could not find parent node!\n", __func__);
+      continue;
+    }
+
+    PBVHNode *other = pbvh->nodes + (parent->children_offset == i ? i + 1 : i - 1);
+
+    if (other->flag & PBVH_Delete) {
+      printf("%s: error!\n", __func__);
+      continue;
+    }
+
+    while (!(other->flag & PBVH_Leaf)) {
+      PBVHNode *a = pbvh->nodes + other->children_offset;
+      PBVHNode *b = pbvh->nodes + other->children_offset + 1;
+
+      if (!(a->flag & PBVH_Delete) && (a->flag & PBVH_Leaf) &&
+          BLI_table_gset_len(a->bm_faces) > 1) {
+        other = a;
+      }
+      else if (!(b->flag & PBVH_Delete) && (b->flag & PBVH_Leaf) &&
+               BLI_table_gset_len(b->bm_faces) > 1) {
+        other = b;
+      }
+      else {
+        other = nullptr;
+        break;
+      }
+    }
+
+    if (other == nullptr || BLI_table_gset_len(other->bm_faces) < 1) {
+      printf("%s: other was nullptr\n", __func__);
+      continue;
+    }
+
+    /* Steal a single face from other */
+    BMFace *f;
+    PBVHNodeFlags updateflag = PBVH_UpdateOtherVerts | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
+                               PBVH_UpdateTris | PBVH_UpdateTriAreas | PBVH_RebuildDrawBuffers |
+                               PBVH_RebuildNodeVerts | PBVH_RebuildPixels | PBVH_UpdateNormals |
+                               PBVH_UpdateCurvatureDir | PBVH_UpdateRedraw | PBVH_UpdateVisibility;
+
+    TGSET_ITER (f, other->bm_faces) {
+      BLI_table_gset_remove(other->bm_faces, static_cast<void *>(f), nullptr);
+      BLI_table_gset_add(node->bm_faces, static_cast<void *>(f));
+      BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, i);
+
+      BMVert *v = f->l_first->v;
+      int node_i = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
+      if (node_i != DYNTOPO_NODE_NONE) {
+        PBVHNode *node = pbvh->nodes + node_i;
+        if (BLI_table_gset_haskey(node->bm_unique_verts, static_cast<void *>(v))) {
+          BLI_table_gset_remove(node->bm_unique_verts, static_cast<void *>(v), nullptr);
+        }
+      }
+
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
+      BLI_table_gset_add(node->bm_unique_verts, v);
+
+      node->flag |= updateflag;
+      other->flag |= updateflag;
+
+      printf("%s: Patched empty leaf node.\n", __func__);
+      break;
+    }
+    TGSET_ITER_END;
+  }
+}
+
+static void pbvh_bmesh_join_nodes(PBVH *pbvh)
+{
+  if (pbvh->totnode < 2) {
     return;
   }
 
-  pbvh_count_subtree_verts(bvh, bvh->nodes);
-  BKE_pbvh_bmesh_correct_tree(bvh, bvh->nodes, nullptr);
+  pbvh_count_subtree_verts(pbvh, pbvh->nodes);
+  BKE_pbvh_bmesh_correct_tree(pbvh, pbvh->nodes, nullptr);
+  pbvh_fix_orphan_leaves(pbvh);
 
   /* Compact nodes. */
   int totnode = 0;
-  int *map = MEM_cnew_array<int>(bvh->totnode, "bmesh map temp");
+  int *map = MEM_cnew_array<int>(pbvh->totnode, "bmesh map temp");
 
-  for (int i = 0; i < bvh->totnode; i++) {
-    for (int j = 0; j < bvh->totnode; j++) {
-      if (i == j || !bvh->nodes[i].draw_batches) {
+  for (int i = 0; i < pbvh->totnode; i++) {
+    for (int j = 0; j < pbvh->totnode; j++) {
+      if (i == j || !pbvh->nodes[i].draw_batches) {
         continue;
       }
 
-      if (bvh->nodes[i].draw_batches == bvh->nodes[j].draw_batches) {
+      if (pbvh->nodes[i].draw_batches == pbvh->nodes[j].draw_batches) {
         printf("%s: error %d %d\n", __func__, i, j);
 
-        bvh->nodes[j].draw_batches = nullptr;
+        pbvh->nodes[j].draw_batches = nullptr;
       }
     }
   }
 
   /* Build index map for child offsets. */
   int j = 0;
-  for (int i = 0; i < bvh->totnode; i++) {
-    PBVHNode *n = bvh->nodes + i;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *n = pbvh->nodes + i;
 
     if (!(n->flag & PBVH_Delete)) {
       map[i] = j++;
+      totnode++;
     }
     else {
       if (n->layer_disp) {
@@ -3786,7 +3877,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
         n->layer_disp = nullptr;
       }
 
-      pbvh_free_draw_buffers(bvh, n);
+      pbvh_free_draw_buffers(pbvh, n);
 
       if (n->vert_indices) {
         MEM_freeN((void *)n->vert_indices);
@@ -3798,7 +3889,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
       }
 
       if (n->tribuf || n->tri_buffers) {
-        BKE_pbvh_bmesh_free_tris(bvh, n);
+        BKE_pbvh_bmesh_free_tris(pbvh, n);
       }
 
       if (n->bm_unique_verts) {
@@ -3817,57 +3908,57 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
       }
 
 #ifdef PROXY_ADVANCED
-      BKE_pbvh_free_proxyarray(bvh, n);
+      BKE_pbvh_free_proxyarray(pbvh, n);
 #endif
     }
   }
 
   // compact node array
   j = 0;
-  for (int i = 0; i < bvh->totnode; i++) {
-    if (!(bvh->nodes[i].flag & PBVH_Delete)) {
-      if (bvh->nodes[i].children_offset >= bvh->totnode - 1) {
-        printf("%s: error %i %i\n", __func__, i, bvh->nodes[i].children_offset);
+  for (int i = 0; i < pbvh->totnode; i++) {
+    if (!(pbvh->nodes[i].flag & PBVH_Delete)) {
+      if (pbvh->nodes[i].children_offset >= pbvh->totnode - 1) {
+        printf("%s: error %i %i\n", __func__, i, pbvh->nodes[i].children_offset);
         continue;
       }
 
-      int i1 = map[bvh->nodes[i].children_offset];
-      int i2 = map[bvh->nodes[i].children_offset + 1];
+      int i1 = map[pbvh->nodes[i].children_offset];
+      int i2 = map[pbvh->nodes[i].children_offset + 1];
 
-      if (bvh->nodes[i].children_offset >= bvh->totnode) {
+      if (pbvh->nodes[i].children_offset >= pbvh->totnode) {
         printf("%s: Bad child node reference %d->%d, totnode: %d\n",
                __func__,
                i,
-               bvh->nodes[i].children_offset,
-               bvh->totnode);
+               pbvh->nodes[i].children_offset,
+               pbvh->totnode);
         continue;
       }
 
-      if (bvh->nodes[i].children_offset && i2 != i1 + 1) {
+      if (pbvh->nodes[i].children_offset && i2 != i1 + 1) {
         printf("      pbvh corruption during node join %d %d\n", i1, i2);
       }
 
-      bvh->nodes[j] = bvh->nodes[i];
-      bvh->nodes[j].children_offset = i1;
+      pbvh->nodes[j] = pbvh->nodes[i];
+      pbvh->nodes[j].children_offset = i1;
 
       j++;
     }
   }
 
   if (j != totnode) {
-    printf("%s: pbvh error.", __func__);
+    printf("%s: pbvh error.\n", __func__);
   }
 
-  if (bvh->totnode != j) {
-    memset(bvh->nodes + j, 0, sizeof(*bvh->nodes) * (bvh->totnode - j));
-    bvh->node_mem_count = j;
+  if (pbvh->totnode != j) {
+    memset(pbvh->nodes + j, 0, sizeof(*pbvh->nodes) * (pbvh->totnode - j));
+    pbvh->node_mem_count = j;
   }
 
-  bvh->totnode = j;
+  pbvh->totnode = j;
 
   // set vert/face node indices again
-  for (int i = 0; i < bvh->totnode; i++) {
-    PBVHNode *n = bvh->nodes + i;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *n = pbvh->nodes + i;
 
     if (!(n->flag & PBVH_Leaf)) {
       continue;
@@ -3883,22 +3974,22 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
     BMVert *v;
 
     TGSET_ITER (v, n->bm_unique_verts) {
-      BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, i);
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
     }
     TGSET_ITER_END
 
     BMFace *f;
 
     TGSET_ITER (f, n->bm_faces) {
-      BM_ELEM_CD_SET_INT(f, bvh->cd_face_node_offset, i);
+      BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, i);
     }
     TGSET_ITER_END
   }
 
   Vector<BMVert *> scratch;
 
-  for (int i = 0; i < bvh->totnode; i++) {
-    PBVHNode *n = bvh->nodes + i;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *n = pbvh->nodes + i;
 
     if (!(n->flag & PBVH_Leaf)) {
       continue;
@@ -3908,11 +3999,11 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
     BMVert *v;
 
     TGSET_ITER (v, n->bm_other_verts) {
-      int ni = BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset);
+      int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
       if (ni == DYNTOPO_NODE_NONE) {
         scratch.append(v);
       }
-      // BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, i);
+      // BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
     }
     TGSET_ITER_END
 
@@ -3921,7 +4012,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
 
       BLI_table_gset_remove(n->bm_other_verts, v, nullptr);
       BLI_table_gset_add(n->bm_unique_verts, v);
-      BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, i);
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
     }
   }
 

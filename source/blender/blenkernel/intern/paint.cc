@@ -2660,6 +2660,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
                         me,
                         me->polys().data(),
                         corner_verts.data(),
+                        me->corner_edges().data(),
                         vert_cos,
                         ss->msculptverts,
                         me->totvert,

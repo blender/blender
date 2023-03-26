@@ -566,6 +566,18 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
 {
   BLI_assert(len_sq > square_f(limit_len));
 
+  BMLoop *l = l_edge;
+  int count = 0;
+  do {
+    if (count++ > 5) {
+      printf("%s: topology error: highly non-manifold edge %p\n", __func__, l_edge->e);
+      BM_vert_select_set(tdata->pbvh->header.bm, l_edge->e->v1, true);
+      BM_vert_select_set(tdata->pbvh->header.bm, l_edge->e->v2, true);
+      BM_edge_select_set(tdata->pbvh->header.bm, l_edge->e, true);
+      return;
+    }
+  } while ((l = l->radial_next) != l_edge);
+
   if (l_edge->e->head.hflag & BM_ELEM_TAG) {
     // return;
   }
@@ -755,7 +767,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   BLI_rng_free(rng);
 }
 
-ATTR_NO_OPT bool check_face_is_tri(PBVH *pbvh, BMFace *f)
+bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 {
 #if DYNTOPO_DISABLE_FLAG & DYNTOPO_DISABLE_TRIANGULATOR
   return true;
@@ -964,7 +976,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     return false;
   }
 
-  printf("manifold fin size: %d\n", (int)minfs.size());
+  // printf("manifold fin size: %d\n", (int)minfs.size());
   const int tag = BM_ELEM_TAG_ALT;
 
   for (int i = 0; i < minfs.size(); i++) {
@@ -1133,12 +1145,19 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
       MV_ADD_FLAG(mv_l, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     } while ((l = l->next) != f->l_first);
     fs.append(f);
+
+    if (BM_elem_is_free((BMElem *)f, BM_FACE)) {
+      printf("%s: corrupted face error!\n", __func__);
+    }
   }
 
   mv->flag &= ~SCULPTVERT_NEED_TRIANGULATE;
 
   for (int i = 0; i < fs.size(); i++) {
-    check_face_is_tri(pbvh, fs[i]);
+    /* Triangulation can sometimes delete a face. */
+    if (!BM_elem_is_free((BMElem *)fs[i], BM_FACE)) {
+      check_face_is_tri(pbvh, fs[i]);
+    }
   }
 
   return false;
@@ -2295,14 +2314,14 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   int steps[2] = {0, 0};
 
   if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
-    steps[0] = 4096;
-    steps[1] = 1024;
+    steps[1] = DYNTOPO_MAX_ITER / 3;
+    steps[0] = DYNTOPO_MAX_ITER - steps[1];
   }
   else if (mode & PBVH_Subdivide) {
-    steps[0] = 4096;
+    steps[0] = DYNTOPO_MAX_ITER;
   }
   else if (mode & PBVH_Collapse) {
-    steps[0] = 4096;
+    steps[0] = DYNTOPO_MAX_ITER;
   }
 
   int edges_size = steps[0];
@@ -2337,6 +2356,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     BMEdge *e = nullptr;
 
     if (count >= steps[curop]) {
+      BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+
       if (ops[curop] == PBVH_Subdivide) {
         modified = true;
         BLI_smallhash_clear(&subd_edges, 0);
@@ -2415,14 +2436,12 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
           break;
         }
 
-        printf("\n");
         modified = true;
         pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, nullptr, nullptr, &eq_ctx);
         VALIDATE_LOG(pbvh->bm_log);
-        printf("\n");
 
         // XXX
-        BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+        // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
         break;
       }
       default:
@@ -2436,6 +2455,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   if (etot > 0) {
     modified = true;
     BLI_smallhash_clear(&subd_edges, 0);
+    BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
     pbvh_split_edges(&eq_ctx, pbvh, pbvh->header.bm, edges, etot, false);
     VALIDATE_LOG(pbvh->bm_log);
     etot = 0;

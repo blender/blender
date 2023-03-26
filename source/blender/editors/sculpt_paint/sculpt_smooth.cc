@@ -31,14 +31,14 @@ using blender::float2;
 using blender::float3;
 using blender::Vector;
 
-ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
-                                                                   float result[3],
-                                                                   PBVHVertRef vertex,
-                                                                   float projection,
-                                                                   float fset_projection,
-                                                                   bool weighted,
-                                                                   eSculptBoundary bound_type,
-                                                                   eSculptCorner corner_type)
+static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
+                                                       float result[3],
+                                                       PBVHVertRef vertex,
+                                                       float projection,
+                                                       float fset_projection,
+                                                       bool weighted,
+                                                       eSculptBoundary bound_type,
+                                                       eSculptCorner corner_type)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
   int neighbor_count = 0;
@@ -545,9 +545,9 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_task_cb_ex, &settings);
 }
 
-ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict tls)
+static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;

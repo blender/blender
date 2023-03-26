@@ -296,9 +296,9 @@ static int new_fset_apply_curve(SculptSession *ss,
   return new_fset;
 }
 
-ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict tls)
+void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                        const int n,
+                                        const TaskParallelTLS *__restrict tls)
 {
   SculptFaceSetDrawData *data = (SculptFaceSetDrawData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -654,10 +654,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
-                                                Object *ob,
-                                                PBVHNode **nodes,
-                                                int totnode)
+void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
@@ -2253,11 +2250,11 @@ static void sculpt_bm_mesh_elem_hflag_disable_all(BMesh *bm, char htype, char hf
   }
 }
 
-ATTR_NO_OPT static void sculpt_face_set_extrude_id(Object *ob,
-                                                   bool no_islands,
-                                                   SculptSession *ss,
-                                                   const int active_face_set_id,
-                                                   FaceSetExtrudeCD *fsecd)
+static void sculpt_face_set_extrude_id(Object *ob,
+                                       bool no_islands,
+                                       SculptSession *ss,
+                                       const int active_face_set_id,
+                                       FaceSetExtrudeCD *fsecd)
 {
 
   Mesh *mesh = (Mesh *)ob->data;
@@ -2858,9 +2855,7 @@ void SCULPT_face_set_island_free(SculptFaceSetIsland *island)
   }
 }
 
-ATTR_NO_OPT static int sculpt_face_set_edit_modal(bContext *C,
-                                                  wmOperator *op,
-                                                  const wmEvent *event)
+static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;

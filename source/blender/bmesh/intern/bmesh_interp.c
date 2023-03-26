@@ -26,10 +26,10 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-ATTR_NO_OPT static void copy_cdata_simple(BMesh *bm,
-                                          CustomData *data_layer,
-                                          BMElem *ele_dst,
-                                          const BMElem *ele_src)
+static void copy_cdata_simple(BMesh *bm,
+                              CustomData *data_layer,
+                              BMElem *ele_dst,
+                              const BMElem *ele_src)
 {
   int cd_tflags;
   MToolFlags saved_tflags = {0};
@@ -47,12 +47,12 @@ ATTR_NO_OPT static void copy_cdata_simple(BMesh *bm,
 }
 
 /* edge and vertex share, currently there's no need to have different logic */
-ATTR_NO_OPT static void bm_data_interp_from_elem(BMesh *bm,
-                                                 CustomData *data_layer,
-                                                 const BMElem *ele_src_1,
-                                                 const BMElem *ele_src_2,
-                                                 BMElem *ele_dst,
-                                                 const float fac)
+static void bm_data_interp_from_elem(BMesh *bm,
+                                     CustomData *data_layer,
+                                     const BMElem *ele_src_1,
+                                     const BMElem *ele_src_2,
+                                     BMElem *ele_dst,
+                                     const float fac)
 {
   if (ele_src_1->head.data && ele_src_2->head.data) {
     /* first see if we can avoid interpolation */
@@ -781,7 +781,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype);
 void *BPy_bm_new_customdata_layout_pre(BMesh *bm, CustomData *cdata, char htype);
 
-ATTR_NO_OPT static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
+static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
   BMIter iter;
   BLI_mempool *oldpool = olddata->pool;
