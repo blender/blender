@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -14385,6 +14385,10 @@ msgid "Weight of feather point"
 msgstr "Váha této vazby"
 
 
+msgid "Active Point"
+msgstr "Aktivní bod"
+
+
 msgid "Alignment"
 msgstr "Zarovnaný"
 
@@ -23901,17 +23905,9 @@ msgid "Clear Restrict View"
 msgstr "Obnovit pohled"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Ukáže objekt dle nastavení skrývající vazby"
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Obnovit pohled"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Skryje objekt dle nastavení skrývající vazby"
 
 
 msgctxt "Operator"
@@ -32915,10 +32911,6 @@ msgid "2D Cursor"
 msgstr "2D Kursor"
 
 
-msgid "Active Point"
-msgstr "Aktivní bod"
-
-
 msgid "Predefined tracking camera intrinsics"
 msgstr "Předdefinovaná vnitřní nastavení tracking kamery"
 
@@ -35406,10 +35398,6 @@ msgstr "Velikost štětce"
 
 msgid "Mini Axes Size"
 msgstr "Osa Zrcadlení"
-
-
-msgid "Simple Axis"
-msgstr "Jednoduchá Osa"
 
 
 msgid "Interactive Navigation"
@@ -43643,10 +43631,6 @@ msgstr "Ukázkový formát"
 
 msgid "View Name"
 msgstr "Zobrazit Název"
-
-
-msgid "3D Viewport Axis"
-msgstr "Osy 3D Pohledu"
 
 
 msgid "Smooth Wires"

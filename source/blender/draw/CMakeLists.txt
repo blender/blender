@@ -103,7 +103,6 @@ set(SRC
   intern/draw_view.c
   intern/draw_view_data.cc
   intern/draw_volume.cc
-  intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
   engines/compositor/compositor_engine.cc
@@ -260,7 +259,6 @@ set(SRC
   intern/draw_view.hh
   intern/draw_view_data.h
   intern/mesh_extractors/extract_mesh.hh
-  intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
   engines/compositor/compositor_engine.h
@@ -490,6 +488,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_finalize_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
+  engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
@@ -553,7 +552,6 @@ set(GLSL_SRC
   intern/shaders/common_math_lib.glsl
   intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_shape_lib.glsl
-  intern/shaders/common_smaa_lib.glsl
   intern/shaders/common_subdiv_custom_data_interp_comp.glsl
   intern/shaders/common_subdiv_ibo_lines_comp.glsl
   intern/shaders/common_subdiv_ibo_tris_comp.glsl

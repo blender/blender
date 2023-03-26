@@ -133,8 +133,8 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   for (int i = 0; i < vert_map->count; i++) {
     const MPoly *p = &ss->polys[vert_map->indices[i]];
     for (int l = 0; l < p->totloop; l++) {
-      const MLoop *loop = &ss->loops[p->loopstart + l];
-      if (loop->v == v2) {
+      const int *corner_verts = &ss->corner_verts[p->loopstart + l];
+      if (*corner_verts == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
           break;
@@ -320,7 +320,13 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
   int v1, v2;
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-      ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
+      ss->subdiv_ccg,
+      &coord,
+      ss->corner_verts.data(),
+      ss->corner_verts.size(),
+      ss->polys.data(),
+      &v1,
+      &v2);
 
   switch (adjacency) {
     case SUBDIV_CCG_ADJACENT_VERTEX:
@@ -352,9 +358,10 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                       ss->face_sets,
                                       ss->hide_poly,
                                       ss->vert_positions,
-                                      ss->edges,
-                                      ss->loops,
-                                      ss->polys,
+                                      ss->edges.data(),
+                                      ss->corner_verts.data(),
+                                      ss->corner_edges.data(),
+                                      ss->polys.data(),
                                       ss->msculptverts,
                                       ss->pmap->pmap,
                                       vertex,
@@ -373,7 +380,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
       bool ok = true;
 
       for (int i = 0; i < ss->pmap->pmap[vertex.i].count; i++) {
-        const MPoly *mp = ss->polys + ss->pmap->pmap[vertex.i].indices[i];
+        const MPoly *mp = &ss->polys[ss->pmap->pmap[vertex.i].indices[i]];
         if (mp->totloop < 4) {
           ok = false;
         }
@@ -472,7 +479,13 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
+          ss->subdiv_ccg,
+          &coord,
+          ss->corner_verts.data(),
+          ss->corner_verts.size(),
+          ss->polys.data(),
+          &v1,
+          &v2);
 
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:

@@ -277,8 +277,8 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
    * of vertex color arrays from being sent to the GPU (e.g.
    * when switching from eevee to workbench).
    */
-  if (ob->sculpt && ob->sculpt->pbvh) {
-    BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, is_sculpt_pbvh);
+  if (ob->sculpt && BKE_object_sculpt_pbvh_get(ob)) {
+    BKE_pbvh_is_drawing_set(BKE_object_sculpt_pbvh_get(ob), is_sculpt_pbvh);
   }
 
   bool has_color = false;
@@ -334,7 +334,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
   }
 
   if (is_sculpt_pbvh && color_type == V3D_SHADING_TEXTURE_COLOR &&
-      BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES) {
+      BKE_pbvh_type(BKE_object_sculpt_pbvh_get(ob)) != PBVH_FACES) {
     /* Force use of material color for sculpt. */
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }

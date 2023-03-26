@@ -213,7 +213,7 @@ void ED_gpencil_strokes_copybuf_free(void);
 /* drawgpencil.c */
 
 /**
- * Draw grease-pencil sketches to specified 2d-view that uses ibuf corrections.
+ * Draw grease-pencil sketches to specified 2d-view that uses `ibuf` corrections.
  */
 void ED_annotation_draw_2dimage(const struct bContext *C);
 /**

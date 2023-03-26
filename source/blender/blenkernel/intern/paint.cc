@@ -1838,9 +1838,10 @@ static void sculpt_update_object(
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
-    ss->polys = me->polys().data();
-    ss->edges = me->edges().data();
-    ss->loops = me->loops().data();
+    ss->polys = me->polys();
+    ss->edges = me->edges();
+    ss->corner_verts = me->corner_verts();
+    ss->corner_edges = me->corner_edges();
   }
   else {
     ss->totvert = me->totvert;
@@ -1849,18 +1850,21 @@ static void sculpt_update_object(
     ss->totloops = me->totloop;
     ss->totedges = me->totedge;
     ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
+
     ss->sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &me->edata, CD_PROP_BOOL, "sharp_edge", me->totedge);
     ss->seam_edge = (bool *)CustomData_get_layer_named_for_write(
         &me->edata, CD_PROP_BOOL, ".uv_seam", me->totedge);
-    ss->polys = me->polys().data();
-    ss->edges = me->edges().data();
-    ss->loops = me->loops().data();
 
     ss->vdata = &me->vdata;
     ss->edata = &me->edata;
     ss->ldata = &me->ldata;
     ss->pdata = &me->pdata;
+
+    ss->polys = me->polys();
+    ss->edges = me->edges();
+    ss->corner_verts = me->corner_verts();
+    ss->corner_edges = me->corner_edges();
 
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
@@ -2158,6 +2162,13 @@ static void sculpt_update_object(
   }
 
   if (is_paint_tool) {
+    if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+      /* Ensure pbvh nodes have loop indices; the sculpt undo system
+       * needs them for color attributes.
+       */
+      BKE_pbvh_ensure_node_loops(ss->pbvh);
+    }
+
     /*
      * We should rebuild the PBVH_pixels when painting canvas changes.
      *
@@ -2348,7 +2359,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
   int ret = 0;
 
   const float *paint_mask = static_cast<const float *>(
@@ -2361,12 +2372,11 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
-    int i, j;
 
     gmask = static_cast<GridPaintMask *>(
         CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, me->totloop));
 
-    for (i = 0; i < me->totloop; i++) {
+    for (int i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
 
       gpm->level = level;
@@ -2374,30 +2384,29 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
           MEM_callocN(sizeof(float) * gridarea, "GridPaintMask.data"));
     }
 
-    /* if vertices already have mask, copy into multires data */
+    /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
-      for (i = 0; i < me->totpoly; i++) {
+      for (const int i : polys.index_range()) {
         const MPoly &poly = polys[i];
-        float avg = 0;
 
-        /* mask center */
-        for (j = 0; j < poly.totloop; j++) {
-          const MLoop *l = &loops[poly.loopstart + j];
-          avg += paint_mask[l->v];
+        /* Mask center. */
+        float avg = 0.0f;
+        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+          avg += paint_mask[vert];
         }
         avg /= float(poly.totloop);
 
-        /* fill in multires mask corner */
-        for (j = 0; j < poly.totloop; j++) {
-          GridPaintMask *gpm = &gmask[poly.loopstart + j];
-          const MLoop *l = &loops[poly.loopstart + j];
-          const MLoop *prev = ME_POLY_LOOP_PREV(loops, &poly, j);
-          const MLoop *next = ME_POLY_LOOP_NEXT(loops, &poly, j);
+        /* Fill in multires mask corner. */
+        for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
+          GridPaintMask *gpm = &gmask[corner];
+          const int vert = corner_verts[corner];
+          const int prev = corner_verts[blender::bke::mesh::poly_corner_prev(poly, vert)];
+          const int next = corner_verts[blender::bke::mesh::poly_corner_next(poly, vert)];
 
           gpm->data[0] = avg;
-          gpm->data[1] = (paint_mask[l->v] + paint_mask[next->v]) * 0.5f;
-          gpm->data[2] = (paint_mask[l->v] + paint_mask[prev->v]) * 0.5f;
-          gpm->data[3] = paint_mask[l->v];
+          gpm->data[1] = (paint_mask[vert] + paint_mask[next]) * 0.5f;
+          gpm->data[2] = (paint_mask[vert] + paint_mask[prev]) * 0.5f;
+          gpm->data[3] = paint_mask[vert];
         }
       }
     }
@@ -2621,7 +2630,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
 
   if (!ss->pmap && pbvh) {
     ss->pmap = BKE_pbvh_get_pmap(pbvh);
@@ -2640,18 +2649,17 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
     float(*vert_cos)[3] = BKE_mesh_vert_positions_for_write(me);
     const Span<MPoly> polys = me->polys();
-    const Span<MLoop> loops = me->loops();
 
     MLoopTri *looptri = static_cast<MLoopTri *>(
         MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
 
-    blender::bke::mesh::looptris_calc(positions, polys, loops, {looptri, looptris_num});
+    blender::bke::mesh::looptris_calc(positions, polys, corner_verts, {looptri, looptris_num});
     BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
 
     BKE_pbvh_build_mesh(pbvh,
                         me,
                         me->polys().data(),
-                        me->loops().data(),
+                        corner_verts.data(),
                         vert_cos,
                         ss->msculptverts,
                         me->totvert,
@@ -2787,16 +2795,17 @@ static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totve
                                         ss->face_sets,
                                         ss->hide_poly,
                                         ss->vert_positions,
-                                        ss->edges,
-                                        ss->loops,
-                                        ss->polys,
+                                        ss->edges.data(),
+                                        ss->corner_verts.data(),
+                                        ss->corner_edges.data(),
+                                        ss->polys.data(),
                                         ss->msculptverts,
                                         ss->pmap->pmap,
                                         vertex,
                                         ss->sharp_edge,
                                         ss->seam_edge);
 
-    // can't fully update boundary here, so still flag for update
+    /* Can't fully update boundary here, so still flag for update. */
     BKE_sculpt_boundary_flag_update(ss, vertex);
   }
 }
@@ -2957,6 +2966,29 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   return pbvh;
 }
 
+PBVH *BKE_object_sculpt_pbvh_get(Object *object)
+{
+  if (!object->sculpt) {
+    return nullptr;
+  }
+  return object->sculpt->pbvh;
+}
+
+bool BKE_object_sculpt_use_dyntopo(const Object *object)
+{
+  return object->sculpt && object->sculpt->bm;
+}
+
+void BKE_object_sculpt_dyntopo_smooth_shading_set(Object *object, const bool value)
+{
+  object->sculpt->bm_smooth_shading = value;
+}
+
+void BKE_object_sculpt_fast_draw_set(Object *object, const bool value)
+{
+  object->sculpt->fast_draw = value;
+}
+
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
   CCGKey key;
@@ -3062,8 +3094,8 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
 
   CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
   CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int badmask = CD_MASK_MLOOP | CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX |
-                CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+  int badmask = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE |
+                CD_MASK_MFACE;
 
   for (int i = 0; i < 4; i++) {
     Vector<CustomDataLayer *> newlayers;

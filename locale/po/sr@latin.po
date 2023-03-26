@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -9227,6 +9227,10 @@ msgstr "Vrste ručke"
 
 msgid "Weight of the point"
 msgstr "Težina tačke"
+
+
+msgid "Active Point"
+msgstr "Aktivna tačka"
 
 
 msgid "Alignment"
@@ -20912,10 +20916,6 @@ msgstr "Predefinisane kamere"
 
 msgid "2D Cursor"
 msgstr "2D kursor"
-
-
-msgid "Active Point"
-msgstr "Aktivna tačka"
 
 
 msgid "Footage Settings"

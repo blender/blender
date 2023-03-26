@@ -786,11 +786,12 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
 
   /* Set the texmap name. */
   pxr::UsdShadeInput varname_input = usd_shader.GetInput(usdtokens::varname);
-  
+
   /* First check if the shader's "varname" input is connected to another source,
    * and use that instead if so. */
   if (varname_input) {
-    for (const pxr::UsdShadeConnectionSourceInfo& source_info : varname_input.GetConnectedSources()) {
+    for (const pxr::UsdShadeConnectionSourceInfo &source_info :
+         varname_input.GetConnectedSources()) {
       pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
       pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
       if (secondary_varname_input) {
@@ -799,7 +800,7 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
       }
     }
   }
-  
+
   if (varname_input) {
     pxr::VtValue varname_val;
     /* The varname input may be a string or TfToken, so just cast it to a string.

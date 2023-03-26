@@ -39,7 +39,6 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat *format = get_sculpt_data_format();
 
-  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_pdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->pdata;
 
@@ -56,7 +55,6 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   };
 
   gpuSculptData *vbo_data = (gpuSculptData *)GPU_vertbuf_get_data(vbo);
-  const MLoop *loops = (const MLoop *)CustomData_get_layer(cd_ldata, CD_MLOOP);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     int cd_mask_ofs = CustomData_get_offset(cd_vdata, CD_PAINT_MASK);
@@ -92,7 +90,7 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
       for (int l = 0; l < poly.totloop; l++) {
         float v_mask = 0.0f;
         if (cd_mask) {
-          v_mask = cd_mask[loops[mp_loop].v];
+          v_mask = cd_mask[mr->corner_verts[mp_loop]];
         }
         vbo_data->mask = v_mask;
 
@@ -131,7 +129,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
 
   const Span<MPoly> coarse_polys = coarse_mesh->polys();
-  const Span<MLoop> coarse_loops = coarse_mesh->loops();
+  const Span<int> coarse_corner_verts = coarse_mesh->corner_verts();
 
   if (cd_mask) {
     GPUVertFormat mask_format = {0};
@@ -147,8 +145,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
       for (int loop_index = poly.loopstart; loop_index < poly.loopstart + poly.totloop;
            loop_index++) {
-        const MLoop *ml = &coarse_loops[loop_index];
-        *v_mask++ = cd_mask[ml->v];
+        *v_mask++ = cd_mask[coarse_corner_verts[loop_index]];
       }
     }
 

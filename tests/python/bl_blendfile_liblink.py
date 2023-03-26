@@ -248,8 +248,8 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
 
         assert material.users == 2
-        # Currently linked data which has no more local user never gets reset to indirectly linked status.
-        assert material.is_library_indirect
+        # Currently linked data with 'fake user' set are considered as directly linked data.
+        assert not material.is_library_indirect
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
@@ -264,9 +264,8 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert material.library is not None
         assert material.use_fake_user is True
         assert material.users == 2  # Fake user is not cleared when linking.
-        # Currently even re-reading the .blend file will not properly reset tag for indirectly linked data,
-        # if their reference was written in the .blend file.
-        assert material.is_library_indirect
+        # Currently linked data with 'fake user' set are considered as directly linked data.
+        assert not material.is_library_indirect
 
         assert mesh.library is not None
         assert mesh.use_fake_user is False

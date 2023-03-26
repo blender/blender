@@ -20,6 +20,10 @@ endif()
 get_property(_test_libs GLOBAL PROPERTY BLENDER_TEST_LIBS)
 if(WIN32 OR APPLE)
   # Windows and macOS set target_link_options after target creation.
+  #
+  # Still need to ensure dependency between the test libraries and the blender_test binary, so that
+  # the latter one is re-linked when the test library is re-compiled.
+  list(APPEND TEST_LIBS ${_test_libs})
 elseif(UNIX)
   list(APPEND TEST_LIBS "-Wl,--whole-archive" ${_test_libs} "-Wl,--no-whole-archive")
 else()

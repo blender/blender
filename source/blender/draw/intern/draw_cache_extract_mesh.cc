@@ -75,11 +75,11 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_LEDGE) && *(&extractor->iter_ledge_bm + is_mesh)) {
+      if ((iter_type & MR_ITER_LOOSE_EDGE) && *(&extractor->iter_loose_edge_bm + is_mesh)) {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_LVERT) && *(&extractor->iter_lvert_bm + is_mesh)) {
+      if ((iter_type & MR_ITER_LOOSE_VERT) && *(&extractor->iter_loose_vert_bm + is_mesh)) {
         result.append(data);
         continue;
       }
@@ -312,9 +312,9 @@ static void extract_range_iter_poly_mesh(void *__restrict userdata,
   }
 }
 
-static void extract_range_iter_ledge_bm(void *__restrict userdata,
-                                        const int iter,
-                                        const TaskParallelTLS *__restrict tls)
+static void extract_range_iter_loose_edge_bm(void *__restrict userdata,
+                                             const int iter,
+                                             const TaskParallelTLS *__restrict tls)
 {
   void *extract_data = tls->userdata_chunk;
 
@@ -323,14 +323,14 @@ static void extract_range_iter_ledge_bm(void *__restrict userdata,
   const int ledge_index = data->loose_elems[iter];
   const BMEdge *eed = ((const BMEdge **)data->elems)[ledge_index];
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_ledge_bm(
+    run_data.extractor->iter_loose_edge_bm(
         mr, eed, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
-static void extract_range_iter_ledge_mesh(void *__restrict userdata,
-                                          const int iter,
-                                          const TaskParallelTLS *__restrict tls)
+static void extract_range_iter_loose_edge_mesh(void *__restrict userdata,
+                                               const int iter,
+                                               const TaskParallelTLS *__restrict tls)
 {
   void *extract_data = tls->userdata_chunk;
 
@@ -339,14 +339,14 @@ static void extract_range_iter_ledge_mesh(void *__restrict userdata,
   const int ledge_index = data->loose_elems[iter];
   const MEdge *edge = &((const MEdge *)data->elems)[ledge_index];
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_ledge_mesh(
+    run_data.extractor->iter_loose_edge_mesh(
         mr, edge, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
-static void extract_range_iter_lvert_bm(void *__restrict userdata,
-                                        const int iter,
-                                        const TaskParallelTLS *__restrict tls)
+static void extract_range_iter_loose_vert_bm(void *__restrict userdata,
+                                             const int iter,
+                                             const TaskParallelTLS *__restrict tls)
 {
   void *extract_data = tls->userdata_chunk;
 
@@ -355,21 +355,21 @@ static void extract_range_iter_lvert_bm(void *__restrict userdata,
   const int lvert_index = data->loose_elems[iter];
   const BMVert *eve = ((const BMVert **)data->elems)[lvert_index];
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_lvert_bm(
+    run_data.extractor->iter_loose_vert_bm(
         mr, eve, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
-static void extract_range_iter_lvert_mesh(void *__restrict userdata,
-                                          const int iter,
-                                          const TaskParallelTLS *__restrict tls)
+static void extract_range_iter_loose_vert_mesh(void *__restrict userdata,
+                                               const int iter,
+                                               const TaskParallelTLS *__restrict tls)
 {
   void *extract_data = tls->userdata_chunk;
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_lvert_mesh(
+    run_data.extractor->iter_loose_vert_mesh(
         mr, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
@@ -396,16 +396,16 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       func = is_mesh ? extract_range_iter_poly_mesh : extract_range_iter_poly_bm;
       stop = mr->poly_len;
       break;
-    case MR_ITER_LEDGE:
-      range_data.loose_elems = mr->ledges;
+    case MR_ITER_LOOSE_EDGE:
+      range_data.loose_elems = mr->loose_edges.data();
       range_data.elems = is_mesh ? mr->edges.data() : (void *)mr->bm->etable;
-      func = is_mesh ? extract_range_iter_ledge_mesh : extract_range_iter_ledge_bm;
+      func = is_mesh ? extract_range_iter_loose_edge_mesh : extract_range_iter_loose_edge_bm;
       stop = mr->edge_loose_len;
       break;
-    case MR_ITER_LVERT:
-      range_data.loose_elems = mr->lverts;
+    case MR_ITER_LOOSE_VERT:
+      range_data.loose_elems = mr->loose_verts.data();
       range_data.elems = is_mesh ? mr->vert_positions.data() : (void *)mr->bm->vtable;
-      func = is_mesh ? extract_range_iter_lvert_mesh : extract_range_iter_lvert_bm;
+      func = is_mesh ? extract_range_iter_loose_vert_mesh : extract_range_iter_loose_vert_bm;
       stop = mr->vert_loose_len;
       break;
     default:
@@ -442,11 +442,13 @@ static void extract_task_range_run(void *__restrict taskdata)
   if (iter_type & MR_ITER_POLY) {
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_POLY, is_mesh, &settings);
   }
-  if (iter_type & MR_ITER_LEDGE) {
-    extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LEDGE, is_mesh, &settings);
+  if (iter_type & MR_ITER_LOOSE_EDGE) {
+    extract_task_range_run_iter(
+        data->mr, data->extractors, MR_ITER_LOOSE_EDGE, is_mesh, &settings);
   }
-  if (iter_type & MR_ITER_LVERT) {
-    extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LVERT, is_mesh, &settings);
+  if (iter_type & MR_ITER_LOOSE_VERT) {
+    extract_task_range_run_iter(
+        data->mr, data->extractors, MR_ITER_LOOSE_VERT, is_mesh, &settings);
   }
 
   extract_finish(data->mr, data->cache, *data->extractors, userdata_chunk);
@@ -857,7 +859,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
 
   mesh_render_data_update_looptris(mr, MR_ITER_LOOPTRI, MR_DATA_LOOPTRI);
   mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
-  mesh_render_data_update_loose_geom(mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
+  mesh_render_data_update_loose_geom(
+      mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

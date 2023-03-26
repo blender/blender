@@ -117,7 +117,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
   BKE_mesh_vert_loop_map_create(&vert_to_loop,
                                 &vert_map_mem,
                                 me->polys().data(),
-                                me->loops().data(),
+                                me->corner_verts().data(),
                                 me->totvert,
                                 me->totpoly,
                                 me->totloop);

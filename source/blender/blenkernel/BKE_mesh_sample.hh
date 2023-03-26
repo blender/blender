@@ -128,7 +128,7 @@ int sample_surface_points_projected(
     Vector<float3> &r_positions);
 
 float3 compute_bary_coord_in_triangle(Span<float3> vert_positions,
-                                      Span<MLoop> loops,
+                                      Span<int> corner_verts,
                                       const MLoopTri &looptri,
                                       const float3 &position);
 

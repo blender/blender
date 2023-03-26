@@ -130,6 +130,11 @@ typedef enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
   /** Ability to access window positions & move them. */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+  /**
+   * The windowing system supports a separate primary clipboard
+   * (typically set when interactively selecting text).
+   */
+  WM_CAPABILITY_PRIMARY_CLIPBOARD = (1 << 2),
 } eWM_CapabilitiesFlag;
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);

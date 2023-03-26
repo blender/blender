@@ -178,8 +178,8 @@ if(NOT MSVC_CLANG)
 endif()
 
 if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
-    message(WARNING "Disabling sccache, sccache is not supported with msbuild")
-    set(WITH_WINDOWS_SCCACHE OFF)
+  message(WARNING "Disabling sccache, sccache is not supported with msbuild")
+  set(WITH_WINDOWS_SCCACHE OFF)
 endif()
 
 # Debug Symbol format

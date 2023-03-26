@@ -1164,13 +1164,19 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
       OperationKey transform_key(
           &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
       add_relation(point_cache_key, transform_key, "Point Cache -> Rigid Body");
-      /* Manual changes to effectors need to invalidate simulation. */
-      OperationKey rigidbody_rebuild_key(
-          &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
-      add_relation(rigidbody_rebuild_key,
-                   point_cache_key,
-                   "Rigid Body Rebuild -> Point Cache Reset",
-                   RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+      /* Manual changes to effectors need to invalidate simulation.
+       *
+       * Don't add this relation for the render pipeline dependency graph as it does not contain
+       * rigid body simulation. Good thing is that there are no user edits in such dependency
+       * graph, so the relation is not really needed in it. */
+      if (!graph_->is_render_pipeline_depsgraph) {
+        OperationKey rigidbody_rebuild_key(
+            &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
+        add_relation(rigidbody_rebuild_key,
+                     point_cache_key,
+                     "Rigid Body Rebuild -> Point Cache Reset",
+                     RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+      }
     }
     else {
       flag = FLAG_GEOMETRY;

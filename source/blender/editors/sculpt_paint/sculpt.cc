@@ -131,11 +131,11 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
 
     case PBVH_FACES:
     case PBVH_GRIDS: {
-      const MPoly *mp = ss->polys + face.i;
+      const MPoly *mp = &ss->polys[face.i];
 
       no = blender::bke::mesh::poly_normal_calc(
           {reinterpret_cast<float3 *>(ss->vert_positions), ss->totvert},
-          {ss->loops + mp->loopstart, mp->totloop});
+          ss->corner_edges.slice(mp->loopstart, mp->totloop));
       break;
     }
     default: /* Failed. */
@@ -751,12 +751,11 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
           continue;
         }
 
-        const MPoly *mp = ss->polys + poly_index;
-        const MLoop *ml = ss->loops + mp->loopstart;
+        const MPoly *mp = &ss->polys[poly_index];
+        const int *mc = &ss->corner_verts[mp->loopstart];
 
-        for (int k = 0; k < mp->totloop; k++, ml++) {
-          PBVHVertRef vertex2 = {ml->v};
-          BKE_sculpt_boundary_flag_update(ss, vertex2);
+        for (int k = 0; k < mp->totloop; k++, mc++) {
+          BKE_sculpt_boundary_flag_update(ss, BKE_pbvh_make_vref(*mc));
         }
 
         ss->face_sets[poly_index] = face_set;
@@ -1018,6 +1017,37 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vert
   return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
 
+/**
+ * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
+ * in the base mesh are equal.
+ */
+static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
+{
+  const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
+  int p1 = -1, p2 = -1;
+  for (int i = 0; i < vert_map->count; i++) {
+    const MPoly &poly = ss->polys[vert_map->indices[i]];
+    for (int l = 0; l < poly.totloop; l++) {
+      if (ss->corner_verts[poly.loopstart + l] == v2) {
+        if (p1 == -1) {
+          p1 = vert_map->indices[i];
+          break;
+        }
+
+        if (p2 == -1) {
+          p2 = vert_map->indices[i];
+          break;
+        }
+      }
+    }
+  }
+
+  if (p1 != -1 && p2 != -1) {
+    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
+  }
+  return true;
+}
+
 int SCULPT_face_set_next_available_get(SculptSession *ss)
 {
   if (ss->cd_faceset_offset == -1) {
@@ -1220,7 +1250,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   /* length of array is now in len */
 
   for (int i = 0; i < len; i++) {
-    const MEdge *e = ss->edges + edges[i];
+    const MEdge *e = &ss->edges[edges[i]];
     int v2 = e->v1 == vertex.i ? e->v2 : e->v1;
 
     sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v2), BKE_pbvh_make_eref(edges[i]), v2);
@@ -1412,7 +1442,13 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->loops, ss->polys, &v1, &v2);
+          ss->subdiv_ccg,
+          &coord,
+          ss->corner_verts.data(),
+          ss->corner_verts.size(),
+          ss->polys.data(),
+          &v1,
+          &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
@@ -6956,6 +6992,7 @@ struct SculptTopologyIDFloodFillData {
 
 void SCULPT_boundary_info_ensure(Object *object)
 {
+  using namespace blender;
   SculptSession *ss = object->sculpt;
 
   /* PBVH_BMESH now handles boundaries itself. */
@@ -6966,7 +7003,7 @@ void SCULPT_boundary_info_ensure(Object *object)
   Mesh *base_mesh = BKE_mesh_from_object(object);
   const blender::Span<MEdge> edges = base_mesh->edges();
   const blender::Span<MPoly> polys = base_mesh->polys();
-  const blender::Span<MLoop> loops = base_mesh->loops();
+  const Span<int> corner_edges = base_mesh->corner_edges();
 
   ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
   int *adjacent_faces_edge_count = static_cast<int *>(
@@ -6975,8 +7012,8 @@ void SCULPT_boundary_info_ensure(Object *object)
   for (const int p : polys.index_range()) {
     const MPoly &poly = polys[p];
     for (int l = 0; l < poly.totloop; l++) {
-      const MLoop *loop = &loops[l + poly.loopstart];
-      adjacent_faces_edge_count[loop->e]++;
+      const int edge_i = corner_edges[poly.loopstart + l];
+      adjacent_faces_edge_count[edge_i]++;
     }
   }
 
@@ -6998,9 +7035,9 @@ void SCULPT_ensure_epmap(SculptSession *ss)
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->totedges,
-                                  ss->polys,
+                                  ss->polys.data(),
                                   ss->totfaces,
-                                  ss->loops,
+                                  ss->corner_edges.data(),
                                   ss->totloops);
   }
 }

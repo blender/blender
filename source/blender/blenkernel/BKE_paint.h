@@ -46,7 +46,6 @@ struct Image;
 struct ImagePool;
 struct ImageUser;
 struct ListBase;
-struct MLoop;
 struct MLoopTri;
 struct Main;
 struct Mesh;
@@ -61,6 +60,7 @@ struct PaletteColor;
 struct Scene;
 struct StrokeCache;
 struct Sculpt;
+struct SculptSession;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -735,7 +735,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *detail_directions; /* Stroke only. */
 } SculptAttributePointers;
 
-typedef struct SculptSession {
+#ifdef __cplusplus
+struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
     bool active;
@@ -750,9 +751,10 @@ typedef struct SculptSession {
   int temp_vdata_elems, temp_pdata_elems;
 
   float (*vert_positions)[3];
-  const struct MEdge *edges;
-  const struct MLoop *loops;
-  const struct MPoly *polys;
+  blender::Span<MEdge> edges;
+  blender::Span<MPoly> polys;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
 
   const int *material_index;
 
@@ -989,7 +991,10 @@ typedef struct SculptSession {
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 
   bool hard_edge_mode;
-} SculptSession;
+};
+#else
+struct SculptSession;
+#endif
 
 typedef enum eSculptBoundary {
   SCULPT_BOUNDARY_NONE = 0,
@@ -1023,7 +1028,7 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-int BKE_sculptsession_vertex_count(const SculptSession *ss);
+int BKE_sculptsession_vertex_count(const struct SculptSession *ss);
 
 void BKE_sculpt_ensure_idmap(struct Object *ob);
 
@@ -1070,7 +1075,7 @@ SculptAttribute *BKE_sculptsession_attr_layer_get(struct Object *ob,
 bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptAttribute *scl);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
-int BKE_sculptsession_get_totvert(const SculptSession *ss);
+int BKE_sculptsession_get_totvert(const struct SculptSession *ss);
 
 void BKE_sculptsession_ignore_uvs_set(struct Object *ob, bool value);
 void BKE_sculptsession_free_attribute_refs(struct Object *ob);
@@ -1136,7 +1141,7 @@ bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct Regio
 
 char BKE_get_fset_boundary_symflag(struct Object *object);
 
-bool BKE_sculpt_has_persistent_base(SculptSession *ss);
+bool BKE_sculpt_has_persistent_base(struct SculptSession *ss);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
@@ -1157,6 +1162,12 @@ enum {
 bool BKE_object_attributes_active_color_fill(struct Object *ob,
                                              const float fill_color[4],
                                              bool only_selected);
+
+/** C accessor for #Object::sculpt::pbvh. */
+struct PBVH *BKE_object_sculpt_pbvh_get(struct Object *object);
+bool BKE_object_sculpt_use_dyntopo(const struct Object *object);
+void BKE_object_sculpt_dyntopo_smooth_shading_set(struct Object *object, bool value);
+void BKE_object_sculpt_fast_draw_set(struct Object *object, bool value);
 
 /* paint_canvas.cc */
 

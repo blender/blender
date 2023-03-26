@@ -17,7 +17,6 @@ extern "C" {
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
-struct MLoop;
 struct MLoopTri;
 struct MVertTri;
 struct Mesh;
@@ -63,7 +62,7 @@ void BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
  * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
  */
 void BKE_mesh_runtime_verttri_from_looptri(struct MVertTri *r_verttri,
-                                           const struct MLoop *mloop,
+                                           const int *corner_verts,
                                            const struct MLoopTri *looptri,
                                            int looptri_num);
 

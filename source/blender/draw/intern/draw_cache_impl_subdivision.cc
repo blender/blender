@@ -2188,8 +2188,8 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
 
 void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cache)
 {
-  const int coarse_loose_vert_len = cache->loose_geom.vert_len;
-  const int coarse_loose_edge_len = cache->loose_geom.edge_len;
+  const int coarse_loose_vert_len = cache->loose_geom.verts.size();
+  const int coarse_loose_edge_len = cache->loose_geom.edges.size();
 
   if (coarse_loose_vert_len == 0 && coarse_loose_edge_len == 0) {
     /* Nothing to do. */

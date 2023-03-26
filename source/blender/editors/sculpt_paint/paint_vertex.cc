@@ -1243,7 +1243,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 
   Mesh *me = (Mesh *)ob->data;
   const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const Span<int> corner_verts = me->corner_verts();
 
   if (gmap->vert_to_loop == nullptr) {
     gmap->vert_map_mem = nullptr;
@@ -1252,15 +1252,15 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
     gmap->vert_to_poly = nullptr;
     BKE_mesh_vert_loop_map_create(&gmap->vert_to_loop,
                                   &gmap->vert_map_mem,
-                                  me->polys().data(),
-                                  me->loops().data(),
+                                  polys.data(),
+                                  corner_verts.data(),
                                   me->totvert,
                                   me->totpoly,
                                   me->totloop);
     BKE_mesh_vert_poly_map_create(&gmap->vert_to_poly,
                                   &gmap->poly_map_mem,
-                                  me->polys().data(),
-                                  me->loops().data(),
+                                  polys.data(),
+                                  corner_verts.data(),
                                   me->totvert,
                                   me->totpoly,
                                   me->totloop);
@@ -1974,7 +1974,8 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
        * Otherwise, take the current vert. */
-      const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
+      const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                      vd.vert_indices[vd.i];
       const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
       /* If the vertex is selected */
       if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
@@ -1988,8 +1989,8 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
           total_hit_loops += poly.totloop;
           for (int k = 0; k < poly.totloop; k++) {
             const int l_index = poly.loopstart + k;
-            const MLoop *ml = &ss->loops[l_index];
-            weight_final += data->wpd->precomputed_weight[ml->v];
+            const int vert_i = ss->corner_verts[l_index];
+            weight_final += data->wpd->precomputed_weight[vert_i];
           }
         }
 
@@ -2071,7 +2072,8 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
       if (sculpt_brush_test_sq_fn(&test, vd.co)) {
         /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
          * Otherwise, take the current vert. */
-        const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
         const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
         const float3 &mv_curr = ss->vert_positions[v_index];
 
@@ -2096,9 +2098,9 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
             for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
               const int p_index = gmap->vert_to_poly[v_index].indices[j];
               const MPoly &poly = ss->polys[p_index];
-              const MLoop *ml_other = &ss->loops[poly.loopstart];
-              for (int k = 0; k < poly.totloop; k++, ml_other++) {
-                const uint v_other_index = ml_other->v;
+              for (int k = 0; k < poly.totloop; k++) {
+                const int other_corner_i = poly.loopstart + k;
+                const int v_other_index = ss->corner_verts[other_corner_i];
                 if (v_other_index != v_index) {
                   const float3 &mv_other = ss->vert_positions[v_other_index];
 
@@ -2180,7 +2182,8 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
       /* NOTE: grids are 1:1 with corners (aka loops).
        * For multires, take the vert whose loop corresponds to the current grid.
        * Otherwise, take the current vert. */
-      const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
+      const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                      vd.vert_indices[vd.i];
       const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
       /* If the vertex is selected */
@@ -2250,7 +2253,8 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(void *__restrict userdata,
                                                       1.0f;
       if (angle_cos > 0.0 &&
           BKE_brush_curve_strength(data->brush, sqrtf(test.dist), cache->radius) > 0.0) {
-        const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
 
         /* If the vertex is selected. */
         if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
@@ -3003,7 +3007,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
         if (sculpt_brush_test_sq_fn(&test, vd.co)) {
           /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
            * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v :
+          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                           vd.vert_indices[vd.i];
           const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
@@ -3062,7 +3066,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
                 for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                   const int p_index = gmap->vert_to_poly[v_index].indices[j];
                   const int l_index = gmap->vert_to_loop[v_index].indices[j];
-                  BLI_assert(ss->loops[l_index].v == v_index);
+                  BLI_assert(ss->corner_verts[l_index] == v_index);
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
 
@@ -3147,7 +3151,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
         if (sculpt_brush_test_sq_fn(&test, vd.co)) {
           /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
            * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v :
+          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                           vd.vert_indices[vd.i];
           const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
@@ -3177,7 +3181,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                   total_hit_loops += poly.totloop;
                   for (int k = 0; k < poly.totloop; k++) {
                     const uint l_index = poly.loopstart + k;
-                    const uint v_index = ss->loops[l_index].v;
+                    const uint v_index = ss->corner_verts[l_index];
 
                     Color *col = lcol + v_index;
 
@@ -3208,7 +3212,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                 for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                   const int p_index = gmap->vert_to_poly[v_index].indices[j];
 
-                  BLI_assert(ss->loops[gmap->vert_to_loop[v_index].indices[j]].v == v_index);
+                  BLI_assert(ss->corner_verts[gmap->vert_to_loop[v_index].indices[j]] == v_index);
 
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
@@ -3300,7 +3304,7 @@ static void do_vpaint_brush_smear(bContext *C,
           if (sculpt_brush_test_sq_fn(&test, vd.co)) {
             /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
              * Otherwise, take the current vert. */
-            const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v :
+            const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                             vd.vert_indices[vd.i];
             const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
             const float3 &mv_curr = &ss->vert_positions[v_index];
@@ -3332,13 +3336,13 @@ static void do_vpaint_brush_smear(bContext *C,
                 for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                   const int p_index = gmap->vert_to_poly[v_index].indices[j];
                   const int l_index = gmap->vert_to_loop[v_index].indices[j];
-                  BLI_assert(ss->loops[l_index].v == v_index);
+                  BLI_assert(ss->corner_verts[l_index] == v_index);
                   UNUSED_VARS_NDEBUG(l_index);
                   const MPoly &poly = ss->polys[p_index];
                   if (!use_face_sel || select_poly[p_index]) {
-                    const MLoop *ml_other = &ss->loops[poly.loopstart];
-                    for (int k = 0; k < poly.totloop; k++, ml_other++) {
-                      const uint v_other_index = ml_other->v;
+                    for (int k = 0; k < poly.totloop; k++) {
+                      const int other_corner_i = poly.loopstart + k;
+                      const int v_other_index = ss->corner_verts[other_corner_i];
                       if (v_other_index != v_index) {
                         const float3 &mv_other = &ss->vert_positions[v_other_index];
 
@@ -3354,7 +3358,7 @@ static void do_vpaint_brush_smear(bContext *C,
                         int elem_index;
 
                         if constexpr (domain == ATTR_DOMAIN_POINT) {
-                          elem_index = ml_other->v;
+                          elem_index = v_other_index;
                         }
                         else {
                           elem_index = poly.loopstart + k;
@@ -3386,7 +3390,7 @@ static void do_vpaint_brush_smear(bContext *C,
                     else {
                       const int l_index = gmap->vert_to_loop[v_index].indices[j];
                       elem_index = l_index;
-                      BLI_assert(ss->loops[l_index].v == v_index);
+                      BLI_assert(ss->corner_verts[l_index] == v_index);
                     }
 
                     if (!use_face_sel || select_poly[p_index]) {
@@ -3463,7 +3467,7 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v :
+          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                           vd.vert_indices[vd.i];
           if (BKE_brush_curve_strength(brush, 0.0, cache->radius) > 0.0) {
             /* If the vertex is selected for painting. */
@@ -3586,7 +3590,7 @@ static void vpaint_do_draw(bContext *C,
           /* NOTE: Grids are 1:1 with corners (aka loops).
            * For grid based pbvh, take the vert whose loop corresponds to the current grid.
            * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->loops[vd.grid_indices[vd.g]].v :
+          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                           vd.vert_indices[vd.i];
           const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
@@ -3642,7 +3646,7 @@ static void vpaint_do_draw(bContext *C,
                 for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                   const int p_index = gmap->vert_to_poly[v_index].indices[j];
                   const int l_index = gmap->vert_to_loop[v_index].indices[j];
-                  BLI_assert(ss->loops[l_index].v == v_index);
+                  BLI_assert(ss->corner_verts[l_index] == v_index);
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
 
@@ -4114,7 +4118,7 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   for (const int i : polys.index_range()) {
     if (use_face_sel && !select_poly[i]) {
@@ -4124,7 +4128,7 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
 
     int j = 0;
     do {
-      uint vidx = loops[poly.loopstart + j].v;
+      const int vidx = corner_verts[poly.loopstart + j];
 
       if (!(use_vert_sel && !(select_vert[vidx]))) {
         if (domain == ATTR_DOMAIN_CORNER) {

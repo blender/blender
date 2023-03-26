@@ -40,7 +40,7 @@
 }
 
 ##----------------------------------------------------------------------##
-# Python Calls aren't so useful unless we're debugging Python it's self
+# Python Calls aren't so useful unless we're debugging Python itself
 
 # _PyObject_Free
 {

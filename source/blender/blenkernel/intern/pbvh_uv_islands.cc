@@ -38,17 +38,17 @@ static int primitive_get_other_uv_vertex(const MeshData &mesh_data,
                                          const int v1,
                                          const int v2)
 {
-  const Span<MLoop> mesh_loops = mesh_data.loops;
+  const Span<int> corner_verts = mesh_data.corner_verts;
   BLI_assert(ELEM(v1,
-                  mesh_loops[looptri.tri[0]].v,
-                  mesh_loops[looptri.tri[1]].v,
-                  mesh_loops[looptri.tri[2]].v));
+                  corner_verts[looptri.tri[0]],
+                  corner_verts[looptri.tri[1]],
+                  corner_verts[looptri.tri[2]]));
   BLI_assert(ELEM(v2,
-                  mesh_loops[looptri.tri[0]].v,
-                  mesh_loops[looptri.tri[1]].v,
-                  mesh_loops[looptri.tri[2]].v));
+                  corner_verts[looptri.tri[0]],
+                  corner_verts[looptri.tri[1]],
+                  corner_verts[looptri.tri[2]]));
   for (const int loop : looptri.tri) {
-    const int vert = mesh_loops[loop].v;
+    const int vert = corner_verts[loop];
     if (!ELEM(vert, v1, v2)) {
       return vert;
     }
@@ -74,7 +74,7 @@ static bool primitive_has_shared_uv_edge(const Span<float2> uv_map,
 static int get_uv_loop(const MeshData &mesh_data, const MLoopTri &looptri, const int vert)
 {
   for (const int loop : looptri.tri) {
-    if (mesh_data.loops[loop].v == vert) {
+    if (mesh_data.corner_verts[loop] == vert) {
       return loop;
     }
   }
@@ -106,8 +106,8 @@ static void mesh_data_init_edges(MeshData &mesh_data)
     const MLoopTri &tri = mesh_data.looptris[i];
     Vector<int, 3> edges;
     for (int j = 0; j < 3; j++) {
-      int v1 = mesh_data.loops[tri.tri[j]].v;
-      int v2 = mesh_data.loops[tri.tri[(j + 1) % 3]].v;
+      int v1 = mesh_data.corner_verts[tri.tri[j]];
+      int v2 = mesh_data.corner_verts[tri.tri[(j + 1) % 3]];
 
       void **edge_index_ptr;
       int64_t edge_index;
@@ -199,11 +199,11 @@ static void mesh_data_init(MeshData &mesh_data)
 }
 
 MeshData::MeshData(const Span<MLoopTri> looptris,
-                   const Span<MLoop> loops,
+                   const Span<int> corner_verts,
                    const Span<float2> uv_map,
                    const Span<float3> vert_positions)
     : looptris(looptris),
-      loops(loops),
+      corner_verts(corner_verts),
       uv_map(uv_map),
       vert_positions(vert_positions),
       vert_to_edge_map(vert_positions.size()),
@@ -231,7 +231,7 @@ UVVertex::UVVertex()
 }
 
 UVVertex::UVVertex(const MeshData &mesh_data, const int loop)
-    : vertex(mesh_data.loops[loop].v), uv(mesh_data.uv_map[loop])
+    : vertex(mesh_data.corner_verts[loop]), uv(mesh_data.uv_map[loop])
 {
   uv_vertex_init_flags(*this);
 }
@@ -520,18 +520,18 @@ struct FanSegment {
     flags.found = false;
 
     /* Reorder so the first edge starts with the given vertex. */
-    if (mesh_data.loops[primitive->tri[1]].v == vertex) {
+    if (mesh_data.corner_verts[primitive->tri[1]] == vertex) {
       vert_order[0] = 1;
       vert_order[1] = 2;
       vert_order[2] = 0;
     }
-    else if (mesh_data.loops[primitive->tri[2]].v == vertex) {
+    else if (mesh_data.corner_verts[primitive->tri[2]] == vertex) {
       vert_order[0] = 2;
       vert_order[1] = 0;
       vert_order[2] = 1;
     }
     else {
-      BLI_assert(mesh_data.loops[primitive->tri[0]].v == vertex);
+      BLI_assert(mesh_data.corner_verts[primitive->tri[0]] == vertex);
       vert_order[0] = 0;
       vert_order[1] = 1;
       vert_order[2] = 2;
@@ -542,9 +542,9 @@ struct FanSegment {
   {
     std::stringstream ss;
     ss << "# p:" << primitive->poly;
-    ss << " v1:" << mesh_data.loops[primitive->tri[vert_order[0]]].v;
-    ss << " v2:" << mesh_data.loops[primitive->tri[vert_order[1]]].v;
-    ss << " v3:" << mesh_data.loops[primitive->tri[vert_order[2]]].v;
+    ss << " v1:" << mesh_data.corner_verts[primitive->tri[vert_order[0]]];
+    ss << " v2:" << mesh_data.corner_verts[primitive->tri[vert_order[1]]];
+    ss << " v3:" << mesh_data.corner_verts[primitive->tri[vert_order[2]]];
     ss << " uv1:" << uvs[0];
     ss << " uv2:" << uvs[1];
     ss << " uv3:" << uvs[2];
@@ -633,9 +633,9 @@ struct Fan {
   void init_uv_coordinates(const MeshData &mesh_data, UVVertex &uv_vertex)
   {
     for (FanSegment &fan_edge : segments) {
-      int other_v = mesh_data.loops[fan_edge.primitive->tri[fan_edge.vert_order[0]]].v;
+      int other_v = mesh_data.corner_verts[fan_edge.primitive->tri[fan_edge.vert_order[0]]];
       if (other_v == uv_vertex.vertex) {
-        other_v = mesh_data.loops[fan_edge.primitive->tri[fan_edge.vert_order[1]]].v;
+        other_v = mesh_data.corner_verts[fan_edge.primitive->tri[fan_edge.vert_order[1]]];
       }
 
       for (UVEdge *edge : uv_vertex.uv_edges) {
@@ -663,7 +663,7 @@ struct Fan {
   bool contains_vertex_on_outside(const MeshData &mesh_data, const int vertex_index) const
   {
     for (const FanSegment &segment : segments) {
-      int v2 = mesh_data.loops[segment.primitive->tri[segment.vert_order[1]]].v;
+      int v2 = mesh_data.corner_verts[segment.primitive->tri[segment.vert_order[1]]];
       if (vertex_index == v2) {
         return true;
       }
@@ -680,8 +680,8 @@ struct Fan {
   {
     int current_vert = from_vertex;
     for (FanSegment *segment : path) {
-      int v1 = mesh_data.loops[segment->primitive->tri[segment->vert_order[1]]].v;
-      int v2 = mesh_data.loops[segment->primitive->tri[segment->vert_order[2]]].v;
+      int v1 = mesh_data.corner_verts[segment->primitive->tri[segment->vert_order[1]]];
+      int v2 = mesh_data.corner_verts[segment->primitive->tri[segment->vert_order[2]]];
       if (!ELEM(current_vert, v1, v2)) {
         return false;
       }
@@ -711,7 +711,8 @@ struct Fan {
     int index = 0;
     while (true) {
       FanSegment *segment = edge_order[index];
-      int v2 = mesh_data.loops[segment->primitive->tri[segment->vert_order[from_vert_order]]].v;
+      int v2 =
+          mesh_data.corner_verts[segment->primitive->tri[segment->vert_order[from_vert_order]]];
       if (v2 == from_vertex) {
         break;
       }
@@ -722,7 +723,7 @@ struct Fan {
       FanSegment *segment = edge_order[index];
       result.append(segment);
 
-      int v3 = mesh_data.loops[segment->primitive->tri[segment->vert_order[to_vert_order]]].v;
+      int v3 = mesh_data.corner_verts[segment->primitive->tri[segment->vert_order[to_vert_order]]];
       if (v3 == to_vertex) {
         break;
       }
@@ -817,12 +818,12 @@ static void add_uv_primitive_shared_uv_edge(const MeshData &mesh_data,
 
   const int loop_1 = get_uv_loop(mesh_data, looptri, connected_vert_1->vertex);
   vert_template.uv = connected_vert_1->uv;
-  vert_template.vertex = mesh_data.loops[loop_1].v;
+  vert_template.vertex = mesh_data.corner_verts[loop_1];
   UVVertex *vert_1_ptr = island.lookup_or_create(vert_template);
 
   const int loop_2 = get_uv_loop(mesh_data, looptri, connected_vert_2->vertex);
   vert_template.uv = connected_vert_2->uv;
-  vert_template.vertex = mesh_data.loops[loop_2].v;
+  vert_template.vertex = mesh_data.corner_verts[loop_2];
   UVVertex *vert_2_ptr = island.lookup_or_create(vert_template);
 
   UVEdge edge_template;
@@ -1337,7 +1338,7 @@ const UVVertex *UVPrimitive::get_uv_vertex(const MeshData &mesh_data,
                                            const uint8_t mesh_vert_index) const
 {
   const MLoopTri &looptri = mesh_data.looptris[this->primitive_i];
-  const int mesh_vertex = mesh_data.loops[looptri.tri[mesh_vert_index]].v;
+  const int mesh_vertex = mesh_data.corner_verts[looptri.tri[mesh_vert_index]];
   for (const UVEdge *uv_edge : edges) {
     for (const UVVertex *uv_vert : uv_edge->vertices) {
       if (uv_vert->vertex == mesh_vertex) {

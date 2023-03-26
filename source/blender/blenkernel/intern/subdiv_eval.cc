@@ -83,7 +83,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 {
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
   /* Mark vertices which needs new coordinates. */
   /* TODO(sergey): This is annoying to calculate this on every update,
    * maybe it's better to cache this mapping. Or make it possible to have
@@ -91,9 +91,8 @@ static void set_coarse_positions(Subdiv *subdiv,
   BLI_bitmap *vertex_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
     const MPoly &poly = polys[poly_index];
-    for (int corner = 0; corner < poly.totloop; corner++) {
-      const MLoop *loop = &loops[poly.loopstart + corner];
-      BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
+    for (int i = 0; i < poly.totloop; i++) {
+      BLI_BITMAP_ENABLE(vertex_used_map, corner_verts[poly.loopstart + i]);
     }
   }
   /* Use a temporary buffer so we do not upload vertices one at a time to the GPU. */

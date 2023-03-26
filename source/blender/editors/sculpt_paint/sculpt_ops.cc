@@ -361,8 +361,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   if (ob->sculpt != nullptr) {
     BKE_sculptsession_free(ob);
   }
-  BKE_object_sculpt_data_create(ob);
 
+  BKE_object_sculpt_data_create(ob);
   ob->sculpt->mode_type = OB_MODE_SCULPT;
   ob->sculpt->active_face.i = PBVH_REF_NONE;
   ob->sculpt->active_vertex.i = PBVH_REF_NONE;

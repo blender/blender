@@ -676,12 +676,7 @@ ImBuf *imb_loadtarga(const uchar *mem, size_t mem_size, int flags, char colorspa
       cmap[count] = cp_data;
     }
 
-    size = 0;
-    for (int cmap_index = cmap_max - 1; cmap_index > 0; cmap_index >>= 1) {
-      size++;
-    }
-    ibuf->planes = size;
-
+    ibuf->planes = tga.mapbits;
     if (tga.mapbits != 32) { /* Set alpha bits. */
       cmap[0] &= BIG_LONG(0x00ffffffl);
     }

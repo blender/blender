@@ -67,11 +67,11 @@ static void deform_curves(const CurvesGeometry &curves,
   const float4x4 curves_to_surface = math::invert(surface_to_curves);
 
   const Span<float3> surface_positions_old = surface_mesh_old.vert_positions();
-  const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
+  const Span<int> surface_corner_verts_old = surface_mesh_old.corner_verts();
   const Span<MLoopTri> surface_looptris_old = surface_mesh_old.looptris();
 
   const Span<float3> surface_positions_new = surface_mesh_new.vert_positions();
-  const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
+  const Span<int> surface_corner_verts_new = surface_mesh_new.corner_verts();
   const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -102,13 +102,13 @@ static void deform_curves(const CurvesGeometry &curves,
       const int corner_1_new = looptri_new.tri[1];
       const int corner_2_new = looptri_new.tri[2];
 
-      const int vert_0_old = surface_loops_old[corner_0_old].v;
-      const int vert_1_old = surface_loops_old[corner_1_old].v;
-      const int vert_2_old = surface_loops_old[corner_2_old].v;
+      const int vert_0_old = surface_corner_verts_old[corner_0_old];
+      const int vert_1_old = surface_corner_verts_old[corner_1_old];
+      const int vert_2_old = surface_corner_verts_old[corner_2_old];
 
-      const int vert_0_new = surface_loops_new[corner_0_new].v;
-      const int vert_1_new = surface_loops_new[corner_1_new].v;
-      const int vert_2_new = surface_loops_new[corner_2_new].v;
+      const int vert_0_new = surface_corner_verts_new[corner_0_new];
+      const int vert_1_new = surface_corner_verts_new[corner_1_new];
+      const int vert_2_new = surface_corner_verts_new[corner_2_new];
 
       const float3 &normal_0_old = corner_normals_old[corner_0_old];
       const float3 &normal_1_old = corner_normals_old[corner_1_old];

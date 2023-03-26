@@ -15,13 +15,12 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../windowmanager
-  ../../../../extern/fast_float
-  ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
-
+  ../../../../extern/fast_float
+  ../../../../extern/fmtlib/include
 )
 
 set(SRC

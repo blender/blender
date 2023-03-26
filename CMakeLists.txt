@@ -617,10 +617,12 @@ endif()
 
 option(WITH_OPENGL "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
 option(WITH_GPU_BUILDTIME_SHADER_BUILDER "Shader builder is a developer option enabling linting on GLSL during compilation" OFF)
+option(WITH_RENDERDOC "Use Renderdoc API to capture frames" OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GPU_BUILDTIME_SHADER_BUILDER
+  WITH_RENDERDOC
 )
 
 # Vulkan

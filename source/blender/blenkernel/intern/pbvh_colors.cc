@@ -97,12 +97,12 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
       const MPoly &poly = pbvh.polys[i_poly];
       Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + poly.loopstart,
                      poly.totloop};
-      Span<MLoop> loops{pbvh.mloop + poly.loopstart, poly.totloop};
+      Span<int> poly_verts{pbvh.corner_verts + poly.loopstart, poly.totloop};
 
-      for (const int i_loop : IndexRange(poly.totloop)) {
-        if (loops[i_loop].v == index) {
+      for (const int i : poly_verts.index_range()) {
+        if (poly_verts[i] == index) {
           float temp[4];
-          to_float(colors[i_loop], temp);
+          to_float(colors[i], temp);
 
           add_v4_v4(r_color, temp);
           count++;
@@ -131,11 +131,11 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
       const MPoly &poly = pbvh.polys[i_poly];
       MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + poly.loopstart,
                             poly.totloop};
-      Span<MLoop> loops{pbvh.mloop + poly.loopstart, poly.totloop};
+      Span<int> poly_verts{pbvh.corner_verts + poly.loopstart, poly.totloop};
 
-      for (const int i_loop : IndexRange(poly.totloop)) {
-        if (loops[i_loop].v == index) {
-          from_float(color, colors[i_loop]);
+      for (const int i : poly_verts.index_range()) {
+        if (poly_verts[i] == index) {
+          from_float(color, colors[i]);
         }
       }
     }

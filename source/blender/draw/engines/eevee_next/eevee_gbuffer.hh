@@ -18,7 +18,7 @@ namespace blender::eevee {
 class Instance;
 
 /**
- * Fullscreen textures containing geometric and surface data.
+ * Full-screen textures containing geometric and surface data.
  * Used by deferred shading passes. Only one gbuffer is allocated per view
  * and is reused for each deferred layer. This is why there can only be temporary
  * texture inside it.

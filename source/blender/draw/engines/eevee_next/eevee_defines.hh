@@ -110,7 +110,7 @@
 #define GBUF_COLOR_SLOT RBUFS_DIFF_COLOR_SLOT
 
 /* Uniform Buffers. */
-/* Only during prepass. */
+/* Only during pre-pass. */
 #define VELOCITY_CAMERA_PREV_BUF 3
 #define VELOCITY_CAMERA_CURR_BUF 4
 #define VELOCITY_CAMERA_NEXT_BUF 5

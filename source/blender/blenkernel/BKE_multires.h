@@ -24,6 +24,7 @@ struct Object;
 struct Scene;
 struct SubdivCCG;
 
+struct MLoopTri;
 struct MPoly;
 
 /**

@@ -1,5 +1,5 @@
 
-#pragma BLENDER_REQUIRE(common_smaa_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_smaa_lib.glsl)
 
 void main()
 {

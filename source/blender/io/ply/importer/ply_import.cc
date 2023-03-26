@@ -62,28 +62,28 @@ static void skip_space(Span<char> &str)
 static PlyDataTypes type_from_string(Span<char> word)
 {
   StringRef input(word.data(), word.size());
-  if (input == "uchar" || input == "uint8") {
+  if (ELEM(input, "uchar", "uint8")) {
     return PlyDataTypes::UCHAR;
   }
-  if (input == "char" || input == "int8") {
+  if (ELEM(input, "char", "int8")) {
     return PlyDataTypes::CHAR;
   }
-  if (input == "ushort" || input == "uint16") {
+  if (ELEM(input, "ushort", "uint16")) {
     return PlyDataTypes::USHORT;
   }
-  if (input == "short" || input == "int16") {
+  if (ELEM(input, "short", "int16")) {
     return PlyDataTypes::SHORT;
   }
-  if (input == "uint" || input == "uint32") {
+  if (ELEM(input, "uint", "uint32")) {
     return PlyDataTypes::UINT;
   }
-  if (input == "int" || input == "int32") {
+  if (ELEM(input, "int", "int32")) {
     return PlyDataTypes::INT;
   }
-  if (input == "float" || input == "float32") {
+  if (ELEM(input, "float", "float32")) {
     return PlyDataTypes::FLOAT;
   }
-  if (input == "double" || input == "float64") {
+  if (ELEM(input, "double", "float64")) {
     return PlyDataTypes::DOUBLE;
   }
   return PlyDataTypes::NONE;

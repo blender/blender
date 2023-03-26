@@ -33,8 +33,8 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -192,9 +192,9 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     int i3 = (i + 1) % elem->count;
 
     const float *v = ss->vert_positions[vertex.i];
-    const MEdge *e1 = ss->edges + elem->indices[i1];
-    const MEdge *e2 = ss->edges + elem->indices[i2];
-    const MEdge *e3 = ss->edges + elem->indices[i3];
+    const MEdge *e1 = &ss->edges[elem->indices[i1]];
+    const MEdge *e2 = &ss->edges[elem->indices[i2]];
+    const MEdge *e3 = &ss->edges[elem->indices[i3]];
 
     const float *v1 = (unsigned int)vertex.i == e1->v1 ? ss->vert_positions[e1->v2] :
                                                          ss->vert_positions[e1->v1];
@@ -209,7 +209,7 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     float area = tri_voronoi_area(v, v1, v2);
 
     r_ws[i] = (cot1 + cot2);
-    
+
     totarea += area;
 
     if (r_cot1) {
@@ -574,7 +574,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     params.active_shapekey = ob->shapenr;
 
     BM_mesh_bm_from_me(ss->bm, me, &params);
-    
+
     if (ss->pbvh) {
       BKE_sculptsession_update_attr_refs(ob);
       BKE_pbvh_set_bmesh(ss->pbvh, ss->bm);
@@ -892,4 +892,3 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-

@@ -774,7 +774,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       part->clength = 1.0f;
     }
 
-    /* set old pointcaches to have disk cache flag */
+    /* Set old point-caches to have disk cache flag. */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 
 #if 0

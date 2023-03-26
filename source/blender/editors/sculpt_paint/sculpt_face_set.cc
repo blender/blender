@@ -66,6 +66,7 @@
 #include <stdlib.h>
 
 using blender::IndexRange;
+using blender::Span;
 using blender::Vector;
 
 static int sculpt_face_material_get(SculptSession *ss, PBVHFaceRef face)
@@ -235,7 +236,7 @@ static void sculpt_faceset_bm_end(SculptSession *ss, BMesh *bm)
 static int new_fset_apply_curve(SculptSession *ss,
                                 SculptFaceSetDrawData *data,
                                 int new_fset,
-                                float poly_center[3],
+                                float3 poly_center,
                                 float no[3],
                                 SculptBrushTest *test,
                                 CurveMapping *curve,
@@ -316,7 +317,9 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  const Span<float3> positions(
+      reinterpret_cast<const float3 *>(SCULPT_mesh_deformed_positions_get(ss)),
+      SCULPT_vertex_count_get(ss));
   const float test_limit = 0.05f;
   int cd_mask = -1;
 
@@ -348,17 +351,18 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
+  using namespace blender;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap->pmap[vd.index];
       for (int j = 0; j < ss->pmap->pmap[vd.index].count; j++) {
-        const MPoly *p = &ss->polys[vert_map->indices[j]];
+        const MPoly &poly = ss->polys[vert_map->indices[j]];
 
-        float poly_center[3];
-        BKE_mesh_calc_poly_center(
-            &ss->loops[p->loopstart], p->totloop, vert_positions, ss->totvert, poly_center);
+        const float3 poly_center = bke::mesh::poly_center_calc(
+            positions, ss->corner_verts.slice(poly.loopstart, poly.totloop));
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -409,28 +413,28 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             }
           }
 
-          const MLoop *ml = &ss->loops[p->loopstart];
+          const int *corner_verts = &ss->corner_verts[poly.loopstart];
 
-          for (int i = 0; i < p->totloop; i++, ml++) {
-            float *v = vert_positions[ml->v];
+          for (int i = 0; i < poly.totloop; i++) {
+            const float3 &v = positions[corner_verts[i]];
             float fno[3];
 
             *SCULPT_vertex_attr_get<int *>(
-                BKE_pbvh_make_vref(ml->v),
+                BKE_pbvh_make_vref(corner_verts[i]),
                 ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-            copy_v3_v3(fno, ss->vert_normals[ml->v]);
-            float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
+            copy_v3_v3(fno, ss->vert_normals[corner_verts[i]]);
+            float mask = ss->vmask ? ss->vmask[corner_verts[i]] : 0.0f;
 
             const float fade2 = bstrength *
                                 SCULPT_brush_strength_factor(ss,
                                                              brush,
                                                              v,
                                                              sqrtf(test.dist),
-                                                             ss->vert_normals[ml->v],
+                                                             ss->vert_normals[corner_verts[i]],
                                                              fno,
                                                              mask,
-                                                             BKE_pbvh_make_vref((intptr_t)ml->v),
+                                                             BKE_pbvh_make_vref(corner_verts[i]),
                                                              thread_id,
                                                              &automask_data);
 
@@ -1727,18 +1731,19 @@ static void sculpt_face_set_grow(Object *ob,
     return;
   }
 
+  using namespace blender;
+
   Mesh *mesh = BKE_mesh_from_object(ob);
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   for (const int p : polys.index_range()) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
-    const MPoly *c_poly = &polys[p];
-    for (int l = 0; l < c_poly->totloop; l++) {
-      const MLoop *c_loop = &loops[c_poly->loopstart + l];
-      const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
+    const MPoly &c_poly = polys[p];
+    for (const int vert : corner_verts.slice(c_poly.loopstart, c_poly.totloop)) {
+      const MeshElemMap *vert_map = &ss->pmap->pmap[vert];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
         if (neighbor_face_index == p) {
@@ -1858,18 +1863,18 @@ static void sculpt_face_set_shrink(Object *ob,
     return;
   }
 
+  using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
   const blender::Span<MPoly> polys = mesh->polys();
-  const blender::Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
   for (const int p : polys.index_range()) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
-      const MPoly *c_poly = &polys[p];
-      for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &loops[c_poly->loopstart + l];
-        const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
+      const MPoly &c_poly = polys[p];
+      for (const int vert_i : corner_verts.slice(c_poly.loopstart, c_poly.totloop)) {
+        const MeshElemMap *vert_map = &ss->pmap->pmap[vert_i];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];
           if (neighbor_face_index == p) {
@@ -2213,7 +2218,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   MEM_freeN(nodes);
 }
 
-typedef struct FaceSetExtrudeCD {
+struct FaceSetExtrudeCD {
   int active_face_set;
   float cursor_location[3];
   float (*orig_co)[3];
@@ -2222,7 +2227,7 @@ typedef struct FaceSetExtrudeCD {
   int *verts;
   int totvert;
   float start_no[3];
-} FaceSetExtrudeCD;
+};
 
 static void sculpt_bm_mesh_elem_hflag_disable_all(BMesh *bm, char htype, char hflag)
 {
@@ -2714,11 +2719,11 @@ static void island_stack_bmesh_do(
 static void island_stack_mesh_do(
     SculptSession *ss, int fset, PBVHFaceRef face, Vector<PBVHFaceRef> &faces, BLI_bitmap *visit)
 {
-  const MPoly *mp = ss->polys + face.i;
-  const MLoop *ml = ss->loops + mp->loopstart;
+  const MPoly *mp = &ss->polys[face.i];
+  const int *corner_edges = &ss->corner_edges[mp->loopstart];
 
-  for (int i = 0; i < mp->totloop; i++, ml++) {
-    MeshElemMap *ep = ss->epmap + ml->e;
+  for (int i = 0; i < mp->totloop; i++) {
+    MeshElemMap *ep = ss->epmap + corner_edges[i];
 
     for (int j = 0; j < ep->count; j++) {
       int f2 = ep->indices[j];
@@ -2739,9 +2744,9 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->totedges,
-                                  ss->polys,
+                                  ss->polys.data(),
                                   ss->totfaces,
-                                  ss->loops,
+                                  ss->corner_edges.data(),
                                   ss->totloops);
   }
 

@@ -386,9 +386,10 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
     if (ob->sculpt) {
       SCULPT_update_flat_vcol_shading(ob, scene);
 
-      ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
-                                        SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
-      ob->sculpt->fast_draw = ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0);
+      BKE_object_sculpt_fast_draw_set(
+          ob, ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0));
+      BKE_object_sculpt_dyntopo_smooth_shading_set(
+          ob, ((scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) != 0));
     }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

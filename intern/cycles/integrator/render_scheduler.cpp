@@ -1072,7 +1072,7 @@ void RenderScheduler::update_start_resolution_divider()
   }
 
   /* Calculate the maximum resolution divider possible while keeping the long axis of the viewport
-   * above our prefered minimum axis size (128) */
+   * above our preferred minimum axis size (128). */
   const int long_viewport_axis = max(buffer_params_.width, buffer_params_.height);
   const int max_res_divider_for_desired_size = long_viewport_axis / 128;
 

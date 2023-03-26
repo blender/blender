@@ -39,7 +39,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator face_evaluator{face_context, polys.size()};
@@ -65,10 +65,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     Array<const float *, 16> mp_co(poly.totloop);
     Array<float *, 16> mp_uv(poly.totloop);
     for (const int i : IndexRange(poly.totloop)) {
-      const MLoop &ml = loops[poly.loopstart + i];
-      mp_vkeys[i] = ml.v;
-      mp_co[i] = positions[ml.v];
-      mp_uv[i] = uv[poly.loopstart + i];
+      const int corner = poly.loopstart + i;
+      const int vert = corner_verts[corner];
+      mp_vkeys[i] = vert;
+      mp_co[i] = positions[vert];
+      mp_uv[i] = uv[corner];
       mp_pin[i] = false;
       mp_select[i] = false;
     }

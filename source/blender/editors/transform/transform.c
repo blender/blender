@@ -1069,17 +1069,24 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
 
       case TFM_MODAL_SNAP_INV_ON:
-        t->modifiers |= MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
+        if (!(t->modifiers & MOD_SNAP_INVERT)) {
+          t->modifiers |= MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
+          t->redraw |= TREDRAW_HARD;
+        }
         handled = true;
         break;
       case TFM_MODAL_SNAP_INV_OFF:
-        t->modifiers &= ~MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
-        handled = true;
+        if (t->modifiers & MOD_SNAP_INVERT) {
+          t->modifiers &= ~MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
+          t->redraw |= TREDRAW_HARD;
+          handled = true;
+        }
         break;
       case TFM_MODAL_SNAP_TOGGLE:
         t->modifiers ^= MOD_SNAP;
+        transform_snap_flag_from_modifiers_set(t);
         t->redraw |= TREDRAW_HARD;
         handled = true;
         break;
@@ -1645,7 +1652,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
-      RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
+      RNA_boolean_set(op->ptr, "use_snap_project", (t->tsnap.flag & SCE_SNAP_PROJECT) != 0);
       RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
       eSnapTargetOP target = t->tsnap.target_operation;

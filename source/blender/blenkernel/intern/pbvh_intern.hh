@@ -27,7 +27,6 @@ struct CustomData;
 struct PBVHTriBuf;
 
 struct PBVHGPUFormat;
-struct MLoop;
 struct MLoopTri;
 struct BMIdMap;
 struct MPoly;
@@ -95,7 +94,7 @@ struct PBVHNode {
   const int *vert_indices;
   unsigned int uniq_verts, face_verts;
 
-  /* Array of indices into the Mesh's MLoop array.
+  /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
   int *loop_indices;
@@ -194,7 +193,8 @@ struct PBVH {
   bool *hide_poly;
   /** Material indices. Only valid for polygon meshes. */
   const int *material_indices;
-  const MLoop *mloop;
+  const int *corner_verts;
+  const int *corner_edges;
   const MLoopTri *looptri;
   struct MSculptVert *msculptverts;
   CustomData *vdata;
@@ -240,7 +240,7 @@ struct PBVH {
   int cd_faceset_offset;
   int cd_face_area;
   int cd_vcol_offset;
-  
+
   int totuv;
 
   float planes[6][4];
@@ -480,4 +480,3 @@ BLI_INLINE void pbvh_boundary_update_bmesh(PBVH *pbvh, BMVert *v)
   int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
   *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 }
-

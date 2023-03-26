@@ -442,6 +442,13 @@ void ColorSpaceManager::free_memory()
 #endif
 }
 
+void ColorSpaceManager::init_fallback_config()
+{
+#ifdef WITH_OCIO
+  OCIO::SetCurrentConfig(OCIO::Config::CreateRaw());
+#endif
+}
+
 /* Template instantiations so we don't have to inline functions. */
 template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool, bool);
 template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool, bool);

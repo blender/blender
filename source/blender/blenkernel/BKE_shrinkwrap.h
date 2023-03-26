@@ -75,6 +75,7 @@ typedef struct ShrinkwrapTreeData {
 
   const struct MPoly *polys;
   const float (*vert_normals)[3];
+  const int *corner_edges;
   const float (*poly_normals)[3];
   const bool *sharp_faces;
   const float (*clnors)[3];

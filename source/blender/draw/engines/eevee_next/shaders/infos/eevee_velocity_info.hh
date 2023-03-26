@@ -6,7 +6,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Surface Velocity
  *
- * Combined with the depth prepass shader.
+ * Combined with the depth pre-pass shader.
  * Outputs the view motion vectors for animated objects.
  * \{ */
 

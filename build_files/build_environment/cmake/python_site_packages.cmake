@@ -38,15 +38,6 @@ ExternalProject_Add(external_python_site_packages
   --no-binary :all:
 )
 
-if(USE_PIP_NUMPY)
-  # Use only wheel (and not build from source) to stop NumPy from linking against buggy
-  # Accelerate framework backend on macOS. Official wheels are built with OpenBLAS.
-  ExternalProject_Add_Step(external_python_site_packages after_install
-    COMMAND ${PYTHON_BINARY} -m pip install --no-cache-dir numpy==${NUMPY_VERSION} --only-binary :all:
-    DEPENDEES install
-  )
-endif()
-
 add_dependencies(
   external_python_site_packages
   external_python

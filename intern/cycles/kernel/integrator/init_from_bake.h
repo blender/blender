@@ -204,7 +204,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     ray.time = 0.5f;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
-    integrator_state_write_ray(kg, state, &ray);
+    integrator_state_write_ray(state, &ray);
 
     /* Setup next kernel to execute. */
     integrator_path_init(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
@@ -299,7 +299,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     ray.dD = differential_zero_compact();
 
     /* Write ray. */
-    integrator_state_write_ray(kg, state, &ray);
+    integrator_state_write_ray(state, &ray);
 
     /* Setup and write intersection. */
     Intersection isect ccl_optional_struct_init;
@@ -309,7 +309,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     isect.v = v;
     isect.t = 1.0f;
     isect.type = PRIMITIVE_TRIANGLE;
-    integrator_state_write_isect(kg, state, &isect);
+    integrator_state_write_isect(state, &isect);
 
     /* Setup next kernel to execute. */
     const bool use_caustics = kernel_data.integrator.use_caustics &&

@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later. */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -15,14 +15,14 @@ namespace blender::bke::mesh {
  * \{ */
 
 /** Calculate the up direction for the polygon, depending on its winding direction. */
-float3 poly_normal_calc(Span<float3> vert_positions, Span<MLoop> poly_loops);
+float3 poly_normal_calc(Span<float3> vert_positions, Span<int> poly_verts);
 
 /**
  * Calculate tessellation into #MLoopTri which exist only for this purpose.
  */
 void looptris_calc(Span<float3> vert_positions,
                    Span<MPoly> polys,
-                   Span<MLoop> loops,
+                   Span<int> corner_verts,
                    MutableSpan<MLoopTri> looptris);
 /**
  * A version of #looptris_calc which takes pre-calculated polygon normals
@@ -33,19 +33,19 @@ void looptris_calc(Span<float3> vert_positions,
  */
 void looptris_calc_with_normals(Span<float3> vert_positions,
                                 Span<MPoly> polys,
-                                Span<MLoop> loops,
+                                Span<int> corner_verts,
                                 Span<float3> poly_normals,
                                 MutableSpan<MLoopTri> looptris);
 
 /** Calculate the average position of the vertices in the polygon. */
-float3 poly_center_calc(Span<float3> vert_positions, Span<MLoop> poly_loops);
+float3 poly_center_calc(Span<float3> vert_positions, Span<int> poly_verts);
 
 /** Calculate the surface area of the polygon described by the indexed vertices. */
-float poly_area_calc(Span<float3> vert_positions, Span<MLoop> poly_loops);
+float poly_area_calc(Span<float3> vert_positions, Span<int> poly_verts);
 
 /** Calculate the angles at each of the polygons corners. */
 void poly_angles_calc(Span<float3> vert_positions,
-                      Span<MLoop> poly_loops,
+                      Span<int> poly_verts,
                       MutableSpan<float> angles);
 
 /** \} */
@@ -62,7 +62,7 @@ void poly_angles_calc(Span<float3> vert_positions,
  */
 void normals_calc_polys(Span<float3> vert_positions,
                         Span<MPoly> polys,
-                        Span<MLoop> loops,
+                        Span<int> corner_verts,
                         MutableSpan<float3> poly_normals);
 
 /**
@@ -73,7 +73,7 @@ void normals_calc_polys(Span<float3> vert_positions,
  */
 void normals_calc_poly_vert(Span<float3> vert_positions,
                             Span<MPoly> polys,
-                            Span<MLoop> loops,
+                            Span<int> corner_verts,
                             MutableSpan<float3> poly_normals,
                             MutableSpan<float3> vert_normals);
 
@@ -82,14 +82,15 @@ void normals_calc_poly_vert(Span<float3> vert_positions,
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
  * (splitting edges).
  *
- * \param loop_to_poly_map: Optional pre-created map from loops to their polygon.
+ * \param loop_to_poly_map: Optional pre-created map from corners to their polygon.
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on
  * each side of the edge.
  */
 void normals_calc_loop(Span<float3> vert_positions,
                        Span<MEdge> edges,
                        Span<MPoly> polys,
-                       Span<MLoop> loops,
+                       Span<int> corner_verts,
+                       Span<int> corner_edges,
                        Span<int> loop_to_poly_map,
                        Span<float3> vert_normals,
                        Span<float3> poly_normals,
@@ -104,7 +105,8 @@ void normals_calc_loop(Span<float3> vert_positions,
 void normals_loop_custom_set(Span<float3> vert_positions,
                              Span<MEdge> edges,
                              Span<MPoly> polys,
-                             Span<MLoop> loops,
+                             Span<int> corner_verts,
+                             Span<int> corner_edges,
                              Span<float3> vert_normals,
                              Span<float3> poly_normals,
                              const bool *sharp_faces,
@@ -115,7 +117,8 @@ void normals_loop_custom_set(Span<float3> vert_positions,
 void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
                                         Span<MEdge> edges,
                                         Span<MPoly> polys,
-                                        Span<MLoop> loops,
+                                        Span<int> corner_verts,
+                                        Span<int> corner_edges,
                                         Span<float3> vert_normals,
                                         Span<float3> poly_normals,
                                         const bool *sharp_faces,
@@ -132,19 +135,86 @@ void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
  * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
  */
 void edges_sharp_from_angle_set(Span<MPoly> polys,
-                                Span<MLoop> loops,
+                                Span<int> corner_verts,
+                                Span<int> corner_edges,
                                 Span<float3> poly_normals,
                                 const bool *sharp_faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
 
-}  // namespace blender::bke::mesh
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Topology Queries
+ * \{ */
+
+/**
+ * Find the index of the next corner in the polygon, looping to the start if necessary.
+ * The indices are into the entire corners array, not just the polygon's corners.
+ */
+inline int poly_corner_prev(const MPoly &poly, const int corner)
+{
+  return corner - 1 + (corner == poly.loopstart) * poly.totloop;
+}
+
+/**
+ * Find the index of the previous corner in the polygon, looping to the end if necessary.
+ * The indices are into the entire corners array, not just the polygon's corners.
+ */
+inline int poly_corner_next(const MPoly &poly, const int corner)
+{
+  if (corner == poly.loopstart + poly.totloop - 1) {
+    return poly.loopstart;
+  }
+  return corner + 1;
+}
+
+/**
+ * Find the index of the corner in the polygon that uses the given vertex.
+ * The index is into the entire corners array, not just the polygon's corners.
+ */
+inline int poly_find_corner_from_vert(const MPoly &poly,
+                                      const Span<int> corner_verts,
+                                      const int vert)
+{
+  return poly.loopstart + corner_verts.slice(poly.loopstart, poly.totloop).first_index(vert);
+}
+
+/**
+ * Return the vertex indices on either side of the given vertex, ordered based on the winding
+ * direction of the polygon. The vertex must be in the polygon.
+ */
+inline int2 poly_find_adjecent_verts(const MPoly &poly,
+                                     const Span<int> corner_verts,
+                                     const int vert)
+{
+  const int corner = poly_find_corner_from_vert(poly, corner_verts, vert);
+  return {corner_verts[poly_corner_prev(poly, corner)],
+          corner_verts[poly_corner_next(poly, corner)]};
+}
+
+/**
+ * Return the index of the edge's vertex that is not the \a vert.
+ * If neither edge vertex is equal to \a v, returns -1.
+ */
+inline int edge_other_vert(const MEdge &edge, const int vert)
+{
+  if (edge.v1 == vert) {
+    return edge.v2;
+  }
+  if (edge.v2 == vert) {
+    return edge.v1;
+  }
+  return -1;
+}
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Mesh Data Access
  * \{ */
+
+}  // namespace blender::bke::mesh
 
 inline blender::Span<blender::float3> Mesh::vert_positions() const
 {
@@ -174,13 +244,22 @@ inline blender::MutableSpan<MPoly> Mesh::polys_for_write()
   return {BKE_mesh_polys_for_write(this), this->totpoly};
 }
 
-inline blender::Span<MLoop> Mesh::loops() const
+inline blender::Span<int> Mesh::corner_verts() const
 {
-  return {BKE_mesh_loops(this), this->totloop};
+  return {BKE_mesh_corner_verts(this), this->totloop};
 }
-inline blender::MutableSpan<MLoop> Mesh::loops_for_write()
+inline blender::MutableSpan<int> Mesh::corner_verts_for_write()
 {
-  return {BKE_mesh_loops_for_write(this), this->totloop};
+  return {BKE_mesh_corner_verts_for_write(this), this->totloop};
+}
+
+inline blender::Span<int> Mesh::corner_edges() const
+{
+  return {BKE_mesh_corner_edges(this), this->totloop};
+}
+inline blender::MutableSpan<int> Mesh::corner_edges_for_write()
+{
+  return {BKE_mesh_corner_edges_for_write(this), this->totloop};
 }
 
 inline blender::Span<MDeformVert> Mesh::deform_verts() const

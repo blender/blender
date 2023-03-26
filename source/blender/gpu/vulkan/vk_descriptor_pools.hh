@@ -47,7 +47,7 @@ class VKDescriptorPools {
 
   void init(const VkDevice vk_device);
 
-  VKDescriptorSet allocate(const VkDescriptorSetLayout &descriptor_set_layout);
+  std::unique_ptr<VKDescriptorSet> allocate(const VkDescriptorSetLayout &descriptor_set_layout);
   void free(VKDescriptorSet &descriptor_set);
 
   /**

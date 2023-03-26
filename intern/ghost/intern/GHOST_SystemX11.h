@@ -168,6 +168,8 @@ class GHOST_SystemX11 : public GHOST_System {
    */
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
 
+  bool supportsPrimaryClipboard() override;
+
   /**
    * Flag a window as dirty. This will
    * generate a GHOST window update event on a call to processEvents()

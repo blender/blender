@@ -436,7 +436,7 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
     const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       face_vert_indices[i][j] = map_insert_vert(
-          pbvh, map, &node->face_verts, &node->uniq_verts, pbvh->mloop[lt->tri[j]].v);
+          pbvh, map, &node->face_verts, &node->uniq_verts, pbvh->corner_verts[lt->tri[j]]);
     }
 
     if (has_visible == false) {
@@ -805,7 +805,10 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->face_sets_color_default = pbvh->face_sets_color_default;
   args->face_sets_color_seed = pbvh->face_sets_color_seed;
   args->vert_positions = pbvh->vert_positions;
-  args->mloop = pbvh->mloop;
+  if (pbvh->mesh) {
+    args->corner_verts = {pbvh->corner_verts, pbvh->mesh->totloop};
+    args->corner_edges = pbvh->mesh->corner_edges();
+  }
   args->polys = pbvh->polys;
   args->mlooptri = pbvh->looptri;
   args->flat_vcol_shading = pbvh->flat_vcol_shading;
@@ -953,7 +956,7 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
                          const MPoly *polys,
-                         const MLoop *mloop,
+                         const int *corner_verts,
                          float (*vert_positions)[3],
                          MSculptVert *msculptverts,
                          int totvert,
@@ -982,7 +985,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
       &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
   pbvh->material_indices = static_cast<const int *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
-  pbvh->mloop = mloop;
+  pbvh->corner_verts = corner_verts;
   pbvh->looptri = looptri;
   pbvh->msculptverts = msculptverts;
   pbvh->vert_positions = vert_positions;
@@ -1030,7 +1033,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
     BB_reset((BB *)bbc);
 
     for (int j = 0; j < sides; j++) {
-      BB_expand((BB *)bbc, vert_positions[pbvh->mloop[lt->tri[j]].v]);
+      BB_expand((BB *)bbc, vert_positions[pbvh->corner_verts[lt->tri[j]]]);
     }
 
     BBC_update_centroid(bbc);
@@ -1108,7 +1111,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->pdata = &me->pdata;
 
   pbvh->polys = me->polys().data();
-  pbvh->mloop = me->loops().data();
+  pbvh->corner_verts = me->corner_verts().data();
 
   /* We also need the base mesh for PBVH draw. */
   pbvh->mesh = me;
@@ -1589,10 +1592,10 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
     for (int i = 0; i < totface; i++) {
       const MLoopTri *lt = &pbvh->looptri[faces[i]];
-      const uint vtri[3] = {
-          pbvh->mloop[lt->tri[0]].v,
-          pbvh->mloop[lt->tri[1]].v,
-          pbvh->mloop[lt->tri[2]].v,
+      const int vtri[3] = {
+          pbvh->corner_verts[lt->tri[0]],
+          pbvh->corner_verts[lt->tri[1]],
+          pbvh->corner_verts[lt->tri[2]],
       };
       const int sides = 3;
 
@@ -1601,7 +1604,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
         const MPoly &poly = pbvh->polys[lt->poly];
         fn = blender::bke::mesh::poly_normal_calc(
             {reinterpret_cast<const blender::float3 *>(pbvh->vert_positions), pbvh->totvert},
-            {&pbvh->mloop[poly.loopstart], poly.totloop});
+            {&pbvh->corner_verts[poly.loopstart], poly.totloop});
         mpoly_prev = lt->poly;
       }
 
@@ -2448,7 +2451,7 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex)
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
-                             const MLoop **r_loops)
+                             const int **r_corner_verts)
 {
   BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
 
@@ -2456,8 +2459,8 @@ void BKE_pbvh_node_get_loops(PBVH *pbvh,
     *r_loop_indices = node->loop_indices;
   }
 
-  if (r_loops) {
-    *r_loops = pbvh->mloop;
+  if (r_corner_verts) {
+    *r_corner_verts = pbvh->corner_verts;
   }
 }
 
@@ -2846,13 +2849,13 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     int *hit_count,
                                     float *depth,
                                     float *depth_back,
-                                    PBVHVertRef *r_active_vertex_index,
-                                    PBVHFaceRef *r_active_face_index,
+                                    PBVHVertRef *r_active_vertex,
+                                    PBVHFaceRef *r_active_face,
                                     float *r_face_normal,
                                     int stroke_id)
 {
   const float(*positions)[3] = pbvh->vert_positions;
-  const MLoop *mloop = pbvh->mloop;
+  const int *corner_verts = pbvh->corner_verts;
   const int *faces = node->prim_indices;
   int totface = node->totprim;
   bool hit = false;
@@ -2875,9 +2878,9 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     }
     else {
       /* intersect with current coordinates */
-      co[0] = positions[mloop[lt->tri[0]].v];
-      co[1] = positions[mloop[lt->tri[1]].v];
-      co[2] = positions[mloop[lt->tri[2]].v];
+      co[0] = positions[corner_verts[lt->tri[0]]];
+      co[1] = positions[corner_verts[lt->tri[1]]];
+      co[2] = positions[corner_verts[lt->tri[2]]];
     }
 
     if (!ray_face_intersection_depth_tri(
@@ -2891,7 +2894,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
       normal_tri_v3(r_face_normal, co[0], co[1], co[2]);
     }
 
-    if (r_active_vertex_index) {
+    if (r_active_vertex) {
       float location[3] = {0.0f};
       madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
       for (int j = 0; j < 3; j++) {
@@ -2901,8 +2904,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
         if (j == 0 ||
             len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
           copy_v3_v3(nearest_vertex_co, co[j]);
-          r_active_vertex_index->i = mloop[lt->tri[j]].v;
-          r_active_face_index->i = lt->poly;
+          r_active_vertex->i = corner_verts[lt->tri[j]];
+          r_active_face->i = lt->poly;
         }
       }
     }
@@ -3190,7 +3193,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
                                            float *dist_sq)
 {
   const float(*positions)[3] = pbvh->vert_positions;
-  const MLoop *mloop = pbvh->mloop;
+  const int *corner_verts = pbvh->corner_verts;
   const int *faces = node->prim_indices;
   int i, totface = node->totprim;
   bool hit = false;
@@ -3217,9 +3220,9 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
       /* intersect with current coordinates */
       hit |= ray_face_nearest_tri(ray_start,
                                   ray_normal,
-                                  positions[mloop[lt->tri[0]].v],
-                                  positions[mloop[lt->tri[1]].v],
-                                  positions[mloop[lt->tri[2]].v],
+                                  positions[corner_verts[lt->tri[0]]],
+                                  positions[corner_verts[lt->tri[1]]],
+                                  positions[corner_verts[lt->tri[2]]],
                                   depth,
                                   dist_sq);
     }
@@ -4022,9 +4025,9 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
           continue;
         }
 
-        float area = area_tri_v3(pbvh->vert_positions[pbvh->mloop[lt->tri[0]].v],
-                                 pbvh->vert_positions[pbvh->mloop[lt->tri[1]].v],
-                                 pbvh->vert_positions[pbvh->mloop[lt->tri[2]].v]);
+        float area = area_tri_v3(pbvh->vert_positions[pbvh->corner_verts[lt->tri[0]]],
+                                 pbvh->vert_positions[pbvh->corner_verts[lt->tri[1]]],
+                                 pbvh->vert_positions[pbvh->corner_verts[lt->tri[2]]]);
 
         pbvh->face_areas[lt->poly * 2 + cur_i] += area;
 
@@ -4136,21 +4139,22 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
 
   for (int i = 0; i < map->count; i++) {
     const MPoly *mp = pbvh->polys + map->indices[i];
-    const MLoop *ml = pbvh->mloop + mp->loopstart;
+    const int *corner_verts = &pbvh->corner_verts[mp->loopstart];
+    const int *corner_edges = &pbvh->corner_edges[mp->loopstart];
 
     if (pbvh->hide_poly && pbvh->hide_poly[map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
 
-    for (int j = 0; j < mp->totloop; j++, ml++) {
-      if (ml->v == vertex.i) {
+    for (int j = 0; j < mp->totloop; j++) {
+      if (corner_verts[j] == vertex.i) {
         pbvh_pmap_to_edges_add(pbvh,
                                vertex,
                                r_edges,
                                r_edges_size,
                                r_heap_alloc,
-                               ME_POLY_LOOP_PREV(pbvh->mloop, mp, j)->e,
+                               corner_edges[(j + mp->totloop - 1) % mp->totloop],
                                map->indices[i],
                                &len,
                                r_polys);
@@ -4159,7 +4163,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                                r_edges,
                                r_edges_size,
                                r_heap_alloc,
-                               ml->e,
+                               corner_edges[j],
                                map->indices[i],
                                &len,
                                r_polys);
@@ -4409,7 +4413,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          const bool *hide_poly,
                                          const float (*vert_positions)[3],
                                          const MEdge *medge,
-                                         const MLoop *mloop,
+                                         const int *corner_verts,
+                                         const int *corner_edges,
                                          const MPoly *mpoly,
                                          MSculptVert *msculptverts,
                                          const MeshElemMap *pmap,
@@ -4435,23 +4440,25 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
     int f_i = vert_map->indices[i];
 
     const MPoly *mp = mpoly + f_i;
-    const MLoop *ml = mloop + mp->loopstart;
+    const int *mc = corner_verts + mp->loopstart;
     int j = 0;
 
-    for (j = 0; j < mp->totloop; j++, ml++) {
-      if (ml->v == (int)vertex.i) {
+    for (j = 0; j < mp->totloop; j++, mc++) {
+      if (*mc == (int)vertex.i) {
         break;
       }
     }
 
     if (j < mp->totloop) {
-      const MEdge *me = medge + ml->e;
-      if (sharp_edges && sharp_edges[ml->e]) {
+      int e_index = corner_edges[mp->loopstart + j];
+
+      const MEdge *me = medge + e_index;
+      if (sharp_edges && sharp_edges[e_index]) {
         *flags |= SCULPT_BOUNDARY_SHARP;
         totsharp++;
       }
 
-      if (seam_edges && seam_edges[ml->e]) {
+      if (seam_edges && seam_edges[e_index]) {
         *flags |= SCULPT_BOUNDARY_SEAM;
         totseam++;
       }
@@ -4740,7 +4747,8 @@ PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
           pbvh->vert_positions = BKE_mesh_vert_positions_for_write(me);
         }
 
-        pbvh->mloop = me->loops().data();
+        pbvh->corner_verts = me->corner_verts().data();
+        pbvh->corner_edges = me->corner_edges().data();
         pbvh->polys = me->polys().data();
         pbvh->vdata = &me->vdata;
         pbvh->ldata = &me->ldata;
@@ -4902,8 +4910,8 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
 
   BKE_mesh_vert_poly_map_create(&pmap->pmap,
                                 &pmap->pmap_mem,
-                                BKE_mesh_polys(me),
-                                BKE_mesh_loops(me),
+                                me->polys().data(),
+                                me->corner_verts().data(),
                                 me->totvert,
                                 me->totpoly,
                                 me->totloop);
@@ -5250,16 +5258,16 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
 
       pbvh_face_iter_verts_reserve(fd, poly.totloop);
 
-      const MLoop *ml = fd->mloop_ + poly.loopstart;
+      const int *poly_verts = &fd->corner_verts_[poly.loopstart];
       const int grid_area = fd->subdiv_key_.grid_area;
 
-      for (int i = 0; i < poly.totloop; i++, ml++) {
+      for (int i = 0; i < poly.totloop; i++) {
         if (fd->pbvh_type_ == PBVH_GRIDS) {
           /* Grid corners. */
           fd->verts[i].i = (poly.loopstart + i) * grid_area + grid_area - 1;
         }
         else {
-          fd->verts[i].i = ml->v;
+          fd->verts[i].i = poly_verts[i];
         }
       }
       break;
@@ -5288,7 +5296,7 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       ATTR_FALLTHROUGH;
     case PBVH_FACES:
       fd->polys_ = pbvh->polys;
-      fd->mloop_ = pbvh->mloop;
+      fd->corner_verts_ = pbvh->corner_verts;
       fd->looptri_ = pbvh->looptri;
       fd->hide_poly_ = pbvh->hide_poly;
       fd->face_sets_ = pbvh->face_sets;

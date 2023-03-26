@@ -59,7 +59,6 @@ struct CustomData;
 struct TableGSet;
 struct DMFlagMat;
 struct IsectRayPrecalc;
-struct MLoop;
 struct MLoopTri;
 struct MSculptVert;
 struct MPoly;
@@ -70,6 +69,7 @@ struct MEdge;
 struct PBVHBatches;
 struct PBVHNode;
 struct PBVH_GPU_Args;
+struct SculptSession;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -425,13 +425,13 @@ PBVH *BKE_pbvh_new(PBVHType type);
 /**
  * Do a full rebuild with on Mesh data structure.
  *
- * \note Unlike mpoly/mloop/verts, looptri is *totally owned* by PBVH
+ * \note Unlike mpoly/corner_verts/verts, looptri is *totally owned* by PBVH
  * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
                          const struct MPoly *polys,
-                         const struct MLoop *mloop,
+                         const int *corner_verts,
                          float (*vert_positions)[3],
                          struct MSculptVert *msculptverts,
                          int totvert,
@@ -751,7 +751,7 @@ const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
-                             const struct MLoop **r_loops);
+                             const int **r_corner_verts);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
  * number of base mesh faces is returned.
@@ -1006,7 +1006,7 @@ typedef struct PBVHFaceIter {
   int *face_sets_;
   const struct MPoly *polys_;
   const struct MLoopTri *looptri_;
-  const struct MLoop *mloop_;
+  const int *corner_verts_;
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
@@ -1282,7 +1282,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          const bool *hide_poly,
                                          const float (*vert_positions)[3],
                                          const struct MEdge *medge,
-                                         const struct MLoop *mloop,
+                                         const int *corner_verts,
+                                         const int *corner_edges,
                                          const struct MPoly *mpoly,
                                          struct MSculptVert *msculptverts,
                                          const struct MeshElemMap *pmap,

@@ -1479,7 +1479,7 @@ struct FaceDetails {
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
 static const struct FaceDetails static_face_details[] = {
     {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
-    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x2BDF3C10L, 0x16L, 0},
+    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x29DF3C10L, 0x16L, 0},
     {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
     {"NotoSansArabic-VariableFont_wdth,wght.woff2",
      TT_UCR_ARABIC,

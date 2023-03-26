@@ -119,7 +119,7 @@ class TriangleToEdgeMap {
 struct MeshData {
  public:
   const Span<MLoopTri> looptris;
-  const Span<MLoop> loops;
+  const Span<int> corner_verts;
   const Span<float2> uv_map;
   const Span<float3> vert_positions;
 
@@ -140,7 +140,7 @@ struct MeshData {
 
  public:
   explicit MeshData(Span<MLoopTri> looptris,
-                    Span<MLoop> loops,
+                    Span<int> corner_verts,
                     const Span<float2> uv_map,
                     const Span<float3> vert_positions);
 };

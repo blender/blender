@@ -284,11 +284,11 @@ static void mesh_merge_transform(Mesh *result,
   int *index_orig;
   int i;
   MEdge *edge;
-  MLoop *ml;
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
-  blender::MutableSpan<MLoop> result_loops = result->loops_for_write();
+  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   CustomData_copy_data(&cap_mesh->vdata, &result->vdata, 0, cap_verts_index, cap_nverts);
   CustomData_copy_data(&cap_mesh->edata, &result->edata, 0, cap_edges_index, cap_nedges);
@@ -327,10 +327,9 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* adjust cap loop vertex and edge indices */
-  ml = &result_loops[cap_loops_index];
-  for (i = 0; i < cap_nloops; i++, ml++) {
-    ml->v += cap_verts_index;
-    ml->e += cap_edges_index;
+  for (i = 0; i < cap_nloops; i++) {
+    result_corner_verts[cap_loops_index + i] += cap_verts_index;
+    result_corner_edges[cap_loops_index + i] += cap_edges_index;
   }
 
   const bke::AttributeAccessor cap_attributes = cap_mesh->attributes();
@@ -379,7 +378,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
 
   MEdge *edge;
-  MLoop *ml;
   int i, j, c, count;
   float length = amd->length;
   /* offset matrix */
@@ -557,7 +555,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
   blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
-  blender::MutableSpan<MLoop> result_loops = result->loops_for_write();
+  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   if (use_merge) {
     /* Will need full_doubles_map for handling merge */
@@ -621,10 +620,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
 
     /* adjust loop vertex and edge indices */
-    ml = &result_loops[c * chunk_nloops];
-    for (i = 0; i < chunk_nloops; i++, ml++) {
-      ml->v += c * chunk_nverts;
-      ml->e += c * chunk_nedges;
+    const int chunk_corner_start = c * chunk_nloops;
+    for (i = 0; i < chunk_nloops; i++) {
+      result_corner_verts[chunk_corner_start + i] += c * chunk_nverts;
+      result_corner_edges[chunk_corner_start + i] += c * chunk_nedges;
     }
 
     /* Handle merge between chunk n and n-1 */

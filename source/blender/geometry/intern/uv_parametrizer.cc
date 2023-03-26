@@ -2439,6 +2439,17 @@ static float p_abf_compute_gradient(PAbfSystem *sys, PChart *chart)
   return norm;
 }
 
+static void p_abf_adjust_alpha(PAbfSystem *sys,
+                               const int id,
+                               const float dlambda1,
+                               const float pre)
+{
+  float alpha = sys->alpha[id];
+  const float dalpha = (sys->bAlpha[id] - dlambda1);
+  alpha += dalpha / sys->weight[id] - pre;
+  sys->alpha[id] = clamp_f(alpha, 0.0f, float(M_PI));
+}
+
 static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 {
   int ninterior = sys->ninterior;
@@ -2596,11 +2607,11 @@ static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 
   if (success) {
     for (PFace *f = chart->faces; f; f = f->nextlink) {
-      float dlambda1, pre[3], dalpha;
+      float pre[3];
       PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
       PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 
-      pre[0] = pre[1] = pre[2] = 0.0;
+      pre[0] = pre[1] = pre[2] = 0.0f;
 
       if (v1->flag & PVERT_INTERIOR) {
         float x = EIG_linear_solver_variable_get(context, 0, v1->u.id);
@@ -2626,30 +2637,14 @@ static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
         pre[2] += sys->J2dt[e3->u.id][2] * x;
       }
 
-      dlambda1 = pre[0] + pre[1] + pre[2];
+      float dlambda1 = pre[0] + pre[1] + pre[2];
       dlambda1 = sys->dstar[f->u.id] * (sys->bstar[f->u.id] - dlambda1);
 
       sys->lambdaTriangle[f->u.id] += dlambda1;
 
-      dalpha = (sys->bAlpha[e1->u.id] - dlambda1);
-      sys->alpha[e1->u.id] += dalpha / sys->weight[e1->u.id] - pre[0];
-
-      dalpha = (sys->bAlpha[e2->u.id] - dlambda1);
-      sys->alpha[e2->u.id] += dalpha / sys->weight[e2->u.id] - pre[1];
-
-      dalpha = (sys->bAlpha[e3->u.id] - dlambda1);
-      sys->alpha[e3->u.id] += dalpha / sys->weight[e3->u.id] - pre[2];
-
-      /* clamp */
-      PEdge *e = f->edge;
-      do {
-        if (sys->alpha[e->u.id] > float(M_PI)) {
-          sys->alpha[e->u.id] = float(M_PI);
-        }
-        else if (sys->alpha[e->u.id] < 0.0f) {
-          sys->alpha[e->u.id] = 0.0f;
-        }
-      } while (e != f->edge);
+      p_abf_adjust_alpha(sys, e1->u.id, dlambda1, pre[0]);
+      p_abf_adjust_alpha(sys, e2->u.id, dlambda1, pre[1]);
+      p_abf_adjust_alpha(sys, e3->u.id, dlambda1, pre[2]);
     }
 
     for (int i = 0; i < ninterior; i++) {
@@ -4191,17 +4186,16 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 
-    /* TODO: Replace with #mul_v2_m2_add_v2v2 here soon. */
-    float m[2];
+    float m[2][2];
     float b[2];
-    m[0] = scale[0];
-    m[1] = scale[1];
+    m[0][0] = scale[0];
+    m[0][1] = 0.0f;
+    m[1][0] = 0.0f;
+    m[1][1] = scale[1];
     b[0] = pack_island->pre_translate.x;
     b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      /* Unusual accumulate-and-multiply here (will) reduce round-off error. */
-      v->uv[0] = m[0] * (v->uv[0] + b[0]);
-      v->uv[1] = m[1] * (v->uv[1] + b[1]);
+      blender::geometry::mul_v2_m2_add_v2v2(v->uv, m, v->uv, b);
     }
 
     pack_island_vector[i] = nullptr;

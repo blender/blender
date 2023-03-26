@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'4096bcfb25f6')\n"
+"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-03-13 11:29:34\n"
+"POT-Creation-Date: 2023-03-20 13:37:56\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -22130,6 +22130,10 @@ msgid "Active spline of masking layer"
 msgstr "Spline ativa da camada de máscara."
 
 
+msgid "Active Point"
+msgstr "Ponto ativo"
+
+
 msgid "Alignment"
 msgstr "Alinhamento"
 
@@ -38735,17 +38739,9 @@ msgid "Clear Restrict View"
 msgstr "Limpar visualização restrita"
 
 
-msgid "Reveal the layer by setting the hide flag"
-msgstr "Revela a camada pela configuração da bandeira de ocultação."
-
-
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "Configurar restrição de visualização"
-
-
-msgid "Hide the layer by setting the hide flag"
-msgstr "Oculta a camada configurando a bandeira de ocultação."
 
 
 msgctxt "Operator"
@@ -53033,10 +53029,6 @@ msgstr "Predefinições de câmera"
 
 msgid "2D Cursor"
 msgstr "Cursor 2D"
-
-
-msgid "Active Point"
-msgstr "Ponto ativo"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -68760,10 +68752,6 @@ msgstr "Limite de Memória do Desfazer"
 
 msgid "View Name"
 msgstr "Visualizar nomes"
-
-
-msgid "3D Viewport Axis"
-msgstr "Eixo da Janela de Exibição 3D"
 
 
 msgid "Limit Size"

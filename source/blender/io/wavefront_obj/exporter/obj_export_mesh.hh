@@ -40,7 +40,7 @@ class OBJMesh : NonCopyable {
   Span<float3> mesh_positions_;
   Span<MEdge> mesh_edges_;
   Span<MPoly> mesh_polys_;
-  Span<MLoop> mesh_loops_;
+  Span<int> mesh_corner_verts_;
   VArray<bool> sharp_faces_;
 
   /**
@@ -153,7 +153,7 @@ class OBJMesh : NonCopyable {
   /**
    * Calculate vertex indices of all vertices of the polygon at the given index.
    */
-  Vector<int> calc_poly_vertex_indices(int poly_index) const;
+  Span<int> calc_poly_vertex_indices(int poly_index) const;
   /**
    * Calculate UV vertex coordinates of an Object.
    * Stores the coordinates and UV vertex indices in the member variables.

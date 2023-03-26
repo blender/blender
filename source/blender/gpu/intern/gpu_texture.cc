@@ -213,7 +213,8 @@ void Texture::detach_from(FrameBuffer *fb)
 void Texture::update(eGPUDataFormat format, const void *data)
 {
   int mip = 0;
-  int extent[3], offset[3] = {0, 0, 0};
+  int extent[3] = {1, 1, 1};
+  int offset[3] = {0, 0, 0};
   this->mip_size_get(mip, extent);
   this->update_sub(mip, offset, extent, format, data);
 }

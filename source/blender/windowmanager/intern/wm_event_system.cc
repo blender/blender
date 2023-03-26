@@ -933,6 +933,8 @@ void WM_reportf(eReportType type, const char *format, ...)
 {
   va_list args;
 
+  format = TIP_(format);
+
   DynStr *ds = BLI_dynstr_new();
   va_start(args, format);
   BLI_dynstr_vappendf(ds, format, args);
@@ -1147,7 +1149,7 @@ static void wm_operator_finished(bContext *C,
       }
     }
     else if (has_undo_step) {
-      /* An undo step was added but the operator wasn't registered (and won't register it's self),
+      /* An undo step was added but the operator wasn't registered (and won't register itself),
        * therefor a redo panel wouldn't redo this action but the previous registered action,
        * causing the "redo" to remove/loose this operator. See: #101743.
        * Register check is needed so nested operator calls don't clear the HUD. See: #103587. */

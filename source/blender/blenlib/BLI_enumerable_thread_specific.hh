@@ -19,12 +19,13 @@
 #      undef NOMINMAX
 #    endif
 #  endif
+#else
+#  include <atomic>
+#  include <mutex>
+
+#  include "BLI_map.hh"
 #endif
 
-#include <atomic>
-#include <mutex>
-
-#include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender::threading {
