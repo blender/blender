@@ -3060,18 +3060,7 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
 
 static bool sculpt_attribute_stored_in_bmesh_builtin(const StringRef name)
 {
-  return ELEM(name,
-              "position",
-              ".hide_vert",
-              ".hide_edge",
-              /* ".hide_poly", sculpt mode uses hide_poly. */
-              ".uv_seam",
-              ".select_vert",
-              ".select_edge",
-              ".select_poly",
-              "material_index",
-              "sharp_face",
-              "sharp_edge");
+  return BM_attribute_stored_in_bmesh_builtin(name);
 }
 
 /**
