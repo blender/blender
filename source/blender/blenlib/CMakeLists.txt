@@ -131,6 +131,7 @@ set(SRC
   intern/scanfill_utils.c
   intern/serialize.cc
   intern/session_uuid.c
+  intern/smaa_textures.c
   intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
@@ -330,6 +331,7 @@ set(SRC
   BLI_set_slots.hh
   BLI_shared_cache.hh
   BLI_simd.h
+  BLI_smaa_textures.h
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort.hh
