@@ -1097,7 +1097,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
   if (sel_exists) {
     float disp_3d[3];
     sub_v3_v3v3(disp_3d, location, center);
-    /* Reimplemenented due to unexpected behavior for extrusion of 2-point spline. */
+    /* Reimplemented due to unexpected behavior for extrusion of 2-point spline. */
     extrude_vertices_from_selected_endpoints(editnurb, nurbs, cu, disp_3d);
   }
   else {

@@ -715,7 +715,7 @@ GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
   if (sdl_win == nullptr) {
     return nullptr;
   }
-  /* It is not entirely safe to do this as the backptr may point
+  /* It is not entirely safe to do this as the back-pointer may point
    * to a window that has recently been removed.
    * We should always check the window manager's list of windows
    * and only process events on these windows. */

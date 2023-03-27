@@ -41,7 +41,7 @@ static inline bool is_removable_relation(const Relation *relation)
 
   /* If the relation connects two different IDs there is a high risk that the removal of the
    * relation will make it so visibility flushing is not possible at runtime. This happens with
-   * relations like the DoF on camera of custom shape on bines: such relation do not lead to an
+   * relations like the DoF on camera of custom shape on bones: such relation do not lead to an
    * actual depsgraph evaluation operation as they are handled on render engine level.
    *
    * The indirectly linked objects could have some of their components invisible as well, so

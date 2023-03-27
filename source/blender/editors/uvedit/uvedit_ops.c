@@ -1166,8 +1166,8 @@ static bool uv_snap_uvs_to_adjacent_unselected(Scene *scene, Object *obedit)
   bool changed = false;
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
-  /* index every vert that has a selected UV using it, but only once so as to
-   * get unique indices and to count how much to malloc */
+  /* Index every vert that has a selected UV using it, but only once so as to
+   * get unique indices and to count how much to `malloc`. */
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     if (uvedit_face_visible_test(scene, f)) {
       BM_elem_flag_enable(f, BM_ELEM_TAG);

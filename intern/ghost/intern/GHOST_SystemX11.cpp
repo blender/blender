@@ -497,7 +497,7 @@ GHOST_WindowX11 *GHOST_SystemX11::findGhostWindow(Window xwind) const
     return nullptr;
   }
 
-  /* It is not entirely safe to do this as the backptr may point
+  /* It is not entirely safe to do this as the back-pointer may point
    * to a window that has recently been removed.
    * We should always check the window manager's list of windows
    * and only process events on these windows. */

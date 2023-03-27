@@ -113,7 +113,7 @@ TEST_F(ChangeWorkingDirectoryTest, change_working_directory)
       << "Returned CWD path unexpectedly different than given char buffer.";
 
 #ifdef __APPLE__
-  /* The name returned by std::tmpnam is fine but the Apple OS method
+  /* The name returned by `std::tmpnam` is fine but the Apple OS method
    * picks the true var folder, not the alias, meaning the below
    * comparison always fails unless we prepend with the correct value. */
   test_temp_dir = "/private" + test_temp_dir;
