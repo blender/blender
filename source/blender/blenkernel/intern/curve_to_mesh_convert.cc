@@ -218,6 +218,16 @@ static CurvesInfo get_curves_info(const CurvesGeometry &main, const CurvesGeomet
   return {main, profile, main.cyclic(), profile.cyclic()};
 }
 
+static bool offsets_contain_single_point(const OffsetIndices<int> offsets)
+{
+  for (const int64_t i : offsets.index_range()) {
+    if (offsets[i].size() == 1) {
+      return true;
+    }
+  }
+  return false;
+}
+
 struct ResultOffsets {
   /** The total number of curve combinations. */
   int total;
@@ -231,6 +241,9 @@ struct ResultOffsets {
   /* The indices of the main and profile curves that form each combination. */
   Array<int> main_indices;
   Array<int> profile_indices;
+
+  /** Whether any curve in the profile or curve input has only a single evaluated point. */
+  bool any_single_point_curve;
 };
 static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool fill_caps)
 {
@@ -307,6 +320,10 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
             mesh_index++;
           }
         }
+      },
+      [&]() {
+        result.any_single_point_curve = offsets_contain_single_point(main_offsets) ||
+                                        offsets_contain_single_point(profile_offsets);
       });
 
   return result;
@@ -753,6 +770,11 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                         radii.is_empty() ? radii : radii.slice(info.main_points),
                         positions.slice(info.vert_range));
   });
+
+  if (!offsets.any_single_point_curve) {
+    /* If there are no single point curves, every curve combination will always have faces. */
+    mesh->loose_edges_tag_none();
+  }
 
   SpanAttributeWriter<bool> sharp_edges;
   write_sharp_bezier_edges(curves_info, offsets, mesh_attributes, sharp_edges);
