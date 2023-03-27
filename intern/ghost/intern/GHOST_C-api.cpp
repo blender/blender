@@ -895,16 +895,10 @@ bool GHOST_UseNativePixels(void)
   return system->useNativePixel();
 }
 
-bool GHOST_SupportsCursorWarp(void)
+GHOST_TCapabilityFlag GHOST_GetCapabilities(void)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->supportsCursorWarp();
-}
-
-bool GHOST_SupportsWindowPosition(void)
-{
-  GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->supportsWindowPosition();
+  return system->getCapabilities();
 }
 
 void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)

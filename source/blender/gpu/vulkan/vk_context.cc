@@ -120,35 +120,4 @@ void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/)
 {
 }
 
-void VKContext::debug_group_begin(const char *, int)
-{
-}
-
-void VKContext::debug_group_end()
-{
-}
-
-bool VKContext::debug_capture_begin()
-{
-  return false;
-}
-
-void VKContext::debug_capture_end()
-{
-}
-
-void *VKContext::debug_capture_scope_create(const char * /*name*/)
-{
-  return nullptr;
-}
-
-bool VKContext::debug_capture_scope_begin(void * /*scope*/)
-{
-  return false;
-}
-
-void VKContext::debug_capture_scope_end(void * /*scope*/)
-{
-}
-
 }  // namespace blender::gpu

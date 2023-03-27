@@ -35,7 +35,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region);
  */
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region);
 
-void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene);
+void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene);
 
 /* ***************************************** */
 /* action_select.c */

@@ -8,6 +8,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "COM_morphological_distance_feather_weights.hh"
+#include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
 
@@ -47,6 +48,9 @@ class StaticCacheManager {
   Map<MorphologicalDistanceFeatherWeightsKey, std::unique_ptr<MorphologicalDistanceFeatherWeights>>
       morphological_distance_feather_weights_;
 
+  /* A unique pointers that stores the cached SMAAPrecomputedTextures, if one is cached. */
+  std::unique_ptr<SMAAPrecomputedTextures> smaa_precomputed_textures_;
+
  public:
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track
@@ -72,6 +76,11 @@ class StaticCacheManager {
    * cached for the next evaluation. */
   MorphologicalDistanceFeatherWeights &get_morphological_distance_feather_weights(int type,
                                                                                   int radius);
+
+  /* Check if a cached SMAA precomputed texture exists, if it does, return it, otherwise, return
+   * a newly created one and store it in the manager. In both cases, tag the cached resource as
+   * needed to keep it cached for the next evaluation. */
+  SMAAPrecomputedTextures &get_smaa_precomputed_textures();
 };
 
 }  // namespace blender::realtime_compositor

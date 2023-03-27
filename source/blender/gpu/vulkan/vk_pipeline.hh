@@ -21,7 +21,7 @@ class VKContext;
 
 class VKPipeline : NonCopyable {
   VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
-  VKDescriptorSet descriptor_set_;
+  VKDescriptorSetTracker descriptor_set_;
   VKPushConstants push_constants_;
 
  public:
@@ -29,7 +29,7 @@ class VKPipeline : NonCopyable {
 
   virtual ~VKPipeline();
   VKPipeline(VkPipeline vk_pipeline,
-             VKDescriptorSet &&vk_descriptor_set,
+             VkDescriptorSetLayout vk_descriptor_set_layout,
              VKPushConstants &&push_constants);
   VKPipeline &operator=(VKPipeline &&other)
   {
@@ -46,7 +46,7 @@ class VKPipeline : NonCopyable {
                                             VkPipelineLayout &pipeline_layouts,
                                             const VKPushConstants::Layout &push_constants_layout);
 
-  VKDescriptorSet &descriptor_set_get()
+  VKDescriptorSetTracker &descriptor_set_get()
   {
     return descriptor_set_;
   }

@@ -269,7 +269,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   data1 = (fREAL *)MEM_callocN(3 * w2 * h2 * sizeof(fREAL), "convolve_fast FHT data1");
   data2 = (fREAL *)MEM_callocN(w2 * h2 * sizeof(fREAL), "convolve_fast FHT data2");
 
-  /* Normalize convolutor. */
+  /* Normalize convolution. */
   wt[0] = wt[1] = wt[2] = 0.0f;
   for (y = 0; y < kernel_height; y++) {
     colp = (fRGB *)&kernel_buffer[y * kernel_width * COM_DATA_TYPE_COLOR_CHANNELS];

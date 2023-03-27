@@ -7,6 +7,7 @@
 
 #include "vk_push_constants.hh"
 #include "vk_backend.hh"
+#include "vk_context.hh"
 #include "vk_memory_layout.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
@@ -103,24 +104,12 @@ VKPushConstants::VKPushConstants() = default;
 VKPushConstants::VKPushConstants(const Layout *layout) : layout_(layout)
 {
   data_ = MEM_mallocN(layout->size_in_bytes(), __func__);
-  switch (layout_->storage_type_get()) {
-    case StorageType::UNIFORM_BUFFER:
-      uniform_buffer_ = new VKUniformBuffer(layout_->size_in_bytes(), __func__);
-      break;
-
-    case StorageType::PUSH_CONSTANTS:
-    case StorageType::NONE:
-      break;
-  }
 }
 
 VKPushConstants::VKPushConstants(VKPushConstants &&other) : layout_(other.layout_)
 {
   data_ = other.data_;
   other.data_ = nullptr;
-
-  uniform_buffer_ = other.uniform_buffer_;
-  other.uniform_buffer_ = nullptr;
 }
 
 VKPushConstants::~VKPushConstants()
@@ -129,9 +118,6 @@ VKPushConstants::~VKPushConstants()
     MEM_freeN(data_);
     data_ = nullptr;
   }
-
-  delete uniform_buffer_;
-  uniform_buffer_ = nullptr;
 }
 
 VKPushConstants &VKPushConstants::operator=(VKPushConstants &&other)
@@ -140,9 +126,6 @@ VKPushConstants &VKPushConstants::operator=(VKPushConstants &&other)
 
   data_ = other.data_;
   other.data_ = nullptr;
-
-  uniform_buffer_ = other.uniform_buffer_;
-  other.uniform_buffer_ = nullptr;
 
   return *this;
 }
@@ -155,7 +138,7 @@ void VKPushConstants::update(VKContext &context)
   BLI_assert_msg(&pipeline.push_constants_get() == this,
                  "Invalid state detected. Push constants doesn't belong to the active shader of "
                  "the given context.");
-  VKDescriptorSet &descriptor_set = pipeline.descriptor_set_get();
+  VKDescriptorSetTracker &descriptor_set = pipeline.descriptor_set_get();
 
   switch (layout_get().storage_type_get()) {
     case VKPushConstants::StorageType::NONE:
@@ -167,7 +150,7 @@ void VKPushConstants::update(VKContext &context)
 
     case VKPushConstants::StorageType::UNIFORM_BUFFER:
       update_uniform_buffer();
-      descriptor_set.bind(uniform_buffer_get(), layout_get().descriptor_set_location_get());
+      descriptor_set.bind(*uniform_buffer_get(), layout_get().descriptor_set_location_get());
       break;
   }
 }
@@ -175,16 +158,22 @@ void VKPushConstants::update(VKContext &context)
 void VKPushConstants::update_uniform_buffer()
 {
   BLI_assert(layout_->storage_type_get() == StorageType::UNIFORM_BUFFER);
-  BLI_assert(uniform_buffer_ != nullptr);
   BLI_assert(data_ != nullptr);
-  uniform_buffer_->update(data_);
+  VKContext &context = *VKContext::get();
+  std::unique_ptr<VKUniformBuffer> &uniform_buffer = tracked_resource_for(context, is_dirty_);
+  uniform_buffer->update(data_);
+  is_dirty_ = false;
 }
 
-VKUniformBuffer &VKPushConstants::uniform_buffer_get()
+std::unique_ptr<VKUniformBuffer> &VKPushConstants::uniform_buffer_get()
 {
   BLI_assert(layout_->storage_type_get() == StorageType::UNIFORM_BUFFER);
-  BLI_assert(uniform_buffer_ != nullptr);
-  return *uniform_buffer_;
+  return active_resource();
+}
+
+std::unique_ptr<VKUniformBuffer> VKPushConstants::create_resource(VKContext & /*context*/)
+{
+  return std::make_unique<VKUniformBuffer>(layout_->size_in_bytes(), __func__);
 }
 
 }  // namespace blender::gpu

@@ -631,20 +631,53 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return 0;
   }
 
-  /* Not found in main font, so look in the others. */
-  FontBLF *last_resort = NULL;
+  /* First look in currently-loaded cached fonts that match the coverage bit. Super fast. */
   int coverage_bit = blf_charcode_to_coverage_bit(charcode);
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *f = global_font[i];
+    if (!f || f == *font || !(f->face) || !(f->flags & BLF_DEFAULT) ||
+        (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
+        f->flags & BLF_LAST_RESORT) {
+      continue;
+    }
+    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+      glyph_index = blf_get_char_index(f, charcode);
+      if (glyph_index) {
+        *font = f;
+        return glyph_index;
+      }
+    }
+  }
+
+  /* Next look only in unloaded fonts that match the coverage bit. */
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *f = global_font[i];
+    if (!f || f == *font || (f->face) || !(f->flags & BLF_DEFAULT) ||
+        (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
+        f->flags & BLF_LAST_RESORT) {
+      continue;
+    }
+    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+      glyph_index = blf_get_char_index(f, charcode);
+      if (glyph_index) {
+        *font = f;
+        return glyph_index;
+      }
+    }
+  }
+
+  /* Last look in anything else. Also check if we have a last-resort font. */
+  FontBLF *last_resort = NULL;
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
     if (!f || f == *font || !(f->flags & BLF_DEFAULT)) {
       continue;
     }
-
     if (f->flags & BLF_LAST_RESORT) {
       last_resort = f;
       continue;
     }
-    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+    if (coverage_bit >= 0 && !blf_font_has_coverage_bit(f, coverage_bit)) {
       glyph_index = blf_get_char_index(f, charcode);
       if (glyph_index) {
         *font = f;

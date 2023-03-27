@@ -74,7 +74,7 @@ class AbstractView {
    * \note This drop target may be requested for each event. The view doesn't keep the drop target
    *       around currently. So it cannot contain persistent state.
    */
-  virtual std::unique_ptr<AbstractViewDropTarget> create_drop_target() const;
+  virtual std::unique_ptr<AbstractViewDropTarget> create_drop_target();
 
   /** Listen to a notifier, returning true if a redraw is needed. */
   virtual bool listen(const wmNotifier &) const;
@@ -166,7 +166,7 @@ class AbstractViewItem {
    * \note This drop target may be requested for each event. The view doesn't keep a drop target
    *       around currently. So it can not contain persistent state.
    */
-  virtual std::unique_ptr<AbstractViewItemDropTarget> create_drop_target() const;
+  virtual std::unique_ptr<AbstractViewItemDropTarget> create_drop_target();
 
   /** Get the view this item is registered for using #AbstractView::register_item(). */
   AbstractView &get_view() const;

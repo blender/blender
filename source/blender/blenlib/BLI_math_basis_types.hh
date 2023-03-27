@@ -21,6 +21,8 @@
  * - Curve Tangent-Space: X-left, Y-up, Z-forward
  */
 
+#include <iostream>
+
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 

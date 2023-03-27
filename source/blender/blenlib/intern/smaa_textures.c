@@ -5,7 +5,7 @@
  *           2013 Fernando Navarro <fernandn@microsoft.com>
  *           2013 Diego Gutierrez <diegog@unizar.es> */
 
-#include "smaa_textures.h"
+#include "BLI_smaa_textures.h"
 
 /* Don't re-wrap large data definitions. */
 /* clang-format off */
@@ -13,6 +13,7 @@
 /**
  * Stored in R8G8 format. Load it in the following format:
  *  - DX10: DXGI_FORMAT_R8G8_UNORM
+ *  - GPU: GPU_RG8 texture format and GPU_DATA_UBYTE data format.
  */
 const unsigned char areaTexBytes[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -14954,6 +14955,7 @@ const unsigned char areaTexBytes[] = {
 /**
  * Stored in R8 format. Load it in the following format:
  *  - DX10: DXGI_FORMAT_R8_UNORM
+ *  - GPU: GPU_R8 texture format and GPU_DATA_UBYTE data format.
  */
 const unsigned char searchTexBytes[] = {
     0xfe, 0xfe, 0x00, 0x7f, 0x7f, 0x00, 0x00, 0xfe, 0xfe, 0x00, 0x7f, 0x7f,

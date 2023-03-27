@@ -281,6 +281,12 @@ static bool find_fcurve_segment(FCurve *fcu,
 ListBase find_fcurve_segments(FCurve *fcu)
 {
   ListBase segments = {NULL, NULL};
+
+  /* Ignore baked curves. */
+  if (!fcu->bezt) {
+    return segments;
+  }
+
   int segment_start_idx = 0;
   int segment_len = 0;
   int current_index = 0;
@@ -392,7 +398,56 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
     move_key(&fcu->bezt[i], key_y_value);
   }
 }
+/* ---------------- */
 
+void ED_ANIM_get_1d_gauss_kernel(const float sigma, const int kernel_size, double *r_kernel)
+{
+  BLI_assert(sigma > 0.0f);
+  BLI_assert(kernel_size > 0);
+  const double sigma_sq = 2.0 * sigma * sigma;
+  double sum = 0.0;
+
+  for (int i = 0; i < kernel_size; i++) {
+    const double normalized_index = (double)i / (kernel_size - 1);
+    r_kernel[i] = exp(-normalized_index * normalized_index / sigma_sq);
+    if (i == 0) {
+      sum += r_kernel[i];
+    }
+    else {
+      /* We only calculate half the kernel,
+       * the normalization needs to take that into account. */
+      sum += r_kernel[i] * 2;
+    }
+  }
+
+  /* Normalize kernel values. */
+  for (int i = 0; i < kernel_size; i++) {
+    r_kernel[i] /= sum;
+  }
+}
+
+void smooth_fcurve_segment(FCurve *fcu,
+                           FCurveSegment *segment,
+                           float *samples,
+                           const float factor,
+                           const int kernel_size,
+                           double *kernel)
+{
+  const int segment_end_index = segment->start_index + segment->length;
+  const int segment_start_x = fcu->bezt[segment->start_index].vec[1][0];
+  for (int i = segment->start_index; i < segment_end_index; i++) {
+    const int sample_index = (int)(fcu->bezt[i].vec[1][0] - segment_start_x) + kernel_size;
+    /* Apply the kernel. */
+    double filter_result = samples[sample_index] * kernel[0];
+    for (int j = 1; j <= kernel_size; j++) {
+      const double kernel_value = kernel[j];
+      filter_result += samples[sample_index + j] * kernel_value;
+      filter_result += samples[sample_index - j] * kernel_value;
+    }
+    const float key_y_value = interpf((float)filter_result, samples[sample_index], factor);
+    move_key(&fcu->bezt[i], key_y_value);
+  }
+}
 /* ---------------- */
 
 void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
@@ -679,6 +734,16 @@ void smooth_fcurve(FCurve *fcu)
 typedef struct TempFrameValCache {
   float frame, val;
 } TempFrameValCache;
+
+void sample_fcurve_segment(FCurve *fcu,
+                           const float start_frame,
+                           float *samples,
+                           const int sample_count)
+{
+  for (int i = 0; i < sample_count; i++) {
+    samples[i] = evaluate_fcurve(fcu, start_frame + i);
+  }
+}
 
 void sample_fcurve(FCurve *fcu)
 {

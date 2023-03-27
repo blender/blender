@@ -309,7 +309,7 @@ class Device {
   static uint devices_initialized_mask;
 };
 
-/* Device, which is GPU, with some common functionality for GPU backends */
+/* Device, which is GPU, with some common functionality for GPU back-ends. */
 class GPUDevice : public Device {
  protected:
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_)

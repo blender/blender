@@ -344,9 +344,9 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
   /* Compacting can be time consuming, run in parallel.
    *
    * NOTE(@ideasman42): this could be further parallelized with every custom-data layer
-   * running in it's own thread. If this is a bottleneck it's worth considering.
-   * At the moment it seems fast enough to split by element type.
-   * Since this is it's self a background thread, using too many threads here could
+   * running in its own thread. If this is a bottleneck it's worth considering.
+   * At the moment it seems fast enough to split by domain.
+   * Since this is itself a background thread, using too many threads here could
    * interfere with foreground tasks. */
   blender::threading::parallel_invoke(
       4096 < (me->totvert + me->totedge + me->totloop + me->totpoly),

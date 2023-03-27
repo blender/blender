@@ -900,6 +900,14 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
+GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
+{
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                               ~(
+                                   /* Cocoa has no support for a primary selection clipboard. */
+                                   GHOST_kCapabilityPrimaryClipboard));
+}
+
 #pragma mark Event handlers
 
 /**

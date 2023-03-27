@@ -42,6 +42,8 @@ class GHOST_SystemSDL : public GHOST_System {
 
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
 
+  GHOST_TCapabilityFlag getCapabilities() const;
+
   char *getClipboard(bool selection) const;
 
   void putClipboard(const char *buffer, bool selection) const;

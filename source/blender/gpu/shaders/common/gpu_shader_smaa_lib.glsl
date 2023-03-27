@@ -774,14 +774,19 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   delta.xy = abs(L - float2(Lleft, Ltop));
   float2 edges = step(threshold, delta.xy);
 
-#  ifndef SMAA_NO_DISCARD
-#    ifdef GPU_FRAGMENT_SHADER
+#  ifdef GPU_FRAGMENT_SHADER
+#    ifndef SMAA_NO_DISCARD
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0, 1.0)) == 0.0) {
     discard;
     return float2(0.0, 0.0);
   }
 #    endif
+#  elif defined(GPU_COMPUTE_SHADER)
+  // Then return early if there is no edge:
+  if (dot(edges, float2(1.0, 1.0)) == 0.0) {
+    return float2(0.0);
+  }
 #  endif
 
   // Calculate right and bottom deltas:
@@ -802,9 +807,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   float finalDelta = max(maxDelta.x, maxDelta.y);
 
   // Local contrast adaptation:
-#  if !defined(SHADER_API_OPENGL)
   edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
-#  endif
 
   return edges;
 }
@@ -882,9 +885,7 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
   float finalDelta = max(maxDelta.x, maxDelta.y);
 
   // Local contrast adaptation:
-#  if !defined(SHADER_API_OPENGL)
   edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
-#  endif
 
   return edges;
 }

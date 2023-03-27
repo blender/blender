@@ -39,7 +39,8 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
     b = &cone_a;
   }
 
-  float theta_d = safe_acosf(dot(a->axis, b->axis));
+  float cos_a_b = dot(a->axis, b->axis);
+  float theta_d = safe_acosf(cos_a_b);
   float theta_e = fmaxf(a->theta_e, b->theta_e);
 
   /* Return axis and theta_o of a if it already contains b. */
@@ -55,10 +56,18 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
     return OrientationBounds({a->axis, M_PI_F, theta_e});
   }
 
-  /* Rotate new axis to be between a and b. */
-  float theta_r = theta_o - a->theta_o;
-  float3 new_axis = rotate_around_axis(a->axis, normalize(cross(a->axis, b->axis)), theta_r);
-  new_axis = normalize(new_axis);
+  /* Slerp between a and b. */
+  float3 new_axis;
+  if (cos_a_b < -0.9995f) {
+    /* Opposite direction, any orthogonal vector is fine. */
+    float3 unused;
+    make_orthonormals(a->axis, &new_axis, &unused);
+  }
+  else {
+    float theta_r = theta_o - a->theta_o;
+    float3 ortho = normalize(b->axis - a->axis * cos_a_b);
+    new_axis = a->axis * cosf(theta_r) + ortho * sinf(theta_r);
+  }
 
   return OrientationBounds({new_axis, theta_o, theta_e});
 }
