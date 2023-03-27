@@ -8,6 +8,7 @@
 
 #include "loader.hpp"
 
+#include <cstdint>
 #include <fstream>
 #include <unordered_map>
 
