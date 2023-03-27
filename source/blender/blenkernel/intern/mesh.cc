@@ -1582,23 +1582,42 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
   BKE_mesh_tag_positions_changed(me);
 }
 
-void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
+static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
-  MutableSpan<float3> positions = me->vert_positions_for_write();
-  for (float3 &position : positions) {
-    position += offset;
+  using namespace blender;
+  threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
+    for (float3 &position : positions.slice(range)) {
+      position += translation;
+    }
+  });
+}
+
+void BKE_mesh_translate(Mesh *mesh, const float offset[3], const bool do_keys)
+{
+  using namespace blender;
+  if (math::is_zero(float3(offset))) {
+    return;
   }
 
-  int i;
-  if (do_keys && me->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &me->key->block) {
-      float *fp = (float *)kb->data;
-      for (i = kb->totelem; i--; fp += 3) {
-        add_v3_v3(fp, offset);
-      }
+  std::optional<Bounds<float3>> bounds;
+  if (mesh->runtime->bounds_cache.is_cached()) {
+    bounds = mesh->runtime->bounds_cache.data();
+  }
+
+  translate_positions(mesh->vert_positions_for_write(), offset);
+  if (do_keys && mesh->key) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &mesh->key->block) {
+      translate_positions({static_cast<float3 *>(kb->data), kb->totelem}, offset);
     }
   }
-  BKE_mesh_tag_positions_changed_uniformly(me);
+
+  BKE_mesh_tag_positions_changed_uniformly(mesh);
+
+  if (bounds) {
+    bounds->min += offset;
+    bounds->max += offset;
+    mesh->bounds_set_eager(*bounds);
+  }
 }
 
 void BKE_mesh_tessface_clear(Mesh *mesh)

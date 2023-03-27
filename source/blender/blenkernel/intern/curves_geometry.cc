@@ -1037,6 +1037,15 @@ void CurvesGeometry::calculate_bezier_auto_handles()
 
 void CurvesGeometry::translate(const float3 &translation)
 {
+  if (math::is_zero(translation)) {
+    return;
+  }
+
+  std::optional<Bounds<float3>> bounds;
+  if (this->runtime->bounds_cache.is_cached()) {
+    bounds = this->runtime->bounds_cache.data();
+  }
+
   translate_positions(this->positions_for_write(), translation);
   if (!this->handle_positions_left().is_empty()) {
     translate_positions(this->handle_positions_left_for_write(), translation);
@@ -1045,6 +1054,12 @@ void CurvesGeometry::translate(const float3 &translation)
     translate_positions(this->handle_positions_right_for_write(), translation);
   }
   this->tag_positions_changed();
+
+  if (bounds) {
+    bounds->min += translation;
+    bounds->max += translation;
+    this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = *bounds; });
+  }
 }
 
 void CurvesGeometry::transform(const float4x4 &matrix)
