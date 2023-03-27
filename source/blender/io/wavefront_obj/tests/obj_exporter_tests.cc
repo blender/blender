@@ -345,6 +345,19 @@ TEST_F(obj_exporter_regression_test, vertices)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cube_loose_edges_verts.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cube_loose_edges_verts.obj",
+                               "",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, cube_loose_edges)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
+  _export.params.export_materials = false;
   compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "vertices.blend",
                                "io_tests" SEP_STR "obj" SEP_STR "vertices.obj",
                                "",
