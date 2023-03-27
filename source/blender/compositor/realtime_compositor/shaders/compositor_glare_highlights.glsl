@@ -1,5 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 void main()
 {
   /* The dispatch domain covers the output image size, which might be a fraction of the input image
@@ -7,16 +5,9 @@ void main()
    * one. */
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  /* Since the output image might be a fraction of the input image size, and since we want to
-   * evaluate the input sampler at the center of the output pixel, we add an offset equal to half
-   * the number of input pixels that covers a single output pixel. In case the input and output
-   * have the same size, this will be 0.5, which is the offset required to evaluate the sampler at
-   * the center of the pixel. */
-  vec2 offset = vec2(texture_size(input_tx) / imageSize(output_img)) / 2.0;
-
-  /* Add the aforementioned offset and divide by the output image size to get the coordinates into
-   * the sampler's expected [0, 1] range. */
-  vec2 normalized_coordinates = (vec2(texel) + offset) / vec2(imageSize(output_img));
+  /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
+   * to get the coordinates into the sampler's expected [0, 1] range. */
+  vec2 normalized_coordinates = (vec2(texel) + vec2(0.5)) / vec2(imageSize(output_img));
 
   vec4 input_color = texture(input_tx, normalized_coordinates);
   float luminance = dot(input_color.rgb, luminance_coefficients);
