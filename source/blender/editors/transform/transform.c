@@ -620,7 +620,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     case TFM_MODAL_ROTATE:
     case TFM_MODAL_RESIZE:
     case TFM_MODAL_VERT_EDGE_SLIDE:
-    case TFM_MODAL_TRACKBALL: {
+    case TFM_MODAL_TRACKBALL:
+    case TFM_MODAL_ROTATE_NORMALS: {
       if (!transform_mode_is_changeable(t->mode)) {
         return false;
       }
@@ -661,6 +662,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
            * Ideally we should check if it really uses the same key. */
           t->mode != TFM_ROTATION) {
         return false;
+      }
+      if (value == TFM_MODAL_ROTATE_NORMALS) {
+        return t->mode == TFM_ROTATION && t->data_type == &TransConvertType_Mesh;
       }
       break;
     }
@@ -712,6 +716,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
       {TFM_MODAL_TRACKBALL, "TRACKBALL", 0, "TrackBall", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
+      {TFM_MODAL_ROTATE_NORMALS, "ROTATE_NORMALS", 0, "Rotate Normals", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
@@ -957,6 +962,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
       case TFM_MODAL_ROTATE:
       case TFM_MODAL_RESIZE:
       case TFM_MODAL_TRACKBALL:
+      case TFM_MODAL_ROTATE_NORMALS:
       case TFM_MODAL_VERT_EDGE_SLIDE:
         /* only switch when... */
         if (!transform_mode_is_changeable(t->mode)) {
@@ -977,8 +983,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
         if ((event->val == TFM_MODAL_ROTATE && t->mode == TFM_ROTATION) ||
             (event->val == TFM_MODAL_TRACKBALL && t->mode == TFM_TRACKBALL) ||
+            (event->val == TFM_MODAL_ROTATE_NORMALS && t->mode == TFM_NORMAL_ROTATION) ||
             (event->val == TFM_MODAL_VERT_EDGE_SLIDE &&
              ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE))) {
+          break;
+        }
+
+        if (event->val == TFM_MODAL_ROTATE_NORMALS && t->data_type != &TransConvertType_Mesh) {
           break;
         }
 
@@ -994,6 +1005,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         else if (event->val == TFM_MODAL_TRACKBALL) {
           transform_mode_init(t, NULL, TFM_TRACKBALL);
+        }
+        else if (event->val == TFM_MODAL_ROTATE_NORMALS) {
+          transform_mode_init(t, NULL, TFM_NORMAL_ROTATION);
         }
         else if (event->val == TFM_MODAL_RESIZE) {
           /* Scale isn't normally very useful after extrude along normals, see #39756 */
@@ -1281,21 +1295,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->flag |= T_ALT_TRANSFORM;
           t->redraw |= TREDRAW_HARD;
           handled = true;
-        }
-        break;
-      case EVT_NKEY:
-        if (event->flag & WM_EVENT_IS_REPEAT) {
-          break;
-        }
-        if (ELEM(t->mode, TFM_ROTATION)) {
-          if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
-            restoreTransObjects(t);
-            resetTransModal(t);
-            resetTransRestrictions(t);
-            transform_mode_init(t, NULL, TFM_NORMAL_ROTATION);
-            t->redraw = TREDRAW_HARD;
-            handled = true;
-          }
         }
         break;
       default:
