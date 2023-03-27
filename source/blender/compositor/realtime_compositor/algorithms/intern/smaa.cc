@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "IMB_colormanagement.h"
+
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
@@ -20,6 +22,10 @@ static Result detect_edges(Context &context,
   GPUShader *shader = context.shader_manager().get("compositor_smaa_edge_detection");
   GPU_shader_bind(shader);
 
+  float luminance_coefficients[3];
+  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+  GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
   GPU_shader_uniform_1f(shader, "smaa_threshold", threshold);
   GPU_shader_uniform_1f(
       shader, "smaa_local_contrast_adaptation_factor", local_contrast_adaptation_factor);
