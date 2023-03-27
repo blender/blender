@@ -4163,6 +4163,8 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
+    pack_island->aspect_y = handle->aspx / handle->aspy;
+    pack_island->angle = 0.0f;
     pack_island_vector.append(pack_island);
 
     float minv[2];
@@ -4186,16 +4188,18 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 
-    float m[2][2];
+    float matrix[2][2];
     float b[2];
-    m[0][0] = scale[0];
-    m[0][1] = 0.0f;
-    m[1][0] = 0.0f;
-    m[1][1] = scale[1];
+    const float cos_angle = cosf(pack_island->angle);
+    const float sin_angle = sinf(pack_island->angle);
+    matrix[0][0] = cos_angle * scale[0];
+    matrix[0][1] = -sin_angle * scale[0] * pack_island->aspect_y;
+    matrix[1][0] = sin_angle * scale[1] / pack_island->aspect_y;
+    matrix[1][1] = cos_angle * scale[1];
     b[0] = pack_island->pre_translate.x;
     b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      blender::geometry::mul_v2_m2_add_v2v2(v->uv, m, v->uv, b);
+      blender::geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, b);
     }
 
     pack_island_vector[i] = nullptr;
