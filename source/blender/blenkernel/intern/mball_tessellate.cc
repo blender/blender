@@ -1489,6 +1489,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   memcpy(BKE_mesh_vert_normals_for_write(mesh),
          process.no.data(),
          sizeof(float[3]) * size_t(mesh->totvert));
+  BKE_mesh_vert_normals_clear_dirty(mesh);
 
   mesh->totloop = loop_offset;
 
