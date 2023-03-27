@@ -917,7 +917,6 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
 int transformEvent(TransInfo *t, const wmEvent *event)
 {
   bool handled = false;
-  const int modifiers_prev = t->modifiers;
   const int mode_prev = t->mode;
 
   /* Handle modal numinput events first, if already activated. */
@@ -1366,8 +1365,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   }
 
   /* if we change snap options, get the unsnapped values back */
-  if ((mode_prev != t->mode) || ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) !=
-                                 (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT)))) {
+  if (mode_prev != t->mode) {
     applyMouseInput(t, &t->mouse, t->mval, t->values);
   }
 
