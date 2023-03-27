@@ -6731,7 +6731,7 @@ static void def_cmp_map_range(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp the result of the node to the target range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
