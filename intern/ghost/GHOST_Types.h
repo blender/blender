@@ -9,6 +9,9 @@
 
 #include <stdint.h>
 
+/* This is used by `GHOST_C-api.h` too, cannot use C++ conventions. */
+// NOLINTBEGIN: modernize-use-using
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #else
@@ -879,3 +882,5 @@ typedef struct GHOST_XrControllerModelData {
 } GHOST_XrControllerModelData;
 
 #endif /* WITH_XR_OPENXR */
+
+// NOLINTEND: modernize-use-using
