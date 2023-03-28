@@ -2749,7 +2749,12 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
 
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
 
-  BKE_sculptsession_check_sculptverts(ob, pbvh, BKE_pbvh_get_grid_num_verts(pbvh));
+  int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
+  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert);
+
+  for (int i = 0; i < totvert; i++) {
+    ss->msculptverts[i].stroke_id = -1;
+  }
 
 #ifdef WITH_PBVH_CACHE
   BKE_pbvh_set_cached(ob, pbvh);

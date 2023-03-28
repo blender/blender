@@ -5415,6 +5415,8 @@ static void sculpt_update_cache_invariants(
   }
 
   SCULPT_apply_dyntopo_settings(ss, sd, brush);
+
+  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
 }
 
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)

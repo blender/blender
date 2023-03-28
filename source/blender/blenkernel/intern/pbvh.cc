@@ -1025,6 +1025,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   for (int i = 0; i < mesh->totvert; i++) {
     msculptverts[i].flag &= ~SCULPTVERT_NEED_VALENCE;
     msculptverts[i].valence = pmap->pmap[i].count;
+    msculptverts[i].stroke_id = -1;
   }
 
   for (int i = 0; i < looptri_num; i++) {
