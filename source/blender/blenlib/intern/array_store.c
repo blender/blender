@@ -1323,18 +1323,19 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
           const BChunk *chunk_a = cref->link;
           const BTableRef *tref = tref_prev;
           do {
+            /* Not an error, it just isn't expected the links are ever shared. */
+            BLI_assert(tref->cref != cref);
             const BChunk *chunk_b = tref->cref->link;
 #  ifdef USE_HASH_TABLE_KEY_CACHE
             if (key == chunk_b->key)
 #  endif
             {
-              /* Not an error, it just isn't expected, in the case chunks are shared
-               * matching chunks should also be skipped to avoid a redundant `memcmp` call. */
-              BLI_assert(chunk_a != chunk_b);
-              if (chunk_a->data_len == chunk_b->data_len) {
-                if (memcmp(chunk_a->data, chunk_b->data, chunk_a->data_len) == 0) {
-                  is_duplicate = true;
-                  break;
+              if (chunk_a != chunk_b) {
+                if (chunk_a->data_len == chunk_b->data_len) {
+                  if (memcmp(chunk_a->data, chunk_b->data, chunk_a->data_len) == 0) {
+                    is_duplicate = true;
+                    break;
+                  }
                 }
               }
             }
