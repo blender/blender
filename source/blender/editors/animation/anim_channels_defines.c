@@ -4949,28 +4949,31 @@ static void draw_setting_widget(bAnimContext *ac,
                                 bAnimListElem *ale,
                                 const bAnimChannelType *acf,
                                 uiBlock *block,
-                                int xpos,
-                                int ypos,
-                                int setting)
+                                const int xpos,
+                                const int ypos,
+                                const eAnimChannel_Settings setting)
 {
-  short ptrsize, butType;
-  bool negflag;
   bool usetoggle = true;
-  int flag, icon;
-  void *ptr;
+  int icon;
   const char *tooltip;
-  uiBut *but = NULL;
-  bool enabled;
 
   /* get the flag and the pointer to that flag */
-  flag = acf->setting_flag(ac, setting, &negflag);
-  ptr = acf->setting_ptr(ale, setting, &ptrsize);
-  enabled = ANIM_channel_setting_get(ac, ale, setting);
+  bool negflag;
+  const int flag = acf->setting_flag(ac, setting, &negflag);
+
+  short ptrsize;
+  void *ptr = acf->setting_ptr(ale, setting, &ptrsize);
+
+  if (!ptr || !flag) {
+    return;
+  }
+
+  const bool enabled = ANIM_channel_setting_get(ac, ale, setting);
 
   /* get the base icon for the setting */
   switch (setting) {
     case ACHANNEL_SETTING_VISIBLE: /* visibility eyes */
-      // icon = ((enabled) ? ICON_HIDE_OFF : ICON_HIDE_ON);
+      // icon = (enabled ? ICON_HIDE_OFF : ICON_HIDE_ON);
       icon = ICON_HIDE_ON;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -4995,13 +4998,13 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
-      // icon = ((enabled) ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
+      // icon = (enabled ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
       icon = ICON_TRIA_RIGHT;
       tooltip = TIP_("Make channels grouped under this channel visible");
       break;
 
     case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
-      // icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
+      // icon = (enabled ? ICON_SOLO_OFF : ICON_SOLO_ON);
       icon = ICON_SOLO_OFF;
       tooltip = TIP_(
           "NLA Track is the only one evaluated in this animation data-block, with all others "
@@ -5012,7 +5015,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_PROTECT: /* protected lock */
       /* TODO: what about when there's no protect needed? */
-      // icon = ((enabled) ? ICON_LOCKED : ICON_UNLOCKED);
+      // icon = (enabled ? ICON_LOCKED : ICON_UNLOCKED);
       icon = ICON_UNLOCKED;
 
       if (ale->datatype != ALE_NLASTRIP) {
@@ -5024,7 +5027,7 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_MUTE: /* muted speaker */
-      icon = ((enabled) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
+      icon = (enabled ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
       usetoggle = false;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -5045,7 +5048,7 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_PINNED: /* pin icon */
-      // icon = ((enabled) ? ICON_PINNED : ICON_UNPINNED);
+      // icon = (enabled ? ICON_PINNED : ICON_UNPINNED);
       icon = ICON_UNPINNED;
 
       if (ale->type == ANIMTYPE_NLAACTION) {
@@ -5064,6 +5067,7 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   /* type of button */
+  short butType;
   if (usetoggle) {
     if (negflag) {
       butType = UI_BTYPE_ICON_TOGGLE_N;
@@ -5080,100 +5084,99 @@ static void draw_setting_widget(bAnimContext *ac,
       butType = UI_BTYPE_TOGGLE;
     }
   }
+
   /* draw button for setting */
-  if (ptr && flag) {
-    switch (ptrsize) {
-      case sizeof(int): /* integer pointer for setting */
-        but = uiDefIconButBitI(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
+  uiBut *but = NULL;
+  switch (ptrsize) {
+    case sizeof(int): /* integer pointer for setting */
+      but = uiDefIconButBitI(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
 
-      case sizeof(short): /* short pointer for setting */
-        but = uiDefIconButBitS(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
+    case sizeof(short): /* short pointer for setting */
+      but = uiDefIconButBitS(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
 
-      case sizeof(char): /* char pointer for setting */
-        but = uiDefIconButBitC(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
-    }
+    case sizeof(char): /* char pointer for setting */
+      but = uiDefIconButBitC(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
+  }
+  if (!but) {
+    return;
+  }
 
-    /* set call to send relevant notifiers and/or perform type-specific updates */
-    if (but) {
-      switch (setting) {
-        /* Settings needing flushing up/down hierarchy. */
-        case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
-        case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
-        case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
-        case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
-        case ACHANNEL_SETTING_MOD_OFF:
-        case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-          UI_but_funcN_set(but,
-                           achannel_setting_flush_widget_cb,
-                           MEM_dupallocN(ale),
-                           POINTER_FROM_INT(setting));
-          break;
+  /* set call to send relevant notifiers and/or perform type-specific updates */
+  switch (setting) {
+    /* Settings needing flushing up/down hierarchy. */
+    case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
+    case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
+    case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
+    case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
+    case ACHANNEL_SETTING_MOD_OFF:
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+      UI_but_funcN_set(
+          but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
+      break;
 
-        /* settings needing special attention */
-        case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-          UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
-          break;
+    /* settings needing special attention */
+    case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
+      UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
+      break;
 
-        /* no flushing */
-        case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
-                                       * otherwise all would open/close at once */
-        default:
-          UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
-          break;
-      }
+    /* no flushing */
+    case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
+                                   * otherwise all would open/close at once */
+    default:
+      UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
+      break;
+  }
 
-      if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
-          (ale->fcurve_owner_id == NULL && ale->id != NULL &&
-           !BKE_id_is_editable(ac->bmain, ale->id))) {
-        if (setting != ACHANNEL_SETTING_EXPAND) {
-          UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
-        }
-      }
+  if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
+      (ale->fcurve_owner_id == NULL && ale->id != NULL &&
+       !BKE_id_is_editable(ac->bmain, ale->id))) {
+    if (setting != ACHANNEL_SETTING_EXPAND) {
+      UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
     }
   }
 }
