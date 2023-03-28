@@ -21,18 +21,18 @@ class GHOST_DisplayManager {
   /**
    * Constructor.
    */
-  GHOST_DisplayManager(void);
+  GHOST_DisplayManager();
 
   /**
    * Destructor.
    */
-  virtual ~GHOST_DisplayManager(void);
+  virtual ~GHOST_DisplayManager();
 
   /**
    * Initializes the list with devices and settings.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess initialize(void);
+  virtual GHOST_TSuccess initialize();
 
   /**
    * Returns the number of display devices on this system.
@@ -98,7 +98,7 @@ class GHOST_DisplayManager {
    * Retrieves settings for each display device and stores them.
    * \return Indication of success.
    */
-  GHOST_TSuccess initializeSettings(void);
+  GHOST_TSuccess initializeSettings();
 
   /** Tells whether the list of display modes has been stored already. */
   bool m_settingsInitialized;

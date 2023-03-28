@@ -135,19 +135,19 @@ class GHOST_System : public GHOST_ISystem {
    * Ends full screen mode.
    * \return Indication of success.
    */
-  GHOST_TSuccess endFullScreen(void);
+  GHOST_TSuccess endFullScreen();
 
   /**
    * Returns current full screen mode status.
    * \return The current status.
    */
-  bool getFullScreen(void);
+  bool getFullScreen();
 
   /**
    * Native pixel size support (MacBook 'retina').
    * \return The pixel size in float.
    */
-  bool useNativePixel(void);
+  bool useNativePixel();
   bool m_nativePixel;
 
   /**

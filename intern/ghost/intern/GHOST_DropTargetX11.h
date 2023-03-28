@@ -49,12 +49,12 @@ class GHOST_DropTargetX11 {
   /**
    * Initialize XDND and all related X atoms
    */
-  void Initialize(void);
+  void Initialize();
 
   /**
    * Uninitialized XDND and all related X atoms
    */
-  void Uninitialize(void);
+  void Uninitialize();
 
   /**
    * Get data to be passed to event from text/URI-list mime type

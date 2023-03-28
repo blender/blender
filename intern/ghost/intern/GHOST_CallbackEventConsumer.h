@@ -28,7 +28,7 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   /**
    * Destructor.
    */
-  ~GHOST_CallbackEventConsumer(void)
+  ~GHOST_CallbackEventConsumer()
   {
   }
 

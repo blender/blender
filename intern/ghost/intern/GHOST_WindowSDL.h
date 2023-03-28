@@ -52,7 +52,7 @@ class GHOST_WindowSDL : public GHOST_Window {
     return m_sdl_win;
   }
 
-  GHOST_TSuccess invalidate(void) override;
+  GHOST_TSuccess invalidate() override;
 
   /**
    * called by the X11 system implementation when expose events

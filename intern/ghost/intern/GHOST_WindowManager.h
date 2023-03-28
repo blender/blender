@@ -54,13 +54,13 @@ class GHOST_WindowManager {
    * Returns whether one of the windows is full-screen.
    * \return A boolean indicator.
    */
-  bool getFullScreen(void) const;
+  bool getFullScreen() const;
 
   /**
    * Returns pointer to the full-screen window.
    * \return The full-screen window (NULL if not in full-screen).
    */
-  GHOST_IWindow *getFullScreenWindow(void) const;
+  GHOST_IWindow *getFullScreenWindow() const;
 
   /**
    * Activates full-screen mode for a window.
@@ -73,7 +73,7 @@ class GHOST_WindowManager {
    * Closes full-screen mode down.
    * \return Indication of success.
    */
-  GHOST_TSuccess endFullScreen(void);
+  GHOST_TSuccess endFullScreen();
 
   /**
    * Sets new window as active window (the window receiving events).
@@ -87,7 +87,7 @@ class GHOST_WindowManager {
    * There can be only one window active which should be in the current window list.
    * \return window The active window (or NULL if there is none).
    */
-  GHOST_IWindow *getActiveWindow(void) const;
+  GHOST_IWindow *getActiveWindow() const;
 
   /**
    * Set this window to be inactive (not receiving events).
