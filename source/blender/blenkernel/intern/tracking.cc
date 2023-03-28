@@ -3121,6 +3121,7 @@ static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChan
       }
 
       channel->tot_segment++;
+      (void)len; /* Quiet set-but-unused warning (may be removed). */
     }
 
     i++;

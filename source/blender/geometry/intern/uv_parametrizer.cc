@@ -4162,6 +4162,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
       unpacked++;
       continue;
     }
+    (void)unpacked; /* Quiet set-but-unused warning (may be removed). */
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
