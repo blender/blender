@@ -192,6 +192,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   struct wl_shm *wl_shm() const;
 
+  static const char *xdg_app_id();
+
   /* WAYLAND utility functions. */
 
   /**

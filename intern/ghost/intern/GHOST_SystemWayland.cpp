@@ -6821,6 +6821,26 @@ struct zwp_pointer_gestures_v1 *GHOST_SystemWayland::wp_pointer_gestures()
   return display_->wp_pointer_gestures;
 }
 
+/* This value is expected to match the base name of the `.desktop` file. see #101805.
+ *
+ * NOTE: the XDG desktop-entry-spec defines that this should follow the "reverse DNS" convention.
+ * For e.g. `org.blender.Blender` - however the `.desktop` file distributed with Blender is
+ * simply called `blender.desktop`, so the it's important to follow that name.
+ * Other distributions such as SNAP & FLATPAK may need to change this value #101779.
+ * Currently there isn't a way to configure this, we may want to support that. */
+static const char *ghost_wl_app_id = (
+#ifdef WITH_GHOST_WAYLAND_APP_ID
+    STRINGIFY(WITH_GHOST_WAYLAND_APP_ID)
+#else
+    "blender"
+#endif
+);
+
+const char *GHOST_SystemWayland::xdg_app_id()
+{
+  return ghost_wl_app_id;
+}
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 
 libdecor *GHOST_SystemWayland::libdecor_context()
