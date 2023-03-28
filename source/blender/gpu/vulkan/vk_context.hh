@@ -13,6 +13,7 @@
 #include "vk_descriptor_pools.hh"
 
 namespace blender::gpu {
+class VKFrameBuffer;
 
 class VKContext : public Context {
  private:
@@ -54,6 +55,9 @@ class VKContext : public Context {
   void *debug_capture_scope_create(const char *name) override;
   bool debug_capture_scope_begin(void *scope) override;
   void debug_capture_scope_end(void *scope) override;
+
+  void activate_framebuffer(VKFrameBuffer &framebuffer);
+  void deactivate_framebuffer();
 
   static VKContext *get(void)
   {
@@ -102,6 +106,8 @@ class VKContext : public Context {
 
  private:
   void init_physical_device_limits();
+
+  bool has_active_framebuffer() const;
 };
 
 }  // namespace blender::gpu
