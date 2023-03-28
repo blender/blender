@@ -1121,8 +1121,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     paint->symmetry_flags |= PAINT_SYMM_X;
 
     /* Make sure at least dyntopo subdivision is enabled */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_CLEANUP |
-                   SCULPT_DYNTOPO_ENABLED;
+    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_ENABLED;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_cnew<GpPaint>(__func__);
@@ -2448,9 +2447,9 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->dyntopo_radius_scale = 1.0f;
   }
 
-  // we check these flags here in case versioning code fails
+  /* We check these flags here in case versioning code fails. */
   if (!sd->detail_range || !sd->dyntopo_spacing) {
-    sd->flags |= SCULPT_DYNTOPO_CLEANUP | SCULPT_DYNTOPO_ENABLED;
+    sd->flags |= SCULPT_DYNTOPO_ENABLED;
   }
 
   if (!sd->detail_range) {

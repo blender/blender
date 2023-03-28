@@ -4172,6 +4172,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       ds->detail_range = sculpt->detail_range;
       ds->constant_detail = sculpt->constant_detail;
 
+      sculpt->flags |= SCULPT_DYNTOPO_ENABLED;
+
       ds->flag = 0;
       if (sculpt->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
         ds->flag |= DYNTOPO_SUBDIVIDE;

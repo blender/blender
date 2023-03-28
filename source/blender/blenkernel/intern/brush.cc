@@ -1817,8 +1817,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
       br->dyntopo.inherit = ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE |
-                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE |
-                              DYNTOPO_INHERIT_DETAIL_RANGE);
+                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE);
       br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
       br->dyntopo.detail_range = 0.4f;
       br->dyntopo.spacing = 5;
