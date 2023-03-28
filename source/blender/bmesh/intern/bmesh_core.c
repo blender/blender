@@ -1991,7 +1991,7 @@ static char *obj_append_line(const char *line, char *str, char *fixed, int *size
 }
 
 static char *bm_save_local_obj_text(
-    BMesh *bm, int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
+    BMesh *UNUSED(bm), int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
 {
   va_list vl;
   va_start(vl, fmt);

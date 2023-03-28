@@ -189,10 +189,10 @@ struct BMLogSetBase {
   {
   }
 
-  virtual void undo(BMesh *bm, BMLogCallbacks *callbacks)
+  virtual void undo(BMesh */*bm*/, BMLogCallbacks */*callbacks*/)
   {
   }
-  virtual void redo(BMesh *bm, BMLogCallbacks *callbacks)
+  virtual void redo(BMesh */*bm*/, BMLogCallbacks */*callbacks*/)
   {
   }
 };
@@ -419,7 +419,7 @@ struct BMLogEntry {
     CustomData_free(&pdata, 0);
   }
 
-  template<typename T> T *get_elem_from_id(BMesh *bm, BMID<T> id)
+  template<typename T> T *get_elem_from_id(BMesh */*bm*/, BMID<T> id)
   {
     T *elem = reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
     char htype = 0;
@@ -450,7 +450,7 @@ struct BMLogEntry {
     return elem;
   }
 
-  template<typename T> void assign_elem_id(BMesh *bm, T *elem, BMID<T> _id, bool check_unique)
+  template<typename T> void assign_elem_id(BMesh */*bm*/, T *elem, BMID<T> _id, bool check_unique)
   {
     int id = _id.id;
 
@@ -476,7 +476,7 @@ struct BMLogEntry {
     BM_idmap_assign(idmap, reinterpret_cast<BMElem *>(elem), id);
   }
 
-  template<typename T> BMID<T> get_elem_id(BMesh *bm, T *elem)
+  template<typename T> BMID<T> get_elem_id(BMesh */*bm*/, T *elem)
   {
     BM_idmap_check_assign(idmap, reinterpret_cast<BMElem *>(elem));
     return BM_idmap_get_id(idmap, reinterpret_cast<BMElem *>(elem));
@@ -514,7 +514,7 @@ struct BMLogEntry {
     lv->flag = v->head.hflag;
   }
 
-  void swap_logvert(BMesh *bm, BMID<BMVert> id, BMVert *v, BMLogVert *lv)
+  void swap_logvert(BMesh *bm, BMID<BMVert> /*id*/, BMVert *v, BMLogVert *lv)
   {
     if (v->head.data && lv->customdata) {
       CustomData_bmesh_swap_data(&vdata, &bm->vdata, lv->customdata, &v->head.data);
@@ -525,14 +525,14 @@ struct BMLogEntry {
     swap_v3_v3(v->no, lv->no);
   }
 
-  void swap_logedge(BMesh *bm, BMID<BMEdge> id, BMEdge *e, BMLogEdge *le)
+  void swap_logedge(BMesh *bm, BMID<BMEdge> /*id*/, BMEdge *e, BMLogEdge *le)
   {
     if (e->head.data && le->customdata) {
       CustomData_bmesh_swap_data(&edata, &bm->edata, le->customdata, &e->head.data);
     }
   }
 
-  void swap_logface(BMesh *bm, BMID<BMFace> id, BMFace *f, BMLogFace *lf)
+  void swap_logface(BMesh *bm, BMID<BMFace> /*id*/, BMFace *f, BMLogFace *lf)
   {
     if (f->head.data && lf->customdata) {
       CustomData_bmesh_swap_data(&pdata, &bm->pdata, lf->customdata, &f->head.data);
@@ -608,7 +608,7 @@ struct BMLogEntry {
     CustomData_bmesh_copy_data(&bm->edata, &edata, e->head.data, &le->customdata);
   }
 
-  void free_logedge(BMesh *bm, BMLogEdge *e)
+  void free_logedge(BMesh */*bm*/, BMLogEdge *e)
   {
     epool.free(e);
   }
@@ -659,7 +659,7 @@ struct BMLogEntry {
     } while ((l = l->next) != f->l_first);
   }
 
-  void free_logface(BMesh *bm, BMLogFace *lf)
+  void free_logface(BMesh */*bm*/, BMLogFace *lf)
   {
     if (lf->loop_customdata[0]) {
       for (int i = 0; i < lf->verts.size(); i++) {
@@ -1029,7 +1029,7 @@ void BMLogSetDiff::remove_edge(BMesh *bm, BMEdge *e)
   removed_edges.add(id, le);
 }
 
-void BMLogSetDiff::modify_edge(BMesh *bm, BMEdge *e)
+void BMLogSetDiff::modify_edge(BMesh */*bm*/, BMEdge */*e*/)
 {
 }
 
@@ -1423,7 +1423,7 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMIdMap *idmap, BMLogEntry
   return log;
 }
 
-BMLog *BM_log_create(BMesh *bm, BMIdMap *idmap)
+BMLog *BM_log_create(BMesh */*bm*/, BMIdMap *idmap)
 {
   BMLog *log = MEM_new<BMLog>("BMLog", idmap);
 
@@ -1564,22 +1564,22 @@ void BM_log_full_mesh(BMesh *bm, BMLog *log)
   log->full_mesh(bm);
 }
 
-BMVert *BM_log_id_vert_get(BMesh *bm, BMLog *log, uint id)
+BMVert *BM_log_id_vert_get(BMesh */*bm*/, BMLog *log, uint id)
 {
   return reinterpret_cast<BMVert *>(BM_idmap_lookup(log->idmap, id));
 }
 
-uint BM_log_vert_id_get(BMesh *bm, BMLog *log, BMVert *v)
+uint BM_log_vert_id_get(BMesh */*bm*/, BMLog *log, BMVert *v)
 {
   return BM_idmap_get_id(log->idmap, reinterpret_cast<BMElem *>(v));
 }
 
-BMFace *BM_log_id_face_get(BMesh *bm, BMLog *log, uint id)
+BMFace *BM_log_id_face_get(BMesh */*bm*/, BMLog *log, uint id)
 {
   return reinterpret_cast<BMFace *>(BM_idmap_lookup(log->idmap, id));
 }
 
-uint BM_log_face_id_get(BMesh *bm, BMLog *log, BMFace *f)
+uint BM_log_face_id_get(BMesh */*bm*/, BMLog *log, BMFace *f)
 {
   return BM_idmap_get_id(log->idmap, reinterpret_cast<BMElem *>(f));
 }
@@ -1599,12 +1599,12 @@ void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks)
   log->redo(bm, callbacks);
 }
 
-void BM_log_undo_skip(BMesh *bm, BMLog *log)
+void BM_log_undo_skip(BMesh */*bm*/, BMLog *log)
 {
   log->skip(-1);
 }
 
-void BM_log_redo_skip(BMesh *bm, BMLog *log)
+void BM_log_redo_skip(BMesh */*bm*/, BMLog *log)
 {
   log->skip(1);
 }
@@ -1653,7 +1653,7 @@ bool BM_log_entry_drop(BMLogEntry *entry)
   return true;
 }
 
-void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
+void BM_log_print_entry(BMLog */*log*/, BMLogEntry *entry)
 {
   printf("entry: %p", entry);
 }

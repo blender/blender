@@ -26,7 +26,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-static void copy_cdata_simple(BMesh *bm,
+static void copy_cdata_simple(BMesh *UNUSED(bm),
                               CustomData *data_layer,
                               BMElem *ele_dst,
                               const BMElem *ele_src)
