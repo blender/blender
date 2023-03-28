@@ -619,7 +619,12 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
           const Spectrum emission = volume_emission_integrate(
               &coeff, closure_flag, transmittance, dt);
           accum_emission += result.indirect_throughput * emission;
-          guiding_record_volume_emission(kg, state, emission);
+#  if OPENPGL_VERSION_MINOR < 5  // WORKAROUND #104329
+          if (kernel_data.integrator.max_volume_bounce > 1)
+#  endif
+          {
+            guiding_record_volume_emission(kg, state, emission);
+          }
         }
       }
 
@@ -961,9 +966,13 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   const Spectrum phase_weight = bsdf_eval_sum(&phase_eval) / phase_pdf;
 
   /* Add phase function sampling data to the path segment. */
-  guiding_record_volume_bounce(
-      kg, state, sd, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
-
+#  if OPENPGL_VERSION_MINOR < 5  // WORKAROUND #104329
+  if (kernel_data.integrator.max_volume_bounce > 1)
+#  endif
+  {
+    guiding_record_volume_bounce(
+        kg, state, sd, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
+  }
   /* Update throughput. */
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
   const Spectrum throughput_phase = throughput * phase_weight;
@@ -1058,7 +1067,11 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     const float3 direct_P = ray->P + result.direct_t * ray->D;
 
 #  ifdef __PATH_GUIDING__
+#    if OPENPGL_VERSION_MINOR < 5  // WORKAROUND #104329
+    if (kernel_data.integrator.use_guiding && kernel_data.integrator.max_volume_bounce > 1) {
+#    else
     if (kernel_data.integrator.use_guiding) {
+#    endif
 #    if PATH_GUIDING_LEVEL >= 1
       if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
         /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
@@ -1131,7 +1144,12 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
 #  if defined(__PATH_GUIDING__)
 #    if PATH_GUIDING_LEVEL >= 1
     if (!guiding_generated_new_segment) {
-      guiding_record_volume_segment(kg, state, sd.P, sd.wi);
+#      if OPENPGL_VERSION_MINOR < 5  // WORKAROUND #104329
+      if (kernel_data.integrator.max_volume_bounce > 1)
+#      endif
+      {
+        guiding_record_volume_segment(kg, state, sd.P, sd.wi);
+      }
     }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
