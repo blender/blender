@@ -106,7 +106,7 @@ class BlurOperation : public NodeOperation {
       return;
     }
 
-    if (!get_input("Size").is_single_value() && get_variable_size()) {
+    if (use_variable_size()) {
       execute_variable_size();
     }
     else if (use_separable_filter()) {
@@ -259,6 +259,12 @@ class BlurOperation : public NodeOperation {
       default:
         return false;
     }
+  }
+
+  bool use_variable_size()
+  {
+    return get_variable_size() && !get_input("Size").is_single_value() &&
+           node_storage(bnode()).filtertype != R_FILTER_FAST_GAUSS;
   }
 
   float2 get_size_factor()

@@ -398,6 +398,10 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"
     )
+    # `xdg-activation`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/staging/xdg-activation/xdg-activation-v1.xml"
+    )
     # Pointer-constraints.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"

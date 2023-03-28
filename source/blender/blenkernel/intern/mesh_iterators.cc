@@ -31,7 +31,7 @@
  * path needs to consist of both edit mesh and edit data checks. */
 
 void BKE_mesh_foreach_mapped_vert(
-    Mesh *mesh,
+    const Mesh *mesh,
     void (*func)(void *userData, int index, const float co[3], const float no[3]),
     void *userData,
     MeshForeachFlag flag)

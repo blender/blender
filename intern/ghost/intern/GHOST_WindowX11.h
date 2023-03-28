@@ -63,44 +63,44 @@ class GHOST_WindowX11 : public GHOST_Window {
                   const bool exclusive = false,
                   const bool is_debug = false);
 
-  bool getValid() const;
+  bool getValid() const override;
 
-  void setTitle(const char *title);
+  void setTitle(const char *title) override;
 
-  std::string getTitle() const;
+  std::string getTitle() const override;
 
-  void getWindowBounds(GHOST_Rect &bounds) const;
+  void getWindowBounds(GHOST_Rect &bounds) const override;
 
-  void getClientBounds(GHOST_Rect &bounds) const;
+  void getClientBounds(GHOST_Rect &bounds) const override;
 
-  bool isDialog() const;
+  bool isDialog() const override;
 
-  GHOST_TSuccess setClientWidth(uint32_t width);
+  GHOST_TSuccess setClientWidth(uint32_t width) override;
 
-  GHOST_TSuccess setClientHeight(uint32_t height);
+  GHOST_TSuccess setClientHeight(uint32_t height) override;
 
-  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height);
+  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height) override;
 
-  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
-  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
-  GHOST_TWindowState getState() const;
+  GHOST_TWindowState getState() const override;
 
-  GHOST_TSuccess setState(GHOST_TWindowState state);
+  GHOST_TSuccess setState(GHOST_TWindowState state) override;
 
-  GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
+  GHOST_TSuccess setOrder(GHOST_TWindowOrder order) override;
 
-  GHOST_TSuccess invalidate();
+  GHOST_TSuccess invalidate() override;
 
-  GHOST_TSuccess setProgressBar(float progress);
-  GHOST_TSuccess endProgressBar();
+  GHOST_TSuccess setProgressBar(float progress) override;
+  GHOST_TSuccess endProgressBar() override;
 
   /**
    * Destructor.
    * Closes the window and disposes resources allocated.
    */
-  ~GHOST_WindowX11();
+  ~GHOST_WindowX11() override;
 
   /**
    * \section x11specific X11 system specific calls
@@ -152,32 +152,32 @@ class GHOST_WindowX11 : public GHOST_Window {
   bool m_post_init;
   GHOST_TWindowState m_post_state;
 
-  GHOST_TSuccess beginFullScreen() const;
+  GHOST_TSuccess beginFullScreen() const override;
 
-  GHOST_TSuccess endFullScreen() const;
+  GHOST_TSuccess endFullScreen() const override;
 
   GHOST_TSuccess setDialogHints(GHOST_WindowX11 *parentWindow);
 
-  uint16_t getDPIHint();
+  uint16_t getDPIHint() override;
 
  protected:
   /**
    * \param type: The type of rendering context create.
    * \return Indication of success.
    */
-  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
+  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;
 
   /**
    * Sets the cursor visibility on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorVisibility(bool visible);
+  GHOST_TSuccess setWindowCursorVisibility(bool visible) override;
 
   /**
    * Sets the cursor grab on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
+  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
   GHOST_TGrabCursorMode getWindowCursorGrab() const;
 
@@ -185,8 +185,8 @@ class GHOST_WindowX11 : public GHOST_Window {
    * Sets the cursor shape on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
-  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape) override;
 
   /**
    * Sets the cursor shape on the window using
@@ -198,7 +198,7 @@ class GHOST_WindowX11 : public GHOST_Window {
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            bool canInvertColor);
+                                            bool canInvertColor) override;
 
  private:
   /* Force use of public constructor. */

@@ -170,6 +170,10 @@ class QuickFur(ObjectModeOperator, Operator):
 
             curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)
 
+            # Workaround for #105965: Rebuild UI data of modifier input properties.
+            for modifier in curves_object.modifiers:
+                modifier.node_group = modifier.node_group
+
         return {'FINISHED'}
 
 

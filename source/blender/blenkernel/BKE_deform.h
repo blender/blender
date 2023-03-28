@@ -58,7 +58,7 @@ struct bDeformGroup *BKE_object_defgroup_find_name(const struct Object *ob, cons
  *
  * \param use_default: How to handle cases where no symmetrical group is found.
  * - false: sets these indices to -1, indicating the group should be ignored.
- * - true: sets the index to its location in the array (making the group point to it's self).
+ * - true: sets the index to its location in the array (making the group point to itself).
  *   Enable this for symmetrical actions which apply weight operations on symmetrical vertices
  *   where the symmetrical group will be used (if found), otherwise the same group is used.
  *

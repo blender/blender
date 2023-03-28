@@ -44,6 +44,8 @@
 
 #include "BLO_read_write.h"
 
+#include "GPU_matrix.h"
+
 #include "action_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -169,7 +171,6 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   SpaceAction *saction = CTX_wm_space_action(C);
   Scene *scene = CTX_data_scene(C);
-  Object *obact = CTX_data_active_object(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
@@ -212,11 +213,6 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
     ED_markers_draw(C, marker_flag);
   }
 
-  /* caches */
-  if (saction->mode == SACTCONT_TIMELINE) {
-    timeline_draw_cache(saction, obact, scene);
-  }
-
   /* preview range */
   UI_view2d_view_ortho(v2d);
   ANIM_draw_previewrange(C, v2d, 0);
@@ -240,7 +236,16 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   const SpaceAction *saction = CTX_wm_space_action(C);
   const Scene *scene = CTX_data_scene(C);
+  const Object *obact = CTX_data_active_object(C);
   View2D *v2d = &region->v2d;
+
+  /* caches */
+  if (saction->mode == SACTCONT_TIMELINE) {
+    GPU_matrix_push_projection();
+    UI_view2d_view_orthoSpecial(region, v2d, 1);
+    timeline_draw_cache(saction, obact, scene);
+    GPU_matrix_pop_projection();
+  }
 
   /* scrubbing region */
   ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME);

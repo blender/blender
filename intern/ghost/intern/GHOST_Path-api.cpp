@@ -12,12 +12,12 @@
 #include "GHOST_Types.h"
 #include "intern/GHOST_Debug.h"
 
-GHOST_TSuccess GHOST_CreateSystemPaths(void)
+GHOST_TSuccess GHOST_CreateSystemPaths()
 {
   return GHOST_ISystemPaths::create();
 }
 
-GHOST_TSuccess GHOST_DisposeSystemPaths(void)
+GHOST_TSuccess GHOST_DisposeSystemPaths()
 {
   return GHOST_ISystemPaths::dispose();
 }

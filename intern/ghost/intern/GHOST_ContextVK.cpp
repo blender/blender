@@ -23,6 +23,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <sstream>
+
+#include <sys/stat.h>
 
 /* Set to 0 to allow devices that do not have the required features.
  * This allows development on OSX until we really needs these features. */
@@ -78,6 +81,21 @@ static const char *vulkan_error_as_string(VkResult result)
     default:
       return "Unknown Error";
   }
+}
+
+enum class VkLayer : uint8_t { KHRONOS_validation };
+
+static bool vklayer_config_exist(const char *vk_extension_config)
+{
+  const char *ev_val = getenv("VK_LAYER_PATH");
+  if (ev_val == nullptr) {
+    return false;
+  }
+  std::stringstream filename;
+  filename << ev_val;
+  filename << "/" << vk_extension_config;
+  struct stat buffer;
+  return (stat(filename.str().c_str(), &buffer) == 0);
 }
 
 #define __STR(A) "" #A
@@ -401,16 +419,38 @@ static bool checkLayerSupport(vector<VkLayerProperties> &layers_available, const
 
 static void enableLayer(vector<VkLayerProperties> &layers_available,
                         vector<const char *> &layers_enabled,
-                        const char *layer_name,
-                        const bool debug)
+                        const VkLayer layer,
+                        const bool display_warning)
 {
-  if (checkLayerSupport(layers_available, layer_name)) {
-    layers_enabled.push_back(layer_name);
+#define PUSH_VKLAYER(name, name2) \
+  if (vklayer_config_exist("VkLayer_" #name ".json") && \
+      checkLayerSupport(layers_available, "VK_LAYER_" #name2)) { \
+    layers_enabled.push_back("VK_LAYER_" #name2); \
+    enabled = true; \
+  } \
+  else { \
+    warnings << "VK_LAYER_" #name2; \
   }
-  else if (debug) {
-    fprintf(
-        stderr, "Warning: Layer requested, but not supported by the platform. [%s]\n", layer_name);
+
+  bool enabled = false;
+  std::stringstream warnings;
+
+  switch (layer) {
+    case VkLayer::KHRONOS_validation:
+      PUSH_VKLAYER(khronos_validation, KHRONOS_validation);
+  };
+
+  if (enabled) {
+    return;
   }
+
+  if (display_warning) {
+    fprintf(stderr,
+            "Warning: Layer requested, but not supported by the platform. [%s] \n",
+            warnings.str().c_str());
+  }
+
+#undef PUSH_VKLAYER
 }
 
 static bool device_extensions_support(VkPhysicalDevice device, vector<const char *> required_exts)
@@ -864,7 +904,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   vector<const char *> layers_enabled;
   if (m_debug) {
-    enableLayer(layers_available, layers_enabled, "VK_LAYER_KHRONOS_validation", m_debug);
+    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
   }
 
   vector<const char *> extensions_device;

@@ -42,6 +42,13 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
     return GHOST_kSuccess;
   }
+  GHOST_TCapabilityFlag getCapabilities() const override
+  {
+    return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                                 /* No windowing functionality supported. */
+                                 ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
+                                   GHOST_kCapabilityPrimaryClipboard));
+  }
   char *getClipboard(bool /*selection*/) const override
   {
     return nullptr;

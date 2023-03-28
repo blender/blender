@@ -17,6 +17,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
+#include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h" /* own include */
@@ -1089,7 +1090,7 @@ void BKE_appdir_app_templates(ListBase *templates)
  * Also make sure the temp dir has a trailing slash
  *
  * \param tempdir: The full path to the temporary temp directory.
- * \param tempdir_len: The size of the \a tempdir buffer.
+ * \param tempdir_maxlen: The size of the \a tempdir buffer.
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
@@ -1098,37 +1099,14 @@ static void where_is_temp(char *tempdir, const size_t tempdir_maxlen, const char
 
   tempdir[0] = '\0';
 
-  if (userdir && BLI_is_dir(userdir)) {
+  if (userdir && userdir[0] != '\0' && BLI_is_dir(userdir)) {
     BLI_strncpy(tempdir, userdir, tempdir_maxlen);
-  }
-
-  if (tempdir[0] == '\0') {
-    const char *env_vars[] = {
-#ifdef WIN32
-        "TEMP",
-#else
-        /* Non standard (could be removed). */
-        "TMP",
-        /* Posix standard. */
-        "TMPDIR",
-#endif
-    };
-    for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
-      const char *tmp = BLI_getenv(env_vars[i]);
-      if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
-        BLI_strncpy(tempdir, tmp, tempdir_maxlen);
-        break;
-      }
-    }
-  }
-
-  if (tempdir[0] == '\0') {
-    BLI_strncpy(tempdir, "/tmp/", tempdir_maxlen);
-  }
-  else {
-    /* add a trailing slash if needed */
+    /* Add a trailing slash if needed. */
     BLI_path_slash_ensure(tempdir, tempdir_maxlen);
+    return;
   }
+
+  BLI_temp_directory_path_get(tempdir, tempdir_maxlen);
 }
 
 static void tempdir_session_create(char *tempdir_session,

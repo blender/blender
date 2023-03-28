@@ -333,7 +333,7 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess beginFullScreen() const = 0;
   virtual GHOST_TSuccess endFullScreen() const = 0;
 
-  virtual float getNativePixelSize(void) = 0;
+  virtual float getNativePixelSize() = 0;
 
   /**
    * Returns the recommended DPI for this window.

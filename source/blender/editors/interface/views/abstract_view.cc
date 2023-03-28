@@ -62,7 +62,7 @@ void AbstractView::update_from_old(uiBlock &new_block)
 /** \name Default implementations of virtual functions
  * \{ */
 
-std::unique_ptr<AbstractViewDropTarget> AbstractView::create_drop_target() const
+std::unique_ptr<AbstractViewDropTarget> AbstractView::create_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
@@ -121,9 +121,9 @@ std::optional<rcti> AbstractView::get_bounds() const
 /** \name General API functions
  * \{ */
 
-std::unique_ptr<DropTargetInterface> view_drop_target(const uiViewHandle *view_handle)
+std::unique_ptr<DropTargetInterface> view_drop_target(uiViewHandle *view_handle)
 {
-  const AbstractView &view = reinterpret_cast<const AbstractView &>(*view_handle);
+  AbstractView &view = reinterpret_cast<AbstractView &>(*view_handle);
   return view.create_drop_target();
 }
 

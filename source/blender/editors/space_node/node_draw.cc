@@ -2722,7 +2722,8 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   const float has_label = node.label[0] != '\0';
 
   const float label_height = frame_node_label_height(*data);
-  /* Add an additional 25 % to account for the descenders. This works well in most cases. */
+  /* Add an additional 25% to account for the glyphs descender.
+   * This works well in most cases. */
   const float margin_top = 0.5f * margin + (has_label ? 1.25f * label_height : 0.5f * margin);
 
   /* Initialize rect from current frame size. */

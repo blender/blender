@@ -2119,7 +2119,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "start");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Start Frame", "X position where the strip begins");
-  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 100.0f, 0);
   RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_start_frame_set", NULL); /* overlap tests and calc_seq_disp */
   RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
@@ -2157,7 +2157,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "startofs");
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "Start Offset", "");
-  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 100.0f, 0);
   RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_frame_offset_start_set", "rna_Sequence_frame_offset_start_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
@@ -2166,7 +2166,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "endofs");
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "End Offset", "");
-  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 100.0f, 0);
   RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_end_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");

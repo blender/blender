@@ -174,7 +174,7 @@ std::unique_ptr<AbstractViewItemDragController> AbstractViewItem::create_drag_co
   return nullptr;
 }
 
-std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target() const
+std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
@@ -221,9 +221,9 @@ bool AbstractViewItem::is_active() const
 /** \name General API functions
  * \{ */
 
-std::unique_ptr<DropTargetInterface> view_item_drop_target(const uiViewItemHandle *item_handle)
+std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle)
 {
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
   return item.create_drop_target();
 }
 

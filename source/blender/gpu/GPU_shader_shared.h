@@ -11,7 +11,7 @@
 typedef struct TestOutputRawData TestOutputRawData;
 #endif
 
-/* NOTE: float3 has differing stride and alignment rules across different GPU backends. If 12 byte
+/* NOTE: float3 has differing stride and alignment rules across different GPU back-ends. If 12 byte
  * stride and alignment is essential, use `packed_float3` to avoid data read issues. This is
  * required in the common use-case where a float3 and an int/float are paired together for optimal
  * data transfer. */

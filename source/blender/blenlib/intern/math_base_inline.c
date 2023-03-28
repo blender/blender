@@ -833,7 +833,7 @@ MINLINE unsigned char unit_float_to_uchar_clamp(float val)
       (val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * val) + 0.5f))));
 }
 #define unit_float_to_uchar_clamp(val) \
-  ((CHECK_TYPE_INLINE(val, float)), unit_float_to_uchar_clamp(val))
+  ((CHECK_TYPE_INLINE_NONCONST((val), float)), unit_float_to_uchar_clamp(val))
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
@@ -842,14 +842,14 @@ MINLINE unsigned short unit_float_to_ushort_clamp(float val)
                                                          (val * 65535.0f + 0.5f));
 }
 #define unit_float_to_ushort_clamp(val) \
-  ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))
+  ((CHECK_TYPE_INLINE_NONCONST(val, float)), unit_float_to_ushort_clamp(val))
 
 MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
 {
   return (unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8);
 }
 #define unit_ushort_to_uchar(val) \
-  ((CHECK_TYPE_INLINE(val, unsigned short)), unit_ushort_to_uchar(val))
+  ((CHECK_TYPE_INLINE_NONCONST(val, unsigned short)), unit_ushort_to_uchar(val))
 
 #define unit_float_to_uchar_clamp_v3(v1, v2) \
   { \

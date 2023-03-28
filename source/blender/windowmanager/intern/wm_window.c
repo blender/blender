@@ -998,7 +998,11 @@ wmWindow *WM_window_open(bContext *C,
   return NULL;
 }
 
-/* ****************** Operators ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
 
 int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1063,7 +1067,11 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-/* ************ events *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Events
+ * \{ */
 
 void wm_cursor_position_from_ghost_client_coords(wmWindow *win, int *x, int *y)
 {
@@ -1827,14 +1835,14 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
     return flag;
   }
 
-  flag = 0;
-  if (GHOST_SupportsCursorWarp()) {
+  const GHOST_TCapabilityFlag ghost_flag = GHOST_GetCapabilities();
+  if (ghost_flag & GHOST_kCapabilityCursorWarp) {
     flag |= WM_CAPABILITY_CURSOR_WARP;
   }
-  if (GHOST_SupportsWindowPosition()) {
+  if (ghost_flag & GHOST_kCapabilityWindowPosition) {
     flag |= WM_CAPABILITY_WINDOW_POSITION;
   }
-  if (GHOST_SupportsPrimaryClipboard()) {
+  if (ghost_flag & GHOST_kCapabilityPrimaryClipboard) {
     flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
   }
 

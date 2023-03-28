@@ -1015,7 +1015,7 @@ static void layerInterp_mloopcol(const void **sources,
 /** \name Callbacks for #OrigSpaceLoop
  * \{ */
 
-/* origspace is almost exact copy of mloopuv's, keep in sync */
+/* origspace is almost exact copy of #MLoopUV, keep in sync. */
 static void layerCopyValue_mloop_origspace(const void *source,
                                            void *dest,
                                            const int /*mixmode*/,

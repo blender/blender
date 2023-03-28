@@ -161,7 +161,8 @@ enum PHandleState {
   PHANDLE_STATE_STRETCH,
 };
 
-struct ParamHandle {
+class ParamHandle {
+ public:
   enum PHandleState state;
   MemArena *arena;
   MemArena *polyfill_arena;
@@ -178,7 +179,7 @@ struct ParamHandle {
   PChart **charts;
   int ncharts;
 
-  float aspx, aspy;
+  float aspect_y;
 
   RNG *rng;
   float blend;
@@ -425,19 +426,29 @@ static float p_chart_uv_area(PChart *chart)
   return area;
 }
 
-static void p_chart_uv_scale(PChart *chart, float scale)
+static void p_chart_uv_scale(PChart *chart, const float scale)
 {
+  if (scale == 1.0f) {
+    return; /* Identity transform. */
+  }
+
   for (PVert *v = chart->verts; v; v = v->nextlink) {
     v->uv[0] *= scale;
     v->uv[1] *= scale;
   }
 }
 
-static void p_chart_uv_scale_xy(PChart *chart, float x, float y)
+static void uv_parametrizer_scale_x(ParamHandle *phandle, const float scale_x)
 {
-  for (PVert *v = chart->verts; v; v = v->nextlink) {
-    v->uv[0] *= x;
-    v->uv[1] *= y;
+  if (scale_x == 1.0f) {
+    return; /* Identity transform. */
+  }
+
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
+      v->uv[0] *= scale_x;
+    }
   }
 }
 
@@ -582,13 +593,13 @@ static void p_vert_load_pin_select_uvs(ParamHandle *handle, PVert *v)
       }
 
       if (e->flag & PEDGE_PIN) {
-        pinuv[0] += e->orig_uv[0] * handle->aspx;
-        pinuv[1] += e->orig_uv[1] * handle->aspy;
+        pinuv[0] += e->orig_uv[0] * handle->aspect_y;
+        pinuv[1] += e->orig_uv[1];
         npins++;
       }
       else {
-        v->uv[0] += e->orig_uv[0] * handle->aspx;
-        v->uv[1] += e->orig_uv[1] * handle->aspy;
+        v->uv[0] += e->orig_uv[0] * handle->aspect_y;
+        v->uv[1] += e->orig_uv[1];
       }
 
       nedges++;
@@ -614,14 +625,8 @@ static void p_flush_uvs(ParamHandle *handle, PChart *chart)
   const float invblend = 1.0f - blend;
   for (PEdge *e = chart->edges; e; e = e->nextlink) {
     if (e->orig_uv) {
-      if (blend) {
-        e->orig_uv[0] = blend * e->old_uv[0] + invblend * e->vert->uv[0] / handle->aspx;
-        e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1] / handle->aspy;
-      }
-      else {
-        e->orig_uv[0] = e->vert->uv[0] / handle->aspx;
-        e->orig_uv[1] = e->vert->uv[1] / handle->aspy;
-      }
+      e->orig_uv[0] = blend * e->old_uv[0] + invblend * e->vert->uv[0] / handle->aspect_y;
+      e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1];
     }
   }
 }
@@ -3659,8 +3664,7 @@ ParamHandle *uv_parametrizer_construct_begin()
   handle->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
   handle->polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
   handle->polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-  handle->aspx = 1.0f;
-  handle->aspy = 1.0f;
+  handle->aspect_y = 1.0f;
 
   handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
   handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
@@ -3669,10 +3673,10 @@ ParamHandle *uv_parametrizer_construct_begin()
   return handle;
 }
 
-void uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float aspy)
+void uv_parametrizer_aspect_ratio(ParamHandle *phandle, const float aspect_y)
 {
-  phandle->aspx = aspx;
-  phandle->aspy = aspy;
+  BLI_assert(aspect_y > 0.0f);
+  phandle->aspect_y = aspect_y;
 }
 
 void uv_parametrizer_delete(ParamHandle *phandle)
@@ -4148,9 +4152,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     GEO_uv_parametrizer_pack_rotate(handle, ignore_pinned);
   }
 
-  if (handle->aspx != handle->aspy) {
-    uv_parametrizer_scale(handle, 1.0f / handle->aspx, 1.0f / handle->aspy);
-  }
+  uv_parametrizer_scale_x(handle, 1.0f / handle->aspect_y);
   Vector<PackIsland *> pack_island_vector;
   int unpacked = 0;
   for (int i = 0; i < handle->ncharts; i++) {
@@ -4160,9 +4162,12 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
       unpacked++;
       continue;
     }
+    (void)unpacked; /* Quiet set-but-unused warning (may be removed). */
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
+    pack_island->aspect_y = handle->aspect_y;
+    pack_island->angle = 0.0f;
     pack_island_vector.append(pack_island);
 
     float minv[2];
@@ -4186,25 +4191,25 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 
-    float m[2][2];
+    float matrix[2][2];
     float b[2];
-    m[0][0] = scale[0];
-    m[0][1] = 0.0f;
-    m[1][0] = 0.0f;
-    m[1][1] = scale[1];
+    const float cos_angle = cosf(pack_island->angle);
+    const float sin_angle = sinf(pack_island->angle);
+    matrix[0][0] = cos_angle * scale[0];
+    matrix[0][1] = -sin_angle * scale[0] * pack_island->aspect_y;
+    matrix[1][0] = sin_angle * scale[1] / pack_island->aspect_y;
+    matrix[1][1] = cos_angle * scale[1];
     b[0] = pack_island->pre_translate.x;
     b[1] = pack_island->pre_translate.y;
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      blender::geometry::mul_v2_m2_add_v2v2(v->uv, m, v->uv, b);
+      blender::geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, b);
     }
 
     pack_island_vector[i] = nullptr;
     delete pack_island;
   }
 
-  if (handle->aspx != handle->aspy) {
-    uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
-  }
+  uv_parametrizer_scale_x(handle, handle->aspect_y);
 }
 
 void uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned, bool scale_uv, bool shear)
@@ -4344,17 +4349,6 @@ void uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned, bool scal
 
       p_chart_uv_translate(chart, trans);
     }
-  }
-}
-
-void uv_parametrizer_scale(ParamHandle *phandle, float x, float y)
-{
-  PChart *chart;
-  int i;
-
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
-    p_chart_uv_scale_xy(chart, x, y);
   }
 }
 

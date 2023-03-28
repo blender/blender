@@ -512,6 +512,7 @@ bool paintface_mouse_select(bContext *C,
     ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
     changed = true;
   }
+  select_poly.finish();
   return changed || found;
 }
 

@@ -501,7 +501,7 @@ struct GPUTexture *BKE_image_create_gpu_texture_from_ibuf(struct Image *image, s
  *
  * This is provided as a separate function and not implemented as part of the GPU texture retrieval
  * functions because the current cache system only allows a single pass, layer, and stereo view to
- * be cached, so possible frequent invalidations of the cache can have performance implications,
+ * be cached, so possible frequent cache invalidation can have performance implications,
  * and making invalidation explicit by calling this function will help make that clear and pave the
  * way for a more complete cache system in the future.
  */

@@ -59,6 +59,7 @@
 #include <primary-selection-unstable-v1-client-protocol.h>
 #include <relative-pointer-unstable-v1-client-protocol.h>
 #include <tablet-unstable-v2-client-protocol.h>
+#include <xdg-activation-v1-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
 
 /* Decorations `xdg_decor`. */
@@ -798,7 +799,12 @@ struct GWL_Seat {
   struct zwp_primary_selection_device_v1 *wp_primary_selection_device = nullptr;
   struct GWL_PrimarySelection primary_selection;
 
-  /** Last device that was active. */
+  /**
+   * Last input device that was active (pointer/tablet/keyboard).
+   *
+   * \note Multi-touch gestures don't set this value,
+   * if there is some use-case where this is needed - assignments can be added.
+   */
   uint32_t data_source_serial = 0;
 };
 
@@ -929,6 +935,7 @@ struct GWL_Display {
   struct zwp_tablet_manager_v2 *wp_tablet_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *wp_relative_pointer_manager = nullptr;
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
+  struct xdg_activation_v1 *xdg_activation_manager = nullptr;
 
   struct zwp_pointer_constraints_v1 *wp_pointer_constraints = nullptr;
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures = nullptr;
@@ -1117,7 +1124,7 @@ using GWL_RegistryHandler_UpdateFn = void (*)(GWL_Display *display,
 using GWL_RegistryEntry_RemoveFn = void (*)(GWL_Display *display, void *user_data, bool on_exit);
 
 struct GWL_RegistryHandler {
-  /** Pointer to the name (not the name it's self), needed as the values aren't set on startup. */
+  /** Pointer to the name (not the name itself), needed as the values aren't set on startup. */
   const char *const *interface_p = nullptr;
 
   /** Add the interface. */
@@ -2017,11 +2024,11 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
   struct ByteChunk {
     ByteChunk *next;
     /* NOTE(@ideasman42): On GNOME-SHELL-43.3, non powers of two values
-     * (1023 or 4088 for e.g.) makes `read()` return longer values than are actually read
-     * (causing uninitialized memory to be used) as well as truncating the end of the buffer.
+     * (1023 or 4088 for e.g.) makes `read()` *intermittently* include uninitialized memory
+     * (failing to read the end of the chunk) as well as truncating the end of the whole buffer.
      * The WAYLAND spec doesn't mention buffer-size so this may be a bug in GNOME-SHELL.
      * Whatever the case, using a power of two isn't a problem (besides some slop-space waste).
-     * This works in KDE & WLROOTS based compositors, see: #106040. */
+     * This workaround isn't necessary for KDE & WLROOTS based compositors, see: #106040. */
     char data[4096];
   };
   ByteChunk *chunk_first = nullptr, **chunk_link_p = &chunk_first;
@@ -3627,7 +3634,7 @@ static void tablet_seat_handle_tool_added(void *data,
   GWL_TabletTool *tablet_tool = new GWL_TabletTool();
   tablet_tool->seat = seat;
 
-  /* Every tool has it's own cursor wl_surface. */
+  /* Every tool has its own cursor wl_surface. */
   tablet_tool->wl_surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor());
   ghost_wl_surface_tag_cursor_tablet(tablet_tool->wl_surface_cursor);
 
@@ -3969,7 +3976,7 @@ static void keyboard_handle_key(void *data,
     }
     else if (xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code)) {
       if (etype == GHOST_kEventKeyDown) {
-        /* Any other key-down always cancels (and may start it's own repeat timer). */
+        /* Any other key-down always cancels (and may start its own repeat timer). */
         timer_action = CANCEL;
       }
       else {
@@ -4057,7 +4064,7 @@ static void keyboard_handle_key(void *data,
 
 static void keyboard_handle_modifiers(void *data,
                                       struct wl_keyboard * /*wl_keyboard*/,
-                                      const uint32_t /*serial*/,
+                                      const uint32_t serial,
                                       const uint32_t mods_depressed,
                                       const uint32_t mods_latched,
                                       const uint32_t mods_locked,
@@ -4088,6 +4095,8 @@ static void keyboard_handle_modifiers(void *data,
 #ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
   seat->key_depressed_suppress_warning.any_mod_held = mods_depressed != 0;
 #endif
+
+  seat->data_source_serial = serial;
 }
 
 static void keyboard_handle_repeat_info(void *data,
@@ -5154,6 +5163,24 @@ static void gwl_registry_wp_pointer_gestures_remove(GWL_Display *display,
   *value_p = nullptr;
 }
 
+/* #GWL_Display.xdg_activation */
+
+static void gwl_registry_xdg_activation_add(GWL_Display *display,
+                                            const GWL_RegisteryAdd_Params *params)
+{
+  display->xdg_activation_manager = static_cast<xdg_activation_v1 *>(
+      wl_registry_bind(display->wl_registry, params->name, &xdg_activation_v1_interface, 1));
+  gwl_registry_entry_add(display, params, nullptr);
+}
+static void gwl_registry_xdg_activation_remove(GWL_Display *display,
+                                               void * /*user_data*/,
+                                               const bool /*on_exit*/)
+{
+  struct xdg_activation_v1 **value_p = &display->xdg_activation_manager;
+  xdg_activation_v1_destroy(*value_p);
+  *value_p = nullptr;
+}
+
 /* #GWL_Display.wp_primary_selection_device_manager */
 
 static void gwl_registry_wp_primary_selection_device_manager_add(
@@ -5190,90 +5217,97 @@ static void gwl_registry_wp_primary_selection_device_manager_remove(GWL_Display 
 static const GWL_RegistryHandler gwl_registry_handlers[] = {
     /* Low level interfaces. */
     {
-        &wl_compositor_interface.name,
-        gwl_registry_compositor_add,
-        nullptr,
-        gwl_registry_compositor_remove,
+        /*interface_p*/ &wl_compositor_interface.name,
+        /*add_fn*/ gwl_registry_compositor_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_compositor_remove,
     },
     {
-        &wl_shm_interface.name,
-        gwl_registry_wl_shm_add,
-        nullptr,
-        gwl_registry_wl_shm_remove,
+        /*interface_p*/ &wl_shm_interface.name,
+        /*add_fn*/ gwl_registry_wl_shm_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wl_shm_remove,
     },
     {
-        &xdg_wm_base_interface.name,
-        gwl_registry_xdg_wm_base_add,
-        nullptr,
-        gwl_registry_xdg_wm_base_remove,
+        /*interface_p*/ &xdg_wm_base_interface.name,
+        /*add_fn*/ gwl_registry_xdg_wm_base_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_xdg_wm_base_remove,
     },
     /* Managers. */
     {
-        &zxdg_decoration_manager_v1_interface.name,
-        gwl_registry_xdg_decoration_manager_add,
-        nullptr,
-        gwl_registry_xdg_decoration_manager_remove,
+        /*interface_p*/ &zxdg_decoration_manager_v1_interface.name,
+        /*add_fn*/ gwl_registry_xdg_decoration_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_xdg_decoration_manager_remove,
     },
     {
-        &zxdg_output_manager_v1_interface.name,
-        gwl_registry_xdg_output_manager_add,
-        nullptr,
-        gwl_registry_xdg_output_manager_remove,
+        /*interface_p*/ &zxdg_output_manager_v1_interface.name,
+        /*add_fn*/ gwl_registry_xdg_output_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_xdg_output_manager_remove,
     },
     {
-        &wl_data_device_manager_interface.name,
-        gwl_registry_wl_data_device_manager_add,
-        nullptr,
-        gwl_registry_wl_data_device_manager_remove,
+        /*interface_p*/ &wl_data_device_manager_interface.name,
+        /*add_fn*/ gwl_registry_wl_data_device_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wl_data_device_manager_remove,
     },
     {
-        &zwp_primary_selection_device_manager_v1_interface.name,
-        gwl_registry_wp_primary_selection_device_manager_add,
-        nullptr,
-        gwl_registry_wp_primary_selection_device_manager_remove,
+        /*interface_p*/ &zwp_primary_selection_device_manager_v1_interface.name,
+        /*add_fn*/ gwl_registry_wp_primary_selection_device_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_primary_selection_device_manager_remove,
     },
     {
-        &zwp_tablet_manager_v2_interface.name,
-        gwl_registry_wp_tablet_manager_add,
-        nullptr,
-        gwl_registry_wp_tablet_manager_remove,
+        /*interface_p*/ &zwp_tablet_manager_v2_interface.name,
+        /*add_fn*/ gwl_registry_wp_tablet_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_tablet_manager_remove,
     },
     {
-        &zwp_relative_pointer_manager_v1_interface.name,
-        gwl_registry_wp_relative_pointer_manager_add,
-        nullptr,
-        gwl_registry_wp_relative_pointer_manager_remove,
+        /*interface_p*/ &zwp_relative_pointer_manager_v1_interface.name,
+        /*add_fn*/ gwl_registry_wp_relative_pointer_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_relative_pointer_manager_remove,
     },
     /* Higher level interfaces. */
     {
-        &zwp_pointer_constraints_v1_interface.name,
-        gwl_registry_wp_pointer_constraints_add,
-        nullptr,
-        gwl_registry_wp_pointer_constraints_remove,
+        /*interface_p*/ &zwp_pointer_constraints_v1_interface.name,
+        /*add_fn*/ gwl_registry_wp_pointer_constraints_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_pointer_constraints_remove,
     },
     {
-        &zwp_pointer_gestures_v1_interface.name,
-        gwl_registry_wp_pointer_gestures_add,
-        nullptr,
-        gwl_registry_wp_pointer_gestures_remove,
+        /*interface_p*/ &zwp_pointer_gestures_v1_interface.name,
+        /*add_fn*/ gwl_registry_wp_pointer_gestures_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_pointer_gestures_remove,
+    },
+    {
+        /*interface_p*/ &xdg_activation_v1_interface.name,
+        /*add_fn*/ gwl_registry_xdg_activation_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_xdg_activation_remove,
     },
     /* Display outputs. */
     {
-        &wl_output_interface.name,
-        gwl_registry_wl_output_add,
-        gwl_registry_wl_output_update,
-        gwl_registry_wl_output_remove,
+        /*interface_p*/ &wl_output_interface.name,
+        /*add_fn*/ gwl_registry_wl_output_add,
+        /*update_fn*/ gwl_registry_wl_output_update,
+        /*remove_fn*/ gwl_registry_wl_output_remove,
     },
     /* Seats.
      * Keep the seat near the end to ensure other types are created first.
      * as the seat creates data based on other interfaces. */
     {
-        &wl_seat_interface.name,
-        gwl_registry_wl_seat_add,
-        gwl_registry_wl_seat_update,
-        gwl_registry_wl_seat_remove,
+        /*interface_p*/ &wl_seat_interface.name,
+        /*add_fn*/ gwl_registry_wl_seat_add,
+        /*update_fn*/ gwl_registry_wl_seat_update,
+        /*remove_fn*/ gwl_registry_wl_seat_remove,
     },
-    {nullptr, nullptr, nullptr},
+
+    {nullptr},
 };
 
 /**
@@ -6675,22 +6709,16 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_visibility_set(const bool visible)
   return GHOST_kSuccess;
 }
 
-bool GHOST_SystemWayland::supportsCursorWarp()
+GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
 {
-  /* WAYLAND doesn't support setting the cursor position directly,
-   * this is an intentional choice, forcing us to use a software cursor in this case. */
-  return false;
-}
-
-bool GHOST_SystemWayland::supportsWindowPosition()
-{
-  /* WAYLAND doesn't support accessing the window position. */
-  return false;
-}
-
-bool GHOST_SystemWayland::supportsPrimaryClipboard()
-{
-  return true;
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* WAYLAND doesn't support accessing the window position. */
+          GHOST_kCapabilityWindowPosition |
+          /* WAYLAND doesn't support setting the cursor position directly,
+           * this is an intentional choice, forcing us to use a software cursor in this case. */
+          GHOST_kCapabilityCursorWarp));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
@@ -6822,9 +6850,34 @@ struct zwp_primary_selection_device_manager_v1 *GHOST_SystemWayland::wp_primary_
   return display_->wp_primary_selection_device_manager;
 }
 
+struct xdg_activation_v1 *GHOST_SystemWayland::xdg_activation_manager()
+{
+  return display_->xdg_activation_manager;
+}
+
 struct zwp_pointer_gestures_v1 *GHOST_SystemWayland::wp_pointer_gestures()
 {
   return display_->wp_pointer_gestures;
+}
+
+/* This value is expected to match the base name of the `.desktop` file. see #101805.
+ *
+ * NOTE: the XDG desktop-entry-spec defines that this should follow the "reverse DNS" convention.
+ * For e.g. `org.blender.Blender` - however the `.desktop` file distributed with Blender is
+ * simply called `blender.desktop`, so the it's important to follow that name.
+ * Other distributions such as SNAP & FLATPAK may need to change this value #101779.
+ * Currently there isn't a way to configure this, we may want to support that. */
+static const char *ghost_wl_app_id = (
+#ifdef WITH_GHOST_WAYLAND_APP_ID
+    STRINGIFY(WITH_GHOST_WAYLAND_APP_ID)
+#else
+    "blender"
+#endif
+);
+
+const char *GHOST_SystemWayland::xdg_app_id()
+{
+  return ghost_wl_app_id;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -6911,6 +6964,16 @@ GHOST_TSuccess GHOST_SystemWayland::pushEvent_maybe_pending(GHOST_IEvent *event)
 void GHOST_SystemWayland::seat_active_set(const struct GWL_Seat *seat)
 {
   gwl_display_seat_active_set(display_, seat);
+}
+
+struct wl_seat *GHOST_SystemWayland::wl_seat_active_get_with_input_serial(uint32_t &serial)
+{
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (seat) {
+    serial = seat->data_source_serial;
+    return seat->wl_seat;
+  }
+  return nullptr;
 }
 
 bool GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
@@ -7038,7 +7101,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   const struct GWL_SeatStateGrab grab_state_next = seat_grab_state_from_mode(mode,
                                                                              use_software_confine);
 
-  /* Check for wrap as #supportsCursorWarp isn't supported. */
+  /* Check for wrap as #GHOST_kCapabilityCursorWarp isn't supported. */
   const bool use_visible = !(ELEM(mode, GHOST_kGrabHide, GHOST_kGrabWrap) || use_software_confine);
   const bool is_hardware_cursor = !cursor_is_software(mode, use_software_confine);
 

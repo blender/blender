@@ -480,7 +480,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
 /** \name Timeline - Caches
  * \{ */
 
-static bool timeline_cache_is_hidden_by_setting(SpaceAction *saction, PTCacheID *pid)
+static bool timeline_cache_is_hidden_by_setting(const SpaceAction *saction, const PTCacheID *pid)
 {
   switch (pid->type) {
     case PTCACHE_TYPE_SOFTBODY:
@@ -674,14 +674,14 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_pop();
 }
 
-void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
+void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene)
 {
   if ((saction->cache_display & TIME_CACHE_DISPLAY) == 0 || ob == nullptr) {
     return;
   }
 
   ListBase pidlist;
-  BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
+  BKE_ptcache_ids_from_object(&pidlist, const_cast<Object *>(ob), const_cast<Scene *>(scene), 0);
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

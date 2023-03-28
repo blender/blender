@@ -2102,6 +2102,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
       le = ls + 1;
     }
   }
+  (void)totmarked; /* Quiet set-but-unused warning (may be removed). */
 
   /* adding points marked */
   MDeformVert *old_dvert = nullptr;

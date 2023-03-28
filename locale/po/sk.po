@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
+"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 13:37:56\n"
-"PO-Revision-Date: 2023-03-08 07:56+0100\n"
+"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"PO-Revision-Date: 2023-03-23 08:09+0100\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
 "Language: sk_SK\n"
@@ -1112,6 +1112,10 @@ msgid "Copyright"
 msgstr "Autorské práva"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Upozornenie o autorských právach na toto aktívum. Prázdne upozornenie o autorských právach nemusí nevyhnutne znamenať, že je bez autorských práv. Ak je potrebné akékoľvek objasnenie, obráťte sa na autora"
+
+
 msgid "Description"
 msgstr "Popis"
 
@@ -1120,12 +1124,28 @@ msgid "A description of the asset to be displayed for the user"
 msgstr "Popis aktív na zobrazenie pre užívateľa"
 
 
+msgid "License"
+msgstr "Licencia"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "Typ licencie, pod ktorou je toto aktívum distribuované. Prázdny názov licencie nemusí nutne znamenať, že je bez licenčných podmienok. Ak je potrebné akékoľvek objasnenie, obráťte sa na autora"
+
+
 msgid "Tags"
 msgstr "Príznaky"
 
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Vlastné príznaky (tokeny názvov) pre aktíva, ktoré sa používajú na filtrovanie a všeobecnú správu aktív"
+
+
+msgid "Asset Representation"
+msgstr "Zastúpenie aktív"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informácie o entite, ktoré umožňujú systému aktív pracovať s entitou ako s aktívom"
 
 
 msgid "Asset Tag"
@@ -13703,6 +13723,11 @@ msgid "Minimum number of particles per cell (ensures that each cell has at least
 msgstr "Minimálny počet častíc na bunku (zabezpečuje, aby každá bunka obsahovala aspoň toto množstvo častíc)"
 
 
+msgctxt "Amount"
+msgid "Number"
+msgstr "Počet"
+
+
 msgid "Particle number factor (higher value results in more particles)"
 msgstr "Faktor počtu častíc (vyššia hodnota vedie k početnejším časticiam)"
 
@@ -19544,6 +19569,61 @@ msgid "Editable falloff curve"
 msgstr "Upravovateľné dopady krivky"
 
 
+msgctxt "Curves"
+msgid "Curve Preset"
+msgstr "Predvoľba krivky"
+
+
+msgctxt "Curves"
+msgid "Custom"
+msgstr "Vlastná"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "Vyhladená"
+
+
+msgctxt "Curves"
+msgid "Smoother"
+msgstr "Vyhladenejšia"
+
+
+msgctxt "Curves"
+msgid "Sphere"
+msgstr "Guľa"
+
+
+msgctxt "Curves"
+msgid "Root"
+msgstr "Koreňová"
+
+
+msgctxt "Curves"
+msgid "Sharp"
+msgstr "Ostrá"
+
+
+msgctxt "Curves"
+msgid "Linear"
+msgstr "Lineárna"
+
+
+msgctxt "Curves"
+msgid "Sharper"
+msgstr "Ostrejšia"
+
+
+msgctxt "Curves"
+msgid "Inverse Square"
+msgstr "Inverzný štvorec"
+
+
+msgctxt "Curves"
+msgid "Constant"
+msgstr "Konštantná"
+
+
 msgid "Curves Sculpt Settings"
 msgstr "Nastavenia tvarovania kriviek"
 
@@ -20988,8 +21068,23 @@ msgid "Name of the Alembic attribute used for generating motion blur data"
 msgstr "Názov atribútu Alembic, ktorý sa používa na generovanie údajov o rozostrení pohybom"
 
 
+msgctxt "Unit"
+msgid "Velocity Unit"
+msgstr "Jednotka rýchlosti"
+
+
 msgid "Define how the velocity vectors are interpreted with regard to time, 'frame' means the delta time is 1 frame, 'second' means the delta time is 1 / FPS"
 msgstr "Definuje, ako sa majú vektory rýchlosti interpretovať s ohľadom na čas, „snímka“ znamená, že delta čas je 1 snímka, „druhé“ znamená, že delta čas je 1 / sním/s"
+
+
+msgctxt "Unit"
+msgid "Second"
+msgstr "Sekúnd"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "Snímka"
 
 
 msgid "Camera data-block for storing camera settings"
@@ -28014,6 +28109,11 @@ msgid "Text file on disk is different than the one in memory"
 msgstr "Textový súbor na disku je iný ako ten v pamäti"
 
 
+msgctxt "Text"
+msgid "Lines"
+msgstr "Riadky"
+
+
 msgid "Lines of text"
 msgstr "Riadky textu"
 
@@ -33513,6 +33613,10 @@ msgid "Active Point"
 msgstr "Aktívny bod"
 
 
+msgid "Active point of masking layer"
+msgstr "Aktívny bod vrstvy maskovania"
+
+
 msgid "Grease Pencil Color"
 msgstr "Farba pastelky"
 
@@ -34048,6 +34152,11 @@ msgstr "Čítanie"
 
 msgid "Write"
 msgstr "Zápis"
+
+
+msgctxt "NodeTree"
+msgid "Constant"
+msgstr "Konštantný"
 
 
 msgid "Instances"
@@ -44664,6 +44773,10 @@ msgid "Is Face Planar"
 msgstr "Je plôška rovinná"
 
 
+msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the same normal"
+msgstr "Zisťuje, či sú všetky trojuholníky na plôške v tej istej rovine, t. j. či majú rovnaký normál"
+
+
 msgid "Face Neighbors"
 msgstr "Susedné plôšky"
 
@@ -53867,6 +53980,14 @@ msgid "-Z Axis"
 msgstr "Os -Z"
 
 
+msgid "Prioritize Active Color"
+msgstr "Uprednostniť aktívne farby"
+
+
+msgid "Make sure active color will be exported first. Could be important since some other software can discard other color attributes besides the first one"
+msgstr "Najprv sa uistite, že sa bude exportovať aktívna farba. Mohlo by to byť dôležité, pretože niektoré iné programy môžu okrem prvého vyradiť aj iné atribúty farby"
+
+
 msgid "Secondary Bone Axis"
 msgstr "Sekundárne osi kosti"
 
@@ -59919,9 +60040,17 @@ msgid "Clear Restrict View"
 msgstr "Zmazať obmedzené zobrazenie"
 
 
+msgid "Reveal temporarily hidden mask layers"
+msgstr "Odhalí dočasne skryté vrstvy masiek"
+
+
 msgctxt "Operator"
 msgid "Set Restrict View"
-msgstr "Nastaviť obmedzenie zobrazenia"
+msgstr "Nastaviť obmedzené zobrazenie"
+
+
+msgid "Temporarily hide mask layers"
+msgstr "Dočasne skryje vrstvy masky"
 
 
 msgctxt "Operator"
@@ -80880,7 +81009,7 @@ msgstr "Priečinok textúr"
 
 
 msgid "Path to the directory where imported textures will be copied"
-msgstr "Cesta k priečinku, do ktorého sa budú kopírovať importované textúry "
+msgstr "Cesta k priečinku, do ktorého sa budú kopírovať importované textúry"
 
 
 msgid "Import Textures"
@@ -87040,6 +87169,14 @@ msgid "Mini Axes Type"
 msgstr "Typ mini osí"
 
 
+msgid "Show small rotating 3D axes in the top right corner of the 3D viewport"
+msgstr "Zobrazí malé rotujúce 3D osi v pravom hornom rohu 3D záberu"
+
+
+msgid "Simple Axes"
+msgstr "Jednoduché osi"
+
+
 msgid "Interactive Navigation"
 msgstr "Interaktívna navigácia"
 
@@ -90045,8 +90182,23 @@ msgid "Additional subdivision along the curves"
 msgstr "Dodatočné delenie pozdĺž kriviek"
 
 
+msgctxt "Curves"
+msgid "Curves Shape Type"
+msgstr "Typ tvaru krivky"
+
+
 msgid "Curves shape type"
 msgstr "Typ tvaru krivky"
+
+
+msgctxt "Curves"
+msgid "Strand"
+msgstr "Vlákno"
+
+
+msgctxt "Curves"
+msgid "Strip"
+msgstr "Pás"
 
 
 msgid "Multiple Engines"
@@ -96907,7 +97059,7 @@ msgstr "Zobraziť kresbu textúry UV"
 
 
 msgid "Display overlay of texture paint UV layer"
-msgstr "Zobrazí prekrytie kresbou textúry UV vrstvy."
+msgstr "Zobrazí prekrytie kresbou textúry UV vrstvy"
 
 
 msgid "Tile Grid Shape"
@@ -106332,6 +106484,10 @@ msgid "Previews clear process failed for file '%s'!"
 msgstr "Proces vyčistenia náhľadov zlyhal pre súbor '%s'!"
 
 
+msgid "No active camera in the scene"
+msgstr "Na scéne nie je žiadna aktívna kamera"
+
+
 msgid "Unexpected modifier type: "
 msgstr "Neočakávaný typ modifikátora: "
 
@@ -111408,6 +111564,10 @@ msgid "Playback Frame Rate (FPS)"
 msgstr "Frekvencia prehrávania (sním/s)"
 
 
+msgid "3D Viewport Axes"
+msgstr "Osi 3D záberu"
+
+
 msgid "Smooth Wires"
 msgstr "Vyhladiť drôty"
 
@@ -116394,6 +116554,10 @@ msgstr "ĽTM: Ťah - Shift: Vyplniť - Shift+Ctrl: Ťah + Vyplniť"
 
 msgid "Error evaluating number, see Info editor for details"
 msgstr "Chyba pri vyhodnocovaní čísla, ďalšie informácie nájdete v editore informácií"
+
+
+msgid "Press a key"
+msgstr "Stlačiť klávesu"
 
 
 msgid "Missing Panel: %s"
@@ -123680,6 +123844,31 @@ msgstr "Uzol Vlastná skupina"
 
 msgid "UNDEFINED"
 msgstr "NEDEFINOVANÉ"
+
+
+msgctxt "NodeTree"
+msgid "Functions"
+msgstr "Funkcie"
+
+
+msgctxt "NodeTree"
+msgid "Comparison"
+msgstr "Porovnanie"
+
+
+msgctxt "NodeTree"
+msgid "Rounding"
+msgstr "Zaokrúhlenie"
+
+
+msgctxt "NodeTree"
+msgid "Trigonometric"
+msgstr "Trigonometrický"
+
+
+msgctxt "NodeTree"
+msgid "Conversion"
+msgstr "Konverzia"
 
 
 msgid "Same input/output direction of sockets"

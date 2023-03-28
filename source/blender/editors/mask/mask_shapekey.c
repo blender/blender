@@ -167,6 +167,7 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
               i_abs++;
             }
           }
+          (void)i_abs; /* Quiet set-but-unused warning (may be removed). */
         }
         else {
           // printf("%s: skipping\n", __func__);
@@ -324,6 +325,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
                 i_abs++;
               }
             }
+            (void)i_abs; /* Quiet set-but-unused warning (may be removed). */
 
             BKE_mask_layer_shape_free(mask_layer_shape_tmp);
           }

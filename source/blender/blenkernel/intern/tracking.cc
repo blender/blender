@@ -1834,8 +1834,6 @@ MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get(MovieTrackingPlaneTrack 
 
   /* If there's no marker for exact position, use nearest marker from left side. */
   return &plane_track->markers[a];
-
-  return nullptr;
 }
 
 MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get_exact(MovieTrackingPlaneTrack *plane_track,
@@ -3121,6 +3119,7 @@ static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChan
       }
 
       channel->tot_segment++;
+      (void)len; /* Quiet set-but-unused warning (may be removed). */
     }
 
     i++;

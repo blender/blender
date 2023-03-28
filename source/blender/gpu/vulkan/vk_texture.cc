@@ -47,7 +47,7 @@ template<typename T> void copy_color(T dst[4], const T *src)
 
 static VkClearColorValue to_vk_clear_color_value(eGPUDataFormat format, const void *data)
 {
-  VkClearColorValue result = {0.0f};
+  VkClearColorValue result = {{0.0f}};
   switch (format) {
     case GPU_DATA_FLOAT: {
       const float *float_data = static_cast<const float *>(data);

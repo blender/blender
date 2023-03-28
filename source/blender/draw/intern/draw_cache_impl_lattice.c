@@ -400,6 +400,7 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     else {
       BLI_assert(edge_len_real == edge_len);
     }
+    UNUSED_VARS_NDEBUG(edge_len_real);
 
     cache->edges = GPU_indexbuf_build(&elb);
   }

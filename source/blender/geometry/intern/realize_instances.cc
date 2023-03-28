@@ -202,6 +202,9 @@ struct AllMeshesInfo {
   VectorSet<Material *> materials;
   bool create_id_attribute = false;
   bool create_material_index_attribute = false;
+
+  /** True if we know that there are no loose edges in any of the input meshes. */
+  bool no_loose_edges_hint = false;
 };
 
 struct AllCurvesInfo {
@@ -940,6 +943,12 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.material_indices = attributes.lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
   }
+
+  info.no_loose_edges_hint = std::all_of(
+      info.order.begin(), info.order.end(), [](const Mesh *mesh) {
+        return mesh->runtime->loose_edges_cache.is_cached() && mesh->loose_edges().count == 0;
+      });
+
   return info;
 }
 
@@ -1150,6 +1159,10 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
   vertex_ids.finish();
   material_indices.finish();
+
+  if (all_meshes_info.no_loose_edges_hint) {
+    dst_mesh->loose_edges_tag_none();
+  }
 }
 
 /** \} */
