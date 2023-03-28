@@ -319,9 +319,9 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
-                                                                         default_color_src,
-                                                                         CD_MASK_PROP_BYTE_COLOR,
-                                                                         ATTR_DOMAIN_MASK_COLOR)) {
+                                    default_color_src,
+                                    CD_MASK_PROP_BYTE_COLOR,
+                                    ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
