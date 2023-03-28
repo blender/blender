@@ -1027,7 +1027,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;

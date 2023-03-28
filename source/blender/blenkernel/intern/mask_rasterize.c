@@ -993,6 +993,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
        * 'face_index' is kept from loop above */
 
       BLI_assert(face_index == sf_tri_tot);
+      UNUSED_VARS_NDEBUG(face_index);
 
       if (tot_feather_quads) {
         ScanFillEdge *sf_edge;
