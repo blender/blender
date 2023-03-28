@@ -84,26 +84,6 @@ std::optional<blender::bke::MutableAttributeAccessor> GeometryComponent::attribu
   return std::nullopt;
 }
 
-void GeometryComponent::user_add() const
-{
-  users_.fetch_add(1);
-}
-
-void GeometryComponent::user_remove() const
-{
-  const int new_users = users_.fetch_sub(1) - 1;
-  if (new_users == 0) {
-    delete this;
-  }
-}
-
-bool GeometryComponent::is_mutable() const
-{
-  /* If the item is shared, it is read-only. */
-  /* The user count can be 0, when this is called from the destructor. */
-  return users_ <= 1;
-}
-
 GeometryComponentType GeometryComponent::type() const
 {
   return type_;
@@ -112,6 +92,11 @@ GeometryComponentType GeometryComponent::type() const
 bool GeometryComponent::is_empty() const
 {
   return false;
+}
+
+void GeometryComponent::delete_self()
+{
+  delete this;
 }
 
 /** \} */
@@ -198,7 +183,7 @@ void GeometrySet::remove_geometry_during_modify()
 void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_[component.type()]);
-  component.user_add();
+  component.add_user();
   components_[component.type()] = const_cast<GeometryComponent *>(&component);
 }
 

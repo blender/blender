@@ -6,59 +6,60 @@
  * \ingroup bli
  */
 
-#include <atomic>
+#include "BLI_implicit_sharing.hh"
 
 namespace blender {
 
 /**
- * A simple automatic reference counter. It is similar to std::shared_ptr, but expects that the
- * reference count is inside the object.
+ * #ImplicitSharingPtr is a smart pointer that manages implicit sharing. It's designed to work with
+ * types that derive from #ImplicitSharingMixin. It is fairly similar to #std::shared_ptr but
+ * requires the reference count to be embedded in the data.
  */
-template<typename T> class UserCounter {
+template<typename T> class ImplicitSharingPtr {
  private:
   T *data_ = nullptr;
 
  public:
-  UserCounter() = default;
+  ImplicitSharingPtr() = default;
 
-  UserCounter(T *data) : data_(data)
+  ImplicitSharingPtr(T *data) : data_(data)
   {
   }
 
-  UserCounter(const UserCounter &other) : data_(other.data_)
+  ImplicitSharingPtr(const ImplicitSharingPtr &other) : data_(other.data_)
   {
-    this->user_add(data_);
+    this->add_user(data_);
   }
 
-  UserCounter(UserCounter &&other) : data_(other.data_)
+  ImplicitSharingPtr(ImplicitSharingPtr &&other) : data_(other.data_)
   {
     other.data_ = nullptr;
   }
 
-  ~UserCounter()
+  ~ImplicitSharingPtr()
   {
-    this->user_remove(data_);
+    this->remove_user_and_delete_if_last(data_);
   }
 
-  UserCounter &operator=(const UserCounter &other)
+  ImplicitSharingPtr &operator=(const ImplicitSharingPtr &other)
   {
     if (this == &other) {
       return *this;
     }
 
-    this->user_remove(data_);
+    this->remove_user_and_delete_if_last(data_);
     data_ = other.data_;
-    this->user_add(data_);
+    this->add_user(data_);
     return *this;
   }
 
-  UserCounter &operator=(UserCounter &&other)
+  ImplicitSharingPtr &operator=(ImplicitSharingPtr &&other)
   {
     if (this == &other) {
       return *this;
     }
 
-    this->user_remove(data_);
+    this->remove_user_and_delete_if_last(data_);
     data_ = other.data_;
     other.data_ = nullptr;
     return *this;
@@ -112,7 +113,7 @@ template<typename T> class UserCounter {
 
   void reset()
   {
-    this->user_remove(data_);
+    this->remove_user_and_delete_if_last(data_);
     data_ = nullptr;
   }
 
@@ -126,29 +127,23 @@ template<typename T> class UserCounter {
     return get_default_hash(data_);
   }
 
-  friend bool operator==(const UserCounter &a, const UserCounter &b)
+  friend bool operator==(const ImplicitSharingPtr &a, const ImplicitSharingPtr &b)
   {
     return a.data_ == b.data_;
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const UserCounter &value)
-  {
-    stream << value.data_;
-    return stream;
-  }
-
  private:
-  static void user_add(T *data)
+  static void add_user(T *data)
   {
     if (data != nullptr) {
-      data->user_add();
+      data->add_user();
     }
   }
 
-  static void user_remove(T *data)
+  static void remove_user_and_delete_if_last(T *data)
   {
     if (data != nullptr) {
-      data->user_remove();
+      data->remove_user_and_delete_if_last();
     }
   }
 };
