@@ -79,6 +79,11 @@ class AssetLibraryService {
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
 
+  /** return a normalized version of #AssetWeakReference.relative_asset_identifier.
+   * Special care is required here because slahes or backslashes should not be converted in the ID
+   * name itself. */
+  std::string normalize_asset_weak_reference_relative_asset_identifier(
+      const AssetWeakReference &asset_reference);
   /** Get a valid library path from the weak reference. Empty if e.g. the reference is to a local
    * asset. */
   std::string resolve_asset_weak_reference_to_library_path(

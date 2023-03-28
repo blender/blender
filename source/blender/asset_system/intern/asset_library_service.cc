@@ -283,6 +283,18 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
   return normalized_library_path;
 }
 
+std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_identifier(
+    const AssetWeakReference &asset_reference)
+{
+  /* This assumes that the 'group' is the first element of the path. There shoudl never ever be any
+   * path separator in group names. */
+  StringRefNull relative_asset_identifier = asset_reference.relative_asset_identifier;
+  const int64_t alt_group_len = int64_t(relative_asset_identifier.find(ALTSEP));
+  int64_t group_len = std::min(int64_t(relative_asset_identifier.find(SEP)), alt_group_len);
+
+  return utils::normalize_path(relative_asset_identifier, size_t(group_len));
+}
+
 /* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
  * Once there is a proper registry of asset libraries, this could contain an asset library locator
  * and/or identifier, so a full path (not necessarily file path) can be built for all asset
@@ -299,8 +311,9 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
     return "";
   }
 
-  std::string normalized_full_path = utils::normalize_path(
-      library_path + SEP_STR + asset_reference.relative_asset_identifier);
+  std::string normalized_full_path = utils::normalize_path(library_path + SEP_STR) +
+                                     normalize_asset_weak_reference_relative_asset_identifier(
+                                         asset_reference);
   return normalized_full_path;
 }
 
@@ -313,7 +326,8 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_LOCAL: {
-      std::string path_in_file = utils::normalize_path(asset_reference.relative_asset_identifier);
+      std::string path_in_file = normalize_asset_weak_reference_relative_asset_identifier(
+          asset_reference);
       const int64_t group_len = int64_t(path_in_file.find(SEP));
 
       ExplodedPath exploded;
