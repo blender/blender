@@ -33,7 +33,7 @@ static void copy_cdata_simple(BMesh *UNUSED(bm),
 {
   int cd_tflags;
   MToolFlags saved_tflags = {0};
-
+  ;
   if ((cd_tflags = CustomData_get_offset(data_layer, CD_TOOLFLAGS)) != -1) {
     saved_tflags = *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags);
   }

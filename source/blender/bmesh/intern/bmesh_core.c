@@ -54,7 +54,7 @@ void bm_elem_check_toolflags(BMesh *bm, BMElem *elem)
 {
   int cd_off = -1;
   MToolFlags *flags;
-  BLI_mempool *flagpool;
+  BLI_mempool *flagpool = NULL;
 
   switch (elem->head.htype) {
     case BM_VERT:
@@ -1747,7 +1747,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
       return NULL;
     }
 
-    BMEdge *e_splice;
+    BMEdge *e_splice = NULL;
     BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
     BMLoop *l_kill_next;
 
@@ -1877,22 +1877,9 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
   return NULL;
 }
 
-static void check_vert_faces(BMVert *v_target)
-{
-  BMEdge *e = v_target->e;
-  if (e) {
-    do {
-      BM_CHECK_ELEMENT(e);
-      if (e->l) {
-        BMLoop *l = e->l;
+//#define JVKE_DEBUG
 
-        do {
-          BM_CHECK_ELEMENT(l->f);
-        } while ((l = l->radial_next) != e->l);
-      }
-    } while ((e = BM_DISK_EDGE_NEXT(e, v_target)) != v_target->e);
-  }
-}
+#ifdef JVKE_DEBUG
 
 #ifdef _
 #  undef _
@@ -1964,7 +1951,7 @@ static void bm_local_obj_free(char *str, char *fixed)
   }
 }
 
-#define LOCAL_OBJ_SIZE 512
+#  define LOCAL_OBJ_SIZE 512
 
 static char *obj_append_line(const char *line, char *str, char *fixed, int *size, int *i)
 {
@@ -2298,24 +2285,6 @@ static char *bm_save_local_obj_text(
 
   return str;
 }
-/**
- * \brief Join Vert Kill Edge (JVKE)
- *
- * Collapse an edge, merging surrounding data.
- *
- * Unlike #BM_vert_collapse_edge & #bmesh_kernel_join_edge_kill_vert
- * which only handle 2 valence verts,
- * this can handle any number of connected edges/faces.
- *
- * <pre>
- * Before: -> After:
- * +-+-+-+    +-+-+-+
- * | | | |    | \ / |
- * +-+-+-+    +--+--+
- * | | | |    | / \ |
- * +-+-+-+    +-+-+-+
- * </pre>
- */
 
 static void trigger_jvke_error(int err, char *obj_text)
 {
@@ -2324,9 +2293,6 @@ static void trigger_jvke_error(int err, char *obj_text)
 
 char *_last_local_obj = NULL;
 
-//#define JVKE_DEBUG
-
-#ifdef JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
     { \
       int err = 0; \
@@ -2357,8 +2323,6 @@ static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
     }
 
     f_example = l->f;
-
-    BMLoop *lnext;
 
     do {
       if (tracer) {
@@ -2440,6 +2404,24 @@ static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *t
   bm_logstack_pop();
 }
 
+/**
+ * \brief Join Vert Kill Edge (JVKE)
+ *
+ * Collapse an edge, merging surrounding data.
+ *
+ * Unlike #BM_vert_collapse_edge & #bmesh_kernel_join_edge_kill_vert
+ * which only handle 2 valence verts,
+ * this can handle any number of connected edges/faces.
+ *
+ * <pre>
+ * Before: -> After:
+ * +-+-+-+    +-+-+-+
+ * | | | |    | \ / |
+ * +-+-+-+    +--+--+
+ * | | | |    | / \ |
+ * +-+-+-+    +-+-+-+
+ * </pre>
+ */
 BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e,
                                          BMVert *v_kill,

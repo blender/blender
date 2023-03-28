@@ -136,7 +136,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
 
 // int cdmap[8] = {0, 1, -1, -1, 2, -1, -1, -1, 3};
 
-static void bm_swap_cd_data(int htype, BMesh *bm, CustomData *cd, void *a, void *b)
+static void bm_swap_cd_data(int /*htype*/, BMesh * /*bm*/, CustomData *cd, void *a, void *b)
 {
   int tot = cd->totsize;
   // int cd_id = bm->idmap.cd_id_off[htype];
@@ -1742,7 +1742,7 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
 
 void bm_swap_ids(BMesh *bm, BMElem *e1, BMElem *e2)
 {
-  int cd_id = bm->idmap.cd_id_off[e1->head.htype];
+  int cd_id = bm->idmap.cd_id_off[int(e1->head.htype)];
 
   if (cd_id < 0) {
     return;
@@ -2115,23 +2115,23 @@ bool BM_defragment_vertex(BMesh *bm,
   return true;
 }
 
-static void on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
+static void on_vert_kill(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/)
 {
 }
-static void on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
+static void on_edge_kill(BMesh * /*bm*/, BMEdge * /*e*/, void * /*userdata*/)
 {
 }
-static void on_face_kill(BMesh *bm, BMFace *f, void *userdata)
+static void on_face_kill(BMesh * /*bm*/, BMFace * /*f*/, void * /*userdata*/)
 {
 }
 
-static void on_vert_create(BMesh *bm, BMVert *v, void *userdata)
+static void on_vert_create(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/)
 {
 }
-static void on_edge_create(BMesh *bm, BMEdge *v, void *userdata)
+static void on_edge_create(BMesh * /*bm*/, BMEdge * /*v*/, void * /*userdata*/)
 {
 }
-static void on_face_create(BMesh *bm, BMFace *v, void *userdata)
+static void on_face_create(BMesh * /*bm*/, BMFace * /*v*/, void * /*userdata*/)
 {
 }
 

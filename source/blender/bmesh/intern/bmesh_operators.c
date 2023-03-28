@@ -1188,7 +1188,7 @@ static void bmo_flag_layer_do(BMesh *bm,
 static void bmo_flag_layer_alloc_do(BMesh *bm,
                                     int cd_tflags,
                                     int itertype,
-                                    int htype,
+                                    int UNUSED(htype),
                                     int totelem,
                                     int new_totflags,
                                     BLI_mempool **pool_ptr)
@@ -1246,10 +1246,10 @@ static void bmo_flag_layer_free(BMesh *bm)
 static void bmo_flag_layer_clear_do(BMesh *bm,
                                     int cd_tflags,
                                     int itertype,
-                                    int htype,
-                                    int totelem,
+                                    int UNUSED(htype),
+                                    int UNUSED(totelem),
                                     int totflag,
-                                    BLI_mempool **pool_ptr)
+                                    BLI_mempool **UNUSED(pool_ptr))
 {
   BMIter iter;
   BMElem *elem;
