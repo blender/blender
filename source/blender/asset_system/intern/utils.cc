@@ -39,8 +39,8 @@ std::string normalize_path(std::string path, size_t max_len)
   max_len = (max_len == std::string::npos) ? size_t(path.size()) :
                                              std::min(max_len, size_t(path.size()));
   char *buf = BLI_strdupn(path.c_str(), max_len);
-  BLI_path_normalize(nullptr, buf);
   BLI_path_slash_native(buf);
+  BLI_path_normalize(nullptr, buf);
 
   std::string normalized_path = buf;
   MEM_freeN(buf);

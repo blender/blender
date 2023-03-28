@@ -79,7 +79,12 @@ class AssetLibraryService {
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
 
-  /** return a normalized version of #AssetWeakReference.relative_asset_identifier.
+  /**
+   * Return the position of the last blendfile extension in given path, or std::string::npos if
+   * not found. Works with both kind of path separators. */
+  size_t rfind_blendfile_extension(StringRef path);
+  /**
+   * Return a normalized version of #AssetWeakReference.relative_asset_identifier.
    * Special care is required here because slahes or backslashes should not be converted in the ID
    * name itself. */
   std::string normalize_asset_weak_reference_relative_asset_identifier(
