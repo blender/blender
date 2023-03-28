@@ -798,7 +798,12 @@ struct GWL_Seat {
   struct zwp_primary_selection_device_v1 *wp_primary_selection_device = nullptr;
   struct GWL_PrimarySelection primary_selection;
 
-  /** Last device that was active. */
+  /**
+   * Last input device that was active (pointer/tablet/keyboard).
+   *
+   * \note Multi-touch gestures don't set this value,
+   * if there is some use-case where this is needed - assignments can be added.
+   */
   uint32_t data_source_serial = 0;
 };
 
@@ -4057,7 +4062,7 @@ static void keyboard_handle_key(void *data,
 
 static void keyboard_handle_modifiers(void *data,
                                       struct wl_keyboard * /*wl_keyboard*/,
-                                      const uint32_t /*serial*/,
+                                      const uint32_t serial,
                                       const uint32_t mods_depressed,
                                       const uint32_t mods_latched,
                                       const uint32_t mods_locked,
@@ -4088,6 +4093,8 @@ static void keyboard_handle_modifiers(void *data,
 #ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
   seat->key_depressed_suppress_warning.any_mod_held = mods_depressed != 0;
 #endif
+
+  seat->data_source_serial = serial;
 }
 
 static void keyboard_handle_repeat_info(void *data,
