@@ -31,41 +31,41 @@ class GHOST_SystemSDL : public GHOST_System {
   GHOST_SystemSDL();
   ~GHOST_SystemSDL();
 
-  bool processEvents(bool waitForEvent);
+  bool processEvents(bool waitForEvent) override;
 
-  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
     return false;
   }
 
-  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
+  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const override;
 
-  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
+  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const override;
 
-  GHOST_TCapabilityFlag getCapabilities() const;
+  GHOST_TCapabilityFlag getCapabilities() const override;
 
-  char *getClipboard(bool selection) const;
+  char *getClipboard(bool selection) const override;
 
-  void putClipboard(const char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const override;
 
-  uint64_t getMilliSeconds();
+  uint64_t getMilliSeconds() const override;
 
-  uint8_t getNumDisplays() const;
+  uint8_t getNumDisplays() const override;
 
-  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const;
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
-  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y);
+  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
-  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
-  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
-  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
+  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) override;
 
-  GHOST_TSuccess disposeContext(GHOST_IContext *context);
+  GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
  private:
-  GHOST_TSuccess init();
+  GHOST_TSuccess init() override;
 
   GHOST_IWindow *createWindow(const char *title,
                               int32_t left,
@@ -76,7 +76,7 @@ class GHOST_SystemSDL : public GHOST_System {
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = NULL);
+                              const GHOST_IWindow *parentWindow = nullptr) override;
 
   /* SDL specific */
   GHOST_WindowSDL *findGhostWindow(SDL_Window *sdl_win);
