@@ -332,6 +332,9 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
   alt_group_len = uint64_t(relative_asset_identifier.find(ALTSEP));
   group_len = int64_t(
       std::min(uint64_t(relative_asset_identifier.find(SEP, int64_t(offset))), alt_group_len));
+
+  std::cout << offset << " " << group_len << "\n";
+
   group_len += offset;
 
   std::cout << relative_asset_identifier.find(SEP) << " " << alt_group_len << " ==> " << group_len
