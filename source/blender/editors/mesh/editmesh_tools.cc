@@ -4403,8 +4403,9 @@ static Base *mesh_separate_tagged(
   create_params.use_toolflags = true;
   BMesh *bm_new = BM_mesh_create(&bm_mesh_allocsize_default, &create_params);
 
-  BM_mesh_elem_toolflags_ensure(bm_new); /* Needed for 'duplicate' BMO. */
   BM_mesh_copy_init_customdata(bm_new, bm_old, &bm_mesh_allocsize_default);
+
+  BM_mesh_elem_toolflags_ensure(bm_new); /* Needed for 'duplicate' BMO. */
 
   /* Take into account user preferences for duplicating actions. */
   const eDupli_ID_Flags dupflag = eDupli_ID_Flags(USER_DUP_MESH | (U.dupflag & USER_DUP_ACT));

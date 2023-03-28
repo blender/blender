@@ -657,20 +657,6 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  // forcibly copy mesh_id layers
-  CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
-  // CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
-
-  for (int i = 0; i < 4; i++) {
-    CustomData *cdata = srcdatas[i];
-
-    if (CustomData_has_layer(cdata, CD_MESH_ID)) {
-      int idx = CustomData_get_layer_index(cdata, CD_MESH_ID);
-
-      cdata->layers[idx].flag &= ~(CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY);
-    }
-  }
-
   CustomData_copy(
       &bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
   CustomData_copy(
@@ -679,6 +665,18 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
       &bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
   CustomData_copy(
       &bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
+
+  CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
+  CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *srcdata = srcdatas[i];
+    CustomData *dstdata = dstdatas[i];
+
+    if (CustomData_has_layer(srcdata, CD_TOOLFLAGS)) {
+      CustomData_add_layer(dstdata, CD_TOOLFLAGS, CD_ASSIGN, 0);
+    }
+  }
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
   CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
