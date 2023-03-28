@@ -208,6 +208,16 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
+void AbstractViewItem::disable_interaction()
+{
+  is_interactive_ = false;
+}
+
+bool AbstractViewItem::is_interactive() const
+{
+  return is_interactive_;
+}
+
 bool AbstractViewItem::is_active() const
 {
   BLI_assert_msg(get_view().is_reconstructed(),
@@ -281,6 +291,12 @@ class ViewItemAPIWrapper {
 }  // namespace blender::ui
 
 using namespace blender::ui;
+
+bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  return item.is_interactive();
+}
 
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
 {
