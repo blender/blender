@@ -655,9 +655,7 @@ typedef struct PreviewImage {
 #ifdef GS
 #  undef GS
 #endif
-#define GS(a) \
-  (CHECK_TYPE_ANY(a, char *, const char *, char[66], const char[66]), \
-   (ID_Type)(*((const short *)(a))))
+#define GS(a) (CHECK_TYPE_ANY(a, char *, const char *), (ID_Type)(*((const short *)(a))))
 
 #define ID_NEW_SET(_id, _idn) \
   (((ID *)(_id))->newid = (ID *)(_idn), \

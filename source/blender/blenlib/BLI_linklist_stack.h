@@ -38,7 +38,7 @@
 /* check for typeof() */
 #ifdef __GNUC__
 #  define BLI_LINKSTACK_PUSH(var, ptr) \
-    (CHECK_TYPE_INLINE(ptr, typeof(var##_type_)), \
+    (CHECK_TYPE_INLINE_NONCONST(ptr, typeof(var##_type_)), \
      BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #  define BLI_LINKSTACK_POP(var) \
     (var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
