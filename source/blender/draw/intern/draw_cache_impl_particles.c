@@ -197,6 +197,10 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
   GPU_BATCH_DISCARD_SAFE(hair_cache->hairs);
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
+
+  MEM_SAFE_FREE(hair_cache->proc_col_buf);
+  MEM_SAFE_FREE(hair_cache->col_tex);
+  MEM_SAFE_FREE(hair_cache->col_layer_names);
 }
 
 static void particle_batch_cache_clear(ParticleSystem *psys)
@@ -206,9 +210,11 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
     return;
   }
 
-  particle_batch_cache_clear_point(&cache->point);
-  particle_batch_cache_clear_hair(&cache->hair);
+  /* All memory allocated by `cache` must be freed. */
 
+  particle_batch_cache_clear_point(&cache->point);
+
+  particle_batch_cache_clear_hair(&cache->hair);
   particle_batch_cache_clear_hair(&cache->edit_hair);
 
   GPU_BATCH_DISCARD_SAFE(cache->edit_inner_points);
@@ -217,24 +223,9 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 }
 
-static void particle_batch_cache_free_hair(ParticleHairCache *hair)
-{
-  MEM_SAFE_FREE(hair->proc_col_buf);
-  MEM_SAFE_FREE(hair->col_tex);
-  MEM_SAFE_FREE(hair->col_layer_names);
-}
-
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
 {
   particle_batch_cache_clear(psys);
-
-  ParticleBatchCache *cache = psys->batch_cache;
-
-  if (cache) {
-    particle_batch_cache_free_hair(&cache->hair);
-    particle_batch_cache_free_hair(&cache->edit_hair);
-  }
-
   MEM_SAFE_FREE(psys->batch_cache);
 }
 
