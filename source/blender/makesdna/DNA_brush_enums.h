@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -645,18 +647,30 @@ typedef enum eBrushFalloffShape {
 
 // dyntopo flags
 // synced with PBVHTopologyUpdateMode
-enum {
+typedef enum eDynTopoFlags {
   DYNTOPO_SUBDIVIDE = 1 << 0,
   DYNTOPO_COLLAPSE = 1 << 1,
   DYNTOPO_DISABLED = 1 << 2,
   DYNTOPO_CLEANUP = 1 << 3,
   DYNTOPO_LOCAL_COLLAPSE = 1 << 4,
-  DYNTOPO_LOCAL_SUBDIVIDE = 1 << 5
-};
+  DYNTOPO_LOCAL_SUBDIVIDE = 1 << 5,
+  DYNTOPO_MAX_FLAGS = 6,
+} eDynTopoFlags;
+ENUM_OPERATORS(eDynTopoFlags, DYNTOPO_LOCAL_SUBDIVIDE);
 
-// dyntopo override flags, copies all flags from dyntopo flags
-enum {
-  DYNTOPO_INHERIT_ALL = 1 << 10,
+/* Dyntopo inheritance flags.  The flags up to DYNTOPO_MAX_FLAGS
+ * corruspond to eDynTopoFlags
+ */
+typedef enum eDynTopoInheritFlags {
+  /* Flags from eDynTopoFlags. */
+  DYNTOPO_INHERIT_SUBDIVIDE = 1 << 0,
+  DYNTOPO_INHERIT_COLLAPSE = 1 << 1,
+  DYNTOPO_INHERIT_DISABLED = 1 << 2,
+  DYNTOPO_INHERIT_CLEANUP = 1 << 3,
+  DYNTOPO_INHERIT_LOCAL_COLLAPSE = 1 << 4,
+  DYNTOPO_INHERIT_LOCAL_SUBDIVIDE = 1 << 5,
+  /* End flags from eDynTopoFlags. */
+
   DYNTOPO_INHERIT_DETAIL_RANGE = 1 << 11,
   DYNTOPO_INHERIT_DETAIL_PERCENT = 1 << 12,
   DYNTOPO_INHERIT_MODE = 1 << 13,
@@ -664,8 +678,10 @@ enum {
   DYNTOPO_INHERIT_SPACING = 1 << 15,
   DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16,
   DYNTOPO_INHERIT_RADIUS_SCALE = 1 << 17,
+  DYNTOPO_INHERIT_MAX_FLAGS = 18,
   // make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
-};
+} eDynTopoInheritFlags;
+ENUM_OPERATORS(eDynTopoInheritFlags, DYNTOPO_INHERIT_RADIUS_SCALE);
 
 // represents all possible inherit flags
 #define DYNTOPO_INHERIT_BITMASK ((1 << 18) - 1)

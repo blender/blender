@@ -650,3 +650,38 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
         ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
   }
 }
+
+void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *brush)
+{
+  DynTopoSettings *ds1 = &brush->dyntopo;
+  DynTopoSettings *ds2 = &sculpt->dyntopo;
+
+  DynTopoSettings *ds_final = &ss->cached_dyntopo;
+
+  ds_final->inherit = ds1->inherit;
+  ds_final->flag = 0;
+
+  for (int i = 0; i < DYNTOPO_MAX_FLAGS; i++) {
+    if (ds_final->inherit & (1 << i)) {
+      ds_final->flag |= ds2->flag & (1 << i);
+    }
+    else {
+      ds_final->flag |= ds1->flag & (1 << i);
+    }
+  }
+
+  ds_final->constant_detail = ds_final->inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL ?
+                                  ds2->constant_detail :
+                                  ds1->constant_detail;
+  ds_final->detail_percent = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_PERCENT ?
+                                 ds2->detail_percent :
+                                 ds1->detail_percent;
+  ds_final->detail_range = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_RANGE ? ds2->detail_range :
+                                                                              ds1->detail_range;
+  ds_final->detail_size = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_SIZE ? ds2->detail_size :
+                                                                            ds1->detail_size;
+  ds_final->mode = ds_final->inherit & DYNTOPO_INHERIT_MODE ? ds2->mode : ds1->mode;
+  ds_final->radius_scale = ds_final->inherit & DYNTOPO_INHERIT_RADIUS_SCALE ? ds2->radius_scale :
+                                                                              ds1->radius_scale;
+  ds_final->spacing = ds_final->inherit & DYNTOPO_INHERIT_SPACING ? ds2->spacing : ds1->spacing;
+}

@@ -15,6 +15,19 @@
 /** \name Brush Struct
  * \{ */
 
+#define _DNA_DEFAULT_DynTopoSettings \
+{\
+  .detail_range = 0.4f,\
+  .detail_percent = 25.0f,\
+  .detail_size = 12.0f,\
+  .constant_detail = 3.0f,\
+  .flag = DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE,\
+  .mode = DYNTOPO_DETAIL_RELATIVE,\
+  .inherit = DYNTOPO_INHERIT_BITMASK,\
+  .spacing = 35,\
+  .radius_scale = 1.0f\
+}
+
 #define _DNA_DEFAULT_Brush \
   { \
     .blend = 0, \
@@ -106,20 +119,9 @@
  \
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
-    .dyntopo = {\
-      .detail_range = 0.4f,\
-      .detail_percent = 25.0f,\
-      .detail_size = 12.0f,\
-      .constant_detail = 3.0f,\
-      .flag = DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE,\
-      .mode = DYNTOPO_DETAIL_RELATIVE,\
-      .inherit = DYNTOPO_INHERIT_ALL,\
-      .spacing = 25,\
-      .radius_scale = 1.0f\
-    },\
+    .dyntopo = _DNA_DEFAULT_DynTopoSettings,\
     .concave_mask_factor = 0.75f\
   }
-
 /** \} */
 
 /* clang-format on */

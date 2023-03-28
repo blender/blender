@@ -392,7 +392,6 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
     {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
     {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
-    {DYNTOPO_INHERIT_ALL, "ALL", ICON_NONE, "All", "Inherit All"},
     {DYNTOPO_INHERIT_DETAIL_RANGE, "DETAIL_RANGE", ICON_NONE, "All", ""},
     {DYNTOPO_INHERIT_DETAIL_PERCENT, "DETAIL_PERCENT", ICON_NONE, "Percent", ""},
     {DYNTOPO_INHERIT_MODE, "MODE", ICON_NONE, "Mode", ""},

@@ -880,6 +880,10 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "DynTopo", "Enable DynTopo remesher in dynamic topology mode.");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
+  prop = RNA_def_property(srna, "dyntopo", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "DynTopoSettings");
+  RNA_def_property_pointer_sdna(prop, NULL, "dyntopo");
+
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 0.1, 2);
   RNA_def_property_ui_scale_type(prop, PROP_SCALE_CUBIC);
@@ -939,10 +943,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "high-poly meshes.");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
-
-  prop = RNA_def_property(srna, "use_dyntopo_cleanup", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_CLEANUP);
-  RNA_def_property_ui_text(prop, "Cleanup", "Removes verts surrounded by only 3 or 4 edges");
 
   prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);

@@ -146,6 +146,7 @@ SDNA_DEFAULT_DECL_STRUCT(AssetLibraryReference);
 SDNA_DEFAULT_DECL_STRUCT(bArmature);
 
 /* DNA_brush_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(DynTopoSettings);
 SDNA_DEFAULT_DECL_STRUCT(Brush);
 
 /* DNA_cachefile_defaults.h */
@@ -357,6 +358,8 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_brush_defaults.h */
     SDNA_DEFAULT_DECL(Brush),
+    SDNA_DEFAULT_DECL(DynTopoSettings),
+    SDNA_DEFAULT_DECL_EX(DynTopoSettings, Brush.dyntopo),
 
     /* DNA_cachefile_defaults.h */
     SDNA_DEFAULT_DECL(CacheFile),

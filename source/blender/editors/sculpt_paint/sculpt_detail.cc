@@ -319,8 +319,12 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
                    srd.ss->stroke_id);
 
   if (srd.hit && srd.edge_length > 0.0f) {
+    DynTopoSettings *dyntopo = brush->dyntopo.inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL ?
+                                   &brush->dyntopo :
+                                   &sd->dyntopo;
+
     /* Convert edge length to world space detail resolution. */
-    brush->dyntopo.constant_detail = 1.0f / (srd.edge_length * mat4_to_scale(ob->object_to_world));
+    dyntopo->constant_detail = 1.0f / (srd.edge_length * mat4_to_scale(ob->object_to_world));
   }
 }
 

@@ -19,6 +19,7 @@
 #define USE_SETSCENE_CHECK
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 #include "DNA_color_types.h"      /* color management */
 #include "DNA_customdata_types.h" /* Scene's runtime custom-data masks. */
 #include "DNA_layer_types.h"
@@ -1077,8 +1078,8 @@ typedef struct Sculpt {
   int radial_symm[3];
 
   /** Maximum edge length for dynamic topology sculpting (in pixels). */
-  float detail_size;
-  float detail_range;
+  float detail_size DNA_DEPRECATED;
+  float detail_range DNA_DEPRECATED;
 
   /** Direction used for `SCULPT_OT_symmetrize` operator. */
   int symmetrize_direction;
@@ -1088,11 +1089,11 @@ typedef struct Sculpt {
 
   /* Scale for constant detail size. */
   /** Constant detail resolution (Blender unit / constant_detail). */
-  float constant_detail;
-  float detail_percent;
-  int dyntopo_spacing;
+  float constant_detail DNA_DEPRECATED;
+  float detail_percent DNA_DEPRECATED;
+  int dyntopo_spacing DNA_DEPRECATED;
 
-  float dyntopo_radius_scale;
+  float dyntopo_radius_scale DNA_DEPRECATED;
   int automasking_cavity_blur_steps;
   float automasking_cavity_factor;
   char _pad[4];
@@ -1104,6 +1105,8 @@ typedef struct Sculpt {
   /** For use by operators. */
   struct CurveMapping *automasking_cavity_curve_op;
   struct Object *gravity_object;
+
+  DynTopoSettings dyntopo;
 } Sculpt;
 
 typedef struct CurvesSculpt {
@@ -2493,27 +2496,24 @@ typedef enum eSculptFlags {
   SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
 
   /** If set, dynamic-topology brushes will subdivide short edges. */
-  SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12),
+  SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12), /* deprecated. */
   /** If set, dynamic-topology brushes will collapse short edges. */
-  SCULPT_DYNTOPO_COLLAPSE = (1 << 11),
+  SCULPT_DYNTOPO_COLLAPSE = (1 << 11), /* deprecated. */
 
   /** If set, dynamic-topology detail size will be constant in object space. */
-  SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13),
-  SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),
+  SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13), /* deprecated. */
+  SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),    /* deprecated. */
   /* Don't display mask in viewport, but still use it for strokes. */
   SCULPT_HIDE_MASK = (1 << 15),
-  SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16),
+  SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16), /* deprecated. */
 
   /* Don't display face sets in viewport. */
   SCULPT_HIDE_FACE_SETS = (1 << 17),
   SCULPT_DYNTOPO_FLAT_VCOL_SHADING = (1 << 18),
-  SCULPT_DYNTOPO_CLEANUP = (1 << 19),
 
-  // hides facesets/masks and forces indexed mode to save GPU bandwidth
+  /* Hides facesets/masks and forces indexed mode to save GPU bandwidth. */
   SCULPT_FAST_DRAW = (1 << 20),
-  SCULPT_DYNTOPO_LOCAL_SUBDIVIDE = (1 << 21),
-  SCULPT_DYNTOPO_LOCAL_COLLAPSE = (1 << 22),
-  SCULPT_DYNTOPO_ENABLED = (1 << 23),
+  SCULPT_DYNTOPO_ENABLED = (1 << 21),
 } eSculptFlags;
 
 /** #Sculpt.transform_mode */

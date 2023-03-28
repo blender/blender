@@ -2760,7 +2760,7 @@ void SCULPT_calc_area_center(
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm;
   int n;
 
   /* Intentionally set 'sd' to nullptr since we share logic with vertex paint. */
@@ -2818,7 +2818,7 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   float r_area_no[3])
 {
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm;
 
   /* Intentionally set 'sd' to nullptr since this is used for vertex paint too. */
   SculptThreadedTaskData data{};
@@ -2855,7 +2855,7 @@ void SCULPT_calc_area_normal_and_center(
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm;
   int n;
 
   /* Intentionally set 'sd' to nullptr since this is used for vertex paint too. */
@@ -4105,9 +4105,8 @@ static void sculpt_topology_update(Sculpt *sd,
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   float location[3];
 
-#if 0
-  int dyntopo_mode = brush->dyntopo.flag;
-  int dyntopo_detail_mode = brush->dyntopo.mode;
+  int dyntopo_mode = ss->cached_dyntopo.flag;
+  int dyntopo_detail_mode = ss->cached_dyntopo.mode;
 
   if (dyntopo_detail_mode != DYNTOPO_DETAIL_MANUAL) {
     if (dyntopo_mode & DYNTOPO_SUBDIVIDE) {
@@ -4124,22 +4123,19 @@ static void sculpt_topology_update(Sculpt *sd,
       mode |= PBVH_LocalCollapse | PBVH_Collapse;
     }
   }
-
-  if (dyntopo_mode & DYNTOPO_CLEANUP) {
-    mode |= PBVH_Cleanup;
-  }
-#endif
-
-  if (sd->flags & SCULPT_DYNTOPO_COLLAPSE) {
-    mode |= PBVH_Collapse;
-  }
-  if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
-    mode |= PBVH_Subdivide;
+  else {
+    if (dyntopo_mode & DYNTOPO_SUBDIVIDE) {
+      mode |= PBVH_Subdivide;
+    }
+    if (dyntopo_mode & DYNTOPO_COLLAPSE) {
+      mode |= PBVH_Collapse;
+    }
   }
 
   /* Force both subdivide and collapse for simplify brush. */
+  //XXX done with inherit flags now
   if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
-    mode |= PBVH_Collapse | PBVH_Subdivide;
+    //mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
   SculptSearchSphereData sdata{};
@@ -5417,6 +5413,8 @@ static void sculpt_update_cache_invariants(
   if (ss->pbvh) {
     BKE_pbvh_show_orig_set(ss->pbvh, tool_settings->show_origco);
   }
+
+  SCULPT_apply_dyntopo_settings(ss, sd, brush);
 }
 
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
@@ -6552,22 +6550,22 @@ static void sculpt_stroke_update_step(bContext *C,
   cache->stroke_distance_t += stroke_delta;
 
   if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    float object_space_constant_detail = 1.0f / (sd->constant_detail *
+    float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                  mat4_to_scale(ob->object_to_world));
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, 0.4f);
   }
   else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
     BKE_pbvh_bmesh_detail_size_set(
-        ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f, 0.4f);
+        ss->pbvh, ss->cache->radius * ss->cached_dyntopo.detail_percent / 100.0f, 0.4f);
   }
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
                                    (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (sd->detail_size * U.pixelsize) / 0.4f,
+                                       (ss->cached_dyntopo.detail_size * U.pixelsize) / 0.4f,
                                    0.4f);
   }
 
-  float dyntopo_spacing = float(sd->dyntopo_spacing) / 50.0f;
+  float dyntopo_spacing = float(ss->cached_dyntopo.spacing) / 50.0f;
 
   bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
   do_dyntopo = do_dyntopo &&

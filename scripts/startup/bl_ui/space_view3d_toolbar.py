@@ -876,23 +876,77 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_dyntopo")
 
         sub = col.column()
-        sub.active = (brush and brush.sculpt_tool != 'MASK')
-        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
+        sub.active = bool(brush)
+
+        detail_mode = UnifiedPaintPanel.get_dyntopo_prop(context, brush, "mode")
+        
+        if detail_mode in {'CONSTANT', 'MANUAL'}:
             row = sub.row(align=True)
-            row.prop(sculpt, "constant_detail_resolution")
+
+            UnifiedPaintPanel.prop_unified_dyntopo(
+                row,
+                context,
+                brush,
+                "constant_detail"
+            )
+
             props = row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             props.mode = 'DYNTOPO'
-        elif (sculpt.detail_type_method == 'BRUSH'):
-            sub.prop(sculpt, "detail_percent")
+        elif detail_mode == 'BRUSH':
+            UnifiedPaintPanel.prop_unified_dyntopo(
+                sub,
+                context,
+                brush,
+                "detail_percent"
+            )
         else:
-            sub.prop(sculpt, "detail_size")
-        sub.prop(sculpt, "detail_refine_method", text="Refine Method")
-        sub.prop(sculpt, "detail_type_method", text="Detailing")
+            UnifiedPaintPanel.prop_unified_dyntopo(
+                sub,
+                context,
+                brush,
+                "detail_size"
+            )
+
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "subdivide"
+        )
+
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "collapse"
+        )
+
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "mode",
+            expand=True
+        )
+
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "detail_range"
+        )
 
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
-        col.prop(sculpt, "dyntopo_spacing")
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "spacing",
+            expand=True
+        )
+
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 

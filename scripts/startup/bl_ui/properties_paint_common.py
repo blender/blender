@@ -93,6 +93,7 @@ class UnifiedPaintPanel:
             text=None,
             slider=False,
             header=False,
+            dyntopo=False,
     ):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
@@ -112,6 +113,32 @@ class UnifiedPaintPanel:
             row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
 
         return row
+
+    @staticmethod
+    def get_dyntopo_prop(context, brush, prop_name):
+        sculpt = context.tool_settings.sculpt
+
+        if prop_name.upper() in brush.dyntopo.inherit:
+            return getattr(sculpt.dyntopo, prop_name)
+        else:
+            return getattr(brush.dyntopo, prop_name)
+
+    @staticmethod
+    def prop_unified_dyntopo(layout, context, brush, prop_name, text=None, show_inherit=True, expand=False):
+        sculpt = context.tool_settings.sculpt
+
+        if prop_name.upper() in brush.dyntopo.inherit:
+            final_dyntopo = sculpt.dyntopo
+        else:
+            final_dyntopo = brush.dyntopo
+
+        if show_inherit:
+            layout = layout.row(align=True)
+
+        layout.prop(final_dyntopo, prop_name, text=text, expand=expand)
+
+        if show_inherit:
+            layout.prop_enum(brush.dyntopo, "inherit", prop_name.upper(), text="")
 
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):

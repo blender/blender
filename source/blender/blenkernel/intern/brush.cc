@@ -1816,11 +1816,13 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
-      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
-                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_LOCAL_COLLAPSE |
+      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE |
+                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE |
                               DYNTOPO_INHERIT_DETAIL_RANGE);
-      br->dyntopo.flag |= DYNTOPO_LOCAL_COLLAPSE;
+      br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
       br->dyntopo.detail_range = 0.4f;
+      br->dyntopo.spacing = 5;
+      br->dyntopo.radius_scale = 1.15;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
@@ -1906,6 +1908,10 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
+    case SCULPT_TOOL_SIMPLIFY:
+      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE);
+      br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      break;
     default:
       break;
   }
@@ -1947,17 +1953,17 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.117f;
       break;
 
-    case SCULPT_TOOL_PINCH:
     case SCULPT_TOOL_GRAB:
-    case SCULPT_TOOL_SNAKE_HOOK:
-    case SCULPT_TOOL_THUMB:
-    case SCULPT_TOOL_NUDGE:
     case SCULPT_TOOL_ROTATE:
     case SCULPT_TOOL_ELASTIC_DEFORM:
     case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_BOUNDARY:
     case SCULPT_TOOL_SLIDE_RELAX:
       disable_dyntopo = true;
+    case SCULPT_TOOL_THUMB:
+    case SCULPT_TOOL_NUDGE:
+    case SCULPT_TOOL_PINCH:
+    case SCULPT_TOOL_SNAKE_HOOK:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.95f;
       br->add_col[2] = 0.005f;

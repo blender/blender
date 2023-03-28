@@ -430,7 +430,7 @@ typedef struct Brush {
   char _pad2[4];
   struct BrushGpencilSettings *gpencil_settings;
 
-  DynTopoSettings dyntopo, cached_dyntopo;
+  DynTopoSettings dyntopo;
 
   /* new brush engine stuff */
 

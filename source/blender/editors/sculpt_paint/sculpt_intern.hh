@@ -2089,6 +2089,7 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(wmOperatorType *ot);
 void SCULPT_OT_set_detail_size(wmOperatorType *ot);
 void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot);
+void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *brush);
 /** \} */
 
 /* Dyntopo. */

@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -2459,6 +2460,8 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }
+
+  sd->dyntopo = *DNA_struct_default_get(DynTopoSettings);
 
   if (!sd->dyntopo_spacing) {
     sd->dyntopo_spacing = 35;

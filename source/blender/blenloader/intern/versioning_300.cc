@@ -27,6 +27,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_light_types.h"
@@ -49,6 +50,7 @@
 #include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_attribute.h"
+#include "BKE_brush.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
@@ -4154,8 +4156,58 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo")) {
+  if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "DynTopoSettings", "dyntopo")) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt) {
+        continue;
+      }
+
+      Sculpt *sculpt = scene->toolsettings->sculpt;
+      sculpt->dyntopo = *DNA_struct_default_get(DynTopoSettings);
+
+      DynTopoSettings *ds = &sculpt->dyntopo;
+
+      ds->detail_percent = sculpt->detail_percent;
+      ds->detail_size = sculpt->detail_size;
+      ds->detail_range = sculpt->detail_range;
+      ds->constant_detail = sculpt->constant_detail;
+
+      ds->flag = 0;
+      if (sculpt->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+        ds->flag |= DYNTOPO_SUBDIVIDE;
+      }
+      if (sculpt->flags & SCULPT_DYNTOPO_COLLAPSE) {
+        ds->flag |= DYNTOPO_COLLAPSE;
+      }
+
+      if (sculpt->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+        ds->mode = DYNTOPO_DETAIL_CONSTANT;
+      }
+      else if (sculpt->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+        ds->mode = DYNTOPO_DETAIL_BRUSH;
+      }
+      else if (sculpt->flags & SCULPT_DYNTOPO_DETAIL_MANUAL) {
+        ds->mode = DYNTOPO_DETAIL_MANUAL;
+      }
+      else {
+        ds->mode = DYNTOPO_DETAIL_RELATIVE;
+      }
+
+      if (sculpt->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+        ds->flag |= DYNTOPO_SUBDIVIDE;
+      }
+      if (sculpt->flags & SCULPT_DYNTOPO_COLLAPSE) {
+        ds->flag |= DYNTOPO_COLLAPSE;
+      }
+    }
+  }
+
+  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo") ||
+      !MAIN_VERSION_ATLEAST(bmain, 306, 4)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      DynTopoSettings *ds = &brush->dyntopo;
+      brush->dyntopo = *DNA_struct_default_get(DynTopoSettings);
+
       if (ELEM(brush->sculpt_tool,
                SCULPT_TOOL_SMOOTH,
                SCULPT_TOOL_DISPLACEMENT_ERASER,
@@ -4169,6 +4221,19 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_SLIDE_RELAX)) {
         brush->flag2 |= BRUSH_SMOOTH_USE_AREA_WEIGHT;
+      }
+
+      /* Some tools need special dyntopo overrides; copy from defaults. */
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_SIMPLIFY)) {
+        Brush dummy = {};
+        dummy.sculpt_tool = brush->sculpt_tool;
+
+        BKE_brush_sculpt_reset(&dummy);
+        if (dummy.curve) {
+          BKE_curvemapping_free(dummy.curve);
+        }
+
+        brush->dyntopo = dummy.dyntopo;
       }
     }
   }

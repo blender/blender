@@ -736,6 +736,8 @@ typedef struct SculptAttributePointers {
 } SculptAttributePointers;
 
 #ifdef __cplusplus
+#include "DNA_brush_types.h"
+
 struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -991,6 +993,7 @@ struct SculptSession {
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 
   bool hard_edge_mode;
+  DynTopoSettings cached_dyntopo;
 };
 #else
 struct SculptSession;
