@@ -415,11 +415,17 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
   }
 }
 
-static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Immediately execute if collection index was specified. */
   int index = RNA_int_get(op->ptr, "collection_index");
   if (index != COLLECTION_INVALID_INDEX) {
+    /* Only initialize extend from the shift key if the property isn't set
+     * (typically initialized from the key-map). */
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "extend");
+    if (!RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_boolean_set(op->ptr, prop, (event->modifier & KM_SHIFT) != 0);
+    }
     return object_hide_collection_exec(C, op);
   }
 
