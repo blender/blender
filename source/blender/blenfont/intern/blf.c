@@ -41,7 +41,6 @@
   } \
   ((void)0)
 
-/* Font array. */
 FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* XXX: should these be made into global_font_'s too? */

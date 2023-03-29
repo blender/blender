@@ -24,5 +24,6 @@ VkFormat to_vk_format(const eGPUTextureFormat format);
 VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type);
 VkImageType to_vk_image_type(const eGPUTextureType type);
+VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);
 
 }  // namespace blender::gpu

@@ -2267,7 +2267,7 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 
   return 1;
 }
-/* reads cache from disk or memory */
+
 int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old)
 {
   int cfrai = (int)floor(cfra), cfra1 = 0, cfra2 = 0;

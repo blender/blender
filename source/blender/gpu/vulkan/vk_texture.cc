@@ -37,48 +37,6 @@ void VKTexture::copy_to(Texture * /*tex*/)
 {
 }
 
-template<typename T> void copy_color(T dst[4], const T *src)
-{
-  dst[0] = src[0];
-  dst[1] = src[1];
-  dst[2] = src[2];
-  dst[3] = src[3];
-}
-
-static VkClearColorValue to_vk_clear_color_value(eGPUDataFormat format, const void *data)
-{
-  VkClearColorValue result = {0.0f};
-  switch (format) {
-    case GPU_DATA_FLOAT: {
-      const float *float_data = static_cast<const float *>(data);
-      copy_color<float>(result.float32, float_data);
-      break;
-    }
-
-    case GPU_DATA_INT: {
-      const int32_t *int_data = static_cast<const int32_t *>(data);
-      copy_color<int32_t>(result.int32, int_data);
-      break;
-    }
-
-    case GPU_DATA_UINT: {
-      const uint32_t *uint_data = static_cast<const uint32_t *>(data);
-      copy_color<uint32_t>(result.uint32, uint_data);
-      break;
-    }
-
-    case GPU_DATA_HALF_FLOAT:
-    case GPU_DATA_UBYTE:
-    case GPU_DATA_UINT_24_8:
-    case GPU_DATA_10_11_11_REV:
-    case GPU_DATA_2_10_10_10_REV: {
-      BLI_assert_unreachable();
-      break;
-    }
-  }
-  return result;
-}
-
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
   if (!is_allocated()) {
@@ -92,9 +50,10 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
   range.aspectMask = to_vk_image_aspect_flag_bits(format_);
   range.levelCount = VK_REMAINING_MIP_LEVELS;
   range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+  layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
 
   command_buffer.clear(
-      vk_image_, VK_IMAGE_LAYOUT_GENERAL, clear_color, Span<VkImageSubresourceRange>(&range, 1));
+      vk_image_, current_layout_get(), clear_color, Span<VkImageSubresourceRange>(&range, 1));
 }
 
 void VKTexture::swizzle_set(const char /*swizzle_mask*/[4])
@@ -111,8 +70,10 @@ void VKTexture::mip_range_set(int /*min*/, int /*max*/)
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
 {
-  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
+  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
 
   /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
@@ -170,6 +131,7 @@ void VKTexture::update_sub(
   region.imageSubresource.mipLevel = mip;
   region.imageSubresource.layerCount = 1;
 
+  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   command_buffer.copy(*this, staging_buffer, Span<VkBufferImageCopy>(&region, 1));
   command_buffer.submit();
@@ -208,9 +170,49 @@ bool VKTexture::init_internal(const GPUTexture * /*src*/, int /*mip_offset*/, in
   return false;
 }
 
-bool VKTexture::is_allocated()
+void VKTexture::ensure_allocated()
+{
+  if (!is_allocated()) {
+    allocate();
+  }
+}
+
+bool VKTexture::is_allocated() const
 {
   return vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE;
+}
+
+static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
+                                              const eGPUTextureFormatFlag format_flag)
+{
+  VkImageUsageFlagBits result = static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                                                  VK_IMAGE_USAGE_SAMPLED_BIT);
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+    result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_STORAGE_BIT);
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
+    result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_STORAGE_BIT);
+  }
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
+    if (format_flag & (GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_COMPRESSED)) {
+      /* These formats aren't supported as an attachment. When using GPU_TEXTURE_USAGE_DEFAULT they
+       * are still being evaluated to be attachable. So we need to skip them.*/
+    }
+    else {
+      if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+        result = static_cast<VkImageUsageFlagBits>(result |
+                                                   VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+      }
+      else {
+        result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+      }
+    }
+  }
+  if (usage & GPU_TEXTURE_USAGE_HOST_READ) {
+    result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  }
+
+  return result;
 }
 
 bool VKTexture::allocate()
@@ -230,10 +232,14 @@ bool VKTexture::allocate()
   image_info.mipLevels = 1;
   image_info.arrayLayers = 1;
   image_info.format = to_vk_format(format_);
-  image_info.tiling = VK_IMAGE_TILING_LINEAR;
+  /* Some platforms (NVIDIA) requires that attached textures are always tiled optimal.
+   *
+   * As image data are always accessed via an staging buffer we can enable optimal tiling for all
+   * texture. Tilings based on actual usages should be done in `VKFramebuffer`.
+   */
+  image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
   image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                     VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+  image_info.usage = to_vk_image_usage(gpu_image_usage_flags_, format_flag_);
   image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
   VkResult result;
@@ -254,8 +260,6 @@ bool VKTexture::allocate()
 
   VmaAllocationCreateInfo allocCreateInfo = {};
   allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-  allocCreateInfo.flags = static_cast<VmaAllocationCreateFlagBits>(
-      VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
   allocCreateInfo.priority = 1.0f;
   result = vmaCreateImage(context.mem_allocator_get(),
                           &image_info,
@@ -268,15 +272,7 @@ bool VKTexture::allocate()
   }
 
   /* Promote image to the correct layout. */
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-  barrier.image = vk_image_;
-  barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(format_);
-  barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-  barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-  context.command_buffer_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
+  layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
 
   VK_ALLOCATION_CALLBACKS
   VkImageViewCreateInfo image_view_info = {};
@@ -306,5 +302,38 @@ void VKTexture::image_bind(int binding)
       shader::ShaderCreateInfo::Resource::BindType::IMAGE, binding);
   shader->pipeline_get().descriptor_set_get().image_bind(*this, location);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Image Layout
+ * \{ */
+
+VkImageLayout VKTexture::current_layout_get() const
+{
+  return current_layout_;
+}
+
+void VKTexture::current_layout_set(const VkImageLayout new_layout)
+{
+  current_layout_ = new_layout;
+}
+
+void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_layout)
+{
+  const VkImageLayout current_layout = current_layout_get();
+  if (current_layout == requested_layout) {
+    return;
+  }
+  VkImageMemoryBarrier barrier{};
+  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  barrier.oldLayout = current_layout;
+  barrier.newLayout = requested_layout;
+  barrier.image = vk_image_;
+  barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+  barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+  context.command_buffer_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
+  current_layout_set(requested_layout);
+}
+/** \} */
 
 }  // namespace blender::gpu

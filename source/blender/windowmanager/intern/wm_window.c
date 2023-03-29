@@ -1692,9 +1692,10 @@ void wm_ghost_init(bContext *C)
   GHOST_UseWindowFocus(wm_init_state.window_focus);
 }
 
-/* TODO move this to wm_init_exit.cc. */
 void wm_ghost_init_background(void)
 {
+  /* TODO: move this to `wm_init_exit.cc`. */
+
   if (g_system) {
     return;
   }
@@ -1834,6 +1835,7 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (flag != -1) {
     return flag;
   }
+  flag = 0;
 
   const GHOST_TCapabilityFlag ghost_flag = GHOST_GetCapabilities();
   if (ghost_flag & GHOST_kCapabilityCursorWarp) {

@@ -8,6 +8,7 @@
 #include "vk_command_buffer.hh"
 #include "vk_buffer.hh"
 #include "vk_context.hh"
+#include "vk_framebuffer.hh"
 #include "vk_memory.hh"
 #include "vk_pipeline.hh"
 #include "vk_texture.hh"
@@ -73,6 +74,21 @@ void VKCommandBuffer::bind(const VKDescriptorSet &descriptor_set,
       vk_command_buffer_, bind_point, vk_pipeline_layout, 0, 1, &vk_descriptor_set, 0, 0);
 }
 
+void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
+{
+  VkRenderPassBeginInfo render_pass_begin_info = {};
+  render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  render_pass_begin_info.renderPass = framebuffer.vk_render_pass_get();
+  render_pass_begin_info.framebuffer = framebuffer.vk_framebuffer_get();
+  render_pass_begin_info.renderArea = framebuffer.vk_render_area_get();
+  vkCmdBeginRenderPass(vk_command_buffer_, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void VKCommandBuffer::end_render_pass(const VKFrameBuffer & /*framebuffer*/)
+{
+  vkCmdEndRenderPass(vk_command_buffer_);
+}
+
 void VKCommandBuffer::push_constants(const VKPushConstants &push_constants,
                                      const VkPipelineLayout vk_pipeline_layout,
                                      const VkShaderStageFlags vk_shader_stages)
@@ -98,7 +114,7 @@ void VKCommandBuffer::copy(VKBuffer &dst_buffer,
 {
   vkCmdCopyImageToBuffer(vk_command_buffer_,
                          src_texture.vk_image_handle(),
-                         VK_IMAGE_LAYOUT_GENERAL,
+                         src_texture.current_layout_get(),
                          dst_buffer.vk_handle(),
                          regions.size(),
                          regions.data());
@@ -110,7 +126,7 @@ void VKCommandBuffer::copy(VKTexture &dst_texture,
   vkCmdCopyBufferToImage(vk_command_buffer_,
                          src_buffer.vk_handle(),
                          dst_texture.vk_image_handle(),
-                         VK_IMAGE_LAYOUT_GENERAL,
+                         dst_texture.current_layout_get(),
                          regions.size(),
                          regions.data());
 }
@@ -126,6 +142,12 @@ void VKCommandBuffer::clear(VkImage vk_image,
                        &vk_clear_color,
                        ranges.size(),
                        ranges.data());
+}
+
+void VKCommandBuffer::clear(Span<VkClearAttachment> attachments, Span<VkClearRect> areas)
+{
+  vkCmdClearAttachments(
+      vk_command_buffer_, attachments.size(), attachments.data(), areas.size(), areas.data());
 }
 
 void VKCommandBuffer::pipeline_barrier(VkPipelineStageFlags source_stages,

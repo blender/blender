@@ -95,7 +95,7 @@ static void wm_platform_support_create_link(char *link)
   BLI_dynstr_free(ds);
 }
 
-bool WM_platform_support_perform_checks()
+bool WM_platform_support_perform_checks(void)
 {
   char title[WM_PLATFORM_SUPPORT_TEXT_SIZE];
   char message[WM_PLATFORM_SUPPORT_TEXT_SIZE];

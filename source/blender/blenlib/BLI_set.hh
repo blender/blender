@@ -646,6 +646,24 @@ class Set {
     return !Intersects(a, b);
   }
 
+  friend bool operator==(const Set &a, const Set &b)
+  {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    for (const Key &key : a) {
+      if (!b.contains(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend bool operator!=(const Set &a, const Set &b)
+  {
+    return !(a == b);
+  }
+
  private:
   BLI_NOINLINE void realloc_and_reinsert(const int64_t min_usable_slots)
   {

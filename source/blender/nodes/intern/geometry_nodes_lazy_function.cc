@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
+/** \file
+ * \ingroup nodes
+ *
  * This file mainly converts a #bNodeTree into a lazy-function graph. This generally works by
  * creating a lazy-function for every node, which is then put into the lazy-function graph. Then
  * the nodes in the new graph are linked based on links in the original #bNodeTree. Some additional

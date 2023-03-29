@@ -72,7 +72,8 @@ bool transform_mode_is_changeable(const int mode)
               TFM_TRACKBALL,
               TFM_TRANSLATION,
               TFM_EDGE_SLIDE,
-              TFM_VERT_SLIDE);
+              TFM_VERT_SLIDE,
+              TFM_NORMAL_ROTATION);
 }
 
 /* -------------------------------------------------------------------- */

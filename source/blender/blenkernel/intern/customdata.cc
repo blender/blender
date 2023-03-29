@@ -2273,7 +2273,7 @@ bool CustomData_merge(const CustomData *source,
           layer->anonymous_id = nullptr;
         }
         else {
-          layer->anonymous_id->user_add();
+          layer->anonymous_id->add_user();
         }
       }
       if (alloctype == CD_ASSIGN) {
@@ -2365,7 +2365,7 @@ static void customData_free_layer__internal(CustomDataLayer *layer, const int to
   const LayerTypeInfo *typeInfo;
 
   if (layer->anonymous_id != nullptr) {
-    layer->anonymous_id->user_remove();
+    layer->anonymous_id->remove_user_and_delete_if_last();
     layer->anonymous_id = nullptr;
   }
   if (!(layer->flag & CD_FLAG_NOFREE) && layer->data) {
@@ -2956,7 +2956,7 @@ void *CustomData_add_layer_anonymous(CustomData *data,
     return nullptr;
   }
 
-  anonymous_id->user_add();
+  anonymous_id->add_user();
   layer->anonymous_id = anonymous_id;
   return layer->data;
 }

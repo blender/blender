@@ -243,15 +243,13 @@ struct wmGizmo {
    * (in world-space, scaled by the gizmo scale - when used). */
   float select_bias;
 
-  /**
-   * Transformation of the gizmo in 2d or 3d space.
+  /* Transformation of the gizmo in 2d or 3d space.
    * - Matrix axis are expected to be unit length (scale is applied after).
    * - Behavior when axis aren't orthogonal depends on each gizmo.
    * - Typically the +Z is the primary axis for gizmos to use.
    * - 'matrix[3]' must be used for location,
    *   besides this it's up to the gizmos internal code how the
-   *   rotation components are used for drawing and interaction.
-   */
+   *   rotation components are used for drawing and interaction. */
 
   /** The space this gizmo is being modified in. */
   float matrix_space[4][4];

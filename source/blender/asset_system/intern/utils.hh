@@ -16,4 +16,10 @@ namespace blender::asset_system::utils {
  */
 std::string normalize_directory_path(StringRef directory);
 
+/**
+ * Returns a normalized file path, with no maximum length.
+ * Slashes are converted to native format.
+ */
+std::string normalize_path(std::string path, size_t max_len = std::string::npos);
+
 }  // namespace blender::asset_system::utils

@@ -475,7 +475,6 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
   uiItemS(layout);
 }
 
-/* Used to directly create a popup menu that is not refreshed on redraw. */
 uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     const char *title,
                                     const char *block_name,

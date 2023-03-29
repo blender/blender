@@ -13,6 +13,10 @@
 #include <memory>
 #include <string>
 
+#include "BLI_string_ref.hh"
+
+struct AssetWeakReference;
+
 namespace blender::asset_system {
 
 class AssetIdentifier {
@@ -23,6 +27,8 @@ class AssetIdentifier {
   AssetIdentifier(std::shared_ptr<std::string> library_root_path, std::string relative_asset_path);
   AssetIdentifier(AssetIdentifier &&) = default;
   AssetIdentifier(const AssetIdentifier &) = default;
+
+  StringRefNull library_relative_identifier() const;
 
   std::string full_path() const;
   std::string full_library_path() const;

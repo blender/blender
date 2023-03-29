@@ -1667,6 +1667,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
       totinside++;
     }
   }
+  (void)totinside; /* Quiet set-but-unused warning (may be removed). */
 
   /* free temporary MDefBoundIsects */
   BLI_memarena_free(mdb->memarena);

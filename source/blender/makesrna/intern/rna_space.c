@@ -263,7 +263,9 @@ static EnumPropertyItem rna_enum_space_action_ui_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 #endif
-/* expose as ui_mode */
+
+/* Expose as `ui_mode`. */
+
 const EnumPropertyItem rna_enum_space_action_mode_items[] = {
     SACT_ITEM_DOPESHEET,
     SACT_ITEM_TIMELINE,

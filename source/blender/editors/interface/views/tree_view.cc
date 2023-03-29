@@ -24,10 +24,6 @@ namespace blender::ui {
 
 /* ---------------------------------------------------------------------- */
 
-/**
- * Add a tree-item to the container. This is the only place where items should be added, it
- * handles important invariants!
- */
 AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
     std::unique_ptr<AbstractTreeViewItem> item)
 {
@@ -68,6 +64,11 @@ void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptio
 void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) const
 {
   foreach_item_recursive(iter_fn, options);
+}
+
+void AbstractTreeView::set_min_rows(int min_rows)
+{
+  min_rows_ = min_rows;
 }
 
 void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
@@ -455,6 +456,10 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 
   uiLayout *overlap = uiLayoutOverlap(&prev_layout);
 
+  if (!item.is_interactive_) {
+    uiLayoutSetActive(overlap, false);
+  }
+
   uiLayoutRow(overlap, false);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
@@ -490,6 +495,23 @@ uiLayout &TreeViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
+void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
+{
+  int tot_visible_items = 0;
+  tree_view.foreach_item(
+      [&tot_visible_items](AbstractTreeViewItem & /*item*/) { tot_visible_items++; },
+      AbstractTreeView::IterOptions::SkipCollapsed);
+
+  if (tot_visible_items >= tree_view.min_rows_) {
+    return;
+  }
+
+  for (int i = 0; i < (tree_view.min_rows_ - tot_visible_items); i++) {
+    BasicTreeViewItem &new_item = tree_view.add_tree_item<BasicTreeViewItem>("");
+    new_item.disable_interaction();
+  }
+}
+
 void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view, uiLayout &layout)
 {
   uiBlock &block = *uiLayoutGetBlock(&layout);
@@ -497,6 +519,8 @@ void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view, uiLayout &lay
   tree_view.build_tree();
   tree_view.update_from_old(block);
   tree_view.change_state_delayed();
+
+  ensure_min_rows_items(tree_view);
 
   /* Ensure the given layout is actually active. */
   UI_block_layout_set_current(&block, &layout);

@@ -336,7 +336,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
 
 /* Adding ------------------------------------------- */
 
-NlaTrack *BKE_nlatrack_new()
+NlaTrack *BKE_nlatrack_new(void)
 {
   /* allocate new track */
   NlaTrack *nlt = MEM_callocN(sizeof(NlaTrack), "NlaTrack");

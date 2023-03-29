@@ -297,13 +297,13 @@ extern "C" {
 /* Float equality checks. */
 
 #define IS_EQ(a, b) \
-  (CHECK_TYPE_INLINE(a, double), \
-   CHECK_TYPE_INLINE(b, double), \
+  (CHECK_TYPE_INLINE_NONCONST(a, double), \
+   CHECK_TYPE_INLINE_NONCONST(b, double), \
    ((fabs((double)((a) - (b))) >= (double)FLT_EPSILON) ? false : true))
 
 #define IS_EQF(a, b) \
-  (CHECK_TYPE_INLINE(a, float), \
-   CHECK_TYPE_INLINE(b, float), \
+  (CHECK_TYPE_INLINE_NONCONST(a, float), \
+   CHECK_TYPE_INLINE_NONCONST(b, float), \
    ((fabsf((float)((a) - (b))) >= (float)FLT_EPSILON) ? false : true))
 
 #define IS_EQT(a, b, c) (((a) > (b)) ? ((((a) - (b)) <= (c))) : (((((b) - (a)) <= (c)))))

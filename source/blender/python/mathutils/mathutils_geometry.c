@@ -1804,6 +1804,7 @@ static struct PyModuleDef M_Geometry_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
+
 PyMODINIT_FUNC PyInit_mathutils_geometry(void)
 {
   PyObject *submodule = PyModule_Create(&M_Geometry_module_def);

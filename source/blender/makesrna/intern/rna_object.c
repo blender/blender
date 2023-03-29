@@ -88,7 +88,6 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Same as above, but with names that distinguish grease pencil. */
 const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
     {OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
     {OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},

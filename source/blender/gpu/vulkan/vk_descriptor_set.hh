@@ -72,7 +72,7 @@ class VKDescriptorSet : NonCopyable {
       return binding;
     }
 
-    friend struct VKDescriptorSetTracker;
+    friend class VKDescriptorSetTracker;
     friend class VKShaderInterface;
   };
 

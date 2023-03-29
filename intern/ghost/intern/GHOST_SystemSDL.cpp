@@ -770,7 +770,7 @@ void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
   SDL_SetClipboardText(buffer);
 }
 
-uint64_t GHOST_SystemSDL::getMilliSeconds()
+uint64_t GHOST_SystemSDL::getMilliSeconds() const
 {
   return uint64_t(SDL_GetTicks()); /* NOTE: 32 -> 64bits. */
 }

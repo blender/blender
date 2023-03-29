@@ -69,9 +69,9 @@ class GHOST_SystemX11 : public GHOST_System {
   /**
    * Destructor.
    */
-  ~GHOST_SystemX11();
+  ~GHOST_SystemX11() override;
 
-  GHOST_TSuccess init();
+  GHOST_TSuccess init() override;
 
   /**
    * \section Interface Inherited from GHOST_ISystem
@@ -82,25 +82,25 @@ class GHOST_SystemX11 : public GHOST_System {
    * Returns the number of milliseconds since the start of the system process.
    * \return The number of milliseconds.
    */
-  uint64_t getMilliSeconds() const;
+  uint64_t getMilliSeconds() const override;
 
   /**
    * Returns the number of displays on this system.
    * \return The number of displays.
    */
-  uint8_t getNumDisplays() const;
+  uint8_t getNumDisplays() const override;
 
   /**
    * Returns the dimensions of the main display on this system.
    * \return The dimension of the main display.
    */
-  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   /**
    * Returns the dimensions of all displays on this system.
    * \return The dimension of the main display.
    */
-  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const;
+  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   /**
    * Create a new window.
@@ -127,48 +127,48 @@ class GHOST_SystemX11 : public GHOST_System {
                               GHOST_GLSettings glSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = 0);
+                              const GHOST_IWindow *parentWindow = nullptr) override;
 
   /**
    * Create a new off-screen context.
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
+  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) override;
 
   /**
    * Dispose of a context.
    * \param context: Pointer to the context to be disposed.
    * \return Indication of success.
    */
-  GHOST_TSuccess disposeContext(GHOST_IContext *context);
+  GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
   /**
    * Retrieves events from the system and stores them in the queue.
    * \param waitForEvent: Flag to wait for an event (or return immediately).
    * \return Indication of the presence of events.
    */
-  bool processEvents(bool waitForEvent);
+  bool processEvents(bool waitForEvent) override;
 
-  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const;
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
-  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y);
+  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
   /**
    * Returns the state of all modifier keys.
    * \param keys: The state of all modifier keys (true == pressed).
    * \return Indication of success.
    */
-  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const;
+  GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const override;
 
   /**
    * Returns the state of the mouse buttons (outside the message queue).
    * \param buttons: The state of the buttons.
    * \return Indication of success.
    */
-  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
+  GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const override;
 
-  GHOST_TCapabilityFlag getCapabilities() const;
+  GHOST_TCapabilityFlag getCapabilities() const override;
 
   /**
    * Flag a window as dirty. This will
@@ -206,14 +206,14 @@ class GHOST_SystemX11 : public GHOST_System {
    * \param selection: Get selection, X11 only feature.
    * \return Returns the Clipboard indicated by Flag.
    */
-  char *getClipboard(bool selection) const;
+  char *getClipboard(bool selection) const override;
 
   /**
    * Puts buffer to system clipboard
    * \param buffer: The buffer to copy to the clipboard.
    * \param selection: Set the selection into the clipboard, X11 only feature.
    */
-  void putClipboard(const char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const override;
 
   /**
    * Show a system message box
@@ -229,7 +229,7 @@ class GHOST_SystemX11 : public GHOST_System {
                                 const char *help_label,
                                 const char *continue_label,
                                 const char *link,
-                                GHOST_DialogOptions dialog_options) const;
+                                GHOST_DialogOptions dialog_options) const override;
 #ifdef WITH_XDND
   /**
    * Creates a drag'n'drop event and pushes it immediately onto the event queue.
@@ -253,7 +253,7 @@ class GHOST_SystemX11 : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
     return 0;
   }

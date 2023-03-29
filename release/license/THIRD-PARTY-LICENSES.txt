@@ -398,7 +398,7 @@ Copyright Contributors to the OpenColorIO Project.
 ** OpenEXR; version 3.1.5 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
-** OpenImageIO; version 2.4.6.0 -- http://www.openimageio.org
+** OpenImageIO; version 2.4.9.0 -- http://www.openimageio.org
 Copyright (c) 2008-present by Contributors to the OpenImageIO project. All
 Rights Reserved.
 ** Pystring; version 1.1.3 -- https://github.com/imageworks/pystring

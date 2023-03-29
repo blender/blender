@@ -1096,6 +1096,7 @@ static struct PyModuleDef M_Noise_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
+
 PyMODINIT_FUNC PyInit_mathutils_noise(void)
 {
   PyObject *submodule = PyModule_Create(&M_Noise_module_def);

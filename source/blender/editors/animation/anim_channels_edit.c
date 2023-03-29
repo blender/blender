@@ -3976,9 +3976,10 @@ void ED_operatortypes_animchannels(void)
   WM_operatortype_append(ANIM_OT_channels_ungroup);
 }
 
-/* TODO: check on a poll callback for this, to get hotkeys into menus */
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
+  /* TODO: check on a poll callback for this, to get hotkeys into menus. */
+
   WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);
 }
 

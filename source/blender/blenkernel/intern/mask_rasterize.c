@@ -149,9 +149,9 @@ static ScanFillVert *scanfill_vert_add_v2_with_depth(ScanFillContext *sf_ctx,
  * each #MaskRasterLayer does its own lookup which contributes to
  * the final pixel with its own blending mode and the final pixel
  * is blended between these.
+ *
+ * \note internal use only.
  */
-
-/* internal use only */
 typedef struct MaskRasterLayer {
   /* geometry */
   uint face_tot;
@@ -993,6 +993,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
        * 'face_index' is kept from loop above */
 
       BLI_assert(face_index == sf_tri_tot);
+      UNUSED_VARS_NDEBUG(face_index);
 
       if (tot_feather_quads) {
         ScanFillEdge *sf_edge;

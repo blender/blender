@@ -600,6 +600,28 @@ TEST(set, RemoveUniquePtrWithRaw)
   EXPECT_TRUE(set.is_empty());
 }
 
+TEST(set, Equality)
+{
+  const Set<int> a = {1, 2, 3, 4, 5};
+  const Set<int> b = {5, 2, 3, 1, 4};
+  const Set<int> c = {1, 2, 3};
+  const Set<int> d = {1, 2, 3, 4, 5, 6};
+  const Set<int> e = {};
+  const Set<int> f = {10, 11, 12, 13, 14};
+
+  EXPECT_EQ(a, a);
+  EXPECT_EQ(a, b);
+  EXPECT_EQ(b, a);
+  EXPECT_NE(a, c);
+  EXPECT_NE(a, d);
+  EXPECT_NE(a, e);
+  EXPECT_NE(a, f);
+  EXPECT_NE(c, a);
+  EXPECT_NE(d, a);
+  EXPECT_NE(e, a);
+  EXPECT_NE(f, a);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

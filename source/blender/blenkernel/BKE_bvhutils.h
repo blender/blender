@@ -4,6 +4,8 @@
 
 /** \file
  * \ingroup bke
+ *
+ * This header encapsulates necessary code to build a BVH.
  */
 
 #include "BLI_kdopbvh.h"
@@ -18,10 +20,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * This header encapsulates necessary code to build a BVH
- */
 
 struct BMEditMesh;
 struct MFace;

@@ -256,7 +256,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_active_color_string(
-    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->active_color_attribute) {
     return;
@@ -264,14 +264,17 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
 
   const char *active_color_src = BKE_id_attributes_active_color_name(&mesh_src->id);
 
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(
-          &mesh_src->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                                               active_color_src,
+                                                               CD_MASK_PROP_COLOR,
+                                                               ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(
-               &mesh_src->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                    active_color_src,
+                                    CD_MASK_PROP_BYTE_COLOR,
+                                    ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
@@ -300,7 +303,7 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_default_color_string(
-    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->default_color_attribute) {
     return;
@@ -308,15 +311,17 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
 
   const char *default_color_src = BKE_id_attributes_default_color_name(&mesh_src->id);
 
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(
-          &mesh_src->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                                               default_color_src,
+                                                               CD_MASK_PROP_COLOR,
+                                                               ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) && !BKE_id_attribute_search(&mesh_src->id,
-                                                                         default_color_src,
-                                                                         CD_MASK_PROP_BYTE_COLOR,
-                                                                         ATTR_DOMAIN_MASK_COLOR)) {
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                    default_color_src,
+                                    CD_MASK_PROP_BYTE_COLOR,
+                                    ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
@@ -344,7 +349,7 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
 
 /* Generic pre/post processing, only used by custom loop normals currently. */
 
-static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
+static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
                                                  Mesh *me_dst,
                                                  const int dtdata_type,
                                                  const bool dirty_nors_dst)
@@ -396,10 +401,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
   }
 }
 
-static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
-                                                  Object * /*ob_dst*/,
-                                                  Mesh * /*me_src*/,
-                                                  Mesh *me_dst,
+static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                   const int dtdata_type,
                                                   const bool changed)
 {
@@ -895,7 +897,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
 static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  Object *ob_src,
                                                  Object *ob_dst,
-                                                 Mesh *me_src,
+                                                 const Mesh *me_src,
                                                  Mesh *me_dst,
                                                  const int elem_type,
                                                  int cddata_type,
@@ -909,7 +911,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  const int tolayers,
                                                  SpaceTransform *space_transform)
 {
-  CustomData *cd_src, *cd_dst;
+  const CustomData *cd_src;
+  CustomData *cd_dst;
 
   cd_datatransfer_interp interp = nullptr;
   void *interp_data = nullptr;
@@ -1299,7 +1302,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
   SpaceTransform auto_space_transform;
 
-  Mesh *me_src;
+  const Mesh *me_src;
   /* Assumed always true if not using an evaluated mesh as destination. */
   bool dirty_nors_dst = true;
 
@@ -1356,7 +1359,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   if (!me_src) {
     return changed;
   }
-  BKE_mesh_wrapper_ensure_mdata(me_src);
+  BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(me_src));
 
   if (auto_transform) {
     if (space_transform == nullptr) {
@@ -1751,7 +1754,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
 
-    data_transfer_dtdata_type_postprocess(ob_src, ob_dst, me_src, me_dst, dtdata_type, changed);
+    data_transfer_dtdata_type_postprocess(me_dst, dtdata_type, changed);
   }
 
   for (int i = 0; i < DATAMAX; i++) {

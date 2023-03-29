@@ -1331,9 +1331,6 @@ bool UVPrimitive::has_shared_edge(const MeshData &mesh_data, const int primitive
   return false;
 }
 
-/**
- * Get the UVVertex in the order that the verts are ordered in the MeshPrimitive.
- */
 const UVVertex *UVPrimitive::get_uv_vertex(const MeshData &mesh_data,
                                            const uint8_t mesh_vert_index) const
 {
@@ -1350,10 +1347,6 @@ const UVVertex *UVPrimitive::get_uv_vertex(const MeshData &mesh_data,
   return nullptr;
 }
 
-/**
- * Get the UVEdge that share the given uv coordinates.
- * Will assert when no UVEdge found.
- */
 UVEdge *UVPrimitive::get_uv_edge(const float2 uv1, const float2 uv2) const
 {
   for (UVEdge *uv_edge : edges) {

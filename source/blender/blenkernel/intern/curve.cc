@@ -5531,6 +5531,7 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
 }
 
 /* Draw Engine */
+
 void (*BKE_curve_batch_cache_dirty_tag_cb)(Curve *cu, int mode) = nullptr;
 void (*BKE_curve_batch_cache_free_cb)(Curve *cu) = nullptr;
 

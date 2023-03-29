@@ -140,7 +140,7 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_fmodifier_paste);
 }
 
-void ED_operatormacros_nla()
+void ED_operatormacros_nla(void)
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

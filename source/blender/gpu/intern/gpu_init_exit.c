@@ -18,7 +18,6 @@
  * although the order of initialization and shutdown should not matter
  * (except for the extensions), I chose alphabetical and reverse alphabetical order
  */
-
 static bool initialized = false;
 
 void GPU_init(void)
