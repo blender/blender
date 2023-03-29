@@ -821,7 +821,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                          &max_v);
       break;
     default:
-      BLI_box_pack_2d(box_array, int(max_box_pack), &max_u, &max_v);
+      BLI_box_pack_2d(box_array, int(max_box_pack), false, &max_u, &max_v);
       break;
   }
 
