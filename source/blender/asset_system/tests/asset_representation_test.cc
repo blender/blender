@@ -115,9 +115,6 @@ TEST_F(AssetRepresentationTest,
                               "to\\an\\asset";
   std::string resolved_path = service->resolve_asset_weak_reference_to_full_path(*weak_ref);
 
-  std::cout << expected_path << "\n";
-  std::cout << resolved_path << "\n";
-
   EXPECT_EQ(BLI_path_cmp(resolved_path.c_str(), expected_path.c_str()), 0);
 }
 

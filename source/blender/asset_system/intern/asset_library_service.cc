@@ -310,8 +310,6 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
   StringRefNull relative_asset_identifier = asset_reference.relative_asset_identifier;
   size_t offset = rfind_blendfile_extension(asset_reference.relative_asset_identifier);
 
-  std::cout << offset << "\n";
-
   uint64_t alt_group_len;
   int64_t group_len;
   if (offset != std::string::npos) {
@@ -327,18 +325,9 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
     offset = 0;
   }
 
-  std::cout << offset << "\n";
-
   alt_group_len = uint64_t(relative_asset_identifier.find(ALTSEP, int64_t(offset)));
   group_len = int64_t(
       std::min(uint64_t(relative_asset_identifier.find(SEP, int64_t(offset))), alt_group_len));
-
-  std::cout << offset << " " << group_len << "\n";
-
-  std::cout << relative_asset_identifier.find(SEP) << " " << alt_group_len << " ==> " << group_len
-            << "\n";
-  std::cout << relative_asset_identifier << "\n";
-  std::cout << utils::normalize_path(relative_asset_identifier, size_t(group_len) + 1) << "\n";
 
   return utils::normalize_path(relative_asset_identifier, size_t(group_len) + 1);
 }
@@ -362,10 +351,6 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
   std::string normalized_full_path = utils::normalize_path(library_path + SEP_STR) +
                                      normalize_asset_weak_reference_relative_asset_identifier(
                                          asset_reference);
-
-  std::cout << library_path << "\n";
-  std::cout << normalize_asset_weak_reference_relative_asset_identifier(asset_reference) << "\n";
-  std::cout << normalized_full_path << "\n";
 
   return normalized_full_path;
 }

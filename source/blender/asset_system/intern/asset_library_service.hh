@@ -80,8 +80,8 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library_all(const Main *bmain);
 
   /**
-   * Return the position of the last blendfile extension in given path, or std::string::npos if
-   * not found. Works with both kind of path separators. */
+   * Return the start position of the last blendfile extension in given path, or std::string::npos
+   * if not found. Works with both kind of path separators. */
   size_t rfind_blendfile_extension(StringRef path);
   /**
    * Return a normalized version of #AssetWeakReference.relative_asset_identifier.
