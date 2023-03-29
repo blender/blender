@@ -113,9 +113,7 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   }
 }
 #else
-static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/)
-{
-}
+static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/) {}
 #endif
 
 static void update(bNodeTree *ntree)

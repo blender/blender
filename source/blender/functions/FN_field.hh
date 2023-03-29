@@ -552,13 +552,9 @@ template<typename T> struct ValueOrField {
 
   ValueOrField() = default;
 
-  ValueOrField(T value) : value(std::move(value))
-  {
-  }
+  ValueOrField(T value) : value(std::move(value)) {}
 
-  ValueOrField(Field<T> field) : field(std::move(field))
-  {
-  }
+  ValueOrField(Field<T> field) : field(std::move(field)) {}
 
   bool is_field() const
   {
@@ -600,9 +596,7 @@ template<typename T> struct ValueOrField {
 /** \name #FieldNode Inline Methods
  * \{ */
 
-inline FieldNode::FieldNode(const FieldNodeType node_type) : node_type_(node_type)
-{
-}
+inline FieldNode::FieldNode(const FieldNodeType node_type) : node_type_(node_type) {}
 
 inline FieldNodeType FieldNode::node_type() const
 {

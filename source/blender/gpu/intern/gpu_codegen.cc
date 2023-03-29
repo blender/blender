@@ -959,9 +959,7 @@ void GPU_pass_cache_free(void)
 /** \name Module
  * \{ */
 
-void gpu_codegen_init(void)
-{
-}
+void gpu_codegen_init(void) {}
 
 void gpu_codegen_exit(void)
 {

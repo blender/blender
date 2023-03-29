@@ -19,9 +19,7 @@
 
 namespace blender::deg {
 
-VolumeBackup::VolumeBackup(const Depsgraph * /*depsgraph*/) : grids(nullptr)
-{
-}
+VolumeBackup::VolumeBackup(const Depsgraph * /*depsgraph*/) : grids(nullptr) {}
 
 void VolumeBackup::init_from_volume(Volume *volume)
 {

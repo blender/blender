@@ -30,9 +30,7 @@ HdCyclesVolume::HdCyclesVolume(const SdfPath &rprimId
 {
 }
 
-HdCyclesVolume::~HdCyclesVolume()
-{
-}
+HdCyclesVolume::~HdCyclesVolume() {}
 
 HdDirtyBits HdCyclesVolume::GetInitialDirtyBitsMask() const
 {

@@ -9,13 +9,9 @@
 
 namespace blender::gpu {
 
-void VKBatch::draw(int /*v_first*/, int /*v_count*/, int /*i_first*/, int /*i_count*/)
-{
-}
+void VKBatch::draw(int /*v_first*/, int /*v_count*/, int /*i_first*/, int /*i_count*/) {}
 
-void VKBatch::draw_indirect(GPUStorageBuf * /*indirect_buf*/, intptr_t /*offset*/)
-{
-}
+void VKBatch::draw_indirect(GPUStorageBuf * /*indirect_buf*/, intptr_t /*offset*/) {}
 
 void VKBatch::multi_draw_indirect(GPUStorageBuf * /*indirect_buf*/,
                                   int /*count*/,

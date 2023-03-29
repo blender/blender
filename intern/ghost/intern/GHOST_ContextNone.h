@@ -13,9 +13,7 @@
 
 class GHOST_ContextNone : public GHOST_Context {
  public:
-  GHOST_ContextNone(bool stereoVisual) : GHOST_Context(stereoVisual), m_swapInterval(1)
-  {
-  }
+  GHOST_ContextNone(bool stereoVisual) : GHOST_Context(stereoVisual), m_swapInterval(1) {}
 
   /**
    * Dummy function

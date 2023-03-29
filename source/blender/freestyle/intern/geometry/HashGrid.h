@@ -42,9 +42,7 @@ class HashGrid : public Grid {
  public:
   typedef map<Vec3u, Cell *> GridHashTable;
 
-  HashGrid() : Grid()
-  {
-  }
+  HashGrid() : Grid() {}
 
   virtual ~HashGrid()
   {

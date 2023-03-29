@@ -652,17 +652,11 @@ static void build_gammatabs(void)
   }
 }
 
-static void init_gammacross(Sequence *UNUSED(seq))
-{
-}
+static void init_gammacross(Sequence *UNUSED(seq)) {}
 
-static void load_gammacross(Sequence *UNUSED(seq))
-{
-}
+static void load_gammacross(Sequence *UNUSED(seq)) {}
 
-static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
-{
-}
+static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user)) {}
 
 static void do_gammacross_effect_byte(
     float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
@@ -3420,17 +3414,11 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
 /** \name Sequence Effect Factory
  * \{ */
 
-static void init_noop(Sequence *UNUSED(seq))
-{
-}
+static void init_noop(Sequence *UNUSED(seq)) {}
 
-static void load_noop(Sequence *UNUSED(seq))
-{
-}
+static void load_noop(Sequence *UNUSED(seq)) {}
 
-static void free_noop(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
-{
-}
+static void free_noop(Sequence *UNUSED(seq), const bool UNUSED(do_id_user)) {}
 
 static int num_inputs_default(void)
 {

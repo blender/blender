@@ -8,9 +8,7 @@
 
 class IOCIOImpl {
  public:
-  virtual ~IOCIOImpl()
-  {
-  }
+  virtual ~IOCIOImpl() {}
 
   virtual OCIO_ConstConfigRcPtr *getCurrentConfig(void) = 0;
   virtual void setCurrentConfig(const OCIO_ConstConfigRcPtr *config) = 0;
@@ -118,12 +116,8 @@ class IOCIOImpl {
   {
     return false;
   }
-  virtual void gpuDisplayShaderUnbind(void)
-  {
-  }
-  virtual void gpuCacheFree(void)
-  {
-  }
+  virtual void gpuDisplayShaderUnbind(void) {}
+  virtual void gpuCacheFree(void) {}
 
   virtual const char *getVersionString(void) = 0;
   virtual int getVersionHex(void) = 0;
@@ -131,9 +125,7 @@ class IOCIOImpl {
 
 class FallbackImpl : public IOCIOImpl {
  public:
-  FallbackImpl()
-  {
-  }
+  FallbackImpl() {}
 
   OCIO_ConstConfigRcPtr *getCurrentConfig(void);
   void setCurrentConfig(const OCIO_ConstConfigRcPtr *config);

@@ -41,9 +41,7 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
   return "UNKNOWN";
 }
 
-IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name)
-{
-}
+IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name) {}
 
 bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
 {

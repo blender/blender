@@ -18,9 +18,7 @@
 
 namespace blender::deg {
 
-SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
-{
-}
+SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
 static bool seq_init_cb(Sequence *seq, void *user_data)
 {

@@ -35,18 +35,10 @@
 #include "meshlaplacian.h"
 
 /* ************* XXX *************** */
-static void waitcursor(int /*val*/)
-{
-}
-static void progress_bar(int /*dummy_val*/, const char * /*dummy*/)
-{
-}
-static void start_progress_bar(void)
-{
-}
-static void end_progress_bar(void)
-{
-}
+static void waitcursor(int /*val*/) {}
+static void progress_bar(int /*dummy_val*/, const char * /*dummy*/) {}
+static void start_progress_bar(void) {}
+static void end_progress_bar(void) {}
 static void error(const char *str)
 {
   printf("error: %s\n", str);

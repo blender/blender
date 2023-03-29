@@ -38,9 +38,7 @@ constexpr int tot_variable_value_types = 6;
 struct VariableValue {
   ValueType type;
 
-  VariableValue(ValueType type) : type(type)
-  {
-  }
+  VariableValue(ValueType type) : type(type) {}
 };
 
 /* This variable is the unmodified virtual array from the caller. */
@@ -94,9 +92,7 @@ struct VariableValue_OneSingle : public VariableValue {
   void *data;
   bool is_initialized = false;
 
-  VariableValue_OneSingle(void *data) : VariableValue(static_type), data(data)
-  {
-  }
+  VariableValue_OneSingle(void *data) : VariableValue(static_type), data(data) {}
 };
 
 /* This variable has the same vector for every index. */
@@ -104,9 +100,7 @@ struct VariableValue_OneVector : public VariableValue {
   static inline constexpr ValueType static_type = ValueType::OneVector;
   GVectorArray &data;
 
-  VariableValue_OneVector(GVectorArray &data) : VariableValue(static_type), data(data)
-  {
-  }
+  VariableValue_OneVector(GVectorArray &data) : VariableValue(static_type), data(data) {}
 };
 
 static_assert(std::is_trivially_destructible_v<VariableValue_GVArray>);
@@ -153,9 +147,7 @@ class ValueAllocator : NonCopyable, NonMovable {
   Map<const CPPType *, Stack<void *>> single_value_free_lists_;
 
  public:
-  ValueAllocator(LinearAllocator<> &linear_allocator) : linear_allocator_(linear_allocator)
-  {
-  }
+  ValueAllocator(LinearAllocator<> &linear_allocator) : linear_allocator_(linear_allocator) {}
 
   VariableValue_GVArray *obtain_GVArray(const GVArray &varray)
   {

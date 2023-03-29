@@ -319,9 +319,7 @@ TileManager::TileManager()
                            to_string(tile_manager_id);
 }
 
-TileManager::~TileManager()
-{
-}
+TileManager::~TileManager() {}
 
 int TileManager::compute_render_tile_size(const int suggested_tile_size) const
 {

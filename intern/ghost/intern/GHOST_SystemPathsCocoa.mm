@@ -8,13 +8,9 @@
 
 #pragma mark initialization/finalization
 
-GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa() {}
 
-GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa() {}
 
 #pragma mark Base directories retrieval
 

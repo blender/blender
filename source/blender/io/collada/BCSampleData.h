@@ -29,9 +29,7 @@ class BCSample {
   BCBoneMatrixMap bonemats; /* For Armature animation */
 
  public:
-  BCSample(Object *ob) : obmat(ob)
-  {
-  }
+  BCSample(Object *ob) : obmat(ob) {}
 
   ~BCSample();
 

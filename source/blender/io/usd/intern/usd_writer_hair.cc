@@ -12,9 +12,7 @@
 
 namespace blender::io::usd {
 
-USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDHairWriter::do_write(HierarchyContext &context)
 {

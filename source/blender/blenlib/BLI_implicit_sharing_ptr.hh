@@ -22,9 +22,7 @@ template<typename T> class ImplicitSharingPtr {
  public:
   ImplicitSharingPtr() = default;
 
-  ImplicitSharingPtr(T *data) : data_(data)
-  {
-  }
+  ImplicitSharingPtr(T *data) : data_(data) {}
 
   ImplicitSharingPtr(const ImplicitSharingPtr &other) : data_(other.data_)
   {

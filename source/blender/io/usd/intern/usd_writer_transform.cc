@@ -14,9 +14,7 @@
 
 namespace blender::io::usd {
 
-USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDTransformWriter::do_write(HierarchyContext &context)
 {

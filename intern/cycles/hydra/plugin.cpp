@@ -35,9 +35,7 @@ HdCyclesPlugin::HdCyclesPlugin()
 #endif
 }
 
-HdCyclesPlugin::~HdCyclesPlugin()
-{
-}
+HdCyclesPlugin::~HdCyclesPlugin() {}
 
 bool HdCyclesPlugin::IsSupported() const
 {

@@ -17,9 +17,7 @@ namespace Freestyle {
 
 class PseudoNoise {
  public:
-  virtual ~PseudoNoise()
-  {
-  }
+  virtual ~PseudoNoise() {}
 
   real smoothNoise(real x);
   real linearNoise(real x);

@@ -14,13 +14,9 @@
 #include "utfconv.h"
 #include <shlobj.h>
 
-GHOST_SystemPathsWin32::GHOST_SystemPathsWin32()
-{
-}
+GHOST_SystemPathsWin32::GHOST_SystemPathsWin32() {}
 
-GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32()
-{
-}
+GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32() {}
 
 const char *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) const
 {

@@ -758,9 +758,7 @@ bool BKE_lattice_is_any_selected(const Lattice *lt)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph), Lattice *UNUSED(latt))
-{
-}
+void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph), Lattice *UNUSED(latt)) {}
 
 /* Draw Engine */
 

@@ -80,9 +80,7 @@ class directory_iterator {
     const WIN32_FIND_DATAW &find_data_;
   };
 
-  directory_iterator() : path_info_("", find_data_), h_find_(INVALID_HANDLE_VALUE)
-  {
-  }
+  directory_iterator() : path_info_("", find_data_), h_find_(INVALID_HANDLE_VALUE) {}
 
   explicit directory_iterator(const string &path) : path_(path), path_info_(path, find_data_)
   {
@@ -163,9 +161,7 @@ class directory_iterator {
  public:
   class path_info {
    public:
-    explicit path_info(const string &path) : path_(path), entry_(NULL)
-    {
-    }
+    explicit path_info(const string &path) : path_(path), entry_(NULL) {}
 
     string path()
     {
@@ -182,9 +178,7 @@ class directory_iterator {
     const struct dirent *entry_;
   };
 
-  directory_iterator() : path_info_(""), name_list_(NULL), num_entries_(-1), cur_entry_(-1)
-  {
-  }
+  directory_iterator() : path_info_(""), name_list_(NULL), num_entries_(-1), cur_entry_(-1) {}
 
   explicit directory_iterator(const string &path) : path_(path), path_info_(path_), cur_entry_(0)
   {

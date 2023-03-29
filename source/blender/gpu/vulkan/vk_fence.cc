@@ -9,12 +9,8 @@
 
 namespace blender::gpu {
 
-void VKFence::signal()
-{
-}
+void VKFence::signal() {}
 
-void VKFence::wait()
-{
-}
+void VKFence::wait() {}
 
 }  // namespace blender::gpu

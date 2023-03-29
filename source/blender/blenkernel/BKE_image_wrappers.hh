@@ -21,9 +21,7 @@ using TileNumber = int32_t;
 
 struct ImageTileWrapper {
   ImageTile *image_tile;
-  ImageTileWrapper(ImageTile *image_tile) : image_tile(image_tile)
-  {
-  }
+  ImageTileWrapper(ImageTile *image_tile) : image_tile(image_tile) {}
 
   TileNumber get_tile_number() const
   {
@@ -53,9 +51,7 @@ template<typename T, int Channels = 4> struct ImageBufferAccessor {
 
   ImBuf &image_buffer;
 
-  ImageBufferAccessor(ImBuf &image_buffer) : image_buffer(image_buffer)
-  {
-  }
+  ImageBufferAccessor(ImBuf &image_buffer) : image_buffer(image_buffer) {}
 
   float4 read_pixel(const int2 coordinate)
   {

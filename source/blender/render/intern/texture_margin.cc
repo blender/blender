@@ -144,9 +144,7 @@ class TextureMarginMap {
   {
     class DijkstraActivePixel {
      public:
-      DijkstraActivePixel(int dist, int _x, int _y) : distance(dist), x(_x), y(_y)
-      {
-      }
+      DijkstraActivePixel(int dist, int _x, int _y) : distance(dist), x(_x), y(_y) {}
       int distance;
       int x, y;
     };

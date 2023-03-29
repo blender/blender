@@ -15,13 +15,9 @@
 
 namespace blender::deg {
 
-GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
-{
-}
+GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
-void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/)
-{
-}
+void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/) {}
 
 void GPencilBackup::restore_to_gpencil(bGPdata *gpd)
 {

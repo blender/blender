@@ -501,9 +501,7 @@ StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name)
   return render_pass_name.substr(0, last_token);
 }
 
-CryptomatteHash::CryptomatteHash(uint32_t hash) : hash(hash)
-{
-}
+CryptomatteHash::CryptomatteHash(uint32_t hash) : hash(hash) {}
 
 CryptomatteHash CryptomatteHash::from_hex_encoded(blender::StringRef hex_encoded)
 {

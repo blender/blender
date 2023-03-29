@@ -12,9 +12,7 @@ namespace blender::deg {
 /* Utility class which takes care of calculating average of time series, such as FPS counters. */
 template<int MaxSamples> class AveragedTimeSampler {
  public:
-  AveragedTimeSampler() : num_samples_(0), next_sample_index_(0)
-  {
-  }
+  AveragedTimeSampler() : num_samples_(0), next_sample_index_(0) {}
 
   void add_sample(double value)
   {

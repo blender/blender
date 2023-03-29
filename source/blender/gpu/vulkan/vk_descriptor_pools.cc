@@ -9,9 +9,7 @@
 #include "vk_memory.hh"
 
 namespace blender::gpu {
-VKDescriptorPools::VKDescriptorPools()
-{
-}
+VKDescriptorPools::VKDescriptorPools() {}
 
 VKDescriptorPools::~VKDescriptorPools()
 {

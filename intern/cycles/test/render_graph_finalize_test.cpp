@@ -160,9 +160,7 @@ class RenderGraph : public testing::Test {
   ShaderGraph graph;
   ShaderGraphBuilder builder;
 
-  RenderGraph() : testing::Test(), builder(&graph)
-  {
-  }
+  RenderGraph() : testing::Test(), builder(&graph) {}
 
   virtual void SetUp()
   {

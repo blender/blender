@@ -70,9 +70,7 @@ AnimationBackup::AnimationBackup(const Depsgraph *depsgraph)
   reset();
 }
 
-void AnimationBackup::reset()
-{
-}
+void AnimationBackup::reset() {}
 
 void AnimationBackup::init_from_id(ID *id)
 {

@@ -200,9 +200,7 @@ const char *operationCodeAsString(OperationCode opcode)
   return "UNKNOWN";
 }
 
-OperationNode::OperationNode() : name_tag(-1), flag(0)
-{
-}
+OperationNode::OperationNode() : name_tag(-1), flag(0) {}
 
 string OperationNode::identifier() const
 {

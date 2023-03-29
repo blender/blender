@@ -244,9 +244,7 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
   }
 }
 #else
-static void undosys_stack_validate(UndoStack * /*ustack*/, bool /*expect_non_empty*/)
-{
-}
+static void undosys_stack_validate(UndoStack * /*ustack*/, bool /*expect_non_empty*/) {}
 #endif
 
 UndoStack *BKE_undosys_stack_create(void)

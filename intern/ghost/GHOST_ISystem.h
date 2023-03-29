@@ -154,17 +154,13 @@ class GHOST_ISystem {
    * Constructor.
    * Protected default constructor to force use of static createSystem member.
    */
-  GHOST_ISystem()
-  {
-  }
+  GHOST_ISystem() {}
 
   /**
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_ISystem()
-  {
-  }
+  virtual ~GHOST_ISystem() {}
 
  public:
   /***************************************************************************************

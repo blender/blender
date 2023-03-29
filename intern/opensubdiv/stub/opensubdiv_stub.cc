@@ -20,13 +20,9 @@
 
 #include <cstddef>
 
-void openSubdiv_init()
-{
-}
+void openSubdiv_init() {}
 
-void openSubdiv_cleanup()
-{
-}
+void openSubdiv_cleanup() {}
 
 int openSubdiv_getVersionHex()
 {

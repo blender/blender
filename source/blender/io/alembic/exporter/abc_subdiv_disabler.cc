@@ -19,9 +19,7 @@
 
 namespace blender::io::alembic {
 
-SubdivModifierDisabler::SubdivModifierDisabler(Depsgraph *depsgraph) : depsgraph_(depsgraph)
-{
-}
+SubdivModifierDisabler::SubdivModifierDisabler(Depsgraph *depsgraph) : depsgraph_(depsgraph) {}
 
 SubdivModifierDisabler::~SubdivModifierDisabler()
 {

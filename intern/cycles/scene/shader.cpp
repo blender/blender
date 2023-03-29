@@ -397,9 +397,7 @@ ShaderManager::ShaderManager()
   init_xyz_transforms();
 }
 
-ShaderManager::~ShaderManager()
-{
-}
+ShaderManager::~ShaderManager() {}
 
 ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
 {

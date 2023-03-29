@@ -56,9 +56,7 @@ class GVArrayImpl {
 /* A generic version of #VMutableArrayImpl. */
 class GVMutableArrayImpl : public GVArrayImpl {
  public:
-  GVMutableArrayImpl(const CPPType &type, int64_t size) : GVArrayImpl(type, size)
-  {
-  }
+  GVMutableArrayImpl(const CPPType &type, int64_t size) : GVArrayImpl(type, size) {}
 
   virtual void set_by_copy(int64_t index, const void *value);
   virtual void set_by_relocate(int64_t index, void *value);

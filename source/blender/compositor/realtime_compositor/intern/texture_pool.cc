@@ -17,9 +17,7 @@ namespace blender::realtime_compositor {
 /** \name Texture Pool Key
  * \{ */
 
-TexturePoolKey::TexturePoolKey(int2 size, eGPUTextureFormat format) : size(size), format(format)
-{
-}
+TexturePoolKey::TexturePoolKey(int2 size, eGPUTextureFormat format) : size(size), format(format) {}
 
 TexturePoolKey::TexturePoolKey(const GPUTexture *texture)
 {

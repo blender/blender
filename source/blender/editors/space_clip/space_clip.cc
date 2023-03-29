@@ -1056,9 +1056,7 @@ static void clip_preview_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void clip_preview_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void clip_preview_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 /****************** channels region ******************/
 
@@ -1097,9 +1095,7 @@ static void clip_channels_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 }
 
-static void clip_channels_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void clip_channels_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 /****************** header region ******************/
 

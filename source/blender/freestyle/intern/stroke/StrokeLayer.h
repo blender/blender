@@ -25,9 +25,7 @@ class StrokeLayer {
   stroke_container _strokes;
 
  public:
-  StrokeLayer()
-  {
-  }
+  StrokeLayer() {}
 
   StrokeLayer(const stroke_container &iStrokes)
   {

@@ -661,9 +661,7 @@ TEST(string, StringNLen)
 
 struct WordInfo {
   WordInfo() = default;
-  WordInfo(int start, int end) : start(start), end(end)
-  {
-  }
+  WordInfo(int start, int end) : start(start), end(end) {}
   bool operator==(const WordInfo &other) const
   {
     return start == other.start && end == other.end;

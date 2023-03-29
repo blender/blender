@@ -35,9 +35,7 @@ class GHOST_IWindow {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IWindow()
-  {
-  }
+  virtual ~GHOST_IWindow() {}
 
   /**
    * Returns indication as to whether the window is valid.

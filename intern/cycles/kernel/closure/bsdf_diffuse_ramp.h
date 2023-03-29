@@ -43,9 +43,7 @@ ccl_device int bsdf_diffuse_ramp_setup(DiffuseRampBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, float roughness)
-{
-}
+ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, float roughness) {}
 
 ccl_device Spectrum bsdf_diffuse_ramp_eval(ccl_private const ShaderClosure *sc,
                                            const float3 wi,

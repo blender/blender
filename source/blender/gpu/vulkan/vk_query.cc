@@ -9,20 +9,12 @@
 
 namespace blender::gpu {
 
-void VKQueryPool::init(GPUQueryType /*type*/)
-{
-}
+void VKQueryPool::init(GPUQueryType /*type*/) {}
 
-void VKQueryPool::begin_query()
-{
-}
+void VKQueryPool::begin_query() {}
 
-void VKQueryPool::end_query()
-{
-}
+void VKQueryPool::end_query() {}
 
-void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> /*r_values*/)
-{
-}
+void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> /*r_values*/) {}
 
 }  // namespace blender::gpu

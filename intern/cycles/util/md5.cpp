@@ -249,9 +249,7 @@ MD5Hash::MD5Hash()
   abcd[3] = 0x10325476;
 }
 
-MD5Hash::~MD5Hash()
-{
-}
+MD5Hash::~MD5Hash() {}
 
 void MD5Hash::append(const uint8_t *data, int nbytes)
 {

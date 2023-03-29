@@ -67,9 +67,7 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
   max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
 }
 
-BlenderSync::~BlenderSync()
-{
-}
+BlenderSync::~BlenderSync() {}
 
 void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
 {

@@ -226,9 +226,7 @@ static void external_cache_populate(void *vedata, Object *ob)
   }
 }
 
-static void external_cache_finish(void *UNUSED(vedata))
-{
-}
+static void external_cache_finish(void *UNUSED(vedata)) {}
 
 static void external_draw_scene_do_v3d(void *vedata)
 {

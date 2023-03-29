@@ -91,9 +91,7 @@ class BitVector {
     uninitialized_fill_n(data_, IntsInInlineBuffer, BitInt(0));
   }
 
-  BitVector(NoExceptConstructor, Allocator allocator = {}) noexcept : BitVector(allocator)
-  {
-  }
+  BitVector(NoExceptConstructor, Allocator allocator = {}) noexcept : BitVector(allocator) {}
 
   BitVector(const BitVector &other) : BitVector(NoExceptConstructor(), other.allocator_)
   {

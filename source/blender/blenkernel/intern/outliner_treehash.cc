@@ -64,9 +64,7 @@ TreeStoreElemKey::TreeStoreElemKey(const TreeStoreElem &elem)
 {
 }
 
-TreeStoreElemKey::TreeStoreElemKey(ID *id, short type, short nr) : id(id), type(type), nr(nr)
-{
-}
+TreeStoreElemKey::TreeStoreElemKey(ID *id, short type, short nr) : id(id), type(type), nr(nr) {}
 
 uint64_t TreeStoreElemKey::hash() const
 {

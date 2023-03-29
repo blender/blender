@@ -72,9 +72,7 @@ struct SelectionPaintOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  SelectionPaintOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  SelectionPaintOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(SelectionPaintOperation &self,
                const bContext &C,

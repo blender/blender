@@ -35,9 +35,7 @@ class NodeOperationBuilder {
     NodeOperationInput *to_;
 
    public:
-    Link(NodeOperationOutput *from, NodeOperationInput *to) : from_(from), to_(to)
-    {
-    }
+    Link(NodeOperationOutput *from, NodeOperationInput *to) : from_(from), to_(to) {}
 
     NodeOperationOutput *from() const
     {

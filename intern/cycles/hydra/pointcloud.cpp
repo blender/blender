@@ -25,9 +25,7 @@ HdCyclesPoints::HdCyclesPoints(const SdfPath &rprimId
 {
 }
 
-HdCyclesPoints::~HdCyclesPoints()
-{
-}
+HdCyclesPoints::~HdCyclesPoints() {}
 
 HdDirtyBits HdCyclesPoints::GetInitialDirtyBitsMask() const
 {

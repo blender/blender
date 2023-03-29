@@ -332,13 +332,9 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
   return NULL;
 }
 
-void MEM_lockfree_printmemlist_pydict(void)
-{
-}
+void MEM_lockfree_printmemlist_pydict(void) {}
 
-void MEM_lockfree_printmemlist(void)
-{
-}
+void MEM_lockfree_printmemlist(void) {}
 
 /* unused */
 void MEM_lockfree_callbackmemlist(void (*func)(void *))
@@ -406,7 +402,5 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
   return "MEM_lockfree_name_ptr(NULL)";
 }
 
-void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str))
-{
-}
+void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str)) {}
 #endif /* NDEBUG */

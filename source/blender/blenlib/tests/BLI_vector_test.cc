@@ -502,17 +502,11 @@ class TypeConstructMock {
   bool copy_assigned = false;
   bool move_assigned = false;
 
-  TypeConstructMock() : default_constructed(true)
-  {
-  }
+  TypeConstructMock() : default_constructed(true) {}
 
-  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true)
-  {
-  }
+  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true) {}
 
-  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true)
-  {
-  }
+  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true) {}
 
   TypeConstructMock &operator=(const TypeConstructMock &other)
   {

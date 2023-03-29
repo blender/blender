@@ -3008,9 +3008,7 @@ static PointerRNA rna_FileBrowser_FSMenu_get(CollectionPropertyIterator *iter)
   return r_ptr;
 }
 
-static void rna_FileBrowser_FSMenu_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_FileBrowser_FSMenu_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static void rna_FileBrowser_FSMenuSystem_data_begin(CollectionPropertyIterator *iter,
                                                     PointerRNA *UNUSED(ptr))

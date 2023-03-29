@@ -29,9 +29,7 @@ HdCyclesLight::HdCyclesLight(const SdfPath &sprimId, const TfToken &lightType)
 {
 }
 
-HdCyclesLight::~HdCyclesLight()
-{
-}
+HdCyclesLight::~HdCyclesLight() {}
 
 HdDirtyBits HdCyclesLight::GetInitialDirtyBitsMask() const
 {

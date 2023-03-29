@@ -41,9 +41,7 @@ class TimeStamp {
     _time_stamp = 1;
   }
 
-  TimeStamp(const TimeStamp &)
-  {
-  }
+  TimeStamp(const TimeStamp &) {}
 
  private:
   static TimeStamp _instance;

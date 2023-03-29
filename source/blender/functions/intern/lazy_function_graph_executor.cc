@@ -198,9 +198,7 @@ struct LockedNode {
   Vector<const OutputSocket *> delayed_required_outputs;
   Vector<const OutputSocket *> delayed_unused_outputs;
 
-  LockedNode(const Node &node, NodeState &node_state) : node(node), node_state(node_state)
-  {
-  }
+  LockedNode(const Node &node, NodeState &node_state) : node(node), node_state(node_state) {}
 };
 
 class Executor;

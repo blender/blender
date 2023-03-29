@@ -216,9 +216,7 @@ class ConstrainedConjugateGradient
 
  public:
   /** Default constructor. */
-  ConstrainedConjugateGradient() : Base()
-  {
-  }
+  ConstrainedConjugateGradient() : Base() {}
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
    *
@@ -230,13 +228,9 @@ class ConstrainedConjugateGradient
    * this class becomes invalid. Call compute() to update it with the new
    * matrix A, or modify a copy of A.
    */
-  ConstrainedConjugateGradient(const MatrixType &A) : Base(A)
-  {
-  }
+  ConstrainedConjugateGradient(const MatrixType &A) : Base(A) {}
 
-  ~ConstrainedConjugateGradient()
-  {
-  }
+  ~ConstrainedConjugateGradient() {}
 
   FilterMatrixType &filter()
   {

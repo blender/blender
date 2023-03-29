@@ -88,9 +88,7 @@ struct AttributeInit {
     MoveArray,
   };
   Type type;
-  AttributeInit(const Type type) : type(type)
-  {
-  }
+  AttributeInit(const Type type) : type(type) {}
 };
 
 /**
@@ -98,18 +96,14 @@ struct AttributeInit {
  * if all attribute element values will be set by the caller after creating the attribute.
  */
 struct AttributeInitConstruct : public AttributeInit {
-  AttributeInitConstruct() : AttributeInit(Type::Construct)
-  {
-  }
+  AttributeInitConstruct() : AttributeInit(Type::Construct) {}
 };
 
 /**
  * Create an attribute using the default value for the data type (almost always "zero").
  */
 struct AttributeInitDefaultValue : public AttributeInit {
-  AttributeInitDefaultValue() : AttributeInit(Type::DefaultValue)
-  {
-  }
+  AttributeInitDefaultValue() : AttributeInit(Type::DefaultValue) {}
 };
 
 /**
@@ -119,9 +113,7 @@ struct AttributeInitDefaultValue : public AttributeInit {
 struct AttributeInitVArray : public AttributeInit {
   GVArray varray;
 
-  AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray))
-  {
-  }
+  AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray)) {}
 };
 
 /**
@@ -138,9 +130,7 @@ struct AttributeInitVArray : public AttributeInit {
 struct AttributeInitMoveArray : public AttributeInit {
   void *data = nullptr;
 
-  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data)
-  {
-  }
+  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data) {}
 };
 
 /* Returns false when the iteration should be stopped. */
@@ -824,21 +814,13 @@ class CustomDataAttributes {
 
 inline AttributeIDRef::AttributeIDRef() = default;
 
-inline AttributeIDRef::AttributeIDRef(StringRef name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(StringRef name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(StringRefNull name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(StringRefNull name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name) {}
 
 /* The anonymous id is only borrowed, the caller has to keep a reference to it. */
 inline AttributeIDRef::AttributeIDRef(const AnonymousAttributeID &anonymous_id)

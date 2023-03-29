@@ -92,9 +92,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
-static void outliner_main_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_main_region_free(ARegion * /*region*/) {}
 
 static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
@@ -300,9 +298,7 @@ static void outliner_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void outliner_header_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_header_region_free(ARegion * /*region*/) {}
 
 static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {

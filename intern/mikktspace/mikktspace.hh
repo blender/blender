@@ -145,9 +145,7 @@ template<typename Mesh> class Mikktspace {
   bool isParallel;
 
  public:
-  Mikktspace(Mesh &mesh_) : mesh(mesh_)
-  {
-  }
+  Mikktspace(Mesh &mesh_) : mesh(mesh_) {}
 
   void genTangSpace()
   {
@@ -580,9 +578,7 @@ template<typename Mesh> class Mikktspace {
 
   struct NeighborShard {
     struct Entry {
-      Entry(uint32_t key_, uint data_) : key(key_), data(data_)
-      {
-      }
+      Entry(uint32_t key_, uint data_) : key(key_), data(data_) {}
       uint key, data;
     };
     std::vector<Entry> entries;

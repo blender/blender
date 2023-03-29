@@ -1054,9 +1054,7 @@ static bool shader_preview_break(void *spv)
   return *(sp->stop);
 }
 
-static void shader_preview_updatejob(void * /*spv*/)
-{
-}
+static void shader_preview_updatejob(void * /*spv*/) {}
 
 /* Renders texture directly to render buffer. */
 static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Render *re)
@@ -1752,9 +1750,7 @@ class PreviewLoadJob {
   static void finish_request(RequestedPreview &request);
 };
 
-PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init())
-{
-}
+PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init()) {}
 
 PreviewLoadJob::~PreviewLoadJob()
 {

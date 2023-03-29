@@ -8,9 +8,7 @@
 
 // We do not support multiple monitors at the moment
 
-GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void)
-{
-}
+GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void) {}
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) const
 {

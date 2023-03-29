@@ -116,9 +116,7 @@ void BLI_threadapi_init()
   mainid = pthread_self();
 }
 
-void BLI_threadapi_exit()
-{
-}
+void BLI_threadapi_exit() {}
 
 void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {

@@ -101,9 +101,7 @@ typedef enum {
 class GHOST_NDOFManager {
  public:
   GHOST_NDOFManager(GHOST_System &);
-  virtual ~GHOST_NDOFManager()
-  {
-  }
+  virtual ~GHOST_NDOFManager() {}
 
   /**
    * Whether multi-axis functionality is available (via the OS or driver)

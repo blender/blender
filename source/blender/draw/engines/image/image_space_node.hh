@@ -15,9 +15,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
   SpaceNode *snode;
 
  public:
-  SpaceNodeAccessor(SpaceNode *snode) : snode(snode)
-  {
-  }
+  SpaceNodeAccessor(SpaceNode *snode) : snode(snode) {}
 
   Image *get_image(Main *bmain) override
   {

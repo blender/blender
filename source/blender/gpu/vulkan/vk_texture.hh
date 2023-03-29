@@ -24,9 +24,7 @@ class VKTexture : public Texture {
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
 
  public:
-  VKTexture(const char *name) : Texture(name)
-  {
-  }
+  VKTexture(const char *name) : Texture(name) {}
   virtual ~VKTexture() override;
 
   void generate_mipmap() override;

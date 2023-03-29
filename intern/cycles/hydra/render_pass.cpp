@@ -176,8 +176,6 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
   session->draw();
 }
 
-void HdCyclesRenderPass::_MarkCollectionDirty()
-{
-}
+void HdCyclesRenderPass::_MarkCollectionDirty() {}
 
 HDCYCLES_NAMESPACE_CLOSE_SCOPE

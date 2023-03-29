@@ -26,13 +26,9 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = nullptr;
 #endif
 
-GHOST_SystemPathsUnix::GHOST_SystemPathsUnix()
-{
-}
+GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() {}
 
-GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix()
-{
-}
+GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() {}
 
 const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *versionstr) const
 {

@@ -1497,9 +1497,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   return ptr;
 }
 
-static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {

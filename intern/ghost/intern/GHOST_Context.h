@@ -21,16 +21,12 @@ class GHOST_Context : public GHOST_IContext {
    * Constructor.
    * \param stereoVisual: Stereo visual for quad buffered stereo.
    */
-  GHOST_Context(bool stereoVisual) : m_stereoVisual(stereoVisual)
-  {
-  }
+  GHOST_Context(bool stereoVisual) : m_stereoVisual(stereoVisual) {}
 
   /**
    * Destructor.
    */
-  virtual ~GHOST_Context()
-  {
-  }
+  virtual ~GHOST_Context() {}
 
   /**
    * Swaps front and back buffers of a window.

@@ -26,9 +26,7 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
   return NULL;
 }
 
-void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner * /*topology_refiner*/)
-{
-}
+void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner * /*topology_refiner*/) {}
 
 bool openSubdiv_topologyRefinerCompareWithConverter(
     const OpenSubdiv_TopologyRefiner * /*topology_refiner*/,

@@ -28,9 +28,7 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   /**
    * Destructor.
    */
-  ~GHOST_CallbackEventConsumer()
-  {
-  }
+  ~GHOST_CallbackEventConsumer() {}
 
   /**
    * This method is called by an event producer when an event is available.

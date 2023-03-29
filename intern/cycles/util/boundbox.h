@@ -20,17 +20,11 @@ class BoundBox {
  public:
   float3 min, max;
 
-  __forceinline BoundBox()
-  {
-  }
+  __forceinline BoundBox() {}
 
-  __forceinline BoundBox(const float3 &pt) : min(pt), max(pt)
-  {
-  }
+  __forceinline BoundBox(const float3 &pt) : min(pt), max(pt) {}
 
-  __forceinline BoundBox(const float3 &min_, const float3 &max_) : min(min_), max(max_)
-  {
-  }
+  __forceinline BoundBox(const float3 &min_, const float3 &max_) : min(min_), max(max_) {}
 
   enum empty_t { empty = 0 };
 
@@ -199,9 +193,7 @@ class BoundBox2D {
   float bottom;
   float top;
 
-  BoundBox2D() : left(0.0f), right(1.0f), bottom(0.0f), top(1.0f)
-  {
-  }
+  BoundBox2D() : left(0.0f), right(1.0f), bottom(0.0f), top(1.0f) {}
 
   bool operator==(const BoundBox2D &other) const
   {

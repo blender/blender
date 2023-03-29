@@ -4892,9 +4892,7 @@ void *rna_iterator_listbase_get(CollectionPropertyIterator *iter)
   return internal->link;
 }
 
-void rna_iterator_listbase_end(CollectionPropertyIterator * /*iter*/)
-{
-}
+void rna_iterator_listbase_end(CollectionPropertyIterator * /*iter*/) {}
 
 PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, ListBase *lb, int index)
 {

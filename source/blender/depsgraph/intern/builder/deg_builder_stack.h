@@ -40,21 +40,13 @@ class BuilderStack {
    * the stack is printed. */
   class Entry {
    public:
-    explicit Entry(const ID &id) : id_(&id)
-    {
-    }
+    explicit Entry(const ID &id) : id_(&id) {}
 
-    explicit Entry(const bConstraint &constraint) : constraint_(&constraint)
-    {
-    }
+    explicit Entry(const bConstraint &constraint) : constraint_(&constraint) {}
 
-    explicit Entry(const bPoseChannel &pchan) : pchan_(&pchan)
-    {
-    }
+    explicit Entry(const bPoseChannel &pchan) : pchan_(&pchan) {}
 
-    explicit Entry(const ModifierData &modifier_data) : modifier_data_(&modifier_data)
-    {
-    }
+    explicit Entry(const ModifierData &modifier_data) : modifier_data_(&modifier_data) {}
 
    private:
     friend class BuilderStack;
@@ -109,9 +101,7 @@ class BuilderStack {
    private:
     friend BuilderStack;
 
-    explicit ScopedEntry(Stack &stack) : stack_(&stack)
-    {
-    }
+    explicit ScopedEntry(Stack &stack) : stack_(&stack) {}
 
     Stack *stack_;
   };

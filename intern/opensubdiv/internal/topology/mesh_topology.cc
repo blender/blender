@@ -23,13 +23,9 @@
 namespace blender {
 namespace opensubdiv {
 
-MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0)
-{
-}
+MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0) {}
 
-MeshTopology::~MeshTopology()
-{
-}
+MeshTopology::~MeshTopology() {}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vertices.

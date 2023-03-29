@@ -34,17 +34,13 @@ class GHOST_ISystemPaths {
    * Constructor.
    * Protected default constructor to force use of static createSystem member.
    */
-  GHOST_ISystemPaths()
-  {
-  }
+  GHOST_ISystemPaths() {}
 
   /**
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_ISystemPaths()
-  {
-  }
+  virtual ~GHOST_ISystemPaths() {}
 
  public:
   /**

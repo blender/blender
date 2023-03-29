@@ -108,9 +108,7 @@ struct CombOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  CombOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  CombOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(CombOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

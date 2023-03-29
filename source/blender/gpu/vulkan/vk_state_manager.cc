@@ -9,13 +9,9 @@
 #include "vk_texture.hh"
 
 namespace blender::gpu {
-void VKStateManager::apply_state()
-{
-}
+void VKStateManager::apply_state() {}
 
-void VKStateManager::force_state()
-{
-}
+void VKStateManager::force_state() {}
 
 void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/)
 {
@@ -26,17 +22,11 @@ void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/)
   command_buffer.submit();
 }
 
-void VKStateManager::texture_bind(Texture * /*tex*/, eGPUSamplerState /*sampler*/, int /*unit*/)
-{
-}
+void VKStateManager::texture_bind(Texture * /*tex*/, eGPUSamplerState /*sampler*/, int /*unit*/) {}
 
-void VKStateManager::texture_unbind(Texture * /*tex*/)
-{
-}
+void VKStateManager::texture_unbind(Texture * /*tex*/) {}
 
-void VKStateManager::texture_unbind_all()
-{
-}
+void VKStateManager::texture_unbind_all() {}
 
 void VKStateManager::image_bind(Texture *tex, int binding)
 {
@@ -44,16 +34,10 @@ void VKStateManager::image_bind(Texture *tex, int binding)
   texture->image_bind(binding);
 }
 
-void VKStateManager::image_unbind(Texture * /*tex*/)
-{
-}
+void VKStateManager::image_unbind(Texture * /*tex*/) {}
 
-void VKStateManager::image_unbind_all()
-{
-}
+void VKStateManager::image_unbind_all() {}
 
-void VKStateManager::texture_unpack_row_length_set(uint /*len*/)
-{
-}
+void VKStateManager::texture_unpack_row_length_set(uint /*len*/) {}
 
 }  // namespace blender::gpu

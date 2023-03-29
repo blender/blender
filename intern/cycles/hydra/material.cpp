@@ -183,13 +183,9 @@ TfStaticData<UsdToCycles> sUsdToCyles;
 
 }  // namespace
 
-HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId)
-{
-}
+HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId) {}
 
-HdCyclesMaterial::~HdCyclesMaterial()
-{
-}
+HdCyclesMaterial::~HdCyclesMaterial() {}
 
 HdDirtyBits HdCyclesMaterial::GetInitialDirtyBitsMask() const
 {

@@ -99,9 +99,7 @@ class FrsImage {
   }
 
   /** Destructor */
-  virtual ~FrsImage()
-  {
-  }
+  virtual ~FrsImage() {}
 
   /** Returns the width of the complete image */
   inline unsigned width() const

@@ -169,9 +169,7 @@ struct UDIMTileUndo {
   short tile_number;
   rcti region;
 
-  UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region)
-  {
-  }
+  UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region) {}
 };
 
 struct NodeData {
@@ -344,9 +342,7 @@ struct CopyPixelTile {
   Vector<CopyPixelGroup> groups;
   Vector<DeltaCopyPixelCommand> command_deltas;
 
-  CopyPixelTile(image::TileNumber tile_number) : tile_number(tile_number)
-  {
-  }
+  CopyPixelTile(image::TileNumber tile_number) : tile_number(tile_number) {}
 
   void copy_pixels(ImBuf &tile_buffer, IndexRange group_range) const
   {

@@ -16,9 +16,7 @@
 
 namespace blender::io::usd {
 
-USDLightWriter::USDLightWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDLightWriter::USDLightWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDLightWriter::is_supported(const HierarchyContext *context) const
 {

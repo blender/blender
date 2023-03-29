@@ -28,18 +28,14 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
   return NULL;
 }
 
-void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator * /*evaluator*/)
-{
-}
+void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator * /*evaluator*/) {}
 
 OpenSubdiv_EvaluatorCache *openSubdiv_createEvaluatorCache(eOpenSubdivEvaluator /*evaluator_type*/)
 {
   return NULL;
 }
 
-void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache * /*evaluator_cache*/)
-{
-}
+void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache * /*evaluator_cache*/) {}
 
 const char *openSubdiv_getGLSLPatchBasisSource()
 {

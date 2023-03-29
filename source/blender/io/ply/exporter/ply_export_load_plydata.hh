@@ -35,9 +35,7 @@ struct UV_vertex_key {
   float2 UV;
   int mesh_vertex_index;
 
-  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), mesh_vertex_index(vertex_index)
-  {
-  }
+  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), mesh_vertex_index(vertex_index) {}
 
   bool operator==(const UV_vertex_key &r) const
   {

@@ -22,9 +22,7 @@ class GHOST_IContext {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IContext()
-  {
-  }
+  virtual ~GHOST_IContext() {}
 
   /**
    * Activates the drawing context.

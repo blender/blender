@@ -65,9 +65,7 @@ class TriangleRep : public Rep {
     _Style = FILL;
   }
 
-  virtual ~TriangleRep()
-  {
-  }
+  virtual ~TriangleRep() {}
 
   /** accessors */
   inline const TRIANGLE_STYLE style() const

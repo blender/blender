@@ -25,9 +25,7 @@ extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
 /** \name Geometry Component Implementation
  * \{ */
 
-MeshComponent::MeshComponent() : GeometryComponent(GEO_COMPONENT_TYPE_MESH)
-{
-}
+MeshComponent::MeshComponent() : GeometryComponent(GEO_COMPONENT_TYPE_MESH) {}
 
 MeshComponent::~MeshComponent()
 {

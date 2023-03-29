@@ -21,9 +21,7 @@
 namespace blender {
 namespace opensubdiv {
 
-TopologyRefinerImpl::TopologyRefinerImpl() : topology_refiner(nullptr)
-{
-}
+TopologyRefinerImpl::TopologyRefinerImpl() : topology_refiner(nullptr) {}
 
 TopologyRefinerImpl::~TopologyRefinerImpl()
 {

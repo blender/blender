@@ -38,9 +38,7 @@ class UnaryPredicate0D {
   }
 
   /** Destructor. */
-  virtual ~UnaryPredicate0D()
-  {
-  }
+  virtual ~UnaryPredicate0D() {}
 
   /** Returns the string of the name of the UnaryPredicate0D. */
   virtual string getName() const
@@ -82,9 +80,7 @@ class BinaryPredicate0D {
   }
 
   /** Destructor. */
-  virtual ~BinaryPredicate0D()
-  {
-  }
+  virtual ~BinaryPredicate0D() {}
 
   /** Returns the string of the name of the binary predicate. */
   virtual string getName() const
@@ -119,9 +115,7 @@ namespace Predicates0D {
 class TrueUP0D : public UnaryPredicate0D {
  public:
   /** Default constructor. */
-  TrueUP0D()
-  {
-  }
+  TrueUP0D() {}
 
   /** Returns the string "TrueUP0D". */
   string getName() const
@@ -142,9 +136,7 @@ class TrueUP0D : public UnaryPredicate0D {
 class FalseUP0D : public UnaryPredicate0D {
  public:
   /** Default constructor. */
-  FalseUP0D()
-  {
-  }
+  FalseUP0D() {}
 
   /** Returns the string "FalseUP0D". */
   string getName() const

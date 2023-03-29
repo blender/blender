@@ -92,9 +92,7 @@ void VKContext::activate()
   }
 }
 
-void VKContext::deactivate()
-{
-}
+void VKContext::deactivate() {}
 
 void VKContext::begin_frame()
 {
@@ -124,9 +122,7 @@ void VKContext::finish()
   command_buffer_.submit();
 }
 
-void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/)
-{
-}
+void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/) {}
 
 void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
 {

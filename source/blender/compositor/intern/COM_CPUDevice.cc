@@ -8,9 +8,7 @@
 
 namespace blender::compositor {
 
-CPUDevice::CPUDevice(int thread_id) : thread_id_(thread_id)
-{
-}
+CPUDevice::CPUDevice(int thread_id) : thread_id_(thread_id) {}
 
 void CPUDevice::execute(WorkPackage *work_package)
 {

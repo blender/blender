@@ -182,9 +182,7 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
   DEG_id_tag_update(&mesh->id, 0);
 }
 
-static void rna_Mesh_calc_normals(Mesh *UNUSED(mesh))
-{
-}
+static void rna_Mesh_calc_normals(Mesh *UNUSED(mesh)) {}
 
 static void rna_Mesh_split_faces(Mesh *mesh, bool UNUSED(free_loop_normals))
 {

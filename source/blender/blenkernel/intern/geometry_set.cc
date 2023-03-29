@@ -39,9 +39,7 @@ using blender::bke::Instances;
 /** \name Geometry Component
  * \{ */
 
-GeometryComponent::GeometryComponent(GeometryComponentType type) : type_(type)
-{
-}
+GeometryComponent::GeometryComponent(GeometryComponentType type) : type_(type) {}
 
 GeometryComponent *GeometryComponent::create(GeometryComponentType component_type)
 {

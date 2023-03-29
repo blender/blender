@@ -9,12 +9,8 @@
 
 namespace blender::gpu {
 
-void VKDrawList::append(GPUBatch * /*batch*/, int /*i_first*/, int /*i_count*/)
-{
-}
+void VKDrawList::append(GPUBatch * /*batch*/, int /*i_first*/, int /*i_count*/) {}
 
-void VKDrawList::submit()
-{
-}
+void VKDrawList::submit() {}
 
 }  // namespace blender::gpu

@@ -227,9 +227,7 @@ class Params {
   ParamsBuilder *builder_;
 
  public:
-  Params(ParamsBuilder &builder) : builder_(&builder)
-  {
-  }
+  Params(ParamsBuilder &builder) : builder_(&builder) {}
 
   template<typename T> VArray<T> readonly_single_input(int param_index, StringRef name = "")
   {

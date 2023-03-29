@@ -20,9 +20,7 @@
 
 namespace blender::io::usd {
 
-USDMetaballWriter::USDMetaballWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx)
-{
-}
+USDMetaballWriter::USDMetaballWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx) {}
 
 bool USDMetaballWriter::is_supported(const HierarchyContext *context) const
 {

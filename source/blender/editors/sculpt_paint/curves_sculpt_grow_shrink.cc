@@ -81,9 +81,7 @@ class ShrinkCurvesEffect : public CurvesEffect {
   };
 
  public:
-  ShrinkCurvesEffect(const Brush &brush) : brush_(brush)
-  {
-  }
+  ShrinkCurvesEffect(const Brush &brush) : brush_(brush) {}
 
   void execute(CurvesGeometry &curves,
                const Span<int> curve_indices,
@@ -173,9 +171,7 @@ class ScaleCurvesEffect : public CurvesEffect {
   const Brush &brush_;
 
  public:
-  ScaleCurvesEffect(bool scale_up, const Brush &brush) : scale_up_(scale_up), brush_(brush)
-  {
-  }
+  ScaleCurvesEffect(bool scale_up, const Brush &brush) : scale_up_(scale_up), brush_(brush) {}
 
   void execute(CurvesGeometry &curves,
                const Span<int> curve_indices,
@@ -225,9 +221,7 @@ class CurvesEffectOperation : public CurvesSculptStrokeOperation {
   friend struct CurvesEffectOperationExecutor;
 
  public:
-  CurvesEffectOperation(std::unique_ptr<CurvesEffect> effect) : effect_(std::move(effect))
-  {
-  }
+  CurvesEffectOperation(std::unique_ptr<CurvesEffect> effect) : effect_(std::move(effect)) {}
 
   void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
@@ -265,9 +259,7 @@ struct CurvesEffectOperationExecutor {
     Vector<float> move_distances_cu;
   };
 
-  CurvesEffectOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  CurvesEffectOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(CurvesEffectOperation &self,
                const bContext &C,

@@ -31,9 +31,7 @@ void DEG_register_node_types()
   deg::deg_register_operation_depsnodes();
 }
 
-void DEG_free_node_types()
-{
-}
+void DEG_free_node_types() {}
 
 deg::DEGCustomDataMeshMasks::DEGCustomDataMeshMasks(const CustomData_MeshMasks *other)
     : vert_mask(other->vmask),

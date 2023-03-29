@@ -31,9 +31,7 @@ using Alembic::Abc::OStringArrayProperty;
 
 namespace blender::io::alembic {
 
-CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner)
-{
-}
+CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner) {}
 
 void CustomPropertiesExporter::write_all(const IDProperty *group)
 {

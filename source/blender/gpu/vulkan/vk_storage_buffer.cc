@@ -43,9 +43,7 @@ void VKStorageBuffer::bind(int slot)
   shader->pipeline_get().descriptor_set_get().bind(*this, location);
 }
 
-void VKStorageBuffer::unbind()
-{
-}
+void VKStorageBuffer::unbind() {}
 
 void VKStorageBuffer::clear(uint32_t clear_value)
 {

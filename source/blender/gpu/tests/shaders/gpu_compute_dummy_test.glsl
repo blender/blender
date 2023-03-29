@@ -1,3 +1,1 @@
-void main()
-{
-}
+void main() {}

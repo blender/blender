@@ -14,9 +14,7 @@
 
 namespace blender::io::usd {
 
-USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDCameraWriter::is_supported(const HierarchyContext *context) const
 {

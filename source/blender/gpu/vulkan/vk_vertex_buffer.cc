@@ -32,17 +32,11 @@ void VKVertexBuffer::bind_as_ssbo(uint binding)
   shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, location);
 }
 
-void VKVertexBuffer::bind_as_texture(uint /*binding*/)
-{
-}
+void VKVertexBuffer::bind_as_texture(uint /*binding*/) {}
 
-void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
-{
-}
+void VKVertexBuffer::wrap_handle(uint64_t /*handle*/) {}
 
-void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/)
-{
-}
+void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/) {}
 
 void VKVertexBuffer::read(void *data) const
 {
@@ -63,22 +57,16 @@ void VKVertexBuffer::acquire_data()
   data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }
 
-void VKVertexBuffer::resize_data()
-{
-}
+void VKVertexBuffer::resize_data() {}
 
 void VKVertexBuffer::release_data()
 {
   MEM_SAFE_FREE(data);
 }
 
-void VKVertexBuffer::upload_data()
-{
-}
+void VKVertexBuffer::upload_data() {}
 
-void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/)
-{
-}
+void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/) {}
 
 void VKVertexBuffer::allocate(VKContext &context)
 {

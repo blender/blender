@@ -244,9 +244,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   BKE_mesh_uv_vert_map_free(uv_vert_map);
 }
 
-static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/)
-{
-}
+static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/) {}
 
 static int get_num_uvs(const OpenSubdiv_Converter *converter)
 {

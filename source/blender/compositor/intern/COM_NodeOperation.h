@@ -351,9 +351,7 @@ class NodeOperation {
   ExecutionSystem *exec_system_;
 
  public:
-  virtual ~NodeOperation()
-  {
-  }
+  virtual ~NodeOperation() {}
 
   void set_name(const std::string name)
   {
@@ -457,9 +455,7 @@ class NodeOperation {
    * \param chunk_number: the chunk_number to be calculated
    * \param memory_buffers: all input MemoryBuffer's needed
    */
-  virtual void execute_region(rcti * /*rect*/, unsigned int /*chunk_number*/)
-  {
-  }
+  virtual void execute_region(rcti * /*rect*/, unsigned int /*chunk_number*/) {}
 
   /**
    * \brief when a chunk is executed by an OpenCLDevice, this method is called
@@ -597,9 +593,7 @@ class NodeOperation {
     return 0;
   }
 
-  virtual void deinitialize_tile_data(rcti * /*rect*/, void * /*data*/)
-  {
-  }
+  virtual void deinitialize_tile_data(rcti * /*rect*/, void * /*data*/) {}
 
   virtual MemoryBuffer *get_input_memory_buffer(MemoryBuffer ** /*memory_buffers*/)
   {

@@ -41,13 +41,9 @@ class GArray {
    * allowed to be null. This default constructor exists so `GArray` can be used in containers,
    * but the type should be supplied before doing anything else to the array.
    */
-  GArray(Allocator allocator = {}) noexcept : allocator_(allocator)
-  {
-  }
+  GArray(Allocator allocator = {}) noexcept : allocator_(allocator) {}
 
-  GArray(NoExceptConstructor, Allocator allocator = {}) noexcept : GArray(allocator)
-  {
-  }
+  GArray(NoExceptConstructor, Allocator allocator = {}) noexcept : GArray(allocator) {}
 
   /**
    * Create and allocate a new array, with elements default constructed
@@ -96,9 +92,7 @@ class GArray {
   /**
    * Create an array by copying values from another generic array.
    */
-  GArray(const GArray &other) : GArray(other.as_span(), other.allocator())
-  {
-  }
+  GArray(const GArray &other) : GArray(other.as_span(), other.allocator()) {}
 
   /**
    * Create an array by taking ownership of another array's data, clearing the data in the other.

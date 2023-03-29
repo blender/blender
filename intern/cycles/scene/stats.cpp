@@ -40,27 +40,17 @@ bool namedSampleCountPairComparator(const NamedSampleCountPair &a, const NamedSa
 
 }  // namespace
 
-NamedSizeEntry::NamedSizeEntry() : name(""), size(0)
-{
-}
+NamedSizeEntry::NamedSizeEntry() : name(""), size(0) {}
 
-NamedSizeEntry::NamedSizeEntry(const string &name, size_t size) : name(name), size(size)
-{
-}
+NamedSizeEntry::NamedSizeEntry(const string &name, size_t size) : name(name), size(size) {}
 
-NamedTimeEntry::NamedTimeEntry() : name(""), time(0)
-{
-}
+NamedTimeEntry::NamedTimeEntry() : name(""), time(0) {}
 
-NamedTimeEntry::NamedTimeEntry(const string &name, double time) : name(name), time(time)
-{
-}
+NamedTimeEntry::NamedTimeEntry(const string &name, double time) : name(name), time(time) {}
 
 /* Named size statistics. */
 
-NamedSizeStats::NamedSizeStats() : total_size(0)
-{
-}
+NamedSizeStats::NamedSizeStats() : total_size(0) {}
 
 void NamedSizeStats::add_entry(const NamedSizeEntry &entry)
 {
@@ -104,9 +94,7 @@ string NamedTimeStats::full_report(int indent_level)
 
 /* Named time sample statistics. */
 
-NamedNestedSampleStats::NamedNestedSampleStats() : name(""), self_samples(0), sum_samples(0)
-{
-}
+NamedNestedSampleStats::NamedNestedSampleStats() : name(""), self_samples(0), sum_samples(0) {}
 
 NamedNestedSampleStats::NamedNestedSampleStats(const string &name, uint64_t samples)
     : name(name), self_samples(samples), sum_samples(samples)
@@ -164,9 +152,7 @@ NamedSampleCountPair::NamedSampleCountPair(const ustring &name, uint64_t samples
 {
 }
 
-NamedSampleCountStats::NamedSampleCountStats()
-{
-}
+NamedSampleCountStats::NamedSampleCountStats() {}
 
 void NamedSampleCountStats::add(const ustring &name, uint64_t samples, uint64_t hits)
 {
@@ -213,9 +199,7 @@ string NamedSampleCountStats::full_report(int indent_level)
 
 /* Mesh statistics. */
 
-MeshStats::MeshStats()
-{
-}
+MeshStats::MeshStats() {}
 
 string MeshStats::full_report(int indent_level)
 {
@@ -227,9 +211,7 @@ string MeshStats::full_report(int indent_level)
 
 /* Image statistics. */
 
-ImageStats::ImageStats()
-{
-}
+ImageStats::ImageStats() {}
 
 string ImageStats::full_report(int indent_level)
 {
@@ -313,18 +295,14 @@ string RenderStats::full_report()
   return result;
 }
 
-NamedTimeStats::NamedTimeStats() : total_time(0.0)
-{
-}
+NamedTimeStats::NamedTimeStats() : total_time(0.0) {}
 
 string UpdateTimeStats::full_report(int indent_level)
 {
   return times.full_report(indent_level + 1);
 }
 
-SceneUpdateStats::SceneUpdateStats()
-{
-}
+SceneUpdateStats::SceneUpdateStats() {}
 
 string SceneUpdateStats::full_report()
 {

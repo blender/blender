@@ -28,9 +28,7 @@ class GHOST_IEvent {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IEvent()
-  {
-  }
+  virtual ~GHOST_IEvent() {}
 
   /**
    * Returns the event type.

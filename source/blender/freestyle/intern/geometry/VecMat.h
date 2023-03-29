@@ -24,9 +24,7 @@ template<bool B> struct is_false {
 };
 
 template<> struct is_false<false> {
-  static inline void ensure()
-  {
-  }
+  static inline void ensure() {}
 };
 }  // end of namespace Internal
 
@@ -280,21 +278,13 @@ template<class T> class Vec2 : public Vec<T, 2> {
  public:
   typedef typename Vec<T, 2>::value_type value_type;
 
-  inline Vec2() : Vec<T, 2>()
-  {
-  }
+  inline Vec2() : Vec<T, 2>() {}
 
-  template<class U> explicit inline Vec2(const U tab[2]) : Vec<T, 2>(tab)
-  {
-  }
+  template<class U> explicit inline Vec2(const U tab[2]) : Vec<T, 2>(tab) {}
 
-  template<class U> explicit inline Vec2(const std::vector<U> &tab) : Vec<T, 2>(tab)
-  {
-  }
+  template<class U> explicit inline Vec2(const std::vector<U> &tab) : Vec<T, 2>(tab) {}
 
-  template<class U> inline Vec2(const Vec<U, 2> &v) : Vec<T, 2>(v)
-  {
-  }
+  template<class U> inline Vec2(const Vec<U, 2> &v) : Vec<T, 2>(v) {}
 
   inline Vec2(const value_type x, const value_type y = 0) : Vec<T, 2>()
   {
@@ -384,21 +374,13 @@ template<class T> class HVec3 : public Vec<T, 4> {
  public:
   typedef typename Vec<T, 4>::value_type value_type;
 
-  inline HVec3() : Vec<T, 4>()
-  {
-  }
+  inline HVec3() : Vec<T, 4>() {}
 
-  template<class U> explicit inline HVec3(const U tab[4]) : Vec<T, 4>(tab)
-  {
-  }
+  template<class U> explicit inline HVec3(const U tab[4]) : Vec<T, 4>(tab) {}
 
-  template<class U> explicit inline HVec3(const std::vector<U> &tab) : Vec<T, 4>(tab)
-  {
-  }
+  template<class U> explicit inline HVec3(const std::vector<U> &tab) : Vec<T, 4>(tab) {}
 
-  template<class U> inline HVec3(const Vec<U, 4> &v) : Vec<T, 4>(v)
-  {
-  }
+  template<class U> inline HVec3(const Vec<U, 4> &v) : Vec<T, 4>(v) {}
 
   inline HVec3(const value_type sx,
                const value_type sy = 0,
@@ -485,21 +467,13 @@ template<class T> class Vec3 : public Vec<T, 3> {
  public:
   typedef typename Vec<T, 3>::value_type value_type;
 
-  inline Vec3() : Vec<T, 3>()
-  {
-  }
+  inline Vec3() : Vec<T, 3>() {}
 
-  template<class U> explicit inline Vec3(const U tab[3]) : Vec<T, 3>(tab)
-  {
-  }
+  template<class U> explicit inline Vec3(const U tab[3]) : Vec<T, 3>(tab) {}
 
-  template<class U> explicit inline Vec3(const std::vector<U> &tab) : Vec<T, 3>(tab)
-  {
-  }
+  template<class U> explicit inline Vec3(const std::vector<U> &tab) : Vec<T, 3>(tab) {}
 
-  template<class U> inline Vec3(const Vec<U, 3> &v) : Vec<T, 3>(v)
-  {
-  }
+  template<class U> inline Vec3(const Vec<U, 3> &v) : Vec<T, 3>(v) {}
 
   template<class U> inline Vec3(const HVec3<U> &v)
   {
@@ -783,21 +757,15 @@ template<class T, unsigned N> class SquareMatrix : public Matrix<T, N, N> {
  public:
   typedef T value_type;
 
-  inline SquareMatrix() : Matrix<T, N, N>()
-  {
-  }
+  inline SquareMatrix() : Matrix<T, N, N>() {}
 
-  template<class U> explicit inline SquareMatrix(const U tab[_SIZE]) : Matrix<T, N, N>(tab)
-  {
-  }
+  template<class U> explicit inline SquareMatrix(const U tab[_SIZE]) : Matrix<T, N, N>(tab) {}
 
   template<class U> explicit inline SquareMatrix(const std::vector<U> &tab) : Matrix<T, N, N>(tab)
   {
   }
 
-  template<class U> inline SquareMatrix(const Matrix<U, N, N> &m) : Matrix<T, N, N>(m)
-  {
-  }
+  template<class U> inline SquareMatrix(const Matrix<U, N, N> &m) : Matrix<T, N, N>(m) {}
 
   static inline SquareMatrix<T, N> identity()
   {

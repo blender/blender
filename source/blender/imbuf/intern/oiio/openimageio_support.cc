@@ -21,9 +21,7 @@ namespace blender::imbuf {
 /* An OIIO IOProxy used during file packing to write into an in-memory #ImBuf buffer. */
 class ImBufMemWriter : public Filesystem::IOProxy {
  public:
-  ImBufMemWriter(ImBuf *ibuf) : IOProxy("", Write), ibuf_(ibuf)
-  {
-  }
+  ImBufMemWriter(ImBuf *ibuf) : IOProxy("", Write), ibuf_(ibuf) {}
 
   const char *proxytype() const override
   {

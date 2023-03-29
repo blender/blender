@@ -35,9 +35,7 @@ struct OrderedEdge {
     }
   }
 
-  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2))
-  {
-  }
+  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2)) {}
 
   uint64_t hash() const
   {

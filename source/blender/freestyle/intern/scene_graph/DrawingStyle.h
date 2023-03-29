@@ -32,9 +32,7 @@ class DrawingStyle {
 
   inline explicit DrawingStyle(const DrawingStyle &iBrother);
 
-  virtual ~DrawingStyle()
-  {
-  }
+  virtual ~DrawingStyle() {}
 
   /** operators */
   inline DrawingStyle &operator=(const DrawingStyle &ds);

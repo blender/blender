@@ -83,9 +83,7 @@ static void userpref_free(SpaceLink *UNUSED(sl))
 }
 
 /* spacetype; init callback */
-static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *userpref_duplicate(SpaceLink *sl)
 {
@@ -130,13 +128,9 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
-static void userpref_operatortypes(void)
-{
-}
+static void userpref_operatortypes(void) {}
 
-static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
-{
-}
+static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
@@ -169,21 +163,13 @@ static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void userpref_main_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_main_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_header_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_header_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_navigation_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_navigation_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
 static void userpref_blend_write(BlendWriter *writer, SpaceLink *sl)
 {

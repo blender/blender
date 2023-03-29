@@ -23,20 +23,12 @@ template<typename _Tp> struct MEM_Allocator {
     typedef MEM_Allocator<_Tp1> other;
   };
 
-  MEM_Allocator() throw()
-  {
-  }
-  MEM_Allocator(const MEM_Allocator &) throw()
-  {
-  }
+  MEM_Allocator() throw() {}
+  MEM_Allocator(const MEM_Allocator &) throw() {}
 
-  template<typename _Tp1> MEM_Allocator(const MEM_Allocator<_Tp1>) throw()
-  {
-  }
+  template<typename _Tp1> MEM_Allocator(const MEM_Allocator<_Tp1>) throw() {}
 
-  ~MEM_Allocator() throw()
-  {
-  }
+  ~MEM_Allocator() throw() {}
 
   pointer address(reference __x) const
   {

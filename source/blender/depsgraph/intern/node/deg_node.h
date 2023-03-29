@@ -189,13 +189,9 @@ struct Node {
   /** Generic identifier for Depsgraph Nodes. */
   virtual string identifier() const;
 
-  virtual void init(const ID * /*id*/, const char * /*subdata*/)
-  {
-  }
+  virtual void init(const ID * /*id*/, const char * /*subdata*/) {}
 
-  virtual void tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/)
-  {
-  }
+  virtual void tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/) {}
 
   virtual OperationNode *get_entry_operation()
   {

@@ -40,9 +40,7 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
   mutable std::atomic<int> users_;
 
  public:
-  ImplicitSharingInfo(const int initial_users) : users_(initial_users)
-  {
-  }
+  ImplicitSharingInfo(const int initial_users) : users_(initial_users) {}
 
   virtual ~ImplicitSharingInfo()
   {
@@ -92,9 +90,7 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
  */
 class ImplicitSharingMixin : public ImplicitSharingInfo {
  public:
-  ImplicitSharingMixin() : ImplicitSharingInfo(1)
-  {
-  }
+  ImplicitSharingMixin() : ImplicitSharingInfo(1) {}
 
  private:
   void delete_self_with_data() override

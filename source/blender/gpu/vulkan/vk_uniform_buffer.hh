@@ -19,9 +19,7 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
   VKBuffer buffer_;
 
  public:
-  VKUniformBuffer(int size, const char *name) : UniformBuf(size, name)
-  {
-  }
+  VKUniformBuffer(int size, const char *name) : UniformBuf(size, name) {}
 
   void update(const void *data) override;
   void clear_to_zero() override;

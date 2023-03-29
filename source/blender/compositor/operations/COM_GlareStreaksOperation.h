@@ -11,9 +11,7 @@ namespace blender::compositor {
 
 class GlareStreaksOperation : public GlareBaseOperation {
  public:
-  GlareStreaksOperation() : GlareBaseOperation()
-  {
-  }
+  GlareStreaksOperation() : GlareBaseOperation() {}
 
  protected:
   void generate_glare(float *data, MemoryBuffer *input_tile, const NodeGlare *settings) override;

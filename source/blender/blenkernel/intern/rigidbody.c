@@ -66,24 +66,12 @@ static CLG_LogRef LOG = {"bke.rigidbody"};
 static void rigidbody_update_ob_array(RigidBodyWorld *rbw);
 
 #else
-static void RB_dworld_remove_constraint(void *UNUSED(world), void *UNUSED(con))
-{
-}
-static void RB_dworld_remove_body(void *UNUSED(world), void *UNUSED(body))
-{
-}
-static void RB_dworld_delete(void *UNUSED(world))
-{
-}
-static void RB_body_delete(void *UNUSED(body))
-{
-}
-static void RB_shape_delete(void *UNUSED(shape))
-{
-}
-static void RB_constraint_delete(void *UNUSED(con))
-{
-}
+static void RB_dworld_remove_constraint(void *UNUSED(world), void *UNUSED(con)) {}
+static void RB_dworld_remove_body(void *UNUSED(world), void *UNUSED(body)) {}
+static void RB_dworld_delete(void *UNUSED(world)) {}
+static void RB_body_delete(void *UNUSED(body)) {}
+static void RB_shape_delete(void *UNUSED(shape)) {}
+static void RB_constraint_delete(void *UNUSED(con)) {}
 
 #endif
 
@@ -2283,9 +2271,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
 }
-void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
-{
-}
+void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 {
@@ -2305,9 +2291,7 @@ struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int f
 {
   return NULL;
 }
-void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw)
-{
-}
+void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}
 void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
                                  RigidbodyWorldIDFunc func,
                                  void *userdata)
@@ -2326,9 +2310,7 @@ struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
   return NULL;
 }
 
-void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
-{
-}
+void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob) {}
 
 bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
@@ -2339,12 +2321,8 @@ bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, R
 void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob, const bool free_us)
 {
 }
-void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us)
-{
-}
-void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
-{
-}
+void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us) {}
+void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(
     Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
@@ -2353,21 +2331,11 @@ bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
 {
   return false;
 }
-void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
-{
-}
-void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime)
-{
-}
-void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime)
-{
-}
-void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw)
-{
-}
-void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw)
-{
-}
+void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime) {}
+void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime) {}
+void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
+void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
 void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object)
 {
 }

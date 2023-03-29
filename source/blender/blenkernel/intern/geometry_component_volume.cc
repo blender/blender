@@ -10,9 +10,7 @@
 /** \name Geometry Component Implementation
  * \{ */
 
-VolumeComponent::VolumeComponent() : GeometryComponent(GEO_COMPONENT_TYPE_VOLUME)
-{
-}
+VolumeComponent::VolumeComponent() : GeometryComponent(GEO_COMPONENT_TYPE_VOLUME) {}
 
 VolumeComponent::~VolumeComponent()
 {

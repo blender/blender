@@ -24,20 +24,12 @@ void VKUniformBuffer::allocate(VKContext &context)
   buffer_.create(context, size_in_bytes_, GPU_USAGE_STATIC, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
-void VKUniformBuffer::clear_to_zero()
-{
-}
+void VKUniformBuffer::clear_to_zero() {}
 
-void VKUniformBuffer::bind(int /*slot*/)
-{
-}
+void VKUniformBuffer::bind(int /*slot*/) {}
 
-void VKUniformBuffer::bind_as_ssbo(int /*slot*/)
-{
-}
+void VKUniformBuffer::bind_as_ssbo(int /*slot*/) {}
 
-void VKUniformBuffer::unbind()
-{
-}
+void VKUniformBuffer::unbind() {}
 
 }  // namespace blender::gpu

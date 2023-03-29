@@ -313,9 +313,7 @@ Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
   curve_shape = CURVE_RIBBON;
 }
 
-Hair::~Hair()
-{
-}
+Hair::~Hair() {}
 
 void Hair::resize_curves(int numcurves, int numkeys)
 {

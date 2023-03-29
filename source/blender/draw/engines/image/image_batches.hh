@@ -20,9 +20,7 @@ class BatchUpdater {
   int uv_id;
 
  public:
-  BatchUpdater(TextureInfo &info) : info(info)
-  {
-  }
+  BatchUpdater(TextureInfo &info) : info(info) {}
 
   void update_batch()
   {

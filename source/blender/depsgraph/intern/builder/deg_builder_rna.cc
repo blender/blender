@@ -39,9 +39,7 @@ namespace blender::deg {
 
 class RNANodeQueryIDData {
  public:
-  explicit RNANodeQueryIDData(const ID *id) : id_(id)
-  {
-  }
+  explicit RNANodeQueryIDData(const ID *id) : id_(id) {}
 
   ~RNANodeQueryIDData()
   {
