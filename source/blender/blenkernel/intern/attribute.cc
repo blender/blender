@@ -268,8 +268,11 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
   return BLI_uniquename_cb(unique_name_cb, &data, nullptr, '.', outname, maxlength);
 }
 
-CustomDataLayer *BKE_id_attribute_new(
-    ID *id, const char *name, const int type, const eAttrDomain domain, ReportList *reports)
+CustomDataLayer *BKE_id_attribute_new(ID *id,
+                                      const char *name,
+                                      const eCustomDataType type,
+                                      const eAttrDomain domain,
+                                      ReportList *reports)
 {
   using namespace blender::bke;
   DomainInfo info[ATTR_DOMAIN_NUM];
@@ -500,7 +503,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 
 CustomDataLayer *BKE_id_attribute_find(const ID *id,
                                        const char *name,
-                                       const int type,
+                                       const eCustomDataType type,
                                        const eAttrDomain domain)
 {
   if (!name) {

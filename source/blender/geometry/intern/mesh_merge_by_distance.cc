@@ -1458,7 +1458,7 @@ static void customdata_weld(
   /* interpolates a layer at a time */
   dest_i = 0;
   for (src_i = 0; src_i < source->totlayer; src_i++) {
-    const int type = source->layers[src_i].type;
+    const eCustomDataType type = eCustomDataType(source->layers[src_i].type);
 
     /* find the first dest layer with type >= the source type
      * (this should work because layers are ordered by type)
@@ -1507,7 +1507,7 @@ static void customdata_weld(
 
   for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomDataLayer *layer_dst = &dest->layers[dest_i];
-    const int type = layer_dst->type;
+    const eCustomDataType type = eCustomDataType(layer_dst->type);
     if (type == CD_MEDGE) {
       /* Pass. */
     }

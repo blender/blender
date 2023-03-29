@@ -1660,7 +1660,9 @@ void BKE_object_link_modifiers(Object *ob_dst, const Object *ob_src)
 /**
  * Copy CCG related data. Used to sync copy of mesh with reshaped original mesh.
  */
-static void copy_ccg_data(Mesh *mesh_destination, Mesh *mesh_source, int layer_type)
+static void copy_ccg_data(Mesh *mesh_destination,
+                          Mesh *mesh_source,
+                          const eCustomDataType layer_type)
 {
   BLI_assert(mesh_destination->totloop == mesh_source->totloop);
   CustomData *data_destination = &mesh_destination->ldata;

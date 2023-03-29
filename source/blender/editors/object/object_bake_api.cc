@@ -1169,7 +1169,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     if (em) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
-          &em->bm->vdata, active_color_layer->type, active_color_layer->name);
+          &em->bm->vdata, eCustomDataType(active_color_layer->type), active_color_layer->name);
       BMVert *v;
       BMIter viter;
       int i = 0;
@@ -1204,7 +1204,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     if (em) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
-          &em->bm->ldata, active_color_layer->type, active_color_layer->name);
+          &em->bm->ldata, eCustomDataType(active_color_layer->type), active_color_layer->name);
       BMFace *f;
       BMIter fiter;
       int i = 0;

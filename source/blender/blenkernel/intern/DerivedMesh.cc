@@ -366,12 +366,12 @@ static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 #endif
 }
 
-void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
+void *DM_get_vert_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   return CustomData_get_layer_for_write(&dm->vertData, type, dm->getNumVerts(dm));
 }
 
-void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
+void *DM_get_edge_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   if (type == CD_MEDGE) {
     return dm->getEdgeArray(dm);
@@ -380,12 +380,12 @@ void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
   return CustomData_get_layer_for_write(&dm->edgeData, type, dm->getNumEdges(dm));
 }
 
-void *DM_get_poly_data_layer(DerivedMesh *dm, int type)
+void *DM_get_poly_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   return CustomData_get_layer_for_write(&dm->polyData, type, dm->getNumPolys(dm));
 }
 
-void *DM_get_loop_data_layer(DerivedMesh *dm, int type)
+void *DM_get_loop_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   return CustomData_get_layer_for_write(&dm->loopData, type, dm->getNumLoops(dm));
 }
@@ -488,7 +488,8 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
   return mesh;
 }
 
-static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orco, int layer)
+static void add_orco_mesh(
+    Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orco, const eCustomDataType layer)
 {
   float(*orco)[3], (*layerorco)[3];
   int totvert, free;

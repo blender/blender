@@ -516,7 +516,7 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
 
   BLI_assert(data_dst != nullptr);
 
-  item->data_type = cddata_type;
+  item->data_type = eCustomDataType(cddata_type);
   item->mix_mode = mix_mode;
   item->mix_factor = mix_factor;
   item->mix_weights = mix_weights;
@@ -581,7 +581,7 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
  * according to given parameters.
  */
 static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map,
-                                                                 const int cddata_type,
+                                                                 const eCustomDataType cddata_type,
                                                                  const int mix_mode,
                                                                  const float mix_factor,
                                                                  const float *mix_weights,
@@ -730,7 +730,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
 }
 
 static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
-                                                 const int cddata_type,
+                                                 const eCustomDataType cddata_type,
                                                  const int mix_mode,
                                                  const float mix_factor,
                                                  const float *mix_weights,
@@ -856,7 +856,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
-    int num_src = CustomData_number_of_layers(cd_src, cddata_type);
+    int num_src = CustomData_number_of_layers(cd_src, eCustomDataType(cddata_type));
     bool *use_layers_src = num_src ? static_cast<bool *>(MEM_mallocN(
                                          sizeof(*use_layers_src) * size_t(num_src), __func__)) :
                                      nullptr;
@@ -923,7 +923,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->vdata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -975,7 +975,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->edata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1048,7 +1048,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->ldata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1079,7 +1079,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->pdata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,

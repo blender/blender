@@ -133,7 +133,7 @@ typedef struct UndoSculpt {
 
 typedef struct SculptAttrRef {
   eAttrDomain domain;
-  int type;
+  eCustomDataType type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
 } SculptAttrRef;

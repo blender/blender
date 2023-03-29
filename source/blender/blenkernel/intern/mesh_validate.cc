@@ -935,12 +935,13 @@ static bool mesh_validate_customdata(CustomData *data,
 
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
+    const eCustomDataType type = eCustomDataType(layer->type);
     bool ok = true;
 
     /* Count layers when the type changes. */
-    if (layer_num_type != layer->type) {
-      layer_num = CustomData_number_of_layers(data, layer->type);
-      layer_num_type = layer->type;
+    if (layer_num_type != type) {
+      layer_num = CustomData_number_of_layers(data, type);
+      layer_num_type = type;
     }
 
     /* Validate active index, for a time this could be set to a negative value, see: #105860. */
@@ -975,33 +976,33 @@ static bool mesh_validate_customdata(CustomData *data,
       }
     }
 
-    if (CustomData_layertype_is_singleton(layer->type)) {
+    if (CustomData_layertype_is_singleton(type)) {
       if (layer_num > 1) {
         PRINT_ERR("\tCustomDataLayer type %d is a singleton, found %d in Mesh structure\n",
-                  layer->type,
+                  type,
                   layer_num);
         ok = false;
       }
     }
 
     if (mask != 0) {
-      eCustomDataMask layer_typemask = CD_TYPE_AS_MASK(layer->type);
+      eCustomDataMask layer_typemask = CD_TYPE_AS_MASK(type);
       if ((layer_typemask & mask) == 0) {
-        PRINT_ERR("\tCustomDataLayer type %d which isn't in the mask\n", layer->type);
+        PRINT_ERR("\tCustomDataLayer type %d which isn't in the mask\n", type);
         ok = false;
       }
     }
 
     if (ok == false) {
       if (do_fixes) {
-        CustomData_free_layer(data, layer->type, 0, i);
+        CustomData_free_layer(data, type, 0, i);
         has_fixes = true;
       }
     }
 
     if (ok) {
       if (CustomData_layer_validate(layer, totitems, do_fixes)) {
-        PRINT_ERR("\tCustomDataLayer type %d has some invalid data\n", layer->type);
+        PRINT_ERR("\tCustomDataLayer type %d has some invalid data\n", type);
         has_fixes = do_fixes;
       }
       i++;
