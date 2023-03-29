@@ -87,6 +87,29 @@ static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
 /** \name Internal #GWL_Window
  * \{ */
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+
+enum eGWL_PendingWindowActions {
+  /**
+   * The state of the window frame has changed, apply the state from #GWL_Window::frame_pending.
+   */
+  PENDING_WINDOW_FRAME_CONFIGURE = 0,
+  /** The EGL buffer must be resized to match #GWL_WindowFrame::size. */
+  PENDING_EGL_WINDOW_RESIZE,
+#  ifdef GHOST_OPENGL_ALPHA
+  /** Draw an opaque region behind the window. */
+  PENDING_OPAQUE_SET,
+#  endif
+  /**
+   * The DPI for a monitor has changed or the monitors (outputs)
+   * this window is visible on may have changed. Recalculate the windows scale.
+   */
+  PENDING_OUTPUT_SCALE_UPDATE,
+};
+#  define PENDING_NUM (PENDING_OUTPUT_SCALE_UPDATE + 1)
+
+#endif /* USE_EVENT_BACKGROUND_THREAD */
+
 struct GWL_WindowFrame {
   int32_t size[2] = {0, 0};
   bool is_maximised = false;
@@ -148,7 +171,7 @@ struct GWL_Window {
    * These pending actions can't be performed when WAYLAND handlers are running from a thread.
    * Postpone their execution until the main thread can handle them.
    */
-  std::atomic<bool> pending_actions[3];
+  std::atomic<bool> pending_actions[PENDING_NUM];
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 };
 
@@ -365,25 +388,6 @@ static void gwl_window_frame_pending_size_set(GWL_Window *win)
 static void gwl_window_frame_update_from_pending(GWL_Window *win);
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-
-enum eGWL_PendingWindowActions {
-  /**
-   * The state of the window frame has changed, apply the state from #GWL_Window::frame_pending.
-   */
-  PENDING_WINDOW_FRAME_CONFIGURE = 0,
-  /** The EGL buffer must be resized to match #GWL_WindowFrame::size. */
-  PENDING_EGL_WINDOW_RESIZE,
-#  ifdef GHOST_OPENGL_ALPHA
-  /** Draw an opaque region behind the window. */
-  PENDING_OPAQUE_SET,
-#  endif
-  /**
-   * The DPI for a monitor has changed or the monitors (outputs)
-   * this window is visible on may have changed. Recalculate the windows scale.
-   */
-  PENDING_OUTPUT_SCALE_UPDATE,
-};
-#  define PENDING_NUM (PENDING_OUTPUT_SCALE_UPDATE + 1)
 
 static void gwl_window_pending_actions_tag(GWL_Window *win, enum eGWL_PendingWindowActions type)
 {
