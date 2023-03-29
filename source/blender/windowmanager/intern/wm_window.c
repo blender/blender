@@ -1835,6 +1835,7 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (flag != -1) {
     return flag;
   }
+  flag = 0;
 
   const GHOST_TCapabilityFlag ghost_flag = GHOST_GetCapabilities();
   if (ghost_flag & GHOST_kCapabilityCursorWarp) {
