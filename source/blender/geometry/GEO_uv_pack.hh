@@ -72,7 +72,7 @@ class UVPackIsland_Params {
 
 class PackIsland {
  public:
-  /** Bounding rectangle of input. Will be calculated automatically in a future update. */
+  /** Calculated automatically. */
   rctf bounds_rect;
   /** Aspect ratio, required for rotation. */
   float aspect_y;

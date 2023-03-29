@@ -1388,7 +1388,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   for (int i = 0; i < island_vector.size(); i++) {
     FaceIsland *face_island = island_vector[i];
     blender::geometry::PackIsland *pack_island = new blender::geometry::PackIsland();
-    pack_island->bounds_rect = face_island->bounds_rect;
     pack_island->caller_index = i;
     pack_island->aspect_y = face_island->aspect_y;
     pack_island->angle = 0.0f;

@@ -7,6 +7,7 @@
 #include "GEO_uv_pack.hh"
 
 #include "BLI_array.hh"
+#include "BLI_bounds.hh"
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_listbase.h"
@@ -125,6 +126,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
 void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
   BLI_assert(triangle_vertices_.size() >= 3);
+
   const eUVPackIsland_ShapeMethod shape_method = params.shape_method;
   if (shape_method == ED_UVPACK_SHAPE_CONVEX) {
     /* Compute convex hull of existing triangles. */
@@ -154,6 +156,17 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
 
     BLI_heap_clear(heap, nullptr);
   }
+
+  Bounds<float2> triangle_bounds = *bounds::min_max(triangle_vertices_.as_span());
+  float2 aabb_min = triangle_bounds.min;
+  float2 aabb_max = triangle_bounds.max;
+  float2 pivot = (aabb_min + aabb_max) * 0.5f;
+  float2 half_diagonal = (aabb_max - aabb_min) * 0.5f;
+
+  bounds_rect.xmin = pivot.x - half_diagonal.x;
+  bounds_rect.ymin = pivot.y - half_diagonal.y;
+  bounds_rect.xmax = pivot.x + half_diagonal.x;
+  bounds_rect.ymax = pivot.y + half_diagonal.y;
 }
 
 UVPackIsland_Params::UVPackIsland_Params()
@@ -944,7 +957,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
       /* TODO (?): `if (max_uv < 1.0f) { scale_last /= max_uv; }` */
     }
 
-    /* Then expand FaceIslands by the correct amount. */
+    /* Then expand PackIslands by the correct amount. */
     for (const int64_t index : island_vector.index_range()) {
       BoxPack *box = &box_array[index];
       box->x /= scale_last;
@@ -998,7 +1011,7 @@ static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
     const float scale = pack_islands_margin_fraction(islands, box_array, params.margin, params);
     r_scale[0] = scale;
     r_scale[1] = scale;
-    /* pack_islands_margin_fraction will pad FaceIslands, return early. */
+    /* pack_islands_margin_fraction will pad PackIslands, return early. */
     return box_array;
   }
 
