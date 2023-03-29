@@ -101,6 +101,7 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 #endif
 
 #define ccl_gpu_kernel_call(x) ((ONEAPIKernelContext*)kg)->x
+#define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
 
 #define ccl_gpu_kernel_lambda(func, ...) \
   struct KernelLambda \
