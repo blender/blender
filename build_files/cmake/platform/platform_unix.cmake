@@ -645,7 +645,7 @@ if(WITH_GHOST_WAYLAND)
   else()
     # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
-      NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+      NAMES staging/xdg-activation/xdg-activation-v1.xml
       PATH_SUFFIXES share/wayland-protocols
       PATHS ${LIBDIR}/wayland-protocols
     )
