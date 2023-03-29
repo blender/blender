@@ -26,7 +26,9 @@ static int kHashSizes[] = {
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
 
-/* Generic hash functions. */
+/* -------------------------------------------------------------------- */
+/** \name Generic Hash Functions
+ * \{ */
 
 EHash *ccg_ehash_new(int estimatedNumEntries,
                      CCGAllocatorIFC *allocatorIFC,
@@ -128,7 +130,11 @@ void *ccg_ehash_lookup(EHash *eh, void *key)
   return entry;
 }
 
-/* Hash elements iteration. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hash Elements Iteration
+ * \{ */
 
 void ccg_ehashIterator_init(EHash *eh, EHashIterator *ehi)
 {
@@ -169,9 +175,11 @@ int ccg_ehashIterator_isStopped(EHashIterator *ehi)
   return !ehi->curEntry;
 }
 
-/**
- * Standard allocator implementation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Standard allocator implementation
+ * \{ */
 
 static void *_stdAllocator_alloc(CCGAllocatorHDL UNUSED(a), int numBytes)
 {
@@ -203,9 +211,11 @@ CCGAllocatorIFC *ccg_getStandardAllocatorIFC(void)
   return &ifc;
 }
 
-/**
- * Catmull-Clark Gridding Subdivision Surface.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name * Catmull-Clark Gridding Subdivision Surface
+ * \{ */
 
 #ifdef DUMP_RESULT_GRIDS
 void ccgSubSurf__dumpCoords(CCGSubSurf *ss)
@@ -303,3 +313,5 @@ void ccgSubSurf__dumpCoords(CCGSubSurf *ss)
   }
 }
 #endif /* DUMP_RESULT_GRIDS */
+
+/** \} */

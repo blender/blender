@@ -974,9 +974,11 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
   return params.margin * aabb_length_sum * 0.1f;
 }
 
-/**
+/* -------------------------------------------------------------------- */
+/** \name Implement `pack_islands`
+ *
  * Smooth differences between old API and new API by converting between storage representations.
- */
+ * \{ */
 
 static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
                                        const UVPackIsland_Params &params,
@@ -1049,5 +1051,7 @@ void pack_islands(const Span<PackIsland *> &islands,
 
   MEM_freeN(box_array);
 }
+
+/** \} */
 
 }  // namespace blender::geometry

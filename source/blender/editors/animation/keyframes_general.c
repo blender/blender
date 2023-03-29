@@ -85,8 +85,9 @@ bool duplicate_fcurve_keys(FCurve *fcu)
   return changed;
 }
 
-/* **************************************************** */
-/* Various Tools */
+/* -------------------------------------------------------------------- */
+/** \name Various Tools
+ * \{ */
 
 void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
@@ -503,7 +504,11 @@ void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float f
   }
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Decimate
+ * \{ */
 
 /* Check if the keyframe interpolation type is supported */
 static bool prepare_for_decimate(FCurve *fcu, int i)
@@ -624,7 +629,11 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
   return can_decimate_all_selected;
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Smooth
+ * \{ */
 
 /* temp struct used for smooth_fcurve */
 typedef struct tSmooth_Bezt {
@@ -728,7 +737,11 @@ void smooth_fcurve(FCurve *fcu)
   BKE_fcurve_handles_recalc(fcu);
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Sample
+ * \{ */
 
 /* little cache for values... */
 typedef struct TempFrameValCache {
@@ -821,15 +834,18 @@ void sample_fcurve(FCurve *fcu)
   BKE_fcurve_handles_recalc(fcu);
 }
 
-/* **************************************************** */
-/* Copy/Paste Tools:
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy/Paste Tools
+ *
  * - The copy/paste buffer currently stores a set of temporary F-Curves containing only the
  *   keyframes that were selected in each of the original F-Curves.
  * - All pasted frames are offset by the same amount.
  *   This is calculated as the difference in the times of the current frame and the
- *   'first keyframe' (i.e. the earliest one in all channels).
+ *   `first keyframe` (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
- */
+ * \{ */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
 static ListBase animcopybuf = {NULL, NULL};
@@ -1470,4 +1486,4 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   return KEYFRAME_PASTE_OK;
 }
 
-/* **************************************************** */
+/** \} */
