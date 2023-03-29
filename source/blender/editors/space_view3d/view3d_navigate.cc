@@ -110,7 +110,7 @@ void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3D_OpPro
 void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3])
 {
   const float radius = V3D_OP_TRACKBALLSIZE;
-  const float t = radius / (float)M_SQRT2;
+  const float t = radius / float(M_SQRT2);
   const float size[2] = {float(BLI_rcti_size_x(rect)), float(BLI_rcti_size_y(rect))};
   /* Aspect correct so dragging in a non-square view doesn't squash the direction.
    * So diagonal motion rotates the same direction the cursor is moving. */
@@ -217,7 +217,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
       }
     }
     if (tot) {
-      mul_v3_fl(select_center, 1.0f / (float)tot);
+      mul_v3_fl(select_center, 1.0f / float(tot));
       copy_v3_v3(lastofs, select_center);
       is_set = true;
     }
@@ -382,8 +382,8 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
         negate_v3_v3(rv3d->ofs, dvec);
       }
       else {
-        const float mval_region_mid[2] = {(float)vod->region->winx / 2.0f,
-                                          (float)vod->region->winy / 2.0f};
+        const float mval_region_mid[2] = {float(vod->region->winx) / 2.0f,
+                                          float(vod->region->winy) / 2.0f};
 
         ED_view3d_win_to_3d(vod->v3d, vod->region, vod->dyn_ofs, mval_region_mid, rv3d->ofs);
         negate_v3(rv3d->ofs);
@@ -564,8 +564,8 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
     ED_view3d_camera_view_pan(vod->region, event_ofs);
   }
   else if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
-    vod->rv3d->ofs_lock[0] -= (event_ofs[0] * 2.0f) / (float)vod->region->winx;
-    vod->rv3d->ofs_lock[1] -= (event_ofs[1] * 2.0f) / (float)vod->region->winy;
+    vod->rv3d->ofs_lock[0] -= (event_ofs[0] * 2.0f) / float(vod->region->winx);
+    vod->rv3d->ofs_lock[1] -= (event_ofs[1] * 2.0f) / float(vod->region->winy);
   }
   else {
     float dvec[3];
@@ -1445,7 +1445,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* support for switching to the opposite view (even when in locked views) */
-  view_opposite = (fabsf(angle) == (float)M_PI) ? ED_view3d_axis_view_opposite(rv3d->view) :
+  view_opposite = (fabsf(angle) == float(M_PI)) ? ED_view3d_axis_view_opposite(rv3d->view) :
                                                   RV3D_VIEW_USER;
   orbitdir = RNA_enum_get(op->ptr, "type");
 
