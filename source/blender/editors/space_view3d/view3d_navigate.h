@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,6 +57,7 @@ enum {
 };
 
 enum eViewOpsFlag {
+  VIEWOPS_FLAG_NONE = 0,
   /** When enabled, rotate around the selection. */
   VIEWOPS_FLAG_ORBIT_SELECT = (1 << 0),
   /** When enabled, use the depth under the cursor for navigation. */
@@ -68,6 +71,7 @@ enum eViewOpsFlag {
   /** When set, ignore any options that depend on initial cursor location. */
   VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 };
+ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_USE_MOUSE_INIT);
 
 /** Generic View Operator Custom-Data */
 typedef struct ViewOpsData {
@@ -148,7 +152,7 @@ typedef struct ViewOpsData {
   bool use_dyn_ofs;
 } ViewOpsData;
 
-/* view3d_navigate.c */
+/* view3d_navigate.cc */
 
 bool view3d_location_poll(struct bContext *C);
 bool view3d_rotation_poll(struct bContext *C);
