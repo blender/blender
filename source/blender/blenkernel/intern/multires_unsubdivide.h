@@ -53,7 +53,7 @@ typedef struct MultiresUnsubdivideContext {
   /* Private data. */
   struct BMesh *bm_original_mesh;
   int *loop_to_face_map;
-  int *base_to_orig_vmap;
+  const int *base_to_orig_vmap;
 } MultiresUnsubdivideContext;
 
 /* --------------------------------------------------------------------
