@@ -787,9 +787,10 @@ eGPUMaterialFlag GPU_material_flag(const GPUMaterial *mat)
   return mat->flag;
 }
 
-/* NOTE: Consumes the flags. */
 bool GPU_material_recalc_flag_get(GPUMaterial *mat)
 {
+  /* NOTE: Consumes the flags. */
+
   bool updated = (mat->flag & GPU_MATFLAG_UPDATED) != 0;
   mat->flag &= ~GPU_MATFLAG_UPDATED;
   return updated;

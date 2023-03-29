@@ -6814,8 +6814,7 @@ static void sort_bmelem_flag(bContext *C,
         /* Multiplying with totface and adding i ensures us
          * we keep current order for all faces of same mat. */
         sb[affected[2]++].srt = srt * float(totelem[2]) + float(i);
-        // printf("e: %d; srt: %f; final: %f\n",
-        //        i, srt, srt * ((float)totface) + ((float)i));
+        // printf("e: %d; srt: %f; final: %f\n", i, srt, srt * float(totface) + float(i));
       }
       else {
         pb[i] = true;

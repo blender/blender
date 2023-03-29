@@ -104,8 +104,23 @@ void lineart_count_and_print_render_buffer_memory(struct LineartData *ld);
 
 #define LRT_EDGE_BA_MARCHING_END
 
+/**
+ * All internal functions starting with lineart_main_ is called inside
+ * #MOD_lineart_compute_feature_lines function.
+ * This function handles all occlusion calculation.
+ */
 void lineart_main_occlusion_begin(struct LineartData *ld);
+/**
+ * This function cuts triangles with near- or far-plane. Setting clip_far = true for cutting with
+ * far-plane. For triangles that's crossing the plane, it will generate new 1 or 2 triangles with
+ * new topology that represents the trimmed triangle. (which then became a triangle or a square
+ * formed by two triangles)
+ */
 void lineart_main_cull_triangles(struct LineartData *ld, bool clip_far);
+/**
+ * Adjacent data is only used during the initial stages of computing.
+ * So we can free it using this function when it is not needed anymore.
+ */
 void lineart_main_free_adjacent_data(struct LineartData *ld);
 void lineart_main_perspective_division(struct LineartData *ld);
 void lineart_main_discard_out_of_frame_edges(struct LineartData *ld);
@@ -116,12 +131,31 @@ void lineart_main_load_geometries(struct Depsgraph *depsgraph,
                                   bool allow_duplicates,
                                   bool do_shadow_casting,
                                   struct ListBase *shadow_elns);
+/**
+ * The calculated view vector will point towards the far-plane from the camera position.
+ */
 void lineart_main_get_view_vector(struct LineartData *ld);
 void lineart_main_bounding_area_make_initial(struct LineartData *ld);
 void lineart_main_bounding_areas_connect_post(struct LineartData *ld);
 void lineart_main_clear_linked_edges(struct LineartData *ld);
+/**
+ * Link lines to their respective bounding areas.
+ */
 void lineart_main_link_lines(struct LineartData *ld);
+/**
+ * Sequentially add triangles into render buffer, intersection lines between those triangles will
+ * also be computed at the same time.
+ */
 void lineart_main_add_triangles(struct LineartData *ld);
+/**
+ * This call would internally duplicate #original_ld, override necessary configurations for shadow
+ * computations. It will return:
+ *
+ * 1) Generated shadow edges in format of `LineartElementLinkNode` which can be directly loaded
+ * into later main view camera occlusion stage.
+ * 2) Shadow render buffer if 3rd stage reprojection is need for silhouette/lit/shaded region
+ * selection. Otherwise the shadow render buffer is deleted before this function returns.
+ */
 bool lineart_main_try_generate_shadow(struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       struct LineartData *original_ld,
@@ -131,7 +165,15 @@ bool lineart_main_try_generate_shadow(struct Depsgraph *depsgraph,
                                       struct LineartElementLinkNode **r_eeln,
                                       struct ListBase *r_calculated_edges_eln_list,
                                       struct LineartData **r_shadow_ld_if_reproject);
+/**
+ * Does the 3rd stage reprojection, will not re-load objects because #shadow_ld is not deleted.
+ * Only re-projects view camera edges and check visibility in light camera, then we can determine
+ * whether an edge landed on a lit or shaded area.
+ */
 void lineart_main_make_enclosed_shapes(struct LineartData *ld, struct LineartData *shadow_ld);
+/**
+ * Shadow segments needs to be transformed to view-camera space, just like any other objects.
+ */
 void lineart_main_transform_and_add_shadow(struct LineartData *ld,
                                            struct LineartElementLinkNode *veln,
                                            struct LineartElementLinkNode *eeln);
@@ -140,6 +182,10 @@ LineartElementLinkNode *lineart_find_matching_eln(struct ListBase *shadow_elns, 
 LineartElementLinkNode *lineart_find_matching_eln_obj(struct ListBase *elns, struct Object *ob);
 LineartEdge *lineart_find_matching_edge(struct LineartElementLinkNode *shadow_eln,
                                         uint64_t edge_identifier);
+/**
+ * Cuts the original edge based on the occlusion results under light-camera, if segment
+ * is occluded in light-camera, then that segment on the original edge must be shaded.
+ */
 void lineart_register_shadow_cuts(struct LineartData *ld,
                                   struct LineartEdge *e,
                                   struct LineartEdge *shadow_edge);
@@ -149,9 +195,17 @@ void lineart_register_intersection_shadow_cuts(struct LineartData *ld,
 bool lineart_edge_from_triangle(const struct LineartTriangle *tri,
                                 const struct LineartEdge *e,
                                 bool allow_overlapping_edges);
+/**
+ * This function gets the tile for the point `e->v1`, and later use #lineart_bounding_area_next()
+ * to get next along the way.
+ */
 LineartBoundingArea *lineart_edge_first_bounding_area(struct LineartData *ld,
                                                       double *fbcoord1,
                                                       double *fbcoord2);
+/**
+ * This march along one render line in image space and
+ * get the next bounding area the line is crossing.
+ */
 LineartBoundingArea *lineart_bounding_area_next(struct LineartBoundingArea *self,
                                                 double *fbcoord1,
                                                 double *fbcoord2,
@@ -162,6 +216,9 @@ LineartBoundingArea *lineart_bounding_area_next(struct LineartBoundingArea *self
                                                 int positive_y,
                                                 double *next_x,
                                                 double *next_y);
+/**
+ * Cuts the edge in image space and mark occlusion level for each segment.
+ */
 void lineart_edge_cut(struct LineartData *ld,
                       struct LineartEdge *e,
                       double start,

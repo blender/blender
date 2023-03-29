@@ -226,9 +226,10 @@ void ntreeCompositTagRender(Scene *scene)
   BKE_ntree_update_main(G_MAIN, nullptr);
 }
 
-/* XXX after render animation system gets a refresh, this call allows composite to end clean */
 void ntreeCompositClearTags(bNodeTree *ntree)
 {
+  /* XXX: after render animation system gets a refresh, this call allows composite to end clean. */
+
   if (ntree == nullptr) {
     return;
   }

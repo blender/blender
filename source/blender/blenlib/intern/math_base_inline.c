@@ -362,9 +362,6 @@ MINLINE int divide_floor_i(int a, int b)
   return r ? d - ((a < 0) ^ (b < 0)) : d;
 }
 
-/**
- * Integer division that returns the ceiling, instead of flooring like normal C division.
- */
 MINLINE uint divide_ceil_u(uint a, uint b)
 {
   return (a + b - 1) / b;
@@ -375,9 +372,6 @@ MINLINE uint64_t divide_ceil_ul(uint64_t a, uint64_t b)
   return (a + b - 1) / b;
 }
 
-/**
- * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
- */
 MINLINE uint ceil_to_multiple_u(uint a, uint b)
 {
   return divide_ceil_u(a, b) * b;

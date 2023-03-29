@@ -114,7 +114,7 @@ struct GWL_Window {
    */
   wl_fixed_t scale_fractional = 0;
 
-  /** A temporary token used for the window to be notified of of it's activation. */
+  /** A temporary token used for the window to be notified of it's activation. */
   struct xdg_activation_token_v1 *xdg_activation_token = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -1188,9 +1188,25 @@ uint16_t GHOST_WindowWayland::getDPIHint()
   /* No need to lock `server_mutex`
    * (`outputs_changed_update_scale` never changes values in a non-main thread). */
 
+  const wl_fixed_t scale_fractional = window_->scale_fractional;
+  GHOST_ASSERT(wl_fixed_from_int(window_->scale) >= scale_fractional,
+               "Fractional scale should always be less than the fixed scale.");
+
   /* Using the physical DPI will cause wrong scaling of the UI
    * use a multiplier for the default DPI as a workaround. */
-  return wl_fixed_to_int(window_->scale_fractional * base_dpi);
+  if (wl_fixed_from_int(window_->scale) == scale_fractional || window_->scale <= 1) {
+    /* No fractional scaling. */
+    return window_->scale * base_dpi;
+  }
+  const int scale_ceil = window_->scale;
+  const int scale_floor = scale_ceil - 1;
+  const wl_fixed_t scale_fractional_final = wl_fixed_to_int(
+      scale_fractional *
+      /* Compensate for the buffer being rendered at `window_->scale`,
+       * then scaled down fractionally. */
+      (wl_fixed_from_int(1) + ((wl_fixed_from_int(scale_ceil) - scale_fractional) / scale_floor)));
+
+  return wl_fixed_to_int(scale_fractional_final * base_dpi);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)

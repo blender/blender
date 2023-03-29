@@ -140,9 +140,10 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
-/* Similar to #ui_but_find_mouse_over_ex(). */
 uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
+  /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
+
   if (!ui_region_contains_point_px(region, xy)) {
     return nullptr;
   }

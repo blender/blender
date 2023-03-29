@@ -182,7 +182,6 @@ static OPJ_BOOL opj_seek_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
  * Stream wrapper for memory buffer
  * (would be nice if this was supported by the API).
  */
-
 static opj_stream_t *opj_stream_create_from_buffer(struct BufInfo *p_file,
                                                    OPJ_UINT32 p_size,
                                                    OPJ_BOOL p_is_read_stream)

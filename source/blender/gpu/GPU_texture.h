@@ -424,7 +424,7 @@ void GPU_unpack_row_length_set(uint len);
  * Update the content of a texture's base mip-map level (mip 0).
  * \a data_format is the format of the \a data . It needs to be compatible with the internal
  * texture storage.
- * The \a data should be be the size of the entire mip 0 level.
+ * The \a data should be the size of the entire mip 0 level.
  * \note This function only update the content of mip 0. Either specify other mips or use
  * `GPU_texture_update_mipmap_chain` to generate them if needed.
  */
@@ -434,7 +434,7 @@ void GPU_texture_update(GPUTexture *texture, eGPUDataFormat data_format, const v
  * Update the content of a region of a texture's base mip-map level (mip 0).
  * \a data_format is the format of the \a data . It needs to be compatible with the internal
  * texture storage.
- * The \a data should be be the size of the mip 0 level region.
+ * The \a data should be the size of the mip 0 level region.
  * \note This function only update the content of mip 0. Either specify other mips or use
  * `GPU_texture_update_mipmap_chain` to generate them if needed.
  *
@@ -455,7 +455,7 @@ void GPU_texture_update_sub(GPUTexture *texture,
  * Update the content of a texture's specific mip-map level.
  * \a data_format is the format of the \a pixels . It needs to be compatible with the internal
  * texture storage.
- * The \a data should be be the size of the entire \a mip_level .
+ * The \a data should be the size of the entire \a mip_level .
  */
 void GPU_texture_update_mipmap(GPUTexture *texture,
                                int mip_level,

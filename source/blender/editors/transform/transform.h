@@ -811,6 +811,10 @@ void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 void calculateCenter(TransInfo *t);
+/**
+ * Called every time the view changes due to navigation.
+ * Adjusts the mouse position relative to the object.
+ */
 void tranformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points */

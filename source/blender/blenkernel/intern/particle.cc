@@ -5305,6 +5305,7 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 }
 
 /* Draw Engine */
+
 void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys, int mode) = nullptr;
 void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = nullptr;
 

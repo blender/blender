@@ -96,8 +96,6 @@ static bool lineart_contour_viewed_from_dark_side(LineartData *ld, LineartEdge *
   return false;
 }
 
-/* Cuts the original edge based on the occlusion results under light-camera, if segment
- * is occluded in light-camera, then that segment on the original edge must be shaded. */
 void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *shadow_edge)
 {
   LISTBASE_FOREACH (LineartEdgeSegment *, es, &shadow_edge->segments) {
@@ -1120,14 +1118,6 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
   }
 }
 
-/* This call would internally duplicate #original_ld, override necessary configurations for shadow
- * computations. It will return:
- *
- * 1) Generated shadow edges in format of `LineartElementLinkNode` which can be directly loaded
- * into later main view camera occlusion stage.
- * 2) Shadow render buffer if 3rd stage reprojection is need for silhouette/lit/shaded region
- * selection. Otherwise the shadow render buffer is deleted before this function returns.
- */
 bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
                                       Scene *scene,
                                       LineartData *original_ld,
@@ -1326,8 +1316,6 @@ static void lineart_shadow_finalize_shadow_edges_task(
   }
 }
 
-/* Shadow segments needs to be transformed to view-camera space, just like any other objects.
- */
 void lineart_main_transform_and_add_shadow(LineartData *ld,
                                            LineartElementLinkNode *veln,
                                            LineartElementLinkNode *eeln)
@@ -1358,9 +1346,6 @@ void lineart_main_transform_and_add_shadow(LineartData *ld,
   BLI_addtail(&ld->geom.line_buffer_pointers, eeln);
 }
 
-/* Does the 3rd stage reprojection, will not re-load objects because #shadow_ld is not deleted.
- * Only re-projects view camera edges and check visibility in light camera, then we can determine
- * whether an edge landed on a lit or shaded area. */
 void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
 {
   double t_start;

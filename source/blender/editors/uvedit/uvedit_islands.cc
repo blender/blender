@@ -104,9 +104,6 @@ static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
   return true;
 }
 
-/**
- * Calculate islands and add them to \a island_list returning the number of items added.
- */
 int bm_mesh_calc_uv_islands(const Scene *scene,
                             BMesh *bm,
                             ListBase *island_list,

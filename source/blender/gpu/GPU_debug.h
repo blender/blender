@@ -78,7 +78,7 @@ void GPU_debug_capture_end(void);
  * Frame capture tool can perform a deferred capture of GPU API calls within the boundary upon user
  * request.
  *
- * \param name Unique name of capture scope displayed within capture tool.
+ * \param name: Unique name of capture scope displayed within capture tool.
  * \return pointer wrapping an API-specific capture scope object.
  * \note a capture scope should be created a single time and only used within one begin/end pair.
  */

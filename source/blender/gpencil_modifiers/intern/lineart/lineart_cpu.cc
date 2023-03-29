@@ -147,9 +147,6 @@ static LineartEdgeSegment *lineart_give_segment(LineartData *ld)
                                                           sizeof(LineartEdgeSegment));
 }
 
-/**
- * Cuts the edge in image space and mark occlusion level for each segment.
- */
 void lineart_edge_cut(LineartData *ld,
                       LineartEdge *e,
                       double start,
@@ -458,11 +455,6 @@ static void lineart_occlusion_worker(TaskPool *__restrict /*pool*/, LineartRende
   }
 }
 
-/**
- * All internal functions starting with lineart_main_ is called inside
- * #MOD_lineart_compute_feature_lines function.
- * This function handles all occlusion calculation.
- */
 void lineart_main_occlusion_begin(LineartData *ld)
 {
   int thread_count = ld->thread_count;
@@ -1207,12 +1199,6 @@ static void lineart_triangle_cull_single(LineartData *ld,
 #undef REMOVE_TRIANGLE_EDGE
 }
 
-/**
- * This function cuts triangles with near- or far-plane. Setting clip_far = true for cutting with
- * far-plane. For triangles that's crossing the plane, it will generate new 1 or 2 triangles with
- * new topology that represents the trimmed triangle. (which then became a triangle or a square
- * formed by two triangles)
- */
 void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 {
   LineartTriangle *tri;
@@ -1345,10 +1331,6 @@ void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 #undef LRT_CULL_DECIDE_INSIDE
 }
 
-/**
- * Adjacent data is only used during the initial stages of computing.
- * So we can free it using this function when it is not needed anymore.
- */
 void lineart_main_free_adjacent_data(LineartData *ld)
 {
   LinkData *link;
@@ -1746,10 +1728,11 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
   lineart_add_edge_to_array(&obi->pending_edges, e);
 }
 
-/* NOTE: For simplicity, this function doesn't actually do anything if you already have data in
- * #pe. */
 void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {
+  /* NOTE: For simplicity, this function doesn't actually do anything
+   * if you already have data in #pe. */
+
   if (pe->max || pe->array || count == 0) {
     return;
   }
@@ -3437,9 +3420,6 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
   }
 }
 
-/**
- * The calculated view vector will point towards the far-plane from the camera position.
- */
 void lineart_main_get_view_vector(LineartData *ld)
 {
   float direction[3] = {0, 0, 1};
@@ -4291,9 +4271,6 @@ void lineart_main_clear_linked_edges(LineartData *ld)
   }
 }
 
-/**
- * Link lines to their respective bounding areas.
- */
 void lineart_main_link_lines(LineartData *ld)
 {
   LRT_ITER_ALL_LINES_BEGIN
@@ -4678,10 +4655,6 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
   }
 }
 
-/**
- * Sequentially add triangles into render buffer, intersection lines between those triangles will
- * also be computed at the same time.
- */
 void lineart_main_add_triangles(LineartData *ld)
 {
   double t_start;
@@ -4714,10 +4687,6 @@ void lineart_main_add_triangles(LineartData *ld)
   }
 }
 
-/**
- * This function gets the tile for the point `e->v1`, and later use #lineart_bounding_area_next()
- * to get next along the way.
- */
 LineartBoundingArea *lineart_edge_first_bounding_area(LineartData *ld,
                                                       double *fbcoord1,
                                                       double *fbcoord2)
@@ -4748,10 +4717,6 @@ LineartBoundingArea *lineart_edge_first_bounding_area(LineartData *ld,
   return lineart_get_bounding_area(ld, data[0], data[1]);
 }
 
-/**
- * This march along one render line in image space and
- * get the next bounding area the line is crossing.
- */
 LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
                                                 double *fbcoord1,
                                                 double *fbcoord2,
@@ -4972,11 +4937,6 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
   return nullptr;
 }
 
-/**
- * This is the entry point of all line art calculations.
- *
- * \return True when a change is made.
- */
 bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
                                        LineartGpencilModifierData *lmd,
                                        LineartCache **cached_result,

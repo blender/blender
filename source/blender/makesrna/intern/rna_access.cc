@@ -752,7 +752,6 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
   return nullptr;
 }
 
-/* Find the property which uses the given nested struct */
 PropertyRNA *rna_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 {
   PropertyRNA *prop = nullptr;

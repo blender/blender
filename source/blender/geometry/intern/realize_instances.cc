@@ -229,8 +229,8 @@ struct GatherTasks {
 
   /* Volumes only have very simple support currently. Only the first found volume is put into the
    * output. */
-  UserCounter<const VolumeComponent> first_volume;
-  UserCounter<const GeometryComponentEditData> first_edit_data;
+  ImplicitSharingPtr<const VolumeComponent> first_volume;
+  ImplicitSharingPtr<const GeometryComponentEditData> first_edit_data;
 };
 
 /** Current offsets while during the gather operation. */
@@ -611,7 +611,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       case GEO_COMPONENT_TYPE_VOLUME: {
         const VolumeComponent *volume_component = static_cast<const VolumeComponent *>(component);
         if (!gather_info.r_tasks.first_volume) {
-          volume_component->user_add();
+          volume_component->add_user();
           gather_info.r_tasks.first_volume = volume_component;
         }
         break;
@@ -620,7 +620,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const GeometryComponentEditData *edit_component =
             static_cast<const GeometryComponentEditData *>(component);
         if (!gather_info.r_tasks.first_edit_data) {
-          edit_component->user_add();
+          edit_component->add_user();
           gather_info.r_tasks.first_edit_data = edit_component;
         }
         break;

@@ -149,9 +149,9 @@ static ScanFillVert *scanfill_vert_add_v2_with_depth(ScanFillContext *sf_ctx,
  * each #MaskRasterLayer does its own lookup which contributes to
  * the final pixel with its own blending mode and the final pixel
  * is blended between these.
+ *
+ * \note internal use only.
  */
-
-/* internal use only */
 typedef struct MaskRasterLayer {
   /* geometry */
   uint face_tot;

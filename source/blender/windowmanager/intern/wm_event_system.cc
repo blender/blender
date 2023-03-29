@@ -341,9 +341,10 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
   BLI_addtail(&wm->notifier_queue, note);
 }
 
-/* XXX: in future, which notifiers to send to other windows? */
 void WM_event_add_notifier(const bContext *C, uint type, void *reference)
 {
+  /* XXX: in future, which notifiers to send to other windows? */
+
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 

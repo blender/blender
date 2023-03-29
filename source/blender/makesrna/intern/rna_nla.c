@@ -23,7 +23,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* enum defines exported for rna_animation.c */
+/* Enum defines exported for `rna_animation.c`. */
+
 const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
     {NLASTRIP_MODE_REPLACE,
      "REPLACE",

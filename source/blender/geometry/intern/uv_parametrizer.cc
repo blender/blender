@@ -3721,15 +3721,6 @@ struct GeoUVPinIndex {
   ParamKey reindex;
 };
 
-/**
- * Find a (mostly) unique #ParamKey given a #BMVert index and UV co-ordinates.
- * For each unique pinned UVs, return a unique #ParamKey, starting with
- * a very large number, and decreasing steadily from there.
- * For non-pinned UVs which share a #BMVert with a pinned UV,
- * return the index corresponding to the closest pinned UV.
- * For everything else, just return the #BMVert index.
- * Note that #ParamKeys will eventually be hashed, so they don't need to be contiguous.
- */
 ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
 {
   if (!handle->pin_hash) {
@@ -4153,7 +4144,17 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   }
 
   uv_parametrizer_scale_x(handle, 1.0f / handle->aspect_y);
+
   Vector<PackIsland *> pack_island_vector;
+
+  UVPackIsland_Params params;
+  params.rotate = do_rotate;
+  params.margin = margin;
+  params.margin_method = ED_UVPACK_MARGIN_SCALED;
+
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new();
+
   int unpacked = 0;
   for (int i = 0; i < handle->ncharts; i++) {
     PChart *chart = handle->charts[i];
@@ -4168,21 +4169,19 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     pack_island->caller_index = i;
     pack_island->aspect_y = handle->aspect_y;
     pack_island->angle = 0.0f;
+
+    for (PFace *f = chart->faces; f; f = f->nextlink) {
+      PVert *v0 = f->edge->vert;
+      PVert *v1 = f->edge->next->vert;
+      PVert *v2 = f->edge->next->next->vert;
+      pack_island->add_triangle(v0->uv, v1->uv, v2->uv);
+    }
+    pack_island->finalize_geometry(params, arena, heap);
+
     pack_island_vector.append(pack_island);
-
-    float minv[2];
-    float maxv[2];
-    p_chart_uv_bbox(chart, minv, maxv);
-    pack_island->bounds_rect.xmin = minv[0];
-    pack_island->bounds_rect.ymin = minv[1];
-    pack_island->bounds_rect.xmax = maxv[0];
-    pack_island->bounds_rect.ymax = maxv[1];
   }
-
-  UVPackIsland_Params params;
-  params.rotate = do_rotate;
-  params.margin = margin;
-  params.margin_method = ED_UVPACK_MARGIN_SCALED;
+  BLI_heap_free(heap, nullptr);
+  BLI_memarena_free(arena);
 
   float scale[2] = {1.0f, 1.0f};
   pack_islands(pack_island_vector, params, scale);

@@ -90,6 +90,10 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
   if ((but->type == UI_BTYPE_LISTROW) && labeledit) {
     return false;
   }
+  if (but->type == UI_BTYPE_VIEW_ITEM) {
+    const uiButViewItem *but_item = static_cast<const uiButViewItem *>(but);
+    return UI_view_item_is_interactive(but_item->view_item);
+  }
 
   return true;
 }

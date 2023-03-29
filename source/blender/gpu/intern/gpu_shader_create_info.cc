@@ -500,7 +500,6 @@ bool gpu_shader_create_info_compile_all()
   return success == total;
 }
 
-/* Runtime create infos are not registered in the dictionary and cannot be searched. */
 const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   if (g_create_infos->contains(info_name) == false) {
