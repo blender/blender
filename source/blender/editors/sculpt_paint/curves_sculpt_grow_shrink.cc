@@ -52,7 +52,8 @@ class CurvesEffect {
   virtual ~CurvesEffect() = default;
   virtual void execute(CurvesGeometry &curves,
                        Span<int> curve_indices,
-                       Span<float> move_distances_cu) = 0;
+                       Span<float> move_distances_cu,
+                       MutableSpan<float3> positions_cu) = 0;
 };
 
 /**
@@ -85,10 +86,10 @@ class ShrinkCurvesEffect : public CurvesEffect {
 
   void execute(CurvesGeometry &curves,
                const Span<int> curve_indices,
-               const Span<float> move_distances_cu) override
+               const Span<float> move_distances_cu,
+               MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       ParameterizationBuffers data;
       for (const int influence_i : range) {
@@ -135,10 +136,10 @@ class ShrinkCurvesEffect : public CurvesEffect {
 class ExtrapolateCurvesEffect : public CurvesEffect {
   void execute(CurvesGeometry &curves,
                const Span<int> curve_indices,
-               const Span<float> move_distances_cu) override
+               const Span<float> move_distances_cu,
+               MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int influence_i : range) {
@@ -175,10 +176,10 @@ class ScaleCurvesEffect : public CurvesEffect {
 
   void execute(CurvesGeometry &curves,
                const Span<int> curve_indices,
-               const Span<float> move_distances_cu) override
+               const Span<float> move_distances_cu,
+               MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
@@ -322,9 +323,11 @@ struct CurvesEffectOperationExecutor {
     }
 
     /* Execute effect. */
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
     threading::parallel_for_each(influences_for_thread, [&](const Influences &influences) {
       BLI_assert(influences.curve_indices.size() == influences.move_distances_cu.size());
-      self_->effect_->execute(*curves_, influences.curve_indices, influences.move_distances_cu);
+      self_->effect_->execute(
+          *curves_, influences.curve_indices, influences.move_distances_cu, positions_cu);
     });
 
     curves_->tag_positions_changed();
