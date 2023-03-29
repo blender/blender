@@ -49,9 +49,12 @@ struct UV_vertex_key {
 };
 
 void generate_vertex_map(const Mesh *mesh,
-                         const float2 *uv_map,
                          const PLYExportParams &export_params,
-                         Map<UV_vertex_key, int> &r_map);
+                         Vector<int> &r_ply_to_vertex,
+                         Vector<int> &r_vertex_to_ply,
+                         Vector<int> &r_loop_to_ply,
+                         Vector<float2> &r_uvs);
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params);
+
 }  // namespace blender::io::ply

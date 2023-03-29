@@ -10,7 +10,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -111,73 +110,51 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       manually_free_mesh = true;
     }
 
-    const float2 *uv_map = static_cast<const float2 *>(
-        CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
-
-    Map<UV_vertex_key, int> vertex_map;
-    generate_vertex_map(mesh, uv_map, export_params, vertex_map);
+    Vector<int> ply_to_vertex, vertex_to_ply, loop_to_ply;
+    Vector<float2> uvs;
+    generate_vertex_map(mesh, export_params, ply_to_vertex, vertex_to_ply, loop_to_ply, uvs);
 
     set_world_axes_transform(
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
 
-    /* Load faces into plyData. */
+    /* Face data. */
     plyData.face_vertices.reserve(mesh->totloop);
     plyData.face_sizes.reserve(mesh->totpoly);
     int loop_offset = 0;
-    const Span<int> corner_verts = mesh->corner_verts();
     for (const MPoly &poly : mesh->polys()) {
-      const Span<int> mesh_poly_verts = corner_verts.slice(poly.loopstart, poly.totloop);
-      Array<uint32_t> poly_verts(mesh_poly_verts.size());
-
-      for (int i = 0; i < mesh_poly_verts.size(); ++i) {
-        float2 uv;
-        if (export_params.export_uv && uv_map != nullptr) {
-          uv = uv_map[i + loop_offset];
-        }
-        else {
-          uv = {0, 0};
-        }
-        UV_vertex_key key = UV_vertex_key(uv, mesh_poly_verts[i]);
-        int ply_vertex_index = vertex_map.lookup(key);
-        plyData.face_vertices.append(ply_vertex_index + vertex_offset);
+      for (int i = 0; i < poly.totloop; ++i) {
+        int ply_index = loop_to_ply[i + loop_offset];
+        BLI_assert(ply_index >= 0 && ply_index < ply_to_vertex.size());
+        plyData.face_vertices.append(ply_index + vertex_offset);
       }
       loop_offset += poly.totloop;
       plyData.face_sizes.append(poly.totloop);
     }
 
-    Array<int> mesh_vertex_index_LUT(vertex_map.size());
-    Array<int> ply_vertex_index_LUT(mesh->totvert);
-    Array<float2> uv_coordinates(vertex_map.size());
-
-    for (auto const &[key, ply_vertex_index] : vertex_map.items()) {
-      mesh_vertex_index_LUT[ply_vertex_index] = key.mesh_vertex_index;
-      ply_vertex_index_LUT[key.mesh_vertex_index] = ply_vertex_index;
-      uv_coordinates[ply_vertex_index] = key.UV;
-    }
-
     /* Vertices */
-    for (int i = 0; i < vertex_map.size(); ++i) {
-      float3 r_coords;
-      copy_v3_v3(r_coords, mesh->vert_positions()[mesh_vertex_index_LUT[i]]);
-      mul_m4_v3(world_and_axes_transform_, r_coords);
-      mul_v3_fl(r_coords, export_params.global_scale);
-      plyData.vertices.append(r_coords);
+    plyData.vertices.reserve(ply_to_vertex.size());
+    Span<float3> vert_positions = mesh->vert_positions();
+    for (int vertex_index : ply_to_vertex) {
+      float3 pos = vert_positions[vertex_index];
+      mul_m4_v3(world_and_axes_transform_, pos);
+      mul_v3_fl(pos, export_params.global_scale);
+      plyData.vertices.append(pos);
     }
 
     /* UV's */
-    if (export_params.export_uv) {
-      for (int i = 0; i < vertex_map.size(); ++i) {
-        plyData.uv_coordinates.append(uv_coordinates[i]);
-      }
+    if (!uvs.is_empty()) {
+      BLI_assert(uvs.size() == ply_to_vertex.size());
+      plyData.uv_coordinates = uvs;
     }
 
     /* Normals */
     if (export_params.export_normals) {
+      plyData.vertex_normals.reserve(ply_to_vertex.size());
       const Span<float3> vert_normals = mesh->vert_normals();
-      for (int i = 0; i < vertex_map.size(); i++) {
-        mul_m3_v3(world_and_axes_normal_transform_,
-                  float3(vert_normals[mesh_vertex_index_LUT[i]]));
-        plyData.vertex_normals.append(vert_normals[mesh_vertex_index_LUT[i]]);
+      for (int vertex_index : ply_to_vertex) {
+        float3 normal = vert_normals[vertex_index];
+        mul_m3_v3(world_and_axes_normal_transform_, normal);
+        plyData.vertex_normals.append(normal);
       }
     }
 
@@ -189,27 +166,28 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         const VArray<ColorGeometry4f> color_attribute =
             attributes.lookup_or_default<ColorGeometry4f>(
                 name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
-
-        for (int i = 0; i < vertex_map.size(); i++) {
-          ColorGeometry4f colorGeometry = color_attribute[mesh_vertex_index_LUT[i]];
-          float4 vertColor(colorGeometry.r, colorGeometry.g, colorGeometry.b, colorGeometry.a);
-          if (export_params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
-            linearrgb_to_srgb_v4(vertColor, vertColor);
+        if (!color_attribute.is_empty()) {
+          plyData.vertex_colors.reserve(ply_to_vertex.size());
+          for (int vertex_index : ply_to_vertex) {
+            float4 color = float4(color_attribute[vertex_index]);
+            if (export_params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
+              linearrgb_to_srgb_v4(color, color);
+            }
+            plyData.vertex_colors.append(color);
           }
-          plyData.vertex_colors.append(vertColor);
         }
       }
     }
 
-    /* Edges */
+    /* Loose edges */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     if (loose_edges.count > 0) {
       Span<MEdge> edges = mesh->edges();
       for (int i = 0; i < edges.size(); ++i) {
         if (loose_edges.is_loose_bits[i]) {
-          int index_one = ply_vertex_index_LUT[edges[i].v1];
-          int index_two = ply_vertex_index_LUT[edges[i].v2];
-          plyData.edges.append({index_one, index_two});
+          int v1 = vertex_to_ply[edges[i].v1];
+          int v2 = vertex_to_ply[edges[i].v2];
+          plyData.edges.append({v1, v2});
         }
       }
     }
@@ -224,54 +202,68 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 }
 
 void generate_vertex_map(const Mesh *mesh,
-                         const float2 *uv_map,
                          const PLYExportParams &export_params,
-                         Map<UV_vertex_key, int> &r_map)
+                         Vector<int> &r_ply_to_vertex,
+                         Vector<int> &r_vertex_to_ply,
+                         Vector<int> &r_loop_to_ply,
+                         Vector<float2> &r_uvs)
 {
+  bool export_uv = false;
+  VArraySpan<float2> uv_map;
+  if (export_params.export_uv) {
+    const StringRef uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
+    if (!uv_name.is_empty()) {
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      uv_map = attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
+      export_uv = !uv_map.is_empty();
+    }
+  }
 
-  const Span<MPoly> polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
-  const int totvert = mesh->totvert;
+  r_vertex_to_ply.resize(mesh->totvert, -1);
+  r_loop_to_ply.resize(mesh->totloop, -1);
 
-  r_map.reserve(totvert);
-
-  if (uv_map == nullptr || !export_params.export_uv) {
-    for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
-      UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      r_map.add_new(key, int(r_map.size()));
+  /* If we do not export or have UVs, then mapping of vertex indices is simple. */
+  if (!export_uv) {
+    r_ply_to_vertex.resize(mesh->totvert);
+    for (int index = 0; index < mesh->totvert; index++) {
+      r_vertex_to_ply[index] = index;
+      r_ply_to_vertex[index] = index;
+    }
+    for (int index = 0; index < mesh->totloop; index++) {
+      r_loop_to_ply[index] = corner_verts[index];
     }
     return;
   }
 
-  const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(polys.data(),
-                                                       nullptr,
-                                                       nullptr,
-                                                       corner_verts.data(),
-                                                       reinterpret_cast<const float(*)[2]>(uv_map),
-                                                       uint(polys.size()),
-                                                       totvert,
-                                                       limit,
-                                                       false,
-                                                       false);
+  /* We are exporting UVs. Need to build mappings of what
+   * any unique (vertex, UV) values will map into the PLY data. */
+  Map<UV_vertex_key, int> vertex_map;
+  vertex_map.reserve(mesh->totvert);
+  r_ply_to_vertex.reserve(mesh->totvert);
+  r_uvs.reserve(mesh->totvert);
 
-  for (int vertex_index = 0; vertex_index < totvert; vertex_index++) {
-    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-
-    if (uv_vert == nullptr) {
-      UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      r_map.add_new(key, int(r_map.size()));
-    }
-
-    for (; uv_vert; uv_vert = uv_vert->next) {
-      /* Store UV vertex coordinates. */
-      const int loopstart = polys[uv_vert->poly_index].loopstart;
-      float2 vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index]);
-      UV_vertex_key key = UV_vertex_key(vert_uv_coords, vertex_index);
-      r_map.add(key, int(r_map.size()));
+  for (int loop_index = 0; loop_index < int(corner_verts.size()); loop_index++) {
+    int vertex_index = corner_verts[loop_index];
+    UV_vertex_key key = UV_vertex_key(uv_map[loop_index], vertex_index);
+    int ply_index = vertex_map.lookup_or_add(key, int(vertex_map.size()));
+    r_vertex_to_ply[vertex_index] = ply_index;
+    r_loop_to_ply[loop_index] = ply_index;
+    while (r_uvs.size() <= ply_index) {
+      r_uvs.append(key.UV);
+      r_ply_to_vertex.append(key.mesh_vertex_index);
     }
   }
-  BKE_mesh_uv_vert_map_free(uv_vert_map);
+
+  /* Add zero UVs for any loose vertices. */
+  for (int vertex_index = 0; vertex_index < mesh->totvert; vertex_index++) {
+    if (r_vertex_to_ply[vertex_index] != -1)
+      continue;
+    int ply_index = int(r_uvs.size());
+    r_vertex_to_ply[vertex_index] = ply_index;
+    r_uvs.append({0, 0});
+    r_ply_to_vertex.append(vertex_index);
+  }
 }
 
 }  // namespace blender::io::ply
