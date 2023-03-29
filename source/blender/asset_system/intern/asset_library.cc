@@ -29,9 +29,10 @@ using namespace blender::asset_system;
 
 bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
 
-/* Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
 void AS_asset_libraries_exit()
 {
+  /* NOTE: Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
+
   AssetLibraryService::destroy();
 }
 
@@ -42,12 +43,11 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-/**
- * Loading an asset library at this point only means loading the catalogs. Later on this should
- * invoke reading of asset representations too.
- */
 struct ::AssetLibrary *AS_asset_library_load(const char *library_path)
 {
+  /* NOTE: Loading an asset library at this point only means loading the catalogs.
+   * Later on this should invoke reading of asset representations too. */
+
   AssetLibraryService *service = AssetLibraryService::get();
   asset_system::AssetLibrary *lib;
   if (library_path == nullptr || library_path[0] == '\0') {

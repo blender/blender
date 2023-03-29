@@ -24,10 +24,6 @@ namespace blender::ui {
 
 /* ---------------------------------------------------------------------- */
 
-/**
- * Add a tree-item to the container. This is the only place where items should be added, it
- * handles important invariants!
- */
 AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
     std::unique_ptr<AbstractTreeViewItem> item)
 {

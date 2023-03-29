@@ -281,6 +281,7 @@ eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh)
  * \{ */
 
 /* Draw Engine */
+
 void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *me, eMeshBatchDirtyMode mode) = nullptr;
 void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache) = nullptr;
 

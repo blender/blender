@@ -646,6 +646,8 @@ typedef struct uiPopupMenu uiPopupMenu;
 
 uiPopupMenu *UI_popup_menu_begin(struct bContext *C, const char *title, int icon) ATTR_NONNULL();
 /**
+ * Directly create a popup menu that is not refreshed on redraw.
+ *
  * Only return handler, and set optional title.
  * \param block_name: Assigned to uiBlock.name (useful info for debugging).
  */
@@ -3010,6 +3012,8 @@ void UI_context_active_but_prop_get_filebrowser(const struct bContext *C,
                                                 bool *r_is_userdef);
 /**
  * For new/open operators.
+ *
+ * This is for browsing and editing the ID-blocks used.
  */
 void UI_context_active_but_prop_get_templateID(struct bContext *C,
                                                struct PointerRNA *r_ptr,

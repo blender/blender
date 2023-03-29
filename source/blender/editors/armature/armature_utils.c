@@ -923,9 +923,10 @@ void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag)
   ED_armature_ebone_selectflag_set(ebone, ebone->flag & ~flag);
 }
 
-/* could be used in more places */
 void ED_armature_ebone_select_set(EditBone *ebone, bool select)
 {
+  /* NOTE: this function could be used in more places. */
+
   int flag;
   if (select) {
     BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);

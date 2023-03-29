@@ -316,10 +316,11 @@ const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
-/* UV map edge selections are stored on face corners (loops) and not on edges
- * because we need selections per face edge, even when the edge is split in UV space. */
 const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_index)
 {
+  /* UV map edge selections are stored on face corners (loops) and not on edges
+   * because we need selections per face edge, even when the edge is split in UV space. */
+
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);

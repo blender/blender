@@ -132,7 +132,9 @@ float SEQ_time_content_end_frame_get(const struct Scene *scene, const struct Seq
  */
 void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
 /**
- * Update length of meta-strip after any contained strip length or position has changed.
+ * Update meta strip content start and end, update sound playback range.
+ * To be used after any contained strip length or position has changed.
+ *
  * \note this function is currently only used internally and in versioning code.
  */
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);

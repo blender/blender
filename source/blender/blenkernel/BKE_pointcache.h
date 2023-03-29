@@ -329,7 +329,7 @@ int BKE_ptcache_mem_pointers_seek(int point_index,
                                   void *cur[BPHYS_TOT_DATA]);
 
 /**
- * Main cache reading call.
+ * Main cache reading call which reads cache from disk or memory.
  * Possible to get old or interpolated result.
  */
 int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
@@ -341,11 +341,12 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
 int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /******************* Allocate & free ***************/
+
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptcache_free_mem(struct ListBase *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
-/* returns first point cache */
+/** Returns first point cache. */
 struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
                                          const struct ListBase *ptcaches_old,
                                          int flag);

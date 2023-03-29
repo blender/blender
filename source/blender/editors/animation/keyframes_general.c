@@ -376,8 +376,6 @@ float get_default_rna_value(FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
   return default_value;
 }
 
-/* This function blends the selected keyframes to the default value of the property the fcurve
- * drives. */
 void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor)
 {
   PointerRNA ptr;

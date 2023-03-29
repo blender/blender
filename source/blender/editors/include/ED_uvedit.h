@@ -203,6 +203,13 @@ void uvedit_face_select_shared_vert(const struct Scene *scene,
                                     const bool select,
                                     const bool do_history,
                                     BMUVOffsets offsets);
+/**
+ * Selects UV edges and shared vertices according to sticky_flag.
+ *
+ * \param sticky_flag:
+ * - #SI_STICKY_LOC: selects all UV edges that share the same mesh vertices and UV coordinates.
+ * - #SI_STICKY_VERTEX: selects all UV edges sharing the same mesh vertices.
+ */
 void uvedit_edge_select_shared_vert(const struct Scene *scene,
                                     struct BMEditMesh *em,
                                     struct BMLoop *l,
@@ -210,6 +217,13 @@ void uvedit_edge_select_shared_vert(const struct Scene *scene,
                                     const int sticky_flag,
                                     const bool do_history,
                                     BMUVOffsets offsets);
+/**
+ * Selects shared UVs based on #sticky_flag.
+ *
+ * \param sticky_flag: Type of sticky selection :
+ * - #SI_STICKY_LOC: selects all UVs sharing same mesh vertex and UV coordinates.
+ * - #SI_STICKY_VERTEX: selects all UVs sharing same mesh vertex.
+ */
 void uvedit_uv_select_shared_vert(const struct Scene *scene,
                                   struct BMEditMesh *em,
                                   struct BMLoop *l,
@@ -218,7 +232,9 @@ void uvedit_uv_select_shared_vert(const struct Scene *scene,
                                   const bool do_history,
                                   BMUVOffsets offsets);
 
-/* Sets required UV edge flags as specified by the sticky_flag. */
+/**
+ * Sets required UV edge flags as specified by the `sticky_flag`.
+ */
 void uvedit_edge_select_set_noflush(const struct Scene *scene,
                                     struct BMLoop *l,
                                     const bool select,
@@ -333,6 +349,9 @@ struct FaceIsland {
   float aspect_y;
 };
 
+/**
+ * Calculate islands and add them to \a island_list returning the number of items added.
+ */
 int bm_mesh_calc_uv_islands(const Scene *scene,
                             struct BMesh *bm,
                             ListBase *island_list,

@@ -536,7 +536,6 @@ const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *ite
   return NULL;
 }
 
-/* Silly function, we don't use arg. just check its compatible with `__deepcopy__`. */
 int PyC_CheckArgs_DeepCopy(PyObject *args)
 {
   PyObject *dummy_pydict;
@@ -553,7 +552,6 @@ int PyC_CheckArgs_DeepCopy(PyObject *args)
  * These are useful to run directly from a debugger to be able to inspect the state.
  * \{ */
 
-/* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var)
 {
   const char *null_str = "<null>";
@@ -707,9 +705,10 @@ void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno)
 /** \name Object Access Utilities
  * \{ */
 
-/* Would be nice if python had this built in */
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 {
+  /* NOTE: Would be nice if python had this built in. */
+
   Py_ssize_t i;
   PyObject *item = o;
   const char *attr;
@@ -1154,11 +1153,11 @@ bool PyC_IsInterpreterActive(void)
 /** \name #Py_SetPythonHome Wrapper
  * \{ */
 
-/* Would be nice if python had this built in
- * See: https://wiki.blender.org/wiki/Tools/Debugging/PyFromC
- */
 void PyC_RunQuicky(const char *filepath, int n, ...)
 {
+  /* NOTE: Would be nice if python had this built in
+   * See: https://wiki.blender.org/wiki/Tools/Debugging/PyFromC */
+
   FILE *fp = fopen(filepath, "r");
 
   if (fp) {
@@ -1303,7 +1302,6 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
   }
 }
 
-/* generic function to avoid depending on RNA */
 void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
 {
   PyObject *as_pointer;

@@ -110,8 +110,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   /* Beautify improves performance of packer. (Optional)
    * Long thin triangles, especially at 45 degree angles,
    * can trigger worst-case performance in #trace_triangle.
-   * Using `Beautify` brings more inputs into average-case.
-   */
+   * Using `Beautify` brings more inputs into average-case. */
   BLI_polyfill_beautify(source, vert_count, tris, arena, heap);
 
   /* Add as triangles. */
@@ -560,14 +559,13 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
  * Helper function for #pack_islands_alpaca_rotate
  *
  * The "Hole" is an AABB region of the UV plane that is stored in an unusual way.
- * `hole` is the xy position of lower left corner of the AABB.
- * `hole_diagonal` is the extent of the AABB, possibly flipped.
- * `hole_rotate` is a boolean value, tracking if `hole_diagonal` is flipped.
+ * \param hole: is the XY position of lower left corner of the AABB.
+ * \param hole_diagonal: is the extent of the AABB, possibly flipped.
+ * \param hole_rotate: is a boolean value, tracking if `hole_diagonal` is flipped.
  *
  * Given an alternate AABB specified by `(u0, v0, u1, v1)`, the helper will
- * update the Hole to the condidate location if it is larger.
+ * update the Hole to the candidate location if it is larger.
  */
-
 static void update_hole_rotate(float2 &hole,
                                float2 &hole_diagonal,
                                bool &hole_rotate,

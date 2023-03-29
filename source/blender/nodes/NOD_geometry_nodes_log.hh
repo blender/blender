@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-
-/**
+/** \file
+ * \ingroup nodes
+ *
  * Many geometry nodes related UI features need access to data produced during evaluation. Not only
  * is the final output required but also the intermediate results. Those features include attribute
  * search, node warnings, socket inspection and the viewer node.
@@ -23,6 +23,8 @@
  *   thread-local loggers to provide simple access. Importantly, the (preprocessed) log is only
  *   created when it is actually used by UI code.
  */
+
+#pragma once
 
 #include <chrono>
 

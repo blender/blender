@@ -56,6 +56,10 @@ struct ID;
 extern "C" {
 #endif
 
+/**
+ * Sub-classes of #pyrna_struct_Type which support idprop definitions use this as a meta-class.
+ * \note tp_base member is set to `&PyType_Type` on initialization.
+ */
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;

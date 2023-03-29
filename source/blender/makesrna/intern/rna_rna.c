@@ -23,11 +23,13 @@
  * \{ */
 
 /* Reuse for dynamic types. */
+
 const EnumPropertyItem DummyRNA_NULL_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Reuse for dynamic types with default value */
+/* Reuse for dynamic types with default value. */
+
 const EnumPropertyItem DummyRNA_DEFAULT_items[] = {
     {0, "DEFAULT", 0, "Default", ""},
     {0, NULL, 0, NULL, NULL},

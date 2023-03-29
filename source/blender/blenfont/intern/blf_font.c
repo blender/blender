@@ -1348,9 +1348,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.col_init[3] = 0;
 }
 
-/**
- * Create an FT_Face for this font if not already existing.
- */
 bool blf_ensure_face(FontBLF *font)
 {
   if (font->face) {
@@ -1506,11 +1503,6 @@ static const struct FaceDetails static_face_details[] = {
     {"NotoSansThai-VariableFont_wdth,wght.woff2", TT_UCR_THAI, 0, 0, 0},
 };
 
-/**
- * Create a new font from filename OR memory pointer.
- * For normal operation pass NULL as FT_Library object. Pass a custom FT_Library if you
- * want to use the font without its lifetime being managed by the FreeType cache subsystem.
- */
 FontBLF *blf_font_new_ex(const char *name,
                          const char *filepath,
                          const uchar *mem,

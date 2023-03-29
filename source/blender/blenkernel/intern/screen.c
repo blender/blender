@@ -1256,7 +1256,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   memset(&region->drawrct, 0, sizeof(region->drawrct));
 }
 
-/* for the saved 2.50 files without regiondata */
 void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
 {
   LISTBASE_FOREACH (ARegion *, region, regions) {
