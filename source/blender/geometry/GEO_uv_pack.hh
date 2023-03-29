@@ -88,6 +88,7 @@ class PackIsland {
   void finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
  private:
+  void calculate_pivot(); /* Choose a pivot based on triangles. */
   blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
 };
