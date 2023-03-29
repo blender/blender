@@ -569,10 +569,10 @@ void LightManager::device_update_tree(Device *,
    * To do so, we repeatedly move to the left child of the current node until we reach the leftmost
    * descendant, while keeping track of the right child of each node we visited by storing the
    * pointer in the `right_node_stack`.
-   * Once finished visiting the left subtree, we retrieve the the last stored pointer from
+   * Once finished visiting the left subtree, we retrieve the last stored pointer from
    * `right_node_stack`, assign it to its parent (retrieved from `left_index_stack`), and repeat
    * the process from there. */
-  int left_index_stack[32]; /* sizeof(bit_trail) * 8 == 32 */
+  int left_index_stack[32]; /* `sizeof(bit_trail) * 8 == 32`. */
   LightTreeNode *right_node_stack[32];
   int stack_id = 0;
   const LightTreeNode *node = light_tree.get_root();

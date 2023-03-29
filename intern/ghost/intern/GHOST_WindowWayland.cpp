@@ -114,7 +114,7 @@ struct GWL_Window {
    */
   wl_fixed_t scale_fractional = 0;
 
-  /** A temporary token used for the window to be notified of of it's activation. */
+  /** A temporary token used for the window to be notified of it's activation. */
   struct xdg_activation_token_v1 *xdg_activation_token = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR

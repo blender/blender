@@ -792,7 +792,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   return bake_pipeline_state(ctx, prim_type, pipeline_descriptor);
 }
 
-/* Variant which bakes a pipeline state based on an an existing MTLRenderPipelineStateDescriptor.
+/* Variant which bakes a pipeline state based on an existing MTLRenderPipelineStateDescriptor.
  * This function should be callable from a secondary compilation thread. */
 MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     MTLContext *ctx,

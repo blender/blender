@@ -156,7 +156,7 @@
 /**
  * Singe bytes (or boolean) arrays need a higher number of steps
  * because the resulting values are not unique enough to result in evenly distributed values.
- * Use more accumulation when the the size of the structs is small, see: #105046.
+ * Use more accumulation when the size of the structs is small, see: #105046.
  *
  * With 6 -> 22, one byte each - means an array of booleans can be combine into 22 bits
  * representing 4,194,303 different combinations.
